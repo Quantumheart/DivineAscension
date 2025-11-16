@@ -100,7 +100,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MeleeWeaponsDamage, 0.25f },
                     { VintageStoryStats.MeleeWeaponsSpeed, 0.15f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal10 }
+                SpecialEffects = new List<string> { SpecialEffectIds.Lifesteal10 }
             },
             new(BlessingIds.KhorasUnbreakable, "Unbreakable", DeityType.Khoras)
             {
@@ -115,7 +115,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MeleeWeaponArmor, 0.30f },
                     { VintageStoryStats.MaxHealthExtraPoints, 1.25f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
+                SpecialEffects = new List<string> { SpecialEffectIds.DamageReduction10 }
             },
 
             // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
@@ -135,7 +135,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
                     { VintageStoryStats.WalkSpeed, 0.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.AoeCleave }
+                SpecialEffects = new List<string> { SpecialEffectIds.AoeCleave }
             },
 
             // RELIGION BLESSINGS (4 total) - Unified group buffs
@@ -207,7 +207,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MeleeWeaponsSpeed, 0.15f },
                     { VintageStoryStats.WalkSpeed, 0.08f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.ReligionWarCry }
+                SpecialEffects = new List<string> { SpecialEffectIds.ReligionWarCry }
             }
         };
     }
@@ -246,7 +246,7 @@ public static class BlessingDefinitions
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaKeenEye },
                 StatModifiers = new Dictionary<string, float> { { VintageStoryStats.RangedWeaponsDamage, 0.15f } },
-                SpecialEffects = new List<string> { SpecialEffects.CriticalChance10 }
+                SpecialEffects = new List<string> { SpecialEffectIds.CriticalChance10 }
             },
             new(BlessingIds.LysaSilentStalker, "Silent Stalker", DeityType.Lysa)
             {
@@ -261,7 +261,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.WalkSpeed, 0.18f },
                     { VintageStoryStats.MeleeWeaponsDamage, 0.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.StealthBonus }
+                SpecialEffects = new List<string> { SpecialEffectIds.StealthBonus }
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
@@ -274,7 +274,7 @@ public static class BlessingDefinitions
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaDeadlyPrecision },
                 StatModifiers = new Dictionary<string, float> { { VintageStoryStats.RangedWeaponsDamage, 0.25f } },
-                SpecialEffects = new List<string> { SpecialEffects.CriticalChance20, SpecialEffects.HeadshotBonus }
+                SpecialEffects = new List<string> { SpecialEffectIds.CriticalChance20, SpecialEffectIds.HeadshotBonus }
             },
             new(BlessingIds.LysaApexPredator, "Apex Predator", DeityType.Lysa)
             {
@@ -290,7 +290,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MeleeWeaponsDamage, 0.18f },
                     { VintageStoryStats.MeleeWeaponsSpeed, 0.15f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.TrackingVision }
+                SpecialEffects = new List<string> { SpecialEffectIds.TrackingVision }
             },
 
             // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
@@ -309,7 +309,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.WalkSpeed, 0.20f },
                     { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.Multishot, SpecialEffects.AnimalCompanion }
+                SpecialEffects = new List<string> { SpecialEffectIds.Multishot, SpecialEffectIds.AnimalCompanion }
             },
 
             // RELIGION BLESSINGS (4 total) - Unified pack buffs
@@ -379,7 +379,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.WalkSpeed, 0.22f },
                     { VintageStoryStats.MeleeWeaponsSpeed, 0.15f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.ReligionPackTracking }
+                SpecialEffects = new List<string> { SpecialEffectIds.ReligionPackTracking }
             }
         };
     }
@@ -407,7 +407,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
                     { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal3 }
+                SpecialEffects = new List<string> { SpecialEffectIds.Lifesteal3 }
             },
 
             // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
@@ -420,7 +420,7 @@ public static class BlessingDefinitions
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.MorthenDeathsEmbrace },
                 StatModifiers = new Dictionary<string, float> { { VintageStoryStats.MeleeWeaponsDamage, 0.15f } },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal10, SpecialEffects.PoisonDot }
+                SpecialEffects = new List<string> { SpecialEffectIds.Lifesteal10, SpecialEffectIds.PoisonDot }
             },
             new(BlessingIds.MorthenUndying, "Undying", DeityType.Morthen)
             {
@@ -449,7 +449,7 @@ public static class BlessingDefinitions
                 PrerequisiteBlessings = new List<string> { BlessingIds.MorthenSoulReaper },
                 StatModifiers = new Dictionary<string, float> { { VintageStoryStats.MeleeWeaponsDamage, 0.25f } },
                 SpecialEffects = new List<string>
-                    { SpecialEffects.Lifesteal15, SpecialEffects.PoisonDotStrong, SpecialEffects.PlagueAura }
+                    { SpecialEffectIds.Lifesteal15, SpecialEffectIds.PoisonDotStrong, SpecialEffectIds.PlagueAura }
             },
             new(BlessingIds.MorthenDeathless, "Deathless", DeityType.Morthen)
             {
@@ -465,7 +465,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MeleeWeaponArmor, 0.25f },
                     { VintageStoryStats.HealingEffectiveness, 0.20f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
+                SpecialEffects = new List<string> { SpecialEffectIds.DamageReduction10 }
             },
 
             // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
@@ -486,7 +486,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.HealingEffectiveness, 0.15f }
                 },
                 SpecialEffects = new List<string>
-                    { SpecialEffects.DeathAura, SpecialEffects.ExecuteThreshold, SpecialEffects.Lifesteal20 }
+                    { SpecialEffectIds.DeathAura, SpecialEffectIds.ExecuteThreshold, SpecialEffectIds.Lifesteal20 }
             },
 
             // RELIGION BLESSINGS (4 total) - Unified death cult progression
@@ -558,7 +558,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.HealingEffectiveness, 0.18f },
                     { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.ReligionDeathMark }
+                SpecialEffects = new List<string> { SpecialEffectIds.ReligionDeathMark }
             }
         };
     }
@@ -602,7 +602,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MeleeWeaponsDamage, 0.12f },
                     { VintageStoryStats.RangedWeaponsDamage, 0.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal3 }
+                SpecialEffects = new List<string> { SpecialEffectIds.Lifesteal3 }
             },
             new(BlessingIds.AethraBlessedShield, "Blessed Shield", DeityType.Aethra)
             {
@@ -617,7 +617,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MeleeWeaponArmor, 0.18f },
                     { VintageStoryStats.MaxHealthExtraPoints, 1.15f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
+                SpecialEffects = new List<string> { SpecialEffectIds.DamageReduction10 }
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
@@ -634,7 +634,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MeleeWeaponsDamage, 0.22f },
                     { VintageStoryStats.RangedWeaponsDamage, 0.18f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal10 }
+                SpecialEffects = new List<string> { SpecialEffectIds.Lifesteal10 }
             },
             new(BlessingIds.AethraAegisOfLight, "Aegis of Light", DeityType.Aethra)
             {
@@ -650,7 +650,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MaxHealthExtraPoints, 1.25f },
                     { VintageStoryStats.HealingEffectiveness, 0.18f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
+                SpecialEffects = new List<string> { SpecialEffectIds.DamageReduction10 }
             },
 
             // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
@@ -670,7 +670,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
                     { VintageStoryStats.HealingEffectiveness, 0.20f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal15 }
+                SpecialEffects = new List<string> { SpecialEffectIds.Lifesteal15 }
             },
 
             // RELIGION BLESSINGS (4 total) - Divine congregation
@@ -771,7 +771,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.WalkSpeed, 0.15f },
                     { VintageStoryStats.MeleeWeaponsDamage, 0.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.StealthBonus }
+                SpecialEffects = new List<string> { SpecialEffectIds.StealthBonus }
             },
 
             // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
@@ -788,7 +788,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MeleeWeaponsDamage, 0.18f },
                     { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.CriticalChance10 }
+                SpecialEffects = new List<string> { SpecialEffectIds.CriticalChance10 }
             },
             new(BlessingIds.UmbrosPhantomDodge, "Phantom Dodge", DeityType.Umbros)
             {
@@ -803,7 +803,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.WalkSpeed, 0.25f },
                     { VintageStoryStats.MeleeWeaponsSpeed, 0.12f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.StealthBonus }
+                SpecialEffects = new List<string> { SpecialEffectIds.StealthBonus }
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
@@ -820,7 +820,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MeleeWeaponsDamage, 0.28f },
                     { VintageStoryStats.MeleeWeaponsSpeed, 0.15f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.CriticalChance20, SpecialEffects.ExecuteThreshold }
+                SpecialEffects = new List<string> { SpecialEffectIds.CriticalChance20, SpecialEffectIds.ExecuteThreshold }
             },
             new(BlessingIds.UmbrosVanish, "Vanish", DeityType.Umbros)
             {
@@ -836,7 +836,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MeleeWeaponsSpeed, 0.18f },
                     { VintageStoryStats.MeleeWeaponsDamage, 0.12f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.StealthBonus }
+                SpecialEffects = new List<string> { SpecialEffectIds.StealthBonus }
             },
 
             // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
@@ -854,7 +854,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.WalkSpeed, 0.30f },
                     { VintageStoryStats.MeleeWeaponsSpeed, 0.20f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.StealthBonus, SpecialEffects.CriticalChance20 }
+                SpecialEffects = new List<string> { SpecialEffectIds.StealthBonus, SpecialEffectIds.CriticalChance20 }
             },
 
             // RELIGION BLESSINGS (4 total) - Shadow cult
@@ -1146,7 +1146,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MeleeWeaponArmor, 0.22f },
                     { VintageStoryStats.MaxHealthExtraPoints, 1.18f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
+                SpecialEffects = new List<string> { SpecialEffectIds.DamageReduction10 }
             },
             new(BlessingIds.GaiaNaturesBlessing, "Nature's Blessing", DeityType.Gaia)
             {
@@ -1178,7 +1178,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MaxHealthExtraPoints, 1.28f },
                     { VintageStoryStats.MeleeWeaponsDamage, 0.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
+                SpecialEffects = new List<string> { SpecialEffectIds.DamageReduction10 }
             },
             new(BlessingIds.GaiaLifebloom, "Lifebloom", DeityType.Gaia)
             {
@@ -1211,7 +1211,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.HealingEffectiveness, 0.30f },
                     { VintageStoryStats.MeleeWeaponsDamage, 0.15f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
+                SpecialEffects = new List<string> { SpecialEffectIds.DamageReduction10 }
             },
 
             // RELIGION BLESSINGS (4 total) - Earth wardens

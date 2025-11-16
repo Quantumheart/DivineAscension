@@ -5,6 +5,7 @@ using PantheonWars.Constants;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Systems.Interfaces;
+using PantheonWars.Systems.SpecialEffects;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using Vintagestory.GameContent;
@@ -14,30 +15,26 @@ namespace PantheonWars.Systems;
 /// <summary>
 ///     Manages blessing effects and stat modifiers (Phase 3.3)
 /// </summary>
-public class BlessingEffectSystem : IBlessingEffectSystem
+public class BlessingEffectSystem(
+    ICoreServerAPI sapi,
+    IBlessingRegistry blessingRegistry,
+    IPlayerReligionDataManager playerReligionDataManager,
+    IReligionManager religionManager)
+    : IBlessingEffectSystem
 {
     // Track applied modifiers per player for cleanup
     private readonly Dictionary<string, HashSet<string>> _appliedModifiers = new();
-    private readonly IBlessingRegistry _blessingRegistry;
+    private readonly IBlessingRegistry _blessingRegistry = blessingRegistry ?? throw new ArgumentNullException(nameof(blessingRegistry));
 
     // Cache for stat modifiers to reduce computation
     private readonly Dictionary<string, Dictionary<string, float>> _playerModifierCache = new();
-    private readonly IPlayerReligionDataManager _playerReligionDataManager;
-    private readonly IReligionManager _religionManager;
+    private readonly IPlayerReligionDataManager _playerReligionDataManager = playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+    private readonly IReligionManager _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
     private readonly Dictionary<string, Dictionary<string, float>> _religionModifierCache = new();
-    private readonly ICoreServerAPI _sapi;
+    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
 
-    public BlessingEffectSystem(
-        ICoreServerAPI sapi,
-        IBlessingRegistry blessingRegistry,
-        IPlayerReligionDataManager playerReligionDataManager,
-        IReligionManager religionManager)
-    {
-        _sapi = sapi;
-        _blessingRegistry = blessingRegistry;
-        _playerReligionDataManager = playerReligionDataManager;
-        _religionManager = religionManager;
-    }
+    // Special effects system
+    private SpecialEffectHandlerRegistry? _specialEffectRegistry;
 
     /// <summary>
     ///     Initializes the blessing effect system
@@ -45,6 +42,10 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     public void Initialize()
     {
         _sapi.Logger.Notification($"{SystemConstants.LogPrefix} {SystemConstants.InfoInitializingBlessingSystem}");
+
+        // Initialize special effects system
+        _specialEffectRegistry = new SpecialEffectHandlerRegistry(_sapi);
+        _specialEffectRegistry.Initialize();
 
         // Register event handlers
         _sapi.Event.PlayerJoin += OnPlayerJoin;
@@ -234,9 +235,12 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         var playerData = _playerReligionDataManager.GetOrCreatePlayerData(playerUID);
         if (playerData.ReligionUID != null) _religionModifierCache.Remove(playerData.ReligionUID);
 
-        // Recalculate and apply
+        // Recalculate and apply stat modifiers
         var player = _sapi.World.PlayerByUid(playerUID) as IServerPlayer;
         if (player != null) ApplyBlessingsToPlayer(player);
+
+        // Load special effect handlers
+        LoadSpecialEffectHandlers(playerUID);
 
         _sapi.Logger.Debug(
             $"{SystemConstants.LogPrefix} {string.Format(SystemConstants.SuccessRefreshedBlessingsFormat, playerUID)}");
@@ -350,6 +354,10 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     /// </summary>
     internal void OnPlayerJoin(IServerPlayer player)
     {
+        // Attach blessing entity behavior to player for special effects
+        AttachBlessingBehavior(player);
+
+        // Apply stat modifiers and load special effect handlers
         RefreshPlayerBlessings(player.PlayerUID);
     }
 
@@ -420,5 +428,63 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             VintageStoryStats.HealingEffectiveness => SystemConstants.StatDisplayHealthRegen,
             _ => statKey
         };
+    }
+
+    /// <summary>
+    ///     Attaches BlessingEntityBehavior to player entity for special effects handling
+    /// </summary>
+    internal void AttachBlessingBehavior(IServerPlayer player)
+    {
+        if (_specialEffectRegistry == null || player?.Entity == null) return;
+
+        // Check if behavior already attached
+        var existingBehavior = player.Entity.GetBehavior<BlessingEntityBehavior>();
+        if (existingBehavior != null) return; // Already attached
+
+        // Create and attach new behavior
+        var blessingBehavior = new BlessingEntityBehavior(player.Entity, _specialEffectRegistry);
+        player.Entity.AddBehavior(blessingBehavior);
+
+        _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Attached BlessingEntityBehavior to player {player.PlayerName}");
+    }
+
+    /// <summary>
+    ///     Loads special effect handlers for a player based on their active blessings
+    /// </summary>
+    internal void LoadSpecialEffectHandlers(string playerUID)
+    {
+        if (_specialEffectRegistry == null) return;
+
+        var player = _sapi.World.PlayerByUid(playerUID) as IServerPlayer;
+        if (player?.Entity == null) return;
+
+        // Get blessing behavior
+        var blessingBehavior = player.Entity.GetBehavior<BlessingEntityBehavior>();
+        if (blessingBehavior == null)
+        {
+            _sapi.Logger.Warning($"{SystemConstants.LogPrefix} BlessingEntityBehavior not found for player {player.PlayerName} - cannot load special effects");
+            return;
+        }
+
+        // Get all active blessings (player + religion)
+        var (playerBlessings, religionBlessings) = GetActiveBlessings(playerUID);
+        var allBlessings = new List<Blessing>();
+        allBlessings.AddRange(playerBlessings);
+        allBlessings.AddRange(religionBlessings);
+
+        // Extract all special effect IDs
+        var effectIds = new List<string>();
+        foreach (var blessing in allBlessings)
+        {
+            if (blessing.SpecialEffects != null && blessing.SpecialEffects.Count > 0)
+            {
+                effectIds.AddRange(blessing.SpecialEffects);
+            }
+        }
+
+        // Load handlers into behavior
+        blessingBehavior.LoadHandlers(effectIds);
+
+        _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Loaded {effectIds.Count} special effect(s) for player {player.PlayerName}");
     }
 }

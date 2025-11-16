@@ -8,7 +8,7 @@ namespace PantheonWars.Constants;
 ///     Use these constants instead of hardcoded strings to prevent typos and enable refactoring.
 /// </summary>
 [ExcludeFromCodeCoverage]
-public static class SpecialEffects
+public static class SpecialEffectIds
 {
     #region Damage Reduction Effects
 
