@@ -43,7 +43,7 @@ public class SpecialEffectHandlerRegistry(ICoreServerAPI api)
         // RegisterHandler(new CriticalStrikeHandler("critical_chance20", 0.20f, 2.0f));
 
         // Defense - Damage Reduction
-        RegisterHandler(new DamageReductionHandler("damage_reduction10", 0.10f));
+        RegisterHandler(new DamageReductionHandler(Constants.SpecialEffectIds.DamageReduction10, 0.10f));
 
         // Combat - DoT Effects
         // (Poison handlers will be added in next iteration)
