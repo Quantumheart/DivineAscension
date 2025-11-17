@@ -1,15 +1,12 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Moq;
 using PantheonWars.Data;
-using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Systems;
 using PantheonWars.Systems.Interfaces;
 using PantheonWars.Tests.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
-using Xunit;
 
 namespace PantheonWars.Tests.Systems;
 
@@ -727,6 +724,90 @@ public class BlessingEffectSystemTests
         _mockPlayerReligionDataManager.VerifyAdd(
             m => m.OnPlayerLeavesReligion += It.IsAny<PlayerReligionDataManager.PlayerReligionDataChangedDelegate>(),
             Times.Once());
+    }
+
+    #endregion
+
+    #region AttachBlessingBehavior Tests
+
+    [Fact]
+    public void AttachBlessingBehavior_WithNullPlayer_DoesNotThrow()
+    {
+        // Arrange
+        _effectSystem.Initialize(); // Initialize to setup registry
+
+        // Act & Assert - should not throw
+        _effectSystem.AttachBlessingBehavior(null!);
+    }
+
+    [Fact]
+    public void AttachBlessingBehavior_WithNullPlayerEntity_DoesNotThrow()
+    {
+        // Arrange
+        _effectSystem.Initialize();
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.Entity).Returns((EntityPlayer)null!);
+
+        // Act & Assert - should not throw
+        _effectSystem.AttachBlessingBehavior(mockPlayer.Object);
+    }
+
+    #endregion
+
+    #region LoadSpecialEffectHandlers Tests
+
+    [Fact]
+    public void LoadSpecialEffectHandlers_WithPlayerNotFound_DoesNotThrow()
+    {
+        // Arrange
+        _effectSystem.Initialize();
+        var mockWorld = new Mock<IServerWorldAccessor>();
+        _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
+        mockWorld.Setup(w => w.PlayerByUid("unknown_player")).Returns((IServerPlayer)null!);
+
+        // Act & Assert - should not throw
+        _effectSystem.LoadSpecialEffectHandlers("unknown_player");
+    }
+
+    [Fact]
+    public void LoadSpecialEffectHandlers_WithNullPlayerEntity_DoesNotThrow()
+    {
+        // Arrange
+        _effectSystem.Initialize();
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.Entity).Returns((EntityPlayer)null!);
+
+        var mockWorld = new Mock<IServerWorldAccessor>();
+        _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
+        mockWorld.Setup(w => w.PlayerByUid("player1")).Returns(mockPlayer.Object);
+
+        // Act & Assert - should not throw
+        _effectSystem.LoadSpecialEffectHandlers("player1");
+    }
+
+    #endregion
+
+    #region RemoveBlessingsFromPlayer Tests
+
+    [Fact]
+    public void RemoveBlessingsFromPlayer_WithNullPlayerEntity_DoesNotThrow()
+    {
+        // Arrange
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.Entity).Returns((EntityPlayer)null!);
+
+        // Act & Assert - should not throw
+        _effectSystem.RemoveBlessingsFromPlayer(mockPlayer.Object);
+    }
+
+    [Fact]
+    public void RemoveBlessingsFromPlayer_WithNoPreviousModifiers_DoesNotThrow()
+    {
+        // Arrange
+        var mockPlayer = TestFixtures.CreateMockServerPlayer("player1", "TestPlayer");
+
+        // Act & Assert - should not throw
+        _effectSystem.RemoveBlessingsFromPlayer(mockPlayer.Object);
     }
 
     #endregion
