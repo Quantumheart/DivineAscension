@@ -366,9 +366,7 @@ public class BlessingEffectSystem(
     /// </summary>
     internal void RemoveBlessingsFromPlayer(IServerPlayer player)
     {
-        if (player?.Entity == null) return;
-
-        var agent = player.Entity as EntityAgent;
+        var agent = player?.Entity as EntityAgent;
         if (agent?.Stats == null) return;
 
         // Get previously applied modifiers
@@ -476,7 +474,7 @@ public class BlessingEffectSystem(
         var effectIds = new List<string>();
         foreach (var blessing in allBlessings)
         {
-            if (blessing.SpecialEffects != null && blessing.SpecialEffects.Count > 0)
+            if (blessing.SpecialEffects.Count > 0)
             {
                 effectIds.AddRange(blessing.SpecialEffects);
             }

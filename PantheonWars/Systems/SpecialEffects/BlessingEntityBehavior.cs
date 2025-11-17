@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
@@ -10,17 +11,11 @@ namespace PantheonWars.Systems.SpecialEffects;
 /// Entity behavior that applies blessing special effects to player entities.
 /// Attached to players when they login and dispatches combat/game events to effect handlers.
 /// </summary>
-public class BlessingEntityBehavior : EntityBehavior
+public class BlessingEntityBehavior(Entity entity, SpecialEffectHandlerRegistry handlerRegistry)
+    : EntityBehavior(entity)
 {
-    private List<ISpecialEffectHandler> _activeHandlers;
-    private readonly SpecialEffectHandlerRegistry _handlerRegistry;
-
-    public BlessingEntityBehavior(Entity entity, SpecialEffectHandlerRegistry handlerRegistry)
-        : base(entity)
-    {
-        _handlerRegistry = handlerRegistry;
-        _activeHandlers = new List<ISpecialEffectHandler>();
-    }
+    private List<ISpecialEffectHandler> _activeHandlers = new();
+    private readonly SpecialEffectHandlerRegistry _handlerRegistry = handlerRegistry ?? throw new ArgumentNullException(nameof(handlerRegistry));
 
     public override string PropertyName() => "pantheonwars_blessings";
 
@@ -65,16 +60,17 @@ public class BlessingEntityBehavior : EntityBehavior
     public override void DidAttack(DamageSource source, EntityAgent targetEntity, ref EnumHandling handled)
     {
         if (_activeHandlers.Count == 0) return;
+        
+        float damageDealt = targetEntity.WatchedAttributes.GetFloat("onHurt", 0f);
 
-        // Note: We need to track the damage dealt for effects like lifesteal
-        // The damage value isn't directly passed to DidAttack, so we'll need to calculate it
-        // For now, we'll pass a reference that handlers can't modify (post-damage event)
-        float damage = 0; // TODO: Track actual damage dealt if needed for calculations
-
-        // Dispatch to all offensive handlers
-        foreach (var handler in _activeHandlers)
+        // Only process if damage was actually dealt (not blocked, not zero)
+        if (damageDealt > 0)
         {
-            handler.OnDamageDealt(entity, targetEntity, source, ref damage);
+            // Dispatch to all offensive handlers with the ACTUAL damage value
+            foreach (var handler in _activeHandlers)
+            {
+                handler.OnDamageDealt(entity, targetEntity, source, ref damageDealt);
+            }
         }
 
         // Check if target died from this attack
