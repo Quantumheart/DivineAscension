@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using PantheonWars.Systems.SpecialEffects.Handlers;
 using Vintagestory.API.Server;
@@ -8,16 +9,10 @@ namespace PantheonWars.Systems.SpecialEffects;
 /// Central registry for all special effect handlers.
 /// Manages handler lifecycle and provides lookup by effect ID.
 /// </summary>
-public class SpecialEffectHandlerRegistry
+public class SpecialEffectHandlerRegistry(ICoreServerAPI api)
 {
-    private readonly Dictionary<string, ISpecialEffectHandler> _handlers;
-    private readonly ICoreServerAPI _api;
-
-    public SpecialEffectHandlerRegistry(ICoreServerAPI api)
-    {
-        _api = api;
-        _handlers = new Dictionary<string, ISpecialEffectHandler>();
-    }
+    private readonly Dictionary<string, ISpecialEffectHandler> _handlers = new();
+    private readonly ICoreServerAPI _api = api ?? throw new ArgumentNullException(nameof(api));
 
     /// <summary>
     /// Initializes the registry and registers all effect handlers.
