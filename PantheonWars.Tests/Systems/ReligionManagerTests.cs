@@ -115,7 +115,7 @@ public class ReligionManagerTests
             l => l.Notification(It.Is<string>(s =>
                 s.Contains("Religion created") &&
                 s.Contains("Test Religion") &&
-                s.Contains("Khoras") &&
+                s.Contains("Aethra") &&
                 s.Contains("founder-uid"))),
             Times.Once()
         );
