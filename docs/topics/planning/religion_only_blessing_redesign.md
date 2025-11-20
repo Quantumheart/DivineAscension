@@ -335,34 +335,65 @@ Religion Identity Emerges Organically
 ### Tier 2 - Specialization (10 blessings available, pick 3)
 
 **Mining & Resources:**
-1. Smelting Efficiency +25%
-2. Heat Resistance (lava immunity)
-3. Tool Repair Speed +50%
+
+**1. Ore Fortune**
+- 8% chance to double ore drops when mining
+- *Pure: RNG-based resource multiplication*
+
+**2. Efficient Smelting**
+- -25% fuel consumption in furnaces/bloomeries
+- +20% smelting speed
+- *Hybrid: Fuel efficiency + faster metal production*
 
 **Farming & Food:**
-4. Animal Taming Speed +30%
-5. Hunger Reduction 20%
-6. Food Preservation +40%
+
+**3. Animal Husbandry**
+- -30% animal breeding cooldowns
+- +20% animal growth speed
+- *Hybrid: Faster livestock production cycle*
+
+**4. Food Preservation**
+- -40% food spoilage rate
+- +15% crop harvest quantity
+- *Hybrid: Less waste + more initial yield*
 
 **Crafting & Building:**
-7. Reduced Material Costs 15%
-8. Building Speed +30%
-9. Blueprint Learning +25%
+
+**5. Efficient Construction**
+- -15% material costs for all recipes
+- +25% block placement speed
+- *Hybrid: Build more with less, faster*
+
+**6. Quality Smithing**
+- 10% chance for crafted tools/weapons to have +1 durability tier
+- -20% anvil work time
+- *Hybrid: Better results + faster smithing*
 
 **Exploration & Movement:**
-10. Cave Detection (see caves on map)
-11. Fall Damage Reduction 30%
-12. Swim Speed +40%
+
+**7. Night Runner**
+- +25% movement speed during night hours
+- -50% creature detection range at night
+- *Hybrid: Fast and stealthy nocturnal travel*
+
+**8. Gourmet Cook**
+- 15% chance cooked meals grant temporary buffs (minor health regen, temp resistance, etc.)
+- -25% fuel consumption in cooking pots/ovens
+- *Hybrid: Special effects + efficiency*
 
 **Trading & Economy:**
-13. Trade Bonus (better prices) +15%
-14. Fast Travel (waypoint system)
-15. Shared Resources (collective storage)
+
+**9. Resource Magnet**
+- +25% chance to find extra resources when harvesting any resource
+- Applies to: crops, ore, wood, stone, clay
+- *Pure: General resource multiplication*
 
 **Survival & Defense:**
-16. Armor Effectiveness +25%
-17. Damage Reduction 10%
-18. Healing Effectiveness +30%
+
+**10. Hearty Vitality**
+- +25% max health
+- +15% natural health regeneration rate
+- *Hybrid: Tankier + passive healing*
 
 ---
 
