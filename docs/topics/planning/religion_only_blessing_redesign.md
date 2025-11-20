@@ -489,152 +489,477 @@ Religion Identity Emerges Organically
 
 ## Implementation Plan
 
-### Phase 1: Core Redesign (Week 1-2)
+### Phase 1: Core Redesign & Cleanup (Week 1-2)
 
-**Tasks:**
-1. Remove deity selection system
-   - Delete `/deity` commands
-   - Remove deity selection dialog
-   - Remove deity from player data
+**1.1 Remove Deity System**
+- [ ] Delete `/deity` commands and handlers
+- [ ] Remove deity selection dialog UI
+- [ ] Remove deity from all data models
+- [ ] Delete `BlessingDefinitions.cs` deity-specific trees (Aethra, Gaia, Morthen)
+- [ ] Remove deity validation from blessing system
 
-2. Remove personal favor system
-   - Delete `/favor` commands
-   - Remove favor rank progression
-   - Remove personal blessing trees
-   - Remove favor earning from combat
+**1.2 Remove Personal Favor/Blessing System**
+- [ ] Delete `/favor` commands
+- [ ] Remove `Favor` and `FavorRank` from `PlayerReligionData`
+- [ ] Remove personal blessing selection/application
+- [ ] Remove favor earning from combat kills
+- [ ] Remove player-specific blessing UI elements
 
-3. Update data models
-   - Remove `PlayerDeityData` (deprecated)
-   - Remove `Favor` and `FavorRank` from `PlayerReligionData`
-   - Keep only `ReligionData` with prestige tracking
-   - Add `SelectedBlessingsByTier` to `ReligionData`
+**1.3 Update Data Models**
+```csharp
+// ReligionData changes:
+- Remove: Deity deity
+- Keep: int Prestige, PrestigeRank rank
+- Add: Dictionary<int, List<string>> SelectedBlessingsByTier
+  // Key = tier (1-4), Value = list of blessing IDs
 
-4. Simplify progression
-   - Single progression: Prestige only
-   - Remove dual blessing validation (player vs religion)
-   - Update rank requirements to prestige-only
+// PlayerReligionData changes:
+- Remove: int Favor, FavorRank favorRank
+- Remove: List<string> personalBlessings
+- Keep: string religionId (reference only)
+```
 
----
-
-### Phase 2: Blessing Pool Creation (Week 3)
-
-**Tasks:**
-1. Design 40 universal blessings
-   - 8 Tier 1 (foundation) - pick 2
-   - 10 Tier 2 (specialization) - pick 3
-   - 10 Tier 3 (mastery) - pick 3
-   - 12 Tier 4 (legendary) - pick 1
-
-2. Implement utility-focused special effects
-   - Fortune (double drops)
-   - Auto-repair
-   - Treasure sense
-   - Instant actions (with cooldowns)
-   - Passive regeneration
-   - Thorns/reflect damage
-
-3. Update `BlessingDefinitions.cs`
-   - Remove 3 deity-specific trees
-   - Create single universal pool
-   - Tag blessings by category and tier
-   - Remove deity requirements
+**1.4 Simplify Progression**
+- [ ] Single progression metric: Prestige only
+- [ ] Update prestige thresholds: 0/500/2000/5000
+- [ ] Remove dual validation (player + religion blessings)
+- [ ] All blessings come from religion, not player
 
 ---
 
-### Phase 3: Progressive Selection System (Week 4)
+### Phase 2: Blessing Implementation (Week 3-4)
 
-**Tasks:**
-1. Create `ChoicePointManager` system
-   - Track when religions unlock tiers
-   - Notify founders of available choices
-   - Validate blessing selections
-   - Lock in choices permanently
+**2.1 Create Universal Blessing Pool** ✅ Tier 1-3 Complete, Tier 4 Pending
 
-2. Update religion creation flow
-   - Show Tier 1 blessing pool (12 options)
-   - Allow founder to pick 2 starters
-   - Save selections to `ReligionData`
+**Status:**
+- ✅ Tier 1: 8 blessings designed (pick 2 at religion creation)
+- ✅ Tier 2: 10 blessings designed (pick 3 at 500 prestige)
+- ✅ Tier 3: 10 blessings designed (pick 3 at 2000 prestige)
+- ⚠️ Tier 4: 12 blessings (pick 1 at 5000 prestige) - **NEEDS DESIGN**
 
-3. Implement choice point UI
-   - Dialog showing available blessings
-   - Preview blessing effects
-   - Confirm selection (permanent)
-   - Show already-chosen blessings
+**2.2 Implement Required Special Effect Handlers**
 
-4. Add tier unlock notifications
-   - Alert founder when milestone hit
-   - Show blessing picker dialog
-   - Count down remaining choices
+Based on finalized Tier 1-3 blessings, implement these handlers:
+
+**Tier 1 Handlers:**
+- [ ] `MiningSpeedHandler` - +% block break speed
+- [ ] `ToolDurabilityHandler` - -% durability consumption
+- [ ] `ProspectingRangeHandler` - increase prospecting pick range
+- [ ] `ProspectingAccuracyHandler` - improve prospecting readings
+- [ ] `CropYieldHandler` - +% crop harvest quantity
+- [ ] `HarvestSpeedHandler` - -% crop break time
+- [ ] `SatietyRestorationHandler` - +% food satiety value
+- [ ] `SatietyDrainHandler` - -% hunger drain rate
+- [ ] `CraftedDurabilityHandler` - +% durability on crafted items
+- [ ] `TemporalStabilityHandler` - modify stability drain/recovery
+- [ ] `TradePriceHandler` - modify buy/sell prices
+- [ ] `MaxHealthHandler` - +% max health
+- [ ] `BodyHeatHandler` - +% clothing effectiveness
+
+**Tier 2 Handlers:**
+- [ ] `OreFortuneHandler` - chance to double ore drops
+- [ ] `SmeltingEfficiencyHandler` - fuel consumption + speed
+- [ ] `AnimalBreedingHandler` - breeding cooldown modifier
+- [ ] `AnimalGrowthHandler` - growth speed modifier
+- [ ] `FoodSpoilageHandler` - spoilage rate modifier
+- [ ] `RecipeMaterialCostHandler` - -% material requirements
+- [ ] `BlockPlacementSpeedHandler` - +% placement speed
+- [ ] `QualitySmithingHandler` - chance for +1 durability tier
+- [ ] `AnvilWorkTimeHandler` - -% anvil crafting time
+- [ ] `NightMovementHandler` - +% speed during night
+- [ ] `CreatureDetectionHandler` - modify aggro range
+- [ ] `MealBuffHandler` - chance for temporary buffs from cooked food
+- [ ] `CookingFuelHandler` - -% cooking fuel consumption
+- [ ] `ResourceMagnetHandler` - +% bonus resources when harvesting
+- [ ] `HealthRegenHandler` - passive health regeneration
+
+**Tier 3 Handlers:**
+- [ ] `DeepMinerHandler` - +% mining speed, no movement penalty
+- [ ] `GemFindingHandler` - 2x gem/crystal chance
+- [ ] `GemValueHandler` - +% gem sell prices
+- [ ] `CropGrowthSpeedHandler` - +% crop growth rate
+- [ ] `FeastCookingHandler` - religion-wide meal buffs with cooldown
+- [ ] `ArmorDurabilityHandler` - +% armor durability
+- [ ] `ArmorProtectionHandler` - +% protection value
+- [ ] `MetalAlloyingHandler` - special metal modifiers system
+- [ ] `FreeCraftHandler` - first craft free (material refund)
+- [ ] `SprintStaminaHandler` - infinite stamina while sprinting
+- [ ] `ExhaustionImmunityHandler` - no exhaustion damage
+- [ ] `TradeMasterHandler` - improved prices + order system
+
+**2.3 Update BlessingDefinitions.cs**
+```csharp
+// New structure:
+public static class BlessingDefinitions
+{
+    public static Dictionary<int, List<Blessing>> BlessingsByTier = new()
+    {
+        { 1, Tier1Blessings },
+        { 2, Tier2Blessings },
+        { 3, Tier3Blessings },
+        { 4, Tier4Blessings }
+    };
+
+    // Each blessing needs:
+    // - string Id
+    // - string Name
+    // - string Description
+    // - int Tier
+    // - BlessingCategory Category
+    // - List<StatModifier> StatMods
+    // - List<string> SpecialEffectIds
+}
+```
+
+- [ ] Define all 28 finalized blessings (Tier 1-3)
+- [ ] Add category tags (Mining, Farming, Crafting, Exploration, Trading, Survival)
+- [ ] Remove deity requirements
+- [ ] Add tier field to each blessing
 
 ---
 
-### Phase 4: Resource Tracking (Week 5)
+### Phase 3: Progressive Selection System (Week 5)
 
-**Tasks:**
-1. Create `ResourceTracker` system
-   - Hook into mining events (block break)
-   - Hook into farming events (harvest, animal)
-   - Hook into crafting events (item craft)
-   - Hook into trading events (player trade)
-   - Hook into exploration events (chunk discovery)
+**3.1 Create BlessingChoiceManager**
+```csharp
+public class BlessingChoiceManager
+{
+    // Check if religion has unlocked new tier
+    bool HasUnlockedNewTier(ReligionData religion);
 
-2. Implement milestone tracking
-   - Define milestones per category
-   - Award prestige on milestone completion
-   - Broadcast achievements to religion
-   - Persist milestone progress
+    // Get available blessings for tier
+    List<Blessing> GetAvailableBlessings(int tier);
 
-3. Add `/religion progress` command
-   - Show current prestige
-   - Show next milestone targets
-   - Show member contributions
-   - Show unlocked tiers
+    // Validate selection (correct count, not already chosen)
+    bool ValidateSelection(ReligionData religion, int tier, List<string> blessingIds);
+
+    // Lock in blessing choices
+    void CommitBlessingChoice(ReligionData religion, int tier, List<string> blessingIds);
+
+    // Check what needs to be picked
+    int GetPendingChoiceCount(ReligionData religion, int tier);
+}
+```
+
+**3.2 Update Religion Creation Flow**
+- [ ] Remove deity selection step
+- [ ] Add Tier 1 blessing picker (8 options, pick 2)
+- [ ] Show blessing preview cards with effects
+- [ ] Validate 2 selections before allowing creation
+- [ ] Save to `ReligionData.SelectedBlessingsByTier[1]`
+- [ ] Immediately apply blessings to founder
+
+**3.3 Implement Tier Unlock System**
+- [ ] Monitor prestige changes in `ReligionManager`
+- [ ] When crossing threshold (500/2000/5000), check for pending choices
+- [ ] Send notification to founder: "Your religion has unlocked Tier X blessings!"
+- [ ] Open blessing selection dialog
+- [ ] Lock until selections made (or add "choose later" option)
+
+**3.4 Create Blessing Selection UI**
+```
+Dialog Layout:
+┌─────────────────────────────────────────┐
+│ Tier 2 Blessing Selection (Pick 3)     │
+├─────────────────────────────────────────┤
+│ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐   │
+│ │Ore   │ │Eff.  │ │Animal│ │Food  │   │
+│ │Fort. │ │Smelt.│ │Husb. │ │Pres. │   │
+│ └──────┘ └──────┘ └──────┘ └──────┘   │
+│ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐   │
+│ │Eff.  │ │Qual. │ │Night │ │Gourm.│   │
+│ │Const.│ │Smith.│ │Run.  │ │Cook  │   │
+│ └──────┘ └──────┘ └──────┘ └──────┘   │
+│ ┌──────┐ ┌──────┐                     │
+│ │Res.  │ │Hearty│                     │
+│ │Mag.  │ │Vital.│                     │
+│ └──────┘ └──────┘                     │
+├─────────────────────────────────────────┤
+│ Selected: [Ore Fortune] [Animal Husb.] │
+│           [Gourmet Cook]                │
+│                                         │
+│          [Cancel]  [Confirm (3/3)]      │
+└─────────────────────────────────────────┘
+```
+
+- [ ] Grid layout with blessing cards
+- [ ] Hover shows full description + mechanics
+- [ ] Click to toggle selection
+- [ ] Highlight selected (max based on tier)
+- [ ] Confirm button validates count
+- [ ] Show already-chosen blessings from other tiers (read-only)
 
 ---
 
-### Phase 5: UI Updates (Week 6)
+### Phase 4: Resource Tracking & Prestige System (Week 6)
 
-**Tasks:**
-1. Update religion management dialog
-   - Show selected blessings
-   - Show active effects
-   - Show next choice point
-   - Show milestone progress
+**4.1 Define Prestige Earning Events**
 
-2. Create blessing selection overlay
-   - Grid of available blessings
-   - Hover for details
-   - Click to select (multi-select)
-   - Confirm button with validation
+Based on VS mechanics, track these activities:
 
-3. Update HUD element
-   - Remove favor display
-   - Show prestige only
-   - Show religion blessings active
-   - Show milestone progress bar
+**Mining:**
+- Break ore blocks: +1 prestige per ore
+- Break stone/rock: +0.1 prestige per block (scaled)
+- Smelt metal: +2 prestige per ingot
+
+**Farming:**
+- Harvest crops: +1 prestige per harvest
+- Breed animals: +5 prestige per birth
+- Collect animal resources: +1 prestige (milk/wool/eggs)
+
+**Crafting:**
+- Craft tools/weapons: +3 prestige
+- Craft armor: +5 prestige
+- Smith at anvil: +4 prestige
+
+**Trading:**
+- Trade with NPC trader: +2 prestige per transaction
+- (Future: player trading if implemented)
+
+**Exploration:**
+- Discover new chunks: +1 prestige per chunk
+- Find ruins/structures: +10 prestige
+- Open treasure vessels: +5 prestige
+
+**4.2 Implement PrestigeTracker**
+```csharp
+public class PrestigeTracker
+{
+    // Hook into game events
+    void OnBlockBroken(IPlayer player, Block block);
+    void OnItemCrafted(IPlayer player, ItemStack item);
+    void OnAnimalBred(IPlayer player, Entity animal);
+    void OnTradeComplete(IPlayer player, TradeProperties trade);
+    void OnChunkExplored(IPlayer player, Vec2i chunkPos);
+
+    // Award prestige to player's religion
+    void AwardPrestige(IPlayer player, int amount, string reason);
+
+    // Check for tier unlocks
+    void CheckTierUnlocks(ReligionData religion);
+}
+```
+
+- [ ] Hook into VS block break events
+- [ ] Hook into crafting completion events
+- [ ] Hook into animal system events
+- [ ] Hook into trader interaction events
+- [ ] Hook into world gen/exploration events
+- [ ] Award prestige to religion (not player)
+- [ ] Broadcast milestone notifications
+- [ ] Trigger tier unlock checks
+
+**4.3 Add `/religion progress` Command**
+```
+> /religion progress
+
+Iron Brotherhood Progress
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Prestige: 1,247 / 2,000 (Tier 2 → Tier 3)
+
+Next Milestone: 753 prestige remaining
+Unlock: Tier 3 Mastery Blessings (pick 3)
+
+Recent Contributions (Last 24h):
+• Steve: +127 prestige (mining)
+• Alex: +89 prestige (farming)
+• Jordan: +56 prestige (crafting)
+
+Active Blessings (5/9):
+✓ Efficient Miner (Tier 1)
+✓ Prospector's Eye (Tier 1)
+✓ Ore Fortune (Tier 2)
+✓ Efficient Smelting (Tier 2)
+✓ Night Runner (Tier 2)
+```
+
+- [ ] Show current prestige and rank
+- [ ] Show progress to next tier
+- [ ] Show top contributors (optional)
+- [ ] Show active blessings
+- [ ] Show pending choices if any
 
 ---
 
-### Phase 6: Testing & Balance (Week 7-8)
+### Phase 5: UI Updates (Week 7)
 
-**Tasks:**
-1. Unit test coverage
-   - Choice point logic
-   - Milestone tracking
-   - Blessing application
-   - Prestige earning
+**5.1 Update Religion Management Dialog**
+```
+┌─────────────────────────────────────────┐
+│ Iron Brotherhood                        │
+│ Founded by Steve | 23 members           │
+├─────────────────────────────────────────┤
+│ Prestige: 1,247 / 2,000 (Tier 2)      │
+│ [████████████░░░░░░░░] 62%             │
+│                                         │
+│ Active Blessings (5/9):                 │
+│ ┌Tier 1────────────────────────────┐   │
+│ │ • Efficient Miner                │   │
+│ │ • Prospector's Eye               │   │
+│ └──────────────────────────────────┘   │
+│ ┌Tier 2────────────────────────────┐   │
+│ │ • Ore Fortune                    │   │
+│ │ • Efficient Smelting             │   │
+│ │ • Night Runner                   │   │
+│ └──────────────────────────────────┘   │
+│                                         │
+│ Next Unlock: Tier 3 at 2,000 prestige  │
+│                                         │
+│ [View Members] [Leave] [Manage (F)]     │
+└─────────────────────────────────────────┘
+```
 
-2. Integration testing
-   - Full religion progression flow
-   - Multiple religions on server
-   - Blessing conflicts/overlaps
-   - Performance testing
+- [ ] Replace deity display with prestige progress bar
+- [ ] Show all active blessings grouped by tier
+- [ ] Show next tier unlock requirement
+- [ ] Hover blessing names for full description
+- [ ] Add "Manage" button (founder only) for respec
 
-3. Balance tuning
-   - Blessing power levels
-   - Milestone difficulty
-   - Prestige earning rates
-   - Tier unlock pacing
+**5.2 Update HUD Element**
+```
+Top-right HUD:
+┌──────────────────────┐
+│ ⛪ Iron Brotherhood  │
+│ Prestige: 1,247      │
+│ Blessings: 5 active  │
+└──────────────────────┘
+```
+
+- [ ] Remove favor/rank display
+- [ ] Show religion name + prestige
+- [ ] Show active blessing count
+- [ ] Click to open religion dialog
+- [ ] Compact design to minimize screen space
+
+**5.3 Update Creation Dialog**
+- [ ] Remove deity selection step entirely
+- [ ] Add description of religion system
+- [ ] Add Tier 1 blessing selection (8 choices, pick 2)
+- [ ] Preview selected blessings before confirming
+- [ ] Show what progression looks like (tutorial)
+
+---
+
+### Phase 6: Respec System (Week 8)
+
+**6.1 Implement Blessing Respecialization**
+
+Based on design decision: YES - religions can respec at high cost.
+
+```csharp
+public class BlessingRespecManager
+{
+    // Calculate respec cost (50% of total earned prestige)
+    int CalculateRespecCost(ReligionData religion);
+
+    // Check if religion can afford respec
+    bool CanAffordRespec(ReligionData religion);
+
+    // Perform respec (reset all blessings, deduct cost)
+    void ExecuteRespec(ReligionData religion);
+
+    // Check cooldown (prevent spam)
+    bool IsRespecAvailable(ReligionData religion);
+}
+```
+
+**Respec Rules:**
+- Cost: 50% of total earned prestige (permanent loss)
+- Cooldown: 7 days between respecs
+- Resets ALL blessing choices (all tiers)
+- Religion keeps current prestige tier
+- Must re-select blessings immediately (Tier 1-3)
+- Tier 4 remains locked until 5000 prestige reached again
+
+**6.2 Add Respec UI**
+```
+Respec Confirmation Dialog:
+┌─────────────────────────────────────────┐
+│ ⚠️  Respec Religion Blessings           │
+├─────────────────────────────────────────┤
+│ This will reset ALL blessing choices    │
+│ for Iron Brotherhood.                    │
+│                                         │
+│ Cost: 623 prestige (50% of 1,247)       │
+│ Remaining after: 624 prestige           │
+│                                         │
+│ You will lose:                           │
+│ • Efficient Miner                       │
+│ • Prospector's Eye                      │
+│ • Ore Fortune                           │
+│ • Efficient Smelting                    │
+│ • Night Runner                          │
+│                                         │
+│ You will immediately re-select:         │
+│ • 2 Tier 1 blessings                    │
+│ • 3 Tier 2 blessings                    │
+│                                         │
+│ Cooldown: 7 days before next respec     │
+│                                         │
+│ [Cancel] [Confirm Respec]                │
+└─────────────────────────────────────────┘
+```
+
+- [ ] Add "Respec Blessings" button (founder only)
+- [ ] Show cost calculation and consequences
+- [ ] Require typed confirmation ("RESPEC")
+- [ ] Broadcast to all members
+- [ ] Immediately open Tier 1 picker after respec
+
+**6.3 Respec Notifications**
+- [ ] Notify all members when founder initiates respec
+- [ ] Show what blessings were lost
+- [ ] Show what new blessings were chosen
+- [ ] Add to religion activity log
+
+---
+
+### Phase 7: Testing & Balance (Week 9-10)
+
+**7.1 Unit Testing**
+- [ ] Test BlessingChoiceManager validation logic
+- [ ] Test PrestigeTracker event handling
+- [ ] Test tier unlock detection
+- [ ] Test respec cost calculations
+- [ ] Test blessing application/removal
+- [ ] Test data persistence (save/load)
+
+**7.2 Integration Testing**
+- [ ] Full religion progression (0 → 5000 prestige)
+- [ ] Multiple religions on same server
+- [ ] Member join/leave during progression
+- [ ] Founder transfer during tier unlock
+- [ ] Respec during active play
+- [ ] Server restart/reload
+
+**7.3 Balance Testing**
+```
+Progression Testing Checklist:
+[ ] Solo player: Can reasonably reach Tier 2 in X hours
+[ ] 3-person religion: Can reach Tier 3 in Y hours
+[ ] 10-person religion: Can reach Tier 4 in Z hours
+[ ] Prestige earning feels rewarding, not grindy
+[ ] Tier unlocks feel like meaningful milestones
+[ ] Blessings create noticeable gameplay improvements
+[ ] No single blessing is "mandatory" (variety is viable)
+[ ] Different religion builds have distinct playstyles
+```
+
+**7.4 Performance Testing**
+- [ ] Test with 50+ active religions
+- [ ] Test prestige tracking overhead
+- [ ] Test blessing effect handlers (1000+ calls/sec)
+- [ ] Test UI rendering with many blessings
+- [ ] Profile memory usage
+
+**7.5 Balance Tuning**
+
+Adjust based on playtesting:
+- [ ] Blessing percentage values (too strong/weak?)
+- [ ] Prestige earning rates (too fast/slow?)
+- [ ] Tier thresholds (500/2000/5000 appropriate?)
+- [ ] Respec cost (50% too punishing/lenient?)
+- [ ] Special effect cooldowns (if applicable)
 
 ---
 
