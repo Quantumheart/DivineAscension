@@ -39,7 +39,7 @@ public class FavorCommandCheckTests : FavorCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("500", result.StatusMessage);
-        Assert.Contains("Khoras", result.StatusMessage);
+        Assert.Contains("Aethra", result.StatusMessage);
         Assert.Contains("Disciple", result.StatusMessage);
     }
 
@@ -53,7 +53,7 @@ public class FavorCommandCheckTests : FavorCommandsTestHelpers
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Gaia)).Returns(new Deity(DeityType.Gaia, nameof(DeityType.Gaia), "Lysa"));
+        _deityRegistry.Setup(d => d.GetDeity(DeityType.Gaia)).Returns(new Deity(DeityType.Gaia, nameof(DeityType.Gaia), "Earth"));
 
         // Act
         var result = _sut!.OnCheckFavor(args);
@@ -62,7 +62,7 @@ public class FavorCommandCheckTests : FavorCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("0 favor", result.StatusMessage);
-        Assert.Contains("Lysa", result.StatusMessage);
+        Assert.Contains("Gaia", result.StatusMessage);
     }
 
     [Fact]

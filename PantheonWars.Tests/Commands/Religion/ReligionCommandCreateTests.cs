@@ -26,14 +26,14 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Khoras", "public");
-        SetupParsers(args, "TestReligion", "Khoras", "public");
+        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Gaia", "public");
+        SetupParsers(args, "TestReligion", "Gaia", "public");
 
-        var createdReligion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "player-1", true);
+        var createdReligion = CreateReligion("religion-1", "TestReligion", DeityType.Gaia, "player-1", true);
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns((ReligionData?)null);
-        _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityType.Aethra, "player-1", true))
+        _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityType.Gaia, "player-1", true))
             .Returns(createdReligion);
 
         // Act
@@ -43,9 +43,9 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("Religion 'TestReligion' created", result.StatusMessage);
-        Assert.Contains("Khoras", result.StatusMessage);
+        Assert.Contains("Gaia", result.StatusMessage);
 
-        _religionManager.Verify(m => m.CreateReligion("TestReligion", DeityType.Aethra, "player-1", true), Times.Once);
+        _religionManager.Verify(m => m.CreateReligion("TestReligion", DeityType.Gaia, "player-1", true), Times.Once);
         _playerReligionDataManager.Verify(m => m.JoinReligion("player-1", "religion-1"), Times.Once);
     }
 
@@ -55,8 +55,8 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "SecretReligion", "Lysa", "private");
-        SetupParsers(args, "SecretReligion", "Lysa", "private");
+        var args = CreateCommandArgs(mockPlayer.Object, "SecretReligion", "Gaia", "private");
+        SetupParsers(args, "SecretReligion", "Gaia", "private");
 
         var createdReligion = CreateReligion("religion-1", "SecretReligion", DeityType.Gaia, "player-1", false);
 
@@ -105,8 +105,8 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Khoras", "public");
-        SetupParsers(args, "TestReligion", "Khoras", "public");
+        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Aethra", "public");
+        SetupParsers(args, "TestReligion", "Aethra", "public");
 
         var createdReligion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "player-1", true);
 
@@ -123,14 +123,9 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
     }
 
     [Theory]
-    [InlineData("Khoras")]
-    [InlineData("Lysa")]
     [InlineData("Morthen")]
     [InlineData("Aethra")]
-    [InlineData("Umbros")]
-    [InlineData("Tharos")]
     [InlineData("Gaia")]
-    [InlineData("Vex")]
     public void OnCreateReligion_WithValidDeity_CreatesReligion(string deityName)
     {
         // Arrange
@@ -286,8 +281,8 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "ExistingReligion", "Khoras", "public");
-        SetupParsers(args, "ExistingReligion", "Khoras", "public");
+        var args = CreateCommandArgs(mockPlayer.Object, "ExistingReligion", "Gaia", "public");
+        SetupParsers(args, "ExistingReligion", "Gaia", "public");
 
         var existingReligion = CreateReligion("religion-existing", "ExistingReligion", DeityType.Gaia, "other-player");
 
@@ -311,9 +306,9 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
     #region Edge Cases - Case Sensitivity
 
     [Theory]
-    [InlineData("khoras")] // lowercase
-    [InlineData("KHORAS")] // uppercase
-    [InlineData("KhOrAs")] // mixed case
+    [InlineData("aethra")] // lowercase
+    [InlineData("AETHRA")] // uppercase
+    [InlineData("aetHrA")] // mixed case
     public void OnCreateReligion_WithDifferentCasingForDeity_AcceptsDeity(string deityName)
     {
         // Arrange
@@ -346,8 +341,8 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Khoras", visibility);
-        SetupParsers(args, "TestReligion", "Khoras", visibility);
+        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Aethra", visibility);
+        SetupParsers(args, "TestReligion", "Aethra", visibility);
 
         var createdReligion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "player-1", false);
 
@@ -375,8 +370,8 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Khoras", visibility);
-        SetupParsers(args, "TestReligion", "Khoras", visibility);
+        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Aethra", visibility);
+        SetupParsers(args, "TestReligion", "Aethra", visibility);
 
         var createdReligion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "player-1", true);
 
