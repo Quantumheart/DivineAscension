@@ -279,28 +279,56 @@ Religion Identity Emerges Organically
 ### Tier 1 - Foundation (8 blessings available, pick 2)
 
 **Mining & Resources:**
-1. Mining Speed +15%
-2. Ore Detection Range +20%
+
+**1. Efficient Miner**
+- +10% block break speed when mining
+- -15% tool durability consumption on pickaxes/hammers
+- *Hybrid: Speed + efficiency for dedicated miners*
+
+**2. Prospector's Eye**
+- +50% prospecting pick detection range
+- +25% prospecting pick accuracy (clearer readings)
+- *Pure: Better ore finding, less wandering*
 
 **Farming & Food:**
-3. Crop Yield +20%
-4. Faster Harvesting +25%
+
+**3. Bountiful Harvest**
+- +20% crop harvest quantity (extra drops from harvesting)
+- -10% crop break time when harvesting
+- *Hybrid: More food + faster gathering*
+
+**4. Efficient Metabolism**
+- +25% food satiety restoration from all food sources
+- -10% satiety drain rate (hunger slower)
+- *Hybrid: Food lasts longer both ways*
 
 **Crafting & Building:**
-5. Crafting Speed +15%
-6. Tool Durability +20%
+
+**5. Master Toolsmith**
+- +20% crafted tool/weapon durability
+- -15% tool durability consumption when using tools
+- *Hybrid: Make better tools + they last longer in your hands*
 
 **Exploration & Movement:**
-7. Movement Speed +15%
-8. Night Vision
+
+**6. Temporal Anchor**
+- -30% temporal stability drain rate
+- +15% temporal stability recovery rate when stable
+- *Hybrid: Safer temporal storm exploration + faster recovery*
 
 **Trading & Economy:**
-9. Carry Capacity +20%
-10. Storage Capacity +25%
+
+**7. Shrewd Trader**
+- -12% prices when buying from traders
+- +12% prices when selling to traders
+- *Pure: Economic advantage on both sides*
 
 **Survival & Defense:**
-11. Max Health +15%
-12. Temperature Resistance +20%
+
+**8. Hardy Constitution**
+- +15% max health
+- +20% body heat generation (clothing effectiveness bonus)
+- *Hybrid: Tougher + better temperature survival*
 
 ---
 
