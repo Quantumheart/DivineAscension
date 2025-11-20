@@ -652,16 +652,66 @@ Religion Identity Emerges Organically
 
 ---
 
-## Open Questions
+## Design Decisions
 
-1. Should religions be able to "respec" blessings at high cost?
-2. Should there be a maximum religion size? (Prevent mega-guilds)
-3. Should inactive members lose blessings? (Require contribution)
-4. Should blessings be mutually exclusive across religions? (Force diversity)
-5. Should there be PvP blessings for PvP-enabled servers? (Combat toggle)
+### 1. Blessing Respecialization
+**Decision:** YES - Religions can respec blessings at a high cost.
+
+**Rationale:** Allows religions to adapt their specialization as their needs evolve or server meta changes, but the high cost ensures choices remain meaningful and prevents constant flip-flopping.
+
+**Implementation Notes:**
+- Respec should cost significant prestige (e.g., 50% of total earned prestige)
+- Consider cooldown period to prevent abuse
+- All members must be notified when founder initiates respec
+
+---
+
+### 2. Maximum Religion Size
+**Decision:** NO - No hard cap on religion member count.
+
+**Rationale:** Let player communities organize naturally. Social dynamics and coordination overhead will naturally limit mega-guilds without artificial restrictions.
+
+**Implementation Notes:**
+- Trust emergent gameplay to balance organization sizes
+- Monitor server feedback but avoid premature optimization
+
+---
+
+### 3. Inactive Member Penalties
+**Decision:** NO - Inactive members do NOT lose blessings.
+
+**Rationale:** Life happens. Players shouldn't be punished for taking breaks. Blessings represent the religion's collective achievements, not individual contribution tracking.
+
+**Implementation Notes:**
+- Keep the system welcoming and low-pressure
+- Religion progression depends on active contribution, but benefits are shared unconditionally
+
+---
+
+### 4. Blessing Exclusivity
+**Decision:** NO - Blessings are NOT mutually exclusive across religions.
+
+**Rationale:** Multiple religions can pick the same blessings. Natural server diversity will emerge from different strategic priorities and milestone timing, not artificial forced differentiation.
+
+**Implementation Notes:**
+- Let meta develop organically
+- Different religions will naturally prioritize different blessing combinations based on their goals
+
+---
+
+### 5. PvP-Specific Blessings
+**Decision:** NO - No separate PvP blessings or combat toggle.
+
+**Rationale:** Keep the design focused on utility, economy, and cooperative survival. Combat blessings don't align with Vintage Story's identity or this mod's redesigned vision.
+
+**Implementation Notes:**
+- All blessings should provide utility/economy value
+- Avoid creating "PvP meta" pressure that conflicts with VS's cooperative spirit
 
 ---
 
 ## Document History
 
+- **v1.2 (Nov 20, 2025):** Finalized design decisions (respec, religion size, inactive members, exclusivity, PvP)
+- **v1.1 (Nov 20, 2025):** Updated progression to single capstone design (2+3+3+1), expanded pool to 40 blessings
 - **v1.0 (Nov 20, 2025):** Initial planning document created
