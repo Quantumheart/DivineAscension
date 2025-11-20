@@ -465,29 +465,25 @@ Religion Identity Emerges Organically
 
 ### Tier 4 - Legendary (12 blessings available, pick 1)
 
-**Mining & Resources:**
-1. Master Prospector (see all ore within 100 blocks, permanent)
-2. Instant Smelting (no fuel needed, instant results)
+**⚠️ STATUS: NEEDS REWORK - Tier 4 capstone blessings to be redesigned**
 
-**Farming & Food:**
-3. Instant Crop Growth (right-click to instantly grow, long cooldown)
-4. Infinite Sustenance (never hungry, passive food generation)
+**Design Requirements:**
+- 12 legendary capstone blessings (pick 1)
+- Game-changing abilities that define religion's server identity
+- Should feel truly legendary and unique
+- Enable distinct playstyles or server roles
+- Must fit Vintage Story's cooperative survival identity
+- Avoid pure combat/PvP focus
 
-**Crafting & Building:**
-5. Instant Crafting (no craft time for any recipe)
-6. Legendary Forge (craft items 1 quality tier higher)
+**Categories to cover (2 blessings each):**
+- Mining & Resources
+- Farming & Food
+- Crafting & Building
+- Exploration & Movement
+- Trading & Economy
+- Survival & Defense
 
-**Exploration & Movement:**
-7. Shadow Step (short-range teleport, moderate cooldown)
-8. Map Everything (reveal entire explored region to all members)
-
-**Trading & Economy:**
-9. Economic Dominance (+50% to all economic activities)
-10. Trade Empire (free fast travel between trading posts)
-
-**Survival & Defense:**
-11. Death Cheat (survive lethal hit once per day, auto-revive)
-12. Avatar of Earth (40% all stats, massive health regen)
+**TODO:** Design 12 capstone blessings with concrete VS mechanics
 
 ---
 
