@@ -400,34 +400,66 @@ Religion Identity Emerges Organically
 ### Tier 3 - Mastery (10 blessings available, pick 3)
 
 **Mining & Resources:**
-1. Fortune (10% double ore drops)
-2. Ore Vein Detection (x-ray vision for ores)
-3. Instant Ore Breaking (cooldown)
+
+**1. Deep Miner**
+- +35% mining speed for all blocks
+- No movement speed penalty when mining (maintain full speed)
+- *Hybrid: Fast extraction + mobility while mining*
+
+**2. Gemcutter's Eye**
+- 2x chance to find gems/crystals when mining
+- Gems sell for +40% more to traders
+- *Hybrid: Rare resource finding + economic value*
 
 **Farming & Food:**
-4. Crop Growth Speed +50%
-5. Weather Immunity (crops grow in any weather)
-6. Animal Breeding 2x Speed
+
+**3. Agricultural Mastery**
+- Crops grow 40% faster
+- +30% crop yield (stacks with other bonuses)
+- *Hybrid: Speed + quantity for food production*
+
+**4. Rancher's Touch**
+- Animals produce resources 50% faster (milk, wool, eggs)
+- -50% animal feed consumption
+- *Hybrid: Resource production + efficiency*
+
+**5. Master Cook**
+- Cooked meals grant 50% stronger temporary buffs (health regen, stamina, temp resist)
+- Meals have 3x longer buff duration
+- Can cook "feast meals" that buff entire religion for 1 hour (8hr cooldown)
+- *Triple hybrid: Stronger effects + duration + group support*
 
 **Crafting & Building:**
-7. Quality Crafting (+1 tier to crafted items)
-8. Auto-Repair Tools (passive regeneration)
-9. Mass Production (craft 2x at once)
+
+**6. Reinforced Construction**
+- All crafted armor has +30% durability
+- +25% protection value on crafted armor pieces
+- *Hybrid: Longer-lasting + more effective armor*
+
+**7. Master Metallurgist**
+- Can alloy metals with special properties (add modifiers: lightweight, sharp, flexible)
+- Alloyed items have +20% base stats
+- First craft of any new recipe is free (materials refunded)
+- *Triple hybrid: Material enhancement + stat bonuses + risk-free innovation*
 
 **Exploration & Movement:**
-10. Treasure Sense (detect rare loot through walls)
-11. Danger Sense (detect hostiles)
-12. Stealth +50% (reduced aggro range)
+
+**8. Windrunner**
+- +40% sprint speed, stamina never depletes while sprinting
+- Take no damage from exhaustion effects
+- *Hybrid: Speed + endurance*
+
+**9. Temporal Adept**
+- -50% temporal stability drain rate
+- Immune to temporal storm damage
+- *Hybrid: Safe storm exploration*
 
 **Trading & Economy:**
-13. Merchant Network (trade from anywhere)
-14. Coin Find (bonus money drops)
-15. Shared Experience (XP bonus when near members)
 
-**Survival & Defense:**
-16. Passive Regeneration (slow health regen)
-17. Thorns (10% damage reflect)
-18. Temporal Storm Resistance 50%
+**10. Trade Master**
+- -20% buy prices, +20% sell prices (stacks with Shrewd Trader)
+- Can place buy/sell orders that persist for 7 days
+- *Hybrid: Better prices + async trading system*
 
 ---
 
