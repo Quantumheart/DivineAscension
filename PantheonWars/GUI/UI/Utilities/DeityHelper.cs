@@ -10,11 +10,11 @@ namespace PantheonWars.GUI.UI.Utilities;
 internal static class DeityHelper
 {
     /// <summary>
-    ///     All deity names in order
+    ///     All deity names in order (3-deity system)
     /// </summary>
     public static readonly string[] DeityNames =
     {
-        "Khoras", "Lysa", "Morthen", "Aethra", "Umbros", "Tharos", "Gaia", "Vex"
+        "Aethra", "Gaia", "Morthen"
     };
 
     /// <summary>
@@ -24,14 +24,9 @@ internal static class DeityHelper
     {
         return deity switch
         {
-            "Khoras" => new Vector4(0.8f, 0.2f, 0.2f, 1.0f),      // Red - War
-            "Lysa" => new Vector4(0.4f, 0.8f, 0.3f, 1.0f),        // Green - Hunt
-            "Morthen" => new Vector4(0.3f, 0.1f, 0.4f, 1.0f),     // Purple - Death
-            "Aethra" => new Vector4(0.9f, 0.9f, 0.6f, 1.0f),      // Light yellow - Light
-            "Umbros" => new Vector4(0.2f, 0.2f, 0.3f, 1.0f),      // Dark grey - Shadows
-            "Tharos" => new Vector4(0.3f, 0.6f, 0.9f, 1.0f),      // Blue - Storms
-            "Gaia" => new Vector4(0.5f, 0.4f, 0.2f, 1.0f),        // Brown - Earth
-            "Vex" => new Vector4(0.7f, 0.2f, 0.7f, 1.0f),         // Magenta - Madness
+            "Aethra" => new Vector4(0.9f, 0.9f, 0.6f, 1.0f),      // Light yellow - Light (Good)
+            "Gaia" => new Vector4(0.5f, 0.4f, 0.2f, 1.0f),        // Brown - Nature (Neutral)
+            "Morthen" => new Vector4(0.3f, 0.1f, 0.4f, 1.0f),     // Purple - Shadow & Death (Evil)
             _ => new Vector4(0.5f, 0.5f, 0.5f, 1.0f)              // Grey - Unknown
         };
     }

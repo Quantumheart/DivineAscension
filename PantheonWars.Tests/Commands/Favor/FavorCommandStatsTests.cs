@@ -33,7 +33,7 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra)).Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "War"));
+        _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra)).Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Light"));
 
         // Act
         var result = _sut!.OnFavorStats(args);
@@ -42,7 +42,7 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("Divine Statistics", result.StatusMessage);
-        Assert.Contains("Khoras", result.StatusMessage);
+        Assert.Contains("Aethra", result.StatusMessage);
         Assert.Contains("1,500", result.StatusMessage); // Current favor
         Assert.Contains("3,000", result.StatusMessage); // Total favor
         Assert.Contains("Zealot", result.StatusMessage);
@@ -61,7 +61,7 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Gaia)).Returns(new Deity(DeityType.Gaia, nameof(DeityType.Gaia), "Hunt"));
+        _deityRegistry.Setup(d => d.GetDeity(DeityType.Gaia)).Returns(new Deity(DeityType.Gaia, nameof(DeityType.Gaia), "Nature"));
 
         // Act
         var result = _sut!.OnFavorStats(args);

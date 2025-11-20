@@ -44,8 +44,8 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("FirstReligion", result.StatusMessage);
         Assert.Contains("SecondReligion", result.StatusMessage);
-        Assert.Contains("Khoras", result.StatusMessage);
-        Assert.Contains("Lysa", result.StatusMessage);
+        Assert.Contains("Aethra", result.StatusMessage);
+        Assert.Contains("Gaia", result.StatusMessage);
     }
 
     [Fact]
@@ -151,14 +151,14 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var args = CreateCommandArgs(mockPlayer.Object);
-        SetupParsers(args, "Khoras");
+        SetupParsers(args, "Aethra");
 
-        var khorasReligions = new List<ReligionData>
+        var aethraReligions = new List<ReligionData>
         {
-            CreateReligion("religion-1", "KhorasReligion", DeityType.Aethra, "founder-1")
+            CreateReligion("religion-1", "AethraReligion", DeityType.Aethra, "founder-1")
         };
 
-        _religionManager.Setup(m => m.GetReligionsByDeity(DeityType.Aethra)).Returns(khorasReligions);
+        _religionManager.Setup(m => m.GetReligionsByDeity(DeityType.Aethra)).Returns(aethraReligions);
 
         // Act
         var result = _sut!.OnListReligions(args);
@@ -166,7 +166,7 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("KhorasReligion", result.StatusMessage);
+        Assert.Contains("AethraReligion", result.StatusMessage);
         _religionManager.Verify(m => m.GetReligionsByDeity(DeityType.Aethra), Times.Once);
     }
 
@@ -216,7 +216,7 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var args = CreateCommandArgs(mockPlayer.Object);
-        SetupParsers(args, "Lysa");
+        SetupParsers(args, "Gaia");
 
         _religionManager.Setup(m => m.GetReligionsByDeity(DeityType.Gaia)).Returns(new List<ReligionData>());
 
@@ -235,7 +235,7 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var args = CreateCommandArgs(mockPlayer.Object);
-        SetupParsers(args, "khoras"); // lowercase
+        SetupParsers(args, "aethra"); // lowercase
 
         var religions = new List<ReligionData>
         {

@@ -32,7 +32,7 @@ public class DeityRegistryTests
     #region Initialization Tests
 
     [Fact]
-    public void Initialize_RegistersKhorasAndLysa_Successfully()
+    public void Initialize_RegistersAllThreeDeities_Successfully()
     {
         // Act
         _registry.Initialize();
@@ -40,7 +40,8 @@ public class DeityRegistryTests
         // Assert
         Assert.NotNull(_registry.GetDeity(DeityType.Aethra));
         Assert.NotNull(_registry.GetDeity(DeityType.Gaia));
-        Assert.Equal(2, _registry.GetAllDeities().Count());
+        Assert.NotNull(_registry.GetDeity(DeityType.Morthen));
+        Assert.Equal(3, _registry.GetAllDeities().Count());
     }
 
     [Fact]
@@ -50,7 +51,7 @@ public class DeityRegistryTests
         _registry.Initialize();
 
         // Assert
-        TestFixtures.VerifyLoggerNotification(_mockLogger, "Registered 2 deities");
+        TestFixtures.VerifyLoggerNotification(_mockLogger, "Registered 3 deities");
     }
 
     [Fact]
@@ -78,8 +79,8 @@ public class DeityRegistryTests
 
         // Assert
         Assert.NotNull(deity);
-        Assert.Equal("Khoras", deity.Name);
-        Assert.Equal("War", deity.Domain);
+        Assert.Equal("Aethra", deity.Name);
+        Assert.Equal("Light", deity.Domain);
         Assert.Equal(DeityAlignment.Lawful, deity.Alignment);
     }
 
@@ -90,14 +91,14 @@ public class DeityRegistryTests
         _registry.Initialize();
 
         // Act
-        var deity = _registry.GetDeity(DeityType.Morthen); // Not yet registered
+        var deity = _registry.GetDeity(DeityType.None);
 
         // Assert
         Assert.Null(deity);
     }
 
     [Fact]
-    public void GetDeity_ForLysa_ReturnsCorrectDeity()
+    public void GetDeity_ForGaia_ReturnsCorrectDeity()
     {
         // Arrange
         _registry.Initialize();
@@ -107,9 +108,25 @@ public class DeityRegistryTests
 
         // Assert
         Assert.NotNull(deity);
-        Assert.Equal("Lysa", deity.Name);
-        Assert.Equal("Hunt", deity.Domain);
+        Assert.Equal("Gaia", deity.Name);
+        Assert.Equal("Nature", deity.Domain);
         Assert.Equal(DeityAlignment.Neutral, deity.Alignment);
+    }
+
+    [Fact]
+    public void GetDeity_ForMorthen_ReturnsCorrectDeity()
+    {
+        // Arrange
+        _registry.Initialize();
+
+        // Act
+        var deity = _registry.GetDeity(DeityType.Morthen);
+
+        // Assert
+        Assert.NotNull(deity);
+        Assert.Equal("Morthen", deity.Name);
+        Assert.Equal("Shadow & Death", deity.Domain);
+        Assert.Equal(DeityAlignment.Chaotic, deity.Alignment);
     }
 
     [Fact]
@@ -122,9 +139,10 @@ public class DeityRegistryTests
         var deities = _registry.GetAllDeities().ToList();
 
         // Assert
-        Assert.Equal(2, deities.Count);
-        Assert.Contains(deities, d => d.Name == "Khoras");
-        Assert.Contains(deities, d => d.Name == "Lysa");
+        Assert.Equal(3, deities.Count);
+        Assert.Contains(deities, d => d.Name == "Aethra");
+        Assert.Contains(deities, d => d.Name == "Gaia");
+        Assert.Contains(deities, d => d.Name == "Morthen");
     }
 
     [Fact]
@@ -146,6 +164,7 @@ public class DeityRegistryTests
         // Act & Assert
         Assert.True(_registry.HasDeity(DeityType.Aethra));
         Assert.True(_registry.HasDeity(DeityType.Gaia));
+        Assert.True(_registry.HasDeity(DeityType.Morthen));
     }
 
     [Fact]
@@ -155,8 +174,7 @@ public class DeityRegistryTests
         _registry.Initialize();
 
         // Act & Assert
-        Assert.False(_registry.HasDeity(DeityType.Morthen));
-        Assert.False(_registry.HasDeity(DeityType.Aethra));
+        Assert.False(_registry.HasDeity(DeityType.None));
     }
 
     #endregion
@@ -164,16 +182,16 @@ public class DeityRegistryTests
     #region Relationship Tests
 
     [Fact]
-    public void GetRelationship_BetweenAlliedDeities_ReturnsAllied()
+    public void GetRelationship_BetweenNeutralDeities_ReturnsNeutral()
     {
         // Arrange
         _registry.Initialize();
 
-        // Act
+        // Act - Aethra and Gaia are neutral
         var relationship = _registry.GetRelationship(DeityType.Aethra, DeityType.Gaia);
 
         // Assert
-        Assert.Equal(DeityRelationshipType.Allied, relationship);
+        Assert.Equal(DeityRelationshipType.Neutral, relationship);
     }
 
     [Fact]
@@ -182,8 +200,21 @@ public class DeityRegistryTests
         // Arrange
         _registry.Initialize();
 
-        // Act
+        // Act - Aethra (Light) and Morthen (Shadow) are rivals
         var relationship = _registry.GetRelationship(DeityType.Aethra, DeityType.Morthen);
+
+        // Assert
+        Assert.Equal(DeityRelationshipType.Rival, relationship);
+    }
+
+    [Fact]
+    public void GetRelationship_RivalIsSymmetric_ReturnsRival()
+    {
+        // Arrange
+        _registry.Initialize();
+
+        // Act - Morthen and Aethra should also be rivals in reverse
+        var relationship = _registry.GetRelationship(DeityType.Morthen, DeityType.Aethra);
 
         // Assert
         Assert.Equal(DeityRelationshipType.Rival, relationship);
@@ -209,23 +240,25 @@ public class DeityRegistryTests
         _registry.Initialize();
 
         // Act
-        var relationship = _registry.GetRelationship(DeityType.Aethra, DeityType.Aethra);
+        var relationship = _registry.GetRelationship(DeityType.None, DeityType.Aethra);
 
         // Assert
         Assert.Equal(DeityRelationshipType.Neutral, relationship);
     }
 
     [Fact]
-    public void GetRelationship_WithoutDefinedRelationship_ReturnsNeutral()
+    public void GetRelationship_GaiaNeutralWithAll_ReturnsNeutral()
     {
         // Arrange
         _registry.Initialize();
 
-        // Act - Lysa doesn't have Morthen explicitly defined in relationships
-        var relationship = _registry.GetRelationship(DeityType.Gaia, DeityType.Morthen);
+        // Act - Gaia is neutral with both Aethra and Morthen
+        var relationshipWithAethra = _registry.GetRelationship(DeityType.Gaia, DeityType.Aethra);
+        var relationshipWithMorthen = _registry.GetRelationship(DeityType.Gaia, DeityType.Morthen);
 
         // Assert
-        Assert.Equal(DeityRelationshipType.Neutral, relationship);
+        Assert.Equal(DeityRelationshipType.Neutral, relationshipWithAethra);
+        Assert.Equal(DeityRelationshipType.Neutral, relationshipWithMorthen);
     }
 
     #endregion
@@ -233,16 +266,16 @@ public class DeityRegistryTests
     #region Favor Multiplier Tests
 
     [Fact]
-    public void GetFavorMultiplier_ForAlliedDeities_Returns0Point5()
+    public void GetFavorMultiplier_ForNeutralDeities_Returns1Point0()
     {
         // Arrange
         _registry.Initialize();
 
-        // Act
+        // Act - Aethra and Gaia are neutral
         var multiplier = _registry.GetFavorMultiplier(DeityType.Aethra, DeityType.Gaia);
 
         // Assert
-        Assert.Equal(0.5f, multiplier);
+        Assert.Equal(1.0f, multiplier);
     }
 
     [Fact]
@@ -251,7 +284,7 @@ public class DeityRegistryTests
         // Arrange
         _registry.Initialize();
 
-        // Act
+        // Act - Aethra and Morthen are rivals
         var multiplier = _registry.GetFavorMultiplier(DeityType.Aethra, DeityType.Morthen);
 
         // Assert
@@ -259,16 +292,31 @@ public class DeityRegistryTests
     }
 
     [Fact]
-    public void GetFavorMultiplier_ForNeutralDeities_Returns1Point0()
+    public void GetFavorMultiplier_ForRivalReversed_Returns2Point0()
     {
         // Arrange
         _registry.Initialize();
 
-        // Act
-        var multiplier = _registry.GetFavorMultiplier(DeityType.Aethra, DeityType.Aethra);
+        // Act - Rivalry should work in both directions
+        var multiplier = _registry.GetFavorMultiplier(DeityType.Morthen, DeityType.Aethra);
 
         // Assert
-        Assert.Equal(1.0f, multiplier);
+        Assert.Equal(2.0f, multiplier);
+    }
+
+    [Fact]
+    public void GetFavorMultiplier_ForGaiaNeutral_Returns1Point0()
+    {
+        // Arrange
+        _registry.Initialize();
+
+        // Act - Gaia is neutral with everyone
+        var multiplierWithAethra = _registry.GetFavorMultiplier(DeityType.Gaia, DeityType.Aethra);
+        var multiplierWithMorthen = _registry.GetFavorMultiplier(DeityType.Gaia, DeityType.Morthen);
+
+        // Assert
+        Assert.Equal(1.0f, multiplierWithAethra);
+        Assert.Equal(1.0f, multiplierWithMorthen);
     }
 
     [Fact]
@@ -278,7 +326,7 @@ public class DeityRegistryTests
         _registry.Initialize();
 
         // Act
-        var multiplier = _registry.GetFavorMultiplier(DeityType.Morthen, DeityType.Aethra);
+        var multiplier = _registry.GetFavorMultiplier(DeityType.None, DeityType.Aethra);
 
         // Assert
         Assert.Equal(1.0f, multiplier);
@@ -290,7 +338,7 @@ public class DeityRegistryTests
         // Arrange
         _registry.Initialize();
 
-        // Act - Checking same deity (through Neutral relationship)
+        // Act - Same deity returns neutral relationship = 1.0 multiplier
         var multiplier = _registry.GetFavorMultiplier(DeityType.Aethra, DeityType.Aethra);
 
         // Assert
@@ -302,77 +350,111 @@ public class DeityRegistryTests
     #region Deity Properties Tests
 
     [Fact]
-    public void Khoras_HasCorrectProperties()
+    public void Aethra_HasCorrectProperties()
     {
         // Arrange
         _registry.Initialize();
 
         // Act
-        var khoras = _registry.GetDeity(DeityType.Aethra);
+        var aethra = _registry.GetDeity(DeityType.Aethra);
 
         // Assert
-        Assert.NotNull(khoras);
-        Assert.Equal("Khoras", khoras.Name);
-        Assert.Equal("War", khoras.Domain);
-        Assert.Equal(DeityAlignment.Lawful, khoras.Alignment);
-        Assert.Equal("#8B0000", khoras.PrimaryColor);
-        Assert.Equal("#FFD700", khoras.SecondaryColor);
-        Assert.NotEmpty(khoras.Description);
-        Assert.NotEmpty(khoras.Playstyle);
-        Assert.NotEmpty(khoras.AbilityIds);
+        Assert.NotNull(aethra);
+        Assert.Equal("Aethra", aethra.Name);
+        Assert.Equal("Light", aethra.Domain);
+        Assert.Equal(DeityAlignment.Lawful, aethra.Alignment);
+        Assert.Equal("#FFFFE0", aethra.PrimaryColor);
+        Assert.Equal("#FFD700", aethra.SecondaryColor);
+        Assert.NotEmpty(aethra.Description);
+        Assert.NotEmpty(aethra.Playstyle);
     }
 
     [Fact]
-    public void Lysa_HasCorrectProperties()
+    public void Gaia_HasCorrectProperties()
     {
         // Arrange
         _registry.Initialize();
 
         // Act
-        var lysa = _registry.GetDeity(DeityType.Gaia);
+        var gaia = _registry.GetDeity(DeityType.Gaia);
 
         // Assert
-        Assert.NotNull(lysa);
-        Assert.Equal("Lysa", lysa.Name);
-        Assert.Equal("Hunt", lysa.Domain);
-        Assert.Equal(DeityAlignment.Neutral, lysa.Alignment);
-        Assert.Equal("#228B22", lysa.PrimaryColor);
-        Assert.Equal("#8B4513", lysa.SecondaryColor);
-        Assert.NotEmpty(lysa.Description);
-        Assert.NotEmpty(lysa.Playstyle);
-        Assert.NotEmpty(lysa.AbilityIds);
+        Assert.NotNull(gaia);
+        Assert.Equal("Gaia", gaia.Name);
+        Assert.Equal("Nature", gaia.Domain);
+        Assert.Equal(DeityAlignment.Neutral, gaia.Alignment);
+        Assert.Equal("#8B7355", gaia.PrimaryColor);
+        Assert.Equal("#228B22", gaia.SecondaryColor);
+        Assert.NotEmpty(gaia.Description);
+        Assert.NotEmpty(gaia.Playstyle);
     }
 
     [Fact]
-    public void Khoras_HasCorrectRelationships()
+    public void Morthen_HasCorrectProperties()
     {
         // Arrange
         _registry.Initialize();
 
         // Act
-        var khoras = _registry.GetDeity(DeityType.Aethra);
+        var morthen = _registry.GetDeity(DeityType.Morthen);
 
         // Assert
-        Assert.NotNull(khoras);
-        Assert.Equal(2, khoras.Relationships.Count);
-        Assert.Equal(DeityRelationshipType.Allied, khoras.Relationships[DeityType.Gaia]);
-        Assert.Equal(DeityRelationshipType.Rival, khoras.Relationships[DeityType.Morthen]);
+        Assert.NotNull(morthen);
+        Assert.Equal("Morthen", morthen.Name);
+        Assert.Equal("Shadow & Death", morthen.Domain);
+        Assert.Equal(DeityAlignment.Chaotic, morthen.Alignment);
+        Assert.Equal("#4B0082", morthen.PrimaryColor);
+        Assert.Equal("#2F4F4F", morthen.SecondaryColor);
+        Assert.NotEmpty(morthen.Description);
+        Assert.NotEmpty(morthen.Playstyle);
     }
 
     [Fact]
-    public void Lysa_HasCorrectRelationships()
+    public void Aethra_HasCorrectRelationships()
     {
         // Arrange
         _registry.Initialize();
 
         // Act
-        var lysa = _registry.GetDeity(DeityType.Gaia);
+        var aethra = _registry.GetDeity(DeityType.Aethra);
 
         // Assert
-        Assert.NotNull(lysa);
-        Assert.Equal(2, lysa.Relationships.Count);
-        Assert.Equal(DeityRelationshipType.Allied, lysa.Relationships[DeityType.Aethra]);
-        Assert.Equal(DeityRelationshipType.Rival, lysa.Relationships[DeityType.Morthen]);
+        Assert.NotNull(aethra);
+        Assert.Equal(2, aethra.Relationships.Count);
+        Assert.Equal(DeityRelationshipType.Neutral, aethra.Relationships[DeityType.Gaia]);
+        Assert.Equal(DeityRelationshipType.Rival, aethra.Relationships[DeityType.Morthen]);
+    }
+
+    [Fact]
+    public void Gaia_HasCorrectRelationships()
+    {
+        // Arrange
+        _registry.Initialize();
+
+        // Act
+        var gaia = _registry.GetDeity(DeityType.Gaia);
+
+        // Assert
+        Assert.NotNull(gaia);
+        Assert.Equal(2, gaia.Relationships.Count);
+        Assert.Equal(DeityRelationshipType.Neutral, gaia.Relationships[DeityType.Aethra]);
+        Assert.Equal(DeityRelationshipType.Neutral, gaia.Relationships[DeityType.Morthen]);
+    }
+
+    [Fact]
+    public void Morthen_HasCorrectRelationships()
+    {
+        // Arrange
+        _registry.Initialize();
+
+        // Act
+        var morthen = _registry.GetDeity(DeityType.Morthen);
+
+        // Assert
+        Assert.NotNull(morthen);
+        Assert.Equal(2, morthen.Relationships.Count);
+        Assert.Equal(DeityRelationshipType.Neutral, morthen.Relationships[DeityType.Gaia]);
+        Assert.Equal(DeityRelationshipType.Rival, morthen.Relationships[DeityType.Aethra]);
     }
 
     #endregion

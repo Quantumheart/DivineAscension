@@ -49,10 +49,10 @@ public class SpecialEffectHandlerRegistryTests
         registry.Initialize();
 
         // Assert
-        var handler = registry.GetHandler("damage_reduction10");
+        var handler = registry.GetHandler("damage_reduction_10");
         Assert.NotNull(handler);
         Assert.IsType<DamageReductionHandler>(handler);
-        Assert.Equal("damage_reduction10", handler.EffectId);
+        Assert.Equal("damage_reduction_10", handler.EffectId);
     }
 
     [Fact]
@@ -77,11 +77,11 @@ public class SpecialEffectHandlerRegistryTests
         registry.Initialize();
 
         // Act
-        var handler = registry.GetHandler("damage_reduction10");
+        var handler = registry.GetHandler("damage_reduction_10");
 
         // Assert
         Assert.NotNull(handler);
-        Assert.Equal("damage_reduction10", handler.EffectId);
+        Assert.Equal("damage_reduction_10", handler.EffectId);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class SpecialEffectHandlerRegistryTests
         registry.Initialize();
 
         // Act
-        bool hasHandler = registry.HasHandler("damage_reduction10");
+        bool hasHandler = registry.HasHandler("damage_reduction_10");
 
         // Assert
         Assert.True(hasHandler);
@@ -118,14 +118,14 @@ public class SpecialEffectHandlerRegistryTests
         // Arrange
         var registry = new SpecialEffectHandlerRegistry(_mockApi.Object);
         registry.Initialize();
-        var effectIds = new[] { "damage_reduction10", "unknown_effect", "another_unknown" };
+        var effectIds = new[] { "damage_reduction_10", "unknown_effect", "another_unknown" };
 
         // Act
         var handlers = registry.GetHandlers(effectIds);
 
         // Assert
-        Assert.Single(handlers); // Only damage_reduction10 is registered
-        Assert.Equal("damage_reduction10", handlers[0].EffectId);
+        Assert.Single(handlers); // Only damage_reduction_10 is registered
+        Assert.Equal("damage_reduction_10", handlers[0].EffectId);
     }
 
     [Fact]
@@ -169,7 +169,7 @@ public class SpecialEffectHandlerRegistryTests
 
         // Assert
         Assert.NotEmpty(allHandlers);
-        Assert.Contains(allHandlers, h => h.EffectId == "damage_reduction10");
+        Assert.Contains(allHandlers, h => h.EffectId == "damage_reduction_10");
     }
 
     [Fact]

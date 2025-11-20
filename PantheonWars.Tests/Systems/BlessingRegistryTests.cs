@@ -358,7 +358,7 @@ public class BlessingRegistryTests
 
         // Assert
         Assert.False(canUnlock);
-        Assert.Contains("Requires deity: Lysa", reason);
+        Assert.Contains("Requires deity: Gaia", reason);
     }
 
     [Fact]

@@ -42,7 +42,7 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("You have joined TestReligion", result.StatusMessage);
-        Assert.Contains("Khoras", result.StatusMessage);
+        Assert.Contains("Aethra", result.StatusMessage);
         _playerReligionDataManager.Verify(m => m.JoinReligion("player-1", "religion-1"), Times.Once);
     }
 
