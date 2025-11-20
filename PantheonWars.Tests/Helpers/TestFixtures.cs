@@ -86,24 +86,24 @@ public static class TestFixtures
     {
         var mockRegistry = new Mock<IDeityRegistry>();
 
-        var khoras = CreateTestDeity(DeityType.Khoras, "Khoras", "War");
-        var lysa = CreateTestDeity(DeityType.Lysa, "Lysa", "Hunt");
+        var khoras = CreateTestDeity(DeityType.Aethra, "Khoras", "War");
+        var lysa = CreateTestDeity(DeityType.Gaia, "Lysa", "Hunt");
 
-        mockRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
-        mockRegistry.Setup(r => r.GetDeity(DeityType.Lysa)).Returns(lysa);
-        mockRegistry.Setup(r => r.HasDeity(DeityType.Khoras)).Returns(true);
-        mockRegistry.Setup(r => r.HasDeity(DeityType.Lysa)).Returns(true);
+        mockRegistry.Setup(r => r.GetDeity(DeityType.Aethra)).Returns(khoras);
+        mockRegistry.Setup(r => r.GetDeity(DeityType.Gaia)).Returns(lysa);
+        mockRegistry.Setup(r => r.HasDeity(DeityType.Aethra)).Returns(true);
+        mockRegistry.Setup(r => r.HasDeity(DeityType.Gaia)).Returns(true);
         mockRegistry.Setup(r => r.GetAllDeities()).Returns(new List<Deity> { khoras, lysa });
 
         // Setup relationships
-        mockRegistry.Setup(r => r.GetRelationship(DeityType.Khoras, DeityType.Lysa))
+        mockRegistry.Setup(r => r.GetRelationship(DeityType.Aethra, DeityType.Gaia))
             .Returns(DeityRelationshipType.Allied);
-        mockRegistry.Setup(r => r.GetRelationship(DeityType.Lysa, DeityType.Khoras))
+        mockRegistry.Setup(r => r.GetRelationship(DeityType.Gaia, DeityType.Aethra))
             .Returns(DeityRelationshipType.Allied);
 
         // Setup favor multipliers
-        mockRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa)).Returns(0.5f);
-        mockRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Morthen)).Returns(2.0f);
+        mockRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Aethra, DeityType.Gaia)).Returns(0.5f);
+        mockRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Aethra, DeityType.Morthen)).Returns(2.0f);
 
         return mockRegistry;
     }
@@ -186,7 +186,7 @@ public static class TestFixtures
     ///     Creates a test Deity with default values
     /// </summary>
     public static Deity CreateTestDeity(
-        DeityType type = DeityType.Khoras,
+        DeityType type = DeityType.Aethra,
         string name = "Khoras",
         string domain = "War")
     {
@@ -199,7 +199,7 @@ public static class TestFixtures
             Playstyle = "Test playstyle",
             Relationships = new Dictionary<DeityType, DeityRelationshipType>
             {
-                { DeityType.Lysa, DeityRelationshipType.Allied },
+                { DeityType.Gaia, DeityRelationshipType.Allied },
                 { DeityType.Morthen, DeityRelationshipType.Rival }
             },
             AbilityIds = new List<string> { "test_ability_1", "test_ability_2" }
@@ -211,7 +211,7 @@ public static class TestFixtures
     /// </summary>
     public static PlayerReligionData CreateTestPlayerReligionData(
         string playerUID = "test-player-uid",
-        DeityType deity = DeityType.Khoras,
+        DeityType deity = DeityType.Aethra,
         string? religionUID = "test-religion-uid",
         int favor = 100,
         int totalFavorEarned = 500)
@@ -236,7 +236,7 @@ public static class TestFixtures
     public static ReligionData CreateTestReligion(
         string religionUID = "test-religion-uid",
         string religionName = "Test Religion",
-        DeityType deity = DeityType.Khoras,
+        DeityType deity = DeityType.Aethra,
         string founderUID = "founder-uid")
     {
         return new ReligionData
@@ -261,7 +261,7 @@ public static class TestFixtures
     public static Blessing CreateTestBlessing(
         string id = "test_blessing",
         string name = "Test Blessing",
-        DeityType deity = DeityType.Khoras,
+        DeityType deity = DeityType.Aethra,
         BlessingKind kind = BlessingKind.Player)
     {
         return new Blessing(id, name, deity)

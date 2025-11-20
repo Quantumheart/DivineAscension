@@ -25,8 +25,8 @@ public class ReligionCommandDescriptionTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
 
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args, "This is a great religion dedicated to Khoras");
@@ -49,8 +49,8 @@ public class ReligionCommandDescriptionTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
         religion.Description = "Old description";
 
         var args = CreateCommandArgs(mockFounder.Object);
@@ -72,8 +72,8 @@ public class ReligionCommandDescriptionTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
 
         var longDescription = "This is a very long description that spans multiple sentences. " +
                               "It contains lots of information about the religion. " +
@@ -98,8 +98,8 @@ public class ReligionCommandDescriptionTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
         religion.Description = "Old description";
 
         var args = CreateCommandArgs(mockFounder.Object);
@@ -169,7 +169,7 @@ public class ReligionCommandDescriptionTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "PlayerName");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Aethra);
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "Test description");
 
@@ -190,8 +190,8 @@ public class ReligionCommandDescriptionTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "MemberName");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Aethra);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "Test description");
 

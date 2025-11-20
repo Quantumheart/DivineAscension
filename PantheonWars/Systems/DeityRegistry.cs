@@ -21,22 +21,16 @@ public class DeityRegistry : IDeityRegistry
 
     /// <summary>
     ///     Initializes the registry with all deities
+    ///     3-deity system: Aethra (Light/Good), Gaia (Nature/Neutral), Morthen (Shadow & Death/Evil)
     /// </summary>
     public void Initialize()
     {
         _api.Logger.Notification("[PantheonWars] Initializing Deity Registry...");
 
-        // Register deities (Phase 1: Only Khoras and Lysa)
-        RegisterDeity(CreateKhoras());
-        RegisterDeity(CreateLysa());
-
-        // Future deities will be added in Phase 3
-        // RegisterDeity(CreateMorthen());
-        // RegisterDeity(CreateAethra());
-        // RegisterDeity(CreateUmbros());
-        // RegisterDeity(CreateTharos());
-        // RegisterDeity(CreateGaia());
-        // RegisterDeity(CreateVex());
+        // Register the 3 deities
+        RegisterDeity(CreateAethra());
+        RegisterDeity(CreateGaia());
+        RegisterDeity(CreateMorthen());
 
         _api.Logger.Notification($"[PantheonWars] Registered {_deities.Count} deities");
     }
@@ -112,67 +106,62 @@ public class DeityRegistry : IDeityRegistry
 
     #region Deity Definitions
 
-    private Deity CreateKhoras()
+    private Deity CreateAethra()
     {
-        return new Deity(DeityType.Khoras, "Khoras", "War")
+        return new Deity(DeityType.Aethra, "Aethra", "Light")
         {
-            Description = "The God of War, Khoras embodies martial prowess and strategic combat. " +
-                          "Followers gain powerful offensive abilities and excel in direct confrontation.",
+            Description = "The Goddess of Light, Aethra embodies divine protection, healing, and holy power. " +
+                          "Followers gain defensive abilities and support their allies with healing and shields.",
             Alignment = DeityAlignment.Lawful,
-            PrimaryColor = "#8B0000", // Dark Red
+            PrimaryColor = "#FFFFE0", // Light Yellow
             SecondaryColor = "#FFD700", // Gold
-            Playstyle = "Aggressive melee combat with high damage abilities and tactical buffs",
+            Playstyle = "Support and tank playstyle with healing, shields, and defensive buffs",
             Relationships = new Dictionary<DeityType, DeityRelationshipType>
             {
-                { DeityType.Lysa, DeityRelationshipType.Allied },
+                { DeityType.Gaia, DeityRelationshipType.Neutral },
                 { DeityType.Morthen, DeityRelationshipType.Rival }
             },
-            AbilityIds = new List<string>
-            {
-                // To be implemented in Task 6
-                "khoras_warbanner",
-                "khoras_battlecry",
-                "khoras_blade_storm",
-                "khoras_last_stand"
-            }
+            AbilityIds = new List<string>()
         };
     }
 
-    private Deity CreateLysa()
+    private Deity CreateGaia()
     {
-        return new Deity(DeityType.Lysa, "Lysa", "Hunt")
+        return new Deity(DeityType.Gaia, "Gaia", "Nature")
         {
-            Description = "The Goddess of the Hunt, Lysa rewards patience, precision, and tracking. " +
-                          "Followers gain mobility and ranged combat advantages.",
+            Description = "The Goddess of Nature, Gaia embodies the earth's strength, durability, and regeneration. " +
+                          "Followers become immovable tanks with powerful regeneration and defensive abilities.",
             Alignment = DeityAlignment.Neutral,
-            PrimaryColor = "#228B22", // Forest Green
-            SecondaryColor = "#8B4513", // Saddle Brown
-            Playstyle = "Mobile ranged combat with tracking abilities and tactical positioning",
+            PrimaryColor = "#8B7355", // Brown
+            SecondaryColor = "#228B22", // Forest Green
+            Playstyle = "Tank playstyle focused on durability, regeneration, and outlasting enemies",
             Relationships = new Dictionary<DeityType, DeityRelationshipType>
             {
-                { DeityType.Khoras, DeityRelationshipType.Allied },
-                { DeityType.Umbros, DeityRelationshipType.Rival }
+                { DeityType.Aethra, DeityRelationshipType.Neutral },
+                { DeityType.Morthen, DeityRelationshipType.Neutral }
             },
-            AbilityIds = new List<string>
-            {
-                // To be implemented in Task 6
-                "lysa_hunters_mark",
-                "lysa_swift_feet",
-                "lysa_arrow_rain",
-                "lysa_predator_instinct"
-            }
+            AbilityIds = new List<string>()
         };
     }
 
-    // Future deity definitions (Phase 3)
-    /*
-    private Deity CreateMorthen() { ... }
-    private Deity CreateAethra() { ... }
-    private Deity CreateUmbros() { ... }
-    private Deity CreateTharos() { ... }
-    private Deity CreateGaia() { ... }
-    private Deity CreateVex() { ... }
-    */
+    private Deity CreateMorthen()
+    {
+        return new Deity(DeityType.Morthen, "Morthen", "Shadow & Death")
+        {
+            Description = "The God of Shadow & Death, Morthen embodies darkness, lifesteal, decay, and shadow magic. " +
+                          "Followers drain life from enemies, spread poison and plague, and strike from the shadows.",
+            Alignment = DeityAlignment.Chaotic,
+            PrimaryColor = "#4B0082", // Dark Purple
+            SecondaryColor = "#2F4F4F", // Dark Slate Gray
+            Playstyle = "Sustain DPS playstyle with lifesteal, poison, shadow magic, and draining abilities",
+            Relationships = new Dictionary<DeityType, DeityRelationshipType>
+            {
+                { DeityType.Gaia, DeityRelationshipType.Neutral },
+                { DeityType.Aethra, DeityRelationshipType.Rival }
+            },
+            AbilityIds = new List<string>()
+        };
+    }
 
     #endregion
 }

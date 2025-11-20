@@ -25,8 +25,8 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Aethra);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
@@ -48,8 +48,8 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "MyCustomReligion", DeityType.Khoras, "founder-1");
+        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Aethra);
+        var religion = CreateReligion("religion-1", "MyCustomReligion", DeityType.Aethra, "founder-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
@@ -68,8 +68,8 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Aethra);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
@@ -141,7 +141,7 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Aethra);
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
@@ -163,8 +163,8 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("founder-1", "FounderPlayer");
-        var playerData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var playerData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 

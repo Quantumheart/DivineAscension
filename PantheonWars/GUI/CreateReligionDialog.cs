@@ -17,7 +17,7 @@ public class CreateReligionDialog : GuiDialog
     private readonly IClientNetworkChannel _channel;
     private bool _isPublic = true;
     private string _religionName = "";
-    private DeityType _selectedDeity = DeityType.Khoras;
+    private DeityType _selectedDeity = DeityType.Aethra;
 
     public CreateReligionDialog(ICoreClientAPI capi, IClientNetworkChannel channel) : base(capi)
     {

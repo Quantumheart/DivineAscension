@@ -35,7 +35,7 @@ public class ReligionDataTests
         // Arrange
         var religionUID = "test-religion-uid";
         var religionName = "Knights of Khoras";
-        var deity = DeityType.Khoras;
+        var deity = DeityType.Aethra;
         var founderUID = "founder-123";
 
         // Act
@@ -59,7 +59,7 @@ public class ReligionDataTests
         var beforeCreation = DateTime.UtcNow;
 
         // Act
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
         var afterCreation = DateTime.UtcNow;
 
         // Assert
@@ -74,7 +74,7 @@ public class ReligionDataTests
     public void AddMember_NewMember_ShouldAddToMemberList()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
         var newMemberUID = "member-123";
 
         // Act
@@ -89,7 +89,7 @@ public class ReligionDataTests
     public void AddMember_ExistingMember_ShouldNotDuplicate()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
         var memberUID = "member-123";
         religion.AddMember(memberUID);
 
@@ -105,7 +105,7 @@ public class ReligionDataTests
     public void RemoveMember_ExistingMember_ShouldRemoveAndReturnTrue()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
         var memberUID = "member-123";
         religion.AddMember(memberUID);
 
@@ -122,7 +122,7 @@ public class ReligionDataTests
     public void RemoveMember_NonExistingMember_ShouldReturnFalse()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
 
         // Act
         var result = religion.RemoveMember("non-existing-member");
@@ -136,7 +136,7 @@ public class ReligionDataTests
     public void IsMember_ExistingMember_ShouldReturnTrue()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
         var memberUID = "member-123";
         religion.AddMember(memberUID);
 
@@ -151,7 +151,7 @@ public class ReligionDataTests
     public void IsMember_NonExistingMember_ShouldReturnFalse()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
 
         // Act
         var result = religion.IsMember("non-existing-member");
@@ -165,7 +165,7 @@ public class ReligionDataTests
     {
         // Arrange
         var founderUID = "founder-123";
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, founderUID);
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, founderUID);
 
         // Act
         var result = religion.IsMember(founderUID);
@@ -178,7 +178,7 @@ public class ReligionDataTests
     public void GetMemberCount_ShouldReturnCorrectCount()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
         religion.AddMember("member-1");
         religion.AddMember("member-2");
         religion.AddMember("member-3");
@@ -199,7 +199,7 @@ public class ReligionDataTests
     {
         // Arrange
         var founderUID = "founder-123";
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, founderUID);
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, founderUID);
 
         // Act
         var result = religion.IsFounder(founderUID);
@@ -212,7 +212,7 @@ public class ReligionDataTests
     public void IsFounder_RegularMember_ShouldReturnFalse()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
         var memberUID = "member-123";
         religion.AddMember(memberUID);
 
@@ -227,7 +227,7 @@ public class ReligionDataTests
     public void IsFounder_NonMember_ShouldReturnFalse()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
 
         // Act
         var result = religion.IsFounder("random-player");
@@ -244,7 +244,7 @@ public class ReligionDataTests
     public void AddPrestige_PositiveAmount_ShouldIncreasePrestige()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
 
         // Act
         religion.AddPrestige(100);
@@ -258,7 +258,7 @@ public class ReligionDataTests
     public void AddPrestige_MultipleAdditions_ShouldAccumulate()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
 
         // Act
         religion.AddPrestige(100);
@@ -274,7 +274,7 @@ public class ReligionDataTests
     public void AddPrestige_ZeroAmount_ShouldNotChange()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
         religion.AddPrestige(100);
 
         // Act
@@ -289,7 +289,7 @@ public class ReligionDataTests
     public void AddPrestige_NegativeAmount_ShouldNotChange()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
         religion.AddPrestige(100);
 
         // Act
@@ -320,7 +320,7 @@ public class ReligionDataTests
         PrestigeRank expectedRank)
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
         religion.AddPrestige(totalPrestige);
 
         // Act
@@ -334,7 +334,7 @@ public class ReligionDataTests
     public void AddPrestige_ShouldAutomaticallyUpdateRank()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
 
         // Act
         religion.AddPrestige(2500);
@@ -351,7 +351,7 @@ public class ReligionDataTests
     public void UnlockBlessing_NewBlessing_ShouldAddToUnlockedBlessings()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
         var blessingId = "test-blessing-1";
 
         // Act
@@ -366,7 +366,7 @@ public class ReligionDataTests
     public void UnlockBlessing_MultipleDifferentBlessings_ShouldAddAll()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
 
         // Act
         religion.UnlockBlessing("blessing-1");
@@ -384,7 +384,7 @@ public class ReligionDataTests
     public void UnlockBlessing_SameBlessingTwice_ShouldRemainUnlocked()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
         var blessingId = "test-blessing";
 
         // Act
@@ -400,7 +400,7 @@ public class ReligionDataTests
     public void IsBlessingUnlocked_UnlockedBlessing_ShouldReturnTrue()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
         var blessingId = "test-blessing";
         religion.UnlockBlessing(blessingId);
 
@@ -415,7 +415,7 @@ public class ReligionDataTests
     public void IsBlessingUnlocked_LockedBlessing_ShouldReturnFalse()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
 
         // Act
         var result = religion.IsBlessingUnlocked("non-existent-blessing");
@@ -428,7 +428,7 @@ public class ReligionDataTests
     public void IsBlessingUnlocked_BlessingSetToFalse_ShouldReturnFalse()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
         var blessingId = "test-blessing";
         religion.UnlockedBlessings[blessingId] = false;
 
@@ -448,7 +448,7 @@ public class ReligionDataTests
     {
         // Arrange
         var founderUID = "founder-123";
-        var religion = new ReligionData("religion-1", "Divine Order", DeityType.Khoras, founderUID);
+        var religion = new ReligionData("religion-1", "Divine Order", DeityType.Aethra, founderUID);
 
         // Act - Add members
         religion.AddMember("member-1");
@@ -475,7 +475,7 @@ public class ReligionDataTests
     public void PrestigeProgression_FromFledglingToMythic_ShouldUpdateRanks()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
 
         // Act & Assert - Progress through all ranks
         Assert.Equal(PrestigeRank.Fledgling, religion.PrestigeRank);
@@ -499,7 +499,7 @@ public class ReligionDataTests
     public void MemberManagement_AddRemoveMultiple_ShouldMaintainCorrectState()
     {
         // Arrange
-        var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder");
+        var religion = new ReligionData("uid", "name", DeityType.Aethra, "founder");
 
         // Act - Add multiple members
         religion.AddMember("member-1");

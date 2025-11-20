@@ -43,14 +43,9 @@ internal static class DeityHelper
     {
         return deity switch
         {
-            DeityType.Khoras => new Vector4(0.8f, 0.2f, 0.2f, 1.0f),      // Red - War
-            DeityType.Lysa => new Vector4(0.4f, 0.8f, 0.3f, 1.0f),        // Green - Hunt
-            DeityType.Morthen => new Vector4(0.3f, 0.1f, 0.4f, 1.0f),     // Purple - Death
-            DeityType.Aethra => new Vector4(0.9f, 0.9f, 0.6f, 1.0f),      // Light yellow - Light
-            DeityType.Umbros => new Vector4(0.2f, 0.2f, 0.3f, 1.0f),      // Dark grey - Shadows
-            DeityType.Tharos => new Vector4(0.3f, 0.6f, 0.9f, 1.0f),      // Blue - Storms
-            DeityType.Gaia => new Vector4(0.5f, 0.4f, 0.2f, 1.0f),        // Brown - Earth
-            DeityType.Vex => new Vector4(0.7f, 0.2f, 0.7f, 1.0f),         // Magenta - Madness
+            DeityType.Aethra => new Vector4(0.9f, 0.9f, 0.6f, 1.0f),      // Light yellow - Light (Good)
+            DeityType.Gaia => new Vector4(0.5f, 0.4f, 0.2f, 1.0f),        // Brown - Nature (Neutral)
+            DeityType.Morthen => new Vector4(0.3f, 0.1f, 0.4f, 1.0f),     // Purple - Shadow & Death (Evil)
             _ => new Vector4(0.5f, 0.5f, 0.5f, 1.0f)                      // Grey - Unknown
         };
     }
@@ -62,14 +57,9 @@ internal static class DeityHelper
     {
         return deity switch
         {
-            "Khoras" => "God of War",
-            "Lysa" => "Goddess of the Hunt",
-            "Morthen" => "God of Death",
             "Aethra" => "Goddess of Light",
-            "Umbros" => "God of Shadows",
-            "Tharos" => "God of Storms",
-            "Gaia" => "Goddess of Earth",
-            "Vex" => "God of Madness",
+            "Gaia" => "Goddess of Nature",
+            "Morthen" => "God of Shadow & Death",
             _ => "Unknown Deity"
         };
     }
@@ -81,14 +71,9 @@ internal static class DeityHelper
     {
         return deity switch
         {
-            DeityType.Khoras => "God of War",
-            DeityType.Lysa => "Goddess of the Hunt",
-            DeityType.Morthen => "God of Death",
             DeityType.Aethra => "Goddess of Light",
-            DeityType.Umbros => "God of Shadows",
-            DeityType.Tharos => "God of Storms",
-            DeityType.Gaia => "Goddess of Earth",
-            DeityType.Vex => "God of Madness",
+            DeityType.Gaia => "Goddess of Nature",
+            DeityType.Morthen => "God of Shadow & Death",
             _ => "Unknown Deity"
         };
     }
@@ -100,14 +85,9 @@ internal static class DeityHelper
     {
         return deityName switch
         {
-            "Khoras" => DeityType.Khoras,
-            "Lysa" => DeityType.Lysa,
-            "Morthen" => DeityType.Morthen,
             "Aethra" => DeityType.Aethra,
-            "Umbros" => DeityType.Umbros,
-            "Tharos" => DeityType.Tharos,
             "Gaia" => DeityType.Gaia,
-            "Vex" => DeityType.Vex,
+            "Morthen" => DeityType.Morthen,
             _ => DeityType.None
         };
     }

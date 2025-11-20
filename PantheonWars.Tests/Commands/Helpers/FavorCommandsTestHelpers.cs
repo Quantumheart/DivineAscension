@@ -110,7 +110,7 @@ public class FavorCommandsTestHelpers
     /// </summary>
     protected PlayerReligionData CreatePlayerData(
         string playerUID,
-        DeityType deity = DeityType.Khoras,
+        DeityType deity = DeityType.Aethra,
         int favor = 0,
         int totalFavor = 0,
         FavorRank rank = FavorRank.Initiate)

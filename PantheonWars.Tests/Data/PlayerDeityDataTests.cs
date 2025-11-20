@@ -43,7 +43,7 @@ public class PlayerDeityDataTests
     {
         // Given: Player with deity
         var playerData = new PlayerDeityData("test-player");
-        playerData.DeityType = DeityType.Khoras;
+        playerData.DeityType = DeityType.Aethra;
 
         // When: Check has deity
         var result = playerData.HasDeity();
@@ -235,7 +235,7 @@ public class PlayerDeityDataTests
     {
         // Given: Player data with fractional favor
         var original = new PlayerDeityData("test-player");
-        original.DeityType = DeityType.Khoras;
+        original.DeityType = DeityType.Aethra;
         original.DivineFavor = 100;
         original.TotalFavorEarned = 100;
         original.AddFractionalFavor(0.66f);
@@ -246,7 +246,7 @@ public class PlayerDeityDataTests
 
         // Then: All data preserved including fractional favor
         Assert.Equal("test-player", deserialized.PlayerUID);
-        Assert.Equal(DeityType.Khoras, deserialized.DeityType);
+        Assert.Equal(DeityType.Aethra, deserialized.DeityType);
         Assert.Equal(100, deserialized.DivineFavor);
         Assert.Equal(100, deserialized.TotalFavorEarned);
         Assert.Equal(0.66f, deserialized.AccumulatedFractionalFavor, precision: 2);

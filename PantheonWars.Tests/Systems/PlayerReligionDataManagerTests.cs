@@ -422,7 +422,7 @@ public class PlayerReligionDataManagerTests
     public void JoinReligion_SetsReligionAndDeity()
     {
         // Arrange
-        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Khoras);
+        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Aethra);
         _mockReligionManager.Setup(m => m.GetReligion("religion-uid")).Returns(religion);
 
         var data = _dataManager.GetOrCreatePlayerData("player-uid");
@@ -432,7 +432,7 @@ public class PlayerReligionDataManagerTests
 
         // Assert
         Assert.Equal("religion-uid", data.ReligionUID);
-        Assert.Equal(DeityType.Khoras, data.ActiveDeity);
+        Assert.Equal(DeityType.Aethra, data.ActiveDeity);
         Assert.NotNull(data.LastReligionSwitch);
     }
 
@@ -440,7 +440,7 @@ public class PlayerReligionDataManagerTests
     public void JoinReligion_AddsPlayerToReligion()
     {
         // Arrange
-        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Khoras);
+        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Aethra);
         _mockReligionManager.Setup(m => m.GetReligion("religion-uid")).Returns(religion);
 
         // Act
@@ -454,8 +454,8 @@ public class PlayerReligionDataManagerTests
     public void JoinReligion_WhenAlreadyInReligion_LeavesCurrentFirst()
     {
         // Arrange
-        var oldReligion = TestFixtures.CreateTestReligion("old-religion-uid", "Old Religion", DeityType.Lysa);
-        var newReligion = TestFixtures.CreateTestReligion("new-religion-uid", "New Religion", DeityType.Khoras);
+        var oldReligion = TestFixtures.CreateTestReligion("old-religion-uid", "Old Religion", DeityType.Gaia);
+        var newReligion = TestFixtures.CreateTestReligion("new-religion-uid", "New Religion", DeityType.Aethra);
 
         _mockReligionManager.Setup(m => m.GetReligion("old-religion-uid")).Returns(oldReligion);
         _mockReligionManager.Setup(m => m.GetReligion("new-religion-uid")).Returns(newReligion);
@@ -501,7 +501,7 @@ public class PlayerReligionDataManagerTests
     public void LeaveReligion_ClearsPlayerData()
     {
         // Arrange
-        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Khoras);
+        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Aethra);
         _mockReligionManager.Setup(m => m.GetReligion("religion-uid")).Returns(religion);
 
         var mockWorld = new Mock<IServerWorldAccessor>();
@@ -528,7 +528,7 @@ public class PlayerReligionDataManagerTests
     public void LeaveReligion_RemovesPlayerFromReligion()
     {
         // Arrange
-        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Khoras);
+        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Aethra);
         _mockReligionManager.Setup(m => m.GetReligion("religion-uid")).Returns(religion);
 
         var mockWorld = new Mock<IServerWorldAccessor>();
@@ -690,7 +690,7 @@ public class PlayerReligionDataManagerTests
     public void LeaveReligion_FiresOnPlayerLeavesReligionEvent()
     {
         // Arrange
-        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Khoras);
+        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Aethra);
         _mockReligionManager.Setup(m => m.GetReligion("religion-uid")).Returns(religion);
 
         var mockWorld = new Mock<IServerWorldAccessor>();
@@ -723,7 +723,7 @@ public class PlayerReligionDataManagerTests
     public void JoinReligion_LogsNotificationWithReligionName()
     {
         // Arrange
-        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Khoras);
+        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Aethra);
         _mockReligionManager.Setup(m => m.GetReligion("religion-uid")).Returns(religion);
 
         // Act
@@ -741,7 +741,7 @@ public class PlayerReligionDataManagerTests
     public void LeaveReligion_LogsNotification()
     {
         // Arrange
-        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Khoras);
+        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Aethra);
         _mockReligionManager.Setup(m => m.GetReligion("religion-uid")).Returns(religion);
 
         var mockWorld = new Mock<IServerWorldAccessor>();
@@ -851,7 +851,7 @@ public class PlayerReligionDataManagerTests
 
         var data = _dataManager.GetOrCreatePlayerData("player-uid");
         data.Favor = 100;
-        data.ActiveDeity = DeityType.Khoras;
+        data.ActiveDeity = DeityType.Aethra;
 
         byte[]? savedData = null;
         mockSaveGame
@@ -923,7 +923,7 @@ public class PlayerReligionDataManagerTests
         var savedData = new PlayerReligionData("player-uid")
         {
             Favor = 150,
-            ActiveDeity = DeityType.Lysa,
+            ActiveDeity = DeityType.Gaia,
             TotalFavorEarned = 200
         };
         var serialized = Vintagestory.API.Util.SerializerUtil.Serialize(savedData);
@@ -938,7 +938,7 @@ public class PlayerReligionDataManagerTests
         // Assert
         var loadedData = _dataManager.GetOrCreatePlayerData("player-uid");
         Assert.Equal(150, loadedData.Favor);
-        Assert.Equal(DeityType.Lysa, loadedData.ActiveDeity);
+        Assert.Equal(DeityType.Gaia, loadedData.ActiveDeity);
         Assert.Equal(200, loadedData.TotalFavorEarned);
         _mockLogger.Verify(
             l => l.Debug(It.Is<string>(s => s.Contains("Loaded religion data") && s.Contains("player-uid"))),

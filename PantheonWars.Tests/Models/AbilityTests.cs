@@ -49,7 +49,7 @@ public class AbilityTests
             "test_ability",
             "Test Ability",
             "Test Description",
-            DeityType.Khoras,
+            DeityType.Aethra,
             AbilityType.Buff
         );
 
@@ -57,7 +57,7 @@ public class AbilityTests
         Assert.Equal("test_ability", ability.Id);
         Assert.Equal("Test Ability", ability.Name);
         Assert.Equal("Test Description", ability.Description);
-        Assert.Equal(DeityType.Khoras, ability.Deity);
+        Assert.Equal(DeityType.Aethra, ability.Deity);
         Assert.Equal(AbilityType.Buff, ability.Type);
         Assert.Equal(DevotionRank.Initiate, ability.MinimumRank); // Default value
         Assert.Equal(0f, ability.CooldownSeconds); // Default value
@@ -72,12 +72,12 @@ public class AbilityTests
             "lysa_ability",
             "Lysa's Hunt",
             "Description",
-            DeityType.Lysa,
+            DeityType.Gaia,
             AbilityType.Debuff
         );
 
         // Assert
-        Assert.Equal(DeityType.Lysa, ability.Deity);
+        Assert.Equal(DeityType.Gaia, ability.Deity);
         Assert.Equal(AbilityType.Debuff, ability.Type);
     }
 
@@ -93,7 +93,7 @@ public class AbilityTests
             "test_ability",
             "Test Ability",
             "Test Description",
-            DeityType.Khoras,
+            DeityType.Aethra,
             AbilityType.Buff
         );
 
@@ -120,7 +120,7 @@ public class AbilityTests
             "test_ability",
             "Test",
             "Desc",
-            DeityType.Khoras,
+            DeityType.Aethra,
             AbilityType.Buff
         );
         var mockPlayer = new Mock<IServerPlayer>();
@@ -142,7 +142,7 @@ public class AbilityTests
             "test_ability",
             "Test",
             "Desc",
-            DeityType.Khoras,
+            DeityType.Aethra,
             AbilityType.Buff
         );
         var mockPlayer = new Mock<IServerPlayer>();
@@ -165,7 +165,7 @@ public class AbilityTests
             "test_ability",
             "Test",
             "Desc",
-            DeityType.Khoras,
+            DeityType.Aethra,
             AbilityType.Buff
         )
         {
@@ -194,7 +194,7 @@ public class AbilityTests
             "test_ability",
             "Test",
             "Desc",
-            DeityType.Khoras,
+            DeityType.Aethra,
             AbilityType.Buff
         );
         var mockPlayer = new Mock<IServerPlayer>();
@@ -216,7 +216,7 @@ public class AbilityTests
             "custom_ability",
             "Custom",
             "Desc",
-            DeityType.Lysa,
+            DeityType.Gaia,
             AbilityType.Buff
         )
         {

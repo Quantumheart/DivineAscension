@@ -1,6 +1,7 @@
 # Deity Reference Guide
 
-**Version:** 0.1.0
+**Version:** 1.0.0 (3-Deity System)
+**Last Updated:** 2025-11-20
 
 Complete guide to all deities in Pantheon Wars, their alignments, relationships, and playstyles.
 
@@ -8,218 +9,239 @@ Complete guide to all deities in Pantheon Wars, their alignments, relationships,
 
 ## Overview
 
-Pantheon Wars features 8 unique deities, each with distinct themes, abilities, and relationships. Players pledge themselves to a single deity, gaining access to that deity's unique ability set and playstyle.
+Pantheon Wars features **3 unique deities**, each representing a distinct alignment and playstyle. Players pledge themselves to a single deity, gaining access to that deity's unique blessing tree and benefits.
 
-### Deity Count
-- **Implemented:** 2/8 (Khoras, Lysa)
-- **Planned:** 6/8 (Morthen, Aethra, Umbros, Tharos, Gaia, Vex)
+### The Three Deities
 
----
+- **Aethra (Light)** - Good Alignment - Support/Healer
+- **Gaia (Nature)** - Neutral Alignment - Tank/Defender
+- **Morthen (Shadow & Death)** - Evil Alignment - Sustain DPS
 
-## Playable Deities (Phase 1)
+### Core Philosophy
 
-### Khoras - God of War
-
-**Domain:** War
-**Alignment:** Lawful
-**Colors:** Dark Red (#8B0000), Gold (#FFD700)
-**Status:** ✅ Fully Implemented
-
-#### Description
-Khoras embodies martial prowess and strategic combat. The God of War rewards those who excel in direct confrontation and tactical superiority. His followers are disciplined warriors who believe in honorable combat and the glory of battle.
-
-#### Playstyle
-Aggressive melee combat with high damage abilities and tactical buffs. Khoras followers excel in close-quarters combat and team fights, providing powerful support to allies while devastating enemies with raw force.
-
-#### Relationships
-- **Allied:** Lysa (Hunt) - Respects the hunt as a form of combat
-- **Rival:** Morthen (Death) - Opposes death without honor
-- **Neutral:** All others
-
-#### Abilities
-1. **War Banner** - Temporary damage boost for nearby allies
-2. **Battle Cry** - Short duration attack speed increase
-3. **Blade Storm** - Spin attack dealing damage to nearby enemies
-4. **Last Stand** - Damage resistance when health is low (Requires: Disciple)
-
-#### Devotion Path
-Khoras values:
-- PvP kills in honorable combat
-- Protecting allies
-- Standing ground in battle
-- Tactical victories
+The 3-deity system provides:
+- **Clear faction identity** (Good vs Neutral vs Evil)
+- **Distinct playstyles** (33% of content per deity vs 12.5% in 8-deity system)
+- **Simple relationships** (3×3 triangle instead of 8×8 matrix)
+- **Balanced PvP** (3-way dynamic vs 28 matchup combinations)
 
 ---
 
-### Lysa - Goddess of the Hunt
-
-**Domain:** Hunt
-**Alignment:** Neutral
-**Colors:** Forest Green (#228B22), Saddle Brown (#8B4513)
-**Status:** ✅ Fully Implemented
-
-#### Description
-Lysa rewards patience, precision, and tracking. The Goddess of the Hunt teaches her followers to read the battlefield like a hunter reads the forest. Victory comes not from brute force, but from knowing when and where to strike.
-
-#### Playstyle
-Mobile ranged combat with tracking abilities and tactical positioning. Lysa followers excel at kiting, positioning, and dealing damage from range. They control the flow of battle through superior mobility and map awareness.
-
-#### Relationships
-- **Allied:** Khoras (War) - Appreciates strategic thinking
-- **Rival:** Umbros (Shadows) - Opposes hiding and deception
-- **Neutral:** All others
-
-#### Abilities
-1. **Hunter's Mark** - Mark target to take extra damage
-2. **Swift Feet** - Temporary movement speed boost
-3. **Arrow Rain** - Ranged attack hitting area (Requires: Disciple)
-4. **Predator Instinct** - Enhanced perception and critical hit chance (Requires: Disciple)
-
-#### Devotion Path
-Lysa values:
-- Precision kills (ranged/critical hits)
-- Tracking and pursuing targets
-- Tactical positioning
-- Patient gameplay
-
----
-
-## Planned Deities (Phase 3)
-
-The following deities are planned for implementation in Phase 3. Details are subject to change.
-
-### Morthen - God of Death
-
-**Domain:** Death
-**Alignment:** Neutral
-**Colors:** Void Black, Bone White
-**Status:** 🔲 Planned
-
-#### Description
-Morthen rules over the inevitable end that comes to all living things. Neither good nor evil, death is simply a natural part of existence. His followers embrace this truth and wield necromantic powers.
-
-#### Playstyle (Planned)
-Debuff-focused gameplay with life drain and damage-over-time effects. Followers trade burst damage for sustained pressure and survivability through enemy weakening.
-
-#### Relationships
-- **Allied:** Umbros (Shadows)
-- **Rival:** Khoras (War), Aethra (Light)
-- **Neutral:** Others
-
----
-
-### Aethra - Goddess of Light
+## Aethra - Goddess of Light
 
 **Domain:** Light
 **Alignment:** Lawful Good
-**Colors:** Brilliant Gold, Pure White
-**Status:** 🔲 Planned
+**Colors:** Light Yellow (#FFFFE0), Gold (#FFD700)
+**Archetype:** Divine Protector / Holy Warrior
+**Status:** ✅ Fully Implemented
 
-#### Description
-Aethra represents purity, healing, and the banishing of darkness. Her followers are protectors and healers, believing in the sanctity of life and the power of righteousness.
+### Description
 
-#### Playstyle (Planned)
-Support-focused with healing, shields, and enemy debuff removal. Followers protect allies while punishing those who embrace darkness.
+Aethra embodies divine protection, healing, and holy power. The Goddess of Light blesses her followers with defensive abilities and the power to support their allies through healing and shields. Her champions stand as beacons of hope on the battlefield.
 
-#### Relationships
-- **Allied:** Khoras (War)
-- **Rival:** Morthen (Death), Umbros (Shadows)
-- **Neutral:** Others
+### Playstyle
 
----
+Support and tank playstyle with healing, shields, and defensive buffs. Aethra followers excel at:
+- Healing allies and themselves
+- Absorbing damage with divine shields
+- Supporting team fights
+- Outlasting enemies through regeneration
+- Punishing evil with holy damage
 
-### Umbros - God of Shadows
+### Theme
 
-**Domain:** Shadows
-**Alignment:** Chaotic
-**Colors:** Deep Purple, Shadow Gray
-**Status:** 🔲 Planned
+**"The Light Protects"** - Paladins and clerics who combine divine healing with defensive power.
 
-#### Description
-Umbros lurks in the spaces between light, master of stealth and deception. His followers strike from darkness and vanish before retaliation, embracing cunning over honor.
+### Relationships
 
-#### Playstyle (Planned)
-Stealth-based assassin gameplay with high burst damage and escape tools. Followers excel at picking off isolated targets and evading pursuit.
+- **Allied:** Aethra (same deity) - 0% favor bonus
+- **Neutral:** Gaia (Nature) - +100% favor bonus
+- **Rival:** Morthen (Shadow & Death) - +200% favor bonus
 
-#### Relationships
-- **Allied:** Morthen (Death)
-- **Rival:** Lysa (Hunt), Aethra (Light)
-- **Neutral:** Others
+### Devotion Path
 
----
+Aethra values:
+- Healing and protecting allies
+- Standing against evil (Morthen followers)
+- Honorable combat
+- Supporting your religion
+- Divine righteousness
 
-### Tharos - God of Storms
+### Blessing Highlights
 
-**Domain:** Storms
-**Alignment:** Chaotic Neutral
-**Colors:** Electric Blue, Storm Gray
-**Status:** 🔲 Planned
+**Player Path:**
+1. Divine Grace (Foundation)
+2. Offense: Radiant Strike → Purifying Light
+3. Defense: Blessed Shield → Aegis of Light
+4. Avatar of Light (Capstone)
 
-#### Description
-Tharos commands the fury of nature - lightning, thunder, and tempests. His followers channel raw elemental power, striking with the unpredictable force of a storm.
-
-#### Playstyle (Planned)
-AoE damage dealer with high burst and area control. Followers excel at controlling space and punishing grouped enemies.
-
-#### Relationships
-- **Allied:** None (storms respect no allegiance)
-- **Rival:** Gaia (Earth)
-- **Neutral:** Others
+**Religion Path:**
+1. Blessing of Light
+2. Divine Sanctuary
+3. Sacred Bond
+4. Cathedral of Light
 
 ---
 
-### Gaia - Goddess of Earth
+## Gaia - Goddess of Nature
 
-**Domain:** Earth
+**Domain:** Nature / Earth
 **Alignment:** Neutral
-**Colors:** Deep Brown, Moss Green
-**Status:** 🔲 Planned
+**Colors:** Brown (#8B7355), Forest Green (#228B22)
+**Archetype:** Nature Guardian / Immovable Tank
+**Status:** ✅ Fully Implemented
 
-#### Description
-Gaia represents the enduring strength of the earth itself. Her followers are resilient, immovable, and patient. They weather any assault and outlast their foes through sheer endurance.
+### Description
 
-#### Playstyle (Planned)
-Tank/sustain focused with high durability and crowd control. Followers excel at front-line combat and protecting objectives.
+Gaia represents the enduring strength and regenerative power of nature itself. The Goddess of Nature grants her followers the durability of mountains and the resilience of the earth. They are immovable defenders who outlast all opposition.
 
-#### Relationships
-- **Allied:** Lysa (Hunt)
-- **Rival:** Tharos (Storms)
-- **Neutral:** Others
+### Playstyle
+
+Tank playstyle focused on durability, regeneration, and outlasting enemies. Gaia followers excel at:
+- High health and armor
+- Passive regeneration
+- Standing their ground
+- Protecting objectives
+- Wearing down opponents
+
+### Theme
+
+**"Rooted and Unbreakable"** - Druids and earth wardens who become as immovable as mountains.
+
+### Relationships
+
+- **Allied:** Gaia (same deity) - 0% favor bonus
+- **Neutral:** Aethra (Light) - +100% favor bonus
+- **Neutral:** Morthen (Shadow & Death) - +100% favor bonus
+
+### Devotion Path
+
+Gaia values:
+- Surviving damage (tanking)
+- Holding positions
+- Balance and neutrality
+- Natural regeneration
+- Patience and endurance
+
+### Blessing Highlights
+
+**Player Path:**
+1. Earthen Resilience (Foundation)
+2. Defense: Stone Form → Mountain Guard
+3. Regeneration: Nature's Blessing → Lifebloom
+4. Avatar of Earth (Capstone)
+
+**Religion Path:**
+1. Earthwardens
+2. Living Fortress
+3. Nature's Wrath
+4. World Tree
 
 ---
 
-### Vex - God of Madness
+## Morthen - God of Shadow & Death
 
-**Domain:** Madness
+**Domain:** Shadow & Death
 **Alignment:** Chaotic Evil
-**Colors:** Toxic Purple, Sickly Yellow
-**Status:** 🔲 Planned
+**Colors:** Dark Purple (#4B0082), Dark Slate Gray (#2F4F4F)
+**Archetype:** Shadow Reaper / Death Knight
+**Status:** ✅ Fully Implemented
 
-#### Description
-Vex embodies chaos, confusion, and the breaking of minds. His followers embrace unpredictability and psychological warfare, sowing discord and fear.
+### Description
 
-#### Playstyle (Planned)
-Debuff and chaos focused with confuse/fear effects and random elements. Followers excel at disrupting enemy strategies and creating mayhem.
+Morthen embodies the darkness of shadows and the inevitability of death. The God of Shadow & Death grants his followers power over lifesteal, decay, poison, and shadow magic. They drain life from enemies and strike from the darkness.
 
-#### Relationships
-- **Allied:** None (madness knows no allies)
-- **Rival:** Aethra (Light), Khoras (War)
-- **Neutral:** Others
+### Playstyle
+
+Sustain DPS playstyle with lifesteal, poison, shadow magic, and draining abilities. Morthen followers excel at:
+- Draining life from enemies
+- Applying poison and decay
+- Sustaining through combat
+- High damage over time
+- Shadow-based burst damage
+
+### Theme
+
+**"From Darkness, Strength"** - Necromancers and shadow assassins who harvest souls and spread plague.
+
+### Relationships
+
+- **Allied:** Morthen (same deity) - 0% favor bonus
+- **Neutral:** Gaia (Nature) - +100% favor bonus
+- **Rival:** Aethra (Light) - +200% favor bonus
+
+### Devotion Path
+
+Morthen values:
+- Killing enemies (soul harvesting)
+- Spreading poison and plague
+- Dark magic and shadow strikes
+- Defying death through lifesteal
+- Embracing evil and chaos
+
+### Blessing Highlights
+
+**Player Path:**
+1. Death's Embrace (Foundation)
+2. Offense: Soul Reaper → Plague Bearer
+3. Defense: Undying → Deathless
+4. Lord of Shadow & Death (Capstone)
+
+**Religion Path:**
+1. Shadow Cult
+2. Necromantic Covenant
+3. Deathless Legion
+4. Empire of Darkness
 
 ---
 
 ## Deity Relationship Matrix
 
-| Deity | Allied | Rival | Favor Bonus/Penalty |
-|-------|--------|-------|-------------------|
-| Khoras | Lysa | Morthen | Rival: 2x, Allied: 0.5x |
-| Lysa | Khoras | Umbros | Rival: 2x, Allied: 0.5x |
-| Morthen | Umbros | Khoras, Aethra | *Planned* |
-| Aethra | Khoras | Morthen, Umbros | *Planned* |
-| Umbros | Morthen | Lysa, Aethra | *Planned* |
-| Tharos | None | Gaia | *Planned* |
-| Gaia | Lysa | Tharos | *Planned* |
-| Vex | None | Aethra, Khoras | *Planned* |
+### 3×3 Relationship Grid
+
+|  | Aethra (Light) | Gaia (Nature) | Morthen (Shadow) |
+|---|---|---|---|
+| **Aethra (Light)** | Allied (0%) | Neutral (+100%) | **Rival (+200%)** |
+| **Gaia (Nature)** | Neutral (+100%) | Allied (0%) | Neutral (+100%) |
+| **Morthen (Shadow)** | **Rival (+200%)** | Neutral (+100%) | Allied (0%) |
+
+### Relationship Dynamics
+
+**Light vs Shadow = RIVALS**
+- Maximum PvP favor rewards (+200%)
+- Eternal conflict: Good vs Evil
+- Highest risk, highest reward
+- Encourages cross-faction warfare
+
+**Nature = NEUTRAL MEDIATOR**
+- Neutral with both Light and Shadow (+100% with both)
+- Balanced favor rewards
+- Can fight either side without extreme rivalry
+- Middle ground for players who want options
+
+**Allied = Same Deity**
+- No bonus favor for killing same-deity followers (0%)
+- Encourages cooperation within religions
+- Discourages same-faction PvP
+
+### PvP Favor Examples
+
+```
+Example 1: Light kills Shadow
+Base Favor: 10
+Relationship: Rival (+200%)
+Total: 10 + (10 × 2.0) = 30 favor
+
+Example 2: Nature kills Light
+Base Favor: 10
+Relationship: Neutral (+100%)
+Total: 10 + (10 × 1.0) = 20 favor
+
+Example 3: Light kills Light
+Base Favor: 10
+Relationship: Allied (0%)
+Total: 10 + (10 × 0.0) = 10 favor
+```
 
 ---
 
@@ -228,40 +250,81 @@ Debuff and chaos focused with confuse/fear effects and random elements. Follower
 ### Considerations
 
 1. **Playstyle Preference**
-   - Melee vs Ranged
-   - Aggressive vs Defensive
-   - Solo vs Team-oriented
-   - Burst vs Sustained damage
+   - **Aethra:** Support/healer, help teammates, defensive
+   - **Gaia:** Tank, high survivability, frontline
+   - **Morthen:** DPS, lifesteal, aggressive
 
-2. **PvP Environment**
-   - What deities are popular on your server?
-   - Who are your main rivals?
-   - Can you leverage relationship bonuses?
+2. **Alignment Philosophy**
+   - **Good (Aethra):** Protect allies, fight evil, honorable
+   - **Neutral (Gaia):** Balance, endurance, patience
+   - **Evil (Morthen):** Power through death, embrace darkness
 
-3. **Long-term Commitment**
-   - Switching deities resets progress (future penalty system)
-   - Choose a deity that matches your preferred playstyle
+3. **PvP Strategy**
+   - Want maximum favor? Choose Light or Shadow and fight the other
+   - Want balanced matchups? Choose Nature for +100% vs everyone
+   - Want to avoid same-faction PvP? Check server deity distribution
 
-### First-time Recommendations
+4. **Long-term Commitment**
+   - Switching deities resets ALL progress
+   - Choose a deity that matches your core playstyle
+   - All 10 blessings take significant time to unlock
 
-- **New to PvP?** Start with **Khoras** (straightforward melee combat)
-- **Prefer ranged?** Choose **Lysa** (mobile ranged gameplay)
-- **Like support?** Wait for **Aethra** (Phase 3)
-- **Stealth player?** Wait for **Umbros** (Phase 3)
+### Recommendations by Playstyle
+
+- **New to PvP?** → **Gaia** (forgiving tank playstyle)
+- **Like healing?** → **Aethra** (support and defense)
+- **Aggressive DPS?** → **Morthen** (lifesteal sustain damage)
+- **Want flexibility?** → **Gaia** (neutral with everyone)
+- **Want rivalry?** → **Aethra or Morthen** (fight each other for max favor)
+
+### Rock-Paper-Scissors Balance
+
+The deities are designed as a balanced triangle:
+
+```
+        AETHRA (Light)
+       /              \
+  Heals/Shields    Holy Damage
+     /                  \
+GAIA (Nature)  ←→  MORTHEN (Shadow)
+   Tank           Lifesteal DPS
+```
+
+**No hard counters** - all matchups are viable based on player skill and build choices.
 
 ---
 
 ## Deity Commands
 
-- `/deity list` - Show all available deities
-- `/deity info <deity>` - Get detailed information about a deity
-- `/deity select <deity>` - Pledge to a deity
-- `/deity status` - View your current deity and stats
+### Basic Commands
+- `/religion create <name> <deity>` - Create a new religion
+- `/religion info` - View your religion and deity info
+- `/blessing list` - Show available blessings
+- `/blessing unlock <id>` - Unlock a blessing
+
+### Information Commands
+- `/deity list` - Show all 3 deities
+- `/favor check` - View your current favor
+- `/favor stats` - See favor breakdown by source
 
 ---
 
-## Lore Notes
+## Lore: The Eternal Triangle
 
-The Pantheon Wars represent an ancient conflict between the deities for mortal devotion. Players are not merely followers - they are champions whose actions directly influence the balance of power between the gods. Every kill, every victory, every act of devotion strengthens your chosen deity's influence in the world.
+The Pantheon Wars represent an eternal struggle between three cosmic forces:
 
-*More lore will be added as the mod develops.*
+**Aethra's Light** seeks to banish darkness and protect the innocent. Her followers believe in the sanctity of life and the power of divine righteousness.
+
+**Gaia's Nature** maintains balance between light and shadow. Her followers know that both are necessary parts of existence, and true strength comes from endurance.
+
+**Morthen's Darkness** embraces death and shadow as ultimate power. His followers see mortality as weakness to be overcome through dark magic and soul harvesting.
+
+The conflict is eternal - when Light grows too strong, Shadow rises to challenge it. When Darkness threatens to consume all, Light rallies to push it back. And through it all, Nature endures, weathering the storm.
+
+**Your devotion shapes the balance.** Every kill, every blessing unlocked, every act of devotion strengthens your deity's influence in the world. Choose wisely, for the fate of the Pantheon rests in the hands of its champions.
+
+---
+
+**Document Version:** 1.0.0
+**System:** 3-Deity Consolidation
+**Generated:** 2025-11-20

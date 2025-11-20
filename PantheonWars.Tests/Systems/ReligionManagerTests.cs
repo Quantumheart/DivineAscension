@@ -73,12 +73,12 @@ public class ReligionManagerTests
     public void CreateReligion_WithValidParameters_CreatesReligion()
     {
         // Act
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
 
         // Assert
         Assert.NotNull(religion);
         Assert.Equal("Test Religion", religion.ReligionName);
-        Assert.Equal(DeityType.Khoras, religion.Deity);
+        Assert.Equal(DeityType.Aethra, religion.Deity);
         Assert.Equal("founder-uid", religion.FounderUID);
         Assert.True(religion.IsPublic);
         Assert.Contains("founder-uid", religion.MemberUIDs);
@@ -88,8 +88,8 @@ public class ReligionManagerTests
     public void CreateReligion_GeneratesUniqueUID()
     {
         // Act
-        var religion1 = _religionManager.CreateReligion("Religion 1", DeityType.Khoras, "founder1", true);
-        var religion2 = _religionManager.CreateReligion("Religion 2", DeityType.Lysa, "founder2", true);
+        var religion1 = _religionManager.CreateReligion("Religion 1", DeityType.Aethra, "founder1", true);
+        var religion2 = _religionManager.CreateReligion("Religion 2", DeityType.Gaia, "founder2", true);
 
         // Assert
         Assert.NotEqual(religion1.ReligionUID, religion2.ReligionUID);
@@ -108,7 +108,7 @@ public class ReligionManagerTests
     public void CreateReligion_LogsNotification()
     {
         // Act
-        _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
 
         // Assert
         _mockLogger.Verify(
@@ -125,7 +125,7 @@ public class ReligionManagerTests
     public void CreateReligion_CanCreatePrivateReligion()
     {
         // Act
-        var religion = _religionManager.CreateReligion("Private Religion", DeityType.Khoras, "founder-uid", false);
+        var religion = _religionManager.CreateReligion("Private Religion", DeityType.Aethra, "founder-uid", false);
 
         // Assert
         Assert.False(religion.IsPublic);
@@ -139,7 +139,7 @@ public class ReligionManagerTests
     public void AddMember_AddsPlayerToReligion()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
 
         // Act
         _religionManager.AddMember(religion.ReligionUID, "new-member-uid");
@@ -166,7 +166,7 @@ public class ReligionManagerTests
     public void AddMember_LogsDebugMessage()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
         _mockLogger.Reset();
 
         // Act
@@ -190,7 +190,7 @@ public class ReligionManagerTests
     public void RemoveMember_RemovesPlayerFromReligion()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
         _religionManager.AddMember(religion.ReligionUID, "member-uid");
 
         // Act
@@ -205,7 +205,7 @@ public class ReligionManagerTests
     public void RemoveMember_WhenFounderLeaves_TransfersFoundership()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
         _religionManager.AddMember(religion.ReligionUID, "member-uid");
 
         // Act
@@ -221,7 +221,7 @@ public class ReligionManagerTests
     public void RemoveMember_WhenLastMemberLeaves_DeletesReligion()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
         var religionUID = religion.ReligionUID;
 
         // Act
@@ -260,7 +260,7 @@ public class ReligionManagerTests
     public void GetPlayerReligion_WithMemberPlayer_ReturnsReligion()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
 
         // Act
         var found = _religionManager.GetPlayerReligion("founder-uid");
@@ -274,7 +274,7 @@ public class ReligionManagerTests
     public void GetPlayerReligion_WithNonMemberPlayer_ReturnsNull()
     {
         // Arrange
-        _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
 
         // Act
         var found = _religionManager.GetPlayerReligion("non-member-uid");
@@ -291,7 +291,7 @@ public class ReligionManagerTests
     public void GetReligion_WithValidUID_ReturnsReligion()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
 
         // Act
         var found = _religionManager.GetReligion(religion.ReligionUID);
@@ -319,7 +319,7 @@ public class ReligionManagerTests
     public void GetReligionByName_WithValidName_ReturnsReligion()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
 
         // Act
         var found = _religionManager.GetReligionByName("Test Religion");
@@ -333,7 +333,7 @@ public class ReligionManagerTests
     public void GetReligionByName_IsCaseInsensitive()
     {
         // Arrange
-        _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
 
         // Act
         var found = _religionManager.GetReligionByName("test religion");
@@ -361,13 +361,13 @@ public class ReligionManagerTests
     public void GetPlayerActiveDeity_WithPlayerInReligion_ReturnsDeity()
     {
         // Arrange
-        _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
 
         // Act
         var deity = _religionManager.GetPlayerActiveDeity("founder-uid");
 
         // Assert
-        Assert.Equal(DeityType.Khoras, deity);
+        Assert.Equal(DeityType.Aethra, deity);
     }
 
     [Fact]
@@ -388,7 +388,7 @@ public class ReligionManagerTests
     public void CanJoinReligion_PublicReligion_ReturnsTrue()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Public Religion", DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion("Public Religion", DeityType.Aethra, "founder-uid", true);
 
         // Act
         var canJoin = _religionManager.CanJoinReligion(religion.ReligionUID, "new-player-uid");
@@ -401,7 +401,7 @@ public class ReligionManagerTests
     public void CanJoinReligion_PrivateReligionWithoutInvitation_ReturnsFalse()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Private Religion", DeityType.Khoras, "founder-uid", false);
+        var religion = _religionManager.CreateReligion("Private Religion", DeityType.Aethra, "founder-uid", false);
 
         // Act
         var canJoin = _religionManager.CanJoinReligion(religion.ReligionUID, "new-player-uid");
@@ -414,7 +414,7 @@ public class ReligionManagerTests
     public void CanJoinReligion_PrivateReligionWithInvitation_ReturnsTrue()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Private Religion", DeityType.Khoras, "founder-uid", false);
+        var religion = _religionManager.CreateReligion("Private Religion", DeityType.Aethra, "founder-uid", false);
         _religionManager.InvitePlayer(religion.ReligionUID, "new-player-uid", "founder-uid");
 
         // Act
@@ -428,7 +428,7 @@ public class ReligionManagerTests
     public void CanJoinReligion_AlreadyMember_ReturnsFalse()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
 
         // Act
         var canJoin = _religionManager.CanJoinReligion(religion.ReligionUID, "founder-uid");
@@ -455,7 +455,7 @@ public class ReligionManagerTests
     public void InvitePlayer_CreatesInvitation()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", false);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", false);
 
         // Act
         _religionManager.InvitePlayer(religion.ReligionUID, "invited-player", "founder-uid");
@@ -468,7 +468,7 @@ public class ReligionManagerTests
     public void InvitePlayer_WithNonMemberInviter_LogsWarning()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", false);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", false);
 
         // Act
         _religionManager.InvitePlayer(religion.ReligionUID, "invited-player", "non-member-uid");
@@ -498,7 +498,7 @@ public class ReligionManagerTests
     public void InvitePlayer_DuplicateInvitation_DoesNotDuplicate()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", false);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", false);
 
         // Act
         _religionManager.InvitePlayer(religion.ReligionUID, "invited-player", "founder-uid");
@@ -517,7 +517,7 @@ public class ReligionManagerTests
     public void HasInvitation_WithValidInvitation_ReturnsTrue()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", false);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", false);
         _religionManager.InvitePlayer(religion.ReligionUID, "invited-player", "founder-uid");
 
         // Act
@@ -531,7 +531,7 @@ public class ReligionManagerTests
     public void HasInvitation_WithoutInvitation_ReturnsFalse()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", false);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", false);
 
         // Act
         var hasInvitation = _religionManager.HasInvitation("player-uid", religion.ReligionUID);
@@ -548,7 +548,7 @@ public class ReligionManagerTests
     public void RemoveInvitation_RemovesInvitation()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", false);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", false);
         _religionManager.InvitePlayer(religion.ReligionUID, "invited-player", "founder-uid");
 
         // Act
@@ -566,8 +566,8 @@ public class ReligionManagerTests
     public void GetPlayerInvitations_ReturnsAllInvitations()
     {
         // Arrange
-        var religion1 = _religionManager.CreateReligion("Religion 1", DeityType.Khoras, "founder1", false);
-        var religion2 = _religionManager.CreateReligion("Religion 2", DeityType.Lysa, "founder2", false);
+        var religion1 = _religionManager.CreateReligion("Religion 1", DeityType.Aethra, "founder1", false);
+        var religion2 = _religionManager.CreateReligion("Religion 2", DeityType.Gaia, "founder2", false);
 
         _religionManager.InvitePlayer(religion1.ReligionUID, "player-uid", "founder1");
         _religionManager.InvitePlayer(religion2.ReligionUID, "player-uid", "founder2");
@@ -599,7 +599,7 @@ public class ReligionManagerTests
     public void HasReligion_WithPlayerInReligion_ReturnsTrue()
     {
         // Arrange
-        _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
 
         // Act
         var hasReligion = _religionManager.HasReligion("founder-uid");
@@ -626,8 +626,8 @@ public class ReligionManagerTests
     public void GetAllReligions_ReturnsAllCreatedReligions()
     {
         // Arrange
-        _religionManager.CreateReligion("Religion 1", DeityType.Khoras, "founder1", true);
-        _religionManager.CreateReligion("Religion 2", DeityType.Lysa, "founder2", true);
+        _religionManager.CreateReligion("Religion 1", DeityType.Aethra, "founder1", true);
+        _religionManager.CreateReligion("Religion 2", DeityType.Gaia, "founder2", true);
         _religionManager.CreateReligion("Religion 3", DeityType.Morthen, "founder3", true);
 
         // Act
@@ -655,16 +655,16 @@ public class ReligionManagerTests
     public void GetReligionsByDeity_ReturnsOnlyMatchingReligions()
     {
         // Arrange
-        _religionManager.CreateReligion("Khoras Religion 1", DeityType.Khoras, "founder1", true);
-        _religionManager.CreateReligion("Khoras Religion 2", DeityType.Khoras, "founder2", true);
-        _religionManager.CreateReligion("Lysa Religion", DeityType.Lysa, "founder3", true);
+        _religionManager.CreateReligion("Khoras Religion 1", DeityType.Aethra, "founder1", true);
+        _religionManager.CreateReligion("Khoras Religion 2", DeityType.Aethra, "founder2", true);
+        _religionManager.CreateReligion("Lysa Religion", DeityType.Gaia, "founder3", true);
 
         // Act
-        var khorasReligions = _religionManager.GetReligionsByDeity(DeityType.Khoras);
+        var khorasReligions = _religionManager.GetReligionsByDeity(DeityType.Aethra);
 
         // Assert
         Assert.Equal(2, khorasReligions.Count);
-        Assert.All(khorasReligions, r => Assert.Equal(DeityType.Khoras, r.Deity));
+        Assert.All(khorasReligions, r => Assert.Equal(DeityType.Aethra, r.Deity));
     }
 
     #endregion
@@ -675,7 +675,7 @@ public class ReligionManagerTests
     public void DeleteReligion_ByFounder_DeletesReligion()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
         var religionUID = religion.ReligionUID;
 
         // Act
@@ -694,7 +694,7 @@ public class ReligionManagerTests
     public void DeleteReligion_ByNonFounder_ReturnsFalse()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
         _religionManager.AddMember(religion.ReligionUID, "member-uid");
 
         // Act
@@ -723,7 +723,7 @@ public class ReligionManagerTests
     public void HandleFounderLeaving_TransfersToNextMember()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
         _religionManager.AddMember(religion.ReligionUID, "member-uid");
 
         // Act - Remove founder
@@ -745,8 +745,8 @@ public class ReligionManagerTests
     public void OnSaveGameLoaded_LoadsReligions()
     {
         // Arrange - Create some religions
-        _religionManager.CreateReligion("Religion 1", DeityType.Khoras, "founder1", true);
-        _religionManager.CreateReligion("Religion 2", DeityType.Lysa, "founder2", false);
+        _religionManager.CreateReligion("Religion 1", DeityType.Aethra, "founder1", true);
+        _religionManager.CreateReligion("Religion 2", DeityType.Gaia, "founder2", false);
 
         // Act - Use reflection to call private method
         var method = _religionManager.GetType().GetMethod("OnSaveGameLoaded",
@@ -763,8 +763,8 @@ public class ReligionManagerTests
     public void OnGameWorldSave_SavesReligions()
     {
         // Arrange - Create some religions
-        _religionManager.CreateReligion("Religion 1", DeityType.Khoras, "founder1", true);
-        _religionManager.CreateReligion("Religion 2", DeityType.Lysa, "founder2", false);
+        _religionManager.CreateReligion("Religion 1", DeityType.Aethra, "founder1", true);
+        _religionManager.CreateReligion("Religion 2", DeityType.Gaia, "founder2", false);
 
         // Act - Use reflection to call private method
         var method = _religionManager.GetType().GetMethod("OnGameWorldSave",
@@ -785,8 +785,8 @@ public class ReligionManagerTests
     public void GetAllReligions_AfterDeletion_DoesNotIncludeDeletedReligion()
     {
         // Arrange
-        var religion1 = _religionManager.CreateReligion("Religion 1", DeityType.Khoras, "founder1", true);
-        var religion2 = _religionManager.CreateReligion("Religion 2", DeityType.Lysa, "founder2", true);
+        var religion1 = _religionManager.CreateReligion("Religion 1", DeityType.Aethra, "founder1", true);
+        var religion2 = _religionManager.CreateReligion("Religion 2", DeityType.Gaia, "founder2", true);
 
         // Act
         _religionManager.DeleteReligion(religion1.ReligionUID, "founder1");
@@ -801,7 +801,7 @@ public class ReligionManagerTests
     public void RemoveMember_FromReligionWithMultipleMembers_PreservesOtherMembers()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", true);
         _religionManager.AddMember(religion.ReligionUID, "member1-uid");
         _religionManager.AddMember(religion.ReligionUID, "member2-uid");
 
@@ -819,7 +819,7 @@ public class ReligionManagerTests
     public void InvitePlayer_ToAlreadyInvited_DoesNotCreateDuplicates()
     {
         // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", false);
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Aethra, "founder-uid", false);
 
         // Act - Invite twice
         _religionManager.InvitePlayer(religion.ReligionUID, "player-uid", "founder-uid");
@@ -834,8 +834,8 @@ public class ReligionManagerTests
     public void GetPlayerReligion_AfterPlayerJoins_ReturnsCorrectReligion()
     {
         // Arrange
-        var religion1 = _religionManager.CreateReligion("Religion 1", DeityType.Khoras, "founder1", true);
-        var religion2 = _religionManager.CreateReligion("Religion 2", DeityType.Lysa, "founder2", true);
+        var religion1 = _religionManager.CreateReligion("Religion 1", DeityType.Aethra, "founder1", true);
+        var religion2 = _religionManager.CreateReligion("Religion 2", DeityType.Gaia, "founder2", true);
 
         // Act
         var religionForFounder1 = _religionManager.GetPlayerReligion("founder1");
@@ -850,7 +850,7 @@ public class ReligionManagerTests
     public void CreateReligion_WithNullOrEmptyName_StillCreatesReligion()
     {
         // Arrange & Act
-        var religion = _religionManager.CreateReligion(string.Empty, DeityType.Khoras, "founder-uid", true);
+        var religion = _religionManager.CreateReligion(string.Empty, DeityType.Aethra, "founder-uid", true);
 
         // Assert - Should create religion even with empty name
         Assert.NotNull(religion);
@@ -861,10 +861,10 @@ public class ReligionManagerTests
     public void GetReligionsByDeity_WithNoMatchingReligions_ReturnsEmptyList()
     {
         // Arrange
-        _religionManager.CreateReligion("Khoras Religion", DeityType.Khoras, "founder1", true);
+        _religionManager.CreateReligion("Khoras Religion", DeityType.Aethra, "founder1", true);
 
         // Act
-        var lysaReligions = _religionManager.GetReligionsByDeity(DeityType.Lysa);
+        var lysaReligions = _religionManager.GetReligionsByDeity(DeityType.Gaia);
 
         // Assert
         Assert.Empty(lysaReligions);
@@ -874,8 +874,8 @@ public class ReligionManagerTests
     public void CanJoinReligion_PlayerAlreadyInAnotherReligion_StillReturnsBasedOnThisReligion()
     {
         // Arrange
-        var religion1 = _religionManager.CreateReligion("Religion 1", DeityType.Khoras, "founder1", true);
-        var religion2 = _religionManager.CreateReligion("Religion 2", DeityType.Lysa, "founder2", true);
+        var religion1 = _religionManager.CreateReligion("Religion 1", DeityType.Aethra, "founder1", true);
+        var religion2 = _religionManager.CreateReligion("Religion 2", DeityType.Gaia, "founder2", true);
 
         // Player is already in religion1 as founder
         // Act - Check if founder can join religion2

@@ -29,16 +29,16 @@ public class ReligionCommandMembersTests : ReligionCommandsTestHelpers
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var mockMember = CreateMockPlayer("member-1", "MemberName");
 
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Aethra);
+        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
         founderData.Favor = 100;
         founderData.FavorRank = FavorRank.Initiate;
 
-        var memberData = CreatePlayerData("member-1", "religion-1", DeityType.Khoras);
+        var memberData = CreatePlayerData("member-1", "religion-1", DeityType.Aethra);
         memberData.Favor = 50;
         memberData.FavorRank = FavorRank.Initiate;
 
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
         religion.MemberUIDs.Add("member-1");
 
         var args = CreateCommandArgs(mockPlayer.Object);
@@ -73,9 +73,9 @@ public class ReligionCommandMembersTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("founder-1", "TestPlayer");
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
+        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
 
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
         religion.MemberUIDs.Add("member-1");
         religion.MemberUIDs.Add("member-2");
 
@@ -99,11 +99,11 @@ public class ReligionCommandMembersTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("founder-1", "FounderName");
         var mockMember = CreateMockPlayer("member-1", "MemberName");
-        var playerData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
-        var memberData = CreatePlayerData("member-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
+        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
+        var memberData = CreatePlayerData("member-1", "religion-1", DeityType.Aethra);
 
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
         religion.MemberUIDs.Add("member-1");
 
         var args = CreateCommandArgs(mockPlayer.Object);
@@ -176,7 +176,7 @@ public class ReligionCommandMembersTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Aethra);
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
@@ -202,11 +202,11 @@ public class ReligionCommandMembersTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
-        var memberData = CreatePlayerData("offline-member", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Aethra);
+        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
+        var memberData = CreatePlayerData("offline-member", "religion-1", DeityType.Aethra);
 
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
         religion.MemberUIDs.Add("player-1");
         religion.MemberUIDs.Add("offline-member");
 

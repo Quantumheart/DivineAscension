@@ -27,8 +27,8 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
         // Arrange
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var mockBannedPlayer = CreateMockPlayer("banned-1", "BannedPlayer");
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
 
         var bannedPlayers = new List<BanEntry>
         {
@@ -63,8 +63,8 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
         // Arrange
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var mockBannedPlayer = CreateMockPlayer("banned-1", "BannedPlayer");
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
 
         var bannedPlayers = new List<BanEntry>
         {
@@ -92,8 +92,8 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
 
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args);
@@ -118,8 +118,8 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var mockBanned1 = CreateMockPlayer("banned-1", "FirstBanned");
         var mockBanned2 = CreateMockPlayer("banned-2", "SecondBanned");
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
 
         var bannedPlayers = new List<BanEntry>
         {
@@ -152,8 +152,8 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
 
         var bannedPlayers = new List<BanEntry>
         {
@@ -229,7 +229,7 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "PlayerName");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Aethra);
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
@@ -250,8 +250,8 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "MemberName");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Aethra);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 

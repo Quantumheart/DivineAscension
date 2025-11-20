@@ -2,16 +2,12 @@ namespace PantheonWars.Models.Enum;
 
 /// <summary>
 ///     Enumeration of all deities in Pantheon Wars
+///     3-deity system: Light (Good) / Nature (Neutral) / Shadow & Death (Evil)
 /// </summary>
 public enum DeityType
 {
     None = 0,
-    Khoras = 1, // War
-    Lysa = 2, // Hunt
-    Morthen = 3, // Death
-    Aethra = 4, // Light
-    Umbros = 5, // Shadows
-    Tharos = 6, // Storms
-    Gaia = 7, // Earth
-    Vex = 8 // Madness
+    Aethra = 4, // Light (Good)
+    Gaia = 7, // Nature (Neutral)
+    Morthen = 3 // Shadow & Death (Evil)
 }

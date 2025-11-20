@@ -31,9 +31,9 @@ public class BlessingDialogManagerTests
     public void TestInitializeMethod()
     {
         var manager = new BlessingDialogManager(null!);
-        manager.Initialize("religion123", DeityType.Khoras, "God of Warriors");
+        manager.Initialize("religion123", DeityType.Aethra, "God of Warriors");
         Assert.Equal("religion123", manager.CurrentReligionUID);
-        Assert.Equal(DeityType.Khoras, manager.CurrentDeity);
+        Assert.Equal(DeityType.Aethra, manager.CurrentDeity);
         Assert.Equal("God of Warriors", manager.CurrentReligionName);
         Assert.True(manager.IsDataLoaded);
         Assert.Null(manager.SelectedBlessingId);
@@ -48,7 +48,7 @@ public class BlessingDialogManagerTests
     public void TestResetMethod()
     {
         var manager = new BlessingDialogManager(null!);
-        manager.Initialize("religion123", DeityType.Khoras, "God of Warriors");
+        manager.Initialize("religion123", DeityType.Aethra, "God of Warriors");
         manager.Reset();
         Assert.Null(manager.CurrentReligionUID);
         Assert.Equal(DeityType.None, manager.CurrentDeity);
@@ -85,7 +85,7 @@ public class BlessingDialogManagerTests
         var manager = new BlessingDialogManager(null!);
         Assert.False(manager.HasReligion());
 
-        manager.Initialize("religion123", DeityType.Khoras, "God of Warriors");
+        manager.Initialize("religion123", DeityType.Aethra, "God of Warriors");
         Assert.True(manager.HasReligion());
 
         manager.Reset();
@@ -376,7 +376,7 @@ public class BlessingDialogManagerTests
         blessing.Kind = BlessingKind.Player;
         blessing.RequiredFavorRank = 0; // No rank requirement
         manager.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
-        manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 1);
+        manager.Initialize("religion1", DeityType.Aethra, "Test Religion", favorRank: 1);
 
         // Act
         manager.RefreshAllBlessingStates();
@@ -397,7 +397,7 @@ public class BlessingDialogManagerTests
         blessing.Kind = BlessingKind.Religion;
         blessing.RequiredPrestigeRank = 0; // No rank requirement
         manager.LoadBlessingStates(new List<Blessing>(), new List<Blessing> { blessing });
-        manager.Initialize("religion1", DeityType.Khoras, "Test Religion", prestigeRank: 1);
+        manager.Initialize("religion1", DeityType.Aethra, "Test Religion", prestigeRank: 1);
 
         // Act
         manager.RefreshAllBlessingStates();
@@ -418,7 +418,7 @@ public class BlessingDialogManagerTests
         blessing.Kind = BlessingKind.Player;
         blessing.RequiredFavorRank = 5; // High rank requirement
         manager.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
-        manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 1);
+        manager.Initialize("religion1", DeityType.Aethra, "Test Religion", favorRank: 1);
 
         // Act
         manager.RefreshAllBlessingStates();
@@ -439,7 +439,7 @@ public class BlessingDialogManagerTests
     {
         // Arrange
         var manager = new BlessingDialogManager(null!);
-        manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 2);
+        manager.Initialize("religion1", DeityType.Aethra, "Test Religion", favorRank: 2);
         manager.TotalFavorEarned = 3500;
 
         // Act
@@ -458,7 +458,7 @@ public class BlessingDialogManagerTests
     {
         // Arrange
         var manager = new BlessingDialogManager(null!);
-        manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 4);
+        manager.Initialize("religion1", DeityType.Aethra, "Test Religion", favorRank: 4);
         manager.TotalFavorEarned = 15000;
 
         // Act
@@ -478,7 +478,7 @@ public class BlessingDialogManagerTests
     {
         // Arrange
         var manager = new BlessingDialogManager(null!);
-        manager.Initialize("religion1", DeityType.Khoras, "Test Religion", prestigeRank: 1);
+        manager.Initialize("religion1", DeityType.Aethra, "Test Religion", prestigeRank: 1);
         manager.CurrentPrestige = 1200;
 
         // Act
@@ -497,7 +497,7 @@ public class BlessingDialogManagerTests
     {
         // Arrange
         var manager = new BlessingDialogManager(null!);
-        manager.Initialize("religion1", DeityType.Khoras, "Test Religion", prestigeRank: 4);
+        manager.Initialize("religion1", DeityType.Aethra, "Test Religion", prestigeRank: 4);
         manager.CurrentPrestige = 15000;
 
         // Act
@@ -521,7 +521,7 @@ public class BlessingDialogManagerTests
         blessing.Kind = BlessingKind.Player;
         blessing.RequiredFavorRank = 0;
         manager.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
-        manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 1);
+        manager.Initialize("religion1", DeityType.Aethra, "Test Religion", favorRank: 1);
         manager.SetBlessingUnlocked("player1", true);
 
         // Act
@@ -545,7 +545,7 @@ public class BlessingDialogManagerTests
         blessing.PrerequisiteBlessings.Add("prereq1");
 
         manager.LoadBlessingStates(new List<Blessing> { prereq, blessing }, new List<Blessing>());
-        manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 5);
+        manager.Initialize("religion1", DeityType.Aethra, "Test Religion", favorRank: 5);
 
         // Act
         manager.RefreshAllBlessingStates();
@@ -568,7 +568,7 @@ public class BlessingDialogManagerTests
         blessing.PrerequisiteBlessings.Add("prereq1");
 
         manager.LoadBlessingStates(new List<Blessing> { prereq, blessing }, new List<Blessing>());
-        manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 5);
+        manager.Initialize("religion1", DeityType.Aethra, "Test Religion", favorRank: 5);
         manager.SetBlessingUnlocked("prereq1", true);
 
         // Act
@@ -589,7 +589,7 @@ public class BlessingDialogManagerTests
         blessing.Kind = BlessingKind.Player;
         blessing.RequiredFavorRank = 3;
         manager.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
-        manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 2);
+        manager.Initialize("religion1", DeityType.Aethra, "Test Religion", favorRank: 2);
 
         // Act
         manager.RefreshAllBlessingStates();
@@ -609,7 +609,7 @@ public class BlessingDialogManagerTests
         blessing.Kind = BlessingKind.Religion;
         blessing.RequiredPrestigeRank = 3;
         manager.LoadBlessingStates(new List<Blessing>(), new List<Blessing> { blessing });
-        manager.Initialize("religion1", DeityType.Khoras, "Test Religion", prestigeRank: 2);
+        manager.Initialize("religion1", DeityType.Aethra, "Test Religion", prestigeRank: 2);
 
         // Act
         manager.RefreshAllBlessingStates();

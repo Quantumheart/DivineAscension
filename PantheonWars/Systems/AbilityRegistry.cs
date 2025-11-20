@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using PantheonWars.Abilities.Khoras;
-using PantheonWars.Abilities.Lysa;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using Vintagestory.API.Common;
@@ -35,9 +33,8 @@ public class AbilityRegistry
             if (deityType != DeityType.None)
                 _abilitiesByDeity[deityType] = new List<Ability>();
 
-        // Register abilities (will be implemented in Tasks 4-5)
-        RegisterKhorasAbilities();
-        RegisterLysaAbilities();
+        // Register abilities (3-deity system - abilities not yet implemented for new deities)
+        // TODO: Implement abilities for Aethra, Gaia, and Morthen
 
         _api.Logger.Notification($"[PantheonWars] Registered {_abilities.Count} abilities");
     }
@@ -104,21 +101,10 @@ public class AbilityRegistry
 
     #region Ability Registration
 
-    private void RegisterKhorasAbilities()
-    {
-        RegisterAbility(new WarBannerAbility());
-        RegisterAbility(new BattleCryAbility());
-        RegisterAbility(new BladeStormAbility());
-        RegisterAbility(new LastStandAbility());
-    }
-
-    private void RegisterLysaAbilities()
-    {
-        RegisterAbility(new HuntersMarkAbility());
-        RegisterAbility(new SwiftFeetAbility());
-        RegisterAbility(new ArrowRainAbility());
-        RegisterAbility(new PredatorInstinctAbility());
-    }
+    // TODO: Implement abilities for 3-deity system
+    // private void RegisterAethraAbilities() { }
+    // private void RegisterGaiaAbilities() { }
+    // private void RegisterMorthenAbilities() { }
 
     #endregion
 }

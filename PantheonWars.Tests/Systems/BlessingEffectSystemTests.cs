@@ -132,7 +132,7 @@ public class BlessingEffectSystemTests
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid");
         playerData.UnlockBlessing("religion_blessing");
 
-        var religionBlessing = TestFixtures.CreateTestBlessing("religion_blessing", "Religion Blessing", DeityType.Khoras, BlessingKind.Religion);
+        var religionBlessing = TestFixtures.CreateTestBlessing("religion_blessing", "Religion Blessing", DeityType.Aethra, BlessingKind.Religion);
         religionBlessing.StatModifiers["walkspeed"] = 0.2f;
 
         _mockPlayerReligionDataManager
@@ -202,10 +202,10 @@ public class BlessingEffectSystemTests
         religion.UnlockedBlessings["blessing1"] = true;
         religion.UnlockedBlessings["blessing2"] = true;
 
-        var blessing1 = TestFixtures.CreateTestBlessing("blessing1", "Blessing 1", DeityType.Khoras, BlessingKind.Religion);
+        var blessing1 = TestFixtures.CreateTestBlessing("blessing1", "Blessing 1", DeityType.Aethra, BlessingKind.Religion);
         blessing1.StatModifiers["meleeWeaponsDamage"] = 0.1f;
 
-        var blessing2 = TestFixtures.CreateTestBlessing("blessing2", "Blessing 2", DeityType.Khoras, BlessingKind.Religion);
+        var blessing2 = TestFixtures.CreateTestBlessing("blessing2", "Blessing 2", DeityType.Aethra, BlessingKind.Religion);
         blessing2.StatModifiers["meleeWeaponsDamage"] = 0.05f;
         blessing2.StatModifiers["rangedWeaponsDamage"] = 0.1f;
 
@@ -248,17 +248,17 @@ public class BlessingEffectSystemTests
     public void GetCombinedStatModifiers_CombinesPlayerAndReligionModifiers()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, "religion-uid");
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Aethra, "religion-uid");
         playerData.UnlockBlessing("player_blessing");
 
         var religion = TestFixtures.CreateTestReligion("religion-uid");
         religion.UnlockedBlessings["religion_blessing"] = true;
 
-        var playerBlessing = TestFixtures.CreateTestBlessing("player_blessing", "Player Blessing", DeityType.Khoras, BlessingKind.Player);
+        var playerBlessing = TestFixtures.CreateTestBlessing("player_blessing", "Player Blessing", DeityType.Aethra, BlessingKind.Player);
         playerBlessing.StatModifiers["walkspeed"] = 0.1f;
         playerBlessing.StatModifiers["meleeWeaponsDamage"] = 0.1f;
 
-        var religionBlessing = TestFixtures.CreateTestBlessing("religion_blessing", "Religion Blessing", DeityType.Khoras, BlessingKind.Religion);
+        var religionBlessing = TestFixtures.CreateTestBlessing("religion_blessing", "Religion Blessing", DeityType.Aethra, BlessingKind.Religion);
         religionBlessing.StatModifiers["walkspeed"] = 0.05f;
         religionBlessing.StatModifiers["maxhealthExtraPoints"] = 5.0f;
 
@@ -287,7 +287,7 @@ public class BlessingEffectSystemTests
     public void GetCombinedStatModifiers_WithoutReligion_ReturnsOnlyPlayerModifiers()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, null);
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Aethra, null);
         playerData.UnlockBlessing("player_blessing");
 
         var playerBlessing = TestFixtures.CreateTestBlessing("player_blessing", "Player Blessing");
@@ -356,8 +356,8 @@ public class BlessingEffectSystemTests
         religion.MemberUIDs.Add("member1");
         religion.MemberUIDs.Add("member2");
 
-        var member1Data = TestFixtures.CreateTestPlayerReligionData("member1", DeityType.Khoras, "religion-uid");
-        var member2Data = TestFixtures.CreateTestPlayerReligionData("member2", DeityType.Khoras, "religion-uid");
+        var member1Data = TestFixtures.CreateTestPlayerReligionData("member1", DeityType.Aethra, "religion-uid");
+        var member2Data = TestFixtures.CreateTestPlayerReligionData("member2", DeityType.Aethra, "religion-uid");
 
         _mockReligionManager
             .Setup(m => m.GetReligion("religion-uid"))
@@ -403,7 +403,7 @@ public class BlessingEffectSystemTests
     public void GetActiveBlessings_ReturnsPlayerAndReligionBlessings()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, "religion-uid");
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Aethra, "religion-uid");
         playerData.UnlockBlessing("player_blessing");
 
         var religion = TestFixtures.CreateTestReligion("religion-uid");
@@ -437,7 +437,7 @@ public class BlessingEffectSystemTests
     public void GetActiveBlessings_WithoutReligion_ReturnsOnlyPlayerBlessings()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, null);
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Aethra, null);
         playerData.UnlockBlessing("player_blessing");
 
         var playerBlessing = TestFixtures.CreateTestBlessing("player_blessing", "Player Blessing");
@@ -684,7 +684,7 @@ public class BlessingEffectSystemTests
     public void OnPlayerLeavesReligion_ClearsCacheAndRefreshes()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, "religion-uid");
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Aethra, "religion-uid");
         var religion = TestFixtures.CreateTestReligion("religion-uid");
         var mockPlayer = TestFixtures.CreateMockServerPlayer("player-uid", "TestPlayer");
 

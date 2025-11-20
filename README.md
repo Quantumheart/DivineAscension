@@ -9,7 +9,7 @@ A religion-based PvP mod for Vintage Story featuring custom religions, competing
 
 Pantheon Wars introduces a comprehensive religion and deity worship system where players create or join custom religions dedicated to different gods. Each religion unlocks unique passive blessing trees that enhance all members. Players earn individual Divine Favor and collective Religion Prestige through PvP combat, unlocking powerful blessings and progressing through dual ranking systems.
 
-**v1.0 ships with all 80 blessings providing functional stat modifiers.** Advanced special effects (lifesteal, poison, critical strikes, etc.) will be added in post-launch patches based on player feedback.
+**v1.0 ships with all 30 blessings providing functional stat modifiers.** Advanced special effects (lifesteal, poison, critical strikes, etc.) will be added in post-launch patches based on player feedback.
 
 ## Features
 
@@ -22,9 +22,10 @@ Pantheon Wars introduces a comprehensive religion and deity worship system where
 - **Single Religion Membership**: Players can only be in one religion at a time
 
 ### Deity System ✅
-- **8 Unique Deities**: Khoras (War), Lysa (Hunt), Morthen (Death), Aethra (Light), Umbros (Shadows), Tharos (Storms), Gaia (Earth), Vex (Madness)
+- **3 Unique Deities**: Aethra (Light/Good), Gaia (Nature/Neutral), Morthen (Shadow & Death/Evil)
 - **Religion-Based Deity Assignment**: Your deity is determined by your religion
-- **Deity Relationships**: Allied and rival deity dynamics affect favor and prestige gain
+- **Clear Faction Identity**: Simple Good vs Neutral vs Evil alignment system
+- **Deity Relationships**: Rival and neutral deity dynamics affect favor and prestige gain
 - **Deity-Specific Blessing Trees**: Each deity has unique passive blessings
 
 ### Dual Ranking System ✅
@@ -34,7 +35,7 @@ Pantheon Wars introduces a comprehensive religion and deity worship system where
 - **Religion Prestige**: Earned collectively by all religion members through PvP
 
 ### Blessing System ✅ (v1.0 - Stat Modifiers Complete)
-- **80 Passive Blessings**: 10 blessings per deity (6 player blessings + 4 religion blessings)
+- **30 Passive Blessings**: 10 blessings per deity (6 player blessings + 4 religion blessings)
 - **Player Blessings**: Unlock based on your individual Favor Rank
 - **Religion Blessings**: Unlock based on your religion's Prestige Rank, benefit all members
 - **Stat Modifiers**: Blessings provide passive bonuses (damage, defense, speed, health, armor, etc.) ✅ **Working**
@@ -168,15 +169,10 @@ PantheonWars/
 │   │   ├── ReligionPrestigeManager.cs ✅ NEW
 │   │   ├── BlessingRegistry.cs ✅ NEW
 │   │   ├── BlessingEffectSystem.cs ✅ NEW
-│   │   ├── BlessingDefinitions.cs ✅ NEW (all 80 blessings)
-│   │   │   ├── Khoras (War - 10 blessings) ✅
-│   │   │   ├── Lysa (Hunt - 10 blessings) ✅
-│   │   │   ├── Morthen (Death - 10 blessings) ✅
+│   │   ├── BlessingDefinitions.cs ✅ NEW (all 30 blessings)
 │   │   │   ├── Aethra (Light - 10 blessings) ✅
-│   │   │   ├── Umbros (Shadows - 10 blessings) ✅
-│   │   │   ├── Tharos (Storms - 10 blessings) ✅
-│   │   │   ├── Gaia (Earth - 10 blessings) ✅
-│   │   │   └── Vex (Madness - 10 blessings) ✅
+│   │   │   ├── Gaia (Nature - 10 blessings) ✅
+│   │   │   └── Morthen (Shadow & Death - 10 blessings) ✅
 │   │   ├── BuffSystem/ ✅ (Phase 2)
 │   │   │   ├── BuffManager.cs
 │   │   │   ├── ActiveEffect.cs
@@ -206,18 +202,19 @@ The mod is **ready for launch** with all core religion and blessing systems func
 ### What's New in v1.0 🎉
 
 **Complete Systems:**
-- ✅ **All 8 Deities Implemented** - 80 blessings fully defined across all deities
+- ✅ **3-Deity System Implemented** - 30 blessings fully defined (10 per deity)
 - ✅ **Functional Stat Modifiers** - Blessings apply real gameplay bonuses
 - ✅ **Religion Management GUI** - Full tabbed interface for managing religions
 - ✅ **Automatic Blessing Notifications** - Religion members notified when new blessings unlock
 - ✅ **Blessing Effect Refresh** - Stat modifiers auto-apply on unlock
 - ✅ **All Core Systems Working** - Religion, progression, blessings, persistence
 
-**Scope Reduction (160→80 Blessings):**
-- Better balance with fewer blessing interactions
-- Each blessing is more meaningful and impactful
-- Achievable endgame (players can max out deity trees)
-- Faster development and iteration
+**System Consolidation (8→3 Deities, 80→30 Blessings):**
+- **67% reduction in content** for easier balance and maintenance
+- **Stronger deity identity** - Each deity now represents 33% of content vs 12.5%
+- **Clear faction system** - Good (Light) vs Neutral (Nature) vs Evil (Shadow & Death)
+- **Simple PvP dynamics** - 3-way triangle instead of 28 matchup combinations
+- **Achievable endgame** - Players can max out complete deity trees
 
 ### Implemented Systems ✅
 
@@ -239,23 +236,18 @@ The mod is **ready for launch** with all core religion and blessing systems func
 - ✅ Network synchronization
 
 **Blessing System:**
-- ✅ BlessingRegistry with **80/80 blessings registered** (100% complete)
+- ✅ BlessingRegistry with **30/30 blessings registered** (100% complete)
 - ✅ Blessing unlock validation (rank requirements, prerequisites)
 - ✅ **Stat modifier calculation and application working** (using VS Stats API)
 - ✅ Blessing persistence across sessions
 - ✅ Combined player + religion blessing effects
-- ✅ **All 8 deities fully designed** (10 blessings each)
+- ✅ **All 3 deities fully designed** (10 blessings each)
 - ⚠️ Special effect handlers deferred to post-launch patches
 
-**Available Deity Blessing Trees (8/8 - All Complete!):**
-- ✅ **Khoras (War)** - 10 blessings (combat, damage, defense)
-- ✅ **Lysa (Hunt)** - 10 blessings (tracking, precision, ranged combat)
-- ✅ **Morthen (Death)** - 10 blessings (life drain, DoT, survivability)
-- ✅ **Aethra (Light)** - 10 blessings (healing, shields, buffs)
-- ✅ **Umbros (Shadows)** - 10 blessings (stealth, backstab, evasion)
-- ✅ **Tharos (Storms)** - 10 blessings (AoE, lightning, mobility)
-- ✅ **Gaia (Earth)** - 10 blessings (defense, regeneration, durability)
-- ✅ **Vex (Madness)** - 10 blessings (chaos, confusion, unpredictability)
+**Available Deity Blessing Trees (3/3 - All Complete!):**
+- ✅ **Aethra (Light)** - 10 blessings (healing, shields, divine protection) - Good Alignment
+- ✅ **Gaia (Nature)** - 10 blessings (defense, regeneration, durability) - Neutral Alignment
+- ✅ **Morthen (Shadow & Death)** - 10 blessings (lifesteal, poison, shadow magic) - Evil Alignment
 
 **User Interface:**
 - ✅ Enhanced HUD showing religion, deity, both ranks, favor/prestige
@@ -269,12 +261,13 @@ The mod is **ready for launch** with all core religion and blessing systems func
 
 - ✅ **Phase 1:** Foundation (MVP) - Complete
 - ✅ **Phase 2:** Combat Integration - Complete
-- ✅ **Phase 3:** Religion-Based Deity System with Blessing Trees - 90% Complete (**v1.0 Release**)
+- ✅ **Phase 3:** Religion-Based Deity System with Blessing Trees - 95% Complete (**v1.0 Release**)
   - ✅ Phase 3.1: Foundation (Religion system, commands, persistence)
   - ✅ Phase 3.2: Ranking Systems (Dual progression, PvP integration)
   - ✅ Phase 3.3: Blessing System Core (Registry, stat application, commands)
-  - ✅ Phase 3.4: Deity Blessing Trees (8/8 deities complete, 80/80 blessings defined)
-  - ⚠️ Phase 3.5: Integration & Polish (30% - Religion GUI done, blessing tree viewer optional)
+  - ✅ Phase 3.4: Deity Blessing Trees (3/3 deities complete, 30/30 blessings defined)
+  - ✅ Phase 3.5: 3-Deity Consolidation (Simplified from 8→3 deities for better balance)
+  - ⚠️ Phase 3.6: Integration & Polish (Religion GUI done, blessing tree viewer optional)
 - 🔲 **Phase 4:** Advanced Features - Planned (Divine duels, crusades, relics, apostates)
 
 **Post-Launch Roadmap:**

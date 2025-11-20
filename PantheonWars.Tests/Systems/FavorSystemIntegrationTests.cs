@@ -86,7 +86,7 @@ public class FavorSystemIntegrationTests
         // Arrange
         var attackerData = TestFixtures.CreateTestPlayerReligionData(
             "attacker-uid",
-            DeityType.Khoras,
+            DeityType.Aethra,
             "religion-1",
             100,
             500);
@@ -110,7 +110,7 @@ public class FavorSystemIntegrationTests
             .Returns(victimData);
 
         _mockDeityRegistry
-            .Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Morthen))
+            .Setup(r => r.GetFavorMultiplier(DeityType.Aethra, DeityType.Morthen))
             .Returns(2.0f);
 
         // Act
@@ -130,12 +130,12 @@ public class FavorSystemIntegrationTests
         // Arrange
         var attackerData = TestFixtures.CreateTestPlayerReligionData(
             "attacker-uid",
-            DeityType.Khoras,
+            DeityType.Aethra,
             "religion-1");
 
         var victimData = TestFixtures.CreateTestPlayerReligionData(
             "victim-uid",
-            DeityType.Lysa,
+            DeityType.Gaia,
             "religion-2");
 
         var mockAttacker = TestFixtures.CreateMockServerPlayer("attacker-uid", "Attacker");
@@ -150,7 +150,7 @@ public class FavorSystemIntegrationTests
             .Returns(victimData);
 
         _mockDeityRegistry
-            .Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa))
+            .Setup(r => r.GetFavorMultiplier(DeityType.Aethra, DeityType.Gaia))
             .Returns(0.5f);
 
         // Act
@@ -169,12 +169,12 @@ public class FavorSystemIntegrationTests
         // Arrange
         var attackerData = TestFixtures.CreateTestPlayerReligionData(
             "attacker-uid",
-            DeityType.Khoras,
+            DeityType.Aethra,
             "religion-1");
 
         var victimData = TestFixtures.CreateTestPlayerReligionData(
             "victim-uid",
-            DeityType.Khoras,
+            DeityType.Aethra,
             "religion-2");
 
         var mockAttacker = TestFixtures.CreateMockServerPlayer("attacker-uid", "Attacker");
@@ -209,7 +209,7 @@ public class FavorSystemIntegrationTests
 
         var victimData = TestFixtures.CreateTestPlayerReligionData(
             "victim-uid",
-            DeityType.Khoras,
+            DeityType.Aethra,
             "religion-1");
 
         var mockAttacker = TestFixtures.CreateMockServerPlayer("attacker-uid", "Attacker");
@@ -239,7 +239,7 @@ public class FavorSystemIntegrationTests
         // Arrange
         var attackerData = TestFixtures.CreateTestPlayerReligionData(
             "attacker-uid",
-            DeityType.Khoras,
+            DeityType.Aethra,
             "religion-1");
         attackerData.KillCount = 5;
 
@@ -260,7 +260,7 @@ public class FavorSystemIntegrationTests
             .Returns(victimData);
 
         _mockDeityRegistry
-            .Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Morthen))
+            .Setup(r => r.GetFavorMultiplier(DeityType.Aethra, DeityType.Morthen))
             .Returns(2.0f);
 
         // Act
@@ -280,7 +280,7 @@ public class FavorSystemIntegrationTests
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData(
             "player-uid",
-            DeityType.Khoras,
+            DeityType.Aethra,
             "religion-1",
             favor: 10);
 
@@ -306,7 +306,7 @@ public class FavorSystemIntegrationTests
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData(
             "player-uid",
-            DeityType.Khoras,
+            DeityType.Aethra,
             "religion-1",
             favor: 0);
 
@@ -332,7 +332,7 @@ public class FavorSystemIntegrationTests
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData(
             "player-uid",
-            DeityType.Khoras,
+            DeityType.Aethra,
             "religion-1",
             favor: 10);
 
@@ -364,7 +364,7 @@ public class FavorSystemIntegrationTests
     public void CalculateFavorReward_WithNoVictimDeity_ReturnsBaseFavor()
     {
         // Arrange & Act
-        var reward = _favorSystem.CalculateFavorReward(DeityType.Khoras, DeityType.None);
+        var reward = _favorSystem.CalculateFavorReward(DeityType.Aethra, DeityType.None);
 
         // Assert
         Assert.Equal(10, reward); // BASE_KILL_FAVOR
@@ -375,11 +375,11 @@ public class FavorSystemIntegrationTests
     {
         // Arrange
         _mockDeityRegistry
-            .Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Morthen))
+            .Setup(r => r.GetFavorMultiplier(DeityType.Aethra, DeityType.Morthen))
             .Returns(2.0f);
 
         // Act
-        var reward = _favorSystem.CalculateFavorReward(DeityType.Khoras, DeityType.Morthen);
+        var reward = _favorSystem.CalculateFavorReward(DeityType.Aethra, DeityType.Morthen);
 
         // Assert
         Assert.Equal(20, reward); // BASE_KILL_FAVOR * 2.0
@@ -395,7 +395,7 @@ public class FavorSystemIntegrationTests
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData(
             "player-uid",
-            DeityType.Khoras,
+            DeityType.Aethra,
             "religion-1");
 
         var mockPlayer = TestFixtures.CreateMockServerPlayer("player-uid", "TestPlayer");

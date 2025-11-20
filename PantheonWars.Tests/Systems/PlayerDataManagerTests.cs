@@ -283,7 +283,7 @@ public class PlayerDataManagerTests
         var playerUID = "test-player";
 
         var playerData = manager.GetOrCreatePlayerData(playerUID);
-        playerData.DeityType = DeityType.Khoras;
+        playerData.DeityType = DeityType.Aethra;
 
         // When: Check has deity
         var result = manager.HasDeity(playerUID);

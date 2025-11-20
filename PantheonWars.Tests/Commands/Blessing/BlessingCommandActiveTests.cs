@@ -73,7 +73,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             {
                 BlessingId = "player1",
                 Name = "Player Blessing 1",
-                Deity = DeityType.Khoras,
+                Deity = DeityType.Aethra,
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "Player blessing",
@@ -119,7 +119,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             {
                 BlessingId = "religion1",
                 Name = "Religion Blessing 1",
-                Deity = DeityType.Khoras,
+                Deity = DeityType.Aethra,
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
                 Description = "Religion blessing",
@@ -167,7 +167,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             {
                 BlessingId = "player1",
                 Name = "Player Blessing",
-                Deity = DeityType.Khoras,
+                Deity = DeityType.Aethra,
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "Player",
@@ -180,7 +180,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             {
                 BlessingId = "religion1",
                 Name = "Religion Blessing",
-                Deity = DeityType.Khoras,
+                Deity = DeityType.Aethra,
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
                 Description = "Religion",
@@ -224,7 +224,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             {
                 BlessingId = "player1",
                 Name = "Blessing One",
-                Deity = DeityType.Khoras,
+                Deity = DeityType.Aethra,
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "First",
@@ -234,7 +234,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             {
                 BlessingId = "player2",
                 Name = "Blessing Two",
-                Deity = DeityType.Khoras,
+                Deity = DeityType.Aethra,
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "Second",
@@ -244,7 +244,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             {
                 BlessingId = "player3",
                 Name = "Blessing Three",
-                Deity = DeityType.Khoras,
+                Deity = DeityType.Aethra,
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "Third",
@@ -289,7 +289,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             {
                 BlessingId = "religion1",
                 Name = "Religion One",
-                Deity = DeityType.Khoras,
+                Deity = DeityType.Aethra,
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
                 Description = "First",
@@ -299,7 +299,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             {
                 BlessingId = "religion2",
                 Name = "Religion Two",
-                Deity = DeityType.Khoras,
+                Deity = DeityType.Aethra,
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
                 Description = "Second",
@@ -342,7 +342,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             {
                 BlessingId = "player1",
                 Name = "Speed Boost",
-                Deity = DeityType.Khoras,
+                Deity = DeityType.Aethra,
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "Boost",
@@ -352,7 +352,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             {
                 BlessingId = "player2",
                 Name = "Health Boost",
-                Deity = DeityType.Khoras,
+                Deity = DeityType.Aethra,
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "Health",
@@ -365,7 +365,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             {
                 BlessingId = "religion1",
                 Name = "Divine Protection",
-                Deity = DeityType.Khoras,
+                Deity = DeityType.Aethra,
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Defense,
                 Description = "Protection",
@@ -483,7 +483,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             {
                 BlessingId = "player1",
                 Name = "Player Blessing",
-                Deity = DeityType.Khoras,
+                Deity = DeityType.Aethra,
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "Player",
@@ -496,7 +496,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             {
                 BlessingId = "religion1",
                 Name = "Religion Blessing",
-                Deity = DeityType.Khoras,
+                Deity = DeityType.Aethra,
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
                 Description = "Religion",

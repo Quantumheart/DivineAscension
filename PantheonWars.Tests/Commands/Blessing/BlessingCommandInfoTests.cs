@@ -53,7 +53,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         {
             BlessingId = "divine_strike",
             Name = "Divine Strike",
-            Deity = DeityType.Khoras,
+            Deity = DeityType.Aethra,
             Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "Channel divine power into your strikes",
@@ -86,7 +86,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         {
             BlessingId = "advanced_blessing",
             Name = "Advanced Blessing",
-            Deity = DeityType.Khoras,
+            Deity = DeityType.Aethra,
             Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "Advanced blessing",
@@ -114,7 +114,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         {
             BlessingId = "basic_blessing",
             Name = "Basic Blessing",
-            Deity = DeityType.Khoras,
+            Deity = DeityType.Aethra,
             Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "Basic",
@@ -128,7 +128,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         {
             BlessingId = "advanced_blessing",
             Name = "Advanced Blessing",
-            Deity = DeityType.Khoras,
+            Deity = DeityType.Aethra,
             Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "Advanced",
@@ -157,7 +157,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         {
             BlessingId = "prereq1",
             Name = "First Prerequisite",
-            Deity = DeityType.Khoras,
+            Deity = DeityType.Aethra,
             Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "First",
@@ -171,7 +171,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         {
             BlessingId = "prereq2",
             Name = "Second Prerequisite",
-            Deity = DeityType.Khoras,
+            Deity = DeityType.Aethra,
             Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "Second",
@@ -185,7 +185,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         {
             BlessingId = "ultimate_blessing",
             Name = "Ultimate Blessing",
-            Deity = DeityType.Khoras,
+            Deity = DeityType.Aethra,
             Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "Ultimate",
@@ -216,7 +216,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         {
             BlessingId = "orphan_blessing",
             Name = "Orphan Blessing",
-            Deity = DeityType.Khoras,
+            Deity = DeityType.Aethra,
             Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "Has missing prereq",
@@ -245,7 +245,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         {
             BlessingId = "speed_blessing",
             Name = "Speed Blessing",
-            Deity = DeityType.Khoras,
+            Deity = DeityType.Aethra,
             Kind = BlessingKind.Player,
             Category = BlessingCategory.Utility,
             Description = "Move faster",
@@ -283,7 +283,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         {
             BlessingId = "divine_sanctuary",
             Name = "Divine Sanctuary",
-            Deity = DeityType.Khoras,
+            Deity = DeityType.Aethra,
             Kind = BlessingKind.Religion,
             Category = BlessingCategory.Defense,
             Description = "Protects all members",
@@ -312,7 +312,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         {
             BlessingId = "fire_aura",
             Name = "Fire Aura",
-            Deity = DeityType.Khoras,
+            Deity = DeityType.Aethra,
             Kind = BlessingKind.Religion,
             Category = BlessingCategory.Combat,
             Description = "Burn enemies",
@@ -340,7 +340,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         {
             BlessingId = "combo_blessing",
             Name = "Combo Blessing",
-            Deity = DeityType.Khoras,
+            Deity = DeityType.Aethra,
             Kind = BlessingKind.Religion,
             Category = BlessingCategory.Combat,
             Description = "Multiple effects",
@@ -374,7 +374,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         {
             BlessingId = "complete_blessing",
             Name = "Complete Blessing",
-            Deity = DeityType.Khoras,
+            Deity = DeityType.Aethra,
             Kind = BlessingKind.Player,
             Category = BlessingCategory.Utility,
             Description = "Everything",
@@ -403,7 +403,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         {
             BlessingId = "simple_blessing",
             Name = "Simple Blessing",
-            Deity = DeityType.Khoras,
+            Deity = DeityType.Aethra,
             Kind = BlessingKind.Player,
             Category = BlessingCategory.Utility,
             Description = "Simple",
@@ -433,7 +433,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         {
             BlessingId = "starter_blessing",
             Name = "Starter Blessing",
-            Deity = DeityType.Khoras,
+            Deity = DeityType.Aethra,
             Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "No prereqs",

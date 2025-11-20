@@ -10,10 +10,10 @@ public class BlessingTests
     [Fact]
     public void TestParameterizedConstructor()
     {
-        var blessing = new Blessing("khoras_warriors_resolve", "Warrior's Resolve", DeityType.Khoras);
+        var blessing = new Blessing("khoras_warriors_resolve", "Warrior's Resolve", DeityType.Aethra);
         Assert.Equal("khoras_warriors_resolve", blessing.BlessingId);
         Assert.Equal("Warrior's Resolve", blessing.Name);
-        Assert.Equal(DeityType.Khoras, blessing.Deity);
+        Assert.Equal(DeityType.Aethra, blessing.Deity);
         Assert.Equal(BlessingKind.Player, blessing.Kind);
         Assert.Equal(BlessingCategory.Combat, blessing.Category);
         Assert.Equal(0, blessing.RequiredFavorRank);
