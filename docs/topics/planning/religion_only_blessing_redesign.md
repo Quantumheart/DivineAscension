@@ -105,7 +105,7 @@ Religion Identity Emerges Organically
 
 ### 2. Blessing Pool Design
 
-**Universal Pool:** 30 blessings organized by category and tier
+**Universal Pool:** 40 blessings organized by category and tier
 
 #### Blessing Categories (6 categories):
 1. **Mining & Resources** - Ore detection, mining speed, smelting
@@ -138,10 +138,10 @@ Religion Identity Emerges Organically
 - Specialization becomes clear (mining guild, farming commune, etc.)
 
 **Tier 4 Unlock (5000 prestige):**
-- Founder chooses **2 capstone blessings** from Tier 4 pool
-- Legendary abilities that define the religion's server role
+- Founder chooses **1 capstone blessing** from Tier 4 pool
+- Single legendary ability that defines the religion's server role
 
-**Total per Religion:** 10 blessings (2 + 3 + 3 + 2)
+**Total per Religion:** 9 blessings (2 + 3 + 3 + 1)
 
 ---
 
@@ -222,7 +222,7 @@ Religion Identity Emerges Organically
 
 **Week 10 - Mastery (Tier 4, 5,200 prestige):**
 - Hit 5,000 prestige milestone
-- Founder chooses: Master Prospector (see all ore within 100 blocks), Instant Smelting
+- Founder chooses: Master Prospector (see all ore within 100 blocks)
 - Legendary status: THE mining authority
 - Economic powerhouse, supplies entire server
 
@@ -245,7 +245,7 @@ Religion Identity Emerges Organically
 - Mass food production, trading surplus
 
 **Week 12 - Mastery (Tier 4, 5,800 prestige):**
-- Picks: Instant Crop Growth (cooldown), Animal Breeding 3x Speed
+- Picks: Instant Crop Growth (right-click to grow, long cooldown)
 - Feeds the entire server, controls food economy
 
 **Server Role:** Food suppliers, sustenance providers
@@ -267,16 +267,16 @@ Religion Identity Emerges Organically
 - Elite dungeon delvers, sell treasure maps
 
 **Week 14 - Mastery (Tier 4, 5,500 prestige):**
-- Picks: Shadow Step (short teleport), Map Everything (reveal entire region)
+- Picks: Shadow Step (short-range teleport, moderate cooldown)
 - Ultimate explorers, discover everything first
 
 **Server Role:** Scouts, cartographers, treasure hunters
 
 ---
 
-## 30 Blessing Pool Design (Draft)
+## 40 Blessing Pool Design (Draft)
 
-### Tier 1 - Foundation (12 blessings available, pick 2)
+### Tier 1 - Foundation (8 blessings available, pick 2)
 
 **Mining & Resources:**
 1. Mining Speed +15%
@@ -304,7 +304,7 @@ Religion Identity Emerges Organically
 
 ---
 
-### Tier 2 - Specialization (12 blessings available, pick 3)
+### Tier 2 - Specialization (10 blessings available, pick 3)
 
 **Mining & Resources:**
 1. Smelting Efficiency +25%
@@ -338,7 +338,7 @@ Religion Identity Emerges Organically
 
 ---
 
-### Tier 3 - Mastery (12 blessings available, pick 3)
+### Tier 3 - Mastery (10 blessings available, pick 3)
 
 **Mining & Resources:**
 1. Fortune (10% double ore drops)
@@ -372,7 +372,7 @@ Religion Identity Emerges Organically
 
 ---
 
-### Tier 4 - Legendary (6 blessings available, pick 2)
+### Tier 4 - Legendary (12 blessings available, pick 1)
 
 **Mining & Resources:**
 1. Master Prospector (see all ore within 100 blocks, permanent)
@@ -432,11 +432,11 @@ Religion Identity Emerges Organically
 ### Phase 2: Blessing Pool Creation (Week 3)
 
 **Tasks:**
-1. Design 30 universal blessings
-   - 12 Tier 1 (foundation)
-   - 12 Tier 2 (specialization)
-   - 12 Tier 3 (mastery)
-   - 6 Tier 4 (legendary)
+1. Design 40 universal blessings
+   - 8 Tier 1 (foundation) - pick 2
+   - 10 Tier 2 (specialization) - pick 3
+   - 10 Tier 3 (mastery) - pick 3
+   - 12 Tier 4 (legendary) - pick 1
 
 2. Implement utility-focused special effects
    - Fortune (double drops)
