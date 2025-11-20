@@ -212,8 +212,8 @@ public class SpecialEffectHandlerRegistryTests
         registry.Initialize();
 
         // Act
-        var handler1 = registry.GetHandler("damage_reduction10");
-        var handler2 = registry.GetHandler("damage_reduction10");
+        var handler1 = registry.GetHandler("damage_reduction_10");
+        var handler2 = registry.GetHandler("damage_reduction_10");
 
         // Assert
         Assert.Same(handler1, handler2); // Should be the same instance (singleton pattern)

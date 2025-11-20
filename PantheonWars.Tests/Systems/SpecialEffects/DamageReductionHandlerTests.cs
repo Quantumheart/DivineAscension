@@ -15,17 +15,17 @@ public class DamageReductionHandlerTests
     public void Constructor_SetsEffectIdAndReductionPercent()
     {
         // Arrange & Act
-        var handler = new DamageReductionHandler("damage_reduction10", 0.10f);
+        var handler = new DamageReductionHandler("damage_reduction_10", 0.10f);
 
         // Assert
-        Assert.Equal("damage_reduction10", handler.EffectId);
+        Assert.Equal("damage_reduction_10", handler.EffectId);
     }
 
     [Fact]
     public void OnDamageReceived_ReducesDamageByCorrectPercentage()
     {
         // Arrange
-        var handler = new DamageReductionHandler("damage_reduction10", 0.10f); // 10% reduction
+        var handler = new DamageReductionHandler("damage_reduction_10", 0.10f); // 10% reduction
         var damageSource = new DamageSource
         {
             Type = EnumDamageType.BluntAttack,
@@ -59,7 +59,7 @@ public class DamageReductionHandlerTests
     public void OnDamageReceived_DoesNotReduceHealingDamage()
     {
         // Arrange
-        var handler = new DamageReductionHandler("damage_reduction10", 0.10f);
+        var handler = new DamageReductionHandler("damage_reduction_10", 0.10f);
         var healSource = new DamageSource
         {
             Type = EnumDamageType.Heal,
@@ -78,7 +78,7 @@ public class DamageReductionHandlerTests
     public void OnDamageReceived_DoesNotReduceReviveDamage()
     {
         // Arrange
-        var handler = new DamageReductionHandler("damage_reduction10", 0.10f);
+        var handler = new DamageReductionHandler("damage_reduction_10", 0.10f);
         var reviveSource = new DamageSource
         {
             Type = EnumDamageType.Heal,
@@ -104,7 +104,7 @@ public class DamageReductionHandlerTests
     public void OnDamageReceived_ReducesAllDamageTypes(EnumDamageType damageType)
     {
         // Arrange
-        var handler = new DamageReductionHandler("damage_reduction10", 0.10f);
+        var handler = new DamageReductionHandler("damage_reduction_10", 0.10f);
         var damageSource = new DamageSource { Type = damageType };
         float damage = 100f;
 
@@ -119,7 +119,7 @@ public class DamageReductionHandlerTests
     public void OnDamageReceived_WithZeroDamage_DoesNothing()
     {
         // Arrange
-        var handler = new DamageReductionHandler("damage_reduction10", 0.10f);
+        var handler = new DamageReductionHandler("damage_reduction_10", 0.10f);
         var damageSource = new DamageSource { Type = EnumDamageType.BluntAttack };
         float damage = 0f;
 
@@ -134,7 +134,7 @@ public class DamageReductionHandlerTests
     public void OnDamageReceived_WithSmallDamage_StillReduces()
     {
         // Arrange
-        var handler = new DamageReductionHandler("damage_reduction10", 0.10f);
+        var handler = new DamageReductionHandler("damage_reduction_10", 0.10f);
         var damageSource = new DamageSource { Type = EnumDamageType.BluntAttack };
         float damage = 1f;
 
@@ -164,7 +164,7 @@ public class DamageReductionHandlerTests
     public void OnDamageDealt_DoesNothing()
     {
         // Arrange
-        var handler = new DamageReductionHandler("damage_reduction10", 0.10f);
+        var handler = new DamageReductionHandler("damage_reduction_10", 0.10f);
         var damageSource = new DamageSource();
         float damage = 100f;
 
@@ -179,7 +179,7 @@ public class DamageReductionHandlerTests
     public void OnTick_DoesNothing()
     {
         // Arrange
-        var handler = new DamageReductionHandler("damage_reduction10", 0.10f);
+        var handler = new DamageReductionHandler("damage_reduction_10", 0.10f);
 
         // Act & Assert - should not throw
         handler.OnTick(null!, 0.016f);
@@ -189,7 +189,7 @@ public class DamageReductionHandlerTests
     public void OnKill_DoesNothing()
     {
         // Arrange
-        var handler = new DamageReductionHandler("damage_reduction10", 0.10f);
+        var handler = new DamageReductionHandler("damage_reduction_10", 0.10f);
         var damageSource = new DamageSource();
 
         // Act & Assert - should not throw
@@ -200,7 +200,7 @@ public class DamageReductionHandlerTests
     public void OnActivate_DoesNothing()
     {
         // Arrange
-        var handler = new DamageReductionHandler("damage_reduction10", 0.10f);
+        var handler = new DamageReductionHandler("damage_reduction_10", 0.10f);
 
         // Act & Assert - should not throw
         handler.OnActivate(null!);
@@ -210,7 +210,7 @@ public class DamageReductionHandlerTests
     public void OnDeactivate_DoesNothing()
     {
         // Arrange
-        var handler = new DamageReductionHandler("damage_reduction10", 0.10f);
+        var handler = new DamageReductionHandler("damage_reduction_10", 0.10f);
 
         // Act & Assert - should not throw
         handler.OnDeactivate(null!);

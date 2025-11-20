@@ -61,7 +61,7 @@ public class BlessingEntityBehaviorTests
         // Arrange
         var entity = CreateTestEntity();
         var behavior = new BlessingEntityBehavior(entity, _registry);
-        var effectIds = new[] { "damage_reduction10" };
+        var effectIds = new[] { "damage_reduction_10" };
 
         // Act
         behavior.LoadHandlers(effectIds);
@@ -91,13 +91,13 @@ public class BlessingEntityBehaviorTests
         // Arrange
         var entity = CreateTestEntity();
         var behavior = new BlessingEntityBehavior(entity, _registry);
-        var effectIds = new[] { "damage_reduction10", "unknown_effect", "another_unknown" };
+        var effectIds = new[] { "damage_reduction_10", "unknown_effect", "another_unknown" };
 
         // Act
         behavior.LoadHandlers(effectIds);
 
         // Assert
-        Assert.Equal(1, behavior.GetActiveHandlerCount()); // Only damage_reduction10
+        Assert.Equal(1, behavior.GetActiveHandlerCount()); // Only damage_reduction_10
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class BlessingEntityBehaviorTests
         // Arrange
         var entity = CreateTestEntity();
         var behavior = new BlessingEntityBehavior(entity, _registry);
-        behavior.LoadHandlers(new[] { "damage_reduction10" });
+        behavior.LoadHandlers(new[] { "damage_reduction_10" });
         Assert.Equal(1, behavior.GetActiveHandlerCount());
 
         // Act
@@ -136,7 +136,7 @@ public class BlessingEntityBehaviorTests
         // Arrange
         var entity = CreateTestEntity();
         var behavior = new BlessingEntityBehavior(entity, _registry);
-        behavior.LoadHandlers(new[] { "damage_reduction10" });
+        behavior.LoadHandlers(new[] { "damage_reduction_10" });
         var damageSource = new DamageSource { Type = EnumDamageType.BluntAttack };
         float damage = 100f;
 
@@ -168,7 +168,7 @@ public class BlessingEntityBehaviorTests
         // Arrange
         var entity = CreateTestEntity();
         var behavior = new BlessingEntityBehavior(entity, _registry);
-        behavior.LoadHandlers(new[] { "damage_reduction10" });
+        behavior.LoadHandlers(new[] { "damage_reduction_10" });
         var damageSource = new DamageSource();
         var target = CreateTestEntity();
         target.WatchedAttributes.SetFloat("onHurt", 50f);
@@ -188,7 +188,7 @@ public class BlessingEntityBehaviorTests
         // Arrange
         var entity = CreateTestEntity();
         var behavior = new BlessingEntityBehavior(entity, _registry);
-        behavior.LoadHandlers(new[] { "damage_reduction10" });
+        behavior.LoadHandlers(new[] { "damage_reduction_10" });
         var damageSource = new DamageSource();
         var target = CreateTestEntity();
         target.WatchedAttributes.SetFloat("onHurt", 0f);
@@ -208,7 +208,7 @@ public class BlessingEntityBehaviorTests
         // Arrange
         var entity = CreateTestEntity();
         var behavior = new BlessingEntityBehavior(entity, _registry);
-        behavior.LoadHandlers(new[] { "damage_reduction10" });
+        behavior.LoadHandlers(new[] { "damage_reduction_10" });
         var damageSource = new DamageSource();
         var target = CreateTestEntity();
         target.WatchedAttributes.SetFloat("onHurt", 100f);
@@ -240,7 +240,7 @@ public class BlessingEntityBehaviorTests
         // Arrange
         var entity = CreateTestEntity();
         var behavior = new BlessingEntityBehavior(entity, _registry);
-        behavior.LoadHandlers(new[] { "damage_reduction10" });
+        behavior.LoadHandlers(new[] { "damage_reduction_10" });
         float deltaTime = 0.016f;
 
         // Act & Assert - should not throw
@@ -267,7 +267,7 @@ public class BlessingEntityBehaviorTests
         var behavior = new BlessingEntityBehavior(entity, _registry);
 
         // Act
-        behavior.LoadHandlers(new[] { "damage_reduction10" });
+        behavior.LoadHandlers(new[] { "damage_reduction_10" });
 
         // Assert
         Assert.Equal(1, behavior.GetActiveHandlerCount());
@@ -279,7 +279,7 @@ public class BlessingEntityBehaviorTests
         // Arrange
         var entity = CreateTestEntity();
         var behavior = new BlessingEntityBehavior(entity, _registry);
-        behavior.LoadHandlers(new[] { "damage_reduction10" });
+        behavior.LoadHandlers(new[] { "damage_reduction_10" });
         Assert.Equal(1, behavior.GetActiveHandlerCount());
 
         // Act - Load different handlers
@@ -295,7 +295,7 @@ public class BlessingEntityBehaviorTests
         // Arrange
         var entity = CreateTestEntity();
         var behavior = new BlessingEntityBehavior(entity, _registry);
-        behavior.LoadHandlers(new[] { "damage_reduction10" });
+        behavior.LoadHandlers(new[] { "damage_reduction_10" });
         Assert.Equal(1, behavior.GetActiveHandlerCount());
 
         // Act
