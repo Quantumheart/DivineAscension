@@ -332,32 +332,30 @@ _capi.Input.SetHotKeyHandler("pantheonwarsreligion", (bool keyDown) =>
 - [ ] Update `PlayerReligionDataManagerTests` (remove favor/deity tests)
 - [ ] Update `ReligionCommandsTests` (update create command tests)
 
-### Phase 6: Update Documentation
+### Phase 6: Update Documentation ✅ COMPLETE
 **Goal**: Rebrand as guild management system
 
-#### 6.1 Update README.md
-- [ ] Change title to "Guild Management System for Vintage Story"
-- [ ] Remove all references to:
+#### 6.1 Update README.md ✅ COMPLETE
+- [x] Change title to "Guild Management System for Vintage Story"
+- [x] Remove all references to:
   - Blessings
   - PvP features
   - Favor/Prestige
   - Ranking systems
   - Abilities
   - Deities ❌
-- [ ] Focus on guild management features
-- [ ] Update keybind documentation
-- [ ] Simplify feature list
+- [x] Focus on guild management features
+- [x] Update keybind documentation (Ctrl+G)
+- [x] Simplify feature list
 
-#### 6.2 Update Mod Metadata
-- [ ] Update `assets/modinfo.json`:
+#### 6.2 Update Mod Metadata ✅ COMPLETE
+- [x] Update `modinfo.json`:
   - Change name to "Guild Management System"
   - Update description
   - Change version to 2.0.0 (major rewrite)
-- [ ] Update mod ID if needed
 
-#### 6.3 Archive Old Documentation
-- [ ] Move old docs to `/docs/archived/`
-- [ ] Create new simple documentation for guild features
+#### 6.3 Remove Old Documentation ✅ COMPLETE
+- [x] Deleted entire `/docs/` folder (all outdated blessing/deity/favor documentation)
 
 ### Phase 7: Final Testing
 **Goal**: Verify all guild features work correctly
