@@ -2,9 +2,7 @@ using System;
 using System.Linq;
 using System.Text;
 using PantheonWars.Data;
-using PantheonWars.Models.Enum;
 using PantheonWars.Network;
-using PantheonWars.Systems;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -32,57 +30,55 @@ public class ReligionCommands(
     public void RegisterCommands()
     {
         _sapi.ChatCommands.Create("religion")
-            .WithDescription("Manage religions and congregation membership")
+            .WithDescription("Manage guilds and membership")
             .RequiresPrivilege(Privilege.chat)
             .BeginSubCommand("create")
-            .WithDescription("Create a new religion")
+            .WithDescription("Create a new guild")
             .WithArgs(_sapi.ChatCommands.Parsers.Word("name"),
-                _sapi.ChatCommands.Parsers.Word("deity"),
                 _sapi.ChatCommands.Parsers.OptionalWord("visibility"))
             .HandleWith(OnCreateReligion)
             .EndSubCommand()
             .BeginSubCommand("join")
-            .WithDescription("Join a religion")
+            .WithDescription("Join a guild")
             .WithArgs(_sapi.ChatCommands.Parsers.Word("name"))
             .HandleWith(OnJoinReligion)
             .EndSubCommand()
             .BeginSubCommand("leave")
-            .WithDescription("Leave your current religion")
+            .WithDescription("Leave your current guild")
             .HandleWith(OnLeaveReligion)
             .EndSubCommand()
             .BeginSubCommand("list")
-            .WithDescription("List all religions")
-            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("deity"))
+            .WithDescription("List all guilds")
             .HandleWith(OnListReligions)
             .EndSubCommand()
             .BeginSubCommand("info")
-            .WithDescription("Show religion information")
+            .WithDescription("Show guild information")
             .WithArgs(_sapi.ChatCommands.Parsers.Word("name"))
             .HandleWith(OnReligionInfo)
             .EndSubCommand()
             .BeginSubCommand("members")
-            .WithDescription("Show members of your religion")
+            .WithDescription("Show members of your guild")
             .HandleWith(OnListMembers)
             .EndSubCommand()
             .BeginSubCommand("invite")
-            .WithDescription("Invite a player to your religion")
+            .WithDescription("Invite a player to your guild")
             .WithArgs(_sapi.ChatCommands.Parsers.Word("playername"))
             .HandleWith(OnInvitePlayer)
             .EndSubCommand()
             .BeginSubCommand("kick")
-            .WithDescription("Kick a player from your religion (founder only)")
+            .WithDescription("Kick a player from your guild (founder only)")
             .WithArgs(_sapi.ChatCommands.Parsers.Word("playername"))
             .HandleWith(OnKickPlayer)
             .EndSubCommand()
             .BeginSubCommand("ban")
-            .WithDescription("Ban a player from your religion (founder only)")
+            .WithDescription("Ban a player from your guild (founder only)")
             .WithArgs(_sapi.ChatCommands.Parsers.Word("playername"),
                 _sapi.ChatCommands.Parsers.OptionalAll("reason"),
                 _sapi.ChatCommands.Parsers.OptionalInt("days"))
             .HandleWith(OnBanPlayer)
             .EndSubCommand()
             .BeginSubCommand("unban")
-            .WithDescription("Unban a player from your religion (founder only)")
+            .WithDescription("Unban a player from your guild (founder only)")
             .WithArgs(_sapi.ChatCommands.Parsers.Word("playername"))
             .HandleWith(OnUnbanPlayer)
             .EndSubCommand()
@@ -91,11 +87,11 @@ public class ReligionCommands(
             .HandleWith(OnListBannedPlayers)
             .EndSubCommand()
             .BeginSubCommand("disband")
-            .WithDescription("Disband your religion (founder only)")
+            .WithDescription("Disband your guild (founder only)")
             .HandleWith(OnDisbandReligion)
             .EndSubCommand()
             .BeginSubCommand("description")
-            .WithDescription("Set your religion's description (founder only)")
+            .WithDescription("Set your guild's description (founder only)")
             .WithArgs(_sapi.ChatCommands.Parsers.All("text"))
             .HandleWith(OnSetDescription)
             .EndSubCommand();
@@ -106,46 +102,36 @@ public class ReligionCommands(
     #region Command Handlers
 
     /// <summary>
-    ///     Handler for /religion create
-    ///     <name></name>
-    ///     <deity> [public/private]</deity>
+    ///     Handler for /religion create <name> [public/private]
     /// </summary>
     internal TextCommandResult OnCreateReligion(TextCommandCallingArgs args)
     {
         var religionName = (string)args[0];
-        var deityName = (string)args[1];
-        var visibility = args.Parsers.Count > 2 ? (string?)args[2] : "public";
+        var visibility = args.Parsers.Count > 1 ? (string?)args[1] : "public";
 
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        // Check if player already has a religion
+        // Check if player already has a guild
         var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
         if (playerData.HasReligion())
-            return TextCommandResult.Error("You are already in a religion. Use /religion leave first.");
-
-        // Parse deity type
-        if (!Enum.TryParse(deityName, true, out DeityType deity) || deity == DeityType.None)
-        {
-            var validDeities = string.Join(", ", Enum.GetNames(typeof(DeityType)).Where(d => d != "None"));
-            return TextCommandResult.Error($"Invalid deity. Valid options: {validDeities}");
-        }
+            return TextCommandResult.Error("You are already in a guild. Use /religion leave first.");
 
         // Parse visibility
         var isPublic = visibility?.ToLower() != "private";
 
-        // Check if religion name already exists
+        // Check if guild name already exists
         if (_religionManager.GetReligionByName(religionName) != null)
-            return TextCommandResult.Error($"A religion named '{religionName}' already exists");
+            return TextCommandResult.Error($"A guild named '{religionName}' already exists");
 
-        // Create the religion
-        var religion = _religionManager.CreateReligion(religionName, deity, player.PlayerUID, isPublic);
+        // Create the guild
+        var religion = _religionManager.CreateReligion(religionName, player.PlayerUID, isPublic);
 
         // Auto-join the founder
         _playerReligionDataManager.JoinReligion(player.PlayerUID, religion.ReligionUID);
 
         return TextCommandResult.Success(
-            $"Religion '{religionName}' created! You are now the founder serving {deity}.");
+            $"Guild '{religionName}' created! You are now the founder.");
     }
 
     /// <summary>
@@ -209,31 +195,21 @@ public class ReligionCommands(
     }
 
     /// <summary>
-    ///     Handler for /religion list [deity]
+    ///     Handler for /religion list
     /// </summary>
     internal TextCommandResult OnListReligions(TextCommandCallingArgs args)
     {
-        var deityFilter = args.Parsers.Count > 0 ? (string?)args[0] : null;
-
         var religions = _religionManager.GetAllReligions();
 
-        // Apply deity filter if specified
-        if (!string.IsNullOrEmpty(deityFilter))
-        {
-            if (!Enum.TryParse(deityFilter, true, out DeityType deity))
-                return TextCommandResult.Error($"Invalid deity: {deityFilter}");
-            religions = _religionManager.GetReligionsByDeity(deity);
-        }
-
-        if (religions.Count == 0) return TextCommandResult.Success("No religions found");
+        if (religions.Count == 0) return TextCommandResult.Success("No guilds found");
 
         var sb = new StringBuilder();
-        sb.AppendLine("=== Religions ===");
-        foreach (var religion in religions.OrderByDescending(r => r.TotalPrestige))
+        sb.AppendLine("=== Guilds ===");
+        foreach (var religion in religions.OrderBy(r => r.ReligionName))
         {
             var visibility = religion.IsPublic ? "Public" : "Private";
             sb.AppendLine(
-                $"- {religion.ReligionName} ({religion.Deity}) | {visibility} | {religion.GetMemberCount()} members | Rank: {religion.PrestigeRank}");
+                $"- {religion.ReligionName} | {visibility} | {religion.GetMemberCount()} members");
         }
 
         return TextCommandResult.Success(sb.ToString());
@@ -269,11 +245,8 @@ public class ReligionCommands(
         // Build info display
         var sb = new StringBuilder();
         sb.AppendLine($"=== {religion.ReligionName} ===");
-        sb.AppendLine($"Deity: {religion.Deity}");
         sb.AppendLine($"Visibility: {(religion.IsPublic ? "Public" : "Private")}");
         sb.AppendLine($"Members: {religion.GetMemberCount()}");
-        sb.AppendLine($"Prestige Rank: {religion.PrestigeRank}");
-        sb.AppendLine($"Prestige: {religion.Prestige} (Total: {religion.TotalPrestige})");
         sb.AppendLine($"Created: {religion.CreationDate:yyyy-MM-dd}");
 
         var founderPlayer = _sapi.World.PlayerByUid(religion.FounderUID);
@@ -306,10 +279,9 @@ public class ReligionCommands(
             var memberPlayer = _sapi.World.PlayerByUid(memberUID);
             var memberName = memberPlayer?.PlayerName ?? "Unknown";
 
-            var memberData = _playerReligionDataManager.GetOrCreatePlayerData(memberUID);
             var role = religion.IsFounder(memberUID) ? "Founder" : "Member";
 
-            sb.AppendLine($"- {memberName} ({role}) | Rank: {memberData.FavorRank} | Favor: {memberData.Favor}");
+            sb.AppendLine($"- {memberName} ({role})");
         }
 
         return TextCommandResult.Success(sb.ToString());
