@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using PantheonWars.Models.Enum;
 using ProtoBuf;
 
 namespace PantheonWars.Data;
@@ -15,11 +14,10 @@ public class ReligionData
     /// <summary>
     ///     Creates a new religion with the specified parameters
     /// </summary>
-    public ReligionData(string religionUID, string religionName, DeityType deity, string founderUID)
+    public ReligionData(string religionUID, string religionName, string founderUID)
     {
         ReligionUID = religionUID;
         ReligionName = religionName;
-        Deity = deity;
         FounderUID = founderUID;
         MemberUIDs = new List<string> { founderUID }; // Founder is first member
         CreationDate = DateTime.UtcNow;
@@ -39,77 +37,46 @@ public class ReligionData
     public string ReligionUID { get; set; } = string.Empty;
 
     /// <summary>
-    ///     Display name of the religion (e.g., "Knights of Khoras")
+    ///     Display name of the religion (e.g., "Knights Guild")
     /// </summary>
     [ProtoMember(2)]
     public string ReligionName { get; set; } = string.Empty;
 
     /// <summary>
-    ///     The deity this religion serves (permanent, cannot be changed)
-    /// </summary>
-    [ProtoMember(3)]
-    public DeityType Deity { get; set; } = DeityType.None;
-
-    /// <summary>
     ///     Player UID of the religion founder
     /// </summary>
-    [ProtoMember(4)]
+    [ProtoMember(3)]
     public string FounderUID { get; set; } = string.Empty;
 
     /// <summary>
     ///     Ordered list of member player UIDs (founder is always first)
     /// </summary>
-    [ProtoMember(5)]
+    [ProtoMember(4)]
     public List<string> MemberUIDs { get; set; } = new();
-
-    /// <summary>
-    ///     Current prestige rank of the religion
-    /// </summary>
-    [ProtoMember(6)]
-    public PrestigeRank PrestigeRank { get; set; } = PrestigeRank.Fledgling;
-
-    /// <summary>
-    ///     Current prestige points
-    /// </summary>
-    [ProtoMember(7)]
-    public int Prestige { get; set; }
-
-    /// <summary>
-    ///     Total prestige earned (lifetime stat, used for ranking)
-    /// </summary>
-    [ProtoMember(8)]
-    public int TotalPrestige { get; set; }
 
     /// <summary>
     ///     When the religion was created
     /// </summary>
-    [ProtoMember(9)]
+    [ProtoMember(5)]
     public DateTime CreationDate { get; set; } = DateTime.UtcNow;
-
-    /// <summary>
-    ///     Dictionary of unlocked religion blessings
-    ///     Key: blessing ID, Value: unlock status (true if unlocked)
-    /// </summary>
-    [ProtoMember(10)]
-    public Dictionary<string, bool> UnlockedBlessings { get; set; } = new();
 
     /// <summary>
     ///     Whether this is a public religion (anyone can join) or private (invite-only)
     /// </summary>
-    [ProtoMember(11)]
+    [ProtoMember(6)]
     public bool IsPublic { get; set; } = true;
 
     /// <summary>
     ///     Religion description or manifesto set by the founder
     /// </summary>
-    [ProtoMember(12)]
+    [ProtoMember(7)]
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
     ///     Dictionary of banned players
     ///     Key: player UID, Value: ban entry with details
     /// </summary>
-    [ProtoMember(13)]
+    [ProtoMember(8)]
     public Dictionary<string, BanEntry> BannedPlayers { get; set; } = new();
 
     /// <summary>
@@ -150,50 +117,6 @@ public class ReligionData
     public int GetMemberCount()
     {
         return MemberUIDs.Count;
-    }
-
-    /// <summary>
-    ///     Updates the prestige rank based on total prestige earned
-    /// </summary>
-    public void UpdatePrestigeRank()
-    {
-        PrestigeRank = TotalPrestige switch
-        {
-            >= 10000 => PrestigeRank.Mythic,
-            >= 5000 => PrestigeRank.Legendary,
-            >= 2000 => PrestigeRank.Renowned,
-            >= 500 => PrestigeRank.Established,
-            _ => PrestigeRank.Fledgling
-        };
-    }
-
-    /// <summary>
-    ///     Adds prestige and updates statistics
-    /// </summary>
-    public void AddPrestige(int amount)
-    {
-        if (amount > 0)
-        {
-            Prestige += amount;
-            TotalPrestige += amount;
-            UpdatePrestigeRank();
-        }
-    }
-
-    /// <summary>
-    ///     Unlocks a blessing for this religion
-    /// </summary>
-    public void UnlockBlessing(string blessingId)
-    {
-        UnlockedBlessings[blessingId] = true;
-    }
-
-    /// <summary>
-    ///     Checks if a blessing is unlocked
-    /// </summary>
-    public bool IsBlessingUnlocked(string blessingId)
-    {
-        return UnlockedBlessings.TryGetValue(blessingId, out var unlocked) && unlocked;
     }
 
     /// <summary>
