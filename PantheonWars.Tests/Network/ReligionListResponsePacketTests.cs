@@ -12,62 +12,53 @@ public class ReligionListResponsePacketTests
     {
         var packet = new ReligionListResponsePacket();
         Assert.Empty(packet.Religions);
-        Assert.NotNull(packet.Religions); // Verify null reference behavior
+        Assert.NotNull(packet.Religions);
     }
 
     [Fact]
     public void ParameterizedConstructor_SetsProperties()
     {
-        var religion1 = new ReligionListResponsePacket.ReligionInfo
+        var guild1 = new ReligionListResponsePacket.ReligionInfo
         {
-            ReligionUID = "religion1",
-            ReligionName = "Ancient Faith",
-            Deity = "God of Storms",
-            MemberCount = 1234,
-            Prestige = 850,
-            PrestigeRank = "Epic",
+            ReligionUID = "guild1",
+            ReligionName = "Ancient Guild",
+            MemberCount = 15,
             IsPublic = true,
             FounderUID = "founder001",
-            Description = "A powerful faith of the storm"
+            Description = "A powerful guild"
         };
 
-        var religion2 = new ReligionListResponsePacket.ReligionInfo
+        var guild2 = new ReligionListResponsePacket.ReligionInfo
         {
-            ReligionUID = "religion2",
+            ReligionUID = "guild2",
             ReligionName = "Order of the Sun",
-            Deity = "Solar Deity",
-            MemberCount = 567,
-            Prestige = 420,
-            PrestigeRank = "Legendary",
+            MemberCount = 8,
             IsPublic = false,
             FounderUID = "founder002",
-            Description = "A mysterious sun cult"
+            Description = "A mysterious guild"
         };
 
         var packet = new ReligionListResponsePacket(new List<ReligionListResponsePacket.ReligionInfo>
-            { religion1, religion2 });
+            { guild1, guild2 });
         Assert.Equal(2, packet.Religions.Count);
-        Assert.Equal(religion1, packet.Religions[0]);
-        Assert.Equal(religion2, packet.Religions[1]);
+        Assert.Equal(guild1, packet.Religions[0]);
+        Assert.Equal(guild2, packet.Religions[1]);
     }
 
     [Fact]
     public void Serialize_Deserialize_ValuesArePreserved()
     {
-        var religion = new ReligionListResponsePacket.ReligionInfo
+        var guild = new ReligionListResponsePacket.ReligionInfo
         {
-            ReligionUID = "religion123",
+            ReligionUID = "guild123",
             ReligionName = "Celestial Order",
-            Deity = "Star God",
-            MemberCount = 9876,
-            Prestige = 1500,
-            PrestigeRank = "Divine",
+            MemberCount = 20,
             IsPublic = true,
             FounderUID = "founder456",
-            Description = "A celestial faith of stars"
+            Description = "A celestial guild"
         };
 
-        var packet = new ReligionListResponsePacket(new List<ReligionListResponsePacket.ReligionInfo> { religion });
+        var packet = new ReligionListResponsePacket(new List<ReligionListResponsePacket.ReligionInfo> { guild });
 
         using var ms = new MemoryStream();
         Serializer.Serialize(ms, packet);
@@ -75,14 +66,11 @@ public class ReligionListResponsePacketTests
         var deserialized = Serializer.Deserialize<ReligionListResponsePacket>(ms);
 
         Assert.Equal(packet.Religions.Count, deserialized.Religions.Count);
-        Assert.Equal(religion.ReligionUID, deserialized.Religions[0].ReligionUID);
-        Assert.Equal(religion.ReligionName, deserialized.Religions[0].ReligionName);
-        Assert.Equal(religion.Deity, deserialized.Religions[0].Deity);
-        Assert.Equal(religion.MemberCount, deserialized.Religions[0].MemberCount);
-        Assert.Equal(religion.Prestige, deserialized.Religions[0].Prestige);
-        Assert.Equal(religion.PrestigeRank, deserialized.Religions[0].PrestigeRank);
-        Assert.Equal(religion.IsPublic, deserialized.Religions[0].IsPublic);
-        Assert.Equal(religion.FounderUID, deserialized.Religions[0].FounderUID);
-        Assert.Equal(religion.Description, deserialized.Religions[0].Description);
+        Assert.Equal(guild.ReligionUID, deserialized.Religions[0].ReligionUID);
+        Assert.Equal(guild.ReligionName, deserialized.Religions[0].ReligionName);
+        Assert.Equal(guild.MemberCount, deserialized.Religions[0].MemberCount);
+        Assert.Equal(guild.IsPublic, deserialized.Religions[0].IsPublic);
+        Assert.Equal(guild.FounderUID, deserialized.Religions[0].FounderUID);
+        Assert.Equal(guild.Description, deserialized.Religions[0].Description);
     }
 }

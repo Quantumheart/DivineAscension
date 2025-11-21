@@ -12,23 +12,21 @@ public class CreateReligionRequestPacketTests
     {
         var packet = new CreateReligionRequestPacket();
         Assert.Equal(string.Empty, packet.ReligionName);
-        Assert.Equal(string.Empty, packet.Deity);
         Assert.False(packet.IsPublic);
     }
 
     [Fact]
     public void ParameterizedConstructor_SetsPropertiesCorrectly()
     {
-        var packet = new CreateReligionRequestPacket("Test Religion", "Khoras", true);
-        Assert.Equal("Test Religion", packet.ReligionName);
-        Assert.Equal("Khoras", packet.Deity);
+        var packet = new CreateReligionRequestPacket("Test Guild", true);
+        Assert.Equal("Test Guild", packet.ReligionName);
         Assert.True(packet.IsPublic);
     }
 
     [Fact]
     public void SerializeDeserialize_RoundTripCorrectness()
     {
-        var original = new CreateReligionRequestPacket("Test Religion", "Khoras", true);
+        var original = new CreateReligionRequestPacket("Test Guild", true);
 
         using var ms = new MemoryStream();
         Serializer.Serialize(ms, original);
@@ -37,7 +35,6 @@ public class CreateReligionRequestPacketTests
         var deserialized = Serializer.Deserialize<CreateReligionRequestPacket>(ms);
 
         Assert.Equal(original.ReligionName, deserialized.ReligionName);
-        Assert.Equal(original.Deity, deserialized.Deity);
         Assert.Equal(original.IsPublic, deserialized.IsPublic);
     }
 }
