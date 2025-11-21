@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.Interfaces;
@@ -64,7 +65,7 @@ public interface IOverlayCoordinator
         Action<string> onJoinReligionClicked,
         Action<string> onRefreshReligionList,
         Action onCreateReligionClicked,
-        Action<string, string, bool> onCreateReligionSubmit,
+        Action<string, List<string>, bool> onCreateReligionSubmit,
         Action<string> onKickMemberClicked,
         Action<string> onBanMemberClicked,
         Action<string> onUnbanMemberClicked,
