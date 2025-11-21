@@ -63,16 +63,14 @@ public class BlessingRegistry : IBlessingRegistry
     }
 
     /// <summary>
-    ///     Gets all blessings for a specific deity and type
+    ///     Gets all blessings for a specific deity
     /// </summary>
-    public List<Blessing> GetBlessingsForDeity(DeityType deity, BlessingKind? type = null)
+    public List<Blessing> GetBlessingsForDeity(DeityType deity)
     {
-        var query = _blessings.Values.Where(p => p.Deity == deity);
-
-        if (type.HasValue) query = query.Where(p => p.Kind == type.Value);
-
-        return query.OrderBy(p => p.RequiredFavorRank)
-            .ThenBy(p => p.RequiredPrestigeRank)
+        return _blessings.Values
+            .Where(p => p.Deity == deity)
+            .OrderBy(p => p.RequiredPrestigeRank)
+            .ThenBy(p => p.Name)
             .ToList();
     }
 
@@ -82,6 +80,18 @@ public class BlessingRegistry : IBlessingRegistry
     public List<Blessing> GetAllBlessings()
     {
         return _blessings.Values.ToList();
+    }
+
+    /// <summary>
+    ///     Gets all universal blessings (DeityType.None) for the religion-only system
+    /// </summary>
+    public List<Blessing> GetUniversalBlessings()
+    {
+        return _blessings.Values
+            .Where(p => p.Deity == DeityType.None)
+            .OrderBy(p => p.RequiredPrestigeRank)
+            .ThenBy(p => p.Name)
+            .ToList();
     }
 
     /// <summary>
@@ -110,8 +120,8 @@ public class BlessingRegistry : IBlessingRegistry
             return (false, $"Religion requires {requiredRank} prestige rank (Current: {religionData.PrestigeRank})");
         }
 
-        // Check deity matches
-        if (religionData.Deity != blessing.Deity)
+        // Check deity matches (DeityType.None means universal blessing, available to all)
+        if (blessing.Deity != DeityType.None && religionData.Deity != blessing.Deity)
             return (false, $"Religion deity mismatch (Blessing: {blessing.Deity}, Religion: {religionData.Deity})");
 
         // Check prerequisites

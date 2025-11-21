@@ -69,13 +69,11 @@ public partial class BlessingDialog
         // Set current prestige value for progress bars
         _manager.CurrentPrestige = packet.CurrentPrestige;
 
-        // Convert packet blessings to Blessing objects
+        // Convert packet blessings to Blessing objects (religion-only system)
         var playerBlessings = packet.PlayerBlessings.Select(p => new Blessing(p.BlessingId, p.Name, deityType)
         {
-            Kind = BlessingKind.Player,
             Category = (BlessingCategory)p.Category,
             Description = p.Description,
-            RequiredFavorRank = p.RequiredFavorRank,
             RequiredPrestigeRank = p.RequiredPrestigeRank,
             PrerequisiteBlessings = p.PrerequisiteBlessings,
             StatModifiers = p.StatModifiers
@@ -83,10 +81,8 @@ public partial class BlessingDialog
 
         var religionBlessings = packet.ReligionBlessings.Select(p => new Blessing(p.BlessingId, p.Name, deityType)
         {
-            Kind = BlessingKind.Religion,
             Category = (BlessingCategory)p.Category,
             Description = p.Description,
-            RequiredFavorRank = p.RequiredFavorRank,
             RequiredPrestigeRank = p.RequiredPrestigeRank,
             PrerequisiteBlessings = p.PrerequisiteBlessings,
             StatModifiers = p.StatModifiers

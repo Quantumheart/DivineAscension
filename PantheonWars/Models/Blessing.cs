@@ -47,22 +47,12 @@ public class Blessing : Trait
     public DeityType Deity { get; set; }
 
     /// <summary>
-    ///     Type of blessing (Player or Religion)
-    /// </summary>
-    public BlessingKind Kind { get; set; }
-
-    /// <summary>
     ///     Category for organization (Combat, Defense, etc.)
     /// </summary>
     public BlessingCategory Category { get; set; }
 
     /// <summary>
-    ///     Required player favor rank to unlock (for Player blessings)
-    /// </summary>
-    public int RequiredFavorRank { get; set; }
-
-    /// <summary>
-    ///     Required religion prestige rank to unlock (for Religion blessings)
+    ///     Required religion prestige rank to unlock
     /// </summary>
     public int RequiredPrestigeRank { get; set; }
 

@@ -23,14 +23,19 @@ public interface IBlessingRegistry
     Blessing? GetBlessing(string blessingId);
 
     /// <summary>
-    ///     Gets all blessings for a specific deity and type
+    ///     Gets all blessings for a specific deity
     /// </summary>
-    List<Blessing> GetBlessingsForDeity(DeityType deity, BlessingKind? type = null);
+    List<Blessing> GetBlessingsForDeity(DeityType deity);
 
     /// <summary>
     ///     Gets all blessings in the registry
     /// </summary>
     List<Blessing> GetAllBlessings();
+
+    /// <summary>
+    ///     Gets all universal blessings (DeityType.None) for the religion-only system
+    /// </summary>
+    List<Blessing> GetUniversalBlessings();
 
     /// <summary>
     ///     Checks if a blessing can be unlocked by a player/religion

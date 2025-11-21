@@ -766,7 +766,7 @@ public class PantheonWarsSystem : ModSystem
             response.PlayerBlessings = new List<BlessingDataResponsePacket.BlessingInfo>();
 
             // Get religion blessings for this deity
-            var religionBlessings = _blessingRegistry!.GetBlessingsForDeity(playerData.ActiveDeity, BlessingKind.Religion);
+            var religionBlessings = _blessingRegistry!.GetBlessingsForDeity(playerData.ActiveDeity);
             response.ReligionBlessings = religionBlessings.Select(p => new BlessingDataResponsePacket.BlessingInfo
             {
                 BlessingId = p.BlessingId,

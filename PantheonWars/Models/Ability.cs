@@ -17,7 +17,7 @@ public abstract class Ability
         Description = description;
         Deity = deity;
         Type = type;
-        MinimumRank = DevotionRank.Initiate; // Default: available from start
+        MinimumRank = 0; // Default: available from start (obsolete devotion rank system)
     }
 
     /// <summary>
@@ -56,9 +56,9 @@ public abstract class Ability
     public DeityType Deity { get; protected set; }
 
     /// <summary>
-    ///     Minimum devotion rank required to use this ability
+    ///     Minimum devotion rank required to use this ability (obsolete)
     /// </summary>
-    public DevotionRank MinimumRank { get; protected set; }
+    public int MinimumRank { get; protected set; }
 
     /// <summary>
     ///     Executes the ability. Returns true if successful, false if failed.

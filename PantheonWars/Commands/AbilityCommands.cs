@@ -84,7 +84,7 @@ public class AbilityCommands
         {
             var cooldown = _abilitySystem.GetAbilityCooldown(player, ability.Id);
             var cooldownStatus = cooldown > 0 ? $" [CD: {cooldown:F1}s]" : " [READY]";
-            var rankReq = ability.MinimumRank > DevotionRank.Initiate ? $" (Requires: {ability.MinimumRank})" : "";
+            var rankReq = ability.MinimumRank > 0 ? $" (Requires rank: {ability.MinimumRank})" : "";
 
             sb.AppendLine($"{ability.Name}{cooldownStatus} - {ability.FavorCost} favor{rankReq}");
             sb.AppendLine($"  {ability.Description}");
@@ -141,7 +141,7 @@ public class AbilityCommands
             else if (playerData.DevotionRank < ability.MinimumRank)
             {
                 sb.AppendLine();
-                sb.AppendLine($"[!] Rank too low (need {ability.MinimumRank}, you are {playerData.DevotionRank})");
+                sb.AppendLine($"[!] Rank too low (need rank {ability.MinimumRank}, you have rank {playerData.DevotionRank})");
             }
             else
             {

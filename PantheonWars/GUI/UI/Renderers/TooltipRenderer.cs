@@ -117,10 +117,8 @@ internal static class TooltipRenderer
             SpacingAfter = SECTION_SPACING
         });
 
-        // Category and Tier
-        var categoryText = $"{data.Category} | Tier {data.Tier}";
-        if (data.Kind == BlessingKind.Religion)
-            categoryText += " (Religion)";
+        // Category and Tier (all blessings are religion-level now)
+        var categoryText = $"{data.Category} | Tier {data.Tier} (Religion)";
 
         lines.Add(new TooltipLine
         {

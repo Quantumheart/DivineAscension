@@ -92,8 +92,8 @@ internal static class BlessingInfoRenderer
         drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x + padding, currentY), statusColorU32, statusText);
         currentY += 20f;
 
-        // Category and kind
-        var metaText = $"{selectedState.Blessing.Category} | {selectedState.Blessing.Kind} Blessing | Tier {selectedState.Tier}";
+        // Category and tier (all blessings are religion-level now)
+        var metaText = $"{selectedState.Blessing.Category} | Religion Blessing | Tier {selectedState.Tier}";
         var metaColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x + padding, currentY), metaColorU32, metaText);
         currentY += 20f;

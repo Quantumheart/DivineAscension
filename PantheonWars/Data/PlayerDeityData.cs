@@ -42,10 +42,10 @@ public class PlayerDeityData
     public int DivineFavor { get; set; }
 
     /// <summary>
-    ///     Current devotion rank
+    ///     Current devotion rank (obsolete - will be removed in v2.0.0)
     /// </summary>
     [ProtoMember(4)]
-    public DevotionRank DevotionRank { get; set; } = DevotionRank.Initiate;
+    public int DevotionRank { get; set; } = 0;
 
     /// <summary>
     ///     Total favor earned (lifetime stat)
@@ -96,14 +96,14 @@ public class PlayerDeityData
     /// </summary>
     public void UpdateDevotionRank()
     {
-        // Devotion rank thresholds
+        // Devotion rank thresholds (obsolete system - using int values)
         DevotionRank = TotalFavorEarned switch
         {
-            >= 10000 => DevotionRank.Avatar,
-            >= 5000 => DevotionRank.Champion,
-            >= 2000 => DevotionRank.Zealot,
-            >= 500 => DevotionRank.Disciple,
-            _ => DevotionRank.Initiate
+            >= 10000 => 4, // Avatar
+            >= 5000 => 3,  // Champion
+            >= 2000 => 2,  // Zealot
+            >= 500 => 1,   // Disciple
+            _ => 0         // Initiate
         };
     }
 

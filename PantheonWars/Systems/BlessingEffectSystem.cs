@@ -88,7 +88,7 @@ public class BlessingEffectSystem(
         foreach (var blessingId in unlockedBlessingIds)
         {
             var blessing = _blessingRegistry.GetBlessing(blessingId);
-            if (blessing != null && blessing.Kind == BlessingKind.Religion) CombineModifiers(modifiers, blessing.StatModifiers);
+            if (blessing != null) CombineModifiers(modifiers, blessing.StatModifiers);
         }
 
         // Cache the result

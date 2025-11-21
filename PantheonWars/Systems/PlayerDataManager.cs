@@ -96,7 +96,7 @@ public class PlayerDataManager : IPlayerDataManager
             data.LastDeitySwitch = DateTime.UtcNow;
             // Reset stats when switching (can be adjusted)
             data.DivineFavor = 0;
-            data.DevotionRank = DevotionRank.Initiate;
+            data.DevotionRank = 0; // Initiate rank (obsolete devotion system)
             data.KillCount = 0;
             _sapi.Logger.Notification(
                 $"[PantheonWars] Player {playerUID} switched from {previousDeity} to {deityType}");

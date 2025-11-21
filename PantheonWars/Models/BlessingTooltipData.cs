@@ -24,22 +24,12 @@ public class BlessingTooltipData
     public BlessingCategory Category { get; set; }
 
     /// <summary>
-    ///     Blessing kind (Player or Religion)
-    /// </summary>
-    public BlessingKind Kind { get; set; }
-
-    /// <summary>
     ///     Tier/level in the tree (1-4)
     /// </summary>
     public int Tier { get; set; }
 
     /// <summary>
-    ///     Required favor rank to unlock (for Player blessings)
-    /// </summary>
-    public string RequiredFavorRank { get; set; } = string.Empty;
-
-    /// <summary>
-    ///     Required prestige rank to unlock (for Religion blessings)
+    ///     Required prestige rank to unlock
     /// </summary>
     public string RequiredPrestigeRank { get; set; } = string.Empty;
 
@@ -85,17 +75,13 @@ public class BlessingTooltipData
             Name = blessing.Name,
             Description = blessing.Description,
             Category = blessing.Category,
-            Kind = blessing.Kind,
             Tier = state.Tier,
             IsUnlocked = state.IsUnlocked,
             CanUnlock = state.CanUnlock
         };
 
-        // Add requirement text based on blessing kind
-        if (blessing.Kind == BlessingKind.Player)
-            tooltip.RequiredFavorRank = GetFavorRankName(blessing.RequiredFavorRank);
-        else if (blessing.Kind == BlessingKind.Religion)
-            tooltip.RequiredPrestigeRank = GetPrestigeRankName(blessing.RequiredPrestigeRank);
+        // Add requirement text for religion blessings
+        tooltip.RequiredPrestigeRank = GetPrestigeRankName(blessing.RequiredPrestigeRank);
 
         // Add prerequisite names
         if (blessingRegistry != null && blessing.PrerequisiteBlessings is { Count: > 0 })
@@ -116,14 +102,7 @@ public class BlessingTooltipData
             // Only set unlock block reason if there are no prerequisites (they're shown separately)
             if (blessing.PrerequisiteBlessings is not { Count: > 0 })
             {
-                if (blessing.Kind == BlessingKind.Player)
-                {
-                    tooltip.UnlockBlockReason = $"Requires {tooltip.RequiredFavorRank} rank";
-                }
-                else
-                {
-                    tooltip.UnlockBlockReason = $"Requires religion {tooltip.RequiredPrestigeRank} rank";
-                }
+                tooltip.UnlockBlockReason = $"Requires religion {tooltip.RequiredPrestigeRank} rank";
             }
         }
 
@@ -188,22 +167,6 @@ public class BlessingTooltipData
             var s when s.Contains("health") => "Health",
             var s when s.Contains("healingeffectivness") => "Healing Effectiveness",
             _ => statName
-        };
-    }
-
-    /// <summary>
-    ///     Get favor rank name from rank number
-    /// </summary>
-    private static string GetFavorRankName(int rank)
-    {
-        return rank switch
-        {
-            0 => "Initiate",
-            1 => "Devoted",
-            2 => "Zealot",
-            3 => "Champion",
-            4 => "Exalted",
-            _ => $"Rank {rank}"
         };
     }
 

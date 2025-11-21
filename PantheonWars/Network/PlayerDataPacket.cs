@@ -13,11 +13,11 @@ public class PlayerDataPacket
     {
     }
 
-    public PlayerDataPacket(DeityType deityType, int favor, DevotionRank rank, string deityName)
+    public PlayerDataPacket(DeityType deityType, int favor, int rank, string deityName)
     {
         DeityTypeId = (int)deityType;
         DivineFavor = favor;
-        DevotionRankId = (int)rank;
+        DevotionRankId = rank;
         DeityName = deityName;
     }
 
@@ -34,8 +34,8 @@ public class PlayerDataPacket
         return (DeityType)DeityTypeId;
     }
 
-    public DevotionRank GetDevotionRank()
+    public int GetDevotionRank()
     {
-        return (DevotionRank)DevotionRankId;
+        return DevotionRankId;
     }
 }

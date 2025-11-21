@@ -216,17 +216,8 @@ public class BlessingDialogManager : IBlessingDialogManager
             }
         }
 
-        // Check rank requirements based on blessing kind
-        if (state.Blessing.Kind == BlessingKind.Player)
-        {
-            // Player blessings require favor rank
-            if (state.Blessing.RequiredFavorRank > CurrentFavorRank) return false;
-        }
-        else if (state.Blessing.Kind == BlessingKind.Religion)
-        {
-            // Religion blessings require prestige rank
-            if (state.Blessing.RequiredPrestigeRank > CurrentPrestigeRank) return false;
-        }
+        // Check rank requirements (all blessings are religion-level now)
+        if (state.Blessing.RequiredPrestigeRank > CurrentPrestigeRank) return false;
 
         return true; // All requirements met
     }
