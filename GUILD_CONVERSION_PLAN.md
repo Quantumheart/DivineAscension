@@ -22,7 +22,7 @@ Convert PantheonWars from a complex religion/deity/blessing/PvP system into a st
 2. **Keep only religion commands** - Remove blessing, deity, favor, ability commands
 3. **Single keybind** - Press key to open ReligionManagement dialog
 4. **Remove progression mechanics** - No ranks, favor, prestige, blessings
-5. **Optional cosmetic deities** - Keep deity selection as guild theme/flavor
+5. **Remove deity system entirely** - Guilds are just guilds, no themes or deities
 
 ---
 
@@ -45,12 +45,14 @@ Convert PantheonWars from a complex religion/deity/blessing/PvP system into a st
   - Ban system with expiry
   - Invitations
 
-### 🔄 SIMPLIFY - Make Cosmetic
-- **Deities** - Keep as optional guild themes (no mechanical effects)
-- **DeityRegistry** - Keep for deity names/descriptions only
-- **Data Models** - Remove favor, prestige, ranks, blessings
-
 ### ❌ REMOVE - All Progression & Combat Systems
+- **Deity System**:
+  - DeityRegistry
+  - DeityCommands
+  - Deity model
+  - DeityType enum (or simplify to None only)
+  - All deity selection UI
+  - Deity filtering in religion lists
 - **Blessing System**:
   - BlessingRegistry
   - BlessingEffectSystem
@@ -153,6 +155,12 @@ Convert PantheonWars from a complex religion/deity/blessing/PvP system into a st
 - [ ] Delete `/GUI/DeitySelectionDialog.cs`
 - [ ] Delete `/GUI/OverlayCoordinator.cs` (if only used for blessings)
 
+#### 1.6 Remove Deity System
+- [ ] Delete `/Systems/DeityRegistry.cs`
+- [ ] Delete `/Models/Deity.cs`
+- [ ] Delete `/Commands/DeityCommands.cs` (already in 1.3)
+- [ ] Update `/Models/Enum/DeityType.cs` (simplify or remove entirely)
+
 ### Phase 2: Simplify Data Models
 **Goal**: Remove progression data, keep only guild membership info
 
@@ -163,11 +171,11 @@ Convert PantheonWars from a complex religion/deity/blessing/PvP system into a st
 - TotalPrestige (int)
 - PrestigeRank (PrestigeRank enum)
 - UnlockedBlessings (Dictionary)
+- Deity (DeityType) ❌ REMOVE ENTIRELY
 
 // Keep:
 - ReligionUID
 - ReligionName
-- Deity (cosmetic only)
 - FounderUID
 - MemberUIDs
 - IsPublic
@@ -186,19 +194,21 @@ Convert PantheonWars from a complex religion/deity/blessing/PvP system into a st
 - UnlockedBlessings (Dictionary)
 - PassiveFavorAccrued
 - LastPassiveFavorUpdate
+- ActiveDeity (DeityType) ❌ REMOVE ENTIRELY
 
 // Keep:
 - PlayerUID
 - ReligionUID
-- ActiveDeity (cosmetic only)
 - LastReligionSwitchDate (for cooldown)
 - TotalReligionSwitches
 ```
 
 #### 2.3 Simplify Network Packets
-- [ ] Update `PlayerReligionDataPacket` (remove favor/rank fields)
-- [ ] Update `ReligionListResponsePacket` (remove prestige/rank fields)
-- [ ] Update `PlayerReligionInfoResponsePacket` (remove favor/prestige/rank fields)
+- [ ] Update `PlayerReligionDataPacket` (remove favor/rank/deity fields)
+- [ ] Update `ReligionListResponsePacket` (remove prestige/rank/deity fields)
+- [ ] Update `PlayerReligionInfoResponsePacket` (remove favor/prestige/rank/deity fields)
+- [ ] Update `CreateReligionRequestPacket` (remove deity parameter)
+- [ ] Update `CreateReligionResponsePacket` (remove deity references)
 - [ ] Remove blessing-related packets (already deleted)
 
 #### 2.4 Update Persistence
@@ -227,18 +237,23 @@ Convert PantheonWars from a complex religion/deity/blessing/PvP system into a st
 - [ ] Remove favor system initialization
 - [ ] Remove ability system initialization
 - [ ] Remove buff manager initialization
+- [ ] Remove deity registry initialization ❌ REMOVE
 - [ ] Remove deity/ability/blessing/favor command registration
 - [ ] Keep only religion command registration
 - [ ] Remove blessing-related network handlers
 - [ ] Remove buff entity behavior registration
-- [ ] Simplify OnPlayerJoin (no favor/rank data needed)
+- [ ] Simplify OnPlayerJoin (no favor/rank/deity data needed)
 
-#### 3.4 Keep Only ReligionCommands
-- [ ] Verify all `/religion` commands still work:
-  - `/religion create <name> <deity> [public/private]`
+#### 3.4 Update ReligionCommands
+- [ ] Update `/religion create` command:
+  - **OLD**: `/religion create <name> <deity> [public/private]`
+  - **NEW**: `/religion create <name> [public/private]` ❌ REMOVE deity parameter
+- [ ] Update `/religion list` command:
+  - **OLD**: `/religion list [deity]`
+  - **NEW**: `/religion list` ❌ REMOVE deity filtering
+- [ ] Keep these commands unchanged:
   - `/religion join <name>`
   - `/religion leave`
-  - `/religion list [deity]`
   - `/religion info [name]`
   - `/religion members`
   - `/religion invite <playername>`
@@ -274,13 +289,14 @@ _capi.Input.SetHotKeyHandler("pantheonwarsreligion", (bool keyDown) =>
 ```
 
 #### 4.2 Simplify ReligionManagementDialog
-- [ ] Remove references to blessings, favor, ranks
+- [ ] Remove references to blessings, favor, ranks, deities
+- [ ] Remove deity filtering dropdown ❌
 - [ ] Update member list display (remove favor/rank columns)
-- [ ] Update religion info display (remove prestige/rank)
+- [ ] Update religion info display (remove prestige/rank/deity)
 - [ ] Keep: Browse religions, manage members, create guild
 
-#### 4.3 Keep Supporting Dialogs
-- [ ] `CreateReligionDialog` - Keep as-is (deity is now cosmetic)
+#### 4.3 Update Supporting Dialogs
+- [ ] `CreateReligionDialog` - ❌ REMOVE deity selection dropdown
 - [ ] `InvitePlayerDialog` - Keep as-is
 - [ ] `EditDescriptionDialog` - Keep as-is
 - [ ] `BanPlayerDialog` - Keep as-is
@@ -290,49 +306,28 @@ _capi.Input.SetHotKeyHandler("pantheonwarsreligion", (bool keyDown) =>
 - [ ] Remove instantiation of `FavorHudElement`
 - [ ] Remove instantiation of `DeitySelectionDialog`
 
-### Phase 5: Simplify Deity System
-**Goal**: Make deities purely cosmetic guild themes
-
-#### 5.1 Keep DeityRegistry (Names Only)
-- [ ] Keep `DeityRegistry` for deity names and descriptions
-- [ ] Remove deity relationship logic (allies/rivals)
-- [ ] Remove deity multipliers for favor
-- [ ] Deities become aesthetic choices for guild theme
-
-#### 5.2 Update Deity Model
-```csharp
-// Simplify to:
-public class Deity
-{
-    public DeityType Type { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public string Lore { get; set; }
-    // Remove: Allies, Rivals, FavorMultipliers
-}
-```
-
-### Phase 6: Clean Up Tests
+### Phase 5: Clean Up Tests
 **Goal**: Remove tests for deleted systems, update remaining tests
 
-#### 6.1 Remove Test Files
+#### 5.1 Remove Test Files
 - [ ] Delete all blessing system tests
 - [ ] Delete PvP manager tests
 - [ ] Delete favor system tests
 - [ ] Delete ability system tests
 - [ ] Delete buff system tests
 - [ ] Delete prestige manager tests
+- [ ] Delete deity registry tests ❌
+- [ ] Delete deity command tests ❌
 
-#### 6.2 Update Remaining Tests
-- [ ] Update `ReligionManagerTests` (remove rank/prestige tests)
-- [ ] Update `PlayerReligionDataManagerTests` (remove favor tests)
-- [ ] Update `ReligionCommandsTests`
-- [ ] Update `DeityRegistryTests` (simplified)
+#### 5.2 Update Remaining Tests
+- [ ] Update `ReligionManagerTests` (remove rank/prestige/deity tests)
+- [ ] Update `PlayerReligionDataManagerTests` (remove favor/deity tests)
+- [ ] Update `ReligionCommandsTests` (update create command tests)
 
-### Phase 7: Update Documentation
+### Phase 6: Update Documentation
 **Goal**: Rebrand as guild management system
 
-#### 7.1 Update README.md
+#### 6.1 Update README.md
 - [ ] Change title to "Guild Management System for Vintage Story"
 - [ ] Remove all references to:
   - Blessings
@@ -340,27 +335,28 @@ public class Deity
   - Favor/Prestige
   - Ranking systems
   - Abilities
+  - Deities ❌
 - [ ] Focus on guild management features
 - [ ] Update keybind documentation
 - [ ] Simplify feature list
 
-#### 7.2 Update Mod Metadata
+#### 6.2 Update Mod Metadata
 - [ ] Update `assets/modinfo.json`:
   - Change name to "Guild Management System"
   - Update description
   - Change version to 2.0.0 (major rewrite)
 - [ ] Update mod ID if needed
 
-#### 7.3 Archive Old Documentation
+#### 6.3 Archive Old Documentation
 - [ ] Move old docs to `/docs/archived/`
 - [ ] Create new simple documentation for guild features
 
-### Phase 8: Final Testing
+### Phase 7: Final Testing
 **Goal**: Verify all guild features work correctly
 
-#### 8.1 Manual Testing
+#### 7.1 Manual Testing
 - [ ] Test keybind opens dialog
-- [ ] Test creating guild (public/private)
+- [ ] Test creating guild (public/private) - ❌ NO deity required
 - [ ] Test joining guild
 - [ ] Test leaving guild
 - [ ] Test inviting players
@@ -368,18 +364,18 @@ public class Deity
 - [ ] Test banning/unbanning players
 - [ ] Test disbanding guild
 - [ ] Test editing description
-- [ ] Test guild list display
+- [ ] Test guild list display - ❌ NO deity shown
 - [ ] Test member list display
 - [ ] Test public vs private guilds
 - [ ] Test founder privileges
 
-#### 8.2 Data Persistence
-- [ ] Test guild data saves correctly
-- [ ] Test player data saves correctly
+#### 7.2 Data Persistence
+- [ ] Test guild data saves correctly (no deity field)
+- [ ] Test player data saves correctly (no deity field)
 - [ ] Test ban data persists
 - [ ] Test server restart preserves all data
 
-#### 8.3 Multiplayer Testing
+#### 7.3 Multiplayer Testing
 - [ ] Test with multiple players
 - [ ] Test invitations work
 - [ ] Test kick notifications
@@ -405,8 +401,7 @@ PantheonWars/
 │   ├── EditDescriptionDialog.cs ✅
 │   └── BanPlayerDialog.cs ✅
 ├── Models/
-│   ├── Deity.cs ✅ (simplified)
-│   └── Enum/ ✅
+│   └── Enum/ ✅ (simplified, remove DeityType or set to None only)
 ├── Network/
 │   ├── ReligionListRequestPacket.cs ✅
 │   ├── ReligionListResponsePacket.cs ✅ (simplified)
@@ -421,7 +416,6 @@ PantheonWars/
 │   ├── ReligionStateChangedPacket.cs ✅
 │   └── PlayerReligionDataPacket.cs ✅ (simplified)
 ├── Systems/
-│   ├── DeityRegistry.cs ✅ (simplified)
 │   ├── ReligionManager.cs ✅ (simplified)
 │   └── PlayerReligionDataManager.cs ✅ (simplified)
 ├── Constants/
@@ -456,6 +450,7 @@ PantheonWars/
 ❌ Models/Blessing.cs
 ❌ Models/BlessingNodeState.cs
 ❌ Models/BlessingTooltipData.cs
+❌ Models/Deity.cs
 ❌ Models/Ability.cs
 ❌ Models/PlayerFavorProgress.cs
 ❌ Models/ReligionPrestigeProgress.cs
@@ -474,14 +469,14 @@ PantheonWars/
 1. **Simple Guild System**: Create and manage guilds with friends
 2. **One Keybind**: Press assigned key to open guild management
 3. **Core Features**:
-   - Create public or private guilds
+   - Create public or private guilds (just name + visibility)
    - Join/leave guilds
    - Invite players
    - Founder can kick/ban members
    - Founder can disband guild
    - Guild descriptions
    - Ban system with expiry
-4. **Cosmetic Deities**: Optional guild theme (8 choices)
+4. **No Themes/Deities**: Pure guild names, no cosmetic themes
 5. **No Combat**: Pure social/management system
 
 ### What's Removed
@@ -503,9 +498,9 @@ PantheonWars/
 ## Estimated Effort
 - **Phase 1-2**: 2-3 hours (file deletion, model simplification)
 - **Phase 3-4**: 3-4 hours (system updates, GUI work, keybind)
-- **Phase 5-6**: 1-2 hours (deity simplification, test cleanup)
-- **Phase 7-8**: 2-3 hours (documentation, testing)
-- **Total**: 8-12 hours
+- **Phase 5-6**: 2-3 hours (test cleanup, documentation)
+- **Phase 7**: 2-3 hours (final testing)
+- **Total**: 9-13 hours
 
 ---
 
