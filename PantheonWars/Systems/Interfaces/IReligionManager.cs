@@ -12,9 +12,9 @@ public interface IReligionManager
     void Initialize();
 
     /// <summary>
-    ///     Creates a new religion
+    ///     Creates a new religion with selected starter blessings
     /// </summary>
-    ReligionData CreateReligion(string name, DeityType deity, string founderUID, bool isPublic);
+    ReligionData CreateReligion(string name, List<string> selectedBlessings, string founderUID, bool isPublic);
 
     /// <summary>
     ///     Adds a member to a religion

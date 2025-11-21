@@ -13,8 +13,28 @@ namespace PantheonWars.Data;
 public class ReligionData
 {
     /// <summary>
-    ///     Creates a new religion with the specified parameters
+    ///     Creates a new religion with selected starter blessings (redesigned religion-only system)
     /// </summary>
+    public ReligionData(string religionUID, string religionName, List<string> selectedBlessings, string founderUID)
+    {
+        ReligionUID = religionUID;
+        ReligionName = religionName;
+        Deity = DeityType.None; // No deity in redesigned system
+        FounderUID = founderUID;
+        MemberUIDs = new List<string> { founderUID }; // Founder is first member
+        CreationDate = DateTime.UtcNow;
+
+        // Unlock selected starter blessings
+        foreach (var blessingId in selectedBlessings)
+        {
+            UnlockedBlessings[blessingId] = true;
+        }
+    }
+
+    /// <summary>
+    ///     Creates a new religion with the specified parameters (legacy constructor)
+    /// </summary>
+    [Obsolete("Use constructor with selectedBlessings instead")]
     public ReligionData(string religionUID, string religionName, DeityType deity, string founderUID)
     {
         ReligionUID = religionUID;

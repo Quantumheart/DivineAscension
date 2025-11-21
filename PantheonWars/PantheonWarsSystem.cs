@@ -583,16 +583,16 @@ public class PantheonWarsSystem : ModSystem
             {
                 message = "You are already in a religion. Leave your current religion first.";
             }
-            else if (!Enum.TryParse<DeityType>(packet.Deity, out var deity) || deity == DeityType.None)
+            else if (packet.SelectedBlessings == null || packet.SelectedBlessings.Count != 2)
             {
-                message = "Invalid deity selected.";
+                message = "Please select exactly 2 starter blessings.";
             }
             else
             {
-                // Create the religion
+                // Create the religion with selected blessings
                 var newReligion = _religionManager.CreateReligion(
                     packet.ReligionName,
-                    deity,
+                    packet.SelectedBlessings,
                     fromPlayer.PlayerUID,
                     packet.IsPublic
                 );

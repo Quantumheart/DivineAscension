@@ -39,18 +39,19 @@ public class ReligionManager : IReligionManager
     }
 
     /// <summary>
-    ///     Creates a new religion
+    ///     Creates a new religion with selected starter blessings
     /// </summary>
-    public ReligionData CreateReligion(string name, DeityType deity, string founderUID, bool isPublic)
+    public ReligionData CreateReligion(string name, List<string> selectedBlessings, string founderUID, bool isPublic)
     {
         // Generate unique UID
         var religionUID = Guid.NewGuid().ToString();
 
-        // Validate deity type
-        if (deity == DeityType.None) throw new ArgumentException("Religion must have a valid deity");
+        // Validate blessings
+        if (selectedBlessings == null || selectedBlessings.Count != 2)
+            throw new ArgumentException("Religion must have exactly 2 starter blessings selected");
 
-        // Create religion data
-        var religion = new ReligionData(religionUID, name, deity, founderUID)
+        // Create religion data with selected blessings
+        var religion = new ReligionData(religionUID, name, selectedBlessings, founderUID)
         {
             IsPublic = isPublic
         };
@@ -59,7 +60,7 @@ public class ReligionManager : IReligionManager
         _religions[religionUID] = religion;
 
         _sapi.Logger.Notification(
-            $"[PantheonWars] Religion created: {name} (Deity: {deity}, Founder: {founderUID}, Public: {isPublic})");
+            $"[PantheonWars] Religion created: {name} (Blessings: {string.Join(", ", selectedBlessings)}, Founder: {founderUID}, Public: {isPublic})");
 
         return religion;
     }
