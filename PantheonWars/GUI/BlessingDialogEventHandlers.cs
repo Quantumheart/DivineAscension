@@ -326,10 +326,10 @@ public partial class BlessingDialog
     /// <summary>
     ///     Handle Create Religion form submission
     /// </summary>
-    private void OnCreateReligionSubmit(string religionName, string deity, bool isPublic)
+    private void OnCreateReligionSubmit(string religionName, List<string> selectedBlessings, bool isPublic)
     {
-        _capi!.Logger.Debug($"[PantheonWars] Creating religion: {religionName}, Deity: {deity}, Public: {isPublic}");
-        _pantheonWarsSystem?.RequestCreateReligion(religionName, deity, isPublic);
+        _capi!.Logger.Debug($"[PantheonWars] Creating religion: {religionName}, Blessings: {string.Join(", ", selectedBlessings)}, Public: {isPublic}");
+        _pantheonWarsSystem?.RequestCreateReligion(religionName, selectedBlessings, isPublic);
 
         // Close create form and show browser to see the new religion
         _overlayCoordinator!.CloseCreateReligion();

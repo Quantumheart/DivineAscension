@@ -35,10 +35,7 @@ public class ReligionCommands(
             .WithDescription("Manage religions and congregation membership")
             .RequiresPrivilege(Privilege.chat)
             .BeginSubCommand("create")
-            .WithDescription("Create a new religion")
-            .WithArgs(_sapi.ChatCommands.Parsers.Word("name"),
-                _sapi.ChatCommands.Parsers.Word("deity"),
-                _sapi.ChatCommands.Parsers.OptionalWord("visibility"))
+            .WithDescription("Create a new religion (opens GUI for blessing selection)")
             .HandleWith(OnCreateReligion)
             .EndSubCommand()
             .BeginSubCommand("join")
@@ -116,16 +113,10 @@ public class ReligionCommands(
     #region Command Handlers
 
     /// <summary>
-    ///     Handler for /religion create
-    ///     <name></name>
-    ///     <deity> [public/private]</deity>
+    ///     Handler for /religion create - now redirects to GUI for blessing selection
     /// </summary>
     internal TextCommandResult OnCreateReligion(TextCommandCallingArgs args)
     {
-        var religionName = (string)args[0];
-        var deityName = (string)args[1];
-        var visibility = args.Parsers.Count > 2 ? (string?)args[2] : "public";
-
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
@@ -134,28 +125,9 @@ public class ReligionCommands(
         if (playerData.HasReligion())
             return TextCommandResult.Error("You are already in a religion. Use /religion leave first.");
 
-        // Parse deity type
-        if (!Enum.TryParse(deityName, true, out DeityType deity) || deity == DeityType.None)
-        {
-            var validDeities = string.Join(", ", Enum.GetNames(typeof(DeityType)).Where(d => d != "None"));
-            return TextCommandResult.Error($"Invalid deity. Valid options: {validDeities}");
-        }
-
-        // Parse visibility
-        var isPublic = visibility?.ToLower() != "private";
-
-        // Check if religion name already exists
-        if (_religionManager.GetReligionByName(religionName) != null)
-            return TextCommandResult.Error($"A religion named '{religionName}' already exists");
-
-        // Create the religion
-        var religion = _religionManager.CreateReligion(religionName, deity, player.PlayerUID, isPublic);
-
-        // Auto-join the founder
-        _playerReligionDataManager.JoinReligion(player.PlayerUID, religion.ReligionUID);
-
         return TextCommandResult.Success(
-            $"Religion '{religionName}' created! You are now the founder serving {deity}.");
+            "To create a religion, use the Religion Management dialog (default key: R) and click 'Create Religion'. " +
+            "This allows you to select your starting blessings.");
     }
 
     /// <summary>

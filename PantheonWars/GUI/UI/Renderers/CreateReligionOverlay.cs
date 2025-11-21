@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
@@ -35,14 +36,14 @@ internal static class CreateReligionOverlay
     /// <param name="windowWidth">Parent window width</param>
     /// <param name="windowHeight">Parent window height</param>
     /// <param name="onClose">Callback when close/cancel clicked</param>
-    /// <param name="onCreate">Callback when create clicked (name, deity, isPublic)</param>
+    /// <param name="onCreate">Callback when create clicked (name, selectedBlessings, isPublic)</param>
     /// <returns>True if overlay should remain open</returns>
     public static bool Draw(
         ICoreClientAPI api,
         int windowWidth,
         int windowHeight,
         Action onClose,
-        Action<string, string, bool> onCreate)
+        Action<string, List<string>, bool> onCreate)
     {
         const float overlayWidth = 500f;
         const float overlayHeight = 400f;
@@ -161,8 +162,9 @@ internal static class CreateReligionOverlay
                 api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
                     api.World.Player.Entity, null, false, 8f, 0.5f);
 
-                var deityName = DeityHelper.DeityNames[_state.SelectedDeityIndex];
-                onCreate.Invoke(_state.ReligionName, deityName, _state.IsPublic);
+                // TODO: Update ImGui overlay to support blessing selection UI
+                // For now, pass empty list - server will reject and user should use GuiDialog
+                onCreate.Invoke(_state.ReligionName, new List<string>(), _state.IsPublic);
                 return false; // Close overlay after create
             }
             else

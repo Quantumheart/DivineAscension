@@ -1044,9 +1044,9 @@ public class PantheonWarsSystem : ModSystem
     }
 
     /// <summary>
-    /// Request to create a new religion
+    /// Request to create a new religion with selected blessings
     /// </summary>
-    public void RequestCreateReligion(string religionName, string deity, bool isPublic)
+    public void RequestCreateReligion(string religionName, List<string> selectedBlessings, bool isPublic)
     {
         if (_clientChannel == null)
         {
@@ -1054,9 +1054,9 @@ public class PantheonWarsSystem : ModSystem
             return;
         }
 
-        var request = new CreateReligionRequestPacket(religionName, deity, isPublic);
+        var request = new CreateReligionRequestPacket(religionName, selectedBlessings, isPublic);
         _clientChannel.SendPacket(request);
-        _capi?.Logger.Debug($"[PantheonWars] Sent create religion request: {religionName}, {deity}");
+        _capi?.Logger.Debug($"[PantheonWars] Sent create religion request: {religionName}, blessings: {string.Join(", ", selectedBlessings)}");
     }
 
     /// <summary>
