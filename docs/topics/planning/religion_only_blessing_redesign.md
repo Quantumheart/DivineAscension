@@ -1,9 +1,9 @@
 # Religion-Only Blessing System Redesign
 
-**Document Version:** 2.0
+**Document Version:** 2.1
 **Created:** November 20, 2025
 **Updated:** November 21, 2025
-**Status:** MVP 1 In Progress
+**Status:** MVP 1 In Progress (75% Complete), Phase 2 Cleanup Planned
 **Impact:** Major Architecture Change
 
 ---
@@ -47,6 +47,17 @@
 - [ ] Religion creation blessing selection UI
 - [ ] Prestige milestone blessing unlock UI
 - [ ] In-game testing and balance
+
+### Phase 2: Legacy Code Cleanup (Planned)
+- [ ] Remove BlessingKind, FavorRank, DevotionRank enums
+- [ ] Remove legacy Blessing properties (Kind, RequiredFavorRank)
+- [ ] Delete or convert 30 deity-specific blessings
+- [ ] Remove legacy data models (PlayerFavorProgress, PlayerDeityData)
+- [ ] Clean up GUI components and network packets
+- **Status:** Planning complete, execution pending
+- **Estimated Effort:** 11 hours (6-7 execution + 2 validation + 2 documentation)
+- **Impact:** ~1,550+ lines of code affected across ~16 files
+- **See:** "Phase 2: Legacy Code Cleanup Plan" section below for full details
 
 ---
 
@@ -1682,8 +1693,527 @@ Before implementing ANY blessing handler:
 
 ---
 
+---
+
+## Phase 2: Legacy Code Cleanup Plan
+
+**Status:** ⚠️ PLANNING - Not yet executed
+**Impact:** High - Removes ~2,000+ lines of legacy code from dual-progression system
+**Estimated Effort:** 6-7 hours
+**Risk:** Medium - Requires careful removal to avoid breaking existing functionality
+
+### Background
+
+During MVP 1 implementation (Weeks 1-3), the personal deity/favor system was partially removed, but significant legacy code remains from the original Phase 1-2 dual-progression architecture. This creates technical debt and makes the codebase confusing, as it appears to be "a hack of the original mod" rather than a clean religion-only system.
+
+**User Feedback (Nov 21, 2025):**
+> "I feel our redesign is a hack of the original mod. A lot of the existing classes and pieces still exist."
+
+**Specific Examples Identified:**
+- `Blessing.Deity` property (line 47 in Blessing.cs) - Should be DeityType.None for universal blessings
+- `Blessing.Kind` property (line 52) - Obsolete enum distinguishing Player vs Religion blessings
+- `Blessing.RequiredFavorRank` property (line 62) - Replaced by RequiredPrestigeRank
+- Multiple obsolete enums: BlessingKind, FavorRank, DevotionRank
+- 30 deity-specific blessing definitions still using old progression model
+- Legacy UI components, network packets, and data models
+
+### Comprehensive Legacy Code Analysis
+
+This section documents ALL legacy code identified in the codebase that must be removed or refactored to complete the religion-only architecture transition.
+
+---
+
+#### 1. Legacy Enums (Complete Removal)
+
+**File: `PantheonWars/Models/Enum/BlessingKind.cs`**
+- **Status:** Entire file should be deleted
+- **Reason:** Distinguishes Player vs Religion blessings - obsolete in religion-only system
+- **Impact:** All blessings are now Religion-level, no personal blessing trees
+- **Dependencies:** Referenced in ~15 files, all must be updated
+
+**File: `PantheonWars/Models/Enum/FavorRank.cs`**
+- **Status:** Entire file should be deleted
+- **Reason:** Personal progression ranks (Initiate → Exalted) replaced by PrestigeRank
+- **Impact:** All favor-based progression removed
+- **Dependencies:** Referenced in blessing definitions, tooltips, network packets
+
+**File: `PantheonWars/Models/Enum/DevotionRank.cs`**
+- **Status:** Entire file should be deleted (if exists)
+- **Reason:** Related to personal deity devotion system
+- **Impact:** Part of removed personal worship mechanics
+
+---
+
+#### 2. Legacy Blessing Model Properties
+
+**File: `PantheonWars/Models/Blessing.cs` (Lines 43-62)**
+
+**Properties to Remove/Refactor:**
+
+```csharp
+// Line 47: Deity property - PARTIAL REMOVAL
+public DeityType Deity { get; set; } = DeityType.None;
+```
+- **Action:** Keep property but enforce `DeityType.None` for all universal blessings
+- **Reason:** Currently used for filtering, but all new blessings should be universal
+- **Long-term:** Could be removed entirely if deity-specific blessings are deleted
+
+```csharp
+// Line 52: Kind property - DELETE
+public BlessingKind Kind { get; set; } = BlessingKind.Religion;
+```
+- **Action:** Remove property entirely
+- **Reason:** No distinction between Player/Religion blessings in new architecture
+- **Impact:** All blessings are religion-level by default
+
+```csharp
+// Line 62: RequiredFavorRank property - DELETE
+public int RequiredFavorRank { get; set; }
+```
+- **Action:** Remove property entirely
+- **Reason:** Replaced by `RequiredPrestigeRank`
+- **Impact:** All progression now uses PrestigeRank thresholds
+
+**Estimated Changes:** 3 property removals + constructor updates + validation updates
+
+---
+
+#### 3. Legacy Blessing Definitions
+
+**File: `PantheonWars/Systems/BlessingDefinitions.cs` (Lines 154-697)**
+
+**Issue:** 30 deity-specific blessings still use old progression model
+
+**Current State:**
+- Blessings organized by deity (Aethra, Gaia, Morthen)
+- Use `BlessingKind.Player` and `RequiredFavorRank`
+- Total: 543 lines of code using legacy properties
+
+**Action Required:**
+- **Option A (Aggressive):** Delete all 30 deity-specific blessings entirely
+  - Keeps only universal utility blessings (8 implemented so far)
+  - Clean break from combat-focused Phase 1 design
+  - Aligns with religion-only architecture
+
+- **Option B (Conversion):** Convert deity blessings to universal
+  - Remove deity association (set to DeityType.None)
+  - Replace RequiredFavorRank with RequiredPrestigeRank
+  - Update Kind to BlessingKind.Religion (or remove after enum deletion)
+  - Requires balancing 30 blessings against new utility pool
+
+**Recommendation:** Option A - Delete deity-specific blessings
+- Cleaner architecture
+- Avoids balancing nightmares (combat vs utility)
+- Consistent with redesign philosophy (no deity worship)
+- Can reintroduce converted blessings in future if needed
+
+**Estimated Changes:** 543 lines removed OR 543 lines refactored
+
+---
+
+#### 4. Legacy Constants and IDs
+
+**File: `PantheonWars/Constants/BlessingIds.cs` (Lines 14-66)**
+
+**Issue:** Comments reference "Player Blessings (6)" for deity-specific sections
+
+**Current Structure:**
+```csharp
+// Aethra Player Blessings (6)
+public const string HolySmiteBlessing = "holysmite";
+// ... more deity blessings
+```
+
+**Action Required:**
+- Update comments to reflect universal blessing pool
+- Remove deity-specific blessing ID constants if blessings are deleted
+- Add new universal blessing IDs (already started in MVP 1)
+- Reorganize by category (Mining, Farming, etc.) instead of deity
+
+**Estimated Changes:** ~50 lines of documentation updates + constant removals
+
+---
+
+#### 5. Legacy Data Models
+
+**File: `PantheonWars/Models/PlayerFavorProgress.cs`**
+- **Status:** Should be deleted entirely
+- **Reason:** Tracked personal favor progression, replaced by religion-level PrestigeProgress
+- **Dependencies:** Check for references in progression tracking systems
+- **Impact:** Personal progression data no longer needed
+
+**File: `PantheonWars/Data/PlayerDeityData.cs`**
+- **Status:** Already marked `[Obsolete]`, scheduled for v2.0.0 removal
+- **Reason:** Stored personal deity selection and favor data
+- **Action:** Complete the deletion in Phase 2 cleanup
+- **Impact:** No more personal deity data persistence
+
+**Estimated Changes:** 2 files deleted (~200 lines)
+
+---
+
+#### 6. Legacy Interfaces
+
+**File: `PantheonWars/Systems/Interfaces/IFavorSystem.cs`**
+- **Status:** Orphaned interface with no implementation
+- **Reason:** Interface for personal favor tracking system (already deleted)
+- **Action:** Delete entire file
+- **Impact:** No active references found
+
+**Estimated Changes:** 1 file deleted (~30 lines)
+
+---
+
+#### 7. Legacy Blessing Tooltip Data
+
+**File: `PantheonWars/Models/BlessingTooltipData.cs`**
+
+**Properties to Remove:**
+
+```csharp
+// Line 28: Kind property - DELETE
+public BlessingKind Kind { get; set; }
+
+// Line 37-39: RequiredFavorRank property - DELETE
+public int RequiredFavorRank { get; set; }
+
+// Line 195-208: GetFavorRankName() method - DELETE
+public string GetFavorRankName()
+{
+    // Converts FavorRank enum to display string
+}
+```
+
+**Action Required:**
+- Remove Kind property (all blessings are religion-level)
+- Remove RequiredFavorRank property (use RequiredPrestigeRank instead)
+- Remove GetFavorRankName() method (no longer needed)
+- Update tooltip generation to show only PrestigeRank requirements
+
+**Estimated Changes:** 3 property removals + 1 method deletion + tooltip format updates (~50 lines)
+
+---
+
+#### 8. Legacy GUI Components
+
+**File: `PantheonWars/GUI/BlessingDialogManager.cs` (Lines 30-34)**
+
+**Issue:** Favor-related fields marked "kept for interface compatibility"
+
+**Current Code:**
+```csharp
+// Line 30-34: Legacy fields
+private int CurrentFavorRank; // kept for interface compatibility
+private int CurrentFavor;     // kept for interface compatibility
+private int TotalFavorEarned; // kept for interface compatibility
+```
+
+**Action Required:**
+- Delete all favor-related fields
+- Remove any UI elements displaying favor
+- Update dialog rendering to show only prestige/religion data
+- Remove compatibility shims
+
+**Estimated Changes:** 3 field removals + UI rendering updates (~100 lines)
+
+---
+
+#### 9. Legacy Network Packets
+
+**File: `PantheonWars/Network/BlessingDataResponsePacket.cs`**
+
+**Issue:** Network protocol includes favor-related fields
+
+**Current Fields:**
+```csharp
+public FavorRank FavorRank { get; set; }
+public int CurrentFavor { get; set; }
+public int TotalFavorEarned { get; set; }
+```
+
+**Action Required:**
+- Remove favor fields from packet definition
+- Update packet serialization/deserialization
+- Update client-side packet handlers
+- **⚠️ Breaking Change:** Requires protocol version bump
+- Add migration guide for multiplayer compatibility
+
+**Estimated Changes:** 3 field removals + packet handler updates (~80 lines)
+
+---
+
+#### 10. Legacy Special Effects
+
+**File: `PantheonWars/Systems/SpecialEffects/` (Various handlers)**
+
+**Issue:** Combat-focused special effects from deity blessings
+
+**Potentially Obsolete Handlers:**
+- Execute mechanics (instant kill at low health)
+- Death aura effects (PvP damage)
+- Favor-on-kill mechanics
+- Deity-specific particle effects
+
+**Action Required:**
+- **Option A:** Delete all combat-specific special effect handlers
+- **Option B:** Keep handlers but remove blessing definitions that use them
+- Audit all special effect handlers for legacy references
+
+**Estimated Changes:** TBD - Requires audit of SpecialEffects directory
+
+---
+
+### Cleanup Execution Plan
+
+This plan removes all legacy code in 4 phases, estimated at 6-7 hours total effort.
+
+---
+
+#### **Phase 1: Delete Enums & Simple Properties (2 hours)**
+
+**Tasks:**
+1. Delete `BlessingKind.cs` enum file
+2. Delete `FavorRank.cs` enum file
+3. Delete `DevotionRank.cs` enum file (if exists)
+4. Remove `Blessing.Kind` property from Blessing.cs
+5. Remove `Blessing.RequiredFavorRank` property from Blessing.cs
+6. Remove favor-related properties from BlessingTooltipData.cs
+7. Delete `GetFavorRankName()` method
+8. Run build to find all broken references
+9. Update all references to use PrestigeRank instead
+10. Run all tests, fix breaking changes
+
+**Expected Breakages:**
+- ~15 files referencing BlessingKind
+- ~10 files referencing FavorRank
+- Tooltip generation methods
+- Blessing definition constructors
+
+**Success Criteria:**
+- All enums deleted
+- All simple properties removed
+- Build succeeds with zero errors
+- All tests passing
+
+---
+
+#### **Phase 2: Remove Legacy Blessing Definitions (3 hours)**
+
+**Tasks:**
+1. Audit all 30 deity-specific blessings in BlessingDefinitions.cs
+2. **Decision Point:** Delete vs Convert
+   - If DELETE: Remove lines 154-697 entirely
+   - If CONVERT: Update each blessing to use universal properties
+3. Update BlessingIds.cs constants and comments
+4. Remove deity-specific blessing IDs if deleted
+5. Reorganize remaining blessings by category
+6. Update BlessingRegistry to remove deity filtering logic
+7. Run all tests related to blessing loading
+8. Verify only universal blessings are loaded
+
+**Expected Breakages:**
+- Tests expecting deity-specific blessings
+- Special effect handlers referenced by deleted blessings
+- Command output showing deity blessing counts
+
+**Success Criteria:**
+- Only universal blessings in BlessingDefinitions.cs
+- No deity-specific blessing IDs remain
+- BlessingRegistry loads only universal pool
+- All tests passing
+
+---
+
+#### **Phase 3: Clean Up Systems & UI (4 hours)**
+
+**Tasks:**
+1. Delete `PlayerFavorProgress.cs` model
+2. Delete `PlayerDeityData.cs` (complete obsolete removal)
+3. Delete `IFavorSystem.cs` interface
+4. Remove favor fields from BlessingDialogManager.cs
+5. Update GUI rendering methods to remove favor display
+6. Remove favor fields from BlessingDataResponsePacket.cs
+7. Update packet handlers (client & server)
+8. Bump network protocol version
+9. Update all dialog UIs to show only religion/prestige
+10. Audit SpecialEffects directory for combat handlers
+11. Delete obsolete special effect handlers if blessings removed
+12. Run full integration tests
+13. Test multiplayer packet synchronization
+
+**Expected Breakages:**
+- Dialog rendering methods
+- Network synchronization
+- Client-side packet handling
+- UI element positioning
+
+**Success Criteria:**
+- All legacy data models deleted
+- No favor references in GUI
+- Network packets use only religion/prestige
+- UI shows clean religion-only interface
+- Multiplayer synchronization works
+
+---
+
+#### **Phase 4: Documentation & Final Validation (2 hours)**
+
+**Tasks:**
+1. Update all inline code comments referencing favor/deities
+2. Update XML documentation for modified methods
+3. Search codebase for remaining "favor" references
+4. Search codebase for remaining "deity" references (excluding DeityType enum)
+5. Update this redesign document with completion status
+6. Run full test suite (792+ tests)
+7. Perform manual testing:
+   - Create religion with universal blessings
+   - Unlock Tier 2 blessings
+   - View blessing list
+   - Check GUI displays correctly
+8. Write migration notes for v2.0 changelog
+9. Document breaking changes for server operators
+
+**Success Criteria:**
+- No "favor" references remain (except in git history)
+- No "deity" references in active code (DeityType.None allowed)
+- All 792+ tests passing
+- Manual testing confirms clean architecture
+- Documentation updated
+
+---
+
+### Breaking Changes & Migration Impact
+
+#### **For Server Operators:**
+
+**⚠️ BREAKING: Save Data Incompatibility**
+- Old save data using personal favor/deity will be incompatible
+- Recommendation: Fresh start for v2.0 or manual data migration
+- Network protocol version bump may require client updates
+
+**Migration Options:**
+1. **Clean Break (Recommended):** Start fresh with religion-only system
+2. **Manual Migration:** Use admin commands to grant equivalent prestige
+3. **Data Conversion Script:** TBD - would require significant effort
+
+#### **For Mod Developers:**
+
+**Removed APIs:**
+- `BlessingKind` enum
+- `FavorRank` enum
+- `Blessing.Kind` property
+- `Blessing.RequiredFavorRank` property
+- `IFavorSystem` interface
+- `PlayerFavorProgress` model
+- Favor-related network packets
+
+**Replacement APIs:**
+- Use `Blessing.RequiredPrestigeRank` instead of `RequiredFavorRank`
+- Use `ReligionData.PrestigeRank` instead of `PlayerDeityData.FavorRank`
+- All blessings are now religion-level (no personal trees)
+
+---
+
+### Estimated Code Impact
+
+| Category | Files Affected | Lines Removed | Lines Modified | Risk |
+|----------|----------------|---------------|----------------|------|
+| Enums | 3 files | ~100 | 0 | Low |
+| Blessing Model | 3 files | ~100 | ~50 | Medium |
+| Blessing Definitions | 1 file | ~543 | 0 | High |
+| Data Models | 2 files | ~200 | 0 | Low |
+| Interfaces | 1 file | ~30 | 0 | Low |
+| GUI Components | 2 files | ~100 | ~100 | Medium |
+| Network Packets | 2 files | ~50 | ~80 | High |
+| Tooltips | 1 file | ~50 | ~50 | Low |
+| Special Effects | TBD | TBD | TBD | Medium |
+| Constants | 1 file | ~50 | ~50 | Low |
+| **TOTAL** | **~16 files** | **~1,223 lines** | **~330 lines** | **Medium** |
+
+**Total Code Changes:** ~1,550+ lines affected
+**Total Effort:** 11 hours (6-7 hours execution + 2 hours validation + 2 hours documentation)
+
+---
+
+### Risk Mitigation
+
+**Risk 1: Breaking Existing Tests**
+- **Mitigation:** Run tests after each phase, fix incrementally
+- **Fallback:** Git branch for cleanup, can revert if needed
+
+**Risk 2: Unintended System Dependencies**
+- **Mitigation:** Comprehensive search for legacy references before deletion
+- **Fallback:** Keep deleted code in commented blocks initially
+
+**Risk 3: Network Protocol Incompatibility**
+- **Mitigation:** Version bump + clear migration guide
+- **Fallback:** Provide backward compatibility layer (adds 2 hours)
+
+**Risk 4: Lost Game Content (30 blessings)**
+- **Mitigation:** Decision point - delete vs convert
+- **Fallback:** Archive deleted blessing definitions for potential future use
+
+---
+
+### Success Metrics
+
+**Code Quality:**
+- [ ] Zero references to `BlessingKind` enum
+- [ ] Zero references to `FavorRank` enum
+- [ ] Zero favor-related properties in active code
+- [ ] All deity-specific blessings removed or converted
+- [ ] Clean architecture with single progression path
+
+**Functionality:**
+- [ ] All 792+ tests passing
+- [ ] Religion creation works with universal blessings
+- [ ] Blessing list command shows only universal pool
+- [ ] GUI displays clean religion-only interface
+- [ ] Network synchronization works in multiplayer
+
+**Documentation:**
+- [ ] All code comments updated
+- [ ] Migration guide written
+- [ ] Breaking changes documented
+- [ ] Redesign document marked as complete
+
+---
+
+### Post-Cleanup Validation Checklist
+
+After completing all 4 phases, validate the following:
+
+**Code Validation:**
+- [ ] Search codebase for "BlessingKind" → 0 results
+- [ ] Search codebase for "FavorRank" → 0 results (except git history)
+- [ ] Search codebase for "RequiredFavorRank" → 0 results
+- [ ] Search codebase for "PlayerFavorProgress" → 0 results
+- [ ] Search codebase for "IFavorSystem" → 0 results
+- [ ] Build succeeds with zero warnings
+- [ ] All unit tests pass (792+)
+
+**Functional Validation:**
+- [ ] Create new religion with 2 universal Tier 1 blessings
+- [ ] Earn prestige through mining/farming
+- [ ] Hit 500 prestige milestone
+- [ ] Unlock 3 Tier 2 blessings
+- [ ] View blessing list (shows only universal blessings)
+- [ ] Check religion dialog (shows prestige, no favor)
+- [ ] Test in multiplayer (client/server sync)
+- [ ] Restart server (persistence works)
+
+**Architecture Validation:**
+- [ ] No dual-progression complexity remains
+- [ ] Single prestige progression path clear
+- [ ] Universal blessing pool clean
+- [ ] Religion-only architecture consistent
+- [ ] No "hacked on" feeling in codebase
+
+---
+
 ## Document History
 
+- **v2.1 (Nov 21, 2025):** Added comprehensive "Phase 2: Legacy Code Cleanup Plan" section documenting ~2,000+ lines of legacy code to be removed from dual-progression system. Includes 10-section analysis, 4-phase execution plan (11 hours estimated), breaking changes documentation, and validation checklists. Addresses user feedback about architecture feeling like "a hack of the original mod."
 - **v1.5 (Nov 20, 2025):** Added realistic MVP-driven implementation plan with 4 release milestones. Total timeline: 20-25 weeks. Includes decision points, resource requirements, priority matrix, and success criteria for each MVP.
 - **v1.4 (Nov 20, 2025):** MAJOR UPDATE - Replaced ALL problematic handlers (⚠️ research/complex) with 100% feasible alternatives. All 28 Tier 1-3 blessings are now API-validated and implementation-ready. Added comprehensive "Fully Feasible Alternative Blessings" section with drop-in replacements. Tier 1-3 now 100% feasible (previously 85%).
 - **v1.3 (Nov 20, 2025):** Updated all blessings based on VS API feasibility research. Replaced 5 impossible handlers with API-feasible alternatives.
