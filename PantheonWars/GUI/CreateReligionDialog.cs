@@ -1,7 +1,5 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using PantheonWars.Models.Enum;
 using PantheonWars.Network;
 using Vintagestory.API.Client;
 
@@ -17,7 +15,6 @@ public class CreateReligionDialog : GuiDialog
     private readonly IClientNetworkChannel _channel;
     private bool _isPublic = true;
     private string _religionName = "";
-    private DeityType _selectedDeity = DeityType.Khoras;
 
     public CreateReligionDialog(ICoreClientAPI capi, IClientNetworkChannel channel) : base(capi)
     {
@@ -39,7 +36,7 @@ public class CreateReligionDialog : GuiDialog
     {
         const int titleBarHeight = 30;
         const double contentWidth = 400;
-        const double contentHeight = 300;
+        const double contentHeight = 250;
 
         var bgBounds = ElementBounds.Fixed(0, titleBarHeight, contentWidth, contentHeight);
 
@@ -51,7 +48,7 @@ public class CreateReligionDialog : GuiDialog
         SingleComposer = capi.Gui
             .CreateCompo("createreligion", dialogBounds)
             .AddShadedDialogBG(ElementBounds.Fill)
-            .AddDialogTitleBar("Create New Religion", OnTitleBarCloseClicked)
+            .AddDialogTitleBar("Create New Guild", OnTitleBarCloseClicked)
             .BeginChildElements(bgBounds);
 
         var composer = SingleComposer;
@@ -60,26 +57,11 @@ public class CreateReligionDialog : GuiDialog
 
         // Religion Name
         var nameLabel = ElementBounds.Fixed(10, yPos, contentWidth - 20, 25);
-        composer.AddStaticText("Religion Name:", CairoFont.WhiteSmallText(), nameLabel);
+        composer.AddStaticText("Guild Name:", CairoFont.WhiteSmallText(), nameLabel);
         yPos += 30;
 
         var nameInput = ElementBounds.Fixed(10, yPos, contentWidth - 20, 30);
         composer.AddTextInput(nameInput, OnNameChanged, CairoFont.WhiteDetailText(), "nameInput");
-        yPos += 45;
-
-        // Deity Selection
-        var deityLabel = ElementBounds.Fixed(10, yPos, contentWidth - 20, 25);
-        composer.AddStaticText("Deity:", CairoFont.WhiteSmallText(), deityLabel);
-        yPos += 30;
-
-        var deityNames = Enum.GetValues(typeof(DeityType))
-            .Cast<DeityType>()
-            .Where(d => d != DeityType.None)
-            .Select(d => d.ToString())
-            .ToArray();
-
-        var deityDropdown = ElementBounds.Fixed(10, yPos, contentWidth - 20, 30);
-        composer.AddDropDown(deityNames, deityNames, 0, OnDeityChanged, deityDropdown, "deityDropdown");
         yPos += 45;
 
         // Public/Private Selection
@@ -96,7 +78,7 @@ public class CreateReligionDialog : GuiDialog
         // Description text
         var descBounds = ElementBounds.Fixed(10, yPos, contentWidth - 20, 40);
         composer.AddStaticText(
-            "Public religions can be joined by anyone.\nPrivate religions require an invitation.",
+            "Public guilds can be joined by anyone.\nPrivate guilds require an invitation.",
             CairoFont.WhiteSmallText().WithFontSize(10),
             descBounds
         );
@@ -117,11 +99,6 @@ public class CreateReligionDialog : GuiDialog
         _religionName = name;
     }
 
-    private void OnDeityChanged(string code, bool selected)
-    {
-        if (Enum.TryParse<DeityType>(code, out var deity)) _selectedDeity = deity;
-    }
-
     private void OnVisibilityChanged(string code, bool selected)
     {
         _isPublic = code == "Public";
@@ -132,30 +109,24 @@ public class CreateReligionDialog : GuiDialog
         // Validate inputs
         if (string.IsNullOrWhiteSpace(_religionName))
         {
-            _capi.ShowChatMessage("Please enter a religion name.");
+            _capi.ShowChatMessage("Please enter a guild name.");
             return true;
         }
 
         if (_religionName.Length < 3)
         {
-            _capi.ShowChatMessage("Religion name must be at least 3 characters.");
+            _capi.ShowChatMessage("Guild name must be at least 3 characters.");
             return true;
         }
 
         if (_religionName.Length > 32)
         {
-            _capi.ShowChatMessage("Religion name must be 32 characters or less.");
-            return true;
-        }
-
-        if (_selectedDeity == DeityType.None)
-        {
-            _capi.ShowChatMessage("Please select a deity.");
+            _capi.ShowChatMessage("Guild name must be 32 characters or less.");
             return true;
         }
 
         // Send creation request to server
-        _channel.SendPacket(new CreateReligionRequestPacket(_religionName, _selectedDeity.ToString(), _isPublic));
+        _channel.SendPacket(new CreateReligionRequestPacket(_religionName, _isPublic));
 
         // Close dialog
         TryClose();

@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Cairo;
-using PantheonWars.Models.Enum;
 using PantheonWars.Network;
 using Vintagestory.API.Client;
 
@@ -25,7 +22,6 @@ public class ReligionManagementDialog : GuiDialog
     private InvitePlayerDialog? _inviteDialog;
     private BanPlayerDialog? _banDialog;
     private PlayerReligionInfoResponsePacket? _playerReligionInfo;
-    private DeityType _selectedDeityFilter = DeityType.None; // For browse tab filtering
 
     public ReligionManagementDialog(ICoreClientAPI capi, IClientNetworkChannel channel) : base(capi)
     {
@@ -51,8 +47,7 @@ public class ReligionManagementDialog : GuiDialog
         _dataLoaded = false;
 
         // Request list of available religions
-        var deityFilter = _selectedDeityFilter == DeityType.None ? "" : _selectedDeityFilter.ToString();
-        _channel.SendPacket(new ReligionListRequestPacket(deityFilter));
+        _channel.SendPacket(new ReligionListRequestPacket());
 
         // Request player's current religion info
         _channel.SendPacket(new PlayerReligionInfoRequestPacket());
@@ -120,7 +115,7 @@ public class ReligionManagementDialog : GuiDialog
         SingleComposer = capi.Gui
             .CreateCompo("religionmanagement", dialogBounds)
             .AddShadedDialogBG(ElementBounds.Fill)
-            .AddDialogTitleBar("Religion Management", OnTitleBarCloseClicked)
+            .AddDialogTitleBar("Guild Management", OnTitleBarCloseClicked)
             .BeginChildElements(bgBounds);
 
         var composer = SingleComposer;
@@ -130,9 +125,9 @@ public class ReligionManagementDialog : GuiDialog
         var myReligionTabBounds = ElementBounds.Fixed(170, 10, 150, 30);
         var createButtonBounds = ElementBounds.Fixed(contentWidth - 160, 10, 150, 30);
 
-        composer.AddSmallButton("Browse Religions", OnBrowseTabClicked, browseTabBounds,
+        composer.AddSmallButton("Browse Guilds", OnBrowseTabClicked, browseTabBounds,
             _currentTab == "browse" ? EnumButtonStyle.MainMenu : EnumButtonStyle.Normal, "browseTab");
-        composer.AddSmallButton("My Religion", OnMyReligionTabClicked, myReligionTabBounds,
+        composer.AddSmallButton("My Guild", OnMyReligionTabClicked, myReligionTabBounds,
             _currentTab == "my_religion" ? EnumButtonStyle.MainMenu : EnumButtonStyle.Normal, "myReligionTab");
         composer.AddSmallButton("Create New", OnCreateReligionClicked, createButtonBounds, EnumButtonStyle.Normal,
             "createButton");
@@ -151,49 +146,28 @@ public class ReligionManagementDialog : GuiDialog
 
     private void ComposeBrowseTab(GuiComposer composer, ElementBounds bounds)
     {
-        // Filter dropdown
-        var filterLabelBounds = ElementBounds.Fixed(bounds.fixedX, bounds.fixedY, 100, 25);
-        var filterDropdownBounds = ElementBounds.Fixed(bounds.fixedX + 110, bounds.fixedY, 200, 25);
-
-        composer.AddStaticText("Filter by Deity:", CairoFont.WhiteSmallText(), filterLabelBounds);
-
-        var deityNames = new[] { "All Deities" }
-            .Concat(Enum.GetValues(typeof(DeityType))
-                .Cast<DeityType>()
-                .Where(d => d != DeityType.None)
-                .Select(d => d.ToString()))
-            .ToArray();
-
-        composer.AddDropDown(deityNames, deityNames, 0, OnDeityFilterChanged, filterDropdownBounds, "deityFilter");
-
         // Religion list area (scrollable)
-        var listBounds =
-            ElementBounds.Fixed(bounds.fixedX, bounds.fixedY + 40, bounds.fixedWidth, bounds.fixedHeight - 40);
+        var listBounds = ElementBounds.Fixed(bounds.fixedX, bounds.fixedY, bounds.fixedWidth, bounds.fixedHeight);
         var clipBounds = listBounds.ForkBoundingParent();
         var insetBounds = listBounds.FlatCopy();
 
         composer.BeginClip(clipBounds);
         composer.AddInset(insetBounds, 2);
 
-        // Filter religions by selected deity
-        var filteredReligions = _selectedDeityFilter == DeityType.None
-            ? _availableReligions
-            : _availableReligions.Where(r => r.Deity == _selectedDeityFilter.ToString()).ToList();
-
-        if (filteredReligions.Count == 0)
+        if (_availableReligions.Count == 0)
         {
             var noReligionsTextBounds = ElementBounds.Fixed(listBounds.fixedX + 10, listBounds.fixedY + 10,
                 listBounds.fixedWidth - 20, 30);
-            composer.AddStaticText("No religions available. Create one!", CairoFont.WhiteSmallText(),
+            composer.AddStaticText("No guilds available. Create one!", CairoFont.WhiteSmallText(),
                 noReligionsTextBounds);
         }
         else
         {
             var yPos = listBounds.fixedY + 10;
-            foreach (var religion in filteredReligions)
+            foreach (var religion in _availableReligions)
             {
                 AddReligionListItem(composer, religion, listBounds.fixedX + 10, yPos, listBounds.fixedWidth - 20);
-                yPos += 70; // Height of each religion item
+                yPos += 60; // Height of each religion item
             }
         }
 
@@ -203,45 +177,29 @@ public class ReligionManagementDialog : GuiDialog
     private void AddReligionListItem(GuiComposer composer, ReligionListResponsePacket.ReligionInfo religion, double x,
         double y, double width)
     {
-        var containerBounds = ElementBounds.Fixed(x, y, width, 60);
+        var containerBounds = ElementBounds.Fixed(x, y, width, 50);
         composer.AddInset(containerBounds, 2);
 
-        // Religion name and deity
+        // Guild name
         var nameBounds = ElementBounds.Fixed(x + 10, y + 5, width - 130, 20);
         composer.AddStaticText(
-            $"{religion.ReligionName} ({religion.Deity})",
+            religion.ReligionName,
             CairoFont.WhiteDetailText().WithWeight(FontWeight.Bold),
             nameBounds
         );
 
-        // Member count and prestige
+        // Member count and visibility
         var infoBounds = ElementBounds.Fixed(x + 10, y + 28, width - 130, 15);
+        var visibility = religion.IsPublic ? "Public" : "Private - Invite Only";
         composer.AddStaticText(
-            $"Members: {religion.MemberCount} | Prestige: {religion.Prestige} ({religion.PrestigeRank})",
+            $"Members: {religion.MemberCount} | {visibility}",
             CairoFont.WhiteSmallText(),
             infoBounds
         );
 
-        // Public/Private indicator
-        var visibilityBounds = ElementBounds.Fixed(x + 10, y + 45, width - 130, 12);
-        composer.AddStaticText(
-            religion.IsPublic ? "[Public]" : "[Private - Invite Only]",
-            CairoFont.WhiteSmallText().WithFontSize(10),
-            visibilityBounds
-        );
-
         // Join button
-        var joinButtonBounds = ElementBounds.Fixed(x + width - 110, y + 15, 100, 25);
+        var joinButtonBounds = ElementBounds.Fixed(x + width - 110, y + 13, 100, 25);
         composer.AddSmallButton("Join", () => OnJoinReligionClicked(religion.ReligionUID), joinButtonBounds);
-    }
-
-    private void OnDeityFilterChanged(string code, bool selected)
-    {
-        if (code == "All Deities")
-            _selectedDeityFilter = DeityType.None;
-        else
-            Enum.TryParse(code, out _selectedDeityFilter);
-        ComposeDialog();
     }
 
     private bool OnJoinReligionClicked(string religionUID)
@@ -261,7 +219,7 @@ public class ReligionManagementDialog : GuiDialog
         {
             var noReligionBounds =
                 ElementBounds.Fixed(bounds.fixedX + 10, bounds.fixedY + 10, bounds.fixedWidth - 20, 30);
-            composer.AddStaticText("You are not in a religion. Browse or create one!", CairoFont.WhiteSmallText(),
+            composer.AddStaticText("You are not in a guild. Browse or create one!", CairoFont.WhiteSmallText(),
                 noReligionBounds);
             return;
         }
@@ -269,29 +227,24 @@ public class ReligionManagementDialog : GuiDialog
         var religion = _playerReligionInfo;
         var yPos = bounds.fixedY + 10;
 
-        // Religion name and deity (header)
+        // Guild name (header)
         var headerBounds = ElementBounds.Fixed(bounds.fixedX + 10, yPos, bounds.fixedWidth - 20, 30);
         composer.AddStaticText(
-            $"{religion.ReligionName} - {religion.Deity}",
+            religion.ReligionName,
             CairoFont.WhiteDetailText().WithWeight(FontWeight.Bold).WithFontSize(22),
             headerBounds
         );
         yPos += 40;
 
-        // Religion info
-        var infoBounds = ElementBounds.Fixed(bounds.fixedX + 10, yPos, bounds.fixedWidth - 20, 80);
-        var prestigeRankEnum = Enum.TryParse<PrestigeRank>(religion.PrestigeRank, out var rank)
-            ? rank
-            : PrestigeRank.Fledgling;
+        // Guild info
+        var infoBounds = ElementBounds.Fixed(bounds.fixedX + 10, yPos, bounds.fixedWidth - 20, 40);
         composer.AddStaticText(
             $"Founder: {religion.FounderUID}\n" +
-            $"Members: {religion.Members.Count}\n" +
-            $"Prestige: {religion.Prestige} / Next Rank at: {GetNextPrestigeThreshold(prestigeRankEnum)}\n" +
-            $"Prestige Rank: {religion.PrestigeRank}",
+            $"Members: {religion.Members.Count}",
             CairoFont.WhiteSmallText(),
             infoBounds
         );
-        yPos += 90;
+        yPos += 50;
 
         // Description
         var descLabelBounds = ElementBounds.Fixed(bounds.fixedX + 10, yPos, bounds.fixedWidth - 20, 20);
@@ -397,7 +350,7 @@ public class ReligionManagementDialog : GuiDialog
 
         var nameBounds = ElementBounds.Fixed(x, y, width - 180, 20);
         composer.AddStaticText(
-            $"{member.PlayerName}{roleText} - {member.FavorRank} ({member.Favor} favor)",
+            $"{member.PlayerName}{roleText}",
             CairoFont.WhiteSmallText(),
             nameBounds
         );
@@ -415,19 +368,6 @@ public class ReligionManagementDialog : GuiDialog
             var kickButtonBounds = ElementBounds.Fixed(x + width - 90, y - 2, 80, 22);
             composer.AddSmallButton("Kick", () => OnKickMemberClicked(member.PlayerUID), kickButtonBounds);
         }
-    }
-
-    private int GetNextPrestigeThreshold(PrestigeRank currentRank)
-    {
-        return currentRank switch
-        {
-            PrestigeRank.Fledgling => 500,
-            PrestigeRank.Established => 2000,
-            PrestigeRank.Renowned => 5000,
-            PrestigeRank.Legendary => 10000,
-            PrestigeRank.Mythic => 999999,
-            _ => 0
-        };
     }
 
     #endregion
