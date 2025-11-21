@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using PantheonWars.Data;
-using PantheonWars.Models.Enum;
 
 namespace PantheonWars.Systems.Interfaces;
 
@@ -14,7 +13,7 @@ public interface IReligionManager
     /// <summary>
     ///     Creates a new religion
     /// </summary>
-    ReligionData CreateReligion(string name, DeityType deity, string founderUID, bool isPublic);
+    ReligionData CreateReligion(string name, string founderUID, bool isPublic);
 
     /// <summary>
     ///     Adds a member to a religion
@@ -40,11 +39,6 @@ public interface IReligionManager
     ///     Gets a religion by name
     /// </summary>
     ReligionData? GetReligionByName(string name);
-
-    /// <summary>
-    ///     Gets the active deity for a player
-    /// </summary>
-    DeityType GetPlayerActiveDeity(string playerUID);
 
     /// <summary>
     ///     Checks if a player can join a religion
@@ -80,11 +74,6 @@ public interface IReligionManager
     ///     Gets all religions
     /// </summary>
     List<ReligionData> GetAllReligions();
-
-    /// <summary>
-    ///     Gets religions by deity
-    /// </summary>
-    List<ReligionData> GetReligionsByDeity(DeityType deity);
 
     /// <summary>
     ///     Deletes a religion (founder only)

@@ -21,26 +21,6 @@ public interface IPlayerReligionDataManager
     PlayerReligionData GetOrCreatePlayerData(string playerUID);
 
     /// <summary>
-    ///     Adds favor to a player
-    /// </summary>
-    void AddFavor(string playerUID, int amount, string reason = "");
-
-    /// <summary>
-    ///     Updates favor rank for a player
-    /// </summary>
-    void UpdateFavorRank(string playerUID);
-
-    /// <summary>
-    ///     Unlocks a player blessing
-    /// </summary>
-    bool UnlockPlayerBlessing(string playerUID, string blessingId);
-
-    /// <summary>
-    ///     Gets active player blessings (to be expanded in Phase 3.3)
-    /// </summary>
-    List<string> GetActivePlayerBlessings(string playerUID);
-
-    /// <summary>
     ///     Joins a player to a religion
     /// </summary>
     void JoinReligion(string playerUID, string religionUID);
@@ -61,24 +41,7 @@ public interface IPlayerReligionDataManager
     TimeSpan? GetSwitchCooldownRemaining(string playerUID);
 
     /// <summary>
-    ///     Applies switching penalty when changing religions
+    ///     Records a religion switch for cooldown tracking
     /// </summary>
     void HandleReligionSwitch(string playerUID);
-
-    /// <summary>
-    /// Removes favor from the player
-    /// </summary>
-    /// <param name="playerUID"></param>
-    /// <param name="amount"></param>
-    /// <param name="reason"></param>
-    /// <returns></returns>
-    bool RemoveFavor(string playerUID, int amount, string reason = "");
-
-    /// <summary>
-    /// Adds fractional favor to a player (for passive favor generation)
-    /// </summary>
-    /// <param name="playerUID">Player unique identifier</param>
-    /// <param name="amount">Amount of favor to add</param>
-    /// <param name="reason">Reason for adding favor (optional)</param>
-    void AddFractionalFavor(string playerUID, float amount, string reason = "");
 }

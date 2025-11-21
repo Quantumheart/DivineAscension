@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using PantheonWars.Data;
-using PantheonWars.Models.Enum;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
@@ -41,16 +40,13 @@ public class ReligionManager : IReligionManager
     /// <summary>
     ///     Creates a new religion
     /// </summary>
-    public ReligionData CreateReligion(string name, DeityType deity, string founderUID, bool isPublic)
+    public ReligionData CreateReligion(string name, string founderUID, bool isPublic)
     {
         // Generate unique UID
         var religionUID = Guid.NewGuid().ToString();
 
-        // Validate deity type
-        if (deity == DeityType.None) throw new ArgumentException("Religion must have a valid deity");
-
         // Create religion data
-        var religion = new ReligionData(religionUID, name, deity, founderUID)
+        var religion = new ReligionData(religionUID, name, founderUID)
         {
             IsPublic = isPublic
         };
@@ -59,7 +55,7 @@ public class ReligionManager : IReligionManager
         _religions[religionUID] = religion;
 
         _sapi.Logger.Notification(
-            $"[PantheonWars] Religion created: {name} (Deity: {deity}, Founder: {founderUID}, Public: {isPublic})");
+            $"[PantheonWars] Guild created: {name} (Founder: {founderUID}, Public: {isPublic})");
 
         return religion;
     }
@@ -132,15 +128,6 @@ public class ReligionManager : IReligionManager
     {
         return _religions.Values.FirstOrDefault(r =>
             r.ReligionName.Equals(name, StringComparison.OrdinalIgnoreCase));
-    }
-
-    /// <summary>
-    ///     Gets the active deity for a player
-    /// </summary>
-    public DeityType GetPlayerActiveDeity(string playerUID)
-    {
-        var religion = GetPlayerReligion(playerUID);
-        return religion?.Deity ?? DeityType.None;
     }
 
     /// <summary>
@@ -228,14 +215,6 @@ public class ReligionManager : IReligionManager
     public List<ReligionData> GetAllReligions()
     {
         return _religions.Values.ToList();
-    }
-
-    /// <summary>
-    ///     Gets religions by deity
-    /// </summary>
-    public List<ReligionData> GetReligionsByDeity(DeityType deity)
-    {
-        return _religions.Values.Where(r => r.Deity == deity).ToList();
     }
 
     /// <summary>
