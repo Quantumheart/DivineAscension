@@ -212,21 +212,14 @@ public static class TestFixtures
     public static PlayerReligionData CreateTestPlayerReligionData(
         string playerUID = "test-player-uid",
         DeityType deity = DeityType.Aethra,
-        string? religionUID = "test-religion-uid",
-        int favor = 100,
-        int totalFavorEarned = 500)
+        string? religionUID = "test-religion-uid")
     {
         return new PlayerReligionData
         {
             PlayerUID = playerUID,
             ActiveDeity = deity,
             ReligionUID = religionUID,
-            Favor = favor,
-            TotalFavorEarned = totalFavorEarned,
-            FavorRank = FavorRank.Disciple,
-            KillCount = 0,
-            LastReligionSwitch = DateTime.UtcNow.AddDays(-30),
-            UnlockedBlessings = new Dictionary<string, bool>()
+            LastReligionSwitch = DateTime.UtcNow.AddDays(-30)
         };
     }
 

@@ -16,12 +16,12 @@ public interface IBlessingDialogManager
     int ReligionMemberCount { get; set; }
     string? PlayerRoleInReligion { get; set; }
 
-    // Player progression state
-    int CurrentFavorRank { get; set; }
+    // Player progression state (religion-only, no personal favor)
+    int CurrentFavorRank { get; set; } // Kept for compatibility
     int CurrentPrestigeRank { get; set; }
-    int CurrentFavor { get; set; }
+    int CurrentFavor { get; set; } // Kept for compatibility
     int CurrentPrestige { get; set; }
-    int TotalFavorEarned { get; set; }
+    int TotalFavorEarned { get; set; } // Kept for compatibility
 
     // Blessing selection state
     string? SelectedBlessingId { get; set; }

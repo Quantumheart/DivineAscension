@@ -1,9 +1,52 @@
 # Religion-Only Blessing System Redesign
 
-**Document Version:** 1.0
+**Document Version:** 2.0
 **Created:** November 20, 2025
-**Status:** Planning Phase
+**Updated:** November 21, 2025
+**Status:** MVP 1 In Progress
 **Impact:** Major Architecture Change
+
+---
+
+## Implementation Progress
+
+### MVP 1 Week 1-2: Core Cleanup ✅ COMPLETE
+- [x] Remove `/deity` and `/favor` commands
+- [x] Remove `DeityCommands.cs`, `FavorCommands.cs`
+- [x] Remove `FavorSystem.cs`, `PvPManager.cs`
+- [x] Remove `DeitySelectionDialog.cs`, `FavorHudElement.cs`
+- [x] Simplify `PlayerReligionData` (removed Favor, FavorRank, UnlockedBlessings)
+- [x] Update `IPlayerReligionDataManager` interface
+- [x] Update GUI components for religion-only display
+- [x] Fix all tests (792 passing)
+
+### MVP 1 Week 3: First Utility Blessings ✅ COMPLETE
+- [x] Add `VintageStoryStats` constants (`miningSpeedMul`, `hungerrate`)
+- [x] Add universal utility blessing IDs
+- [x] Implement 8 stat-based blessings (4 Tier 1, 4 Tier 2)
+
+### Implemented Blessings
+
+**Tier 1 - Starter (Fledgling, pick 2):**
+| ID | Name | Effect |
+|----|------|--------|
+| `efficient_miner` | Efficient Miner | +15% mining speed |
+| `swift_traveler` | Swift Traveler | +10% movement speed |
+| `hardy_constitution` | Hardy Constitution | -15% hunger rate |
+| `bountiful_harvest` | Bountiful Harvest | +2 max health |
+
+**Tier 2 - Established (500 prestige, pick 3):**
+| ID | Name | Effect |
+|----|------|--------|
+| `master_crafter` | Master Crafter | +20% mining, +1 health |
+| `natures_larder` | Nature's Larder | -25% hunger, +15% healing |
+| `iron_will` | Iron Will | +3 health, +10% armor |
+| `quick_hands` | Quick Hands | +15% move speed, +10% mining |
+
+### Remaining MVP 1 Tasks
+- [ ] Religion creation blessing selection UI
+- [ ] Prestige milestone blessing unlock UI
+- [ ] In-game testing and balance
 
 ---
 
@@ -511,7 +554,315 @@ Religion Identity Emerges Organically
 
 ---
 
-## Implementation Plan
+## Realistic Implementation Plan (MVP-Driven)
+
+**Total Timeline:** 20-25 weeks (5-6 months) for full implementation
+**Approach:** Incremental MVP releases, each playable and testable
+
+---
+
+### MVP 1: Foundation (Weeks 1-4) - "Core System Migration"
+
+**Goal:** Remove deity system, establish religion-only progression, 6 basic blessings working
+
+**Deliverables:**
+- Religion-only progression (no more deities)
+- 2 Tier 1 blessings (starter set)
+- 4 Tier 2 blessings (mid-game)
+- Basic prestige tracking (mining, farming only)
+- Religion creation with blessing selection
+
+**Milestones:**
+
+**Week 1-2: Core Cleanup** ✅ COMPLETE
+- [x] Remove `/deity` and `/favor` commands
+- [x] Update data models (ReligionData, PlayerReligionData)
+- [x] Remove deity selection UI
+- [x] Remove personal blessing application logic
+- [x] Update save/load systems
+- [x] Run all existing tests, fix breakages (792 passing)
+
+**Week 3: First 8 Blessings** ✅ COMPLETE
+- [x] Implement stat-based blessings using VS EntityStats API
+- [x] Efficient Miner (+15% mining via `miningSpeedMul`)
+- [x] Swift Traveler (+10% movement via `walkspeed`)
+- [x] Hardy Constitution (-15% hunger via `hungerrate`)
+- [x] Bountiful Harvest (+2 health via `maxhealthExtraPoints`)
+- [x] Master Crafter (+20% mining, +1 health)
+- [x] Nature's Larder (-25% hunger, +15% healing)
+- [x] Iron Will (+3 health, +10% armor)
+- [x] Quick Hands (+15% move, +10% mining)
+
+**Week 4: Integration & Testing**
+- [ ] Create blessing selection UI (Tier 1 only: 4 options, pick 2)
+- [ ] Update religion creation flow
+- [ ] Basic prestige tracker (mining ore = +1, harvest crop = +1)
+- [ ] Tier 2 unlock at 500 prestige
+- [ ] Test full flow: create → earn prestige → unlock Tier 2
+- [ ] In-game testing and balance
+
+**MVP 1 Success Criteria:**
+- ⏳ Players can create religions and pick 2 starter blessings
+- ⏳ Mining/farming awards prestige
+- ⏳ Unlocking Tier 2 works
+- ✅ All 8 blessings defined and apply correctly via EntityStats
+- ✅ No deity system remains (favor, FavorRank removed)
+- ✅ 792 tests passing
+
+**Release:** Internal testing build
+
+---
+
+### MVP 2: Expanded Blessing Pool (Weeks 5-9) - "Full Tier 1-2"
+
+**Goal:** Complete all Tier 1-2 blessings (18 total), robust prestige tracking
+
+**Deliverables:**
+- All 8 Tier 1 blessings implemented
+- All 10 Tier 2 blessings implemented
+- Full prestige tracking (5 categories)
+- `/religion progress` command
+- Updated UI for all selections
+
+**Milestones:**
+
+**Week 5-6: Remaining Tier 1 Handlers**
+- [ ] `OreFortuneHandler` (Ore Seeker's Fortune)
+- [ ] `HungerRateHandler` (Efficient Metabolism)
+- [ ] `TemporalCreatureDamageHandler` (Drifter's Bane)
+- [ ] `ContainerLootBonusHandler` (Lucky Scavenger)
+- [ ] `MaxHealthHandler` (Hardy Constitution)
+- [ ] Test all 8 Tier 1 blessings in combination
+
+**Week 7-8: Remaining Tier 2 Handlers**
+- [ ] `FoodSpoilageHandler` (Food Preservation)
+- [ ] `BlockPlacementSpeedHandler` + `LadderClimbingHandler` + `FallDamageReductionHandler` (Rapid Builder)
+- [ ] `MasterworkSmithingHandler` (Masterwork Smithing)
+- [ ] `NightProductivityHandler` (Night Runner)
+- [ ] `MealBuffHandler` + `CookingFuelHandler` (Gourmet Cook)
+- [ ] `ResourceMagnetHandler` (Resource Magnet)
+- [ ] `HealthRegenHandler` (Hearty Vitality)
+
+**Week 9: Prestige System Polish**
+- [ ] Implement full prestige tracking:
+  - Mining (ore, stone, gems)
+  - Farming (crops, breeding, animal products)
+  - Crafting (tools, armor, complex items)
+  - Trading (NPC trades)
+  - Exploration (chunks, ruins, treasure vessels)
+- [ ] Add `/religion progress` command with full stats
+- [ ] Prestige milestone notifications
+- [ ] Top contributor tracking (optional)
+
+**MVP 2 Success Criteria:**
+- ✅ All 18 Tier 1-2 blessings functional
+- ✅ Religions can fully specialize (mining guild, farming commune, etc.)
+- ✅ Prestige earned from all major activities
+- ✅ Progress command shows meaningful data
+- ✅ Performance: 50+ simultaneous religions without lag
+
+**Release:** Public alpha test (community server)
+
+---
+
+### MVP 3: Tier 3 Mastery (Weeks 10-15) - "Advanced Blessings"
+
+**Goal:** Complete all 10 Tier 3 blessings, respec system, balance tuning
+
+**Deliverables:**
+- All 10 Tier 3 blessings implemented
+- Blessing respec system
+- Full religion management UI
+- Balance pass on all 28 blessings
+
+**Milestones:**
+
+**Week 10-11: Tier 3 Mining/Farming Handlers**
+- [ ] `DeepMinerHandler` (Deep Miner)
+- [ ] `GemFindingEnhancedHandler` (Gemcutter's Eye)
+- [ ] `AdvancedCropYieldHandler` (Agricultural Mastery)
+- [ ] `RancherEfficiencyHandler` (Rancher's Touch)
+- [ ] Test stacking with Tier 1-2 bonuses
+
+**Week 12-13: Tier 3 Crafting/Combat Handlers**
+- [ ] `MasterCookHandler` (Master Cook) - includes special recipe system
+- [ ] `ArmorDurabilityHandler` + `ArmorProtectionHandler` (Reinforced Construction)
+- [ ] `MasterMetallurgistHandler` (Master Metallurgist) - multi-effect system
+- [ ] Test crafting economy balance
+
+**Week 14: Tier 3 Movement/Economy Handlers**
+- [ ] `SprintStaminaHandler` + `ExhaustionImmunityHandler` (Windrunner)
+- [ ] `TemporalAdeptHandler` (Temporal Adept) - if feasible, else backup blessing
+- [ ] `MerchantFortuneHandler` (Merchant's Fortune)
+
+**Week 15: Respec System & Polish**
+- [ ] Implement `BlessingRespecManager`
+- [ ] Create respec UI with cost calculation
+- [ ] Respec cooldown tracking (7 days)
+- [ ] Respec notifications to all members
+- [ ] Balance tuning pass on all 28 blessings
+
+**MVP 3 Success Criteria:**
+- ✅ All 28 Tier 1-3 blessings functional and balanced
+- ✅ Respec system works with appropriate cost/cooldown
+- ✅ Religions reach Tier 3 naturally through gameplay
+- ✅ No dominant "meta" blessing combination
+- ✅ All blessing categories feel viable
+
+**Release:** Public beta test
+
+---
+
+### MVP 4: Tier 4 Legendary (Weeks 16-20) - "Capstone Abilities"
+
+**Goal:** Design and implement 12 legendary Tier 4 blessings
+
+**Deliverables:**
+- 12 Tier 4 legendary blessings designed (2 per category)
+- All Tier 4 handlers implemented
+- Full UI polish
+- Migration guide for existing saves
+
+**Milestones:**
+
+**Week 16: Tier 4 Design Sprint**
+- [ ] Design 12 legendary blessings (validated against API)
+- [ ] Community feedback on proposed Tier 4 abilities
+- [ ] Finalize Tier 4 blessing pool
+- [ ] Create detailed handler specifications
+
+**Week 17-19: Tier 4 Implementation**
+- [ ] Implement 6 Tier 4 handlers (Mining, Farming, Crafting categories)
+- [ ] Implement 6 Tier 4 handlers (Exploration, Trading, Survival categories)
+- [ ] Test each legendary ability for game balance
+- [ ] Ensure Tier 4 feels "legendary" vs Tier 3
+
+**Week 20: Final Polish**
+- [ ] Full UI pass on all dialogs
+- [ ] Performance optimization
+- [ ] Complete all unit/integration tests
+- [ ] Write migration guide for v1.x → v2.0
+- [ ] Create changelog and documentation
+
+**MVP 4 Success Criteria:**
+- ✅ All 40 blessings (8+10+10+12) implemented
+- ✅ Tier 4 feels meaningfully legendary
+- ✅ Full system performs well at scale
+- ✅ All tests passing (95%+ coverage)
+- ✅ Documentation complete
+
+**Release:** Full v2.0 release candidate
+
+---
+
+### Post-Launch: Refinement (Weeks 21-25) - "Community Feedback"
+
+**Goal:** Balance tuning based on real server data
+
+**Ongoing Tasks:**
+- [ ] Monitor server metrics (blessing popularity, progression rates)
+- [ ] Balance patches as needed
+- [ ] Bug fixes from community reports
+- [ ] Optional: Add new blessings based on community requests
+- [ ] Optional: Implement blessing "seasons" or rotation system
+
+---
+
+## Implementation Priority Matrix
+
+### P0: Critical Path (MVP 1-2)
+**Timeline:** Weeks 1-9
+**Handlers:** 18 (all Tier 1-2)
+**Risk:** Low (all proven API patterns)
+**Blockers:** None
+
+**Must-Have Handlers:**
+1. MiningSpeedHandler ⭐ (core gameplay)
+2. CropYieldHandler ⭐ (core gameplay)
+3. ToolDurabilityHandler ⭐ (quality of life)
+4. HungerRateHandler ⭐ (survival impact)
+5. MaxHealthHandler ⭐ (combat/survival)
+
+### P1: Enhancement (MVP 3)
+**Timeline:** Weeks 10-15
+**Handlers:** 10 (all Tier 3)
+**Risk:** Medium (multi-effect handlers, balance complexity)
+**Blockers:** Requires MVP 2 completion
+
+**High-Value Handlers:**
+6. MasterCookHandler (special recipe system)
+7. MasterMetallurgistHandler (multi-effect system)
+8. GemFindingEnhancedHandler (economy impact)
+
+### P2: Legendary (MVP 4)
+**Timeline:** Weeks 16-20
+**Handlers:** 12 (all Tier 4, TBD design)
+**Risk:** High (game-changing abilities, balance critical)
+**Blockers:** Requires community feedback on design
+
+### P3: Post-Launch
+**Timeline:** Weeks 21-25
+**Handlers:** 0 (polish only)
+**Risk:** Low
+**Blockers:** None
+
+---
+
+## Resource Requirements
+
+### Single Developer (40hr/week)
+- **MVP 1:** 4 weeks (160 hours)
+- **MVP 2:** 5 weeks (200 hours)
+- **MVP 3:** 6 weeks (240 hours)
+- **MVP 4:** 5 weeks (200 hours)
+- **Total:** 20 weeks (800 hours)
+
+### Two Developers (40hr/week each)
+- **MVP 1:** 3 weeks
+- **MVP 2:** 4 weeks
+- **MVP 3:** 4 weeks
+- **MVP 4:** 3 weeks
+- **Total:** 14 weeks (560 hours each = 1,120 hours total)
+
+### Risk Buffer
+Add 25% contingency time for:
+- Unexpected API limitations
+- Balance iteration
+- Bug fixing
+- Community feedback integration
+
+**Realistic Timeline:**
+- 1 dev: 25 weeks (6 months)
+- 2 devs: 17-18 weeks (4-4.5 months)
+
+---
+
+## Decision Points
+
+### After MVP 1 (Week 4)
+**Question:** Does religion-only progression feel good without deities?
+- ✅ Yes → Continue to MVP 2
+- ❌ No → Pause and redesign progression feel
+
+### After MVP 2 (Week 9)
+**Question:** Are Tier 1-2 blessings balanced and engaging?
+- ✅ Yes → Continue to MVP 3
+- ⚠️ Concerns → Balance pass before MVP 3
+
+### After MVP 3 (Week 15)
+**Question:** Do we need Tier 4 at all, or ship with 28 blessings?
+- Option A: Ship v2.0 with Tier 1-3 only (28 blessings)
+- Option B: Continue to MVP 4 (40 blessings)
+- Decision based on: Community feedback, development capacity, server meta
+
+### After MVP 4 (Week 20)
+**Question:** Is v2.0 ready for full release?
+- ✅ Yes → Release v2.0
+- ⚠️ Needs work → Extended beta period
+
+---
+
+## Original Implementation Plan (Reference)
 
 ### Phase 1: Core Redesign & Cleanup (Week 1-2)
 
@@ -1333,6 +1684,7 @@ Before implementing ANY blessing handler:
 
 ## Document History
 
+- **v1.5 (Nov 20, 2025):** Added realistic MVP-driven implementation plan with 4 release milestones. Total timeline: 20-25 weeks. Includes decision points, resource requirements, priority matrix, and success criteria for each MVP.
 - **v1.4 (Nov 20, 2025):** MAJOR UPDATE - Replaced ALL problematic handlers (⚠️ research/complex) with 100% feasible alternatives. All 28 Tier 1-3 blessings are now API-validated and implementation-ready. Added comprehensive "Fully Feasible Alternative Blessings" section with drop-in replacements. Tier 1-3 now 100% feasible (previously 85%).
 - **v1.3 (Nov 20, 2025):** Updated all blessings based on VS API feasibility research. Replaced 5 impossible handlers with API-feasible alternatives.
 - **v1.2 (Nov 20, 2025):** Finalized design decisions (respec, religion size, inactive members, exclusivity, PvP)

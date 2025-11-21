@@ -24,4 +24,10 @@ public static class VintageStoryStats
 
     // Utility Stats
     public const string HealingEffectiveness = "healingeffectivness";
+    public const string HungerRate = "hungerrate";
+    public const string MiningSpeedMul = "miningSpeedMul";
+
+    // Ranged Stats
+    public const string RangedWeaponsAcc = "rangedWeaponsAcc";
+    public const string RangedWeaponsSpeed = "rangedWeaponsSpeed";
 }

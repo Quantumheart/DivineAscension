@@ -174,10 +174,6 @@ public class ReligionCommands(
         if (!_religionManager.CanJoinReligion(religion.ReligionUID, player.PlayerUID))
             return TextCommandResult.Error("This religion is private and you have not been invited");
 
-        // Apply switching penalty if needed
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (playerData.HasReligion()) _playerReligionDataManager.HandleReligionSwitch(player.PlayerUID);
-
         // Join the religion
         _playerReligionDataManager.JoinReligion(player.PlayerUID, religion.ReligionUID);
 
@@ -306,10 +302,9 @@ public class ReligionCommands(
             var memberPlayer = _sapi.World.PlayerByUid(memberUID);
             var memberName = memberPlayer?.PlayerName ?? "Unknown";
 
-            var memberData = _playerReligionDataManager.GetOrCreatePlayerData(memberUID);
             var role = religion.IsFounder(memberUID) ? "Founder" : "Member";
 
-            sb.AppendLine($"- {memberName} ({role}) | Rank: {memberData.FavorRank} | Favor: {memberData.Favor}");
+            sb.AppendLine($"- {memberName} ({role})");
         }
 
         return TextCommandResult.Success(sb.ToString());

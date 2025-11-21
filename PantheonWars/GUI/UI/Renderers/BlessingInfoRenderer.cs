@@ -124,10 +124,8 @@ internal static class BlessingInfoRenderer
             // Check if we have space for requirements
             if (currentY < y + height - 40f)
             {
-                // Rank requirement
-                var rankReq = selectedState.Blessing.Kind == BlessingKind.Player
-                    ? $"  Favor Rank: {GetRankName(selectedState.Blessing.RequiredFavorRank, true)}"
-                    : $"  Prestige Rank: {GetRankName(selectedState.Blessing.RequiredPrestigeRank, false)}";
+                // Rank requirement (prestige only - favor removed)
+                var rankReq = $"  Prestige Rank: {GetRankName(selectedState.Blessing.RequiredPrestigeRank, false)}";
 
                 drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + padding + 8, currentY), descriptionColorU32,
                     rankReq);
@@ -284,21 +282,11 @@ internal static class BlessingInfoRenderer
     }
 
     /// <summary>
-    ///     Get rank name from rank number
+    ///     Get rank name from rank number (prestige only - favor removed)
     /// </summary>
     private static string GetRankName(int rank, bool isFavorRank)
     {
-        if (isFavorRank)
-            return rank switch
-            {
-                0 => "Initiate",
-                1 => "Devoted",
-                2 => "Zealot",
-                3 => "Champion",
-                4 => "Exalted",
-                _ => $"Rank {rank}"
-            };
-
+        // Favor ranks removed - always return prestige rank name
         return rank switch
         {
             0 => "Fledgling",

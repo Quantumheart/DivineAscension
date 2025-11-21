@@ -195,21 +195,8 @@ internal static class TooltipRenderer
         // Requirements section
         var hasRequirements = false;
 
-        // Rank requirement
-        if (!string.IsNullOrEmpty(data.RequiredFavorRank))
-        {
-            // Green if unlocked, white if can unlock, red if locked
-            var rankColor = data.IsUnlocked ? ColorPalette.Green : (data.CanUnlock ? ColorPalette.White : ColorPalette.Red);
-            lines.Add(new TooltipLine
-            {
-                Text = $"Requires: {data.RequiredFavorRank} (Favor)",
-                Color = rankColor,
-                FontSize = 13f,
-                SpacingAfter = LINE_SPACING
-            });
-            hasRequirements = true;
-        }
-        else if (!string.IsNullOrEmpty(data.RequiredPrestigeRank))
+        // Rank requirement (prestige only - favor removed)
+        if (!string.IsNullOrEmpty(data.RequiredPrestigeRank))
         {
             // Green if unlocked, white if can unlock, red if locked
             var rankColor = data.IsUnlocked ? ColorPalette.Green : (data.CanUnlock ? ColorPalette.White : ColorPalette.Red);

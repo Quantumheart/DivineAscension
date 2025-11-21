@@ -62,14 +62,12 @@ public partial class BlessingDialog
             return;
         }
 
-        // Initialize manager with real data
-        _manager!.Initialize(packet.ReligionUID, deityType, packet.ReligionName, packet.FavorRank,
+        // Initialize manager with real data (no personal favor, only prestige)
+        _manager!.Initialize(packet.ReligionUID, deityType, packet.ReligionName, 0,
             packet.PrestigeRank);
 
-        // Set current favor and prestige values for progress bars
-        _manager.CurrentFavor = packet.CurrentFavor;
+        // Set current prestige value for progress bars
         _manager.CurrentPrestige = packet.CurrentPrestige;
-        _manager.TotalFavorEarned = packet.TotalFavorEarned;
 
         // Convert packet blessings to Blessing objects
         var playerBlessings = packet.PlayerBlessings.Select(p => new Blessing(p.BlessingId, p.Name, deityType)
@@ -437,28 +435,20 @@ public partial class BlessingDialog
     }
 
     /// <summary>
-    ///     Handle player religion data updates (favor, rank, etc.)
+    ///     Handle player religion data updates (prestige, rank, etc.)
     /// </summary>
     private void OnPlayerReligionDataUpdated(PlayerReligionDataPacket packet)
     {
         // Skip if manager is not initialized yet
         if (_manager == null) return;
 
-        _capi!.Logger.Debug($"[PantheonWars] Updating blessing dialog with new favor data: {packet.Favor}, Total: {packet.TotalFavorEarned}");
+        _capi!.Logger.Debug($"[PantheonWars] Updating blessing dialog with new prestige data: {packet.Prestige}");
 
         // Always update manager with new values, even if dialog is closed
         // This ensures the UI shows correct values when opened
-        _manager.CurrentFavor = packet.Favor;
         _manager.CurrentPrestige = packet.Prestige;
-        _manager.TotalFavorEarned = packet.TotalFavorEarned;
 
-        // Update rank if it changed (this affects which blessings can be unlocked)
-        // FavorRank comes as enum name (e.g., "Initiate", "Disciple"), parse to get numeric value
-        if (Enum.TryParse<FavorRank>(packet.FavorRank, out var favorRankEnum))
-        {
-            _manager.CurrentFavorRank = (int)favorRankEnum;
-        }
-
+        // Update prestige rank if it changed (this affects which blessings can be unlocked)
         if (Enum.TryParse<PrestigeRank>(packet.PrestigeRank, out var prestigeRankEnum))
         {
             _manager.CurrentPrestigeRank = (int)prestigeRankEnum;

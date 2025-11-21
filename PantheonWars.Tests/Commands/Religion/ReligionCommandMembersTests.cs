@@ -31,12 +31,8 @@ public class ReligionCommandMembersTests : ReligionCommandsTestHelpers
 
         var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Aethra);
         var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Aethra);
-        founderData.Favor = 100;
-        founderData.FavorRank = FavorRank.Initiate;
 
         var memberData = CreatePlayerData("member-1", "religion-1", DeityType.Aethra);
-        memberData.Favor = 50;
-        memberData.FavorRank = FavorRank.Initiate;
 
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Aethra, "founder-1");
         religion.MemberUIDs.Add("member-1");
@@ -62,9 +58,6 @@ public class ReligionCommandMembersTests : ReligionCommandsTestHelpers
         Assert.Contains("Founder", result.StatusMessage);
         Assert.Contains("MemberName", result.StatusMessage);
         Assert.Contains("Member", result.StatusMessage);
-        Assert.Contains("Initiate", result.StatusMessage);
-        Assert.Contains("100", result.StatusMessage);
-        Assert.Contains("50", result.StatusMessage);
     }
 
     [Fact]

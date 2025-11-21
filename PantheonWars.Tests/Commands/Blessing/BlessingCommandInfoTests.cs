@@ -78,33 +78,6 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         Assert.Contains("Channel divine power", result.StatusMessage);
     }
 
-    [Fact]
-    public void GetBlessingInfo_PlayerBlessing_DisplaysFavorRankRequirement()
-    {
-        // Arrange
-        var blessing = new PantheonWars.Models.Blessing
-        {
-            BlessingId = "advanced_blessing",
-            Name = "Advanced Blessing",
-            Deity = DeityType.Aethra,
-            Kind = BlessingKind.Player,
-            Category = BlessingCategory.Combat,
-            Description = "Advanced blessing",
-            RequiredFavorRank = (int)FavorRank.Zealot,
-            PrerequisiteBlessings = new List<string>(),
-            StatModifiers = new Dictionary<string, float>(),
-            SpecialEffects = new List<string>()
-        };
-
-        _blessingRegistry.Setup(br => br.GetBlessing("advanced_blessing")).Returns(blessing);
-
-        // Act
-        var result = _sut!.GetInfo("advanced_blessing");
-
-        // Assert
-        Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("Zealot", result.StatusMessage);
-    }
 
     [Fact]
     public void GetBlessingInfo_BlessingWithSinglePrerequisite_DisplaysPrerequisiteName()

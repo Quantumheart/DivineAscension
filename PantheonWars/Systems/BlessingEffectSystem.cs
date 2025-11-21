@@ -55,34 +55,13 @@ public class BlessingEffectSystem(
     }
 
     /// <summary>
-    ///     Gets stat modifiers from player's unlocked blessings
+    ///     Gets stat modifiers from player's blessings (none in religion-only system)
     /// </summary>
     public Dictionary<string, float> GetPlayerStatModifiers(string playerUID)
     {
-        // Check cache first
-        if (_playerModifierCache.TryGetValue(playerUID, out var cachedModifiers))
-            return new Dictionary<string, float>(cachedModifiers);
-
-        var modifiers = new Dictionary<string, float>();
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(playerUID);
-
-        // Get all unlocked player blessings
-        var unlockedBlessingIds = playerData.UnlockedBlessings
-            .Where(kvp => kvp.Value)
-            .Select(kvp => kvp.Key)
-            .ToList();
-
-        // Combine stat modifiers from all blessings
-        foreach (var blessingId in unlockedBlessingIds)
-        {
-            var blessing = _blessingRegistry.GetBlessing(blessingId);
-            if (blessing != null && blessing.Kind == BlessingKind.Player) CombineModifiers(modifiers, blessing.StatModifiers);
-        }
-
-        // Cache the result
-        _playerModifierCache[playerUID] = new Dictionary<string, float>(modifiers);
-
-        return modifiers;
+        // In the religion-only system, there are no player-specific blessings
+        // All blessings come from the religion
+        return new Dictionary<string, float>();
     }
 
     /// <summary>
@@ -269,22 +248,11 @@ public class BlessingEffectSystem(
     /// </summary>
     public (List<Blessing> playerBlessings, List<Blessing> religionBlessings) GetActiveBlessings(string playerUID)
     {
+        // In the religion-only system, there are no player blessings
         var playerBlessings = new List<Blessing>();
         var religionBlessings = new List<Blessing>();
 
         var playerData = _playerReligionDataManager.GetOrCreatePlayerData(playerUID);
-
-        // Get player blessings
-        var playerBlessingIds = playerData.UnlockedBlessings
-            .Where(kvp => kvp.Value)
-            .Select(kvp => kvp.Key)
-            .ToList();
-
-        foreach (var blessingId in playerBlessingIds)
-        {
-            var blessing = _blessingRegistry.GetBlessing(blessingId);
-            if (blessing != null) playerBlessings.Add(blessing);
-        }
 
         // Get religion blessings
         if (playerData.ReligionUID != null)

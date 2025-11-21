@@ -397,7 +397,7 @@ public class ReligionManagementDialog : GuiDialog
 
         var nameBounds = ElementBounds.Fixed(x, y, width - 180, 20);
         composer.AddStaticText(
-            $"{member.PlayerName}{roleText} - {member.FavorRank} ({member.Favor} favor)",
+            $"{member.PlayerName}{roleText}",
             CairoFont.WhiteSmallText(),
             nameBounds
         );

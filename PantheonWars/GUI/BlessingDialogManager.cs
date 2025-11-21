@@ -26,12 +26,12 @@ public class BlessingDialogManager : IBlessingDialogManager
     public int ReligionMemberCount { get; set; } = 0;
     public string? PlayerRoleInReligion { get; set; } // "Leader", "Member", etc.
 
-    // Player progression state
-    public int CurrentFavorRank { get; set; } = 0;
+    // Player progression state (religion-only, no personal favor)
+    public int CurrentFavorRank { get; set; } = 0; // Kept for interface compatibility
     public int CurrentPrestigeRank { get; set; } = 0;
-    public int CurrentFavor { get; set; } = 0;
+    public int CurrentFavor { get; set; } = 0; // Kept for interface compatibility
     public int CurrentPrestige { get; set; } = 0;
-    public int TotalFavorEarned { get; set; } = 0;
+    public int TotalFavorEarned { get; set; } = 0; // Kept for interface compatibility
 
     // Blessing selection state
     public string? SelectedBlessingId { get; set; }
@@ -232,17 +232,18 @@ public class BlessingDialogManager : IBlessingDialogManager
     }
 
     /// <summary>
-    ///     Get player favor progress data
+    ///     Get player favor progress data (stub - favor system removed)
     /// </summary>
     public PlayerFavorProgress GetPlayerFavorProgress()
     {
+        // Favor system removed - return empty progress
         return new PlayerFavorProgress
         {
-            CurrentFavor = TotalFavorEarned,
-            RequiredFavor = RankRequirements.GetRequiredFavorForNextRank(CurrentFavorRank),
-            CurrentRank = CurrentFavorRank,
-            NextRank = CurrentFavorRank + 1,
-            IsMaxRank = CurrentFavorRank >= 4
+            CurrentFavor = 0,
+            RequiredFavor = 0,
+            CurrentRank = 0,
+            NextRank = 0,
+            IsMaxRank = true
         };
     }
 

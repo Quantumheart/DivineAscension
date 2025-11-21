@@ -92,86 +92,6 @@ public class BlessingEffectSystemTests
         Assert.Empty(modifiers);
     }
 
-    [Fact]
-    public void GetPlayerStatModifiers_WithUnlockedBlessings_ReturnsCombinedModifiers()
-    {
-        // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid");
-        playerData.UnlockBlessing("blessing1");
-        playerData.UnlockBlessing("blessing2");
-
-        var blessing1 = TestFixtures.CreateTestBlessing("blessing1", "Blessing 1");
-        blessing1.StatModifiers["walkspeed"] = 0.1f;
-        blessing1.StatModifiers["maxhealthExtraPoints"] = 2.0f;
-
-        var blessing2 = TestFixtures.CreateTestBlessing("blessing2", "Blessing 2");
-        blessing2.StatModifiers["walkspeed"] = 0.05f;
-        blessing2.StatModifiers["meleeWeaponsDamage"] = 0.15f;
-
-        _mockPlayerReligionDataManager
-            .Setup(m => m.GetOrCreatePlayerData("player-uid"))
-            .Returns(playerData);
-
-        _mockBlessingRegistry.Setup(r => r.GetBlessing("blessing1")).Returns(blessing1);
-        _mockBlessingRegistry.Setup(r => r.GetBlessing("blessing2")).Returns(blessing2);
-
-        // Act
-        var modifiers = _effectSystem.GetPlayerStatModifiers("player-uid");
-
-        // Assert
-        Assert.Equal(3, modifiers.Count);
-        Assert.Equal(0.15f, modifiers["walkspeed"]); // 0.1 + 0.05 combined
-        Assert.Equal(2.0f, modifiers["maxhealthExtraPoints"]);
-        Assert.Equal(0.15f, modifiers["meleeWeaponsDamage"]);
-    }
-
-    [Fact]
-    public void GetPlayerStatModifiers_IgnoresReligionBlessings()
-    {
-        // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid");
-        playerData.UnlockBlessing("religion_blessing");
-
-        var religionBlessing = TestFixtures.CreateTestBlessing("religion_blessing", "Religion Blessing", DeityType.Aethra, BlessingKind.Religion);
-        religionBlessing.StatModifiers["walkspeed"] = 0.2f;
-
-        _mockPlayerReligionDataManager
-            .Setup(m => m.GetOrCreatePlayerData("player-uid"))
-            .Returns(playerData);
-
-        _mockBlessingRegistry.Setup(r => r.GetBlessing("religion_blessing")).Returns(religionBlessing);
-
-        // Act
-        var modifiers = _effectSystem.GetPlayerStatModifiers("player-uid");
-
-        // Assert
-        Assert.Empty(modifiers); // Should not include religion blessings
-    }
-
-    [Fact]
-    public void GetPlayerStatModifiers_UsesCaching()
-    {
-        // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid");
-        playerData.UnlockBlessing("blessing1");
-
-        var blessing = TestFixtures.CreateTestBlessing("blessing1", "Blessing 1");
-        blessing.StatModifiers["walkspeed"] = 0.1f;
-
-        _mockPlayerReligionDataManager
-            .Setup(m => m.GetOrCreatePlayerData("player-uid"))
-            .Returns(playerData);
-
-        _mockBlessingRegistry.Setup(r => r.GetBlessing("blessing1")).Returns(blessing);
-
-        // Act - Call twice
-        var modifiers1 = _effectSystem.GetPlayerStatModifiers("player-uid");
-        var modifiers2 = _effectSystem.GetPlayerStatModifiers("player-uid");
-
-        // Assert - Should only fetch player data once due to caching
-        _mockPlayerReligionDataManager.Verify(m => m.GetOrCreatePlayerData("player-uid"), Times.Once());
-        Assert.Equal(modifiers1["walkspeed"], modifiers2["walkspeed"]);
-    }
 
     #endregion
 
@@ -242,25 +162,14 @@ public class BlessingEffectSystemTests
 
     #endregion
 
-    #region GetCombinedStatModifiers Tests
+    #region RefreshPlayerBlessings Tests
 
     [Fact]
-    public void GetCombinedStatModifiers_CombinesPlayerAndReligionModifiers()
+    public void RefreshPlayerBlessings_ClearsCachedModifiers()
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Aethra, "religion-uid");
-        playerData.UnlockBlessing("player_blessing");
-
         var religion = TestFixtures.CreateTestReligion("religion-uid");
-        religion.UnlockedBlessings["religion_blessing"] = true;
-
-        var playerBlessing = TestFixtures.CreateTestBlessing("player_blessing", "Player Blessing", DeityType.Aethra, BlessingKind.Player);
-        playerBlessing.StatModifiers["walkspeed"] = 0.1f;
-        playerBlessing.StatModifiers["meleeWeaponsDamage"] = 0.1f;
-
-        var religionBlessing = TestFixtures.CreateTestBlessing("religion_blessing", "Religion Blessing", DeityType.Aethra, BlessingKind.Religion);
-        religionBlessing.StatModifiers["walkspeed"] = 0.05f;
-        religionBlessing.StatModifiers["maxhealthExtraPoints"] = 5.0f;
 
         _mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
@@ -270,78 +179,21 @@ public class BlessingEffectSystemTests
             .Setup(m => m.GetReligion("religion-uid"))
             .Returns(religion);
 
-        _mockBlessingRegistry.Setup(r => r.GetBlessing("player_blessing")).Returns(playerBlessing);
-        _mockBlessingRegistry.Setup(r => r.GetBlessing("religion_blessing")).Returns(religionBlessing);
-
-        // Act
-        var modifiers = _effectSystem.GetCombinedStatModifiers("player-uid");
-
-        // Assert
-        Assert.Equal(3, modifiers.Count);
-        Assert.Equal(0.15f, modifiers["walkspeed"]); // 0.1 + 0.05
-        Assert.Equal(0.1f, modifiers["meleeWeaponsDamage"]);
-        Assert.Equal(5.0f, modifiers["maxhealthExtraPoints"]);
-    }
-
-    [Fact]
-    public void GetCombinedStatModifiers_WithoutReligion_ReturnsOnlyPlayerModifiers()
-    {
-        // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Aethra, null);
-        playerData.UnlockBlessing("player_blessing");
-
-        var playerBlessing = TestFixtures.CreateTestBlessing("player_blessing", "Player Blessing");
-        playerBlessing.StatModifiers["walkspeed"] = 0.1f;
-
-        _mockPlayerReligionDataManager
-            .Setup(m => m.GetOrCreatePlayerData("player-uid"))
-            .Returns(playerData);
-
-        _mockBlessingRegistry.Setup(r => r.GetBlessing("player_blessing")).Returns(playerBlessing);
-
-        // Act
-        var modifiers = _effectSystem.GetCombinedStatModifiers("player-uid");
-
-        // Assert
-        Assert.Single(modifiers);
-        Assert.Equal(0.1f, modifiers["walkspeed"]);
-    }
-
-    #endregion
-
-    #region RefreshPlayerBlessings Tests
-
-    [Fact]
-    public void RefreshPlayerBlessings_ClearsCachedModifiers()
-    {
-        // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid");
-        playerData.UnlockBlessing("blessing1");
-
-        var blessing = TestFixtures.CreateTestBlessing("blessing1", "Blessing 1");
-        blessing.StatModifiers["walkspeed"] = 0.1f;
-
-        _mockPlayerReligionDataManager
-            .Setup(m => m.GetOrCreatePlayerData("player-uid"))
-            .Returns(playerData);
-
-        _mockBlessingRegistry.Setup(r => r.GetBlessing("blessing1")).Returns(blessing);
-
         var mockWorld = new Mock<IServerWorldAccessor>();
         _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
         mockWorld.Setup(w => w.PlayerByUid("player-uid")).Returns((IServerPlayer)null!);
 
         // First call to populate cache
-        _effectSystem.GetPlayerStatModifiers("player-uid");
+        _effectSystem.GetReligionStatModifiers("religion-uid");
 
         // Act - Refresh should clear cache
         _effectSystem.RefreshPlayerBlessings("player-uid");
 
         // Second call should fetch data again
-        _effectSystem.GetPlayerStatModifiers("player-uid");
+        _effectSystem.GetReligionStatModifiers("religion-uid");
 
-        // Assert - Should have fetched player data twice (once before refresh, once after)
-        _mockPlayerReligionDataManager.Verify(m => m.GetOrCreatePlayerData("player-uid"), Times.Exactly(3));
+        // Assert - Should have fetched religion data twice (once before refresh, once after)
+        _mockReligionManager.Verify(m => m.GetReligion("religion-uid"), Times.Exactly(2));
     }
 
     #endregion
@@ -400,16 +252,14 @@ public class BlessingEffectSystemTests
     #region GetActiveBlessings Tests
 
     [Fact]
-    public void GetActiveBlessings_ReturnsPlayerAndReligionBlessings()
+    public void GetActiveBlessings_ReturnsReligionBlessings()
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Aethra, "religion-uid");
-        playerData.UnlockBlessing("player_blessing");
 
         var religion = TestFixtures.CreateTestReligion("religion-uid");
         religion.UnlockedBlessings["religion_blessing"] = true;
 
-        var playerBlessing = TestFixtures.CreateTestBlessing("player_blessing", "Player Blessing");
         var religionBlessing = TestFixtures.CreateTestBlessing("religion_blessing", "Religion Blessing");
 
         _mockPlayerReligionDataManager
@@ -420,39 +270,32 @@ public class BlessingEffectSystemTests
             .Setup(m => m.GetReligion("religion-uid"))
             .Returns(religion);
 
-        _mockBlessingRegistry.Setup(r => r.GetBlessing("player_blessing")).Returns(playerBlessing);
         _mockBlessingRegistry.Setup(r => r.GetBlessing("religion_blessing")).Returns(religionBlessing);
 
         // Act
         var (playerBlessings, religionBlessings) = _effectSystem.GetActiveBlessings("player-uid");
 
         // Assert
-        Assert.Single(playerBlessings);
+        Assert.Empty(playerBlessings);
         Assert.Single(religionBlessings);
-        Assert.Equal("Player Blessing", playerBlessings[0].Name);
         Assert.Equal("Religion Blessing", religionBlessings[0].Name);
     }
 
     [Fact]
-    public void GetActiveBlessings_WithoutReligion_ReturnsOnlyPlayerBlessings()
+    public void GetActiveBlessings_WithoutReligion_ReturnsEmptyLists()
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Aethra, null);
-        playerData.UnlockBlessing("player_blessing");
-
-        var playerBlessing = TestFixtures.CreateTestBlessing("player_blessing", "Player Blessing");
 
         _mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
 
-        _mockBlessingRegistry.Setup(r => r.GetBlessing("player_blessing")).Returns(playerBlessing);
-
         // Act
         var (playerBlessings, religionBlessings) = _effectSystem.GetActiveBlessings("player-uid");
 
         // Assert
-        Assert.Single(playerBlessings);
+        Assert.Empty(playerBlessings);
         Assert.Empty(religionBlessings);
     }
 
@@ -464,29 +307,23 @@ public class BlessingEffectSystemTests
     public void ClearAllCaches_ClearsAllCachedModifiers()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid");
-        playerData.UnlockBlessing("blessing1");
+        var religion = TestFixtures.CreateTestReligion("religion-uid");
 
-        var blessing = TestFixtures.CreateTestBlessing("blessing1", "Blessing 1");
-        blessing.StatModifiers["walkspeed"] = 0.1f;
-
-        _mockPlayerReligionDataManager
-            .Setup(m => m.GetOrCreatePlayerData("player-uid"))
-            .Returns(playerData);
-
-        _mockBlessingRegistry.Setup(r => r.GetBlessing("blessing1")).Returns(blessing);
+        _mockReligionManager
+            .Setup(m => m.GetReligion("religion-uid"))
+            .Returns(religion);
 
         // Populate cache
-        _effectSystem.GetPlayerStatModifiers("player-uid");
+        _effectSystem.GetReligionStatModifiers("religion-uid");
 
         // Act
         _effectSystem.ClearAllCaches();
 
         // Get modifiers again - should fetch from manager again
-        _effectSystem.GetPlayerStatModifiers("player-uid");
+        _effectSystem.GetReligionStatModifiers("religion-uid");
 
         // Assert - Should have been called twice (before and after clear)
-        _mockPlayerReligionDataManager.Verify(m => m.GetOrCreatePlayerData("player-uid"), Times.Exactly(2));
+        _mockReligionManager.Verify(m => m.GetReligion("religion-uid"), Times.Exactly(2));
     }
 
     #endregion

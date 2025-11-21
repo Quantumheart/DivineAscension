@@ -64,4 +64,20 @@ public static class BlessingIds
     public const string GaiaWorldTree = "gaia_world_tree";
 
     #endregion
+
+    #region Universal Utility Blessings (MVP 1 - Religion Only)
+
+    // Tier 1 - Starter Blessings (pick 2 at religion creation)
+    public const string EfficientMiner = "efficient_miner";
+    public const string BountifulHarvest = "bountiful_harvest";
+    public const string SwiftTraveler = "swift_traveler";
+    public const string HardyConstitution = "hardy_constitution";
+
+    // Tier 2 - Mid-game Blessings (pick 3 at 500 prestige)
+    public const string MasterCrafter = "master_crafter";
+    public const string NaturesLarder = "natures_larder";
+    public const string IronWill = "iron_will";
+    public const string QuickHands = "quick_hands";
+
+    #endregion
 }

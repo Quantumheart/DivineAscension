@@ -146,31 +146,8 @@ internal static class ReligionHeaderRenderer
         var progressY = y + 54f;
         const float progressBarWidth = 300f;
         const float progressBarHeight = 20f;
-        const float progressBarSpacing = 28f;
 
-        // Player Favor Progress
-        var favorProgress = manager.GetPlayerFavorProgress();
-        var favorLabel = favorProgress.IsMaxRank
-            ? $"{RankRequirements.GetFavorRankName(favorProgress.CurrentRank)} (MAX)"
-            : $"{RankRequirements.GetFavorRankName(favorProgress.CurrentRank)} ({favorProgress.CurrentFavor}/{favorProgress.RequiredFavor})";
-
-        // Label
-        var favorLabelPos = new Vector2(currentX, progressY);
         var labelColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
-        drawList.AddText(ImGui.GetFont(), 12f, favorLabelPos, labelColor, "Player Progress:");
-
-        // Progress bar
-        ProgressBarRenderer.DrawProgressBar(
-            drawList,
-            currentX + 110f, progressY - 2f, progressBarWidth, progressBarHeight,
-            favorProgress.ProgressPercentage,
-            ColorPalette.Gold,
-            ColorPalette.DarkBrown,
-            favorLabel,
-            showGlow: favorProgress.ProgressPercentage > 0.8f
-        );
-
-        progressY += progressBarSpacing;
 
         // Religion Prestige Progress
         var prestigeProgress = manager.GetReligionPrestigeProgress();
@@ -251,22 +228,6 @@ internal static class ReligionHeaderRenderer
             DeityType.Gaia => "Gaia - Goddess of Nature",
             DeityType.Morthen => "Morthen - God of Shadow & Death",
             _ => "Unknown Deity"
-        };
-    }
-
-    /// <summary>
-    ///     Get favor rank name from rank number
-    /// </summary>
-    private static string GetFavorRankName(int rank)
-    {
-        return rank switch
-        {
-            0 => "Initiate",
-            1 => "Devoted",
-            2 => "Zealot",
-            3 => "Champion",
-            4 => "Exalted",
-            _ => $"Rank {rank}"
         };
     }
 

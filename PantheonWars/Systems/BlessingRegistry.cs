@@ -95,38 +95,7 @@ public class BlessingRegistry : IBlessingRegistry
         // Check if blessing exists
         if (blessing == null) return (false, "Blessing not found");
 
-        // Check blessing type and corresponding requirements
-        if (blessing.Kind == BlessingKind.Player)
-        {
-            if (!playerData.HasReligion()) return (false, "Not in a religion");
-
-            // Check if already unlocked
-            if (playerData.IsBlessingUnlocked(blessing.BlessingId)) return (false, "Blessing already unlocked");
-
-            // Check favor rank requirement
-            if (playerData.FavorRank < (FavorRank)blessing.RequiredFavorRank)
-            {
-                var requiredRank = (FavorRank)blessing.RequiredFavorRank;
-                return (false, $"Requires {requiredRank} favor rank (Current: {playerData.FavorRank})");
-            }
-
-            // Check deity matches
-            if (playerData.ActiveDeity != blessing.Deity)
-                return (false, $"Requires deity: {blessing.Deity} (Current: {playerData.ActiveDeity})");
-
-            // Check prerequisites
-            foreach (var prereqId in blessing.PrerequisiteBlessings)
-                if (!playerData.IsBlessingUnlocked(prereqId))
-                {
-                    var prereqBlessing = GetBlessing(prereqId);
-                    var prereqName = prereqBlessing?.Name ?? prereqId;
-                    return (false, $"Requires prerequisite blessing: {prereqName}");
-                }
-
-            return (true, "Can unlock");
-        }
-
-        // BlessingType.Religion
+        // In the religion-only system, all blessings are religion blessings
         // Check if player has a religion
         if (religionData == null) return (false, "Not in a religion");
 

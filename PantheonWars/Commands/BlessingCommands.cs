@@ -91,24 +91,11 @@ public class BlessingCommands(
         if (playerData.ActiveDeity == DeityType.None)
             return TextCommandResult.Error(ErrorMessageConstants.ErrorMustJoinReligion);
 
-        var playerBlessings = _blessingRegistry.GetBlessingsForDeity(playerData.ActiveDeity, BlessingKind.Player);
         var religionBlessings = _blessingRegistry.GetBlessingsForDeity(playerData.ActiveDeity, BlessingKind.Religion);
 
         var sb = new StringBuilder();
         sb.AppendLine(string.Format(FormatStringConstants.HeaderBlessingsForDeity, playerData.ActiveDeity));
         sb.AppendLine();
-
-        sb.AppendLine(FormatStringConstants.HeaderPlayerBlessings);
-        foreach (var blessing in playerBlessings)
-        {
-            var status = playerData.IsBlessingUnlocked(blessing.BlessingId) ? FormatStringConstants.LabelUnlocked : "";
-            var requiredRank = (FavorRank)blessing.RequiredFavorRank;
-            sb.AppendLine($"{blessing.Name} {status}");
-            sb.AppendLine(string.Format(FormatStringConstants.FormatBlessingId, blessing.BlessingId));
-            sb.AppendLine(string.Format(FormatStringConstants.FormatRequiredRank, requiredRank));
-            sb.AppendLine(string.Format(FormatStringConstants.FormatDescription, blessing.Description));
-            sb.AppendLine();
-        }
 
         sb.AppendLine(FormatStringConstants.HeaderReligionBlessings);
         var religion = playerData.ReligionUID != null ? _religionManager.GetReligion(playerData.ReligionUID) : null;
@@ -234,18 +221,9 @@ public class BlessingCommands(
             blessing.Description));
         sb.AppendLine();
 
-        if (blessing.Kind == BlessingKind.Player)
-        {
-            var requiredRank = (FavorRank)blessing.RequiredFavorRank;
-            sb.AppendLine(
-                string.Format(FormatStringConstants.LabelRequiredFavorRank, requiredRank));
-        }
-        else
-        {
-            var requiredRank = (PrestigeRank)blessing.RequiredPrestigeRank;
-            sb.AppendLine(string.Format(FormatStringConstants.LabelRequiredPrestigeRank,
-                requiredRank));
-        }
+        var requiredRank = (PrestigeRank)blessing.RequiredPrestigeRank;
+        sb.AppendLine(string.Format(FormatStringConstants.LabelRequiredPrestigeRank,
+            requiredRank));
 
         if (blessing.PrerequisiteBlessings is { Count: > 0 })
         {
@@ -319,43 +297,8 @@ public class BlessingCommands(
         sb.AppendLine(string.Format(FormatStringConstants.HeaderBlessingTree, playerData.ActiveDeity, blessingKind));
         sb.AppendLine();
 
-        // Group by rank
-        if (blessingKind == BlessingKind.Player)
-            foreach (FavorRank rank in Enum.GetValues(typeof(FavorRank)))
-            {
-                var rankBlessings = blessings
-                    .Where(p => p.RequiredFavorRank == (int)rank)
-                    .ToList();
-
-                if (rankBlessings.Count == 0)
-                    continue;
-
-                sb.AppendLine(string.Format(FormatStringConstants.HeaderRankSection, rank));
-                foreach (var blessing in rankBlessings)
-                {
-                    var unlocked = playerData.IsBlessingUnlocked(blessing.BlessingId);
-                    var status = unlocked
-                        ? FormatStringConstants.LabelChecked
-                        : FormatStringConstants.LabelUnchecked;
-                    sb.AppendLine($"{status} {blessing.Name}");
-
-                    if (blessing.PrerequisiteBlessings is { Count: > 0 })
-                    {
-                        sb.Append(FormatStringConstants.LabelRequires);
-                        var prereqNames = blessing.PrerequisiteBlessings
-                            .Select(id =>
-                            {
-                                var p = _blessingRegistry.GetBlessing(id);
-                                return p?.Name ?? id;
-                            });
-                        sb.AppendLine(string.Join(", ", prereqNames));
-                    }
-                }
-
-                sb.AppendLine();
-            }
-        else // Religion
-            foreach (PrestigeRank rank in Enum.GetValues(typeof(PrestigeRank)))
+        // Group by rank (religion blessings only)
+        foreach (PrestigeRank rank in Enum.GetValues(typeof(PrestigeRank)))
             {
                 var rankBlessings = blessings
                     .Where(p => p.RequiredPrestigeRank == (int)rank)
@@ -387,7 +330,7 @@ public class BlessingCommands(
                 }
 
                 sb.AppendLine();
-            }
+        }
 
         return TextCommandResult.Success(sb.ToString());
     }
@@ -423,20 +366,7 @@ public class BlessingCommands(
         if (!canUnlock)
             return TextCommandResult.Error(string.Format(ErrorMessageConstants.ErrorCannotUnlockBlessing, reason));
 
-        // Unlock the blessing
-        if (blessing.Kind == BlessingKind.Player)
-        {
-            if (religion == null) return TextCommandResult.Error(ErrorMessageConstants.ErrorMustBeInReligionToUnlock);
-
-            var success = _playerReligionDataManager.UnlockPlayerBlessing(playerUid, blessingId);
-            if (!success) return TextCommandResult.Error(ErrorMessageConstants.ErrorFailedToUnlock);
-
-            _blessingEffectSystem.RefreshPlayerBlessings(playerUid);
-            return TextCommandResult.Success(string.Format(SuccessMessageConstants.SuccessUnlockedPlayerBlessing,
-                blessing.Name));
-        }
-
-        // Religion blessing
+        // Religion blessing only in new system
         if (religion == null) return TextCommandResult.Error(ErrorMessageConstants.ErrorMustBeInReligionToUnlock);
 
         // Only founder can unlock religion blessings (optional restriction)

@@ -432,45 +432,6 @@ public class BlessingDialogManagerTests
 
     #endregion
 
-    #region GetPlayerFavorProgress Tests
-
-    [Fact]
-    public void GetPlayerFavorProgress_ReturnsCorrectData()
-    {
-        // Arrange
-        var manager = new BlessingDialogManager(null!);
-        manager.Initialize("religion1", DeityType.Aethra, "Test Religion", favorRank: 2);
-        manager.TotalFavorEarned = 3500;
-
-        // Act
-        var progress = manager.GetPlayerFavorProgress();
-
-        // Assert
-        Assert.Equal(3500, progress.CurrentFavor);
-        Assert.Equal(5000, progress.RequiredFavor); // Rank 2 → 3 requires 5000
-        Assert.Equal(2, progress.CurrentRank);
-        Assert.Equal(3, progress.NextRank);
-        Assert.False(progress.IsMaxRank);
-    }
-
-    [Fact]
-    public void GetPlayerFavorProgress_AtMaxRank_ReturnsMaxRankTrue()
-    {
-        // Arrange
-        var manager = new BlessingDialogManager(null!);
-        manager.Initialize("religion1", DeityType.Aethra, "Test Religion", favorRank: 4);
-        manager.TotalFavorEarned = 15000;
-
-        // Act
-        var progress = manager.GetPlayerFavorProgress();
-
-        // Assert
-        Assert.True(progress.IsMaxRank);
-        Assert.Equal(4, progress.CurrentRank);
-    }
-
-    #endregion
-
     #region GetReligionPrestigeProgress Tests
 
     [Fact]
