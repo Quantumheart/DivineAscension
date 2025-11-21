@@ -98,6 +98,16 @@ public class ReligionCommands(
             .WithDescription("Set your religion's description (founder only)")
             .WithArgs(_sapi.ChatCommands.Parsers.All("text"))
             .HandleWith(OnSetDescription)
+            .EndSubCommand()
+            .BeginSubCommand("progress")
+            .WithDescription("Show your religion's prestige progress")
+            .HandleWith(OnShowProgress)
+            .EndSubCommand()
+            .BeginSubCommand("addprestige")
+            .WithDescription("Add prestige to your religion (admin only)")
+            .RequiresPrivilege(Privilege.controlserver)
+            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"))
+            .HandleWith(OnAddPrestige)
             .EndSubCommand();
 
         _sapi.Logger.Notification("[PantheonWars] Religion commands registered");
@@ -625,6 +635,79 @@ public class ReligionCommands(
         religion.Description = description;
 
         return TextCommandResult.Success($"Description set for {religion.ReligionName}");
+    }
+
+    /// <summary>
+    ///     Handler for /religion progress - show prestige progress
+    /// </summary>
+    internal TextCommandResult OnShowProgress(TextCommandCallingArgs args)
+    {
+        var player = args.Caller.Player as IServerPlayer;
+        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+
+        // Check if player is in a religion
+        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
+        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+
+        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"=== {religion.ReligionName} Progress ===");
+        sb.AppendLine($"Prestige Rank: {religion.PrestigeRank}");
+        sb.AppendLine($"Current Prestige: {religion.TotalPrestige}");
+
+        // Calculate next threshold
+        var nextThreshold = religion.PrestigeRank switch
+        {
+            PrestigeRank.Fledgling => 500,
+            PrestigeRank.Established => 2000,
+            PrestigeRank.Renowned => 5000,
+            PrestigeRank.Legendary => 10000,
+            _ => 0
+        };
+
+        if (nextThreshold > 0)
+        {
+            var remaining = nextThreshold - religion.TotalPrestige;
+            sb.AppendLine($"Next Tier: {remaining} prestige needed");
+        }
+        else
+        {
+            sb.AppendLine("Max rank achieved!");
+        }
+
+        // Show active blessings
+        var activeBlessings = religion.UnlockedBlessings.Where(kvp => kvp.Value).Select(kvp => kvp.Key).ToList();
+        if (activeBlessings.Count > 0)
+        {
+            sb.AppendLine($"Active Blessings ({activeBlessings.Count}): {string.Join(", ", activeBlessings)}");
+        }
+
+        return TextCommandResult.Success(sb.ToString());
+    }
+
+    /// <summary>
+    ///     Handler for /religion addprestige - admin command to add prestige
+    /// </summary>
+    internal TextCommandResult OnAddPrestige(TextCommandCallingArgs args)
+    {
+        var amount = (int)args[0];
+
+        var player = args.Caller.Player as IServerPlayer;
+        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+
+        // Check if player is in a religion
+        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
+        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+
+        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+
+        // Add prestige
+        religion.AddPrestige(amount);
+
+        return TextCommandResult.Success($"Added {amount} prestige to {religion.ReligionName}. Total: {religion.TotalPrestige}");
     }
 
     #endregion

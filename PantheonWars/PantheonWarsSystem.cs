@@ -43,6 +43,7 @@ public class PantheonWarsSystem : ModSystem
     private ReligionManagementDialog? _religionDialog;
     private ReligionManager? _religionManager;
     private ReligionPrestigeManager? _religionPrestigeManager;
+    private PrestigeTracker? _prestigeTracker;
 
     // Server-side systems
     private ICoreServerAPI? _sapi;
@@ -118,6 +119,10 @@ public class PantheonWarsSystem : ModSystem
         // Initialize religion prestige manager
         _religionPrestigeManager = new ReligionPrestigeManager(api, _religionManager);
         _religionPrestigeManager.Initialize();
+
+        // Initialize prestige tracker (MVP 1 Week 4 - tracks mining/harvesting)
+        _prestigeTracker = new PrestigeTracker(api, _religionManager, _religionPrestigeManager);
+        _prestigeTracker.Initialize();
 
         // Initialize blessing systems (Phase 3.3)
         _blessingRegistry = new BlessingRegistry(api);
