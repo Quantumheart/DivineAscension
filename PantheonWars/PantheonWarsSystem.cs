@@ -671,7 +671,7 @@ public class PantheonWarsSystem : ModSystem
             return;
         }
 
-        var request = new ReligionListRequestPacket("");
+        var request = new ReligionListRequestPacket();
         _clientChannel.SendPacket(request);
         _capi?.Logger.Debug("[PantheonWars] Sent religion list request");
     }
@@ -703,7 +703,7 @@ public class PantheonWarsSystem : ModSystem
             return;
         }
 
-        var request = new CreateReligionRequestPacket(religionName, "", isPublic);
+        var request = new CreateReligionRequestPacket(religionName, isPublic);
         _clientChannel.SendPacket(request);
         _capi?.Logger.Debug($"[PantheonWars] Sent create religion request: {religionName}");
     }

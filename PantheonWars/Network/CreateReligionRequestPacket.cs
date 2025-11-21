@@ -12,16 +12,13 @@ public class CreateReligionRequestPacket
     {
     }
 
-    public CreateReligionRequestPacket(string religionName, string deity, bool isPublic)
+    public CreateReligionRequestPacket(string religionName, bool isPublic)
     {
         ReligionName = religionName;
-        Deity = deity;
         IsPublic = isPublic;
     }
 
     [ProtoMember(1)] public string ReligionName { get; set; } = string.Empty;
 
-    [ProtoMember(2)] public string Deity { get; set; } = string.Empty;
-
-    [ProtoMember(3)] public bool IsPublic { get; set; }
+    [ProtoMember(2)] public bool IsPublic { get; set; }
 }
