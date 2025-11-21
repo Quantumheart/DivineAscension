@@ -25,9 +25,7 @@ public class BlessingTooltipDataTests
         Assert.Equal(string.Empty, tooltip.Name);
         Assert.Equal(string.Empty, tooltip.Description);
         Assert.Equal(BlessingCategory.Combat, tooltip.Category); // Default enum value
-        Assert.Equal(BlessingKind.Player, tooltip.Kind); // Default enum value
         Assert.Equal(0, tooltip.Tier);
-        Assert.Equal(string.Empty, tooltip.RequiredFavorRank);
         Assert.Equal(string.Empty, tooltip.RequiredPrestigeRank);
         Assert.Empty(tooltip.PrerequisiteNames);
         Assert.Empty(tooltip.FormattedStats);
@@ -47,9 +45,7 @@ public class BlessingTooltipDataTests
         tooltip.Name = "Test Blessing";
         tooltip.Description = "Test Description";
         tooltip.Category = BlessingCategory.Defense;
-        tooltip.Kind = BlessingKind.Religion;
         tooltip.Tier = 2;
-        tooltip.RequiredFavorRank = "Zealot";
         tooltip.RequiredPrestigeRank = "Renowned";
         tooltip.PrerequisiteNames = new List<string> { "Prereq1", "Prereq2" };
         tooltip.FormattedStats = new List<string> { "+10% Melee Damage" };
@@ -62,9 +58,7 @@ public class BlessingTooltipDataTests
         Assert.Equal("Test Blessing", tooltip.Name);
         Assert.Equal("Test Description", tooltip.Description);
         Assert.Equal(BlessingCategory.Defense, tooltip.Category);
-        Assert.Equal(BlessingKind.Religion, tooltip.Kind);
         Assert.Equal(2, tooltip.Tier);
-        Assert.Equal("Zealot", tooltip.RequiredFavorRank);
         Assert.Equal("Renowned", tooltip.RequiredPrestigeRank);
         Assert.Equal(2, tooltip.PrerequisiteNames.Count);
         Assert.Single(tooltip.FormattedStats);
@@ -85,8 +79,6 @@ public class BlessingTooltipDataTests
         var blessing = TestFixtures.CreateTestBlessing("test-blessing", "Test Blessing");
         blessing.Description = "Test Description";
         blessing.Category = BlessingCategory.Combat;
-        blessing.Kind = BlessingKind.Player;
-        blessing.RequiredFavorRank = 2; // Zealot
 
         var state = new BlessingNodeState(blessing)
         {
@@ -102,9 +94,7 @@ public class BlessingTooltipDataTests
         Assert.Equal("Test Blessing", tooltip.Name);
         Assert.Equal("Test Description", tooltip.Description);
         Assert.Equal(BlessingCategory.Combat, tooltip.Category);
-        Assert.Equal(BlessingKind.Player, tooltip.Kind);
         Assert.Equal(3, tooltip.Tier);
-        Assert.Equal("Zealot", tooltip.RequiredFavorRank);
         Assert.False(tooltip.IsUnlocked);
         Assert.True(tooltip.CanUnlock);
     }
@@ -112,19 +102,17 @@ public class BlessingTooltipDataTests
     [Fact]
     public void FromBlessingAndState_ForPlayerBlessing_SetsFavorRank()
     {
-        // Arrange
+        // Arrange - In religion-only system, all blessings use prestige rank
         var blessing = TestFixtures.CreateTestBlessing("player-blessing", "Player Blessing");
-        blessing.Kind = BlessingKind.Player;
-        blessing.RequiredFavorRank = 3; // Champion
+        blessing.RequiredPrestigeRank = 0; // Fledgling
 
         var state = new BlessingNodeState(blessing);
 
         // Act
         var tooltip = BlessingTooltipData.FromBlessingAndState(blessing, state);
 
-        // Assert
-        Assert.Equal("Champion", tooltip.RequiredFavorRank);
-        Assert.Equal(string.Empty, tooltip.RequiredPrestigeRank);
+        // Assert - All blessings now show prestige rank requirement
+        Assert.Equal("Fledgling", tooltip.RequiredPrestigeRank);
     }
 
     [Fact]
@@ -132,7 +120,6 @@ public class BlessingTooltipDataTests
     {
         // Arrange
         var blessing = TestFixtures.CreateTestBlessing("religion-blessing", "Religion Blessing");
-        blessing.Kind = BlessingKind.Religion;
         blessing.RequiredPrestigeRank = 2; // Renowned
 
         var state = new BlessingNodeState(blessing);
@@ -142,7 +129,6 @@ public class BlessingTooltipDataTests
 
         // Assert
         Assert.Equal("Renowned", tooltip.RequiredPrestigeRank);
-        Assert.Equal(string.Empty, tooltip.RequiredFavorRank);
     }
 
     [Fact]
@@ -239,10 +225,9 @@ public class BlessingTooltipDataTests
     [Fact]
     public void FromBlessingAndState_LockedPlayerBlessingWithoutPrereqs_SetsUnlockBlockReason()
     {
-        // Arrange
+        // Arrange - Religion-only system uses prestige ranks
         var blessing = TestFixtures.CreateTestBlessing("locked-blessing", "Locked Blessing");
-        blessing.Kind = BlessingKind.Player;
-        blessing.RequiredFavorRank = 2; // Zealot
+        blessing.RequiredPrestigeRank = 2; // Renowned
 
         var state = new BlessingNodeState(blessing)
         {
@@ -254,7 +239,7 @@ public class BlessingTooltipDataTests
         var tooltip = BlessingTooltipData.FromBlessingAndState(blessing, state);
 
         // Assert
-        Assert.Equal("Requires Zealot rank", tooltip.UnlockBlockReason);
+        Assert.Equal("Requires religion Renowned rank", tooltip.UnlockBlockReason);
     }
 
     [Fact]
@@ -262,7 +247,6 @@ public class BlessingTooltipDataTests
     {
         // Arrange
         var blessing = TestFixtures.CreateTestBlessing("locked-blessing", "Locked Blessing");
-        blessing.Kind = BlessingKind.Religion;
         blessing.RequiredPrestigeRank = 3; // Legendary
 
         var state = new BlessingNodeState(blessing)
@@ -283,8 +267,6 @@ public class BlessingTooltipDataTests
     {
         // Arrange
         var blessing = TestFixtures.CreateTestBlessing("locked-blessing", "Locked Blessing");
-        blessing.Kind = BlessingKind.Player;
-        blessing.RequiredFavorRank = 2;
         blessing.PrerequisiteBlessings.Add("prereq1");
 
         var state = new BlessingNodeState(blessing)
@@ -352,8 +334,6 @@ public class BlessingTooltipDataTests
     {
         // Arrange
         var blessing = TestFixtures.CreateTestBlessing("test-blessing", "Test");
-        blessing.Kind = BlessingKind.Player;
-        blessing.RequiredFavorRank = rank;
 
         var state = new BlessingNodeState(blessing);
 
@@ -361,7 +341,6 @@ public class BlessingTooltipDataTests
         var tooltip = BlessingTooltipData.FromBlessingAndState(blessing, state);
 
         // Assert
-        Assert.Equal(expected, tooltip.RequiredFavorRank);
     }
 
     [Theory]
@@ -376,7 +355,6 @@ public class BlessingTooltipDataTests
     {
         // Arrange
         var blessing = TestFixtures.CreateTestBlessing("test-blessing", "Test");
-        blessing.Kind = BlessingKind.Religion;
         blessing.RequiredPrestigeRank = rank;
 
         var state = new BlessingNodeState(blessing);

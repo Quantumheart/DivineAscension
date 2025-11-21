@@ -1,9 +1,12 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Moq;
 using PantheonWars.Commands;
+using PantheonWars.Models.Enum;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
+using Blessing = PantheonWars.Models.Blessing;
 
 namespace PantheonWars.Tests.Commands.Helpers;
 
@@ -31,6 +34,10 @@ public class BlessingCommandsTestHelpers
         _religionManager = new Mock<IReligionManager>();
         _playerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         _blessingEffectSystem = new Mock<IBlessingEffectSystem>();
+
+        // Default setup for GetUniversalBlessings to return empty list
+        _blessingRegistry.Setup(br => br.GetUniversalBlessings())
+            .Returns(new List<PantheonWars.Models.Blessing>());
     }
 
     protected BlessingCommands InitializeMocksAndSut()

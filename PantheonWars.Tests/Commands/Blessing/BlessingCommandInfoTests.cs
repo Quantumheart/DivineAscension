@@ -54,10 +54,8 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             BlessingId = "divine_strike",
             Name = "Divine Strike",
             Deity = DeityType.Aethra,
-            Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "Channel divine power into your strikes",
-            RequiredFavorRank = (int)FavorRank.Initiate,
             PrerequisiteBlessings = new List<string>(),
             StatModifiers = new Dictionary<string, float>(),
             SpecialEffects = new List<string>()
@@ -68,12 +66,11 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         // Act
         var result = _sut!.GetInfo("divine_strike");
 
-        // Assert
+        // Assert - Religion-only system doesn't display "Player" type
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("Divine Strike", result.StatusMessage);
         Assert.Contains("divine_strike", result.StatusMessage);
         Assert.Contains("Aethra", result.StatusMessage);
-        Assert.Contains("Player", result.StatusMessage);
         Assert.Contains("Combat", result.StatusMessage);
         Assert.Contains("Channel divine power", result.StatusMessage);
     }
@@ -88,10 +85,8 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             BlessingId = "basic_blessing",
             Name = "Basic Blessing",
             Deity = DeityType.Aethra,
-            Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "Basic",
-            RequiredFavorRank = (int)FavorRank.Initiate,
             PrerequisiteBlessings = new List<string>(),
             StatModifiers = new Dictionary<string, float>(),
             SpecialEffects = new List<string>()
@@ -102,10 +97,8 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             BlessingId = "advanced_blessing",
             Name = "Advanced Blessing",
             Deity = DeityType.Aethra,
-            Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "Advanced",
-            RequiredFavorRank = (int)FavorRank.Disciple,
             PrerequisiteBlessings = new List<string> { "basic_blessing" },
             StatModifiers = new Dictionary<string, float>(),
             SpecialEffects = new List<string>()
@@ -131,10 +124,8 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             BlessingId = "prereq1",
             Name = "First Prerequisite",
             Deity = DeityType.Aethra,
-            Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "First",
-            RequiredFavorRank = (int)FavorRank.Initiate,
             PrerequisiteBlessings = new List<string>(),
             StatModifiers = new Dictionary<string, float>(),
             SpecialEffects = new List<string>()
@@ -145,10 +136,8 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             BlessingId = "prereq2",
             Name = "Second Prerequisite",
             Deity = DeityType.Aethra,
-            Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "Second",
-            RequiredFavorRank = (int)FavorRank.Initiate,
             PrerequisiteBlessings = new List<string>(),
             StatModifiers = new Dictionary<string, float>(),
             SpecialEffects = new List<string>()
@@ -159,10 +148,8 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             BlessingId = "ultimate_blessing",
             Name = "Ultimate Blessing",
             Deity = DeityType.Aethra,
-            Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "Ultimate",
-            RequiredFavorRank = (int)FavorRank.Champion,
             PrerequisiteBlessings = new List<string> { "prereq1", "prereq2" },
             StatModifiers = new Dictionary<string, float>(),
             SpecialEffects = new List<string>()
@@ -190,10 +177,8 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             BlessingId = "orphan_blessing",
             Name = "Orphan Blessing",
             Deity = DeityType.Aethra,
-            Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "Has missing prereq",
-            RequiredFavorRank = (int)FavorRank.Disciple,
             PrerequisiteBlessings = new List<string> { "missing_prereq" },
             StatModifiers = new Dictionary<string, float>(),
             SpecialEffects = new List<string>()
@@ -219,10 +204,8 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             BlessingId = "speed_blessing",
             Name = "Speed Blessing",
             Deity = DeityType.Aethra,
-            Kind = BlessingKind.Player,
             Category = BlessingCategory.Utility,
             Description = "Move faster",
-            RequiredFavorRank = (int)FavorRank.Initiate,
             PrerequisiteBlessings = new List<string>(),
             StatModifiers = new Dictionary<string, float>
             {
@@ -257,7 +240,6 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             BlessingId = "divine_sanctuary",
             Name = "Divine Sanctuary",
             Deity = DeityType.Aethra,
-            Kind = BlessingKind.Religion,
             Category = BlessingCategory.Defense,
             Description = "Protects all members",
             RequiredPrestigeRank = (int)PrestigeRank.Renowned,
@@ -271,10 +253,9 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         // Act
         var result = _sut!.GetInfo("divine_sanctuary");
 
-        // Assert
+        // Assert - Religion-only system doesn't display "Religion" type (all blessings are religion-level)
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("Renowned", result.StatusMessage);
-        Assert.Contains("Religion", result.StatusMessage);
     }
 
     [Fact]
@@ -286,7 +267,6 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             BlessingId = "fire_aura",
             Name = "Fire Aura",
             Deity = DeityType.Aethra,
-            Kind = BlessingKind.Religion,
             Category = BlessingCategory.Combat,
             Description = "Burn enemies",
             RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
@@ -314,7 +294,6 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             BlessingId = "combo_blessing",
             Name = "Combo Blessing",
             Deity = DeityType.Aethra,
-            Kind = BlessingKind.Religion,
             Category = BlessingCategory.Combat,
             Description = "Multiple effects",
             RequiredPrestigeRank = (int)PrestigeRank.Renowned,
@@ -348,10 +327,8 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             BlessingId = "complete_blessing",
             Name = "Complete Blessing",
             Deity = DeityType.Aethra,
-            Kind = BlessingKind.Player,
             Category = BlessingCategory.Utility,
             Description = "Everything",
-            RequiredFavorRank = (int)FavorRank.Champion,
             PrerequisiteBlessings = new List<string>(),
             StatModifiers = new Dictionary<string, float> { { "walkspeed", 0.1f } },
             SpecialEffects = new List<string> { "special_effect" }
@@ -377,10 +354,8 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             BlessingId = "simple_blessing",
             Name = "Simple Blessing",
             Deity = DeityType.Aethra,
-            Kind = BlessingKind.Player,
             Category = BlessingCategory.Utility,
             Description = "Simple",
-            RequiredFavorRank = (int)FavorRank.Initiate,
             PrerequisiteBlessings = new List<string>(),
             StatModifiers = new Dictionary<string, float>(),
             SpecialEffects = new List<string>()
@@ -407,10 +382,8 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             BlessingId = "starter_blessing",
             Name = "Starter Blessing",
             Deity = DeityType.Aethra,
-            Kind = BlessingKind.Player,
             Category = BlessingCategory.Combat,
             Description = "No prereqs",
-            RequiredFavorRank = (int)FavorRank.Initiate,
             PrerequisiteBlessings = new List<string>(),
             StatModifiers = new Dictionary<string, float>(),
             SpecialEffects = new List<string>()

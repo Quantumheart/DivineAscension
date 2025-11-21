@@ -50,23 +50,7 @@ public class PlayerDataManagerTests
         Assert.Equal(100, playerData.DivineFavor);
         Assert.Equal(100, playerData.TotalFavorEarned);
     }
-
-    [Fact]
-    public void AddFavor_ShouldUpdateDevotionRank_WhenThresholdCrossed()
-    {
-        // Given: Manager and player near threshold
-        var mockApi = CreateMockServerAPI();
-        var manager = new PlayerDataManager(mockApi.Object);
-        var playerUID = "test-player";
-
-        // When: Add favor to cross Disciple threshold (500)
-        manager.AddFavor(playerUID, 500, "Threshold test");
-
-        // Then: Rank should update
-        var playerData = manager.GetOrCreatePlayerData(playerUID);
-        Assert.Equal(DevotionRank.Disciple, playerData.DevotionRank);
-    }
-
+    
     #endregion
 
     #region AddFractionalFavor Tests (Phase 1)

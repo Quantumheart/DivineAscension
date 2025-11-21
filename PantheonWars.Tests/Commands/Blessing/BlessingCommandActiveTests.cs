@@ -74,7 +74,6 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 BlessingId = "player1",
                 Name = "Player Blessing 1",
                 Deity = DeityType.Aethra,
-                Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "Player blessing",
                 StatModifiers = new Dictionary<string, float>()
@@ -120,7 +119,6 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 BlessingId = "religion1",
                 Name = "Religion Blessing 1",
                 Deity = DeityType.Aethra,
-                Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
                 Description = "Religion blessing",
                 StatModifiers = new Dictionary<string, float>()
@@ -168,7 +166,6 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 BlessingId = "player1",
                 Name = "Player Blessing",
                 Deity = DeityType.Aethra,
-                Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "Player",
                 StatModifiers = new Dictionary<string, float>()
@@ -181,7 +178,6 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 BlessingId = "religion1",
                 Name = "Religion Blessing",
                 Deity = DeityType.Aethra,
-                Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
                 Description = "Religion",
                 StatModifiers = new Dictionary<string, float>()
@@ -225,7 +221,6 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 BlessingId = "player1",
                 Name = "Blessing One",
                 Deity = DeityType.Aethra,
-                Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "First",
                 StatModifiers = new Dictionary<string, float>()
@@ -235,7 +230,6 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 BlessingId = "player2",
                 Name = "Blessing Two",
                 Deity = DeityType.Aethra,
-                Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "Second",
                 StatModifiers = new Dictionary<string, float>()
@@ -245,7 +239,6 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 BlessingId = "player3",
                 Name = "Blessing Three",
                 Deity = DeityType.Aethra,
-                Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "Third",
                 StatModifiers = new Dictionary<string, float>()
@@ -290,7 +283,6 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 BlessingId = "religion1",
                 Name = "Religion One",
                 Deity = DeityType.Aethra,
-                Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
                 Description = "First",
                 StatModifiers = new Dictionary<string, float>()
@@ -300,7 +292,6 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 BlessingId = "religion2",
                 Name = "Religion Two",
                 Deity = DeityType.Aethra,
-                Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
                 Description = "Second",
                 StatModifiers = new Dictionary<string, float>()
@@ -343,7 +334,6 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 BlessingId = "player1",
                 Name = "Speed Boost",
                 Deity = DeityType.Aethra,
-                Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "Boost",
                 StatModifiers = new Dictionary<string, float>()
@@ -353,7 +343,6 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 BlessingId = "player2",
                 Name = "Health Boost",
                 Deity = DeityType.Aethra,
-                Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "Health",
                 StatModifiers = new Dictionary<string, float>()
@@ -366,7 +355,6 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 BlessingId = "religion1",
                 Name = "Divine Protection",
                 Deity = DeityType.Aethra,
-                Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Defense,
                 Description = "Protection",
                 StatModifiers = new Dictionary<string, float>()
@@ -484,7 +472,6 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 BlessingId = "player1",
                 Name = "Player Blessing",
                 Deity = DeityType.Aethra,
-                Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description = "Player",
                 StatModifiers = new Dictionary<string, float> { { "walkspeed", 0.10f } }
@@ -497,7 +484,6 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 BlessingId = "religion1",
                 Name = "Religion Blessing",
                 Deity = DeityType.Aethra,
-                Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
                 Description = "Religion",
                 StatModifiers = new Dictionary<string, float> { { "walkspeed", 0.05f } }

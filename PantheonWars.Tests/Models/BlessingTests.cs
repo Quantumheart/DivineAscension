@@ -14,9 +14,7 @@ public class BlessingTests
         Assert.Equal("khoras_warriors_resolve", blessing.BlessingId);
         Assert.Equal("Warrior's Resolve", blessing.Name);
         Assert.Equal(DeityType.Aethra, blessing.Deity);
-        Assert.Equal(BlessingKind.Player, blessing.Kind);
         Assert.Equal(BlessingCategory.Combat, blessing.Category);
-        Assert.Equal(0, blessing.RequiredFavorRank);
         Assert.Equal(0, blessing.RequiredPrestigeRank);
         Assert.Empty(blessing.PrerequisiteBlessings);
         Assert.Empty(blessing.StatModifiers);
@@ -30,7 +28,6 @@ public class BlessingTests
         Assert.Empty(blessing.BlessingId);
         Assert.Empty(blessing.Name);
         Assert.Equal(DeityType.None, blessing.Deity);
-        Assert.Equal(0, blessing.RequiredFavorRank);
         Assert.Equal(0, blessing.RequiredPrestigeRank);
         Assert.Empty(blessing.PrerequisiteBlessings);
         Assert.Empty(blessing.StatModifiers);
@@ -51,7 +48,6 @@ public class BlessingTests
     public void TestEnumValues()
     {
         var blessing = new Blessing("test-blessing", "Test Blessing", DeityType.None);
-        Assert.Equal(BlessingKind.Player, blessing.Kind);
         Assert.Equal(BlessingCategory.Combat, blessing.Category);
         Assert.Equal(DeityType.None, blessing.Deity);
     }

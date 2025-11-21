@@ -254,21 +254,18 @@ public static class TestFixtures
     public static Blessing CreateTestBlessing(
         string id = "test_blessing",
         string name = "Test Blessing",
-        DeityType deity = DeityType.Aethra,
-        BlessingKind kind = BlessingKind.Player)
+        DeityType deity = DeityType.Aethra)
     {
         return new Blessing(id, name, deity)
         {
             Description = "A test blessing",
             Category = BlessingCategory.Combat,
-            RequiredFavorRank = 1,
             RequiredPrestigeRank = 0,
             PrerequisiteBlessings = new List<string>(),
             StatModifiers = new Dictionary<string, float>
             {
                 { "walkspeed", 0.1f }
             },
-            Kind = kind,
             SpecialEffects = new List<string>()
         };
     }

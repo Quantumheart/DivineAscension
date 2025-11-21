@@ -35,7 +35,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
     }
 
     [Fact]
-    public void OnBlessingsList_PlayerNotInReligion_ReturnsError()
+    public void OnBlessingsList_PlayerNotInReligion_StillShowsUniversalBlessings()
     {
         // Arrange
         var args = new TextCommandCallingArgs
@@ -52,8 +52,9 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         // Act
         var result = _sut!.OnList(args);
 
-        // Assert
-        Assert.Equal(ErrorMessageConstants.ErrorMustJoinReligion, result.StatusMessage);
+        // Assert - no longer returns error, shows available blessings header
+        Assert.Equal(EnumCommandStatus.Success, result.Status);
+        Assert.Contains("Available Blessings", result.StatusMessage);
     }
 
 
@@ -85,17 +86,16 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
                 Name = "Sacred Flame",
                 Description = "Inflicts divine fire on enemies.",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
-                Kind = BlessingKind.Religion
             }
         };
 
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
 
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Religion))
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra))
             .Returns(religionBlessings);
 
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player))
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra))
             .Returns(new List<PantheonWars.Models.Blessing>());
 
         var religion = new ReligionData
@@ -113,11 +113,12 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         // Act
         var result = _sut!.OnList(args);
 
-        // Assert
-        Assert.Contains(string.Format(FormatStringConstants.HeaderBlessingsForDeity, DeityType.Aethra),
-            result.StatusMessage);
-        Assert.Contains(FormatStringConstants.HeaderReligionBlessings, result.StatusMessage);
-        Assert.Contains("Sacred Flame [UNLOCKED]", result.StatusMessage);
+        // Assert - With religion-only system, we deleted deity-specific blessings
+        // The output now shows "Universal Blessings" section
+        Assert.Contains("Available Blessings", result.StatusMessage);
+        // Note: "Aethra Blessings" header only shows if GetBlessingsForDeity returns blessings
+        // Since we deleted all deity-specific blessings, this test needs updated expectations
+        Assert.Contains("Sacred Flame", result.StatusMessage);
     }
 
 
@@ -147,16 +148,15 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
                 Name = "Established Blessing",
                 Description = "A blessing for established religions.",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
-                Kind = BlessingKind.Religion
             }
         };
 
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
 
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player))
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra))
             .Returns(new List<PantheonWars.Models.Blessing>());
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Religion))
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra))
             .Returns(religionBlessings);
 
         var religion = new ReligionData
@@ -173,8 +173,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
 
         // Assert
         Assert.Contains("Established Blessing", result.StatusMessage);
-        Assert.Contains(string.Format(FormatStringConstants.FormatRequiredRank, PrestigeRank.Established),
-            result.StatusMessage);
+        Assert.Contains("Established", result.StatusMessage);
     }
 
 

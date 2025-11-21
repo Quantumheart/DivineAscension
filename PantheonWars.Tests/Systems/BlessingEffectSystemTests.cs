@@ -122,10 +122,10 @@ public class BlessingEffectSystemTests
         religion.UnlockedBlessings["blessing1"] = true;
         religion.UnlockedBlessings["blessing2"] = true;
 
-        var blessing1 = TestFixtures.CreateTestBlessing("blessing1", "Blessing 1", DeityType.Aethra, BlessingKind.Religion);
+        var blessing1 = TestFixtures.CreateTestBlessing("blessing1", "Blessing 1", DeityType.Aethra);
         blessing1.StatModifiers["meleeWeaponsDamage"] = 0.1f;
 
-        var blessing2 = TestFixtures.CreateTestBlessing("blessing2", "Blessing 2", DeityType.Aethra, BlessingKind.Religion);
+        var blessing2 = TestFixtures.CreateTestBlessing("blessing2", "Blessing 2", DeityType.Aethra);
         blessing2.StatModifiers["meleeWeaponsDamage"] = 0.05f;
         blessing2.StatModifiers["rangedWeaponsDamage"] = 0.1f;
 

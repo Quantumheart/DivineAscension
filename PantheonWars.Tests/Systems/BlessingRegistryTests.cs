@@ -74,8 +74,7 @@ public class BlessingRegistryTests
         var blessing = TestFixtures.CreateTestBlessing(
             "test_blessing_1",
             "Test Blessing",
-            DeityType.Aethra,
-            BlessingKind.Player);
+            DeityType.Aethra);
 
         // Act
         _registry.RegisterBlessing(blessing);
@@ -195,33 +194,29 @@ public class BlessingRegistryTests
     [Fact]
     public void GetBlessingsForDeity_WithTypeFilter_ReturnsOnlyMatchingType()
     {
-        // Arrange
-        _registry.RegisterBlessing(TestFixtures.CreateTestBlessing("khoras_player_1", "Player 1", DeityType.Aethra, BlessingKind.Player));
-        _registry.RegisterBlessing(TestFixtures.CreateTestBlessing("khoras_player_2", "Player 2", DeityType.Aethra, BlessingKind.Player));
-        _registry.RegisterBlessing(TestFixtures.CreateTestBlessing("khoras_religion_1", "Religion 1", DeityType.Aethra, BlessingKind.Religion));
+        // Arrange - In religion-only system, all blessings are religion-level
+        _registry.RegisterBlessing(TestFixtures.CreateTestBlessing("khoras_player_1", "Player 1", DeityType.Aethra));
+        _registry.RegisterBlessing(TestFixtures.CreateTestBlessing("khoras_player_2", "Player 2", DeityType.Aethra));
+        _registry.RegisterBlessing(TestFixtures.CreateTestBlessing("khoras_religion_1", "Religion 1", DeityType.Aethra));
 
         // Act
-        var playerBlessings = _registry.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player);
+        var blessings = _registry.GetBlessingsForDeity(DeityType.Aethra);
 
-        // Assert
-        Assert.Equal(2, playerBlessings.Count);
-        Assert.All(playerBlessings, b => Assert.Equal(BlessingKind.Player, b.Kind));
+        // Assert - All blessings returned (no type filtering in religion-only system)
+        Assert.Equal(3, blessings.Count);
     }
 
     [Fact]
-    public void GetBlessingsForDeity_OrdersByFavorRankThenPrestigeRank()
+    public void GetBlessingsForDeity_OrdersByPrestigeRankThenName()
     {
-        // Arrange
+        // Arrange - Religion-only system orders by PrestigeRank then Name
         var blessing1 = TestFixtures.CreateTestBlessing("b1", "B1", DeityType.Aethra);
-        blessing1.RequiredFavorRank = 2;
         blessing1.RequiredPrestigeRank = 0;
 
         var blessing2 = TestFixtures.CreateTestBlessing("b2", "B2", DeityType.Aethra);
-        blessing2.RequiredFavorRank = 1;
         blessing2.RequiredPrestigeRank = 1;
 
         var blessing3 = TestFixtures.CreateTestBlessing("b3", "B3", DeityType.Aethra);
-        blessing3.RequiredFavorRank = 1;
         blessing3.RequiredPrestigeRank = 0;
 
         _registry.RegisterBlessing(blessing1);
@@ -231,10 +226,10 @@ public class BlessingRegistryTests
         // Act
         var blessings = _registry.GetBlessingsForDeity(DeityType.Aethra);
 
-        // Assert
-        Assert.Equal("b3", blessings[0].BlessingId); // FavorRank 1, PrestigeRank 0
-        Assert.Equal("b2", blessings[1].BlessingId); // FavorRank 1, PrestigeRank 1
-        Assert.Equal("b1", blessings[2].BlessingId); // FavorRank 2, PrestigeRank 0
+        // Assert - Ordered by PrestigeRank (0, 0, 1), then by Name (B1, B3, B2)
+        Assert.Equal("b1", blessings[0].BlessingId); // PrestigeRank 0, Name B1
+        Assert.Equal("b3", blessings[1].BlessingId); // PrestigeRank 0, Name B3
+        Assert.Equal("b2", blessings[2].BlessingId); // PrestigeRank 1, Name B2
     }
 
     [Fact]
@@ -288,7 +283,7 @@ public class BlessingRegistryTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Aethra, null);
-        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityType.Aethra, BlessingKind.Religion);
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityType.Aethra);
 
         // Act
         var (canUnlock, reason) = _registry.CanUnlockBlessing(playerData, null, blessing);
@@ -306,7 +301,7 @@ public class BlessingRegistryTests
         var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Aethra);
         religionData.UnlockedBlessings["test_blessing"] = true;
 
-        var blessing = TestFixtures.CreateTestBlessing("test_blessing", "Test", DeityType.Aethra, BlessingKind.Religion);
+        var blessing = TestFixtures.CreateTestBlessing("test_blessing", "Test", DeityType.Aethra);
 
         // Act
         var (canUnlock, reason) = _registry.CanUnlockBlessing(playerData, religionData, blessing);
@@ -324,7 +319,7 @@ public class BlessingRegistryTests
         var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Aethra);
         religionData.PrestigeRank = PrestigeRank.Fledgling;
 
-        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityType.Aethra, BlessingKind.Religion);
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityType.Aethra);
         blessing.RequiredPrestigeRank = 2; // Requires Renowned
 
         // Act
@@ -341,7 +336,7 @@ public class BlessingRegistryTests
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Aethra, "religion-uid");
         var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Aethra);
-        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityType.Gaia, BlessingKind.Religion);
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityType.Gaia);
 
         // Act
         var (canUnlock, reason) = _registry.CanUnlockBlessing(playerData, religionData, blessing);
@@ -359,7 +354,7 @@ public class BlessingRegistryTests
         var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Aethra);
         religionData.PrestigeRank = PrestigeRank.Established;
 
-        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityType.Aethra, BlessingKind.Religion);
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityType.Aethra);
         blessing.RequiredPrestigeRank = 1;
 
         // Act
