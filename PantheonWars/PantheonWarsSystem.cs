@@ -86,7 +86,15 @@ public class PantheonWarsSystem : ModSystem
 
         // Setup network handlers
         SetupClientNetworking(api);
-        
+
+        // Initialize dialogs
+        var channel = api.Network.GetChannel(NETWORK_CHANNEL);
+        _religionDialog = new ReligionManagementDialog(api, channel);
+        _createReligionDialog = new CreateReligionDialog(api, channel);
+
+        // Register hotkey for opening guild management dialog
+        api.Input.RegisterHotKey("pantheonwarsreligion", "Open Guild Management", GlKeys.G, HotkeyType.GUIOrOtherControls, ctrlPressed: true);
+        api.Input.SetHotKeyHandler("pantheonwarsreligion", OnGuildManagementHotkey);
 
         api.Logger.Notification("[PantheonWars] Client-side initialization complete");
     }
@@ -764,6 +772,26 @@ public class PantheonWarsSystem : ModSystem
     /// Event fired when player religion info is received from server
     /// </summary>
     public event Action<PlayerReligionInfoResponsePacket>? PlayerReligionInfoReceived;
+
+    /// <summary>
+    /// Handle hotkey press for opening guild management dialog
+    /// </summary>
+    private bool OnGuildManagementHotkey(KeyCombination keyCombination)
+    {
+        if (_religionDialog != null)
+        {
+            if (_religionDialog.IsOpened())
+            {
+                _religionDialog.TryClose();
+            }
+            else
+            {
+                _religionDialog.TryOpen();
+            }
+            return true;
+        }
+        return false;
+    }
 
     #endregion
 }
