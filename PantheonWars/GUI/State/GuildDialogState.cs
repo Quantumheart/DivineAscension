@@ -1,6 +1,16 @@
 namespace PantheonWars.GUI.State;
 
 /// <summary>
+///     Guild tab selection enum
+/// </summary>
+public enum GuildTab
+{
+    Overview,
+    Members,
+    Settings
+}
+
+/// <summary>
 ///     State management for GuildManagementDialog
 /// </summary>
 public class GuildDialogState
@@ -26,6 +36,17 @@ public class GuildDialogState
     public float WindowPosY { get; set; }
 
     /// <summary>
+    ///     Currently selected tab (when user has a guild)
+    /// </summary>
+    public GuildTab CurrentTab { get; set; } = GuildTab.Overview;
+
+    /// <summary>
+    ///     Whether to show the guild browser (even when user has a guild)
+    ///     Used for "Change Guild" functionality
+    /// </summary>
+    public bool ShowBrowser { get; set; }
+
+    /// <summary>
     ///     Initialize/reset all state to defaults
     /// </summary>
     public void Reset()
@@ -34,5 +55,7 @@ public class GuildDialogState
         IsReady = false;
         WindowPosX = 0f;
         WindowPosY = 0f;
+        CurrentTab = GuildTab.Overview;
+        ShowBrowser = false;
     }
 }

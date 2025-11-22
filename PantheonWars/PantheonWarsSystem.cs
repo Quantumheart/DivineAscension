@@ -419,13 +419,20 @@ public class PantheonWarsSystem : ModSystem
                     if (religionForDisband != null && religionForDisband.FounderUID == fromPlayer.PlayerUID)
                     {
                         var religionName = religionForDisband.ReligionName;
+                        var religionUID = religionForDisband.ReligionUID;
 
-                        // Remove all members
-                        var members =
-                            religionForDisband.MemberUIDs.ToList(); // Copy to avoid modification during iteration
+                        // Get all members before deleting the religion
+                        var members = religionForDisband.MemberUIDs.ToList();
+
+                        // Delete the religion first
+                        _religionManager.DeleteReligion(religionUID, fromPlayer.PlayerUID);
+
+                        // Clear player data for all members (without calling RemoveMember since religion is deleted)
                         foreach (var memberUID in members)
                         {
-                            _playerReligionDataManager!.LeaveReligion(memberUID);
+                            // Get player data and clear religion fields directly
+                            var playerData = _playerReligionDataManager!.GetOrCreatePlayerData(memberUID);
+                            playerData.ReligionUID = null;
 
                             // Notify member if online
                             var memberPlayer = _sapi!.World.PlayerByUid(memberUID) as IServerPlayer;
@@ -446,17 +453,18 @@ public class PantheonWarsSystem : ModSystem
                                     HasReligion = false
                                 };
                                 _serverChannel!.SendPacket(statePacket, memberPlayer);
+
+                                // Refresh player's HUD
+                                SendPlayerDataToClient(memberPlayer);
                             }
                         }
 
-                        // Delete the religion
-                        _religionManager.DeleteReligion(religionForDisband.ReligionUID, fromPlayer.PlayerUID);
-
-                        message = $"Successfully disbanded {religionForDisband.ReligionName ?? "religion"}!";
+                        message = $"Successfully disbanded {religionName ?? "religion"}!";
+                        success = true;
                     }
                     else
                     {
-                        message = "Only the founder can kick members.";
+                        message = "Only the founder can disband the guild.";
                     }
 
                     break;

@@ -6,46 +6,49 @@ using Vintagestory.API.Client;
 namespace PantheonWars.GUI;
 
 /// <summary>
-///     Manages the visibility and coordination of overlay windows (Religion Browser, Management, etc.)
+///     Manages the visibility and coordination of overlay windows (Create Religion, Leave Confirmation)
+///     Note: Browser and Management are now in the main window as tabs
 /// </summary>
 [ExcludeFromCodeCoverage]
 public class OverlayCoordinator : IOverlayCoordinator
 {
-    private bool _showReligionBrowser;
-    private bool _showReligionManagement;
     private bool _showCreateReligion;
     private bool _showLeaveConfirmation;
 
     /// <summary>
-    ///     Show the Religion Browser overlay
+    ///     Show the Religion Browser overlay (deprecated - now in main window)
     /// </summary>
+    [Obsolete("Religion browser is now shown in main window, not as overlay")]
     public void ShowReligionBrowser()
     {
-        _showReligionBrowser = true;
+        // No-op: Browser is now in main window
     }
 
     /// <summary>
-    ///     Close the Religion Browser overlay
+    ///     Close the Religion Browser overlay (deprecated - now in main window)
     /// </summary>
+    [Obsolete("Religion browser is now shown in main window, not as overlay")]
     public void CloseReligionBrowser()
     {
-        _showReligionBrowser = false;
+        // No-op: Browser is now in main window
     }
 
     /// <summary>
-    ///     Show the Religion Management overlay
+    ///     Show the Religion Management overlay (deprecated - now in main window tabs)
     /// </summary>
+    [Obsolete("Religion management is now shown in main window tabs, not as overlay")]
     public void ShowReligionManagement()
     {
-        _showReligionManagement = true;
+        // No-op: Management is now in main window tabs
     }
 
     /// <summary>
-    ///     Close the Religion Management overlay
+    ///     Close the Religion Management overlay (deprecated - now in main window tabs)
     /// </summary>
+    [Obsolete("Religion management is now shown in main window tabs, not as overlay")]
     public void CloseReligionManagement()
     {
-        _showReligionManagement = false;
+        // No-op: Management is now in main window tabs
     }
 
     /// <summary>
@@ -85,14 +88,12 @@ public class OverlayCoordinator : IOverlayCoordinator
     /// </summary>
     public void CloseAllOverlays()
     {
-        _showReligionBrowser = false;
-        _showReligionManagement = false;
         _showCreateReligion = false;
         _showLeaveConfirmation = false;
     }
 
     /// <summary>
-    ///     Render all active overlays
+    ///     Render all active overlays (Create Religion and Leave Confirmation only)
     /// </summary>
     public void RenderOverlays(
         ICoreClientAPI capi,
@@ -112,20 +113,6 @@ public class OverlayCoordinator : IOverlayCoordinator
         Action onLeaveReligionCancelled,
         Action onLeaveReligionConfirmed)
     {
-        // Render Religion Browser (if open and Create Religion is not open)
-        if (_showReligionBrowser && !_showCreateReligion)
-        {
-            _showReligionBrowser = UI.Renderers.ReligionBrowserOverlay.Draw(
-                capi,
-                windowWidth,
-                windowHeight,
-                () => _showReligionBrowser = false,
-                onJoinReligionClicked,
-                onCreateReligionClicked,
-                manager.HasReligion()
-            );
-        }
-
         // Render Create Religion overlay
         if (_showCreateReligion)
         {
@@ -135,24 +122,6 @@ public class OverlayCoordinator : IOverlayCoordinator
                 windowHeight,
                 () => _showCreateReligion = false,
                 onCreateReligionSubmit
-            );
-        }
-
-        // Render Religion Management overlay
-        if (_showReligionManagement)
-        {
-            _showReligionManagement = UI.Renderers.ReligionManagementOverlay.Draw(
-                capi,
-                windowWidth,
-                windowHeight,
-                () => _showReligionManagement = false,
-                onKickMemberClicked,
-                onBanMemberClicked,
-                onUnbanMemberClicked,
-                onInvitePlayerClicked,
-                onEditDescriptionClicked,
-                onDisbandReligionClicked,
-                onRequestReligionInfo
             );
         }
 

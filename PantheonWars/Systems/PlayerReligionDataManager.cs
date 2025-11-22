@@ -110,7 +110,13 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
         // Remove from religion
         _religionManager.RemoveMember(religionUID, playerUID);
 
-        OnPlayerLeavesReligion.Invoke((_sapi.World.PlayerByUid(playerUID) as IServerPlayer)!, religionUID);
+        // Invoke event only if player is online
+        var player = _sapi.World.PlayerByUid(playerUID) as IServerPlayer;
+        if (player != null)
+        {
+            OnPlayerLeavesReligion.Invoke(player, religionUID);
+        }
+
         // Clear player data
         data.ReligionUID = null;
 

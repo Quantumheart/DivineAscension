@@ -70,26 +70,27 @@ public partial class GuildManagementDialog
     }
 
     /// <summary>
-    ///     Handle Change Religion button click
+    ///     Handle Change Religion button click - shows guild browser in main window
     /// </summary>
     private void OnChangeReligionClicked()
     {
         _capi!.Logger.Debug("[PantheonWars] Opening religion browser");
-        _overlayCoordinator!.ShowReligionBrowser();
 
-        // Initialize overlay and request religion list
-        UI.Renderers.ReligionBrowserOverlay.Initialize();
+        // Enable browser mode and initialize
+        _state.ShowBrowser = true;
+        UI.Renderers.GuildBrowserRenderer.Initialize();
         _pantheonWarsSystem?.RequestReligionList("");
     }
 
     /// <summary>
-    ///     Handle Manage Religion button click (for leaders)
+    ///     Handle Manage Religion button click (deprecated - management is now in tabs)
     /// </summary>
     private void OnManageReligionClicked()
     {
-        _capi!.Logger.Debug("[PantheonWars] Manage Religion clicked");
-        _overlayCoordinator!.ShowReligionManagement();
-        UI.Renderers.ReligionManagementOverlay.Initialize();
+        _capi!.Logger.Debug("[PantheonWars] Manage Religion clicked - switching to settings tab");
+
+        // Switch to settings tab
+        _state.CurrentTab = State.GuildTab.Settings;
 
         // Request religion info from server
         _pantheonWarsSystem?.RequestPlayerReligionInfo();
@@ -101,7 +102,9 @@ public partial class GuildManagementDialog
     private void OnReligionListReceived(ReligionListResponsePacket packet)
     {
         _capi!.Logger.Debug($"[PantheonWars] Received {packet.Religions.Count} religions from server");
-        UI.Renderers.ReligionBrowserOverlay.UpdateReligionList(packet.Religions);
+
+        // Update guild browser renderer
+        UI.Renderers.GuildBrowserRenderer.UpdateReligionList(packet.Religions);
     }
 
     /// <summary>
@@ -115,22 +118,29 @@ public partial class GuildManagementDialog
         {
             _capi.ShowChatMessage(packet.Message);
 
-            // Close any open overlays
-            _overlayCoordinator!.CloseReligionBrowser();
-            _overlayCoordinator.CloseLeaveConfirmation();
+            // Close any open overlays and exit browser mode
+            _overlayCoordinator!.CloseAllOverlays();
+            _state.ShowBrowser = false;
 
             // If leaving religion, reset dialog state immediately
             if (packet.Action == "leave")
             {
                 _capi.Logger.Debug("[PantheonWars] Resetting dialog after leaving religion");
                 _manager!.Reset();
+                _state.CurrentTab = State.GuildTab.Overview; // Reset to overview tab
+            }
+
+            // If joining or creating religion, switch to guild view
+            if (packet.Action == "join" || packet.Action == "create")
+            {
+                _state.CurrentTab = State.GuildTab.Overview;
             }
 
             // Request fresh religion data (religion may have changed)
             _pantheonWarsSystem?.RequestPlayerReligionInfo();
 
-            // Request updated religion info to refresh member count (for join/kick/ban/invite actions)
-            if (packet.Action == "join" || packet.Action == "kick" || packet.Action == "ban" || packet.Action == "invite")
+            // Request updated religion info to refresh member count (for create/join/kick/ban/invite actions)
+            if (packet.Action == "create" || packet.Action == "join" || packet.Action == "kick" || packet.Action == "ban" || packet.Action == "invite")
             {
                 _pantheonWarsSystem?.RequestPlayerReligionInfo();
             }
@@ -226,20 +236,28 @@ public partial class GuildManagementDialog
     {
         _capi!.Logger.Debug($"[PantheonWars] Received player religion info: HasReligion={packet.HasReligion}, IsFounder={packet.IsFounder}");
 
-        // Update manager with player's role (enables Manage Religion button for leaders)
+        // Update manager with guild data
         if (packet.HasReligion)
         {
+            _manager!.CurrentReligionUID = packet.ReligionUID;
+            _manager.CurrentReligionName = packet.ReligionName;
             _manager!.PlayerRoleInReligion = packet.IsFounder ? "Leader" : "Member";
             _manager.ReligionMemberCount = packet.Members.Count;
-            _capi!.Logger.Debug($"[PantheonWars] Set PlayerRoleInReligion to: {_manager.PlayerRoleInReligion}, MemberCount: {_manager.ReligionMemberCount}");
+            _capi!.Logger.Debug($"[PantheonWars] Set guild data - Name: {packet.ReligionName}, Role: {_manager.PlayerRoleInReligion}, MemberCount: {_manager.ReligionMemberCount}");
         }
         else
         {
+            _manager!.CurrentReligionUID = null;
+            _manager.CurrentReligionName = null;
             _manager!.PlayerRoleInReligion = null;
             _manager.ReligionMemberCount = 0;
             _capi!.Logger.Debug("[PantheonWars] Cleared PlayerRoleInReligion (no religion)");
         }
 
+        // Update management state for tabs
+        _managementState.UpdateReligionInfo(packet);
+
+        // Also update old overlay for backwards compatibility (can be removed later)
         UI.Renderers.ReligionManagementOverlay.UpdateReligionInfo(packet);
     }
 
