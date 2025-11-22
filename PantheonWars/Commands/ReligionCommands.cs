@@ -139,7 +139,7 @@ public class ReligionCommands(
             return TextCommandResult.Error($"A religion named '{religionName}' already exists");
 
         // Create the religion
-        var religion = _religionManager.CreateReligion(religionName, deity, player.PlayerUID, isPublic);
+        var religion = _religionManager.CreateReligion(religionName, player.PlayerUID, isPublic);
 
         // Auto-join the founder
         _playerReligionDataManager.JoinReligion(player.PlayerUID, religion.ReligionUID);
@@ -176,7 +176,6 @@ public class ReligionCommands(
 
         // Apply switching penalty if needed
         var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (playerData.HasReligion()) _playerReligionDataManager.HandleReligionSwitch(player.PlayerUID);
 
         // Join the religion
         _playerReligionDataManager.JoinReligion(player.PlayerUID, religion.ReligionUID);
@@ -184,7 +183,7 @@ public class ReligionCommands(
         // Remove invitation if exists
         _religionManager.RemoveInvitation(player.PlayerUID, religion.ReligionUID);
 
-        return TextCommandResult.Success($"You have joined {religion.ReligionName}! May {religion.Deity} guide you.");
+        return TextCommandResult.Success($"You have joined {religion.ReligionName}! ");
     }
 
     /// <summary>
@@ -213,27 +212,17 @@ public class ReligionCommands(
     /// </summary>
     internal TextCommandResult OnListReligions(TextCommandCallingArgs args)
     {
-        var deityFilter = args.Parsers.Count > 0 ? (string?)args[0] : null;
-
         var religions = _religionManager.GetAllReligions();
-
-        // Apply deity filter if specified
-        if (!string.IsNullOrEmpty(deityFilter))
-        {
-            if (!Enum.TryParse(deityFilter, true, out DeityType deity))
-                return TextCommandResult.Error($"Invalid deity: {deityFilter}");
-            religions = _religionManager.GetReligionsByDeity(deity);
-        }
 
         if (religions.Count == 0) return TextCommandResult.Success("No religions found");
 
         var sb = new StringBuilder();
         sb.AppendLine("=== Religions ===");
-        foreach (var religion in religions.OrderByDescending(r => r.TotalPrestige))
+        foreach (var religion in religions.OrderByDescending(r => r.ReligionName))
         {
             var visibility = religion.IsPublic ? "Public" : "Private";
             sb.AppendLine(
-                $"- {religion.ReligionName} ({religion.Deity}) | {visibility} | {religion.GetMemberCount()} members | Rank: {religion.PrestigeRank}");
+                $"- {religion.ReligionName} | {visibility} | {religion.GetMemberCount()} members");
         }
 
         return TextCommandResult.Success(sb.ToString());
@@ -269,11 +258,8 @@ public class ReligionCommands(
         // Build info display
         var sb = new StringBuilder();
         sb.AppendLine($"=== {religion.ReligionName} ===");
-        sb.AppendLine($"Deity: {religion.Deity}");
         sb.AppendLine($"Visibility: {(religion.IsPublic ? "Public" : "Private")}");
         sb.AppendLine($"Members: {religion.GetMemberCount()}");
-        sb.AppendLine($"Prestige Rank: {religion.PrestigeRank}");
-        sb.AppendLine($"Prestige: {religion.Prestige} (Total: {religion.TotalPrestige})");
         sb.AppendLine($"Created: {religion.CreationDate:yyyy-MM-dd}");
 
         var founderPlayer = _sapi.World.PlayerByUid(religion.FounderUID);
@@ -309,7 +295,7 @@ public class ReligionCommands(
             var memberData = _playerReligionDataManager.GetOrCreatePlayerData(memberUID);
             var role = religion.IsFounder(memberUID) ? "Founder" : "Member";
 
-            sb.AppendLine($"- {memberName} ({role}) | Rank: {memberData.FavorRank} | Favor: {memberData.Favor}");
+            sb.AppendLine($"- {memberName} ({role})");
         }
 
         return TextCommandResult.Success(sb.ToString());

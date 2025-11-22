@@ -67,116 +67,6 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
     }
 
     /// <summary>
-    ///     Adds favor to a player
-    /// </summary>
-    public void AddFavor(string playerUID, int amount, string reason = "")
-    {
-        var data = GetOrCreatePlayerData(playerUID);
-        var oldRank = data.FavorRank;
-
-        data.AddFavor(amount);
-
-        if (!string.IsNullOrEmpty(reason))
-            _sapi.Logger.Debug($"[PantheonWars] Player {playerUID} gained {amount} favor: {reason}");
-
-        // Check for rank up
-        if (data.FavorRank > oldRank) SendRankUpNotification(playerUID, data.FavorRank);
-
-        // Notify listeners that player data changed (for UI updates)
-        OnPlayerDataChanged?.Invoke(playerUID);
-    }
-
-    /// <summary>
-    ///     Adds fractional favor to a player (for passive favor generation)
-    /// </summary>
-    public void AddFractionalFavor(string playerUID, float amount, string reason = "")
-    {
-        var data = GetOrCreatePlayerData(playerUID);
-        var oldRank = data.FavorRank;
-        var oldFavor = data.Favor;
-
-        data.AddFractionalFavor(amount);
-
-        // Only log when favor is actually awarded (when accumulated >= 1)
-        if (data.AccumulatedFractionalFavor < amount && !string.IsNullOrEmpty(reason))
-            _sapi.Logger.Debug($"[PantheonWars] Player {playerUID} gained favor: {reason}");
-
-        // Check for rank up
-        if (data.FavorRank > oldRank) SendRankUpNotification(playerUID, data.FavorRank);
-
-        // Notify listeners if favor actually changed (UI updates)
-        if (data.Favor != oldFavor) OnPlayerDataChanged?.Invoke(playerUID);
-    }
-
-    /// <summary>
-    ///     Removes favor from a player
-    /// </summary>
-    public bool RemoveFavor(string playerUID, int amount, string reason = "")
-    {
-        var data = GetOrCreatePlayerData(playerUID);
-        var success = data.RemoveFavor(amount);
-
-        if (success && !string.IsNullOrEmpty(reason))
-            _sapi.Logger.Debug($"[PantheonWars] Player {playerUID} spent {amount} favor: {reason}");
-
-        // Notify listeners that player data changed (for UI updates)
-        if (success) OnPlayerDataChanged?.Invoke(playerUID);
-
-        return success;
-    }
-
-    /// <summary>
-    ///     Updates favor rank for a player
-    /// </summary>
-    public void UpdateFavorRank(string playerUID)
-    {
-        var data = GetOrCreatePlayerData(playerUID);
-        var oldRank = data.FavorRank;
-
-        data.UpdateFavorRank();
-
-        // Check for rank change
-        if (data.FavorRank != oldRank)
-        {
-            _sapi.Logger.Notification($"[PantheonWars] Player {playerUID} rank changed: {oldRank} -> {data.FavorRank}");
-
-            if (data.FavorRank > oldRank) SendRankUpNotification(playerUID, data.FavorRank);
-        }
-    }
-
-    /// <summary>
-    ///     Unlocks a player blessing
-    /// </summary>
-    public bool UnlockPlayerBlessing(string playerUID, string blessingId)
-    {
-        var data = GetOrCreatePlayerData(playerUID);
-
-        // Check if already unlocked
-        if (data.IsBlessingUnlocked(blessingId)) return false;
-
-        // Unlock the blessing
-        data.UnlockBlessing(blessingId);
-        _sapi.Logger.Notification($"[PantheonWars] Player {playerUID} unlocked blessing: {blessingId}");
-
-        return true;
-    }
-
-    /// <summary>
-    ///     Gets active player blessings (to be expanded in Phase 3.3)
-    /// </summary>
-    public List<string> GetActivePlayerBlessings(string playerUID)
-    {
-        var data = GetOrCreatePlayerData(playerUID);
-        var unlockedBlessings = new List<string>();
-
-        foreach (var kvp in data.UnlockedBlessings)
-            if (kvp.Value) // If unlocked
-                unlockedBlessings.Add(kvp.Key);
-
-        return unlockedBlessings;
-    }
-
-    /// <summary>
     ///     Joins a player to a religion
     /// </summary>
     public void JoinReligion(string playerUID, string religionUID)
@@ -198,7 +88,6 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
 
         // Set religion and deity
         data.ReligionUID = religionUID;
-        data.ActiveDeity = religion.Deity;
         data.LastReligionSwitch = DateTime.UtcNow;
 
         // Add player to religion
@@ -218,17 +107,12 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
 
         var religionUID = data.ReligionUID!;
 
-        HandleReligionSwitch(playerUID);
         // Remove from religion
         _religionManager.RemoveMember(religionUID, playerUID);
 
         OnPlayerLeavesReligion.Invoke((_sapi.World.PlayerByUid(playerUID) as IServerPlayer)!, religionUID);
         // Clear player data
         data.ReligionUID = null;
-        data.ActiveDeity = DeityType.None;
-        data.Favor = 0;
-        data.TotalFavorEarned = 0;
-        data.FavorRank = FavorRank.Initiate;
 
         _sapi.Logger.Notification($"[PantheonWars] Player {playerUID} left religion");
     }
@@ -261,19 +145,6 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
         var remaining = cooldownEnd - DateTime.UtcNow;
 
         return remaining.TotalSeconds > 0 ? remaining : TimeSpan.Zero;
-    }
-
-    /// <summary>
-    ///     Applies switching penalty when changing religions
-    /// </summary>
-    public void HandleReligionSwitch(string playerUID)
-    {
-        var data = GetOrCreatePlayerData(playerUID);
-
-        _sapi.Logger.Notification($"[PantheonWars] Applying religion switch penalty to player {playerUID}");
-
-        // Apply penalty (reset favor and blessings)
-        data.ApplySwitchPenalty();
     }
 
     /// <summary>

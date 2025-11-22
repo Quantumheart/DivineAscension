@@ -143,18 +143,8 @@ public static class MemberListRenderer
         var namePos = new Vector2(x + padding, y + (height - 14f) / 2);
         var nameColor = ImGui.ColorConvertFloat4ToU32(member.IsFounder ? ColorPalette.Gold : ColorPalette.White);
         drawList.AddText(namePos, nameColor, nameText);
-
-        // Favor rank
-        var rankText = $"{member.FavorRank} ({member.Favor})";
-        var rankSize = ImGui.CalcTextSize(rankText);
-
         // Calculate button area width (kick + ban buttons if both callbacks provided)
         var hasBanButton = onBanMember != null;
-        var buttonAreaWidth = hasBanButton ? (buttonWidth * 2 + buttonSpacing + padding) : (buttonWidth + padding);
-
-        var rankPos = new Vector2(x + width - buttonAreaWidth - 10f - rankSize.X, y + (height - 14f) / 2);
-        var rankColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        drawList.AddText(rankPos, rankColor, rankText);
 
         // Action buttons (only if not founder and not self)
         if (!member.IsFounder && member.PlayerUID != currentPlayerUID)

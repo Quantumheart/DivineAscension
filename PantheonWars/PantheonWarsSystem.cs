@@ -151,10 +151,7 @@ public class PantheonWarsSystem : ModSystem
             response.HasReligion = true;
             response.ReligionUID = religion.ReligionUID;
             response.ReligionName = religion.ReligionName;
-            response.Deity = religion.Deity.ToString();
             response.FounderUID = religion.FounderUID;
-            response.Prestige = religion.Prestige;
-            response.PrestigeRank = religion.PrestigeRank.ToString();
             response.IsPublic = religion.IsPublic;
             response.Description = religion.Description;
             response.IsFounder = religion.FounderUID == fromPlayer.PlayerUID;
@@ -170,8 +167,6 @@ public class PantheonWarsSystem : ModSystem
                 {
                     PlayerUID = memberUID,
                     PlayerName = memberName,
-                    FavorRank = memberPlayerData.FavorRank.ToString(),
-                    Favor = memberPlayerData.Favor,
                     IsFounder = memberUID == religion.FounderUID
                 });
             }
@@ -608,14 +603,7 @@ public class PantheonWarsSystem : ModSystem
         if (religionData != null)
         {
             var packet = new PlayerReligionDataPacket(
-                religionData.ReligionName,
-                deityName,
-                playerReligionData.Favor,
-                playerReligionData.FavorRank.ToString(),
-                religionData.Prestige,
-                religionData.PrestigeRank.ToString(),
-                playerReligionData.TotalFavorEarned
-            );
+                religionData.ReligionName);
 
             _serverChannel.SendPacket(packet, player);
         }
