@@ -15,23 +15,17 @@ public class PlayerReligionInfoResponsePacket
 
     [ProtoMember(3)] public string ReligionName { get; set; } = string.Empty;
 
-    [ProtoMember(4)] public string Deity { get; set; } = string.Empty;
+    [ProtoMember(4)] public string FounderUID { get; set; } = string.Empty;
 
-    [ProtoMember(5)] public string FounderUID { get; set; } = string.Empty;
+    [ProtoMember(5)] public bool IsPublic { get; set; }
 
-    [ProtoMember(6)] public int Prestige { get; set; }
+    [ProtoMember(6)] public string Description { get; set; } = string.Empty;
 
-    [ProtoMember(7)] public string PrestigeRank { get; set; } = string.Empty;
+    [ProtoMember(7)] public List<MemberInfo> Members { get; set; } = new();
 
-    [ProtoMember(8)] public bool IsPublic { get; set; }
+    [ProtoMember(8)] public bool IsFounder { get; set; }
 
-    [ProtoMember(9)] public string Description { get; set; } = string.Empty;
-
-    [ProtoMember(10)] public List<MemberInfo> Members { get; set; } = new();
-
-    [ProtoMember(11)] public bool IsFounder { get; set; }
-
-    [ProtoMember(12)] public List<BanInfo> BannedPlayers { get; set; } = new();
+    [ProtoMember(9)] public List<BanInfo> BannedPlayers { get; set; } = new();
 
     [ProtoContract]
     public class MemberInfo
@@ -40,11 +34,7 @@ public class PlayerReligionInfoResponsePacket
 
         [ProtoMember(2)] public string PlayerName { get; set; } = string.Empty;
 
-        [ProtoMember(3)] public string FavorRank { get; set; } = string.Empty;
-
-        [ProtoMember(4)] public int Favor { get; set; }
-
-        [ProtoMember(5)] public bool IsFounder { get; set; }
+        [ProtoMember(3)] public bool IsFounder { get; set; }
     }
 
     [ProtoContract]
