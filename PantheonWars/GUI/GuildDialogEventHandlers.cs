@@ -5,9 +5,9 @@ using Vintagestory.API.Common;
 namespace PantheonWars.GUI;
 
 /// <summary>
-///     Event handlers for BlessingDialog - extracted from main class for maintainability
+///     Event handlers for GuildManagementDialog - extracted from main class for maintainability
 /// </summary>
-public partial class BlessingDialog
+public partial class GuildManagementDialog
 {
     private const string PANTHEONWARS_SOUNDS_DEITIES = "pantheonwars:sounds/deities/";
 

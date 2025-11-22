@@ -5,7 +5,7 @@ namespace PantheonWars.GUI.Interfaces;
 /// <summary>
 ///     Interface for managing state for the Guild Management Dialog UI
 /// </summary>
-public interface IBlessingDialogManager
+public interface IGuildDialogManager
 {
     // Religion state
     string? CurrentReligionUID { get; set; }

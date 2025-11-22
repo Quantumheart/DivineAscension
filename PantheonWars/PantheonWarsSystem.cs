@@ -650,25 +650,25 @@ public class PantheonWarsSystem : ModSystem
 
     private void OnServerPlayerDataUpdate(PlayerReligionDataPacket packet)
     {
-        // Trigger event for BlessingDialog and other UI components
+        // Trigger event for GuildManagementDialog and other UI components
         PlayerReligionDataUpdated?.Invoke(packet);
     }
 
     private void OnReligionListResponse(ReligionListResponsePacket packet)
     {
-        // Legacy _religionDialog removed - ImGui BlessingDialog subscribes to ReligionListReceived event
+        // Legacy _religionDialog removed - ImGui GuildManagementDialog subscribes to ReligionListReceived event
         ReligionListReceived?.Invoke(packet);
     }
 
     private void OnPlayerReligionInfoResponse(PlayerReligionInfoResponsePacket packet)
     {
-        // Legacy _religionDialog removed - ImGui BlessingDialog subscribes to PlayerReligionInfoReceived event
+        // Legacy _religionDialog removed - ImGui GuildManagementDialog subscribes to PlayerReligionInfoReceived event
         PlayerReligionInfoReceived?.Invoke(packet);
     }
 
     private void OnReligionActionResponse(ReligionActionResponsePacket packet)
     {
-        // Legacy _religionDialog removed - ImGui BlessingDialog subscribes to ReligionActionCompleted event
+        // Legacy _religionDialog removed - ImGui GuildManagementDialog subscribes to ReligionActionCompleted event
         ReligionActionCompleted?.Invoke(packet);
     }
 
@@ -711,7 +711,7 @@ public class PantheonWarsSystem : ModSystem
         // Show notification to user
         _capi?.ShowChatMessage(packet.Reason);
 
-        // Trigger event for BlessingDialog to refresh its data
+        // Trigger event for GuildManagementDialog to refresh its data
         ReligionStateChanged?.Invoke(packet);
     }
 

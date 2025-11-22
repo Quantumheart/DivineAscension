@@ -98,7 +98,7 @@ public class OverlayCoordinator : IOverlayCoordinator
         ICoreClientAPI capi,
         int windowWidth,
         int windowHeight,
-        BlessingDialogManager manager,
+        GuildDialogManager manager,
         Action<string> onJoinReligionClicked,
         Action<string> onRefreshReligionList,
         Action onCreateReligionClicked,

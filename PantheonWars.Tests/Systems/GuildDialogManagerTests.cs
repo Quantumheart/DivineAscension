@@ -5,12 +5,12 @@ using PantheonWars.Models.Enum;
 namespace PantheonWars.Tests.Systems;
 
 [ExcludeFromCodeCoverage]
-public class BlessingDialogManagerTests
+public class GuildDialogManagerTests
 {
     [Fact]
     public void TestPropertyInitialization()
     {
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuildDialogManager(null!);
         Assert.Null(manager.CurrentReligionUID);
         Assert.Equal(DeityType.None, manager.CurrentDeity);
         Assert.Null(manager.CurrentReligionName);
@@ -20,7 +20,7 @@ public class BlessingDialogManagerTests
     [Fact]
     public void TestInitializeMethod()
     {
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuildDialogManager(null!);
         manager.Initialize("religion123", DeityType.Khoras, "God of Warriors");
         Assert.Equal("religion123", manager.CurrentReligionUID);
         Assert.Equal(DeityType.Khoras, manager.CurrentDeity);
@@ -31,7 +31,7 @@ public class BlessingDialogManagerTests
     [Fact]
     public void TestResetMethod()
     {
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuildDialogManager(null!);
         manager.Initialize("religion123", DeityType.Khoras, "God of Warriors");
         manager.Reset();
         Assert.Null(manager.CurrentReligionUID);
@@ -43,7 +43,7 @@ public class BlessingDialogManagerTests
     [Fact]
     public void TestHasReligion()
     {
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuildDialogManager(null!);
         Assert.False(manager.HasReligion());
 
         manager.Initialize("religion123", DeityType.Khoras, "God of Warriors");

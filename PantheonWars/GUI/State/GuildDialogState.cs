@@ -1,9 +1,9 @@
 namespace PantheonWars.GUI.State;
 
 /// <summary>
-///     State management for BlessingDialog
+///     State management for GuildManagementDialog
 /// </summary>
-public class BlessingDialogState
+public class GuildDialogState
 {
     /// <summary>
     ///     Whether the dialog is currently open

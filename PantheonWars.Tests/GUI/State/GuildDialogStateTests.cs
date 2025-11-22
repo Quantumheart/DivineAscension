@@ -5,10 +5,10 @@ using Xunit;
 namespace PantheonWars.Tests.GUI.State;
 
 /// <summary>
-///     Unit tests for BlessingDialogState
+///     Unit tests for GuildDialogState
 /// </summary>
 [ExcludeFromCodeCoverage]
-public class BlessingDialogStateTests
+public class GuildDialogStateTests
 {
     #region Constructor and Default Values Tests
 
@@ -16,7 +16,7 @@ public class BlessingDialogStateTests
     public void Constructor_InitializesWithDefaultValues()
     {
         // Act
-        var state = new BlessingDialogState();
+        var state = new GuildDialogState();
 
         // Assert
         Assert.False(state.IsOpen);
@@ -33,7 +33,7 @@ public class BlessingDialogStateTests
     public void Properties_CanBeSetAndRetrieved()
     {
         // Arrange
-        var state = new BlessingDialogState();
+        var state = new GuildDialogState();
 
         // Act
         state.IsOpen = true;
@@ -56,7 +56,7 @@ public class BlessingDialogStateTests
     public void Reset_ResetsAllPropertiesToDefaults()
     {
         // Arrange
-        var state = new BlessingDialogState
+        var state = new GuildDialogState
         {
             IsOpen = true,
             IsReady = true,
@@ -78,7 +78,7 @@ public class BlessingDialogStateTests
     public void Reset_CanBeCalledMultipleTimes()
     {
         // Arrange
-        var state = new BlessingDialogState();
+        var state = new GuildDialogState();
         state.IsOpen = true;
         state.WindowPosX = 50f;
 

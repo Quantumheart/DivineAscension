@@ -7,11 +7,11 @@ namespace PantheonWars.GUI;
 /// <summary>
 ///     Manages state for the Guild Management Dialog UI
 /// </summary>
-public class BlessingDialogManager : IBlessingDialogManager
+public class GuildDialogManager : IGuildDialogManager
 {
     private readonly ICoreClientAPI _capi;
 
-    public BlessingDialogManager(ICoreClientAPI capi)
+    public GuildDialogManager(ICoreClientAPI capi)
     {
         _capi = capi;
     }

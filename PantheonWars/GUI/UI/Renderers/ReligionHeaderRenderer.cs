@@ -20,7 +20,7 @@ internal static class ReligionHeaderRenderer
     /// <summary>
     ///     Draw the religion header banner
     /// </summary>
-    /// <param name="manager">Blessing dialog state manager</param>
+    /// <param name="manager">Guild dialog state manager</param>
     /// <param name="api">Client API</param>
     /// <param name="x">X position</param>
     /// <param name="y">Y position</param>
@@ -30,7 +30,7 @@ internal static class ReligionHeaderRenderer
     /// <param name="onLeaveReligionClicked">Callback when Leave Religion button clicked</param>
     /// <returns>Height used by this renderer</returns>
     public static float Draw(
-        BlessingDialogManager manager,
+        GuildDialogManager manager,
         ICoreClientAPI api,
         float x, float y, float width,
         Action? onChangeReligionClicked = null,

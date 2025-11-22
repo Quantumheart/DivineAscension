@@ -12,10 +12,10 @@ using VSImGui.API;
 namespace PantheonWars.GUI;
 
 /// <summary>
-///     Main ImGui-based Blessing Dialog for viewing and unlocking blessings
+///     Main ImGui-based Guild Management Dialog for managing guilds
 /// </summary>
 [ExcludeFromCodeCoverage]
-public partial class BlessingDialog : ModSystem
+public partial class GuildManagementDialog : ModSystem
 {
     private const int CheckDataInterval = 1000; // Check for data every 1 second
     private const int WindowBaseWidth = 1400;
@@ -26,12 +26,12 @@ public partial class BlessingDialog : ModSystem
     private ImGuiModSystem? _imguiModSystem;
     private PantheonWarsSystem? _pantheonWarsSystem;
 
-    private BlessingDialogManager? _manager;
+    private GuildDialogManager? _manager;
     private Stopwatch? _stopwatch;
     private ImGuiViewportPtr _viewport;
 
     // State
-    private readonly BlessingDialogState _state = new();
+    private readonly GuildDialogState _state = new();
 
     // Overlay coordinator
     private OverlayCoordinator? _overlayCoordinator;
@@ -55,12 +55,12 @@ public partial class BlessingDialog : ModSystem
         _stopwatch = Stopwatch.StartNew();
 
         // Register keybind (P key to open)
-        _capi.Input.RegisterHotKey("pantheonwarsblessings", "Show/Hide Blessing Dialog", GlKeys.P,
+        _capi.Input.RegisterHotKey("pantheonwarsguilds", "Show/Hide Guild Management Dialog", GlKeys.P,
             HotkeyType.GUIOrOtherControls);
-        _capi.Input.SetHotKeyHandler("pantheonwarsblessings", OnToggleDialog);
+        _capi.Input.SetHotKeyHandler("pantheonwarsguilds", OnToggleDialog);
 
         // Initialize manager and overlay coordinator
-        _manager = new BlessingDialogManager(_capi);
+        _manager = new GuildDialogManager(_capi);
         _overlayCoordinator = new OverlayCoordinator();
 
         // Get PantheonWarsSystem for network communication
@@ -87,18 +87,18 @@ public partial class BlessingDialog : ModSystem
         }
         else
         {
-            _capi.Logger.Error("[PantheonWars] VSImGui mod not found! Blessing dialog will not work.");
+            _capi.Logger.Error("[PantheonWars] VSImGui mod not found! Guild Management dialog will not work.");
         }
 
         // Register periodic check for data availability
         _checkDataId = _capi.Event.RegisterGameTickListener(OnCheckDataAvailability, CheckDataInterval);
 
-        _capi.Logger.Notification("[PantheonWars] Blessing Dialog initialized");
+        _capi.Logger.Notification("[PantheonWars] Guild Management Dialog initialized");
     }
 
 
     /// <summary>
-    ///     Open the blessing dialog
+    ///     Open the guild management dialog
     /// </summary>
     private void Open()
     {
@@ -108,18 +108,18 @@ public partial class BlessingDialog : ModSystem
         {
             // Request data from server
             _pantheonWarsSystem?.RequestPlayerReligionInfo();
-            _capi!.ShowChatMessage("Loading religion data...");
+            _capi!.ShowChatMessage("Loading guild data...");
             return;
         }
 
         _state.IsOpen = true;
         _imguiModSystem?.Show();
 
-        _capi!.Logger.Debug("[PantheonWars] Blessing Dialog opened");
+        _capi!.Logger.Debug("[PantheonWars] Guild Management Dialog opened");
     }
 
     /// <summary>
-    ///     Close the blessing dialog
+    ///     Close the guild management dialog
     /// </summary>
     private void Close()
     {
@@ -130,7 +130,7 @@ public partial class BlessingDialog : ModSystem
         // TODO: Add close sound in Phase 5
         // _capi.Gui.PlaySound(new AssetLocation("pantheonwars", "sounds/click.ogg"), false, 0.3f);
 
-        _capi!.Logger.Debug("[PantheonWars] Blessing Dialog closed");
+        _capi!.Logger.Debug("[PantheonWars] Guild Management Dialog closed");
     }
 
     /// <summary>
@@ -161,7 +161,7 @@ public partial class BlessingDialog : ModSystem
     }
 
     /// <summary>
-    ///     Draw the main blessing dialog window
+    ///     Draw the main guild management dialog window
     /// </summary>
     private void DrawWindow()
     {
@@ -195,7 +195,7 @@ public partial class BlessingDialog : ModSystem
         // Set window background color
         ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.16f, 0.12f, 0.09f, 1.0f)); // Dark brown
 
-        ImGui.Begin("PantheonWars Blessing Dialog", flags);
+        ImGui.Begin("PantheonWars Guild Management Dialog", flags);
 
         // Track window position for drawing
         var windowPos = ImGui.GetWindowPos();
@@ -213,7 +213,7 @@ public partial class BlessingDialog : ModSystem
         }
 
         ImGui.SetCursorPos(new Vector2(20, 80));
-        if (ImGui.Button("Change Religion", new Vector2(200, 40)))
+        if (ImGui.Button("Change Guild", new Vector2(200, 40)))
         {
             OnChangeReligionClicked();
         }
@@ -221,7 +221,7 @@ public partial class BlessingDialog : ModSystem
         if (_manager!.HasReligion() && _manager.PlayerRoleInReligion == "Leader")
         {
             ImGui.SetCursorPos(new Vector2(20, 140));
-            if (ImGui.Button("Manage Religion", new Vector2(200, 40)))
+            if (ImGui.Button("Manage Guild", new Vector2(200, 40)))
             {
                 OnManageReligionClicked();
             }
@@ -230,7 +230,7 @@ public partial class BlessingDialog : ModSystem
         if (_manager!.HasReligion())
         {
             ImGui.SetCursorPos(new Vector2(20, 200));
-            if (ImGui.Button("Leave Religion", new Vector2(200, 40)))
+            if (ImGui.Button("Leave Guild", new Vector2(200, 40)))
             {
                 OnLeaveReligionClicked();
             }
@@ -295,6 +295,6 @@ public partial class BlessingDialog : ModSystem
             _pantheonWarsSystem.PlayerReligionDataUpdated -= OnPlayerReligionDataUpdated;
         }
 
-        _capi?.Logger.Notification("[PantheonWars] Blessing Dialog disposed");
+        _capi?.Logger.Notification("[PantheonWars] Guild Management Dialog disposed");
     }
 }
