@@ -1,15 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using PantheonWars.GUI.State;
-using PantheonWars.GUI.UI;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
-using PantheonWars.Network;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using VSImGui;
@@ -19,7 +13,6 @@ namespace PantheonWars.GUI;
 
 /// <summary>
 ///     Main ImGui-based Blessing Dialog for viewing and unlocking blessings
-///     Follows XSkillsGilded pattern with VSImGui integration
 /// </summary>
 [ExcludeFromCodeCoverage]
 public partial class BlessingDialog : ModSystem
@@ -70,15 +63,10 @@ public partial class BlessingDialog : ModSystem
         _manager = new BlessingDialogManager(_capi);
         _overlayCoordinator = new OverlayCoordinator();
 
-        // Initialize deity icon loader
-        UI.Utilities.DeityIconLoader.Initialize(_capi);
-
         // Get PantheonWarsSystem for network communication
         _pantheonWarsSystem = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
         if (_pantheonWarsSystem != null)
         {
-            _pantheonWarsSystem.BlessingUnlocked += OnBlessingUnlockedFromServer;
-            _pantheonWarsSystem.BlessingDataReceived += OnBlessingDataReceived;
             _pantheonWarsSystem.ReligionStateChanged += OnReligionStateChanged;
             _pantheonWarsSystem.ReligionListReceived += OnReligionListReceived;
             _pantheonWarsSystem.ReligionActionCompleted += OnReligionActionCompleted;
@@ -87,7 +75,7 @@ public partial class BlessingDialog : ModSystem
         }
         else
         {
-            _capi.Logger.Error("[PantheonWars] PantheonWarsSystem not found! Blessing unlocking will not work.");
+            _capi.Logger.Error("[PantheonWars] PantheonWarsSystem not found! Guild management will not work.");
         }
 
         // Get ImGui mod system
@@ -119,16 +107,13 @@ public partial class BlessingDialog : ModSystem
         if (!_state.IsReady)
         {
             // Request data from server
-            _pantheonWarsSystem?.RequestBlessingData();
-            _capi!.ShowChatMessage("Loading blessing data...");
+            _pantheonWarsSystem?.RequestPlayerReligionInfo();
+            _capi!.ShowChatMessage("Loading religion data...");
             return;
         }
 
         _state.IsOpen = true;
         _imguiModSystem?.Show();
-
-        // TODO: Add open sound in Phase 5
-        // _capi.Gui.PlaySound(new AssetLocation("pantheonwars", "sounds/click.ogg"), false, 0.3f);
 
         _capi!.Logger.Debug("[PantheonWars] Blessing Dialog opened");
     }
@@ -220,19 +205,36 @@ public partial class BlessingDialog : ModSystem
         // Draw content
         DrawBackground(windowWidth, windowHeight);
 
-        // Draw UI using BlessingUIRenderer coordinator (Phase 4)
-        BlessingUIRenderer.Draw(
-            _manager!,
-            _capi,
-            windowWidth,
-            windowHeight,
-            deltaTime,
-            OnUnlockButtonClicked,
-            OnCloseButtonClicked,
-            OnChangeReligionClicked,
-            OnManageReligionClicked,
-            OnLeaveReligionClicked
-        );
+        // Draw main UI with religion management buttons
+        ImGui.SetCursorPos(new Vector2(20, 20));
+        if (ImGui.Button("Close", new Vector2(100, 40)))
+        {
+            OnCloseButtonClicked();
+        }
+
+        ImGui.SetCursorPos(new Vector2(20, 80));
+        if (ImGui.Button("Change Religion", new Vector2(200, 40)))
+        {
+            OnChangeReligionClicked();
+        }
+
+        if (_manager!.HasReligion() && _manager.PlayerRoleInReligion == "Leader")
+        {
+            ImGui.SetCursorPos(new Vector2(20, 140));
+            if (ImGui.Button("Manage Religion", new Vector2(200, 40)))
+            {
+                OnManageReligionClicked();
+            }
+        }
+
+        if (_manager!.HasReligion())
+        {
+            ImGui.SetCursorPos(new Vector2(20, 200));
+            if (ImGui.Button("Leave Religion", new Vector2(200, 40)))
+            {
+                OnLeaveReligionClicked();
+            }
+        }
 
         // Draw overlays using coordinator
         _overlayCoordinator!.RenderOverlays(
@@ -286,17 +288,12 @@ public partial class BlessingDialog : ModSystem
         // Unsubscribe from events
         if (_pantheonWarsSystem != null)
         {
-            _pantheonWarsSystem.BlessingUnlocked -= OnBlessingUnlockedFromServer;
-            _pantheonWarsSystem.BlessingDataReceived -= OnBlessingDataReceived;
             _pantheonWarsSystem.ReligionStateChanged -= OnReligionStateChanged;
             _pantheonWarsSystem.ReligionListReceived -= OnReligionListReceived;
             _pantheonWarsSystem.ReligionActionCompleted -= OnReligionActionCompleted;
             _pantheonWarsSystem.PlayerReligionInfoReceived -= OnPlayerReligionInfoReceived;
             _pantheonWarsSystem.PlayerReligionDataUpdated -= OnPlayerReligionDataUpdated;
         }
-        
-        // Dispose deity icon loader
-        UI.Utilities.DeityIconLoader.Dispose();
 
         _capi?.Logger.Notification("[PantheonWars] Blessing Dialog disposed");
     }

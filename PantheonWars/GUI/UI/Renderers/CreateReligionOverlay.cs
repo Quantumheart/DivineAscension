@@ -103,14 +103,6 @@ internal static class CreateReligionOverlay
         _state.ReligionName = TextInput.Draw(drawList, "##religionname", _state.ReligionName, overlayX + padding, currentY, fieldWidth, 32f, "Enter religion name...", 32);
         currentY += 40f;
 
-        // Deity Selection
-        TextRenderer.DrawLabel(drawList, "Deity:", overlayX + padding, currentY);
-        currentY += 25f;
-
-        var dropdownY = currentY;
-        DrawDeityDropdown(drawList, api, overlayX + padding, currentY, fieldWidth, 36f);
-        currentY += 45f;
-
         // Public/Private Toggle
         _state.IsPublic = Checkbox.Draw(drawList, api, "Public (anyone can join)", overlayX + padding, currentY, _state.IsPublic);
         currentY += 35f;
@@ -127,13 +119,6 @@ internal static class CreateReligionOverlay
         {
             TextRenderer.DrawErrorText(drawList, _state.ErrorMessage, overlayX + padding, currentY);
             currentY += 30f;
-        }
-
-        // Process dropdown menu FIRST (before buttons) to consume clicks
-        bool dropdownConsumedClick = false;
-        if (_state.DropdownOpen)
-        {
-            dropdownConsumedClick = DrawDeityDropdownMenu(drawList, api, overlayX + padding, dropdownY, fieldWidth, 36f);
         }
 
         // === CREATE BUTTON (centered) ===
@@ -161,8 +146,8 @@ internal static class CreateReligionOverlay
                 api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
                     api.World.Player.Entity, null, false, 8f, 0.5f);
 
-                var deityName = DeityHelper.DeityNames[_state.SelectedDeityIndex];
-                onCreate.Invoke(_state.ReligionName, deityName, _state.IsPublic);
+                // Pass "None" as deity since we're removing deity system
+                onCreate.Invoke(_state.ReligionName, "None", _state.IsPublic);
                 return false; // Close overlay after create
             }
             else
@@ -173,71 +158,6 @@ internal static class CreateReligionOverlay
             }
         }
 
-        // Redraw dropdown menu AFTER buttons for proper z-order (visual only, interaction already handled)
-        if (_state.DropdownOpen)
-        {
-            DrawDeityDropdownMenuVisual(drawList, overlayX + padding, dropdownY, fieldWidth, 36f);
-        }
-
         return true; // Keep overlay open
-    }
-
-    /// <summary>
-    ///     Draw deity dropdown button (without menu)
-    /// </summary>
-    private static void DrawDeityDropdown(ImDrawListPtr drawList, ICoreClientAPI api, float x, float y, float width, float height)
-    {
-        // Create display text for selected deity
-        var selectedDeity = DeityHelper.DeityNames[_state.SelectedDeityIndex];
-        var deityText = DeityHelper.GetDeityDisplayText(selectedDeity);
-
-        // Draw dropdown button
-        if (Dropdown.DrawButton(drawList, x, y, width, height, deityText, _state.DropdownOpen))
-        {
-            _state.DropdownOpen = !_state.DropdownOpen;
-            api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
-                api.World.Player.Entity, null, false, 8f, 0.3f);
-        }
-    }
-
-    /// <summary>
-    ///     Draw deity dropdown menu (handles interaction and returns if click was consumed)
-    /// </summary>
-    private static bool DrawDeityDropdownMenu(ImDrawListPtr drawList, ICoreClientAPI api, float x, float y, float width, float height)
-    {
-        // Create display texts for all deities
-        var deityDisplayTexts = new string[DeityHelper.DeityNames.Length];
-        for (int i = 0; i < DeityHelper.DeityNames.Length; i++)
-        {
-            deityDisplayTexts[i] = DeityHelper.GetDeityDisplayText(DeityHelper.DeityNames[i]);
-        }
-
-        // Handle interaction
-        var (newIndex, shouldClose, clickConsumed) = Dropdown.DrawMenuAndHandleInteraction(
-            drawList, api, x, y, width, height, deityDisplayTexts, _state.SelectedDeityIndex);
-
-        _state.SelectedDeityIndex = newIndex;
-        if (shouldClose)
-        {
-            _state.DropdownOpen = false;
-        }
-
-        return clickConsumed;
-    }
-
-    /// <summary>
-    ///     Draw deity dropdown menu visual only (no interaction)
-    /// </summary>
-    private static void DrawDeityDropdownMenuVisual(ImDrawListPtr drawList, float x, float y, float width, float height)
-    {
-        // Create display texts for all deities
-        var deityDisplayTexts = new string[DeityHelper.DeityNames.Length];
-        for (int i = 0; i < DeityHelper.DeityNames.Length; i++)
-        {
-            deityDisplayTexts[i] = DeityHelper.GetDeityDisplayText(DeityHelper.DeityNames[i]);
-        }
-
-        // Draw menu visual
-        Dropdown.DrawMenuVisual(drawList, x, y, width, height, deityDisplayTexts, _state.SelectedDeityIndex);
     }
 }

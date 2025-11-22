@@ -87,47 +87,13 @@ internal static class ReligionHeaderRenderer
 
         // Religion info available - draw detailed header
         var currentX = x + padding;
-        var centerY = y + headerHeight / 2;
 
-        // Draw deity icon (with fallback to colored circle)
-        const float iconSize = 48f;
-        var deityTextureId = DeityIconLoader.GetDeityTextureId(manager.CurrentDeity);
-
-        if (deityTextureId != IntPtr.Zero)
-        {
-            // Render deity icon texture
-            var iconPos = new Vector2(currentX, centerY - iconSize / 2);
-            var iconMin = iconPos;
-            var iconMax = new Vector2(iconPos.X + iconSize, iconPos.Y + iconSize);
-
-            // Draw icon with deity color tint for visual cohesion
-            var tintColor = DeityHelper.GetDeityColor(manager.CurrentDeity);
-            var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)); // Full white = no tint
-
-            drawList.AddImage(deityTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
-
-            // Optional: Add subtle border around icon
-            var iconBorderColor = ImGui.ColorConvertFloat4ToU32(tintColor * 0.8f);
-            drawList.AddRect(iconMin, iconMax, iconBorderColor, 4f, ImDrawFlags.None, 2f);
-        }
-        else
-        {
-            // Fallback: Use placeholder colored circle if texture not available
-            var iconCenter = new Vector2(currentX + iconSize / 2, centerY);
-            var iconColor = ImGui.ColorConvertFloat4ToU32(DeityHelper.GetDeityColor(manager.CurrentDeity));
-            drawList.AddCircleFilled(iconCenter, iconSize / 2, iconColor, 16);
-        }
-
-        currentX += iconSize + padding;
-
-        // Religion name and deity
+        // Religion name
         var religionName = manager.CurrentReligionName ?? "Unknown Religion";
-        var deityName = GetDeityDisplayName(manager.CurrentDeity);
-        var headerText = $"{religionName} - {deityName}";
 
         var headerTextPos = new Vector2(currentX, y + 12f);
         var headerTextColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        drawList.AddText(ImGui.GetFont(), 18f, headerTextPos, headerTextColor, headerText);
+        drawList.AddText(ImGui.GetFont(), 18f, headerTextPos, headerTextColor, religionName);
 
         // Member count and role
         var memberInfo = manager.ReligionMemberCount > 0
@@ -141,57 +107,7 @@ internal static class ReligionHeaderRenderer
         var infoTextColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 13f, infoTextPos, infoTextColor, infoText);
 
-        // Progress bars
-        currentX = x + iconSize + padding * 2;
-        var progressY = y + 54f;
-        const float progressBarWidth = 300f;
-        const float progressBarHeight = 20f;
-        const float progressBarSpacing = 28f;
-
-        // Player Favor Progress
-        var favorProgress = manager.GetPlayerFavorProgress();
-        var favorLabel = favorProgress.IsMaxRank
-            ? $"{RankRequirements.GetFavorRankName(favorProgress.CurrentRank)} (MAX)"
-            : $"{RankRequirements.GetFavorRankName(favorProgress.CurrentRank)} ({favorProgress.CurrentFavor}/{favorProgress.RequiredFavor})";
-
-        // Label
-        var favorLabelPos = new Vector2(currentX, progressY);
-        var labelColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
-        drawList.AddText(ImGui.GetFont(), 12f, favorLabelPos, labelColor, "Player Progress:");
-
-        // Progress bar
-        ProgressBarRenderer.DrawProgressBar(
-            drawList,
-            currentX + 110f, progressY - 2f, progressBarWidth, progressBarHeight,
-            favorProgress.ProgressPercentage,
-            ColorPalette.Gold,
-            ColorPalette.DarkBrown,
-            favorLabel,
-            showGlow: favorProgress.ProgressPercentage > 0.8f
-        );
-
-        progressY += progressBarSpacing;
-
-        // Religion Prestige Progress
-        var prestigeProgress = manager.GetReligionPrestigeProgress();
-        var prestigeLabel = prestigeProgress.IsMaxRank
-            ? $"{RankRequirements.GetPrestigeRankName(prestigeProgress.CurrentRank)} (MAX)"
-            : $"{RankRequirements.GetPrestigeRankName(prestigeProgress.CurrentRank)} ({prestigeProgress.CurrentPrestige}/{prestigeProgress.RequiredPrestige})";
-
-        // Label
-        var prestigeLabelPos = new Vector2(currentX, progressY);
-        drawList.AddText(ImGui.GetFont(), 12f, prestigeLabelPos, labelColor, "Religion Progress:");
-
-        // Progress bar (purple color)
-        ProgressBarRenderer.DrawProgressBar(
-            drawList,
-            currentX + 110f, progressY - 2f, progressBarWidth, progressBarHeight,
-            prestigeProgress.ProgressPercentage,
-            new Vector4(0.48f, 0.41f, 0.93f, 1f), // Purple
-            ColorPalette.DarkBrown,
-            prestigeLabel,
-            showGlow: prestigeProgress.ProgressPercentage > 0.8f
-        );
+        // Note: Progress bars removed as part of guild conversion (no more favor/prestige system)
 
         // Right-side buttons
         const float buttonWidth = 140f;
@@ -238,57 +154,6 @@ internal static class ReligionHeaderRenderer
         }
 
         return headerHeight;
-    }
-
-    /// <summary>
-    ///     Get display name for a deity
-    /// </summary>
-    private static string GetDeityDisplayName(DeityType deity)
-    {
-        return deity switch
-        {
-            DeityType.Khoras => "Khoras - God of War",
-            DeityType.Lysa => "Lysa - Goddess of the Hunt",
-            DeityType.Morthen => "Morthen - God of Death",
-            DeityType.Aethra => "Aethra - Goddess of Light",
-            DeityType.Umbros => "Umbros - God of Shadows",
-            DeityType.Tharos => "Tharos - God of Storms",
-            DeityType.Gaia => "Gaia - Goddess of Earth",
-            DeityType.Vex => "Vex - God of Madness",
-            _ => "Unknown Deity"
-        };
-    }
-
-    /// <summary>
-    ///     Get favor rank name from rank number
-    /// </summary>
-    private static string GetFavorRankName(int rank)
-    {
-        return rank switch
-        {
-            0 => "Initiate",
-            1 => "Devoted",
-            2 => "Zealot",
-            3 => "Champion",
-            4 => "Exalted",
-            _ => $"Rank {rank}"
-        };
-    }
-
-    /// <summary>
-    ///     Get prestige rank name from rank number
-    /// </summary>
-    private static string GetPrestigeRankName(int rank)
-    {
-        return rank switch
-        {
-            0 => "Fledgling",
-            1 => "Established",
-            2 => "Renowned",
-            3 => "Legendary",
-            4 => "Mythic",
-            _ => $"Rank {rank}"
-        };
     }
 
     /// <summary>

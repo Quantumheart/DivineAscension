@@ -3,6 +3,36 @@
 ## Overview
 Convert PantheonWars from a complex religion/deity/blessing/PvP system into a streamlined guild/group management system.
 
+## ⚠️ IMPORTANT UPDATE - ImGui UI Already Exists
+
+**CRITICAL FINDING:** PantheonWars has **ALREADY IMPLEMENTED** a complete ImGui-based religion management UI that fully replaces the old GuiDialog system. The conversion is simpler than originally planned:
+
+### Current State
+- ✅ **BlessingDialog (ImGui)** - Fully functional, opens with P hotkey (will be renamed to GuildManagementDialog)
+- ✅ **ReligionBrowserOverlay** - Browse/join religions with deity filtering (will be simplified)
+- ✅ **CreateReligionOverlay** - Create religion form with deity dropdown (will be simplified)
+- ✅ **ReligionManagementOverlay** - Manage members, kick/ban/invite/edit description/disband (will be simplified)
+- ✅ **LeaveReligionConfirmOverlay** - Confirmation dialog for leaving religion
+- ✅ **Network Integration** - All packets connected and working
+- ✅ **Reusable Components** - ButtonRenderer, TextInput, Dropdown, TabControl, etc.
+
+### Legacy Code (UNUSED)
+- ❌ **ReligionManagementDialog** (old GuiDialog) - NOT instantiated, dead code
+- ❌ **CreateReligionDialog** - Replaced by CreateReligionOverlay
+- ❌ **InvitePlayerDialog** - Replaced by ReligionManagementOverlay
+- ❌ **EditDescriptionDialog** - Replaced by ReligionManagementOverlay
+- ❌ **BanPlayerDialog** - Replaced by ReligionManagementOverlay
+- ❌ **DeitySelectionDialog** - Legacy Phase 1-2 system, unused
+
+### Simplified Conversion Strategy
+1. **Delete legacy GuiDialog classes** (simple file deletion)
+2. **Rename BlessingDialog to GuildManagementDialog** (reflects actual purpose)
+3. **Simplify existing ImGui overlays** (remove deity/rank/favor UI elements)
+4. **Update data models** (remove deity/progression fields)
+5. **Clean up system logic** (remove blessing/PvP/favor code)
+
+No need to build new UI or register hotkeys - the modern ImGui system is already complete and operational.
+
 ## Current State Analysis
 
 ### Existing Features
@@ -32,11 +62,11 @@ Convert PantheonWars from a complex religion/deity/blessing/PvP system into a st
 - **ReligionManager** - Core guild management logic
 - **PlayerReligionDataManager** - Player guild membership tracking
 - **ReligionCommands** - All `/religion` commands
-- **ReligionManagementDialog** - Main guild management UI
-- **CreateReligionDialog** - Guild creation interface
-- **InvitePlayerDialog** - Invite players to guild
-- **EditDescriptionDialog** - Edit guild description
-- **BanPlayerDialog** - Ban management
+- **BlessingDialog (rename to GuildManagementDialog)** - Main ImGui-based guild management UI
+- **ReligionBrowserOverlay** - Browse/join guilds (simplify to remove deity filtering)
+- **CreateReligionOverlay** - Guild creation interface (simplify to remove deity selection)
+- **ReligionManagementOverlay** - Manage members, kick/ban/invite/edit/disband
+- **LeaveReligionConfirmOverlay** - Leave confirmation dialog
 - **Guild Features**:
   - Create/join/leave guilds
   - Public/private visibility
@@ -85,8 +115,7 @@ Convert PantheonWars from a complex religion/deity/blessing/PvP system into a st
   - ActiveEffect
 - **UI Elements**:
   - FavorHudElement
-  - BlessingDialog
-  - BlessingTreeLayout
+  - BlessingTreeLayout (blessing display components)
   - DeitySelectionDialog
 - **Commands**:
   - DeityCommands
@@ -112,10 +141,10 @@ Convert PantheonWars from a complex religion/deity/blessing/PvP system into a st
 - [ ] Delete `/Systems/BlessingDefinitions.cs`
 - [ ] Delete `/Systems/BlessingDialogManager.cs`
 - [ ] Delete `/Commands/BlessingCommands.cs`
-- [ ] Delete `/GUI/BlessingDialog.cs`
+- [ ] **KEEP** `/GUI/BlessingDialog.cs` ✅ (will be renamed to GuildManagementDialog.cs in Phase 4)
 - [ ] Delete `/GUI/BlessingTreeLayout.cs`
-- [ ] Delete `/GUI/BlessingDialogManager.cs`
-- [ ] Delete `/GUI/BlessingDialogEventHandlers.cs`
+- [ ] **KEEP** `/GUI/BlessingDialogManager.cs` ✅ (update to remove blessing-specific code)
+- [ ] **KEEP** `/GUI/BlessingDialogEventHandlers.cs` ✅ (update to remove blessing-specific code)
 - [ ] Delete `/Models/Blessing.cs`
 - [ ] Delete `/Models/BlessingNodeState.cs`
 - [ ] Delete `/Models/BlessingTooltipData.cs`
@@ -139,7 +168,6 @@ Convert PantheonWars from a complex religion/deity/blessing/PvP system into a st
 - [ ] Delete `/Systems/AbilityRegistry.cs`
 - [ ] Delete `/Systems/AbilityCooldownManager.cs`
 - [ ] Delete `/Commands/AbilityCommands.cs`
-- [ ] Delete `/Commands/DeityCommands.cs`
 - [ ] Delete `/Models/Ability.cs`
 - [ ] Delete `/Data/PlayerAbilityData.cs`
 - [ ] Delete entire `/Abilities/` folder (legacy Phase 1-2)
@@ -150,16 +178,26 @@ Convert PantheonWars from a complex religion/deity/blessing/PvP system into a st
 - [ ] Delete `/Systems/BuffSystem/ActiveEffect.cs`
 - [ ] Delete `/Systems/BuffSystem/Interfaces/` folder
 
-#### 1.5 Remove UI Elements
-- [ ] Delete `/GUI/FavorHudElement.cs`
-- [ ] Delete `/GUI/DeitySelectionDialog.cs`
-- [ ] Delete `/GUI/OverlayCoordinator.cs` (if only used for blessings)
+#### 1.5 Remove Legacy GuiDialog Classes
+**Note:** BlessingDialog.cs is **ImGui-based** and is the main guild management UI. It will be renamed to GuildManagementDialog.cs in Phase 4, not deleted.
+
+- [ ] Delete `/GUI/FavorHudElement.cs` (already obsolete)
+- [ ] Delete `/GUI/DeitySelectionDialog.cs` (legacy, unused)
+- [ ] Delete `/GUI/ReligionManagementDialog.cs` (old GuiDialog, replaced by ImGui overlays)
+- [ ] Delete `/GUI/CreateReligionDialog.cs` (old GuiDialog, replaced by CreateReligionOverlay)
+- [ ] Delete `/GUI/InvitePlayerDialog.cs` (old GuiDialog, replaced by ReligionManagementOverlay)
+- [ ] Delete `/GUI/EditDescriptionDialog.cs` (old GuiDialog, replaced by ReligionManagementOverlay)
+- [ ] Delete `/GUI/BanPlayerDialog.cs` (old GuiDialog, replaced by ReligionManagementOverlay)
+- [ ] **KEEP** `/GUI/BlessingDialog.cs` ✅ (ImGui-based, will be renamed to GuildManagementDialog.cs)
+- [ ] **KEEP** `/GUI/OverlayCoordinator.cs` ✅ (actively used by BlessingDialog/GuildManagementDialog)
 
 #### 1.6 Remove Deity System
 - [ ] Delete `/Systems/DeityRegistry.cs`
 - [ ] Delete `/Models/Deity.cs`
-- [ ] Delete `/Commands/DeityCommands.cs` (already in 1.3)
+- [ ] Delete `/Commands/DeityCommands.cs`
 - [ ] Update `/Models/Enum/DeityType.cs` (simplify or remove entirely)
+- [ ] Delete `/GUI/UI/Utilities/DeityHelper.cs` (deity-only utility, not needed)
+- [ ] Delete `/GUI/UI/Utilities/DeityIconLoader.cs` (deity-only utility, not needed)
 
 ### Phase 2: Simplify Data Models
 **Goal**: Remove progression data, keep only guild membership info
@@ -265,46 +303,75 @@ Convert PantheonWars from a complex religion/deity/blessing/PvP system into a st
   - `/religion description <text>`
 
 ### Phase 4: Update GUI
-**Goal**: Single keybind opens simplified guild management dialog
+**Goal**: Rename BlessingDialog and simplify existing ImGui UI to remove deity/progression elements
 
-#### 4.1 Add Keybind Registration
-- [ ] Register keybind in `PantheonWarsSystem.StartClientSide()`
-- [ ] Create hotkey to open `ReligionManagementDialog`
-- [ ] User presses assigned key → `ReligionManagementDialog` opens
+#### 4.1 Rename BlessingDialog to GuildManagementDialog
+- [ ] Rename `/GUI/BlessingDialog.cs` to `/GUI/GuildManagementDialog.cs`
+- [ ] Update class name from `BlessingDialog` to `GuildManagementDialog`
+- [ ] Update all references to `BlessingDialog` in:
+  - `PantheonWarsSystem.cs` (client initialization)
+  - `BlessingDialogManager.cs` (rename to GuildDialogManager.cs)
+  - `BlessingDialogEventHandlers.cs` (rename to GuildDialogEventHandlers.cs)
+  - `OverlayCoordinator.cs`
+- [ ] Remove blessing-related event handlers (BlessingUnlocked, BlessingDataReceived)
+- [ ] Update file header comments to reflect guild management purpose
+- [ ] Keep P hotkey keybind registration (already functional)
 
-```csharp
-// Example keybind registration
-_capi.Input.RegisterHotKey("pantheonwarsreligion", "Open Guild Management",
-    GlKeys.G, HotkeyType.GUIOrOtherControls);
-_capi.Input.SetHotKeyHandler("pantheonwarsreligion", (bool keyDown) =>
-{
-    if (keyDown)
-    {
-        if (_religionDialog == null)
-            _religionDialog = new ReligionManagementDialog(_capi, _clientChannel);
-        _religionDialog.Toggle();
-    }
-    return true;
-});
-```
+#### 4.2 Clean Up Dead Code in PantheonWarsSystem
+- [ ] **REMOVE** unused `_religionDialog` field from PantheonWarsSystem (old GuiDialog reference)
+- [ ] **REMOVE** any commented or dead hotkey registration code for old GuiDialog classes
 
-#### 4.2 Simplify ReligionManagementDialog
-- [ ] Remove references to blessings, favor, ranks, deities
-- [ ] Remove deity filtering dropdown ❌
-- [ ] Update member list display (remove favor/rank columns)
-- [ ] Update religion info display (remove prestige/rank/deity)
-- [ ] Keep: Browse religions, manage members, create guild
+**Current State:**
+The ImGui-based GuildManagementDialog (P key) provides full guild management through overlays. Users access religion features via:
+- **"Change Religion"** button → ReligionBrowserOverlay (browse/join/create)
+- **"Manage Religion"** button → ReligionManagementOverlay (kick/ban/invite/edit/disband)
+- **"Leave Religion"** button → LeaveReligionConfirmOverlay
 
-#### 4.3 Update Supporting Dialogs
-- [ ] `CreateReligionDialog` - ❌ REMOVE deity selection dropdown
-- [ ] `InvitePlayerDialog` - Keep as-is
-- [ ] `EditDescriptionDialog` - Keep as-is
-- [ ] `BanPlayerDialog` - Keep as-is
+No additional keybind registration needed.
 
-#### 4.4 Remove Deleted Dialogs
-- [ ] Remove instantiation of `BlessingDialog`
-- [ ] Remove instantiation of `FavorHudElement`
-- [ ] Remove instantiation of `DeitySelectionDialog`
+#### 4.3 Simplify ImGui Religion Overlays
+- [ ] **Update ReligionBrowserOverlay:**
+  - Remove deity filter tabs ❌ (simplify to single list)
+  - Remove prestige/rank display from religion list items
+- [ ] **Update CreateReligionOverlay:**
+  - Remove deity dropdown ❌ (just name + public/private)
+- [ ] **Update ReligionManagementOverlay:**
+  - Remove favor/rank columns from member list
+  - Keep: kick, ban, invite, edit description, disband
+- [ ] **Update ReligionHeaderRenderer:**
+  - Remove deity icon/name display
+  - Remove progress bars (favor/prestige)
+  - Keep: religion name, member count, role (member/founder)
+- [ ] **OPTIONAL:** Add BanMemberOverlay for ban reason/expiry input (currently simplified to direct ban)
+
+#### 4.4 Legacy Supporting Dialogs - DELETE ALL
+- [x] `CreateReligionDialog` - **DELETE** (replaced by CreateReligionOverlay)
+- [x] `InvitePlayerDialog` - **DELETE** (replaced by ReligionManagementOverlay invite feature)
+- [x] `EditDescriptionDialog` - **DELETE** (replaced by ReligionManagementOverlay edit feature)
+- [x] `BanPlayerDialog` - **DELETE** (replaced by ReligionManagementOverlay ban feature)
+
+**Note:** All functionality exists in ImGui overlays. Old GuiDialog classes are dead code (handled in Phase 1.5).
+
+#### 4.5 Update PantheonWarsSystem Client Initialization
+- [ ] Update GuildManagementDialog instantiation (renamed from BlessingDialog)
+- [ ] Remove FavorHudElement instantiation (already obsolete)
+- [ ] Remove DeitySelectionDialog instantiation (unused)
+- [ ] Remove `_religionDialog` field (ReligionManagementDialog - unused legacy code)
+- [ ] Remove any event handlers for deleted GuiDialog classes
+- [ ] **KEEP** all ImGui overlay event handlers ✅
+
+#### 4.6 Remove Deity References from ImGui Components
+- [ ] **Delete DeityHelper.cs** (already listed in Phase 1.6) - deity-only utility
+- [ ] **Delete DeityIconLoader.cs** (already listed in Phase 1.6) - deity-only utility
+- [ ] **Update ColorPalette.cs:**
+  - Keep as-is ✅ (colors still used for general UI)
+- [ ] **Update ReligionHeaderRenderer.cs:**
+  - Remove deity icon rendering (remove DeityIconLoader usage)
+  - Remove deity name display (remove DeityHelper usage)
+  - Simplify to show only: religion name, member count, player role
+- [ ] **Update ReligionListRenderer.cs:**
+  - Remove deity column from religion list items
+  - Remove DeityIconLoader and DeityHelper usage
 
 ### Phase 5: Clean Up Tests
 **Goal**: Remove tests for deleted systems, update remaining tests
@@ -395,11 +462,39 @@ PantheonWars/
 │   ├── ReligionData.cs ✅ (simplified)
 │   └── PlayerReligionData.cs ✅ (simplified)
 ├── GUI/
-│   ├── ReligionManagementDialog.cs ✅
-│   ├── CreateReligionDialog.cs ✅
-│   ├── InvitePlayerDialog.cs ✅
-│   ├── EditDescriptionDialog.cs ✅
-│   └── BanPlayerDialog.cs ✅
+│   ├── GuildManagementDialog.cs ✅ (renamed from BlessingDialog.cs - ImGui main dialog)
+│   ├── GuildDialogEventHandlers.cs ✅ (renamed from BlessingDialogEventHandlers.cs)
+│   ├── GuildDialogManager.cs ✅ (renamed from BlessingDialogManager.cs)
+│   ├── OverlayCoordinator.cs ✅
+│   └── UI/
+│       ├── Components/
+│       │   ├── Buttons/
+│       │   │   └── ButtonRenderer.cs ✅
+│       │   ├── Inputs/
+│       │   │   ├── TextInput.cs ✅
+│       │   │   ├── Checkbox.cs ✅
+│       │   │   └── Dropdown.cs ✅
+│       │   ├── Lists/
+│       │   │   ├── ScrollableList.cs ✅
+│       │   │   └── Scrollbar.cs ✅
+│       │   └── TabControl.cs ✅
+│       ├── Renderers/
+│       │   ├── ReligionBrowserOverlay.cs ✅ (simplified)
+│       │   ├── CreateReligionOverlay.cs ✅ (simplified)
+│       │   ├── ReligionManagementOverlay.cs ✅ (simplified)
+│       │   ├── LeaveReligionConfirmOverlay.cs ✅
+│       │   ├── ReligionHeaderRenderer.cs ✅ (simplified)
+│       │   └── Components/
+│       │       ├── ReligionListRenderer.cs ✅ (simplified)
+│       │       ├── MemberListRenderer.cs ✅ (simplified)
+│       │       └── BanListRenderer.cs ✅
+│       ├── State/
+│       │   ├── ReligionBrowserState.cs ✅
+│       │   ├── CreateReligionState.cs ✅
+│       │   └── ReligionManagementState.cs ✅
+│       └── Utilities/
+│           ├── ColorPalette.cs ✅
+│           └── TextRenderer.cs ✅
 ├── Models/
 │   └── Enum/ ✅ (simplified, remove DeityType or set to None only)
 ├── Network/
@@ -433,6 +528,8 @@ PantheonWars/
 ❌ Systems/BlessingRegistry.cs
 ❌ Systems/BlessingEffectSystem.cs
 ❌ Systems/BlessingDefinitions.cs
+❌ Systems/BlessingDialogManager.cs
+❌ Systems/DeityRegistry.cs
 ❌ Systems/PvPManager.cs
 ❌ Systems/FavorSystem.cs
 ❌ Systems/ReligionPrestigeManager.cs
@@ -440,13 +537,16 @@ PantheonWars/
 ❌ Systems/AbilityRegistry.cs
 ❌ Systems/AbilityCooldownManager.cs
 ❌ Systems/BuffSystem/ (entire folder)
-❌ GUI/BlessingDialog.cs
-❌ GUI/BlessingTreeLayout.cs
-❌ GUI/BlessingDialogManager.cs
-❌ GUI/BlessingDialogEventHandlers.cs
 ❌ GUI/FavorHudElement.cs
+❌ GUI/BlessingTreeLayout.cs
 ❌ GUI/DeitySelectionDialog.cs
-❌ GUI/OverlayCoordinator.cs
+❌ GUI/ReligionManagementDialog.cs (old GuiDialog - replaced by ImGui overlays)
+❌ GUI/CreateReligionDialog.cs (old GuiDialog - replaced by CreateReligionOverlay)
+❌ GUI/InvitePlayerDialog.cs (old GuiDialog - replaced by ReligionManagementOverlay)
+❌ GUI/EditDescriptionDialog.cs (old GuiDialog - replaced by ReligionManagementOverlay)
+❌ GUI/BanPlayerDialog.cs (old GuiDialog - replaced by ReligionManagementOverlay)
+❌ GUI/UI/Utilities/DeityHelper.cs
+❌ GUI/UI/Utilities/DeityIconLoader.cs
 ❌ Models/Blessing.cs
 ❌ Models/BlessingNodeState.cs
 ❌ Models/BlessingTooltipData.cs
@@ -455,10 +555,20 @@ PantheonWars/
 ❌ Models/PlayerFavorProgress.cs
 ❌ Models/ReligionPrestigeProgress.cs
 ❌ Data/PlayerAbilityData.cs
-❌ Network/Blessing*.cs (all blessing packets)
+❌ Network/BlessingUnlockRequestPacket.cs
+❌ Network/BlessingUnlockResponsePacket.cs
+❌ Network/BlessingDataRequestPacket.cs
+❌ Network/BlessingDataResponsePacket.cs
 ❌ Constants/BlessingIds.cs
 ❌ Constants/BlessingCommandConstants.cs
 ❌ Abilities/ (entire folder)
+```
+
+### Rename These Files
+```
+BlessingDialog.cs → GuildManagementDialog.cs
+BlessingDialogEventHandlers.cs → GuildDialogEventHandlers.cs
+BlessingDialogManager.cs → GuildDialogManager.cs
 ```
 
 ---
@@ -467,17 +577,21 @@ PantheonWars/
 
 ### What Users Get
 1. **Simple Guild System**: Create and manage guilds with friends
-2. **One Keybind**: Press assigned key to open guild management
+2. **Modern ImGui Interface**:
+   - Press **P key** to open GuildManagementDialog (renamed from BlessingDialog)
+   - Click **"Change Religion"** button to browse/join/create guilds
+   - Click **"Manage Religion"** button to invite/kick/ban/edit/disband (founder only)
+   - Smooth overlays with form validation, tooltips, and responsive interactions
 3. **Core Features**:
-   - Create public or private guilds (just name + visibility)
+   - Create public or private guilds (just name + visibility, no deity selection)
    - Join/leave guilds
    - Invite players
    - Founder can kick/ban members
    - Founder can disband guild
    - Guild descriptions
    - Ban system with expiry
-4. **No Themes/Deities**: Pure guild names, no cosmetic themes
-5. **No Combat**: Pure social/management system
+4. **No Themes/Deities**: Pure guild names, no cosmetic themes or deity associations
+5. **No Combat**: Pure social/management system (no PvP, favor, or prestige)
 
 ### What's Removed
 - All combat mechanics (PvP, favor earning)
@@ -496,11 +610,24 @@ PantheonWars/
 ---
 
 ## Estimated Effort
-- **Phase 1-2**: 2-3 hours (file deletion, model simplification)
-- **Phase 3-4**: 3-4 hours (system updates, GUI work, keybind)
-- **Phase 5-6**: 2-3 hours (test cleanup, documentation)
+- **Phase 1**: 2-3 hours (file deletion - blessing/PvP/favor/deity/ability/buff systems)
+- **Phase 2**: 1-2 hours (model simplification - remove deity/progression fields)
+- **Phase 3**: 2-3 hours (system updates - remove blessing/PvP/favor logic)
+- **Phase 4**: 3-4 hours (rename BlessingDialog + simplify ImGui overlays - remove deity/rank/favor UI)
+- **Phase 5**: 1-2 hours (test cleanup)
+- **Phase 6**: 1-2 hours (documentation updates)
 - **Phase 7**: 2-3 hours (final testing)
-- **Total**: 9-13 hours
+- **Total**: 12-19 hours
+
+**Key Simplifications:**
+- No new UI to build (ImGui system already complete and functional)
+- No keybind registration needed (P key already works)
+- Legacy GuiDialog classes are dead code (simple deletion)
+- Main work is:
+  1. File deletion (Phase 1)
+  2. Renaming BlessingDialog → GuildManagementDialog (Phase 4.1)
+  3. Removing deity/progression elements from existing ImGui overlays (Phase 4.3-4.6)
+- Network layer already supports simplified guild operations
 
 ---
 

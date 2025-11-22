@@ -7,8 +7,6 @@ using PantheonWars.GUI;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network;
 using PantheonWars.Systems;
-using PantheonWars.Systems.BuffSystem;
-using PantheonWars.Systems.BuffSystem.Interfaces;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -20,33 +18,14 @@ namespace PantheonWars;
 public class PantheonWarsSystem : ModSystem
 {
     public const string NETWORK_CHANNEL = "pantheonwars";
-    private AbilityCommands? _abilityCommands;
-    private AbilityRegistry? _abilityRegistry;
-    private AbilitySystem? _abilitySystem;
-
-    // Use interfaces for better testability and dependency injection
-    private IBuffManager? _buffManager;
 
     // Client-side systems
     private ICoreClientAPI? _capi;
     private IClientNetworkChannel? _clientChannel;
-    private DeityRegistry? _clientDeityRegistry;
-    private AbilityCooldownManager? _cooldownManager;
-    private CreateReligionDialog? _createReligionDialog;
-    private DeityCommands? _deityCommands;
-    private DeityRegistry? _deityRegistry;
-    private FavorCommands? _favorCommands;
-    private FavorSystem? _favorSystem;
-    private BlessingCommands? _blessingCommands;
-    private BlessingEffectSystem? _blessingEffectSystem;
-    private BlessingRegistry? _blessingRegistry;
     private PlayerDataManager? _playerDataManager;
     private PlayerReligionDataManager? _playerReligionDataManager;
-    private PvPManager? _pvpManager;
     private ReligionCommands? _religionCommands;
-    private ReligionManagementDialog? _religionDialog;
     private ReligionManager? _religionManager;
-    private ReligionPrestigeManager? _religionPrestigeManager;
 
     // Server-side systems
     private ICoreServerAPI? _sapi;
@@ -72,10 +51,6 @@ public class PantheonWarsSystem : ModSystem
             .RegisterMessageType<CreateReligionResponsePacket>()
             .RegisterMessageType<EditDescriptionRequestPacket>()
             .RegisterMessageType<EditDescriptionResponsePacket>()
-            .RegisterMessageType<BlessingUnlockRequestPacket>()
-            .RegisterMessageType<BlessingUnlockResponsePacket>()
-            .RegisterMessageType<BlessingDataRequestPacket>()
-            .RegisterMessageType<BlessingDataResponsePacket>()
             .RegisterMessageType<ReligionStateChangedPacket>();
     }
 
@@ -85,78 +60,17 @@ public class PantheonWarsSystem : ModSystem
         _sapi = api;
         api.Logger.Notification("[PantheonWars] Initializing server-side systems...");
 
-        // Register entity behaviors
-        api.RegisterEntityBehaviorClass("PantheonWarsBuffTracker", typeof(EntityBehaviorBuffTracker));
-
-        // Initialize deity registry (concrete implementation, stored as interface)
-        _deityRegistry = new DeityRegistry(api);
-        _deityRegistry.Initialize();
-
-        // Initialize ability registry
-        _abilityRegistry = new AbilityRegistry(api);
-        _abilityRegistry.Initialize();
-
         // Initialize player data manager
         _playerDataManager = new PlayerDataManager(api);
         _playerDataManager.Initialize();
 
-        // Initialize ability cooldown manager
-        _cooldownManager = new AbilityCooldownManager(api);
-        _cooldownManager.Initialize();
-
-        // Initialize buff manager (concrete implementation, stored as interface)
-        _buffManager = new BuffManager(api);
-
-        // Initialize religion systems first (needed by FavorSystem for passive favor)
+        // Initialize religion systems
         _religionManager = new ReligionManager(api);
         _religionManager.Initialize();
 
         _playerReligionDataManager = new PlayerReligionDataManager(api, _religionManager);
         _playerReligionDataManager.Initialize();
         _playerReligionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
-
-        // Initialize favor system (concrete implementation, stored as interface)
-        // Pass interfaces for loose coupling
-        _favorSystem = new FavorSystem(api, _playerDataManager, _playerReligionDataManager, _deityRegistry, _religionManager);
-        _favorSystem.Initialize();
-
-        // Initialize ability system (pass buff manager interface)
-        _abilitySystem = new AbilitySystem(api, _abilityRegistry, _playerDataManager, _cooldownManager, _buffManager);
-        _abilitySystem.Initialize();
-
-        // Initialize religion prestige manager (concrete implementation, stored as interface)
-        _religionPrestigeManager = new ReligionPrestigeManager(api, _religionManager);
-        _religionPrestigeManager.Initialize();
-
-        // Initialize PvP manager (pass interfaces for loose coupling)
-        _pvpManager = new PvPManager(api, _playerReligionDataManager, _religionManager, _religionPrestigeManager,
-            _deityRegistry);
-        _pvpManager.Initialize();
-
-        // Initialize blessing systems (Phase 3.3)
-        _blessingRegistry = new BlessingRegistry(api);
-        _blessingRegistry.Initialize();
-
-        _blessingEffectSystem = new BlessingEffectSystem(api, _blessingRegistry, _playerReligionDataManager, _religionManager);
-        _blessingEffectSystem.Initialize();
-
-        // Connect blessing systems to religion prestige manager
-        _religionPrestigeManager.SetBlessingSystems(_blessingRegistry, _blessingEffectSystem);
-
-        // Register commands (pass interfaces for loose coupling)
-        // _deityCommands = new DeityCommands(api, _deityRegistry, _playerReligionDataManager);
-        // _deityCommands.RegisterCommands();
-
-        // _abilityCommands = new AbilityCommands(api, _abilitySystem, _playerDataManager, _playerReligionDataManager);
-        // _abilityCommands.RegisterCommands();
-
-        _favorCommands = new FavorCommands(api, _deityRegistry, _playerReligionDataManager);
-        _favorCommands.RegisterCommands();
-        
-
-        _blessingCommands = new BlessingCommands(api, _blessingRegistry, _playerReligionDataManager, _religionManager,
-            _blessingEffectSystem);
-        _blessingCommands.RegisterCommands();
 
         // Setup network channel and handlers
         _serverChannel = api.Network.GetChannel(NETWORK_CHANNEL);
@@ -186,10 +100,7 @@ public class PantheonWarsSystem : ModSystem
     public override void Dispose()
     {
         base.Dispose();
-
-        // Cleanup
-        _religionDialog?.Dispose();
-        _createReligionDialog?.Dispose();
+        // Cleanup complete
     }
 
     #region Server Networking
@@ -202,10 +113,6 @@ public class PantheonWarsSystem : ModSystem
         _serverChannel.SetMessageHandler<ReligionActionRequestPacket>(OnReligionActionRequest);
         _serverChannel.SetMessageHandler<CreateReligionRequestPacket>(OnCreateReligionRequest);
         _serverChannel.SetMessageHandler<EditDescriptionRequestPacket>(OnEditDescriptionRequest);
-
-        // Register handlers for blessing system packets
-        _serverChannel.SetMessageHandler<BlessingUnlockRequestPacket>(OnBlessingUnlockRequest);
-        _serverChannel.SetMessageHandler<BlessingDataRequestPacket>(OnBlessingDataRequest);
     }
 
     private void OnServerMessageReceived(IServerPlayer fromPlayer, PlayerReligionDataPacket packet)
@@ -682,189 +589,6 @@ public class PantheonWarsSystem : ModSystem
         _serverChannel!.SendPacket(response, fromPlayer);
     }
 
-    private void OnBlessingUnlockRequest(IServerPlayer fromPlayer, BlessingUnlockRequestPacket packet)
-    {
-        string message;
-        var success = false;
-
-        try
-        {
-            var blessing = _blessingRegistry!.GetBlessing(packet.BlessingId);
-            if (blessing == null)
-            {
-                message = $"Blessing '{packet.BlessingId}' not found.";
-            }
-            else
-            {
-                var playerData = _playerReligionDataManager!.GetOrCreatePlayerData(fromPlayer.PlayerUID);
-                var religion = playerData.ReligionUID != null
-                    ? _religionManager!.GetReligion(playerData.ReligionUID)
-                    : null;
-
-                var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(playerData, religion, blessing);
-                if (!canUnlock)
-                {
-                    message = reason;
-                }
-                else
-                {
-                    // Unlock the blessing
-                    if (blessing.Kind == BlessingKind.Player)
-                    {
-                        if (religion == null)
-                        {
-                            message = "You must be in a religion to unlock player blessings.";
-                        }
-                        else
-                        {
-                            success = _playerReligionDataManager.UnlockPlayerBlessing(fromPlayer.PlayerUID, packet.BlessingId);
-                            if (success)
-                            {
-                                _blessingEffectSystem!.RefreshPlayerBlessings(fromPlayer.PlayerUID);
-                                message = $"Successfully unlocked {blessing.Name}!";
-
-                                // Send updated player data to client
-                                SendPlayerDataToClient(fromPlayer);
-                            }
-                            else
-                            {
-                                message = "Failed to unlock blessing. Please try again.";
-                            }
-                        }
-                    }
-                    else // Religion blessing
-                    {
-                        if (religion == null)
-                        {
-                            message = "You must be in a religion to unlock religion blessings.";
-                        }
-                        else if (!religion.IsFounder(fromPlayer.PlayerUID))
-                        {
-                            message = "Only the religion founder can unlock religion blessings.";
-                        }
-                        else
-                        {
-                            religion.UnlockedBlessings[packet.BlessingId] = true;
-                            _blessingEffectSystem!.RefreshReligionBlessings(religion.ReligionUID);
-                            message = $"Successfully unlocked {blessing.Name} for all religion members!";
-                            success = true;
-
-                            // Notify all members
-                            foreach (var memberUid in religion.MemberUIDs)
-                            {
-                                var member = _sapi!.World.PlayerByUid(memberUid) as IServerPlayer;
-                                if (member != null)
-                                {
-                                    // Send updated data to each member
-                                    SendPlayerDataToClient(member);
-
-                                    member.SendMessage(
-                                        GlobalConstants.GeneralChatGroup,
-                                        $"{blessing.Name} has been unlocked!",
-                                        EnumChatType.Notification
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            message = $"Error unlocking blessing: {ex.Message}";
-            _sapi!.Logger.Error($"[PantheonWars] Blessing unlock error: {ex}");
-        }
-
-        var response = new BlessingUnlockResponsePacket(success, message, packet.BlessingId);
-        _serverChannel!.SendPacket(response, fromPlayer);
-    }
-
-    /// <summary>
-    ///     Handle blessing data request from client
-    /// </summary>
-    private void OnBlessingDataRequest(IServerPlayer fromPlayer, BlessingDataRequestPacket packet)
-    {
-        _sapi!.Logger.Debug($"[PantheonWars] Blessing data requested by {fromPlayer.PlayerName}");
-
-        var response = new BlessingDataResponsePacket();
-
-        try
-        {
-            var playerData = _playerReligionDataManager!.GetOrCreatePlayerData(fromPlayer.PlayerUID);
-            var religion = playerData.ReligionUID != null
-                ? _religionManager!.GetReligion(playerData.ReligionUID)
-                : null;
-
-            if (religion == null || playerData.ActiveDeity == DeityType.None)
-            {
-                response.HasReligion = false;
-                _serverChannel!.SendPacket(response, fromPlayer);
-                return;
-            }
-
-            response.HasReligion = true;
-            response.ReligionUID = religion.ReligionUID;
-            response.ReligionName = religion.ReligionName;
-            response.Deity = playerData.ActiveDeity.ToString();
-            response.FavorRank = (int)playerData.FavorRank;
-            response.PrestigeRank = (int)religion.PrestigeRank;
-            response.CurrentFavor = playerData.Favor;
-            response.CurrentPrestige = religion.Prestige;
-            response.TotalFavorEarned = playerData.TotalFavorEarned;
-
-            // Get player blessings for this deity
-            var playerBlessings = _blessingRegistry!.GetBlessingsForDeity(playerData.ActiveDeity, BlessingKind.Player);
-            response.PlayerBlessings = playerBlessings.Select(p => new BlessingDataResponsePacket.BlessingInfo
-            {
-                BlessingId = p.BlessingId,
-                Name = p.Name,
-                Description = p.Description,
-                RequiredFavorRank = p.RequiredFavorRank,
-                RequiredPrestigeRank = p.RequiredPrestigeRank,
-                PrerequisiteBlessings = p.PrerequisiteBlessings ?? new List<string>(),
-                Category = (int)p.Category,
-                StatModifiers = p.StatModifiers ?? new Dictionary<string, float>()
-            }).ToList();
-
-            // Get religion blessings for this deity
-            var religionBlessings = _blessingRegistry.GetBlessingsForDeity(playerData.ActiveDeity, BlessingKind.Religion);
-            response.ReligionBlessings = religionBlessings.Select(p => new BlessingDataResponsePacket.BlessingInfo
-            {
-                BlessingId = p.BlessingId,
-                Name = p.Name,
-                Description = p.Description,
-                RequiredFavorRank = p.RequiredPrestigeRank,
-                RequiredPrestigeRank = p.RequiredPrestigeRank,
-                PrerequisiteBlessings = p.PrerequisiteBlessings ?? new List<string>(),
-                Category = (int)p.Category,
-                StatModifiers = p.StatModifiers ?? new Dictionary<string, float>()
-            }).ToList();
-
-            // Get unlocked player blessings
-            response.UnlockedPlayerBlessings = playerData.UnlockedBlessings
-                .Where(kvp => kvp.Value)
-                .Select(kvp => kvp.Key)
-                .ToList();
-
-            // Get unlocked religion blessings
-            response.UnlockedReligionBlessings = religion.UnlockedBlessings
-                .Where(kvp => kvp.Value)
-                .Select(kvp => kvp.Key)
-                .ToList();
-
-            _sapi.Logger.Debug(
-                $"[PantheonWars] Sending blessing data: {response.PlayerBlessings.Count} player, {response.ReligionBlessings.Count} religion");
-        }
-        catch (Exception ex)
-        {
-            _sapi!.Logger.Error($"[PantheonWars] Error loading blessing data: {ex}");
-            response.HasReligion = false;
-        }
-
-        _serverChannel!.SendPacket(response, fromPlayer);
-    }
-
     private void OnPlayerJoin(IServerPlayer player)
     {
         // Send initial player data to client
@@ -885,12 +609,11 @@ public class PantheonWarsSystem : ModSystem
 
     private void SendPlayerDataToClient(IServerPlayer player)
     {
-        if (_playerDataManager == null || _deityRegistry == null || _serverChannel == null) return;
+        if (_playerDataManager == null || _serverChannel == null) return;
 
         var playerReligionData = _playerReligionDataManager!.GetOrCreatePlayerData(player.PlayerUID);
         var religionData = _religionManager!.GetPlayerReligion(player.PlayerUID);
-        var deity = _deityRegistry.GetDeity(playerReligionData.ActiveDeity);
-        var deityName = deity?.Name ?? "None";
+        var deityName = "None"; // Deity system removed
 
         if (religionData != null)
         {
@@ -921,8 +644,6 @@ public class PantheonWarsSystem : ModSystem
         _clientChannel.SetMessageHandler<ReligionActionResponsePacket>(OnReligionActionResponse);
         _clientChannel.SetMessageHandler<CreateReligionResponsePacket>(OnCreateReligionResponse);
         _clientChannel.SetMessageHandler<EditDescriptionResponsePacket>(OnEditDescriptionResponse);
-        _clientChannel.SetMessageHandler<BlessingUnlockResponsePacket>(OnBlessingUnlockResponse);
-        _clientChannel.SetMessageHandler<BlessingDataResponsePacket>(OnBlessingDataResponse);
         _clientChannel.SetMessageHandler<ReligionStateChangedPacket>(OnReligionStateChanged);
         _clientChannel.RegisterMessageType(typeof(PlayerReligionDataPacket));
     }
@@ -935,19 +656,19 @@ public class PantheonWarsSystem : ModSystem
 
     private void OnReligionListResponse(ReligionListResponsePacket packet)
     {
-        _religionDialog?.OnReligionListResponse(packet);
+        // Legacy _religionDialog removed - ImGui BlessingDialog subscribes to ReligionListReceived event
         ReligionListReceived?.Invoke(packet);
     }
 
     private void OnPlayerReligionInfoResponse(PlayerReligionInfoResponsePacket packet)
     {
-        _religionDialog?.OnPlayerReligionInfoResponse(packet);
+        // Legacy _religionDialog removed - ImGui BlessingDialog subscribes to PlayerReligionInfoReceived event
         PlayerReligionInfoReceived?.Invoke(packet);
     }
 
     private void OnReligionActionResponse(ReligionActionResponsePacket packet)
     {
-        _religionDialog?.OnActionResponse(packet);
+        // Legacy _religionDialog removed - ImGui BlessingDialog subscribes to ReligionActionCompleted event
         ReligionActionCompleted?.Invoke(packet);
     }
 
@@ -957,20 +678,8 @@ public class PantheonWarsSystem : ModSystem
         {
             _capi?.ShowChatMessage(packet.Message);
 
-            // Refresh religion dialog data
-            if (_religionDialog != null && _religionDialog.IsOpened())
-            {
-                _religionDialog.TryClose();
-                _religionDialog.TryOpen(); // Reopen to refresh
-            }
-
-            // Request fresh blessing data (now in a religion)
-            // Use a small delay to ensure server has processed the religion creation
-            _capi?.Event.RegisterCallback((dt) =>
-            {
-                var request = new BlessingDataRequestPacket();
-                _clientChannel?.SendPacket(request);
-            }, 100);
+            // Legacy _religionDialog refresh removed - ImGui dialog handles refresh via events
+            // Blessing data request removed - blessing system deleted
         }
         else
         {
@@ -987,45 +696,12 @@ public class PantheonWarsSystem : ModSystem
         if (packet.Success)
         {
             _capi?.ShowChatMessage(packet.Message);
-            // Refresh religion dialog to show updated description
-            if (_religionDialog != null && _religionDialog.IsOpened())
-            {
-                _religionDialog.TryClose();
-                _religionDialog.TryOpen(); // Reopen to refresh
-            }
+            // Legacy _religionDialog refresh removed - ImGui dialog handles refresh via events
         }
         else
         {
             _capi?.ShowChatMessage($"Error: {packet.Message}");
         }
-    }
-
-    private void OnBlessingUnlockResponse(BlessingUnlockResponsePacket packet)
-    {
-        if (packet.Success)
-        {
-            _capi?.ShowChatMessage(packet.Message);
-            _capi?.Logger.Notification($"[PantheonWars] Blessing unlocked: {packet.BlessingId}");
-
-            // Trigger blessing unlock event for UI refresh
-            BlessingUnlocked?.Invoke(packet.BlessingId, packet.Success);
-        }
-        else
-        {
-            _capi?.ShowChatMessage($"Error: {packet.Message}");
-            _capi?.Logger.Warning($"[PantheonWars] Failed to unlock blessing: {packet.Message}");
-
-            // Trigger event even on failure so UI can update
-            BlessingUnlocked?.Invoke(packet.BlessingId, packet.Success);
-        }
-    }
-
-    private void OnBlessingDataResponse(BlessingDataResponsePacket packet)
-    {
-        _capi?.Logger.Debug($"[PantheonWars] Received blessing data: HasReligion={packet.HasReligion}");
-
-        // Trigger event for BlessingDialog to consume
-        BlessingDataReceived?.Invoke(packet);
     }
 
     private void OnReligionStateChanged(ReligionStateChangedPacket packet)
@@ -1037,38 +713,6 @@ public class PantheonWarsSystem : ModSystem
 
         // Trigger event for BlessingDialog to refresh its data
         ReligionStateChanged?.Invoke(packet);
-    }
-
-    /// <summary>
-    /// Request blessing data from the server
-    /// </summary>
-    public void RequestBlessingData()
-    {
-        if (_clientChannel == null)
-        {
-            _capi?.Logger.Error("[PantheonWars] Cannot request blessing data: client channel not initialized");
-            return;
-        }
-
-        var request = new BlessingDataRequestPacket();
-        _clientChannel.SendPacket(request);
-        _capi?.Logger.Debug("[PantheonWars] Sent blessing data request to server");
-    }
-
-    /// <summary>
-    /// Send a blessing unlock request to the server
-    /// </summary>
-    public void RequestBlessingUnlock(string blessingId)
-    {
-        if (_clientChannel == null)
-        {
-            _capi?.Logger.Error("[PantheonWars] Cannot unlock blessing: client channel not initialized");
-            return;
-        }
-
-        var request = new BlessingUnlockRequestPacket(blessingId);
-        _clientChannel.SendPacket(request);
-        _capi?.Logger.Debug($"[PantheonWars] Sent unlock request for blessing: {blessingId}");
     }
 
     /// <summary>
@@ -1155,17 +799,6 @@ public class PantheonWarsSystem : ModSystem
     /// Event fired when player religion data is updated from the server
     /// </summary>
     public event Action<PlayerReligionDataPacket>? PlayerReligionDataUpdated;
-
-    /// <summary>
-    /// Event fired when blessing data is received from the server
-    /// </summary>
-    public event Action<BlessingDataResponsePacket>? BlessingDataReceived;
-
-    /// <summary>
-    /// Event fired when a blessing unlock response is received from the server
-    /// Parameters: (blessingId, success)
-    /// </summary>
-    public event Action<string, bool>? BlessingUnlocked;
 
     /// <summary>
     /// Event fired when the player's religion state changes (disbanded, kicked, etc.)

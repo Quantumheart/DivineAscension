@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
 using PantheonWars.Network;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -22,102 +18,12 @@ public partial class BlessingDialog
     {
         if (_state.IsReady) return;
 
-        // Request blessing data from server
+        // Request religion info from server
         if (_pantheonWarsSystem != null)
         {
-            _pantheonWarsSystem.RequestBlessingData();
-            // Don't set _state.IsReady yet - wait for server response in OnBlessingDataReceived
+            _pantheonWarsSystem.RequestPlayerReligionInfo();
+            _state.IsReady = true;
             _capi!.Event.UnregisterGameTickListener(_checkDataId);
-        }
-    }
-
-    /// <summary>
-    ///     Handle blessing data received from server
-    /// </summary>
-    private void OnBlessingDataReceived(BlessingDataResponsePacket packet)
-    {
-        _capi!.Logger.Debug($"[PantheonWars] Processing blessing data: HasReligion={packet.HasReligion}");
-
-        if (!packet.HasReligion)
-        {
-            _capi.Logger.Debug("[PantheonWars] Player has no religion - showing 'No Religion' state");
-            _manager!.Reset();
-            _state.IsReady = true; // Set ready so dialog can open to show "No Religion" state
-
-            // If dialog should be open, open it now
-            if (!_state.IsOpen && _imguiModSystem != null)
-            {
-                _state.IsOpen = true;
-                _imguiModSystem.Show();
-                _capi.Logger.Debug("[PantheonWars] Blessing Dialog opened with 'No Religion' state");
-            }
-
-            return;
-        }
-
-        // Parse deity type from string
-        if (!Enum.TryParse<DeityType>(packet.Deity, out var deityType))
-        {
-            _capi.Logger.Error($"[PantheonWars] Invalid deity type: {packet.Deity}");
-            return;
-        }
-
-        // Initialize manager with real data
-        _manager!.Initialize(packet.ReligionUID, deityType, packet.ReligionName, packet.FavorRank,
-            packet.PrestigeRank);
-
-        // Set current favor and prestige values for progress bars
-        _manager.CurrentFavor = packet.CurrentFavor;
-        _manager.CurrentPrestige = packet.CurrentPrestige;
-        _manager.TotalFavorEarned = packet.TotalFavorEarned;
-
-        // Convert packet blessings to Blessing objects
-        var playerBlessings = packet.PlayerBlessings.Select(p => new Blessing(p.BlessingId, p.Name, deityType)
-        {
-            Kind = BlessingKind.Player,
-            Category = (BlessingCategory)p.Category,
-            Description = p.Description,
-            RequiredFavorRank = p.RequiredFavorRank,
-            RequiredPrestigeRank = p.RequiredPrestigeRank,
-            PrerequisiteBlessings = p.PrerequisiteBlessings,
-            StatModifiers = p.StatModifiers
-        }).ToList();
-
-        var religionBlessings = packet.ReligionBlessings.Select(p => new Blessing(p.BlessingId, p.Name, deityType)
-        {
-            Kind = BlessingKind.Religion,
-            Category = (BlessingCategory)p.Category,
-            Description = p.Description,
-            RequiredFavorRank = p.RequiredFavorRank,
-            RequiredPrestigeRank = p.RequiredPrestigeRank,
-            PrerequisiteBlessings = p.PrerequisiteBlessings,
-            StatModifiers = p.StatModifiers
-        }).ToList();
-
-        // Load blessing states into manager
-        _manager.LoadBlessingStates(playerBlessings, religionBlessings);
-
-        // Mark unlocked blessings
-        foreach (var blessingId in packet.UnlockedPlayerBlessings) _manager.SetBlessingUnlocked(blessingId, true);
-
-        foreach (var blessingId in packet.UnlockedReligionBlessings) _manager.SetBlessingUnlocked(blessingId, true);
-
-        // Refresh states to update can-unlock status
-        _manager.RefreshAllBlessingStates();
-
-        _state.IsReady = true;
-        _capi.Logger.Notification(
-            $"[PantheonWars] Loaded {playerBlessings.Count} player blessings and {religionBlessings.Count} religion blessings for {packet.Deity}");
-
-        // Request player religion info to get founder status (needed for Manage Religion button)
-        _pantheonWarsSystem?.RequestPlayerReligionInfo();
-
-        // If dialog should be open, open it now that data is ready
-        if (!_state.IsOpen && _imguiModSystem != null)
-        {
-            _state.IsOpen = true;
-            _imguiModSystem.Show();
-            _capi.Logger.Debug("[PantheonWars] Blessing Dialog opened after data load");
         }
     }
 
@@ -134,12 +40,12 @@ public partial class BlessingDialog
         // Close any open overlays
         _overlayCoordinator!.CloseAllOverlays();
 
-        // Reset blessing dialog state to "No Religion" mode
+        // Reset dialog state to "No Religion" mode
         _manager!.Reset();
         _state.IsReady = true; // Keep dialog ready so it doesn't close
 
-        // Request fresh data from server (will show "No Religion" state)
-        _pantheonWarsSystem?.RequestBlessingData();
+        // Request fresh data from server
+        _pantheonWarsSystem?.RequestPlayerReligionInfo();
     }
 
     /// <summary>
@@ -154,25 +60,6 @@ public partial class BlessingDialog
         return true;
     }
 
-    /// <summary>
-    ///     Handle unlock button click
-    /// </summary>
-    private void OnUnlockButtonClicked()
-    {
-        var selectedState = _manager!.GetSelectedBlessingState();
-        if (selectedState == null || !selectedState.CanUnlock || selectedState.IsUnlocked) return;
-
-        // Client-side validation before sending request
-        if (string.IsNullOrEmpty(selectedState.Blessing.BlessingId))
-        {
-            _capi!.ShowChatMessage("Error: Invalid blessing ID");
-            return;
-        }
-
-        // Send unlock request to server
-        _capi!.Logger.Debug($"[PantheonWars] Sending unlock request for: {selectedState.Blessing.Name}");
-        _pantheonWarsSystem?.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
-    }
 
     /// <summary>
     ///     Handle close button click
@@ -232,15 +119,15 @@ public partial class BlessingDialog
             _overlayCoordinator!.CloseReligionBrowser();
             _overlayCoordinator.CloseLeaveConfirmation();
 
-            // If leaving religion, reset blessing dialog state immediately
+            // If leaving religion, reset dialog state immediately
             if (packet.Action == "leave")
             {
-                _capi.Logger.Debug("[PantheonWars] Resetting blessing dialog after leaving religion");
+                _capi.Logger.Debug("[PantheonWars] Resetting dialog after leaving religion");
                 _manager!.Reset();
             }
 
-            // Request fresh blessing data (religion may have changed)
-            _pantheonWarsSystem?.RequestBlessingData();
+            // Request fresh religion data (religion may have changed)
+            _pantheonWarsSystem?.RequestPlayerReligionInfo();
 
             // Request updated religion info to refresh member count (for join/kick/ban/invite actions)
             if (packet.Action == "join" || packet.Action == "kick" || packet.Action == "ban" || packet.Action == "invite")
@@ -437,115 +324,16 @@ public partial class BlessingDialog
     }
 
     /// <summary>
-    ///     Handle player religion data updates (favor, rank, etc.)
+    ///     Handle player religion data updates
     /// </summary>
     private void OnPlayerReligionDataUpdated(PlayerReligionDataPacket packet)
     {
         // Skip if manager is not initialized yet
         if (_manager == null) return;
 
-        _capi!.Logger.Debug($"[PantheonWars] Updating blessing dialog with new favor data: {packet.Favor}, Total: {packet.TotalFavorEarned}");
+        _capi!.Logger.Debug($"[PantheonWars] Updating dialog with religion data");
 
-        // Always update manager with new values, even if dialog is closed
-        // This ensures the UI shows correct values when opened
-        _manager.CurrentFavor = packet.Favor;
-        _manager.CurrentPrestige = packet.Prestige;
-        _manager.TotalFavorEarned = packet.TotalFavorEarned;
-
-        // Update rank if it changed (this affects which blessings can be unlocked)
-        // FavorRank comes as enum name (e.g., "Initiate", "Disciple"), parse to get numeric value
-        if (Enum.TryParse<FavorRank>(packet.FavorRank, out var favorRankEnum))
-        {
-            _manager.CurrentFavorRank = (int)favorRankEnum;
-        }
-
-        if (Enum.TryParse<PrestigeRank>(packet.PrestigeRank, out var prestigeRankEnum))
-        {
-            _manager.CurrentPrestigeRank = (int)prestigeRankEnum;
-        }
-
-        // Refresh blessing states in case new blessings became available
-        // Only do this if dialog is open to avoid unnecessary processing
-        if (_state.IsOpen && _manager.HasReligion())
-        {
-            _manager.RefreshAllBlessingStates();
-        }
-    }
-
-    /// <summary>
-    ///     Handle blessing unlock response from server
-    /// </summary>
-    private void OnBlessingUnlockedFromServer(string blessingId, bool success)
-    {
-        if (!success)
-        {
-            _capi!.Logger.Debug($"[PantheonWars] Blessing unlock failed: {blessingId}");
-
-            // Play error sound on failure
-            _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
-                _capi.World.Player.Entity, null, false, 8f, 0.5f);
-
-            return;
-        }
-
-        _capi!.Logger.Debug($"[PantheonWars] Blessing unlocked from server: {blessingId}");
-
-        // Play unlock success sound
-        if (_manager != null)
-        {
-            switch (_manager.CurrentDeity)
-            {
-                case DeityType.None:
-                    _capi.World.PlaySoundAt(
-                        new AssetLocation($"pantheonwars:sounds/unlock"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
-                case DeityType.Khoras:
-                    _capi.World.PlaySoundAt(
-                        new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Khoras)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
-                case DeityType.Lysa:
-                    _capi.World.PlaySoundAt(new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Lysa)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
-                case DeityType.Morthen:
-                    _capi.World.PlaySoundAt(
-                        new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Morthen)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
-                case DeityType.Aethra:
-                    _capi.World.PlaySoundAt(
-                        new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Aethra)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
-                case DeityType.Umbros:
-                    _capi.World.PlaySoundAt(
-                        new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Umbros)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
-                case DeityType.Tharos:
-                    _capi.World.PlaySoundAt(
-                        new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Tharos)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
-                case DeityType.Gaia:
-                    _capi.World.PlaySoundAt(new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Gaia)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
-                case DeityType.Vex:
-                    _capi.World.PlaySoundAt(new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Vex)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            // Update manager state
-            _manager?.SetBlessingUnlocked(blessingId, true);
-
-            // Refresh all blessing states to update prerequisites and glow effects
-            _manager?.RefreshAllBlessingStates();
-        }
+        // Request updated religion info
+        _pantheonWarsSystem?.RequestPlayerReligionInfo();
     }
 }

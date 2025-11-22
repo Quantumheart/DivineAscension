@@ -195,50 +195,16 @@ public static class ReligionListRenderer
                 api.World.Player.Entity, null, false, 8f, 0.5f);
         }
 
-        // Draw deity icon (with fallback to colored circle)
-        const float iconSize = 48f;
-        var deityType = DeityHelper.ParseDeityType(religion.Deity);
-        var deityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
-
-        if (deityTextureId != IntPtr.Zero)
-        {
-            // Render deity icon texture
-            var iconPos = new Vector2(x + padding, y + (height - iconSize) / 2);
-            var iconMin = iconPos;
-            var iconMax = new Vector2(iconPos.X + iconSize, iconPos.Y + iconSize);
-
-            // Draw icon with full color (no tint)
-            var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
-            drawList.AddImage(deityTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
-
-            // Add subtle border around icon for visual cohesion
-            var deityColor = DeityHelper.GetDeityColor(religion.Deity);
-            var iconBorderColor = ImGui.ColorConvertFloat4ToU32(deityColor * 0.8f);
-            drawList.AddRect(iconMin, iconMax, iconBorderColor, 4f, ImDrawFlags.None, 2f);
-        }
-        else
-        {
-            // Fallback: Use placeholder colored circle if texture not available
-            var iconCenter = new Vector2(x + padding + iconSize / 2, y + height / 2);
-            var deityColor = DeityHelper.GetDeityColor(religion.Deity);
-            var iconColorU32 = ImGui.ColorConvertFloat4ToU32(deityColor);
-            drawList.AddCircleFilled(iconCenter, iconSize / 2, iconColorU32, 16);
-        }
+        // Note: Deity icons removed as part of guild conversion - no longer displayed
 
         // Draw religion name
-        var namePos = new Vector2(x + padding * 2 + iconSize, y + padding);
+        var namePos = new Vector2(x + padding, y + padding);
         var nameColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
         drawList.AddText(ImGui.GetFont(), 16f, namePos, nameColor, religion.ReligionName);
 
-        // Draw deity name
-        var deityText = $"{religion.Deity} - {DeityHelper.GetDeityTitle(religion.Deity)}";
-        var deityPos = new Vector2(x + padding * 2 + iconSize, y + padding + 22f);
-        var deityColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
-        drawList.AddText(ImGui.GetFont(), 13f, deityPos, deityColorU32, deityText);
-
-        // Draw member count and prestige
-        var infoText = $"{religion.MemberCount} members | {religion.PrestigeRank} Prestige | {(religion.IsPublic ? "Public" : "Private")}";
-        var infoPos = new Vector2(x + padding * 2 + iconSize, y + padding + 42f);
+        // Draw member count and visibility
+        var infoText = $"{religion.MemberCount} members | {(religion.IsPublic ? "Public" : "Private")}";
+        var infoPos = new Vector2(x + padding, y + padding + 24f);
         var infoColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 12f, infoPos, infoColor, infoText);
 
@@ -267,17 +233,11 @@ public static class ReligionListRenderer
         // Religion name (title)
         lines.Add(religion.ReligionName);
 
-        // Deity
-        lines.Add($"{religion.Deity} - {DeityHelper.GetDeityTitle(religion.Deity)}");
-
         // Separator
         lines.Add(""); // Empty line for spacing
 
         // Member count
         lines.Add($"Members: {religion.MemberCount}");
-
-        // Prestige
-        lines.Add($"Prestige: {religion.PrestigeRank} ({religion.Prestige})");
 
         // Public/Private status
         lines.Add($"Status: {(religion.IsPublic ? "Public" : "Private")}");
@@ -356,13 +316,7 @@ public static class ReligionListRenderer
                 textColor = ColorPalette.Gold;
                 fontSize = 16f;
             }
-            else if (i == 1)
-            {
-                // Deity subtitle
-                textColor = ColorPalette.White;
-                fontSize = 13f;
-            }
-            else if (line.StartsWith("Description:") || line.StartsWith("Members:") || line.StartsWith("Prestige:") || line.StartsWith("Status:"))
+            else if (line.StartsWith("Description:") || line.StartsWith("Members:") || line.StartsWith("Status:"))
             {
                 // Section headers
                 textColor = ColorPalette.Grey;

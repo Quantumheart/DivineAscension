@@ -4,7 +4,6 @@ using Moq;
 using PantheonWars.Data;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
-using PantheonWars.Systems.BuffSystem.Interfaces;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -79,34 +78,7 @@ public static class TestFixtures
 
     #region Mock System Interfaces
 
-    /// <summary>
-    ///     Creates a mock IDeityRegistry with Khoras and Lysa deities
-    /// </summary>
-    public static Mock<IDeityRegistry> CreateMockDeityRegistry()
-    {
-        var mockRegistry = new Mock<IDeityRegistry>();
-
-        var khoras = CreateTestDeity(DeityType.Khoras, "Khoras", "War");
-        var lysa = CreateTestDeity(DeityType.Lysa, "Lysa", "Hunt");
-
-        mockRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
-        mockRegistry.Setup(r => r.GetDeity(DeityType.Lysa)).Returns(lysa);
-        mockRegistry.Setup(r => r.HasDeity(DeityType.Khoras)).Returns(true);
-        mockRegistry.Setup(r => r.HasDeity(DeityType.Lysa)).Returns(true);
-        mockRegistry.Setup(r => r.GetAllDeities()).Returns(new List<Deity> { khoras, lysa });
-
-        // Setup relationships
-        mockRegistry.Setup(r => r.GetRelationship(DeityType.Khoras, DeityType.Lysa))
-            .Returns(DeityRelationshipType.Allied);
-        mockRegistry.Setup(r => r.GetRelationship(DeityType.Lysa, DeityType.Khoras))
-            .Returns(DeityRelationshipType.Allied);
-
-        // Setup favor multipliers
-        mockRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa)).Returns(0.5f);
-        mockRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Morthen)).Returns(2.0f);
-
-        return mockRegistry;
-    }
+    // CreateMockDeityRegistry removed - deity system deleted
 
     /// <summary>
     ///     Creates a mock IPlayerDataManager
@@ -138,73 +110,17 @@ public static class TestFixtures
         return new Mock<IReligionManager>();
     }
 
-    /// <summary>
-    ///     Creates a mock IReligionPrestigeManager
-    /// </summary>
-    public static Mock<IReligionPrestigeManager> CreateMockReligionPrestigeManager()
-    {
-        return new Mock<IReligionPrestigeManager>();
-    }
-
-    /// <summary>
-    ///     Creates a mock IBlessingRegistry
-    /// </summary>
-    public static Mock<IBlessingRegistry> CreateMockBlessingRegistry()
-    {
-        return new Mock<IBlessingRegistry>();
-    }
-
-    /// <summary>
-    ///     Creates a mock IBlessingEffectSystem
-    /// </summary>
-    public static Mock<IBlessingEffectSystem> CreateMockBlessingEffectSystem()
-    {
-        return new Mock<IBlessingEffectSystem>();
-    }
-
-    /// <summary>
-    ///     Creates a mock IBuffManager
-    /// </summary>
-    public static Mock<IBuffManager> CreateMockBuffManager()
-    {
-        return new Mock<IBuffManager>();
-    }
-
-    /// <summary>
-    ///     Creates a mock IFavorSystem
-    /// </summary>
-    public static Mock<IFavorSystem> CreateMockFavorSystem()
-    {
-        return new Mock<IFavorSystem>();
-    }
+    // CreateMockReligionPrestigeManager removed - prestige system deleted
+    // CreateMockBlessingRegistry removed - blessing system deleted
+    // CreateMockBlessingEffectSystem removed - blessing system deleted
+    // CreateMockBuffManager removed - buff system deleted
+    // CreateMockFavorSystem removed - favor system deleted
 
     #endregion
 
     #region Test Data Objects
 
-    /// <summary>
-    ///     Creates a test Deity with default values
-    /// </summary>
-    public static Deity CreateTestDeity(
-        DeityType type = DeityType.Khoras,
-        string name = "Khoras",
-        string domain = "War")
-    {
-        return new Deity(type, name, domain)
-        {
-            Description = $"The God/Goddess of {domain}",
-            Alignment = DeityAlignment.Lawful,
-            PrimaryColor = "#8B0000",
-            SecondaryColor = "#FFD700",
-            Playstyle = "Test playstyle",
-            Relationships = new Dictionary<DeityType, DeityRelationshipType>
-            {
-                { DeityType.Lysa, DeityRelationshipType.Allied },
-                { DeityType.Morthen, DeityRelationshipType.Rival }
-            },
-            AbilityIds = new List<string> { "test_ability_1", "test_ability_2" }
-        };
-    }
+    // CreateTestDeity removed - deity system deleted
 
     /// <summary>
     ///     Creates test PlayerReligionData with default values
@@ -255,30 +171,7 @@ public static class TestFixtures
         };
     }
 
-    /// <summary>
-    ///     Creates a test Blessing with default values
-    /// </summary>
-    public static Blessing CreateTestBlessing(
-        string id = "test_blessing",
-        string name = "Test Blessing",
-        DeityType deity = DeityType.Khoras,
-        BlessingKind kind = BlessingKind.Player)
-    {
-        return new Blessing(id, name, deity)
-        {
-            Description = "A test blessing",
-            Category = BlessingCategory.Combat,
-            RequiredFavorRank = 1,
-            RequiredPrestigeRank = 0,
-            PrerequisiteBlessings = new List<string>(),
-            StatModifiers = new Dictionary<string, float>
-            {
-                { "walkspeed", 0.1f }
-            },
-            Kind = kind,
-            SpecialEffects = new List<string>()
-        };
-    }
+    // CreateTestBlessing removed - blessing system deleted
 
     #endregion
 
