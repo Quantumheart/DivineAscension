@@ -1,5 +1,3 @@
-using PantheonWars.Models.Enum;
-
 namespace PantheonWars.GUI.Interfaces;
 
 /// <summary>
@@ -9,7 +7,6 @@ public interface IGuildDialogManager
 {
     // Religion state
     string? CurrentReligionUID { get; set; }
-    DeityType CurrentDeity { get; set; }
     string? CurrentReligionName { get; set; }
     int ReligionMemberCount { get; set; }
     string? PlayerRoleInReligion { get; set; }
@@ -20,7 +17,7 @@ public interface IGuildDialogManager
     /// <summary>
     ///     Initialize dialog state from player's current religion data
     /// </summary>
-    void Initialize(string? religionUID, DeityType deity, string? religionName, int favorRank = 0, int prestigeRank = 0);
+    void Initialize(string? religionUID, string? religionName);
 
     /// <summary>
     ///     Reset all state

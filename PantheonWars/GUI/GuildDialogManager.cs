@@ -1,5 +1,4 @@
 using PantheonWars.GUI.Interfaces;
-using PantheonWars.Models.Enum;
 using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI;
@@ -18,7 +17,6 @@ public class GuildDialogManager : IGuildDialogManager
 
     // Religion state
     public string? CurrentReligionUID { get; set; }
-    public DeityType CurrentDeity { get; set; } = DeityType.None;
     public string? CurrentReligionName { get; set; }
     public int ReligionMemberCount { get; set; } = 0;
     public string? PlayerRoleInReligion { get; set; } // "Leader", "Member", etc.
@@ -29,11 +27,9 @@ public class GuildDialogManager : IGuildDialogManager
     /// <summary>
     ///     Initialize dialog state from player's current religion data
     /// </summary>
-    public void Initialize(string? religionUID, DeityType deity, string? religionName, int favorRank = 0,
-        int prestigeRank = 0)
+    public void Initialize(string? religionUID, string? religionName)
     {
         CurrentReligionUID = religionUID;
-        CurrentDeity = deity;
         CurrentReligionName = religionName;
         IsDataLoaded = true;
     }
@@ -44,7 +40,6 @@ public class GuildDialogManager : IGuildDialogManager
     public void Reset()
     {
         CurrentReligionUID = null;
-        CurrentDeity = DeityType.None;
         CurrentReligionName = null;
         ReligionMemberCount = 0;
         PlayerRoleInReligion = null;

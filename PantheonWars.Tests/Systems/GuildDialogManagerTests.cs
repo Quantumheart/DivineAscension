@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using PantheonWars.GUI;
-using PantheonWars.Models.Enum;
 
 namespace PantheonWars.Tests.Systems;
 
@@ -12,7 +11,6 @@ public class GuildDialogManagerTests
     {
         var manager = new GuildDialogManager(null!);
         Assert.Null(manager.CurrentReligionUID);
-        Assert.Equal(DeityType.None, manager.CurrentDeity);
         Assert.Null(manager.CurrentReligionName);
         Assert.False(manager.IsDataLoaded);
     }
@@ -21,10 +19,9 @@ public class GuildDialogManagerTests
     public void TestInitializeMethod()
     {
         var manager = new GuildDialogManager(null!);
-        manager.Initialize("religion123", DeityType.Khoras, "God of Warriors");
+        manager.Initialize("religion123", "Warriors Guild");
         Assert.Equal("religion123", manager.CurrentReligionUID);
-        Assert.Equal(DeityType.Khoras, manager.CurrentDeity);
-        Assert.Equal("God of Warriors", manager.CurrentReligionName);
+        Assert.Equal("Warriors Guild", manager.CurrentReligionName);
         Assert.True(manager.IsDataLoaded);
     }
 
@@ -32,10 +29,9 @@ public class GuildDialogManagerTests
     public void TestResetMethod()
     {
         var manager = new GuildDialogManager(null!);
-        manager.Initialize("religion123", DeityType.Khoras, "God of Warriors");
+        manager.Initialize("religion123", "Warriors Guild");
         manager.Reset();
         Assert.Null(manager.CurrentReligionUID);
-        Assert.Equal(DeityType.None, manager.CurrentDeity);
         Assert.Null(manager.CurrentReligionName);
         Assert.False(manager.IsDataLoaded);
     }
@@ -46,7 +42,7 @@ public class GuildDialogManagerTests
         var manager = new GuildDialogManager(null!);
         Assert.False(manager.HasReligion());
 
-        manager.Initialize("religion123", DeityType.Khoras, "God of Warriors");
+        manager.Initialize("religion123", "Warriors Guild");
         Assert.True(manager.HasReligion());
 
         manager.Reset();
