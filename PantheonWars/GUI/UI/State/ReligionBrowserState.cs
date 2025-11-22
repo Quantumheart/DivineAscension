@@ -4,15 +4,10 @@ using PantheonWars.Network;
 namespace PantheonWars.GUI.UI.State;
 
 /// <summary>
-///     State management for Religion Browser overlay
+///     State management for Guild Browser overlay
 /// </summary>
 public class ReligionBrowserState
 {
-    /// <summary>
-    ///     Selected deity filter ("All" or specific deity name)
-    /// </summary>
-    public string SelectedDeityFilter { get; set; } = "All";
-
     /// <summary>
     ///     Currently selected religion UID (for highlighting)
     /// </summary>
@@ -38,7 +33,6 @@ public class ReligionBrowserState
     /// </summary>
     public void Reset()
     {
-        SelectedDeityFilter = "All";
         SelectedReligionUID = null;
         ScrollY = 0f;
         Religions.Clear();

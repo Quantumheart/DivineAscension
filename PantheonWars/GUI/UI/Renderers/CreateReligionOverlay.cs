@@ -11,7 +11,7 @@ using Vintagestory.API.Client;
 namespace PantheonWars.GUI.UI.Renderers;
 
 /// <summary>
-///     Overlay for creating a new religion
+///     Overlay for creating a new guild
 ///     Displays as modal form on top of browser
 /// </summary>
 [ExcludeFromCodeCoverage]
@@ -29,20 +29,20 @@ internal static class CreateReligionOverlay
     }
 
     /// <summary>
-    ///     Draw the create religion overlay
+    ///     Draw the create guild overlay
     /// </summary>
     /// <param name="api">Client API</param>
     /// <param name="windowWidth">Parent window width</param>
     /// <param name="windowHeight">Parent window height</param>
     /// <param name="onClose">Callback when close/cancel clicked</param>
-    /// <param name="onCreate">Callback when create clicked (name, deity, isPublic)</param>
+    /// <param name="onCreate">Callback when create clicked (name, isPublic)</param>
     /// <returns>True if overlay should remain open</returns>
     public static bool Draw(
         ICoreClientAPI api,
         int windowWidth,
         int windowHeight,
         Action onClose,
-        Action<string, string, bool> onCreate)
+        Action<string, bool> onCreate)
     {
         const float overlayWidth = 500f;
         const float overlayHeight = 400f;
@@ -73,7 +73,7 @@ internal static class CreateReligionOverlay
         var currentY = overlayY + padding;
 
         // === HEADER ===
-        var headerText = "Create New Religion";
+        var headerText = "Create New Guild";
         var headerSize = ImGui.CalcTextSize(headerText);
         var headerPos = new Vector2(overlayX + padding, currentY);
         var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
@@ -96,11 +96,11 @@ internal static class CreateReligionOverlay
         // === FORM FIELDS ===
         var fieldWidth = overlayWidth - padding * 2;
 
-        // Religion Name
-        TextRenderer.DrawLabel(drawList, "Religion Name:", overlayX + padding, currentY);
+        // Guild Name
+        TextRenderer.DrawLabel(drawList, "Guild Name:", overlayX + padding, currentY);
         currentY += 25f;
 
-        _state.ReligionName = TextInput.Draw(drawList, "##religionname", _state.ReligionName, overlayX + padding, currentY, fieldWidth, 32f, "Enter religion name...", 32);
+        _state.ReligionName = TextInput.Draw(drawList, "##religionname", _state.ReligionName, overlayX + padding, currentY, fieldWidth, 32f, "Enter guild name...", 32);
         currentY += 40f;
 
         // Public/Private Toggle
@@ -109,8 +109,8 @@ internal static class CreateReligionOverlay
 
         // Info text
         var infoText = _state.IsPublic
-            ? "Public religions appear in the browser and anyone can join."
-            : "Private religions require an invitation from the founder.";
+            ? "Public guilds appear in the browser and anyone can join."
+            : "Private guilds require an invitation from the founder.";
         TextRenderer.DrawInfoText(drawList, infoText, overlayX + padding, currentY, fieldWidth);
         currentY += 50f;
 
@@ -146,13 +146,12 @@ internal static class CreateReligionOverlay
                 api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
                     api.World.Player.Entity, null, false, 8f, 0.5f);
 
-                // Pass "None" as deity since we're removing deity system
-                onCreate.Invoke(_state.ReligionName, "None", _state.IsPublic);
+                onCreate.Invoke(_state.ReligionName, _state.IsPublic);
                 return false; // Close overlay after create
             }
             else
             {
-                _state.ErrorMessage = "Religion name must be at least 3 characters";
+                _state.ErrorMessage = "Guild name must be at least 3 characters";
                 api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/error"),
                     api.World.Player.Entity, null, false, 8f, 0.3f);
             }

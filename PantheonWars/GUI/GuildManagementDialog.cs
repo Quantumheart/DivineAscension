@@ -243,7 +243,6 @@ public partial class GuildManagementDialog : ModSystem
             windowHeight,
             _manager!,
             OnJoinReligionClicked,
-            OnRefreshReligionList,
             OnCreateReligionClicked,
             OnCreateReligionSubmit,
             OnKickMemberClicked,

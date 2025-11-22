@@ -100,9 +100,8 @@ public class OverlayCoordinator : IOverlayCoordinator
         int windowHeight,
         GuildDialogManager manager,
         Action<string> onJoinReligionClicked,
-        Action<string> onRefreshReligionList,
         Action onCreateReligionClicked,
-        Action<string, string, bool> onCreateReligionSubmit,
+        Action<string, bool> onCreateReligionSubmit,
         Action<string> onKickMemberClicked,
         Action<string> onBanMemberClicked,
         Action<string> onUnbanMemberClicked,
@@ -122,7 +121,6 @@ public class OverlayCoordinator : IOverlayCoordinator
                 windowHeight,
                 () => _showReligionBrowser = false,
                 onJoinReligionClicked,
-                onRefreshReligionList,
                 onCreateReligionClicked,
                 manager.HasReligion()
             );

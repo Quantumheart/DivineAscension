@@ -14,8 +14,8 @@ using Vintagestory.API.Client;
 namespace PantheonWars.GUI.UI.Renderers;
 
 /// <summary>
-///     Overlay for browsing and joining religions
-///     Displays as modal panel on top of Blessing Dialog
+///     Overlay for browsing and joining guilds
+///     Displays as modal panel on top of Guild Management Dialog
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class ReligionBrowserOverlay
@@ -40,16 +40,15 @@ internal static class ReligionBrowserOverlay
     }
 
     /// <summary>
-    ///     Draw the religion browser overlay
+    ///     Draw the guild browser overlay
     /// </summary>
     /// <param name="api">Client API</param>
     /// <param name="windowWidth">Parent window width</param>
     /// <param name="windowHeight">Parent window height</param>
     /// <param name="onClose">Callback when close button clicked</param>
     /// <param name="onJoinReligion">Callback when join button clicked (religionUID)</param>
-    /// <param name="onRequestRefresh">Callback when refresh requested (deityFilter)</param>
-    /// <param name="onCreateReligion">Callback when create religion clicked</param>
-    /// <param name="userHasReligion">Whether the user already has a religion</param>
+    /// <param name="onCreateReligion">Callback when create guild clicked</param>
+    /// <param name="userHasReligion">Whether the user already has a guild</param>
     /// <returns>True if overlay should remain open</returns>
     public static bool Draw(
         ICoreClientAPI api,
@@ -57,7 +56,6 @@ internal static class ReligionBrowserOverlay
         int windowHeight,
         Action onClose,
         Action<string> onJoinReligion,
-        Action<string> onRequestRefresh,
         Action onCreateReligion,
         bool userHasReligion)
     {
@@ -90,7 +88,7 @@ internal static class ReligionBrowserOverlay
         var currentY = overlayY + padding;
 
         // === HEADER ===
-        var headerText = "Browse Religions";
+        var headerText = "Browse Guilds";
         var headerSize = ImGui.CalcTextSize(headerText);
         var headerPos = new Vector2(overlayX + padding, currentY);
         var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
@@ -110,45 +108,7 @@ internal static class ReligionBrowserOverlay
 
         currentY += headerSize.Y + padding * 2;
 
-        // === DEITY FILTER TABS ===
-        var deityFilters = new[] { "All", "Khoras", "Lysa", "Morthen", "Aethra", "Umbros", "Tharos", "Gaia", "Vex" };
-        const float tabHeight = 32f;
-        const float tabSpacing = 4f;
-
-        // Find current selected index
-        var currentSelectedIndex = Array.IndexOf(deityFilters, _state.SelectedDeityFilter);
-        if (currentSelectedIndex == -1) currentSelectedIndex = 0; // Default to "All"
-
-        // Draw tabs using TabControl component
-        var newSelectedIndex = TabControl.Draw(
-            drawList,
-            overlayX + padding,
-            currentY,
-            overlayWidth - padding * 2,
-            tabHeight,
-            deityFilters,
-            currentSelectedIndex,
-            tabSpacing);
-
-        // Handle selection change
-        if (newSelectedIndex != currentSelectedIndex)
-        {
-            _state.SelectedDeityFilter = deityFilters[newSelectedIndex];
-            _state.SelectedReligionUID = null;
-            _state.ScrollY = 0f;
-            _state.IsLoading = true;
-
-            // Request refresh with new filter
-            var filterString = deityFilters[newSelectedIndex] == "All" ? "" : deityFilters[newSelectedIndex];
-            onRequestRefresh.Invoke(filterString);
-
-            api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
-                api.World.Player.Entity, null, false, 8f, 0.5f);
-        }
-
-        currentY += tabHeight + padding;
-
-        // === RELIGION LIST ===
+        // === GUILD LIST ===
         var listHeight = overlayHeight - (currentY - overlayY) - padding * 2 - 40f; // 40f for join button
         ReligionListResponsePacket.ReligionInfo? hoveredReligion;
         (_state.ScrollY, _state.SelectedReligionUID, hoveredReligion) = ReligionListRenderer.Draw(
@@ -164,25 +124,25 @@ internal static class ReligionBrowserOverlay
         var buttonY = currentY;
         var canJoin = !string.IsNullOrEmpty(_state.SelectedReligionUID);
 
-        // Only show Create button if user doesn't have a religion
+        // Only show Create button if user doesn't have a guild
         if (!userHasReligion)
         {
             // Show both Create and Join buttons
             var totalButtonWidth = buttonWidth * 2 + buttonSpacing;
             var buttonsStartX = overlayX + (overlayWidth - totalButtonWidth) / 2;
 
-            // Create Religion button
+            // Create Guild button
             var createButtonX = buttonsStartX;
-            if (ButtonRenderer.DrawButton(drawList, "Create Religion", createButtonX, buttonY, buttonWidth, buttonHeight, isPrimary: true, enabled: true))
+            if (ButtonRenderer.DrawButton(drawList, "Create Guild", createButtonX, buttonY, buttonWidth, buttonHeight, isPrimary: true, enabled: true))
             {
                 api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
                     api.World.Player.Entity, null, false, 8f, 0.5f);
                 onCreateReligion.Invoke();
             }
 
-            // Join Religion button
+            // Join Guild button
             var joinButtonX = buttonsStartX + buttonWidth + buttonSpacing;
-            if (ButtonRenderer.DrawButton(drawList, canJoin ? "Join Religion" : "Select a religion", joinButtonX, buttonY, buttonWidth, buttonHeight, isPrimary: false, enabled: canJoin))
+            if (ButtonRenderer.DrawButton(drawList, canJoin ? "Join Guild" : "Select a guild", joinButtonX, buttonY, buttonWidth, buttonHeight, isPrimary: false, enabled: canJoin))
             {
                 if (canJoin)
                 {
@@ -200,9 +160,9 @@ internal static class ReligionBrowserOverlay
         }
         else
         {
-            // User has religion - only show centered Join button (for switching religions)
+            // User has guild - only show centered Join button (for switching guilds)
             var joinButtonX = overlayX + (overlayWidth - buttonWidth) / 2;
-            if (ButtonRenderer.DrawButton(drawList, canJoin ? "Join Religion" : "Select a religion", joinButtonX, buttonY, buttonWidth, buttonHeight, isPrimary: false, enabled: canJoin))
+            if (ButtonRenderer.DrawButton(drawList, canJoin ? "Join Guild" : "Select a guild", joinButtonX, buttonY, buttonWidth, buttonHeight, isPrimary: false, enabled: canJoin))
             {
                 if (canJoin)
                 {

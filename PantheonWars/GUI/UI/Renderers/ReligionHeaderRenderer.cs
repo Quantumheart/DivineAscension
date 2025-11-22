@@ -11,8 +11,8 @@ using Vintagestory.API.Client;
 namespace PantheonWars.GUI.UI.Renderers;
 
 /// <summary>
-///     Renders the religion/deity header banner at the top of the blessing dialog
-///     Shows: Religion name, deity icon/name, favor/prestige ranks
+///     Renders the guild header banner at the top of the guild management dialog
+///     Shows: Guild name, member count, and player role
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class ReligionHeaderRenderer
@@ -55,8 +55,8 @@ internal static class ReligionHeaderRenderer
         // Check if player has a religion
         if (!manager.HasReligion())
         {
-            // Display "No Religion" message
-            var noReligionText = "No Religion - Join or create one to unlock blessings!";
+            // Display "No Guild" message
+            var noReligionText = "No Guild - Join or create one to connect with other players!";
             var textSize = ImGui.CalcTextSize(noReligionText);
             var textPos = new Vector2(
                 x + (width - textSize.X) / 2,
@@ -66,7 +66,7 @@ internal static class ReligionHeaderRenderer
             var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
             drawList.AddText(ImGui.GetFont(), 16f, textPos, textColor, noReligionText);
 
-            // Add "Browse Religions" button
+            // Add "Browse Guilds" button
             if (onChangeReligionClicked != null)
             {
                 const float browseButtonWidth = 160f;
@@ -74,7 +74,7 @@ internal static class ReligionHeaderRenderer
                 var browseButtonX = x + (width - browseButtonWidth) / 2;
                 var browseButtonY = y + (headerHeight - browseButtonHeight) / 2 + 20f;
 
-                if (DrawButton("Browse Religions", browseButtonX, browseButtonY, browseButtonWidth, browseButtonHeight))
+                if (DrawButton("Browse Guilds", browseButtonX, browseButtonY, browseButtonWidth, browseButtonHeight))
                 {
                     onChangeReligionClicked.Invoke();
                     api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
@@ -116,10 +116,10 @@ internal static class ReligionHeaderRenderer
         var buttonY = y + (headerHeight - buttonHeight) / 2;
         var buttonX = x + width - padding - buttonWidth;
 
-        // "Leave Religion" button (always visible when in a religion)
+        // "Leave Guild" button (always visible when in a guild)
         if (onLeaveReligionClicked != null)
         {
-            if (DrawButton("Leave Religion", buttonX, buttonY, buttonWidth, buttonHeight, new Vector4(0.6f, 0.2f, 0.2f, 1.0f)))
+            if (DrawButton("Leave Guild", buttonX, buttonY, buttonWidth, buttonHeight, new Vector4(0.6f, 0.2f, 0.2f, 1.0f)))
             {
                 onLeaveReligionClicked.Invoke();
                 api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
@@ -129,10 +129,10 @@ internal static class ReligionHeaderRenderer
             buttonX -= buttonWidth + buttonSpacing;
         }
 
-        // "Change Religion" button
+        // "Change Guild" button
         if (onChangeReligionClicked != null)
         {
-            if (DrawButton("Change Religion", buttonX, buttonY, buttonWidth, buttonHeight))
+            if (DrawButton("Change Guild", buttonX, buttonY, buttonWidth, buttonHeight))
             {
                 onChangeReligionClicked.Invoke();
                 api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
@@ -142,10 +142,10 @@ internal static class ReligionHeaderRenderer
             buttonX -= buttonWidth + buttonSpacing;
         }
 
-        // "Manage Religion" button (only if leader)
+        // "Manage Guild" button (only if leader)
         if (onManageReligionClicked != null && manager.PlayerRoleInReligion == "Leader")
         {
-            if (DrawButton("Manage Religion", buttonX, buttonY, buttonWidth, buttonHeight))
+            if (DrawButton("Manage Guild", buttonX, buttonY, buttonWidth, buttonHeight))
             {
                 onManageReligionClicked.Invoke();
                 api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),

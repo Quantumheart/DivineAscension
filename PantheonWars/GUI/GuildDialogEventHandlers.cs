@@ -155,15 +155,6 @@ public partial class GuildManagementDialog
     }
 
     /// <summary>
-    ///     Handle religion list refresh request
-    /// </summary>
-    private void OnRefreshReligionList(string deityFilter)
-    {
-        _capi!.Logger.Debug($"[PantheonWars] Refreshing religion list with filter: {deityFilter}");
-        _pantheonWarsSystem?.RequestReligionList(deityFilter);
-    }
-
-    /// <summary>
     ///     Handle Leave Religion button click
     /// </summary>
     private void OnLeaveReligionClicked()
