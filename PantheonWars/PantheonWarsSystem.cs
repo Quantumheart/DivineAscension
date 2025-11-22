@@ -124,19 +124,14 @@ public class PantheonWarsSystem : ModSystem
 
     private void OnReligionListRequest(IServerPlayer fromPlayer, ReligionListRequestPacket packet)
     {
-        var religions = string.IsNullOrEmpty(packet.FilterDeity)
-            ? _religionManager!.GetAllReligions()
-            : _religionManager!.GetReligionsByDeity(
-                Enum.TryParse<DeityType>(packet.FilterDeity, out var deity) ? deity : DeityType.None);
+        // Get all guilds (deity filtering removed)
+        var religions = _religionManager!.GetAllReligions();
 
         var religionInfoList = religions.Select(r => new ReligionListResponsePacket.ReligionInfo
         {
             ReligionUID = r.ReligionUID,
             ReligionName = r.ReligionName,
-            Deity = r.Deity.ToString(),
             MemberCount = r.MemberUIDs.Count,
-            Prestige = r.Prestige,
-            PrestigeRank = r.PrestigeRank.ToString(),
             IsPublic = r.IsPublic,
             FounderUID = r.FounderUID,
             Description = r.Description
@@ -513,18 +508,13 @@ public class PantheonWarsSystem : ModSystem
             }
             else if (_religionManager.HasReligion(fromPlayer.PlayerUID))
             {
-                message = "You are already in a religion. Leave your current religion first.";
-            }
-            else if (!Enum.TryParse<DeityType>(packet.Deity, out var deity) || deity == DeityType.None)
-            {
-                message = "Invalid deity selected.";
+                message = "You are already in a guild. Leave your current guild first.";
             }
             else
             {
-                // Create the religion
+                // Create the guild
                 var newReligion = _religionManager.CreateReligion(
                     packet.ReligionName,
-                    deity,
                     fromPlayer.PlayerUID,
                     packet.IsPublic
                 );
@@ -533,7 +523,7 @@ public class PantheonWarsSystem : ModSystem
                 _playerReligionDataManager!.JoinReligion(fromPlayer.PlayerUID, newReligion.ReligionUID);
 
                 religionUID = newReligion.ReligionUID;
-                message = $"Successfully created {packet.ReligionName}!";
+                message = $"Successfully created guild {packet.ReligionName}!";
                 success = true;
 
                 // Refresh player's HUD
@@ -542,8 +532,8 @@ public class PantheonWarsSystem : ModSystem
         }
         catch (Exception ex)
         {
-            message = $"Error creating religion: {ex.Message}";
-            _sapi!.Logger.Error($"[PantheonWars] Religion creation error: {ex}");
+            message = $"Error creating guild: {ex.Message}";
+            _sapi!.Logger.Error($"[PantheonWars] Guild creation error: {ex}");
         }
 
         var response = new CreateReligionResponsePacket(success, message, religionUID);
@@ -748,19 +738,19 @@ public class PantheonWarsSystem : ModSystem
     }
 
     /// <summary>
-    /// Request to create a new religion
+    /// Request to create a new guild
     /// </summary>
-    public void RequestCreateReligion(string religionName, string deity, bool isPublic)
+    public void RequestCreateReligion(string religionName, bool isPublic)
     {
         if (_clientChannel == null)
         {
-            _capi?.Logger.Error("[PantheonWars] Cannot create religion: client channel not initialized");
+            _capi?.Logger.Error("[PantheonWars] Cannot create guild: client channel not initialized");
             return;
         }
 
-        var request = new CreateReligionRequestPacket(religionName, deity, isPublic);
+        var request = new CreateReligionRequestPacket(religionName, isPublic);
         _clientChannel.SendPacket(request);
-        _capi?.Logger.Debug($"[PantheonWars] Sent create religion request: {religionName}, {deity}");
+        _capi?.Logger.Debug($"[PantheonWars] Sent create guild request: {religionName}");
     }
 
     /// <summary>

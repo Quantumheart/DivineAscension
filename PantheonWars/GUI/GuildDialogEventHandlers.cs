@@ -213,12 +213,12 @@ public partial class GuildManagementDialog
     }
 
     /// <summary>
-    ///     Handle Create Religion form submission
+    ///     Handle Create Guild form submission
     /// </summary>
-    private void OnCreateReligionSubmit(string religionName, string deity, bool isPublic)
+    private void OnCreateReligionSubmit(string religionName, bool isPublic)
     {
-        _capi!.Logger.Debug($"[PantheonWars] Creating religion: {religionName}, Deity: {deity}, Public: {isPublic}");
-        _pantheonWarsSystem?.RequestCreateReligion(religionName, deity, isPublic);
+        _capi!.Logger.Debug($"[PantheonWars] Creating guild: {religionName}, Public: {isPublic}");
+        _pantheonWarsSystem?.RequestCreateReligion(religionName, isPublic);
 
         // Close create form and show browser to see the new religion
         _overlayCoordinator!.CloseCreateReligion();
