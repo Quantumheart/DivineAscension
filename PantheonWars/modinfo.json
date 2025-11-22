@@ -2,11 +2,11 @@
   "type": "code",
   "name": "Pantheon Wars",
   "modid": "pantheonwars",
-  "version": "0.2.0",
+  "version": "2.0.0",
   "authors": [
     "Valinnar"
   ],
-  "description": "A mod for god fearing warriors.",
+  "description": "A guild management mod for Vintage Story. Create and manage player guilds with public/private access, invitation system, and founder privileges.",
   "side": "Universal",
   "dependencies": {
     "game": "1.21.0",

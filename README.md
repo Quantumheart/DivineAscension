@@ -1,51 +1,25 @@
 # Pantheon Wars
 
-**Version:** 1.0.0-beta
-**Status:** Release Candidate - Ready for Testing
+**Version:** 2.0.0-alpha
+**Status:** In Development - Guild System Redesign
 
-A religion-based PvP mod for Vintage Story featuring custom religions, competing deities, and passive blessing trees with dual progression systems.
+A guild management mod for Vintage Story featuring player-created guilds and community organization.
 
 ## Overview
 
-Pantheon Wars introduces a comprehensive religion and deity worship system where players create or join custom religions dedicated to different gods. Each religion unlocks unique passive blessing trees that enhance all members. Players earn individual Divine Favor and collective Religion Prestige through PvP combat, unlocking powerful blessings and progressing through dual ranking systems.
-
-**v1.0 ships with all 80 blessings providing functional stat modifiers.** Advanced special effects (lifesteal, poison, critical strikes, etc.) will be added in post-launch patches based on player feedback.
+Pantheon Wars provides a streamlined guild system where players create or join custom guilds to connect with other players. Guilds can be public (open to all) or private (invitation-only), with founder privileges for managing members and settings.
 
 ## Features
 
-### Religion System ✅
-- **Custom Player-Created Religions**: Create and name your own religions dedicated to any deity
-- **Public & Private Religions**: Control who can join your congregation
-- **Invitation System**: Invite specific players to join private religions
-- **Founder Privileges**: Religion creators manage members and settings
-- **Religion Switching**: Change religions with a 7-day cooldown (losing favor and blessings)
-- **Single Religion Membership**: Players can only be in one religion at a time
-
-### Deity System ✅
-- **8 Unique Deities**: Khoras (War), Lysa (Hunt), Morthen (Death), Aethra (Light), Umbros (Shadows), Tharos (Storms), Gaia (Earth), Vex (Madness)
-- **Religion-Based Deity Assignment**: Your deity is determined by your religion
-- **Deity Relationships**: Allied and rival deity dynamics affect favor and prestige gain
-- **Deity-Specific Blessing Trees**: Each deity has unique passive blessings
-
-### Dual Ranking System ✅
-- **Player Favor Ranks**: Individual progression (Initiate → Disciple → Zealot → Champion → Avatar)
-- **Religion Prestige Ranks**: Collective progression (Fledgling → Established → Renowned → Legendary → Mythic)
-- **Divine Favor Currency**: Earned through PvP combat with deity relationship multipliers
-- **Religion Prestige**: Earned collectively by all religion members through PvP
-
-### Blessing System ✅ (v1.0 - Stat Modifiers Complete)
-- **80 Passive Blessings**: 10 blessings per deity (6 player blessings + 4 religion blessings)
-- **Player Blessings**: Unlock based on your individual Favor Rank
-- **Religion Blessings**: Unlock based on your religion's Prestige Rank, benefit all members
-- **Stat Modifiers**: Blessings provide passive bonuses (damage, defense, speed, health, armor, etc.) ✅ **Working**
-- **Special Effects**: Unique deity-themed abilities (lifesteal, poison, critical hits, etc.) ⚠️ **Coming in patches**
-- **Blessing Trees**: Command-based tree viewer with unlock status
-
-### PvP Features ⚠️ (Planned - Phase 4)
-- **Divine Duels**: Formal 1v1 challenges with favor stakes
-- **Crusade Events**: Server-wide deity war events
-- **Relic System**: Powerful artifacts that grant temporary dominance
-- **Apostate Mechanics**: Penalties and consequences for deity betrayal
+### Guild System ✅
+- **Custom Player-Created Guilds**: Create and name your own guilds
+- **Public & Private Guilds**: Control who can join your guild
+- **Invitation System**: Invite specific players to join private guilds
+- **Founder Privileges**: Guild creators manage members, descriptions, and settings
+- **Guild Switching**: Change guilds with a 7-day cooldown
+- **Single Guild Membership**: Players can only be in one guild at a time
+- **Ban System**: Founders can ban problematic players from guilds
+- **Member Management**: Kick members and view complete member lists
 
 ## Development Setup
 
@@ -92,25 +66,7 @@ Open `PantheonWars.sln` in your IDE and select either:
 
 ### Controls
 
-- **K** - Open deity selection dialog
-
-## Documentation
-
-For detailed information about the mod's systems and mechanics, see:
-
-**Documentation Index:**
-- **[Documentation Home](docs/README.md)** - Complete documentation index organized by topic
-
-**Phase 3 Documentation:**
-- **[Implementation Guide](docs/topics/implementation/implementation_guide.md)** - Development roadmap and phase breakdown
-- **[Phase 3 Task Breakdown](docs/topics/planning/phase3_task_breakdown.md)** - Detailed task list and progress tracking
-- **[Phase 3 Design Guide](docs/topics/planning/phase3_group_deity_blessings_guide.md)** - Religion and blessing system design specifications
-
-**Reference Documentation:**
-- **[Deity Reference](docs/topics/reference/deity_reference.md)** - Complete deity information, relationships, and lore
-- **[Favor System Guide](docs/topics/reference/favor_reference.md)** - How favor works, earning methods, and devotion ranks
-- **[Blessing Reference](docs/topics/reference/blessing_reference.md)** - Blessing system mechanics
-- **[Ability Reference](docs/topics/reference/ability_reference.md)** - Old ability system (deprecated)
+- **P** - Open guild management dialog
 
 ## Project Structure
 
@@ -122,69 +78,27 @@ PantheonWars/
 ├── docs/                   # Documentation
 │   ├── README.md           # Documentation index
 │   └── topics/             # Documentation organized by topic
-│       ├── reference/      # Game system references
-│       ├── implementation/ # Implementation guides
-│       ├── ui-design/      # UI design documents
-│       ├── testing/        # Testing guides
-│       ├── art-assets/     # Icon and asset specs
-│       ├── planning/       # Phase planning docs
-│       ├── integration/    # System integration guides
-│       └── analysis/       # External mod analysis
 ├── PantheonWars/           # Main mod project
-│   ├── Abilities/ (legacy) # Old ability system (Phase 1-2)
-│   │   ├── Khoras/         # To be removed in Phase 3.5
-│   │   └── Lysa/
 │   ├── Commands/           # Chat commands
-│   │   ├── DeityCommands.cs (legacy)
-│   │   ├── AbilityCommands.cs (legacy)
-│   │   ├── ReligionCommands.cs ✅ NEW
-│   │   └── BlessingCommands.cs ✅ NEW
+│   │   └── Religion/       # Guild management commands
 │   ├── Data/               # Data models for persistence
-│   │   ├── PlayerDeityData.cs (legacy)
-│   │   ├── ReligionData.cs ✅ NEW
-│   │   └── PlayerReligionData.cs ✅ NEW
+│   │   ├── ReligionData.cs
+│   │   ├── PlayerReligionData.cs
+│   │   └── BanEntry.cs
 │   ├── GUI/                # User interface
-│   │   ├── DeitySelectionDialog.cs (legacy)
-│   │   ├── FavorHudElement.cs (updated for Phase 3) ✅
-│   │   ├── ReligionManagementDialog.cs ✅ NEW
-│   │   ├── CreateReligionDialog.cs ✅ NEW
-│   │   ├── InvitePlayerDialog.cs ✅ NEW
-│   │   └── EditDescriptionDialog.cs ✅ NEW
-│   ├── Models/             # Core data models
-│   │   ├── Deity.cs
-│   │   ├── Blessing.cs ✅ NEW
-│   │   ├── PrestigeRank.cs ✅ NEW
-│   │   ├── FavorRank.cs ✅ NEW
-│   │   ├── BlessingType.cs ✅ NEW
-│   │   ├── BlessingCategory.cs ✅ NEW
-│   │   └── Enums (DeityType, etc.)
+│   │   ├── GuildManagementDialog.cs
+│   │   ├── GuildDialogManager.cs
+│   │   ├── GuildDialogEventHandlers.cs
+│   │   └── UI/             # UI renderers and components
 │   ├── Network/            # Client-server networking
-│   │   ├── PlayerDataPacket.cs (legacy)
-│   │   └── PlayerReligionDataPacket.cs ✅ NEW
+│   │   ├── CreateReligionRequestPacket.cs
+│   │   ├── PlayerReligionDataPacket.cs
+│   │   ├── PlayerReligionInfoResponsePacket.cs
+│   │   └── ReligionListResponsePacket.cs
 │   ├── Systems/            # Core game systems
-│   │   ├── DeityRegistry.cs
-│   │   ├── ReligionManager.cs ✅ NEW
-│   │   ├── PlayerReligionDataManager.cs ✅ NEW
-│   │   ├── ReligionPrestigeManager.cs ✅ NEW
-│   │   ├── BlessingRegistry.cs ✅ NEW
-│   │   ├── BlessingEffectSystem.cs ✅ NEW
-│   │   ├── BlessingDefinitions.cs ✅ NEW (all 80 blessings)
-│   │   │   ├── Khoras (War - 10 blessings) ✅
-│   │   │   ├── Lysa (Hunt - 10 blessings) ✅
-│   │   │   ├── Morthen (Death - 10 blessings) ✅
-│   │   │   ├── Aethra (Light - 10 blessings) ✅
-│   │   │   ├── Umbros (Shadows - 10 blessings) ✅
-│   │   │   ├── Tharos (Storms - 10 blessings) ✅
-│   │   │   ├── Gaia (Earth - 10 blessings) ✅
-│   │   │   └── Vex (Madness - 10 blessings) ✅
-│   │   ├── BuffSystem/ ✅ (Phase 2)
-│   │   │   ├── BuffManager.cs
-│   │   │   ├── ActiveEffect.cs
-│   │   │   └── EntityBehaviorBuffTracker.cs
-│   │   ├── PlayerDataManager.cs (legacy)
-│   │   ├── AbilityCooldownManager.cs (legacy)
-│   │   ├── FavorSystem.cs (updated for Phase 3)
-│   │   └── AbilitySystem.cs (legacy - to be removed)
+│   │   ├── ReligionManager.cs
+│   │   ├── PlayerReligionDataManager.cs
+│   │   └── Interfaces/
 │   ├── Properties/
 │   │   └── launchSettings.json
 │   ├── assets/
@@ -199,147 +113,43 @@ PantheonWars/
 └── README.md
 ```
 
-## Current Status (v1.0.0-beta - Release Candidate)
+## Current Status (v2.0.0-alpha - Guild System Redesign)
 
-The mod is **ready for launch** with all core religion and blessing systems functional. Stat modifiers work perfectly - special effects deferred to post-launch patches.
-
-### What's New in v1.0 🎉
-
-**Complete Systems:**
-- ✅ **All 8 Deities Implemented** - 80 blessings fully defined across all deities
-- ✅ **Functional Stat Modifiers** - Blessings apply real gameplay bonuses
-- ✅ **Religion Management GUI** - Full tabbed interface for managing religions
-- ✅ **Automatic Blessing Notifications** - Religion members notified when new blessings unlock
-- ✅ **Blessing Effect Refresh** - Stat modifiers auto-apply on unlock
-- ✅ **All Core Systems Working** - Religion, progression, blessings, persistence
-
-**Scope Reduction (160→80 Blessings):**
-- Better balance with fewer blessing interactions
-- Each blessing is more meaningful and impactful
-- Achievable endgame (players can max out deity trees)
-- Faster development and iteration
+The mod is undergoing a major redesign to simplify from a complex deity/blessing/progression system to a streamlined guild management system.
 
 ### Implemented Systems ✅
 
-**Religion Management:**
-- ✅ Create custom religions with any deity
-- ✅ Public/private religion system with invitations
-- ✅ Join, leave, and manage religions
+**Guild Management:**
+- ✅ Create custom guilds (public or private)
+- ✅ Join, leave, and switch guilds
 - ✅ Founder privileges (kick members, disband, set description)
-- ✅ 7-day switching cooldown with penalties
+- ✅ 7-day switching cooldown
 - ✅ Full persistence and save/load
-- ✅ **Religion Management GUI** with tabbed interface
-
-**Dual Ranking System:**
-- ✅ Player Favor Ranks (Initiate → Avatar) - Individual progression
-- ✅ Religion Prestige Ranks (Fledgling → Mythic) - Collective progression
-- ✅ PvP favor/prestige earning with deity relationship multipliers
-- ✅ Rank-up notifications for both systems
-- ✅ **Automatic blessing unlock notifications** on rank-up
-- ✅ Network synchronization
-
-**Blessing System:**
-- ✅ BlessingRegistry with **80/80 blessings registered** (100% complete)
-- ✅ Blessing unlock validation (rank requirements, prerequisites)
-- ✅ **Stat modifier calculation and application working** (using VS Stats API)
-- ✅ Blessing persistence across sessions
-- ✅ Combined player + religion blessing effects
-- ✅ **All 8 deities fully designed** (10 blessings each)
-- ⚠️ Special effect handlers deferred to post-launch patches
-
-**Available Deity Blessing Trees (8/8 - All Complete!):**
-- ✅ **Khoras (War)** - 10 blessings (combat, damage, defense)
-- ✅ **Lysa (Hunt)** - 10 blessings (tracking, precision, ranged combat)
-- ✅ **Morthen (Death)** - 10 blessings (life drain, DoT, survivability)
-- ✅ **Aethra (Light)** - 10 blessings (healing, shields, buffs)
-- ✅ **Umbros (Shadows)** - 10 blessings (stealth, backstab, evasion)
-- ✅ **Tharos (Storms)** - 10 blessings (AoE, lightning, mobility)
-- ✅ **Gaia (Earth)** - 10 blessings (defense, regeneration, durability)
-- ✅ **Vex (Madness)** - 10 blessings (chaos, confusion, unpredictability)
-
-**User Interface:**
-- ✅ Enhanced HUD showing religion, deity, both ranks, favor/prestige
-- ✅ **Religion Management GUI** - Create, browse, and manage religions
-- ✅ All commands functional (17 commands total)
-- ⚠️ Visual Blessing Tree Viewer - Optional feature, command-based tree works
-
-## Development Roadmap
-
-**Current Status:** Phase 3 Nearly Complete (~90% - v1.0 Release Candidate)
-
-- ✅ **Phase 1:** Foundation (MVP) - Complete
-- ✅ **Phase 2:** Combat Integration - Complete
-- ✅ **Phase 3:** Religion-Based Deity System with Blessing Trees - 90% Complete (**v1.0 Release**)
-  - ✅ Phase 3.1: Foundation (Religion system, commands, persistence)
-  - ✅ Phase 3.2: Ranking Systems (Dual progression, PvP integration)
-  - ✅ Phase 3.3: Blessing System Core (Registry, stat application, commands)
-  - ✅ Phase 3.4: Deity Blessing Trees (8/8 deities complete, 80/80 blessings defined)
-  - ⚠️ Phase 3.5: Integration & Polish (30% - Religion GUI done, blessing tree viewer optional)
-- 🔲 **Phase 4:** Advanced Features - Planned (Divine duels, crusades, relics, apostates)
-
-**Post-Launch Roadmap:**
-- **Patch 1.1:** Core special effects (critical strikes, damage reduction, lifesteal)
-- **Patch 1.2:** Advanced combat effects (AoE cleave, execute threshold, headshot bonus)
-- **Patch 1.3:** Tactical effects (stealth, tracking vision, multishot)
-- **Patch 1.4:** Status effects (poison DoT, plague aura, death aura, companions)
-- **Patch 1.5+:** Visual blessing tree GUI, balance tuning, community feedback
-
-For detailed phase breakdowns, tasks, and timeline, see the **[Implementation Guide](docs/topics/implementation/implementation_guide.md)**.
+- ✅ Guild Management GUI with modern interface
+- ✅ Invitation system for private guilds
+- ✅ Ban system for problematic players
+- ✅ Member list viewing
 
 ### Available Commands
 
-**Religion Management (10 commands):**
-- `/religion create <name> <deity> [public/private]` - Create a new religion
-- `/religion join <religionname>` - Join an existing religion
-- `/religion leave` - Leave your current religion
-- `/religion list [deity]` - List all religions (optionally filter by deity)
-- `/religion info [name]` - View religion details (defaults to your religion)
-- `/religion members` - View members of your religion with ranks
-- `/religion invite <playername>` - Invite a player to your religion
-- `/religion kick <playername>` - Kick a member from your religion (founder only)
-- `/religion disband` - Disband your religion (founder only)
-- `/religion description <text>` - Set religion description (founder only)
-
-**Blessing Management (7 commands):**
-- `/blessings list` - Show all available blessings for your deity
-- `/blessings player` - Show your unlocked player blessings
-- `/blessings religion` - Show your religion's unlocked blessings
-- `/blessings info <blessingid>` - Get detailed blessing information
-- `/blessings tree [player/religion]` - Display blessing tree in text format
-- `/blessings unlock <blessingid>` - Unlock a blessing (if requirements met)
-- `/blessings active` - Show all active blessings affecting you
-
-**Legacy Commands (Phase 1-2 - Will be removed in future patch):**
-- `/deity list` - Show all available deities
-- `/deity info <deity>` - Get detailed deity information
-- `/deity status` - View your current deity status
-- `/favor` - Check your current divine favor
-- `/ability list` - Show available abilities (deprecated)
-
-## Known Limitations (v1.0)
-
-**Deferred to Post-Launch Patches:**
-- **Special Effects:** Blessings that reference special effects (lifesteal, poison_dot, critical_strike, etc.) currently provide only their stat modifiers. The special mechanics will be added incrementally in patches 1.1-1.4.
-- **Visual Blessing Tree:** No GUI blessing tree viewer yet. Use `/blessings tree` command for text-based view.
-- **Old Ability System:** Phase 1-2 ability system still exists but will be removed in a future patch.
-
-**What Works Perfectly:**
-- All stat modifier bonuses (damage, health, armor, speed, attack speed, walk speed, etc.)
-- Religion creation, management, and progression
-- Blessing unlocking and persistence
-- Dual ranking system (Favor + Prestige)
-- All 17 commands
-- Religion Management GUI
+**Guild Management (13 commands):**
+- `/religion create <name> [public/private]` - Create a new guild
+- `/religion join <guildname>` - Join an existing guild
+- `/religion leave` - Leave your current guild
+- `/religion list` - List all public guilds
+- `/religion info [name]` - View guild details
+- `/religion members` - View members of your guild
+- `/religion invite <playername>` - Invite a player to your guild (private guilds)
+- `/religion kick <playername>` - Kick a member from your guild (founder only)
+- `/religion disband` - Disband your guild (founder only)
+- `/religion description <text>` - Set guild description (founder only)
+- `/religion ban <playername> [reason] [days]` - Ban a player from your guild (founder only)
+- `/religion unban <playername>` - Unban a player from your guild (founder only)
+- `/religion banlist` - View banned players in your guild (founder only)
 
 ## Contributing
 
-**v1.0 is now in beta testing!** We're looking for:
-- **Testers:** Try the mod and report bugs or balance issues
-- **Feedback:** Which special effects should be prioritized in patches?
-- **Balance Data:** How do the stat modifiers feel in actual gameplay?
-- **Feature Requests:** What would make the religion system more engaging?
-
-Contributions, suggestions, and feedback are welcome! Please open an issue or discussion on the repository.
+This mod is in active development. Contributions, suggestions, and feedback are welcome! Please open an issue or discussion on the repository.
 
 ## License
 
@@ -357,4 +167,3 @@ See the [LICENSE](LICENSE) file for full details.
 ## Credits
 
 - Built using the official [Vintage Story Mod Template](https://github.com/anegostudios/vsmodtemplate)
-- Inspired by the [Karma System mod](https://mods.vintagestory.at/show/mod/28955)
