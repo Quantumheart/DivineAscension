@@ -24,4 +24,16 @@ public static class VintageStoryStats
 
     // Utility Stats
     public const string HealingEffectiveness = "healingeffectivness";
+
+    // Khoras (Forge & Craft) Stats
+    public const string ToolDurability = "toolDurability";
+    public const string OreYield = "oreYield";
+    public const string ColdResistance = "coldResistance";
+    public const string MiningSpeed = "miningSpeed";
+    public const string ChoppingSpeed = "choppingSpeed";
+    public const string RepairCostReduction = "repairCostReduction";
+    public const string RepairEfficiency = "repairEfficiency";
+    public const string SmithingCostReduction = "smithingCostReduction";
+    public const string MetalArmorBonus = "metalArmorBonus";
+    public const string HungerRate = "hungerRate";
 }

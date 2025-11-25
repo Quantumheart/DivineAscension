@@ -142,4 +142,23 @@ public static class SpecialEffects
     public const string ReligionDeathMark = "religion_death_mark";
 
     #endregion
+
+    #region Khoras (Forge & Craft) Effects
+
+    /// <summary>
+    ///     Material Save: 10% chance to save materials when smithing
+    /// </summary>
+    public const string MaterialSaveChance10 = "material_save_chance_10";
+
+    /// <summary>
+    ///     Passive Tool Repair: Tools repair 1 durability per 5 minutes in inventory
+    /// </summary>
+    public const string PassiveToolRepair1Per5Min = "passive_tool_repair_1per5min";
+
+    /// <summary>
+    ///     Passive Tool Repair (Slow): Tools repair 1 durability per 10 minutes in inventory
+    /// </summary>
+    public const string PassiveToolRepair1Per10Min = "passive_tool_repair_1per10min";
+
+    #endregion
 }

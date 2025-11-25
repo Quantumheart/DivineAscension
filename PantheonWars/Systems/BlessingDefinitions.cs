@@ -30,181 +30,185 @@ public static class BlessingDefinitions
         return blessings;
     }
 
-    #region Khoras (War) - 10 Blessings (Refactored)
+    #region Khoras (Forge & Craft) - 10 Blessings (Utility-Focused)
 
     private static List<Blessing> GetKhorasBlessings()
     {
         return new List<Blessing>
         {
-            // PLAYER BLESSINGS (6 total) - Streamlined for meaningful choices
+            // PLAYER BLESSINGS (6 total) - Forge & Craft utility focus
 
             // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.KhorasWarriorsResolve, "Warrior's Resolve", DeityType.Khoras)
+            new(BlessingIds.KhorasCraftsmansTouch, "Craftsman's Touch", DeityType.Khoras)
             {
                 Kind = BlessingKind.Player,
                 Type = EnumTraitType.Positive,
-                Category = BlessingCategory.Combat,
-                Description = "Your devotion to war strengthens body and blade. +10% melee damage, +10% max health.",
+                Category = BlessingCategory.Utility,
+                Description = "Your devotion to the forge strengthens your craft. Tools/weapons lose durability 10% slower, +10% ore yield when mining, +3°C cold resistance.",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
+                    { VintageStoryStats.ToolDurability, 0.10f },
+                    { VintageStoryStats.OreYield, 0.10f },
+                    { VintageStoryStats.ColdResistance, 3.0f }
                 }
             },
 
             // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.KhorasBloodlust, "Bloodlust", DeityType.Khoras)
+            new(BlessingIds.KhorasMasterworkTools, "Masterwork Tools", DeityType.Khoras)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Embrace the rage of battle. +15% melee damage, +10% attack speed. Offense path. Requires Warrior's Resolve.",
+                    "Master the craft of tool-making. Tools last 15% longer, +8% mining/chopping speed, -15% tool repair costs. Utility path. Requires Craftsman's Touch.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasWarriorsResolve },
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasCraftsmansTouch },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
+                    { VintageStoryStats.ToolDurability, 0.15f },
+                    { VintageStoryStats.MiningSpeed, 0.08f },
+                    { VintageStoryStats.ChoppingSpeed, 0.08f },
+                    { VintageStoryStats.RepairCostReduction, 0.15f }
                 }
             },
-            new(BlessingIds.KhorasIronSkin, "Iron Skin", DeityType.Khoras)
+            new(BlessingIds.KhorasForgebornEndurance, "Forgeborn Endurance", DeityType.Khoras)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Defense,
                 Description =
-                    "Battle hardens your body. +20% armor, +15% max health. Defense path. Requires Warrior's Resolve.",
+                    "The forge's heat tempers your body. +5°C cold resistance, +10% max health, +10% armor from metal equipment. Survival path. Requires Craftsman's Touch.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasWarriorsResolve },
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasCraftsmansTouch },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.20f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f }
+                    { VintageStoryStats.ColdResistance, 5.0f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f },
+                    { VintageStoryStats.MetalArmorBonus, 0.10f }
                 }
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.KhorasBerserkerRage, "Berserker Rage", DeityType.Khoras)
+            new(BlessingIds.KhorasLegendarySmith, "Legendary Smith", DeityType.Khoras)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Unleash devastating fury with lifesteal. +25% melee damage, +15% attack speed, heal 10% of damage dealt. Requires Bloodlust.",
+                    "Achieve legendary smithing mastery. Tools last 20% longer, +15% ore yield, 10% chance to save materials when smithing, tool repairs restore +25% more durability. Requires Masterwork Tools.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasBloodlust },
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasMasterworkTools },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.25f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.15f }
+                    { VintageStoryStats.ToolDurability, 0.20f },
+                    { VintageStoryStats.OreYield, 0.15f },
+                    { VintageStoryStats.RepairEfficiency, 0.25f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal10 }
+                SpecialEffects = new List<string> { SpecialEffects.MaterialSaveChance10 }
             },
-            new(BlessingIds.KhorasUnbreakable, "Unbreakable", DeityType.Khoras)
+            new(BlessingIds.KhorasUnyielding, "Unyielding", DeityType.Khoras)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Defense,
                 Description =
-                    "Become nearly invincible. +30% armor, +25% max health, 10% damage reduction. Requires Iron Skin.",
+                    "Become as unyielding as the anvil. +7°C cold resistance, +15% max health, +15% armor from all equipment, hunger/satiety depletes 8% slower. Requires Forgeborn Endurance.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasIronSkin },
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasForgebornEndurance },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.30f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.25f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
+                    { VintageStoryStats.ColdResistance, 7.0f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
+                    { VintageStoryStats.MeleeWeaponArmor, 0.15f },
+                    { VintageStoryStats.HungerRate, -0.08f }
+                }
             },
 
-            // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
-            new(BlessingIds.KhorasAvatarOfWar, "Avatar of War", DeityType.Khoras)
+            // Tier 4 - Champion (5000+ favor) - Capstone (requires both paths)
+            new(BlessingIds.KhorasAvatarOfForge, "Avatar of the Forge", DeityType.Khoras)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Embody war itself. +15% to all combat stats, +10% movement speed, AoE cleave attacks. Requires both Berserker Rage and Unbreakable.",
+                    "Embody the eternal forge. Tools repair 1 durability per 5 minutes in inventory, -10% material costs for smithing, +12% mining/chopping speed. Requires both Legendary Smith and Unyielding.",
                 RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasBerserkerRage, BlessingIds.KhorasUnbreakable },
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasLegendarySmith, BlessingIds.KhorasUnyielding },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.15f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.15f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.WalkSpeed, 0.10f }
+                    { VintageStoryStats.SmithingCostReduction, 0.10f },
+                    { VintageStoryStats.MiningSpeed, 0.12f },
+                    { VintageStoryStats.ChoppingSpeed, 0.12f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.AoeCleave }
+                SpecialEffects = new List<string> { SpecialEffects.PassiveToolRepair1Per5Min }
             },
 
-            // RELIGION BLESSINGS (4 total) - Unified group buffs
+            // RELIGION BLESSINGS (4 total) - Shared workshop bonuses
 
             // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.KhorasWarBanner, "War Banner", DeityType.Khoras)
+            new(BlessingIds.KhorasSharedWorkshop, "Shared Workshop", DeityType.Khoras)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Your congregation's banner inspires strength and courage. +8% melee damage, +8% max health for all members.",
+                    "Your congregation shares tools and knowledge. +8% tool durability, +8% ore yield for all members.",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.08f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.08f }
+                    { VintageStoryStats.ToolDurability, 0.08f },
+                    { VintageStoryStats.OreYield, 0.08f }
                 }
             },
 
             // Tier 2 - Established (500-1999 prestige) - Coordination
-            new(BlessingIds.KhorasLegionTactics, "Legion Tactics", DeityType.Khoras)
+            new(BlessingIds.KhorasGuildOfSmiths, "Guild of Smiths", DeityType.Khoras)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Coordinated warfare. +12% melee damage, +10% armor, +5% attack speed for all. Requires War Banner.",
+                    "A united guild of master craftsmen. +12% tool durability, +12% ore yield, +4°C cold resistance for all. Requires Shared Workshop.",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasWarBanner },
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasSharedWorkshop },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.12f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.10f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.05f }
+                    { VintageStoryStats.ToolDurability, 0.12f },
+                    { VintageStoryStats.OreYield, 0.12f },
+                    { VintageStoryStats.ColdResistance, 4.0f }
                 }
             },
 
             // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
-            new(BlessingIds.KhorasWarhost, "Warhost", DeityType.Khoras)
+            new(BlessingIds.KhorasMasterCraftsmen, "Master Craftsmen", DeityType.Khoras)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Elite fighting force. +18% melee damage, +15% armor, +15% max health, +10% attack speed for all. Requires Legion Tactics.",
+                    "Elite artisans of legendary skill. +18% tool durability, +15% ore yield, +6°C cold resistance, -10% repair costs for all. Requires Guild of Smiths.",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasLegionTactics },
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasGuildOfSmiths },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.18f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.15f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
+                    { VintageStoryStats.ToolDurability, 0.18f },
+                    { VintageStoryStats.OreYield, 0.15f },
+                    { VintageStoryStats.ColdResistance, 6.0f },
+                    { VintageStoryStats.RepairCostReduction, 0.10f }
                 }
             },
 
-            // Tier 4 - Legendary (5000-9999 prestige) - Unstoppable Army
-            new(BlessingIds.KhorasPantheonOfWar, "Pantheon of War", DeityType.Khoras)
+            // Tier 4 - Legendary (5000+ prestige) - Pantheon of Creation
+            new(BlessingIds.KhorasPantheonOfCreation, "Pantheon of Creation", DeityType.Khoras)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Your religion becomes legendary. +25% melee damage, +20% armor, +20% max health, +15% attack speed, +8% movement speed for all. Group war cry ability. Requires Warhost.",
+                    "Your religion becomes legendary creators. +25% tool durability, +20% ore yield, +8°C cold resistance, +10% mining/chopping speed, passive tool repair (1/10min) for all. Requires Master Craftsmen.",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasWarhost },
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasMasterCraftsmen },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.25f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.20f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.15f },
-                    { VintageStoryStats.WalkSpeed, 0.08f }
+                    { VintageStoryStats.ToolDurability, 0.25f },
+                    { VintageStoryStats.OreYield, 0.20f },
+                    { VintageStoryStats.ColdResistance, 8.0f },
+                    { VintageStoryStats.MiningSpeed, 0.10f },
+                    { VintageStoryStats.ChoppingSpeed, 0.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.ReligionWarCry }
+                SpecialEffects = new List<string> { SpecialEffects.PassiveToolRepair1Per10Min }
             }
         };
     }

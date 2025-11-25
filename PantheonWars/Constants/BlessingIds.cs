@@ -9,21 +9,21 @@ namespace PantheonWars.Constants;
 [ExcludeFromCodeCoverage]
 public static class BlessingIds
 {
-    #region Khoras (War) - 10 Blessings
+    #region Khoras (Forge & Craft) - 10 Blessings
 
     // Player Blessings (6)
-    public const string KhorasWarriorsResolve = "khoras_warriors_resolve";
-    public const string KhorasBloodlust = "khoras_bloodlust";
-    public const string KhorasIronSkin = "khoras_iron_skin";
-    public const string KhorasBerserkerRage = "khoras_berserker_rage";
-    public const string KhorasUnbreakable = "khoras_unbreakable";
-    public const string KhorasAvatarOfWar = "khoras_avatar_of_war";
+    public const string KhorasCraftsmansTouch = "khoras_craftsmans_touch";
+    public const string KhorasMasterworkTools = "khoras_masterwork_tools";
+    public const string KhorasForgebornEndurance = "khoras_forgeborn_endurance";
+    public const string KhorasLegendarySmith = "khoras_legendary_smith";
+    public const string KhorasUnyielding = "khoras_unyielding";
+    public const string KhorasAvatarOfForge = "khoras_avatar_of_forge";
 
     // Religion Blessings (4)
-    public const string KhorasWarBanner = "khoras_war_banner";
-    public const string KhorasLegionTactics = "khoras_legion_tactics";
-    public const string KhorasWarhost = "khoras_warhost";
-    public const string KhorasPantheonOfWar = "khoras_pantheon_of_war";
+    public const string KhorasSharedWorkshop = "khoras_shared_workshop";
+    public const string KhorasGuildOfSmiths = "khoras_guild_of_smiths";
+    public const string KhorasMasterCraftsmen = "khoras_master_craftsmen";
+    public const string KhorasPantheonOfCreation = "khoras_pantheon_of_creation";
 
     #endregion
 

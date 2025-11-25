@@ -418,6 +418,16 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             VintageStoryStats.MaxHealthExtraPoints => SystemConstants.StatDisplayMaxHealth,
             VintageStoryStats.WalkSpeed => SystemConstants.StatDisplayWalkSpeed,
             VintageStoryStats.HealingEffectiveness => SystemConstants.StatDisplayHealthRegen,
+            VintageStoryStats.ToolDurability => SystemConstants.StatDisplayToolDurability,
+            VintageStoryStats.OreYield => SystemConstants.StatDisplayOreYield,
+            VintageStoryStats.ColdResistance => SystemConstants.StatDisplayColdResistance,
+            VintageStoryStats.MiningSpeed => SystemConstants.StatDisplayMiningSpeed,
+            VintageStoryStats.ChoppingSpeed => SystemConstants.StatDisplayChoppingSpeed,
+            VintageStoryStats.RepairCostReduction => SystemConstants.StatDisplayRepairCostReduction,
+            VintageStoryStats.RepairEfficiency => SystemConstants.StatDisplayRepairEfficiency,
+            VintageStoryStats.SmithingCostReduction => SystemConstants.StatDisplaySmithingCostReduction,
+            VintageStoryStats.MetalArmorBonus => SystemConstants.StatDisplayMetalArmorBonus,
+            VintageStoryStats.HungerRate => SystemConstants.StatDisplayHungerRate,
             _ => statKey
         };
     }
