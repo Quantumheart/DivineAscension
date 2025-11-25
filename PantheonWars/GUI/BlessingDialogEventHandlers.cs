@@ -3,6 +3,7 @@ using System.Linq;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network;
+using PantheonWars.Network.Civilization;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
@@ -111,6 +112,9 @@ public partial class BlessingDialog
 
         // Request player religion info to get founder status (needed for Manage Religion button)
         _pantheonWarsSystem?.RequestPlayerReligionInfo();
+
+        // Request civilization info for player's religion (empty string = my civ)
+        _pantheonWarsSystem?.RequestCivilizationInfo("");
 
         // If dialog should be open, open it now that data is ready
         if (!_state.IsOpen && _imguiModSystem != null)
@@ -546,6 +550,76 @@ public partial class BlessingDialog
 
             // Refresh all blessing states to update prerequisites and glow effects
             _manager?.RefreshAllBlessingStates();
+        }
+    }
+
+    /// <summary>
+    ///     Handle civilization info received from server
+    /// </summary>
+    private void OnCivilizationInfoReceived(CivilizationInfoResponsePacket packet)
+    {
+        _capi!.Logger.Debug($"[PantheonWars] Received civilization info: HasCiv={packet.Details != null}");
+
+        // Update manager with civilization state
+        _manager!.UpdateCivilizationState(packet.Details);
+
+        if (packet.Details != null)
+        {
+            _capi.Logger.Notification($"[PantheonWars] Loaded civilization '{packet.Details.Name}' with {packet.Details.MemberReligions.Count} religions");
+        }
+        else
+        {
+            _capi.Logger.Debug("[PantheonWars] Player's religion is not in a civilization");
+        }
+    }
+
+    /// <summary>
+    ///     Handle civilization action completed (create, invite, accept, leave, kick, disband)
+    /// </summary>
+    private void OnCivilizationActionCompleted(CivilizationActionResponsePacket packet)
+    {
+        _capi!.Logger.Debug($"[PantheonWars] Civilization action completed: Success={packet.Success}, Message={packet.Message}");
+
+        // Show result message to user
+        _capi.ShowChatMessage(packet.Message);
+
+        if (packet.Success)
+        {
+            // Play success sound
+            _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
+                _capi.World.Player.Entity, null, false, 8f, 0.5f);
+
+            // Request updated civilization info to refresh UI
+            if (_manager!.HasReligion())
+            {
+                // Request civilization info for player's religion (empty string = my civ)
+                _pantheonWarsSystem?.RequestCivilizationInfo("");
+            }
+        }
+        else
+        {
+            // Play error sound
+            _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
+                _capi.World.Player.Entity, null, false, 8f, 0.5f);
+        }
+    }
+
+    /// <summary>
+    ///     Handle Manage Civilization button click (for civ founders)
+    /// </summary>
+    private void OnManageCivilizationClicked()
+    {
+        _capi!.Logger.Debug("[PantheonWars] Manage Civilization clicked");
+
+        // Open civilization dialog on "My Civilization" tab
+        var civilizationDialog = _capi.ModLoader.GetModSystem<CivilizationDialog>();
+        if (civilizationDialog != null)
+        {
+            civilizationDialog.Open(initialTab: 1); // Open to "My Civilization" tab
+        }
+        else
+        {
+            _capi.ShowChatMessage("Civilization dialog not available!");
         }
     }
 }

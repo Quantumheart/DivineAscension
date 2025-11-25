@@ -26,6 +26,7 @@ internal static class BlessingUIRenderer
     /// <param name="onChangeReligionClicked">Callback when Change Religion button clicked</param>
     /// <param name="onManageReligionClicked">Callback when Manage Religion button clicked</param>
     /// <param name="onLeaveReligionClicked">Callback when Leave Religion button clicked</param>
+    /// <param name="onManageCivilizationClicked">Callback when Manage Civilization button clicked</param>
     public static void Draw(
         BlessingDialogManager manager,
         ICoreClientAPI api,
@@ -36,7 +37,8 @@ internal static class BlessingUIRenderer
         Action? onCloseClicked,
         Action? onChangeReligionClicked = null,
         Action? onManageReligionClicked = null,
-        Action? onLeaveReligionClicked = null)
+        Action? onLeaveReligionClicked = null,
+        Action? onManageCivilizationClicked = null)
     {
         const float padding = 16f;
         const float infoPanelHeight = 200f;
@@ -59,7 +61,8 @@ internal static class BlessingUIRenderer
             windowPos.X + currentX, windowPos.Y + currentY, contentWidth,
             onChangeReligionClicked,
             onManageReligionClicked,
-            onLeaveReligionClicked
+            onLeaveReligionClicked,
+            onManageCivilizationClicked
         );
         currentY += usedHeight + padding;
 
