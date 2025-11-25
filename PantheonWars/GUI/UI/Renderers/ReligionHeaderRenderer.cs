@@ -344,7 +344,7 @@ internal static class ReligionHeaderRenderer
         // Founder badge (if player is founder) - on same line as member count
         if (manager.IsCivilizationFounder)
         {
-            var founderText = " ★ Founder";
+            var founderText = "=== Founder ===";
             var founderX = deityIconX + (deityIconSize + deityIconSpacing) * memberCount + 8f;
             var founderPos = new Vector2(founderX, currentY);
             var founderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);

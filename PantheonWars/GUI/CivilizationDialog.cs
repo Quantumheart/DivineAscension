@@ -298,8 +298,10 @@ public class CivilizationDialog : ModSystem
                 float cardWidth = contentWidth - 48f; // More padding to account for scrollbar + borders
                 ImGui.BeginChild($"CivCard_{civ.CivId}", new Vector2(cardWidth, 90f), true); // Taller card
 
+                // Store starting position
+                var startY = ImGui.GetCursorPosY();
+
                 // Left side info
-                ImGui.BeginGroup();
                 ImGui.TextColored(new Vector4(0.5f, 0.8f, 1f, 1f), civ.Name);
                 ImGui.Text($"Members: {civ.MemberCount}/4 religions");
 
@@ -315,19 +317,16 @@ public class CivilizationDialog : ModSystem
                         ImGui.SameLine();
                     }
                 }
-                ImGui.EndGroup();
+                ImGui.NewLine();
 
-                ImGui.BeginGroup();
-                // View Details button - position on same line as top of card
+                // View Details button - position at absolute position within card
                 const float buttonWidth = 110f;
                 const float buttonHeight = 32f;
-                ImGui.SameLine(cardWidth - buttonWidth - 20f); // Position from right
-                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 25f); // Center vertically in card
+                ImGui.SetCursorPos(new Vector2(cardWidth - buttonWidth - 12f, startY + 29f)); // Centered in 90px card
                 if (ImGui.Button("View Details", new Vector2(buttonWidth, buttonHeight)))
                 {
                     _pantheonWarsSystem?.RequestCivilizationInfo(civ.CivId);
                 }
-                ImGui.EndGroup();
 
                 ImGui.EndChild();
                 ImGui.PopID();
@@ -372,19 +371,23 @@ public class CivilizationDialog : ModSystem
             ImGui.Text($"{member.ReligionName} ({member.MemberCount} members)");
 
             // Kick button (only for founder, can't kick self)
-            var isFounder = _myCivilization.FounderUID == member.ReligionId;
+            var isFounder = _myCivilization.FounderReligionUID == member.ReligionId;
             if (isFounder)
             {
                 ImGui.SameLine();
-                ImGui.TextColored(new Vector4(1f, 0.84f, 0f, 1f), "★ Founder");
+                ImGui.TextColored(new Vector4(1f, 0.84f, 0f, 1f), "=== Founder ===");
             }
             else
             {
                 // Show kick button for non-founder religions (TODO: check if player is civ founder)
-                ImGui.SameLine(contentWidth - 100f); // 80 (button width) + 20 (padding)
-                if (ImGui.Button($"Kick##{member.ReligionId}", new Vector2(80f, 24f)))
+                if (!isFounder)
                 {
-                    _pantheonWarsSystem?.RequestCivilizationAction("kick", _myCivilization.CivId, member.ReligionName);
+                    ImGui.SameLine(contentWidth - 100f); // 80 (button width) + 20 (padding)
+                    if (ImGui.Button($"Kick##{member.ReligionId}", new Vector2(80f, 24f)))
+                    {
+                        _pantheonWarsSystem?.RequestCivilizationAction("kick", _myCivilization.CivId,
+                            member.ReligionName);
+                    }
                 }
             }
 

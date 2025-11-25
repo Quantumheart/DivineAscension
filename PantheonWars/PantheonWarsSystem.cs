@@ -905,6 +905,7 @@ public class PantheonWarsSystem : ModSystem
                 CivId = civ.CivId,
                 Name = civ.Name,
                 FounderUID = civ.FounderUID,
+                FounderReligionUID = civ.FounderReligionUID,
                 MemberCount = civ.MemberReligionIds.Count,
                 MemberDeities = deities,
                 MemberReligionNames = religionNames
@@ -958,6 +959,7 @@ public class PantheonWarsSystem : ModSystem
             CivId = civ.CivId,
             Name = civ.Name,
             FounderUID = civ.FounderUID,
+            FounderReligionUID = civ.FounderReligionUID,
             CreatedDate = civ.CreatedDate,
             MemberReligions = new List<Network.Civilization.CivilizationInfoResponsePacket.MemberReligion>(),
             PendingInvites = new List<Network.Civilization.CivilizationInfoResponsePacket.PendingInvite>()
@@ -972,6 +974,7 @@ public class PantheonWarsSystem : ModSystem
                 ReligionId = religion.ReligionUID,
                 ReligionName = religion.ReligionName,
                 Deity = religion.Deity.ToString(),
+                FounderReligionUID = civ.FounderReligionUID,
                 FounderUID = religion.FounderUID,
                 MemberCount = religion.MemberUIDs.Count
             });

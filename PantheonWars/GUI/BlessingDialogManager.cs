@@ -302,7 +302,7 @@ public class BlessingDialogManager : IBlessingDialogManager
 
         CurrentCivilizationId = details.CivId;
         CurrentCivilizationName = details.Name;
-        CivilizationFounderReligionUID = details.FounderUID;
+        CivilizationFounderReligionUID = details.FounderReligionUID;
         CivilizationMemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions);
     }
 }

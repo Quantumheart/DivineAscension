@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ProtoBuf;
 
 namespace PantheonWars.Data;
@@ -11,6 +10,7 @@ namespace PantheonWars.Data;
 [ProtoContract]
 public class Civilization
 {
+
     /// <summary>
     ///     Parameterless constructor for serialization
     /// </summary>
@@ -26,7 +26,8 @@ public class Civilization
         CivId = civId;
         Name = name;
         FounderUID = founderUID;
-        MemberReligionIds = new List<string> { founderReligionId };
+        FounderReligionUID = founderReligionId;
+        MemberReligionIds = [founderReligionId];
         CreatedDate = DateTime.UtcNow;
     }
 
@@ -48,28 +49,36 @@ public class Civilization
     [ProtoMember(3)]
     public string FounderUID { get; set; } = string.Empty;
 
+
+    /// <summary>
+    ///     Unique identifier of the religion of the civilization's founder
+    /// </summary>
+    [ProtoMember(4)]
+    public string FounderReligionUID { get; set; } = string.Empty;
+    
+
     /// <summary>
     ///     List of religion UIDs that are members (2-4 religions)
     /// </summary>
-    [ProtoMember(4)]
+    [ProtoMember(5)]
     public List<string> MemberReligionIds { get; set; } = new();
 
     /// <summary>
     ///     When the civilization was created
     /// </summary>
-    [ProtoMember(5)]
+    [ProtoMember(6)]
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     ///     When the civilization was disbanded (null if active)
     /// </summary>
-    [ProtoMember(6)]
+    [ProtoMember(7)]
     public DateTime? DisbandedDate { get; set; }
 
     /// <summary>
     ///     Cached count of total members across all religions
     /// </summary>
-    [ProtoMember(7)]
+    [ProtoMember(8)]
     public int MemberCount { get; set; }
 
     /// <summary>

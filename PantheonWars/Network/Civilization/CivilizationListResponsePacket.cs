@@ -32,10 +32,12 @@ public class CivilizationListResponsePacket
 
         [ProtoMember(3)] public string FounderUID { get; set; } = string.Empty;
 
-        [ProtoMember(4)] public int MemberCount { get; set; }
+        [ProtoMember(4)] public string FounderReligionUID { get; set; } = string.Empty;
 
-        [ProtoMember(5)] public List<string> MemberDeities { get; set; } = new(); // Deity names for diversity display
+        [ProtoMember(5)] public int MemberCount { get; set; }
 
-        [ProtoMember(6)] public List<string> MemberReligionNames { get; set; } = new(); // Religion names
+        [ProtoMember(6)] public List<string> MemberDeities { get; set; } = new(); // Deity names for diversity display
+
+        [ProtoMember(7)] public List<string> MemberReligionNames { get; set; } = new(); // Religion names
     }
 }
