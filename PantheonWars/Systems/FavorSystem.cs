@@ -1,6 +1,7 @@
 using System;
 using PantheonWars.Data;
 using PantheonWars.Models.Enum;
+using PantheonWars.Systems.Favor;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -16,14 +17,14 @@ public class FavorSystem : IFavorSystem
 {
     private const int BASE_KILL_FAVOR = 10;
     private const int DEATH_PENALTY_FAVOR = 5;
-    private const float BASE_FAVOR_PER_HOUR = 2.0f; // Passive favor generation rate
+    private const float BASE_FAVOR_PER_HOUR = 0.5f; // Passive favor generation rate
     private const int PASSIVE_TICK_INTERVAL_MS = 1000; // 1 second ticks
 
     private readonly IDeityRegistry _deityRegistry;
     private readonly IPlayerDataManager _playerDataManager;
     private readonly IPlayerReligionDataManager _playerReligionDataManager;
     private readonly IReligionManager _religionManager;
-
+    private KhorasFavorTracker _khorasFavorTracker;
     private readonly ICoreServerAPI _sapi;
 
     public FavorSystem(ICoreServerAPI sapi, IPlayerDataManager playerDataManager, IPlayerReligionDataManager playerReligionDataManager, IDeityRegistry deityRegistry, IReligionManager religionManager)
@@ -49,6 +50,10 @@ public class FavorSystem : IFavorSystem
         _sapi.Event.RegisterGameTickListener(OnGameTick, PASSIVE_TICK_INTERVAL_MS);
 
         _sapi.Logger.Notification("[PantheonWars] Favor System initialized with passive favor generation");
+
+        _khorasFavorTracker = new KhorasFavorTracker(_playerReligionDataManager, _sapi, this);
+        _khorasFavorTracker.Initialize();
+        
     }
 
     /// <summary>
@@ -162,10 +167,29 @@ public class FavorSystem : IFavorSystem
         if (religionData.ActiveDeity == DeityType.None) return;
 
         _playerReligionDataManager.AddFavor(player.PlayerUID, amount, actionType);
-
+        string deityName = nameof(DeityType.None);
+        switch (religionData.ActiveDeity)
+        {
+            case DeityType.None:
+                break;
+            case DeityType.Khoras:
+                deityName = nameof(DeityType.Khoras);
+                break;
+            case DeityType.Lysa:
+                deityName = nameof(DeityType.Lysa);
+                break;
+            case DeityType.Aethra:
+                deityName = nameof(DeityType.Aethra);
+                break;
+            case DeityType.Gaia:
+                deityName = nameof(DeityType.Gaia);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
         player.SendMessage(
             GlobalConstants.GeneralChatGroup,
-            $"[Divine Favor] You gained {amount} favor for {actionType}",
+            $"[Divine Favor] {deityName} smiles upon you with {amount} favor for {actionType}",
             EnumChatType.Notification
         );
     }
