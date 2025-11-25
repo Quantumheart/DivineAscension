@@ -68,7 +68,7 @@ internal static class ReligionManagementOverlay
         Action onRequestRefresh)
     {
         const float overlayWidth = 700f;
-        const float overlayHeight = 650f;
+        const float overlayHeight = 750f;
         const float padding = 20f;
 
         var windowPos = ImGui.GetWindowPos();
