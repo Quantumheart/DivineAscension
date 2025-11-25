@@ -178,7 +178,7 @@ public class CivilizationDialog : ModSystem
 
         // Close button (top right)
         ImGui.SameLine(WindowWidth - 90f); // More padding: 40 (button width) + 50 (padding from edge)
-        if (ImGui.Button("Close", new Vector2(50f, 24f))) // Wider button
+        if (ImGui.Button("X", new Vector2(50f, 24f))) // Wider button
         {
             Close();
         }
@@ -317,6 +317,7 @@ public class CivilizationDialog : ModSystem
                 }
                 ImGui.EndGroup();
 
+                ImGui.BeginGroup();
                 // View Details button - position on same line as top of card
                 const float buttonWidth = 110f;
                 const float buttonHeight = 32f;
@@ -326,6 +327,7 @@ public class CivilizationDialog : ModSystem
                 {
                     _pantheonWarsSystem?.RequestCivilizationInfo(civ.CivId);
                 }
+                ImGui.EndGroup();
 
                 ImGui.EndChild();
                 ImGui.PopID();
