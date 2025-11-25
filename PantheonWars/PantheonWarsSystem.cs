@@ -26,6 +26,7 @@ public class PantheonWarsSystem : ModSystem
 
     // Use interfaces for better testability and dependency injection
     private IBuffManager? _buffManager;
+    private CivilizationManager? _civilizationManager;
 
     // Client-side systems
     private ICoreClientAPI? _capi;
@@ -110,6 +111,10 @@ public class PantheonWarsSystem : ModSystem
         // Initialize religion systems first (needed by FavorSystem for passive favor)
         _religionManager = new ReligionManager(api);
         _religionManager.Initialize();
+
+        // Initialize civilization manager (depends on ReligionManager and DeityRegistry)
+        _civilizationManager = new CivilizationManager(api, _religionManager, _deityRegistry);
+        _civilizationManager.Initialize();
 
         _playerReligionDataManager = new PlayerReligionDataManager(api, _religionManager);
         _playerReligionDataManager.Initialize();
