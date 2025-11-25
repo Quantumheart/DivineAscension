@@ -1,8 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Models.Enum;
-using Xunit;
 
 namespace PantheonWars.Tests.GUI.UI.Utilities;
 
@@ -74,12 +72,8 @@ public class DeityHelperTests
     [Theory]
     [InlineData(DeityType.Khoras, 0.8f, 0.2f, 0.2f)]
     [InlineData(DeityType.Lysa, 0.4f, 0.8f, 0.3f)]
-    [InlineData(DeityType.Morthen, 0.3f, 0.1f, 0.4f)]
     [InlineData(DeityType.Aethra, 0.9f, 0.9f, 0.6f)]
-    [InlineData(DeityType.Umbros, 0.2f, 0.2f, 0.3f)]
-    [InlineData(DeityType.Tharos, 0.3f, 0.6f, 0.9f)]
     [InlineData(DeityType.Gaia, 0.5f, 0.4f, 0.2f)]
-    [InlineData(DeityType.Vex, 0.7f, 0.2f, 0.7f)]
     public void GetDeityColor_Enum_ReturnsCorrectColor(DeityType deity, float r, float g, float b)
     {
         // Act
@@ -144,12 +138,8 @@ public class DeityHelperTests
     [Theory]
     [InlineData(DeityType.Khoras, "God of War")]
     [InlineData(DeityType.Lysa, "Goddess of the Hunt")]
-    [InlineData(DeityType.Morthen, "God of Death")]
     [InlineData(DeityType.Aethra, "Goddess of Light")]
-    [InlineData(DeityType.Umbros, "God of Shadows")]
-    [InlineData(DeityType.Tharos, "God of Storms")]
     [InlineData(DeityType.Gaia, "Goddess of Earth")]
-    [InlineData(DeityType.Vex, "God of Madness")]
     public void GetDeityTitle_Enum_ReturnsCorrectTitle(DeityType deity, string expectedTitle)
     {
         // Act
@@ -176,12 +166,8 @@ public class DeityHelperTests
     [Theory]
     [InlineData("Khoras", DeityType.Khoras)]
     [InlineData("Lysa", DeityType.Lysa)]
-    [InlineData("Morthen", DeityType.Morthen)]
     [InlineData("Aethra", DeityType.Aethra)]
-    [InlineData("Umbros", DeityType.Umbros)]
-    [InlineData("Tharos", DeityType.Tharos)]
     [InlineData("Gaia", DeityType.Gaia)]
-    [InlineData("Vex", DeityType.Vex)]
     public void ParseDeityType_ValidName_ReturnsCorrectEnum(string deityName, DeityType expected)
     {
         // Act
@@ -250,12 +236,8 @@ public class DeityHelperTests
     [Theory]
     [InlineData(DeityType.Khoras, "Khoras - God of War")]
     [InlineData(DeityType.Lysa, "Lysa - Goddess of the Hunt")]
-    [InlineData(DeityType.Morthen, "Morthen - God of Death")]
     [InlineData(DeityType.Aethra, "Aethra - Goddess of Light")]
-    [InlineData(DeityType.Umbros, "Umbros - God of Shadows")]
-    [InlineData(DeityType.Tharos, "Tharos - God of Storms")]
     [InlineData(DeityType.Gaia, "Gaia - Goddess of Earth")]
-    [InlineData(DeityType.Vex, "Vex - God of Madness")]
     public void GetDeityDisplayText_Enum_ReturnsFormattedText(DeityType deity, string expected)
     {
         // Act

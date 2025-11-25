@@ -81,124 +81,6 @@ public class FavorSystemIntegrationTests
     #region PvP Kill Processing Tests
 
     [Fact]
-    public void ProcessPvPKill_BetweenRivalDeities_Awards2xFavor()
-    {
-        // Arrange
-        var attackerData = TestFixtures.CreateTestPlayerReligionData(
-            "attacker-uid",
-            DeityType.Khoras,
-            "religion-1",
-            100,
-            500);
-
-        var victimData = TestFixtures.CreateTestPlayerReligionData(
-            "victim-uid",
-            DeityType.Morthen,
-            "religion-2",
-            50,
-            250);
-
-        var mockAttacker = TestFixtures.CreateMockServerPlayer("attacker-uid", "Attacker");
-        var mockVictim = TestFixtures.CreateMockServerPlayer("victim-uid", "Victim");
-
-        _mockPlayerReligionDataManager
-            .Setup(m => m.GetOrCreatePlayerData("attacker-uid"))
-            .Returns(attackerData);
-
-        _mockPlayerReligionDataManager
-            .Setup(m => m.GetOrCreatePlayerData("victim-uid"))
-            .Returns(victimData);
-
-        _mockDeityRegistry
-            .Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Morthen))
-            .Returns(2.0f);
-
-        // Act
-        _favorSystem.ProcessPvPKill(mockAttacker.Object, mockVictim.Object);
-
-        // Assert - Should award 20 favor (BASE_KILL_FAVOR * 2.0 = 10 * 2.0 = 20)
-        _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor("attacker-uid", 20, It.IsAny<string>()),
-            Times.Once()
-        );
-        Assert.Equal(1, attackerData.KillCount);
-    }
-
-    [Fact]
-    public void ProcessPvPKill_BetweenAlliedDeities_AwardsHalfFavor()
-    {
-        // Arrange
-        var attackerData = TestFixtures.CreateTestPlayerReligionData(
-            "attacker-uid",
-            DeityType.Khoras,
-            "religion-1");
-
-        var victimData = TestFixtures.CreateTestPlayerReligionData(
-            "victim-uid",
-            DeityType.Lysa,
-            "religion-2");
-
-        var mockAttacker = TestFixtures.CreateMockServerPlayer("attacker-uid", "Attacker");
-        var mockVictim = TestFixtures.CreateMockServerPlayer("victim-uid", "Victim");
-
-        _mockPlayerReligionDataManager
-            .Setup(m => m.GetOrCreatePlayerData("attacker-uid"))
-            .Returns(attackerData);
-
-        _mockPlayerReligionDataManager
-            .Setup(m => m.GetOrCreatePlayerData("victim-uid"))
-            .Returns(victimData);
-
-        _mockDeityRegistry
-            .Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa))
-            .Returns(0.5f);
-
-        // Act
-        _favorSystem.ProcessPvPKill(mockAttacker.Object, mockVictim.Object);
-
-        // Assert - Should award 5 favor (BASE_KILL_FAVOR * 0.5 = 10 * 0.5 = 5)
-        _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor("attacker-uid", 5, It.IsAny<string>()),
-            Times.Once()
-        );
-    }
-
-    [Fact]
-    public void ProcessPvPKill_SameDeity_AwardsHalfFavor()
-    {
-        // Arrange
-        var attackerData = TestFixtures.CreateTestPlayerReligionData(
-            "attacker-uid",
-            DeityType.Khoras,
-            "religion-1");
-
-        var victimData = TestFixtures.CreateTestPlayerReligionData(
-            "victim-uid",
-            DeityType.Khoras,
-            "religion-2");
-
-        var mockAttacker = TestFixtures.CreateMockServerPlayer("attacker-uid", "Attacker");
-        var mockVictim = TestFixtures.CreateMockServerPlayer("victim-uid", "Victim");
-
-        _mockPlayerReligionDataManager
-            .Setup(m => m.GetOrCreatePlayerData("attacker-uid"))
-            .Returns(attackerData);
-
-        _mockPlayerReligionDataManager
-            .Setup(m => m.GetOrCreatePlayerData("victim-uid"))
-            .Returns(victimData);
-
-        // Act
-        _favorSystem.ProcessPvPKill(mockAttacker.Object, mockVictim.Object);
-
-        // Assert - Should award 5 favor (BASE_KILL_FAVOR / 2 = 10 / 2 = 5)
-        _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor("attacker-uid", 5, It.IsAny<string>()),
-            Times.Once()
-        );
-    }
-
-    [Fact]
     public void ProcessPvPKill_AttackerWithoutDeity_AwardsNoFavor()
     {
         // Arrange
@@ -245,7 +127,7 @@ public class FavorSystemIntegrationTests
 
         var victimData = TestFixtures.CreateTestPlayerReligionData(
             "victim-uid",
-            DeityType.Morthen,
+            DeityType.Aethra,
             "religion-2");
 
         var mockAttacker = TestFixtures.CreateMockServerPlayer("attacker-uid", "Attacker");
@@ -260,7 +142,7 @@ public class FavorSystemIntegrationTests
             .Returns(victimData);
 
         _mockDeityRegistry
-            .Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Morthen))
+            .Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Aethra))
             .Returns(2.0f);
 
         // Act
@@ -375,11 +257,11 @@ public class FavorSystemIntegrationTests
     {
         // Arrange
         _mockDeityRegistry
-            .Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Morthen))
+            .Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Aethra))
             .Returns(2.0f);
 
         // Act
-        var reward = _favorSystem.CalculateFavorReward(DeityType.Khoras, DeityType.Morthen);
+        var reward = _favorSystem.CalculateFavorReward(DeityType.Khoras, DeityType.Aethra);
 
         // Assert
         Assert.Equal(20, reward); // BASE_KILL_FAVOR * 2.0

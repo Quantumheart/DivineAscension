@@ -385,34 +385,6 @@ public class FavorSystemTests
         Assert.Equal(5, reward); // BASE_KILL_FAVOR / 2
     }
 
-    [Fact]
-    public void CalculateFavorReward_WithRivalDeities_ReturnsDoubledFavor()
-    {
-        // Arrange
-        var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
-        var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
-        var mockDeityRegistry = new Mock<IDeityRegistry>();
-        var mockReligionManager = new Mock<IReligionManager>();
-
-        mockDeityRegistry
-            .Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Morthen))
-            .Returns(2.0f);
-
-        var favorSystem = new FavorSystem(
-            mockAPI.Object,
-            mockPlayerDataManager.Object,
-            mockPlayerReligionDataManager.Object,
-            mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
-
-        // Act
-        var reward = favorSystem.CalculateFavorReward(DeityType.Khoras, DeityType.Morthen);
-
-        // Assert
-        Assert.Equal(20, reward); // BASE_KILL_FAVOR * 2.0
-    }
 
     #endregion
 

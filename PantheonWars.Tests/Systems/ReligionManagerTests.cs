@@ -628,7 +628,7 @@ public class ReligionManagerTests
         // Arrange
         _religionManager.CreateReligion("Religion 1", DeityType.Khoras, "founder1", true);
         _religionManager.CreateReligion("Religion 2", DeityType.Lysa, "founder2", true);
-        _religionManager.CreateReligion("Religion 3", DeityType.Morthen, "founder3", true);
+        _religionManager.CreateReligion("Religion 3", DeityType.Gaia, "founder3", true);
 
         // Act
         var religions = _religionManager.GetAllReligions();

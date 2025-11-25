@@ -578,12 +578,8 @@ public class CivilizationDialog : ModSystem
         {
             DeityType.Khoras => new Vector4(0.8f, 0.2f, 0.2f, 1f), // Red
             DeityType.Lysa => new Vector4(0.2f, 0.8f, 0.2f, 1f), // Green
-            DeityType.Morthen => new Vector4(0.3f, 0.1f, 0.3f, 1f), // Dark purple
             DeityType.Aethra => new Vector4(1f, 0.9f, 0.4f, 1f), // Gold/yellow
-            DeityType.Umbros => new Vector4(0.2f, 0.2f, 0.4f, 1f), // Dark blue
-            DeityType.Tharos => new Vector4(0.4f, 0.6f, 0.9f, 1f), // Light blue
             DeityType.Gaia => new Vector4(0.5f, 0.4f, 0.2f, 1f), // Brown
-            DeityType.Vex => new Vector4(0.7f, 0.2f, 0.7f, 1f), // Purple/magenta
             _ => new Vector4(0.5f, 0.5f, 0.5f, 1f) // Gray default
         };
     }

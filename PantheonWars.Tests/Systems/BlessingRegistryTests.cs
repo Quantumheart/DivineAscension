@@ -244,7 +244,7 @@ public class BlessingRegistryTests
         _registry.RegisterBlessing(TestFixtures.CreateTestBlessing("khoras_1", "Khoras", DeityType.Khoras));
 
         // Act
-        var blessings = _registry.GetBlessingsForDeity(DeityType.Morthen);
+        var blessings = _registry.GetBlessingsForDeity(DeityType.Aethra);
 
         // Assert
         Assert.Empty(blessings);

@@ -378,12 +378,8 @@ internal static class ReligionHeaderRenderer
         {
             DeityType.Khoras => "Khoras - God of War",
             DeityType.Lysa => "Lysa - Goddess of the Hunt",
-            DeityType.Morthen => "Morthen - God of Death",
             DeityType.Aethra => "Aethra - Goddess of Light",
-            DeityType.Umbros => "Umbros - God of Shadows",
-            DeityType.Tharos => "Tharos - God of Storms",
             DeityType.Gaia => "Gaia - Goddess of Earth",
-            DeityType.Vex => "Vex - God of Madness",
             _ => "Unknown Deity"
         };
     }

@@ -513,32 +513,13 @@ public partial class BlessingDialog
                     _capi.World.PlaySoundAt(new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Lysa)}"),
                         _capi.World.Player.Entity, null, false, 8f, 0.5f);
                     break;
-                case DeityType.Morthen:
-                    _capi.World.PlaySoundAt(
-                        new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Morthen)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
                 case DeityType.Aethra:
                     _capi.World.PlaySoundAt(
                         new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Aethra)}"),
                         _capi.World.Player.Entity, null, false, 8f, 0.5f);
                     break;
-                case DeityType.Umbros:
-                    _capi.World.PlaySoundAt(
-                        new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Umbros)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
-                case DeityType.Tharos:
-                    _capi.World.PlaySoundAt(
-                        new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Tharos)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
                 case DeityType.Gaia:
                     _capi.World.PlaySoundAt(new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Gaia)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
-                case DeityType.Vex:
-                    _capi.World.PlaySoundAt(new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Vex)}"),
                         _capi.World.Player.Entity, null, false, 8f, 0.5f);
                     break;
                 default:
