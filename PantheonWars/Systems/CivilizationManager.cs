@@ -553,6 +553,14 @@ public class CivilizationManager
     }
 
     /// <summary>
+    ///     Gets all pending invites for a civilization
+    /// </summary>
+    public List<CivilizationInvite> GetInvitesForCiv(string civId)
+    {
+        return _data.GetInvitesForCivilization(civId);
+    }
+
+    /// <summary>
     ///     Checks if a religion is on cooldown
     /// </summary>
     public bool IsOnCooldown(string religionId)

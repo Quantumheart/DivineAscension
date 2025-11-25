@@ -1,7 +1,7 @@
 # Civilization System Implementation Plan
 
-**Status**: Phase 1 Complete ✅
-**Current Phase**: Phase 2 (Pending)
+**Status**: Phase 2 Complete ✅
+**Current Phase**: Phase 3 (Pending)
 **Last Updated**: 2025-11-25
 
 ## Overview
@@ -82,92 +82,124 @@ Implementation of a minimal civilization system for PantheonWars - organizationa
 
 ---
 
-## Phase 2: Commands & Networking ⏳ PENDING
+## Phase 2: Commands & Networking ✅ COMPLETE
 
 **Duration**: Week 2
-**Status**: Not Started
+**Status**: ✅ Completed 2025-11-25
 **Dependencies**: Phase 1 complete
 
 ### Tasks
 
-#### Task 2.1: Create Network Packets
-**Status**: Pending
-**Files to Create**:
-- `PantheonWars/Network/CivilizationPackets.cs`
-  - `CivilizationListRequestPacket`
-  - `CivilizationListResponsePacket`
-  - `CivilizationActionRequestPacket` (create, invite, accept, leave, kick, disband)
-  - `CivilizationActionResponsePacket`
-  - `CivilizationInfoRequestPacket`
-  - `CivilizationInfoResponsePacket`
+#### Task 2.1: Create Network Packets ✅
+**Status**: Complete
+**Files Created**:
+- `PantheonWars/Network/Civilization/CivilizationListRequestPacket.cs` (21 lines)
+- `PantheonWars/Network/Civilization/CivilizationListResponsePacket.cs` (41 lines)
+- `PantheonWars/Network/Civilization/CivilizationInfoRequestPacket.cs` (21 lines)
+- `PantheonWars/Network/Civilization/CivilizationInfoResponsePacket.cs` (74 lines)
+- `PantheonWars/Network/Civilization/CivilizationActionRequestPacket.cs` (30 lines)
+- `PantheonWars/Network/Civilization/CivilizationActionResponsePacket.cs` (30 lines)
 
-**Files to Modify**:
+**Implementation Details**:
+- All packets use ProtoBuf serialization
+- Request packets include parameterless constructors for serialization
+- Response packets contain nested data structures (CivilizationInfo, CivilizationDetails, MemberReligion, PendingInvite)
+- Action packet supports all 6 actions: create, invite, accept, leave, kick, disband
+
+**Files Modified**:
+- `PantheonWars/PantheonWarsSystem.cs` (lines 81-86)
+  - Registered all 6 packet types in `Start()` method
+
+#### Task 2.2: Implement Server-Side Networking ✅
+**Status**: Complete
+**Files Modified**:
 - `PantheonWars/PantheonWarsSystem.cs`
-  - Register new packet types in `Start()` method
+  - Added handler registrations in `SetupServerNetworking()` (lines 221-224)
+  - Implemented `OnCivilizationListRequest()` (lines 887-913)
+  - Implemented `OnCivilizationInfoRequest()` (lines 918-975)
+  - Implemented `OnCivilizationActionRequest()` (lines 980-1079)
+- `PantheonWars/Systems/CivilizationManager.cs` (lines 558-561)
+  - Added `GetInvitesForCiv()` helper method
+- `PantheonWars/Data/CivilizationWorldData.cs` (lines 148-151)
+  - Added `GetInvitesForCivilization()` data access method
 
-#### Task 2.2: Implement Server-Side Networking
-**Status**: Pending
-**Files to Modify**:
+**Implementation Details**:
+- List handler returns civilization summaries with member religions and deities
+- Info handler returns detailed civilization data including pending invites (founder only)
+- Action handler uses switch statement to process all 6 civilization actions
+- Full permission validation (founder checks, cooldown checks, deity diversity)
+- Comprehensive error handling with try-catch blocks
+- User-friendly success/error messages
+
+#### Task 2.3: Implement Client-Side Networking ✅
+**Status**: Complete
+**Files Modified**:
 - `PantheonWars/PantheonWarsSystem.cs`
-  - Add packet handlers in `SetupServerNetworking()`
-  - `OnCivilizationListRequest()`
-  - `OnCivilizationActionRequest()`
-  - `OnCivilizationInfoRequest()`
+  - Registered packet handlers in `SetupClientNetworking()` (lines 1140-1142)
+  - Implemented `OnCivilizationListResponse()` (lines 1258-1262)
+  - Implemented `OnCivilizationInfoResponse()` (lines 1264-1268)
+  - Implemented `OnCivilizationActionResponse()` (lines 1270-1281)
 
-**Logic to Implement**:
-- Handle civilization creation requests
-- Handle invite/accept/leave/kick/disband actions
-- Validate permissions (founder checks)
-- Send appropriate responses with success/error messages
-- Notify affected players
+**Public Request Methods** (lines 1395-1441):
+- `RequestCivilizationList(string deityFilter = "")` - Request all civilizations
+- `RequestCivilizationInfo(string civId)` - Request specific civilization details
+- `RequestCivilizationAction(string action, ...)` - Request civilization action
 
-#### Task 2.3: Implement Client-Side Networking
-**Status**: Pending
-**Files to Modify**:
-- `PantheonWars/PantheonWarsSystem.cs`
-  - Add packet handlers in `SetupClientNetworking()`
-  - Add public request methods for UI to call
-  - Add events for UI to subscribe to
+**Events Added** (lines 1479-1492):
+- `CivilizationListReceived` - Fires when civilization list received
+- `CivilizationInfoReceived` - Fires when civilization info received
+- `CivilizationActionCompleted` - Fires when action completes
 
-**Methods to Add**:
-- `RequestCivilizationList()`
-- `RequestCivilizationInfo(string civId)`
-- `RequestCivilizationAction(string action, ...)`
+**Implementation Details**:
+- All handlers log debug messages and fire events
+- Action response handler displays chat messages to user
+- Null-safe client API calls throughout
 
-**Events to Add**:
-- `CivilizationListReceived`
-- `CivilizationInfoReceived`
-- `CivilizationActionCompleted`
+#### Task 2.4: Create Command System ✅
+**Status**: Complete
+**Files Created**:
+- `PantheonWars/Commands/CivilizationCommands.cs` (446 lines)
 
-#### Task 2.4: Create Command System
-**Status**: Pending
-**Files to Create**:
-- `PantheonWars/Commands/CivilizationCommands.cs`
+**Files Modified**:
+- `PantheonWars/PantheonWarsSystem.cs` (lines 30, 179-180)
+  - Added `_civilizationCommands` field
+  - Instantiated and registered commands in `StartServerSide()`
 
-**Commands to Implement**:
-- `/civ create <name>` - Create a civilization
-- `/civ invite <religionName>` - Invite a religion
-- `/civ accept <inviteId>` - Accept an invitation
-- `/civ leave` - Leave civilization
-- `/civ kick <religionName>` - Kick a religion
-- `/civ disband` - Disband civilization
-- `/civ list` - List all civilizations
-- `/civ info [civName]` - Show civilization details
-- `/civ invites` - Show pending invites
+**Commands Implemented** (All 9):
+- ✅ `/civ create <name>` - Create a civilization
+- ✅ `/civ invite <religionname>` - Invite a religion (founder only)
+- ✅ `/civ accept <inviteid>` - Accept an invitation
+- ✅ `/civ leave` - Leave civilization (7-day cooldown)
+- ✅ `/civ kick <religionname>` - Kick a religion (founder only, 7-day cooldown)
+- ✅ `/civ disband` - Disband civilization (founder only)
+- ✅ `/civ list [deity]` - List all civilizations with optional deity filter
+- ✅ `/civ info [name]` - Show civilization details (defaults to player's civ)
+- ✅ `/civ invites` - Show pending civilization invitations
 
 **Validation**:
-- Permission checks (founder only for certain commands)
-- Proper error messages
-- Success confirmations
+- ✅ Permission checks (founder only for create/invite/kick/disband)
+- ✅ Religion membership validation
+- ✅ Civilization membership validation
+- ✅ Proper error messages for all failure cases
+- ✅ Success confirmations with helpful information
+- ✅ Formatted output with bullet points and sections
+
+**Implementation Details**:
+- Follows existing ReligionCommands pattern
+- Uses primary constructors with dependency injection
+- All handlers return TextCommandResult for proper feedback
+- Comprehensive error handling and validation
+- User-friendly output formatting with StringBuilder
 
 ### Success Criteria
 
-- [ ] All packet types registered and handlers implemented
-- [ ] Server validates all actions and sends appropriate responses
-- [ ] Client can request data and receive updates
-- [ ] All commands functional and accessible via chat
-- [ ] Proper error messages for invalid actions
-- [ ] Events fire correctly for UI updates
+- ✅ All packet types registered and handlers implemented
+- ✅ Server validates all actions and sends appropriate responses
+- ✅ Client can request data and receive updates
+- ✅ All commands functional and accessible via chat
+- ✅ Proper error messages for invalid actions
+- ✅ Events fire correctly for UI updates
+- ✅ Build succeeds with 0 errors
 
 ---
 
@@ -429,7 +461,18 @@ Implementation of a minimal civilization system for PantheonWars - organizationa
 
 ## Changelog
 
-### 2025-11-25
+### 2025-11-25 (Phase 2)
+- ✅ Completed Phase 2: Commands & Networking
+- Created 6 network packet files with ProtoBuf serialization
+- Implemented server-side packet handlers (list, info, action)
+- Implemented client-side networking (handlers, request methods, events)
+- Created CivilizationCommands with all 9 chat commands
+- Added helper methods to CivilizationManager and CivilizationWorldData
+- Registered commands in PantheonWarsSystem
+- Build succeeds with 0 errors
+- Committed to branch: `claude/repo-overview-01T1bvhfFLmMUMwnbWNVhWCA`
+
+### 2025-11-25 (Phase 1)
 - ✅ Completed Phase 1: Core Backend
 - Created data models, world data container, and manager
 - Integrated with PantheonWarsSystem

@@ -143,6 +143,14 @@ public class CivilizationWorldData
     }
 
     /// <summary>
+    ///     Gets all invites for a specific civilization
+    /// </summary>
+    public List<CivilizationInvite> GetInvitesForCivilization(string civId)
+    {
+        return PendingInvites.Where(i => i.CivId == civId && i.IsValid).ToList();
+    }
+
+    /// <summary>
     ///     Gets a specific invite
     /// </summary>
     public CivilizationInvite? GetInvite(string inviteId)
