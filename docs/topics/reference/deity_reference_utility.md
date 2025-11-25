@@ -23,6 +23,66 @@ Complete guide to deities in Pantheon Wars, redesigned with a focus on **surviva
 
 ---
 
+## How Bonuses Work
+
+### Bonus Stacking Rules
+- **Player + Religion bonuses:** Stack additively (10% + 15% = 25% total)
+- **Path A + Path B bonuses:** Stack additively when both paths are unlocked
+- **Different bonus types:** Apply independently (ore yield × mining speed are separate)
+- **Total percentages:** All "total: X%" values shown are cumulative across all unlocked tiers
+
+### Dual Path Progression
+To unlock Champion tier, players must:
+1. Progress through Tiers 1-3 in their initial chosen path
+2. Then progress through Tiers 2-3 in the alternate path
+3. Champion tier unlocks when both Tier 3 blessings are obtained
+4. Total favor needed: 5000+ (to reach Champion threshold with both paths)
+5. Both path bonuses remain active and stack together
+
+### Earning Favor
+Favor represents your personal devotion to a deity through practice of their domain.
+
+**Primary Method: PvP**
+- Kill enemy players to earn favor
+- All PvP kills grant the same amount of favor regardless of opponent's deity
+
+**Secondary Method: Utility Activities** *(Slower but steady)*
+
+| Deity | Activity | Favor Gain | Example |
+|-------|----------|------------|---------|
+| **Khoras** | Mining ore | 2 per ore | 10 copper ore = 20 favor |
+| | Smithing items | 5-15 per craft | Iron pickaxe = 10 favor |
+| | Repairing tools | 1-5 per repair | Tool repair = 3 favor |
+| **Lysa** | Hunting animals | 3-20 per kill | Wolf = 12 favor, Deer = 8 favor |
+| | Foraging plants | 0.5 per harvest | 20 berry bushes = 10 favor |
+| | Exploring new chunks | 2 per chunk | Exploring = steady favor |
+| **Aethra** | Harvesting crops | 1 per harvest | 10 wheat = 10 favor |
+| | Cooking meals | 3-8 per meal | Bread = 5 favor |
+| | Planting crops | 0.5 per plant | 20 seeds = 10 favor |
+| **Gaia** | Mining stone/clay | 0.3 per block | 30 stone = 9 favor |
+| | Building structures | 2-10 per structure | Wall section = 5 favor |
+| | Quarrying | 1 per stone type | Granite block = 1 favor |
+
+*Note: Favor rates are approximate and may be adjusted for balance.*
+
+### Religion Prestige
+Prestige measures a religion's collective power and influence.
+
+**How Prestige Works:**
+- Each religion has a shared prestige pool
+- Prestige increases when members perform deity-aligned activities
+- Formula: Member favor gains contribute to prestige at a reduced rate
+- Prestige unlocks religion-wide blessings that benefit all members
+- Religion leaders can see total prestige in the religion panel
+
+**Prestige Gain Rates:**
+- Members earn favor normally for personal blessings
+- 10% of earned favor also contributes to religion prestige
+- Example: Player gains 100 favor → Personal: +100, Religion prestige: +10
+- All members contribute, making larger religions progress faster
+
+---
+
 ## Playable Deities
 
 ### Khoras - God of the Forge & Craft
@@ -37,11 +97,6 @@ Khoras represents resilience through craftsmanship. His followers build their su
 
 #### Playstyle
 Durability & self-sufficiency. Focus on tool longevity, ore efficiency, and temperature resistance. Perfect for players who want to be self-reliant crafters and builders.
-
-#### Relationships
-- **Allied:** Lysa (complementary survival skills)
-- **Rival:** TBD
-- **Neutral:** Others
 
 ---
 
@@ -106,7 +161,7 @@ Durability & self-sufficiency. Focus on tool longevity, ore efficiency, and temp
 - Tools slowly repair **1 durability per 5 minutes** when in inventory
 - **-10%** material costs for smithing (stacks with chance to save)
 - Mining/chopping speed **+12%** (total: 20% if Path A, or 12% if Path B)
-- *Requires: Both Legendary Smith AND Unyielding*
+- *Requires: Both Tier 3 Path A (Legendary Smith) AND Tier 3 Path B (Unyielding)*
 
 *True mastery of craft and endurance. Tools practically maintain themselves, materials go further, and you're a pillar of strength.*
 
@@ -191,11 +246,6 @@ Lysa represents living with the land. Her followers are expert hunters, foragers
 #### Playstyle
 Resource gathering & mobility. Focus on food acquisition, foraging yield, hunting prowess, and wilderness adaptation. Perfect for nomadic players who live off the land.
 
-#### Relationships
-- **Allied:** Khoras (complementary survival skills)
-- **Rival:** TBD
-- **Neutral:** Others
-
 ---
 
 #### Player Blessings (6 Total)
@@ -259,9 +309,9 @@ Resource gathering & mobility. Focus on food acquisition, foraging yield, huntin
 **"Avatar of the Wild"**
 - All previous bonuses
 - **+8%** movement speed (total: 13%)
-- **+8°C** temperature resistance (hot and cold)
+- **+8°C** temperature resistance (applies to both hot and cold independently)
 - Never get lost (compass always visible)
-- *Requires: Both Abundance of the Wild AND Silent Death*
+- *Requires: Both Tier 3 Path A (Abundance of the Wild) AND Tier 3 Path B (Silent Death)*
 
 *True master of the wilderness. Never lost, never hungry, perfectly adapted to any environment.*
 
@@ -276,7 +326,7 @@ Resource gathering & mobility. Focus on food acquisition, foraging yield, huntin
 - 40% harder for animals to detect
 - +15% stealth damage vs animals
 - 13% movement speed
-- 8°C temperature resistance (both hot/cold)
+- 8°C hot resistance + 8°C cold resistance
 - Compass always visible
 
 ---
@@ -334,7 +384,7 @@ Resource gathering & mobility. Focus on food acquisition, foraging yield, huntin
 - 80% total animal drops
 - 23% total movement speed
 - 40% total satiety bonus from food
-- 16°C total temperature resistance
+- 16°C hot resistance + 16°C cold resistance
 - 40% slower food spoilage
 - 50% rare herb finding
 - 30% damage vs animals
@@ -354,11 +404,6 @@ Aethra represents cultivation and growth through light and warmth. Her followers
 
 #### Playstyle
 Agriculture & food preparation. Focus on crop yields, food preservation, cooking bonuses, and warmth generation. Perfect for players who farm and cook.
-
-#### Relationships
-- **Allied:** Gaia (farming needs buildings), Khoras (farming needs tools)
-- **Rival:** TBD
-- **Neutral:** Others
 
 ---
 
@@ -429,7 +474,7 @@ Agriculture & food preparation. Focus on crop yields, food preservation, cooking
 - **+10%** max health
 - Never suffer malnutrition penalties
 - Can create "Blessed Meals" with powerful temporary buffs
-- *Requires: Both Master Farmer AND Divine Kitchen*
+- *Requires: Both Tier 3 Path A (Master Farmer) AND Tier 3 Path B (Divine Kitchen)*
 
 **Combined Totals:**
 - 47% crop yield
@@ -504,18 +549,13 @@ Gaia represents resilience and endurance through connection to the earth. Her fo
 #### Playstyle
 Earth resources & endurance. Focus on stone/clay yields, physical resilience, and surviving harsh conditions. Perfect for miners and builders.
 
-#### Relationships
-- **Allied:** Aethra (farming needs buildings), Khoras (building needs tools)
-- **Rival:** TBD
-- **Neutral:** Others
-
 ---
 
 #### Player Blessings (6 Total)
 
 ##### Tier 1 - Initiate (0-499 favor)
 **"Earthen Foundation"**
-- **+15%** stone/clay/gravel yield when mining
+- **+10%** stone/clay/gravel yield when mining
 - **+10%** max health
 - **-15%** fall damage
 
@@ -526,7 +566,7 @@ Earth resources & endurance. Focus on stone/clay yields, physical resilience, an
 ##### Tier 2 - Disciple (500-1999 favor) - Choose Your Path
 
 **Path A: "Quarryman"** *(Resource Path)*
-- **+20%** stone/clay/gravel yield (total: 35%)
+- **+12%** stone/clay/gravel yield (total: 22%)
 - **+20%** chance to find granite/marble/other stone types
 - Mining picks last **15%** longer
 - *Requires: Earthen Foundation*
@@ -547,7 +587,7 @@ Earth resources & endurance. Focus on stone/clay yields, physical resilience, an
 ##### Tier 3 - Zealot (2000-4999 favor) - Specialization
 
 **Path A: "Master Quarryman"**
-- **+25%** stone/clay/gravel yield (total: 60%)
+- **+15%** stone/clay/gravel yield (total: 37%)
 - **+35%** chance to find rare stones (total: 55%)
 - Mining picks last **25%** longer (total: 40%)
 - **+15%** chance to find surface copper/tin when mining stone
@@ -574,10 +614,10 @@ Earth resources & endurance. Focus on stone/clay yields, physical resilience, an
 - **+5%** movement speed
 - **+8°C** cold resistance (total: 13°C if Path B, or 8°C if Path A)
 - Immune to slowness from being overburdened (first tier)
-- *Requires: Both Master Quarryman AND Unshakeable*
+- *Requires: Both Tier 3 Path A (Master Quarryman) AND Tier 3 Path B (Unshakeable)*
 
 **Combined Totals:**
-- 60% stone/clay/gravel yield
+- 37% stone/clay/gravel yield
 - 55% rare stone chance
 - 40% pick durability
 - 15% copper/tin in stone
@@ -595,14 +635,14 @@ Earth resources & endurance. Focus on stone/clay yields, physical resilience, an
 
 ##### Tier 1 - Fledgling (0-499 prestige)
 **"Stone Circle"**
-- All members: **+12%** stone/clay/gravel yield
+- All members: **+8%** stone/clay/gravel yield
 - All members: **+8%** max health
 
 ---
 
 ##### Tier 2 - Established (500-1999 prestige)
 **"Earth Wardens"**
-- All members: **+18%** stone/clay/gravel yield
+- All members: **+12%** stone/clay/gravel yield
 - All members: **+12%** max health
 - All members: **-15%** fall damage
 - *Requires: Stone Circle*
@@ -611,7 +651,7 @@ Earth resources & endurance. Focus on stone/clay yields, physical resilience, an
 
 ##### Tier 3 - Renowned (2000-4999 prestige)
 **"Mountain's Children"**
-- All members: **+25%** stone/clay/gravel yield
+- All members: **+18%** stone/clay/gravel yield
 - All members: **+18%** max health
 - All members: **-22%** fall damage
 - All members: **+8%** armor from all equipment
@@ -621,7 +661,7 @@ Earth resources & endurance. Focus on stone/clay yields, physical resilience, an
 
 ##### Tier 4 - Legendary (5000-9999 prestige)
 **"Pantheon of Stone"**
-- All members: **+35%** stone/clay/gravel yield
+- All members: **+25%** stone/clay/gravel yield
 - All members: **+25%** max health
 - All members: **-30%** fall damage
 - All members: **+12%** armor from all equipment
@@ -629,7 +669,7 @@ Earth resources & endurance. Focus on stone/clay yields, physical resilience, an
 - *Requires: Mountain's Children*
 
 **Combined Religion + Player (Both Paths, Both Maxed):**
-- 95% total stone/clay/gravel yield
+- 62% total stone/clay/gravel yield
 - 70% max health
 - 90% fall damage reduction
 - 32% armor
@@ -693,27 +733,15 @@ Earth resources & endurance. Focus on stone/clay yields, physical resilience, an
 - **Aethra** provides agriculture and cooked meals
 - **Gaia** provides building materials and shelter
 
-**Best Religion Combinations:**
+**Complementary Religion Combinations:**
 - Khoras + Gaia = Industrial powerhouse (tools + materials)
 - Lysa + Aethra = Food independence (hunting + farming)
 - Khoras + Aethra = Self-sufficient settlement (tools + food)
-- All four allied = Complete civilization with all needs met
+- All four together = Complete civilization with all needs met
 
 ---
 
 ## Progression Tips
-
-### Earning Favor
-
-**Primary: PvP**
-- Kill enemy players to earn favor
-- Deity relationships affect multipliers (Allied: 0.5x, Neutral: 1.0x, Rival: 2.0x)
-
-**Secondary: Utility Activities** *(Slower but steady)*
-- Khoras: Mining ore, smithing, repairing tools
-- Lysa: Hunting animals, foraging plants, exploring
-- Aethra: Harvesting crops, cooking meals, farming
-- Gaia: Mining stone/clay, building structures
 
 ### Blessing Strategy
 
@@ -756,20 +784,29 @@ Earth resources & endurance. Focus on stone/clay yields, physical resilience, an
 - Champion tier requires both paths (balanced power spike)
 - Maximum combined bonuses: 60-80% in specializations
 
+**Temperature Resistance:**
+- Most deities provide resistance to one temperature extreme
+- Lysa uniquely provides resistance to both hot AND cold (separate values)
+- Example: Lysa's 8°C resistance = 8°C hot + 8°C cold protection
+
 ---
 
 ## Future Deities
 
 The following deities are planned with similar utility-focused designs:
 
-- **Alchemy/Brewing deity** - Potion crafting, fermentation, transformation
+- **Alchemy/Brewing deity** - Potion crafting, fermentation, transformation (distinct from Aethra's cooking/baking)
 - **Trade/Commerce deity** - Trading, economy, resource exchange
-- **Animal Husbandry deity** - Livestock, breeding, animal products
+- **Animal Husbandry deity** - Livestock, breeding, animal products (distinct from Lysa's hunting wild animals)
 - **Magic/Temporal deity** - Temporal stability, rift management
-- **Exploration deity** - Navigation, mapping, discovery
+- **Exploration deity** - Navigation, mapping, discovery (distinct from Lysa's wilderness survival)
 - **Weather/Seasons deity** - Climate adaptation, seasonal bonuses
 
-*Note: Aethra covers agriculture/farming, Gaia covers building/construction, Khoras covers smithing, and Lysa covers hunting/foraging.*
+**Current Coverage:**
+- Aethra: Agriculture/farming crops and food preparation
+- Gaia: Building/construction and stone quarrying
+- Khoras: Smithing and metalwork
+- Lysa: Hunting wild animals and foraging
 
 *Details subject to change based on community feedback and balance testing.*
 
