@@ -259,13 +259,13 @@ Implementation of a minimal civilization system for PantheonWars - organizationa
 
 ### Success Criteria
 
-- [ ] BlessingDialog shows civilization info
+- [x] BlessingDialog shows civilization info
 - [ ] Players can see their civilization membership
-- [ ] Founders can access management features
-- [ ] (Optional) Full civilization dialog functional
-- [ ] (Optional) Info overlay displays correctly
-- [ ] UI matches existing mod style (VSImGui)
-- [ ] All UI updates in response to events
+- [x] Founders can access management features
+- [x] (Optional) Full civilization dialog functional
+- [x] (Optional) Info overlay displays correctly
+- [x] UI matches existing mod style (VSImGui)
+- [x] All UI updates in response to events
 
 ---
 
@@ -281,18 +281,18 @@ Implementation of a minimal civilization system for PantheonWars - organizationa
 **Status**: Pending
 
 **Test Cases**:
-- [ ] Create civilization as religion founder
+- [x] Create civilization as religion founder
 - [ ] Invite religions from different deities
 - [ ] Accept/reject invitations
 - [ ] Leave civilization (verify cooldown)
 - [ ] Kick religion (verify cooldown)
-- [ ] Disband civilization
+- [x] Disband civilization
 - [ ] Verify deity diversity enforcement
 - [ ] Test 2-4 religion capacity limits
 - [ ] Test auto-disband when below 2 religions
 - [ ] Verify invite expiry (7 days)
 - [ ] Verify cooldown expiry (7 days)
-- [ ] Test persistence (save/load)
+- [x] Test persistence (save/load)
 
 **Edge Cases to Test**:
 - [ ] Religion founder leaves religion while in civilization
