@@ -917,12 +917,36 @@ public class PantheonWarsSystem : ModSystem
 
     /// <summary>
     ///     Handle civilization info request from client
+    ///     If civId is empty, returns the civilization for the player's current religion
     /// </summary>
     private void OnCivilizationInfoRequest(IServerPlayer fromPlayer, Network.Civilization.CivilizationInfoRequestPacket packet)
     {
         _sapi!.Logger.Debug($"[PantheonWars] Civilization info requested by {fromPlayer.PlayerName} for {packet.CivId}");
 
-        var civ = _civilizationManager!.GetCivilization(packet.CivId);
+        string civId = packet.CivId;
+
+        // If civId is empty, look up the player's religion's civilization
+        if (string.IsNullOrEmpty(civId))
+        {
+            var playerReligion = _religionManager!.GetPlayerReligion(fromPlayer.PlayerUID);
+            if (playerReligion == null)
+            {
+                _serverChannel!.SendPacket(new Network.Civilization.CivilizationInfoResponsePacket(), fromPlayer);
+                return;
+            }
+
+            var religionCiv = _civilizationManager!.GetCivilizationByReligion(playerReligion.ReligionUID);
+            if (religionCiv == null)
+            {
+                // Player's religion is not in any civilization
+                _serverChannel!.SendPacket(new Network.Civilization.CivilizationInfoResponsePacket(), fromPlayer);
+                return;
+            }
+
+            civId = religionCiv.CivId;
+        }
+
+        var civ = _civilizationManager!.GetCivilization(civId);
         if (civ == null)
         {
             _serverChannel!.SendPacket(new Network.Civilization.CivilizationInfoResponsePacket(), fromPlayer);

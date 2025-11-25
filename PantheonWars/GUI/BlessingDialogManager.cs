@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using PantheonWars.GUI.Interfaces;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
+using PantheonWars.Network.Civilization;
 using PantheonWars.Systems;
 using Vintagestory.API.Client;
 
@@ -25,6 +26,15 @@ public class BlessingDialogManager : IBlessingDialogManager
     public string? CurrentReligionName { get; set; }
     public int ReligionMemberCount { get; set; } = 0;
     public string? PlayerRoleInReligion { get; set; } // "Leader", "Member", etc.
+
+    // Civilization state
+    public string? CurrentCivilizationId { get; set; }
+    public string? CurrentCivilizationName { get; set; }
+    public string? CivilizationFounderReligionUID { get; set; }
+    public List<CivilizationInfoResponsePacket.MemberReligion> CivilizationMemberReligions { get; set; } = new();
+    public bool IsCivilizationFounder => !string.IsNullOrEmpty(CurrentReligionUID) &&
+                                          !string.IsNullOrEmpty(CivilizationFounderReligionUID) &&
+                                          CurrentReligionUID == CivilizationFounderReligionUID;
 
     // Player progression state
     public int CurrentFavorRank { get; set; } = 0;
@@ -89,6 +99,12 @@ public class BlessingDialogManager : IBlessingDialogManager
         ReligionTreeScrollX = 0f;
         ReligionTreeScrollY = 0f;
         IsDataLoaded = false;
+
+        // Clear civilization state
+        CurrentCivilizationId = null;
+        CurrentCivilizationName = null;
+        CivilizationFounderReligionUID = null;
+        CivilizationMemberReligions.Clear();
 
         // Clear blessing trees
         PlayerBlessingStates.Clear();
@@ -259,5 +275,34 @@ public class BlessingDialogManager : IBlessingDialogManager
             NextRank = CurrentPrestigeRank + 1,
             IsMaxRank = CurrentPrestigeRank >= 4
         };
+    }
+
+    /// <summary>
+    ///     Check if player's religion is in a civilization
+    /// </summary>
+    public bool HasCivilization()
+    {
+        return !string.IsNullOrEmpty(CurrentCivilizationId);
+    }
+
+    /// <summary>
+    ///     Update civilization state from response packet
+    /// </summary>
+    public void UpdateCivilizationState(CivilizationInfoResponsePacket.CivilizationDetails? details)
+    {
+        if (details == null)
+        {
+            // Clear civilization state
+            CurrentCivilizationId = null;
+            CurrentCivilizationName = null;
+            CivilizationFounderReligionUID = null;
+            CivilizationMemberReligions.Clear();
+            return;
+        }
+
+        CurrentCivilizationId = details.CivId;
+        CurrentCivilizationName = details.Name;
+        CivilizationFounderReligionUID = details.FounderUID;
+        CivilizationMemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions);
     }
 }

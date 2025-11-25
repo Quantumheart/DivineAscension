@@ -62,8 +62,8 @@ public partial class BlessingDialog : ModSystem
         _stopwatch = Stopwatch.StartNew();
 
         // Register keybind (P key to open)
-        _capi.Input.RegisterHotKey("pantheonwarsblessings", "Show/Hide Blessing Dialog", GlKeys.P,
-            HotkeyType.GUIOrOtherControls);
+        _capi.Input.RegisterHotKey("pantheonwarsblessings", "Show/Hide Blessing Dialog", GlKeys.G,
+            HotkeyType.GUIOrOtherControls, shiftPressed: true);
         _capi.Input.SetHotKeyHandler("pantheonwarsblessings", OnToggleDialog);
 
         // Initialize manager and overlay coordinator
@@ -84,6 +84,8 @@ public partial class BlessingDialog : ModSystem
             _pantheonWarsSystem.ReligionActionCompleted += OnReligionActionCompleted;
             _pantheonWarsSystem.PlayerReligionInfoReceived += OnPlayerReligionInfoReceived;
             _pantheonWarsSystem.PlayerReligionDataUpdated += OnPlayerReligionDataUpdated;
+            _pantheonWarsSystem.CivilizationInfoReceived += OnCivilizationInfoReceived;
+            _pantheonWarsSystem.CivilizationActionCompleted += OnCivilizationActionCompleted;
         }
         else
         {
@@ -231,7 +233,8 @@ public partial class BlessingDialog : ModSystem
             OnCloseButtonClicked,
             OnChangeReligionClicked,
             OnManageReligionClicked,
-            OnLeaveReligionClicked
+            OnLeaveReligionClicked,
+            OnManageCivilizationClicked
         );
 
         // Draw overlays using coordinator
@@ -293,6 +296,8 @@ public partial class BlessingDialog : ModSystem
             _pantheonWarsSystem.ReligionActionCompleted -= OnReligionActionCompleted;
             _pantheonWarsSystem.PlayerReligionInfoReceived -= OnPlayerReligionInfoReceived;
             _pantheonWarsSystem.PlayerReligionDataUpdated -= OnPlayerReligionDataUpdated;
+            _pantheonWarsSystem.CivilizationInfoReceived -= OnCivilizationInfoReceived;
+            _pantheonWarsSystem.CivilizationActionCompleted -= OnCivilizationActionCompleted;
         }
         
         // Dispose deity icon loader
