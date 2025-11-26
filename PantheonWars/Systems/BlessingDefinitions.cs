@@ -60,14 +60,13 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Master the craft of tool-making. Tools last 15% longer, +8% mining/chopping speed, -15% tool repair costs. Utility path. Requires Craftsman's Touch.",
+                    "Master the craft of tool-making. Tools last 15% longer, +8% mining speed, -15% tool repair costs. Utility path. Requires Craftsman's Touch.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasCraftsmansTouch },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.ToolDurability, 0.15f },
                     { VintageStoryStats.MiningSpeed, 0.08f },
-                    { VintageStoryStats.ChoppingSpeed, 0.08f },
                     { VintageStoryStats.RepairCostReduction, 0.15f }
                 }
             },
@@ -127,14 +126,13 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Embody the eternal forge. Tools repair 1 durability per 5 minutes in inventory, -10% material costs for smithing, +12% mining/chopping speed. Requires both Legendary Smith and Unyielding.",
+                    "Embody the eternal forge. Tools repair 1 durability per 5 minutes in inventory, -10% material costs for smithing, +12% mining speed. Requires both Legendary Smith and Unyielding.",
                 RequiredFavorRank = (int)FavorRank.Champion,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasLegendarySmith, BlessingIds.KhorasUnyielding },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.SmithingCostReduction, 0.10f },
                     { VintageStoryStats.MiningSpeed, 0.12f },
-                    { VintageStoryStats.ChoppingSpeed, 0.12f }
                 },
                 SpecialEffects = new List<string> { SpecialEffects.PassiveToolRepair1Per5Min }
             },
@@ -206,7 +204,6 @@ public static class BlessingDefinitions
                     { VintageStoryStats.OreYield, 0.20f },
                     { VintageStoryStats.ColdResistance, 8.0f },
                     { VintageStoryStats.MiningSpeed, 0.10f },
-                    { VintageStoryStats.ChoppingSpeed, 0.10f }
                 },
                 SpecialEffects = new List<string> { SpecialEffects.PassiveToolRepair1Per10Min }
             }

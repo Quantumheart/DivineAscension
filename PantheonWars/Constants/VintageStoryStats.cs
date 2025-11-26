@@ -29,13 +29,12 @@ public static class VintageStoryStats
     public const string ToolDurability = "toolDurability";
     public const string OreYield = "oreYield";
     public const string ColdResistance = "coldResistance";
-    public const string MiningSpeed = "miningSpeed";
-    public const string ChoppingSpeed = "choppingSpeed";
+    public const string MiningSpeed = "miningSpeedMul";
     public const string RepairCostReduction = "repairCostReduction";
     public const string RepairEfficiency = "repairEfficiency";
     public const string SmithingCostReduction = "smithingCostReduction";
     public const string MetalArmorBonus = "metalArmorBonus";
-    public const string HungerRate = "hungerRate";
+    public const string HungerRate = "hungerrate";
 
     // Lysa (Hunt & Wild) Stats
     public const string DoubleHarvestChance = "doubleHarvestChance";

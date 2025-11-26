@@ -436,7 +436,6 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             VintageStoryStats.OreYield => SystemConstants.StatDisplayOreYield,
             VintageStoryStats.ColdResistance => SystemConstants.StatDisplayColdResistance,
             VintageStoryStats.MiningSpeed => SystemConstants.StatDisplayMiningSpeed,
-            VintageStoryStats.ChoppingSpeed => SystemConstants.StatDisplayChoppingSpeed,
             VintageStoryStats.RepairCostReduction => SystemConstants.StatDisplayRepairCostReduction,
             VintageStoryStats.RepairEfficiency => SystemConstants.StatDisplayRepairEfficiency,
             VintageStoryStats.SmithingCostReduction => SystemConstants.StatDisplaySmithingCostReduction,
