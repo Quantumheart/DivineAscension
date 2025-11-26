@@ -4,6 +4,8 @@ using System.Linq;
 using PantheonWars.Constants;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
+using PantheonWars.Systems.BlessingEffects;
+using PantheonWars.Systems.BlessingEffects.Handlers;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -26,6 +28,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     private readonly IReligionManager _religionManager;
     private readonly Dictionary<string, Dictionary<string, float>> _religionModifierCache = new();
     private readonly ICoreServerAPI _sapi;
+    private readonly SpecialEffectRegistry _specialEffectRegistry;
 
     public BlessingEffectSystem(
         ICoreServerAPI sapi,
@@ -37,6 +40,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         _blessingRegistry = blessingRegistry;
         _playerReligionDataManager = playerReligionDataManager;
         _religionManager = religionManager;
+        _specialEffectRegistry = new SpecialEffectRegistry(sapi);
     }
 
     /// <summary>
@@ -45,6 +49,12 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     public void Initialize()
     {
         _sapi.Logger.Notification($"{SystemConstants.LogPrefix} {SystemConstants.InfoInitializingBlessingSystem}");
+
+        // Register special effect handlers
+        RegisterSpecialEffectHandlers();
+
+        // Initialize special effect registry
+        _specialEffectRegistry.Initialize();
 
         // Register event handlers
         _sapi.Event.PlayerJoin += OnPlayerJoin;
@@ -236,7 +246,11 @@ public class BlessingEffectSystem : IBlessingEffectSystem
 
         // Recalculate and apply
         var player = _sapi.World.PlayerByUid(playerUID) as IServerPlayer;
-        if (player != null) ApplyBlessingsToPlayer(player);
+        if (player != null)
+        {
+            ApplyBlessingsToPlayer(player);
+            RefreshSpecialEffects(player);
+        }
 
         _sapi.Logger.Debug(
             $"{SystemConstants.LogPrefix} {string.Format(SystemConstants.SuccessRefreshedBlessingsFormat, playerUID)}");
@@ -430,5 +444,45 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             VintageStoryStats.HungerRate => SystemConstants.StatDisplayHungerRate,
             _ => statKey
         };
+    }
+
+    /// <summary>
+    ///     Registers all special effect handlers for deities
+    /// </summary>
+    private void RegisterSpecialEffectHandlers()
+    {
+        // Khoras (Forge & Craft) handlers
+        _specialEffectRegistry.RegisterHandler(new KhorasEffectHandlers.PassiveToolRepairEffect());
+
+        // Future deity handlers will be registered here
+        // _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.AnimalTrackingEffect());
+        // etc.
+
+        _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered all special effect handlers");
+    }
+
+    /// <summary>
+    ///     Refreshes special effects for a player based on their unlocked blessings
+    /// </summary>
+    private void RefreshSpecialEffects(IServerPlayer player)
+    {
+        var (playerBlessings, religionBlessings) = GetActiveBlessings(player.PlayerUID);
+
+        // Collect all special effect IDs from active blessings
+        var activeEffectIds = new List<string>();
+
+        foreach (var blessing in playerBlessings)
+            if (blessing.SpecialEffects != null)
+                activeEffectIds.AddRange(blessing.SpecialEffects);
+
+        foreach (var blessing in religionBlessings)
+            if (blessing.SpecialEffects != null)
+                activeEffectIds.AddRange(blessing.SpecialEffects);
+
+        // Refresh effects via registry
+        _specialEffectRegistry.RefreshPlayerEffects(player, activeEffectIds);
+
+        _sapi.Logger.Debug(
+            $"{SystemConstants.LogPrefix} Refreshed {activeEffectIds.Count} special effects for {player.PlayerName}");
     }
 }
