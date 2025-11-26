@@ -454,9 +454,8 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         // Khoras (Forge & Craft) handlers
         _specialEffectRegistry.RegisterHandler(new KhorasEffectHandlers.PassiveToolRepairEffect());
 
-        // Future deity handlers will be registered here
-        // _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.AnimalTrackingEffect());
-        // etc.
+        // Lysa (Hunt & Wild) handlers
+        _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.RareForageChanceEffect());
 
         _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered all special effect handlers");
     }

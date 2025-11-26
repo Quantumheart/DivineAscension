@@ -221,166 +221,169 @@ public static class BlessingDefinitions
     {
         return new List<Blessing>
         {
-            // PLAYER BLESSINGS (6 total) - Streamlined for meaningful choices
+            // PLAYER BLESSINGS (6 total) - Hunt & Wild utility focus
 
-            // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.LysaKeenEye, "Keen Eye", DeityType.Lysa)
+            // Tier 1 - Initiate (0-499 favor)
+            new(BlessingIds.LysaHuntersInstinct, "Hunter's Instinct", DeityType.Lysa)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description = "The hunt sharpens your senses. +10% ranged damage, +10% movement speed.",
+                Category = BlessingCategory.Utility,
+                Description = "Foundation for wilderness survival. Double harvest chance on bushes/plants +10%, +5% movement speed, see animal tracks highlighted.",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.10f },
-                    { VintageStoryStats.WalkSpeed, 0.10f }
-                }
-            },
-
-            // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.LysaDeadlyPrecision, "Deadly Precision", DeityType.Lysa)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Perfect your aim. +15% ranged damage, +10% critical chance. Precision path. Requires Keen Eye.",
-                RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaKeenEye },
-                StatModifiers = new Dictionary<string, float> { { VintageStoryStats.RangedWeaponsDamage, 0.15f } },
-                SpecialEffects = new List<string> { SpecialEffects.CriticalChance10 }
-            },
-            new(BlessingIds.LysaSilentStalker, "Silent Stalker", DeityType.Lysa)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Mobility,
-                Description =
-                    "Move like a shadow. +18% movement speed, +10% melee damage. Mobility path. Requires Keen Eye.",
-                RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaKeenEye },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.WalkSpeed, 0.18f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.StealthBonus }
-            },
-
-            // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.LysaMasterHuntress, "Master Huntress", DeityType.Lysa)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Legendary marksmanship. +25% ranged damage, +20% critical chance, headshot bonus. Requires Deadly Precision.",
-                RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaDeadlyPrecision },
-                StatModifiers = new Dictionary<string, float> { { VintageStoryStats.RangedWeaponsDamage, 0.25f } },
-                SpecialEffects = new List<string> { SpecialEffects.CriticalChance20, SpecialEffects.HeadshotBonus }
-            },
-            new(BlessingIds.LysaApexPredator, "Apex Predator", DeityType.Lysa)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Mobility,
-                Description =
-                    "Untouchable hunter. +28% movement speed, +18% melee damage, +15% attack speed. Requires Silent Stalker.",
-                RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaSilentStalker },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.WalkSpeed, 0.28f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.18f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.15f }
+                    { VintageStoryStats.DoubleHarvestChance, 0.10f },
+                    { VintageStoryStats.WalkSpeed, 0.05f }
                 },
                 SpecialEffects = new List<string> { SpecialEffects.TrackingVision }
             },
 
-            // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
-            new(BlessingIds.LysaAvatarOfHunt, "Avatar of the Hunt", DeityType.Lysa)
+            // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
+            new(BlessingIds.LysaMasterForager, "Master Forager", DeityType.Lysa)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Utility,
+                Description = "Specializes in plant gathering and food preservation. Double harvest chance +12%, food spoils 15% slower, +10% satiety from foraged foods. Gathering Path. Requires Hunter's Instinct.",
+                RequiredFavorRank = (int)FavorRank.Disciple,
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaHuntersInstinct },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.DoubleHarvestChance, 0.12f },
+                    { VintageStoryStats.FoodSpoilage, 0.15f },
+                    { VintageStoryStats.Satiety, 0.10f } // Note: Logic assumes Satiety applies generally or handled specially
+                }
+            },
+            new(BlessingIds.LysaApexPredator, "Apex Predator", DeityType.Lysa)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
-                Description =
-                    "Embody the perfect hunter. +15% all damage, +20% movement speed, +10% attack speed, multishot ability. Requires both Master Huntress and Apex Predator.",
-                RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaMasterHuntress, BlessingIds.LysaApexPredator },
+                Description = "Focuses on hunting efficiency and stealth. +12% damage vs animals, animal drops +20%, sneak movement 25% quieter. Hunting Path. Requires Hunter's Instinct.",
+                RequiredFavorRank = (int)FavorRank.Disciple,
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaHuntersInstinct },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.WalkSpeed, 0.20f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
+                    { VintageStoryStats.AnimalDamage, 0.12f },
+                    { VintageStoryStats.AnimalDrops, 0.20f },
+                    { VintageStoryStats.ToolDurability, 0.15f } // Bow/Spear durability
                 },
-                SpecialEffects = new List<string> { SpecialEffects.Multishot, SpecialEffects.AnimalCompanion }
+                SpecialEffects = new List<string> { SpecialEffects.StealthMovementQuiet }
             },
 
-            // RELIGION BLESSINGS (4 total) - Unified pack buffs
+            // Tier 3 - Zealot (2000-4999 favor) - Specialization
+            new(BlessingIds.LysaAbundanceOfWild, "Abundance of the Wild", DeityType.Lysa)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Utility,
+                Description = "Master gatherer. Double harvest chance +15%, find rare herbs/mushrooms 50% more often, food spoils 25% slower, +15% satiety. Requires Master Forager.",
+                RequiredFavorRank = (int)FavorRank.Zealot,
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaMasterForager },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.DoubleHarvestChance, 0.15f },
+                    { VintageStoryStats.FoodSpoilage, 0.25f },
+                    { VintageStoryStats.Satiety, 0.15f } 
+                },
+                SpecialEffects = new List<string> { SpecialEffects.RareForageChance }
+            },
+            new(BlessingIds.LysaSilentDeath, "Silent Death", DeityType.Lysa)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Combat,
+                Description = "Master hunter. +18% damage vs animals, animal drops +25%, arrows/spears 8% chance to not consume, animals detect you 40% less easily. Requires Apex Predator.",
+                RequiredFavorRank = (int)FavorRank.Zealot,
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaApexPredator },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.AnimalDamage, 0.18f },
+                    { VintageStoryStats.AnimalDrops, 0.25f }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.AmmoConservation, SpecialEffects.StealthBonus }
+            },
 
-            // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.LysaPackHunters, "Pack Hunters", DeityType.Lysa)
+            // Tier 4 - Champion (5000-9999 favor) - Capstone
+            new(BlessingIds.LysaAvatarOfWild, "Avatar of the Wild", DeityType.Lysa)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Utility,
+                Description = "True master of the wilderness. +8% movement speed, +8°C temperature resistance, compass always visible. Requires both Abundance of the Wild and Silent Death.",
+                RequiredFavorRank = (int)FavorRank.Champion,
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaAbundanceOfWild, BlessingIds.LysaSilentDeath },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.WalkSpeed, 0.08f },
+                    { VintageStoryStats.TemperatureResistance, 8.0f }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.CompassAlwaysVisible }
+            },
+
+            // RELIGION BLESSINGS (4 total)
+
+            // Tier 1 - Fledgling
+            new(BlessingIds.LysaHuntingParty, "Hunting Party", DeityType.Lysa)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description = "Your pack hunts as one. +8% ranged damage, +8% movement speed for all members.",
+                Category = BlessingCategory.Utility,
+                Description = "A group of hunters and gatherers. +10% double harvest chance, +12% animal drops, +5% movement speed for all members.",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.08f },
-                    { VintageStoryStats.WalkSpeed, 0.08f }
+                    { VintageStoryStats.DoubleHarvestChance, 0.10f },
+                    { VintageStoryStats.AnimalDrops, 0.12f },
+                    { VintageStoryStats.WalkSpeed, 0.05f }
                 }
             },
 
-            // Tier 2 - Established (500-1999 prestige) - Coordination
-            new(BlessingIds.LysaCoordinatedStrike, "Coordinated Strike", DeityType.Lysa)
+            // Tier 2 - Established
+            new(BlessingIds.LysaWildernessTribe, "Wilderness Tribe", DeityType.Lysa)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Coordinated hunting. +12% ranged damage, +10% melee damage, +10% movement speed for all. Requires Pack Hunters.",
+                Category = BlessingCategory.Utility,
+                Description = "A true tribe that thrives in the wilderness. +15% double harvest chance, +18% animal drops, +6% movement speed, food spoils 12% slower.",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaPackHunters },
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaHuntingParty },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.12f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
-                    { VintageStoryStats.WalkSpeed, 0.10f }
+                    { VintageStoryStats.DoubleHarvestChance, 0.15f },
+                    { VintageStoryStats.AnimalDrops, 0.18f },
+                    { VintageStoryStats.WalkSpeed, 0.06f },
+                    { VintageStoryStats.FoodSpoilage, 0.12f }
                 }
             },
 
-            // Tier 3 - Renowned (2000-4999 prestige) - Elite Pack
-            new(BlessingIds.LysaApexPack, "Apex Pack", DeityType.Lysa)
+            // Tier 3 - Renowned
+            new(BlessingIds.LysaChildrenOfForest, "Children of the Forest", DeityType.Lysa)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Elite hunting force. +18% ranged damage, +15% melee damage, +15% movement speed, +10% attack speed for all. Requires Coordinated Strike.",
+                Category = BlessingCategory.Utility,
+                Description = "Legendary wilderness survivors. +22% double harvest chance, +25% animal drops, +8% movement speed, +10% satiety, +5°C temperature resistance.",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaCoordinatedStrike },
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaWildernessTribe },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.18f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.WalkSpeed, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
+                    { VintageStoryStats.DoubleHarvestChance, 0.22f },
+                    { VintageStoryStats.AnimalDrops, 0.25f },
+                    { VintageStoryStats.WalkSpeed, 0.08f },
+                    { VintageStoryStats.Satiety, 0.10f },
+                    { VintageStoryStats.TemperatureResistance, 5.0f }
                 }
             },
 
-            // Tier 4 - Legendary (5000-9999 prestige) - Perfect Pack
-            new(BlessingIds.LysaHuntersParadise, "Hunter's Paradise", DeityType.Lysa)
+            // Tier 4 - Legendary
+            new(BlessingIds.LysaPantheonOfHunt, "Pantheon of the Hunt", DeityType.Lysa)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Your congregation becomes unstoppable predators. +25% ranged damage, +20% melee damage, +22% movement speed, +15% attack speed for all. Pack tracking ability. Requires Apex Pack.",
+                Category = BlessingCategory.Utility,
+                Description = "The ultimate wilderness tribe. +30% double harvest chance, +35% animal drops, +10% movement speed, +15% satiety, +8°C temperature resistance.",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaApexPack },
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaChildrenOfForest },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.25f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.20f },
-                    { VintageStoryStats.WalkSpeed, 0.22f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.15f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.ReligionPackTracking }
+                    { VintageStoryStats.DoubleHarvestChance, 0.30f },
+                    { VintageStoryStats.AnimalDrops, 0.35f },
+                    { VintageStoryStats.WalkSpeed, 0.10f },
+                    { VintageStoryStats.Satiety, 0.15f },
+                    { VintageStoryStats.TemperatureResistance, 8.0f }
+                }
             }
         };
     }

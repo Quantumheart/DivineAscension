@@ -28,6 +28,7 @@ public class FavorSystem : IFavorSystem, IDisposable
     private AnvilFavorTracker _anvilFavorTracker;
     private SmeltingFavorTracker _smeltingFavorTracker;
     private HuntingFavorTracker _huntingFavorTracker;
+    private ForagingFavorTracker _foragingFavorTracker;
     private readonly ICoreServerAPI _sapi;
 
     public FavorSystem(ICoreServerAPI sapi, IPlayerDataManager playerDataManager,
@@ -64,6 +65,9 @@ public class FavorSystem : IFavorSystem, IDisposable
 
         _huntingFavorTracker = new HuntingFavorTracker(_playerReligionDataManager, _sapi, this);
         _huntingFavorTracker.Initialize();
+
+        _foragingFavorTracker = new ForagingFavorTracker(_playerReligionDataManager, _sapi, this);
+        _foragingFavorTracker.Initialize();
 
         // _smeltingFavorTracker = new SmeltingFavorTracker(_playerReligionDataManager, _sapi, this);
         // _smeltingFavorTracker.Initialize();
@@ -304,6 +308,7 @@ public class FavorSystem : IFavorSystem, IDisposable
         _anvilFavorTracker?.Dispose();
         _smeltingFavorTracker?.Dispose();
         _huntingFavorTracker?.Dispose();
+        _foragingFavorTracker?.Dispose();
     }
 
     public void AwardFavorForAction(IServerPlayer player, string actionType, float amount)
