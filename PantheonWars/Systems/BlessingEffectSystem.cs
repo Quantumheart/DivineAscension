@@ -456,6 +456,8 @@ public class BlessingEffectSystem : IBlessingEffectSystem
 
         // Lysa (Hunt & Wild) handlers
         _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.RareForageChanceEffect());
+        _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.FoodSpoilageEffect());
+        _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.TemperatureResistanceEffect());
 
         _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered all special effect handlers");
     }

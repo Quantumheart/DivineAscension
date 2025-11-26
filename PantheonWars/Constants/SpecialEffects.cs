@@ -145,6 +145,16 @@ public static class SpecialEffects
     ///     Ammo Conservation: Chance to not consume arrows/spears
     /// </summary>
     public const string AmmoConservation = "ammo_conservation";
+
+    /// <summary>
+    ///     Food Spoilage Reduction: Food spoils slower in inventory
+    /// </summary>
+    public const string FoodSpoilageReduction = "food_spoilage_reduction";
+
+    /// <summary>
+    ///     Temperature Resistance: Passive body temperature regulation
+    /// </summary>
+    public const string TemperatureResistance = "temperature_resistance";
     
     #endregion
 

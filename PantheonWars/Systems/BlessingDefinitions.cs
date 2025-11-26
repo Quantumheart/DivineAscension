@@ -251,7 +251,8 @@ public static class BlessingDefinitions
                     { VintageStoryStats.DoubleHarvestChance, 0.12f },
                     { VintageStoryStats.FoodSpoilage, 0.15f },
                     { VintageStoryStats.Satiety, 0.10f } // Note: Logic assumes Satiety applies generally or handled specially
-                }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.FoodSpoilageReduction }
             },
             new(BlessingIds.LysaApexPredator, "Apex Predator", DeityType.Lysa)
             {
@@ -283,7 +284,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.FoodSpoilage, 0.25f },
                     { VintageStoryStats.Satiety, 0.15f } 
                 },
-                SpecialEffects = new List<string> { SpecialEffects.RareForageChance }
+                SpecialEffects = new List<string> { SpecialEffects.RareForageChance, SpecialEffects.FoodSpoilageReduction }
             },
             new(BlessingIds.LysaSilentDeath, "Silent Death", DeityType.Lysa)
             {
@@ -313,7 +314,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.WalkSpeed, 0.08f },
                     { VintageStoryStats.TemperatureResistance, 8.0f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.CompassAlwaysVisible }
+                SpecialEffects = new List<string> { SpecialEffects.CompassAlwaysVisible, SpecialEffects.TemperatureResistance }
             },
 
             // RELIGION BLESSINGS (4 total)
