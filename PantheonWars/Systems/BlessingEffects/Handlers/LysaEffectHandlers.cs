@@ -24,7 +24,12 @@ public static class LysaEffectHandlers
         {
             _sapi = sapi;
             _lastUpdateTick = _sapi.World.ElapsedMilliseconds;
-            _lastGameTotalHours = _sapi.World.Calendar.TotalHours;
+            
+            // Calendar might be null during early initialization
+            if (_sapi.World.Calendar != null)
+            {
+                _lastGameTotalHours = _sapi.World.Calendar.TotalHours;
+            }
         }
 
         public void ActivateForPlayer(IServerPlayer player)
@@ -39,7 +44,15 @@ public static class LysaEffectHandlers
 
         public void OnTick(float deltaTime)
         {
-            if (_sapi == null) return;
+            if (_sapi?.World?.Calendar == null) return;
+
+            // Initialize baseline if missing (e.g. Calendar was null during init)
+            if (_lastGameTotalHours <= 0)
+            {
+                _lastGameTotalHours = _sapi.World.Calendar.TotalHours;
+                _lastUpdateTick = _sapi.World.ElapsedMilliseconds;
+                return;
+            }
 
             var currentTick = _sapi.World.ElapsedMilliseconds;
             if (currentTick - _lastUpdateTick < UpdateIntervalMs) return;
