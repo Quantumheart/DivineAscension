@@ -155,13 +155,6 @@ public class PantheonWarsSystem : ModSystem
         // Connect blessing systems to religion prestige manager
         _religionPrestigeManager.SetBlessingSystems(_blessingRegistry, _blessingEffectSystem);
 
-        // Register commands (pass interfaces for loose coupling)
-        // _deityCommands = new DeityCommands(api, _deityRegistry, _playerReligionDataManager);
-        // _deityCommands.RegisterCommands();
-
-        // _abilityCommands = new AbilityCommands(api, _abilitySystem, _playerDataManager, _playerReligionDataManager);
-        // _abilityCommands.RegisterCommands();
-
         _favorCommands = new FavorCommands(api, _deityRegistry, _playerReligionDataManager);
         _favorCommands.RegisterCommands();
         
