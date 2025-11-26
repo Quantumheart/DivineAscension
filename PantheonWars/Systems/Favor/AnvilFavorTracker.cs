@@ -34,9 +34,9 @@ public class AnvilFavorTracker(
     private const string NbtRecipeTracked = "khorasRecipeTracked";
 
     // Favor values per tier
-    private const int FavorLowTier = 5;    // Copper, flint
-    private const int FavorMidTier = 10;   // Bronze, iron
-    private const int FavorHighTier = 15;  // Steel, gold
+    private const int FavorLowTier = 5;    // Copper
+    private const int FavorMidTier = 10;   // Bronze, gold 
+    private const int FavorHighTier = 15;  // Steel, iron
     private const int FavorEliteTier = 20; // Special alloys
 
     // Automation penalty
