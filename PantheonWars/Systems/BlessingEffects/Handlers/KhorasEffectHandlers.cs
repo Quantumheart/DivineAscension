@@ -114,8 +114,11 @@ public static class KhorasEffectHandlers
 
                 var itemstack = slot.Itemstack;
 
-                // Check if item is a tool or weapon with durability
+                // Check if item has durability
                 if (itemstack.Collectible.Durability <= 0) continue;
+
+                // Only repair tools, not weapons or armor
+                if (!IsTool(itemstack)) continue;
 
                 // Check if item needs repair
                 var currentDurability = itemstack.Attributes.GetInt("durability", itemstack.Collectible.Durability);
@@ -131,6 +134,31 @@ public static class KhorasEffectHandlers
             }
 
             return repairedCount;
+        }
+
+        /// <summary>
+        ///     Check if an itemstack is a tool (not weapon or armor)
+        /// </summary>
+        private bool IsTool(ItemStack itemstack)
+        {
+            var collectible = itemstack.Collectible;
+            var itemClass = collectible.GetType().Name;
+
+            // Exclude armor/wearables first
+            if (itemClass.Contains("Wearable") || itemClass.Contains("Armor")) return false;
+
+            // Exclude weapons (but NOT tools that can be used as weapons like axes)
+            if (itemClass.Contains("Sword") || itemClass.Contains("Spear") ||
+                itemClass.Contains("Bow") || itemClass.Contains("Arrow")) return false;
+
+            // Check if it's explicitly a tool (has Tool property or ToolTier > 0)
+            if (collectible.Tool != null || collectible.ToolTier > 0) return true;
+
+            // Knives and blades can be both tools and weapons, so include them if they have Tool property
+            if ((itemClass.Contains("Knife") || itemClass.Contains("Blade")) && collectible.Tool == null)
+                return false;
+
+            return false;
         }
     }
     
