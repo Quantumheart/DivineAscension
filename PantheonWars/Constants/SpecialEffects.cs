@@ -124,6 +124,30 @@ public static class SpecialEffects
 
     #endregion
 
+    #region Lysa (Hunt & Wild) Effects
+
+    /// <summary>
+    ///     Compass Always Visible: The compass overlay is always visible
+    /// </summary>
+    public const string CompassAlwaysVisible = "compass_always_visible";
+
+    /// <summary>
+    ///     Rare Forage Chance: Increased chance to find rare items when foraging
+    /// </summary>
+    public const string RareForageChance = "rare_forage_chance";
+
+    /// <summary>
+    ///     Stealth Movement Quiet: Sneaking is quieter
+    /// </summary>
+    public const string StealthMovementQuiet = "stealth_movement_quiet";
+
+    /// <summary>
+    ///     Ammo Conservation: Chance to not consume arrows/spears
+    /// </summary>
+    public const string AmmoConservation = "ammo_conservation";
+    
+    #endregion
+
     #region Religion-Specific Effects
 
     /// <summary>

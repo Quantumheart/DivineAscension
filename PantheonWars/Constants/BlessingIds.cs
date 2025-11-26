@@ -27,21 +27,21 @@ public static class BlessingIds
 
     #endregion
 
-    #region Lysa (Hunt) - 10 Blessings
+    #region Lysa (Hunt & Wild) - 10 Blessings - Utility Focus
 
     // Player Blessings (6)
-    public const string LysaKeenEye = "lysa_keen_eye";
-    public const string LysaDeadlyPrecision = "lysa_deadly_precision";
-    public const string LysaSilentStalker = "lysa_silent_stalker";
-    public const string LysaMasterHuntress = "lysa_master_huntress";
+    public const string LysaHuntersInstinct = "lysa_hunters_instinct";
+    public const string LysaMasterForager = "lysa_master_forager";
     public const string LysaApexPredator = "lysa_apex_predator";
-    public const string LysaAvatarOfHunt = "lysa_avatar_of_hunt";
+    public const string LysaAbundanceOfWild = "lysa_abundance_of_wild";
+    public const string LysaSilentDeath = "lysa_silent_death";
+    public const string LysaAvatarOfWild = "lysa_avatar_of_wild";
 
     // Religion Blessings (4)
-    public const string LysaPackHunters = "lysa_pack_hunters";
-    public const string LysaCoordinatedStrike = "lysa_coordinated_strike";
-    public const string LysaApexPack = "lysa_apex_pack";
-    public const string LysaHuntersParadise = "lysa_hunters_paradise";
+    public const string LysaHuntingParty = "lysa_hunting_party";
+    public const string LysaWildernessTribe = "lysa_wilderness_tribe";
+    public const string LysaChildrenOfForest = "lysa_children_of_forest";
+    public const string LysaPantheonOfHunt = "lysa_pantheon_of_hunt";
 
     #endregion
 

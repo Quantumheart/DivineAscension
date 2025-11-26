@@ -36,4 +36,14 @@ public static class VintageStoryStats
     public const string SmithingCostReduction = "smithingCostReduction";
     public const string MetalArmorBonus = "metalArmorBonus";
     public const string HungerRate = "hungerRate";
+
+    // Lysa (Hunt & Wild) Stats
+    public const string DoubleHarvestChance = "doubleHarvestChance";
+    public const string AnimalDamage = "animalDamage";
+    public const string AnimalDrops = "animalDrops";
+    public const string FoodSpoilage = "foodSpoilage";
+    public const string Satiety = "satiety";
+    public const string TemperatureResistance = "temperatureResistance";
+    public const string HarvestSpeed = "harvestSpeed";
+    public const string ForagingYield = "foragingYield";
 }
