@@ -7,7 +7,7 @@ using Vintagestory.API.Server;
 
 namespace PantheonWars.Systems.Favor;
 
-public class KhorasFavorTracker(IPlayerReligionDataManager playerReligionDataManager, ICoreServerAPI sapi, FavorSystem favorSystem) : IFavorTracker, IDisposable
+public class MiningFavorTracker(IPlayerReligionDataManager playerReligionDataManager, ICoreServerAPI sapi, FavorSystem favorSystem) : IFavorTracker, IDisposable
 {
     public DeityType DeityType { get; } = DeityType.Khoras;
     private readonly IPlayerReligionDataManager _playerReligionDataManager = playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
@@ -23,7 +23,7 @@ public class KhorasFavorTracker(IPlayerReligionDataManager playerReligionDataMan
     {
         _sapi.Event.BreakBlock += OnBlockBroken;
     }
-
+    
     private void OnBlockBroken(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier, ref EnumHandling handling)
     {
         var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
@@ -49,7 +49,7 @@ public class KhorasFavorTracker(IPlayerReligionDataManager playerReligionDataMan
 
         return false;
     }
-
+    
     public void Dispose()
     {
         _sapi.Event.BreakBlock -= OnBlockBroken;

@@ -13,7 +13,7 @@ namespace PantheonWars.Systems;
 /// <summary>
 ///     Manages divine favor rewards and penalties
 /// </summary>
-public class FavorSystem : IFavorSystem
+public class FavorSystem : IFavorSystem, IDisposable
 {
     private const int BASE_KILL_FAVOR = 10;
     private const int DEATH_PENALTY_FAVOR = 5;
@@ -24,7 +24,9 @@ public class FavorSystem : IFavorSystem
     private readonly IPlayerDataManager _playerDataManager;
     private readonly IPlayerReligionDataManager _playerReligionDataManager;
     private readonly IReligionManager _religionManager;
-    private KhorasFavorTracker _khorasFavorTracker;
+    private MiningFavorTracker _miningFavorTracker;
+    private AnvilFavorTracker _anvilFavorTracker;
+    private SmeltingFavorTracker _smeltingFavorTracker;
     private readonly ICoreServerAPI _sapi;
 
     public FavorSystem(ICoreServerAPI sapi, IPlayerDataManager playerDataManager, IPlayerReligionDataManager playerReligionDataManager, IDeityRegistry deityRegistry, IReligionManager religionManager)
@@ -51,9 +53,14 @@ public class FavorSystem : IFavorSystem
 
         _sapi.Logger.Notification("[PantheonWars] Favor System initialized with passive favor generation");
 
-        _khorasFavorTracker = new KhorasFavorTracker(_playerReligionDataManager, _sapi, this);
-        _khorasFavorTracker.Initialize();
-        
+        _miningFavorTracker = new MiningFavorTracker(_playerReligionDataManager, _sapi, this);
+        _miningFavorTracker.Initialize();
+
+        _anvilFavorTracker = new AnvilFavorTracker(_playerReligionDataManager, _sapi, this);
+        _anvilFavorTracker.Initialize();
+
+        _smeltingFavorTracker = new SmeltingFavorTracker(_playerReligionDataManager, _sapi, this);
+        _smeltingFavorTracker.Initialize();
     }
 
     /// <summary>
@@ -277,4 +284,11 @@ public class FavorSystem : IFavorSystem
     }
 
     #endregion
+
+    public void Dispose()
+    {
+        _miningFavorTracker?.Dispose();
+        _anvilFavorTracker?.Dispose();
+        _smeltingFavorTracker?.Dispose();
+    }
 }
