@@ -377,23 +377,18 @@ Follow same structure as Khoras but with hunting/gathering themes:
 - [x] Create `HuntingFavorTracker.cs` (in progress)
 - [x] Implement animal kill detection
 - [x] Create animal favor value table
-- [ ] Implement foraging detection (berries, mushrooms, etc.)
-- [ ] Create chunk exploration tracker
-- [ ] Hook into movement/chunk load events
-- [ ] Register tracker in `FavorSystem.cs`
+- [x] Implement foraging detection (berries, mushrooms, etc.)
+- [x] Register tracker in `FavorSystem.cs`
 
 **Note**: Phase 2 (Lysa) has been started with initial hunting favor tracking.
 
 ### Part C: Special Effects
 - Animal tracking highlights
-- Compass always visible
 - Food spoilage reduction
 - Temperature resistance (both hot and cold)
 
 #### Implementation Tasks
-- [ ] Create `LysaEffectHandlers.cs`
-- [ ] Implement animal tracking visualization
-- [ ] Implement compass visibility override
+- [x] Create `LysaEffectHandlers.cs`
 - [ ] Implement food spoilage modifier
 - [ ] Implement temperature resistance system
 

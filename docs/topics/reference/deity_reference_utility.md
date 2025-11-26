@@ -254,7 +254,6 @@ Resource gathering & mobility. Focus on food acquisition, foraging yield, huntin
 **"Hunter's Instinct"**
 - Double harvest chance on bushes/plants **+10%**
 - **+5%** movement speed
-- See animal tracks highlighted
 
 *Foundation for wilderness survival. Better foraging yields, faster travel, and easier animal tracking.*
 
@@ -310,7 +309,6 @@ Resource gathering & mobility. Focus on food acquisition, foraging yield, huntin
 - All previous bonuses
 - **+8%** movement speed (total: 13%)
 - **+8°C** temperature resistance (applies to both hot and cold independently)
-- Never get lost (compass always visible)
 - *Requires: Both Tier 3 Path A (Abundance of the Wild) AND Tier 3 Path B (Silent Death)*
 
 *True master of the wilderness. Never lost, never hungry, perfectly adapted to any environment.*
@@ -327,7 +325,6 @@ Resource gathering & mobility. Focus on food acquisition, foraging yield, huntin
 - +15% stealth damage vs animals
 - 13% movement speed
 - 8°C hot resistance + 8°C cold resistance
-- Compass always visible
 
 ---
 
