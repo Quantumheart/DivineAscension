@@ -29,7 +29,9 @@ public class FavorSystem : IFavorSystem, IDisposable
     private SmeltingFavorTracker _smeltingFavorTracker;
     private readonly ICoreServerAPI _sapi;
 
-    public FavorSystem(ICoreServerAPI sapi, IPlayerDataManager playerDataManager, IPlayerReligionDataManager playerReligionDataManager, IDeityRegistry deityRegistry, IReligionManager religionManager)
+    public FavorSystem(ICoreServerAPI sapi, IPlayerDataManager playerDataManager,
+        IPlayerReligionDataManager playerReligionDataManager, IDeityRegistry deityRegistry,
+        IReligionManager religionManager)
     {
         _sapi = sapi;
         _playerDataManager = playerDataManager;
@@ -59,8 +61,8 @@ public class FavorSystem : IFavorSystem, IDisposable
         _anvilFavorTracker = new AnvilFavorTracker(_playerReligionDataManager, _sapi, this);
         _anvilFavorTracker.Initialize();
 
-        _smeltingFavorTracker = new SmeltingFavorTracker(_playerReligionDataManager, _sapi, this);
-        _smeltingFavorTracker.Initialize();
+        // _smeltingFavorTracker = new SmeltingFavorTracker(_playerReligionDataManager, _sapi, this);
+        // _smeltingFavorTracker.Initialize();
     }
 
     /// <summary>
@@ -174,6 +176,12 @@ public class FavorSystem : IFavorSystem, IDisposable
         if (religionData.ActiveDeity == DeityType.None) return;
 
         _playerReligionDataManager.AddFavor(player.PlayerUID, amount, actionType);
+        AwardFavorMessage(player, actionType, amount, religionData);
+    }
+
+    private static void AwardFavorMessage(IServerPlayer player, string actionType, int amount,
+        PlayerReligionData religionData)
+    {
         string deityName = nameof(DeityType.None);
         switch (religionData.ActiveDeity)
         {
@@ -194,6 +202,7 @@ public class FavorSystem : IFavorSystem, IDisposable
             default:
                 throw new ArgumentOutOfRangeException();
         }
+
         player.SendMessage(
             GlobalConstants.GeneralChatGroup,
             $"[Divine Favor] {deityName} smiles upon you with {amount} favor for {actionType}",
@@ -290,5 +299,46 @@ public class FavorSystem : IFavorSystem, IDisposable
         _miningFavorTracker?.Dispose();
         _anvilFavorTracker?.Dispose();
         _smeltingFavorTracker?.Dispose();
+    }
+
+    public void AwardFavorForAction(IServerPlayer player, string actionType, float amount)
+    {
+        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
+
+        if (religionData.ActiveDeity == DeityType.None) return;
+
+        _playerReligionDataManager.AddFractionalFavor(player.PlayerUID, amount, actionType);
+        AwardFavorMessage(player, actionType, amount, religionData);
+    }
+
+    private void AwardFavorMessage(IServerPlayer player, string actionType, float amount,
+        PlayerReligionData religionData)
+    {
+        string deityName = nameof(DeityType.None);
+        switch (religionData.ActiveDeity)
+        {
+            case DeityType.None:
+                break;
+            case DeityType.Khoras:
+                deityName = nameof(DeityType.Khoras);
+                break;
+            case DeityType.Lysa:
+                deityName = nameof(DeityType.Lysa);
+                break;
+            case DeityType.Aethra:
+                deityName = nameof(DeityType.Aethra);
+                break;
+            case DeityType.Gaia:
+                deityName = nameof(DeityType.Gaia);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        player.SendMessage(
+            GlobalConstants.GeneralChatGroup,
+            $"[Divine Favor] {deityName} smiles upon you with {amount} favor for {actionType}",
+            EnumChatType.Notification
+        );
     }
 }

@@ -253,7 +253,7 @@ public class SmeltingFavorTracker(
         if (favor >= 0.01f) // Only award if meaningful amount
         {
             // Use fractional favor accumulation
-            _playerReligionDataManager.AddFractionalFavor(player.PlayerUID, favor, "smelting");
+            _favorSystem.AwardFavorForAction(player, "smelting", favor);
 
             _sapi.Logger.Debug($"[SmeltingFavorTracker] Awarded {favor:F2} favor to {player.PlayerName} for pouring {unitsPoured} units into {(isToolMold ? "tool" : "ingot")} mold");
         }
