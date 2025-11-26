@@ -27,7 +27,7 @@ public class MiningFavorTracker(IPlayerReligionDataManager playerReligionDataMan
     private void OnBlockBroken(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier, ref EnumHandling handling)
     {
         var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (religionData?.ActiveDeity != DeityType.Khoras) return;
+        if (religionData?.ActiveDeity != DeityType) return;
 
         var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
         if (IsOreBlock(block))
