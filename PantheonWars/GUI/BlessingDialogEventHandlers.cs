@@ -41,17 +41,11 @@ public partial class BlessingDialog
 
         if (!packet.HasReligion)
         {
-            _capi.Logger.Debug("[PantheonWars] Player has no religion - showing 'No Religion' state");
+            _capi.Logger.Debug("[PantheonWars] Player has no religion - data ready for 'No Religion' state");
             _manager!.Reset();
             _state.IsReady = true; // Set ready so dialog can open to show "No Religion" state
 
-            // If dialog should be open, open it now
-            if (!_state.IsOpen && _imguiModSystem != null)
-            {
-                _state.IsOpen = true;
-                _imguiModSystem.Show();
-                _capi.Logger.Debug("[PantheonWars] Blessing Dialog opened with 'No Religion' state");
-            }
+            // Dialog will only open when player presses the keybind (Shift+G)
 
             return;
         }
@@ -116,13 +110,7 @@ public partial class BlessingDialog
         // Request civilization info for player's religion (empty string = my civ)
         _pantheonWarsSystem?.RequestCivilizationInfo("");
 
-        // If dialog should be open, open it now that data is ready
-        if (!_state.IsOpen && _imguiModSystem != null)
-        {
-            _state.IsOpen = true;
-            _imguiModSystem.Show();
-            _capi.Logger.Debug("[PantheonWars] Blessing Dialog opened after data load");
-        }
+        // Dialog will only open when player presses the keybind (Shift+G)
     }
 
     /// <summary>
