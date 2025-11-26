@@ -100,6 +100,8 @@ public class SmeltingFavorTracker(
             }
         }
 
+        _sapi.Logger.Debug($"[SmeltingFavorTracker] DiscoverActiveMolds: Found {khorasFollowers.Count} Khoras followers");
+
         if (khorasFollowers.Count == 0) return;
 
         // Only scan a subset of players per tick (round-robin)
@@ -122,8 +124,11 @@ public class SmeltingFavorTracker(
         var playerPos = serverPlayer.Entity?.Pos?.AsBlockPos;
         if (playerPos == null) return;
 
+        _sapi.Logger.Debug($"[SmeltingFavorTracker] Scanning for molds near {serverPlayer.PlayerName} at {playerPos}");
+
         // Track molds found this scan
         int moldsFound = 0;
+        int blockEntitiesChecked = 0;
         const int maxMoldsPerScan = 10; // Molds are often grouped together
 
         // Scan in smaller radius with early exits
@@ -139,28 +144,40 @@ public class SmeltingFavorTracker(
                     if (_trackedMolds.ContainsKey(checkPos))
                         continue;
 
-                    // Skip deep underground positions
-                    if (checkPos.Y < 10)
-                        continue;
-
                     var blockEntity = _sapi.World.BlockAccessor.GetBlockEntity(checkPos);
 
-                    // Check for tool molds or ingot molds with metal
+                    if (blockEntity != null)
+                    {
+                        blockEntitiesChecked++;
+                    }
+
+                    // Check for tool molds or ingot molds (track even if empty!)
                     bool isToolMold = false;
                     int fillLevel = 0;
+                    bool isMold = false;
 
-                    if (blockEntity is BlockEntityToolMold toolMold && toolMold.FillLevel > 0)
+                    if (blockEntity is BlockEntityToolMold toolMold)
                     {
                         isToolMold = true;
                         fillLevel = toolMold.FillLevel;
+                        isMold = true;
                     }
                     else if (blockEntity is BlockEntityIngotMold ingotMold)
                     {
                         fillLevel = ingotMold.FillLevelLeft + ingotMold.FillLevelRight;
+                        isMold = true;
                     }
 
-                    if (fillLevel > 0)
+                    // Track molds even if empty, so we can detect when they get filled
+                    if (isMold)
                     {
+                        // If mold already has metal, award favor for it (assume it was just poured)
+                        if (fillLevel > 0)
+                        {
+                            AwardFavorForPouring(serverPlayer.PlayerUID, fillLevel, isToolMold);
+                            _sapi.Logger.Debug($"[SmeltingFavorTracker] Awarded retroactive favor for pre-existing metal in {(isToolMold ? "tool" : "ingot")} mold at {checkPos}");
+                        }
+
                         // Start tracking this mold
                         _trackedMolds[checkPos] = new MoldTrackingState
                         {
@@ -170,7 +187,6 @@ public class SmeltingFavorTracker(
                             IsToolMold = isToolMold
                         };
 
-                        _sapi.Logger.Debug($"[SmeltingFavorTracker] Discovered {(isToolMold ? "tool" : "ingot")} mold at {checkPos} for player {serverPlayer.PlayerName}");
                         moldsFound++;
                     }
                 }

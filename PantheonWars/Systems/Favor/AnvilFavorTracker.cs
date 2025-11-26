@@ -139,10 +139,6 @@ public class AnvilFavorTracker(
                     if (_trackedAnvils.ContainsKey(checkPos))
                         continue;
 
-                    // Skip deep underground positions (most anvils are above ground)
-                    if (checkPos.Y < 10)
-                        continue;
-
                     var blockEntity = _sapi.World.BlockAccessor.GetBlockEntity(checkPos);
 
                     if (blockEntity is BlockEntityAnvil { WorkItemStack: not null } anvil)
