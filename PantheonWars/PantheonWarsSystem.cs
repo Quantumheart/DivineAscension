@@ -9,6 +9,8 @@ using PantheonWars.Network;
 using PantheonWars.Systems;
 using PantheonWars.Systems.BuffSystem;
 using PantheonWars.Systems.BuffSystem.Interfaces;
+using HarmonyLib;
+using System.Reflection;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -56,10 +58,20 @@ public class PantheonWarsSystem : ModSystem
 
     public string ModName => "pantheonwars";
 
+    private Harmony? _harmony;
+
     public override void Start(ICoreAPI api)
     {
         base.Start(api);
         api.Logger.Notification("[PantheonWars] Mod loaded!");
+
+        // Register Harmony Patches
+        if (_harmony == null)
+        {
+            _harmony = new Harmony("com.pantheonwars.patches");
+            _harmony.PatchAll(Assembly.GetExecutingAssembly());
+            api.Logger.Notification("[PantheonWars] Harmony patches registered.");
+        }
 
         // Register network channel and message types
         api.Network.RegisterChannel(NETWORK_CHANNEL)
@@ -193,6 +205,9 @@ public class PantheonWarsSystem : ModSystem
     public override void Dispose()
     {
         base.Dispose();
+
+        // Unpatch Harmony
+        _harmony?.UnpatchAll("com.pantheonwars.patches");
 
         // Cleanup
         _religionDialog?.Dispose();
