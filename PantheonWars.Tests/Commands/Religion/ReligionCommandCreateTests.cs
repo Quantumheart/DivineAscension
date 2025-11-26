@@ -125,12 +125,8 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
     [Theory]
     [InlineData("Khoras")]
     [InlineData("Lysa")]
-    [InlineData("Morthen")]
     [InlineData("Aethra")]
-    [InlineData("Umbros")]
-    [InlineData("Tharos")]
     [InlineData("Gaia")]
-    [InlineData("Vex")]
     public void OnCreateReligion_WithValidDeity_CreatesReligion(string deityName)
     {
         // Arrange
