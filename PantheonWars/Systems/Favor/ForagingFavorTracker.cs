@@ -16,15 +16,10 @@ public class ForagingFavorTracker(IPlayerReligionDataManager playerReligionDataM
     
     private readonly HashSet<string> _lysaFollowers = new();
 
-    // Track berry inventory counts to detect harvesting
-    private readonly Dictionary<string, Dictionary<string, int>> _playerBerryInventory = new();
-
     public void Initialize()
     {
         _sapi.Event.BreakBlock += OnBlockBroken;
-
-        // Register periodic check for berry harvesting (every 2 seconds)
-        _sapi.Event.RegisterGameTickListener(OnBerryHarvestTick, 2000);
+        _sapi.Event.DidUseBlock += OnBlockUsed;
 
         // Cache followers
         RefreshFollowerCache();
@@ -70,96 +65,50 @@ public class ForagingFavorTracker(IPlayerReligionDataManager playerReligionDataM
     }
 
     /// <summary>
-    /// Periodically checks for berry harvesting by tracking berry inventory increases
+    /// Handles block usage (right-click) to detect berry harvesting
     /// </summary>
-    private void OnBerryHarvestTick(float dt)
+    private void OnBlockUsed(IServerPlayer player, BlockSelection blockSel)
     {
-        foreach (var player in _sapi.World.AllOnlinePlayers)
-        {
-            if (player is not IServerPlayer serverPlayer) continue;
-            if (!_lysaFollowers.Contains(serverPlayer.PlayerUID)) continue;
+        if (!_lysaFollowers.Contains(player.PlayerUID)) return;
 
-            // Check player's inventory for berries
-            CheckBerryInventory(serverPlayer);
+        var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
+        if (IsBerryBush(block) && HasRipeBerries(block))
+        {
+            // Award 0.5 favor for harvesting berries
+            _favorSystem.AwardFavorForAction(player, "harvesting " + GetBerryName(block), 0.5f);
         }
     }
 
-    private void CheckBerryInventory(IServerPlayer player)
+    private bool IsBerryBush(Block block)
     {
-        var playerUID = player.PlayerUID;
+        if (block?.Code == null) return false;
+        string path = block.Code.Path;
 
-        // Initialize tracking for this player if needed
-        if (!_playerBerryInventory.ContainsKey(playerUID))
-        {
-            _playerBerryInventory[playerUID] = new Dictionary<string, int>();
-        }
-
-        var currentBerryCounts = new Dictionary<string, int>();
-
-        // Check both backpack AND hotbar inventories
-        var backpack = player.InventoryManager?.GetOwnInventory("backpack");
-        var hotbar = player.InventoryManager?.GetOwnInventory("hotbar");
-
-        // Count berries in backpack
-        if (backpack != null)
-        {
-            CountBerriesInInventory(backpack, currentBerryCounts);
-        }
-
-        // Count berries in hotbar
-        if (hotbar != null)
-        {
-            CountBerriesInInventory(hotbar, currentBerryCounts);
-        }
-
-        // Compare with previous counts to detect new berries
-        var previousCounts = _playerBerryInventory[playerUID];
-
-        foreach (var (berryType, currentCount) in currentBerryCounts)
-        {
-            int previousCount = previousCounts.GetValueOrDefault(berryType, 0);
-
-            // If berry count increased, player harvested some berries
-            if (currentCount > previousCount)
-            {
-                // Award favor (0.5 per harvest action, not per berry)
-                _favorSystem.AwardFavorForAction(player, "harvesting " + GetBerryDisplayName(berryType), 0.5f);
-            }
-        }
-
-        // Update tracked counts
-        _playerBerryInventory[playerUID] = currentBerryCounts;
+        // Berry bushes: blackberry, blueberry, cranberry, redcurrant, whitecurrant
+        return path.Contains("berrybush");
     }
 
-    private void CountBerriesInInventory(IInventory inventory, Dictionary<string, int> berryCounts)
+    private bool HasRipeBerries(Block block)
     {
-        foreach (var slot in inventory)
-        {
-            if (slot?.Itemstack == null) continue;
+        if (block?.Code == null) return false;
+        string path = block.Code.Path;
 
-            string itemPath = slot.Itemstack.Collectible?.Code?.Path ?? "";
-            if (IsBerryItem(itemPath))
-            {
-                if (!berryCounts.ContainsKey(itemPath))
-                    berryCounts[itemPath] = 0;
-
-                berryCounts[itemPath] += slot.Itemstack.StackSize;
-            }
-        }
+        // Berry bushes have growth stages: empty, flowering, ripe
+        // Only ripe bushes can be harvested
+        return path.Contains("ripe");
     }
 
-    private bool IsBerryItem(string itemPath)
+    private string GetBerryName(Block block)
     {
-        return itemPath.Contains("berry") || itemPath.Contains("currant");
-    }
+        if (block?.Code == null) return "berries";
+        string path = block.Code.Path;
 
-    private string GetBerryDisplayName(string itemPath)
-    {
-        if (itemPath.Contains("blackberry")) return "blackberries";
-        if (itemPath.Contains("blueberry")) return "blueberries";
-        if (itemPath.Contains("cranberry")) return "cranberries";
-        if (itemPath.Contains("redcurrant")) return "redcurrants";
-        if (itemPath.Contains("whitecurrant")) return "whitecurrants";
+        if (path.Contains("blackberry")) return "blackberries";
+        if (path.Contains("blueberry")) return "blueberries";
+        if (path.Contains("cranberry")) return "cranberries";
+        if (path.Contains("redcurrant")) return "redcurrants";
+        if (path.Contains("whitecurrant")) return "whitecurrants";
+
         return "berries";
     }
     
@@ -190,9 +139,9 @@ public class ForagingFavorTracker(IPlayerReligionDataManager playerReligionDataM
     public void Dispose()
     {
         _sapi.Event.BreakBlock -= OnBlockBroken;
+        _sapi.Event.DidUseBlock -= OnBlockUsed;
         _playerReligionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
         _playerReligionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
         _lysaFollowers.Clear();
-        _playerBerryInventory.Clear();
     }
 }

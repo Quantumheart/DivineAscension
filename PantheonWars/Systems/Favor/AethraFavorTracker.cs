@@ -127,7 +127,7 @@ public class AethraFavorTracker(
         // Vintage Story crops are typically in "ripe" state when harvestable
         // Common crops: wheat, flax, onion, carrot, parsnip, turnip, cabbage, pumpkin, etc.
         return (path.Contains("crop") || path.Contains("vegetable")) &&
-               (path.Contains("ripe") || path.Contains("harvested"));
+               !path.Contains("harvested");
     }
 
     private string GetCropName(Block block)
