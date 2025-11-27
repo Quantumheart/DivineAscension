@@ -385,7 +385,6 @@ Resource gathering & mobility. Focus on food acquisition, foraging yield, huntin
 - 40% slower food spoilage
 - 50% rare herb finding
 - 30% damage vs animals
-- Compass always visible
 
 ---
 

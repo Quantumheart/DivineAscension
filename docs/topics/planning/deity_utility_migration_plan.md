@@ -18,7 +18,9 @@ This plan details the migration from an 8-deity combat-focused system to a 4-dei
 3. **Phase 2**: Lysa - Hunt/Wild (2 weeks) - 🔄 STARTED
    - ✅ Hunting favor tracking implemented
    - ⏸️ Foraging and exploration tracking pending
-4. **Phase 3**: Aethra - Agriculture/Light (2 weeks) - ⏸️ NOT STARTED
+4. **Phase 3**: Aethra - Agriculture/Light (2 weeks) - 🔄 IN PROGRESS (50% complete)
+   - ✅ Part A: Blessing redesigns completed
+   - ✅ Part B: Activity-based favor tracking implemented
 5. **Phase 4**: Gaia - Earth/Stone (1.5 weeks) - ⏸️ NOT STARTED
 
 **Total Timeline**: 8-9 weeks
@@ -383,12 +385,11 @@ Follow same structure as Khoras but with hunting/gathering themes:
 **Note**: Phase 2 (Lysa) has been started with initial hunting favor tracking.
 
 ### Part C: Special Effects
-- Animal tracking highlights
 - Food spoilage reduction
 - Temperature resistance (both hot and cold)
 
 #### Implementation Tasks
-- [x] Create `LysaEffectHandlers.cs`
+- [x] Create `LysaEffectHandlers.cs`4
 - [ ] Implement food spoilage modifier
 - [ ] Implement temperature resistance system
 
@@ -441,9 +442,9 @@ Follow same structure as Khoras but with hunting/gathering themes:
 - Tier 4: Pantheon of Light (includes Sacred Granary structure)
 
 #### Implementation Tasks
-- [ ] Replace `GetAethraBlessings()`
-- [ ] Add stat modifiers: `CropYield`, `SeedDropChance`, `CookingYield`, `HeatResistance`, `RareCropChance`
-- [ ] Update blessing IDs
+- [x] Replace `GetAethraBlessings()`
+- [x] Add stat modifiers: `CropYield`, `SeedDropChance`, `CookingYield`, `HeatResistance`, `RareCropChance`
+- [x] Update blessing IDs
 
 ### Part B: Activity-Based Favor Tracking
 
@@ -464,13 +465,13 @@ Follow same structure as Khoras but with hunting/gathering themes:
 - Planting detection (farmland interaction events)
 
 #### Implementation Tasks
-- [ ] Create `AethraFavorTracker.cs`
-- [ ] Implement crop harvest detection
-- [ ] Create crop favor table
-- [ ] Implement cooking detection
-- [ ] Calculate meal complexity favor
-- [ ] Implement planting detection
-- [ ] Register tracker
+- [x] Create `AethraFavorTracker.cs`
+- [x] Implement crop harvest detection
+- [x] Create crop favor table (integrated into tracker logic)
+- [x] Implement cooking detection (firepit and crock tracking)
+- [x] Calculate meal complexity favor (simple/complex/gourmet tiers)
+- [x] Implement planting detection
+- [x] Register tracker in `FavorSystem.cs`
 
 ### Part C: Special Effects
 - Blessed meals (temporary buffs)
@@ -483,7 +484,6 @@ Follow same structure as Khoras but with hunting/gathering themes:
 - [ ] Implement blessed meal system
 - [ ] Implement malnutrition prevention
 - [ ] Implement rare crop discovery
-- [ ] Design Sacred Granary structure
 
 ### Part D: Testing
 - [ ] Unit tests for crop/cooking favor
@@ -518,9 +518,9 @@ Follow same structure as Khoras but with hunting/gathering themes:
 - Tier 4: Pantheon of Stone
 
 #### Implementation Tasks
-- [ ] Replace `GetGaiaBlessings()`
-- [ ] Add stat modifiers: `StoneYield`, `ClayYield`, `PickDurability`, `FallDamageReduction`, `RareStoneChance`
-- [ ] Update blessing IDs
+- [x] Replace `GetGaiaBlessings()`
+- [x] Add stat modifiers: `StoneYield`, `ClayYield`, `PickDurability`, `FallDamageReduction`, `RareStoneChance`
+- [x] Update blessing IDs
 
 ### Part B: Activity-Based Favor Tracking
 
@@ -713,3 +713,8 @@ After all phases complete:
 - **Tool Repair Tracking**: Deferred from Phase 1 due to API complexity. Will revisit in a future phase when better event hooks are available or custom implementation is designed.
 - **Multiple Trackers per Deity**: Instead of single monolithic favor trackers per deity (e.g., `KhorasFavorTracker`), the implementation uses multiple specialized trackers (e.g., `MiningFavorTracker`, `SmeltingFavorTracker`, `AnvilFavorTracker`) for better modularity and maintainability.
 - **Parallel Phase Development**: Phase 2 (Lysa) hunting tracking was started before Phase 1 completion. This deviates from the planned sequential approach but allows for experimentation.
+- **Phase 3B - AethraFavorTracker**: Implemented as a unified tracker handling all three activity types (crop harvesting, planting, and cooking) within a single class. Cooking detection uses a polling approach similar to AnvilFavorTracker, scanning nearby firepits and crocks for Aethra followers. The implementation includes:
+  - **Crop Harvesting**: Detects when players break ripe crop blocks (wheat, flax, vegetables, etc.) and awards 1 favor per harvest
+  - **Planting**: Detects when players place crop blocks on farmland and awards 0.5 favor per planting
+  - **Cooking**: Tracks firepits and crocks within range of Aethra followers, detecting when cooking completes based on inventory changes. Awards 3-8 favor based on meal complexity (simple/complex/gourmet)
+  - **Firepit API**: Uses inventory-based detection rather than InputSlot/OutputSlot properties which don't exist in the Vintage Story BlockEntityFirepit API
