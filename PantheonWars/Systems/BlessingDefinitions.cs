@@ -388,185 +388,189 @@ public static class BlessingDefinitions
 
     #endregion
 
-    #region Aethra (Light) - 10 Blessings (Refactored)
+    #region Aethra (Agriculture & Light) - 10 Blessings (Utility-Focused)
 
     private static List<Blessing> GetAethraBlessings()
     {
         return new List<Blessing>
         {
-            // PLAYER BLESSINGS (6 total) - Divine protection and healing
+            // PLAYER BLESSINGS (6 total) - Agriculture & Cooking utility focus
 
             // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.AethraDivineGrace, "Divine Grace", DeityType.Aethra)
+            new(BlessingIds.AethraSunsBlessing, "Sun's Blessing", DeityType.Aethra)
+            {
+                Kind = BlessingKind.Player,
+                Type = EnumTraitType.Positive,
+                Category = BlessingCategory.Utility,
+                Description = "Light brings life and growth. +12% crop yield, +10% satiety from all food, +3°C heat resistance, light sources provide +1°C warmth radius.",
+                RequiredFavorRank = (int)FavorRank.Initiate,
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.CropYield, 0.12f },
+                    { VintageStoryStats.Satiety, 0.10f },
+                    { VintageStoryStats.HeatResistance, 3.0f },
+                    { VintageStoryStats.LightWarmthRadius, 1.0f }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.LightWarmthBonus }
+            },
+
+            // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
+            new(BlessingIds.AethraBountifulHarvest, "Bountiful Harvest", DeityType.Aethra)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "The light blesses you with divine vitality. +10% max health, +12% healing effectiveness.",
-                RequiredFavorRank = (int)FavorRank.Initiate,
+                    "Specialize in farming excellence. +15% crop yield, +12% satiety from crops, crops have 15% chance for bonus seeds, +15% chance to find rare crop variants. Agriculture path. Requires Sun's Blessing.",
+                RequiredFavorRank = (int)FavorRank.Disciple,
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraSunsBlessing },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f },
-                    { VintageStoryStats.HealingEffectiveness, 0.12f }
+                    { VintageStoryStats.CropYield, 0.15f },
+                    { VintageStoryStats.CropSatiety, 0.12f },
+                    { VintageStoryStats.SeedDropChance, 0.15f },
+                    { VintageStoryStats.RareCropChance, 0.15f }
                 }
             },
-
-            // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.AethraRadiantStrike, "Radiant Strike", DeityType.Aethra)
+            new(BlessingIds.AethraBakersTouch, "Baker's Touch", DeityType.Aethra)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Your attacks radiate holy energy. +12% melee damage, +10% ranged damage, heal 5% on hit. Offense path. Requires Divine Grace.",
+                    "Master the art of food preparation. Cooking/baking yields +25% more food, +15% satiety from cooked food, food spoils 20% slower, +5°C heat resistance. Food preparation path. Requires Sun's Blessing.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraDivineGrace },
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraSunsBlessing },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.12f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.10f }
+                    { VintageStoryStats.CookingYield, 0.25f },
+                    { VintageStoryStats.CookedFoodSatiety, 0.15f },
+                    { VintageStoryStats.FoodSpoilage, 0.20f },
+                    { VintageStoryStats.HeatResistance, 5.0f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal3 }
-            },
-            new(BlessingIds.AethraBlessedShield, "Blessed Shield", DeityType.Aethra)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "Light shields you from harm. +18% armor, +15% max health, 8% damage reduction. Defense path. Requires Divine Grace.",
-                RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraDivineGrace },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.18f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
+                SpecialEffects = new List<string> { SpecialEffects.FoodSpoilageReduction }
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.AethraPurifyingLight, "Purifying Light", DeityType.Aethra)
+            new(BlessingIds.AethraMasterFarmer, "Master Farmer", DeityType.Aethra)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Unleash devastating holy power. +22% melee damage, +18% ranged damage, heal 12% on hit, AoE healing pulse. Requires Radiant Strike.",
+                    "Achieve ultimate farming mastery. +20% crop yield, +18% satiety from crops, crops have 25% chance for bonus seeds, +30% chance to find rare crop variants, wild crops give +40% yield. Requires Bountiful Harvest.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraRadiantStrike },
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraBountifulHarvest },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.22f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.18f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal10 }
+                    { VintageStoryStats.CropYield, 0.20f },
+                    { VintageStoryStats.CropSatiety, 0.18f },
+                    { VintageStoryStats.SeedDropChance, 0.25f },
+                    { VintageStoryStats.RareCropChance, 0.30f },
+                    { VintageStoryStats.WildCropYield, 0.40f }
+                }
             },
-            new(BlessingIds.AethraAegisOfLight, "Aegis of Light", DeityType.Aethra)
+            new(BlessingIds.AethraDivineKitchen, "Divine Kitchen", DeityType.Aethra)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Become nearly invincible with divine protection. +28% armor, +25% max health, 15% damage reduction, +18% healing. Requires Blessed Shield.",
+                    "Create incredibly nutritious meals. Cooking yields +35% more, +25% satiety from cooked food, food spoils 30% slower, +7°C heat resistance, meals provide temporary +5% max health buff. Requires Baker's Touch.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraBlessedShield },
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraBakersTouch },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.28f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.25f },
-                    { VintageStoryStats.HealingEffectiveness, 0.18f }
+                    { VintageStoryStats.CookingYield, 0.35f },
+                    { VintageStoryStats.CookedFoodSatiety, 0.25f },
+                    { VintageStoryStats.FoodSpoilage, 0.30f },
+                    { VintageStoryStats.HeatResistance, 7.0f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
+                SpecialEffects = new List<string> { SpecialEffects.TempHealthBuff5, SpecialEffects.FoodSpoilageReduction }
             },
 
-            // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
-            new(BlessingIds.AethraAvatarOfLight, "Avatar of Light", DeityType.Aethra)
+            // Tier 4 - Champion (5000+ favor) - Capstone (requires both paths)
+            new(BlessingIds.AethraAvatarOfAbundance, "Avatar of Abundance", DeityType.Aethra)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Embody divine radiance. +15% all stats, +20% healing, radiant aura heals allies, smite enemies. Requires both Purifying Light and Aegis of Light.",
+                    "Embody the endless bounty of the harvest. +8% movement speed, +10% max health, never suffer malnutrition penalties, can create blessed meals with powerful buffs. Requires both Master Farmer and Divine Kitchen.",
                 RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraPurifyingLight, BlessingIds.AethraAegisOfLight },
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraMasterFarmer, BlessingIds.AethraDivineKitchen },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.15f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.15f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.HealingEffectiveness, 0.20f }
+                    { VintageStoryStats.WalkSpeed, 0.08f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal15 }
+                SpecialEffects = new List<string> { SpecialEffects.NeverMalnourished, SpecialEffects.BlessedMeals }
             },
 
-            // RELIGION BLESSINGS (4 total) - Divine congregation
+            // RELIGION BLESSINGS (4 total) - Shared agricultural bonuses
 
             // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.AethraBlessingOfLight, "Blessing of Light", DeityType.Aethra)
+            new(BlessingIds.AethraCommunityFarm, "Community Farm", DeityType.Aethra)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Your congregation is blessed by divine light. +8% max health, +10% healing effectiveness for all members.",
+                    "Your congregation shares agricultural knowledge. +10% crop yield, +8% satiety from all food for all members.",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.08f },
-                    { VintageStoryStats.HealingEffectiveness, 0.10f }
+                    { VintageStoryStats.CropYield, 0.10f },
+                    { VintageStoryStats.Satiety, 0.08f }
                 }
             },
 
             // Tier 2 - Established (500-1999 prestige) - Coordination
-            new(BlessingIds.AethraDivineSanctuary, "Divine Sanctuary", DeityType.Aethra)
+            new(BlessingIds.AethraHarvestFestival, "Harvest Festival", DeityType.Aethra)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Defense,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Sacred protection shields all. +12% armor, +10% max health, +12% healing for all. Requires Blessing of Light.",
+                    "Celebrate abundant harvests together. +15% crop yield, +12% satiety from all food, food spoils 10% slower for all. Requires Community Farm.",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraBlessingOfLight },
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraCommunityFarm },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.12f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f },
-                    { VintageStoryStats.HealingEffectiveness, 0.12f }
+                    { VintageStoryStats.CropYield, 0.15f },
+                    { VintageStoryStats.Satiety, 0.12f },
+                    { VintageStoryStats.FoodSpoilage, 0.10f }
                 }
             },
 
             // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
-            new(BlessingIds.AethraSacredBond, "Sacred Bond", DeityType.Aethra)
+            new(BlessingIds.AethraLandOfPlenty, "Land of Plenty", DeityType.Aethra)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Divine unity empowers the congregation. +15% armor, +15% max health, +15% healing, +10% all damage for all. Requires Divine Sanctuary.",
+                    "Your land becomes legendary for its bounty. +22% crop yield, +18% satiety from all food, food spoils 18% slower, +5°C heat resistance for all. Requires Harvest Festival.",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraDivineSanctuary },
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraHarvestFestival },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.15f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.HealingEffectiveness, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.10f }
+                    { VintageStoryStats.CropYield, 0.22f },
+                    { VintageStoryStats.Satiety, 0.18f },
+                    { VintageStoryStats.FoodSpoilage, 0.18f },
+                    { VintageStoryStats.HeatResistance, 5.0f }
                 }
             },
 
-            // Tier 4 - Legendary (5000-9999 prestige) - Divine Temple
-            new(BlessingIds.AethraCathedralOfLight, "Cathedral of Light", DeityType.Aethra)
+            // Tier 4 - Legendary (5000+ prestige) - Pantheon of Light
+            new(BlessingIds.AethraPantheonOfLight, "Pantheon of Light", DeityType.Aethra)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Your religion becomes a beacon of divine power. +20% armor, +20% max health, +20% healing, +15% all damage, +8% movement for all. Divine sanctuary ability. Requires Sacred Bond.",
+                    "Your religion becomes the source of endless bounty. +30% crop yield, +20% satiety from all food, food spoils 25% slower, +8°C heat resistance, religion can build Sacred Granary for all. Requires Land of Plenty.",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraSacredBond },
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraLandOfPlenty },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.20f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
-                    { VintageStoryStats.HealingEffectiveness, 0.20f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.15f },
-                    { VintageStoryStats.WalkSpeed, 0.08f }
-                }
+                    { VintageStoryStats.CropYield, 0.30f },
+                    { VintageStoryStats.Satiety, 0.20f },
+                    { VintageStoryStats.FoodSpoilage, 0.25f },
+                    { VintageStoryStats.HeatResistance, 8.0f }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.SacredGranary }
             }
         };
     }
@@ -574,179 +578,197 @@ public static class BlessingDefinitions
     #endregion
 
 
-    #region Gaia (Earth) - 10 Blessings (Refactored)
+    #region Gaia (Earth & Stone) - 10 Blessings (Utility-Focused)
 
     private static List<Blessing> GetGaiaBlessings()
     {
         return new List<Blessing>
         {
-            // PLAYER BLESSINGS (6 total) - Earth defender
+            // PLAYER BLESSINGS (6 total) - Earth resources & endurance utility focus
 
             // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.GaiaEarthenResilience, "Earthen Resilience", DeityType.Gaia)
+            new(BlessingIds.GaiaEarthenFoundation, "Earthen Foundation", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "Earth's strength flows through you. +15% max health, +10% armor, +8% healing effectiveness.",
+                Type = EnumTraitType.Positive,
+                Category = BlessingCategory.Utility,
+                Description = "Draw strength from the earth. +10% stone/clay/gravel yield when mining, +10% max health, -15% fall damage.",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.10f },
-                    { VintageStoryStats.HealingEffectiveness, 0.08f }
+                    { VintageStoryStats.StoneYield, 0.10f },
+                    { VintageStoryStats.ClayYield, 0.10f },
+                    { VintageStoryStats.GravelYield, 0.10f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f },
+                    { VintageStoryStats.FallDamageReduction, 0.15f }
                 }
             },
 
             // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.GaiaStoneForm, "Stone Form", DeityType.Gaia)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "Become as unyielding as stone. +22% armor, +18% max health, 10% damage reduction. Defense path. Requires Earthen Resilience.",
-                RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthenResilience },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.22f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.18f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
-            },
-            new(BlessingIds.GaiaNaturesBlessing, "Nature's Blessing", DeityType.Gaia)
+            new(BlessingIds.GaiaQuarryman, "Quarryman", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Nature restores you constantly. +20% max health, +18% healing effectiveness, slow passive regeneration. Regeneration path. Requires Earthen Resilience.",
+                    "Specialize in stone extraction. +12% stone/clay/gravel yield, +20% chance to find granite/marble/other stone types, mining picks last 15% longer. Resource path. Requires Earthen Foundation.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthenResilience },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthenFoundation },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
-                    { VintageStoryStats.HealingEffectiveness, 0.18f }
+                    { VintageStoryStats.StoneYield, 0.12f },
+                    { VintageStoryStats.ClayYield, 0.12f },
+                    { VintageStoryStats.GravelYield, 0.12f },
+                    { VintageStoryStats.RareStoneChance, 0.20f },
+                    { VintageStoryStats.PickDurability, 0.15f }
+                }
+            },
+            new(BlessingIds.GaiaMountainsEndurance, "Mountain's Endurance", DeityType.Gaia)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Defense,
+                Description =
+                    "Become as tough as the mountains. +15% max health, -20% fall damage, +8% armor from all equipment, hunger depletes 10% slower. Survival path. Requires Earthen Foundation.",
+                RequiredFavorRank = (int)FavorRank.Disciple,
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthenFoundation },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
+                    { VintageStoryStats.FallDamageReduction, 0.20f },
+                    { VintageStoryStats.MeleeWeaponArmor, 0.08f },
+                    { VintageStoryStats.HungerRate, -0.10f }
                 }
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.GaiaMountainGuard, "Mountain Guard", DeityType.Gaia)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "Stand immovable like a mountain. +32% armor, +28% max health, 15% damage reduction, +10% melee damage. Requires Stone Form.",
-                RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaStoneForm },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.32f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.28f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
-            },
-            new(BlessingIds.GaiaLifebloom, "Lifebloom", DeityType.Gaia)
+            new(BlessingIds.GaiaMasterQuarryman, "Master Quarryman", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Life flourishes around you. +30% max health, +28% healing effectiveness, strong passive regeneration, heal nearby allies. Requires Nature's Blessing.",
+                    "Achieve mastery of stone extraction. +15% stone/clay/gravel yield, +35% chance to find rare stones, mining picks last 25% longer, +15% chance to find surface copper/tin when mining stone. Requires Quarryman.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaNaturesBlessing },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaQuarryman },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.30f },
-                    { VintageStoryStats.HealingEffectiveness, 0.28f }
+                    { VintageStoryStats.StoneYield, 0.15f },
+                    { VintageStoryStats.ClayYield, 0.15f },
+                    { VintageStoryStats.GravelYield, 0.15f },
+                    { VintageStoryStats.RareStoneChance, 0.35f },
+                    { VintageStoryStats.PickDurability, 0.25f },
+                    { VintageStoryStats.OreInStoneChance, 0.15f }
                 }
             },
-
-            // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
-            new(BlessingIds.GaiaAvatarOfEarth, "Avatar of Earth", DeityType.Gaia)
+            new(BlessingIds.GaiaUnshakeable, "Unshakeable", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Defense,
                 Description =
-                    "Embody the eternal earth. +25% armor, +35% max health, +30% healing, 15% damage reduction, earthen aura protects and heals. Requires both Mountain Guard and Lifebloom.",
-                RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaMountainGuard, BlessingIds.GaiaLifebloom },
+                    "Become nearly indestructible. +20% max health, -25% fall damage, +12% armor from all equipment, hunger depletes 15% slower, +5°C cold resistance. Requires Mountain's Endurance.",
+                RequiredFavorRank = (int)FavorRank.Zealot,
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaMountainsEndurance },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.25f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.35f },
-                    { VintageStoryStats.HealingEffectiveness, 0.30f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
+                    { VintageStoryStats.FallDamageReduction, 0.25f },
+                    { VintageStoryStats.MeleeWeaponArmor, 0.12f },
+                    { VintageStoryStats.HungerRate, -0.15f },
+                    { VintageStoryStats.ColdResistance, 5.0f }
+                }
             },
 
-            // RELIGION BLESSINGS (4 total) - Earth wardens
+            // Tier 4 - Champion (5000+ favor) - Capstone (requires both paths)
+            new(BlessingIds.GaiaAvatarOfEarth, "Avatar of Earth", DeityType.Gaia)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Utility,
+                Description =
+                    "Embody the eternal strength of the earth. +5% movement speed, +8°C cold resistance, immune to slowness from being overburdened. Requires both Master Quarryman and Unshakeable.",
+                RequiredFavorRank = (int)FavorRank.Champion,
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaMasterQuarryman, BlessingIds.GaiaUnshakeable },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.WalkSpeed, 0.05f },
+                    { VintageStoryStats.ColdResistance, 8.0f }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.OverburdenedImmunity }
+            },
+
+            // RELIGION BLESSINGS (4 total) - Shared earth benefits
 
             // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.GaiaEarthwardens, "Earthwardens", DeityType.Gaia)
+            new(BlessingIds.GaiaStoneCircle, "Stone Circle", DeityType.Gaia)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Defense,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Your congregation stands as guardians of the earth. +10% max health, +8% armor for all members.",
+                    "Your congregation gathers in ancient stone circles. +8% stone/clay/gravel yield, +8% max health for all members.",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.08f }
+                    { VintageStoryStats.StoneYield, 0.08f },
+                    { VintageStoryStats.ClayYield, 0.08f },
+                    { VintageStoryStats.GravelYield, 0.08f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.08f }
                 }
             },
 
             // Tier 2 - Established (500-1999 prestige) - Coordination
-            new(BlessingIds.GaiaLivingFortress, "Living Fortress", DeityType.Gaia)
+            new(BlessingIds.GaiaEarthWardens, "Earth Wardens", DeityType.Gaia)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Defense,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "United, you become an impenetrable fortress. +15% max health, +12% armor, +10% healing for all. Requires Earthwardens.",
+                    "Guardians of the earth united. +12% stone/clay/gravel yield, +12% max health, -15% fall damage for all. Requires Stone Circle.",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthwardens },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaStoneCircle },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.12f },
-                    { VintageStoryStats.HealingEffectiveness, 0.10f }
+                    { VintageStoryStats.StoneYield, 0.12f },
+                    { VintageStoryStats.ClayYield, 0.12f },
+                    { VintageStoryStats.GravelYield, 0.12f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.12f },
+                    { VintageStoryStats.FallDamageReduction, 0.15f }
                 }
             },
 
             // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
-            new(BlessingIds.GaiaNaturesWrath, "Nature's Wrath", DeityType.Gaia)
+            new(BlessingIds.GaiaMountainsChildren, "Mountain's Children", DeityType.Gaia)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Nature defends its own with fury. +20% max health, +18% armor, +15% healing, +12% melee damage for all. Requires Living Fortress.",
+                    "Your religion becomes children of the mountains. +18% stone/clay/gravel yield, +18% max health, -22% fall damage, +8% armor for all. Requires Earth Wardens.",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaLivingFortress },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthWardens },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.18f },
-                    { VintageStoryStats.HealingEffectiveness, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.12f }
+                    { VintageStoryStats.StoneYield, 0.18f },
+                    { VintageStoryStats.ClayYield, 0.18f },
+                    { VintageStoryStats.GravelYield, 0.18f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.18f },
+                    { VintageStoryStats.FallDamageReduction, 0.22f },
+                    { VintageStoryStats.MeleeWeaponArmor, 0.08f }
                 }
             },
 
-            // Tier 4 - Legendary (5000-9999 prestige) - World Tree
-            new(BlessingIds.GaiaWorldTree, "World Tree", DeityType.Gaia)
+            // Tier 4 - Legendary (5000+ prestige) - Pantheon of Stone
+            new(BlessingIds.GaiaPantheonOfStone, "Pantheon of Stone", DeityType.Gaia)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Defense,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Your religion becomes the eternal world tree. +30% max health, +25% armor, +22% healing, +18% melee damage for all. Massive regeneration aura. Requires Nature's Wrath.",
+                    "Your religion becomes legendary stone workers. +25% stone/clay/gravel yield, +25% max health, -30% fall damage, +12% armor, +5°C cold resistance for all. Requires Mountain's Children.",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaNaturesWrath },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaMountainsChildren },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.30f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.25f },
-                    { VintageStoryStats.HealingEffectiveness, 0.22f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.18f }
+                    { VintageStoryStats.StoneYield, 0.25f },
+                    { VintageStoryStats.ClayYield, 0.25f },
+                    { VintageStoryStats.GravelYield, 0.25f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.25f },
+                    { VintageStoryStats.FallDamageReduction, 0.30f },
+                    { VintageStoryStats.MeleeWeaponArmor, 0.12f },
+                    { VintageStoryStats.ColdResistance, 5.0f }
                 }
             }
         };

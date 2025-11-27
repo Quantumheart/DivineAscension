@@ -45,4 +45,24 @@ public static class VintageStoryStats
     public const string TemperatureResistance = "temperatureResistance";
     public const string HarvestSpeed = "harvestSpeed";
     public const string ForagingYield = "foragingYield";
+
+    // Aethra (Agriculture & Cooking) Stats
+    public const string CropYield = "cropYield";
+    public const string SeedDropChance = "seedDropChance";
+    public const string CookingYield = "cookingYield";
+    public const string HeatResistance = "heatResistance";
+    public const string RareCropChance = "rareCropChance";
+    public const string WildCropYield = "wildCropYield";
+    public const string CookedFoodSatiety = "cookedFoodSatiety";
+    public const string CropSatiety = "cropSatiety";
+    public const string LightWarmthRadius = "lightWarmthRadius";
+
+    // Gaia (Earth & Stone) Stats
+    public const string StoneYield = "stoneYield";
+    public const string ClayYield = "clayYield";
+    public const string PickDurability = "pickDurability";
+    public const string FallDamageReduction = "fallDamageReduction";
+    public const string RareStoneChance = "rareStoneChance";
+    public const string OreInStoneChance = "oreInStoneChance";
+    public const string GravelYield = "gravelYield";
 }

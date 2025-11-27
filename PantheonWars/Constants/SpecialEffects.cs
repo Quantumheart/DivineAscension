@@ -195,4 +195,42 @@ public static class SpecialEffects
     public const string PassiveToolRepair1Per10Min = "passive_tool_repair_1per10min";
 
     #endregion
+
+    #region Aethra (Agriculture & Light) Effects
+
+    /// <summary>
+    ///     Light Warmth Bonus: Light sources provide increased warmth radius
+    /// </summary>
+    public const string LightWarmthBonus = "light_warmth_bonus";
+
+    /// <summary>
+    ///     Never Malnourished: Immune to malnutrition penalties
+    /// </summary>
+    public const string NeverMalnourished = "never_malnourished";
+
+    /// <summary>
+    ///     Blessed Meals: Can create meals with powerful temporary buffs
+    /// </summary>
+    public const string BlessedMeals = "blessed_meals";
+
+    /// <summary>
+    ///     Temporary Health Buff: Meals provide +5% max health temporarily
+    /// </summary>
+    public const string TempHealthBuff5 = "temp_health_buff_5";
+
+    /// <summary>
+    ///     Sacred Granary: Religion can build special food storage structure
+    /// </summary>
+    public const string SacredGranary = "sacred_granary";
+
+    #endregion
+
+    #region Gaia (Earth & Stone) Effects
+
+    /// <summary>
+    ///     Overburdened Immunity: Immune to slowness from being overburdened (first tier)
+    /// </summary>
+    public const string OverburdenedImmunity = "overburdened_immunity";
+
+    #endregion
 }

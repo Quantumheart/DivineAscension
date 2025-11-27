@@ -63,21 +63,21 @@ public static class BlessingIds
 
     #endregion
 
-    #region Aethra (Light) - 10 Blessings
+    #region Aethra (Agriculture & Light) - 10 Blessings
 
     // Player Blessings (6)
-    public const string AethraDivineGrace = "aethra_divine_grace";
-    public const string AethraRadiantStrike = "aethra_radiant_strike";
-    public const string AethraBlessedShield = "aethra_blessed_shield";
-    public const string AethraPurifyingLight = "aethra_purifying_light";
-    public const string AethraAegisOfLight = "aethra_aegis_of_light";
-    public const string AethraAvatarOfLight = "aethra_avatar_of_light";
+    public const string AethraSunsBlessing = "aethra_suns_blessing";
+    public const string AethraBountifulHarvest = "aethra_bountiful_harvest";
+    public const string AethraBakersTouch = "aethra_bakers_touch";
+    public const string AethraMasterFarmer = "aethra_master_farmer";
+    public const string AethraDivineKitchen = "aethra_divine_kitchen";
+    public const string AethraAvatarOfAbundance = "aethra_avatar_of_abundance";
 
     // Religion Blessings (4)
-    public const string AethraBlessingOfLight = "aethra_blessing_of_light";
-    public const string AethraDivineSanctuary = "aethra_divine_sanctuary";
-    public const string AethraSacredBond = "aethra_sacred_bond";
-    public const string AethraCathedralOfLight = "aethra_cathedral_of_light";
+    public const string AethraCommunityFarm = "aethra_community_farm";
+    public const string AethraHarvestFestival = "aethra_harvest_festival";
+    public const string AethraLandOfPlenty = "aethra_land_of_plenty";
+    public const string AethraPantheonOfLight = "aethra_pantheon_of_light";
 
     #endregion
 
@@ -117,21 +117,21 @@ public static class BlessingIds
 
     #endregion
 
-    #region Gaia (Earth) - 10 Blessings
+    #region Gaia (Earth & Stone) - 10 Blessings
 
     // Player Blessings (6)
-    public const string GaiaEarthenResilience = "gaia_earthen_resilience";
-    public const string GaiaStoneForm = "gaia_stone_form";
-    public const string GaiaNaturesBlessing = "gaia_natures_blessing";
-    public const string GaiaMountainGuard = "gaia_mountain_guard";
-    public const string GaiaLifebloom = "gaia_lifebloom";
+    public const string GaiaEarthenFoundation = "gaia_earthen_foundation";
+    public const string GaiaQuarryman = "gaia_quarryman";
+    public const string GaiaMountainsEndurance = "gaia_mountains_endurance";
+    public const string GaiaMasterQuarryman = "gaia_master_quarryman";
+    public const string GaiaUnshakeable = "gaia_unshakeable";
     public const string GaiaAvatarOfEarth = "gaia_avatar_of_earth";
 
     // Religion Blessings (4)
-    public const string GaiaEarthwardens = "gaia_earthwardens";
-    public const string GaiaLivingFortress = "gaia_living_fortress";
-    public const string GaiaNaturesWrath = "gaia_natures_wrath";
-    public const string GaiaWorldTree = "gaia_world_tree";
+    public const string GaiaStoneCircle = "gaia_stone_circle";
+    public const string GaiaEarthWardens = "gaia_earth_wardens";
+    public const string GaiaMountainsChildren = "gaia_mountains_children";
+    public const string GaiaPantheonOfStone = "gaia_pantheon_of_stone";
 
     #endregion
 
