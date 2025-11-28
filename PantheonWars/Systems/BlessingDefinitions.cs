@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using PantheonWars.Constants;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
-using Vintagestory.GameContent;
 
 namespace PantheonWars.Systems;
 
@@ -30,7 +29,7 @@ public static class BlessingDefinitions
         return blessings;
     }
 
-    #region Khoras (Forge & Craft) - 10 Blessings (Utility-Focused)
+    #region Khoras (Forge & Craft)
 
     private static List<Blessing> GetKhorasBlessings()
     {
@@ -42,14 +41,13 @@ public static class BlessingDefinitions
             new(BlessingIds.KhorasCraftsmansTouch, "Craftsman's Touch", DeityType.Khoras)
             {
                 Kind = BlessingKind.Player,
-                Type = EnumTraitType.Positive,
                 Category = BlessingCategory.Utility,
                 Description = "Your devotion to the forge strengthens your craft. Tools/weapons lose durability 10% slower, +10% ore yield when mining, +3°C cold resistance.",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.ToolDurability, 0.10f },
-                    { VintageStoryStats.OreYield, 0.10f },
+                    { VintageStoryStats.OreDropRate, 0.10f },
                     { VintageStoryStats.ColdResistance, 3.0f }
                 }
             },
@@ -98,7 +96,7 @@ public static class BlessingDefinitions
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.ToolDurability, 0.20f },
-                    { VintageStoryStats.OreYield, 0.15f },
+                    { VintageStoryStats.OreDropRate, 0.15f },
                     { VintageStoryStats.RepairEfficiency, 0.25f }
                 },
                 SpecialEffects = new List<string> { SpecialEffects.MaterialSaveChance10 }
@@ -150,7 +148,7 @@ public static class BlessingDefinitions
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.ToolDurability, 0.08f },
-                    { VintageStoryStats.OreYield, 0.08f }
+                    { VintageStoryStats.OreDropRate, 0.08f }
                 }
             },
 
@@ -166,7 +164,7 @@ public static class BlessingDefinitions
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.ToolDurability, 0.12f },
-                    { VintageStoryStats.OreYield, 0.12f },
+                    { VintageStoryStats.OreDropRate, 0.12f },
                     { VintageStoryStats.ColdResistance, 4.0f }
                 }
             },
@@ -183,7 +181,7 @@ public static class BlessingDefinitions
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.ToolDurability, 0.18f },
-                    { VintageStoryStats.OreYield, 0.15f },
+                    { VintageStoryStats.OreDropRate, 0.15f },
                     { VintageStoryStats.ColdResistance, 6.0f },
                     { VintageStoryStats.RepairCostReduction, 0.10f }
                 }
@@ -201,7 +199,7 @@ public static class BlessingDefinitions
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.ToolDurability, 0.25f },
-                    { VintageStoryStats.OreYield, 0.20f },
+                    { VintageStoryStats.OreDropRate, 0.20f },
                     { VintageStoryStats.ColdResistance, 8.0f },
                     { VintageStoryStats.MiningSpeed, 0.10f },
                 },
@@ -212,7 +210,7 @@ public static class BlessingDefinitions
 
     #endregion
 
-    #region Lysa (Hunt) - 10 Blessings (Refactored)
+    #region Lysa (Hunt)
 
     private static List<Blessing> GetLysaBlessings()
     {
@@ -225,14 +223,16 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "Foundation for wilderness survival. Double harvest chance on bushes/plants +10%, +5% movement speed, see animal tracks highlighted.",
+                Description = "Foundation for wilderness survival. 5% more animal and forage drops, +2% movement speed, and harvest 10% faster.",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.DoubleHarvestChance, 0.10f },
-                    { VintageStoryStats.WalkSpeed, 0.05f }
+                    { VintageStoryStats.AnimalDrops, 0.05f },
+                    { VintageStoryStats.ForageDropRate, 0.05f},
+                    { VintageStoryStats.AnimalHarvestTime, 0.10f },
+                    { VintageStoryStats.WalkSpeed, 0.02f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.TrackingVision }
+                SpecialEffects = new List<string> {  }
             },
 
             // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
@@ -245,7 +245,7 @@ public static class BlessingDefinitions
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaHuntersInstinct },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.DoubleHarvestChance, 0.12f },
+                    { VintageStoryStats.ForageDropRate, 0.20f },
                     { VintageStoryStats.FoodSpoilage, 0.15f },
                     { VintageStoryStats.Satiety, 0.10f } // Note: Logic assumes Satiety applies generally or handled specially
                 },
@@ -255,16 +255,17 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
-                Description = "Focuses on hunting efficiency and stealth. +12% damage vs animals, animal drops +20%, sneak movement 25% quieter. Hunting Path. Requires Hunter's Instinct.",
+                Description = "Focuses on hunting efficiency and stealth. +12% damage vs animals, animal drops +20%, animals detect you less +20% and harvest 15% faster. Hunting Path. Requires Hunter's Instinct.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaHuntersInstinct },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.AnimalDamage, 0.12f },
                     { VintageStoryStats.AnimalDrops, 0.20f },
+                    { VintageStoryStats.AnimalSeekingRange, 0.20f},
                     { VintageStoryStats.ToolDurability, 0.15f } // Bow/Spear durability
                 },
-                SpecialEffects = new List<string> { SpecialEffects.StealthMovementQuiet }
+                SpecialEffects = new List<string> {  }
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
@@ -279,23 +280,25 @@ public static class BlessingDefinitions
                 {
                     { VintageStoryStats.DoubleHarvestChance, 0.15f },
                     { VintageStoryStats.FoodSpoilage, 0.25f },
-                    { VintageStoryStats.Satiety, 0.15f } 
+                    { VintageStoryStats.Satiety, 0.15f },
+                    {VintageStoryStats.ForageDropRate, 0.20f}
                 },
                 SpecialEffects = new List<string> { SpecialEffects.RareForageChance, SpecialEffects.FoodSpoilageReduction }
             },
-            new(BlessingIds.LysaSilentDeath, "Silent Death", DeityType.Lysa)
+            new(BlessingIds.LysaSilentDeath, "Tree walker", DeityType.Lysa)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
-                Description = "Master hunter. +18% damage vs animals, animal drops +25%, arrows/spears 8% chance to not consume, animals detect you 40% less easily. Requires Apex Predator.",
+                Description = "Master hunter. +18% damage vs animals, animal drops +25%, animals detect you 40% less easily. Requires Apex Predator.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaApexPredator },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.AnimalDamage, 0.18f },
+                    { VintageStoryStats.AnimalSeekingRange, 0.40f },
                     { VintageStoryStats.AnimalDrops, 0.25f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.AmmoConservation, SpecialEffects.StealthBonus }
+                SpecialEffects = new List<string> { }
             },
 
             // Tier 4 - Champion (5000-9999 favor) - Capstone
@@ -303,15 +306,18 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "True master of the wilderness. +8% movement speed, +8°C temperature resistance, compass always visible. Requires both Abundance of the Wild and Silent Death.",
+                Description = "True master of the wilderness. +8°C temperature resistance. Requires both Abundance of the Wild and Silent Death.",
                 RequiredFavorRank = (int)FavorRank.Champion,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaAbundanceOfWild, BlessingIds.LysaSilentDeath },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.WalkSpeed, 0.08f },
+                    { VintageStoryStats.AnimalDrops, 0.10f },
+                    { VintageStoryStats.AnimalSeekingRange, 0.20f },
+                    { VintageStoryStats.AnimalHarvestTime, 0.20f },
+                    { VintageStoryStats.ForageDropRate, 0.10f },
                     { VintageStoryStats.TemperatureResistance, 8.0f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.CompassAlwaysVisible, SpecialEffects.TemperatureResistance }
+                SpecialEffects = new List<string> { SpecialEffects.TemperatureResistance }
             },
 
             // RELIGION BLESSINGS (4 total)
@@ -343,7 +349,6 @@ public static class BlessingDefinitions
                 {
                     { VintageStoryStats.DoubleHarvestChance, 0.15f },
                     { VintageStoryStats.AnimalDrops, 0.18f },
-                    { VintageStoryStats.WalkSpeed, 0.06f },
                     { VintageStoryStats.FoodSpoilage, 0.12f }
                 }
             },
@@ -360,7 +365,6 @@ public static class BlessingDefinitions
                 {
                     { VintageStoryStats.DoubleHarvestChance, 0.22f },
                     { VintageStoryStats.AnimalDrops, 0.25f },
-                    { VintageStoryStats.WalkSpeed, 0.08f },
                     { VintageStoryStats.Satiety, 0.10f },
                     { VintageStoryStats.TemperatureResistance, 5.0f }
                 }
@@ -388,7 +392,7 @@ public static class BlessingDefinitions
 
     #endregion
 
-    #region Aethra (Agriculture & Light) - 10 Blessings (Utility-Focused)
+    #region Aethra (Agriculture & Light)
 
     private static List<Blessing> GetAethraBlessings()
     {
@@ -400,7 +404,6 @@ public static class BlessingDefinitions
             new(BlessingIds.AethraSunsBlessing, "Sun's Blessing", DeityType.Aethra)
             {
                 Kind = BlessingKind.Player,
-                Type = EnumTraitType.Positive,
                 Category = BlessingCategory.Utility,
                 Description = "Light brings life and growth. +12% crop yield, +10% satiety from all food, +3°C heat resistance, light sources provide +1°C warmth radius.",
                 RequiredFavorRank = (int)FavorRank.Initiate,
@@ -409,7 +412,6 @@ public static class BlessingDefinitions
                     { VintageStoryStats.CropYield, 0.12f },
                     { VintageStoryStats.Satiety, 0.10f },
                     { VintageStoryStats.HeatResistance, 3.0f },
-                    { VintageStoryStats.LightWarmthRadius, 1.0f }
                 },
                 SpecialEffects = new List<string> { SpecialEffects.LightWarmthBonus }
             },
@@ -426,7 +428,6 @@ public static class BlessingDefinitions
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.CropYield, 0.15f },
-                    { VintageStoryStats.CropSatiety, 0.12f },
                     { VintageStoryStats.SeedDropChance, 0.15f },
                     { VintageStoryStats.RareCropChance, 0.15f }
                 }
@@ -461,7 +462,6 @@ public static class BlessingDefinitions
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.CropYield, 0.20f },
-                    { VintageStoryStats.CropSatiety, 0.18f },
                     { VintageStoryStats.SeedDropChance, 0.25f },
                     { VintageStoryStats.RareCropChance, 0.30f },
                     { VintageStoryStats.WildCropYield, 0.40f }
@@ -590,7 +590,6 @@ public static class BlessingDefinitions
             new(BlessingIds.GaiaEarthenFoundation, "Earthen Foundation", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
-                Type = EnumTraitType.Positive,
                 Category = BlessingCategory.Utility,
                 Description = "Draw strength from the earth. +10% stone/clay/gravel yield when mining, +10% max health, -15% fall damage.",
                 RequiredFavorRank = (int)FavorRank.Initiate,

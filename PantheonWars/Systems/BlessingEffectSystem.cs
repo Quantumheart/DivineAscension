@@ -364,7 +364,76 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     /// </summary>
     internal void OnPlayerJoin(IServerPlayer player)
     {
+        // Register custom stats first
+        RegisterCustomStats(player);
+
         RefreshPlayerBlessings(player.PlayerUID);
+    }
+
+    /// <summary>
+    ///     Registers all custom stats for a player with appropriate blend types
+    /// </summary>
+    private void RegisterCustomStats(IServerPlayer player)
+    {
+        if (player.Entity == null || player.Entity.Stats == null) return;
+
+        var stats = player.Entity.Stats;
+
+        // Khoras (Forge & Craft) - Most are percentage modifiers
+        RegisterStatIfNeeded(stats, VintageStoryStats.ToolDurability, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.OreDropRate, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.ColdResistance, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.RepairCostReduction, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.RepairEfficiency, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.SmithingCostReduction, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.MetalArmorBonus, EnumStatBlendType.WeightedSum);
+
+        // Lysa (Hunt & Wild)
+        RegisterStatIfNeeded(stats, VintageStoryStats.DoubleHarvestChance, EnumStatBlendType.FlatSum); // Additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.AnimalDamage, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.AnimalDrops, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.FoodSpoilage, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.Satiety, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.TemperatureResistance, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.AnimalHarvestTime, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.ForagingYield, EnumStatBlendType.WeightedSum);
+
+        // Aethra (Agriculture & Cooking)
+        RegisterStatIfNeeded(stats, VintageStoryStats.CropYield, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.SeedDropChance, EnumStatBlendType.FlatSum); // Additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.CookingYield, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.HeatResistance, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.RareCropChance, EnumStatBlendType.FlatSum); // Additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.WildCropYield, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.CookedFoodSatiety, EnumStatBlendType.WeightedSum);
+
+        // Gaia (Earth & Stone)
+        RegisterStatIfNeeded(stats, VintageStoryStats.StoneYield, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.ClayYield, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.PickDurability, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.FallDamageReduction, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.RareStoneChance, EnumStatBlendType.FlatSum); // Additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.OreInStoneChance, EnumStatBlendType.FlatSum); // Additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.GravelYield, EnumStatBlendType.WeightedSum);
+
+        _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered custom stats for {player.PlayerName}");
+    }
+
+    /// <summary>
+    ///     Helper to register a stat only if it doesn't already exist
+    /// </summary>
+    private void RegisterStatIfNeeded(EntityStats stats, string statName, EnumStatBlendType blendType)
+    {
+        try
+        {
+            // Check if stat already exists by attempting to get it
+            // If it doesn't exist, Register it
+            stats.Register(statName, blendType);
+        }
+        catch (Exception)
+        {
+            // Stat already registered, ignore
+        }
     }
 
     /// <summary>
@@ -433,7 +502,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             VintageStoryStats.WalkSpeed => SystemConstants.StatDisplayWalkSpeed,
             VintageStoryStats.HealingEffectiveness => SystemConstants.StatDisplayHealthRegen,
             VintageStoryStats.ToolDurability => SystemConstants.StatDisplayToolDurability,
-            VintageStoryStats.OreYield => SystemConstants.StatDisplayOreYield,
+            VintageStoryStats.OreDropRate => SystemConstants.StatDisplayOreYield,
             VintageStoryStats.ColdResistance => SystemConstants.StatDisplayColdResistance,
             VintageStoryStats.MiningSpeed => SystemConstants.StatDisplayMiningSpeed,
             VintageStoryStats.RepairCostReduction => SystemConstants.StatDisplayRepairCostReduction,
@@ -457,6 +526,12 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.RareForageChanceEffect());
         _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.FoodSpoilageEffect());
         _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.TemperatureResistanceEffect());
+
+        // Aethra (Agriculture & Light) handlers
+        _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.NeverMalnourishedEffect());
+        _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.BlessedMealsEffect());
+        _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.TempHealthBuffEffect());
+        // Note: FoodSpoilageReduction is shared with Lysa and already registered above
 
         _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered all special effect handlers");
     }
