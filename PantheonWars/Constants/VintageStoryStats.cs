@@ -27,7 +27,7 @@ public static class VintageStoryStats
 
     // Khoras (Forge & Craft) Stats
     public const string ToolDurability = "toolDurability";
-    public const string OreYield = "oreYield";
+    public const string OreDropRate = "oreDropRate";
     public const string ColdResistance = "coldResistance";
     public const string MiningSpeed = "miningSpeedMul";
     public const string RepairCostReduction = "repairCostReduction";
@@ -39,11 +39,12 @@ public static class VintageStoryStats
     // Lysa (Hunt & Wild) Stats
     public const string DoubleHarvestChance = "doubleHarvestChance";
     public const string AnimalDamage = "animalDamage";
-    public const string AnimalDrops = "animalDrops";
+    public const string AnimalDrops = "animalLootDropRate";
+    public const string ForageDropRate = "forageDropRate";
     public const string FoodSpoilage = "foodSpoilage";
     public const string Satiety = "satiety";
     public const string TemperatureResistance = "temperatureResistance";
-    public const string HarvestSpeed = "harvestSpeed";
+    public const string AnimalHarvestTime = "animalHarvestingTime";
     public const string ForagingYield = "foragingYield";
 
     // Aethra (Agriculture & Cooking) Stats
@@ -54,8 +55,6 @@ public static class VintageStoryStats
     public const string RareCropChance = "rareCropChance";
     public const string WildCropYield = "wildCropYield";
     public const string CookedFoodSatiety = "cookedFoodSatiety";
-    public const string CropSatiety = "cropSatiety";
-    public const string LightWarmthRadius = "lightWarmthRadius";
 
     // Gaia (Earth & Stone) Stats
     public const string StoneYield = "stoneYield";
@@ -65,4 +64,7 @@ public static class VintageStoryStats
     public const string RareStoneChance = "rareStoneChance";
     public const string OreInStoneChance = "oreInStoneChance";
     public const string GravelYield = "gravelYield";
+    
+    // Other 
+    public const string AnimalSeekingRange = "animalSeekingRange";
 }
