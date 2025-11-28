@@ -50,7 +50,7 @@ public static class KhorasPatches
         if (byPlayer?.Entity == null || __result == null || __result.Length == 0) return;
 
         // Get ore yield bonus
-        double yieldBonus = byPlayer.Entity.Stats.GetBlended(VintageStoryStats.OreYield);
+        double yieldBonus = byPlayer.Entity.Stats.GetBlended(VintageStoryStats.OreDropRate);
         if (yieldBonus <= 0) return;
         
         // Check if block is an ore block (simple check by code)
