@@ -27,6 +27,27 @@ This plan details the migration from an 8-deity combat-focused system to a 4-dei
 
 ---
 
+## Simplified Design Philosophy
+
+**Version:** 2.1 (Simplified Blessings)
+**Updated:** 2025-11-29
+
+All deity blessings have been simplified to 1-2 effects per blessing for:
+- **Clarity**: Players can instantly understand what each blessing does
+- **Implementation**: Fewer stat modifiers and special effects to code
+- **Balance**: Easier to tune with fewer variables
+- **Focus**: Each deity maintains a clear core identity
+
+### Concise Blessing References
+
+Each deity has a dedicated concise reference document:
+- **Khoras**: [`khoras_forge_blessings.md`](../reference/khoras_forge_blessings.md) - Forge & Craft
+- **Lysa**: [`lysa_hunt_blessings.md`](../reference/lysa_hunt_blessings.md) - Hunt & Wild
+- **Aethra**: [`aethra_agriculture_blessings.md`](../reference/aethra_agriculture_blessings.md) - Agriculture & Light
+- **Gaia**: [`gaia_pottery_blessings.md`](../reference/gaia_pottery_blessings.md) - Pottery & Clay
+
+---
+
 ## Phase 0: Remove Unused Deities
 
 **Duration**: 3 days
@@ -91,64 +112,55 @@ Gaia = 7      // Earth → Stone (will update in Phase 4)
 **New Identity**: God of the Forge & Craft (not War)
 **Focus**: Tool durability, ore efficiency, cold resistance, crafting
 
+**For detailed blessing design, see:** [`docs/topics/reference/khoras_forge_blessings.md`](../reference/khoras_forge_blessings.md)
+
 ### Part A: Redesign Blessings
 
 #### Player Blessings (6 Total)
 
 **Tier 1 - Craftsman's Touch** (0-499 favor)
-- Tools/weapons lose durability 10% slower
-- +10% ore yield when mining
-- +3°C cold resistance
+- Tools last +10% longer
+- +10% ore yield
 
 **Tier 2A - Masterwork Tools** (500-1999, Utility Path)
-- Tools last 15% longer (total: 25%)
-- Mining/chopping speed +8%
-- Tool repair costs -15% materials
+- Tools last +15% longer (total: 25%)
+- +10% mining speed
 
 **Tier 2B - Forgeborn Endurance** (500-1999, Survival Path)
-- +5°C cold resistance (total: 8°C)
+- +5°C cold resistance
 - +10% max health
-- +10% armor from metal equipment
 
 **Tier 3A - Legendary Smith** (2000-4999, Utility Specialization)
-- Tools last 20% longer (total: 45%)
+- Tools last +20% longer (total: 45%)
 - +15% ore yield (total: 25%)
-- 10% chance to save materials when smithing
-- Tool repairs restore +25% more durability
 
 **Tier 3B - Unyielding** (2000-4999, Survival Specialization)
-- +7°C cold resistance (total: 15°C)
+- +10°C cold resistance (total: 15°C)
 - +15% max health (total: 25%)
-- +15% armor from all equipment (total: 25%)
-- Hunger/satiety depletes 8% slower
 
 **Tier 4 - Avatar of the Forge** (5000+, Capstone)
-- Tools repair 1 durability per 5 minutes in inventory
-- -10% material costs for smithing
-- Mining/chopping speed +12% (total: 20% if Path A)
+- Tools repair 1 durability per 5 minutes
 - Requires both Tier 3A and 3B
 
 #### Religion Blessings (4 Total)
 
 **Tier 1 - Shared Workshop** (0-499 prestige)
-- All members: +8% tool durability, +8% ore yield
+- All members: Tools last +10% longer, +10% ore yield
 
 **Tier 2 - Guild of Smiths** (500-1999 prestige)
-- All members: +12% tool durability, +12% ore yield, +4°C cold resistance
+- All members: Tools last +15% longer, +15% ore yield
 
 **Tier 3 - Master Craftsmen** (2000-4999 prestige)
-- All members: +18% tool durability, +15% ore yield, +6°C cold resistance, -10% repair costs
+- All members: Tools last +20% longer, +20% ore yield, +5°C cold resistance
 
 **Tier 4 - Pantheon of Creation** (5000+ prestige)
-- All members: +25% tool durability, +20% ore yield, +8°C cold resistance, +10% mining/chopping speed, passive repair (1/10min)
+- All members: +10% max health
 
 #### Implementation Tasks
 - [x] Replace `GetKhorasBlessings()` method in `BlessingDefinitions.cs`
 - [x] Update blessing IDs in `BlessingIds.cs`
 - [x] Add new stat modifiers to `VintageStoryStats.cs`:
-  - `ToolDurability`, `OreYield`, `ColdResistance`, `MiningSpeed`, `ChoppingSpeed`
-  - `RepairCostReduction`, `RepairEfficiency`, `SmithingCostReduction`
-  - `MetalArmorBonus`, `HungerRate`
+  - `ToolDurability`, `OreYield`, `ColdResistance`, `MiningSpeed`
 - [x] Update `BlessingEffectSystem.cs` to apply new stat types
 - [x] Create blessing unit tests
 
@@ -335,28 +347,28 @@ Implement Khoras-specific effects:
 **New Identity**: Goddess of the Hunt & Wild (expansion of current Hunt theme)
 **Focus**: Foraging, hunting, movement, wilderness survival
 
+**For detailed blessing design, see:** [`docs/topics/reference/lysa_hunt_blessings.md`](../reference/lysa_hunt_blessings.md)
+
 ### Part A: Redesign Blessings
 
-Follow same structure as Khoras but with hunting/gathering themes:
-
 #### Player Blessings (6)
-- Tier 1: Hunter's Instinct (double harvest chance, movement speed, animal tracking)
-- Tier 2A: Master Forager (gathering path)
-- Tier 2B: Apex Predator (hunting path)
-- Tier 3A: Abundance of the Wild
-- Tier 3B: Silent Death
-- Tier 4: Avatar of the Wild (both paths required)
+- Tier 1: Hunter's Instinct - +15% animal/forage drops, +5% movement speed
+- Tier 2A: Master Forager - +20% forage drops (total: 35%), Food spoils 15% slower
+- Tier 2B: Apex Predator - +20% animal drops (total: 35%), +15% damage vs animals
+- Tier 3A: Abundance of the Wild - +25% forage drops (total: 60%), Food spoils 25% slower (total: 40%)
+- Tier 3B: Silent Death - +25% animal drops (total: 60%), +20% damage vs animals (total: 35%)
+- Tier 4: Avatar of the Wild - +8% movement speed (total: 13%), +8°C temperature resistance
 
 #### Religion Blessings (4)
-- Tier 1: Hunting Party
-- Tier 2: Wilderness Tribe
-- Tier 3: Children of the Forest
-- Tier 4: Pantheon of the Hunt
+- Tier 1: Hunting Party - +15% animal/forage drops
+- Tier 2: Wilderness Tribe - +20% animal/forage drops, Food spoils 15% slower
+- Tier 3: Children of the Forest - +25% animal/forage drops, +5% movement speed
+- Tier 4: Pantheon of the Hunt - +5°C temperature resistance
 
 #### Implementation Tasks
-- [ ] Replace `GetLysaBlessings()` in `BlessingDefinitions.cs`
-- [ ] Update blessing IDs
-- [ ] Add stat modifiers: `DoubleHarvestChance`, `MovementSpeed`, `AnimalDamage`, `AnimalDrops`, `FoodSpoilage`, `Satiety`, `TemperatureResistance`
+- [x] Replace `GetLysaBlessings()` in `BlessingDefinitions.cs`
+- [x] Update blessing IDs
+- [x] Add stat modifiers: `ForageDrops`, `AnimalDrops`, `MovementSpeed`, `FoodSpoilage`, `AnimalDamage`, `TemperatureResistance`
 
 ### Part B: Activity-Based Favor Tracking
 
@@ -410,7 +422,7 @@ Follow same structure as Khoras but with hunting/gathering themes:
 - ⏸️ Complete Part A: Blessing redesigns
 - ⏸️ Foraging detection and tracking
 - ⏸️ Chunk exploration tracking
-- ⏸️ Part C: Special effects (animal tracking, compass, food spoilage, temperature)
+- ⏸️ Part C: Special effects (food spoilage, temperature)
 - ⏸️ Part D: Testing
 
 **Note**: Phase 2 was started while Phase 1 is still in progress. Consider completing Phase 1 before continuing Phase 2.
@@ -425,25 +437,27 @@ Follow same structure as Khoras but with hunting/gathering themes:
 **New Identity**: Goddess of Light & Agriculture (expanded from just Light)
 **Focus**: Crop yields, cooking, food satiety, heat resistance
 
+**For detailed blessing design, see:** [`docs/topics/reference/aethra_agriculture_blessings.md`](../reference/aethra_agriculture_blessings.md)
+
 ### Part A: Redesign Blessings
 
 #### Player Blessings (6)
-- Tier 1: Sun's Blessing
-- Tier 2A: Bountiful Harvest (agriculture path)
-- Tier 2B: Baker's Touch (cooking path)
-- Tier 3A: Master Farmer
-- Tier 3B: Divine Kitchen
-- Tier 4: Avatar of Abundance
+- Tier 1: Sun's Blessing - +15% crop yield, +10% satiety from all food
+- Tier 2A: Bountiful Harvest - +20% crop yield (total: 35%), 20% chance for bonus seeds
+- Tier 2B: Baker's Touch - Cooking yields +30% more, Food spoils 20% slower
+- Tier 3A: Master Farmer - +25% crop yield (total: 60%), 30% chance for bonus seeds (total: 50%)
+- Tier 3B: Divine Kitchen - Cooking yields +40% more (total: 70%), Food spoils 30% slower (total: 50%)
+- Tier 4: Avatar of Abundance - +15% satiety (total: 25%), +10% max health
 
 #### Religion Blessings (4)
-- Tier 1: Community Farm
-- Tier 2: Harvest Festival
-- Tier 3: Land of Plenty
-- Tier 4: Pantheon of Light (includes Sacred Granary structure)
+- Tier 1: Community Farm - +15% crop yield
+- Tier 2: Harvest Festival - +20% crop yield, Cooking yields +20% more
+- Tier 3: Land of Plenty - +25% crop yield, +10% satiety from all food
+- Tier 4: Pantheon of Light - Food spoils 20% slower
 
 #### Implementation Tasks
 - [x] Replace `GetAethraBlessings()`
-- [x] Add stat modifiers: `CropYield`, `SeedDropChance`, `CookingYield`, `HeatResistance`, `RareCropChance`
+- [x] Add stat modifiers: `CropYield`, `SeedDropChance`, `CookingYield`, `Satiety`, `FoodSpoilage`
 - [x] Update blessing IDs
 
 ### Part B: Activity-Based Favor Tracking
@@ -477,7 +491,6 @@ Follow same structure as Khoras but with hunting/gathering themes:
 - Blessed meals (temporary buffs)
 - Never malnourished
 - Rare crop variant finding
-- Sacred Granary structure (religion-wide)
 
 #### Implementation Tasks
 - [ ] Create `AethraEffectHandlers.cs`
@@ -493,74 +506,81 @@ Follow same structure as Khoras but with hunting/gathering themes:
 
 ---
 
-## Phase 4: Gaia - Goddess of Earth & Stone
+## Phase 4: Gaia - Goddess of Pottery & Clay
 
 **Duration**: 1.5 weeks
-**Goal**: Final utility deity with mining/building focus
+**Goal**: Final utility deity with pottery crafting focus
 
-**New Identity**: Goddess of Earth & Stone (same theme)
-**Focus**: Stone/clay yields, building, physical resilience, fall damage reduction
+**New Identity**: Goddess of Pottery & Clay (pottery redesign)
+**Focus**: Pottery crafting, clay gathering, storage capacity, food preservation, kiln efficiency
 
 ### Part A: Redesign Blessings
 
+**For detailed blessing design, see:** [`docs/topics/reference/gaia_pottery_blessings.md`](../reference/gaia_pottery_blessings.md)
+
 #### Player Blessings (6)
-- Tier 1: Earthen Foundation
-- Tier 2A: Quarryman (resource path)
-- Tier 2B: Mountain's Endurance (survival path)
-- Tier 3A: Master Quarryman
-- Tier 3B: Unshakeable
-- Tier 4: Avatar of Earth
+- Tier 1: Clay Shaper
+- Tier 2A: Master Potter (crafting path)
+- Tier 2B: Earthen Builder (utility path)
+- Tier 3A: Kiln Master
+- Tier 3B: Clay Architect
+- Tier 4: Avatar of Clay
 
 #### Religion Blessings (4)
-- Tier 1: Stone Circle
-- Tier 2: Earth Wardens
-- Tier 3: Mountain's Children
-- Tier 4: Pantheon of Stone
+- Tier 1: Potter's Circle
+- Tier 2: Clay Guild
+- Tier 3: Earthen Community
+- Tier 4: Pantheon of Clay
 
 #### Implementation Tasks
-- [x] Replace `GetGaiaBlessings()`
-- [x] Add stat modifiers: `StoneYield`, `ClayYield`, `PickDurability`, `FallDamageReduction`, `RareStoneChance`
-- [x] Update blessing IDs
+- [ ] Replace `GetGaiaBlessings()` with pottery-focused design
+- [ ] Add stat modifiers: `ClayYield`, `PotteryFormingSpeed`, `StorageVesselCapacity`
+- [ ] Update blessing IDs
 
 ### Part B: Activity-Based Favor Tracking
 
 **New File**: `PantheonWars/Systems/Favor/GaiaFavorTracker.cs`
 
 **New Favor Sources:**
-1. Mining stone/clay: 0.3 favor per block
-2. Building structures: 2-10 favor per structure
-3. Quarrying: 1 favor per stone type
-4. PvP kills: Existing
-5. Passive: 0.5/hour
+1. Crafting pottery items: 2-5 favor per craft (vessels, pots, etc.)
+2. Firing pottery in kilns: 3-8 favor per firing (based on quantity)
+3. Creating clay bricks: 1 favor per batch
+4. Crafting molds/crucibles: 5-10 favor per craft
+5. Building with clay blocks: 0.5 favor per block placed
+6. PvP kills: Existing
+7. Passive: 0.5/hour
 
 #### Implementation Complexity
-- Stone/clay detection (many block variants)
-- Building detection (structure placement complexity)
-- Quarrying vs regular mining distinction
+- Pottery crafting detection (clay forming completion)
+- Kiln firing detection (when firing completes)
+- Clay brick batch detection
+- Mold/crucible crafting detection
+- Clay block placement tracking
 
 #### Implementation Tasks
 - [ ] Create `GaiaFavorTracker.cs`
-- [ ] Implement stone/clay mining detection
-- [ ] Create stone type whitelist (granite, basalt, etc.)
-- [ ] Implement building structure detection
-- [ ] Register tracker
+- [ ] Implement pottery crafting detection
+- [ ] Create pottery item whitelist (vessels, pots, jugs, etc.)
+- [ ] Implement kiln firing completion detection
+- [ ] Implement clay brick batch detection
+- [ ] Implement mold/crucible crafting tracking
+- [ ] Implement clay block placement tracking
+- [ ] Register tracker in `FavorSystem.cs`
 
 ### Part C: Special Effects
-- Fall damage reduction
-- Overburdened immunity (first tier)
-- Rare stone finding
-- Health/armor bonuses
+- Storage vessel capacity increase (stat modifier)
+- Max health bonus (Avatar of Clay)
 
 #### Implementation Tasks
-- [ ] Create `GaiaEffectHandlers.cs`
-- [ ] Implement fall damage modifier
-- [ ] Implement overburdened immunity
-- [ ] Implement rare stone discovery
+- [ ] Verify storage capacity modifier applies correctly
+- [ ] Test max health bonus on Champion unlock
 
 ### Part D: Testing
-- [ ] Unit tests for stone/building favor
+- [ ] Unit tests for pottery/kiln favor
 - [ ] Integration tests
-- [ ] Manual: mine stone, build structures, test fall damage
+- [ ] Manual: craft pottery, fire kilns, test bonuses
+- [ ] Test storage capacity increases
+- [ ] Test food preservation in clay vessels
 - [ ] Performance testing
 
 ---
@@ -574,11 +594,12 @@ Follow same structure as Khoras but with hunting/gathering themes:
 Add new stat constants for all utility bonuses. Current system uses Vintage Story's stat modifier API.
 
 New stats needed:
-- Tool/equipment: `ToolDurability`, `RepairCostReduction`, `RepairEfficiency`
-- Mining/gathering: `OreYield`, `MiningSpeed`, `ChoppingSpeed`, `StoneYield`, `ClayYield`
-- Farming: `CropYield`, `SeedDropChance`, `RareCropChance`, `CookingYield`
-- Hunting: `DoubleHarvestChance`, `AnimalDamage`, `AnimalDrops`
-- Survival: `ColdResistance`, `HeatResistance`, `HungerRate`, `FoodSpoilage`, `FallDamageReduction`
+- Tool/equipment: `ToolDurability`
+- Mining/gathering: `OreYield`, `MiningSpeed`, `ClayYield`
+- Farming: `CropYield`, `SeedDropChance`, `CookingYield`, `Satiety`
+- Hunting: `ForageDrops`, `AnimalDrops`, `AnimalDamage`
+- Pottery: `PotteryFormingSpeed`, `StorageVesselCapacity`
+- Survival: `ColdResistance`, `TemperatureResistance`, `FoodSpoilage`, `MovementSpeed`
 - Combat: Keep existing melee/armor stats for PvP relevance
 
 ### Blessing Effect System Architecture
