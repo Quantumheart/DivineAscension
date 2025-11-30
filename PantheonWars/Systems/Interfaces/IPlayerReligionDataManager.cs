@@ -4,7 +4,7 @@ using PantheonWars.Data;
 
 namespace PantheonWars.Systems.Interfaces;
 
-public interface IPlayerReligionDataManager
+public interface IPlayerReligionDataManager : IDisposable
 {
     event PlayerReligionDataManager.PlayerReligionDataChangedDelegate OnPlayerLeavesReligion;
 

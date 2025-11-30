@@ -578,196 +578,161 @@ public static class BlessingDefinitions
     #endregion
 
 
-    #region Gaia (Earth & Stone) - 10 Blessings (Utility-Focused)
+    #region Gaia (Pottery & Clay) - 10 Blessings (Utility-Focused)
 
     private static List<Blessing> GetGaiaBlessings()
     {
         return new List<Blessing>
         {
-            // PLAYER BLESSINGS (6 total) - Earth resources & endurance utility focus
+            // PLAYER BLESSINGS (6 total) - Pottery crafting & clay utility focus
 
             // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.GaiaEarthenFoundation, "Earthen Foundation", DeityType.Gaia)
+            new(BlessingIds.GaiaClayShaper, "Clay Shaper", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "Draw strength from the earth. +10% stone/clay/gravel yield when mining, +10% max health, -15% fall damage.",
+                Description = "Foundation for pottery crafting. +20% clay yield when digging, +10% max health.",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StoneYield, 0.10f },
-                    { VintageStoryStats.ClayYield, 0.10f },
-                    { VintageStoryStats.GravelYield, 0.10f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f },
-                    { VintageStoryStats.FallDamageReduction, 0.15f }
+                    { VintageStoryStats.ClayYield, 0.20f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
                 }
             },
 
             // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.GaiaQuarryman, "Quarryman", DeityType.Gaia)
+            new(BlessingIds.GaiaMasterPotter, "Master Potter", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Specialize in stone extraction. +12% stone/clay/gravel yield, +20% chance to find granite/marble/other stone types, mining picks last 15% longer. Resource path. Requires Earthen Foundation.",
+                    "Specialize in pottery crafting. +30% chance to place an additional voxel while knapping pottery, +10% digging speed. Crafting path. Requires Clay Shaper.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthenFoundation },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaClayShaper },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StoneYield, 0.12f },
-                    { VintageStoryStats.ClayYield, 0.12f },
-                    { VintageStoryStats.GravelYield, 0.12f },
-                    { VintageStoryStats.RareStoneChance, 0.20f },
-                    { VintageStoryStats.PickDurability, 0.15f }
+                    { VintageStoryStats.ClayFormingVoxelChance, 0.30f },
+                    { VintageStoryStats.DiggingSpeed, 0.10f }
                 }
             },
-            new(BlessingIds.GaiaMountainsEndurance, "Mountain's Endurance", DeityType.Gaia)
+            new(BlessingIds.GaiaEarthenBuilder, "Earthen Builder", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Become as tough as the mountains. +15% max health, -20% fall damage, +8% armor from all equipment, hunger depletes 10% slower. Survival path. Requires Earthen Foundation.",
+                    "Focus on utility and storage. Storage vessels +30% capacity, +15% stone yield. Utility path. Requires Clay Shaper.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthenFoundation },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaClayShaper },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.FallDamageReduction, 0.20f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.08f },
-                    { VintageStoryStats.HungerRate, -0.10f }
+                    { VintageStoryStats.StorageVesselCapacity, 0.30f },
+                    { VintageStoryStats.StoneYield, 0.15f }
                 }
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.GaiaMasterQuarryman, "Master Quarryman", DeityType.Gaia)
+            new(BlessingIds.GaiaKilnMaster, "Kiln Master", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Achieve mastery of stone extraction. +15% stone/clay/gravel yield, +35% chance to find rare stones, mining picks last 25% longer, +15% chance to find surface copper/tin when mining stone. Requires Quarryman.",
+                    "Achieve legendary pottery crafting. +40% chance to place an additional voxel while knapping pottery (total: 70%), +15% digging speed (total: 25%). Requires Master Potter.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaQuarryman },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaMasterPotter },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StoneYield, 0.15f },
-                    { VintageStoryStats.ClayYield, 0.15f },
-                    { VintageStoryStats.GravelYield, 0.15f },
-                    { VintageStoryStats.RareStoneChance, 0.35f },
-                    { VintageStoryStats.PickDurability, 0.25f },
-                    { VintageStoryStats.OreInStoneChance, 0.15f }
+                    { VintageStoryStats.ClayFormingVoxelChance, 0.40f },
+                    { VintageStoryStats.DiggingSpeed, 0.15f }
                 }
             },
-            new(BlessingIds.GaiaUnshakeable, "Unshakeable", DeityType.Gaia)
+            new(BlessingIds.GaiaClayArchitect, "Clay Architect", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Become nearly indestructible. +20% max health, -25% fall damage, +12% armor from all equipment, hunger depletes 15% slower, +5°C cold resistance. Requires Mountain's Endurance.",
+                    "Master storage and stone gathering. Storage vessels +40% capacity (total: 70%), +20% stone yield (total: 35%). Requires Earthen Builder.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaMountainsEndurance },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthenBuilder },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
-                    { VintageStoryStats.FallDamageReduction, 0.25f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.12f },
-                    { VintageStoryStats.HungerRate, -0.15f },
-                    { VintageStoryStats.ColdResistance, 5.0f }
+                    { VintageStoryStats.StorageVesselCapacity, 0.40f },
+                    { VintageStoryStats.StoneYield, 0.20f }
                 }
             },
 
             // Tier 4 - Champion (5000+ favor) - Capstone (requires both paths)
-            new(BlessingIds.GaiaAvatarOfEarth, "Avatar of Earth", DeityType.Gaia)
+            new(BlessingIds.GaiaAvatarOfClay, "Avatar of Clay", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Embody the eternal strength of the earth. +5% movement speed, +8°C cold resistance, immune to slowness from being overburdened. Requires both Master Quarryman and Unshakeable.",
+                    "Embody the mastery of clay. +10% max health. Requires both Kiln Master and Clay Architect.",
                 RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaMasterQuarryman, BlessingIds.GaiaUnshakeable },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaKilnMaster, BlessingIds.GaiaClayArchitect },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.WalkSpeed, 0.05f },
-                    { VintageStoryStats.ColdResistance, 8.0f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.OverburdenedImmunity }
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
+                }
             },
 
-            // RELIGION BLESSINGS (4 total) - Shared earth benefits
+            // RELIGION BLESSINGS (4 total) - Shared pottery benefits
 
             // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.GaiaStoneCircle, "Stone Circle", DeityType.Gaia)
+            new(BlessingIds.GaiaPottersCircle, "Potter's Circle", DeityType.Gaia)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Your congregation gathers in ancient stone circles. +8% stone/clay/gravel yield, +8% max health for all members.",
+                    "Your congregation shares pottery knowledge. +15% clay yield for all members.",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StoneYield, 0.08f },
-                    { VintageStoryStats.ClayYield, 0.08f },
-                    { VintageStoryStats.GravelYield, 0.08f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.08f }
+                    { VintageStoryStats.ClayYield, 0.15f }
                 }
             },
 
             // Tier 2 - Established (500-1999 prestige) - Coordination
-            new(BlessingIds.GaiaEarthWardens, "Earth Wardens", DeityType.Gaia)
+            new(BlessingIds.GaiaClayGuild, "Clay Guild", DeityType.Gaia)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Guardians of the earth united. +12% stone/clay/gravel yield, +12% max health, -15% fall damage for all. Requires Stone Circle.",
+                    "A united guild of skilled potters. +20% chance to place an additional voxel while knapping pottery for all. Requires Potter's Circle.",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaStoneCircle },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaPottersCircle },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StoneYield, 0.12f },
-                    { VintageStoryStats.ClayYield, 0.12f },
-                    { VintageStoryStats.GravelYield, 0.12f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.12f },
-                    { VintageStoryStats.FallDamageReduction, 0.15f }
+                    { VintageStoryStats.ClayFormingVoxelChance, 0.20f }
                 }
             },
 
             // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
-            new(BlessingIds.GaiaMountainsChildren, "Mountain's Children", DeityType.Gaia)
+            new(BlessingIds.GaiaEarthenCommunity, "Earthen Community", DeityType.Gaia)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Your religion becomes children of the mountains. +18% stone/clay/gravel yield, +18% max health, -22% fall damage, +8% armor for all. Requires Earth Wardens.",
+                    "A thriving pottery community. Storage vessels +25% capacity for all. Requires Clay Guild.",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthWardens },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaClayGuild },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StoneYield, 0.18f },
-                    { VintageStoryStats.ClayYield, 0.18f },
-                    { VintageStoryStats.GravelYield, 0.18f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.18f },
-                    { VintageStoryStats.FallDamageReduction, 0.22f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.08f }
+                    { VintageStoryStats.StorageVesselCapacity, 0.25f }
                 }
             },
 
-            // Tier 4 - Legendary (5000+ prestige) - Pantheon of Stone
-            new(BlessingIds.GaiaPantheonOfStone, "Pantheon of Stone", DeityType.Gaia)
+            // Tier 4 - Legendary (5000+ prestige) - Pantheon of Clay
+            new(BlessingIds.GaiaPantheonOfClay, "Pantheon of Clay", DeityType.Gaia)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Your religion becomes legendary stone workers. +25% stone/clay/gravel yield, +25% max health, -30% fall damage, +12% armor, +5°C cold resistance for all. Requires Mountain's Children.",
+                    "Your religion becomes legendary potters. +10% max health for all. Requires Earthen Community.",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaMountainsChildren },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthenCommunity },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StoneYield, 0.25f },
-                    { VintageStoryStats.ClayYield, 0.25f },
-                    { VintageStoryStats.GravelYield, 0.25f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.25f },
-                    { VintageStoryStats.FallDamageReduction, 0.30f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.12f },
-                    { VintageStoryStats.ColdResistance, 5.0f }
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
                 }
             }
         };

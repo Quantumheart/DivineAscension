@@ -12,7 +12,7 @@ namespace PantheonWars.Systems;
 /// <summary>
 ///     Manages all religions and congregation membership
 /// </summary>
-public class ReligionManager : IReligionManager
+public class ReligionManager : IReligionManager, IDisposable
 {
     private const string DATA_KEY = "pantheonwars_religions";
     private readonly Dictionary<string, List<string>> _invitations = new(); // playerUID -> list of religionUIDs
@@ -36,6 +36,12 @@ public class ReligionManager : IReligionManager
         _sapi.Event.GameWorldSave += OnGameWorldSave;
 
         _sapi.Logger.Notification("[PantheonWars] Religion Manager initialized");
+    }
+
+    public void Dispose()
+    {
+        _sapi.Event.SaveGameLoaded -= OnSaveGameLoaded;
+        _sapi.Event.GameWorldSave -= OnGameWorldSave;
     }
 
     /// <summary>

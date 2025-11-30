@@ -11,6 +11,7 @@ using PantheonWars.Systems.BuffSystem;
 using PantheonWars.Systems.BuffSystem.Interfaces;
 using HarmonyLib;
 using System.Reflection;
+using PantheonWars.Systems.Patches;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -103,6 +104,10 @@ public class PantheonWarsSystem : ModSystem
     {
         base.StartServerSide(api);
         _sapi = api;
+        
+        // Clear any static event subscribers from previous loads
+        PitKilnPatches.ClearSubscribers();
+        
         api.Logger.Notification("[PantheonWars] Initializing server-side systems...");
 
         // Register entity behaviors
@@ -209,7 +214,15 @@ public class PantheonWarsSystem : ModSystem
         // Unpatch Harmony
         _harmony?.UnpatchAll("com.pantheonwars.patches");
 
-        // Cleanup
+        // Cleanup systems
+        _favorSystem?.Dispose();
+        _playerReligionDataManager?.Dispose();
+        _religionManager?.Dispose();
+
+        // Clear static events
+        PitKilnPatches.ClearSubscribers();
+
+        // Cleanup dialogs
         _religionDialog?.Dispose();
         _createReligionDialog?.Dispose();
     }

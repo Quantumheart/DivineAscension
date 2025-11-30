@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 using PantheonWars.Data;
 using PantheonWars.Models.Enum;
 
 namespace PantheonWars.Systems.Interfaces;
 
-public interface IReligionManager
+public interface IReligionManager : IDisposable
 {
     /// <summary>
     ///     Initializes the religion manager

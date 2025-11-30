@@ -56,15 +56,20 @@ public static class VintageStoryStats
     public const string WildCropYield = "wildCropYield";
     public const string CookedFoodSatiety = "cookedFoodSatiety";
 
-    // Gaia (Earth & Stone) Stats
+    // Gaia (Pottery & Clay) Stats
     public const string StoneYield = "stoneYield";
     public const string ClayYield = "clayYield";
+    public const string ClayFormingVoxelChance = "clayFormingVoxelChance";
+    public const string StorageVesselCapacity = "storageVesselCapacity";
+    public const string DiggingSpeed = "diggingSpeed";
+
+    // Legacy Gaia Stats (kept for compatibility)
     public const string PickDurability = "pickDurability";
     public const string FallDamageReduction = "fallDamageReduction";
     public const string RareStoneChance = "rareStoneChance";
     public const string OreInStoneChance = "oreInStoneChance";
     public const string GravelYield = "gravelYield";
-    
-    // Other 
+
+    // Other
     public const string AnimalSeekingRange = "animalSeekingRange";
 }

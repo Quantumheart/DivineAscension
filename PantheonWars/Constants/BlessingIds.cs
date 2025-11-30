@@ -117,21 +117,21 @@ public static class BlessingIds
 
     #endregion
 
-    #region Gaia (Earth & Stone) - 10 Blessings
+    #region Gaia (Pottery & Clay) - 10 Blessings
 
     // Player Blessings (6)
-    public const string GaiaEarthenFoundation = "gaia_earthen_foundation";
-    public const string GaiaQuarryman = "gaia_quarryman";
-    public const string GaiaMountainsEndurance = "gaia_mountains_endurance";
-    public const string GaiaMasterQuarryman = "gaia_master_quarryman";
-    public const string GaiaUnshakeable = "gaia_unshakeable";
-    public const string GaiaAvatarOfEarth = "gaia_avatar_of_earth";
+    public const string GaiaClayShaper = "gaia_clay_shaper";
+    public const string GaiaMasterPotter = "gaia_master_potter";
+    public const string GaiaEarthenBuilder = "gaia_earthen_builder";
+    public const string GaiaKilnMaster = "gaia_kiln_master";
+    public const string GaiaClayArchitect = "gaia_clay_architect";
+    public const string GaiaAvatarOfClay = "gaia_avatar_of_clay";
 
     // Religion Blessings (4)
-    public const string GaiaStoneCircle = "gaia_stone_circle";
-    public const string GaiaEarthWardens = "gaia_earth_wardens";
-    public const string GaiaMountainsChildren = "gaia_mountains_children";
-    public const string GaiaPantheonOfStone = "gaia_pantheon_of_stone";
+    public const string GaiaPottersCircle = "gaia_potters_circle";
+    public const string GaiaClayGuild = "gaia_clay_guild";
+    public const string GaiaEarthenCommunity = "gaia_earthen_community";
+    public const string GaiaPantheonOfClay = "gaia_pantheon_of_clay";
 
     #endregion
 

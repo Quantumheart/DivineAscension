@@ -30,6 +30,7 @@ public class FavorSystem : IFavorSystem, IDisposable
     private HuntingFavorTracker _huntingFavorTracker;
     private ForagingFavorTracker _foragingFavorTracker;
     private AethraFavorTracker _aethraFavorTracker;
+    private GaiaFavorTracker _gaiaFavorTracker;
     private readonly ICoreServerAPI _sapi;
 
     public FavorSystem(ICoreServerAPI sapi, IPlayerDataManager playerDataManager,
@@ -72,6 +73,9 @@ public class FavorSystem : IFavorSystem, IDisposable
 
         _aethraFavorTracker = new AethraFavorTracker(_playerReligionDataManager, _sapi, this);
         _aethraFavorTracker.Initialize();
+
+        _gaiaFavorTracker = new GaiaFavorTracker(_playerReligionDataManager, _sapi, this);
+        _gaiaFavorTracker.Initialize();
 
         // _smeltingFavorTracker = new SmeltingFavorTracker(_playerReligionDataManager, _sapi, this);
         // _smeltingFavorTracker.Initialize();
@@ -183,12 +187,25 @@ public class FavorSystem : IFavorSystem, IDisposable
     /// </summary>
     public void AwardFavorForAction(IServerPlayer player, string actionType, int amount)
     {
-        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
+        AwardFavorForAction(player.PlayerUID, actionType, amount);
+    }
+
+    /// <summary>
+    ///     Awards favor for deity-aligned actions (extensible for future features) by UID
+    /// </summary>
+    public void AwardFavorForAction(string playerUid, string actionType, int amount)
+    {
+        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(playerUid);
 
         if (religionData.ActiveDeity == DeityType.None) return;
 
-        _playerReligionDataManager.AddFavor(player.PlayerUID, amount, actionType);
-        AwardFavorMessage(player, actionType, amount, religionData);
+        _playerReligionDataManager.AddFavor(playerUid, amount, actionType);
+        
+        var player = _sapi.World.PlayerByUid(playerUid) as IServerPlayer;
+        if (player != null)
+        {
+            AwardFavorMessage(player, actionType, amount, religionData);
+        }
     }
 
     private static void AwardFavorMessage(IServerPlayer player, string actionType, int amount,
@@ -314,16 +331,27 @@ public class FavorSystem : IFavorSystem, IDisposable
         _huntingFavorTracker?.Dispose();
         _foragingFavorTracker?.Dispose();
         _aethraFavorTracker?.Dispose();
+        _gaiaFavorTracker?.Dispose();
     }
 
     public void AwardFavorForAction(IServerPlayer player, string actionType, float amount)
     {
-        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
+        AwardFavorForAction(player.PlayerUID, actionType, amount);
+    }
+
+    public void AwardFavorForAction(string playerUid, string actionType, float amount)
+    {
+        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(playerUid);
 
         if (religionData.ActiveDeity == DeityType.None) return;
 
-        _playerReligionDataManager.AddFractionalFavor(player.PlayerUID, amount, actionType);
-        AwardFavorMessage(player, actionType, amount, religionData);
+        _playerReligionDataManager.AddFractionalFavor(playerUid, amount, actionType);
+
+        var player = _sapi.World.PlayerByUid(playerUid) as IServerPlayer;
+        if (player != null)
+        {
+            AwardFavorMessage(player, actionType, amount, religionData);
+        }
     }
 
     private void AwardFavorMessage(IServerPlayer player, string actionType, float amount,

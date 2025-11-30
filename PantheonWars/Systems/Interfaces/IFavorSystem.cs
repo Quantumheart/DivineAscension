@@ -1,3 +1,4 @@
+using System;
 using Vintagestory.API.Server;
 
 namespace PantheonWars.Systems.Interfaces;
@@ -5,7 +6,7 @@ namespace PantheonWars.Systems.Interfaces;
 /// <summary>
 ///     Interface for managing divine favor rewards and penalties
 /// </summary>
-public interface IFavorSystem
+public interface IFavorSystem : IDisposable
 {
     /// <summary>
     ///     Initializes the favor system and hooks into game events
