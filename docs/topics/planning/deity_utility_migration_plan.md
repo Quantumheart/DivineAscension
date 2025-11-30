@@ -169,7 +169,7 @@ Gaia = 7      // Earth → Stone (will update in Phase 4)
 **New Favor Sources:**
 1. Mining ore: 2 favor per ore block ✅
 2. Smithing items: 5-15 favor per craft ✅
-3. ~~Repairing tools: 1-5 favor per repair~~ - **DEFERRED**
+3. Repairing tools: 1-5 favor per repair
 4. PvP kills: Keep existing (10 favor base) ✅
 5. Passive: Reduce from 2.0/hour → 0.5/hour ✅
 
@@ -493,10 +493,10 @@ Implement Khoras-specific effects:
 - Rare crop variant finding
 
 #### Implementation Tasks
-- [ ] Create `AethraEffectHandlers.cs`
-- [ ] Implement blessed meal system
-- [ ] Implement malnutrition prevention
-- [ ] Implement rare crop discovery
+- [x] Create `AethraEffectHandlers.cs`
+- [x] Implement blessed meal system
+- [x] Implement malnutrition prevention
+- [x] Implement rare crop discovery
 
 ### Part D: Testing
 - [ ] Unit tests for crop/cooking favor

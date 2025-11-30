@@ -76,6 +76,11 @@ public static class SpecialEffects
     /// </summary>
     public const string SacredGranary = "sacred_granary";
 
+    /// <summary>
+    ///     Rare Crop Discovery: Chance to discover rare crop variants on harvest
+    /// </summary>
+    public const string RareCropDiscovery = "rare_crop_discovery";
+
     #endregion
 
     #region Gaia (Earth & Stone) Effects

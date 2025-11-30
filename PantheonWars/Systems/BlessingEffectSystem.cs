@@ -531,6 +531,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.NeverMalnourishedEffect());
         _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.BlessedMealsEffect());
         _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.TempHealthBuffEffect());
+        _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.RareCropDiscoveryEffect());
         // Note: FoodSpoilageReduction is shared with Lysa and already registered above
 
         _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered all special effect handlers");

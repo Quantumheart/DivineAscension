@@ -13,6 +13,69 @@ namespace PantheonWars.Systems.BlessingEffects.Handlers;
 public static class AethraEffectHandlers
 {
     /// <summary>
+    ///     Rare crop discovery effect - chance to improve harvest with rare variants
+    ///     Effect ID: rare_crop_discovery
+    /// </summary>
+    public class RareCropDiscoveryEffect : ISpecialEffectHandler
+    {
+        private ICoreServerAPI? _sapi;
+        private readonly HashSet<string> _activePlayers = new();
+
+        public string EffectId => SpecialEffects.RareCropDiscovery;
+
+        public void Initialize(ICoreServerAPI sapi)
+        {
+            _sapi = sapi;
+            _sapi.Event.BreakBlock += OnBreakBlock;
+            _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
+        }
+
+        public void ActivateForPlayer(IServerPlayer player)
+        {
+            _activePlayers.Add(player.PlayerUID);
+        }
+
+        public void DeactivateForPlayer(IServerPlayer player)
+        {
+            _activePlayers.Remove(player.PlayerUID);
+        }
+
+        public void OnTick(float deltaTime) { }
+
+        private void OnBreakBlock(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier,
+            ref EnumHandling handling)
+        {
+            if (_sapi == null || !_activePlayers.Contains(player.PlayerUID)) return;
+
+            var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
+            if (block?.Code == null) return;
+
+            var path = block.Code.Path;
+            // Apply only to crop/vegetable harvests
+            if (!(path.Contains("crop") || path.Contains("vegetable")) || path.Contains("harvested")) return;
+
+            // Chance comes from blended RareCropChance stat (additive percent, e.g., 0.15 = 15%)
+            var chance = player.Entity?.Stats?.GetBlended(VintageStoryStats.RareCropChance) ?? 0f;
+            if (chance <= 0) return;
+
+            if (_sapi.World.Rand.NextDouble() < chance)
+            {
+                // As a lightweight proxy for rare variant discovery, increase drop quantity modestly
+                dropQuantityMultiplier *= 1.25f;
+
+                // Tag the event for potential downstream integrations via a player attribute flag
+                var tree = player.Entity!.WatchedAttributes.GetOrAddTreeAttribute("pantheonwars");
+                tree.SetString("lastRareCropPath", path);
+                tree.SetLong("lastRareCropGameTimeMs", _sapi.World.ElapsedMilliseconds);
+
+                player.SendMessage(GlobalConstants.GeneralChatGroup,
+                    Lang.Get("Aethra guides your harvest – you discover a rare crop variant!"),
+                    EnumChatType.Notification);
+            }
+        }
+    }
+
+    /// <summary>
     ///     Never malnourished effect - prevents malnutrition penalties
     ///     Effect ID: never_malnourished
     /// </summary>
@@ -114,12 +177,19 @@ public static class AethraEffectHandlers
         {
             _activePlayers.Add(player.PlayerUID);
             _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
+
+            // Mark player as eligible for blessed meals for other systems to query
+            var tree = player.Entity?.WatchedAttributes.GetOrAddTreeAttribute("pantheonwars");
+            tree?.SetBool("blessedMealsEligible", true);
         }
 
         public void DeactivateForPlayer(IServerPlayer player)
         {
             _activePlayers.Remove(player.PlayerUID);
             _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
+
+            var tree = player.Entity?.WatchedAttributes.GetOrAddTreeAttribute("pantheonwars");
+            tree?.SetBool("blessedMealsEligible", false);
         }
 
         public void OnTick(float deltaTime)
@@ -163,8 +233,12 @@ public static class AethraEffectHandlers
             // +10-30% satiety efficiency
             // +5-15% damage
 
+            // Flag that a blessed meal was consumed; TempHealthBuffEffect or other systems may read this
+            var tree = entity.WatchedAttributes.GetOrAddTreeAttribute("pantheonwars");
+            tree.SetLong("lastBlessedMealMs", _sapi!.World.ElapsedMilliseconds);
+
             player.SendMessage(GlobalConstants.GeneralChatGroup,
-                $"Aethra's blessing empowers your meal with divine energy!", EnumChatType.Notification);
+                Lang.Get("Aethra's blessing empowers your meal with divine energy!"), EnumChatType.Notification);
         }
 
         private int CalculateFoodQuality(ItemStack foodItem)

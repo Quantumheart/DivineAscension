@@ -430,7 +430,8 @@ public static class BlessingDefinitions
                     { VintageStoryStats.CropYield, 0.15f },
                     { VintageStoryStats.SeedDropChance, 0.15f },
                     { VintageStoryStats.RareCropChance, 0.15f }
-                }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.RareCropDiscovery }
             },
             new(BlessingIds.AethraBakersTouch, "Baker's Touch", DeityType.Aethra)
             {
@@ -465,7 +466,8 @@ public static class BlessingDefinitions
                     { VintageStoryStats.SeedDropChance, 0.25f },
                     { VintageStoryStats.RareCropChance, 0.30f },
                     { VintageStoryStats.WildCropYield, 0.40f }
-                }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.RareCropDiscovery }
             },
             new(BlessingIds.AethraDivineKitchen, "Divine Kitchen", DeityType.Aethra)
             {
