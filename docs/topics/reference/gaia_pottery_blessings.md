@@ -20,7 +20,7 @@ Pottery crafting focused. Bonuses to clay gathering and pottery forming speed. S
 - Crafting pottery items: 2-5 favor
 - Firing pottery in kilns: 3-8 favor
 - Creating clay bricks: 1 favor per batch
-- Crafting molds/crucibles: 5-10 favor
+- Crafting molds/crucibles: 2-5 favor
 - Building with clay blocks: 0.5 favor per block
 - PvP kills: Standard
 - Passive: 0.5/hour
@@ -39,10 +39,12 @@ Pottery crafting focused. Bonuses to clay gathering and pottery forming speed. S
 ### Tier 2 - Disciple (500-1999 favor) - Choose Path
 
 **Path A: "Master Potter"** (Crafting)
-- **+30% pottery forming speed**
+- **+30% chance to place an additional voxel while clay forming**
+- **+10% digging speed**
 
 **Path B: "Earthen Builder"** (Utility)
 - **Storage vessels +30% capacity**
+- **+15% stone yield**
 
 *Both require: Clay Shaper*
 
@@ -51,12 +53,14 @@ Pottery crafting focused. Bonuses to clay gathering and pottery forming speed. S
 ### Tier 3 - Zealot (2000-4999 favor) - Specialization
 
 **Path A: "Kiln Master"**
-- **+40% pottery forming speed** (total: 70%)
+- **+40% chance to place an additional voxel while clay forming** (total: 70%)
+- **+15% digging speed** (total: 25%)
 
 *Requires: Master Potter*
 
 **Path B: "Clay Architect"**
 - **Storage vessels +40% capacity** (total: 70%)
+- **+20% stone yield** (total: 35%)
 
 *Requires: Earthen Builder*
 
@@ -93,17 +97,19 @@ Pottery crafting focused. Bonuses to clay gathering and pottery forming speed. S
 
 ## Combined Maximums (Player + Religion, Both Paths)
 
-- **90% faster pottery forming** (70% player + 20% religion)
+- **90% chance to place an additional voxel while clay forming** (70% player + 20% religion)
 - **95% more storage capacity** (70% player + 25% religion)
 - **35% more clay yield** (20% player + 15% religion)
+- **25% faster digging** (25% player path A)
+- **35% more stone yield** (35% player path B)
 - **30% max health** (20% player + 10% religion)
 
 ---
 
 ## Path Choice
 
-**Master Potter:** Maximize pottery crafting speed
-**Earthen Builder:** Maximize storage utility
+**Master Potter:** Maximize pottery crafting speed and clay gathering efficiency
+**Earthen Builder:** Maximize storage utility and stone gathering for construction
 **Champion:** Requires both paths for max health bonus
 
 ---

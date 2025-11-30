@@ -519,23 +519,23 @@ Implement Khoras-specific effects:
 **For detailed blessing design, see:** [`docs/topics/reference/gaia_pottery_blessings.md`](../reference/gaia_pottery_blessings.md)
 
 #### Player Blessings (6)
-- Tier 1: Clay Shaper
-- Tier 2A: Master Potter (crafting path)
-- Tier 2B: Earthen Builder (utility path)
-- Tier 3A: Kiln Master
-- Tier 3B: Clay Architect
-- Tier 4: Avatar of Clay
+- Tier 1: Clay Shaper - +20% clay yield, +10% max health
+- Tier 2A: Master Potter - +30% chance to place an additional voxel while knapping pottery, +10% digging speed
+- Tier 2B: Earthen Builder - Storage vessels +30% capacity, +15% stone yield
+- Tier 3A: Kiln Master - +40% chance to place an additional voxel while knapping pottery (total: 70%), +15% digging speed (total: 25%)
+- Tier 3B: Clay Architect - Storage vessels +40% capacity (total: 70%), +20% stone yield (total: 35%)
+- Tier 4: Avatar of Clay - +10% max health
 
 #### Religion Blessings (4)
-- Tier 1: Potter's Circle
-- Tier 2: Clay Guild
-- Tier 3: Earthen Community
-- Tier 4: Pantheon of Clay
+- Tier 1: Potter's Circle - All members: +15% clay yield
+- Tier 2: Clay Guild - All members: +20% pottery forming speed
+- Tier 3: Earthen Community - All members: Storage vessels +25% capacity
+- Tier 4: Pantheon of Clay - All members: +10% max health
 
 #### Implementation Tasks
-- [ ] Replace `GetGaiaBlessings()` with pottery-focused design
-- [ ] Add stat modifiers: `ClayYield`, `PotteryFormingSpeed`, `StorageVesselCapacity`
-- [ ] Update blessing IDs
+- [x] Replace `GetGaiaBlessings()` with pottery-focused design
+- [x] Add stat modifiers: `ClayYield`, `ClayFormingVoxelChance`, `StorageVesselCapacity`, `DiggingSpeed`, `StoneYield`
+- [x] Update blessing IDs
 
 ### Part B: Activity-Based Favor Tracking
 
@@ -558,14 +558,14 @@ Implement Khoras-specific effects:
 - Clay block placement tracking
 
 #### Implementation Tasks
-- [ ] Create `GaiaFavorTracker.cs`
-- [ ] Implement pottery crafting detection
+- [x] Create `GaiaFavorTracker.cs`
+- [x] Implement pottery crafting detection
 - [ ] Create pottery item whitelist (vessels, pots, jugs, etc.)
-- [ ] Implement kiln firing completion detection
+- [x] Implement kiln firing completion detection
 - [ ] Implement clay brick batch detection
 - [ ] Implement mold/crucible crafting tracking
 - [ ] Implement clay block placement tracking
-- [ ] Register tracker in `FavorSystem.cs`
+- [x] Register tracker in `FavorSystem.cs`
 
 ### Part C: Special Effects
 - Storage vessel capacity increase (stat modifier)
@@ -598,7 +598,7 @@ New stats needed:
 - Mining/gathering: `OreYield`, `MiningSpeed`, `ClayYield`
 - Farming: `CropYield`, `SeedDropChance`, `CookingYield`, `Satiety`
 - Hunting: `ForageDrops`, `AnimalDrops`, `AnimalDamage`
-- Pottery: `PotteryFormingSpeed`, `StorageVesselCapacity`
+- Pottery: `PotteryFormingSpeed`, `StorageVesselCapacity`, `DiggingSpeed`, `StoneYield`
 - Survival: `ColdResistance`, `TemperatureResistance`, `FoodSpoilage`, `MovementSpeed`
 - Combat: Keep existing melee/armor stats for PvP relevance
 

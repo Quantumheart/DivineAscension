@@ -452,15 +452,17 @@ Pottery crafting & utility focus. Focus on clay gathering, pottery forming speed
 
 **Path A: "Master Potter"** *(Crafting Path)*
 - **+30%** pottery forming speed
+- **+10%** digging speed
 - *Requires: Clay Shaper*
 
-*Maximize pottery crafting speed.*
+*Maximize pottery crafting speed and clay gathering.*
 
 **Path B: "Earthen Builder"** *(Utility Path)*
 - Storage vessels **+30%** capacity
+- **+15%** stone yield
 - *Requires: Clay Shaper*
 
-*Maximize storage utility.*
+*Maximize storage and stone gathering.*
 
 ---
 
@@ -468,15 +470,17 @@ Pottery crafting & utility focus. Focus on clay gathering, pottery forming speed
 
 **Path A: "Kiln Master"**
 - **+40%** pottery forming speed (total: 70%)
+- **+15%** digging speed (total: 25%)
 - *Requires: Master Potter*
 
-*Legendary crafting speed.*
+*Legendary crafting speed and clay gathering.*
 
 **Path B: "Clay Architect"**
 - Storage vessels **+40%** capacity (total: 70%)
+- **+20%** stone yield (total: 35%)
 - *Requires: Earthen Builder*
 
-*Massive storage capacity.*
+*Massive storage and stone gathering.*
 
 ---
 
@@ -490,6 +494,8 @@ Pottery crafting & utility focus. Focus on clay gathering, pottery forming speed
 **Combined Totals:**
 - 70% faster pottery forming
 - 70% more storage capacity
+- 25% faster digging speed
+- 35% more stone yield
 - 20% max health (10% tier 1 + 10% tier 4)
 
 ---
@@ -525,6 +531,8 @@ Pottery crafting & utility focus. Focus on clay gathering, pottery forming speed
 - 90% faster pottery forming (70% player + 20% religion)
 - 95% more storage capacity (70% player + 25% religion)
 - 35% more clay yield (20% player + 15% religion)
+- 25% faster digging (25% player path A)
+- 35% more stone yield (35% player path B)
 - 30% max health (20% player + 10% religion)
 
 ---
