@@ -169,8 +169,8 @@ public static class AethraEffectHandlers
             _sapi = sapi;
             _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
 
-            // Register event listener for food consumption
-            _sapi.Event.PlayerNowPlaying += OnPlayerJoin;
+            // Subscribe to global eating event raised by Harmony patch
+            PantheonWars.Systems.Patches.EatingPatches.OnFoodEaten += OnFoodEaten;
         }
 
         public void ActivateForPlayer(IServerPlayer player)
@@ -194,17 +194,22 @@ public static class AethraEffectHandlers
 
         public void OnTick(float deltaTime)
         {
-            // No periodic updates needed for this effect
+            // Expiry is handled per-player via tracked times
+            if (_sapi == null) return;
+
+            // Remove expired buffs
+            foreach (var uid in _activeBuffExpiry.Where(kv => kv.Value <= _sapi.World.Calendar.TotalHours).Select(kv => kv.Key).ToList())
+            {
+                var sp = _sapi.World.PlayerByUid(uid) as IServerPlayer;
+                if (sp != null) RemoveBlessedMealBuff(sp);
+            }
         }
 
-        private void OnPlayerJoin(IServerPlayer player)
+        private void OnFoodEaten(IServerPlayer player, ItemStack eatenStack)
         {
-            // When a player joins, register food consumption listener
-            // This is a placeholder - actual implementation requires hooking into food consumption
-            // The Vintage Story API doesn't have a direct "OnEat" event, so we'd need to:
-            // 1. Monitor inventory changes for food items
-            // 2. Or hook into the satiety/hunger system changes
-            // 3. Or use player.Entity.OnInteract to detect eating animations
+            // Forward to buff application
+            if (player?.Entity == null || eatenStack == null) return;
+            ApplyBlessedMealBuff(player, eatenStack);
         }
 
         /// <summary>
@@ -213,32 +218,79 @@ public static class AethraEffectHandlers
         /// </summary>
         public void ApplyBlessedMealBuff(IServerPlayer player, ItemStack foodItem)
         {
+            if (_sapi == null) return;
             if (!_activePlayers.Contains(player.PlayerUID)) return;
 
-            // Calculate buff strength based on food quality/complexity
-            var buffStrength = CalculateFoodQuality(foodItem);
-            if (buffStrength <= 0) return;
+            // Calculate buff tier based on meal complexity
+            var tier = CalculateFoodQuality(foodItem); // 1..3
+            if (tier <= 0) return;
 
-            // Apply temporary buffs
             var entity = player.Entity;
             if (entity?.Stats == null) return;
 
-            // Apply buffs via stat modifiers
-            // Duration: 10-30 minutes depending on food quality
-            var durationSeconds = 600 + (buffStrength * 120); // 10-30 minutes
+            // Remove any existing blessed meal buff before applying a new one
+            RemoveBlessedMealBuff(player);
 
-            // Buffs could include:
-            // +5-15% movement speed
-            // +5-15% max health
-            // +10-30% satiety efficiency
-            // +5-15% damage
+            // Define modifiers by tier
+            var modifiers = new Dictionary<string, float>();
+            switch (tier)
+            {
+                case 1:
+                    modifiers[VintageStoryStats.WalkSpeed] = 0.05f;
+                    modifiers[VintageStoryStats.HealingEffectiveness] = 0.05f;
+                    modifiers[VintageStoryStats.HungerRate] = -0.05f;
+                    modifiers[VintageStoryStats.CookedFoodSatiety] = 0.05f;
+                    break;
+                case 2:
+                    modifiers[VintageStoryStats.WalkSpeed] = 0.08f;
+                    modifiers[VintageStoryStats.HealingEffectiveness] = 0.08f;
+                    modifiers[VintageStoryStats.HungerRate] = -0.10f;
+                    modifiers[VintageStoryStats.CookedFoodSatiety] = 0.12f;
+                    break;
+                default:
+                    modifiers[VintageStoryStats.WalkSpeed] = 0.12f;
+                    modifiers[VintageStoryStats.HealingEffectiveness] = 0.12f;
+                    modifiers[VintageStoryStats.HungerRate] = -0.15f;
+                    modifiers[VintageStoryStats.CookedFoodSatiety] = 0.20f;
+                    break;
+            }
 
-            // Flag that a blessed meal was consumed; TempHealthBuffEffect or other systems may read this
+            // Duration by tier (minutes)
+            var minutes = tier switch { 1 => 10f, 2 => 15f, _ => 20f };
+            var expiryHours = _sapi.World.Calendar.TotalHours + (minutes / 60f);
+
+            var modifierId = string.Format(SystemConstants.ModifierIdFormat, player.PlayerUID) + "-meal";
+
+            // Ensure tracking set exists
+            if (!_activeAppliedStats.TryGetValue(player.PlayerUID, out var applied))
+            {
+                applied = new HashSet<string>();
+                _activeAppliedStats[player.PlayerUID] = applied;
+            }
+
+            foreach (var kv in modifiers)
+            {
+                try
+                {
+                    entity.Stats.Set(kv.Key, modifierId, kv.Value, false);
+                    applied.Add(kv.Key);
+                }
+                catch
+                {
+                    // ignore stat set failures to avoid hard crash
+                }
+            }
+
+            _activeBuffExpiry[player.PlayerUID] = expiryHours;
+
+            // Attribute flag for other systems/UX
             var tree = entity.WatchedAttributes.GetOrAddTreeAttribute("pantheonwars");
-            tree.SetLong("lastBlessedMealMs", _sapi!.World.ElapsedMilliseconds);
+            tree.SetDouble("blessedMealBuffExpiryHours", expiryHours);
+            tree.SetInt("blessedMealTier", tier);
 
             player.SendMessage(GlobalConstants.GeneralChatGroup,
-                Lang.Get("Aethra's blessing empowers your meal with divine energy!"), EnumChatType.Notification);
+                Lang.Get("Aethra's blessing empowers your meal! Effects last for {0} minutes.", (int)minutes),
+                EnumChatType.Notification);
         }
 
         private int CalculateFoodQuality(ItemStack foodItem)
@@ -260,6 +312,35 @@ public static class AethraEffectHandlers
                 return 1; // Simple
 
             return 0; // Not eligible
+        }
+
+        private readonly Dictionary<string, HashSet<string>> _activeAppliedStats = new();
+        private readonly Dictionary<string, double> _activeBuffExpiry = new();
+
+        private void RemoveBlessedMealBuff(IServerPlayer player)
+        {
+            var entity = player.Entity;
+            if (entity?.Stats == null) return;
+
+            var modifierId = string.Format(SystemConstants.ModifierIdFormat, player.PlayerUID) + "-meal";
+
+            if (_activeAppliedStats.TryGetValue(player.PlayerUID, out var stats))
+            {
+                foreach (var stat in stats)
+                {
+                    try { entity.Stats.Remove(stat, modifierId); } catch { /* ignore */ }
+                }
+                stats.Clear();
+            }
+
+            _activeBuffExpiry.Remove(player.PlayerUID);
+
+            var tree = entity.WatchedAttributes.GetOrAddTreeAttribute("pantheonwars");
+            tree.RemoveAttribute("blessedMealBuffExpiryHours");
+            tree.RemoveAttribute("blessedMealTier");
+
+            player.SendMessage(GlobalConstants.GeneralChatGroup,
+                Lang.Get("Aethra's meal blessing has faded."), EnumChatType.Notification);
         }
     }
 
