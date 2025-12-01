@@ -530,7 +530,6 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         // Aethra (Agriculture & Light) handlers
         _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.NeverMalnourishedEffect());
         _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.BlessedMealsEffect());
-        _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.TempHealthBuffEffect());
         _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.RareCropDiscoveryEffect());
         // Note: FoodSpoilageReduction is shared with Lysa and already registered above
 
