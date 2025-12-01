@@ -671,7 +671,6 @@ After all phases complete:
 - [ ] 90%+ unit test coverage on new code
 - [ ] All integration tests passing
 - [ ] No performance degradation (< 5% overhead)
-- [ ] Clean git history (1 PR per phase)
 
 ### Documentation
 - [ ] Player documentation complete

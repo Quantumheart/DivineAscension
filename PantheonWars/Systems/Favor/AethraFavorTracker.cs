@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using PantheonWars.Models.Enum;
 using PantheonWars.Systems.Interfaces;
+using PantheonWars.Systems.Patches;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
@@ -35,15 +36,11 @@ public class AethraFavorTracker(
     private const int FavorComplexMeal = 5;
     private const int FavorGourmetMeal = 8;
 
-    // Cooking tracking
-    private readonly Dictionary<BlockPos, CookingTrackingState> _trackedCookingContainers = new();
-    private const int TickIntervalMs = 1000;
-    private long _tickCounter;
-    private const int DiscoveryInterval = 30; // Check for cooking containers every 30 seconds
-    private int _lastPlayerScanIndex;
-    private const int MaxPlayersPerScan = 2;
-    private const int ScanRadiusXz = 8;
-    private const int ScanRadiusY = 4;
+    // Event-based: no polling or container tracking needed
+
+    // Simple per-player cooking award rate limit (to prevent rapid repeats)
+    private readonly Dictionary<string, DateTime> _lastCookingAwardUtc = new();
+    private static readonly TimeSpan CookingAwardCooldown = TimeSpan.FromSeconds(5);
 
     public void Initialize()
     {
@@ -53,8 +50,9 @@ public class AethraFavorTracker(
         // Hook into block placement for planting detection
         _sapi.Event.DidPlaceBlock += OnBlockPlaced;
 
-        // Register game tick for cooking detection
-        _sapi.Event.RegisterGameTickListener(OnGameTick, TickIntervalMs);
+        // Subscribe to cooking completion events (firepit/crock). Attribution must
+        // be the last interacting player; patches will ensure correct uid.
+        CookingPatches.OnMealCooked += HandleMealCooked;
 
         // Build initial cache of Aethra followers
         RefreshFollowerCache();
@@ -183,231 +181,45 @@ public class AethraFavorTracker(
 
     #endregion
 
-    #region Cooking Detection
+    #region Cooking (Event-Driven)
 
-    private void OnGameTick(float dt)
+    private void HandleMealCooked(string playerUid, ItemStack cookedStack, BlockPos pos)
     {
-        _tickCounter++;
+        // Ensure valid player and follower of Aethra
+        var player = _sapi.World.PlayerByUid(playerUid) as IServerPlayer;
+        if (player == null) return;
+        if (!_aethraFollowers.Contains(player.PlayerUID)) return;
 
-        // Periodically scan for active cooking containers
-        if (_tickCounter % DiscoveryInterval == 0)
+        // Rate limit per player
+        var now = DateTime.UtcNow;
+        if (_lastCookingAwardUtc.TryGetValue(playerUid, out var last) && now - last < CookingAwardCooldown)
         {
-            DiscoverActiveCookingContainers();
-        }
-
-        // Process all tracked cooking containers
-        var positionsToCheck = new List<BlockPos>(_trackedCookingContainers.Keys);
-
-        foreach (var pos in positionsToCheck)
-        {
-            var blockEntity = _sapi.World.BlockAccessor.GetBlockEntity(pos);
-
-            // Handle different cooking container types
-            if (blockEntity is BlockEntityFirepit firepit)
-            {
-                ProcessFirepit(pos, firepit);
-            }
-            else if (blockEntity is BlockEntityCrock crock)
-            {
-                ProcessCrock(pos, crock);
-            }
-        }
-
-        // Clean up unloaded containers
-        CleanupUnloadedContainers();
-    }
-
-    private void DiscoverActiveCookingContainers()
-    {
-        // Get all Aethra followers
-        var aethraFollowers = new List<IServerPlayer>();
-        foreach (var player in _sapi.World.AllOnlinePlayers)
-        {
-            if (player is not IServerPlayer serverPlayer) continue;
-
-            var religionData = _playerReligionDataManager.GetOrCreatePlayerData(serverPlayer.PlayerUID);
-            if (religionData.ActiveDeity == DeityType.Aethra)
-            {
-                aethraFollowers.Add(serverPlayer);
-            }
-        }
-
-        if (aethraFollowers.Count == 0) return;
-
-        // Only scan a subset of players per tick (round-robin)
-        int playersToScan = Math.Min(MaxPlayersPerScan, aethraFollowers.Count);
-
-        for (int i = 0; i < playersToScan; i++)
-        {
-            int playerIndex = (_lastPlayerScanIndex + i) % aethraFollowers.Count;
-            var serverPlayer = aethraFollowers[playerIndex];
-
-            ScanNearbyCookingContainers(serverPlayer);
-        }
-
-        // Update index for next scan
-        _lastPlayerScanIndex = (_lastPlayerScanIndex + playersToScan) % Math.Max(1, aethraFollowers.Count);
-    }
-
-    private void ScanNearbyCookingContainers(IServerPlayer serverPlayer)
-    {
-        var playerPos = serverPlayer.Entity?.Pos?.AsBlockPos;
-        if (playerPos == null) return;
-
-        int containersFound = 0;
-        const int maxContainersPerScan = 5;
-
-        for (int x = -ScanRadiusXz; x <= ScanRadiusXz && containersFound < maxContainersPerScan; x++)
-        {
-            for (int y = -ScanRadiusY; y <= ScanRadiusY && containersFound < maxContainersPerScan; y++)
-            {
-                for (int z = -ScanRadiusXz; z <= ScanRadiusXz && containersFound < maxContainersPerScan; z++)
-                {
-                    var checkPos = playerPos.AddCopy(x, y, z);
-
-                    // Skip if already tracking this position
-                    if (_trackedCookingContainers.ContainsKey(checkPos))
-                        continue;
-
-                    var blockEntity = _sapi.World.BlockAccessor.GetBlockEntity(checkPos);
-
-                    // Check for cooking containers with active contents
-                    if ((blockEntity is BlockEntityFirepit firepit && HasCookingContent(firepit)) ||
-                        (blockEntity is BlockEntityCrock crock && HasCookingContent(crock)))
-                    {
-                        // Start tracking this container
-                        var state = new CookingTrackingState
-                        {
-                            CraftingPlayer = serverPlayer.PlayerUID
-                        };
-                        _trackedCookingContainers[checkPos] = state;
-
-                        _sapi.Logger.Debug($"[AethraFavorTracker] Discovered cooking container at {checkPos} for player {serverPlayer.PlayerName}");
-                        containersFound++;
-                    }
-                }
-            }
-        }
-    }
-
-    private bool HasCookingContent(BlockEntityFirepit firepit)
-    {
-        // Check if firepit has items cooking (use inventory slots)
-        // Firepit has multiple slots for cooking items
-        return firepit.Inventory?.Count > 0;
-    }
-
-    private bool HasCookingContent(BlockEntityCrock crock)
-    {
-        // Check if crock has contents
-        return crock.Inventory?.Count > 0;
-    }
-
-    private void ProcessFirepit(BlockPos pos, BlockEntityFirepit firepit)
-    {
-        if (!_trackedCookingContainers.TryGetValue(pos, out var state))
-        {
-            state = new CookingTrackingState();
-            _trackedCookingContainers[pos] = state;
-        }
-
-        // Track inventory changes to detect when cooking completes
-        // Firepit slots: typically slot 0-3 for cooking items
-        int currentItemCount = 0;
-        ItemStack? cookedItem = null;
-
-        if (firepit.Inventory != null)
-        {
-            for (int i = 0; i < firepit.Inventory.Count; i++)
-            {
-                var slot = firepit.Inventory[i];
-                if (slot?.Itemstack != null)
-                {
-                    currentItemCount++;
-                    // Track the last non-empty slot as potential output
-                    cookedItem = slot.Itemstack;
-                }
-            }
-        }
-
-        // Check if item count decreased (cooking completed and item was removed)
-        // Or track when items transition from raw to cooked
-        if (state.LastItemCount > 0 && currentItemCount < state.LastItemCount && cookedItem != null)
-        {
-            // Something was removed - likely a cooked item
-            HandleCookingCompletion(state, cookedItem);
-        }
-
-        // Update state for next tick
-        state.LastItemCount = currentItemCount;
-    }
-
-    private void ProcessCrock(BlockPos pos, BlockEntityCrock crock)
-    {
-        if (!_trackedCookingContainers.TryGetValue(pos, out var state))
-        {
-            state = new CookingTrackingState();
-            _trackedCookingContainers[pos] = state;
-        }
-
-        // Crocks work differently - they create meals when sealed and time passes
-        // For now, we'll track based on inventory changes
-        int currentItemCount = crock.Inventory?.Count ?? 0;
-
-        // If crock now has items and didn't before, someone is preparing a meal
-        if (currentItemCount > 0 && state.LastItemCount == 0)
-        {
-            // Meal preparation started - store player context
-            // (In a real implementation, we'd need to track who last interacted with the crock)
-        }
-
-        state.LastItemCount = currentItemCount;
-    }
-
-    private void HandleCookingCompletion(CookingTrackingState state, ItemStack cookedItem)
-    {
-        if (string.IsNullOrEmpty(state.CraftingPlayer))
             return;
+        }
 
-        var player = _sapi.World.PlayerByUid(state.CraftingPlayer) as IServerPlayer;
-        if (player == null)
-            return;
+        int favor = CalculateMealFavor(cookedStack);
+        if (favor <= 0) return;
 
-        // Check if player follows Aethra
-        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (religionData.ActiveDeity != DeityType.Aethra)
-            return;
+        _favorSystem.AwardFavorForAction(player, "cooking " + GetMealName(cookedStack), favor);
+        _lastCookingAwardUtc[playerUid] = now;
 
-        // Calculate favor based on meal complexity
-        int favor = CalculateMealFavor(cookedItem);
-
-        _favorSystem.AwardFavorForAction(player, "cooking " + GetMealName(cookedItem), favor);
-
-        _sapi.Logger.Debug($"[AethraFavorTracker] Awarded {favor} favor to {player.PlayerName} for cooking");
-
-        // Reset state after completion
-        state.Reset();
+        _sapi.Logger.Debug($"[AethraFavorTracker] Awarded {favor} favor to {player.PlayerName} for cooking {GetMealName(cookedStack)} at {pos}");
     }
 
     private int CalculateMealFavor(ItemStack meal)
     {
-        if (meal == null) return FavorSimpleMeal;
+        if (meal == null) return 0;
 
-        string path = meal.Collectible?.Code?.Path ?? "";
+        string path = meal.Collectible?.Code?.Path ?? string.Empty;
 
-        // Gourmet meals (complex multi-ingredient dishes)
         if (IsGourmetMeal(path)) return FavorGourmetMeal;
-
-        // Complex meals (cooked dishes with multiple ingredients)
         if (IsComplexMeal(path)) return FavorComplexMeal;
-
-        // Simple meals (basic cooked items)
         return FavorSimpleMeal;
     }
 
     private bool IsGourmetMeal(string path)
     {
-        // High-tier meals: stews, pies, complex dishes
+        path = path.ToLowerInvariant();
         return path.Contains("stew") ||
                path.Contains("pie") ||
                path.Contains("soup") ||
@@ -416,7 +228,8 @@ public class AethraFavorTracker(
 
     private bool IsComplexMeal(string path)
     {
-        // Mid-tier meals: cooked meats, bread, simple prepared foods
+        path = path.ToLowerInvariant();
+        // Bread should be Complex (per requirements)
         return path.Contains("cooked") ||
                path.Contains("bread") ||
                path.Contains("roast") ||
@@ -426,52 +239,15 @@ public class AethraFavorTracker(
     private string GetMealName(ItemStack meal)
     {
         if (meal?.Collectible?.Code == null) return "a meal";
+        string path = meal.Collectible.Code.Path.ToLowerInvariant();
 
-        string path = meal.Collectible.Code.Path;
-
-        // Try to extract a friendly name
         if (path.Contains("bread")) return "bread";
         if (path.Contains("stew")) return "stew";
         if (path.Contains("soup")) return "soup";
         if (path.Contains("pie")) return "pie";
         if (path.Contains("porridge")) return "porridge";
         if (path.Contains("meat")) return "cooked meat";
-
         return "a meal";
-    }
-
-    private void CleanupUnloadedContainers()
-    {
-        var positionsToRemove = new List<BlockPos>();
-
-        foreach (var (pos, state) in _trackedCookingContainers)
-        {
-            // Remove if chunk is unloaded
-            var chunk = _sapi.World.BlockAccessor.GetChunkAtBlockPos(pos);
-            if (chunk == null)
-            {
-                positionsToRemove.Add(pos);
-                continue;
-            }
-
-            // Remove if container no longer exists or has been inactive
-            var blockEntity = _sapi.World.BlockAccessor.GetBlockEntity(pos);
-            if (blockEntity == null ||
-                (blockEntity is not BlockEntityFirepit && blockEntity is not BlockEntityCrock))
-            {
-                positionsToRemove.Add(pos);
-            }
-        }
-
-        foreach (var pos in positionsToRemove)
-        {
-            _trackedCookingContainers.Remove(pos);
-        }
-
-        if (positionsToRemove.Count > 0)
-        {
-            _sapi.Logger.Debug($"[AethraFavorTracker] Cleaned up {positionsToRemove.Count} inactive cooking containers");
-        }
     }
 
     #endregion
@@ -480,25 +256,9 @@ public class AethraFavorTracker(
     {
         _sapi.Event.BreakBlock -= OnBlockBroken;
         _sapi.Event.DidPlaceBlock -= OnBlockPlaced;
+        CookingPatches.OnMealCooked -= HandleMealCooked;
         _playerReligionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
         _playerReligionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
         _aethraFollowers.Clear();
-        _trackedCookingContainers.Clear();
-    }
-
-    /// <summary>
-    /// Tracks the state of a cooking container between game ticks
-    /// </summary>
-    private class CookingTrackingState
-    {
-        public string? CraftingPlayer { get; set; }
-        public bool HadOutputLastTick { get; set; }
-        public int LastItemCount { get; set; }
-
-        public void Reset()
-        {
-            HadOutputLastTick = false;
-            LastItemCount = 0;
-        }
     }
 }
