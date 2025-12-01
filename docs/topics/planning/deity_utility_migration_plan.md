@@ -110,9 +110,9 @@ Gaia = 7      // Earth → Stone (will update in Phase 4)
 **Goal**: Complete first utility-focused deity with activity-based favor tracking
 
 **New Identity**: God of the Forge & Craft (not War)
-**Focus**: Tool durability, ore efficiency, cold resistance, crafting
+**Focus**: Tool durability, ore efficiency, mining speed, melee damage, max health, armor resilience
 
-**For detailed blessing design, see:** [`docs/topics/reference/khoras_forge_blessings.md`](../reference/khoras_forge_blessings.md)
+**Source of Truth:** All Khoras blessing values and effects must match [`docs/topics/reference/khoras_forge_blessings.md`](../reference/khoras_forge_blessings.md). This migration plan summarizes that document.
 
 ### Part A: Redesign Blessings
 
@@ -127,7 +127,7 @@ Gaia = 7      // Earth → Stone (will update in Phase 4)
 - +10% mining speed
 
 **Tier 2B - Forgeborn Endurance** (500-1999, Survival Path)
-- +5°C cold resistance
+- +10% melee weapon damage
 - +10% max health
 
 **Tier 3A - Legendary Smith** (2000-4999, Utility Specialization)
@@ -135,11 +135,12 @@ Gaia = 7      // Earth → Stone (will update in Phase 4)
 - +15% ore yield (total: 25%)
 
 **Tier 3B - Unyielding** (2000-4999, Survival Specialization)
-- +10°C cold resistance (total: 15°C)
+- +10% reduced armor durability loss
 - +15% max health (total: 25%)
 
 **Tier 4 - Avatar of the Forge** (5000+, Capstone)
 - Tools repair 1 durability per 5 minutes
+- +10% armor walk speed
 - Requires both Tier 3A and 3B
 
 #### Religion Blessings (4 Total)
@@ -151,7 +152,7 @@ Gaia = 7      // Earth → Stone (will update in Phase 4)
 - All members: Tools last +15% longer, +15% ore yield
 
 **Tier 3 - Master Craftsmen** (2000-4999 prestige)
-- All members: Tools last +20% longer, +20% ore yield, +5°C cold resistance
+- All members: Tools last +20% longer, +20% ore yield, +10% armor walk speed
 
 **Tier 4 - Pantheon of Creation** (5000+ prestige)
 - All members: +10% max health

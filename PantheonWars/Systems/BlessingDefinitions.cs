@@ -42,13 +42,12 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "Your devotion to the forge strengthens your craft. Tools/weapons lose durability 10% slower, +10% ore yield when mining, +3°C cold resistance.",
+                Description = "+10% tool durability, +10% ore yield.",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.ToolDurability, 0.10f },
-                    { VintageStoryStats.OreDropRate, 0.10f },
-                    { VintageStoryStats.ColdResistance, 3.0f }
+                    { VintageStoryStats.OreDropRate, 0.10f }
                 }
             },
 
@@ -57,30 +56,26 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description =
-                    "Master the craft of tool-making. Tools last 15% longer, +8% mining speed, -15% tool repair costs. Utility path. Requires Craftsman's Touch.",
+                Description = "+15% tool durability (total: 25%), +10% mining speed. Requires Craftsman's Touch.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasCraftsmansTouch },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.ToolDurability, 0.15f },
-                    { VintageStoryStats.MiningSpeed, 0.08f },
-                    { VintageStoryStats.RepairCostReduction, 0.15f }
+                    { VintageStoryStats.MiningSpeed, 0.10f }
                 }
             },
             new(BlessingIds.KhorasForgebornEndurance, "Forgeborn Endurance", DeityType.Khoras)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Defense,
-                Description =
-                    "The forge's heat tempers your body. +5°C cold resistance, +10% max health, +10% armor from metal equipment. Survival path. Requires Craftsman's Touch.",
+                Description = "+10% melee weapon damage, +10% max health. Requires Craftsman's Touch.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasCraftsmansTouch },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ColdResistance, 5.0f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f },
-                    { VintageStoryStats.MetalArmorBonus, 0.10f }
+                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
                 }
             },
 
@@ -89,32 +84,27 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description =
-                    "Achieve legendary smithing mastery. Tools last 20% longer, +15% ore yield, 10% chance to save materials when smithing, tool repairs restore +25% more durability. Requires Masterwork Tools.",
+                Description = "+20% tool durability (total: 45%), +15% ore yield (total: 25%). Requires Masterwork Tools.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasMasterworkTools },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.ToolDurability, 0.20f },
-                    { VintageStoryStats.OreDropRate, 0.15f },
-                    { VintageStoryStats.RepairEfficiency, 0.25f }
+                    { VintageStoryStats.OreDropRate, 0.15f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.MaterialSaveChance10 }
+                SpecialEffects = new List<string> { }
             },
             new(BlessingIds.KhorasUnyielding, "Unyielding", DeityType.Khoras)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Defense,
-                Description =
-                    "Become as unyielding as the anvil. +7°C cold resistance, +15% max health, +15% armor from all equipment, hunger/satiety depletes 8% slower. Requires Forgeborn Endurance.",
+                Description = "+10% reduced armor durability loss, +15% max health (total: 25%). Requires Forgeborn Endurance.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasForgebornEndurance },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ColdResistance, 7.0f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.15f },
-                    { VintageStoryStats.HungerRate, -0.08f }
+                    { VintageStoryStats.ArmorDurabilityLoss, -0.10f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f }
                 }
             },
 
@@ -123,14 +113,12 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description =
-                    "Embody the eternal forge. Tools repair 1 durability per 5 minutes in inventory, -10% material costs for smithing, +12% mining speed. Requires both Legendary Smith and Unyielding.",
+                Description = "Tools repair 1 durability per 5 minutes. +10% armor walk speed. Requires both Legendary Smith and Unyielding.",
                 RequiredFavorRank = (int)FavorRank.Champion,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasLegendarySmith, BlessingIds.KhorasUnyielding },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.SmithingCostReduction, 0.10f },
-                    { VintageStoryStats.MiningSpeed, 0.12f },
+                    { VintageStoryStats.ArmorWalkSpeedAffectedness, -0.10f }
                 },
                 SpecialEffects = new List<string> { SpecialEffects.PassiveToolRepair1Per5Min }
             },
@@ -142,13 +130,12 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
-                Description =
-                    "Your congregation shares tools and knowledge. +8% tool durability, +8% ore yield for all members.",
+                Description = "+10% tool durability, +10% ore yield for all members.",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ToolDurability, 0.08f },
-                    { VintageStoryStats.OreDropRate, 0.08f }
+                    { VintageStoryStats.ToolDurability, 0.10f },
+                    { VintageStoryStats.OreDropRate, 0.10f }
                 }
             },
 
@@ -157,15 +144,13 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
-                Description =
-                    "A united guild of master craftsmen. +12% tool durability, +12% ore yield, +4°C cold resistance for all. Requires Shared Workshop.",
+                Description = "+15% tool durability, +15% ore yield for all. Requires Shared Workshop.",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasSharedWorkshop },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ToolDurability, 0.12f },
-                    { VintageStoryStats.OreDropRate, 0.12f },
-                    { VintageStoryStats.ColdResistance, 4.0f }
+                    { VintageStoryStats.ToolDurability, 0.15f },
+                    { VintageStoryStats.OreDropRate, 0.15f }
                 }
             },
 
@@ -174,16 +159,14 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
-                Description =
-                    "Elite artisans of legendary skill. +18% tool durability, +15% ore yield, +6°C cold resistance, -10% repair costs for all. Requires Guild of Smiths.",
+                Description = "+20% tool durability, +20% ore yield, +10% armor walk speed for all. Requires Guild of Smiths.",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasGuildOfSmiths },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ToolDurability, 0.18f },
-                    { VintageStoryStats.OreDropRate, 0.15f },
-                    { VintageStoryStats.ColdResistance, 6.0f },
-                    { VintageStoryStats.RepairCostReduction, 0.10f }
+                    { VintageStoryStats.ToolDurability, 0.20f },
+                    { VintageStoryStats.OreDropRate, 0.20f },
+                    { VintageStoryStats.ArmorWalkSpeedAffectedness, -0.10f }
                 }
             },
 
@@ -192,18 +175,14 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
-                Description =
-                    "Your religion becomes legendary creators. +25% tool durability, +20% ore yield, +8°C cold resistance, +10% mining/chopping speed, passive tool repair (1/10min) for all. Requires Master Craftsmen.",
+                Description = "+10% max health for all. Requires Master Craftsmen.",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasMasterCraftsmen },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ToolDurability, 0.25f },
-                    { VintageStoryStats.OreDropRate, 0.20f },
-                    { VintageStoryStats.ColdResistance, 8.0f },
-                    { VintageStoryStats.MiningSpeed, 0.10f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.PassiveToolRepair1Per10Min }
+                SpecialEffects = new List<string> { }
             }
         };
     }

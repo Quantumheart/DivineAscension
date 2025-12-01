@@ -146,6 +146,16 @@ public static class SystemConstants
     /// </summary>
     public const string StatDisplayHungerRate = "Hunger Rate";
 
+    /// <summary>
+    ///     Display name for armor durability loss stat
+    /// </summary>
+    public const string StatDisplayArmorDurabilityLoss = "Armor Durability Loss";
+
+    /// <summary>
+    ///     Display name for armor walk speed affectedness stat
+    /// </summary>
+    public const string StatDisplayArmorWalkSpeed = "Armor Walk Speed";
+
     #endregion
 
     #region Error Messages

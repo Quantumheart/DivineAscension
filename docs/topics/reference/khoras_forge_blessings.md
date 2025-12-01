@@ -13,7 +13,7 @@
 
 ### Playstyle
 
-Tool durability and ore efficiency focused. Bonuses to tool longevity and ore gathering. Cold resistance for harsh climates.
+Tool durability and ore efficiency focused. Bonuses to tool longevity and ore gathering. Melee damage to protect their companions.
 
 ### Earning Favor
 
@@ -40,7 +40,7 @@ Tool durability and ore efficiency focused. Bonuses to tool longevity and ore ga
 - **+10%** mining speed
 
 **Path B: "Forgeborn Endurance"** (Survival)
-- **+5°C** cold resistance
+- **+10%** melee weapon damage 
 - **+10%** max health
 
 *Both require: Craftsman's Touch*
@@ -56,7 +56,7 @@ Tool durability and ore efficiency focused. Bonuses to tool longevity and ore ga
 *Requires: Masterwork Tools*
 
 **Path B: "Unyielding"**
-- **+10°C** cold resistance (total: 15°C)
+- **+10%** reduced armor durability loss
 - **+15%** max health (total: 25%)
 
 *Requires: Forgeborn Endurance*
@@ -67,6 +67,7 @@ Tool durability and ore efficiency focused. Bonuses to tool longevity and ore ga
 
 **"Avatar of the Forge"**
 - Tools repair **1 durability per 5 minutes**
+- **10%** Armor walk speed
 
 *Requires: Both Legendary Smith AND Unyielding*
 
@@ -88,8 +89,7 @@ Tool durability and ore efficiency focused. Bonuses to tool longevity and ore ga
 **"Master Craftsmen"**
 - All members: Tools last **+20%** longer
 - All members: **+20%** ore yield
-- All members: **+5°C** cold resistance
-
+- **10%** Armor walk speed
 ### Tier 4 - Legendary (5000+ prestige)
 **"Pantheon of Creation"**
 - All members: **+10%** max health
@@ -98,10 +98,12 @@ Tool durability and ore efficiency focused. Bonuses to tool longevity and ore ga
 
 ## Combined Maximums (Player + Religion, Both Paths)
 
-- **75% longer tool durability** (45% player + 30% religion)
+- **65% longer tool durability** (45% player + 20% religion)
 - **45% more ore yield** (25% player + 20% religion)
-- **15°C cold resistance** (15% player path B)
 - **35% max health** (25% player path B + 10% religion)
+- **20% armor walk speed** (10% player capstone + 10% religion T3)
+- **+10% melee weapon damage** (player path B)
+- **10% reduced armor durability loss** (player path B)
 - Passive tool repair (1/5min player)
 
 ---
@@ -109,7 +111,7 @@ Tool durability and ore efficiency focused. Bonuses to tool longevity and ore ga
 ## Path Choice
 
 **Masterwork Tools:** Maximize tool efficiency and ore gathering
-**Forgeborn Endurance:** Maximize survival and cold resistance
+**Forgeborn Endurance:** Maximize survival and resilience (health and armor)
 **Champion:** Requires both paths for passive tool repair
 
 ---

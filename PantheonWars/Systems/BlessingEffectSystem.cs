@@ -510,6 +510,8 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             VintageStoryStats.SmithingCostReduction => SystemConstants.StatDisplaySmithingCostReduction,
             VintageStoryStats.MetalArmorBonus => SystemConstants.StatDisplayMetalArmorBonus,
             VintageStoryStats.HungerRate => SystemConstants.StatDisplayHungerRate,
+            VintageStoryStats.ArmorDurabilityLoss => SystemConstants.StatDisplayArmorDurabilityLoss,
+            VintageStoryStats.ArmorWalkSpeedAffectedness => SystemConstants.StatDisplayArmorWalkSpeed,
             _ => statKey
         };
     }
