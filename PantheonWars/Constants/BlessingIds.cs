@@ -45,24 +45,6 @@ public static class BlessingIds
 
     #endregion
 
-    #region Morthen (Death) - 10 Blessings
-
-    // Player Blessings (6)
-    public const string MorthenDeathsEmbrace = "morthen_deaths_embrace";
-    public const string MorthenSoulReaper = "morthen_soul_reaper";
-    public const string MorthenUndying = "morthen_undying";
-    public const string MorthenPlagueBearer = "morthen_plague_bearer";
-    public const string MorthenDeathless = "morthen_deathless";
-    public const string MorthenLordOfDeath = "morthen_lord_of_death";
-
-    // Religion Blessings (4)
-    public const string MorthenDeathCult = "morthen_death_cult";
-    public const string MorthenNecromanticCovenant = "morthen_necromantic_covenant";
-    public const string MorthenDeathlessLegion = "morthen_deathless_legion";
-    public const string MorthenEmpireOfDeath = "morthen_empire_of_death";
-
-    #endregion
-
     #region Aethra (Agriculture & Light) - 10 Blessings
 
     // Player Blessings (6)
@@ -81,41 +63,6 @@ public static class BlessingIds
 
     #endregion
 
-    #region Umbros (Shadows) - 10 Blessings
-
-    // Player Blessings (6)
-    public const string UmbrosShadowBlend = "umbros_shadow_blend";
-    public const string UmbrosAssassinate = "umbros_assassinate";
-    public const string UmbrosPhantomDodge = "umbros_phantom_dodge";
-    public const string UmbrosDeadlyAmbush = "umbros_deadly_ambush";
-    public const string UmbrosVanish = "umbros_vanish";
-    public const string UmbrosAvatarOfShadows = "umbros_avatar_of_shadows";
-
-    // Religion Blessings (4)
-    public const string UmbrosShadowCult = "umbros_shadow_cult";
-    public const string UmbrosCloak = "umbros_cloak";
-    public const string UmbrosNightAssassins = "umbros_night_assassins";
-    public const string UmbrosEternalDarkness = "umbros_eternal_darkness";
-
-    #endregion
-
-    #region Tharos (Storms) - 10 Blessings
-
-    // Player Blessings (6)
-    public const string TharosStormborn = "tharos_stormborn";
-    public const string TharosLightningStrike = "tharos_lightning_strike";
-    public const string TharosStormRider = "tharos_storm_rider";
-    public const string TharosThunderlord = "tharos_thunderlord";
-    public const string TharosTempest = "tharos_tempest";
-    public const string TharosAvatarOfStorms = "tharos_avatar_of_storms";
-
-    // Religion Blessings (4)
-    public const string TharosStormCallers = "tharos_storm_callers";
-    public const string TharosLightningChain = "tharos_lightning_chain";
-    public const string TharosThunderstorm = "tharos_thunderstorm";
-    public const string TharosEyeOfTheStorm = "tharos_eye_of_the_storm";
-
-    #endregion
 
     #region Gaia (Pottery & Clay) - 10 Blessings
 
@@ -132,24 +79,6 @@ public static class BlessingIds
     public const string GaiaClayGuild = "gaia_clay_guild";
     public const string GaiaEarthenCommunity = "gaia_earthen_community";
     public const string GaiaPantheonOfClay = "gaia_pantheon_of_clay";
-
-    #endregion
-
-    #region Vex (Madness) - 10 Blessings
-
-    // Player Blessings (6)
-    public const string VexMaddeningWhispers = "vex_maddening_whispers";
-    public const string VexChaoticFury = "vex_chaotic_fury";
-    public const string VexDeliriumShield = "vex_delirium_shield";
-    public const string VexPandemonium = "vex_pandemonium";
-    public const string VexMindFortress = "vex_mind_fortress";
-    public const string VexAvatarOfMadness = "vex_avatar_of_madness";
-
-    // Religion Blessings (4)
-    public const string VexCultOfChaos = "vex_cult_of_chaos";
-    public const string VexSharedMadness = "vex_shared_madness";
-    public const string VexInsanityAura = "vex_insanity_aura";
-    public const string VexRealmOfMadness = "vex_realm_of_madness";
 
     #endregion
 }
