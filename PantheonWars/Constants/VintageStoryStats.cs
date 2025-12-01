@@ -14,6 +14,8 @@ public static class VintageStoryStats
     public const string MeleeWeaponsDamage = "meleeWeaponsDamage";
     public const string RangedWeaponsDamage = "rangedWeaponsDamage";
     public const string MeleeWeaponsSpeed = "meleeWeaponsSpeed";
+    public const string RangedWeaponsAccuracy = "rangedWeaponsAccuracy";
+    public const string RangedWeaponsRange = "rangedWeaponsRange";
 
     // Defense Stats
     public const string MeleeWeaponArmor = "meleeWeaponArmor";

@@ -210,44 +210,43 @@ public static class BlessingDefinitions
 
     #endregion
 
-    #region Lysa (Hunt)
+    #region Lysa (Hunt & Wild)
 
     private static List<Blessing> GetLysaBlessings()
     {
         return new List<Blessing>
         {
-            // PLAYER BLESSINGS (6 total) - Hunt & Wild utility focus
+            // PLAYER BLESSINGS (6 total) - Hunt & Wild utility focus (v2.0.0 Utility Redesign)
 
             // Tier 1 - Initiate (0-499 favor)
             new(BlessingIds.LysaHuntersInstinct, "Hunter's Instinct", DeityType.Lysa)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "Foundation for wilderness survival. 5% more animal and forage drops, +2% movement speed, and harvest 10% faster.",
+                Description = "+15% animal and forage drops, +5% movement speed.",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.AnimalDrops, 0.05f },
-                    { VintageStoryStats.ForageDropRate, 0.05f},
-                    { VintageStoryStats.AnimalHarvestTime, 0.10f },
-                    { VintageStoryStats.WalkSpeed, 0.02f }
+                    { VintageStoryStats.AnimalDrops, 0.15f },
+                    { VintageStoryStats.ForageDropRate, 0.15f },
+                    { VintageStoryStats.WalkSpeed, 0.05f }
                 },
-                SpecialEffects = new List<string> {  }
+                SpecialEffects = new List<string> { }
             },
 
-            // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
+            // Tier 2 - Disciple (500-1999 favor) - Choose Path
             new(BlessingIds.LysaMasterForager, "Master Forager", DeityType.Lysa)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "Specializes in plant gathering and food preservation. Double harvest chance +12%, food spoils 15% slower, +10% satiety from foraged foods. Gathering Path. Requires Hunter's Instinct.",
+                Description = "+20% forage drops (total: 35%), +20% wild crop drop rate, food spoils 15% slower. Requires Hunter's Instinct.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaHuntersInstinct },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.ForageDropRate, 0.20f },
-                    { VintageStoryStats.FoodSpoilage, 0.15f },
-                    { VintageStoryStats.Satiety, 0.10f } // Note: Logic assumes Satiety applies generally or handled specially
+                    { VintageStoryStats.WildCropYield, 0.20f },
+                    { VintageStoryStats.FoodSpoilage, 0.15f }
                 },
                 SpecialEffects = new List<string> { SpecialEffects.FoodSpoilageReduction }
             },
@@ -255,17 +254,15 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
-                Description = "Focuses on hunting efficiency and stealth. +12% damage vs animals, animal drops +20%, animals detect you less +20% and harvest 15% faster. Hunting Path. Requires Hunter's Instinct.",
+                Description = "+20% animal drops (total: 35%), +10% animal harvesting speed. Requires Hunter's Instinct.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaHuntersInstinct },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.AnimalDamage, 0.12f },
                     { VintageStoryStats.AnimalDrops, 0.20f },
-                    { VintageStoryStats.AnimalSeekingRange, 0.20f},
-                    { VintageStoryStats.ToolDurability, 0.15f } // Bow/Spear durability
+                    { VintageStoryStats.AnimalHarvestTime, 0.10f }
                 },
-                SpecialEffects = new List<string> {  }
+                SpecialEffects = new List<string> { }
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
@@ -273,30 +270,27 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "Master gatherer. Double harvest chance +15%, find rare herbs/mushrooms 50% more often, food spoils 25% slower, +15% satiety. Requires Master Forager.",
+                Description = "+25% forage drops (total: 60%), food spoils 25% slower (total: 40%). Requires Master Forager.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaMasterForager },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.DoubleHarvestChance, 0.15f },
-                    { VintageStoryStats.FoodSpoilage, 0.25f },
-                    { VintageStoryStats.Satiety, 0.15f },
-                    {VintageStoryStats.ForageDropRate, 0.20f}
+                    { VintageStoryStats.ForageDropRate, 0.25f },
+                    { VintageStoryStats.FoodSpoilage, 0.25f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.RareForageChance, SpecialEffects.FoodSpoilageReduction }
+                SpecialEffects = new List<string> { SpecialEffects.FoodSpoilageReduction }
             },
-            new(BlessingIds.LysaSilentDeath, "Tree walker", DeityType.Lysa)
+            new(BlessingIds.LysaSilentDeath, "Silent Death", DeityType.Lysa)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
-                Description = "Master hunter. +18% damage vs animals, animal drops +25%, animals detect you 40% less easily. Requires Apex Predator.",
+                Description = "+15% ranged accuracy, +15% ranged damage. Requires Apex Predator.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaApexPredator },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.AnimalDamage, 0.18f },
-                    { VintageStoryStats.AnimalSeekingRange, 0.40f },
-                    { VintageStoryStats.AnimalDrops, 0.25f }
+                    { VintageStoryStats.RangedWeaponsAccuracy, 0.15f },
+                    { VintageStoryStats.RangedWeaponsDamage, 0.15f }
                 },
                 SpecialEffects = new List<string> { }
             },
@@ -306,18 +300,15 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "True master of the wilderness. +8°C temperature resistance. Requires both Abundance of the Wild and Silent Death.",
+                Description = "+20% ranged distance, +20% reduced animal seeking range. Requires both Abundance of the Wild and Silent Death.",
                 RequiredFavorRank = (int)FavorRank.Champion,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaAbundanceOfWild, BlessingIds.LysaSilentDeath },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.AnimalDrops, 0.10f },
-                    { VintageStoryStats.AnimalSeekingRange, 0.20f },
-                    { VintageStoryStats.AnimalHarvestTime, 0.20f },
-                    { VintageStoryStats.ForageDropRate, 0.10f },
-                    { VintageStoryStats.TemperatureResistance, 8.0f }
+                    { VintageStoryStats.RangedWeaponsRange, 0.20f },
+                    { VintageStoryStats.AnimalSeekingRange, 0.20f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.TemperatureResistance }
+                SpecialEffects = new List<string> { }
             },
 
             // RELIGION BLESSINGS (4 total)
@@ -327,13 +318,12 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
-                Description = "A group of hunters and gatherers. +10% double harvest chance, +12% animal drops, +5% movement speed for all members.",
+                Description = "All members: +15% animal and forage drops.",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.DoubleHarvestChance, 0.10f },
-                    { VintageStoryStats.AnimalDrops, 0.12f },
-                    { VintageStoryStats.WalkSpeed, 0.05f }
+                    { VintageStoryStats.AnimalDrops, 0.15f },
+                    { VintageStoryStats.ForageDropRate, 0.15f }
                 }
             },
 
@@ -342,14 +332,14 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
-                Description = "A true tribe that thrives in the wilderness. +15% double harvest chance, +18% animal drops, +6% movement speed, food spoils 12% slower.",
+                Description = "All members: +20% animal and forage drops; Food spoils 15% slower.",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaHuntingParty },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.DoubleHarvestChance, 0.15f },
-                    { VintageStoryStats.AnimalDrops, 0.18f },
-                    { VintageStoryStats.FoodSpoilage, 0.12f }
+                    { VintageStoryStats.AnimalDrops, 0.20f },
+                    { VintageStoryStats.ForageDropRate, 0.20f },
+                    { VintageStoryStats.FoodSpoilage, 0.15f }
                 }
             },
 
@@ -358,15 +348,14 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
-                Description = "Legendary wilderness survivors. +22% double harvest chance, +25% animal drops, +8% movement speed, +10% satiety, +5°C temperature resistance.",
+                Description = "All members: +25% animal and forage drops; +5% movement speed.",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaWildernessTribe },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.DoubleHarvestChance, 0.22f },
                     { VintageStoryStats.AnimalDrops, 0.25f },
-                    { VintageStoryStats.Satiety, 0.10f },
-                    { VintageStoryStats.TemperatureResistance, 5.0f }
+                    { VintageStoryStats.ForageDropRate, 0.25f },
+                    { VintageStoryStats.WalkSpeed, 0.05f }
                 }
             },
 
@@ -375,16 +364,12 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
-                Description = "The ultimate wilderness tribe. +30% double harvest chance, +35% animal drops, +10% movement speed, +15% satiety, +8°C temperature resistance.",
+                Description = "All members: +5°C temperature resistance (hot and cold).",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaChildrenOfForest },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.DoubleHarvestChance, 0.30f },
-                    { VintageStoryStats.AnimalDrops, 0.35f },
-                    { VintageStoryStats.WalkSpeed, 0.10f },
-                    { VintageStoryStats.Satiety, 0.15f },
-                    { VintageStoryStats.TemperatureResistance, 8.0f }
+                    { VintageStoryStats.TemperatureResistance, 5.0f }
                 }
             }
         };
