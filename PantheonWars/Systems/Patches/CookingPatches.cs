@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
+using System.Reflection;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
@@ -32,13 +33,39 @@ public static class CookingPatches
 
     // --- Firepit owner tracking -------------------------------------------------
     private static readonly ConditionalWeakTable<BlockEntityFirepit, string> _firepitOwners = new();
+    private static readonly ConditionalWeakTable<BlockEntityFirepit, string> _lastInteractor = new();
 
-    [HarmonyPatch(typeof(BlockEntityFirepit), "TryIgnite")]
+    // Track last interacting player via exact decompiled method
+    [HarmonyPatch(typeof(BlockEntityFirepit), nameof(BlockEntityFirepit.OnPlayerRightClick))]
     [HarmonyPostfix]
-    public static void Postfix_Firepit_TryIgnite(BlockEntityFirepit __instance, IPlayer? byPlayer)
+    public static void Postfix_Firepit_OnPlayerRightClick(BlockEntityFirepit __instance, IPlayer byPlayer)
     {
-        if (byPlayer is null) return;
-        _firepitOwners.AddOrUpdate(__instance, byPlayer.PlayerUID);
+        if (byPlayer != null)
+        {
+            _lastInteractor.AddOrUpdate(__instance, byPlayer.PlayerUID);
+        }
+    }
+
+    // Attribute ownership exactly when fuel is ignited in this decompiled version
+    [HarmonyPatch(typeof(BlockEntityFirepit), nameof(BlockEntityFirepit.igniteFuel))]
+    [HarmonyPostfix]
+    public static void Postfix_Firepit_IgniteFuel(BlockEntityFirepit __instance)
+    {
+        if (_lastInteractor.TryGetValue(__instance, out var uid) && !string.IsNullOrEmpty(uid))
+        {
+            _firepitOwners.AddOrUpdate(__instance, uid);
+        }
+    }
+
+    // Also handle the direct ignite path with a specific fuel stack
+    [HarmonyPatch(typeof(BlockEntityFirepit), nameof(BlockEntityFirepit.igniteWithFuel))]
+    [HarmonyPostfix]
+    public static void Postfix_Firepit_IgniteWithFuel(BlockEntityFirepit __instance)
+    {
+        if (_lastInteractor.TryGetValue(__instance, out var uid) && !string.IsNullOrEmpty(uid))
+        {
+            _firepitOwners.AddOrUpdate(__instance, uid);
+        }
     }
 
     [HarmonyPatch(typeof(BlockEntityFirepit), "ToTreeAttributes")]
@@ -63,9 +90,9 @@ public static class CookingPatches
     }
 
     // Capture inventory state before cooking completes to identify cooked output
-    [HarmonyPatch(typeof(BlockEntityFirepit), "OnCookingComplete")]
+    [HarmonyPatch(typeof(BlockEntityFirepit), nameof(BlockEntityFirepit.smeltItems))]
     [HarmonyPrefix]
-    public static void Prefix_Firepit_OnCookingComplete(BlockEntityFirepit __instance, out List<ItemStack?> __state)
+    public static void Prefix_Firepit_SmeltItems(BlockEntityFirepit __instance, out List<ItemStack?> __state)
     {
         __state = new List<ItemStack?>();
         if (__instance?.Api == null || __instance.Api.Side != EnumAppSide.Server) return;
@@ -79,9 +106,9 @@ public static class CookingPatches
         }
     }
 
-    [HarmonyPatch(typeof(BlockEntityFirepit), "OnCookingComplete")]
+    [HarmonyPatch(typeof(BlockEntityFirepit), nameof(BlockEntityFirepit.smeltItems))]
     [HarmonyPostfix]
-    public static void Postfix_Firepit_OnCookingComplete(BlockEntityFirepit __instance, List<ItemStack?> __state)
+    public static void Postfix_Firepit_SmeltItems(BlockEntityFirepit __instance, List<ItemStack?> __state)
     {
         if (__instance?.Api == null || __instance.Api.Side != EnumAppSide.Server) return;
 
@@ -110,26 +137,10 @@ public static class CookingPatches
         }
     }
 
-    // Some versions cook via TryCook, so capture that as well
-    [HarmonyPatch(typeof(BlockEntityFirepit), "TryCook")]
-    [HarmonyPostfix]
-    public static void Postfix_Firepit_TryCook(BlockEntityFirepit __instance)
-    {
-        // If the implementation already raised via OnCookingComplete, this will be a no-op
-        // We avoid duplications by not deduping here; most versions call only one or the other.
-        // Intentionally left minimal.
-    }
+    // No TryCook/etc. in this decompiled version; cooking completes via smeltItems()
 
     // --- Crock owner tracking & meal creation -----------------------------------
     private static readonly ConditionalWeakTable<BlockEntityCrock, string> _crockOwners = new();
-
-    [HarmonyPatch(typeof(BlockEntityCrock), "TrySeal")]
-    [HarmonyPostfix]
-    public static void Postfix_Crock_TrySeal(BlockEntityCrock __instance, IPlayer byPlayer)
-    {
-        if (byPlayer is null) return;
-        _crockOwners.AddOrUpdate(__instance, byPlayer.PlayerUID);
-    }
 
     [HarmonyPatch(typeof(BlockEntityCrock), "ToTreeAttributes")]
     [HarmonyPostfix]
@@ -152,44 +163,68 @@ public static class CookingPatches
         }
     }
 
-    // Detect meal creation or change when the crock is sealed (meal formation moment)
-    [HarmonyPatch(typeof(BlockEntityCrock), "TrySeal")]
+    // Detect sealing of a placed crock via the block interaction entry point
+    // In this VS build, there is no BlockEntityCrock.TrySeal; sealing is handled in BlockCrock interactions.
+    [HarmonyPatch(typeof(BlockCrock), nameof(BlockCrock.OnBlockInteractStart))]
     [HarmonyPrefix]
-    public static void Prefix_Crock_TrySeal(BlockEntityCrock __instance, out List<ItemStack?> __state)
+    public static void Prefix_BlockCrock_OnBlockInteractStart(
+        IWorldAccessor world,
+        IPlayer byPlayer,
+        BlockSelection blockSel,
+        out (bool captured, bool wasSealed, List<ItemStack?> beforeInv) __state)
     {
-        __state = new List<ItemStack?>();
-        if (__instance?.Api == null || __instance.Api.Side != EnumAppSide.Server) return;
-        var inv = __instance.Inventory;
-        if (inv == null) return;
-        int count = inv.Count;
+        __state = default;
+        if (world == null || blockSel == null) return;
+        var be = world.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityCrock;
+        if (be?.Api == null || be.Api.Side != EnumAppSide.Server) return;
+
+        var before = new List<ItemStack?>();
+        var inv = be.Inventory;
+        int count = inv?.Count ?? 0;
         for (int i = 0; i < count; i++)
         {
             var slot = inv[i];
-            __state.Add(slot?.Empty == false ? slot.Itemstack.Clone() : null);
+            before.Add(slot?.Empty == false ? slot.Itemstack.Clone() : null);
         }
+        __state = (true, be.Sealed, before);
     }
 
-    [HarmonyPatch(typeof(BlockEntityCrock), "TrySeal")]
+    [HarmonyPatch(typeof(BlockCrock), nameof(BlockCrock.OnBlockInteractStart))]
     [HarmonyPostfix]
-    public static void Postfix_Crock_TrySeal(BlockEntityCrock __instance, List<ItemStack?> __state)
+    public static void Postfix_BlockCrock_OnBlockInteractStart(
+        IWorldAccessor world,
+        IPlayer byPlayer,
+        BlockSelection blockSel,
+        (bool captured, bool wasSealed, List<ItemStack?> beforeInv) __state)
     {
-        if (__instance?.Api == null || __instance.Api.Side != EnumAppSide.Server) return;
-        if (!_crockOwners.TryGetValue(__instance, out var uid) || string.IsNullOrEmpty(uid)) return;
+        if (!__state.captured || world == null || blockSel == null) return;
+        var be = world.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityCrock;
+        if (be?.Api == null || be.Api.Side != EnumAppSide.Server) return;
 
-        var inv = __instance.Inventory;
-        if (inv == null) return;
-
-        int count = Math.Min(__state?.Count ?? 0, inv.Count);
-        for (int i = 0; i < count; i++)
+        // Sealing detected: transition from unsealed to sealed after interaction
+        if (!__state.wasSealed && be.Sealed)
         {
-            var before = __state[i];
-            var afterSlot = inv[i];
-            if (afterSlot == null || afterSlot.Empty) continue;
-            var after = afterSlot.Itemstack;
-
-            if (before == null || before.Collectible?.Code != after.Collectible?.Code)
+            if (byPlayer != null)
             {
-                RaiseMealCooked(uid, after.Clone(), __instance.Pos);
+                _crockOwners.AddOrUpdate(be, byPlayer.PlayerUID);
+            }
+
+            // If we have an owner, check for content changes and raise event
+            if (_crockOwners.TryGetValue(be, out var uid) && !string.IsNullOrEmpty(uid))
+            {
+                var inv = be.Inventory;
+                int count = Math.Min(__state.beforeInv?.Count ?? 0, inv?.Count ?? 0);
+                for (int i = 0; i < count; i++)
+                {
+                    var before = __state.beforeInv[i];
+                    var afterSlot = inv[i];
+                    if (afterSlot == null || afterSlot.Empty) continue;
+                    var after = afterSlot.Itemstack;
+                    if (before == null || before.Collectible?.Code != after.Collectible?.Code)
+                    {
+                        RaiseMealCooked(uid, after.Clone(), be.Pos);
+                    }
+                }
             }
         }
     }
