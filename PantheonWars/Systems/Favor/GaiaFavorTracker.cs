@@ -52,14 +52,39 @@ public class GaiaFavorTracker(
     private int CalculateFavor(ItemStack stack)
     {
         if (stack?.Collectible?.Code == null) return 0;
-        string path = stack.Collectible.Code.Path;
-        
-        if (path.Contains("rawbrick")) return 1;
+        string path = stack.Collectible.Code.Path?.ToLowerInvariant() ?? string.Empty;
+
+        // Specific mappings first
+        if (path.Contains("rawbrick") || path.Contains("brick")) return 1;
         if (path.Contains("mold") || path.Contains("crucible")) return 2;
         if (path.Contains("planter") || path.Contains("flowerpot")) return 4;
-        if (path.Contains("storagevessel")) return 5;
-        
-        return 3; // Default for other pottery (bowls, pots, etc)
+        if (path.Contains("storagevessel") || path.Contains("vessel")) return 5;
+
+        // Broad inclusiveness for clay/ceramic items
+        bool isClayLike =
+            path.Contains("clay") ||
+            path.Contains("clayform") ||
+            path.Contains("clayforming") ||
+            path.Contains("ceramic") ||
+            path.Contains("pottery") ||
+            path.Contains("bowl") ||
+            path.Contains("pot") ||
+            path.Contains("vase") ||
+            path.Contains("jar") ||
+            path.Contains("jug") ||
+            path.Contains("amphora") ||
+            path.Contains("urn") ||
+            path.Contains("tile") ||
+            path.Contains("crock") ||
+            path.Contains("fireclay");
+
+        if (isClayLike)
+        {
+            return 3; // Default for other pottery (bowls, pots, vases, crocks, etc.)
+        }
+
+        // Not a clay/ceramic item
+        return 0;
     }
     
     private void HandlePitKilnFired(string playerUid, List<ItemStack> firedItems)
