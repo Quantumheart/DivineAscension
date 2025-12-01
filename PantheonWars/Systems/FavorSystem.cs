@@ -77,8 +77,8 @@ public class FavorSystem : IFavorSystem, IDisposable
         _gaiaFavorTracker = new GaiaFavorTracker(_playerReligionDataManager, _sapi, this);
         _gaiaFavorTracker.Initialize();
 
-        // _smeltingFavorTracker = new SmeltingFavorTracker(_playerReligionDataManager, _sapi, this);
-        // _smeltingFavorTracker.Initialize();
+        _smeltingFavorTracker = new SmeltingFavorTracker(_playerReligionDataManager, _sapi, this);
+        _smeltingFavorTracker.Initialize();
     }
 
     /// <summary>
