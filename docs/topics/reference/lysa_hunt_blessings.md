@@ -19,7 +19,6 @@ Hunting and foraging focused. Bonuses to animal/plant drops and movement speed. 
 
 - Hunting animals: 3-20 favor (based on animal size)
 - Foraging plants: 0.5 favor per harvest
-- Exploring new chunks: 2 favor per chunk
 - PvP kills: Standard
 - Passive: 0.5/hour
 
@@ -38,11 +37,12 @@ Hunting and foraging focused. Bonuses to animal/plant drops and movement speed. 
 
 **Path A: "Master Forager"** (Gathering)
 - **+20%** forage drops (total: 35%)
+- **+20%** wild crop drop rate
 - Food spoils **15%** slower
 
 **Path B: "Apex Predator"** (Hunting)
 - **+20%** animal drops (total: 35%)
-- **+15%** damage vs animals
+- **+10% animal harvesting time**
 
 *Both require: Hunter's Instinct*
 
@@ -57,8 +57,8 @@ Hunting and foraging focused. Bonuses to animal/plant drops and movement speed. 
 *Requires: Master Forager*
 
 **Path B: "Silent Death"**
-- **+25%** animal drops (total: 60%)
-- **+20%** damage vs animals (total: 35%)
+- **+15%** ranged accuracy
+- **+15%** ranged damage
 
 *Requires: Apex Predator*
 
@@ -67,8 +67,8 @@ Hunting and foraging focused. Bonuses to animal/plant drops and movement speed. 
 ### Tier 4 - Champion (5000+ favor) - Capstone
 
 **"Avatar of the Wild"**
-- **+8%** movement speed (total: 13%)
-- **+8°C** temperature resistance (hot and cold)
+- **+20%** ranged distance
+- **+20%** reduced animal seeking range
 
 *Requires: Both Abundance of the Wild AND Silent Death*
 

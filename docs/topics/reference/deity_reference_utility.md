@@ -48,21 +48,18 @@ Favor represents your personal devotion to a deity through practice of their dom
 
 **Secondary Method: Utility Activities** *(Slower but steady)*
 
-| Deity | Activity | Favor Gain | Example |
-|-------|----------|------------|---------|
-| **Khoras** | Mining ore | 2 per ore | 10 copper ore = 20 favor |
-| | Smithing items | 5-15 per craft | Iron pickaxe = 10 favor |
-| | Repairing tools | 1-5 per repair | Tool repair = 3 favor |
+| Deity | Activity | Favor Gain | Example                        |
+|-------|----------|------------|--------------------------------|
+| **Khoras** | Mining ore | 2 per ore | 10 copper ore = 20 favor       |
+| | Smithing items | 5-15 per craft | Iron pickaxe = 10 favor        |
+| | Repairing tools | 1-5 per repair | Tool repair = 3 favor          |
 | **Lysa** | Hunting animals | 3-20 per kill | Wolf = 12 favor, Deer = 8 favor |
-| | Foraging plants | 0.5 per harvest | 20 berry bushes = 10 favor |
-| | Exploring new chunks | 2 per chunk | Exploring = steady favor |
-| **Aethra** | Harvesting crops | 1 per harvest | 10 wheat = 10 favor |
-| | Cooking meals | 3-8 per meal | Bread = 5 favor |
-| | Planting crops | 0.5 per plant | 20 seeds = 10 favor |
-| **Gaia** | Crafting pottery | 2-5 per craft | Storage vessel = 5 favor |
-| | Firing pottery in kilns | 3-8 per firing | Batch firing = 5 favor |
-| | Creating clay bricks | 1 per batch | Brick batch = 1 favor |
-| | Crafting molds/crucibles | 5-10 per craft | Crucible = 10 favor |
+| | Foraging plants | 0.5 per harvest | 20 berry bushes = 10 favor     |
+| **Aethra** | Harvesting crops | 1 per harvest | 10 flax = 10 favor             |
+| | Cooking meals | 3-8 per meal | Bread = 5 favor                |
+| | Planting crops | 0.5 per plant | 20 seeds = 10 favor            |
+| **Gaia** | Crafting pottery | 2-5 per craft | Storage vessel = 5 favor       |
+| | Firing pottery in kilns | 3-8 per firing | Batch firing = 5 favor         |
 
 *Note: Favor rates are approximate and may be adjusted for balance.*
 
@@ -101,103 +98,6 @@ Durability & self-sufficiency. Focus on tool longevity, ore efficiency, and temp
 
 **For detailed information, see:** [Khoras Forge Blessings Reference](khoras_forge_blessings.md)
 
----
-
-#### Player Blessings (6 Total)
-
-##### Tier 1 - Initiate (0-499 favor)
-**"Craftsman's Touch"**
-- Tools last **+10%** longer
-- **+10%** ore yield
-
----
-
-##### Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-
-**Path A: "Masterwork Tools"** *(Utility Path)*
-- Tools last **+15%** longer (total: 25%)
-- **+10%** mining speed
-- *Requires: Craftsman's Touch*
-
-**Path B: "Forgeborn Endurance"** *(Survival Path)*
-- **+5°C** cold resistance
-- **+10%** max health
-- *Requires: Craftsman's Touch*
-
----
-
-##### Tier 3 - Zealot (2000-4999 favor) - Specialization
-
-**Path A: "Legendary Smith"**
-- Tools last **+20%** longer (total: 45%)
-- **+15%** ore yield (total: 25%)
-- *Requires: Masterwork Tools*
-
-**Path B: "Unyielding"**
-- **+10°C** cold resistance (total: 15°C)
-- **+15%** max health (total: 25%)
-- *Requires: Forgeborn Endurance*
-
----
-
-##### Tier 4 - Champion (5000-9999 favor) - Capstone
-
-**"Avatar of the Forge"**
-- All previous bonuses
-- Tools repair **1 durability per 5 minutes**
-- *Requires: Both Tier 3 Path A (Legendary Smith) AND Tier 3 Path B (Unyielding)*
-
-**Combined Totals at Champion (Both Paths):**
-- 45% longer tool durability
-- 25% ore yield
-- 15°C cold resistance
-- 25% max health
-- 10% mining speed
-- Passive tool repair (1/5min)
-
----
-
-#### Religion Blessings (4 Total)
-
-##### Tier 1 - Fledgling (0-499 prestige)
-**"Shared Workshop"**
-- All members: Tools last **+10%** longer
-- All members: **+10%** ore yield
-
----
-
-##### Tier 2 - Established (500-1999 prestige)
-**"Guild of Smiths"**
-- All members: Tools last **+15%** longer
-- All members: **+15%** ore yield
-- *Requires: Shared Workshop*
-
----
-
-##### Tier 3 - Renowned (2000-4999 prestige)
-**"Master Craftsmen"**
-- All members: Tools last **+20%** longer
-- All members: **+20%** ore yield
-- All members: **+5°C** cold resistance
-- *Requires: Guild of Smiths*
-
----
-
-##### Tier 4 - Legendary (5000-9999 prestige)
-**"Pantheon of Creation"**
-- All members: **+10%** max health
-- *Requires: Master Craftsmen*
-
-**Combined Religion + Player (Both Paths, Both Maxed):**
-- 75% total tool durability (45% player + 30% religion)
-- 45% total ore yield (25% player + 20% religion)
-- 15°C cold resistance (15% player path B)
-- 35% max health (25% player path B + 10% religion)
-- 10% mining speed (10% player path A)
-- Passive tool repair (1/5min player)
-
----
-
 ### Lysa - Goddess of the Hunt & Wild
 
 **Domain:** Hunting, Foraging, Wilderness Survival
@@ -212,102 +112,6 @@ Lysa represents living with the land. Her followers are expert hunters, foragers
 Resource gathering & mobility. Focus on food acquisition, foraging yield, hunting prowess, and wilderness adaptation. Perfect for nomadic players who live off the land.
 
 **For detailed information, see:** [Lysa Hunt Blessings Reference](lysa_hunt_blessings.md)
-
----
-
-#### Player Blessings (6 Total)
-
-##### Tier 1 - Initiate (0-499 favor)
-**"Hunter's Instinct"**
-- **+15%** animal and forage drops
-- **+5%** movement speed
-
----
-
-##### Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-
-**Path A: "Master Forager"** *(Gathering Path)*
-- **+20%** forage drops (total: 35%)
-- Food spoils **15%** slower
-- *Requires: Hunter's Instinct*
-
-**Path B: "Apex Predator"** *(Hunting Path)*
-- **+20%** animal drops (total: 35%)
-- **+15%** damage vs animals
-- *Requires: Hunter's Instinct*
-
----
-
-##### Tier 3 - Zealot (2000-4999 favor) - Specialization
-
-**Path A: "Abundance of the Wild"**
-- **+25%** forage drops (total: 60%)
-- Food spoils **25%** slower (total: 40%)
-- *Requires: Master Forager*
-
-**Path B: "Silent Death"**
-- **+25%** animal drops (total: 60%)
-- **+20%** damage vs animals (total: 35%)
-- *Requires: Apex Predator*
-
----
-
-##### Tier 4 - Champion (5000-9999 favor) - Capstone
-
-**"Avatar of the Wild"**
-- All previous bonuses
-- **+8%** movement speed (total: 13%)
-- **+8°C** temperature resistance (hot and cold)
-- *Requires: Both Tier 3 Path A (Abundance of the Wild) AND Tier 3 Path B (Silent Death)*
-
-**Combined Totals at Champion (Both Paths):**
-- 60% forage drops
-- 60% animal drops
-- 40% slower food spoilage
-- 35% damage vs animals
-- 13% movement speed
-- 8°C temperature resistance (hot and cold separately)
-
----
-
-#### Religion Blessings (4 Total)
-
-##### Tier 1 - Fledgling (0-499 prestige)
-**"Hunting Party"**
-- All members: **+15%** animal and forage drops
-
----
-
-##### Tier 2 - Established (500-1999 prestige)
-**"Wilderness Tribe"**
-- All members: **+20%** animal and forage drops
-- All members: Food spoils **15%** slower
-- *Requires: Hunting Party*
-
----
-
-##### Tier 3 - Renowned (2000-4999 prestige)
-**"Children of the Forest"**
-- All members: **+25%** animal and forage drops
-- All members: **+5%** movement speed
-- *Requires: Wilderness Tribe*
-
----
-
-##### Tier 4 - Legendary (5000-9999 prestige)
-**"Pantheon of the Hunt"**
-- All members: **+5°C** temperature resistance (hot and cold)
-- *Requires: Children of the Forest*
-
-**Combined Religion + Player (Both Paths, Both Maxed):**
-- 85% total forage drops (60% player + 25% religion)
-- 85% total animal drops (60% player + 25% religion)
-- 40% slower food spoilage (40% player path A)
-- 35% damage vs animals (35% player path B)
-- 18% movement speed (13% player + 5% religion)
-- 13°C temperature resistance (8°C player + 5°C religion, hot and cold separately)
-
----
 
 ### Aethra - Goddess of Light & Agriculture
 
@@ -324,102 +128,6 @@ Agriculture & food preparation. Focus on crop yields, food preservation, cooking
 
 **For detailed information, see:** [Aethra Agriculture Blessings Reference](aethra_agriculture_blessings.md)
 
----
-
-#### Player Blessings (6 Total)
-
-##### Tier 1 - Initiate (0-499 favor)
-**"Sun's Blessing"**
-- **+15%** crop yield
-- **+10%** satiety from all food
-
----
-
-##### Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-
-**Path A: "Bountiful Harvest"** *(Agriculture Path)*
-- **+20%** crop yield (total: 35%)
-- Crops have **20%** chance for bonus seeds
-- *Requires: Sun's Blessing*
-
-**Path B: "Baker's Touch"** *(Food Preparation Path)*
-- Cooking yields **+30%** more food
-- Food spoils **20%** slower
-- *Requires: Sun's Blessing*
-
----
-
-##### Tier 3 - Zealot (2000-4999 favor) - Specialization
-
-**Path A: "Master Farmer"**
-- **+25%** crop yield (total: 60%)
-- Crops have **30%** chance for bonus seeds (total: 50%)
-- *Requires: Bountiful Harvest*
-
-**Path B: "Divine Kitchen"**
-- Cooking yields **+40%** more (total: 70%)
-- Food spoils **30%** slower (total: 50%)
-- *Requires: Baker's Touch*
-
----
-
-##### Tier 4 - Champion (5000-9999 favor) - Capstone
-
-**"Avatar of Abundance"**
-- All previous bonuses
-- **+15%** satiety from all food (total: 25%)
-- **+10%** max health
-- *Requires: Both Tier 3 Path A (Master Farmer) AND Tier 3 Path B (Divine Kitchen)*
-
-**Combined Totals:**
-- 60% crop yield
-- 70% cooking yield
-- 50% bonus seed chance
-- 50% slower food spoilage
-- 25% satiety from all food
-- 10% max health
-
----
-
-#### Religion Blessings (4 Total)
-
-##### Tier 1 - Fledgling (0-499 prestige)
-**"Community Farm"**
-- All members: **+15%** crop yield
-
----
-
-##### Tier 2 - Established (500-1999 prestige)
-**"Harvest Festival"**
-- All members: **+20%** crop yield
-- All members: Cooking yields **+20%** more
-- *Requires: Community Farm*
-
----
-
-##### Tier 3 - Renowned (2000-4999 prestige)
-**"Land of Plenty"**
-- All members: **+25%** crop yield
-- All members: **+10%** satiety from all food
-- *Requires: Harvest Festival*
-
----
-
-##### Tier 4 - Legendary (5000-9999 prestige)
-**"Pantheon of Light"**
-- All members: Food spoils **20%** slower
-- *Requires: Land of Plenty*
-
-**Combined Religion + Player (Both Paths, Both Maxed):**
-- 85% total crop yield (60% player + 25% religion)
-- 90% total cooking output (70% player + 20% religion)
-- 50% bonus seed chance (50% player path A)
-- 50% slower food spoilage (50% player path B)
-- 35% satiety from all food (25% player + 10% religion)
-- 10% max health (10% player)
-
----
-
 ### Gaia - Goddess of Pottery & Clay
 
 **Domain:** Pottery, Clay, Craftsmanship
@@ -435,107 +143,6 @@ Pottery crafting & utility focus. Focus on clay gathering, pottery forming speed
 
 **For detailed information, see:** [Gaia Pottery Blessings Reference](gaia_pottery_blessings.md)
 
----
-
-#### Player Blessings (6 Total)
-
-##### Tier 1 - Initiate (0-499 favor)
-**"Clay Shaper"**
-- **+20%** clay yield when digging
-- **+10%** max health
-
-*Foundation for pottery crafting. Gather clay faster.*
-
----
-
-##### Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-
-**Path A: "Master Potter"** *(Crafting Path)*
-- **+30%** pottery forming speed
-- **+10%** digging speed
-- *Requires: Clay Shaper*
-
-*Maximize pottery crafting speed and clay gathering.*
-
-**Path B: "Earthen Builder"** *(Utility Path)*
-- Storage vessels **+30%** capacity
-- **+15%** stone yield
-- *Requires: Clay Shaper*
-
-*Maximize storage and stone gathering.*
-
----
-
-##### Tier 3 - Zealot (2000-4999 favor) - Specialization
-
-**Path A: "Kiln Master"**
-- **+40%** pottery forming speed (total: 70%)
-- **+15%** digging speed (total: 25%)
-- *Requires: Master Potter*
-
-*Legendary crafting speed and clay gathering.*
-
-**Path B: "Clay Architect"**
-- Storage vessels **+40%** capacity (total: 70%)
-- **+20%** stone yield (total: 35%)
-- *Requires: Earthen Builder*
-
-*Massive storage and stone gathering.*
-
----
-
-##### Tier 4 - Champion (5000-9999 favor) - Capstone
-
-**"Avatar of Clay"**
-- All previous bonuses
-- **+10%** max health
-- *Requires: Both Tier 3 Path A (Kiln Master) AND Tier 3 Path B (Clay Architect)*
-
-**Combined Totals:**
-- 70% faster pottery forming
-- 70% more storage capacity
-- 25% faster digging speed
-- 35% more stone yield
-- 20% max health (10% tier 1 + 10% tier 4)
-
----
-
-#### Religion Blessings (4 Total)
-
-##### Tier 1 - Fledgling (0-499 prestige)
-**"Potter's Circle"**
-- All members: **+15%** clay yield
-
----
-
-##### Tier 2 - Established (500-1999 prestige)
-**"Clay Guild"**
-- All members: **+20%** pottery forming speed
-- *Requires: Potter's Circle*
-
----
-
-##### Tier 3 - Renowned (2000-4999 prestige)
-**"Earthen Community"**
-- All members: Storage vessels **+25%** capacity
-- *Requires: Clay Guild*
-
----
-
-##### Tier 4 - Legendary (5000-9999 prestige)
-**"Pantheon of Clay"**
-- All members: **+10%** max health
-- *Requires: Earthen Community*
-
-**Combined Religion + Player (Both Paths, Both Maxed):**
-- 90% faster pottery forming (70% player + 20% religion)
-- 95% more storage capacity (70% player + 25% religion)
-- 35% more clay yield (20% player + 15% religion)
-- 25% faster digging (25% player path A)
-- 35% more stone yield (35% player path B)
-- 30% max health (20% player + 10% religion)
-
----
 
 ## Deity Comparison
 
@@ -545,8 +152,6 @@ Pottery crafting & utility focus. Focus on clay gathering, pottery forming speed
 | **Secondary Focus** | Cold resistance | Movement, temp | Heat resistance | Storage, preservation |
 | **Resource Type** | Metal/ore | Food/animals | Crops/meals | Clay/pottery |
 | **Playstyle** | Crafter/smith | Hunter/gatherer | Farmer/cook | Potter/builder |
-| **Best For** | Tool users | Nomadic players | Farmers | Pottery crafters |
-| **PvP Role** | Tank with gear | Fast skirmisher | Well-fed support | High HP support |
 | **Late Game** | Infinite tools | Never hungry | Massive food | Superior storage |
 | **Independence** | High (repairs) | High (mobility) | High (food) | High (organization) |
 

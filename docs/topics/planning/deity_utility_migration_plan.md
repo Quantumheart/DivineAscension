@@ -353,11 +353,11 @@ Implement Khoras-specific effects:
 
 #### Player Blessings (6)
 - Tier 1: Hunter's Instinct - +15% animal/forage drops, +5% movement speed
-- Tier 2A: Master Forager - +20% forage drops (total: 35%), Food spoils 15% slower
-- Tier 2B: Apex Predator - +20% animal drops (total: 35%), +15% damage vs animals
+- Tier 2A: Master Forager - +20% forage drops (total: 35%), +20% wild crop drop rate, Food spoils 15% slower
+- Tier 2B: Apex Predator - +20% animal drops (total: 35%), +10% animal harvesting time
 - Tier 3A: Abundance of the Wild - +25% forage drops (total: 60%), Food spoils 25% slower (total: 40%)
-- Tier 3B: Silent Death - +25% animal drops (total: 60%), +20% damage vs animals (total: 35%)
-- Tier 4: Avatar of the Wild - +8% movement speed (total: 13%), +8°C temperature resistance
+- Tier 3B: Silent Death - +15% ranged accuracy, +15% ranged damage
+- Tier 4: Avatar of the Wild - +20% ranged distance, 20% reduced animal seeking range
 
 #### Religion Blessings (4)
 - Tier 1: Hunting Party - +15% animal/forage drops
