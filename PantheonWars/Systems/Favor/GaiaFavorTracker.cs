@@ -5,6 +5,7 @@ using PantheonWars.Systems.Interfaces;
 using PantheonWars.Systems.Patches;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
+using Vintagestory.API.MathTools;
 
 namespace PantheonWars.Systems.Favor;
 
@@ -26,6 +27,8 @@ public class GaiaFavorTracker(
     {
         ClayFormingPatches.OnClayFormingFinished += HandleClayFormingFinished;
         PitKilnPatches.OnPitKilnFired += HandlePitKilnFired;
+        // Track clay brick placements
+        _sapi.Event.DidPlaceBlock += OnBlockPlaced;
         _sapi.Logger.Notification($"[PantheonWars] GaiaFavorTracker initialized (ID: {_instanceId})");
     }
 
@@ -33,6 +36,7 @@ public class GaiaFavorTracker(
     {
         ClayFormingPatches.OnClayFormingFinished -= HandleClayFormingFinished;
         PitKilnPatches.OnPitKilnFired -= HandlePitKilnFired;
+        _sapi.Event.DidPlaceBlock -= OnBlockPlaced;
         _sapi.Logger.Debug($"[PantheonWars] GaiaFavorTracker disposed (ID: {_instanceId})");
     }
 
@@ -47,6 +51,31 @@ public class GaiaFavorTracker(
         {
             _favorSystem.AwardFavorForAction(player, "Pottery Crafting", favor);
         }
+    }
+
+    // --- Brick Placement Tracking (Part B requirement) ---
+    private const int FavorPerBrickPlacement = 2;
+
+    private void OnBlockPlaced(IServerPlayer byPlayer, int oldblockId, BlockSelection blockSel, ItemStack withItemStack)
+    {
+        // Verify religion
+        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(byPlayer.PlayerUID);
+        if (religionData.ActiveDeity != DeityType.Gaia) return;
+
+        var placedBlock = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
+        if (IsBrickBlock(placedBlock))
+        {
+            _favorSystem.AwardFavorForAction(byPlayer, "placing clay bricks", FavorPerBrickPlacement);
+        }
+    }
+
+    private static bool IsBrickBlock(Block block)
+    {
+        if (block?.Code == null) return false;
+        string path = block.Code.Path.ToLowerInvariant();
+
+        // Fired and raw brick blocks typically contain "brick" in the code path
+        return path.Contains("brick");
     }
 
     private int CalculateFavor(ItemStack stack)
