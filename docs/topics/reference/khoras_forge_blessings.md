@@ -19,6 +19,7 @@ Tool durability and ore efficiency focused. Bonuses to tool longevity and ore ga
 
 - Mining ore: 2 favor per ore
 - Smithing items: 5-15 favor per craft
+- Smelting items: 1-8 favor
 - PvP kills: Standard
 - Passive: 0.5/hour
 

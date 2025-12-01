@@ -12,16 +12,20 @@ This plan details the migration from an 8-deity combat-focused system to a 4-dei
 
 **Implementation Order:**
 1. **Phase 0**: Cleanup - Remove unused deities (3 days) - Partial
-2. **Phase 1**: Khoras - Forge/Craft (2-3 weeks) - 🔄 IN PROGRESS (90% complete)
-   - ✅ Activity-based favor tracking (mining, anvil crafting)
+2. **Phase 1**: Khoras - Forge/Craft (2-3 weeks) - 🔄 IN PROGRESS (~90%)
+   - ✅ Activity-based favor tracking (mining, smelting, anvil crafting)
    - ✅ Special effects system implemented (passive tool repair working)
 3. **Phase 2**: Lysa - Hunt/Wild (2 weeks) - 🔄 STARTED
    - ✅ Hunting favor tracking implemented
-   - ⏸️ Foraging and exploration tracking pending
-4. **Phase 3**: Aethra - Agriculture/Light (2 weeks) - 🔄 IN PROGRESS (50% complete)
+   - ✅ Foraging tracking implemented
+   - ⏸️ Exploration tracking pending
+4. **Phase 3**: Aethra - Agriculture/Light (2 weeks) - 🔄 IN PROGRESS (~70%)
    - ✅ Part A: Blessing redesigns completed
-   - ✅ Part B: Activity-based favor tracking implemented
-5. **Phase 4**: Gaia - Earth/Stone (1.5 weeks) - ⏸️ NOT STARTED
+   - ✅ Part B: Activity-based favor tracking implemented (crops, cooking, planting)
+   - ✅ Part C: Special effects implemented
+5. **Phase 4**: Gaia - Earth/Stone (1.5 weeks) - 🔄 STARTED
+   - ✅ Pottery crafting and kiln firing favor implemented
+   - ⏸️ Additional pottery/clay sources pending
 
 **Total Timeline**: 8-9 weeks
 
@@ -30,7 +34,7 @@ This plan details the migration from an 8-deity combat-focused system to a 4-dei
 ## Simplified Design Philosophy
 
 **Version:** 2.1 (Simplified Blessings)
-**Updated:** 2025-11-29
+**Updated:** 2025-12-01
 
 All deity blessings have been simplified to 1-2 effects per blessing for:
 - **Clarity**: Players can instantly understand what each blessing does
@@ -86,6 +90,13 @@ Gaia = 7      // Earth → Stone (will update in Phase 4)
 
 - Remove all blessing ID constants for Morthen, Umbros, Tharos, Vex
 - Keep only Khoras, Lysa, Aethra, Gaia blessing IDs (will update per phase)
+
+Status:
+- ✅ `DeityType.cs` updated to 4 deities
+- ✅ `BlessingDefinitions.cs` reduced to 4 deities
+- ⏸️ `BlessingIds.cs` still contains removed deities (cleanup pending)
+- ⏸️ Archive legacy combat docs (pending)
+- ⏸️ Full repo reference cleanup (pending)
 
 #### 4. Archive Documentation
 - Move `docs/topics/reference/deity_reference.md` → `deity_reference_combat_legacy.md`
@@ -241,7 +252,7 @@ private void OnBlockBroken(IServerPlayer player, int oldBlockId, BlockSelection 
 - [x] Create `MiningFavorTracker.cs` (renamed from KhorasFavorTracker.cs)
 - [x] Implement ore block detection and favor award
 - [x] Research Vintage Story crafting events API
-- [x] Implement smithing favor calculation via `SmeltingFavorTracker.cs`
+- [x] Implement smelting favor tracking (tracker initialized)
 - [x] Create `AnvilFavorTracker.cs` for anvil-based crafting
 - [x] Add `AwardFavorForAction()` to `FavorSystem.cs`
 - [x] Reduce passive favor rate
@@ -331,6 +342,7 @@ Implement Khoras-specific effects:
 **Pending:**
 - ⏸️ Tool repair tracking (deferred to future phase)
 - ⏸️ Material saving effect full implementation (requires API research)
+- ⏸️ Smelting favor tuning
 - ⏸️ All testing tasks (Part D) - unit tests, integration tests, manual testing
 
 **Next Steps for Phase 1 Completion:**
@@ -402,9 +414,9 @@ Implement Khoras-specific effects:
 - Temperature resistance (both hot and cold)
 
 #### Implementation Tasks
-- [x] Create `LysaEffectHandlers.cs`4
-- [ ] Implement food spoilage modifier
-- [ ] Implement temperature resistance system
+- [x] Create `LysaEffectHandlers.cs`
+- [x] Implement food spoilage modifier
+- [x] Implement temperature resistance system
 
 ### Part D: Testing
 - [ ] Unit tests for all favor sources
@@ -415,15 +427,13 @@ Implement Khoras-specific effects:
 ### Phase 2 Status Summary
 
 **Completed:**
-- ✅ HuntingFavorTracker implementation started
-- ✅ Animal kill detection system
-- ✅ Animal favor value table
+- ✅ Hunting favor tracking (animal kill detection + favor table)
+- ✅ Foraging detection and tracking (berries, mushrooms, flowers)
+- ✅ Special effects (food spoilage reduction, temperature resistance)
 
 **Pending:**
-- ⏸️ Complete Part A: Blessing redesigns
-- ⏸️ Foraging detection and tracking
+- ⏸️ Complete Part A: Blessing redesigns (verification only)
 - ⏸️ Chunk exploration tracking
-- ⏸️ Part C: Special effects (food spoilage, temperature)
 - ⏸️ Part D: Testing
 
 **Note**: Phase 2 was started while Phase 1 is still in progress. Consider completing Phase 1 before continuing Phase 2.
@@ -706,14 +716,14 @@ After all phases complete:
 2. ✅ `PantheonWars/Systems/Favor/MiningFavorTracker.cs` - Mining activities (Khoras)
 3. ✅ `PantheonWars/Systems/Favor/SmeltingFavorTracker.cs` - Smelting activities (Khoras)
 4. ✅ `PantheonWars/Systems/Favor/AnvilFavorTracker.cs` - Anvil crafting (Khoras)
-5. ✅ `PantheonWars/Systems/Favor/HuntingFavorTracker.cs` - Hunting activities (Lysa) - in progress
-6. ⏸️ `PantheonWars/Systems/Favor/ForagingFavorTracker.cs` - Foraging activities (Lysa) - pending
-7. ⏸️ `PantheonWars/Systems/Favor/AethraFavorTracker.cs` - Aethra activities
-8. ⏸️ `PantheonWars/Systems/Favor/GaiaFavorTracker.cs` - Gaia activities
-9. ⏸️ `PantheonWars/Systems/BlessingEffects/SpecialEffectRegistry.cs` - Effect registry
-10. ⏸️ `PantheonWars/Systems/BlessingEffects/Handlers/KhorasEffectHandlers.cs`
-11. ⏸️ `PantheonWars/Systems/BlessingEffects/Handlers/LysaEffectHandlers.cs`
-12. ⏸️ `PantheonWars/Systems/BlessingEffects/Handlers/AethraEffectHandlers.cs`
+5. ✅ `PantheonWars/Systems/Favor/HuntingFavorTracker.cs` - Hunting activities (Lysa)
+6. ✅ `PantheonWars/Systems/Favor/ForagingFavorTracker.cs` - Foraging activities (Lysa)
+7. ✅ `PantheonWars/Systems/Favor/AethraFavorTracker.cs` - Aethra activities
+8. ✅ `PantheonWars/Systems/Favor/GaiaFavorTracker.cs` - Gaia activities
+9. ✅ `PantheonWars/Systems/BlessingEffects/SpecialEffectRegistry.cs` - Effect registry
+10. ✅ `PantheonWars/Systems/BlessingEffects/Handlers/KhorasEffectHandlers.cs`
+11. ✅ `PantheonWars/Systems/BlessingEffects/Handlers/LysaEffectHandlers.cs`
+12. ✅ `PantheonWars/Systems/BlessingEffects/Handlers/AethraEffectHandlers.cs`
 13. ⏸️ `PantheonWars/Systems/BlessingEffects/Handlers/GaiaEffectHandlers.cs`
 
 ### Files to Archive
@@ -734,7 +744,7 @@ After all phases complete:
 
 - **Tool Repair Tracking**: Deferred from Phase 1 due to API complexity. Will revisit in a future phase when better event hooks are available or custom implementation is designed.
 - **Multiple Trackers per Deity**: Instead of single monolithic favor trackers per deity (e.g., `KhorasFavorTracker`), the implementation uses multiple specialized trackers (e.g., `MiningFavorTracker`, `SmeltingFavorTracker`, `AnvilFavorTracker`) for better modularity and maintainability.
-- **Parallel Phase Development**: Phase 2 (Lysa) hunting tracking was started before Phase 1 completion. This deviates from the planned sequential approach but allows for experimentation.
+- **Parallel Phase Development**: Phase 2 (Lysa) hunting/foraging tracking was started before Phase 1 completion. This deviates from the planned sequential approach but allows for experimentation.
 - **Phase 3B - AethraFavorTracker**: Implemented as a unified tracker handling all three activity types (crop harvesting, planting, and cooking) within a single class. Cooking detection uses a polling approach similar to AnvilFavorTracker, scanning nearby firepits and crocks for Aethra followers. The implementation includes:
   - **Crop Harvesting**: Detects when players break ripe crop blocks (wheat, flax, vegetables, etc.) and awards 1 favor per harvest
   - **Planting**: Detects when players place crop blocks on farmland and awards 0.5 favor per planting
