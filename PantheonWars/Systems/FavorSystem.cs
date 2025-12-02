@@ -24,6 +24,7 @@ public class FavorSystem : IFavorSystem, IDisposable
     private readonly IPlayerDataManager _playerDataManager;
     private readonly IPlayerReligionDataManager _playerReligionDataManager;
     private readonly IReligionManager _religionManager;
+    private readonly IReligionPrestigeManager _prestigeManager;
     private MiningFavorTracker _miningFavorTracker;
     private AnvilFavorTracker _anvilFavorTracker;
     private SmeltingFavorTracker _smeltingFavorTracker;
@@ -36,13 +37,14 @@ public class FavorSystem : IFavorSystem, IDisposable
 
     public FavorSystem(ICoreServerAPI sapi, IPlayerDataManager playerDataManager,
         IPlayerReligionDataManager playerReligionDataManager, IDeityRegistry deityRegistry,
-        IReligionManager religionManager)
+        IReligionManager religionManager, IReligionPrestigeManager prestigeManager)
     {
         _sapi = sapi;
         _playerDataManager = playerDataManager;
         _playerReligionDataManager = playerReligionDataManager;
         _deityRegistry = deityRegistry;
         _religionManager = religionManager;
+        _prestigeManager = prestigeManager;
     }
 
     /// <summary>
@@ -72,8 +74,8 @@ public class FavorSystem : IFavorSystem, IDisposable
         _foragingFavorTracker = new ForagingFavorTracker(_playerReligionDataManager, _sapi, this);
         _foragingFavorTracker.Initialize();
 
-        _explorationFavorTracker = new ExplorationFavorTracker(_playerReligionDataManager, _sapi, this);
-        _explorationFavorTracker.Initialize();
+        // _explorationFavorTracker = new ExplorationFavorTracker(_playerReligionDataManager, _sapi, this);
+        // _explorationFavorTracker.Initialize();
 
         _aethraFavorTracker = new AethraFavorTracker(_playerReligionDataManager, _sapi, this);
         _aethraFavorTracker.Initialize();
@@ -187,6 +189,48 @@ public class FavorSystem : IFavorSystem, IDisposable
     }
 
     /// <summary>
+    ///     Determines if an activity is deity-themed and should grant prestige
+    /// </summary>
+    private bool ShouldAwardPrestigeForActivity(DeityType deity, string actionType)
+    {
+        string actionLower = actionType.ToLowerInvariant();
+
+        // Exclude PvP - already handled by PvPManager
+        if (actionLower.Contains("pvp") || actionLower.Contains("kill"))
+            return false;
+
+        // Exclude passive favor - not deity-themed activity
+        if (actionLower.Contains("passive") || actionLower.Contains("devotion"))
+            return false;
+
+        return deity switch
+        {
+            DeityType.Khoras =>
+                actionLower.Contains("mining") ||
+                actionLower.Contains("smithing") ||
+                actionLower.Contains("smelting") ||
+                actionLower.Contains("anvil"),
+
+            DeityType.Lysa =>
+                actionLower.Contains("hunting") ||
+                actionLower.Contains("foraging") ||
+                actionLower.Contains("exploration"),
+
+            DeityType.Aethra =>
+                actionLower.Contains("harvest") ||
+                actionLower.Contains("planting") ||
+                actionLower.Contains("cooking"),
+
+            DeityType.Gaia =>
+                actionLower.Contains("pottery") ||
+                actionLower.Contains("brick") ||
+                actionLower.Contains("clay"),
+
+            _ => false
+        };
+    }
+
+    /// <summary>
     ///     Awards favor for deity-aligned actions (extensible for future features)
     /// </summary>
     public void AwardFavorForAction(IServerPlayer player, string actionType, int amount)
@@ -203,8 +247,34 @@ public class FavorSystem : IFavorSystem, IDisposable
 
         if (religionData.ActiveDeity == DeityType.None) return;
 
+        // Award favor (existing logic)
         _playerReligionDataManager.AddFavor(playerUid, amount, actionType);
-        
+
+        // Award prestige if deity-themed activity and player is in a religion
+        if (!string.IsNullOrEmpty(religionData.ReligionUID) &&
+            ShouldAwardPrestigeForActivity(religionData.ActiveDeity, actionType))
+        {
+            int prestigeAmount = amount / 3; // 2:1 conversion
+            if (prestigeAmount > 0)
+            {
+                try
+                {
+                    var playerForName = _sapi.World.PlayerByUid(playerUid);
+                    string playerName = playerForName?.PlayerName ?? playerUid;
+                    _prestigeManager.AddPrestige(
+                        religionData.ReligionUID,
+                        prestigeAmount,
+                        $"{actionType} by {playerName}"
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _sapi.Logger.Error($"[FavorSystem] Failed to award prestige: {ex.Message}");
+                    // Don't fail favor award if prestige fails
+                }
+            }
+        }
+
         var player = _sapi.World.PlayerByUid(playerUid) as IServerPlayer;
         if (player != null)
         {
@@ -350,7 +420,33 @@ public class FavorSystem : IFavorSystem, IDisposable
 
         if (religionData.ActiveDeity == DeityType.None) return;
 
+        // Award favor (existing logic)
         _playerReligionDataManager.AddFractionalFavor(playerUid, amount, actionType);
+
+        // Award prestige if deity-themed activity and player is in a religion
+        if (!string.IsNullOrEmpty(religionData.ReligionUID) &&
+            ShouldAwardPrestigeForActivity(religionData.ActiveDeity, actionType))
+        {
+            float prestigeAmount = amount / 10f; // 10:1 conversion
+            if (prestigeAmount >= 1.0f) // Only award whole prestige points
+            {
+                try
+                {
+                    var playerForName = _sapi.World.PlayerByUid(playerUid);
+                    string playerName = playerForName?.PlayerName ?? playerUid;
+                    _prestigeManager.AddPrestige(
+                        religionData.ReligionUID,
+                        (int)prestigeAmount,
+                        $"{actionType} by {playerName}"
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _sapi.Logger.Error($"[FavorSystem] Failed to award prestige: {ex.Message}");
+                    // Don't fail favor award if prestige fails
+                }
+            }
+        }
 
         var player = _sapi.World.PlayerByUid(playerUid) as IServerPlayer;
         if (player != null)

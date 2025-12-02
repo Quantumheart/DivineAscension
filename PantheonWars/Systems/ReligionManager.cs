@@ -67,6 +67,9 @@ public class ReligionManager : IReligionManager, IDisposable
         _sapi.Logger.Notification(
             $"[PantheonWars] Religion created: {name} (Deity: {deity}, Founder: {founderUID}, Public: {isPublic})");
 
+        // Immediately save to prevent data loss if server stops before autosave
+        SaveAllReligions();
+
         return religion;
     }
 
@@ -83,6 +86,9 @@ public class ReligionManager : IReligionManager, IDisposable
 
         religion.AddMember(playerUID);
         _sapi.Logger.Debug($"[PantheonWars] Added player {playerUID} to religion {religion.ReligionName}");
+
+        // Save immediately to prevent data loss
+        SaveAllReligions();
     }
 
     /// <summary>
@@ -112,6 +118,9 @@ public class ReligionManager : IReligionManager, IDisposable
                 _sapi.Logger.Notification(
                     $"[PantheonWars] Religion {religion.ReligionName} disbanded (no members remaining)");
             }
+
+            // Save immediately to prevent data loss
+            SaveAllReligions();
         }
     }
 
@@ -352,6 +361,14 @@ public class ReligionManager : IReligionManager, IDisposable
             _sapi.Logger.Notification(
                 $"[PantheonWars] Religion {religion.ReligionName} founder transferred to {newFounder}");
         }
+    }
+
+    /// <summary>
+    ///     Manually triggers a save of all religion data
+    /// </summary>
+    public void TriggerSave()
+    {
+        SaveAllReligions();
     }
 
     #region Persistence

@@ -28,8 +28,8 @@ public class AnvilFavorTracker(
     // Favor values per tier
     private const int FavorLowTier = 5;    // Copper
     private const int FavorMidTier = 10;   // Bronze, gold 
-    private const int FavorHighTier = 15;  // Steel, iron
-    private const int FavorEliteTier = 20; // Special alloys
+    private const int FavorHighTier = 15;  // special alloys, iron
+    private const int FavorEliteTier = 20; // Steel
 
     // Automation penalty
     private const float HelveHammerPenalty = 0.65f; // 35% reduction

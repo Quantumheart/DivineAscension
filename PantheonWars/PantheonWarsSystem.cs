@@ -107,6 +107,7 @@ public class PantheonWarsSystem : ModSystem
         
         // Clear any static event subscribers from previous loads
         PitKilnPatches.ClearSubscribers();
+        AnvilPatches.ClearSubscribers();
         
         api.Logger.Notification("[PantheonWars] Initializing server-side systems...");
 
@@ -144,18 +145,19 @@ public class PantheonWarsSystem : ModSystem
         _playerReligionDataManager.Initialize();
         _playerReligionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
 
+        // Initialize religion prestige manager (concrete implementation, stored as interface)
+        // MUST be initialized before FavorSystem
+        _religionPrestigeManager = new ReligionPrestigeManager(api, _religionManager);
+        _religionPrestigeManager.Initialize();
+
         // Initialize favor system (concrete implementation, stored as interface)
         // Pass interfaces for loose coupling
-        _favorSystem = new FavorSystem(api, _playerDataManager, _playerReligionDataManager, _deityRegistry, _religionManager);
+        _favorSystem = new FavorSystem(api, _playerDataManager, _playerReligionDataManager, _deityRegistry, _religionManager, _religionPrestigeManager);
         _favorSystem.Initialize();
 
         // Initialize ability system (pass buff manager interface)
         _abilitySystem = new AbilitySystem(api, _abilityRegistry, _playerDataManager, _cooldownManager, _buffManager);
         _abilitySystem.Initialize();
-
-        // Initialize religion prestige manager (concrete implementation, stored as interface)
-        _religionPrestigeManager = new ReligionPrestigeManager(api, _religionManager);
-        _religionPrestigeManager.Initialize();
 
         // Initialize PvP manager (pass interfaces for loose coupling)
         _pvpManager = new PvPManager(api, _playerReligionDataManager, _religionManager, _religionPrestigeManager,

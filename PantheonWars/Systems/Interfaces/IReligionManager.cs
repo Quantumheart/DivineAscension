@@ -118,6 +118,11 @@ public interface IReligionManager : IDisposable
     /// </summary>
     List<BanEntry> GetBannedPlayers(string religionUID);
 
+    /// <summary>
+    ///     Manually triggers a save of all religion data
+    /// </summary>
+    void TriggerSave();
+
     void OnSaveGameLoaded();
     void OnGameWorldSave();
 }
