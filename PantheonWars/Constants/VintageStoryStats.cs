@@ -20,6 +20,7 @@ public static class VintageStoryStats
     // Defense Stats
     public const string MeleeWeaponArmor = "meleeWeaponArmor";
     public const string MaxHealthExtraPoints = "maxhealthExtraPoints";
+    public const string ArmorEffectiveness = "armorEffectiveness";
 
     // Movement Stats
     public const string WalkSpeed = "walkspeed";
@@ -64,6 +65,7 @@ public static class VintageStoryStats
     public const string StoneYield = "stoneYield";
     public const string ClayYield = "clayYield";
     public const string ClayFormingVoxelChance = "clayFormingVoxelChance";
+    public const string PotteryBatchCompletionChance = "potteryBatchCompletionChance";
     public const string StorageVesselCapacity = "storageVesselCapacity";
     public const string DiggingSpeed = "diggingSpeed";
 

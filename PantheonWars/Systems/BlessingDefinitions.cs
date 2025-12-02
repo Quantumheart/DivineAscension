@@ -572,26 +572,27 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Specialize in pottery crafting. +30% chance to place an additional voxel while knapping pottery, +10% digging speed. Crafting path. Requires Clay Shaper.",
+                    "Specialize in pottery crafting. +10% chance to craft duplicate pottery items on completion, +10% digging speed. Crafting path. Requires Clay Shaper.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.GaiaClayShaper },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ClayFormingVoxelChance, 0.30f },
+                    { VintageStoryStats.PotteryBatchCompletionChance, 0.25f },
                     { VintageStoryStats.DiggingSpeed, 0.10f }
-                }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.PotteryBatchCompletionBonus }
             },
             new(BlessingIds.GaiaEarthenBuilder, "Earthen Builder", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Focus on utility and storage. Storage vessels +30% capacity, +15% stone yield. Utility path. Requires Clay Shaper.",
+                    "Focus on resilience and stonework. +15% armor effectiveness, +15% stone yield. Utility path. Requires Clay Shaper.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.GaiaClayShaper },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StorageVesselCapacity, 0.30f },
+                    { VintageStoryStats.ArmorEffectiveness, 0.15f },
                     { VintageStoryStats.StoneYield, 0.15f }
                 }
             },
@@ -602,26 +603,27 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Achieve legendary pottery crafting. +40% chance to place an additional voxel while knapping pottery (total: 70%), +15% digging speed (total: 25%). Requires Master Potter.",
+                    "Achieve legendary pottery crafting. +15% chance to craft duplicate pottery items (total: 60%), +15% digging speed (total: 25%). Requires Master Potter.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.GaiaMasterPotter },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ClayFormingVoxelChance, 0.40f },
+                    { VintageStoryStats.PotteryBatchCompletionChance, 0.35f },
                     { VintageStoryStats.DiggingSpeed, 0.15f }
-                }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.PotteryBatchCompletionBonus }
             },
             new(BlessingIds.GaiaClayArchitect, "Clay Architect", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Master storage and stone gathering. Storage vessels +40% capacity (total: 70%), +20% stone yield (total: 35%). Requires Earthen Builder.",
+                    "Master fortification and stone gathering. +20% armor effectiveness (total: 35%), +20% stone yield (total: 35%). Requires Earthen Builder.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthenBuilder },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StorageVesselCapacity, 0.40f },
+                    { VintageStoryStats.ArmorEffectiveness, 0.20f },
                     { VintageStoryStats.StoneYield, 0.20f }
                 }
             },
@@ -663,13 +665,14 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "A united guild of skilled potters. +20% chance to place an additional voxel while knapping pottery for all. Requires Potter's Circle.",
+                    "A united guild of skilled potters. +5% batch completion chance (craft duplicate pottery) for all. Requires Potter's Circle.",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
                 PrerequisiteBlessings = new List<string> { BlessingIds.GaiaPottersCircle },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ClayFormingVoxelChance, 0.20f }
-                }
+                    { VintageStoryStats.PotteryBatchCompletionChance, 0.20f }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.PotteryBatchCompletionBonus }
             },
 
             // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
@@ -678,12 +681,12 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "A thriving pottery community. Storage vessels +25% capacity for all. Requires Clay Guild.",
+                    "A thriving fortified community. +15% armor effectiveness for all. Requires Clay Guild.",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
                 PrerequisiteBlessings = new List<string> { BlessingIds.GaiaClayGuild },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StorageVesselCapacity, 0.25f }
+                    { VintageStoryStats.ArmorEffectiveness, 0.15f }
                 }
             },
 

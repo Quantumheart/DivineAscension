@@ -82,6 +82,11 @@ public static class SystemConstants
     public const string StatDisplayArmor = "Armor";
 
     /// <summary>
+    ///     Display name for armor effectiveness stat
+    /// </summary>
+    public const string StatDisplayArmorEffectiveness = "Armor Effectiveness";
+
+    /// <summary>
     ///     Display name for max health stat
     /// </summary>
     public const string StatDisplayMaxHealth = "Max Health";
@@ -155,6 +160,11 @@ public static class SystemConstants
     ///     Display name for armor walk speed affectedness stat
     /// </summary>
     public const string StatDisplayArmorWalkSpeed = "Armor Walk Speed";
+
+    /// <summary>
+    ///     Display name for pottery batch completion chance
+    /// </summary>
+    public const string StatDisplayPotteryBatchCompletion = "Duplicate Pottery Chance";
 
     #endregion
 

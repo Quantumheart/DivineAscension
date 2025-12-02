@@ -90,5 +90,15 @@ public static class SpecialEffects
     /// </summary>
     public const string OverburdenedImmunity = "overburdened_immunity";
 
+    /// <summary>
+    ///     Clay Forming Voxel Bonus: Chance to place an additional voxel during clay forming (legacy)
+    /// </summary>
+    public const string ClayFormingVoxelBonus = "clay_forming_voxel_bonus";
+
+    /// <summary>
+    ///     Pottery Batch Completion Bonus: Chance to craft a duplicate pottery item on completion
+    /// </summary>
+    public const string PotteryBatchCompletionBonus = "pottery_batch_completion_bonus";
+
     #endregion
 }

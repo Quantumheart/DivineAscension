@@ -410,6 +410,11 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         // Gaia (Earth & Stone)
         RegisterStatIfNeeded(stats, VintageStoryStats.StoneYield, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.ClayYield, EnumStatBlendType.WeightedSum);
+        // New Gaia utility stats
+        RegisterStatIfNeeded(stats, VintageStoryStats.ClayFormingVoxelChance, EnumStatBlendType.FlatSum); // Legacy additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.PotteryBatchCompletionChance, EnumStatBlendType.FlatSum); // Additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.DiggingSpeed, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.ArmorEffectiveness, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.PickDurability, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.FallDamageReduction, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.RareStoneChance, EnumStatBlendType.FlatSum); // Additive chance
@@ -498,6 +503,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             VintageStoryStats.RangedWeaponsDamage => SystemConstants.StatDisplayRangedDamage,
             VintageStoryStats.MeleeWeaponsSpeed => SystemConstants.StatDisplayAttackSpeed,
             VintageStoryStats.MeleeWeaponArmor => SystemConstants.StatDisplayArmor,
+            VintageStoryStats.ArmorEffectiveness => SystemConstants.StatDisplayArmorEffectiveness,
             VintageStoryStats.MaxHealthExtraPoints => SystemConstants.StatDisplayMaxHealth,
             VintageStoryStats.WalkSpeed => SystemConstants.StatDisplayWalkSpeed,
             VintageStoryStats.HealingEffectiveness => SystemConstants.StatDisplayHealthRegen,
@@ -512,6 +518,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             VintageStoryStats.HungerRate => SystemConstants.StatDisplayHungerRate,
             VintageStoryStats.ArmorDurabilityLoss => SystemConstants.StatDisplayArmorDurabilityLoss,
             VintageStoryStats.ArmorWalkSpeedAffectedness => SystemConstants.StatDisplayArmorWalkSpeed,
+            VintageStoryStats.PotteryBatchCompletionChance => SystemConstants.StatDisplayPotteryBatchCompletion,
             _ => statKey
         };
     }
@@ -534,7 +541,10 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.BlessedMealsEffect());
         _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.RareCropDiscoveryEffect());
         // Note: FoodSpoilageReduction is shared with Lysa and already registered above
-
+        
+        // Gaia (Pottery & Clay) handlers
+        _specialEffectRegistry.RegisterHandler(new GaiaEffectHandlers.PotteryBatchCompletionEffect());
+        
         _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered all special effect handlers");
     }
 
