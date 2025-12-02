@@ -19,6 +19,7 @@ Hunting and foraging focused. Bonuses to animal/plant drops and movement speed. 
 
 - Hunting animals: 3-20 favor (based on animal size)
 - Foraging plants: 0.5 favor per harvest
+- Exploring new chunks
 - PvP kills: Standard
 - Passive: 0.5/hour
 
@@ -102,7 +103,7 @@ Hunting and foraging focused. Bonuses to animal/plant drops and movement speed. 
 - **85% more animal drops** (60% player + 25% religion)
 - **40% slower food spoilage** (40% player path A)
 - **35% damage vs animals** (35% player path B)
-- **18% movement speed** (13% player + 5% religion)
+- **10% movement speed** (5% player + 5% religion)
 - **13°C temperature resistance** (8°C player + 5°C religion, hot and cold separately)
 
 ---
