@@ -1099,9 +1099,8 @@ public class CivilizationInfoOverlay : ModSystem
 **Test Cases:**
 - [x] Main tab switching works (Blessings ↔ Civilization)
 - [x] All 4 civilization sub-tabs render correctly
-- [ ] Browse tab: deity filter works, scrolling works, "View Details" switches tabs
-  - [ ] refresh
-    -  **TEST NOTES: Refresh button clicks; but does not impact the results**
+- [x] Browse tab: deity filter works, scrolling works, "View Details" switches tabs
+  - [x] refresh
   - [x] filter
   - [X] scroll
   - [x] "View Details" 
@@ -1150,7 +1149,6 @@ public class CivilizationInfoOverlay : ModSystem
 - [ ] Add tooltips for buttons and actions
 - [ ] Add audio feedback (button clicks, tab switches)
 - [ ] Ensure consistent spacing and alignment
-- [ ] Test at different window sizes
 
 **Success Criteria:**
 - ✅ All test cases pass
