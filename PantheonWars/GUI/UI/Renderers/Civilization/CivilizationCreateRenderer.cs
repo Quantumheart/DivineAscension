@@ -47,7 +47,7 @@ internal static class CivilizationCreateRenderer
         TextRenderer.DrawLabel(drawList, "Civilization Name:", x, currentY, 14f);
         currentY += 20f;
 
-        state.CreateCivName = TextInput.Draw(drawList, "##createCivName", state.CreateCivName, x, currentY, 300f, 30f,
+        state.CreateCivName = TextInput.Draw(drawList, "##createCivName", state.CreateCivName, x, currentY, width * 0.7f, 30f,
             placeholder: "Enter name (3-32 characters)...", maxLength: 32);
         currentY += 40f;
 

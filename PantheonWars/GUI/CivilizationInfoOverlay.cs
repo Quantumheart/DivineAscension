@@ -12,9 +12,11 @@ using VSImGui.API;
 namespace PantheonWars.GUI;
 
 /// <summary>
-///     Compact HUD overlay showing civilization info at a glance
-///     Toggleable, displays in top-right corner
+///     [OBSOLETE] Compact HUD overlay showing civilization info
+///     DEPRECATED: Civilization UI has been migrated to BlessingDialog (Civilization tab)
+///     This file will be removed in a future update.
 /// </summary>
+[Obsolete("Use BlessingDialog Civilization tab instead. This overlay will be removed in a future update.")]
 [ExcludeFromCodeCoverage]
 public class CivilizationInfoOverlay : ModSystem
 {

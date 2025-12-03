@@ -18,6 +18,13 @@ internal static class CivilizationBrowseRenderer
         float x, float y, float width, float height)
     {
         var state = manager.CivState;
+
+        // If viewing a specific civilization's details, show detail view instead
+        if (state.ViewingCivilizationId != null)
+        {
+            return CivilizationDetailViewRenderer.Draw(manager, api, x, y, width, height);
+        }
+
         var drawList = ImGui.GetWindowDrawList();
         var currentY = y + 8f;
 
@@ -48,25 +55,11 @@ internal static class CivilizationBrowseRenderer
         var dropdownW = 200f;
         var dropdownH = 30f;
 
-        // Button and interactive menu
-        if (Dropdown.DrawButton(drawList, dropdownX, dropdownY, dropdownW, dropdownH, deities[selectedIndex], false))
+        // Draw dropdown button
+        if (Dropdown.DrawButton(drawList, dropdownX, dropdownY, dropdownW, dropdownH, deities[selectedIndex], state.IsDeityFilterOpen))
         {
-            // Open/close controlled internally by Dropdown for the one-shot menu draw below
-        }
-
-        // Show menu and handle selection in-place
-        var (newIndex, shouldClose, clickConsumed) = Dropdown.DrawMenuAndHandleInteraction(
-            drawList, api, dropdownX, dropdownY, dropdownW, dropdownH, deities, selectedIndex, 34f);
-
-        if (clickConsumed)
-        {
-            // Consume mouse
-        }
-
-        if (shouldClose && newIndex != selectedIndex)
-        {
-            state.DeityFilter = newIndex == 0 ? string.Empty : deities[newIndex];
-            manager.RequestCivilizationList(state.DeityFilter);
+            // Toggle dropdown open/close
+            state.IsDeityFilterOpen = !state.IsDeityFilterOpen;
         }
 
         // Refresh button
@@ -91,6 +84,29 @@ internal static class CivilizationBrowseRenderer
             (civ, cx, cy, cw, ch) => DrawCivilizationCard(civ, cx, cy, cw, ch, manager, api),
             emptyText: "No civilizations found."
         );
+
+        // Draw dropdown menu AFTER the list so it appears on top (z-ordering)
+        if (state.IsDeityFilterOpen)
+        {
+            // Draw menu visual
+            Dropdown.DrawMenuVisual(drawList, dropdownX, dropdownY, dropdownW, dropdownH, deities, selectedIndex, 34f);
+
+            // Handle menu interaction
+            var (newIndex, shouldClose, clickConsumed) = Dropdown.DrawMenuAndHandleInteraction(
+                drawList, api, dropdownX, dropdownY, dropdownW, dropdownH, deities, selectedIndex, 34f);
+
+            if (shouldClose)
+            {
+                state.IsDeityFilterOpen = false;
+
+                // Update filter if selection changed
+                if (newIndex != selectedIndex)
+                {
+                    state.DeityFilter = newIndex == 0 ? string.Empty : deities[newIndex];
+                    manager.RequestCivilizationList(state.DeityFilter);
+                }
+            }
+        }
 
         return height;
     }
@@ -131,8 +147,9 @@ internal static class CivilizationBrowseRenderer
         // View details button
         if (ButtonRenderer.DrawButton(drawList, "View Details", x + width - 130f, y + height - 36f, 120f, 28f, true))
         {
+            // Set viewing state and request details
+            manager.CivState.ViewingCivilizationId = civ.CivId;
             manager.RequestCivilizationInfo(civ.CivId);
-            api.ShowChatMessage($"Requesting details for {civ.Name}...");
         }
     }
 }

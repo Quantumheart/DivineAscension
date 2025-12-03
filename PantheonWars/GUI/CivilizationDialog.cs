@@ -14,8 +14,11 @@ using VSImGui.API;
 namespace PantheonWars.GUI;
 
 /// <summary>
-///     Full-featured civilization management dialog with tabs for browsing, managing, invites, and creation
+///     [OBSOLETE] Full-featured civilization management dialog with tabs
+///     DEPRECATED: Civilization UI has been migrated to BlessingDialog (Civilization tab)
+///     This file will be removed in a future update.
 /// </summary>
+[Obsolete("Use BlessingDialog Civilization tab instead. This dialog will be removed in a future update.")]
 [ExcludeFromCodeCoverage]
 public class CivilizationDialog : ModSystem
 {
@@ -265,7 +268,7 @@ public class CivilizationDialog : ModSystem
         ImGui.Text("Filter by deity:");
         ImGui.SameLine();
 
-        var deities = new[] { "All", "Khoras", "Lysa", "Morthen", "Aethra", "Umbros", "Tharos", "Gaia", "Vex" };
+        var deities = new[] { "All", "Khoras", "Lysa", "Aethra", "Gaia" };
         var currentDeityIndex = Array.IndexOf(deities, string.IsNullOrEmpty(_deityFilter) ? "All" : _deityFilter);
         if (currentDeityIndex < 0) currentDeityIndex = 0;
 

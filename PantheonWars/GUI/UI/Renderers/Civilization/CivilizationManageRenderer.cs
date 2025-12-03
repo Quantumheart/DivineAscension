@@ -65,14 +65,15 @@ internal static class CivilizationManageRenderer
                 state.InviteReligionName,
                 x,
                 currentY,
-                320f,
+                width * 0.6f,
                 30f,
                 placeholder: "Enter religion name...",
                 maxLength: 64
             );
 
             // Send invite
-            if (ButtonRenderer.DrawButton(drawList, "Send Invite", x + 330f, currentY - 2f, 140f, 32f, true,
+            var inviteButtonX = x + (width * 0.6f) + 10f;
+            if (ButtonRenderer.DrawButton(drawList, "Send Invite", inviteButtonX, currentY - 2f, 140f, 32f, true,
                     enabled: !string.IsNullOrWhiteSpace(state.InviteReligionName)))
             {
                 manager.RequestCivilizationAction("invite", civ.CivId, state.InviteReligionName);

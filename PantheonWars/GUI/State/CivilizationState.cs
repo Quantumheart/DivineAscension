@@ -17,6 +17,11 @@ public class CivilizationState
     public string SearchText { get; set; } = string.Empty;
     public List<CivilizationListResponsePacket.CivilizationInfo> AllCivilizations { get; set; } = new();
     public float BrowseScrollY { get; set; } = 0f;
+    public bool IsDeityFilterOpen { get; set; } = false;
+
+    // Detail view for any civilization (when clicking "View Details")
+    public string? ViewingCivilizationId { get; set; }
+    public CivilizationInfoResponsePacket.CivilizationDetails? ViewingCivilizationDetails { get; set; }
 
     // My Civilization tab
     public CivilizationInfoResponsePacket.CivilizationDetails? MyCivilization { get; set; }
@@ -41,6 +46,9 @@ public class CivilizationState
         SearchText = string.Empty;
         AllCivilizations.Clear();
         BrowseScrollY = 0f;
+        IsDeityFilterOpen = false;
+        ViewingCivilizationId = null;
+        ViewingCivilizationDetails = null;
         MyCivilization = null;
         MemberScrollY = 0f;
         InviteReligionName = string.Empty;

@@ -306,11 +306,21 @@ public class BlessingDialogManager : IBlessingDialogManager
             return;
         }
 
-        CurrentCivilizationId = details.CivId;
-        CurrentCivilizationName = details.Name;
-        CivilizationFounderReligionUID = details.FounderReligionUID;
-        CivilizationMemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions);
-        CivState.MyCivilization = details;
+        // Check if this is for a civilization we're viewing (from "View Details")
+        if (!string.IsNullOrEmpty(CivState.ViewingCivilizationId) && details.CivId == CivState.ViewingCivilizationId)
+        {
+            // Update viewing details
+            CivState.ViewingCivilizationDetails = details;
+        }
+        else
+        {
+            // Update player's own civilization
+            CurrentCivilizationId = details.CivId;
+            CurrentCivilizationName = details.Name;
+            CivilizationFounderReligionUID = details.FounderReligionUID;
+            CivilizationMemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions);
+            CivState.MyCivilization = details;
+        }
     }
 
     /// <summary>

@@ -1097,26 +1097,46 @@ public class CivilizationInfoOverlay : ModSystem
 
 #### Task 5.1: Manual Testing
 **Test Cases:**
-- [ ] Main tab switching works (Blessings ↔ Civilization)
-- [ ] All 4 civilization sub-tabs render correctly
+- [x] Main tab switching works (Blessings ↔ Civilization)
+- [x] All 4 civilization sub-tabs render correctly
 - [ ] Browse tab: deity filter works, scrolling works, "View Details" switches tabs
+  - [ ] refresh
+  - [x] filter - button not dropping down: non functional
+  - [ ] scroll
+  - [x] "View Details" 
 - [ ] My Civilization tab: member list scrolls, invite input works, kick button works
+  - [ ] scrolls
+  - [ ] invite
+  - [ ] kick
 - [ ] Invitations tab: invite list scrolls, accept/decline buttons work
-- [ ] Create tab: name input works, create button validates, clear button works
+    - **Testing notes: No invitations user interface to send invitations**
+  - [ ] scrolls
+  - [ ] accept
+  - [ ] decline
+- [x] Create tab: name input works, create button validates, clear button works
+  - [x] name input
+  - [x] clear
+  - [x] create
 - [ ] Data refreshes after actions (create, invite, accept, leave, kick, disband)
+  - [x] create
+  - [ ] invite
+  - [ ] accept
+  - [ ] kick
+  - [x] disband
 - [ ] Event handlers update state correctly
 - [ ] No visual glitches (overlapping, incorrect sizing, etc.)
-- [ ] Shared components work correctly (tabs, buttons, inputs, scrolling)
-- [ ] Deity colors and titles display correctly
+  - **Testing notes: The name input control for civilizations is small**
+- [x] Shared components work correctly (tabs, buttons, inputs, scrolling)
+- [x] Deity colors and titles display correctly
 
 #### Task 5.2: Edge Case Testing
 **Edge Cases:**
-- [ ] No civilizations exist (empty list)
+- [x] No civilizations exist (empty list)
 - [ ] Player not in a civilization (My Civ tab shows info message)
 - [ ] No pending invitations (Invites tab shows empty message)
 - [ ] Civilization at capacity (4/4 members)
-- [ ] Long civilization names (32 characters)
-- [ ] Long religion names
+- [x] Long civilization names (32 characters)
+- [x] Long religion names
 - [ ] Many civilizations (scrolling performance)
 - [ ] Many members (scrolling performance)
 - [ ] Many invites (scrolling performance)

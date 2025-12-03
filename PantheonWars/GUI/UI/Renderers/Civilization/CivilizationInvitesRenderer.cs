@@ -22,6 +22,10 @@ internal static class CivilizationInvitesRenderer
         TextRenderer.DrawLabel(drawList, "Your Civilization Invitations", x, currentY, 16f, ColorPalette.White);
         currentY += 26f;
 
+        // Help text explaining where to send invites
+        TextRenderer.DrawInfoText(drawList, "This tab shows invitations you've received. To send invitations, go to the \"My Civilization\" tab (founders only).", x, currentY, width);
+        currentY += 32f;
+
         if (state.MyInvites.Count == 0)
         {
             TextRenderer.DrawInfoText(drawList, "No pending invitations.", x, currentY + 8f, width);
