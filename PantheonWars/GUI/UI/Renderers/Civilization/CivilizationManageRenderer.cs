@@ -20,6 +20,8 @@ internal static class CivilizationManageRenderer
         var drawList = ImGui.GetWindowDrawList();
         var currentY = y;
 
+        var overlayOpen = state.ShowDisbandConfirm || state.KickConfirmReligionId != null;
+
         // Loading state for My Civilization tab
         if (state.IsMyCivLoading)
         {
@@ -110,7 +112,7 @@ internal static class CivilizationManageRenderer
 
             // Send invite
             var inviteButtonX = x + (width * 0.6f) + 10f;
-            var canInvite = !string.IsNullOrWhiteSpace(state.InviteReligionName) && !state.IsInvitesLoading && !state.IsMyCivLoading;
+            var canInvite = !overlayOpen && !string.IsNullOrWhiteSpace(state.InviteReligionName) && !state.IsInvitesLoading && !state.IsMyCivLoading;
             if (ButtonRenderer.DrawButton(drawList, "Send Invite", inviteButtonX, currentY - 2f, 140f, 32f, true,
                     enabled: canInvite))
             {
@@ -142,20 +144,73 @@ internal static class CivilizationManageRenderer
 
         // Footer actions
         currentY += 10f;
-        if (ButtonRenderer.DrawActionButton(drawList, "Leave Civilization", x, currentY, 180f, 34f, false))
+        var leaveEnabled = !overlayOpen;
+        if (leaveEnabled && ButtonRenderer.DrawActionButton(drawList, "Leave Civilization", x, currentY, 180f, 34f, false))
         {
             manager.RequestCivilizationAction("leave");
         }
 
         if (isFounder)
         {
-            if (ButtonRenderer.DrawActionButton(drawList, "Disband Civilization", x + 190f, currentY, 200f, 34f, true))
+            var disbandEnabled = !overlayOpen;
+            if (disbandEnabled && ButtonRenderer.DrawActionButton(drawList, "Disband Civilization", x + 190f, currentY, 200f, 34f, true))
             {
-                manager.RequestCivilizationAction("disband", civ.CivId);
+                // Open confirm overlay
+                state.ShowDisbandConfirm = true;
             }
         }
 
-        return currentY + 40f - y;
+        // Draw confirmation overlays (modal)
+        currentY += 40f;
+
+        // Disband confirmation
+        if (state.ShowDisbandConfirm)
+        {
+            PantheonWars.GUI.UI.Components.Overlays.ConfirmOverlay.Draw(
+                title: "Disband Civilization?",
+                message: "This action cannot be undone. All member religions will leave the civilization.",
+                out var confirmed,
+                out var canceled,
+                confirmLabel: "Disband",
+                cancelLabel: "Cancel");
+
+            if (confirmed)
+            {
+                manager.RequestCivilizationAction("disband", civ.CivId);
+                state.ShowDisbandConfirm = false;
+            }
+            else if (canceled)
+            {
+                state.ShowDisbandConfirm = false;
+            }
+        }
+
+        // Kick confirmation
+        if (state.KickConfirmReligionId != null)
+        {
+            var targetId = state.KickConfirmReligionId;
+            var targetName = civ.MemberReligions.Find(m => m.ReligionId == targetId)?.ReligionName ?? "this religion";
+
+            PantheonWars.GUI.UI.Components.Overlays.ConfirmOverlay.Draw(
+                title: "Kick Religion?",
+                message: $"Remove '{targetName}' from your civilization?",
+                out var confirmed,
+                out var canceled,
+                confirmLabel: "Kick",
+                cancelLabel: "Cancel");
+
+            if (confirmed)
+            {
+                manager.RequestCivilizationAction("kick", civ.CivId, targetId);
+                state.KickConfirmReligionId = null;
+            }
+            else if (canceled)
+            {
+                state.KickConfirmReligionId = null;
+            }
+        }
+
+        return currentY - y;
     }
 
     private static void DrawMemberCard(
@@ -187,12 +242,12 @@ internal static class CivilizationManageRenderer
         var isCivFounderReligion = manager.CivilizationFounderReligionUID == member.ReligionId;
         if (manager.IsCivilizationFounder && !isCivFounderReligion)
         {
-            var kickEnabled = !manager.CivState.IsMyCivLoading; // disabled while tab loading
-            if (ButtonRenderer.DrawSmallButton(drawList, "Kick", x + width - 80f, y + (height - 26f) / 2f, 70f, 26f,
-                    ColorPalette.Red * 0.7f) && kickEnabled)
+            var kickEnabled = !manager.CivState.IsMyCivLoading && manager.CivState.KickConfirmReligionId == null && !manager.CivState.ShowDisbandConfirm; // disabled while tab loading or overlay open
+            if (kickEnabled && ButtonRenderer.DrawSmallButton(drawList, "Kick", x + width - 80f, y + (height - 26f) / 2f, 70f, 26f,
+                    ColorPalette.Red * 0.7f))
             {
-                // Use ReligionId (not ReligionName) as the server expects an ID
-                manager.RequestCivilizationAction("kick", manager.CurrentCivilizationId ?? string.Empty, member.ReligionId);
+                // Open confirm overlay; store the target religion id in state
+                manager.CivState.KickConfirmReligionId = member.ReligionId;
             }
         }
     }
