@@ -13,7 +13,7 @@ namespace PantheonWars.Systems;
 /// <summary>
 ///     Manages player-religion relationships and player progression
 /// </summary>
-public class PlayerReligionDataManager : IPlayerReligionDataManager
+public class PlayerReligionDataManager : IPlayerReligionDataManager, IDisposable
 {
     public delegate void PlayerReligionDataChangedDelegate(IServerPlayer player, string religionUID);
     public delegate void PlayerDataChangedDelegate(string playerUID);
@@ -49,6 +49,14 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
         _sapi.Event.GameWorldSave += OnGameWorldSave;
 
         _sapi.Logger.Notification("[PantheonWars] Player Religion Data Manager initialized");
+    }
+
+    public void Dispose()
+    {
+        _sapi.Event.PlayerJoin -= OnPlayerJoin;
+        _sapi.Event.PlayerDisconnect -= OnPlayerDisconnect;
+        _sapi.Event.SaveGameLoaded -= OnSaveGameLoaded;
+        _sapi.Event.GameWorldSave -= OnGameWorldSave;
     }
 
     /// <summary>

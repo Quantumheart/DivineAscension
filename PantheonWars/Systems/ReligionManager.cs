@@ -12,7 +12,7 @@ namespace PantheonWars.Systems;
 /// <summary>
 ///     Manages all religions and congregation membership
 /// </summary>
-public class ReligionManager : IReligionManager
+public class ReligionManager : IReligionManager, IDisposable
 {
     private const string DATA_KEY = "pantheonwars_religions";
     private readonly Dictionary<string, List<string>> _invitations = new(); // playerUID -> list of religionUIDs
@@ -38,6 +38,12 @@ public class ReligionManager : IReligionManager
         _sapi.Logger.Notification("[PantheonWars] Religion Manager initialized");
     }
 
+    public void Dispose()
+    {
+        _sapi.Event.SaveGameLoaded -= OnSaveGameLoaded;
+        _sapi.Event.GameWorldSave -= OnGameWorldSave;
+    }
+
     /// <summary>
     ///     Creates a new religion
     /// </summary>
@@ -61,6 +67,9 @@ public class ReligionManager : IReligionManager
         _sapi.Logger.Notification(
             $"[PantheonWars] Religion created: {name} (Deity: {deity}, Founder: {founderUID}, Public: {isPublic})");
 
+        // Immediately save to prevent data loss if server stops before autosave
+        SaveAllReligions();
+
         return religion;
     }
 
@@ -77,6 +86,9 @@ public class ReligionManager : IReligionManager
 
         religion.AddMember(playerUID);
         _sapi.Logger.Debug($"[PantheonWars] Added player {playerUID} to religion {religion.ReligionName}");
+
+        // Save immediately to prevent data loss
+        SaveAllReligions();
     }
 
     /// <summary>
@@ -106,6 +118,9 @@ public class ReligionManager : IReligionManager
                 _sapi.Logger.Notification(
                     $"[PantheonWars] Religion {religion.ReligionName} disbanded (no members remaining)");
             }
+
+            // Save immediately to prevent data loss
+            SaveAllReligions();
         }
     }
 
@@ -346,6 +361,14 @@ public class ReligionManager : IReligionManager
             _sapi.Logger.Notification(
                 $"[PantheonWars] Religion {religion.ReligionName} founder transferred to {newFounder}");
         }
+    }
+
+    /// <summary>
+    ///     Manually triggers a save of all religion data
+    /// </summary>
+    public void TriggerSave()
+    {
+        SaveAllReligions();
     }
 
     #region Persistence

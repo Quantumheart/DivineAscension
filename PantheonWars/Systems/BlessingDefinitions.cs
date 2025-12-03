@@ -3,19 +3,19 @@ using System.Diagnostics.CodeAnalysis;
 using PantheonWars.Constants;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
-using Vintagestory.GameContent;
 
 namespace PantheonWars.Systems;
 
 /// <summary>
-///     Contains all blessing definitions for all deities (Phase 3.4)
-///     Total: 80 blessings (8 deities × 10 blessings each)
+///     Contains all blessing definitions for all deities
+///     Utility-focused system: 40 blessings (4 deities × 10 blessings each)
 /// </summary>
 [ExcludeFromCodeCoverage]
 public static class BlessingDefinitions
 {
     /// <summary>
     ///     Gets all blessing definitions for registration
+    ///     Updated for utility-focused system (4 deities, 40 total blessings)
     /// </summary>
     public static List<Blessing> GetAllBlessings()
     {
@@ -23,32 +23,55 @@ public static class BlessingDefinitions
 
         blessings.AddRange(GetKhorasBlessings());
         blessings.AddRange(GetLysaBlessings());
-        blessings.AddRange(GetMorthenBlessings());
         blessings.AddRange(GetAethraBlessings());
-        blessings.AddRange(GetUmbrosBlessings());
-        blessings.AddRange(GetTharosBlessings());
         blessings.AddRange(GetGaiaBlessings());
-        blessings.AddRange(GetVexBlessings());
 
         return blessings;
     }
 
-    #region Khoras (War) - 10 Blessings (Refactored)
+    #region Khoras (Forge & Craft)
 
     private static List<Blessing> GetKhorasBlessings()
     {
         return new List<Blessing>
         {
-            // PLAYER BLESSINGS (6 total) - Streamlined for meaningful choices
+            // PLAYER BLESSINGS (6 total) - Forge & Craft utility focus
 
             // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.KhorasWarriorsResolve, "Warrior's Resolve", DeityType.Khoras)
+            new(BlessingIds.KhorasCraftsmansTouch, "Craftsman's Touch", DeityType.Khoras)
             {
                 Kind = BlessingKind.Player,
-                Type = EnumTraitType.Positive,
-                Category = BlessingCategory.Combat,
-                Description = "Your devotion to war strengthens body and blade. +10% melee damage, +10% max health.",
+                Category = BlessingCategory.Utility,
+                Description = "+10% tool durability, +10% ore yield.",
                 RequiredFavorRank = (int)FavorRank.Initiate,
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.ToolDurability, 0.10f },
+                    { VintageStoryStats.OreDropRate, 0.10f }
+                }
+            },
+
+            // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
+            new(BlessingIds.KhorasMasterworkTools, "Masterwork Tools", DeityType.Khoras)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Utility,
+                Description = "+15% tool durability (total: 25%), +10% mining speed. Requires Craftsman's Touch.",
+                RequiredFavorRank = (int)FavorRank.Disciple,
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasCraftsmansTouch },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.ToolDurability, 0.15f },
+                    { VintageStoryStats.MiningSpeed, 0.10f }
+                }
+            },
+            new(BlessingIds.KhorasForgebornEndurance, "Forgeborn Endurance", DeityType.Khoras)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Defense,
+                Description = "+10% melee weapon damage, +10% max health. Requires Craftsman's Touch.",
+                RequiredFavorRank = (int)FavorRank.Disciple,
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasCraftsmansTouch },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
@@ -56,1417 +79,629 @@ public static class BlessingDefinitions
                 }
             },
 
-            // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.KhorasBloodlust, "Bloodlust", DeityType.Khoras)
+            // Tier 3 - Zealot (2000-4999 favor) - Specialization
+            new(BlessingIds.KhorasLegendarySmith, "Legendary Smith", DeityType.Khoras)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Embrace the rage of battle. +15% melee damage, +10% attack speed. Offense path. Requires Warrior's Resolve.",
-                RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasWarriorsResolve },
+                Category = BlessingCategory.Utility,
+                Description = "+20% tool durability (total: 45%), +15% ore yield (total: 25%). Requires Masterwork Tools.",
+                RequiredFavorRank = (int)FavorRank.Zealot,
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasMasterworkTools },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
-                }
+                    { VintageStoryStats.ToolDurability, 0.20f },
+                    { VintageStoryStats.OreDropRate, 0.15f }
+                },
+                SpecialEffects = new List<string> { }
             },
-            new(BlessingIds.KhorasIronSkin, "Iron Skin", DeityType.Khoras)
+            new(BlessingIds.KhorasUnyielding, "Unyielding", DeityType.Khoras)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Defense,
-                Description =
-                    "Battle hardens your body. +20% armor, +15% max health. Defense path. Requires Warrior's Resolve.",
-                RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasWarriorsResolve },
+                Description = "+10% reduced armor durability loss, +15% max health (total: 25%). Requires Forgeborn Endurance.",
+                RequiredFavorRank = (int)FavorRank.Zealot,
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasForgebornEndurance },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.20f },
+                    { VintageStoryStats.ArmorDurabilityLoss, -0.10f },
                     { VintageStoryStats.MaxHealthExtraPoints, 1.15f }
                 }
             },
 
-            // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.KhorasBerserkerRage, "Berserker Rage", DeityType.Khoras)
+            // Tier 4 - Champion (5000+ favor) - Capstone (requires both paths)
+            new(BlessingIds.KhorasAvatarOfForge, "Avatar of the Forge", DeityType.Khoras)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Unleash devastating fury with lifesteal. +25% melee damage, +15% attack speed, heal 10% of damage dealt. Requires Bloodlust.",
-                RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasBloodlust },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.25f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.15f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal10 }
-            },
-            new(BlessingIds.KhorasUnbreakable, "Unbreakable", DeityType.Khoras)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "Become nearly invincible. +30% armor, +25% max health, 10% damage reduction. Requires Iron Skin.",
-                RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasIronSkin },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.30f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.25f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
-            },
-
-            // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
-            new(BlessingIds.KhorasAvatarOfWar, "Avatar of War", DeityType.Khoras)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Embody war itself. +15% to all combat stats, +10% movement speed, AoE cleave attacks. Requires both Berserker Rage and Unbreakable.",
+                Category = BlessingCategory.Utility,
+                Description = "Tools repair 1 durability per 5 minutes. +10% armor walk speed. Requires both Legendary Smith and Unyielding.",
                 RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasBerserkerRage, BlessingIds.KhorasUnbreakable },
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasLegendarySmith, BlessingIds.KhorasUnyielding },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.15f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.15f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.WalkSpeed, 0.10f }
+                    { VintageStoryStats.ArmorWalkSpeedAffectedness, -0.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.AoeCleave }
+                SpecialEffects = new List<string> { SpecialEffects.PassiveToolRepair1Per5Min }
             },
 
-            // RELIGION BLESSINGS (4 total) - Unified group buffs
+            // RELIGION BLESSINGS (4 total) - Shared workshop bonuses
 
             // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.KhorasWarBanner, "War Banner", DeityType.Khoras)
+            new(BlessingIds.KhorasSharedWorkshop, "Shared Workshop", DeityType.Khoras)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Your congregation's banner inspires strength and courage. +8% melee damage, +8% max health for all members.",
+                Category = BlessingCategory.Utility,
+                Description = "+10% tool durability, +10% ore yield for all members.",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.08f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.08f }
+                    { VintageStoryStats.ToolDurability, 0.10f },
+                    { VintageStoryStats.OreDropRate, 0.10f }
                 }
             },
 
             // Tier 2 - Established (500-1999 prestige) - Coordination
-            new(BlessingIds.KhorasLegionTactics, "Legion Tactics", DeityType.Khoras)
+            new(BlessingIds.KhorasGuildOfSmiths, "Guild of Smiths", DeityType.Khoras)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Coordinated warfare. +12% melee damage, +10% armor, +5% attack speed for all. Requires War Banner.",
+                Category = BlessingCategory.Utility,
+                Description = "+15% tool durability, +15% ore yield for all. Requires Shared Workshop.",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasWarBanner },
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasSharedWorkshop },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.12f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.10f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.05f }
+                    { VintageStoryStats.ToolDurability, 0.15f },
+                    { VintageStoryStats.OreDropRate, 0.15f }
                 }
             },
 
             // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
-            new(BlessingIds.KhorasWarhost, "Warhost", DeityType.Khoras)
+            new(BlessingIds.KhorasMasterCraftsmen, "Master Craftsmen", DeityType.Khoras)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Elite fighting force. +18% melee damage, +15% armor, +15% max health, +10% attack speed for all. Requires Legion Tactics.",
+                Category = BlessingCategory.Utility,
+                Description = "+20% tool durability, +20% ore yield, +10% armor walk speed for all. Requires Guild of Smiths.",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasLegionTactics },
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasGuildOfSmiths },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.18f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.15f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
+                    { VintageStoryStats.ToolDurability, 0.20f },
+                    { VintageStoryStats.OreDropRate, 0.20f },
+                    { VintageStoryStats.ArmorWalkSpeedAffectedness, -0.10f }
                 }
             },
 
-            // Tier 4 - Legendary (5000-9999 prestige) - Unstoppable Army
-            new(BlessingIds.KhorasPantheonOfWar, "Pantheon of War", DeityType.Khoras)
+            // Tier 4 - Legendary (5000+ prestige) - Pantheon of Creation
+            new(BlessingIds.KhorasPantheonOfCreation, "Pantheon of Creation", DeityType.Khoras)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Your religion becomes legendary. +25% melee damage, +20% armor, +20% max health, +15% attack speed, +8% movement speed for all. Group war cry ability. Requires Warhost.",
+                Category = BlessingCategory.Utility,
+                Description = "+10% max health for all. Requires Master Craftsmen.",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasWarhost },
+                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasMasterCraftsmen },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.25f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.20f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.15f },
-                    { VintageStoryStats.WalkSpeed, 0.08f }
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.ReligionWarCry }
+                SpecialEffects = new List<string> { }
             }
         };
     }
 
     #endregion
 
-    #region Lysa (Hunt) - 10 Blessings (Refactored)
+    #region Lysa (Hunt & Wild)
 
     private static List<Blessing> GetLysaBlessings()
     {
         return new List<Blessing>
         {
-            // PLAYER BLESSINGS (6 total) - Streamlined for meaningful choices
+            // PLAYER BLESSINGS (6 total) - Hunt & Wild utility focus (v2.0.0 Utility Redesign)
 
-            // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.LysaKeenEye, "Keen Eye", DeityType.Lysa)
+            // Tier 1 - Initiate (0-499 favor)
+            new(BlessingIds.LysaHuntersInstinct, "Hunter's Instinct", DeityType.Lysa)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description = "The hunt sharpens your senses. +10% ranged damage, +10% movement speed.",
+                Category = BlessingCategory.Utility,
+                Description = "+15% animal and forage drops, +5% movement speed.",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.10f },
-                    { VintageStoryStats.WalkSpeed, 0.10f }
-                }
+                    { VintageStoryStats.AnimalDrops, 0.15f },
+                    { VintageStoryStats.ForageDropRate, 0.15f },
+                    { VintageStoryStats.WalkSpeed, 0.05f }
+                },
+                SpecialEffects = new List<string> { }
             },
 
-            // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.LysaDeadlyPrecision, "Deadly Precision", DeityType.Lysa)
+            // Tier 2 - Disciple (500-1999 favor) - Choose Path
+            new(BlessingIds.LysaMasterForager, "Master Forager", DeityType.Lysa)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Perfect your aim. +15% ranged damage, +10% critical chance. Precision path. Requires Keen Eye.",
+                Category = BlessingCategory.Utility,
+                Description = "+20% forage drops (total: 35%), +20% wild crop drop rate, food spoils 15% slower. Requires Hunter's Instinct.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaKeenEye },
-                StatModifiers = new Dictionary<string, float> { { VintageStoryStats.RangedWeaponsDamage, 0.15f } },
-                SpecialEffects = new List<string> { SpecialEffects.CriticalChance10 }
-            },
-            new(BlessingIds.LysaSilentStalker, "Silent Stalker", DeityType.Lysa)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Mobility,
-                Description =
-                    "Move like a shadow. +18% movement speed, +10% melee damage. Mobility path. Requires Keen Eye.",
-                RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaKeenEye },
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaHuntersInstinct },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.WalkSpeed, 0.18f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f }
+                    { VintageStoryStats.ForageDropRate, 0.20f },
+                    { VintageStoryStats.WildCropYield, 0.20f },
+                    { VintageStoryStats.FoodSpoilage, 0.15f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.StealthBonus }
-            },
-
-            // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.LysaMasterHuntress, "Master Huntress", DeityType.Lysa)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Legendary marksmanship. +25% ranged damage, +20% critical chance, headshot bonus. Requires Deadly Precision.",
-                RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaDeadlyPrecision },
-                StatModifiers = new Dictionary<string, float> { { VintageStoryStats.RangedWeaponsDamage, 0.25f } },
-                SpecialEffects = new List<string> { SpecialEffects.CriticalChance20, SpecialEffects.HeadshotBonus }
+                SpecialEffects = new List<string> { SpecialEffects.FoodSpoilageReduction }
             },
             new(BlessingIds.LysaApexPredator, "Apex Predator", DeityType.Lysa)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Mobility,
-                Description =
-                    "Untouchable hunter. +28% movement speed, +18% melee damage, +15% attack speed. Requires Silent Stalker.",
-                RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaSilentStalker },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.WalkSpeed, 0.28f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.18f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.15f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.TrackingVision }
-            },
-
-            // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
-            new(BlessingIds.LysaAvatarOfHunt, "Avatar of the Hunt", DeityType.Lysa)
-            {
-                Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
-                Description =
-                    "Embody the perfect hunter. +15% all damage, +20% movement speed, +10% attack speed, multishot ability. Requires both Master Huntress and Apex Predator.",
-                RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaMasterHuntress, BlessingIds.LysaApexPredator },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.WalkSpeed, 0.20f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.Multishot, SpecialEffects.AnimalCompanion }
-            },
-
-            // RELIGION BLESSINGS (4 total) - Unified pack buffs
-
-            // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.LysaPackHunters, "Pack Hunters", DeityType.Lysa)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description = "Your pack hunts as one. +8% ranged damage, +8% movement speed for all members.",
-                RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.08f },
-                    { VintageStoryStats.WalkSpeed, 0.08f }
-                }
-            },
-
-            // Tier 2 - Established (500-1999 prestige) - Coordination
-            new(BlessingIds.LysaCoordinatedStrike, "Coordinated Strike", DeityType.Lysa)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Coordinated hunting. +12% ranged damage, +10% melee damage, +10% movement speed for all. Requires Pack Hunters.",
-                RequiredPrestigeRank = (int)PrestigeRank.Established,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaPackHunters },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.12f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
-                    { VintageStoryStats.WalkSpeed, 0.10f }
-                }
-            },
-
-            // Tier 3 - Renowned (2000-4999 prestige) - Elite Pack
-            new(BlessingIds.LysaApexPack, "Apex Pack", DeityType.Lysa)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Elite hunting force. +18% ranged damage, +15% melee damage, +15% movement speed, +10% attack speed for all. Requires Coordinated Strike.",
-                RequiredPrestigeRank = (int)PrestigeRank.Renowned,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaCoordinatedStrike },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.18f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.WalkSpeed, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
-                }
-            },
-
-            // Tier 4 - Legendary (5000-9999 prestige) - Perfect Pack
-            new(BlessingIds.LysaHuntersParadise, "Hunter's Paradise", DeityType.Lysa)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Your congregation becomes unstoppable predators. +25% ranged damage, +20% melee damage, +22% movement speed, +15% attack speed for all. Pack tracking ability. Requires Apex Pack.",
-                RequiredPrestigeRank = (int)PrestigeRank.Legendary,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaApexPack },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.25f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.20f },
-                    { VintageStoryStats.WalkSpeed, 0.22f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.15f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.ReligionPackTracking }
-            }
-        };
-    }
-
-    #endregion
-
-    #region Morthen (Death) - 10 Blessings (Refactored)
-
-    private static List<Blessing> GetMorthenBlessings()
-    {
-        return new List<Blessing>
-        {
-            // PLAYER BLESSINGS (6 total) - Streamlined for meaningful choices
-
-            // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.MorthenDeathsEmbrace, "Death's Embrace", DeityType.Morthen)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Death empowers your strikes and body. +10% melee damage, +10% max health, minor lifesteal.",
-                RequiredFavorRank = (int)FavorRank.Initiate,
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal3 }
-            },
-
-            // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.MorthenSoulReaper, "Soul Reaper", DeityType.Morthen)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Harvest souls with dark magic. +15% melee damage, +10% lifesteal, attacks apply poison. Offense path. Requires Death's Embrace.",
+                Description = "+20% animal drops (total: 35%), +10% animal harvesting speed. Requires Hunter's Instinct.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.MorthenDeathsEmbrace },
-                StatModifiers = new Dictionary<string, float> { { VintageStoryStats.MeleeWeaponsDamage, 0.15f } },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal10, SpecialEffects.PoisonDot }
-            },
-            new(BlessingIds.MorthenUndying, "Undying", DeityType.Morthen)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "Resist death itself. +20% max health, +15% armor, +10% health regeneration. Defense path. Requires Death's Embrace.",
-                RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.MorthenDeathsEmbrace },
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaHuntersInstinct },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.15f },
-                    { VintageStoryStats.HealingEffectiveness, 0.10f }
-                }
+                    { VintageStoryStats.AnimalDrops, 0.20f },
+                    { VintageStoryStats.AnimalHarvestTime, 0.10f }
+                },
+                SpecialEffects = new List<string> { }
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.MorthenPlagueBearer, "Plague Bearer", DeityType.Morthen)
+            new(BlessingIds.LysaAbundanceOfWild, "Abundance of the Wild", DeityType.Lysa)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Spread pestilence and decay. +25% melee damage, +15% lifesteal, plague aura weakens enemies. Requires Soul Reaper.",
+                Category = BlessingCategory.Utility,
+                Description = "+25% forage drops (total: 60%), food spoils 25% slower (total: 40%). Requires Master Forager.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.MorthenSoulReaper },
-                StatModifiers = new Dictionary<string, float> { { VintageStoryStats.MeleeWeaponsDamage, 0.25f } },
-                SpecialEffects = new List<string>
-                    { SpecialEffects.Lifesteal15, SpecialEffects.PoisonDotStrong, SpecialEffects.PlagueAura }
-            },
-            new(BlessingIds.MorthenDeathless, "Deathless", DeityType.Morthen)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "Transcend mortality. +30% max health, +25% armor, +20% health regen, death resistance. Requires Undying.",
-                RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.MorthenUndying },
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaMasterForager },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.30f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.25f },
-                    { VintageStoryStats.HealingEffectiveness, 0.20f }
+                    { VintageStoryStats.ForageDropRate, 0.25f },
+                    { VintageStoryStats.FoodSpoilage, 0.25f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
+                SpecialEffects = new List<string> { SpecialEffects.FoodSpoilageReduction }
             },
-
-            // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
-            new(BlessingIds.MorthenLordOfDeath, "Lord of Death", DeityType.Morthen)
+            new(BlessingIds.LysaSilentDeath, "Silent Death", DeityType.Lysa)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
-                Description =
-                    "Command death itself. +15% all stats, +10% attack speed, death aura, execute low health enemies. Requires both Plague Bearer and Deathless.",
+                Description = "+15% ranged accuracy, +15% ranged damage. Requires Apex Predator.",
+                RequiredFavorRank = (int)FavorRank.Zealot,
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaApexPredator },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.RangedWeaponsAccuracy, 0.15f },
+                    { VintageStoryStats.RangedWeaponsDamage, 0.15f }
+                },
+                SpecialEffects = new List<string> { }
+            },
+
+            // Tier 4 - Champion (5000-9999 favor) - Capstone
+            new(BlessingIds.LysaAvatarOfWild, "Avatar of the Wild", DeityType.Lysa)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Utility,
+                Description = "+20% ranged distance, +20% reduced animal seeking range. Requires both Abundance of the Wild and Silent Death.",
                 RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.MorthenPlagueBearer, BlessingIds.MorthenDeathless },
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaAbundanceOfWild, BlessingIds.LysaSilentDeath },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.15f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f },
-                    { VintageStoryStats.HealingEffectiveness, 0.15f }
+                    { VintageStoryStats.RangedWeaponsRange, 0.20f },
+                    { VintageStoryStats.AnimalSeekingRange, 0.20f }
                 },
-                SpecialEffects = new List<string>
-                    { SpecialEffects.DeathAura, SpecialEffects.ExecuteThreshold, SpecialEffects.Lifesteal20 }
+                SpecialEffects = new List<string> { }
             },
 
-            // RELIGION BLESSINGS (4 total) - Unified death cult progression
+            // RELIGION BLESSINGS (4 total)
 
-            // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.MorthenDeathCult, "Death Cult", DeityType.Morthen)
+            // Tier 1 - Fledgling
+            new(BlessingIds.LysaHuntingParty, "Hunting Party", DeityType.Lysa)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Your congregation embraces the darkness. +8% melee damage, +8% max health for all members.",
+                Category = BlessingCategory.Utility,
+                Description = "All members: +15% animal and forage drops.",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.08f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.08f }
+                    { VintageStoryStats.AnimalDrops, 0.15f },
+                    { VintageStoryStats.ForageDropRate, 0.15f }
                 }
             },
 
-            // Tier 2 - Established (500-1999 prestige) - Coordination
-            new(BlessingIds.MorthenNecromanticCovenant, "Necromantic Covenant", DeityType.Morthen)
+            // Tier 2 - Established
+            new(BlessingIds.LysaWildernessTribe, "Wilderness Tribe", DeityType.Lysa)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Dark pact strengthens all. +12% melee damage, +10% armor, +8% health regen for all. Requires Death Cult.",
+                Category = BlessingCategory.Utility,
+                Description = "All members: +20% animal and forage drops; Food spoils 15% slower.",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
-                PrerequisiteBlessings = new List<string> { BlessingIds.MorthenDeathCult },
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaHuntingParty },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.12f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.10f },
-                    { VintageStoryStats.HealingEffectiveness, 0.08f }
+                    { VintageStoryStats.AnimalDrops, 0.20f },
+                    { VintageStoryStats.ForageDropRate, 0.20f },
+                    { VintageStoryStats.FoodSpoilage, 0.15f }
                 }
             },
 
-            // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
-            new(BlessingIds.MorthenDeathlessLegion, "Deathless Legion", DeityType.Morthen)
+            // Tier 3 - Renowned
+            new(BlessingIds.LysaChildrenOfForest, "Children of the Forest", DeityType.Lysa)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Unkillable army of the dead. +18% melee damage, +15% armor, +15% max health, +12% regen for all. Requires Necromantic Covenant.",
+                Category = BlessingCategory.Utility,
+                Description = "All members: +25% animal and forage drops; +5% movement speed.",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
-                PrerequisiteBlessings = new List<string> { BlessingIds.MorthenNecromanticCovenant },
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaWildernessTribe },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.18f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.15f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.HealingEffectiveness, 0.12f }
+                    { VintageStoryStats.AnimalDrops, 0.25f },
+                    { VintageStoryStats.ForageDropRate, 0.25f },
+                    { VintageStoryStats.WalkSpeed, 0.05f }
                 }
             },
 
-            // Tier 4 - Legendary (5000-9999 prestige) - Death's Empire
-            new(BlessingIds.MorthenEmpireOfDeath, "Empire of Death", DeityType.Morthen)
+            // Tier 4 - Legendary
+            new(BlessingIds.LysaPantheonOfHunt, "Pantheon of the Hunt", DeityType.Lysa)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Your religion rules over death itself. +25% melee damage, +20% armor, +20% max health, +18% regen, +10% attack speed for all. Death mark ability. Requires Deathless Legion.",
+                Category = BlessingCategory.Utility,
+                Description = "All members: +5°C temperature resistance (hot and cold).",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
-                PrerequisiteBlessings = new List<string> { BlessingIds.MorthenDeathlessLegion },
+                PrerequisiteBlessings = new List<string> { BlessingIds.LysaChildrenOfForest },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.25f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.20f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
-                    { VintageStoryStats.HealingEffectiveness, 0.18f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.ReligionDeathMark }
+                    { VintageStoryStats.TemperatureResistance, 5.0f }
+                }
             }
         };
     }
 
     #endregion
 
-    #region Aethra (Light) - 10 Blessings (Refactored)
+    #region Aethra (Agriculture & Light)
 
     private static List<Blessing> GetAethraBlessings()
     {
         return new List<Blessing>
         {
-            // PLAYER BLESSINGS (6 total) - Divine protection and healing
+            // PLAYER BLESSINGS (6 total) - Agriculture & Cooking utility focus
 
             // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.AethraDivineGrace, "Divine Grace", DeityType.Aethra)
+            new(BlessingIds.AethraSunsBlessing, "Sun's Blessing", DeityType.Aethra)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Utility,
+                Description = "Light brings life and growth. +12% crop yield, +10% satiety from all food, +3°C heat resistance, light sources provide +1°C warmth radius.",
+                RequiredFavorRank = (int)FavorRank.Initiate,
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.CropYield, 0.12f },
+                    { VintageStoryStats.Satiety, 0.10f },
+                    { VintageStoryStats.HeatResistance, 3.0f },
+                },
+                SpecialEffects = new List<string> { SpecialEffects.LightWarmthBonus }
+            },
+
+            // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
+            new(BlessingIds.AethraBountifulHarvest, "Bountiful Harvest", DeityType.Aethra)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "The light blesses you with divine vitality. +10% max health, +12% healing effectiveness.",
-                RequiredFavorRank = (int)FavorRank.Initiate,
+                    "Specialize in farming excellence. +15% crop yield, +12% satiety from crops, crops have 15% chance for bonus seeds, +15% chance to find rare crop variants. Agriculture path. Requires Sun's Blessing.",
+                RequiredFavorRank = (int)FavorRank.Disciple,
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraSunsBlessing },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f },
-                    { VintageStoryStats.HealingEffectiveness, 0.12f }
-                }
+                    { VintageStoryStats.CropYield, 0.15f },
+                    { VintageStoryStats.SeedDropChance, 0.15f },
+                    { VintageStoryStats.RareCropChance, 0.15f }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.RareCropDiscovery }
             },
-
-            // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.AethraRadiantStrike, "Radiant Strike", DeityType.Aethra)
+            new(BlessingIds.AethraBakersTouch, "Baker's Touch", DeityType.Aethra)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Your attacks radiate holy energy. +12% melee damage, +10% ranged damage, heal 5% on hit. Offense path. Requires Divine Grace.",
+                    "Master the art of food preparation. Cooking/baking yields +25% more food, +15% satiety from cooked food, food spoils 20% slower, +5°C heat resistance. Food preparation path. Requires Sun's Blessing.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraDivineGrace },
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraSunsBlessing },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.12f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.10f }
+                    { VintageStoryStats.CookingYield, 0.25f },
+                    { VintageStoryStats.CookedFoodSatiety, 0.15f },
+                    { VintageStoryStats.FoodSpoilage, 0.20f },
+                    { VintageStoryStats.HeatResistance, 5.0f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal3 }
-            },
-            new(BlessingIds.AethraBlessedShield, "Blessed Shield", DeityType.Aethra)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "Light shields you from harm. +18% armor, +15% max health, 8% damage reduction. Defense path. Requires Divine Grace.",
-                RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraDivineGrace },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.18f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
+                SpecialEffects = new List<string> { SpecialEffects.FoodSpoilageReduction }
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.AethraPurifyingLight, "Purifying Light", DeityType.Aethra)
+            new(BlessingIds.AethraMasterFarmer, "Master Farmer", DeityType.Aethra)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Unleash devastating holy power. +22% melee damage, +18% ranged damage, heal 12% on hit, AoE healing pulse. Requires Radiant Strike.",
+                    "Achieve ultimate farming mastery. +20% crop yield, +18% satiety from crops, crops have 25% chance for bonus seeds, +30% chance to find rare crop variants, wild crops give +40% yield. Requires Bountiful Harvest.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraRadiantStrike },
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraBountifulHarvest },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.22f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.18f }
+                    { VintageStoryStats.CropYield, 0.20f },
+                    { VintageStoryStats.SeedDropChance, 0.25f },
+                    { VintageStoryStats.RareCropChance, 0.30f },
+                    { VintageStoryStats.WildCropYield, 0.40f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal10 }
+                SpecialEffects = new List<string> { SpecialEffects.RareCropDiscovery }
             },
-            new(BlessingIds.AethraAegisOfLight, "Aegis of Light", DeityType.Aethra)
+            new(BlessingIds.AethraDivineKitchen, "Divine Kitchen", DeityType.Aethra)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Become nearly invincible with divine protection. +28% armor, +25% max health, 15% damage reduction, +18% healing. Requires Blessed Shield.",
+                    "Create incredibly nutritious meals. Cooking yields +35% more, +25% satiety from cooked food, food spoils 30% slower, +7°C heat resistance, meals provide temporary +5% max health buff. Requires Baker's Touch.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraBlessedShield },
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraBakersTouch },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.28f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.25f },
-                    { VintageStoryStats.HealingEffectiveness, 0.18f }
+                    { VintageStoryStats.CookingYield, 0.35f },
+                    { VintageStoryStats.CookedFoodSatiety, 0.25f },
+                    { VintageStoryStats.FoodSpoilage, 0.30f },
+                    { VintageStoryStats.HeatResistance, 7.0f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
+                SpecialEffects = new List<string> { SpecialEffects.TempHealthBuff5, SpecialEffects.FoodSpoilageReduction }
             },
 
-            // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
-            new(BlessingIds.AethraAvatarOfLight, "Avatar of Light", DeityType.Aethra)
+            // Tier 4 - Champion (5000+ favor) - Capstone (requires both paths)
+            new(BlessingIds.AethraAvatarOfAbundance, "Avatar of Abundance", DeityType.Aethra)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Embody divine radiance. +15% all stats, +20% healing, radiant aura heals allies, smite enemies. Requires both Purifying Light and Aegis of Light.",
+                    "Embody the endless bounty of the harvest. +8% movement speed, +10% max health, never suffer malnutrition penalties, can create blessed meals with powerful buffs. Requires both Master Farmer and Divine Kitchen.",
                 RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraPurifyingLight, BlessingIds.AethraAegisOfLight },
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraMasterFarmer, BlessingIds.AethraDivineKitchen },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.15f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.15f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.HealingEffectiveness, 0.20f }
+                    { VintageStoryStats.WalkSpeed, 0.08f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.Lifesteal15 }
+                SpecialEffects = new List<string> { SpecialEffects.NeverMalnourished, SpecialEffects.BlessedMeals }
             },
 
-            // RELIGION BLESSINGS (4 total) - Divine congregation
+            // RELIGION BLESSINGS (4 total) - Shared agricultural bonuses
 
             // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.AethraBlessingOfLight, "Blessing of Light", DeityType.Aethra)
+            new(BlessingIds.AethraCommunityFarm, "Community Farm", DeityType.Aethra)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Your congregation is blessed by divine light. +8% max health, +10% healing effectiveness for all members.",
+                    "Your congregation shares agricultural knowledge. +10% crop yield, +8% satiety from all food for all members.",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.08f },
-                    { VintageStoryStats.HealingEffectiveness, 0.10f }
+                    { VintageStoryStats.CropYield, 0.10f },
+                    { VintageStoryStats.Satiety, 0.08f }
                 }
             },
 
             // Tier 2 - Established (500-1999 prestige) - Coordination
-            new(BlessingIds.AethraDivineSanctuary, "Divine Sanctuary", DeityType.Aethra)
+            new(BlessingIds.AethraHarvestFestival, "Harvest Festival", DeityType.Aethra)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Defense,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Sacred protection shields all. +12% armor, +10% max health, +12% healing for all. Requires Blessing of Light.",
+                    "Celebrate abundant harvests together. +15% crop yield, +12% satiety from all food, food spoils 10% slower for all. Requires Community Farm.",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraBlessingOfLight },
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraCommunityFarm },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.12f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f },
-                    { VintageStoryStats.HealingEffectiveness, 0.12f }
+                    { VintageStoryStats.CropYield, 0.15f },
+                    { VintageStoryStats.Satiety, 0.12f },
+                    { VintageStoryStats.FoodSpoilage, 0.10f }
                 }
             },
 
             // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
-            new(BlessingIds.AethraSacredBond, "Sacred Bond", DeityType.Aethra)
+            new(BlessingIds.AethraLandOfPlenty, "Land of Plenty", DeityType.Aethra)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Divine unity empowers the congregation. +15% armor, +15% max health, +15% healing, +10% all damage for all. Requires Divine Sanctuary.",
+                    "Your land becomes legendary for its bounty. +22% crop yield, +18% satiety from all food, food spoils 18% slower, +5°C heat resistance for all. Requires Harvest Festival.",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraDivineSanctuary },
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraHarvestFestival },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.15f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.HealingEffectiveness, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.10f }
+                    { VintageStoryStats.CropYield, 0.22f },
+                    { VintageStoryStats.Satiety, 0.18f },
+                    { VintageStoryStats.FoodSpoilage, 0.18f },
+                    { VintageStoryStats.HeatResistance, 5.0f }
                 }
             },
 
-            // Tier 4 - Legendary (5000-9999 prestige) - Divine Temple
-            new(BlessingIds.AethraCathedralOfLight, "Cathedral of Light", DeityType.Aethra)
+            // Tier 4 - Legendary (5000+ prestige) - Pantheon of Light
+            new(BlessingIds.AethraPantheonOfLight, "Pantheon of Light", DeityType.Aethra)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Your religion becomes a beacon of divine power. +20% armor, +20% max health, +20% healing, +15% all damage, +8% movement for all. Divine sanctuary ability. Requires Sacred Bond.",
+                    "Your religion becomes the source of endless bounty. +30% crop yield, +20% satiety from all food, food spoils 25% slower, +8°C heat resistance, religion can build Sacred Granary for all. Requires Land of Plenty.",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraSacredBond },
+                PrerequisiteBlessings = new List<string> { BlessingIds.AethraLandOfPlenty },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.20f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
-                    { VintageStoryStats.HealingEffectiveness, 0.20f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.15f },
-                    { VintageStoryStats.WalkSpeed, 0.08f }
-                }
+                    { VintageStoryStats.CropYield, 0.30f },
+                    { VintageStoryStats.Satiety, 0.20f },
+                    { VintageStoryStats.FoodSpoilage, 0.25f },
+                    { VintageStoryStats.HeatResistance, 8.0f }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.SacredGranary }
             }
         };
     }
 
     #endregion
 
-    #region Umbros (Shadows) - 10 Blessings (Refactored)
 
-    private static List<Blessing> GetUmbrosBlessings()
-    {
-        return new List<Blessing>
-        {
-            // PLAYER BLESSINGS (6 total) - Shadow assassin
-
-            // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.UmbrosShadowBlend, "Shadow Blend", DeityType.Umbros)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Mobility,
-                Description =
-                    "Merge with shadows for speed and stealth. +15% movement speed, +10% melee damage, stealth bonus.",
-                RequiredFavorRank = (int)FavorRank.Initiate,
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.WalkSpeed, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.StealthBonus }
-            },
-
-            // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.UmbrosAssassinate, "Assassinate", DeityType.Umbros)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Strike from darkness with lethal precision. +18% melee damage, +15% critical chance, backstab bonus. Offense path. Requires Shadow Blend.",
-                RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.UmbrosShadowBlend },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.18f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.CriticalChance10 }
-            },
-            new(BlessingIds.UmbrosPhantomDodge, "Phantom Dodge", DeityType.Umbros)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Mobility,
-                Description =
-                    "Become untouchable through shadows. +25% movement speed, +12% attack speed, enhanced evasion. Mobility path. Requires Shadow Blend.",
-                RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.UmbrosShadowBlend },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.WalkSpeed, 0.25f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.12f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.StealthBonus }
-            },
-
-            // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.UmbrosDeadlyAmbush, "Deadly Ambush", DeityType.Umbros)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Master the art of assassination. +28% melee damage, +20% critical chance, +15% attack speed, execute low health enemies. Requires Assassinate.",
-                RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.UmbrosAssassinate },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.28f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.15f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.CriticalChance20, SpecialEffects.ExecuteThreshold }
-            },
-            new(BlessingIds.UmbrosVanish, "Vanish", DeityType.Umbros)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Mobility,
-                Description =
-                    "Disappear into shadows at will. +35% movement speed, +18% attack speed, +12% melee damage, near-invisibility. Requires Phantom Dodge.",
-                RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.UmbrosPhantomDodge },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.WalkSpeed, 0.35f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.18f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.12f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.StealthBonus }
-            },
-
-            // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
-            new(BlessingIds.UmbrosAvatarOfShadows, "Avatar of Shadows", DeityType.Umbros)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Become one with darkness. +20% melee damage, +30% movement speed, +20% attack speed, shadow clones, perfect stealth. Requires both Deadly Ambush and Vanish.",
-                RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.UmbrosDeadlyAmbush, BlessingIds.UmbrosVanish },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.20f },
-                    { VintageStoryStats.WalkSpeed, 0.30f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.20f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.StealthBonus, SpecialEffects.CriticalChance20 }
-            },
-
-            // RELIGION BLESSINGS (4 total) - Shadow cult
-
-            // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.UmbrosShadowCult, "Shadow Cult", DeityType.Umbros)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Mobility,
-                Description =
-                    "Your congregation moves through darkness. +10% movement speed, +8% melee damage for all members.",
-                RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.WalkSpeed, 0.10f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.08f }
-                }
-            },
-
-            // Tier 2 - Established (500-1999 prestige) - Coordination
-            new(BlessingIds.UmbrosCloak, "Cloak of Shadows", DeityType.Umbros)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Shadows shroud all members. +15% movement speed, +12% melee damage, +10% attack speed for all. Requires Shadow Cult.",
-                RequiredPrestigeRank = (int)PrestigeRank.Established,
-                PrerequisiteBlessings = new List<string> { BlessingIds.UmbrosShadowCult },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.WalkSpeed, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.12f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
-                }
-            },
-
-            // Tier 3 - Renowned (2000-4999 prestige) - Elite Assassins
-            new(BlessingIds.UmbrosNightAssassins, "Night Assassins", DeityType.Umbros)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Elite shadow assassins. +20% movement speed, +18% melee damage, +15% attack speed for all. Requires Cloak of Shadows.",
-                RequiredPrestigeRank = (int)PrestigeRank.Renowned,
-                PrerequisiteBlessings = new List<string> { BlessingIds.UmbrosCloak },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.WalkSpeed, 0.20f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.18f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.15f }
-                }
-            },
-
-            // Tier 4 - Legendary (5000-9999 prestige) - Shadow Empire
-            new(BlessingIds.UmbrosEternalDarkness, "Eternal Darkness", DeityType.Umbros)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Your religion commands the darkness. +28% movement speed, +25% melee damage, +20% attack speed for all. Shadow strike ability. Requires Night Assassins.",
-                RequiredPrestigeRank = (int)PrestigeRank.Legendary,
-                PrerequisiteBlessings = new List<string> { BlessingIds.UmbrosNightAssassins },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.WalkSpeed, 0.28f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.25f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.20f }
-                }
-            }
-        };
-    }
-
-    #endregion
-
-    #region Tharos (Storms) - 10 Blessings (Refactored)
-
-    private static List<Blessing> GetTharosBlessings()
-    {
-        return new List<Blessing>
-        {
-            // PLAYER BLESSINGS (6 total) - Storm master
-
-            // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.TharosStormborn, "Stormborn", DeityType.Tharos)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description = "Born of thunder and lightning. +10% ranged damage, +12% movement speed, shocking touch.",
-                RequiredFavorRank = (int)FavorRank.Initiate,
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.10f },
-                    { VintageStoryStats.WalkSpeed, 0.12f }
-                }
-            },
-
-            // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.TharosLightningStrike, "Lightning Strike", DeityType.Tharos)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Channel devastating lightning bolts. +18% ranged damage, +15% melee damage, chain lightning. Offense path. Requires Stormborn.",
-                RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.TharosStormborn },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.18f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f }
-                }
-            },
-            new(BlessingIds.TharosStormRider, "Storm Rider", DeityType.Tharos)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Mobility,
-                Description =
-                    "Ride the winds of the storm. +22% movement speed, +12% attack speed, +10% all damage. Mobility path. Requires Stormborn.",
-                RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.TharosStormborn },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.WalkSpeed, 0.22f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.12f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.10f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f }
-                }
-            },
-
-            // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.TharosThunderlord, "Thunderlord", DeityType.Tharos)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Command the fury of thunder. +28% ranged damage, +22% melee damage, +15% attack speed, AoE lightning strikes. Requires Lightning Strike.",
-                RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.TharosLightningStrike },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.28f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.22f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.15f }
-                }
-            },
-            new(BlessingIds.TharosTempest, "Tempest", DeityType.Tharos)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Mobility,
-                Description =
-                    "Become the eye of the storm. +32% movement speed, +18% attack speed, +15% all damage, whirlwind mobility. Requires Storm Rider.",
-                RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.TharosStormRider },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.WalkSpeed, 0.32f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.18f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f }
-                }
-            },
-
-            // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
-            new(BlessingIds.TharosAvatarOfStorms, "Avatar of Storms", DeityType.Tharos)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Embody the storm itself. +20% all damage, +25% movement speed, +20% attack speed, permanent lightning aura, thunderbolt strike. Requires both Thunderlord and Tempest.",
-                RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.TharosThunderlord, BlessingIds.TharosTempest },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.20f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.20f },
-                    { VintageStoryStats.WalkSpeed, 0.25f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.20f }
-                }
-            },
-
-            // RELIGION BLESSINGS (4 total) - Storm callers
-
-            // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.TharosStormCallers, "Storm Callers", DeityType.Tharos)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Your congregation calls the storm. +8% ranged damage, +10% movement speed for all members.",
-                RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.08f },
-                    { VintageStoryStats.WalkSpeed, 0.10f }
-                }
-            },
-
-            // Tier 2 - Established (500-1999 prestige) - Coordination
-            new(BlessingIds.TharosLightningChain, "Lightning Chain", DeityType.Tharos)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Lightning chains between allies. +12% ranged damage, +10% melee damage, +12% movement speed for all. Requires Storm Callers.",
-                RequiredPrestigeRank = (int)PrestigeRank.Established,
-                PrerequisiteBlessings = new List<string> { BlessingIds.TharosStormCallers },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.12f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
-                    { VintageStoryStats.WalkSpeed, 0.12f }
-                }
-            },
-
-            // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
-            new(BlessingIds.TharosThunderstorm, "Thunderstorm", DeityType.Tharos)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Unleash devastating thunderstorms. +18% ranged damage, +15% melee damage, +18% movement speed, +10% attack speed for all. Requires Lightning Chain.",
-                RequiredPrestigeRank = (int)PrestigeRank.Renowned,
-                PrerequisiteBlessings = new List<string> { BlessingIds.TharosLightningChain },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.18f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.WalkSpeed, 0.18f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
-                }
-            },
-
-            // Tier 4 - Legendary (5000-9999 prestige) - Storm's Wrath
-            new(BlessingIds.TharosEyeOfTheStorm, "Eye of the Storm", DeityType.Tharos)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Your religion commands the heavens. +25% ranged damage, +20% melee damage, +25% movement speed, +15% attack speed for all. Massive AoE lightning storm. Requires Thunderstorm.",
-                RequiredPrestigeRank = (int)PrestigeRank.Legendary,
-                PrerequisiteBlessings = new List<string> { BlessingIds.TharosThunderstorm },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.RangedWeaponsDamage, 0.25f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.20f },
-                    { VintageStoryStats.WalkSpeed, 0.25f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.15f }
-                }
-            }
-        };
-    }
-
-    #endregion
-
-    #region Gaia (Earth) - 10 Blessings (Refactored)
+    #region Gaia (Pottery & Clay) - 10 Blessings (Utility-Focused)
 
     private static List<Blessing> GetGaiaBlessings()
     {
         return new List<Blessing>
         {
-            // PLAYER BLESSINGS (6 total) - Earth defender
+            // PLAYER BLESSINGS (6 total) - Pottery crafting & clay utility focus
 
             // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.GaiaEarthenResilience, "Earthen Resilience", DeityType.Gaia)
+            new(BlessingIds.GaiaClayShaper, "Clay Shaper", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "Earth's strength flows through you. +15% max health, +10% armor, +8% healing effectiveness.",
+                Category = BlessingCategory.Utility,
+                Description = "Foundation for pottery crafting. +20% clay yield when digging, +10% max health.",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.10f },
-                    { VintageStoryStats.HealingEffectiveness, 0.08f }
+                    { VintageStoryStats.ClayYield, 0.20f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
                 }
             },
 
             // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.GaiaStoneForm, "Stone Form", DeityType.Gaia)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "Become as unyielding as stone. +22% armor, +18% max health, 10% damage reduction. Defense path. Requires Earthen Resilience.",
-                RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthenResilience },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.22f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.18f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
-            },
-            new(BlessingIds.GaiaNaturesBlessing, "Nature's Blessing", DeityType.Gaia)
+            new(BlessingIds.GaiaMasterPotter, "Master Potter", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Nature restores you constantly. +20% max health, +18% healing effectiveness, slow passive regeneration. Regeneration path. Requires Earthen Resilience.",
+                    "Specialize in pottery crafting. +10% chance to craft duplicate pottery items on completion, +10% digging speed. Crafting path. Requires Clay Shaper.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthenResilience },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaClayShaper },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
-                    { VintageStoryStats.HealingEffectiveness, 0.18f }
-                }
-            },
-
-            // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.GaiaMountainGuard, "Mountain Guard", DeityType.Gaia)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "Stand immovable like a mountain. +32% armor, +28% max health, 15% damage reduction, +10% melee damage. Requires Stone Form.",
-                RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaStoneForm },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.32f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.28f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f }
+                    { VintageStoryStats.PotteryBatchCompletionChance, 0.25f },
+                    { VintageStoryStats.DiggingSpeed, 0.10f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
+                SpecialEffects = new List<string> { SpecialEffects.PotteryBatchCompletionBonus }
             },
-            new(BlessingIds.GaiaLifebloom, "Lifebloom", DeityType.Gaia)
+            new(BlessingIds.GaiaEarthenBuilder, "Earthen Builder", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Life flourishes around you. +30% max health, +28% healing effectiveness, strong passive regeneration, heal nearby allies. Requires Nature's Blessing.",
-                RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaNaturesBlessing },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.30f },
-                    { VintageStoryStats.HealingEffectiveness, 0.28f }
-                }
-            },
-
-            // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
-            new(BlessingIds.GaiaAvatarOfEarth, "Avatar of Earth", DeityType.Gaia)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "Embody the eternal earth. +25% armor, +35% max health, +30% healing, 15% damage reduction, earthen aura protects and heals. Requires both Mountain Guard and Lifebloom.",
-                RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaMountainGuard, BlessingIds.GaiaLifebloom },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MeleeWeaponArmor, 0.25f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.35f },
-                    { VintageStoryStats.HealingEffectiveness, 0.30f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.DamageReduction10 }
-            },
-
-            // RELIGION BLESSINGS (4 total) - Earth wardens
-
-            // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.GaiaEarthwardens, "Earthwardens", DeityType.Gaia)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "Your congregation stands as guardians of the earth. +10% max health, +8% armor for all members.",
-                RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.08f }
-                }
-            },
-
-            // Tier 2 - Established (500-1999 prestige) - Coordination
-            new(BlessingIds.GaiaLivingFortress, "Living Fortress", DeityType.Gaia)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "United, you become an impenetrable fortress. +15% max health, +12% armor, +10% healing for all. Requires Earthwardens.",
-                RequiredPrestigeRank = (int)PrestigeRank.Established,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthwardens },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.12f },
-                    { VintageStoryStats.HealingEffectiveness, 0.10f }
-                }
-            },
-
-            // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
-            new(BlessingIds.GaiaNaturesWrath, "Nature's Wrath", DeityType.Gaia)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Nature defends its own with fury. +20% max health, +18% armor, +15% healing, +12% melee damage for all. Requires Living Fortress.",
-                RequiredPrestigeRank = (int)PrestigeRank.Renowned,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaLivingFortress },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.18f },
-                    { VintageStoryStats.HealingEffectiveness, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.12f }
-                }
-            },
-
-            // Tier 4 - Legendary (5000-9999 prestige) - World Tree
-            new(BlessingIds.GaiaWorldTree, "World Tree", DeityType.Gaia)
-            {
-                Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "Your religion becomes the eternal world tree. +30% max health, +25% armor, +22% healing, +18% melee damage for all. Massive regeneration aura. Requires Nature's Wrath.",
-                RequiredPrestigeRank = (int)PrestigeRank.Legendary,
-                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaNaturesWrath },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.30f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.25f },
-                    { VintageStoryStats.HealingEffectiveness, 0.22f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.18f }
-                }
-            }
-        };
-    }
-
-    #endregion
-
-    #region Vex (Madness) - 10 Blessings (Refactored)
-
-    private static List<Blessing> GetVexBlessings()
-    {
-        return new List<Blessing>
-        {
-            // PLAYER BLESSINGS (6 total) - Chaos incarnate
-
-            // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.VexMaddeningWhispers, "Maddening Whispers", DeityType.Vex)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Madness whispers through your strikes. +12% all damage, +10% attack speed, chance to confuse enemies.",
-                RequiredFavorRank = (int)FavorRank.Initiate,
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.12f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.12f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
-                }
-            },
-
-            // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.VexChaoticFury, "Chaotic Fury", DeityType.Vex)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
-                Description =
-                    "Unleash unpredictable chaos. +18% all damage, +15% attack speed, random damage spikes. Offense path. Requires Maddening Whispers.",
+                    "Focus on resilience and stonework. +15% armor effectiveness, +15% stone yield. Utility path. Requires Clay Shaper.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.VexMaddeningWhispers },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaClayShaper },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.18f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.18f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.15f }
-                }
-            },
-            new(BlessingIds.VexDeliriumShield, "Delirium Shield", DeityType.Vex)
-            {
-                Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
-                Description =
-                    "Madness protects the insane. +18% max health, +15% armor, chance to dodge attacks. Defense path. Requires Maddening Whispers.",
-                RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.VexMaddeningWhispers },
-                StatModifiers = new Dictionary<string, float>
-                {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.18f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.15f }
+                    { VintageStoryStats.ArmorEffectiveness, 0.15f },
+                    { VintageStoryStats.StoneYield, 0.15f }
                 }
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.VexPandemonium, "Pandemonium", DeityType.Vex)
+            new(BlessingIds.GaiaKilnMaster, "Kiln Master", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Spread chaos with every strike. +28% all damage, +22% attack speed, attacks cause confusion and fear. Requires Chaotic Fury.",
+                    "Achieve legendary pottery crafting. +15% chance to craft duplicate pottery items (total: 60%), +15% digging speed (total: 25%). Requires Master Potter.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.VexChaoticFury },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaMasterPotter },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.28f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.28f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.22f }
-                }
+                    { VintageStoryStats.PotteryBatchCompletionChance, 0.35f },
+                    { VintageStoryStats.DiggingSpeed, 0.15f }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.PotteryBatchCompletionBonus }
             },
-            new(BlessingIds.VexMindFortress, "Mind Fortress", DeityType.Vex)
+            new(BlessingIds.GaiaClayArchitect, "Clay Architect", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Defense,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Only the mad are truly sane. +28% max health, +25% armor, +15% healing, immune to confusion. Requires Delirium Shield.",
+                    "Master fortification and stone gathering. +20% armor effectiveness (total: 35%), +20% stone yield (total: 35%). Requires Earthen Builder.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.VexDeliriumShield },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthenBuilder },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.28f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.25f },
-                    { VintageStoryStats.HealingEffectiveness, 0.15f }
+                    { VintageStoryStats.ArmorEffectiveness, 0.20f },
+                    { VintageStoryStats.StoneYield, 0.20f }
                 }
             },
 
-            // Tier 4 - Champion (5000-9999 favor) - Capstone (requires both paths)
-            new(BlessingIds.VexAvatarOfMadness, "Avatar of Madness", DeityType.Vex)
+            // Tier 4 - Champion (5000+ favor) - Capstone (requires both paths)
+            new(BlessingIds.GaiaAvatarOfClay, "Avatar of Clay", DeityType.Gaia)
             {
                 Kind = BlessingKind.Player,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Embody pure insanity. +20% all stats, +18% attack speed, chaos aura disrupts enemies, random devastating effects. Requires both Pandemonium and Mind Fortress.",
+                    "Embody the mastery of clay. +10% max health. Requires both Kiln Master and Clay Architect.",
                 RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.VexPandemonium, BlessingIds.VexMindFortress },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaKilnMaster, BlessingIds.GaiaClayArchitect },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.20f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.20f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.20f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.18f },
-                    { VintageStoryStats.WalkSpeed, 0.15f }
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
                 }
             },
 
-            // RELIGION BLESSINGS (4 total) - Madness cult
+            // RELIGION BLESSINGS (4 total) - Shared pottery benefits
 
             // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.VexCultOfChaos, "Cult of Chaos", DeityType.Vex)
+            new(BlessingIds.GaiaPottersCircle, "Potter's Circle", DeityType.Gaia)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Your congregation embraces beautiful madness. +10% all damage, +8% attack speed for all members.",
+                    "Your congregation shares pottery knowledge. +15% clay yield for all members.",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.10f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.08f }
+                    { VintageStoryStats.ClayYield, 0.15f }
                 }
             },
 
             // Tier 2 - Established (500-1999 prestige) - Coordination
-            new(BlessingIds.VexSharedMadness, "Shared Madness", DeityType.Vex)
+            new(BlessingIds.GaiaClayGuild, "Clay Guild", DeityType.Gaia)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Madness spreads through the congregation. +15% all damage, +12% attack speed, +10% movement for all. Requires Cult of Chaos.",
+                    "A united guild of skilled potters. +5% batch completion chance (craft duplicate pottery) for all. Requires Potter's Circle.",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
-                PrerequisiteBlessings = new List<string> { BlessingIds.VexCultOfChaos },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaPottersCircle },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.15f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.12f },
-                    { VintageStoryStats.WalkSpeed, 0.10f }
-                }
+                    { VintageStoryStats.PotteryBatchCompletionChance, 0.20f }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.PotteryBatchCompletionBonus }
             },
 
             // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
-            new(BlessingIds.VexInsanityAura, "Insanity Aura", DeityType.Vex)
+            new(BlessingIds.GaiaEarthenCommunity, "Earthen Community", DeityType.Gaia)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Your presence spreads chaos. +20% all damage, +18% attack speed, +15% movement, +12% armor for all. Requires Shared Madness.",
+                    "A thriving fortified community. +15% armor effectiveness for all. Requires Clay Guild.",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
-                PrerequisiteBlessings = new List<string> { BlessingIds.VexSharedMadness },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaClayGuild },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.20f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.20f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.18f },
-                    { VintageStoryStats.WalkSpeed, 0.15f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.12f }
+                    { VintageStoryStats.ArmorEffectiveness, 0.15f }
                 }
             },
 
-            // Tier 4 - Legendary (5000-9999 prestige) - Reality Breaks
-            new(BlessingIds.VexRealmOfMadness, "Realm of Madness", DeityType.Vex)
+            // Tier 4 - Legendary (5000+ prestige) - Pantheon of Clay
+            new(BlessingIds.GaiaPantheonOfClay, "Pantheon of Clay", DeityType.Gaia)
             {
                 Kind = BlessingKind.Religion,
-                Category = BlessingCategory.Combat,
+                Category = BlessingCategory.Utility,
                 Description =
-                    "Your religion warps reality itself. +28% all damage, +25% attack speed, +22% movement, +18% armor, +15% max health for all. Chaos reigns. Requires Insanity Aura.",
+                    "Your religion becomes legendary potters. +10% max health for all. Requires Earthen Community.",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
-                PrerequisiteBlessings = new List<string> { BlessingIds.VexInsanityAura },
+                PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthenCommunity },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.28f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.28f },
-                    { VintageStoryStats.MeleeWeaponsSpeed, 0.25f },
-                    { VintageStoryStats.WalkSpeed, 0.22f },
-                    { VintageStoryStats.MeleeWeaponArmor, 0.18f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f }
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
                 }
             }
         };

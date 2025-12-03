@@ -75,6 +75,9 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
 
         // Check if rank changed
         if (religion.PrestigeRank > oldRank) SendReligionRankUpNotification(religionUID, religion.PrestigeRank);
+
+        // Save immediately to prevent data loss
+        _religionManager.TriggerSave();
     }
 
     /// <summary>

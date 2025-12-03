@@ -9,6 +9,9 @@ using PantheonWars.Network;
 using PantheonWars.Systems;
 using PantheonWars.Systems.BuffSystem;
 using PantheonWars.Systems.BuffSystem.Interfaces;
+using HarmonyLib;
+using System.Reflection;
+using PantheonWars.Systems.Patches;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -56,10 +59,20 @@ public class PantheonWarsSystem : ModSystem
 
     public string ModName => "pantheonwars";
 
+    private Harmony? _harmony;
+
     public override void Start(ICoreAPI api)
     {
         base.Start(api);
         api.Logger.Notification("[PantheonWars] Mod loaded!");
+
+        // Register Harmony Patches
+        if (_harmony == null)
+        {
+            _harmony = new Harmony("com.pantheonwars.patches");
+            _harmony.PatchAll(Assembly.GetExecutingAssembly());
+            api.Logger.Notification("[PantheonWars] Harmony patches registered.");
+        }
 
         // Register network channel and message types
         api.Network.RegisterChannel(NETWORK_CHANNEL)
@@ -91,6 +104,11 @@ public class PantheonWarsSystem : ModSystem
     {
         base.StartServerSide(api);
         _sapi = api;
+        
+        // Clear any static event subscribers from previous loads
+        PitKilnPatches.ClearSubscribers();
+        AnvilPatches.ClearSubscribers();
+        
         api.Logger.Notification("[PantheonWars] Initializing server-side systems...");
 
         // Register entity behaviors
@@ -127,18 +145,19 @@ public class PantheonWarsSystem : ModSystem
         _playerReligionDataManager.Initialize();
         _playerReligionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
 
+        // Initialize religion prestige manager (concrete implementation, stored as interface)
+        // MUST be initialized before FavorSystem
+        _religionPrestigeManager = new ReligionPrestigeManager(api, _religionManager);
+        _religionPrestigeManager.Initialize();
+
         // Initialize favor system (concrete implementation, stored as interface)
         // Pass interfaces for loose coupling
-        _favorSystem = new FavorSystem(api, _playerDataManager, _playerReligionDataManager, _deityRegistry, _religionManager);
+        _favorSystem = new FavorSystem(api, _playerDataManager, _playerReligionDataManager, _deityRegistry, _religionManager, _religionPrestigeManager);
         _favorSystem.Initialize();
 
         // Initialize ability system (pass buff manager interface)
         _abilitySystem = new AbilitySystem(api, _abilityRegistry, _playerDataManager, _cooldownManager, _buffManager);
         _abilitySystem.Initialize();
-
-        // Initialize religion prestige manager (concrete implementation, stored as interface)
-        _religionPrestigeManager = new ReligionPrestigeManager(api, _religionManager);
-        _religionPrestigeManager.Initialize();
 
         // Initialize PvP manager (pass interfaces for loose coupling)
         _pvpManager = new PvPManager(api, _playerReligionDataManager, _religionManager, _religionPrestigeManager,
@@ -154,13 +173,6 @@ public class PantheonWarsSystem : ModSystem
 
         // Connect blessing systems to religion prestige manager
         _religionPrestigeManager.SetBlessingSystems(_blessingRegistry, _blessingEffectSystem);
-
-        // Register commands (pass interfaces for loose coupling)
-        // _deityCommands = new DeityCommands(api, _deityRegistry, _playerReligionDataManager);
-        // _deityCommands.RegisterCommands();
-
-        // _abilityCommands = new AbilityCommands(api, _abilitySystem, _playerDataManager, _playerReligionDataManager);
-        // _abilityCommands.RegisterCommands();
 
         _favorCommands = new FavorCommands(api, _deityRegistry, _playerReligionDataManager);
         _favorCommands.RegisterCommands();
@@ -201,7 +213,18 @@ public class PantheonWarsSystem : ModSystem
     {
         base.Dispose();
 
-        // Cleanup
+        // Unpatch Harmony
+        _harmony?.UnpatchAll("com.pantheonwars.patches");
+
+        // Cleanup systems
+        _favorSystem?.Dispose();
+        _playerReligionDataManager?.Dispose();
+        _religionManager?.Dispose();
+
+        // Clear static events
+        PitKilnPatches.ClearSubscribers();
+
+        // Cleanup dialogs
         _religionDialog?.Dispose();
         _createReligionDialog?.Dispose();
     }

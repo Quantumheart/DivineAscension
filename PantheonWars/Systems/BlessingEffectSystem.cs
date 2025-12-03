@@ -4,6 +4,8 @@ using System.Linq;
 using PantheonWars.Constants;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
+using PantheonWars.Systems.BlessingEffects;
+using PantheonWars.Systems.BlessingEffects.Handlers;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -26,6 +28,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     private readonly IReligionManager _religionManager;
     private readonly Dictionary<string, Dictionary<string, float>> _religionModifierCache = new();
     private readonly ICoreServerAPI _sapi;
+    private readonly SpecialEffectRegistry _specialEffectRegistry;
 
     public BlessingEffectSystem(
         ICoreServerAPI sapi,
@@ -37,6 +40,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         _blessingRegistry = blessingRegistry;
         _playerReligionDataManager = playerReligionDataManager;
         _religionManager = religionManager;
+        _specialEffectRegistry = new SpecialEffectRegistry(sapi);
     }
 
     /// <summary>
@@ -45,6 +49,12 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     public void Initialize()
     {
         _sapi.Logger.Notification($"{SystemConstants.LogPrefix} {SystemConstants.InfoInitializingBlessingSystem}");
+
+        // Register special effect handlers
+        RegisterSpecialEffectHandlers();
+
+        // Initialize special effect registry
+        _specialEffectRegistry.Initialize();
 
         // Register event handlers
         _sapi.Event.PlayerJoin += OnPlayerJoin;
@@ -236,7 +246,11 @@ public class BlessingEffectSystem : IBlessingEffectSystem
 
         // Recalculate and apply
         var player = _sapi.World.PlayerByUid(playerUID) as IServerPlayer;
-        if (player != null) ApplyBlessingsToPlayer(player);
+        if (player != null)
+        {
+            ApplyBlessingsToPlayer(player);
+            RefreshSpecialEffects(player);
+        }
 
         _sapi.Logger.Debug(
             $"{SystemConstants.LogPrefix} {string.Format(SystemConstants.SuccessRefreshedBlessingsFormat, playerUID)}");
@@ -350,7 +364,81 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     /// </summary>
     internal void OnPlayerJoin(IServerPlayer player)
     {
+        // Register custom stats first
+        RegisterCustomStats(player);
+
         RefreshPlayerBlessings(player.PlayerUID);
+    }
+
+    /// <summary>
+    ///     Registers all custom stats for a player with appropriate blend types
+    /// </summary>
+    private void RegisterCustomStats(IServerPlayer player)
+    {
+        if (player.Entity == null || player.Entity.Stats == null) return;
+
+        var stats = player.Entity.Stats;
+
+        // Khoras (Forge & Craft) - Most are percentage modifiers
+        RegisterStatIfNeeded(stats, VintageStoryStats.ToolDurability, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.OreDropRate, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.ColdResistance, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.RepairCostReduction, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.RepairEfficiency, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.SmithingCostReduction, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.MetalArmorBonus, EnumStatBlendType.WeightedSum);
+
+        // Lysa (Hunt & Wild)
+        RegisterStatIfNeeded(stats, VintageStoryStats.DoubleHarvestChance, EnumStatBlendType.FlatSum); // Additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.AnimalDamage, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.AnimalDrops, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.FoodSpoilage, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.Satiety, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.TemperatureResistance, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.AnimalHarvestTime, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.ForagingYield, EnumStatBlendType.WeightedSum);
+
+        // Aethra (Agriculture & Cooking)
+        RegisterStatIfNeeded(stats, VintageStoryStats.CropYield, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.SeedDropChance, EnumStatBlendType.FlatSum); // Additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.CookingYield, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.HeatResistance, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.RareCropChance, EnumStatBlendType.FlatSum); // Additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.WildCropYield, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.CookedFoodSatiety, EnumStatBlendType.WeightedSum);
+
+        // Gaia (Earth & Stone)
+        RegisterStatIfNeeded(stats, VintageStoryStats.StoneYield, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.ClayYield, EnumStatBlendType.WeightedSum);
+        // New Gaia utility stats
+        RegisterStatIfNeeded(stats, VintageStoryStats.ClayFormingVoxelChance, EnumStatBlendType.FlatSum); // Legacy additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.PotteryBatchCompletionChance, EnumStatBlendType.FlatSum); // Additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.DiggingSpeed, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.ArmorEffectiveness, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.PickDurability, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.FallDamageReduction, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.RareStoneChance, EnumStatBlendType.FlatSum); // Additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.OreInStoneChance, EnumStatBlendType.FlatSum); // Additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.GravelYield, EnumStatBlendType.WeightedSum);
+
+        _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered custom stats for {player.PlayerName}");
+    }
+
+    /// <summary>
+    ///     Helper to register a stat only if it doesn't already exist
+    /// </summary>
+    private void RegisterStatIfNeeded(EntityStats stats, string statName, EnumStatBlendType blendType)
+    {
+        try
+        {
+            // Check if stat already exists by attempting to get it
+            // If it doesn't exist, Register it
+            stats.Register(statName, blendType);
+        }
+        catch (Exception)
+        {
+            // Stat already registered, ignore
+        }
     }
 
     /// <summary>
@@ -415,10 +503,73 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             VintageStoryStats.RangedWeaponsDamage => SystemConstants.StatDisplayRangedDamage,
             VintageStoryStats.MeleeWeaponsSpeed => SystemConstants.StatDisplayAttackSpeed,
             VintageStoryStats.MeleeWeaponArmor => SystemConstants.StatDisplayArmor,
+            VintageStoryStats.ArmorEffectiveness => SystemConstants.StatDisplayArmorEffectiveness,
             VintageStoryStats.MaxHealthExtraPoints => SystemConstants.StatDisplayMaxHealth,
             VintageStoryStats.WalkSpeed => SystemConstants.StatDisplayWalkSpeed,
             VintageStoryStats.HealingEffectiveness => SystemConstants.StatDisplayHealthRegen,
+            VintageStoryStats.ToolDurability => SystemConstants.StatDisplayToolDurability,
+            VintageStoryStats.OreDropRate => SystemConstants.StatDisplayOreYield,
+            VintageStoryStats.ColdResistance => SystemConstants.StatDisplayColdResistance,
+            VintageStoryStats.MiningSpeed => SystemConstants.StatDisplayMiningSpeed,
+            VintageStoryStats.RepairCostReduction => SystemConstants.StatDisplayRepairCostReduction,
+            VintageStoryStats.RepairEfficiency => SystemConstants.StatDisplayRepairEfficiency,
+            VintageStoryStats.SmithingCostReduction => SystemConstants.StatDisplaySmithingCostReduction,
+            VintageStoryStats.MetalArmorBonus => SystemConstants.StatDisplayMetalArmorBonus,
+            VintageStoryStats.HungerRate => SystemConstants.StatDisplayHungerRate,
+            VintageStoryStats.ArmorDurabilityLoss => SystemConstants.StatDisplayArmorDurabilityLoss,
+            VintageStoryStats.ArmorWalkSpeedAffectedness => SystemConstants.StatDisplayArmorWalkSpeed,
+            VintageStoryStats.PotteryBatchCompletionChance => SystemConstants.StatDisplayPotteryBatchCompletion,
             _ => statKey
         };
+    }
+
+    /// <summary>
+    ///     Registers all special effect handlers for deities
+    /// </summary>
+    private void RegisterSpecialEffectHandlers()
+    {
+        // Khoras (Forge & Craft) handlers
+        _specialEffectRegistry.RegisterHandler(new KhorasEffectHandlers.PassiveToolRepairEffect());
+
+        // Lysa (Hunt & Wild) handlers
+        _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.RareForageChanceEffect());
+        _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.FoodSpoilageEffect());
+        _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.TemperatureResistanceEffect());
+
+        // Aethra (Agriculture & Light) handlers
+        _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.NeverMalnourishedEffect());
+        _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.BlessedMealsEffect());
+        _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.RareCropDiscoveryEffect());
+        // Note: FoodSpoilageReduction is shared with Lysa and already registered above
+        
+        // Gaia (Pottery & Clay) handlers
+        _specialEffectRegistry.RegisterHandler(new GaiaEffectHandlers.PotteryBatchCompletionEffect());
+        
+        _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered all special effect handlers");
+    }
+
+    /// <summary>
+    ///     Refreshes special effects for a player based on their unlocked blessings
+    /// </summary>
+    private void RefreshSpecialEffects(IServerPlayer player)
+    {
+        var (playerBlessings, religionBlessings) = GetActiveBlessings(player.PlayerUID);
+
+        // Collect all special effect IDs from active blessings
+        var activeEffectIds = new List<string>();
+
+        foreach (var blessing in playerBlessings)
+            if (blessing.SpecialEffects != null)
+                activeEffectIds.AddRange(blessing.SpecialEffects);
+
+        foreach (var blessing in religionBlessings)
+            if (blessing.SpecialEffects != null)
+                activeEffectIds.AddRange(blessing.SpecialEffects);
+
+        // Refresh effects via registry
+        _specialEffectRegistry.RefreshPlayerEffects(player, activeEffectIds);
+
+        _sapi.Logger.Debug(
+            $"{SystemConstants.LogPrefix} Refreshed {activeEffectIds.Count} special effects for {player.PlayerName}");
     }
 }

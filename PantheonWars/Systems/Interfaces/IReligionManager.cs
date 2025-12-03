@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 using PantheonWars.Data;
 using PantheonWars.Models.Enum;
 
 namespace PantheonWars.Systems.Interfaces;
 
-public interface IReligionManager
+public interface IReligionManager : IDisposable
 {
     /// <summary>
     ///     Initializes the religion manager
@@ -116,6 +117,11 @@ public interface IReligionManager
     ///     Gets all banned players for a religion
     /// </summary>
     List<BanEntry> GetBannedPlayers(string religionUID);
+
+    /// <summary>
+    ///     Manually triggers a save of all religion data
+    /// </summary>
+    void TriggerSave();
 
     void OnSaveGameLoaded();
     void OnGameWorldSave();

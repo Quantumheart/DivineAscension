@@ -82,6 +82,11 @@ public static class SystemConstants
     public const string StatDisplayArmor = "Armor";
 
     /// <summary>
+    ///     Display name for armor effectiveness stat
+    /// </summary>
+    public const string StatDisplayArmorEffectiveness = "Armor Effectiveness";
+
+    /// <summary>
     ///     Display name for max health stat
     /// </summary>
     public const string StatDisplayMaxHealth = "Max Health";
@@ -95,6 +100,71 @@ public static class SystemConstants
     ///     Display name for health regeneration stat
     /// </summary>
     public const string StatDisplayHealthRegen = "Health Regen";
+
+    /// <summary>
+    ///     Display name for tool durability stat
+    /// </summary>
+    public const string StatDisplayToolDurability = "Tool Durability";
+
+    /// <summary>
+    ///     Display name for ore yield stat
+    /// </summary>
+    public const string StatDisplayOreYield = "Ore Yield";
+
+    /// <summary>
+    ///     Display name for cold resistance stat
+    /// </summary>
+    public const string StatDisplayColdResistance = "Cold Resistance";
+
+    /// <summary>
+    ///     Display name for mining speed stat
+    /// </summary>
+    public const string StatDisplayMiningSpeed = "Mining Speed";
+
+    /// <summary>
+    ///     Display name for chopping speed stat
+    /// </summary>
+    public const string StatDisplayChoppingSpeed = "Chopping Speed";
+
+    /// <summary>
+    ///     Display name for repair cost reduction stat
+    /// </summary>
+    public const string StatDisplayRepairCostReduction = "Repair Cost Reduction";
+
+    /// <summary>
+    ///     Display name for repair efficiency stat
+    /// </summary>
+    public const string StatDisplayRepairEfficiency = "Repair Efficiency";
+
+    /// <summary>
+    ///     Display name for smithing cost reduction stat
+    /// </summary>
+    public const string StatDisplaySmithingCostReduction = "Smithing Cost Reduction";
+
+    /// <summary>
+    ///     Display name for metal armor bonus stat
+    /// </summary>
+    public const string StatDisplayMetalArmorBonus = "Metal Armor Bonus";
+
+    /// <summary>
+    ///     Display name for hunger rate stat
+    /// </summary>
+    public const string StatDisplayHungerRate = "Hunger Rate";
+
+    /// <summary>
+    ///     Display name for armor durability loss stat
+    /// </summary>
+    public const string StatDisplayArmorDurabilityLoss = "Armor Durability Loss";
+
+    /// <summary>
+    ///     Display name for armor walk speed affectedness stat
+    /// </summary>
+    public const string StatDisplayArmorWalkSpeed = "Armor Walk Speed";
+
+    /// <summary>
+    ///     Display name for pottery batch completion chance
+    /// </summary>
+    public const string StatDisplayPotteryBatchCompletion = "Duplicate Pottery Chance";
 
     #endregion
 

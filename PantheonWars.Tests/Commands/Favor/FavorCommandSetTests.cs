@@ -69,13 +69,13 @@ public class FavorCommandSetTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Morthen);
+        var playerData = CreatePlayerData("player-1", DeityType.Aethra);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "999999");
         SetupParsers(args, 999999);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Morthen)).Returns(new Deity(DeityType.Morthen, nameof(DeityType.Morthen), "Death"));
+        _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra)).Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Death"));
 
         // Act
         var result = _sut!.OnSetFavor(args);

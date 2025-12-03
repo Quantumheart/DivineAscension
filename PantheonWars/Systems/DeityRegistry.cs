@@ -26,17 +26,12 @@ public class DeityRegistry : IDeityRegistry
     {
         _api.Logger.Notification("[PantheonWars] Initializing Deity Registry...");
 
-        // Register deities (Phase 1: Only Khoras and Lysa)
+        // Register deities (Utility-focused system - 4 deities)
         RegisterDeity(CreateKhoras());
         RegisterDeity(CreateLysa());
-
-        // Future deities will be added in Phase 3
-        // RegisterDeity(CreateMorthen());
+        // TODO: Phase 1 - Add CreateAethra() and CreateGaia() implementations
         // RegisterDeity(CreateAethra());
-        // RegisterDeity(CreateUmbros());
-        // RegisterDeity(CreateTharos());
         // RegisterDeity(CreateGaia());
-        // RegisterDeity(CreateVex());
 
         _api.Logger.Notification($"[PantheonWars] Registered {_deities.Count} deities");
     }
@@ -124,8 +119,8 @@ public class DeityRegistry : IDeityRegistry
             Playstyle = "Aggressive melee combat with high damage abilities and tactical buffs",
             Relationships = new Dictionary<DeityType, DeityRelationshipType>
             {
-                { DeityType.Lysa, DeityRelationshipType.Allied },
-                { DeityType.Morthen, DeityRelationshipType.Rival }
+                { DeityType.Lysa, DeityRelationshipType.Allied }
+                // TODO: Define relationships with Aethra and Gaia when they're implemented
             },
             AbilityIds = new List<string>
             {
@@ -150,8 +145,8 @@ public class DeityRegistry : IDeityRegistry
             Playstyle = "Mobile ranged combat with tracking abilities and tactical positioning",
             Relationships = new Dictionary<DeityType, DeityRelationshipType>
             {
-                { DeityType.Khoras, DeityRelationshipType.Allied },
-                { DeityType.Umbros, DeityRelationshipType.Rival }
+                { DeityType.Khoras, DeityRelationshipType.Allied }
+                // TODO: Define relationships with Aethra and Gaia when they're implemented
             },
             AbilityIds = new List<string>
             {
@@ -164,15 +159,9 @@ public class DeityRegistry : IDeityRegistry
         };
     }
 
-    // Future deity definitions (Phase 3)
-    /*
-    private Deity CreateMorthen() { ... }
-    private Deity CreateAethra() { ... }
-    private Deity CreateUmbros() { ... }
-    private Deity CreateTharos() { ... }
-    private Deity CreateGaia() { ... }
-    private Deity CreateVex() { ... }
-    */
+    // TODO: Implement remaining utility-focused deities in Phase 1
+    // private Deity CreateAethra() { ... } - Goddess of Agriculture & Light
+    // private Deity CreateGaia() { ... } - Goddess of Earth & Stone
 
     #endregion
 }

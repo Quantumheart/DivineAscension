@@ -29,6 +29,23 @@ public class FavorSystemTests
         return mockAPI;
     }
 
+    private FavorSystem CreateFavorSystem(
+        ICoreServerAPI api,
+        IPlayerDataManager playerDataManager,
+        IPlayerReligionDataManager playerReligionDataManager,
+        IDeityRegistry deityRegistry,
+        IReligionManager religionManager)
+    {
+        var mockPrestige = new Moq.Mock<IReligionPrestigeManager>();
+        return new FavorSystem(
+            api,
+            playerDataManager,
+            playerReligionDataManager,
+            deityRegistry,
+            religionManager,
+            mockPrestige.Object);
+    }
+
     #endregion
 
     #region Initialization Tests
@@ -43,13 +60,12 @@ public class FavorSystemTests
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act & Assert - Should not throw
         var exception = Record.Exception(() => favorSystem.Initialize());
@@ -96,13 +112,12 @@ public class FavorSystemTests
         mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Lysa)).Returns(lysa);
         mockDeityRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa)).Returns(0.5f);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         favorSystem.ProcessPvPKill(mockAttacker.Object, mockVictim.Object);
@@ -142,13 +157,12 @@ public class FavorSystemTests
             .Setup(m => m.GetOrCreatePlayerData("victim-uid"))
             .Returns(victimData);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         favorSystem.ProcessPvPKill(mockAttacker.Object, mockVictim.Object);
@@ -193,13 +207,12 @@ public class FavorSystemTests
         mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
         mockDeityRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa)).Returns(1.0f);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         favorSystem.ProcessPvPKill(mockAttacker.Object, mockVictim.Object);
@@ -239,13 +252,12 @@ public class FavorSystemTests
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         favorSystem.ProcessDeathPenalty(mockPlayer.Object);
@@ -276,13 +288,12 @@ public class FavorSystemTests
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         favorSystem.ProcessDeathPenalty(mockPlayer.Object);
@@ -313,13 +324,12 @@ public class FavorSystemTests
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         favorSystem.ProcessDeathPenalty(mockPlayer.Object);
@@ -345,13 +355,12 @@ public class FavorSystemTests
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         var reward = favorSystem.CalculateFavorReward(DeityType.Khoras, DeityType.None);
@@ -370,13 +379,12 @@ public class FavorSystemTests
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         var reward = favorSystem.CalculateFavorReward(DeityType.Khoras, DeityType.Khoras);
@@ -385,34 +393,6 @@ public class FavorSystemTests
         Assert.Equal(5, reward); // BASE_KILL_FAVOR / 2
     }
 
-    [Fact]
-    public void CalculateFavorReward_WithRivalDeities_ReturnsDoubledFavor()
-    {
-        // Arrange
-        var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
-        var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
-        var mockDeityRegistry = new Mock<IDeityRegistry>();
-        var mockReligionManager = new Mock<IReligionManager>();
-
-        mockDeityRegistry
-            .Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Morthen))
-            .Returns(2.0f);
-
-        var favorSystem = new FavorSystem(
-            mockAPI.Object,
-            mockPlayerDataManager.Object,
-            mockPlayerReligionDataManager.Object,
-            mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
-
-        // Act
-        var reward = favorSystem.CalculateFavorReward(DeityType.Khoras, DeityType.Morthen);
-
-        // Assert
-        Assert.Equal(20, reward); // BASE_KILL_FAVOR * 2.0
-    }
 
     #endregion
 
@@ -437,13 +417,12 @@ public class FavorSystemTests
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         favorSystem.AwardFavorForAction(mockPlayer.Object, "test action", 15);
@@ -474,13 +453,12 @@ public class FavorSystemTests
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         favorSystem.AwardFavorForAction(mockPlayer.Object, "test action", 15);
@@ -530,13 +508,12 @@ public class FavorSystemTests
             .Setup(m => m.GetPlayerReligion("player-uid"))
             .Returns((ReligionData?)null);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         favorSystem.AwardPassiveFavor(mockPlayer.Object, 1.0f);
@@ -567,13 +544,12 @@ public class FavorSystemTests
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         favorSystem.AwardPassiveFavor(mockPlayer.Object, 1.0f);
@@ -614,13 +590,12 @@ public class FavorSystemTests
             .Setup(m => m.GetPlayerReligion("player-uid"))
             .Returns((ReligionData?)null);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         var multiplierInitiate = favorSystem.CalculatePassiveFavorMultiplier(mockPlayer.Object, playerDataInitiate);
@@ -660,13 +635,12 @@ public class FavorSystemTests
             .Setup(m => m.GetPlayerReligion("player-uid"))
             .Returns(religion);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         var multiplier = favorSystem.CalculatePassiveFavorMultiplier(mockPlayer.Object, playerData);
@@ -898,13 +872,12 @@ public class FavorSystemTests
             .Setup(m => m.GetOrCreatePlayerData("victim-uid"))
             .Returns(victimData);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Non-PvP damage source (null entity)
         var damageSource = new DamageSource
@@ -963,13 +936,12 @@ public class FavorSystemTests
         mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Lysa)).Returns(lysa);
         mockDeityRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa)).Returns(1.0f);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         favorSystem.ProcessPvPKill(mockAttacker.Object, mockVictim.Object);
@@ -1005,13 +977,12 @@ public class FavorSystemTests
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         favorSystem.ProcessDeathPenalty(mockPlayer.Object);
@@ -1065,13 +1036,12 @@ public class FavorSystemTests
 
         mockReligionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns((ReligionData)null);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act - Use reflection to call internal method
         var method = favorSystem.GetType().GetMethod("OnGameTick",
@@ -1110,13 +1080,12 @@ public class FavorSystemTests
         var playerData = new PlayerReligionData { ActiveDeity = DeityType.None };
         mockPlayerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-uid")).Returns(playerData);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act - Use reflection to call internal method
         var method = favorSystem.GetType().GetMethod("OnGameTick",
@@ -1147,13 +1116,12 @@ public class FavorSystemTests
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         favorSystem.Initialize();
@@ -1188,13 +1156,12 @@ public class FavorSystemTests
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
 
-        var favorSystem = new FavorSystem(
+        var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
-            mockReligionManager.Object
-        );
+            mockReligionManager.Object);
 
         // Act
         favorSystem.AwardFavorForAction(mockPlayer.Object, "test action", 15);

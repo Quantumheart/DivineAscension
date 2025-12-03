@@ -103,7 +103,7 @@ public static class TestFixtures
 
         // Setup favor multipliers
         mockRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa)).Returns(0.5f);
-        mockRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Morthen)).Returns(2.0f);
+        mockRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Aethra)).Returns(2.0f);
 
         return mockRegistry;
     }
@@ -200,7 +200,6 @@ public static class TestFixtures
             Relationships = new Dictionary<DeityType, DeityRelationshipType>
             {
                 { DeityType.Lysa, DeityRelationshipType.Allied },
-                { DeityType.Morthen, DeityRelationshipType.Rival }
             },
             AbilityIds = new List<string> { "test_ability_1", "test_ability_2" }
         };

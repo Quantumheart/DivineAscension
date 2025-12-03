@@ -7,7 +7,7 @@ namespace PantheonWars.Models;
 /// <summary>
 ///     Represents a passive blessing that can be unlocked by players or religions
 /// </summary>
-public class Blessing : Trait
+public class Blessing
 {
     /// <summary>
     ///     Creates a new blessing with the specified ID, name, and deity
@@ -81,5 +81,5 @@ public class Blessing : Trait
     /// <summary>
     ///     List of special effect identifiers for complex blessing behaviors
     /// </summary>
-    public List<string> SpecialEffects { get; set; } = new();
+    public List<string>? SpecialEffects { get; set; } = new();
 }

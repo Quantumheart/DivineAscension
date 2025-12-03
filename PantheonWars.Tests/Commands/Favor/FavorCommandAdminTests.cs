@@ -104,12 +104,12 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Morthen, favor: 50, totalFavor: 500);
+        var playerData = CreatePlayerData("player-1", DeityType.Aethra, favor: 50, totalFavor: 500);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "100");
         SetupParsers(args, 100);
         
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Morthen)).Returns(new Deity(DeityType.Morthen, nameof(DeityType.Morthen), "Death"));
+        _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra)).Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Death"));
         _playerReligionDataManager.Setup(m => m.RemoveFavor("player-1", 100, It.IsAny<string>()))
             .Callback(() => playerData.Favor = 0)
             .Returns(true);
@@ -181,11 +181,11 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Umbros, favor: 100, totalFavor: 500);
+        var playerData = CreatePlayerData("player-1", DeityType.Aethra, favor: 100, totalFavor: 500);
         var args = CreateAdminCommandArgs(mockPlayer.Object);
         
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Umbros)).Returns(new Deity(DeityType.Umbros, nameof(DeityType.Umbros), "Shadows"));
+        _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra)).Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Shadows"));
 
         // Act
         var result = _sut!.OnMaxFavor(args);
@@ -207,13 +207,13 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Tharos, favor: 100, totalFavor: 100, rank: FavorRank.Initiate);
+        var playerData = CreatePlayerData("player-1", DeityType.Aethra, favor: 100, totalFavor: 100, rank: FavorRank.Initiate);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "5000");
         SetupParsers(args, 5000);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Tharos)).Returns(new Deity(DeityType.Tharos, nameof(DeityType.Tharos), "Storms"));
+        _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra)).Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Storms"));
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
