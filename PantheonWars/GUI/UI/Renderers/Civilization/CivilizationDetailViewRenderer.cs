@@ -132,18 +132,18 @@ internal static class CivilizationDetailViewRenderer
         drawList.AddCircleFilled(new Vector2(x + 16f, y + height / 2f), 10f, ImGui.ColorConvertFloat4ToU32(deityColor));
 
         // Religion name
-        TextRenderer.DrawLabel(drawList, member.ReligionName, x + 40f, y + 8f, 14f);
+        TextRenderer.DrawLabel(drawList, member.ReligionName, x + 40f, y + 8f, 15f);
 
         // Sub info
-        var subText = $"Deity: {member.Deity}  •  Members: {member.MemberCount}";
-        drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x + 40f, y + 32f),
+        var subText = $"Deity: {member.Deity}  |  Members: {member.MemberCount}";
+        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 40f, y + 32f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), subText);
 
         // Founder badge
         if (member.ReligionId == founderReligionUID)
         {
             drawList.AddText(ImGui.GetFont(), 13f, new Vector2(x + width - 120f, y + (height - 16f) / 2f),
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), "★ Founder");
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), "* Founder *");
         }
     }
 }

@@ -134,9 +134,9 @@ internal static class CivilizationManageRenderer
         drawList.AddCircleFilled(new Vector2(x + 12f, y + height / 2f), 8f, ImGui.ColorConvertFloat4ToU32(deityColor));
 
         // Texts
-        TextRenderer.DrawLabel(drawList, member.ReligionName, x + 32f, y + 10f, 14f);
-        var subText = $"Deity: {member.Deity}  •  Members: {member.MemberCount}";
-        drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x + 32f, y + 34f),
+        TextRenderer.DrawLabel(drawList, member.ReligionName, x + 32f, y + 10f, 16f);
+        var subText = $"Deity: {member.Deity}  |  Members: {member.MemberCount}";
+        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 32f, y + 34f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), subText);
 
         // Kick button for founder only and not the civilization founder religion

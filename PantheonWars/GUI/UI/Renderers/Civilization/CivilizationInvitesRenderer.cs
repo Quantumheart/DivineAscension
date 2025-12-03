@@ -19,7 +19,7 @@ internal static class CivilizationInvitesRenderer
         var drawList = ImGui.GetWindowDrawList();
         var currentY = y;
 
-        TextRenderer.DrawLabel(drawList, "Your Civilization Invitations", x, currentY, 16f, ColorPalette.White);
+        TextRenderer.DrawLabel(drawList, "Your Civilization Invitations", x, currentY, 18f, ColorPalette.White);
         currentY += 26f;
 
         // Help text explaining where to send invites
@@ -61,10 +61,10 @@ internal static class CivilizationInvitesRenderer
         drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width, y + height),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown), 4f);
 
-        TextRenderer.DrawLabel(drawList, "Invitation to Civilization", x + 12f, y + 8f, 14f);
-        drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x + 12f, y + 30f),
+        TextRenderer.DrawLabel(drawList, "Invitation to Civilization", x + 12f, y + 8f, 16f);
+        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 14f, y + 30f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), $"From: {invite.ReligionName}");
-        drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x + 12f, y + 48f),
+        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 14f, y + 48f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), $"Expires: {invite.ExpiresAt:yyyy-MM-dd HH:mm}");
 
         if (ButtonRenderer.DrawButton(drawList, "Accept", x + width - 180f, y + height - 32f, 80f, 28f, true))

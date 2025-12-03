@@ -127,11 +127,11 @@ internal static class CivilizationBrowseRenderer
             ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown), 4f);
 
         // Civ name
-        TextRenderer.DrawLabel(drawList, civ.Name, x + 12f, y + 8f, 15f, ColorPalette.White);
+        TextRenderer.DrawLabel(drawList, civ.Name, x + 12f, y + 8f, 16f, ColorPalette.White);
 
         // Members and diversity line
         var membersText = $"Members: {civ.MemberCount}";
-        drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x + 12f, y + 32f),
+        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 12f, y + 32f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), membersText);
 
         // Deity indicators for member deities

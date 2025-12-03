@@ -37,7 +37,7 @@ internal static class CivilizationCreateRenderer
         {
             // bullet
             drawList.AddCircleFilled(new Vector2(x + 8f, currentY + 7f), 2f, ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold));
-            drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x + 16f, currentY), ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), req);
+            drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 16f, currentY), ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), req);
             currentY += 18f;
         }
 
