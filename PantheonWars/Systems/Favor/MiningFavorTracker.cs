@@ -36,8 +36,14 @@ public class MiningFavorTracker(IPlayerReligionDataManager playerReligionDataMan
     {
         _khorasFollowers.Clear();
 
-        // Check all online players
-        foreach (var player in _sapi.World.AllOnlinePlayers)
+        // Check all online players (guard for nulls in test/headless environments)
+        var onlinePlayers = _sapi?.World?.AllOnlinePlayers;
+        if (onlinePlayers == null)
+        {
+            return;
+        }
+
+        foreach (var player in onlinePlayers)
         {
             var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
             if (religionData?.ActiveDeity == DeityType)

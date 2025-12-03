@@ -55,7 +55,10 @@ public class HuntingFavorTracker(
 
     private void RefreshFollowerCache()
     {
-        foreach (var player in _sapi.World.AllOnlinePlayers)
+        var onlinePlayers = _sapi?.World?.AllOnlinePlayers;
+        if (onlinePlayers == null) return;
+
+        foreach (var player in onlinePlayers)
         {
             UpdateFollower(player.PlayerUID);
         }

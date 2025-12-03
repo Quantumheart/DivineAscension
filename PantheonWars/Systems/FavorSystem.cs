@@ -236,6 +236,15 @@ public class FavorSystem : IFavorSystem, IDisposable
     public void AwardFavorForAction(IServerPlayer player, string actionType, int amount)
     {
         AwardFavorForAction(player.PlayerUID, actionType, amount);
+        // If world lookup path couldn't notify (e.g., headless tests), fall back to direct notify
+        if (_sapi?.World?.PlayerByUid(player.PlayerUID) == null)
+        {
+            var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
+            if (religionData.ActiveDeity != DeityType.None)
+            {
+                AwardFavorMessage(player, actionType, amount, religionData);
+            }
+        }
     }
 
     /// <summary>
@@ -275,7 +284,8 @@ public class FavorSystem : IFavorSystem, IDisposable
             }
         }
 
-        var player = _sapi.World.PlayerByUid(playerUid) as IServerPlayer;
+        // Try to notify player if server context is available
+        var player = _sapi?.World?.PlayerByUid(playerUid) as IServerPlayer;
         if (player != null)
         {
             AwardFavorMessage(player, actionType, amount, religionData);
@@ -308,8 +318,9 @@ public class FavorSystem : IFavorSystem, IDisposable
 
         player.SendMessage(
             GlobalConstants.GeneralChatGroup,
-            $"[Divine Favor] {deityName} smiles upon you with {amount} favor for {actionType}",
-            EnumChatType.Notification
+            $"[Divine Favor] {deityName}: You gained {amount} favor for {actionType}",
+            EnumChatType.Notification,
+            null
         );
     }
 
@@ -412,6 +423,15 @@ public class FavorSystem : IFavorSystem, IDisposable
     public void AwardFavorForAction(IServerPlayer player, string actionType, float amount)
     {
         AwardFavorForAction(player.PlayerUID, actionType, amount);
+        // If world lookup path couldn't notify (e.g., headless tests), fall back to direct notify
+        if (_sapi?.World?.PlayerByUid(player.PlayerUID) == null)
+        {
+            var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
+            if (religionData.ActiveDeity != DeityType.None)
+            {
+                AwardFavorMessage(player, actionType, amount, religionData);
+            }
+        }
     }
 
     public void AwardFavorForAction(string playerUid, string actionType, float amount)
@@ -448,7 +468,7 @@ public class FavorSystem : IFavorSystem, IDisposable
             }
         }
 
-        var player = _sapi.World.PlayerByUid(playerUid) as IServerPlayer;
+        var player = _sapi?.World?.PlayerByUid(playerUid) as IServerPlayer;
         if (player != null)
         {
             AwardFavorMessage(player, actionType, amount, religionData);
@@ -481,8 +501,9 @@ public class FavorSystem : IFavorSystem, IDisposable
 
         player.SendMessage(
             GlobalConstants.GeneralChatGroup,
-            $"[Divine Favor] {deityName} smiles upon you with {amount} favor for {actionType}",
-            EnumChatType.Notification
+            $"[Divine Favor] {deityName}: You gained {amount} favor for {actionType}",
+            EnumChatType.Notification,
+            null
         );
     }
 }

@@ -70,7 +70,10 @@ public class AethraFavorTracker(
     {
         _aethraFollowers.Clear();
 
-        foreach (var player in _sapi.World.AllOnlinePlayers)
+        var onlinePlayers = _sapi?.World?.AllOnlinePlayers;
+        if (onlinePlayers == null) return;
+
+        foreach (var player in onlinePlayers)
         {
             var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
             if (religionData?.ActiveDeity == DeityType)
