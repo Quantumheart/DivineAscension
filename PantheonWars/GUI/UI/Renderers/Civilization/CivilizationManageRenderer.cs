@@ -31,6 +31,36 @@ internal static class CivilizationManageRenderer
         TextRenderer.DrawLabel(drawList, civ.Name, x, currentY + 4f, 18f, ColorPalette.White);
         currentY += 28f;
 
+        // Info grid
+        var leftCol = x;
+        var rightCol = x + width / 2f;
+
+        // Founded date
+        TextRenderer.DrawLabel(drawList, "Founded:", leftCol, currentY, 13f, ColorPalette.Grey);
+        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 120f, currentY),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.White), civ.CreatedDate.ToString("yyyy-MM-dd"));
+
+        // Member count
+        TextRenderer.DrawLabel(drawList, "Members:", rightCol, currentY, 13f, ColorPalette.Grey);
+        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(rightCol + 80f, currentY),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.White), $"{civ.MemberReligions.Count}/4");
+
+        currentY += 20f;
+
+        // Civilization founder (player name)
+        TextRenderer.DrawLabel(drawList, "Founder:", leftCol, currentY, 13f, ColorPalette.Grey);
+        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 120f, currentY),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), civ.FounderName);
+
+        currentY += 20f;
+
+        // Founding religion
+        TextRenderer.DrawLabel(drawList, "Founding Religion:", leftCol, currentY, 13f, ColorPalette.Grey);
+        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 120f, currentY),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), civ.FounderReligionName);
+
+        currentY += 28f;
+
         // Members section title
         TextRenderer.DrawLabel(drawList, "Member Religions", x, currentY, 14f, ColorPalette.Grey);
         currentY += 22f;
