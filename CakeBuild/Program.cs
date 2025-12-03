@@ -7,7 +7,6 @@ using Cake.Core;
 using Cake.Frosting;
 using Cake.Json;
 using Newtonsoft.Json.Linq;
-using Vintagestory.API.Common;
 
 public static class Program
 {
@@ -19,6 +18,12 @@ public static class Program
     }
 }
 
+public class ModInfoDto
+{
+    public string Version { get; set; } = string.Empty;
+    public string ModID { get; set; } = string.Empty;
+}
+
 public class BuildContext : FrostingContext
 {
     public const string ProjectName = "PantheonWars";
@@ -28,14 +33,13 @@ public class BuildContext : FrostingContext
     {
         BuildConfiguration = context.Argument("configuration", "Release");
         SkipJsonValidation = context.Argument("skipJsonValidation", false);
-        var modInfo = context.DeserializeJsonFromFile<ModInfo>($"../{ProjectName}/{ProjectName}/modinfo.json");
+        var modInfo = context.DeserializeJsonFromFile<ModInfoDto>($"./{ProjectName}/modinfo.json");
         Version = modInfo.Version;
         Name = modInfo.ModID;
     }
 
     public string BuildConfiguration { get; set; }
     public string Version { get; set; }
-    public string ModId { get; set; }
     public string Name { get; }
 
     public bool SkipJsonValidation { get; set; }
@@ -91,16 +95,16 @@ public sealed class PackageTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
     {
-        context.EnsureDirectoryExists("../Releases");
-        context.CleanDirectory("../Releases");
-        context.EnsureDirectoryExists($"../Releases/{context.Name}");
-        context.CopyFiles($"../{BuildContext.ProjectName}/bin/{context.BuildConfiguration}/Mods/mod/publish/*",
-            $"../Releases/{context.Name}");
-        context.CopyDirectory($"../{BuildContext.ProjectName}/{BuildContext.ProjectName}/assets",
-            $"../Releases/{context.Name}/assets");
-        context.CopyFile($"../{BuildContext.ProjectName}/{BuildContext.ProjectName}/modinfo.json",
-            $"../Releases/{context.Name}/modinfo.json");
-        context.Zip($"../Releases/{context.Name}", $"../Releases/{context.Name}_{context.Version}.zip");
+        context.EnsureDirectoryExists("./Releases");
+        context.CleanDirectory("./Releases");
+        context.EnsureDirectoryExists($"./Releases/{context.Name}");
+        context.CopyFiles($"./{BuildContext.ProjectName}/bin/{context.BuildConfiguration}/Mods/mod/*.dll",
+            $"./Releases/{context.Name}");
+        context.CopyFiles($"./{BuildContext.ProjectName}/bin/{context.BuildConfiguration}/Mods/mod/*.json",
+            $"./Releases/{context.Name}");
+        context.CopyDirectory($"./{BuildContext.ProjectName}/bin/{context.BuildConfiguration}/Mods/mod/assets",
+            $"./Releases/{context.Name}/assets");
+        context.Zip($"./Releases/{context.Name}", $"./Releases/{context.Name}_{context.Version}.zip");
     }
 }
 

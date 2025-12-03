@@ -14,11 +14,4 @@
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <Reference Include="VintagestoryAPI">
-            <HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath>
-            <Private>false</Private>
-        </Reference>
-    </ItemGroup>
-
 </Project>
