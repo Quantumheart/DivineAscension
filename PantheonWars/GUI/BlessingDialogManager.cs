@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using PantheonWars.GUI.Interfaces;
+using PantheonWars.GUI.State;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network.Civilization;
@@ -19,6 +20,9 @@ public class BlessingDialogManager : IBlessingDialogManager
     {
         _capi = capi;
     }
+
+    // Composite UI state
+    public CivilizationState CivState { get; } = new();
 
     // Religion and deity state
     public string? CurrentReligionUID { get; set; }
@@ -105,6 +109,7 @@ public class BlessingDialogManager : IBlessingDialogManager
         CurrentCivilizationName = null;
         CivilizationFounderReligionUID = null;
         CivilizationMemberReligions.Clear();
+        CivState.Reset();
 
         // Clear blessing trees
         PlayerBlessingStates.Clear();
@@ -297,6 +302,7 @@ public class BlessingDialogManager : IBlessingDialogManager
             CurrentCivilizationName = null;
             CivilizationFounderReligionUID = null;
             CivilizationMemberReligions.Clear();
+            CivState.MyCivilization = null;
             return;
         }
 
@@ -304,5 +310,33 @@ public class BlessingDialogManager : IBlessingDialogManager
         CurrentCivilizationName = details.Name;
         CivilizationFounderReligionUID = details.FounderReligionUID;
         CivilizationMemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions);
+        CivState.MyCivilization = details;
+    }
+
+    /// <summary>
+    ///     Request the list of civilizations from the server (filtered by deity when provided)
+    /// </summary>
+    public void RequestCivilizationList(string deityFilter = "")
+    {
+        var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
+        system?.RequestCivilizationList(deityFilter);
+    }
+
+    /// <summary>
+    ///     Request details for the current civilization (empty string means player religion's civ)
+    /// </summary>
+    public void RequestCivilizationInfo(string civIdOrEmpty = "")
+    {
+        var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
+        system?.RequestCivilizationInfo(civIdOrEmpty);
+    }
+
+    /// <summary>
+    ///     Request a civilization action (create, invite, accept, leave, kick, disband)
+    /// </summary>
+    public void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "")
+    {
+        var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
+        system?.RequestCivilizationAction(action, civId, targetId, name);
     }
 }

@@ -84,6 +84,7 @@ public partial class BlessingDialog : ModSystem
             _pantheonWarsSystem.ReligionActionCompleted += OnReligionActionCompleted;
             _pantheonWarsSystem.PlayerReligionInfoReceived += OnPlayerReligionInfoReceived;
             _pantheonWarsSystem.PlayerReligionDataUpdated += OnPlayerReligionDataUpdated;
+            _pantheonWarsSystem.CivilizationListReceived += OnCivilizationListReceived;
             _pantheonWarsSystem.CivilizationInfoReceived += OnCivilizationInfoReceived;
             _pantheonWarsSystem.CivilizationActionCompleted += OnCivilizationActionCompleted;
         }
@@ -296,6 +297,7 @@ public partial class BlessingDialog : ModSystem
             _pantheonWarsSystem.ReligionActionCompleted -= OnReligionActionCompleted;
             _pantheonWarsSystem.PlayerReligionInfoReceived -= OnPlayerReligionInfoReceived;
             _pantheonWarsSystem.PlayerReligionDataUpdated -= OnPlayerReligionDataUpdated;
+            _pantheonWarsSystem.CivilizationListReceived -= OnCivilizationListReceived;
             _pantheonWarsSystem.CivilizationInfoReceived -= OnCivilizationInfoReceived;
             _pantheonWarsSystem.CivilizationActionCompleted -= OnCivilizationActionCompleted;
         }

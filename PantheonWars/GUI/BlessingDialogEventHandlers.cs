@@ -523,6 +523,17 @@ public partial class BlessingDialog
     }
 
     /// <summary>
+    ///     Handle civilization list received from server
+    /// </summary>
+    private void OnCivilizationListReceived(CivilizationListResponsePacket packet)
+    {
+        _capi!.Logger.Debug($"[PantheonWars] Received civilization list: {packet.Civilizations.Count} items");
+
+        // Update manager browse state
+        _manager!.CivState.AllCivilizations = packet.Civilizations;
+    }
+
+    /// <summary>
     ///     Handle civilization info received from server
     /// </summary>
     private void OnCivilizationInfoReceived(CivilizationInfoResponsePacket packet)
