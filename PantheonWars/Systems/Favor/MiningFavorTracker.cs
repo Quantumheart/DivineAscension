@@ -7,12 +7,12 @@ using Vintagestory.API.Server;
 
 namespace PantheonWars.Systems.Favor;
 
-public class MiningFavorTracker(IPlayerReligionDataManager playerReligionDataManager, ICoreServerAPI sapi, FavorSystem favorSystem) : IFavorTracker, IDisposable
+public class MiningFavorTracker(IPlayerReligionDataManager playerReligionDataManager, ICoreServerAPI sapi, IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
     public DeityType DeityType { get; } = DeityType.Khoras;
     private readonly IPlayerReligionDataManager _playerReligionDataManager = playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
-    private readonly FavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+    private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
     // Cache of active Khoras followers for fast lookup (avoids database hit on every block break)
     private readonly HashSet<string> _khorasFollowers = new();

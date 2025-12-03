@@ -108,7 +108,7 @@ public class ExplorationFavorTracker(
             if (set.Add(key))
             {
                 // First time entering this chunk this session → award favor
-                _favorSystem.AwardFavorForAction(player, $"exploring", 2f);
+                _favorSystem.AwardFavorForAction(player, $"exploration", 2f);
             }
         }
     }

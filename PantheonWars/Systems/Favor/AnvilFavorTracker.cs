@@ -14,14 +14,14 @@ namespace PantheonWars.Systems.Favor;
 public class AnvilFavorTracker(
     IPlayerReligionDataManager playerReligionDataManager,
     ICoreServerAPI sapi,
-    FavorSystem favorSystem)
+    IFavorSystem favorSystem)
     : IFavorTracker, IDisposable
 {
     public DeityType DeityType { get; } = DeityType.Khoras;
 
     private readonly IPlayerReligionDataManager _playerReligionDataManager = playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
-    private readonly FavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+    private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
     private readonly Guid _instanceId = Guid.NewGuid();
 

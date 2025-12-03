@@ -80,14 +80,14 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "DefaultReligion", "Morthen");
-        SetupParsers(args, "DefaultReligion", "Morthen"); // Only 2 parsers, no visibility
+        var args = CreateCommandArgs(mockPlayer.Object, "DefaultReligion", "Lysa");
+        SetupParsers(args, "DefaultReligion", "Lysa"); // Only 2 parsers, no visibility
 
-        var createdReligion = CreateReligion("religion-1", "DefaultReligion", DeityType.Aethra, "player-1", true);
+        var createdReligion = CreateReligion("religion-1", "DefaultReligion", DeityType.Lysa, "player-1", true);
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("DefaultReligion")).Returns((ReligionData?)null);
-        _religionManager.Setup(m => m.CreateReligion("DefaultReligion", DeityType.Aethra, "player-1", true))
+        _religionManager.Setup(m => m.CreateReligion("DefaultReligion", DeityType.Lysa, "player-1", true))
             .Returns(createdReligion);
 
         // Act
@@ -96,7 +96,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        _religionManager.Verify(m => m.CreateReligion("DefaultReligion", DeityType.Aethra, "player-1", true), Times.Once);
+        _religionManager.Verify(m => m.CreateReligion("DefaultReligion", DeityType.Lysa, "player-1", true), Times.Once);
     }
 
     [Fact]

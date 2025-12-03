@@ -17,4 +17,9 @@ public interface IFavorSystem : IDisposable
     ///     Awards favor for deity-aligned actions (extensible for future features)
     /// </summary>
     void AwardFavorForAction(IServerPlayer player, string actionType, int amount);
+
+    /// <summary>
+    ///     Awards a fractional amount of favor (supports fine-grained activities)
+    /// </summary>
+    void AwardFavorForAction(IServerPlayer player, string actionType, float amount);
 }
