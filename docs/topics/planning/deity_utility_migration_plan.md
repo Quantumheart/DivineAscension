@@ -74,7 +74,7 @@ This plan details the migration from an 8-deity combat-focused system to a 4-dei
 1. ✅ Implement Gaia clay brick placement tracking (hook into block placement events, 2 favor per brick)
 2. ✅ Update GaiaEffectHandlers.cs (pottery batch completion bonus - duplicate items on completion)
 3. Implement Lysa exploration tracking (chunk discovery system)
-4. Comprehensive testing phase for all 4 deities (unit, integration, manual)
+4. Comprehensive testing phase for all 4 deities - see **[Deity Utility Testing Guide](../testing/deity_utility_testing_guide.md)** for complete testing specifications
 5. Balance tuning and adjustment based on in-game testing
 6. Final documentation updates
 
@@ -337,34 +337,14 @@ Implement Khoras-specific effects:
 
 ### Part D: Testing
 
-#### Unit Tests
-- [ ] `KhorasFavorTrackerTests.cs`:
-  - Ore mining awards 2 favor
-  - Non-ore blocks award 0 favor
-  - Non-Khoras players get 0 favor
-  - All ore types work correctly
-- [ ] `KhorasBlessingTests.cs`:
-  - All blessings apply correct stat modifiers
-  - Bonuses stack additively
-  - Prerequisites enforce correctly
-  - Capstone requires both Tier 3 paths
-- [ ] `KhorasEffectHandlerTests.cs`:
-  - Passive repair works correctly
-  - Material saving triggers at expected rate
+See **[Deity Utility Testing Guide - Phase 1: Khoras Testing](../testing/deity_utility_testing_guide.md#phase-1-khoras-testing)** for detailed test specifications, procedures, and implementation examples.
 
-#### Integration Tests
-- [ ] Full progression test: mine ore → earn favor → unlock blessings → bonuses apply
-- [ ] Religion blessing test: all members receive bonuses
-- [ ] Stacking test: player + religion bonuses combine correctly
-
-#### Manual Testing
-- [ ] Mine various ore types, verify favor awards
-- [ ] Craft smithing items, verify favor awards
-- [ ] Progress through all blessing tiers
-- [ ] Verify stat bonuses apply in-game
-- [ ] Test passive tool repair
-- [ ] Test material saving
-- [ ] Performance test: mine 1000 blocks, check for lag
+**Testing Status:** ⏸️ Pending
+- Unit tests not yet implemented (~60 tests needed across 5 test classes)
+- Integration tests not yet implemented (~7 tests needed)
+- Manual testing not yet performed (4 detailed test procedures)
+- Performance testing not yet performed (2 benchmarks)
+- Balance tuning pending
 
 ### Risks & Mitigation
 
@@ -470,10 +450,16 @@ Implement Khoras-specific effects:
 - [x] Implement temperature resistance system
 
 ### Part D: Testing
-- [ ] Unit tests for all favor sources
-- [ ] Integration tests for progression
-- [ ] Manual testing: hunt animals, forage, explore
-- [ ] Performance testing with many entities
+
+See **[Deity Utility Testing Guide - Phase 2: Lysa Testing](../testing/deity_utility_testing_guide.md#phase-2-lysa-testing)** for detailed test specifications, procedures, and implementation examples.
+
+**Testing Status:** ⏸️ Pending
+- Unit tests not yet implemented (~50 tests needed across 5 test classes)
+- Integration tests not yet implemented (~7 tests needed)
+- Manual testing not yet performed (3 detailed test procedures)
+- Performance testing not yet performed (1 benchmark)
+- Balance tuning pending
+- Exploration tracking system still pending implementation
 
 ### Phase 2 Status Summary - 🔄 ~85% COMPLETE
 
@@ -570,10 +556,15 @@ Implement Khoras-specific effects:
 - [x] Implement rare crop discovery
 
 ### Part D: Testing
-- [ ] Unit tests for crop/cooking favor
-- [ ] Integration tests
-- [ ] Manual: farm crops, cook meals, plant seeds
-- [ ] Test blessed meal buffs
+
+See **[Deity Utility Testing Guide - Phase 3: Aethra Testing](../testing/deity_utility_testing_guide.md#phase-3-aethra-testing)** for detailed test specifications, procedures, and implementation examples.
+
+**Testing Status:** ⏸️ Pending
+- Unit tests not yet implemented (~50 tests needed across 4 test classes)
+- Integration tests not yet implemented (~7 tests needed)
+- Manual testing not yet performed (3 detailed test procedures)
+- Performance testing not yet performed (1 benchmark)
+- Balance tuning pending (especially cooking favor rates and meal complexity tiers)
 
 ### Phase 3 Status Summary - 🔄 ~95% COMPLETE
 
@@ -678,12 +669,15 @@ Implement Khoras-specific effects:
 - [ ] Test max health bonus on Champion unlock
 
 ### Part D: Testing
-- [ ] Unit tests for pottery/kiln favor
-- [ ] Integration tests
-- [ ] Manual: craft pottery, fire kilns, test bonuses
-- [ ] Test armor effectiveness increases
-- [ ] Test clay forming voxel placement bonus
-- [ ] Performance testing
+
+See **[Deity Utility Testing Guide - Phase 4: Gaia Testing](../testing/deity_utility_testing_guide.md#phase-4-gaia-testing)** for detailed test specifications, procedures, and implementation examples.
+
+**Testing Status:** ⏸️ Pending
+- Unit tests not yet implemented (~55 tests needed across 5 test classes)
+- Integration tests not yet implemented (~7 tests needed)
+- Manual testing not yet performed (5 detailed test procedures)
+- Performance testing not yet performed (1 benchmark)
+- Balance tuning pending (pottery batch completion bonus probability and favor rates)
 
 ### Phase 4 Status Summary - 🔄 ~95% COMPLETE
 
@@ -757,6 +751,7 @@ Integrate with `BlessingEffectSystem.cs` to automatically invoke handlers when b
 
 ### Documentation Updates
 
+- [x] **[Deity Utility Testing Guide](../testing/deity_utility_testing_guide.md)** - Comprehensive testing specifications (COMPLETE)
 - [ ] Update `deity_reference_utility.md` with implementation notes
 - [ ] Create player-facing guide: "Getting Started with Deities"
 - [ ] Document all favor earning rates and progression
@@ -773,12 +768,14 @@ Each favor tracker hooks into game events that fire frequently. Optimize:
 
 ### Balance Testing
 
-After all phases complete:
-- [ ] Progression pacing: verify players can reach Champion in reasonable time
-- [ ] Favor source balance: activities vs PvP contribution
-- [ ] Blessing power: verify bonuses meaningful but not overpowered
-- [ ] Religion prestige: verify group progression feels rewarding
-- [ ] Cross-deity balance: all deities equally attractive
+See **[Deity Utility Testing Guide - Cross-Cutting Testing](../testing/deity_utility_testing_guide.md#cross-cutting-testing)** for comprehensive balance testing procedures across all deities.
+
+**Balance testing covers:**
+- Progression pacing (Follower → Champion timing)
+- Favor source distribution (activity vs passive vs PvP)
+- Blessing power levels (meaningful but not overpowered)
+- Religion prestige progression (group rewards)
+- Cross-deity balance (all deities equally attractive)
 
 ---
 
