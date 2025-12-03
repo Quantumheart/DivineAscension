@@ -49,7 +49,7 @@ internal static class CivilizationDetailViewRenderer
 
         // Founded date
         TextRenderer.DrawLabel(drawList, "Founded:", leftCol, currentY, 13f, ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 80f, currentY),
+        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 120f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White), details.CreatedDate.ToString("yyyy-MM-dd"));
 
         // Member count
@@ -59,12 +59,17 @@ internal static class CivilizationDetailViewRenderer
 
         currentY += 24f;
 
-        // Founder religion
+        // Civilization founder (player name)
         TextRenderer.DrawLabel(drawList, "Founder:", leftCol, currentY, 13f, ColorPalette.Grey);
-        var founderReligion = details.MemberReligions.Find(r => r.ReligionId == details.FounderReligionUID);
-        var founderName = founderReligion?.ReligionName ?? "Unknown";
-        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 80f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), founderName);
+        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 120f, currentY),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), details.FounderName);
+
+        currentY += 24f;
+
+        // Founding religion
+        TextRenderer.DrawLabel(drawList, "Founding Religion:", leftCol, currentY, 13f, ColorPalette.Grey);
+        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 120f, currentY),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), details.FounderReligionName);
 
         currentY += 32f;
 
@@ -134,12 +139,12 @@ internal static class CivilizationDetailViewRenderer
         // Religion name
         TextRenderer.DrawLabel(drawList, member.ReligionName, x + 40f, y + 8f, 15f);
 
-        // Sub info
-        var subText = $"Deity: {member.Deity}  |  Members: {member.MemberCount}";
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 40f, y + 32f),
+        // Sub info - includes deity, member count, and religion founder name
+        var subText = $"Deity: {member.Deity}  |  Members: {member.MemberCount}  |  Founded by: {member.FounderName}";
+        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(x + 40f, y + 32f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), subText);
 
-        // Founder badge
+        // Founder badge (for the civilization's founding religion)
         if (member.ReligionId == founderReligionUID)
         {
             drawList.AddText(ImGui.GetFont(), 13f, new Vector2(x + width - 120f, y + (height - 16f) / 2f),

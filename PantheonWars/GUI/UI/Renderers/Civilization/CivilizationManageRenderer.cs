@@ -146,7 +146,8 @@ internal static class CivilizationManageRenderer
             if (ButtonRenderer.DrawSmallButton(drawList, "Kick", x + width - 80f, y + (height - 26f) / 2f, 70f, 26f,
                     ColorPalette.Red * 0.7f))
             {
-                manager.RequestCivilizationAction("kick", manager.CurrentCivilizationId ?? string.Empty, member.ReligionName);
+                // Use ReligionId (not ReligionName) as the server expects an ID
+                manager.RequestCivilizationAction("kick", manager.CurrentCivilizationId ?? string.Empty, member.ReligionId);
             }
         }
     }

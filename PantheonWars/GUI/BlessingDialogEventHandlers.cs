@@ -569,7 +569,10 @@ public partial class BlessingDialog
             _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                 _capi.World.Player.Entity, null, false, 8f, 0.5f);
 
-            // Request updated civilization info to refresh UI
+            // Request updated civilization data to refresh UI
+            // Refresh both the browse list and the player's civilization info
+            _pantheonWarsSystem?.RequestCivilizationList(_manager!.CivState.DeityFilter);
+
             if (_manager!.HasReligion())
             {
                 // Request civilization info for player's religion (empty string = my civ)

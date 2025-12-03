@@ -32,14 +32,18 @@ public class CivilizationInfoResponsePacket
         [ProtoMember(2)] public string Name { get; set; } = string.Empty;
 
         [ProtoMember(3)] public string FounderUID { get; set; } = string.Empty;
-        
+
         [ProtoMember(4)] public string FounderReligionUID { get; set; } = string.Empty;
-        
+
         [ProtoMember(5)] public List<MemberReligion> MemberReligions { get; set; } = new();
 
         [ProtoMember(6)] public List<PendingInvite> PendingInvites { get; set; } = new();
 
         [ProtoMember(7)] public DateTime CreatedDate { get; set; }
+
+        [ProtoMember(8)] public string FounderName { get; set; } = string.Empty; // Player name who founded the civilization
+
+        [ProtoMember(9)] public string FounderReligionName { get; set; } = string.Empty; // Religion name that founded the civilization
     }
 
     /// <summary>
@@ -59,6 +63,8 @@ public class CivilizationInfoResponsePacket
         [ProtoMember(5)] public string FounderReligionUID { get; set; } = string.Empty;
 
         [ProtoMember(6)] public int MemberCount { get; set; }
+
+        [ProtoMember(7)] public string FounderName { get; set; } = string.Empty; // Player name who founded this religion
     }
 
     /// <summary>

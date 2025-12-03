@@ -912,9 +912,9 @@ public class PantheonWarsSystem : ModSystem
     /// </summary>
     private void OnCivilizationListRequest(IServerPlayer fromPlayer, Network.Civilization.CivilizationListRequestPacket packet)
     {
-        _sapi!.Logger.Debug($"[PantheonWars] Civilization list requested by {fromPlayer.PlayerName}");
+        _sapi!.Logger.Debug($"[PantheonWars] Civilization list requested by {fromPlayer.PlayerName}, filter: '{packet.FilterDeity}'");
 
-        var civilizations = _civilizationManager!.GetAllCivilizations();
+        var civilizations = _civilizationManager!.GetAllCivilizations().ToList();
         var civInfoList = new List<Network.Civilization.CivilizationListResponsePacket.CivilizationInfo>();
 
         foreach (var civ in civilizations)
@@ -922,6 +922,19 @@ public class PantheonWarsSystem : ModSystem
             var religions = _civilizationManager.GetCivReligions(civ.CivId);
             var deities = religions.Select(r => r.Deity.ToString()).Distinct().ToList();
             var religionNames = religions.Select(r => r.ReligionName).ToList();
+
+            // Apply deity filter if specified
+            if (!string.IsNullOrEmpty(packet.FilterDeity))
+            {
+                // Check if any religion in this civilization has the filtered deity
+                bool hasFilteredDeity = religions.Any(r =>
+                    string.Equals(r.Deity.ToString(), packet.FilterDeity, StringComparison.OrdinalIgnoreCase));
+
+                if (!hasFilteredDeity)
+                {
+                    continue; // Skip this civilization if it doesn't have the filtered deity
+                }
+            }
 
             civInfoList.Add(new Network.Civilization.CivilizationListResponsePacket.CivilizationInfo
             {
@@ -937,6 +950,7 @@ public class PantheonWarsSystem : ModSystem
 
         var response = new Network.Civilization.CivilizationListResponsePacket(civInfoList);
         _serverChannel!.SendPacket(response, fromPlayer);
+        _sapi!.Logger.Debug($"[PantheonWars] Sent {civInfoList.Count} civilizations (out of {civilizations.Count} total) with filter '{packet.FilterDeity}'");
     }
 
     /// <summary>
@@ -977,12 +991,22 @@ public class PantheonWarsSystem : ModSystem
             return;
         }
 
+        // Get civilization founder's player name
+        var founderPlayer = _sapi.World.PlayerByUid(civ.FounderUID);
+        var founderPlayerName = founderPlayer?.PlayerName ?? civ.FounderUID;
+
+        // Get founding religion name
+        var founderReligion = _religionManager!.GetReligion(civ.FounderReligionUID);
+        var founderReligionName = founderReligion?.ReligionName ?? "Unknown";
+
         var details = new Network.Civilization.CivilizationInfoResponsePacket.CivilizationDetails
         {
             CivId = civ.CivId,
             Name = civ.Name,
             FounderUID = civ.FounderUID,
+            FounderName = founderPlayerName,
             FounderReligionUID = civ.FounderReligionUID,
+            FounderReligionName = founderReligionName,
             CreatedDate = civ.CreatedDate,
             MemberReligions = new List<Network.Civilization.CivilizationInfoResponsePacket.MemberReligion>(),
             PendingInvites = new List<Network.Civilization.CivilizationInfoResponsePacket.PendingInvite>()
@@ -992,6 +1016,10 @@ public class PantheonWarsSystem : ModSystem
         var religions = _civilizationManager.GetCivReligions(civ.CivId);
         foreach (var religion in religions)
         {
+            // Get religion founder's player name
+            var religionFounderPlayer = _sapi.World.PlayerByUid(religion.FounderUID);
+            var religionFounderName = religionFounderPlayer?.PlayerName ?? religion.FounderUID;
+
             details.MemberReligions.Add(new Network.Civilization.CivilizationInfoResponsePacket.MemberReligion
             {
                 ReligionId = religion.ReligionUID,
@@ -999,6 +1027,7 @@ public class PantheonWarsSystem : ModSystem
                 Deity = religion.Deity.ToString(),
                 FounderReligionUID = civ.FounderReligionUID,
                 FounderUID = religion.FounderUID,
+                FounderName = religionFounderName,
                 MemberCount = religion.MemberUIDs.Count
             });
         }
@@ -1065,10 +1094,19 @@ public class PantheonWarsSystem : ModSystem
                     break;
 
                 case "invite":
-                    var success = _civilizationManager!.InviteReligion(packet.CivId, packet.TargetId, fromPlayer.PlayerUID);
+                    // Look up religion by name (packet.TargetId contains religion name from UI)
+                    var targetReligion = _religionManager!.GetReligionByName(packet.TargetId);
+                    if (targetReligion == null)
+                    {
+                        response.Success = false;
+                        response.Message = $"Religion '{packet.TargetId}' not found.";
+                        break;
+                    }
+
+                    var success = _civilizationManager!.InviteReligion(packet.CivId, targetReligion.ReligionUID, fromPlayer.PlayerUID);
                     response.Success = success;
                     response.Message = success
-                        ? "Invitation sent successfully!"
+                        ? $"Invitation sent to '{targetReligion.ReligionName}' successfully!"
                         : "Failed to send invitation. Check permissions and civilization requirements.";
                     response.CivId = packet.CivId;
                     break;
@@ -1090,11 +1128,37 @@ public class PantheonWarsSystem : ModSystem
                         break;
                     }
 
+                    // Get religion to check if player is the founder
+                    var playerReligion = _religionManager!.GetReligion(playerData.ReligionUID);
+                    if (playerReligion == null)
+                    {
+                        response.Success = false;
+                        response.Message = "Your religion was not found.";
+                        break;
+                    }
+
+                    // Check if player is the religion founder (only founders can leave)
+                    if (playerReligion.FounderUID != fromPlayer.PlayerUID)
+                    {
+                        response.Success = false;
+                        response.Message = "Only religion founders can leave a civilization.";
+                        break;
+                    }
+
+                    // Check if player is the civilization founder
+                    var playerCiv = _civilizationManager!.GetCivilizationByReligion(playerData.ReligionUID);
+                    if (playerCiv != null && playerCiv.FounderUID == fromPlayer.PlayerUID)
+                    {
+                        response.Success = false;
+                        response.Message = "Civilization founders must disband instead of leaving.";
+                        break;
+                    }
+
                     success = _civilizationManager!.LeaveReligion(playerData.ReligionUID, fromPlayer.PlayerUID);
                     response.Success = success;
                     response.Message = success
                         ? "You have left the civilization. A 7-day cooldown has been applied."
-                        : "Failed to leave civilization. Founders must disband instead.";
+                        : "Failed to leave civilization.";
                     break;
 
                 case "kick":
@@ -1458,7 +1522,7 @@ public class PantheonWarsSystem : ModSystem
 
         var request = new Network.Civilization.CivilizationListRequestPacket(deityFilter);
         _clientChannel.SendPacket(request);
-        _capi?.Logger.Debug("[PantheonWars] Sent civilization list request");
+        _capi?.Logger.Debug($"[PantheonWars] Sent civilization list request with filter: '{deityFilter}'");
     }
 
     /// <summary>

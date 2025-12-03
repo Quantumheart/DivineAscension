@@ -1101,13 +1101,15 @@ public class CivilizationInfoOverlay : ModSystem
 - [x] All 4 civilization sub-tabs render correctly
 - [ ] Browse tab: deity filter works, scrolling works, "View Details" switches tabs
   - [ ] refresh
-  - [x] filter - button not dropping down: non functional
-  - [ ] scroll
+    -  **TEST NOTES: Refresh button clicks; but does not impact the results**
+  - [x] filter
+  - [X] scroll
   - [x] "View Details" 
-- [ ] My Civilization tab: member list scrolls, invite input works, kick button works
-  - [ ] scrolls
+- [ ] My Civilization tab: invite input works, kick button works
   - [ ] invite
+    - **TEST NOTES: invitation did not work through ui, but did work through commands**
   - [ ] kick
+    - **TEST NOTES: does not work**
 - [ ] Invitations tab: invite list scrolls, accept/decline buttons work
     - **Testing notes: No invitations user interface to send invitations**
   - [ ] scrolls
@@ -1123,17 +1125,16 @@ public class CivilizationInfoOverlay : ModSystem
   - [ ] accept
   - [ ] kick
   - [x] disband
-- [ ] Event handlers update state correctly
-- [ ] No visual glitches (overlapping, incorrect sizing, etc.)
-  - **Testing notes: The name input control for civilizations is small**
+- [x] Event handlers update state correctly
+- [x] No visual glitches (overlapping, incorrect sizing, etc.)
 - [x] Shared components work correctly (tabs, buttons, inputs, scrolling)
 - [x] Deity colors and titles display correctly
 
 #### Task 5.2: Edge Case Testing
 **Edge Cases:**
 - [x] No civilizations exist (empty list)
-- [ ] Player not in a civilization (My Civ tab shows info message)
-- [ ] No pending invitations (Invites tab shows empty message)
+- [x] Player not in a civilization (My Civ tab shows info message)
+- [x] No pending invitations (Invites tab shows empty message)
 - [ ] Civilization at capacity (4/4 members)
 - [x] Long civilization names (32 characters)
 - [x] Long religion names
