@@ -227,6 +227,7 @@ public partial class BlessingDialog : ModSystem
         BlessingUIRenderer.Draw(
             _manager!,
             _capi,
+            _state,
             windowWidth,
             windowHeight,
             deltaTime,
