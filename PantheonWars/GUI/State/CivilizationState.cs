@@ -16,12 +16,16 @@ public class CivilizationState
     public string DeityFilter { get; set; } = string.Empty;
     public string SearchText { get; set; } = string.Empty;
     public List<CivilizationListResponsePacket.CivilizationInfo> AllCivilizations { get; set; } = new();
+    public float BrowseScrollY { get; set; } = 0f;
 
     // My Civilization tab
     public CivilizationInfoResponsePacket.CivilizationDetails? MyCivilization { get; set; }
+    public float MemberScrollY { get; set; } = 0f;
+    public string InviteReligionName { get; set; } = string.Empty;
 
     // Invites tab
     public List<CivilizationInfoResponsePacket.PendingInvite> MyInvites { get; set; } = new();
+    public float InvitesScrollY { get; set; } = 0f;
 
     // Create tab
     public string CreateCivName { get; set; } = string.Empty;
@@ -36,8 +40,12 @@ public class CivilizationState
         DeityFilter = string.Empty;
         SearchText = string.Empty;
         AllCivilizations.Clear();
+        BrowseScrollY = 0f;
         MyCivilization = null;
+        MemberScrollY = 0f;
+        InviteReligionName = string.Empty;
         MyInvites.Clear();
+        InvitesScrollY = 0f;
         CreateCivName = string.Empty;
         CreateDescription = string.Empty;
     }
