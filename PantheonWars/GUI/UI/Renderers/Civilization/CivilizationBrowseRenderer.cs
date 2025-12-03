@@ -63,7 +63,8 @@ internal static class CivilizationBrowseRenderer
         }
 
         // Refresh button
-        if (ButtonRenderer.DrawButton(drawList, "Refresh", dropdownX + dropdownW + 12f, dropdownY, 100f, dropdownH))
+        if (ButtonRenderer.DrawButton(drawList, "Refresh", dropdownX + dropdownW + 12f, dropdownY, 100f, dropdownH,
+                isPrimary: false, enabled: !state.IsBrowseLoading))
         {
             manager.RequestCivilizationList(state.DeityFilter);
         }
@@ -82,7 +83,8 @@ internal static class CivilizationBrowseRenderer
             8f,
             state.BrowseScrollY,
             (civ, cx, cy, cw, ch) => DrawCivilizationCard(civ, cx, cy, cw, ch, manager, api),
-            emptyText: "No civilizations found."
+            emptyText: "No civilizations found.",
+            loadingText: state.IsBrowseLoading ? "Loading civilizations..." : null
         );
 
         // Draw dropdown menu AFTER the list so it appears on top (z-ordering)

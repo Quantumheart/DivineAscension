@@ -36,6 +36,23 @@ public class CivilizationState
     public string CreateCivName { get; set; } = string.Empty;
     public string CreateDescription { get; set; } = string.Empty;
 
+    // Loading flags
+    public bool IsBrowseLoading { get; set; } = false;
+    public bool IsMyCivLoading { get; set; } = false;
+    public bool IsInvitesLoading { get; set; } = false;
+    public bool IsDetailsLoading { get; set; } = false;
+
+    // Error messages (null = no error)
+    public string? BrowseError { get; set; }
+    public string? MyCivError { get; set; }
+    public string? InvitesError { get; set; }
+    public string? DetailsError { get; set; }
+    public string? LastActionError { get; set; }
+
+    // Confirmation flags
+    public bool ShowDisbandConfirm { get; set; } = false;
+    public string? KickConfirmReligionId { get; set; }
+
     /// <summary>
     ///     Reset the entire civilization state to defaults.
     /// </summary>
@@ -56,5 +73,22 @@ public class CivilizationState
         InvitesScrollY = 0f;
         CreateCivName = string.Empty;
         CreateDescription = string.Empty;
+
+        // Loading
+        IsBrowseLoading = false;
+        IsMyCivLoading = false;
+        IsInvitesLoading = false;
+        IsDetailsLoading = false;
+
+        // Errors
+        BrowseError = null;
+        MyCivError = null;
+        InvitesError = null;
+        DetailsError = null;
+        LastActionError = null;
+
+        // Confirmations
+        ShowDisbandConfirm = false;
+        KickConfirmReligionId = null;
     }
 }

@@ -303,6 +303,7 @@ public class BlessingDialogManager : IBlessingDialogManager
             CivilizationFounderReligionUID = null;
             CivilizationMemberReligions.Clear();
             CivState.MyCivilization = null;
+            CivState.MyInvites.Clear();
             return;
         }
 
@@ -320,6 +321,7 @@ public class BlessingDialogManager : IBlessingDialogManager
             CivilizationFounderReligionUID = details.FounderReligionUID;
             CivilizationMemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions);
             CivState.MyCivilization = details;
+            CivState.MyInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(details.PendingInvites);
         }
     }
 
@@ -328,6 +330,9 @@ public class BlessingDialogManager : IBlessingDialogManager
     /// </summary>
     public void RequestCivilizationList(string deityFilter = "")
     {
+        // Set loading state for browse
+        CivState.IsBrowseLoading = true;
+        CivState.BrowseError = null;
         var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
         system?.RequestCivilizationList(deityFilter);
     }
@@ -337,6 +342,19 @@ public class BlessingDialogManager : IBlessingDialogManager
     /// </summary>
     public void RequestCivilizationInfo(string civIdOrEmpty = "")
     {
+        // Toggle loading depending on details vs my civ
+        if (string.IsNullOrEmpty(civIdOrEmpty))
+        {
+            CivState.IsMyCivLoading = true;
+            CivState.IsInvitesLoading = true;
+            CivState.MyCivError = null;
+            CivState.InvitesError = null;
+        }
+        else
+        {
+            CivState.IsDetailsLoading = true;
+            CivState.DetailsError = null;
+        }
         var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
         system?.RequestCivilizationInfo(civIdOrEmpty);
     }
@@ -346,6 +364,8 @@ public class BlessingDialogManager : IBlessingDialogManager
     /// </summary>
     public void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "")
     {
+        // Clear transient action error; some actions will trigger refreshes
+        CivState.LastActionError = null;
         var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
         system?.RequestCivilizationAction(action, civId, targetId, name);
     }

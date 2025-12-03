@@ -23,6 +23,12 @@ internal static class CivilizationDetailViewRenderer
         var drawList = ImGui.GetWindowDrawList();
         var currentY = y;
 
+        if (state.IsDetailsLoading)
+        {
+            TextRenderer.DrawInfoText(drawList, "Loading civilization details...", x, currentY + 8f, width);
+            return height;
+        }
+
         var details = state.ViewingCivilizationDetails;
         if (details == null)
         {

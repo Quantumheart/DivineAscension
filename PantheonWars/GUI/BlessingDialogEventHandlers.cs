@@ -531,6 +531,8 @@ public partial class BlessingDialog
 
         // Update manager browse state
         _manager!.CivState.AllCivilizations = packet.Civilizations;
+        _manager.CivState.IsBrowseLoading = false;
+        _manager.CivState.BrowseError = null;
     }
 
     /// <summary>
@@ -542,6 +544,24 @@ public partial class BlessingDialog
 
         // Update manager with civilization state
         _manager!.UpdateCivilizationState(packet.Details);
+
+        // Clear appropriate loading flags depending on whether we're viewing details or my civ
+        if (!string.IsNullOrEmpty(_manager.CivState.ViewingCivilizationId) &&
+            packet.Details != null &&
+            packet.Details.CivId == _manager.CivState.ViewingCivilizationId)
+        {
+            _manager.CivState.IsDetailsLoading = false;
+            _manager.CivState.DetailsError = null;
+        }
+        else
+        {
+            // Treat as my-civ refresh (also covers the null details case for "not in a civ")
+            _manager.CivState.IsMyCivLoading = false;
+            _manager.CivState.IsInvitesLoading = false;
+            _manager.CivState.MyCivError = null;
+            _manager.CivState.InvitesError = null;
+            _manager.CivState.IsDetailsLoading = false; // ensure off if previously set
+        }
 
         if (packet.Details != null)
         {
@@ -571,11 +591,18 @@ public partial class BlessingDialog
 
             // Request updated civilization data to refresh UI
             // Refresh both the browse list and the player's civilization info
-            _pantheonWarsSystem?.RequestCivilizationList(_manager!.CivState.DeityFilter);
+            // Set loading flags since we're calling system directly (bypassing manager helpers)
+            _manager!.CivState.IsBrowseLoading = true;
+            _manager.CivState.BrowseError = null;
+            _pantheonWarsSystem?.RequestCivilizationList(_manager.CivState.DeityFilter);
 
             if (_manager!.HasReligion())
             {
                 // Request civilization info for player's religion (empty string = my civ)
+                _manager.CivState.IsMyCivLoading = true;
+                _manager.CivState.IsInvitesLoading = true;
+                _manager.CivState.MyCivError = null;
+                _manager.CivState.InvitesError = null;
                 _pantheonWarsSystem?.RequestCivilizationInfo("");
             }
         }
@@ -584,6 +611,9 @@ public partial class BlessingDialog
             // Play error sound
             _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
                 _capi.World.Player.Entity, null, false, 8f, 0.5f);
+
+            // Surface the error to UI banner (Task 5.3 Phase C will render it)
+            _manager!.CivState.LastActionError = packet.Message;
         }
     }
 

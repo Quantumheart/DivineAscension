@@ -42,7 +42,8 @@ internal static class CivilizationInvitesRenderer
             80f,
             10f,
             state.InvitesScrollY,
-            (invite, cx, cy, cw, ch) => DrawInviteCard(invite, cx, cy, cw, ch, manager, api)
+            (invite, cx, cy, cw, ch) => DrawInviteCard(invite, cx, cy, cw, ch, manager, api),
+            loadingText: state.IsInvitesLoading ? "Loading invitations..." : null
         );
 
         return height;
@@ -67,12 +68,15 @@ internal static class CivilizationInvitesRenderer
         drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 14f, y + 48f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), $"Expires: {invite.ExpiresAt:yyyy-MM-dd HH:mm}");
 
-        if (ButtonRenderer.DrawButton(drawList, "Accept", x + width - 180f, y + height - 32f, 80f, 28f, true))
+        var enabled = !manager.CivState.IsInvitesLoading;
+        if (ButtonRenderer.DrawButton(drawList, "Accept", x + width - 180f, y + height - 32f, 80f, 28f, true,
+                enabled: enabled))
         {
             manager.RequestCivilizationAction("accept", "", invite.InviteId);
         }
 
-        if (ButtonRenderer.DrawButton(drawList, "Decline", x + width - 90f, y + height - 32f, 80f, 28f))
+        if (ButtonRenderer.DrawButton(drawList, "Decline", x + width - 90f, y + height - 32f, 80f, 28f,
+                isPrimary: false, enabled: enabled))
         {
             api.ShowChatMessage("Decline functionality coming soon!");
         }

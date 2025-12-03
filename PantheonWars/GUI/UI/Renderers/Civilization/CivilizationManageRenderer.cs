@@ -20,6 +20,13 @@ internal static class CivilizationManageRenderer
         var drawList = ImGui.GetWindowDrawList();
         var currentY = y;
 
+        // Loading state for My Civilization tab
+        if (state.IsMyCivLoading)
+        {
+            TextRenderer.DrawInfoText(drawList, "Loading civilization data...", x, currentY + 8f, width);
+            return height;
+        }
+
         var civ = state.MyCivilization;
         if (civ == null)
         {
@@ -103,8 +110,9 @@ internal static class CivilizationManageRenderer
 
             // Send invite
             var inviteButtonX = x + (width * 0.6f) + 10f;
+            var canInvite = !string.IsNullOrWhiteSpace(state.InviteReligionName) && !state.IsInvitesLoading && !state.IsMyCivLoading;
             if (ButtonRenderer.DrawButton(drawList, "Send Invite", inviteButtonX, currentY - 2f, 140f, 32f, true,
-                    enabled: !string.IsNullOrWhiteSpace(state.InviteReligionName)))
+                    enabled: canInvite))
             {
                 manager.RequestCivilizationAction("invite", civ.CivId, state.InviteReligionName);
                 state.InviteReligionName = string.Empty;
@@ -112,7 +120,13 @@ internal static class CivilizationManageRenderer
 
             currentY += 40f;
 
-            if (civ.PendingInvites.Count > 0)
+            // Pending invites list (may be loading)
+            if (state.IsInvitesLoading)
+            {
+                TextRenderer.DrawInfoText(drawList, "Loading invitations...", x, currentY + 8f, width);
+                currentY += 30f;
+            }
+            else if (civ.PendingInvites.Count > 0)
             {
                 TextRenderer.DrawLabel(drawList, "Pending Invitations", x, currentY, 14f, ColorPalette.Grey);
                 currentY += 22f;
@@ -173,8 +187,9 @@ internal static class CivilizationManageRenderer
         var isCivFounderReligion = manager.CivilizationFounderReligionUID == member.ReligionId;
         if (manager.IsCivilizationFounder && !isCivFounderReligion)
         {
+            var kickEnabled = !manager.CivState.IsMyCivLoading; // disabled while tab loading
             if (ButtonRenderer.DrawSmallButton(drawList, "Kick", x + width - 80f, y + (height - 26f) / 2f, 70f, 26f,
-                    ColorPalette.Red * 0.7f))
+                    ColorPalette.Red * 0.7f) && kickEnabled)
             {
                 // Use ReligionId (not ReligionName) as the server expects an ID
                 manager.RequestCivilizationAction("kick", manager.CurrentCivilizationId ?? string.Empty, member.ReligionId);
