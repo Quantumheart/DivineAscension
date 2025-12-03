@@ -16,15 +16,11 @@ public class DeityHelperTests
     public void DeityNames_ContainsAllDeities()
     {
         // Assert
-        Assert.Equal(8, DeityHelper.DeityNames.Length);
+        Assert.Equal(4, DeityHelper.DeityNames.Length);
         Assert.Contains("Khoras", DeityHelper.DeityNames);
         Assert.Contains("Lysa", DeityHelper.DeityNames);
-        Assert.Contains("Morthen", DeityHelper.DeityNames);
         Assert.Contains("Aethra", DeityHelper.DeityNames);
-        Assert.Contains("Umbros", DeityHelper.DeityNames);
-        Assert.Contains("Tharos", DeityHelper.DeityNames);
         Assert.Contains("Gaia", DeityHelper.DeityNames);
-        Assert.Contains("Vex", DeityHelper.DeityNames);
     }
 
     #endregion
@@ -34,12 +30,8 @@ public class DeityHelperTests
     [Theory]
     [InlineData("Khoras", 0.8f, 0.2f, 0.2f)]  // Red - War
     [InlineData("Lysa", 0.4f, 0.8f, 0.3f)]    // Green - Hunt
-    [InlineData("Morthen", 0.3f, 0.1f, 0.4f)] // Purple - Death
     [InlineData("Aethra", 0.9f, 0.9f, 0.6f)]  // Light yellow - Light
-    [InlineData("Umbros", 0.2f, 0.2f, 0.3f)]  // Dark grey - Shadows
-    [InlineData("Tharos", 0.3f, 0.6f, 0.9f)]  // Blue - Storms
     [InlineData("Gaia", 0.5f, 0.4f, 0.2f)]    // Brown - Earth
-    [InlineData("Vex", 0.7f, 0.2f, 0.7f)]     // Magenta - Madness
     public void GetDeityColor_String_ReturnsCorrectColor(string deity, float r, float g, float b)
     {
         // Act
@@ -104,14 +96,10 @@ public class DeityHelperTests
     #region GetDeityTitle (string) Tests
 
     [Theory]
-    [InlineData("Khoras", "God of War")]
-    [InlineData("Lysa", "Goddess of the Hunt")]
-    [InlineData("Morthen", "God of Death")]
-    [InlineData("Aethra", "Goddess of Light")]
-    [InlineData("Umbros", "God of Shadows")]
-    [InlineData("Tharos", "God of Storms")]
-    [InlineData("Gaia", "Goddess of Earth")]
-    [InlineData("Vex", "God of Madness")]
+    [InlineData("Khoras", "God of the Forge & Craft")]
+    [InlineData("Lysa", "Goddess of the Hunt & Wild")]
+    [InlineData("Aethra", "Goddess of Agriculture & Light")]
+    [InlineData("Gaia", "Goddess of Earth & Stone")]
     public void GetDeityTitle_String_ReturnsCorrectTitle(string deity, string expectedTitle)
     {
         // Act
@@ -136,10 +124,10 @@ public class DeityHelperTests
     #region GetDeityTitle (DeityType) Tests
 
     [Theory]
-    [InlineData(DeityType.Khoras, "God of War")]
-    [InlineData(DeityType.Lysa, "Goddess of the Hunt")]
-    [InlineData(DeityType.Aethra, "Goddess of Light")]
-    [InlineData(DeityType.Gaia, "Goddess of Earth")]
+    [InlineData(DeityType.Khoras, "God of the Forge & Craft")]
+    [InlineData(DeityType.Lysa, "Goddess of the Hunt & Wild")]
+    [InlineData(DeityType.Aethra, "Goddess of Agriculture & Light")]
+    [InlineData(DeityType.Gaia, "Goddess of Earth & Stone")]
     public void GetDeityTitle_Enum_ReturnsCorrectTitle(DeityType deity, string expectedTitle)
     {
         // Act
@@ -202,14 +190,10 @@ public class DeityHelperTests
     #region GetDeityDisplayText (string) Tests
 
     [Theory]
-    [InlineData("Khoras", "Khoras - God of War")]
-    [InlineData("Lysa", "Lysa - Goddess of the Hunt")]
-    [InlineData("Morthen", "Morthen - God of Death")]
-    [InlineData("Aethra", "Aethra - Goddess of Light")]
-    [InlineData("Umbros", "Umbros - God of Shadows")]
-    [InlineData("Tharos", "Tharos - God of Storms")]
-    [InlineData("Gaia", "Gaia - Goddess of Earth")]
-    [InlineData("Vex", "Vex - God of Madness")]
+    [InlineData("Khoras", "Khoras - God of the Forge & Craft")]
+    [InlineData("Lysa", "Lysa - Goddess of the Hunt & Wild")]
+    [InlineData("Aethra", "Aethra - Goddess of Agriculture & Light")]
+    [InlineData("Gaia", "Gaia - Goddess of Earth & Stone")]
     public void GetDeityDisplayText_String_ReturnsFormattedText(string deity, string expected)
     {
         // Act
@@ -234,10 +218,10 @@ public class DeityHelperTests
     #region GetDeityDisplayText (DeityType) Tests
 
     [Theory]
-    [InlineData(DeityType.Khoras, "Khoras - God of War")]
-    [InlineData(DeityType.Lysa, "Lysa - Goddess of the Hunt")]
-    [InlineData(DeityType.Aethra, "Aethra - Goddess of Light")]
-    [InlineData(DeityType.Gaia, "Gaia - Goddess of Earth")]
+    [InlineData(DeityType.Khoras, "Khoras - God of the Forge & Craft")]
+    [InlineData(DeityType.Lysa, "Lysa - Goddess of the Hunt & Wild")]
+    [InlineData(DeityType.Aethra, "Aethra - Goddess of Agriculture & Light")]
+    [InlineData(DeityType.Gaia, "Gaia - Goddess of Earth & Stone")]
     public void GetDeityDisplayText_Enum_ReturnsFormattedText(DeityType deity, string expected)
     {
         // Act

@@ -24,6 +24,7 @@ public class FavorSystemIntegrationTests
     private readonly Mock<IPlayerDataManager> _mockPlayerDataManager;
     private readonly Mock<IPlayerReligionDataManager> _mockPlayerReligionDataManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
+    private readonly Mock<IReligionPrestigeManager> _mockPrestigeManager;
     private readonly FavorSystem _favorSystem;
 
     public FavorSystemIntegrationTests()
@@ -33,13 +34,15 @@ public class FavorSystemIntegrationTests
         _mockPlayerDataManager = TestFixtures.CreateMockPlayerDataManager();
         _mockPlayerReligionDataManager = TestFixtures.CreateMockPlayerReligionDataManager();
         _mockReligionManager = TestFixtures.CreateMockReligionManager();
+        _mockPrestigeManager = TestFixtures.CreateMockReligionPrestigeManager();
 
         _favorSystem = new FavorSystem(
             _mockAPI.Object,
             _mockPlayerDataManager.Object,
             _mockPlayerReligionDataManager.Object,
             _mockDeityRegistry.Object,
-            _mockReligionManager.Object
+            _mockReligionManager.Object,
+            _mockPrestigeManager.Object
         );
     }
 
