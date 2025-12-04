@@ -16,7 +16,7 @@ public static class ScrollableList
 {
     /// <summary>
     ///     Draw a scrollable list with custom item rendering
-/// </summary>
+    /// </summary>
     /// <typeparam name="T">Type of items in the list</typeparam>
     /// <param name="drawList">ImGui draw list</param>
     /// <param name="x">X position</param>
@@ -73,10 +73,7 @@ public static class ScrollableList
         }
 
         // No items to render
-        if (items.Count == 0)
-        {
-            return scrollY;
-        }
+        if (items.Count == 0) return scrollY;
 
         // Calculate scroll limits
         var contentHeight = items.Count * (itemHeight + itemSpacing);
@@ -89,10 +86,7 @@ public static class ScrollableList
         if (isMouseOver)
         {
             var wheel = ImGui.GetIO().MouseWheel;
-            if (wheel != 0)
-            {
-                scrollY = Math.Clamp(scrollY - wheel * wheelSpeed, 0f, maxScroll);
-            }
+            if (wheel != 0) scrollY = Math.Clamp(scrollY - wheel * wheelSpeed, 0f, maxScroll);
         }
 
         // Clip to list bounds
@@ -121,9 +115,7 @@ public static class ScrollableList
 
         // Draw scrollbar if needed
         if (contentHeight > height)
-        {
             Scrollbar.Draw(drawList, x + width - scrollbarWidth, y, scrollbarWidth, height, scrollY, maxScroll);
-        }
 
         return scrollY;
     }
@@ -131,7 +123,8 @@ public static class ScrollableList
     /// <summary>
     ///     Draw centered text in a rectangle
     /// </summary>
-    private static void DrawCenteredText(ImDrawListPtr drawList, string text, float x, float y, float width, float height, Vector4 color)
+    private static void DrawCenteredText(ImDrawListPtr drawList, string text, float x, float y, float width,
+        float height, Vector4 color)
     {
         var textSize = ImGui.CalcTextSize(text);
         var textPos = new Vector2(

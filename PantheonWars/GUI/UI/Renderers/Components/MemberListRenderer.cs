@@ -75,10 +75,7 @@ public static class MemberListRenderer
         if (isMouseOver)
         {
             var wheel = ImGui.GetIO().MouseWheel;
-            if (wheel != 0)
-            {
-                scrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
-            }
+            if (wheel != 0) scrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
         }
 
         // Clip to bounds
@@ -106,9 +103,7 @@ public static class MemberListRenderer
 
         // Draw scrollbar if needed
         if (contentHeight > height)
-        {
             Scrollbar.Draw(drawList, x + width - scrollbarWidth, y, scrollbarWidth, height, scrollY, maxScroll);
-        }
 
         return scrollY;
     }
@@ -150,7 +145,7 @@ public static class MemberListRenderer
 
         // Calculate button area width (kick + ban buttons if both callbacks provided)
         var hasBanButton = onBanMember != null;
-        var buttonAreaWidth = hasBanButton ? (buttonWidth * 2 + buttonSpacing + padding) : (buttonWidth + padding);
+        var buttonAreaWidth = hasBanButton ? buttonWidth * 2 + buttonSpacing + padding : buttonWidth + padding;
 
         var rankPos = new Vector2(x + width - buttonAreaWidth - 10f - rankSize.X, y + (height - 14f) / 2);
         var rankColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);

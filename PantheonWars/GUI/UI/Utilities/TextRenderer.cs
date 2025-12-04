@@ -75,9 +75,44 @@ public static class TextRenderer
         }
 
         if (!string.IsNullOrEmpty(currentLine))
-        {
             drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(x, lineY), textColor, currentLine);
+    }
+
+    /// <summary>
+    ///     Measure the pixel height of a block of word-wrapped info text for a given width.
+    ///     Mirrors the simple wrapping algorithm in <see cref="DrawInfoText" /> so callers can layout correctly.
+    /// </summary>
+    /// <param name="text">Text to measure</param>
+    /// <param name="width">Maximum width for wrapping</param>
+    /// <param name="fontSize">Font size used when rendering (default 12f)</param>
+    /// <returns>Total height in pixels required to render the wrapped text</returns>
+    public static float MeasureWrappedHeight(string text, float width, float fontSize = 12f)
+    {
+        // Mirror the wrapping logic to keep measurements consistent
+        var words = text.Split(' ');
+        var currentLine = "";
+        var lines = 0;
+        var lineHeight = fontSize + 6f; // keep spacing identical to DrawInfoText
+
+        foreach (var word in words)
+        {
+            var testLine = string.IsNullOrEmpty(currentLine) ? word : $"{currentLine} {word}";
+            var testSize = ImGui.CalcTextSize(testLine);
+
+            if (testSize.X > width && !string.IsNullOrEmpty(currentLine))
+            {
+                lines++;
+                currentLine = word;
+            }
+            else
+            {
+                currentLine = testLine;
+            }
         }
+
+        if (!string.IsNullOrEmpty(currentLine)) lines++;
+
+        return lines <= 0 ? 0f : lines * lineHeight;
     }
 
     /// <summary>

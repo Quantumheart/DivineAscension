@@ -1,15 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
-using PantheonWars.Network;
+using PantheonWars.GUI.UI.Utilities;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using VSImGui;
@@ -28,20 +24,17 @@ public partial class BlessingDialog : ModSystem
     private const int WindowBaseWidth = 1400;
     private const int WindowBaseHeight = 900;
 
-    private ICoreClientAPI? _capi;
-    private long _checkDataId;
-    private ImGuiModSystem? _imguiModSystem;
-    private PantheonWarsSystem? _pantheonWarsSystem;
-
-    private BlessingDialogManager? _manager;
-    private Stopwatch? _stopwatch;
-    private ImGuiViewportPtr _viewport;
-
     // State
     private readonly BlessingDialogState _state = new();
 
-    // Overlay coordinator
-    private OverlayCoordinator? _overlayCoordinator;
+    private ICoreClientAPI? _capi;
+    private long _checkDataId;
+    private ImGuiModSystem? _imguiModSystem;
+
+    private BlessingDialogManager? _manager;
+    private PantheonWarsSystem? _pantheonWarsSystem;
+    private Stopwatch? _stopwatch;
+    private ImGuiViewportPtr _viewport;
 
     public override bool ShouldLoad(EnumAppSide forSide)
     {
@@ -66,12 +59,11 @@ public partial class BlessingDialog : ModSystem
             HotkeyType.GUIOrOtherControls, shiftPressed: true);
         _capi.Input.SetHotKeyHandler("pantheonwarsblessings", OnToggleDialog);
 
-        // Initialize manager and overlay coordinator
+        // Initialize manager
         _manager = new BlessingDialogManager(_capi);
-        _overlayCoordinator = new OverlayCoordinator();
 
         // Initialize deity icon loader
-        UI.Utilities.DeityIconLoader.Initialize(_capi);
+        DeityIconLoader.Initialize(_capi);
 
         // Get PantheonWarsSystem for network communication
         _pantheonWarsSystem = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
@@ -84,6 +76,7 @@ public partial class BlessingDialog : ModSystem
             _pantheonWarsSystem.ReligionActionCompleted += OnReligionActionCompleted;
             _pantheonWarsSystem.PlayerReligionInfoReceived += OnPlayerReligionInfoReceived;
             _pantheonWarsSystem.PlayerReligionDataUpdated += OnPlayerReligionDataUpdated;
+            _pantheonWarsSystem.CivilizationListReceived += OnCivilizationListReceived;
             _pantheonWarsSystem.CivilizationInfoReceived += OnCivilizationInfoReceived;
             _pantheonWarsSystem.CivilizationActionCompleted += OnCivilizationActionCompleted;
         }
@@ -226,36 +219,13 @@ public partial class BlessingDialog : ModSystem
         BlessingUIRenderer.Draw(
             _manager!,
             _capi,
+            _state,
             windowWidth,
             windowHeight,
             deltaTime,
             OnUnlockButtonClicked,
-            OnCloseButtonClicked,
-            OnChangeReligionClicked,
-            OnManageReligionClicked,
-            OnLeaveReligionClicked,
-            OnManageCivilizationClicked
-        );
-
-        // Draw overlays using coordinator
-        _overlayCoordinator!.RenderOverlays(
-            _capi,
-            windowWidth,
-            windowHeight,
-            _manager!,
-            OnJoinReligionClicked,
-            OnRefreshReligionList,
-            OnCreateReligionClicked,
-            OnCreateReligionSubmit,
-            OnKickMemberClicked,
-            OnBanMemberClicked,
-            OnUnbanMemberClicked,
-            OnInvitePlayerClicked,
-            OnEditDescriptionClicked,
-            OnDisbandReligionClicked,
-            OnRequestReligionInfo,
-            OnLeaveReligionCancelled,
-            OnLeaveReligionConfirmed
+            OnCloseButtonClicked
+            // OnManageCivilizationClicked
         );
 
         ImGui.End();
@@ -296,12 +266,13 @@ public partial class BlessingDialog : ModSystem
             _pantheonWarsSystem.ReligionActionCompleted -= OnReligionActionCompleted;
             _pantheonWarsSystem.PlayerReligionInfoReceived -= OnPlayerReligionInfoReceived;
             _pantheonWarsSystem.PlayerReligionDataUpdated -= OnPlayerReligionDataUpdated;
+            _pantheonWarsSystem.CivilizationListReceived -= OnCivilizationListReceived;
             _pantheonWarsSystem.CivilizationInfoReceived -= OnCivilizationInfoReceived;
             _pantheonWarsSystem.CivilizationActionCompleted -= OnCivilizationActionCompleted;
         }
-        
+
         // Dispose deity icon loader
-        UI.Utilities.DeityIconLoader.Dispose();
+        DeityIconLoader.Dispose();
 
         _capi?.Logger.Notification("[PantheonWars] Blessing Dialog disposed");
     }

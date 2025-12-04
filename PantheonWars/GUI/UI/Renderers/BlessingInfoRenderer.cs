@@ -1,5 +1,5 @@
-using System.Linq;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using PantheonWars.GUI.UI.Utilities;
@@ -93,7 +93,8 @@ internal static class BlessingInfoRenderer
         currentY += 20f;
 
         // Category and kind
-        var metaText = $"{selectedState.Blessing.Category} | {selectedState.Blessing.Kind} Blessing | Tier {selectedState.Tier}";
+        var metaText =
+            $"{selectedState.Blessing.Category} | {selectedState.Blessing.Kind} Blessing | Tier {selectedState.Tier}";
         var metaColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x + padding, currentY), metaColorU32, metaText);
         currentY += 20f;
@@ -135,7 +136,6 @@ internal static class BlessingInfoRenderer
 
                 // Prerequisites
                 if (selectedState.Blessing.PrerequisiteBlessings is { Count: > 0 })
-                {
                     foreach (var prereqId in selectedState.Blessing.PrerequisiteBlessings)
                     {
                         // Check if we still have space
@@ -162,6 +162,7 @@ internal static class BlessingInfoRenderer
                                     prereqText = truncatedText;
                                     break;
                                 }
+
                                 targetLength--;
                             }
                         }
@@ -173,7 +174,6 @@ internal static class BlessingInfoRenderer
                             prereqColorU32, prereqText);
                         currentY += 18f;
                     }
-                }
             }
         }
 

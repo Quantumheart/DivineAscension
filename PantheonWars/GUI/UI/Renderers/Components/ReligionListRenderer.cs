@@ -92,10 +92,7 @@ public static class ReligionListRenderer
         if (isMouseOver)
         {
             var wheel = ImGui.GetIO().MouseWheel;
-            if (wheel != 0)
-            {
-                scrollY = Math.Clamp(scrollY - wheel * 40f, 0f, maxScroll);
-            }
+            if (wheel != 0) scrollY = Math.Clamp(scrollY - wheel * 40f, 0f, maxScroll);
         }
 
         // Clip to list bounds
@@ -104,7 +101,7 @@ public static class ReligionListRenderer
         // Draw religion items and track hovered item
         ReligionListResponsePacket.ReligionInfo? hoveredReligion = null;
         var itemY = y - scrollY;
-        for (int i = 0; i < religions.Count; i++)
+        for (var i = 0; i < religions.Count; i++)
         {
             var religion = religions[i];
 
@@ -115,15 +112,10 @@ public static class ReligionListRenderer
                 continue;
             }
 
-            var (clickedUID, isHovered) = DrawReligionItem(drawList, api, religion, x, itemY, width - scrollbarWidth, itemHeight, selectedReligionUID);
-            if (clickedUID != null)
-            {
-                selectedReligionUID = clickedUID;
-            }
-            if (isHovered)
-            {
-                hoveredReligion = religion;
-            }
+            var (clickedUID, isHovered) = DrawReligionItem(drawList, api, religion, x, itemY, width - scrollbarWidth,
+                itemHeight, selectedReligionUID);
+            if (clickedUID != null) selectedReligionUID = clickedUID;
+            if (isHovered) hoveredReligion = religion;
             itemY += itemHeight + itemSpacing;
         }
 
@@ -131,9 +123,7 @@ public static class ReligionListRenderer
 
         // Draw scrollbar if needed
         if (contentHeight > height)
-        {
             Scrollbar.Draw(drawList, x + width - scrollbarWidth, y, scrollbarWidth, height, scrollY, maxScroll);
-        }
 
         return (scrollY, selectedReligionUID, hoveredReligion);
     }
@@ -159,7 +149,7 @@ public static class ReligionListRenderer
 
         var mousePos = ImGui.GetMousePos();
         var isHovering = mousePos.X >= x && mousePos.X <= x + width &&
-                        mousePos.Y >= y && mousePos.Y <= y + height;
+                         mousePos.Y >= y && mousePos.Y <= y + height;
         var isSelected = currentSelectedUID == religion.ReligionUID;
 
         // Determine background color
@@ -237,7 +227,8 @@ public static class ReligionListRenderer
         drawList.AddText(ImGui.GetFont(), 13f, deityPos, deityColorU32, deityText);
 
         // Draw member count and prestige
-        var infoText = $"{religion.MemberCount} members | {religion.PrestigeRank} Prestige | {(religion.IsPublic ? "Public" : "Private")}";
+        var infoText =
+            $"{religion.MemberCount} members | {religion.PrestigeRank} Prestige | {(religion.IsPublic ? "Public" : "Private")}";
         var infoPos = new Vector2(x + padding * 2 + iconSize, y + padding + 42f);
         var infoColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 12f, infoPos, infoColor, infoText);
@@ -295,7 +286,7 @@ public static class ReligionListRenderer
 
         // Calculate tooltip dimensions
         var lineHeight = 16f;
-        var tooltipHeight = tooltipPadding * 2 + (lines.Count * lineHeight);
+        var tooltipHeight = tooltipPadding * 2 + lines.Count * lineHeight;
         var tooltipWidth = tooltipMaxWidth;
 
         // Get window position for screen-space positioning
@@ -336,7 +327,7 @@ public static class ReligionListRenderer
 
         // Draw content
         var currentY = tooltipY + tooltipPadding;
-        for (int i = 0; i < lines.Count; i++)
+        for (var i = 0; i < lines.Count; i++)
         {
             var line = lines[i];
 
@@ -362,7 +353,8 @@ public static class ReligionListRenderer
                 textColor = ColorPalette.White;
                 fontSize = 13f;
             }
-            else if (line.StartsWith("Description:") || line.StartsWith("Members:") || line.StartsWith("Prestige:") || line.StartsWith("Status:"))
+            else if (line.StartsWith("Description:") || line.StartsWith("Members:") || line.StartsWith("Prestige:") ||
+                     line.StartsWith("Status:"))
             {
                 // Section headers
                 textColor = ColorPalette.Grey;

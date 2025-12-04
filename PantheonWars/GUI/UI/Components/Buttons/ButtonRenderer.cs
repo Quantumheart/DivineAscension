@@ -1,5 +1,5 @@
-using System.Numerics;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using ImGuiNET;
 using PantheonWars.GUI.UI.Utilities;
 
@@ -41,7 +41,7 @@ internal static class ButtonRenderer
 
         var mousePos = ImGui.GetMousePos();
         var isHovering = enabled && mousePos.X >= x && mousePos.X <= x + width &&
-                        mousePos.Y >= y && mousePos.Y <= y + height;
+                         mousePos.Y >= y && mousePos.Y <= y + height;
 
         var baseColor = customColor ?? (isPrimary ? ColorPalette.Gold : ColorPalette.DarkBrown);
 
@@ -93,7 +93,7 @@ internal static class ButtonRenderer
 
         var mousePos = ImGui.GetMousePos();
         var isHovering = mousePos.X >= x && mousePos.X <= x + size &&
-                        mousePos.Y >= y && mousePos.Y <= y + size;
+                         mousePos.Y >= y && mousePos.Y <= y + size;
 
         var bgColor = isHovering ? ColorPalette.LightBrown : ColorPalette.DarkBrown;
         var bgColorU32 = ImGui.ColorConvertFloat4ToU32(bgColor);
@@ -106,10 +106,7 @@ internal static class ButtonRenderer
         drawList.AddLine(new Vector2(x + size - xPadding, y + xPadding),
             new Vector2(x + xPadding, y + size - xPadding), xColor, 2f);
 
-        if (isHovering)
-        {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-        }
+        if (isHovering) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
         return isHovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
     }
@@ -139,7 +136,7 @@ internal static class ButtonRenderer
 
         var mousePos = ImGui.GetMousePos();
         var isHovering = mousePos.X >= x && mousePos.X <= x + width &&
-                        mousePos.Y >= y && mousePos.Y <= y + height;
+                         mousePos.Y >= y && mousePos.Y <= y + height;
 
         var defaultColor = color ?? ColorPalette.DarkBrown;
         var hoverColor = color.HasValue ? ColorPalette.Lighten(color.Value) : ColorPalette.Red * 0.8f;
@@ -155,10 +152,7 @@ internal static class ButtonRenderer
         var textColor = ImGui.ColorConvertFloat4ToU32(isHovering ? ColorPalette.White : ColorPalette.Grey);
         drawList.AddText(textPos, textColor, text);
 
-        if (isHovering)
-        {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-        }
+        if (isHovering) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
         return isHovering && ImGui.IsMouseReleased(ImGuiMouseButton.Left);
     }
@@ -184,6 +178,6 @@ internal static class ButtonRenderer
         bool isDangerous = false)
     {
         var color = isDangerous ? ColorPalette.Red * 0.6f : ColorPalette.Gold * 0.6f;
-        return DrawButton(drawList, text, x, y, width, height, isPrimary: true, enabled: true, customColor: color);
+        return DrawButton(drawList, text, x, y, width, height, true, true, color);
     }
 }

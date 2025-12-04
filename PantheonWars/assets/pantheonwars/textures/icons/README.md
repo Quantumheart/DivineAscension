@@ -6,25 +6,17 @@ This directory contains all icon assets for the Pantheon Wars mod.
 
 ```
 icons/
-├── deities/          # 8 deity symbols (32x32 PNG)
+├── deities/          # 4 deity symbols (32x32 PNG)
 │   ├── khoras.png
 │   ├── lysa.png
-│   ├── morthen.png
 │   ├── aethra.png
-│   ├── umbros.png
-│   ├── tharos.png
 │   ├── gaia.png
-│   └── vex.png
 │
-└── perks/            # 80 perk icons organized by deity
+└── perks/            # 40 perk icons organized by deity
     ├── khoras/       # 10 icons for Khoras (War)
     ├── lysa/         # 10 icons for Lysa (Hunt)
-    ├── morthen/      # 10 icons for Morthen (Death)
     ├── aethra/       # 10 icons for Aethra (Light)
-    ├── umbros/       # 10 icons for Umbros (Shadows)
-    ├── tharos/       # 10 icons for Tharos (Storms)
     ├── gaia/         # 10 icons for Gaia (Earth)
-    └── vex/          # 10 icons for Vex (Madness)
 ```
 
 ## Icon Specifications
@@ -55,8 +47,9 @@ string perkIcon = "pantheonwars:textures/icons/perks/khoras/warriors_resolve.png
 
 ## Status
 
-Total icons needed: **88**
-- Deity symbols: 8
-- Perk icons: 80 (10 per deity × 8 deities)
+Total icons needed: **44**
+
+- Deity symbols: 4
+- Perk icons: 40 (10 per deity × 4 deities)
 
 Check `/docs/topics/art-assets/icon_manifest.json` for current generation progress.

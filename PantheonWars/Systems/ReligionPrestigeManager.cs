@@ -107,6 +107,78 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
     }
 
     /// <summary>
+    ///     Unlocks a religion blessing if requirements are met
+    /// </summary>
+    public bool UnlockReligionBlessing(string religionUID, string blessingId)
+    {
+        var religion = _religionManager.GetReligion(religionUID);
+        if (religion == null)
+        {
+            _sapi.Logger.Error($"[PantheonWars] Cannot unlock blessing for non-existent religion: {religionUID}");
+            return false;
+        }
+
+        // Check if already unlocked
+        if (religion.UnlockedBlessings.TryGetValue(blessingId, out var unlocked) && unlocked) return false;
+
+        // Unlock the blessing
+        religion.UnlockedBlessings[blessingId] = true;
+        _sapi.Logger.Notification($"[PantheonWars] Religion {religion.ReligionName} unlocked blessing: {blessingId}");
+
+        // Trigger blessing effect refresh for all members
+        TriggerBlessingEffectRefresh(religionUID);
+
+        return true;
+    }
+
+    /// <summary>
+    ///     Gets all active (unlocked) religion blessings
+    /// </summary>
+    public List<string> GetActiveReligionBlessings(string religionUID)
+    {
+        var religion = _religionManager.GetReligion(religionUID);
+        if (religion == null) return new List<string>();
+
+        var activeBlessings = new List<string>();
+        foreach (var kvp in religion.UnlockedBlessings)
+            if (kvp.Value) // If unlocked
+                activeBlessings.Add(kvp.Key);
+
+        return activeBlessings;
+    }
+
+    /// <summary>
+    ///     Gets prestige progress information for display
+    /// </summary>
+    public (int current, int nextThreshold, PrestigeRank nextRank) GetPrestigeProgress(string religionUID)
+    {
+        var religion = _religionManager.GetReligion(religionUID);
+        if (religion == null) return (0, 0, PrestigeRank.Fledgling);
+
+        var nextThreshold = religion.PrestigeRank switch
+        {
+            PrestigeRank.Fledgling => ESTABLISHED_THRESHOLD,
+            PrestigeRank.Established => RENOWNED_THRESHOLD,
+            PrestigeRank.Renowned => LEGENDARY_THRESHOLD,
+            PrestigeRank.Legendary => MYTHIC_THRESHOLD,
+            PrestigeRank.Mythic => MYTHIC_THRESHOLD, // Max rank
+            _ => ESTABLISHED_THRESHOLD
+        };
+
+        var nextRank = religion.PrestigeRank switch
+        {
+            PrestigeRank.Fledgling => PrestigeRank.Established,
+            PrestigeRank.Established => PrestigeRank.Renowned,
+            PrestigeRank.Renowned => PrestigeRank.Legendary,
+            PrestigeRank.Legendary => PrestigeRank.Mythic,
+            PrestigeRank.Mythic => PrestigeRank.Mythic, // Max rank
+            _ => PrestigeRank.Established
+        };
+
+        return (religion.TotalPrestige, nextThreshold, nextRank);
+    }
+
+    /// <summary>
     ///     Calculates prestige rank based on total prestige
     /// </summary>
     private PrestigeRank CalculatePrestigeRank(int totalPrestige)
@@ -221,31 +293,6 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
     }
 
     /// <summary>
-    ///     Unlocks a religion blessing if requirements are met
-    /// </summary>
-    public bool UnlockReligionBlessing(string religionUID, string blessingId)
-    {
-        var religion = _religionManager.GetReligion(religionUID);
-        if (religion == null)
-        {
-            _sapi.Logger.Error($"[PantheonWars] Cannot unlock blessing for non-existent religion: {religionUID}");
-            return false;
-        }
-
-        // Check if already unlocked
-        if (religion.UnlockedBlessings.TryGetValue(blessingId, out var unlocked) && unlocked) return false;
-
-        // Unlock the blessing
-        religion.UnlockedBlessings[blessingId] = true;
-        _sapi.Logger.Notification($"[PantheonWars] Religion {religion.ReligionName} unlocked blessing: {blessingId}");
-
-        // Trigger blessing effect refresh for all members
-        TriggerBlessingEffectRefresh(religionUID);
-
-        return true;
-    }
-
-    /// <summary>
     ///     Triggers blessing effect refresh for all members
     /// </summary>
     private void TriggerBlessingEffectRefresh(string religionUID)
@@ -263,52 +310,5 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
 
         // Refresh blessing effects for all members
         _blessingEffectSystem.RefreshReligionBlessings(religionUID);
-    }
-
-    /// <summary>
-    ///     Gets all active (unlocked) religion blessings
-    /// </summary>
-    public List<string> GetActiveReligionBlessings(string religionUID)
-    {
-        var religion = _religionManager.GetReligion(religionUID);
-        if (religion == null) return new List<string>();
-
-        var activeBlessings = new List<string>();
-        foreach (var kvp in religion.UnlockedBlessings)
-            if (kvp.Value) // If unlocked
-                activeBlessings.Add(kvp.Key);
-
-        return activeBlessings;
-    }
-
-    /// <summary>
-    ///     Gets prestige progress information for display
-    /// </summary>
-    public (int current, int nextThreshold, PrestigeRank nextRank) GetPrestigeProgress(string religionUID)
-    {
-        var religion = _religionManager.GetReligion(religionUID);
-        if (religion == null) return (0, 0, PrestigeRank.Fledgling);
-
-        var nextThreshold = religion.PrestigeRank switch
-        {
-            PrestigeRank.Fledgling => ESTABLISHED_THRESHOLD,
-            PrestigeRank.Established => RENOWNED_THRESHOLD,
-            PrestigeRank.Renowned => LEGENDARY_THRESHOLD,
-            PrestigeRank.Legendary => MYTHIC_THRESHOLD,
-            PrestigeRank.Mythic => MYTHIC_THRESHOLD, // Max rank
-            _ => ESTABLISHED_THRESHOLD
-        };
-
-        var nextRank = religion.PrestigeRank switch
-        {
-            PrestigeRank.Fledgling => PrestigeRank.Established,
-            PrestigeRank.Established => PrestigeRank.Renowned,
-            PrestigeRank.Renowned => PrestigeRank.Legendary,
-            PrestigeRank.Legendary => PrestigeRank.Mythic,
-            PrestigeRank.Mythic => PrestigeRank.Mythic, // Max rank
-            _ => PrestigeRank.Established
-        };
-
-        return (religion.TotalPrestige, nextThreshold, nextRank);
     }
 }

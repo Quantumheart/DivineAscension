@@ -70,7 +70,17 @@ public interface IReligionManager : IDisposable
     /// <summary>
     ///     Gets all invitations for a player
     /// </summary>
-    List<string> GetPlayerInvitations(string playerUID);
+    List<ReligionInvite> GetPlayerInvitations(string playerUID);
+
+    /// <summary>
+    ///     Accepts a religion invite
+    /// </summary>
+    bool AcceptInvite(string inviteId, string playerUID);
+
+    /// <summary>
+    ///     Declines a religion invite
+    /// </summary>
+    bool DeclineInvite(string inviteId, string playerUID);
 
     /// <summary>
     ///     Checks if a player has a religion

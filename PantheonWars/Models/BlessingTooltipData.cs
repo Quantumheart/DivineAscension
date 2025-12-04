@@ -104,7 +104,8 @@ public class BlessingTooltipData
                     tooltip.PrerequisiteNames.Add(prereqBlessing.Name);
 
         // Format stat modifiers
-        foreach (var stat in blessing.StatModifiers) tooltip.FormattedStats.Add(FormatStatModifier(stat.Key, stat.Value));
+        foreach (var stat in blessing.StatModifiers)
+            tooltip.FormattedStats.Add(FormatStatModifier(stat.Key, stat.Value));
 
         // Add special effects
         tooltip.SpecialEffectDescriptions.AddRange(blessing.SpecialEffects);
@@ -112,20 +113,14 @@ public class BlessingTooltipData
         // Determine unlock block reason
         // Note: Don't set UnlockBlockReason for prerequisites since they're already displayed in PrerequisiteNames
         if (state is { IsUnlocked: false, CanUnlock: false })
-        {
             // Only set unlock block reason if there are no prerequisites (they're shown separately)
             if (blessing.PrerequisiteBlessings is not { Count: > 0 })
             {
                 if (blessing.Kind == BlessingKind.Player)
-                {
                     tooltip.UnlockBlockReason = $"Requires {tooltip.RequiredFavorRank} rank";
-                }
                 else
-                {
                     tooltip.UnlockBlockReason = $"Requires religion {tooltip.RequiredPrestigeRank} rank";
-                }
             }
-        }
 
         return tooltip;
     }

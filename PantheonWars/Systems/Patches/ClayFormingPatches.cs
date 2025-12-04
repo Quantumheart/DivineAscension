@@ -21,23 +21,22 @@ public static class ClayFormingPatches
 
     [HarmonyPatch(typeof(BlockEntityClayForm), "CheckIfFinished")]
     [HarmonyPostfix]
-    public static void Postfix_CheckIfFinished(BlockEntityClayForm __instance, IPlayer byPlayer, ClayFormingRecipe? __state)
+    public static void Postfix_CheckIfFinished(BlockEntityClayForm __instance, IPlayer byPlayer,
+        ClayFormingRecipe? __state)
     {
         // Ensure we are on server side
         if (__instance?.Api == null || __instance.Api.Side != EnumAppSide.Server) return;
-        
+
         // If we didn't have a recipe start with, ignore
         if (__state == null) return;
 
         // If the recipe is now null in the instance, it means CheckIfFinished successfully completed
         // the crafting and cleared the recipe field.
         if (__instance.SelectedRecipe == null)
-        {
             if (byPlayer is IServerPlayer serverPlayer)
             {
                 var resultStack = __state.Output.ResolvedItemstack.Clone();
                 OnClayFormingFinished?.Invoke(serverPlayer, resultStack);
             }
-        }
     }
 }

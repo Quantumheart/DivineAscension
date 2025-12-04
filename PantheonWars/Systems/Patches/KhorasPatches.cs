@@ -26,16 +26,13 @@ public static class KhorasPatches
         // Calculate reduction
         // Example: amount = 1, bonus = 0.10. reduce = 0.10. 
         // We want 10% chance to reduce by 1 (making it 0).
-        
-        float reduceAmount = amount * (float)durabilityBonus;
-        int reduceInt = (int)reduceAmount;
-        float remainder = reduceAmount - reduceInt;
-        
-        if (world.Rand.NextDouble() < remainder)
-        {
-            reduceInt++;
-        }
-        
+
+        var reduceAmount = amount * (float)durabilityBonus;
+        var reduceInt = (int)reduceAmount;
+        var remainder = reduceAmount - reduceInt;
+
+        if (world.Rand.NextDouble() < remainder) reduceInt++;
+
         amount = Math.Max(0, amount - reduceInt);
     }
 
@@ -52,11 +49,11 @@ public static class KhorasPatches
         // Get ore yield bonus
         double yieldBonus = byPlayer.Entity.Stats.GetBlended(VintageStoryStats.OreDropRate);
         if (yieldBonus <= 0) return;
-        
+
         // Check if block is an ore block (simple check by code)
-        Block block = world.BlockAccessor.GetBlock(pos);
+        var block = world.BlockAccessor.GetBlock(pos);
         if (block == null) return;
-        
+
         // We only apply to "ore-" blocks to avoid infinite wood/dirt duping
         if (!block.Code.Path.StartsWith("ore-")) return;
 
@@ -65,23 +62,17 @@ public static class KhorasPatches
             if (stack == null) continue;
 
             // Only boost nuggets/chunks/ores
-            if (!stack.Collectible.Code.Path.Contains("ore") && 
-                !stack.Collectible.Code.Path.Contains("nugget") && 
+            if (!stack.Collectible.Code.Path.Contains("ore") &&
+                !stack.Collectible.Code.Path.Contains("nugget") &&
                 !stack.Collectible.Code.Path.Contains("chunk")) continue;
 
             // Calculate extra
-            float extra = stack.StackSize * (float)yieldBonus;
-            int extraInt = (int)extra;
-            
-            if (world.Rand.NextDouble() < (extra - extraInt))
-            {
-                extraInt++;
-            }
+            var extra = stack.StackSize * (float)yieldBonus;
+            var extraInt = (int)extra;
 
-            if (extraInt > 0)
-            {
-                stack.StackSize += extraInt;
-            }
+            if (world.Rand.NextDouble() < extra - extraInt) extraInt++;
+
+            if (extraInt > 0) stack.StackSize += extraInt;
         }
     }
 }

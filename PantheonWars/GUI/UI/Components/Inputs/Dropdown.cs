@@ -1,9 +1,9 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
 using PantheonWars.GUI.UI.Utilities;
 using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.UI.Components.Inputs;
 
@@ -39,7 +39,7 @@ internal static class Dropdown
 
         var mousePos = ImGui.GetMousePos();
         var isHovering = mousePos.X >= x && mousePos.X <= x + width &&
-                        mousePos.Y >= y && mousePos.Y <= y + height;
+                         mousePos.Y >= y && mousePos.Y <= y + height;
 
         // Draw dropdown background
         var bgColor = isHovering
@@ -51,10 +51,7 @@ internal static class Dropdown
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey * 0.5f);
         drawList.AddRect(dropdownStart, dropdownEnd, borderColor, 4f, ImDrawFlags.None, 1f);
 
-        if (isHovering)
-        {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-        }
+        if (isHovering) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
         // Draw selected text
         var textPos = new Vector2(x + 12f, y + (height - 16f) / 2);
@@ -66,7 +63,6 @@ internal static class Dropdown
         var arrowY = y + height / 2;
         var arrowColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         if (isOpen)
-        {
             // Arrow pointing up when open
             drawList.AddTriangleFilled(
                 new Vector2(arrowX, arrowY - 4f),
@@ -74,9 +70,7 @@ internal static class Dropdown
                 new Vector2(arrowX + 4f, arrowY + 2f),
                 arrowColor
             );
-        }
         else
-        {
             // Arrow pointing down when closed
             drawList.AddTriangleFilled(
                 new Vector2(arrowX - 4f, arrowY - 2f),
@@ -84,7 +78,6 @@ internal static class Dropdown
                 new Vector2(arrowX, arrowY + 4f),
                 arrowColor
             );
-        }
 
         // Check if clicked
         return isHovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
@@ -119,20 +112,20 @@ internal static class Dropdown
         var menuStart = new Vector2(x, y + height + 2f);
         var menuEnd = new Vector2(x + width, y + height + 2f + menuHeight);
 
-        bool clickConsumed = false;
-        bool shouldClose = false;
-        int newSelectedIndex = selectedIndex;
+        var clickConsumed = false;
+        var shouldClose = false;
+        var newSelectedIndex = selectedIndex;
 
         // Check if mouse is over the menu area
-        bool isMouseOverMenu = mousePos.X >= menuStart.X && mousePos.X <= menuEnd.X &&
+        var isMouseOverMenu = mousePos.X >= menuStart.X && mousePos.X <= menuEnd.X &&
                               mousePos.Y >= menuStart.Y && mousePos.Y <= menuEnd.Y;
 
         // Handle item clicks
-        for (int i = 0; i < items.Length; i++)
+        for (var i = 0; i < items.Length; i++)
         {
             var itemY = y + height + 2f + i * itemHeight;
             var isItemHovering = mousePos.X >= x && mousePos.X <= x + width &&
-                                mousePos.Y >= itemY && mousePos.Y <= itemY + itemHeight;
+                                 mousePos.Y >= itemY && mousePos.Y <= itemY + itemHeight;
 
             // Handle item click
             if (isItemHovering)
@@ -142,7 +135,7 @@ internal static class Dropdown
                 {
                     newSelectedIndex = i;
                     shouldClose = true;
-                    api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
+                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                         api.World.Player.Entity, null, false, 8f, 0.3f);
                     clickConsumed = true;
                 }
@@ -151,18 +144,14 @@ internal static class Dropdown
 
         // Close dropdown if clicked outside
         var isHoveringButton = mousePos.X >= x && mousePos.X <= x + width &&
-                              mousePos.Y >= y && mousePos.Y <= y + height;
+                               mousePos.Y >= y && mousePos.Y <= y + height;
         if (!clickConsumed && ImGui.IsMouseClicked(ImGuiMouseButton.Left) && !isHoveringButton)
         {
             if (!isMouseOverMenu)
-            {
                 shouldClose = true;
-            }
             else
-            {
                 // Clicked in menu but not on an item - consume the click
                 clickConsumed = true;
-            }
         }
 
         return (newSelectedIndex, shouldClose, clickConsumed || isMouseOverMenu);
@@ -203,14 +192,14 @@ internal static class Dropdown
         drawList.AddRect(menuStart, menuEnd, menuBorderColor, 4f, ImDrawFlags.None, 2f);
 
         // Draw each item
-        for (int i = 0; i < items.Length; i++)
+        for (var i = 0; i < items.Length; i++)
         {
             var itemY = y + height + 2f + i * itemHeight;
             var itemStart = new Vector2(x, itemY);
             var itemEnd = new Vector2(x + width, itemY + itemHeight);
 
             var isItemHovering = mousePos.X >= x && mousePos.X <= x + width &&
-                                mousePos.Y >= itemY && mousePos.Y <= itemY + itemHeight;
+                                 mousePos.Y >= itemY && mousePos.Y <= itemY + itemHeight;
 
             // Draw item background if hovering or selected
             if (isItemHovering || i == selectedIndex)

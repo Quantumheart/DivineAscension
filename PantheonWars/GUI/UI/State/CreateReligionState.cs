@@ -13,7 +13,7 @@ public class CreateReligionState
     /// <summary>
     ///     Selected deity index (from DeityHelper.DeityNames array)
     /// </summary>
-    public int SelectedDeityIndex { get; set; } = 0;
+    public int SelectedDeityIndex { get; set; }
 
     /// <summary>
     ///     Whether the religion should be public (true) or private (false)

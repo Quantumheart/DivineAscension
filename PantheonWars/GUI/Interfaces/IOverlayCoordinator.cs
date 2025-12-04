@@ -6,6 +6,8 @@ namespace PantheonWars.GUI.Interfaces;
 /// <summary>
 ///     Interface for managing the visibility and coordination of overlay windows
 /// </summary>
+[Obsolete(
+    "IOverlayCoordinator and all religion overlays have been migrated to the BlessingDialog tab system. This interface will be removed in a future update.")]
 public interface IOverlayCoordinator
 {
     /// <summary>

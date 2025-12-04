@@ -9,7 +9,7 @@ using Vintagestory.API.Server;
 namespace PantheonWars.Systems.Favor;
 
 /// <summary>
-/// Awards favor to Khoras followers when an anvil recipe is completed (event-driven)
+///     Awards favor to Khoras followers when an anvil recipe is completed (event-driven)
 /// </summary>
 public class AnvilFavorTracker(
     IPlayerReligionDataManager playerReligionDataManager,
@@ -17,22 +17,30 @@ public class AnvilFavorTracker(
     IFavorSystem favorSystem)
     : IFavorTracker, IDisposable
 {
-    public DeityType DeityType { get; } = DeityType.Khoras;
-
-    private readonly IPlayerReligionDataManager _playerReligionDataManager = playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
-    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
-    private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
-
-    private readonly Guid _instanceId = Guid.NewGuid();
-
     // Favor values per tier
-    private const int FavorLowTier = 5;    // Copper
-    private const int FavorMidTier = 10;   // Bronze, gold 
-    private const int FavorHighTier = 15;  // special alloys, iron
+    private const int FavorLowTier = 5; // Copper
+    private const int FavorMidTier = 10; // Bronze, gold 
+    private const int FavorHighTier = 15; // special alloys, iron
     private const int FavorEliteTier = 20; // Steel
 
     // Automation penalty
     private const float HelveHammerPenalty = 0.65f; // 35% reduction
+    private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+
+    private readonly Guid _instanceId = Guid.NewGuid();
+
+    private readonly IPlayerReligionDataManager _playerReligionDataManager =
+        playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+
+    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+
+    public void Dispose()
+    {
+        AnvilPatches.OnAnvilRecipeCompleted -= HandleAnvilRecipeCompleted;
+        _sapi.Logger.Debug($"[PantheonWars] AnvilFavorTracker disposed (ID: {_instanceId})");
+    }
+
+    public DeityType DeityType { get; } = DeityType.Khoras;
 
     public void Initialize()
     {
@@ -52,15 +60,35 @@ public class AnvilFavorTracker(
         if (religionData.ActiveDeity != DeityType.Khoras) return;
 
         // Compute favor from output preview (fallback to mid tier)
-        int baseFavor = outputPreview != null ? CalculateBaseFavor(outputPreview) : FavorMidTier;
+        var baseFavor = outputPreview != null ? CalculateBaseFavor(outputPreview) : FavorMidTier;
 
         // Detect helve hammer automation by adjacency at completion time
-        bool usedHelve = CheckHelveHammerUsage(pos);
-        int finalFavor = ApplyAutomationPenalty(baseFavor, usedHelve);
+        var usedHelve = CheckHelveHammerUsage(pos);
+        var finalFavor = ApplyAutomationPenalty(baseFavor, usedHelve);
 
         _favorSystem.AwardFavorForAction(player, "smithing", finalFavor);
-        _sapi.Logger.Debug($"[AnvilFavorTracker:{_instanceId}] Awarded {finalFavor} favor to {player.PlayerName} for smithing (base {baseFavor}, helve:{usedHelve}) at {pos}");
+        _sapi.Logger.Debug(
+            $"[AnvilFavorTracker:{_instanceId}] Awarded {finalFavor} favor to {player.PlayerName} for smithing (base {baseFavor}, helve:{usedHelve}) at {pos}");
     }
+
+    #region Helve Hammer Detection
+
+    private bool CheckHelveHammerUsage(BlockPos anvilPos)
+    {
+        // Check if helve hammer is adjacent to this anvil
+        // Helve hammer block code: "helvehammer"
+        foreach (var face in BlockFacing.ALLFACES)
+        {
+            var adjacentPos = anvilPos.AddCopy(face);
+            var block = _sapi.World.BlockAccessor.GetBlock(adjacentPos);
+
+            if (block?.Code?.Path.Contains("helvehammer") == true) return true;
+        }
+
+        return false;
+    }
+
+    #endregion
 
     // Removed tick scanning and state tracking in favor of event-driven completion handling
 
@@ -88,7 +116,8 @@ public class AnvilFavorTracker(
     private bool IsMidTier(ItemStack item)
     {
         var path = item.Collectible?.Code?.Path ?? "";
-        return path.Contains("bronze") ||  path.Contains("gold") || path.Contains("silver") || path.Contains("tinbronze") || path.Contains("black") && path.Contains("bronze");
+        return path.Contains("bronze") || path.Contains("gold") || path.Contains("silver") ||
+               path.Contains("tinbronze") || (path.Contains("black") && path.Contains("bronze"));
     }
 
     private bool IsHighTier(ItemStack item)
@@ -105,40 +134,9 @@ public class AnvilFavorTracker(
 
     private int ApplyAutomationPenalty(int baseFavor, bool wasHelveHammered)
     {
-        if (wasHelveHammered)
-        {
-            return (int)(baseFavor * HelveHammerPenalty);
-        }
+        if (wasHelveHammered) return (int)(baseFavor * HelveHammerPenalty);
         return baseFavor;
     }
 
     #endregion
-
-    #region Helve Hammer Detection
-
-    private bool CheckHelveHammerUsage(BlockPos anvilPos)
-    {
-        // Check if helve hammer is adjacent to this anvil
-        // Helve hammer block code: "helvehammer"
-        foreach (var face in BlockFacing.ALLFACES)
-        {
-            var adjacentPos = anvilPos.AddCopy(face);
-            var block = _sapi.World.BlockAccessor.GetBlock(adjacentPos);
-
-            if (block?.Code?.Path.Contains("helvehammer") == true)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    #endregion
-
-    public void Dispose()
-    {
-        AnvilPatches.OnAnvilRecipeCompleted -= HandleAnvilRecipeCompleted;
-        _sapi.Logger.Debug($"[PantheonWars] AnvilFavorTracker disposed (ID: {_instanceId})");
-    }
 }

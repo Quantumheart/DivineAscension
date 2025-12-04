@@ -66,7 +66,7 @@ public interface IPlayerReligionDataManager : IDisposable
     void HandleReligionSwitch(string playerUID);
 
     /// <summary>
-    /// Removes favor from the player
+    ///     Removes favor from the player
     /// </summary>
     /// <param name="playerUID"></param>
     /// <param name="amount"></param>
@@ -75,7 +75,7 @@ public interface IPlayerReligionDataManager : IDisposable
     bool RemoveFavor(string playerUID, int amount, string reason = "");
 
     /// <summary>
-    /// Adds fractional favor to a player (for passive favor generation)
+    ///     Adds fractional favor to a player (for passive favor generation)
     /// </summary>
     /// <param name="playerUID">Player unique identifier</param>
     /// <param name="amount">Amount of favor to add</param>

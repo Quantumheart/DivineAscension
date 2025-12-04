@@ -5,7 +5,6 @@ using PantheonWars.Systems.Interfaces;
 using PantheonWars.Systems.Patches;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
-using Vintagestory.API.MathTools;
 
 namespace PantheonWars.Systems.Favor;
 
@@ -14,14 +13,25 @@ public class GaiaFavorTracker(
     ICoreServerAPI sapi,
     FavorSystem favorSystem) : IFavorTracker, IDisposable
 {
-    public DeityType DeityType { get; } = DeityType.Gaia;
+    // --- Brick Placement Tracking (Part B requirement) ---
+    private const int FavorPerBrickPlacement = 2;
+    private readonly FavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+    private readonly Guid _instanceId = Guid.NewGuid();
 
     private readonly IPlayerReligionDataManager _playerReligionDataManager =
         playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
-    private readonly FavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
-    private readonly Guid _instanceId = Guid.NewGuid();
+
+    public void Dispose()
+    {
+        ClayFormingPatches.OnClayFormingFinished -= HandleClayFormingFinished;
+        PitKilnPatches.OnPitKilnFired -= HandlePitKilnFired;
+        _sapi.Event.DidPlaceBlock -= OnBlockPlaced;
+        _sapi.Logger.Debug($"[PantheonWars] GaiaFavorTracker disposed (ID: {_instanceId})");
+    }
+
+    public DeityType DeityType { get; } = DeityType.Gaia;
 
     public void Initialize()
     {
@@ -32,29 +42,15 @@ public class GaiaFavorTracker(
         _sapi.Logger.Notification($"[PantheonWars] GaiaFavorTracker initialized (ID: {_instanceId})");
     }
 
-    public void Dispose()
-    {
-        ClayFormingPatches.OnClayFormingFinished -= HandleClayFormingFinished;
-        PitKilnPatches.OnPitKilnFired -= HandlePitKilnFired;
-        _sapi.Event.DidPlaceBlock -= OnBlockPlaced;
-        _sapi.Logger.Debug($"[PantheonWars] GaiaFavorTracker disposed (ID: {_instanceId})");
-    }
-
     private void HandleClayFormingFinished(IServerPlayer player, ItemStack stack)
     {
         // Verify religion
         var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
         if (religionData.ActiveDeity != DeityType.Gaia) return;
 
-        int favor = CalculateFavor(stack);
-        if (favor > 0)
-        {
-            _favorSystem.AwardFavorForAction(player, "Pottery Crafting", favor);
-        }
+        var favor = CalculateFavor(stack);
+        if (favor > 0) _favorSystem.AwardFavorForAction(player, "Pottery Crafting", favor);
     }
-
-    // --- Brick Placement Tracking (Part B requirement) ---
-    private const int FavorPerBrickPlacement = 2;
 
     private void OnBlockPlaced(IServerPlayer byPlayer, int oldblockId, BlockSelection blockSel, ItemStack withItemStack)
     {
@@ -64,15 +60,13 @@ public class GaiaFavorTracker(
 
         var placedBlock = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
         if (IsBrickBlock(placedBlock))
-        {
             _favorSystem.AwardFavorForAction(byPlayer, "placing clay bricks", FavorPerBrickPlacement);
-        }
     }
 
     private static bool IsBrickBlock(Block block)
     {
         if (block?.Code == null) return false;
-        string path = block.Code.Path.ToLowerInvariant();
+        var path = block.Code.Path.ToLowerInvariant();
 
         // Fired and raw brick blocks typically contain "brick" in the code path
         return path.Contains("brick");
@@ -81,7 +75,7 @@ public class GaiaFavorTracker(
     private int CalculateFavor(ItemStack stack)
     {
         if (stack?.Collectible?.Code == null) return 0;
-        string path = stack.Collectible.Code.Path?.ToLowerInvariant() ?? string.Empty;
+        var path = stack.Collectible.Code.Path?.ToLowerInvariant() ?? string.Empty;
 
         // Specific mappings first
         if (path.Contains("rawbrick") || path.Contains("brick")) return 1;
@@ -90,7 +84,7 @@ public class GaiaFavorTracker(
         if (path.Contains("storagevessel") || path.Contains("vessel")) return 5;
 
         // Broad inclusiveness for clay/ceramic items
-        bool isClayLike =
+        var isClayLike =
             path.Contains("clay") ||
             path.Contains("clayform") ||
             path.Contains("clayforming") ||
@@ -107,15 +101,12 @@ public class GaiaFavorTracker(
             path.Contains("crock") ||
             path.Contains("fireclay");
 
-        if (isClayLike)
-        {
-            return 3; // Default for other pottery (bowls, pots, vases, crocks, etc.)
-        }
+        if (isClayLike) return 3; // Default for other pottery (bowls, pots, vases, crocks, etc.)
 
         // Not a clay/ceramic item
         return 0;
     }
-    
+
     private void HandlePitKilnFired(string playerUid, List<ItemStack> firedItems)
     {
         _sapi.Logger.Debug($"[PantheonWars] GaiaFavorTracker ({_instanceId}): Handling PitKilnFired for {playerUid}");
@@ -126,14 +117,8 @@ public class GaiaFavorTracker(
         if (religionData.ActiveDeity != DeityType.Gaia) return;
 
         float totalFavor = 0;
-        foreach (var stack in firedItems)
-        {
-            totalFavor += CalculateFavor(stack);
-        }
+        foreach (var stack in firedItems) totalFavor += CalculateFavor(stack);
 
-        if (totalFavor > 0)
-        {
-            _favorSystem.AwardFavorForAction(playerUid, "Pottery firing", totalFavor);
-        }
+        if (totalFavor > 0) _favorSystem.AwardFavorForAction(playerUid, "Pottery firing", totalFavor);
     }
 }

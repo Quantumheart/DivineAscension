@@ -4,7 +4,6 @@ using System.Text;
 using PantheonWars.Data;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network;
-using PantheonWars.Systems;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -21,10 +20,16 @@ public class ReligionCommands(
     IPlayerReligionDataManager playerReligionDataManager,
     IServerNetworkChannel serverChannel)
 {
-    private readonly IPlayerReligionDataManager _playerReligionDataManager = playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
-    private readonly IReligionManager _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
+    private readonly IPlayerReligionDataManager _playerReligionDataManager =
+        playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+
+    private readonly IReligionManager _religionManager =
+        religionManager ?? throw new ArgumentNullException(nameof(religionManager));
+
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
-    private readonly IServerNetworkChannel? _serverChannel = serverChannel ?? throw new ArgumentNullException(nameof(serverChannel));
+
+    private readonly IServerNetworkChannel? _serverChannel =
+        serverChannel ?? throw new ArgumentNullException(nameof(serverChannel));
 
     /// <summary>
     ///     Registers all religion commands
@@ -413,7 +418,7 @@ public class ReligionCommands(
     {
         var targetPlayerName = (string)args[0];
         var reason = args.Parsers.Count > 1 ? (string?)args[1] : "No reason provided";
-        int? expiryDays = args.Parsers.Count > 2 ? (int?)args[2] : null;
+        var expiryDays = args.Parsers.Count > 2 ? (int?)args[2] : null;
 
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
@@ -439,10 +444,7 @@ public class ReligionCommands(
             return TextCommandResult.Error("You cannot ban yourself.");
 
         // Kick the player if they're still a member
-        if (religion.IsMember(targetPlayer.PlayerUID))
-        {
-            _playerReligionDataManager.LeaveReligion(targetPlayer.PlayerUID);
-        }
+        if (religion.IsMember(targetPlayer.PlayerUID)) _playerReligionDataManager.LeaveReligion(targetPlayer.PlayerUID);
 
         // Ban the player
         _religionManager.BanPlayer(
@@ -497,8 +499,7 @@ public class ReligionCommands(
         // Unban the player
         if (_religionManager.UnbanPlayer(religion.ReligionUID, targetPlayer.PlayerUID))
             return TextCommandResult.Success($"{targetPlayerName} has been unbanned from {religion.ReligionName}");
-        else
-            return TextCommandResult.Error($"{targetPlayerName} is not banned from {religion.ReligionName}");
+        return TextCommandResult.Error($"{targetPlayerName} is not banned from {religion.ReligionName}");
     }
 
     /// <summary>

@@ -42,7 +42,7 @@ internal static class Scrollbar
         if (maxScroll > 0)
         {
             var thumbHeight = Math.Max(20f, height * (height / (height + maxScroll)));
-            var thumbY = y + (scrollY / maxScroll) * (height - thumbHeight);
+            var thumbY = y + scrollY / maxScroll * (height - thumbHeight);
 
             var thumbStart = new Vector2(x + 2f, thumbY);
             var thumbEnd = new Vector2(x + width - 2f, thumbY + thumbHeight);
@@ -76,16 +76,13 @@ internal static class Scrollbar
         float scrollSpeed = 20f)
     {
         // Check if mouse is over the scrollable area
-        bool isMouseOver = mouseX >= areaX && mouseX <= areaX + areaWidth &&
+        var isMouseOver = mouseX >= areaX && mouseX <= areaX + areaWidth &&
                           mouseY >= areaY && mouseY <= areaY + areaHeight;
 
         if (isMouseOver && maxScroll > 0)
         {
             var mouseWheel = ImGui.GetIO().MouseWheel;
-            if (mouseWheel != 0)
-            {
-                currentScrollY = Math.Clamp(currentScrollY - mouseWheel * scrollSpeed, 0f, maxScroll);
-            }
+            if (mouseWheel != 0) currentScrollY = Math.Clamp(currentScrollY - mouseWheel * scrollSpeed, 0f, maxScroll);
         }
 
         return currentScrollY;
@@ -113,16 +110,16 @@ internal static class Scrollbar
 
         var mousePos = ImGui.GetMousePos();
         var thumbHeight = Math.Max(20f, scrollbarHeight * (scrollbarHeight / (scrollbarHeight + maxScroll)));
-        var thumbY = scrollbarY + (currentScrollY / maxScroll) * (scrollbarHeight - thumbHeight);
+        var thumbY = scrollbarY + currentScrollY / maxScroll * (scrollbarHeight - thumbHeight);
 
         // Check if clicking on thumb
-        bool isOverThumb = mousePos.X >= scrollbarX && mousePos.X <= scrollbarX + scrollbarWidth &&
+        var isOverThumb = mousePos.X >= scrollbarX && mousePos.X <= scrollbarX + scrollbarWidth &&
                           mousePos.Y >= thumbY && mousePos.Y <= thumbY + thumbHeight;
 
         if (isOverThumb && ImGui.IsMouseDown(ImGuiMouseButton.Left))
         {
             var dragDelta = ImGui.GetMouseDragDelta(ImGuiMouseButton.Left, 0f);
-            var scrollDelta = (dragDelta.Y / (scrollbarHeight - thumbHeight)) * maxScroll;
+            var scrollDelta = dragDelta.Y / (scrollbarHeight - thumbHeight) * maxScroll;
             currentScrollY = Math.Clamp(currentScrollY + scrollDelta, 0f, maxScroll);
             ImGui.ResetMouseDragDelta(ImGuiMouseButton.Left);
         }

@@ -577,8 +577,8 @@ public class ReligionManagerTests
 
         // Assert
         Assert.Equal(2, invitations.Count);
-        Assert.Contains(religion1.ReligionUID, invitations);
-        Assert.Contains(religion2.ReligionUID, invitations);
+        Assert.Contains(invitations, i => i.ReligionId == religion1.ReligionUID);
+        Assert.Contains(invitations, i => i.ReligionId == religion2.ReligionUID);
     }
 
     [Fact]

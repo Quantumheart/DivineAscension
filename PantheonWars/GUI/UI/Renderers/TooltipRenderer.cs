@@ -46,7 +46,7 @@ internal static class TooltipRenderer
         // Calculate tooltip dimensions
         var contentHeight = CalculateTooltipHeight(lines);
         var tooltipWidth = TOOLTIP_MAX_WIDTH;
-        var tooltipHeight = contentHeight + (TOOLTIP_PADDING * 2);
+        var tooltipHeight = contentHeight + TOOLTIP_PADDING * 2;
 
         // Get window position to work in screen space
         var windowPos = ImGui.GetWindowPos();
@@ -133,9 +133,8 @@ internal static class TooltipRenderer
         // Description (wrap if too long)
         if (!string.IsNullOrEmpty(data.Description))
         {
-            var wrappedLines = WrapText(data.Description, TOOLTIP_MAX_WIDTH - (TOOLTIP_PADDING * 2), 14f);
+            var wrappedLines = WrapText(data.Description, TOOLTIP_MAX_WIDTH - TOOLTIP_PADDING * 2, 14f);
             foreach (var wrappedLine in wrappedLines)
-            {
                 lines.Add(new TooltipLine
                 {
                     Text = wrappedLine,
@@ -143,40 +142,20 @@ internal static class TooltipRenderer
                     FontSize = 14f,
                     SpacingAfter = LINE_SPACING
                 });
-            }
 
             // Add section spacing after last description line
             if (lines.Count > 0)
-                lines[lines.Count - 1].SpacingAfter = SECTION_SPACING;
+                lines[^1].SpacingAfter = SECTION_SPACING;
         }
-
-        // Stat modifiers
-        if (data.FormattedStats.Count > 0)
-        {
-            foreach (var stat in data.FormattedStats)
-            {
-                lines.Add(new TooltipLine
-                {
-                    Text = stat,
-                    Color = ColorPalette.Green,
-                    FontSize = 13f,
-                    SpacingAfter = LINE_SPACING
-                });
-            }
-
-            // Add spacing after stats section
-            if (lines.Count > 0)
-                lines[lines.Count - 1].SpacingAfter = SECTION_SPACING;
-        }
+        
 
         // Special effects (wrap if too long)
         if (data.SpecialEffectDescriptions.Count > 0)
         {
             foreach (var effect in data.SpecialEffectDescriptions)
             {
-                var wrappedEffects = WrapText("- " + effect, TOOLTIP_MAX_WIDTH - (TOOLTIP_PADDING * 2), 13f);
+                var wrappedEffects = WrapText("- " + effect, TOOLTIP_MAX_WIDTH - TOOLTIP_PADDING * 2, 13f);
                 foreach (var wrappedLine in wrappedEffects)
-                {
                     lines.Add(new TooltipLine
                     {
                         Text = wrappedLine,
@@ -184,7 +163,6 @@ internal static class TooltipRenderer
                         FontSize = 13f,
                         SpacingAfter = LINE_SPACING
                     });
-                }
             }
 
             // Add spacing after effects section
@@ -199,7 +177,8 @@ internal static class TooltipRenderer
         if (!string.IsNullOrEmpty(data.RequiredFavorRank))
         {
             // Green if unlocked, white if can unlock, red if locked
-            var rankColor = data.IsUnlocked ? ColorPalette.Green : (data.CanUnlock ? ColorPalette.White : ColorPalette.Red);
+            var rankColor = data.IsUnlocked ? ColorPalette.Green :
+                data.CanUnlock ? ColorPalette.White : ColorPalette.Red;
             lines.Add(new TooltipLine
             {
                 Text = $"Requires: {data.RequiredFavorRank} (Favor)",
@@ -212,7 +191,8 @@ internal static class TooltipRenderer
         else if (!string.IsNullOrEmpty(data.RequiredPrestigeRank))
         {
             // Green if unlocked, white if can unlock, red if locked
-            var rankColor = data.IsUnlocked ? ColorPalette.Green : (data.CanUnlock ? ColorPalette.White : ColorPalette.Red);
+            var rankColor = data.IsUnlocked ? ColorPalette.Green :
+                data.CanUnlock ? ColorPalette.White : ColorPalette.Red;
             lines.Add(new TooltipLine
             {
                 Text = $"Requires: {data.RequiredPrestigeRank} (Prestige)",
@@ -229,7 +209,8 @@ internal static class TooltipRenderer
             foreach (var prereq in data.PrerequisiteNames)
             {
                 // Green if unlocked, white if can unlock, red if locked
-                var prereqColor = data.IsUnlocked ? ColorPalette.Green : (data.CanUnlock ? ColorPalette.White : ColorPalette.Red);
+                var prereqColor = data.IsUnlocked ? ColorPalette.Green :
+                    data.CanUnlock ? ColorPalette.White : ColorPalette.Red;
                 lines.Add(new TooltipLine
                 {
                     Text = $"Requires: {prereq}",

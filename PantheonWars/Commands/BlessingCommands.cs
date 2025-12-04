@@ -24,7 +24,8 @@ public class BlessingCommands(
     private readonly IBlessingEffectSystem _blessingEffectSystem =
         blessingEffectSystem ?? throw new ArgumentNullException($"{nameof(blessingEffectSystem)}");
 
-    private readonly IBlessingRegistry _blessingRegistry = blessingRegistry ?? throw new ArgumentNullException($"{nameof(blessingRegistry)}");
+    private readonly IBlessingRegistry _blessingRegistry =
+        blessingRegistry ?? throw new ArgumentNullException($"{nameof(blessingRegistry)}");
 
     private readonly IPlayerReligionDataManager _playerReligionDataManager =
         playerReligionDataManager ?? throw new ArgumentNullException($"{nameof(playerReligionDataManager)}");
@@ -145,7 +146,8 @@ public class BlessingCommands(
 
         foreach (var blessing in playerBlessings)
         {
-            sb.AppendLine(string.Format(FormatStringConstants.FormatBlessingNameCategory, blessing.Name, blessing.Category));
+            sb.AppendLine(string.Format(FormatStringConstants.FormatBlessingNameCategory, blessing.Name,
+                blessing.Category));
             sb.AppendLine(string.Format(FormatStringConstants.FormatDescription, blessing.Description));
 
             if (blessing.StatModifiers.Count > 0)
@@ -175,7 +177,8 @@ public class BlessingCommands(
 
         var (_, religionBlessings) = _blessingEffectSystem.GetActiveBlessings(player.PlayerUID);
 
-        if (religionBlessings.Count == 0) return TextCommandResult.Success(InfoMessageConstants.InfoNoReligionBlessings);
+        if (religionBlessings.Count == 0)
+            return TextCommandResult.Success(InfoMessageConstants.InfoNoReligionBlessings);
 
         var religion = _religionManager.GetReligion(playerData.ReligionUID);
         var sb = new StringBuilder();
@@ -185,7 +188,8 @@ public class BlessingCommands(
 
         foreach (var blessing in religionBlessings)
         {
-            sb.AppendLine(string.Format(FormatStringConstants.FormatBlessingNameCategory, blessing.Name, blessing.Category));
+            sb.AppendLine(string.Format(FormatStringConstants.FormatBlessingNameCategory, blessing.Name,
+                blessing.Category));
             sb.AppendLine(string.Format(FormatStringConstants.FormatDescription, blessing.Description));
 
             if (blessing.StatModifiers.Count > 0)
@@ -410,7 +414,8 @@ public class BlessingCommands(
     [ExcludeFromCodeCoverage(Justification = "Arg parsing difficult")]
     private TextCommandResult Unlock(string playerUid, string? blessingId)
     {
-        if (string.IsNullOrEmpty(blessingId)) return TextCommandResult.Error(UsageMessageConstants.UsageBlessingsUnlock);
+        if (string.IsNullOrEmpty(blessingId))
+            return TextCommandResult.Error(UsageMessageConstants.UsageBlessingsUnlock);
 
         var blessing = _blessingRegistry.GetBlessing(blessingId);
         if (blessing == null)

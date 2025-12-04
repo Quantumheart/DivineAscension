@@ -2,15 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
+using HarmonyLib;
 using PantheonWars.Commands;
-using PantheonWars.GUI;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network;
+using PantheonWars.Network.Civilization;
 using PantheonWars.Systems;
 using PantheonWars.Systems.BuffSystem;
-using PantheonWars.Systems.BuffSystem.Interfaces;
-using HarmonyLib;
-using System.Reflection;
 using PantheonWars.Systems.Patches;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -23,33 +22,25 @@ namespace PantheonWars;
 public class PantheonWarsSystem : ModSystem
 {
     public const string NETWORK_CHANNEL = "pantheonwars";
-    private AbilityCommands? _abilityCommands;
-    private AbilityRegistry? _abilityRegistry;
-    private AbilitySystem? _abilitySystem;
-
-    // Use interfaces for better testability and dependency injection
-    private IBuffManager? _buffManager;
-    private CivilizationManager? _civilizationManager;
-    private CivilizationCommands? _civilizationCommands;
-
-    // Client-side systems
-    private ICoreClientAPI? _capi;
-    private IClientNetworkChannel? _clientChannel;
-    private DeityRegistry? _clientDeityRegistry;
-    private AbilityCooldownManager? _cooldownManager;
-    private CreateReligionDialog? _createReligionDialog;
-    private DeityCommands? _deityCommands;
-    private DeityRegistry? _deityRegistry;
-    private FavorCommands? _favorCommands;
-    private FavorSystem? _favorSystem;
     private BlessingCommands? _blessingCommands;
     private BlessingEffectSystem? _blessingEffectSystem;
     private BlessingRegistry? _blessingRegistry;
-    private PlayerDataManager? _playerDataManager;
+
+    // Client-side systems
+    private ICoreClientAPI? _capi;
+    private CivilizationCommands? _civilizationCommands;
+
+    // Use interfaces for better testability and dependency injection
+    private CivilizationManager? _civilizationManager;
+    private IClientNetworkChannel? _clientChannel;
+    private DeityRegistry? _deityRegistry;
+    private FavorCommands? _favorCommands;
+    private FavorSystem? _favorSystem;
+
+    private Harmony? _harmony;
     private PlayerReligionDataManager? _playerReligionDataManager;
     private PvPManager? _pvpManager;
     private ReligionCommands? _religionCommands;
-    private ReligionManagementDialog? _religionDialog;
     private ReligionManager? _religionManager;
     private ReligionPrestigeManager? _religionPrestigeManager;
 
@@ -58,8 +49,6 @@ public class PantheonWarsSystem : ModSystem
     private IServerNetworkChannel? _serverChannel;
 
     public string ModName => "pantheonwars";
-
-    private Harmony? _harmony;
 
     public override void Start(ICoreAPI api)
     {
@@ -92,23 +81,23 @@ public class PantheonWarsSystem : ModSystem
             .RegisterMessageType<BlessingDataRequestPacket>()
             .RegisterMessageType<BlessingDataResponsePacket>()
             .RegisterMessageType<ReligionStateChangedPacket>()
-            .RegisterMessageType<Network.Civilization.CivilizationListRequestPacket>()
-            .RegisterMessageType<Network.Civilization.CivilizationListResponsePacket>()
-            .RegisterMessageType<Network.Civilization.CivilizationInfoRequestPacket>()
-            .RegisterMessageType<Network.Civilization.CivilizationInfoResponsePacket>()
-            .RegisterMessageType<Network.Civilization.CivilizationActionRequestPacket>()
-            .RegisterMessageType<Network.Civilization.CivilizationActionResponsePacket>();
+            .RegisterMessageType<CivilizationListRequestPacket>()
+            .RegisterMessageType<CivilizationListResponsePacket>()
+            .RegisterMessageType<CivilizationInfoRequestPacket>()
+            .RegisterMessageType<CivilizationInfoResponsePacket>()
+            .RegisterMessageType<CivilizationActionRequestPacket>()
+            .RegisterMessageType<CivilizationActionResponsePacket>();
     }
 
     public override void StartServerSide(ICoreServerAPI api)
     {
         base.StartServerSide(api);
         _sapi = api;
-        
+
         // Clear any static event subscribers from previous loads
         PitKilnPatches.ClearSubscribers();
         AnvilPatches.ClearSubscribers();
-        
+
         api.Logger.Notification("[PantheonWars] Initializing server-side systems...");
 
         // Register entity behaviors
@@ -117,21 +106,6 @@ public class PantheonWarsSystem : ModSystem
         // Initialize deity registry (concrete implementation, stored as interface)
         _deityRegistry = new DeityRegistry(api);
         _deityRegistry.Initialize();
-
-        // Initialize ability registry
-        _abilityRegistry = new AbilityRegistry(api);
-        _abilityRegistry.Initialize();
-
-        // Initialize player data manager
-        _playerDataManager = new PlayerDataManager(api);
-        _playerDataManager.Initialize();
-
-        // Initialize ability cooldown manager
-        _cooldownManager = new AbilityCooldownManager(api);
-        _cooldownManager.Initialize();
-
-        // Initialize buff manager (concrete implementation, stored as interface)
-        _buffManager = new BuffManager(api);
 
         // Initialize religion systems first (needed by FavorSystem for passive favor)
         _religionManager = new ReligionManager(api);
@@ -152,12 +126,9 @@ public class PantheonWarsSystem : ModSystem
 
         // Initialize favor system (concrete implementation, stored as interface)
         // Pass interfaces for loose coupling
-        _favorSystem = new FavorSystem(api, _playerDataManager, _playerReligionDataManager, _deityRegistry, _religionManager, _religionPrestigeManager);
+        _favorSystem = new FavorSystem(api, _playerReligionDataManager, _deityRegistry, _religionManager,
+            _religionPrestigeManager);
         _favorSystem.Initialize();
-
-        // Initialize ability system (pass buff manager interface)
-        _abilitySystem = new AbilitySystem(api, _abilityRegistry, _playerDataManager, _cooldownManager, _buffManager);
-        _abilitySystem.Initialize();
 
         // Initialize PvP manager (pass interfaces for loose coupling)
         _pvpManager = new PvPManager(api, _playerReligionDataManager, _religionManager, _religionPrestigeManager,
@@ -168,7 +139,8 @@ public class PantheonWarsSystem : ModSystem
         _blessingRegistry = new BlessingRegistry(api);
         _blessingRegistry.Initialize();
 
-        _blessingEffectSystem = new BlessingEffectSystem(api, _blessingRegistry, _playerReligionDataManager, _religionManager);
+        _blessingEffectSystem =
+            new BlessingEffectSystem(api, _blessingRegistry, _playerReligionDataManager, _religionManager);
         _blessingEffectSystem.Initialize();
 
         // Connect blessing systems to religion prestige manager
@@ -176,7 +148,7 @@ public class PantheonWarsSystem : ModSystem
 
         _favorCommands = new FavorCommands(api, _deityRegistry, _playerReligionDataManager);
         _favorCommands.RegisterCommands();
-        
+
 
         _blessingCommands = new BlessingCommands(api, _blessingRegistry, _playerReligionDataManager, _religionManager,
             _blessingEffectSystem);
@@ -188,7 +160,8 @@ public class PantheonWarsSystem : ModSystem
         SetupServerNetworking(api);
         _religionCommands = new ReligionCommands(api, _religionManager, _playerReligionDataManager, _serverChannel);
         _religionCommands.RegisterCommands();
-        _civilizationCommands = new CivilizationCommands(api, _civilizationManager, _religionManager, _playerReligionDataManager);
+        _civilizationCommands =
+            new CivilizationCommands(api, _civilizationManager, _religionManager, _playerReligionDataManager);
         _civilizationCommands.RegisterCommands();
         // Hook player join to send initial data
         api.Event.PlayerJoin += OnPlayerJoin;
@@ -204,7 +177,7 @@ public class PantheonWarsSystem : ModSystem
 
         // Setup network handlers
         SetupClientNetworking(api);
-        
+
 
         api.Logger.Notification("[PantheonWars] Client-side initialization complete");
     }
@@ -223,10 +196,6 @@ public class PantheonWarsSystem : ModSystem
 
         // Clear static events
         PitKilnPatches.ClearSubscribers();
-
-        // Cleanup dialogs
-        _religionDialog?.Dispose();
-        _createReligionDialog?.Dispose();
     }
 
     #region Server Networking
@@ -245,9 +214,9 @@ public class PantheonWarsSystem : ModSystem
         _serverChannel.SetMessageHandler<BlessingDataRequestPacket>(OnBlessingDataRequest);
 
         // Register handlers for civilization system packets
-        _serverChannel.SetMessageHandler<Network.Civilization.CivilizationListRequestPacket>(OnCivilizationListRequest);
-        _serverChannel.SetMessageHandler<Network.Civilization.CivilizationInfoRequestPacket>(OnCivilizationInfoRequest);
-        _serverChannel.SetMessageHandler<Network.Civilization.CivilizationActionRequestPacket>(OnCivilizationActionRequest);
+        _serverChannel.SetMessageHandler<CivilizationListRequestPacket>(OnCivilizationListRequest);
+        _serverChannel.SetMessageHandler<CivilizationInfoRequestPacket>(OnCivilizationInfoRequest);
+        _serverChannel.SetMessageHandler<CivilizationActionRequestPacket>(OnCivilizationActionRequest);
     }
 
     private void OnServerMessageReceived(IServerPlayer fromPlayer, PlayerReligionDataPacket packet)
@@ -340,6 +309,20 @@ public class PantheonWarsSystem : ModSystem
         else
         {
             response.HasReligion = false;
+
+            // Include pending religion invites for the player
+            var invites = _religionManager!.GetPlayerInvitations(fromPlayer.PlayerUID);
+            foreach (var inv in invites)
+            {
+                var rel = _religionManager.GetReligion(inv.ReligionId);
+                response.PendingInvites.Add(new PlayerReligionInfoResponsePacket.ReligionInviteInfo
+                {
+                    InviteId = inv.InviteId,
+                    ReligionId = inv.ReligionId,
+                    ReligionName = rel?.ReligionName ?? inv.ReligionId,
+                    ExpiresAt = inv.ExpiresDate
+                });
+            }
         }
 
         _serverChannel!.SendPacket(response, fromPlayer);
@@ -386,6 +369,31 @@ public class PantheonWarsSystem : ModSystem
                             "Cannot join this religion. Check if you already have a religion or if it's invite-only.";
                     }
 
+                    break;
+
+                case "accept":
+                    // Accept religion invite; TargetPlayerUID carries InviteId in this action
+                    success = _religionManager!.AcceptInvite(packet.TargetPlayerUID, fromPlayer.PlayerUID);
+                    message = success
+                        ? "You have joined the religion!"
+                        : "Failed to accept invitation. It may have expired or you already have a religion.";
+                    if (success)
+                    {
+                        SendPlayerDataToClient(fromPlayer);
+                        var statePacket = new ReligionStateChangedPacket
+                        {
+                            Reason = "You joined a religion",
+                            HasReligion = true
+                        };
+                        _serverChannel!.SendPacket(statePacket, fromPlayer);
+                    }
+
+                    break;
+
+                case "decline":
+                    // Decline religion invite; TargetPlayerUID carries InviteId in this action
+                    success = _religionManager!.DeclineInvite(packet.TargetPlayerUID, fromPlayer.PlayerUID);
+                    message = success ? "Invitation declined." : "Failed to decline invitation.";
                     break;
 
                 case "leave":
@@ -460,7 +468,7 @@ public class PantheonWarsSystem : ModSystem
                         if (packet.TargetPlayerUID != fromPlayer.PlayerUID)
                         {
                             // Extract ban parameters from packet data
-                            string reason = "No reason provided";
+                            var reason = "No reason provided";
                             int? expiryDays = null;
 
                             if (packet.Data != null)
@@ -505,7 +513,8 @@ public class PantheonWarsSystem : ModSystem
                                 // Send religion state changed packet
                                 var statePacket = new ReligionStateChangedPacket
                                 {
-                                    Reason = $"You have been banned from {religionForBan.ReligionName}. Reason: {reason}",
+                                    Reason =
+                                        $"You have been banned from {religionForBan.ReligionName}. Reason: {reason}",
                                     HasReligion = false
                                 };
                                 _serverChannel!.SendPacket(statePacket, bannedPlayer);
@@ -759,7 +768,8 @@ public class PantheonWarsSystem : ModSystem
                         }
                         else
                         {
-                            success = _playerReligionDataManager.UnlockPlayerBlessing(fromPlayer.PlayerUID, packet.BlessingId);
+                            success = _playerReligionDataManager.UnlockPlayerBlessing(fromPlayer.PlayerUID,
+                                packet.BlessingId);
                             if (success)
                             {
                                 _blessingEffectSystem!.RefreshPlayerBlessings(fromPlayer.PlayerUID);
@@ -870,7 +880,8 @@ public class PantheonWarsSystem : ModSystem
             }).ToList();
 
             // Get religion blessings for this deity
-            var religionBlessings = _blessingRegistry.GetBlessingsForDeity(playerData.ActiveDeity, BlessingKind.Religion);
+            var religionBlessings =
+                _blessingRegistry.GetBlessingsForDeity(playerData.ActiveDeity, BlessingKind.Religion);
             response.ReligionBlessings = religionBlessings.Select(p => new BlessingDataResponsePacket.BlessingInfo
             {
                 BlessingId = p.BlessingId,
@@ -910,12 +921,13 @@ public class PantheonWarsSystem : ModSystem
     /// <summary>
     ///     Handle civilization list request from client
     /// </summary>
-    private void OnCivilizationListRequest(IServerPlayer fromPlayer, Network.Civilization.CivilizationListRequestPacket packet)
+    private void OnCivilizationListRequest(IServerPlayer fromPlayer, CivilizationListRequestPacket packet)
     {
-        _sapi!.Logger.Debug($"[PantheonWars] Civilization list requested by {fromPlayer.PlayerName}");
+        _sapi!.Logger.Debug(
+            $"[PantheonWars] Civilization list requested by {fromPlayer.PlayerName}, filter: '{packet.FilterDeity}'");
 
-        var civilizations = _civilizationManager!.GetAllCivilizations();
-        var civInfoList = new List<Network.Civilization.CivilizationListResponsePacket.CivilizationInfo>();
+        var civilizations = _civilizationManager!.GetAllCivilizations().ToList();
+        var civInfoList = new List<CivilizationListResponsePacket.CivilizationInfo>();
 
         foreach (var civ in civilizations)
         {
@@ -923,7 +935,17 @@ public class PantheonWarsSystem : ModSystem
             var deities = religions.Select(r => r.Deity.ToString()).Distinct().ToList();
             var religionNames = religions.Select(r => r.ReligionName).ToList();
 
-            civInfoList.Add(new Network.Civilization.CivilizationListResponsePacket.CivilizationInfo
+            // Apply deity filter if specified
+            if (!string.IsNullOrEmpty(packet.FilterDeity))
+            {
+                // Check if any religion in this civilization has the filtered deity
+                var hasFilteredDeity = religions.Any(r =>
+                    string.Equals(r.Deity.ToString(), packet.FilterDeity, StringComparison.OrdinalIgnoreCase));
+
+                if (!hasFilteredDeity) continue; // Skip this civilization if it doesn't have the filtered deity
+            }
+
+            civInfoList.Add(new CivilizationListResponsePacket.CivilizationInfo
             {
                 CivId = civ.CivId,
                 Name = civ.Name,
@@ -935,19 +957,22 @@ public class PantheonWarsSystem : ModSystem
             });
         }
 
-        var response = new Network.Civilization.CivilizationListResponsePacket(civInfoList);
+        var response = new CivilizationListResponsePacket(civInfoList);
         _serverChannel!.SendPacket(response, fromPlayer);
+        _sapi!.Logger.Debug(
+            $"[PantheonWars] Sent {civInfoList.Count} civilizations (out of {civilizations.Count} total) with filter '{packet.FilterDeity}'");
     }
 
     /// <summary>
     ///     Handle civilization info request from client
     ///     If civId is empty, returns the civilization for the player's current religion
     /// </summary>
-    private void OnCivilizationInfoRequest(IServerPlayer fromPlayer, Network.Civilization.CivilizationInfoRequestPacket packet)
+    private void OnCivilizationInfoRequest(IServerPlayer fromPlayer, CivilizationInfoRequestPacket packet)
     {
-        _sapi!.Logger.Debug($"[PantheonWars] Civilization info requested by {fromPlayer.PlayerName} for {packet.CivId}");
+        _sapi!.Logger.Debug(
+            $"[PantheonWars] Civilization info requested by {fromPlayer.PlayerName} for {packet.CivId}");
 
-        string civId = packet.CivId;
+        var civId = packet.CivId;
 
         // If civId is empty, look up the player's religion's civilization
         if (string.IsNullOrEmpty(civId))
@@ -955,7 +980,7 @@ public class PantheonWarsSystem : ModSystem
             var playerReligion = _religionManager!.GetPlayerReligion(fromPlayer.PlayerUID);
             if (playerReligion == null)
             {
-                _serverChannel!.SendPacket(new Network.Civilization.CivilizationInfoResponsePacket(), fromPlayer);
+                _serverChannel!.SendPacket(new CivilizationInfoResponsePacket(), fromPlayer);
                 return;
             }
 
@@ -963,7 +988,7 @@ public class PantheonWarsSystem : ModSystem
             if (religionCiv == null)
             {
                 // Player's religion is not in any civilization
-                _serverChannel!.SendPacket(new Network.Civilization.CivilizationInfoResponsePacket(), fromPlayer);
+                _serverChannel!.SendPacket(new CivilizationInfoResponsePacket(), fromPlayer);
                 return;
             }
 
@@ -973,32 +998,47 @@ public class PantheonWarsSystem : ModSystem
         var civ = _civilizationManager!.GetCivilization(civId);
         if (civ == null)
         {
-            _serverChannel!.SendPacket(new Network.Civilization.CivilizationInfoResponsePacket(), fromPlayer);
+            _serverChannel!.SendPacket(new CivilizationInfoResponsePacket(), fromPlayer);
             return;
         }
 
-        var details = new Network.Civilization.CivilizationInfoResponsePacket.CivilizationDetails
+        // Get civilization founder's player name
+        var founderPlayer = _sapi.World.PlayerByUid(civ.FounderUID);
+        var founderPlayerName = founderPlayer?.PlayerName ?? civ.FounderUID;
+
+        // Get founding religion name
+        var founderReligion = _religionManager!.GetReligion(civ.FounderReligionUID);
+        var founderReligionName = founderReligion?.ReligionName ?? "Unknown";
+
+        var details = new CivilizationInfoResponsePacket.CivilizationDetails
         {
             CivId = civ.CivId,
             Name = civ.Name,
             FounderUID = civ.FounderUID,
+            FounderName = founderPlayerName,
             FounderReligionUID = civ.FounderReligionUID,
+            FounderReligionName = founderReligionName,
             CreatedDate = civ.CreatedDate,
-            MemberReligions = new List<Network.Civilization.CivilizationInfoResponsePacket.MemberReligion>(),
-            PendingInvites = new List<Network.Civilization.CivilizationInfoResponsePacket.PendingInvite>()
+            MemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(),
+            PendingInvites = new List<CivilizationInfoResponsePacket.PendingInvite>()
         };
 
         // Get member religion details
         var religions = _civilizationManager.GetCivReligions(civ.CivId);
         foreach (var religion in religions)
         {
-            details.MemberReligions.Add(new Network.Civilization.CivilizationInfoResponsePacket.MemberReligion
+            // Get religion founder's player name
+            var religionFounderPlayer = _sapi.World.PlayerByUid(religion.FounderUID);
+            var religionFounderName = religionFounderPlayer?.PlayerName ?? religion.FounderUID;
+
+            details.MemberReligions.Add(new CivilizationInfoResponsePacket.MemberReligion
             {
                 ReligionId = religion.ReligionUID,
                 ReligionName = religion.ReligionName,
                 Deity = religion.Deity.ToString(),
                 FounderReligionUID = civ.FounderReligionUID,
                 FounderUID = religion.FounderUID,
+                FounderName = religionFounderName,
                 MemberCount = religion.MemberUIDs.Count
             });
         }
@@ -1011,30 +1051,29 @@ public class PantheonWarsSystem : ModSystem
             {
                 var targetReligion = _religionManager!.GetReligion(invite.ReligionId);
                 if (targetReligion != null)
-                {
-                    details.PendingInvites.Add(new Network.Civilization.CivilizationInfoResponsePacket.PendingInvite
+                    details.PendingInvites.Add(new CivilizationInfoResponsePacket.PendingInvite
                     {
                         InviteId = invite.InviteId,
                         ReligionId = invite.ReligionId,
                         ReligionName = targetReligion.ReligionName,
                         ExpiresAt = invite.ExpiresDate
                     });
-                }
             }
         }
 
-        var response = new Network.Civilization.CivilizationInfoResponsePacket(details);
+        var response = new CivilizationInfoResponsePacket(details);
         _serverChannel!.SendPacket(response, fromPlayer);
     }
 
     /// <summary>
     ///     Handle civilization action request from client
     /// </summary>
-    private void OnCivilizationActionRequest(IServerPlayer fromPlayer, Network.Civilization.CivilizationActionRequestPacket packet)
+    private void OnCivilizationActionRequest(IServerPlayer fromPlayer, CivilizationActionRequestPacket packet)
     {
-        _sapi!.Logger.Debug($"[PantheonWars] Civilization action '{packet.Action}' requested by {fromPlayer.PlayerName}");
+        _sapi!.Logger.Debug(
+            $"[PantheonWars] Civilization action '{packet.Action}' requested by {fromPlayer.PlayerName}");
 
-        var response = new Network.Civilization.CivilizationActionResponsePacket();
+        var response = new CivilizationActionResponsePacket();
         response.Action = packet.Action;
 
         try
@@ -1050,7 +1089,8 @@ public class PantheonWarsSystem : ModSystem
                         break;
                     }
 
-                    var newCiv = _civilizationManager!.CreateCivilization(packet.Name, fromPlayer.PlayerUID, playerData.ReligionUID);
+                    var newCiv = _civilizationManager!.CreateCivilization(packet.Name, fromPlayer.PlayerUID,
+                        playerData.ReligionUID);
                     if (newCiv != null)
                     {
                         response.Success = true;
@@ -1060,15 +1100,27 @@ public class PantheonWarsSystem : ModSystem
                     else
                     {
                         response.Success = false;
-                        response.Message = "Failed to create civilization. Check name requirements and cooldown status.";
+                        response.Message =
+                            "Failed to create civilization. Check name requirements and cooldown status.";
                     }
+
                     break;
 
                 case "invite":
-                    var success = _civilizationManager!.InviteReligion(packet.CivId, packet.TargetId, fromPlayer.PlayerUID);
+                    // Look up religion by name (packet.TargetId contains religion name from UI)
+                    var targetReligion = _religionManager!.GetReligionByName(packet.TargetId);
+                    if (targetReligion == null)
+                    {
+                        response.Success = false;
+                        response.Message = $"Religion '{packet.TargetId}' not found.";
+                        break;
+                    }
+
+                    var success = _civilizationManager!.InviteReligion(packet.CivId, targetReligion.ReligionUID,
+                        fromPlayer.PlayerUID);
                     response.Success = success;
                     response.Message = success
-                        ? "Invitation sent successfully!"
+                        ? $"Invitation sent to '{targetReligion.ReligionName}' successfully!"
                         : "Failed to send invitation. Check permissions and civilization requirements.";
                     response.CivId = packet.CivId;
                     break;
@@ -1090,11 +1142,37 @@ public class PantheonWarsSystem : ModSystem
                         break;
                     }
 
+                    // Get religion to check if player is the founder
+                    var playerReligion = _religionManager!.GetReligion(playerData.ReligionUID);
+                    if (playerReligion == null)
+                    {
+                        response.Success = false;
+                        response.Message = "Your religion was not found.";
+                        break;
+                    }
+
+                    // Check if player is the religion founder (only founders can leave)
+                    if (playerReligion.FounderUID != fromPlayer.PlayerUID)
+                    {
+                        response.Success = false;
+                        response.Message = "Only religion founders can leave a civilization.";
+                        break;
+                    }
+
+                    // Check if player is the civilization founder
+                    var playerCiv = _civilizationManager!.GetCivilizationByReligion(playerData.ReligionUID);
+                    if (playerCiv != null && playerCiv.FounderUID == fromPlayer.PlayerUID)
+                    {
+                        response.Success = false;
+                        response.Message = "Civilization founders must disband instead of leaving.";
+                        break;
+                    }
+
                     success = _civilizationManager!.LeaveReligion(playerData.ReligionUID, fromPlayer.PlayerUID);
                     response.Success = success;
                     response.Message = success
                         ? "You have left the civilization. A 7-day cooldown has been applied."
-                        : "Failed to leave civilization. Founders must disband instead.";
+                        : "Failed to leave civilization.";
                     break;
 
                 case "kick":
@@ -1143,15 +1221,13 @@ public class PantheonWarsSystem : ModSystem
     private void OnPlayerDataChanged(string playerUID)
     {
         var player = _sapi!.World.PlayerByUid(playerUID) as IServerPlayer;
-        if (player != null)
-        {
-            SendPlayerDataToClient(player);
-        }
+        if (player != null) SendPlayerDataToClient(player);
     }
 
     private void SendPlayerDataToClient(IServerPlayer player)
     {
-        if (_playerDataManager == null || _deityRegistry == null || _serverChannel == null) return;
+        if (_playerReligionDataManager == null || _religionManager == null || _deityRegistry == null ||
+            _serverChannel == null) return;
 
         var playerReligionData = _playerReligionDataManager!.GetOrCreatePlayerData(player.PlayerUID);
         var religionData = _religionManager!.GetPlayerReligion(player.PlayerUID);
@@ -1190,9 +1266,9 @@ public class PantheonWarsSystem : ModSystem
         _clientChannel.SetMessageHandler<BlessingUnlockResponsePacket>(OnBlessingUnlockResponse);
         _clientChannel.SetMessageHandler<BlessingDataResponsePacket>(OnBlessingDataResponse);
         _clientChannel.SetMessageHandler<ReligionStateChangedPacket>(OnReligionStateChanged);
-        _clientChannel.SetMessageHandler<Network.Civilization.CivilizationListResponsePacket>(OnCivilizationListResponse);
-        _clientChannel.SetMessageHandler<Network.Civilization.CivilizationInfoResponsePacket>(OnCivilizationInfoResponse);
-        _clientChannel.SetMessageHandler<Network.Civilization.CivilizationActionResponsePacket>(OnCivilizationActionResponse);
+        _clientChannel.SetMessageHandler<CivilizationListResponsePacket>(OnCivilizationListResponse);
+        _clientChannel.SetMessageHandler<CivilizationInfoResponsePacket>(OnCivilizationInfoResponse);
+        _clientChannel.SetMessageHandler<CivilizationActionResponsePacket>(OnCivilizationActionResponse);
         _clientChannel.RegisterMessageType(typeof(PlayerReligionDataPacket));
     }
 
@@ -1204,19 +1280,16 @@ public class PantheonWarsSystem : ModSystem
 
     private void OnReligionListResponse(ReligionListResponsePacket packet)
     {
-        _religionDialog?.OnReligionListResponse(packet);
         ReligionListReceived?.Invoke(packet);
     }
 
     private void OnPlayerReligionInfoResponse(PlayerReligionInfoResponsePacket packet)
     {
-        _religionDialog?.OnPlayerReligionInfoResponse(packet);
         PlayerReligionInfoReceived?.Invoke(packet);
     }
 
     private void OnReligionActionResponse(ReligionActionResponsePacket packet)
     {
-        _religionDialog?.OnActionResponse(packet);
         ReligionActionCompleted?.Invoke(packet);
     }
 
@@ -1226,16 +1299,9 @@ public class PantheonWarsSystem : ModSystem
         {
             _capi?.ShowChatMessage(packet.Message);
 
-            // Refresh religion dialog data
-            if (_religionDialog != null && _religionDialog.IsOpened())
-            {
-                _religionDialog.TryClose();
-                _religionDialog.TryOpen(); // Reopen to refresh
-            }
-
             // Request fresh blessing data (now in a religion)
             // Use a small delay to ensure server has processed the religion creation
-            _capi?.Event.RegisterCallback((dt) =>
+            _capi?.Event.RegisterCallback(dt =>
             {
                 var request = new BlessingDataRequestPacket();
                 _clientChannel?.SendPacket(request);
@@ -1246,7 +1312,7 @@ public class PantheonWarsSystem : ModSystem
             _capi?.ShowChatMessage($"Error: {packet.Message}");
 
             // Play error sound
-            _capi?.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/error"),
+            _capi?.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
                 _capi.World.Player.Entity, null, false, 8f, 0.3f);
         }
     }
@@ -1254,19 +1320,9 @@ public class PantheonWarsSystem : ModSystem
     private void OnEditDescriptionResponse(EditDescriptionResponsePacket packet)
     {
         if (packet.Success)
-        {
             _capi?.ShowChatMessage(packet.Message);
-            // Refresh religion dialog to show updated description
-            if (_religionDialog != null && _religionDialog.IsOpened())
-            {
-                _religionDialog.TryClose();
-                _religionDialog.TryOpen(); // Reopen to refresh
-            }
-        }
         else
-        {
             _capi?.ShowChatMessage($"Error: {packet.Message}");
-        }
     }
 
     private void OnBlessingUnlockResponse(BlessingUnlockResponsePacket packet)
@@ -1308,33 +1364,30 @@ public class PantheonWarsSystem : ModSystem
         ReligionStateChanged?.Invoke(packet);
     }
 
-    private void OnCivilizationListResponse(Network.Civilization.CivilizationListResponsePacket packet)
+    private void OnCivilizationListResponse(CivilizationListResponsePacket packet)
     {
         _capi?.Logger.Debug($"[PantheonWars] Received civilization list: {packet.Civilizations.Count} civilizations");
         CivilizationListReceived?.Invoke(packet);
     }
 
-    private void OnCivilizationInfoResponse(Network.Civilization.CivilizationInfoResponsePacket packet)
+    private void OnCivilizationInfoResponse(CivilizationInfoResponsePacket packet)
     {
-        _capi?.Logger.Debug($"[PantheonWars] Received civilization info");
+        _capi?.Logger.Debug("[PantheonWars] Received civilization info");
         CivilizationInfoReceived?.Invoke(packet);
     }
 
-    private void OnCivilizationActionResponse(Network.Civilization.CivilizationActionResponsePacket packet)
+    private void OnCivilizationActionResponse(CivilizationActionResponsePacket packet)
     {
         _capi?.Logger.Debug($"[PantheonWars] Civilization action '{packet.Action}' response: {packet.Success}");
 
         // Show message to user
-        if (!string.IsNullOrEmpty(packet.Message))
-        {
-            _capi?.ShowChatMessage(packet.Message);
-        }
+        if (!string.IsNullOrEmpty(packet.Message)) _capi?.ShowChatMessage(packet.Message);
 
         CivilizationActionCompleted?.Invoke(packet);
     }
 
     /// <summary>
-    /// Request blessing data from the server
+    ///     Request blessing data from the server
     /// </summary>
     public void RequestBlessingData()
     {
@@ -1350,7 +1403,7 @@ public class PantheonWarsSystem : ModSystem
     }
 
     /// <summary>
-    /// Send a blessing unlock request to the server
+    ///     Send a blessing unlock request to the server
     /// </summary>
     public void RequestBlessingUnlock(string blessingId)
     {
@@ -1366,7 +1419,7 @@ public class PantheonWarsSystem : ModSystem
     }
 
     /// <summary>
-    /// Request religion list from the server
+    ///     Request religion list from the server
     /// </summary>
     public void RequestReligionList(string deityFilter = "")
     {
@@ -1382,7 +1435,7 @@ public class PantheonWarsSystem : ModSystem
     }
 
     /// <summary>
-    /// Send a religion action request to the server (join, leave, kick, invite)
+    ///     Send a religion action request to the server (join, leave, kick, invite)
     /// </summary>
     public void RequestReligionAction(string action, string religionUID = "", string targetPlayerUID = "")
     {
@@ -1398,7 +1451,7 @@ public class PantheonWarsSystem : ModSystem
     }
 
     /// <summary>
-    /// Request to create a new religion
+    ///     Request to create a new religion
     /// </summary>
     public void RequestCreateReligion(string religionName, string deity, bool isPublic)
     {
@@ -1414,7 +1467,7 @@ public class PantheonWarsSystem : ModSystem
     }
 
     /// <summary>
-    /// Request player's religion info (for management overlay)
+    ///     Request player's religion info (for management overlay)
     /// </summary>
     public void RequestPlayerReligionInfo()
     {
@@ -1430,7 +1483,7 @@ public class PantheonWarsSystem : ModSystem
     }
 
     /// <summary>
-    /// Request to edit religion description
+    ///     Request to edit religion description
     /// </summary>
     public void RequestEditDescription(string religionUID, string description)
     {
@@ -1446,7 +1499,7 @@ public class PantheonWarsSystem : ModSystem
     }
 
     /// <summary>
-    /// Request list of all civilizations
+    ///     Request list of all civilizations
     /// </summary>
     public void RequestCivilizationList(string deityFilter = "")
     {
@@ -1456,13 +1509,13 @@ public class PantheonWarsSystem : ModSystem
             return;
         }
 
-        var request = new Network.Civilization.CivilizationListRequestPacket(deityFilter);
+        var request = new CivilizationListRequestPacket(deityFilter);
         _clientChannel.SendPacket(request);
-        _capi?.Logger.Debug("[PantheonWars] Sent civilization list request");
+        _capi?.Logger.Debug($"[PantheonWars] Sent civilization list request with filter: '{deityFilter}'");
     }
 
     /// <summary>
-    /// Request detailed information about a specific civilization
+    ///     Request detailed information about a specific civilization
     /// </summary>
     public void RequestCivilizationInfo(string civId)
     {
@@ -1472,13 +1525,13 @@ public class PantheonWarsSystem : ModSystem
             return;
         }
 
-        var request = new Network.Civilization.CivilizationInfoRequestPacket(civId);
+        var request = new CivilizationInfoRequestPacket(civId);
         _clientChannel.SendPacket(request);
         _capi?.Logger.Debug($"[PantheonWars] Sent civilization info request for {civId}");
     }
 
     /// <summary>
-    /// Request a civilization action (create, invite, accept, leave, kick, disband)
+    ///     Request a civilization action (create, invite, accept, leave, kick, disband)
     /// </summary>
     public void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "")
     {
@@ -1488,61 +1541,61 @@ public class PantheonWarsSystem : ModSystem
             return;
         }
 
-        var request = new Network.Civilization.CivilizationActionRequestPacket(action, civId, targetId, name);
+        var request = new CivilizationActionRequestPacket(action, civId, targetId, name);
         _clientChannel.SendPacket(request);
         _capi?.Logger.Debug($"[PantheonWars] Sent civilization action request: {action}");
     }
 
     /// <summary>
-    /// Event fired when player religion data is updated from the server
+    ///     Event fired when player religion data is updated from the server
     /// </summary>
     public event Action<PlayerReligionDataPacket>? PlayerReligionDataUpdated;
 
     /// <summary>
-    /// Event fired when blessing data is received from the server
+    ///     Event fired when blessing data is received from the server
     /// </summary>
     public event Action<BlessingDataResponsePacket>? BlessingDataReceived;
 
     /// <summary>
-    /// Event fired when a blessing unlock response is received from the server
-    /// Parameters: (blessingId, success)
+    ///     Event fired when a blessing unlock response is received from the server
+    ///     Parameters: (blessingId, success)
     /// </summary>
     public event Action<string, bool>? BlessingUnlocked;
 
     /// <summary>
-    /// Event fired when the player's religion state changes (disbanded, kicked, etc.)
+    ///     Event fired when the player's religion state changes (disbanded, kicked, etc.)
     /// </summary>
     public event Action<ReligionStateChangedPacket>? ReligionStateChanged;
 
     /// <summary>
-    /// Event fired when religion list is received from server
+    ///     Event fired when religion list is received from server
     /// </summary>
     public event Action<ReligionListResponsePacket>? ReligionListReceived;
 
     /// <summary>
-    /// Event fired when religion action is completed (join, leave, etc.)
+    ///     Event fired when religion action is completed (join, leave, etc.)
     /// </summary>
     public event Action<ReligionActionResponsePacket>? ReligionActionCompleted;
 
     /// <summary>
-    /// Event fired when player religion info is received from server
+    ///     Event fired when player religion info is received from server
     /// </summary>
     public event Action<PlayerReligionInfoResponsePacket>? PlayerReligionInfoReceived;
 
     /// <summary>
-    /// Event fired when civilization list is received from server
+    ///     Event fired when civilization list is received from server
     /// </summary>
-    public event Action<Network.Civilization.CivilizationListResponsePacket>? CivilizationListReceived;
+    public event Action<CivilizationListResponsePacket>? CivilizationListReceived;
 
     /// <summary>
-    /// Event fired when civilization info is received from server
+    ///     Event fired when civilization info is received from server
     /// </summary>
-    public event Action<Network.Civilization.CivilizationInfoResponsePacket>? CivilizationInfoReceived;
+    public event Action<CivilizationInfoResponsePacket>? CivilizationInfoReceived;
 
     /// <summary>
-    /// Event fired when civilization action is completed (create, invite, accept, leave, kick, disband)
+    ///     Event fired when civilization action is completed (create, invite, accept, leave, kick, disband)
     /// </summary>
-    public event Action<Network.Civilization.CivilizationActionResponsePacket>? CivilizationActionCompleted;
+    public event Action<CivilizationActionResponsePacket>? CivilizationActionCompleted;
 
     #endregion
 }

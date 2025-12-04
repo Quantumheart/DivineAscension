@@ -6,6 +6,11 @@ namespace PantheonWars.GUI.State;
 public class BlessingDialogState
 {
     /// <summary>
+    ///     Index of the main tab in BlessingDialog (0=Blessings, 1=Religion, 2=Civilization)
+    /// </summary>
+    public MainDialogTab CurrentMainTab { get; set; }
+
+    /// <summary>
     ///     Whether the dialog is currently open
     /// </summary>
     public bool IsOpen { get; set; }
@@ -32,7 +37,15 @@ public class BlessingDialogState
     {
         IsOpen = false;
         IsReady = false;
+        CurrentMainTab = 0;
         WindowPosX = 0f;
         WindowPosY = 0f;
     }
+}
+
+public enum MainDialogTab
+{
+    ManageReligion = 0,
+    Blessings = 1,
+    Civilization = 2
 }

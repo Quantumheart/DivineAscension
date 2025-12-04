@@ -21,7 +21,7 @@ internal static class BlessingNodeRenderer
     private static readonly Vector4 ColorHover = new(0.8f, 0.8f, 1.0f, 1.0f); // Light blue tint
 
     // Static field for glow animation timing
-    private static float _glowAnimationTime = 0f;
+    private static float _glowAnimationTime;
 
     /// <summary>
     ///     Draw a single blessing node
@@ -116,6 +116,7 @@ internal static class BlessingNodeRenderer
                     blessingName = testName;
                     break;
                 }
+
                 charCount--;
             }
         }

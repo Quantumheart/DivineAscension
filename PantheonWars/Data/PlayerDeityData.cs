@@ -81,7 +81,7 @@ public class PlayerDeityData
     ///     Accumulated fractional favor (not yet awarded)
     /// </summary>
     [ProtoMember(10)]
-    public float AccumulatedFractionalFavor { get; set; } = 0f;
+    public float AccumulatedFractionalFavor { get; set; }
 
     /// <summary>
     ///     Checks if player has pledged to a deity
@@ -132,7 +132,7 @@ public class PlayerDeityData
             // Award integer favor when we have accumulated >= 1.0
             if (AccumulatedFractionalFavor >= 1.0f)
             {
-                int favorToAward = (int)AccumulatedFractionalFavor;
+                var favorToAward = (int)AccumulatedFractionalFavor;
                 AccumulatedFractionalFavor -= favorToAward; // Keep the fractional remainder
 
                 DivineFavor += favorToAward;

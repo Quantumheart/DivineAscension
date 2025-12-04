@@ -5,6 +5,7 @@ using System.Numerics;
 using ImGuiNET;
 using PantheonWars.Models;
 using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.UI.Renderers;
 
@@ -204,7 +205,7 @@ internal static class BlessingTreeRenderer
             var isHovering = BlessingNodeRenderer.DrawNode(
                 state, api,
                 drawOffsetX, drawOffsetY,
-                mousePos.X, mousePos.Y,  // Pass screen-space mouse coordinates
+                mousePos.X, mousePos.Y, // Pass screen-space mouse coordinates
                 deltaTime,
                 isSelected
             );
@@ -223,7 +224,7 @@ internal static class BlessingTreeRenderer
                     api.Logger.Notification($"[PantheonWars] Selected blessing ID: {manager.SelectedBlessingId}");
 
                     // Play click sound
-                    api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
+                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                         api.World.Player.Entity, null, false, 8f, 0.5f);
                 }
             }

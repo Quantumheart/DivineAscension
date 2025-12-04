@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using PantheonWars.Data;
 using PantheonWars.Systems;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -17,9 +18,15 @@ public class CivilizationCommands(
     IReligionManager religionManager,
     IPlayerReligionDataManager playerReligionDataManager)
 {
-    private readonly CivilizationManager _civilizationManager = civilizationManager ?? throw new ArgumentNullException(nameof(civilizationManager));
-    private readonly IReligionManager _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
-    private readonly IPlayerReligionDataManager _playerReligionDataManager = playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+    private readonly CivilizationManager _civilizationManager =
+        civilizationManager ?? throw new ArgumentNullException(nameof(civilizationManager));
+
+    private readonly IPlayerReligionDataManager _playerReligionDataManager =
+        playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+
+    private readonly IReligionManager _religionManager =
+        religionManager ?? throw new ArgumentNullException(nameof(religionManager));
+
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
 
     /// <summary>
@@ -100,9 +107,11 @@ public class CivilizationCommands(
         // Create civilization
         var civ = _civilizationManager.CreateCivilization(civName, player.PlayerUID, playerData.ReligionUID);
         if (civ == null)
-            return TextCommandResult.Error("Failed to create civilization. Check name requirements (3-32 characters, unique) and cooldown status");
+            return TextCommandResult.Error(
+                "Failed to create civilization. Check name requirements (3-32 characters, unique) and cooldown status");
 
-        return TextCommandResult.Success($"Civilization '{civName}' created! You can now invite 1-3 more religions with different deities.");
+        return TextCommandResult.Success(
+            $"Civilization '{civName}' created! You can now invite 1-3 more religions with different deities.");
     }
 
     /// <summary>
@@ -137,7 +146,8 @@ public class CivilizationCommands(
         // Send invitation
         var success = _civilizationManager.InviteReligion(civ.CivId, targetReligion.ReligionUID, player.PlayerUID);
         if (!success)
-            return TextCommandResult.Error("Failed to send invitation. Check: civilization not full (max 4), different deity required, target not on cooldown");
+            return TextCommandResult.Error(
+                "Failed to send invitation. Check: civilization not full (max 4), different deity required, target not on cooldown");
 
         return TextCommandResult.Success($"Invitation sent to '{religionName}'. It will expire in 7 days.");
     }
@@ -168,7 +178,8 @@ public class CivilizationCommands(
         // Accept invitation
         var success = _civilizationManager.AcceptInvite(inviteId, player.PlayerUID);
         if (!success)
-            return TextCommandResult.Error("Failed to accept invitation. It may have expired or the civilization is full");
+            return TextCommandResult.Error(
+                "Failed to accept invitation. It may have expired or the civilization is full");
 
         return TextCommandResult.Success("You have joined the civilization!");
     }
@@ -208,7 +219,8 @@ public class CivilizationCommands(
         if (!success)
             return TextCommandResult.Error("Failed to leave civilization");
 
-        return TextCommandResult.Success("You have left the civilization. A 7-day cooldown has been applied before you can join another civilization.");
+        return TextCommandResult.Success(
+            "You have left the civilization. A 7-day cooldown has been applied before you can join another civilization.");
     }
 
     /// <summary>
@@ -245,7 +257,8 @@ public class CivilizationCommands(
         if (!success)
             return TextCommandResult.Error("Failed to kick religion. You cannot kick your own religion");
 
-        return TextCommandResult.Success($"'{religionName}' has been kicked from the civilization. A 7-day cooldown has been applied.");
+        return TextCommandResult.Success(
+            $"'{religionName}' has been kicked from the civilization. A 7-day cooldown has been applied.");
     }
 
     /// <summary>
@@ -299,7 +312,8 @@ public class CivilizationCommands(
             var deities = religions.Select(r => r.Deity.ToString()).Distinct().ToList();
 
             // Apply deity filter if specified
-            if (!string.IsNullOrEmpty(deityFilter) && !deities.Any(d => d.Contains(deityFilter, StringComparison.OrdinalIgnoreCase)))
+            if (!string.IsNullOrEmpty(deityFilter) &&
+                !deities.Any(d => d.Contains(deityFilter, StringComparison.OrdinalIgnoreCase)))
                 continue;
 
             sb.AppendLine($"• {civ.Name} ({civ.MemberReligionIds.Count}/4 religions)");
@@ -318,13 +332,14 @@ public class CivilizationCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        Data.Civilization? civ;
+        Civilization? civ;
 
         // If name provided, look up by name
         if (args.Parsers.Count > 0)
         {
             var civName = (string)args[0];
-            civ = _civilizationManager.GetAllCivilizations().FirstOrDefault(c => c.Name.Equals(civName, StringComparison.OrdinalIgnoreCase));
+            civ = _civilizationManager.GetAllCivilizations()
+                .FirstOrDefault(c => c.Name.Equals(civName, StringComparison.OrdinalIgnoreCase));
             if (civ == null)
                 return TextCommandResult.Error($"Civilization '{civName}' not found");
         }
@@ -337,7 +352,8 @@ public class CivilizationCommands(
 
             civ = _civilizationManager.GetCivilizationByReligion(playerData.ReligionUID);
             if (civ == null)
-                return TextCommandResult.Error("You are not in a civilization. Specify a civilization name to view others");
+                return TextCommandResult.Error(
+                    "You are not in a civilization. Specify a civilization name to view others");
         }
 
         // Build info display
@@ -352,7 +368,8 @@ public class CivilizationCommands(
         foreach (var religion in religions)
         {
             var isFounder = religion.ReligionUID == civ.MemberReligionIds[0] ? " [Founder]" : "";
-            sb.AppendLine($"  • {religion.ReligionName} ({religion.Deity}) - {religion.MemberUIDs.Count} members{isFounder}");
+            sb.AppendLine(
+                $"  • {religion.ReligionName} ({religion.Deity}) - {religion.MemberUIDs.Count} members{isFounder}");
         }
 
         // Show pending invites only to founder
@@ -369,7 +386,8 @@ public class CivilizationCommands(
                     if (targetReligion != null)
                     {
                         var daysLeft = (invite.ExpiresDate - DateTime.UtcNow).Days;
-                        sb.AppendLine($"  • {targetReligion.ReligionName} (expires in {daysLeft} days) - ID: {invite.InviteId}");
+                        sb.AppendLine(
+                            $"  • {targetReligion.ReligionName} (expires in {daysLeft} days) - ID: {invite.InviteId}");
                     }
                 }
             }

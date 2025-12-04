@@ -1,7 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using ImGuiNET;
+using PantheonWars.GUI.State;
+using PantheonWars.GUI.UI.Components;
 using PantheonWars.GUI.UI.Renderers;
+using PantheonWars.GUI.UI.Renderers.Civilization;
+using PantheonWars.GUI.UI.Renderers.Religion;
+using PantheonWars.Models;
 using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI;
@@ -23,113 +29,160 @@ internal static class BlessingUIRenderer
     /// <param name="deltaTime">Time elapsed since last frame (for animations)</param>
     /// <param name="onUnlockClicked">Callback when unlock button clicked</param>
     /// <param name="onCloseClicked">Callback when close button clicked</param>
-    /// <param name="onChangeReligionClicked">Callback when Change Religion button clicked</param>
-    /// <param name="onManageReligionClicked">Callback when Manage Religion button clicked</param>
-    /// <param name="onLeaveReligionClicked">Callback when Leave Religion button clicked</param>
-    /// <param name="onManageCivilizationClicked">Callback when Manage Civilization button clicked</param>
     public static void Draw(
         BlessingDialogManager manager,
         ICoreClientAPI api,
+        BlessingDialogState state,
         int windowWidth,
         int windowHeight,
         float deltaTime,
         Action? onUnlockClicked,
-        Action? onCloseClicked,
-        Action? onChangeReligionClicked = null,
-        Action? onManageReligionClicked = null,
-        Action? onLeaveReligionClicked = null,
-        Action? onManageCivilizationClicked = null)
+        Action? onCloseClicked)
     {
         const float padding = 16f;
-        const float infoPanelHeight = 200f;
-        const float actionButtonHeight = 36f;
-        const float actionButtonPadding = 16f;
+        const float tabHeight = 36f;
 
         // Get window position for screen-space drawing
         var windowPos = ImGui.GetWindowPos();
 
-        var currentX = padding;
-        var currentY = padding;
-        var contentWidth = windowWidth - padding * 2;
+        var x = padding;
+        var y = padding;
+        var width = windowWidth - padding * 2;
 
-        // Track hovering state across renderers
+        // === 1. RELIGION HEADER (Top Banner, always visible) ===
+        // Top-level religion action buttons have been removed; only pass civilization callback
+        var headerHeight = ReligionHeaderRenderer.Draw(
+            manager, api,
+            windowPos.X + x, windowPos.Y + y, width
+        );
+        y += headerHeight + 8f;
+
+        // === 2. MAIN TABS ===
+        var drawList = ImGui.GetWindowDrawList();
+        var mainTabs = new[] { "Religion", "Blessings", "Civilization" };
+        var newMainTab = TabControl.Draw(
+            drawList,
+            windowPos.X + x,
+            windowPos.Y + y,
+            width,
+            tabHeight,
+            mainTabs,
+            (int)state.CurrentMainTab
+        );
+
+        if (newMainTab != (int)state.CurrentMainTab)
+        {
+            state.CurrentMainTab = (MainDialogTab)newMainTab;
+
+            if (newMainTab == 1) // Religion tab
+            {
+                // Request both browse and my religion data
+                manager.ReligionState.IsBrowseLoading = true;
+                manager.RequestReligionList(manager.ReligionState.DeityFilter);
+
+                if (manager.HasReligion())
+                {
+                    manager.ReligionState.IsMyReligionLoading = true;
+                    manager.RequestPlayerReligionInfo();
+                }
+            }
+            else if (newMainTab == 2) // Civilization tab
+            {
+                manager.RequestCivilizationList(manager.CivState.DeityFilter);
+                manager.RequestCivilizationInfo();
+            }
+        }
+
+        y += tabHeight + 8f;
+
+        // === 3. TAB CONTENT ===
+        var contentHeight = windowHeight - y - padding;
+
+        switch (state.CurrentMainTab)
+        {
+            case MainDialogTab.Blessings: // Blessings
+                DrawBlessingsTab(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight,
+                    windowWidth, windowHeight, deltaTime, onUnlockClicked, onCloseClicked);
+                break;
+            case MainDialogTab.ManageReligion: // Manage Religion
+                ReligionTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);
+                break;
+            case MainDialogTab.Civilization: // Civilization
+                CivilizationTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);
+                break;
+        }
+    }
+
+    private static void DrawBlessingsTab(
+        BlessingDialogManager manager,
+        ICoreClientAPI api,
+        float x,
+        float y,
+        float width,
+        float height,
+        int windowWidth,
+        int windowHeight,
+        float deltaTime,
+        Action? onUnlockClicked,
+        Action? onCloseClicked)
+    {
+        const float infoPanelHeight = 200f;
+        const float padding = 16f;
+        const float actionButtonHeight = 36f;
+        const float actionButtonPadding = 16f;
+
+        // Track hovering state
         string? hoveringBlessingId = null;
 
-        // === 1. RELIGION HEADER (Top Banner) ===
-        var usedHeight = ReligionHeaderRenderer.Draw(
-            manager, api,
-            windowPos.X + currentX, windowPos.Y + currentY, contentWidth,
-            onChangeReligionClicked,
-            onManageReligionClicked,
-            onLeaveReligionClicked,
-            onManageCivilizationClicked
-        );
-        currentY += usedHeight + padding;
-
-        // === 2. BLESSING TREE (Split View: Player Left, Religion Right) ===
-        var treeHeight = windowHeight - currentY - infoPanelHeight - padding * 2;
-
+        // Blessing Tree (split view)
+        var treeHeight = height - infoPanelHeight - padding;
         BlessingTreeRenderer.Draw(
             manager, api,
-            windowPos.X + currentX, windowPos.Y + currentY, contentWidth, treeHeight,
+            x, y, width, treeHeight,
             deltaTime,
             ref hoveringBlessingId
         );
-        currentY += treeHeight + padding;
 
-        // === 3. BLESSING INFO PANEL (Bottom Panel) ===
-        BlessingInfoRenderer.Draw(
-            manager, api,
-            windowPos.X + currentX, windowPos.Y + currentY, contentWidth, infoPanelHeight
-        );
+        // Info Panel
+        var infoY = y + treeHeight + padding;
+        BlessingInfoRenderer.Draw(manager, api, x, infoY, width, infoPanelHeight);
 
-        // === 4. ACTION BUTTONS (Overlay Bottom-Right) ===
+        // Action Buttons (overlay bottom-right)
         var buttonY = windowHeight - actionButtonHeight - actionButtonPadding;
         var buttonX = windowWidth - actionButtonPadding;
-
         BlessingActionsRenderer.Draw(
             manager, api,
-            windowPos.X + buttonX, windowPos.Y + buttonY,
+            ImGui.GetWindowPos().X + buttonX,
+            ImGui.GetWindowPos().Y + buttonY,
             onUnlockClicked,
             onCloseClicked
         );
 
-        // Update manager's hovering state
+        // Update manager hover state
         manager.HoveringBlessingId = hoveringBlessingId;
 
-        // === 5. TOOLTIPS (Rendered Last, On Top of Everything) ===
+        // Tooltips
         if (!string.IsNullOrEmpty(hoveringBlessingId))
         {
             var hoveringState = manager.GetBlessingState(hoveringBlessingId);
             if (hoveringState != null)
             {
-                // Get all blessings for registry (needed for prerequisite names)
-                var allBlessings = new System.Collections.Generic.Dictionary<string, Models.Blessing>();
-                foreach (var state in manager.PlayerBlessingStates.Values)
-                    if (!allBlessings.ContainsKey(state.Blessing.BlessingId))
-                        allBlessings[state.Blessing.BlessingId] = state.Blessing;
-                foreach (var state in manager.ReligionBlessingStates.Values)
-                    if (!allBlessings.ContainsKey(state.Blessing.BlessingId))
-                        allBlessings[state.Blessing.BlessingId] = state.Blessing;
+                var allBlessings = new Dictionary<string, Blessing>();
+                foreach (var s in manager.PlayerBlessingStates.Values)
+                    if (!allBlessings.ContainsKey(s.Blessing.BlessingId))
+                        allBlessings[s.Blessing.BlessingId] = s.Blessing;
+                foreach (var s in manager.ReligionBlessingStates.Values)
+                    if (!allBlessings.ContainsKey(s.Blessing.BlessingId))
+                        allBlessings[s.Blessing.BlessingId] = s.Blessing;
 
-                // Build tooltip data
-                var tooltipData = Models.BlessingTooltipData.FromBlessingAndState(
+                var tooltipData = BlessingTooltipData.FromBlessingAndState(
                     hoveringState.Blessing,
                     hoveringState,
                     allBlessings
                 );
 
-                // Get mouse position
                 var mousePos = ImGui.GetMousePos();
-
-                // Render tooltip
-                TooltipRenderer.Draw(
-                    tooltipData,
-                    mousePos.X,
-                    mousePos.Y,
-                    windowWidth,
-                    windowHeight
-                );
+                TooltipRenderer.Draw(tooltipData, mousePos.X, mousePos.Y, windowWidth, windowHeight);
             }
         }
     }

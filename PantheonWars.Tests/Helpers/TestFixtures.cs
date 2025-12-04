@@ -10,7 +10,6 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Server;
-using IPlayerDataManager = PantheonWars.Systems.Interfaces.IPlayerDataManager;
 
 namespace PantheonWars.Tests.Helpers;
 
@@ -106,14 +105,6 @@ public static class TestFixtures
         mockRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Aethra)).Returns(2.0f);
 
         return mockRegistry;
-    }
-
-    /// <summary>
-    ///     Creates a mock IPlayerDataManager
-    /// </summary>
-    public static Mock<IPlayerDataManager> CreateMockPlayerDataManager()
-    {
-        return new Mock<IPlayerDataManager>();
     }
 
     /// <summary>

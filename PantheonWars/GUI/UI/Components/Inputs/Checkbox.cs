@@ -41,7 +41,7 @@ public static class Checkbox
 
         var mousePos = ImGui.GetMousePos();
         var isHovering = mousePos.X >= x && mousePos.X <= x + checkboxSize &&
-                        mousePos.Y >= y && mousePos.Y <= y + checkboxSize;
+                         mousePos.Y >= y && mousePos.Y <= y + checkboxSize;
 
         // Draw checkbox background
         var bgColor = isHovering
@@ -53,10 +53,7 @@ public static class Checkbox
         var borderColor = ImGui.ColorConvertFloat4ToU32(isChecked ? ColorPalette.Gold : ColorPalette.Grey * 0.5f);
         drawList.AddRect(checkboxStart, checkboxEnd, borderColor, 3f, ImDrawFlags.None, 1.5f);
 
-        if (isHovering)
-        {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-        }
+        if (isHovering) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
         // Draw checkmark if checked
         if (isChecked)

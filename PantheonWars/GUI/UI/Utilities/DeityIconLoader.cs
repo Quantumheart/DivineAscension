@@ -1,7 +1,6 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
-using ImGuiNET;
+using System.Diagnostics.CodeAnalysis;
 using PantheonWars.Models.Enum;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -35,10 +34,7 @@ internal static class DeityIconLoader
     /// </summary>
     private static LoadedTexture? LoadDeityTexture(DeityType deity)
     {
-        if (_api == null)
-        {
-            return null;
-        }
+        if (_api == null) return null;
 
         var deityName = deity.ToString().ToLowerInvariant();
         var assetPath = new AssetLocation($"pantheonwars:textures/icons/deities/{deityName}.png");
@@ -64,7 +60,7 @@ internal static class DeityIconLoader
             var texture = new LoadedTexture(_api)
             {
                 TextureId = textureId,
-                Width = 32,  // Deity icons are 32x32
+                Width = 32, // Deity icons are 32x32
                 Height = 32
             };
 
@@ -84,16 +80,10 @@ internal static class DeityIconLoader
     /// </summary>
     public static IntPtr GetDeityTextureId(DeityType deity)
     {
-        if (!_initialized || _api == null)
-        {
-            return IntPtr.Zero;
-        }
+        if (!_initialized || _api == null) return IntPtr.Zero;
 
         // Return cached texture ID if available
-        if (_textureIds.TryGetValue(deity, out var cachedId))
-        {
-            return cachedId;
-        }
+        if (_textureIds.TryGetValue(deity, out var cachedId)) return cachedId;
 
         // Load texture if not already loaded
         if (!_deityTextures.ContainsKey(deity))
@@ -140,10 +130,7 @@ internal static class DeityIconLoader
     /// </summary>
     public static void Dispose()
     {
-        foreach (var texture in _deityTextures.Values)
-        {
-            texture?.Dispose();
-        }
+        foreach (var texture in _deityTextures.Values) texture?.Dispose();
 
         _deityTextures.Clear();
         _textureIds.Clear();

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ProtoBuf;
 
@@ -33,6 +34,8 @@ public class PlayerReligionInfoResponsePacket
 
     [ProtoMember(12)] public List<BanInfo> BannedPlayers { get; set; } = new();
 
+    [ProtoMember(13)] public List<ReligionInviteInfo> PendingInvites { get; set; } = new();
+
     [ProtoContract]
     public class MemberInfo
     {
@@ -61,5 +64,17 @@ public class PlayerReligionInfoResponsePacket
         [ProtoMember(5)] public string ExpiresAt { get; set; } = string.Empty;
 
         [ProtoMember(6)] public bool IsPermanent { get; set; }
+    }
+
+    [ProtoContract]
+    public class ReligionInviteInfo
+    {
+        [ProtoMember(1)] public string InviteId { get; set; } = string.Empty;
+
+        [ProtoMember(2)] public string ReligionId { get; set; } = string.Empty;
+
+        [ProtoMember(3)] public string ReligionName { get; set; } = string.Empty;
+
+        [ProtoMember(4)] public DateTime ExpiresAt { get; set; }
     }
 }

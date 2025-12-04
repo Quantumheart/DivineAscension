@@ -1097,26 +1097,46 @@ public class CivilizationInfoOverlay : ModSystem
 
 #### Task 5.1: Manual Testing
 **Test Cases:**
-- [ ] Main tab switching works (Blessings ↔ Civilization)
-- [ ] All 4 civilization sub-tabs render correctly
-- [ ] Browse tab: deity filter works, scrolling works, "View Details" switches tabs
-- [ ] My Civilization tab: member list scrolls, invite input works, kick button works
+- [x] Main tab switching works (Blessings ↔ Civilization)
+- [x] All 4 civilization sub-tabs render correctly
+- [x] Browse tab: deity filter works, scrolling works, "View Details" switches tabs
+  - [x] refresh
+  - [x] filter
+  - [X] scroll
+  - [x] "View Details" 
+- [ ] My Civilization tab: invite input works, kick button works
+  - [ ] invite
+    - **TEST NOTES: invitation did not work through ui, but did work through commands**
+  - [ ] kick
+    - **TEST NOTES: does not work**
 - [ ] Invitations tab: invite list scrolls, accept/decline buttons work
-- [ ] Create tab: name input works, create button validates, clear button works
+    - **Testing notes: No invitations user interface to send invitations**
+  - [ ] scrolls
+  - [ ] accept
+  - [ ] decline
+- [x] Create tab: name input works, create button validates, clear button works
+  - [x] name input
+  - [x] clear
+  - [x] create
 - [ ] Data refreshes after actions (create, invite, accept, leave, kick, disband)
-- [ ] Event handlers update state correctly
-- [ ] No visual glitches (overlapping, incorrect sizing, etc.)
-- [ ] Shared components work correctly (tabs, buttons, inputs, scrolling)
-- [ ] Deity colors and titles display correctly
+  - [x] create
+  - [ ] invite
+  - [ ] accept
+  - [ ] kick
+  - [x] disband
+- [x] Event handlers update state correctly
+- [x] No visual glitches (overlapping, incorrect sizing, etc.)
+- [x] Shared components work correctly (tabs, buttons, inputs, scrolling)
+- [x] Deity colors and titles display correctly
 
 #### Task 5.2: Edge Case Testing
 **Edge Cases:**
-- [ ] No civilizations exist (empty list)
-- [ ] Player not in a civilization (My Civ tab shows info message)
-- [ ] No pending invitations (Invites tab shows empty message)
+- [x] No civilizations exist (empty list)
+- [x] Player not in a civilization (My Civ tab shows info message)
+- [x] No pending invitations (Invites tab shows empty message)
 - [ ] Civilization at capacity (4/4 members)
-- [ ] Long civilization names (32 characters)
-- [ ] Long religion names
+- [x] Long civilization names (32 characters)
+- [x] Long religion names
 - [ ] Many civilizations (scrolling performance)
 - [ ] Many members (scrolling performance)
 - [ ] Many invites (scrolling performance)
@@ -1129,7 +1149,6 @@ public class CivilizationInfoOverlay : ModSystem
 - [ ] Add tooltips for buttons and actions
 - [ ] Add audio feedback (button clicks, tab switches)
 - [ ] Ensure consistent spacing and alignment
-- [ ] Test at different window sizes
 
 **Success Criteria:**
 - ✅ All test cases pass
