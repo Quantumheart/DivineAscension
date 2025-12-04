@@ -629,23 +629,4 @@ public partial class BlessingDialog
             _manager!.CivState.LastActionError = packet.Message;
         }
     }
-
-    /// <summary>
-    ///     Handle Manage Civilization button click (for civ founders)
-    /// </summary>
-    private void OnManageCivilizationClicked()
-    {
-        _capi!.Logger.Debug("[PantheonWars] Manage Civilization clicked");
-
-        // Open civilization dialog on "My Civilization" tab
-        var civilizationDialog = _capi.ModLoader.GetModSystem<CivilizationDialog>();
-        if (civilizationDialog != null)
-        {
-            civilizationDialog.Open(initialTab: 1); // Open to "My Civilization" tab
-        }
-        else
-        {
-            _capi.ShowChatMessage("Civilization dialog not available!");
-        }
-    }
 }

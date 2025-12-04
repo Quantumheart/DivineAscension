@@ -231,8 +231,8 @@ public partial class BlessingDialog : ModSystem
             OnCloseButtonClicked,
             OnChangeReligionClicked,
             OnManageReligionClicked,
-            OnLeaveReligionClicked,
-            OnManageCivilizationClicked
+            OnLeaveReligionClicked
+            // OnManageCivilizationClicked
         );
 
         ImGui.End();
