@@ -18,6 +18,7 @@ namespace PantheonWars.GUI.UI.Renderers;
 ///     Displays as modal panel on top of Blessing Dialog
 /// </summary>
 [ExcludeFromCodeCoverage]
+[Obsolete("This overlay has been migrated to ReligionBrowseRenderer in the BlessingDialog tab system. Use BlessingDialog's Religion tab instead.")]
 internal static class ReligionBrowserOverlay
 {
     // State
@@ -111,7 +112,7 @@ internal static class ReligionBrowserOverlay
         currentY += headerSize.Y + padding * 2;
 
         // === DEITY FILTER TABS ===
-        var deityFilters = new[] { "All", "Khoras", "Lysa", "Morthen", "Aethra", "Umbros", "Tharos", "Gaia", "Vex" };
+        var deityFilters = new[] { "All", "Khoras", "Lysa", "Aethra", "Gaia" };
         const float tabHeight = 32f;
         const float tabSpacing = 4f;
 

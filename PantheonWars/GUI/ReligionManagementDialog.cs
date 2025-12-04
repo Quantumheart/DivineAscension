@@ -13,6 +13,7 @@ namespace PantheonWars.GUI;
 ///     Dialog for managing religions - browsing, creating, joining, and managing members (Phase 3.5)
 /// </summary>
 [ExcludeFromCodeCoverage]
+[Obsolete("This dialog has been migrated to ReligionTabRenderer in the BlessingDialog tab system. Use BlessingDialog's Religion tab instead.")]
 public class ReligionManagementDialog : GuiDialog
 {
     private readonly ICoreClientAPI _capi;

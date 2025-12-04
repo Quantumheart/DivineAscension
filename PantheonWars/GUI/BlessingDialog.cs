@@ -40,9 +40,6 @@ public partial class BlessingDialog : ModSystem
     // State
     private readonly BlessingDialogState _state = new();
 
-    // Overlay coordinator
-    private OverlayCoordinator? _overlayCoordinator;
-
     public override bool ShouldLoad(EnumAppSide forSide)
     {
         return forSide == EnumAppSide.Client;
@@ -66,9 +63,8 @@ public partial class BlessingDialog : ModSystem
             HotkeyType.GUIOrOtherControls, shiftPressed: true);
         _capi.Input.SetHotKeyHandler("pantheonwarsblessings", OnToggleDialog);
 
-        // Initialize manager and overlay coordinator
+        // Initialize manager
         _manager = new BlessingDialogManager(_capi);
-        _overlayCoordinator = new OverlayCoordinator();
 
         // Initialize deity icon loader
         UI.Utilities.DeityIconLoader.Initialize(_capi);
@@ -237,27 +233,6 @@ public partial class BlessingDialog : ModSystem
             OnManageReligionClicked,
             OnLeaveReligionClicked,
             OnManageCivilizationClicked
-        );
-
-        // Draw overlays using coordinator
-        _overlayCoordinator!.RenderOverlays(
-            _capi,
-            windowWidth,
-            windowHeight,
-            _manager!,
-            OnJoinReligionClicked,
-            OnRefreshReligionList,
-            OnCreateReligionClicked,
-            OnCreateReligionSubmit,
-            OnKickMemberClicked,
-            OnBanMemberClicked,
-            OnUnbanMemberClicked,
-            OnInvitePlayerClicked,
-            OnEditDescriptionClicked,
-            OnDisbandReligionClicked,
-            OnRequestReligionInfo,
-            OnLeaveReligionCancelled,
-            OnLeaveReligionConfirmed
         );
 
         ImGui.End();

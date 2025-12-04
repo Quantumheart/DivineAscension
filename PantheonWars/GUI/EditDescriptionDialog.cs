@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using PantheonWars.Network;
 using Vintagestory.API.Client;
@@ -8,6 +9,7 @@ namespace PantheonWars.GUI;
 ///     Dialog for editing religion description
 /// </summary>
 [ExcludeFromCodeCoverage]
+[Obsolete("This dialog has been migrated to ReligionMyReligionRenderer with inline description editing in the BlessingDialog tab system. Use BlessingDialog's Religion tab instead.")]
 public class EditDescriptionDialog : GuiDialog
 {
     private readonly ICoreClientAPI _capi;

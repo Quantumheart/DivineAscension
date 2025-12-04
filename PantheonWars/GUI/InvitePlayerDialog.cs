@@ -10,6 +10,7 @@ namespace PantheonWars.GUI;
 ///     Dialog for inviting a player to the religion
 /// </summary>
 [ExcludeFromCodeCoverage]
+[Obsolete("This dialog has been migrated to ReligionMyReligionRenderer with inline invite functionality in the BlessingDialog tab system. Use BlessingDialog's Religion tab instead.")]
 public class InvitePlayerDialog : GuiDialog
 {
     private readonly ICoreClientAPI _capi;

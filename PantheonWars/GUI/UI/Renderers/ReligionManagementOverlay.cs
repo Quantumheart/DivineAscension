@@ -18,6 +18,7 @@ namespace PantheonWars.GUI.UI.Renderers;
 ///     Displays member list, kick, invite, edit description, disband
 /// </summary>
 [ExcludeFromCodeCoverage]
+[Obsolete("This overlay has been migrated to ReligionMyReligionRenderer in the BlessingDialog tab system. Use BlessingDialog's Religion tab instead.")]
 internal static class ReligionManagementOverlay
 {
     // State

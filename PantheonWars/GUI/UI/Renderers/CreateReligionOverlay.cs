@@ -15,6 +15,7 @@ namespace PantheonWars.GUI.UI.Renderers;
 ///     Displays as modal form on top of browser
 /// </summary>
 [ExcludeFromCodeCoverage]
+[Obsolete("This overlay has been migrated to ReligionCreateRenderer in the BlessingDialog tab system. Use BlessingDialog's Religion tab instead.")]
 internal static class CreateReligionOverlay
 {
     // State

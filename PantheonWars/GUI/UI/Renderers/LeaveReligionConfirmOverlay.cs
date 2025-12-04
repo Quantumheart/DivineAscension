@@ -12,6 +12,7 @@ namespace PantheonWars.GUI.UI.Renderers;
 ///     Confirmation overlay for leaving a religion
 /// </summary>
 [ExcludeFromCodeCoverage]
+[Obsolete("This overlay has been migrated to ConfirmOverlay in the BlessingDialog tab system with inline confirmation in ReligionMyReligionRenderer. Use BlessingDialog's Religion tab instead.")]
 internal static class LeaveReligionConfirmOverlay
 {
     /// <summary>

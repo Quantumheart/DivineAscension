@@ -11,6 +11,7 @@ namespace PantheonWars.GUI;
 ///     Dialog for creating a new religion
 /// </summary>
 [ExcludeFromCodeCoverage]
+[Obsolete("This dialog has been migrated to ReligionCreateRenderer in the BlessingDialog tab system. Use BlessingDialog's Religion tab instead.")]
 public class CreateReligionDialog : GuiDialog
 {
     private readonly ICoreClientAPI _capi;

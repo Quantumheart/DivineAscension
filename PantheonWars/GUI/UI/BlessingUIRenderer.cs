@@ -5,6 +5,7 @@ using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Components;
 using PantheonWars.GUI.UI.Renderers;
 using PantheonWars.GUI.UI.Renderers.Civilization;
+using PantheonWars.GUI.UI.Renderers.Religion;
 using PantheonWars.GUI.UI.Utilities;
 using Vintagestory.API.Client;
 
@@ -84,7 +85,19 @@ internal static class BlessingUIRenderer
         {
             state.CurrentMainTab = newMainTab;
 
-            if (newMainTab == 2) // Civilization tab
+            if (newMainTab == 1) // Religion tab
+            {
+                // Request both browse and my religion data
+                manager.ReligionState.IsBrowseLoading = true;
+                manager.RequestReligionList(manager.ReligionState.DeityFilter);
+
+                if (manager.HasReligion())
+                {
+                    manager.ReligionState.IsMyReligionLoading = true;
+                    manager.RequestPlayerReligionInfo();
+                }
+            }
+            else if (newMainTab == 2) // Civilization tab
             {
                 manager.RequestCivilizationList(manager.CivState.DeityFilter);
                 manager.RequestCivilizationInfo("");
@@ -102,13 +115,8 @@ internal static class BlessingUIRenderer
                 DrawBlessingsTab(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight,
                     windowWidth, windowHeight, deltaTime, onUnlockClicked, onCloseClicked);
                 break;
-            case 1: // Manage Religion (placeholder)
-                TextRenderer.DrawInfoText(drawList,
-                    "Religion management coming soon!",
-                    windowPos.X + x,
-                    windowPos.Y + y,
-                    width,
-                    14f);
+            case 1: // Manage Religion
+                ReligionTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);
                 break;
             case 2: // Civilization
                 CivilizationTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);

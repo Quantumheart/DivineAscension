@@ -12,6 +12,7 @@ namespace PantheonWars.GUI;
 ///     Dialog for banning a player from the religion
 /// </summary>
 [ExcludeFromCodeCoverage]
+[Obsolete("This dialog has been migrated to ReligionMyReligionRenderer with inline ban functionality in the BlessingDialog tab system. Use BlessingDialog's Religion tab instead.")]
 public class BanPlayerDialog : GuiDialog
 {
     private readonly ICoreClientAPI _capi;

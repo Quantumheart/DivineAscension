@@ -9,6 +9,7 @@ namespace PantheonWars.GUI;
 ///     Manages the visibility and coordination of overlay windows (Religion Browser, Management, etc.)
 /// </summary>
 [ExcludeFromCodeCoverage]
+[Obsolete("OverlayCoordinator and all religion overlays have been migrated to the BlessingDialog tab system. This class will be removed in a future update.")]
 public class OverlayCoordinator : IOverlayCoordinator
 {
     private bool _showReligionBrowser;

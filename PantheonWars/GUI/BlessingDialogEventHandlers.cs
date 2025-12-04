@@ -124,7 +124,6 @@ public partial class BlessingDialog
         _capi.ShowChatMessage(packet.Reason);
 
         // Close any open overlays
-        _overlayCoordinator!.CloseAllOverlays();
 
         // Reset blessing dialog state to "No Religion" mode
         _manager!.Reset();
@@ -180,10 +179,12 @@ public partial class BlessingDialog
     private void OnChangeReligionClicked()
     {
         _capi!.Logger.Debug("[PantheonWars] Opening religion browser");
-        _overlayCoordinator!.ShowReligionBrowser();
+        // Switch to Religion tab, Browse sub-tab
+        _state!.CurrentMainTab = 1; // Religion tab
+        _manager!.ReligionState.CurrentSubTab = 0; // Browse sub-tab
 
-        // Initialize overlay and request religion list
-        UI.Renderers.ReligionBrowserOverlay.Initialize();
+        // Request religion list
+        _manager.ReligionState.IsBrowseLoading = true;
         _pantheonWarsSystem?.RequestReligionList("");
     }
 
@@ -193,10 +194,12 @@ public partial class BlessingDialog
     private void OnManageReligionClicked()
     {
         _capi!.Logger.Debug("[PantheonWars] Manage Religion clicked");
-        _overlayCoordinator!.ShowReligionManagement();
-        UI.Renderers.ReligionManagementOverlay.Initialize();
+        // Switch to Religion tab, My Religion sub-tab
+        _state!.CurrentMainTab = 1; // Religion tab
+        _manager!.ReligionState.CurrentSubTab = 1; // My Religion sub-tab
 
-        // Request religion info from server
+        // Request religion info
+        _manager.ReligionState.IsMyReligionLoading = true;
         _pantheonWarsSystem?.RequestPlayerReligionInfo();
     }
 
@@ -206,7 +209,8 @@ public partial class BlessingDialog
     private void OnReligionListReceived(ReligionListResponsePacket packet)
     {
         _capi!.Logger.Debug($"[PantheonWars] Received {packet.Religions.Count} religions from server");
-        UI.Renderers.ReligionBrowserOverlay.UpdateReligionList(packet.Religions);
+        // Update manager religion tab state
+        _manager!.UpdateReligionList(packet.Religions);
     }
 
     /// <summary>
@@ -220,9 +224,10 @@ public partial class BlessingDialog
         {
             _capi.ShowChatMessage(packet.Message);
 
-            // Close any open overlays
-            _overlayCoordinator!.CloseReligionBrowser();
-            _overlayCoordinator.CloseLeaveConfirmation();
+            // Play success sound
+            _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
+                _capi.World.Player.Entity, null, false, 8f, 0.5f);
+
 
             // If leaving religion, reset blessing dialog state immediately
             if (packet.Action == "leave")
@@ -231,14 +236,23 @@ public partial class BlessingDialog
                 _manager!.Reset();
             }
 
+            // Refresh religion tab data
+            _manager!.ReligionState.IsBrowseLoading = true;
+            _pantheonWarsSystem?.RequestReligionList(_manager.ReligionState.DeityFilter);
+
+            if (_manager.HasReligion() && packet.Action != "leave")
+            {
+                _manager.ReligionState.IsMyReligionLoading = true;
+                _pantheonWarsSystem?.RequestPlayerReligionInfo();
+            }
+
             // Request fresh blessing data (religion may have changed)
             _pantheonWarsSystem?.RequestBlessingData();
 
-            // Request updated religion info to refresh member count (for join/kick/ban/invite actions)
-            if (packet.Action == "join" || packet.Action == "kick" || packet.Action == "ban" || packet.Action == "invite")
-            {
-                _pantheonWarsSystem?.RequestPlayerReligionInfo();
-            }
+            // Clear confirmations
+            _manager.ReligionState.ShowDisbandConfirm = false;
+            _manager.ReligionState.KickConfirmPlayerUID = null;
+            _manager.ReligionState.BanConfirmPlayerUID = null;
         }
         else
         {
@@ -247,6 +261,9 @@ public partial class BlessingDialog
             // Play error sound
             _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
                 _capi.World.Player.Entity, null, false, 8f, 0.5f);
+
+            // Store error in state
+            _manager!.ReligionState.LastActionError = packet.Message;
         }
     }
 
@@ -278,7 +295,7 @@ public partial class BlessingDialog
         if (_manager!.HasReligion())
         {
             // Show confirmation dialog
-            _overlayCoordinator!.ShowLeaveConfirmation();
+            // _overlayCoordinator!.ShowLeaveConfirmation();
         }
         else
         {
@@ -295,7 +312,6 @@ public partial class BlessingDialog
     {
         _capi!.Logger.Debug("[PantheonWars] Leave religion confirmed");
         _pantheonWarsSystem?.RequestReligionAction("leave", _manager!.CurrentReligionUID ?? "");
-        _overlayCoordinator!.CloseLeaveConfirmation();
     }
 
     /// <summary>
@@ -304,7 +320,6 @@ public partial class BlessingDialog
     private void OnLeaveReligionCancelled()
     {
         _capi!.Logger.Debug("[PantheonWars] Leave religion cancelled");
-        _overlayCoordinator!.CloseLeaveConfirmation();
     }
 
     /// <summary>
@@ -313,8 +328,9 @@ public partial class BlessingDialog
     private void OnCreateReligionClicked()
     {
         _capi!.Logger.Debug("[PantheonWars] Create Religion clicked");
-        _overlayCoordinator!.ShowCreateReligion();
-        UI.Renderers.CreateReligionOverlay.Initialize();
+        // Switch to Religion tab, Create sub-tab
+        _state!.CurrentMainTab = 1;
+        _manager!.ReligionState.CurrentSubTab = 4; // Create sub-tab is index 4
     }
 
     /// <summary>
@@ -326,8 +342,6 @@ public partial class BlessingDialog
         _pantheonWarsSystem?.RequestCreateReligion(religionName, deity, isPublic);
 
         // Close create form and show browser to see the new religion
-        _overlayCoordinator!.CloseCreateReligion();
-        _overlayCoordinator.ShowReligionBrowser();
 
         // Request updated religion list to show the newly created religion
         _pantheonWarsSystem?.RequestReligionList("");
@@ -340,21 +354,22 @@ public partial class BlessingDialog
     {
         _capi!.Logger.Debug($"[PantheonWars] Received player religion info: HasReligion={packet.HasReligion}, IsFounder={packet.IsFounder}");
 
+        // Update manager religion tab state
+        _manager!.UpdatePlayerReligionInfo(packet);
+
         // Update manager with player's role (enables Manage Religion button for leaders)
         if (packet.HasReligion)
         {
-            _manager!.PlayerRoleInReligion = packet.IsFounder ? "Leader" : "Member";
+            _manager.PlayerRoleInReligion = packet.IsFounder ? "Leader" : "Member";
             _manager.ReligionMemberCount = packet.Members.Count;
             _capi!.Logger.Debug($"[PantheonWars] Set PlayerRoleInReligion to: {_manager.PlayerRoleInReligion}, MemberCount: {_manager.ReligionMemberCount}");
         }
         else
         {
-            _manager!.PlayerRoleInReligion = null;
+            _manager.PlayerRoleInReligion = null;
             _manager.ReligionMemberCount = 0;
             _capi!.Logger.Debug("[PantheonWars] Cleared PlayerRoleInReligion (no religion)");
         }
-
-        UI.Renderers.ReligionManagementOverlay.UpdateReligionInfo(packet);
     }
 
     /// <summary>
@@ -423,9 +438,6 @@ public partial class BlessingDialog
     {
         _capi!.Logger.Debug("[PantheonWars] Disbanding religion");
         _pantheonWarsSystem?.RequestReligionAction("disband", _manager!.CurrentReligionUID ?? "");
-
-        // Close management overlay
-        _overlayCoordinator!.CloseReligionManagement();
     }
 
     /// <summary>

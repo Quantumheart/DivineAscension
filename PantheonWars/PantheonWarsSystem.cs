@@ -37,7 +37,6 @@ public class PantheonWarsSystem : ModSystem
     private IClientNetworkChannel? _clientChannel;
     private DeityRegistry? _clientDeityRegistry;
     private AbilityCooldownManager? _cooldownManager;
-    private CreateReligionDialog? _createReligionDialog;
     private DeityCommands? _deityCommands;
     private DeityRegistry? _deityRegistry;
     private FavorCommands? _favorCommands;
@@ -49,7 +48,6 @@ public class PantheonWarsSystem : ModSystem
     private PlayerReligionDataManager? _playerReligionDataManager;
     private PvPManager? _pvpManager;
     private ReligionCommands? _religionCommands;
-    private ReligionManagementDialog? _religionDialog;
     private ReligionManager? _religionManager;
     private ReligionPrestigeManager? _religionPrestigeManager;
 
@@ -223,10 +221,6 @@ public class PantheonWarsSystem : ModSystem
 
         // Clear static events
         PitKilnPatches.ClearSubscribers();
-
-        // Cleanup dialogs
-        _religionDialog?.Dispose();
-        _createReligionDialog?.Dispose();
     }
 
     #region Server Networking
@@ -1268,19 +1262,16 @@ public class PantheonWarsSystem : ModSystem
 
     private void OnReligionListResponse(ReligionListResponsePacket packet)
     {
-        _religionDialog?.OnReligionListResponse(packet);
         ReligionListReceived?.Invoke(packet);
     }
 
     private void OnPlayerReligionInfoResponse(PlayerReligionInfoResponsePacket packet)
     {
-        _religionDialog?.OnPlayerReligionInfoResponse(packet);
         PlayerReligionInfoReceived?.Invoke(packet);
     }
 
     private void OnReligionActionResponse(ReligionActionResponsePacket packet)
     {
-        _religionDialog?.OnActionResponse(packet);
         ReligionActionCompleted?.Invoke(packet);
     }
 
@@ -1289,13 +1280,6 @@ public class PantheonWarsSystem : ModSystem
         if (packet.Success)
         {
             _capi?.ShowChatMessage(packet.Message);
-
-            // Refresh religion dialog data
-            if (_religionDialog != null && _religionDialog.IsOpened())
-            {
-                _religionDialog.TryClose();
-                _religionDialog.TryOpen(); // Reopen to refresh
-            }
 
             // Request fresh blessing data (now in a religion)
             // Use a small delay to ensure server has processed the religion creation
@@ -1320,12 +1304,6 @@ public class PantheonWarsSystem : ModSystem
         if (packet.Success)
         {
             _capi?.ShowChatMessage(packet.Message);
-            // Refresh religion dialog to show updated description
-            if (_religionDialog != null && _religionDialog.IsOpened())
-            {
-                _religionDialog.TryClose();
-                _religionDialog.TryOpen(); // Reopen to refresh
-            }
         }
         else
         {

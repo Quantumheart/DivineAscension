@@ -14,6 +14,7 @@ namespace PantheonWars.GUI;
 ///     Dialog for selecting a deity to pledge to
 /// </summary>
 [ExcludeFromCodeCoverage]
+[Obsolete("This dialog has been migrated to ReligionCreateRenderer with inline deity selection in the BlessingDialog tab system. Use BlessingDialog's Religion tab instead.")]
 public class DeitySelectionDialog : GuiDialog
 {
     private readonly IDeityRegistry _deityRegistry;

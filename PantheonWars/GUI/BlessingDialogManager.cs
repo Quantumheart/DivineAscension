@@ -23,6 +23,7 @@ public class BlessingDialogManager : IBlessingDialogManager
 
     // Composite UI state
     public CivilizationState CivState { get; } = new();
+    public ReligionTabState ReligionState { get; } = new();
 
     // Religion and deity state
     public string? CurrentReligionUID { get; set; }
@@ -110,6 +111,9 @@ public class BlessingDialogManager : IBlessingDialogManager
         CivilizationFounderReligionUID = null;
         CivilizationMemberReligions.Clear();
         CivState.Reset();
+
+        // Clear religion tab state
+        ReligionState.Reset();
 
         // Clear blessing trees
         PlayerBlessingStates.Clear();
@@ -368,5 +372,60 @@ public class BlessingDialogManager : IBlessingDialogManager
         CivState.LastActionError = null;
         var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
         system?.RequestCivilizationAction(action, civId, targetId, name);
+    }
+
+    /// <summary>
+    ///     Request the list of religions from the server (filtered by deity when provided)
+    /// </summary>
+    public void RequestReligionList(string deityFilter = "")
+    {
+        // Set loading state for browse
+        ReligionState.IsBrowseLoading = true;
+        ReligionState.BrowseError = null;
+        var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
+        system?.RequestReligionList(deityFilter);
+    }
+
+    /// <summary>
+    ///     Request player's current religion information from the server
+    /// </summary>
+    public void RequestPlayerReligionInfo()
+    {
+        ReligionState.IsMyReligionLoading = true;
+        ReligionState.MyReligionError = null;
+        var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
+        system?.RequestPlayerReligionInfo();
+    }
+
+    /// <summary>
+    ///     Request a religion action (create, join, leave, invite, kick, ban, unban, edit_description, disband)
+    /// </summary>
+    public void RequestReligionAction(string action, string religionUID = "", string targetPlayerUID = "")
+    {
+        // Clear transient action error
+        ReligionState.LastActionError = null;
+        var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
+        system?.RequestReligionAction(action, religionUID, targetPlayerUID);
+    }
+
+    /// <summary>
+    ///     Update religion list from server response
+    /// </summary>
+    public void UpdateReligionList(List<Network.ReligionListResponsePacket.ReligionInfo> religions)
+    {
+        ReligionState.AllReligions = religions;
+        ReligionState.IsBrowseLoading = false;
+        ReligionState.BrowseError = null;
+    }
+
+    /// <summary>
+    ///     Update player religion info from server response
+    /// </summary>
+    public void UpdatePlayerReligionInfo(Network.PlayerReligionInfoResponsePacket? info)
+    {
+        ReligionState.MyReligionInfo = info;
+        ReligionState.Description = info?.Description ?? string.Empty;
+        ReligionState.IsMyReligionLoading = false;
+        ReligionState.MyReligionError = null;
     }
 }
