@@ -16,8 +16,8 @@ public class CivilizationState
     public string DeityFilter { get; set; } = string.Empty;
     public string SearchText { get; set; } = string.Empty;
     public List<CivilizationListResponsePacket.CivilizationInfo> AllCivilizations { get; set; } = new();
-    public float BrowseScrollY { get; set; } = 0f;
-    public bool IsDeityFilterOpen { get; set; } = false;
+    public float BrowseScrollY { get; set; }
+    public bool IsDeityFilterOpen { get; set; }
 
     // Detail view for any civilization (when clicking "View Details")
     public string? ViewingCivilizationId { get; set; }
@@ -25,22 +25,22 @@ public class CivilizationState
 
     // My Civilization tab
     public CivilizationInfoResponsePacket.CivilizationDetails? MyCivilization { get; set; }
-    public float MemberScrollY { get; set; } = 0f;
+    public float MemberScrollY { get; set; }
     public string InviteReligionName { get; set; } = string.Empty;
 
     // Invites tab
     public List<CivilizationInfoResponsePacket.PendingInvite> MyInvites { get; set; } = new();
-    public float InvitesScrollY { get; set; } = 0f;
+    public float InvitesScrollY { get; set; }
 
     // Create tab
     public string CreateCivName { get; set; } = string.Empty;
     public string CreateDescription { get; set; } = string.Empty;
 
     // Loading flags
-    public bool IsBrowseLoading { get; set; } = false;
-    public bool IsMyCivLoading { get; set; } = false;
-    public bool IsInvitesLoading { get; set; } = false;
-    public bool IsDetailsLoading { get; set; } = false;
+    public bool IsBrowseLoading { get; set; }
+    public bool IsMyCivLoading { get; set; }
+    public bool IsInvitesLoading { get; set; }
+    public bool IsDetailsLoading { get; set; }
 
     // Error messages (null = no error)
     public string? BrowseError { get; set; }
@@ -50,7 +50,7 @@ public class CivilizationState
     public string? LastActionError { get; set; }
 
     // Confirmation flags
-    public bool ShowDisbandConfirm { get; set; } = false;
+    public bool ShowDisbandConfirm { get; set; }
     public string? KickConfirmReligionId { get; set; }
 
     /// <summary>
@@ -97,6 +97,6 @@ public enum CivilizationSubTab
 {
     Browse,
     MyCiv,
-    Invites,    
-    Create,
+    Invites,
+    Create
 }

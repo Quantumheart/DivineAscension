@@ -24,11 +24,11 @@ internal static class DeityHelper
     {
         return deity switch
         {
-            "Khoras" => new Vector4(0.8f, 0.2f, 0.2f, 1.0f),      // Red - Forge & Craft
-            "Lysa" => new Vector4(0.4f, 0.8f, 0.3f, 1.0f),        // Green - Hunt & Wild
-            "Aethra" => new Vector4(0.9f, 0.9f, 0.6f, 1.0f),      // Light yellow - Agriculture & Light
-            "Gaia" => new Vector4(0.5f, 0.4f, 0.2f, 1.0f),        // Brown - Earth & Stone
-            _ => new Vector4(0.5f, 0.5f, 0.5f, 1.0f)              // Grey - Unknown
+            "Khoras" => new Vector4(0.8f, 0.2f, 0.2f, 1.0f), // Red - Forge & Craft
+            "Lysa" => new Vector4(0.4f, 0.8f, 0.3f, 1.0f), // Green - Hunt & Wild
+            "Aethra" => new Vector4(0.9f, 0.9f, 0.6f, 1.0f), // Light yellow - Agriculture & Light
+            "Gaia" => new Vector4(0.5f, 0.4f, 0.2f, 1.0f), // Brown - Earth & Stone
+            _ => new Vector4(0.5f, 0.5f, 0.5f, 1.0f) // Grey - Unknown
         };
     }
 
@@ -39,11 +39,11 @@ internal static class DeityHelper
     {
         return deity switch
         {
-            DeityType.Khoras => new Vector4(0.8f, 0.2f, 0.2f, 1.0f),      // Red - Forge & Craft
-            DeityType.Lysa => new Vector4(0.4f, 0.8f, 0.3f, 1.0f),        // Green - Hunt & Wild
-            DeityType.Aethra => new Vector4(0.9f, 0.9f, 0.6f, 1.0f),      // Light yellow - Agriculture & Light
-            DeityType.Gaia => new Vector4(0.5f, 0.4f, 0.2f, 1.0f),        // Brown - Earth & Stone
-            _ => new Vector4(0.5f, 0.5f, 0.5f, 1.0f)                      // Grey - Unknown
+            DeityType.Khoras => new Vector4(0.8f, 0.2f, 0.2f, 1.0f), // Red - Forge & Craft
+            DeityType.Lysa => new Vector4(0.4f, 0.8f, 0.3f, 1.0f), // Green - Hunt & Wild
+            DeityType.Aethra => new Vector4(0.9f, 0.9f, 0.6f, 1.0f), // Light yellow - Agriculture & Light
+            DeityType.Gaia => new Vector4(0.5f, 0.4f, 0.2f, 1.0f), // Brown - Earth & Stone
+            _ => new Vector4(0.5f, 0.5f, 0.5f, 1.0f) // Grey - Unknown
         };
     }
 

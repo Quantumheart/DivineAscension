@@ -15,19 +15,19 @@ public class ReligionTabState
     // Browse tab state
     public string DeityFilter { get; set; } = string.Empty;
     public List<ReligionListResponsePacket.ReligionInfo> AllReligions { get; set; } = new();
-    public float BrowseScrollY { get; set; } = 0f;
-    public bool IsBrowseLoading { get; set; } = false;
+    public float BrowseScrollY { get; set; }
+    public bool IsBrowseLoading { get; set; }
     public string? SelectedReligionUID { get; set; }
 
     // My Religion tab state
     public PlayerReligionInfoResponsePacket? MyReligionInfo { get; set; }
-    public float MyReligionScrollY { get; set; } = 0f;
-    public float MemberScrollY { get; set; } = 0f;
-    public float BanListScrollY { get; set; } = 0f;
+    public float MyReligionScrollY { get; set; }
+    public float MemberScrollY { get; set; }
+    public float BanListScrollY { get; set; }
     public string InvitePlayerName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public bool IsMyReligionLoading { get; set; } = false;
-    public bool ShowDisbandConfirm { get; set; } = false;
+    public bool IsMyReligionLoading { get; set; }
+    public bool ShowDisbandConfirm { get; set; }
     public string? KickConfirmPlayerUID { get; set; }
     public string? BanConfirmPlayerUID { get; set; }
     public string? KickConfirmPlayerName { get; set; }
@@ -35,8 +35,8 @@ public class ReligionTabState
 
     // Invites sub-tab state (visible when player has no religion)
     public List<PlayerReligionInfoResponsePacket.ReligionInviteInfo> MyInvites { get; set; } = new();
-    public float InvitesScrollY { get; set; } = 0f;
-    public bool IsInvitesLoading { get; set; } = false;
+    public float InvitesScrollY { get; set; }
+    public bool IsInvitesLoading { get; set; }
     public string? InvitesError { get; set; }
 
     // Create tab state
@@ -46,10 +46,10 @@ public class ReligionTabState
 
     // Activity tab state (placeholder for now)
     public List<string> ActivityLog { get; set; } = new(); // Future: activity events
-    public float ActivityScrollY { get; set; } = 0f;
+    public float ActivityScrollY { get; set; }
 
     // Bonuses tab state
-    public float BonusScrollY { get; set; } = 0f;
+    public float BonusScrollY { get; set; }
 
     // Error handling
     public string? LastActionError { get; set; }
@@ -110,6 +110,7 @@ public class ReligionTabState
         CreateError = null;
     }
 }
+
 public enum ReligionSubTab
 {
     Browse = 0,

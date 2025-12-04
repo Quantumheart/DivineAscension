@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using PantheonWars.Models.Enum;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -18,7 +19,8 @@ public class DeityCommands
     private readonly IPlayerReligionDataManager _religionDataManager;
     private readonly ICoreServerAPI _sapi;
 
-    public DeityCommands(ICoreServerAPI sapi, IDeityRegistry deityRegistry, IPlayerReligionDataManager religionDataManager)
+    public DeityCommands(ICoreServerAPI sapi, IDeityRegistry deityRegistry,
+        IPlayerReligionDataManager religionDataManager)
     {
         _sapi = sapi;
         _deityRegistry = deityRegistry;
@@ -127,7 +129,7 @@ public class DeityCommands
             return TextCommandResult.Error($"You are already pledged to {deity.Name} through your religion!");
 
         // Warn if already in a religion with a deity
-        if (religionData.ActiveDeity != Models.Enum.DeityType.None)
+        if (religionData.ActiveDeity != DeityType.None)
         {
             var currentDeity = _deityRegistry.GetDeity(religionData.ActiveDeity);
             var currentName = currentDeity?.Name ?? religionData.ActiveDeity.ToString();
@@ -151,7 +153,7 @@ public class DeityCommands
 
         var religionData = _religionDataManager.GetOrCreatePlayerData(player.PlayerUID);
 
-        if (religionData.ActiveDeity == Models.Enum.DeityType.None)
+        if (religionData.ActiveDeity == DeityType.None)
             return TextCommandResult.Success(
                 "You are not in a religion or do not have an active deity. Use /deity list to see available deities.");
 
@@ -182,7 +184,8 @@ public class DeityCommands
 
         var religionData = _religionDataManager.GetOrCreatePlayerData(player.PlayerUID);
 
-        if (religionData.ActiveDeity == Models.Enum.DeityType.None) return TextCommandResult.Success("You are not in a religion or do not have an active deity.");
+        if (religionData.ActiveDeity == DeityType.None)
+            return TextCommandResult.Success("You are not in a religion or do not have an active deity.");
 
         var deity = _deityRegistry.GetDeity(religionData.ActiveDeity);
         var deityName = deity?.Name ?? religionData.ActiveDeity.ToString();

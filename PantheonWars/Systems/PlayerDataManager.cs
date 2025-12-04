@@ -65,7 +65,8 @@ public class PlayerDataManager : IPlayerDataManager
     ///     Checks if player has pledged to a deity
     ///     DEPRECATED: Use PlayerReligionDataManager.GetOrCreatePlayerData() and check ActiveDeity instead
     /// </summary>
-    [Obsolete("Use PlayerReligionDataManager.GetOrCreatePlayerData() and check ActiveDeity != DeityType.None instead. This method will be removed in v2.0.0")]
+    [Obsolete(
+        "Use PlayerReligionDataManager.GetOrCreatePlayerData() and check ActiveDeity != DeityType.None instead. This method will be removed in v2.0.0")]
     public bool HasDeity(string playerUID)
     {
         var data = GetOrCreatePlayerData(playerUID);

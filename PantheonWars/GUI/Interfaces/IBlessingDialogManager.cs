@@ -43,7 +43,8 @@ public interface IBlessingDialogManager
     /// <summary>
     ///     Initialize dialog state from player's current religion data
     /// </summary>
-    void Initialize(string? religionUID, DeityType deity, string? religionName, int favorRank = 0, int prestigeRank = 0);
+    void Initialize(string? religionUID, DeityType deity, string? religionName, int favorRank = 0,
+        int prestigeRank = 0);
 
     /// <summary>
     ///     Reset all state

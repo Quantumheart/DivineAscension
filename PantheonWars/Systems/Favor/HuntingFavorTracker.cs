@@ -13,14 +13,6 @@ public class HuntingFavorTracker(
     ICoreServerAPI sapi,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
-    public DeityType DeityType { get; } = DeityType.Lysa;
-
-    private readonly IPlayerReligionDataManager _playerReligionDataManager =
-        playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
-
-    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
-    private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
-
     private readonly Dictionary<string, int> _animalFavorValues = new()
     {
         { "wolf", 12 },
@@ -39,7 +31,24 @@ public class HuntingFavorTracker(
         { "gazelle", 8 }
     };
 
+    private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+
     private readonly HashSet<string> _lysaFollowers = new();
+
+    private readonly IPlayerReligionDataManager _playerReligionDataManager =
+        playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+
+    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+
+    public void Dispose()
+    {
+        _sapi.Event.OnEntityDeath -= OnEntityDeath;
+        _playerReligionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
+        _playerReligionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
+        _lysaFollowers.Clear();
+    }
+
+    public DeityType DeityType { get; } = DeityType.Lysa;
 
 
     public void Initialize()
@@ -58,13 +67,13 @@ public class HuntingFavorTracker(
         var onlinePlayers = _sapi?.World?.AllOnlinePlayers;
         if (onlinePlayers == null) return;
 
-        foreach (var player in onlinePlayers)
-        {
-            UpdateFollower(player.PlayerUID);
-        }
+        foreach (var player in onlinePlayers) UpdateFollower(player.PlayerUID);
     }
 
-    private void OnPlayerDataChanged(string playerId) => UpdateFollower(playerId);
+    private void OnPlayerDataChanged(string playerId)
+    {
+        UpdateFollower(playerId);
+    }
 
     private void UpdateFollower(string playerId)
     {
@@ -85,16 +94,13 @@ public class HuntingFavorTracker(
         if (entity == null || damageSource == null) return;
 
         // Check if the killer is a player
-        Entity killer = damageSource.GetCauseEntity();
+        var killer = damageSource.GetCauseEntity();
         if (killer is EntityPlayer { Player: IServerPlayer player })
         {
             if (!_lysaFollowers.Contains(player.PlayerUID)) return;
 
-            int favor = GetFavorForEntity(entity);
-            if (favor > 0)
-            {
-                _favorSystem.AwardFavorForAction(player, "hunting " + entity.Code.Path, favor);
-            }
+            var favor = GetFavorForEntity(entity);
+            if (favor > 0) _favorSystem.AwardFavorForAction(player, "hunting " + entity.Code.Path, favor);
         }
     }
 
@@ -102,28 +108,19 @@ public class HuntingFavorTracker(
     {
         if (entity is not EntityAgent || entity is EntityPlayer) return 0;
 
-        string code = entity.Code.Path.ToLower();
+        var code = entity.Code.Path.ToLower();
 
         // Monster check
         if (code.Contains("drifter") || code.Contains("locust") || code.Contains("bell")) return 0;
 
         // Check exact matches or contains
         foreach (var kvp in _animalFavorValues)
-        {
-            if (code.Contains(kvp.Key)) return kvp.Value;
-        }
+            if (code.Contains(kvp.Key))
+                return kvp.Value;
 
         // Generic fallback
         if (code.StartsWith("animal") || code.Contains("/animal/")) return 3;
 
         return 0;
-    }
-
-    public void Dispose()
-    {
-        _sapi.Event.OnEntityDeath -= OnEntityDeath;
-        _playerReligionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
-        _playerReligionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
-        _lysaFollowers.Clear();
     }
 }

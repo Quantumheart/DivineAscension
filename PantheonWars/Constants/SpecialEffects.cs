@@ -10,7 +10,6 @@ namespace PantheonWars.Constants;
 [ExcludeFromCodeCoverage]
 public static class SpecialEffects
 {
-
     #region Lysa (Hunt & Wild) Effects
 
     /// <summary>
@@ -27,9 +26,9 @@ public static class SpecialEffects
     ///     Temperature Resistance: Passive body temperature regulation
     /// </summary>
     public const string TemperatureResistance = "temperature_resistance";
-    
+
     #endregion
-    
+
     #region Khoras (Forge & Craft) Effects
 
     /// <summary>

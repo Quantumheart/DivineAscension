@@ -1,17 +1,14 @@
 using System;
-using System.Collections.Generic;
 using PantheonWars.Models.Enum;
 using PantheonWars.Systems.Interfaces;
-using Vintagestory.API.Common;
+using PantheonWars.Systems.Patches;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
-using Vintagestory.GameContent;
-using PantheonWars.Systems.Patches;
 
 namespace PantheonWars.Systems.Favor;
 
 /// <summary>
-/// Tracks metal pouring into molds and awards favor to Khoras followers
+///     Tracks metal pouring into molds and awards favor to Khoras followers
 /// </summary>
 public class SmeltingFavorTracker(
     IPlayerReligionDataManager playerReligionDataManager,
@@ -19,17 +16,25 @@ public class SmeltingFavorTracker(
     IFavorSystem favorSystem)
     : IFavorTracker, IDisposable
 {
-    public DeityType DeityType { get; } = DeityType.Khoras;
-
-    private readonly IPlayerReligionDataManager _playerReligionDataManager = playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
-    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
-    private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
-
     // Favor values
     private const float BaseFavorPerUnit = 0.01f;
     private const float IngotMoldMultiplier = 0.4f; // 60% reduction for ingot molds
+    private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
     private readonly Guid _instanceId = Guid.NewGuid();
+
+    private readonly IPlayerReligionDataManager _playerReligionDataManager =
+        playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+
+    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+
+    public void Dispose()
+    {
+        MoldPourPatches.OnMoldPoured -= HandleMoldPoured;
+        _sapi.Logger.Debug($"[PantheonWars] SmeltingFavorTracker disposed (ID: {_instanceId})");
+    }
+
+    public DeityType DeityType { get; } = DeityType.Khoras;
 
     public void Initialize()
     {
@@ -40,15 +45,16 @@ public class SmeltingFavorTracker(
     private void HandleMoldPoured(string? playerUid, BlockPos pos, int deltaUnits, bool isToolMold)
     {
         // If player uid not supplied (rare), attribute to nearest player within 8 blocks
-        string? effectiveUid = playerUid ?? FindNearestPlayerUid(pos, 8);
+        var effectiveUid = playerUid ?? FindNearestPlayerUid(pos, 8);
         if (effectiveUid == null) return;
         AwardFavorForPouring(effectiveUid, deltaUnits, isToolMold);
-        _sapi.Logger.Debug($"[SmeltingFavorTracker:{_instanceId}] Mold pour detected at {pos}, +{deltaUnits} into {(isToolMold ? "tool" : "ingot")} mold. Player: {effectiveUid ?? "unknown"}");
+        _sapi.Logger.Debug(
+            $"[SmeltingFavorTracker:{_instanceId}] Mold pour detected at {pos}, +{deltaUnits} into {(isToolMold ? "tool" : "ingot")} mold. Player: {effectiveUid ?? "unknown"}");
     }
 
     private string? FindNearestPlayerUid(BlockPos pos, int radius)
     {
-        double bestDistSq = (radius + 0.5) * (radius + 0.5);
+        var bestDistSq = (radius + 0.5) * (radius + 0.5);
         string? bestUid = null;
 
         foreach (var p in _sapi.World.AllOnlinePlayers)
@@ -57,10 +63,10 @@ public class SmeltingFavorTracker(
             var epos = sp.Entity?.Pos?.AsBlockPos;
             if (epos == null) continue;
 
-            int dx = epos.X - pos.X;
-            int dy = epos.Y - pos.Y;
-            int dz = epos.Z - pos.Z;
-            double distSq = dx * (double)dx + dy * (double)dy + dz * (double)dz;
+            var dx = epos.X - pos.X;
+            var dy = epos.Y - pos.Y;
+            var dz = epos.Z - pos.Z;
+            var distSq = dx * (double)dx + dy * (double)dy + dz * (double)dz;
             if (distSq <= bestDistSq)
             {
                 bestDistSq = distSq;
@@ -86,34 +92,25 @@ public class SmeltingFavorTracker(
             return;
 
         // Calculate favor
-        float favor = CalculatePouringFavor(unitsPoured, isToolMold);
+        var favor = CalculatePouringFavor(unitsPoured, isToolMold);
 
         if (favor >= 0.01f) // Only award if meaningful amount
         {
             // Use fractional favor accumulation
             _favorSystem.AwardFavorForAction(player, "smelting", favor);
 
-            _sapi.Logger.Debug($"[SmeltingFavorTracker] Awarded {favor:F2} favor to {player.PlayerName} for pouring {unitsPoured} units into {(isToolMold ? "tool" : "ingot")} mold");
+            _sapi.Logger.Debug(
+                $"[SmeltingFavorTracker] Awarded {favor:F2} favor to {player.PlayerName} for pouring {unitsPoured} units into {(isToolMold ? "tool" : "ingot")} mold");
         }
     }
 
     private float CalculatePouringFavor(int unitsPoured, bool isToolMold)
     {
         if (isToolMold)
-        {
             // Tool/weapon molds: Full favor
             return unitsPoured * BaseFavorPerUnit;
-        }
-        else
-        {
-            // Ingot molds: Reduced favor
-            return unitsPoured * BaseFavorPerUnit * IngotMoldMultiplier;
-        }
-    }
 
-    public void Dispose()
-    {
-        MoldPourPatches.OnMoldPoured -= HandleMoldPoured;
-        _sapi.Logger.Debug($"[PantheonWars] SmeltingFavorTracker disposed (ID: {_instanceId})");
+        // Ingot molds: Reduced favor
+        return unitsPoured * BaseFavorPerUnit * IngotMoldMultiplier;
     }
 }

@@ -6,13 +6,12 @@ using PantheonWars.Systems.Patches;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
-using Vintagestory.GameContent;
 
 namespace PantheonWars.Systems.Favor;
 
 /// <summary>
-/// Tracks agricultural activities and awards favor to Aethra followers
-/// Activities: crop harvesting, planting, and cooking meals
+///     Tracks agricultural activities and awards favor to Aethra followers
+///     Activities: crop harvesting, planting, and cooking meals
 /// </summary>
 public class AethraFavorTracker(
     IPlayerReligionDataManager playerReligionDataManager,
@@ -20,27 +19,39 @@ public class AethraFavorTracker(
     FavorSystem favorSystem)
     : IFavorTracker, IDisposable
 {
-    public DeityType DeityType { get; } = DeityType.Aethra;
-
-    private readonly IPlayerReligionDataManager _playerReligionDataManager = playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
-    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
-    private readonly FavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
-
-    // Cache of active Aethra followers for fast lookup
-    private readonly HashSet<string> _aethraFollowers = new();
-
     // Favor values
     private const float FavorPerCropHarvest = 1f;
     private const float FavorPerPlanting = 0.5f;
     private const int FavorSimpleMeal = 3;
     private const int FavorComplexMeal = 5;
     private const int FavorGourmetMeal = 8;
+    private static readonly TimeSpan CookingAwardCooldown = TimeSpan.FromSeconds(5);
+
+    // Cache of active Aethra followers for fast lookup
+    private readonly HashSet<string> _aethraFollowers = new();
+    private readonly FavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
     // Event-based: no polling or container tracking needed
 
     // Simple per-player cooking award rate limit (to prevent rapid repeats)
     private readonly Dictionary<string, DateTime> _lastCookingAwardUtc = new();
-    private static readonly TimeSpan CookingAwardCooldown = TimeSpan.FromSeconds(5);
+
+    private readonly IPlayerReligionDataManager _playerReligionDataManager =
+        playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+
+    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+
+    public void Dispose()
+    {
+        _sapi.Event.BreakBlock -= OnBlockBroken;
+        _sapi.Event.DidPlaceBlock -= OnBlockPlaced;
+        CookingPatches.OnMealCooked -= HandleMealCooked;
+        _playerReligionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
+        _playerReligionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
+        _aethraFollowers.Clear();
+    }
+
+    public DeityType DeityType { get; } = DeityType.Aethra;
 
     public void Initialize()
     {
@@ -76,10 +87,7 @@ public class AethraFavorTracker(
         foreach (var player in onlinePlayers)
         {
             var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-            if (religionData?.ActiveDeity == DeityType)
-            {
-                _aethraFollowers.Add(player.PlayerUID);
-            }
+            if (religionData?.ActiveDeity == DeityType) _aethraFollowers.Add(player.PlayerUID);
         }
     }
 
@@ -87,13 +95,9 @@ public class AethraFavorTracker(
     {
         var religionData = _playerReligionDataManager.GetOrCreatePlayerData(playerUID);
         if (religionData?.ActiveDeity == DeityType)
-        {
             _aethraFollowers.Add(playerUID);
-        }
         else
-        {
             _aethraFollowers.Remove(playerUID);
-        }
     }
 
     private void OnPlayerLeavesReligion(IServerPlayer player, string religionUID)
@@ -105,25 +109,24 @@ public class AethraFavorTracker(
 
     #region Crop Harvesting Detection
 
-    private void OnBlockBroken(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier, ref EnumHandling handling)
+    private void OnBlockBroken(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier,
+        ref EnumHandling handling)
     {
         if (!_aethraFollowers.Contains(player.PlayerUID)) return;
 
         var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
         if (IsCropBlock(block))
-        {
             // Award favor for harvesting crops
             _favorSystem.AwardFavorForAction(player, "harvesting " + GetCropName(block), FavorPerCropHarvest);
-        }
     }
 
     /// <summary>
-    /// Checks if a block is a harvestable crop
+    ///     Checks if a block is a harvestable crop
     /// </summary>
     private bool IsCropBlock(Block block)
     {
         if (block?.Code == null) return false;
-        string path = block.Code.Path;
+        var path = block.Code.Path;
 
         // Vintage Story crops are typically in "ripe" state when harvestable
         // Common crops: wheat, flax, onion, carrot, parsnip, turnip, cabbage, pumpkin, etc.
@@ -135,7 +138,7 @@ public class AethraFavorTracker(
     {
         if (block?.Code == null) return "crops";
 
-        string path = block.Code.Path;
+        var path = block.Code.Path;
 
         // Extract crop type from path
         if (path.Contains("wheat")) return "wheat";
@@ -163,19 +166,17 @@ public class AethraFavorTracker(
 
         var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
         if (IsPlantedCrop(block))
-        {
             // Award favor for planting crops
             _favorSystem.AwardFavorForAction(byPlayer, "planting " + GetCropName(block), FavorPerPlanting);
-        }
     }
 
     /// <summary>
-    /// Checks if a block is a newly planted crop
+    ///     Checks if a block is a newly planted crop
     /// </summary>
     private bool IsPlantedCrop(Block block)
     {
         if (block?.Code == null) return false;
-        string path = block.Code.Path;
+        var path = block.Code.Path;
 
         // Newly planted crops are typically in early growth stages
         return (path.Contains("crop") || path.Contains("vegetable")) &&
@@ -195,25 +196,23 @@ public class AethraFavorTracker(
 
         // Rate limit per player
         var now = DateTime.UtcNow;
-        if (_lastCookingAwardUtc.TryGetValue(playerUid, out var last) && now - last < CookingAwardCooldown)
-        {
-            return;
-        }
+        if (_lastCookingAwardUtc.TryGetValue(playerUid, out var last) && now - last < CookingAwardCooldown) return;
 
-        int favor = CalculateMealFavor(cookedStack);
+        var favor = CalculateMealFavor(cookedStack);
         if (favor <= 0) return;
 
         _favorSystem.AwardFavorForAction(player, "cooking " + GetMealName(cookedStack), favor);
         _lastCookingAwardUtc[playerUid] = now;
 
-        _sapi.Logger.Debug($"[AethraFavorTracker] Awarded {favor} favor to {player.PlayerName} for cooking {GetMealName(cookedStack)} at {pos}");
+        _sapi.Logger.Debug(
+            $"[AethraFavorTracker] Awarded {favor} favor to {player.PlayerName} for cooking {GetMealName(cookedStack)} at {pos}");
     }
 
     private int CalculateMealFavor(ItemStack meal)
     {
         if (meal == null) return 0;
 
-        string path = meal.Collectible?.Code?.Path ?? string.Empty;
+        var path = meal.Collectible?.Code?.Path ?? string.Empty;
 
         if (IsGourmetMeal(path)) return FavorGourmetMeal;
         if (IsComplexMeal(path)) return FavorComplexMeal;
@@ -242,7 +241,7 @@ public class AethraFavorTracker(
     private string GetMealName(ItemStack meal)
     {
         if (meal?.Collectible?.Code == null) return "a meal";
-        string path = meal.Collectible.Code.Path.ToLowerInvariant();
+        var path = meal.Collectible.Code.Path.ToLowerInvariant();
 
         if (path.Contains("bread")) return "bread";
         if (path.Contains("stew")) return "stew";
@@ -254,14 +253,4 @@ public class AethraFavorTracker(
     }
 
     #endregion
-
-    public void Dispose()
-    {
-        _sapi.Event.BreakBlock -= OnBlockBroken;
-        _sapi.Event.DidPlaceBlock -= OnBlockPlaced;
-        CookingPatches.OnMealCooked -= HandleMealCooked;
-        _playerReligionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
-        _playerReligionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
-        _aethraFollowers.Clear();
-    }
 }

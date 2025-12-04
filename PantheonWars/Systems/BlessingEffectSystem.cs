@@ -85,7 +85,8 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         foreach (var blessingId in unlockedBlessingIds)
         {
             var blessing = _blessingRegistry.GetBlessing(blessingId);
-            if (blessing != null && blessing.Kind == BlessingKind.Player) CombineModifiers(modifiers, blessing.StatModifiers);
+            if (blessing != null && blessing.Kind == BlessingKind.Player)
+                CombineModifiers(modifiers, blessing.StatModifiers);
         }
 
         // Cache the result
@@ -118,7 +119,8 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         foreach (var blessingId in unlockedBlessingIds)
         {
             var blessing = _blessingRegistry.GetBlessing(blessingId);
-            if (blessing != null && blessing.Kind == BlessingKind.Religion) CombineModifiers(modifiers, blessing.StatModifiers);
+            if (blessing != null && blessing.Kind == BlessingKind.Religion)
+                CombineModifiers(modifiers, blessing.StatModifiers);
         }
 
         // Cache the result
@@ -389,7 +391,8 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         RegisterStatIfNeeded(stats, VintageStoryStats.MetalArmorBonus, EnumStatBlendType.WeightedSum);
 
         // Lysa (Hunt & Wild)
-        RegisterStatIfNeeded(stats, VintageStoryStats.DoubleHarvestChance, EnumStatBlendType.FlatSum); // Additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.DoubleHarvestChance,
+            EnumStatBlendType.FlatSum); // Additive chance
         RegisterStatIfNeeded(stats, VintageStoryStats.AnimalDamage, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.AnimalDrops, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.FoodSpoilage, EnumStatBlendType.WeightedSum);
@@ -411,8 +414,10 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         RegisterStatIfNeeded(stats, VintageStoryStats.StoneYield, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.ClayYield, EnumStatBlendType.WeightedSum);
         // New Gaia utility stats
-        RegisterStatIfNeeded(stats, VintageStoryStats.ClayFormingVoxelChance, EnumStatBlendType.FlatSum); // Legacy additive chance
-        RegisterStatIfNeeded(stats, VintageStoryStats.PotteryBatchCompletionChance, EnumStatBlendType.FlatSum); // Additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.ClayFormingVoxelChance,
+            EnumStatBlendType.FlatSum); // Legacy additive chance
+        RegisterStatIfNeeded(stats, VintageStoryStats.PotteryBatchCompletionChance,
+            EnumStatBlendType.FlatSum); // Additive chance
         RegisterStatIfNeeded(stats, VintageStoryStats.DiggingSpeed, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.ArmorEffectiveness, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.PickDurability, EnumStatBlendType.WeightedSum);
@@ -541,10 +546,10 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.BlessedMealsEffect());
         _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.RareCropDiscoveryEffect());
         // Note: FoodSpoilageReduction is shared with Lysa and already registered above
-        
+
         // Gaia (Pottery & Clay) handlers
         _specialEffectRegistry.RegisterHandler(new GaiaEffectHandlers.PotteryBatchCompletionEffect());
-        
+
         _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered all special effect handlers");
     }
 

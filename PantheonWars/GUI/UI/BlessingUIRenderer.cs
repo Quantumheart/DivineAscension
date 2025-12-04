@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using ImGuiNET;
 using PantheonWars.GUI.State;
@@ -6,7 +7,7 @@ using PantheonWars.GUI.UI.Components;
 using PantheonWars.GUI.UI.Renderers;
 using PantheonWars.GUI.UI.Renderers.Civilization;
 using PantheonWars.GUI.UI.Renderers.Religion;
-using PantheonWars.GUI.UI.Utilities;
+using PantheonWars.Models;
 using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI;
@@ -66,13 +67,12 @@ internal static class BlessingUIRenderer
             width,
             tabHeight,
             mainTabs,
-            (int) state.CurrentMainTab,
-            4f
+            (int)state.CurrentMainTab
         );
 
-        if (newMainTab != (int) state.CurrentMainTab)
+        if (newMainTab != (int)state.CurrentMainTab)
         {
-            state.CurrentMainTab = (MainDialogTab) newMainTab;
+            state.CurrentMainTab = (MainDialogTab)newMainTab;
 
             if (newMainTab == 1) // Religion tab
             {
@@ -89,7 +89,7 @@ internal static class BlessingUIRenderer
             else if (newMainTab == 2) // Civilization tab
             {
                 manager.RequestCivilizationList(manager.CivState.DeityFilter);
-                manager.RequestCivilizationInfo("");
+                manager.RequestCivilizationInfo();
             }
         }
 
@@ -152,8 +152,8 @@ internal static class BlessingUIRenderer
         var buttonX = windowWidth - actionButtonPadding;
         BlessingActionsRenderer.Draw(
             manager, api,
-            x: ImGui.GetWindowPos().X + buttonX,
-            y: ImGui.GetWindowPos().Y + buttonY,
+            ImGui.GetWindowPos().X + buttonX,
+            ImGui.GetWindowPos().Y + buttonY,
             onUnlockClicked,
             onCloseClicked
         );
@@ -167,13 +167,15 @@ internal static class BlessingUIRenderer
             var hoveringState = manager.GetBlessingState(hoveringBlessingId);
             if (hoveringState != null)
             {
-                var allBlessings = new System.Collections.Generic.Dictionary<string, Models.Blessing>();
+                var allBlessings = new Dictionary<string, Blessing>();
                 foreach (var s in manager.PlayerBlessingStates.Values)
-                    if (!allBlessings.ContainsKey(s.Blessing.BlessingId)) allBlessings[s.Blessing.BlessingId] = s.Blessing;
+                    if (!allBlessings.ContainsKey(s.Blessing.BlessingId))
+                        allBlessings[s.Blessing.BlessingId] = s.Blessing;
                 foreach (var s in manager.ReligionBlessingStates.Values)
-                    if (!allBlessings.ContainsKey(s.Blessing.BlessingId)) allBlessings[s.Blessing.BlessingId] = s.Blessing;
+                    if (!allBlessings.ContainsKey(s.Blessing.BlessingId))
+                        allBlessings[s.Blessing.BlessingId] = s.Blessing;
 
-                var tooltipData = Models.BlessingTooltipData.FromBlessingAndState(
+                var tooltipData = BlessingTooltipData.FromBlessingAndState(
                     hoveringState.Blessing,
                     hoveringState,
                     allBlessings

@@ -242,7 +242,8 @@ public partial class BlessingDialog
     /// </summary>
     private void OnPlayerReligionInfoReceived(PlayerReligionInfoResponsePacket packet)
     {
-        _capi!.Logger.Debug($"[PantheonWars] Received player religion info: HasReligion={packet.HasReligion}, IsFounder={packet.IsFounder}");
+        _capi!.Logger.Debug(
+            $"[PantheonWars] Received player religion info: HasReligion={packet.HasReligion}, IsFounder={packet.IsFounder}");
 
         // Update manager religion tab state
         _manager!.UpdatePlayerReligionInfo(packet);
@@ -252,7 +253,8 @@ public partial class BlessingDialog
         {
             _manager.PlayerRoleInReligion = packet.IsFounder ? "Leader" : "Member";
             _manager.ReligionMemberCount = packet.Members.Count;
-            _capi!.Logger.Debug($"[PantheonWars] Set PlayerRoleInReligion to: {_manager.PlayerRoleInReligion}, MemberCount: {_manager.ReligionMemberCount}");
+            _capi!.Logger.Debug(
+                $"[PantheonWars] Set PlayerRoleInReligion to: {_manager.PlayerRoleInReligion}, MemberCount: {_manager.ReligionMemberCount}");
         }
         else
         {
@@ -270,7 +272,8 @@ public partial class BlessingDialog
         // Skip if manager is not initialized yet
         if (_manager == null) return;
 
-        _capi!.Logger.Debug($"[PantheonWars] Updating blessing dialog with new favor data: {packet.Favor}, Total: {packet.TotalFavorEarned}");
+        _capi!.Logger.Debug(
+            $"[PantheonWars] Updating blessing dialog with new favor data: {packet.Favor}, Total: {packet.TotalFavorEarned}");
 
         // Always update manager with new values, even if dialog is closed
         // This ensures the UI shows correct values when opened
@@ -281,21 +284,14 @@ public partial class BlessingDialog
         // Update rank if it changed (this affects which blessings can be unlocked)
         // FavorRank comes as enum name (e.g., "Initiate", "Disciple"), parse to get numeric value
         if (Enum.TryParse<FavorRank>(packet.FavorRank, out var favorRankEnum))
-        {
             _manager.CurrentFavorRank = (int)favorRankEnum;
-        }
 
         if (Enum.TryParse<PrestigeRank>(packet.PrestigeRank, out var prestigeRankEnum))
-        {
             _manager.CurrentPrestigeRank = (int)prestigeRankEnum;
-        }
 
         // Refresh blessing states in case new blessings became available
         // Only do this if dialog is open to avoid unnecessary processing
-        if (_state.IsOpen && _manager.HasReligion())
-        {
-            _manager.RefreshAllBlessingStates();
-        }
+        if (_state.IsOpen && _manager.HasReligion()) _manager.RefreshAllBlessingStates();
     }
 
     /// <summary>
@@ -323,7 +319,7 @@ public partial class BlessingDialog
             {
                 case DeityType.None:
                     _capi.World.PlaySoundAt(
-                        new AssetLocation($"pantheonwars:sounds/unlock"),
+                        new AssetLocation("pantheonwars:sounds/unlock"),
                         _capi.World.Player.Entity, null, false, 8f, 0.5f);
                     break;
                 case DeityType.Khoras:
@@ -398,13 +394,10 @@ public partial class BlessingDialog
         }
 
         if (packet.Details != null)
-        {
-            _capi.Logger.Notification($"[PantheonWars] Loaded civilization '{packet.Details.Name}' with {packet.Details.MemberReligions.Count} religions");
-        }
+            _capi.Logger.Notification(
+                $"[PantheonWars] Loaded civilization '{packet.Details.Name}' with {packet.Details.MemberReligions.Count} religions");
         else
-        {
             _capi.Logger.Debug("[PantheonWars] Player's religion is not in a civilization");
-        }
     }
 
     /// <summary>
@@ -412,7 +405,8 @@ public partial class BlessingDialog
     /// </summary>
     private void OnCivilizationActionCompleted(CivilizationActionResponsePacket packet)
     {
-        _capi!.Logger.Debug($"[PantheonWars] Civilization action completed: Success={packet.Success}, Message={packet.Message}");
+        _capi!.Logger.Debug(
+            $"[PantheonWars] Civilization action completed: Success={packet.Success}, Message={packet.Message}");
 
         // Show result message to user
         _capi.ShowChatMessage(packet.Message);

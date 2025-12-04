@@ -1,5 +1,5 @@
-using System.Numerics;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using ImGuiNET;
 using PantheonWars.GUI.UI.Utilities;
 
@@ -50,16 +50,10 @@ internal static class TextInput
         var isActive = ImGui.IsItemActive() || ImGui.IsItemFocused();
         var wasClicked = ImGui.IsItemClicked();
 
-        if (isActive || ImGui.IsItemHovered())
-        {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.TextInput);
-        }
+        if (isActive || ImGui.IsItemHovered()) ImGui.SetMouseCursor(ImGuiMouseCursor.TextInput);
 
         // Set keyboard focus when clicked
-        if (wasClicked)
-        {
-            ImGui.SetKeyboardFocusHere(-1);
-        }
+        if (wasClicked) ImGui.SetKeyboardFocusHere(-1);
 
         if (isActive)
         {
@@ -67,17 +61,12 @@ internal static class TextInput
             io.WantCaptureKeyboard = true; // Block game input while typing
 
             if (ImGui.IsKeyPressed(ImGuiKey.Backspace) && currentValue.Length > 0)
-            {
                 currentValue = currentValue.Substring(0, currentValue.Length - 1);
-            }
 
-            for (int i = 0; i < io.InputQueueCharacters.Size; i++)
+            for (var i = 0; i < io.InputQueueCharacters.Size; i++)
             {
                 var c = (char)io.InputQueueCharacters[i];
-                if (c >= 32 && c < 127 && currentValue.Length < maxLength)
-                {
-                    currentValue += c;
-                }
+                if (c >= 32 && c < 127 && currentValue.Length < maxLength) currentValue += c;
             }
         }
 
@@ -137,16 +126,10 @@ internal static class TextInput
         var isActive = ImGui.IsItemActive() || ImGui.IsItemFocused();
         var wasClicked = ImGui.IsItemClicked();
 
-        if (isActive || ImGui.IsItemHovered())
-        {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.TextInput);
-        }
+        if (isActive || ImGui.IsItemHovered()) ImGui.SetMouseCursor(ImGuiMouseCursor.TextInput);
 
         // Set keyboard focus when clicked
-        if (wasClicked)
-        {
-            ImGui.SetKeyboardFocusHere(-1);
-        }
+        if (wasClicked) ImGui.SetKeyboardFocusHere(-1);
 
         if (isActive)
         {
@@ -154,32 +137,21 @@ internal static class TextInput
             io.WantCaptureKeyboard = true; // Block game input while typing
 
             if (ImGui.IsKeyPressed(ImGuiKey.Backspace) && currentValue.Length > 0)
-            {
                 currentValue = currentValue.Substring(0, currentValue.Length - 1);
-            }
 
-            if (ImGui.IsKeyPressed(ImGuiKey.Enter))
-            {
-                currentValue += "\n";
-            }
+            if (ImGui.IsKeyPressed(ImGuiKey.Enter)) currentValue += "\n";
 
-            for (int i = 0; i < io.InputQueueCharacters.Size; i++)
+            for (var i = 0; i < io.InputQueueCharacters.Size; i++)
             {
                 var c = (char)io.InputQueueCharacters[i];
-                if (c >= 32 && c < 127 && currentValue.Length < maxLength)
-                {
-                    currentValue += c;
-                }
+                if (c >= 32 && c < 127 && currentValue.Length < maxLength) currentValue += c;
             }
         }
 
         // Draw text (simple word wrap)
         var textPos = new Vector2(x + 8f, y + 8f);
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
-        if (!string.IsNullOrEmpty(currentValue))
-        {
-            drawList.AddText(textPos, textColor, currentValue);
-        }
+        if (!string.IsNullOrEmpty(currentValue)) drawList.AddText(textPos, textColor, currentValue);
 
         // Draw blinking cursor when active
         if (isActive && (int)(ImGui.GetTime() * 2) % 2 == 0)
@@ -191,10 +163,7 @@ internal static class TextInput
 
             // Calculate cursor position - handle empty strings
             var lastLineWidth = 0f;
-            if (!string.IsNullOrEmpty(lastLine))
-            {
-                lastLineWidth = ImGui.CalcTextSize(lastLine).X;
-            }
+            if (!string.IsNullOrEmpty(lastLine)) lastLineWidth = ImGui.CalcTextSize(lastLine).X;
 
             var cursorY = y + 8f + (lines.Length - 1) * 16f; // Approximate line height
             var cursorX = x + 8f + lastLineWidth;

@@ -85,7 +85,7 @@ public class PlayerReligionData
     ///     Accumulated fractional favor (not yet awarded) for passive generation
     /// </summary>
     [ProtoMember(10)]
-    public float AccumulatedFractionalFavor { get; set; } = 0f;
+    public float AccumulatedFractionalFavor { get; set; }
 
     /// <summary>
     ///     Number of players killed in PvP
@@ -108,11 +108,11 @@ public class PlayerReligionData
     {
         FavorRank = TotalFavorEarned switch
         {
-            >= 10000 => FavorRank.Avatar,      // 10000+ = Avatar (Rank 4)
-            >= 5000 => FavorRank.Champion,     // 5000-9999 = Champion (Rank 3)
-            >= 2000 => FavorRank.Zealot,       // 2000-4999 = Zealot (Rank 2)
-            >= 500 => FavorRank.Disciple,      // 500-1999 = Disciple (Rank 1)
-            _ => FavorRank.Initiate            // 0-499 = Initiate (Rank 0)
+            >= 10000 => FavorRank.Avatar, // 10000+ = Avatar (Rank 4)
+            >= 5000 => FavorRank.Champion, // 5000-9999 = Champion (Rank 3)
+            >= 2000 => FavorRank.Zealot, // 2000-4999 = Zealot (Rank 2)
+            >= 500 => FavorRank.Disciple, // 500-1999 = Disciple (Rank 1)
+            _ => FavorRank.Initiate // 0-499 = Initiate (Rank 0)
         };
     }
 
@@ -141,7 +141,7 @@ public class PlayerReligionData
             // Award integer favor when we have accumulated >= 1.0
             if (AccumulatedFractionalFavor >= 1.0f)
             {
-                int favorToAward = (int)AccumulatedFractionalFavor;
+                var favorToAward = (int)AccumulatedFractionalFavor;
                 AccumulatedFractionalFavor -= favorToAward; // Keep the fractional remainder
 
                 Favor += favorToAward;

@@ -3,6 +3,7 @@ using ImGuiNET;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Lists;
 using PantheonWars.GUI.UI.Utilities;
+using PantheonWars.Network;
 using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI.Renderers.Religion;
@@ -22,7 +23,8 @@ internal static class ReligionInvitesRenderer
         currentY += 26f;
 
         // Help text
-        TextRenderer.DrawInfoText(drawList, "These are invitations you've received from religions.", x, currentY, width);
+        TextRenderer.DrawInfoText(drawList, "These are invitations you've received from religions.", x, currentY,
+            width);
         currentY += 32f;
 
         if (state.MyInvites.Count == 0)
@@ -50,7 +52,7 @@ internal static class ReligionInvitesRenderer
     }
 
     private static void DrawInviteCard(
-        Network.PlayerReligionInfoResponsePacket.ReligionInviteInfo invite,
+        PlayerReligionInfoResponsePacket.ReligionInviteInfo invite,
         float x,
         float y,
         float width,
@@ -70,16 +72,12 @@ internal static class ReligionInvitesRenderer
 
         var enabled = !manager.ReligionState.IsInvitesLoading;
         if (ButtonRenderer.DrawButton(drawList, "Accept", x + width - 180f, y + height - 32f, 80f, 28f, true,
-                enabled: enabled))
-        {
+                enabled))
             // Use TargetPlayerUID to carry InviteId as per server handler
             manager.RequestReligionAction("accept", string.Empty, invite.InviteId);
-        }
 
         if (ButtonRenderer.DrawButton(drawList, "Decline", x + width - 90f, y + height - 32f, 80f, 28f,
-                isPrimary: false, enabled: enabled))
-        {
+                false, enabled))
             manager.RequestReligionAction("decline", string.Empty, invite.InviteId);
-        }
     }
 }

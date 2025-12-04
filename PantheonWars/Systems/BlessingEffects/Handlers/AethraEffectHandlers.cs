@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using PantheonWars.Constants;
+using PantheonWars.Systems.Patches;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
@@ -18,8 +19,8 @@ public static class AethraEffectHandlers
     /// </summary>
     public class RareCropDiscoveryEffect : ISpecialEffectHandler
     {
-        private ICoreServerAPI? _sapi;
         private readonly HashSet<string> _activePlayers = new();
+        private ICoreServerAPI? _sapi;
 
         public string EffectId => SpecialEffects.RareCropDiscovery;
 
@@ -40,7 +41,9 @@ public static class AethraEffectHandlers
             _activePlayers.Remove(player.PlayerUID);
         }
 
-        public void OnTick(float deltaTime) { }
+        public void OnTick(float deltaTime)
+        {
+        }
 
         private void OnBreakBlock(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier,
             ref EnumHandling handling)
@@ -159,6 +162,8 @@ public static class AethraEffectHandlers
     /// </summary>
     public class BlessedMealsEffect : ISpecialEffectHandler
     {
+        private readonly Dictionary<string, HashSet<string>> _activeAppliedStats = new();
+        private readonly Dictionary<string, double> _activeBuffExpiry = new();
         private readonly HashSet<string> _activePlayers = new();
         private ICoreServerAPI? _sapi;
 
@@ -170,7 +175,7 @@ public static class AethraEffectHandlers
             _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
 
             // Subscribe to global eating event raised by Harmony patch
-            PantheonWars.Systems.Patches.EatingPatches.OnFoodEaten += OnFoodEaten;
+            EatingPatches.OnFoodEaten += OnFoodEaten;
         }
 
         public void ActivateForPlayer(IServerPlayer player)
@@ -198,7 +203,8 @@ public static class AethraEffectHandlers
             if (_sapi == null) return;
 
             // Remove expired buffs
-            foreach (var uid in _activeBuffExpiry.Where(kv => kv.Value <= _sapi.World.Calendar.TotalHours).Select(kv => kv.Key).ToList())
+            foreach (var uid in _activeBuffExpiry.Where(kv => kv.Value <= _sapi.World.Calendar.TotalHours)
+                         .Select(kv => kv.Key).ToList())
             {
                 var sp = _sapi.World.PlayerByUid(uid) as IServerPlayer;
                 if (sp != null) RemoveBlessedMealBuff(sp);
@@ -257,7 +263,7 @@ public static class AethraEffectHandlers
 
             // Duration by tier (minutes)
             var minutes = tier switch { 1 => 10f, 2 => 15f, _ => 20f };
-            var expiryHours = _sapi.World.Calendar.TotalHours + (minutes / 60f);
+            var expiryHours = _sapi.World.Calendar.TotalHours + minutes / 60f;
 
             var modifierId = string.Format(SystemConstants.ModifierIdFormat, player.PlayerUID) + "-meal";
 
@@ -269,17 +275,15 @@ public static class AethraEffectHandlers
             }
 
             foreach (var kv in modifiers)
-            {
                 try
                 {
-                    entity.Stats.Set(kv.Key, modifierId, kv.Value, false);
+                    entity.Stats.Set(kv.Key, modifierId, kv.Value);
                     applied.Add(kv.Key);
                 }
                 catch
                 {
                     // ignore stat set failures to avoid hard crash
                 }
-            }
 
             _activeBuffExpiry[player.PlayerUID] = expiryHours;
 
@@ -314,9 +318,6 @@ public static class AethraEffectHandlers
             return 0; // Not eligible
         }
 
-        private readonly Dictionary<string, HashSet<string>> _activeAppliedStats = new();
-        private readonly Dictionary<string, double> _activeBuffExpiry = new();
-
         private void RemoveBlessedMealBuff(IServerPlayer player)
         {
             var entity = player.Entity;
@@ -327,9 +328,15 @@ public static class AethraEffectHandlers
             if (_activeAppliedStats.TryGetValue(player.PlayerUID, out var stats))
             {
                 foreach (var stat in stats)
-                {
-                    try { entity.Stats.Remove(stat, modifierId); } catch { /* ignore */ }
-                }
+                    try
+                    {
+                        entity.Stats.Remove(stat, modifierId);
+                    }
+                    catch
+                    {
+                        /* ignore */
+                    }
+
                 stats.Clear();
             }
 

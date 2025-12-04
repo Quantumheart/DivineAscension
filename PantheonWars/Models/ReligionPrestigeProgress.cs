@@ -33,5 +33,6 @@ public class ReligionPrestigeProgress
     /// <summary>
     ///     Progress percentage (0.0 to 1.0)
     /// </summary>
-    public float ProgressPercentage => IsMaxRank ? 1f : RequiredPrestige > 0 ? (float)CurrentPrestige / RequiredPrestige : 0f;
+    public float ProgressPercentage =>
+        IsMaxRank ? 1f : RequiredPrestige > 0 ? (float)CurrentPrestige / RequiredPrestige : 0f;
 }

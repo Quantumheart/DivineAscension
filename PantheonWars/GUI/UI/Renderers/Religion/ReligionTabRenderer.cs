@@ -1,8 +1,8 @@
 using ImGuiNET;
 using PantheonWars.GUI.State;
-using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Banners;
+using PantheonWars.GUI.UI.Components.Buttons;
+using PantheonWars.GUI.UI.Utilities;
 using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI.Renderers.Religion;
@@ -32,24 +32,25 @@ internal static class ReligionTabRenderer
         var spacing = 6f;
         var prevTab = state.CurrentSubTab;
 
-        DrawTabButton("Browse", (int) ReligionSubTab.Browse);
-        DrawTabButton("My Religion", (int) ReligionSubTab.MyReligion);
-        DrawTabButton("Activity", (int) ReligionSubTab.Activity);
+        DrawTabButton("Browse", (int)ReligionSubTab.Browse);
+        DrawTabButton("My Religion", (int)ReligionSubTab.MyReligion);
+        DrawTabButton("Activity", (int)ReligionSubTab.Activity);
         if (!manager.HasReligion())
         {
             DrawTabButton("Invites", (int)ReligionSubTab.Invites);
             DrawTabButton("Create", (int)ReligionSubTab.Create);
         }
+
         void DrawTabButton(string label, int tabIndex)
         {
             var tx = tabX + tabIndex * (tabWidth + spacing);
-            var isActive = state.CurrentSubTab == (ReligionSubTab) tabIndex;
+            var isActive = state.CurrentSubTab == (ReligionSubTab)tabIndex;
             var clicked = ButtonRenderer.DrawButton(drawList, label, tx, tabY, tabWidth, tabH,
-                isPrimary: isActive, enabled: true,
-                customColor: isActive ? ColorPalette.Gold * 0.7f : ColorPalette.DarkBrown * 0.6f);
+                isActive, true,
+                isActive ? ColorPalette.Gold * 0.7f : ColorPalette.DarkBrown * 0.6f);
             if (clicked)
             {
-                state.CurrentSubTab = (ReligionSubTab) tabIndex;
+                state.CurrentSubTab = (ReligionSubTab)tabIndex;
 
                 // Clear transient action error on tab change
                 state.LastActionError = null;
@@ -78,11 +79,10 @@ internal static class ReligionTabRenderer
 
         // Error banner (LastActionError has priority)
         var bannerMessage = state.LastActionError;
-        bool showRetry = false;
-        int effectiveTab = (int) state.CurrentSubTab;
+        var showRetry = false;
+        var effectiveTab = (int)state.CurrentSubTab;
 
         if (bannerMessage == null)
-        {
             switch (state.CurrentSubTab)
             {
                 case ReligionSubTab.Browse:
@@ -98,12 +98,11 @@ internal static class ReligionTabRenderer
                     showRetry = false; // Don't show retry for create errors
                     break;
             }
-        }
 
         if (bannerMessage != null)
         {
             var consumed = ErrorBannerRenderer.Draw(drawList, x, contentY, width, bannerMessage,
-                out var retryClicked, out var dismissClicked, showRetry: showRetry);
+                out var retryClicked, out var dismissClicked, showRetry);
             contentY += consumed;
             contentHeight -= consumed;
 
@@ -111,7 +110,6 @@ internal static class ReligionTabRenderer
             {
                 if (state.LastActionError != null) state.LastActionError = null;
                 else
-                {
                     switch (effectiveTab)
                     {
                         case 0:
@@ -124,11 +122,9 @@ internal static class ReligionTabRenderer
                             state.CreateError = null;
                             break;
                     }
-                }
             }
 
             if (retryClicked)
-            {
                 switch (effectiveTab)
                 {
                     case 0:
@@ -138,7 +134,6 @@ internal static class ReligionTabRenderer
                         manager.RequestPlayerReligionInfo();
                         break;
                 }
-            }
         }
 
         // Route to appropriate sub-renderer based on current sub-tab

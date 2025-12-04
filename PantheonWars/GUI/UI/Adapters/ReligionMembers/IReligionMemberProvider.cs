@@ -3,8 +3,8 @@ using System.Collections.Generic;
 namespace PantheonWars.GUI.UI.Adapters.ReligionMembers;
 
 /// <summary>
-/// UI-only data source for listing religion members. Intended for swapping
-/// between a real provider and a dev-only fake provider without touching systems/persistence.
+///     UI-only data source for listing religion members. Intended for swapping
+///     between a real provider and a dev-only fake provider without touching systems/persistence.
 /// </summary>
 internal interface IReligionMemberProvider
 {

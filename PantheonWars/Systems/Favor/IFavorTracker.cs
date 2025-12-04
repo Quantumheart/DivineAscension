@@ -4,6 +4,6 @@ namespace PantheonWars.Systems.Favor;
 
 public interface IFavorTracker
 {
+    DeityType DeityType { get; }
     void Initialize();
-    DeityType DeityType { get; }   
 }

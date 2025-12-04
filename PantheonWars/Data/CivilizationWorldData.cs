@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using ProtoBuf;
@@ -52,10 +51,7 @@ public class CivilizationWorldData
     public void AddCivilization(Civilization civ)
     {
         Civilizations[civ.CivId] = civ;
-        foreach (var religionId in civ.MemberReligionIds)
-        {
-            ReligionToCivMap[religionId] = civ.CivId;
-        }
+        foreach (var religionId in civ.MemberReligionIds) ReligionToCivMap[religionId] = civ.CivId;
     }
 
     /// <summary>
@@ -66,10 +62,7 @@ public class CivilizationWorldData
         if (Civilizations.TryGetValue(civId, out var civ))
         {
             // Clean up religion mappings
-            foreach (var religionId in civ.MemberReligionIds)
-            {
-                ReligionToCivMap.Remove(religionId);
-            }
+            foreach (var religionId in civ.MemberReligionIds) ReligionToCivMap.Remove(religionId);
 
             Civilizations.Remove(civId);
         }
@@ -81,9 +74,7 @@ public class CivilizationWorldData
     public Civilization? GetCivilizationByReligion(string religionId)
     {
         if (ReligionToCivMap.TryGetValue(religionId, out var civId))
-        {
             return Civilizations.TryGetValue(civId, out var civ) ? civ : null;
-        }
         return null;
     }
 

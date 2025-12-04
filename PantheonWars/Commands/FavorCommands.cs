@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using PantheonWars.Data;
 using PantheonWars.Models.Enum;
 using PantheonWars.Systems;
 using PantheonWars.Systems.Interfaces;
@@ -25,7 +26,8 @@ public class FavorCommands
     {
         _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
         _deityRegistry = deityRegistry ?? throw new ArgumentNullException(nameof(deityRegistry));
-        _playerReligionDataManager = playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+        _playerReligionDataManager = playerReligionDataManager ??
+                                     throw new ArgumentNullException(nameof(playerReligionDataManager));
     }
 
     /// <summary>
@@ -99,21 +101,18 @@ public class FavorCommands
     /// <summary>
     ///     Get player's religion data and validate they have a deity
     /// </summary>
-    internal (Data.PlayerReligionData? religionData, string? religionName, TextCommandResult? errorResult) ValidatePlayerHasDeity(IServerPlayer player)
+    internal (PlayerReligionData? religionData, string? religionName, TextCommandResult? errorResult)
+        ValidatePlayerHasDeity(IServerPlayer player)
     {
         var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
 
         if (religionData.ActiveDeity == DeityType.None)
-        {
             return (null, null, TextCommandResult.Error("You are not in a religion or do not have an active deity."));
-        }
 
         // Get religion name if in a religion
         string? religionName = null;
         if (!string.IsNullOrEmpty(religionData.ReligionUID))
-        {
             religionName = religionData.ReligionUID; // This will be improved when we have access to ReligionManager
-        }
 
         return (religionData, religionName, null);
     }
@@ -124,9 +123,9 @@ public class FavorCommands
     private int GetCurrentFavorRank(int totalFavorEarned)
     {
         if (totalFavorEarned >= 10000) return 4; // Avatar
-        if (totalFavorEarned >= 5000) return 3;  // Champion
-        if (totalFavorEarned >= 2000) return 2;  // Zealot
-        if (totalFavorEarned >= 500) return 1;   // Disciple
+        if (totalFavorEarned >= 5000) return 3; // Champion
+        if (totalFavorEarned >= 2000) return 2; // Zealot
+        if (totalFavorEarned >= 500) return 1; // Disciple
         return 0; // Initiate
     }
 
@@ -258,7 +257,7 @@ public class FavorCommands
         sb.AppendLine("=== Favor Ranks ===");
 
         // List all ranks with their requirements
-        for (int rank = 0; rank <= 4; rank++)
+        for (var rank = 0; rank <= 4; rank++)
         {
             var rankName = RankRequirements.GetFavorRankName(rank);
             var totalRequired = rank == 0 ? 0 : RankRequirements.GetRequiredFavorForNextRank(rank - 1);
@@ -318,7 +317,7 @@ public class FavorCommands
 
         var oldFavor = religionData.Favor;
         _playerReligionDataManager.AddFavor(player.PlayerUID, amount);
-        
+
         return TextCommandResult.Success($"Added {amount:N0} favor ({oldFavor:N0} → {religionData.Favor:N0})");
     }
 

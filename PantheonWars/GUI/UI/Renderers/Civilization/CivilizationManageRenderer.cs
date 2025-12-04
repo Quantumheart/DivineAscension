@@ -1,8 +1,9 @@
-using System;
 using System.Numerics;
 using ImGuiNET;
 using PantheonWars.GUI.UI.Components.Buttons;
+using PantheonWars.GUI.UI.Components.Inputs;
 using PantheonWars.GUI.UI.Components.Lists;
+using PantheonWars.GUI.UI.Components.Overlays;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Network.Civilization;
 using Vintagestory.API.Client;
@@ -94,11 +95,11 @@ internal static class CivilizationManageRenderer
         var isFounder = manager.IsCivilizationFounder;
         if (isFounder)
         {
-            TextRenderer.DrawLabel(drawList, "Invite Religion by Name:", x, currentY, 14f);
+            TextRenderer.DrawLabel(drawList, "Invite Religion by Name:", x, currentY);
             currentY += 22f;
 
             // Text input
-            state.InviteReligionName = PantheonWars.GUI.UI.Components.Inputs.TextInput.Draw(
+            state.InviteReligionName = TextInput.Draw(
                 drawList,
                 "##inviteReligion",
                 state.InviteReligionName,
@@ -106,15 +107,16 @@ internal static class CivilizationManageRenderer
                 currentY,
                 width * 0.6f,
                 30f,
-                placeholder: "Enter religion name...",
-                maxLength: 64
+                "Enter religion name...",
+                64
             );
 
             // Send invite
-            var inviteButtonX = x + (width * 0.6f) + 10f;
-            var canInvite = !overlayOpen && !string.IsNullOrWhiteSpace(state.InviteReligionName) && !state.IsInvitesLoading && !state.IsMyCivLoading;
+            var inviteButtonX = x + width * 0.6f + 10f;
+            var canInvite = !overlayOpen && !string.IsNullOrWhiteSpace(state.InviteReligionName) &&
+                            !state.IsInvitesLoading && !state.IsMyCivLoading;
             if (ButtonRenderer.DrawButton(drawList, "Send Invite", inviteButtonX, currentY - 2f, 140f, 32f, true,
-                    enabled: canInvite))
+                    canInvite))
             {
                 manager.RequestCivilizationAction("invite", civ.CivId, state.InviteReligionName);
                 state.InviteReligionName = string.Empty;
@@ -145,19 +147,16 @@ internal static class CivilizationManageRenderer
         // Footer actions
         currentY += 10f;
         var leaveEnabled = !overlayOpen;
-        if (leaveEnabled && ButtonRenderer.DrawActionButton(drawList, "Leave Civilization", x, currentY, 180f, 34f, false))
-        {
+        if (leaveEnabled && ButtonRenderer.DrawActionButton(drawList, "Leave Civilization", x, currentY, 180f, 34f))
             manager.RequestCivilizationAction("leave");
-        }
 
         if (isFounder)
         {
             var disbandEnabled = !overlayOpen;
-            if (disbandEnabled && ButtonRenderer.DrawActionButton(drawList, "Disband Civilization", x + 190f, currentY, 200f, 34f, true))
-            {
+            if (disbandEnabled && ButtonRenderer.DrawActionButton(drawList, "Disband Civilization", x + 190f, currentY,
+                    200f, 34f, true))
                 // Open confirm overlay
                 state.ShowDisbandConfirm = true;
-            }
         }
 
         // Draw confirmation overlays (modal)
@@ -166,13 +165,12 @@ internal static class CivilizationManageRenderer
         // Disband confirmation
         if (state.ShowDisbandConfirm)
         {
-            PantheonWars.GUI.UI.Components.Overlays.ConfirmOverlay.Draw(
-                title: "Disband Civilization?",
-                message: "This action cannot be undone. All member religions will leave the civilization.",
+            ConfirmOverlay.Draw(
+                "Disband Civilization?",
+                "This action cannot be undone. All member religions will leave the civilization.",
                 out var confirmed,
                 out var canceled,
-                confirmLabel: "Disband",
-                cancelLabel: "Cancel");
+                "Disband");
 
             if (confirmed)
             {
@@ -191,13 +189,12 @@ internal static class CivilizationManageRenderer
             var targetId = state.KickConfirmReligionId;
             var targetName = civ.MemberReligions.Find(m => m.ReligionId == targetId)?.ReligionName ?? "this religion";
 
-            PantheonWars.GUI.UI.Components.Overlays.ConfirmOverlay.Draw(
-                title: "Kick Religion?",
-                message: $"Remove '{targetName}' from your civilization?",
+            ConfirmOverlay.Draw(
+                "Kick Religion?",
+                $"Remove '{targetName}' from your civilization?",
                 out var confirmed,
                 out var canceled,
-                confirmLabel: "Kick",
-                cancelLabel: "Cancel");
+                "Kick");
 
             if (confirmed)
             {
@@ -242,17 +239,18 @@ internal static class CivilizationManageRenderer
         var isCivFounderReligion = manager.CivilizationFounderReligionUID == member.ReligionId;
         if (manager.IsCivilizationFounder && !isCivFounderReligion)
         {
-            var kickEnabled = !manager.CivState.IsMyCivLoading && manager.CivState.KickConfirmReligionId == null && !manager.CivState.ShowDisbandConfirm; // disabled while tab loading or overlay open
-            if (kickEnabled && ButtonRenderer.DrawSmallButton(drawList, "Kick", x + width - 80f, y + (height - 26f) / 2f, 70f, 26f,
+            var kickEnabled = !manager.CivState.IsMyCivLoading && manager.CivState.KickConfirmReligionId == null &&
+                              !manager.CivState.ShowDisbandConfirm; // disabled while tab loading or overlay open
+            if (kickEnabled && ButtonRenderer.DrawSmallButton(drawList, "Kick", x + width - 80f,
+                    y + (height - 26f) / 2f, 70f, 26f,
                     ColorPalette.Red * 0.7f))
-            {
                 // Open confirm overlay; store the target religion id in state
                 manager.CivState.KickConfirmReligionId = member.ReligionId;
-            }
         }
     }
 
-    private static void DrawInviteRow(CivilizationInfoResponsePacket.PendingInvite invite, float x, float y, float width, float height)
+    private static void DrawInviteRow(CivilizationInfoResponsePacket.PendingInvite invite, float x, float y,
+        float width, float height)
     {
         var drawList = ImGui.GetWindowDrawList();
         // Row background

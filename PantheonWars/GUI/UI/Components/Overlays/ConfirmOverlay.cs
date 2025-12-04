@@ -1,6 +1,6 @@
 using System;
-using System.Numerics;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using ImGuiNET;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Utilities;
@@ -60,9 +60,7 @@ internal static class ConfirmOverlay
             // Ensure buttons fit comfortably
             var minForButtons = totalButtonsWidth + padding * 2f;
             if (effectiveDialogWidth < minForButtons)
-            {
                 effectiveDialogWidth = Math.Clamp(minForButtons, minWidth, maxWidth);
-            }
         }
 
         // Now that we have the final width, compute wrapping and height
@@ -98,14 +96,9 @@ internal static class ConfirmOverlay
         // Anchor buttons to the bottom padding so vertical spacing looks consistent regardless of message height
         var btnY = dlgEnd.Y - padding - btnH;
 
-        if (ButtonRenderer.DrawButton(drawList, confirmLabel, btnStartX, btnY, btnW, btnH, isPrimary: true))
-        {
-            confirmed = true;
-        }
+        if (ButtonRenderer.DrawButton(drawList, confirmLabel, btnStartX, btnY, btnW, btnH, true)) confirmed = true;
 
         if (ButtonRenderer.DrawButton(drawList, cancelLabel, btnStartX + btnW + btnSpacing, btnY, btnW, btnH))
-        {
             canceled = true;
-        }
     }
 }

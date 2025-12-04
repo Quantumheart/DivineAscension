@@ -17,12 +17,12 @@ public static class RankRequirements
     {
         return currentRank switch
         {
-            0 => 500,   // Initiate → Disciple
-            1 => 2000,  // Disciple → Zealot
-            2 => 5000,  // Zealot → Champion
+            0 => 500, // Initiate → Disciple
+            1 => 2000, // Disciple → Zealot
+            2 => 5000, // Zealot → Champion
             3 => 10000, // Champion → Avatar
-            4 => 0,     // Max rank
-            _ => 0      // Invalid rank
+            4 => 0, // Max rank
+            _ => 0 // Invalid rank
         };
     }
 
@@ -35,12 +35,12 @@ public static class RankRequirements
     {
         return currentRank switch
         {
-            0 => 500,   // Fledgling → Established
-            1 => 1500,  // Established → Renowned
-            2 => 3500,  // Renowned → Legendary
-            3 => 7500,  // Legendary → Mythic
-            4 => 0,     // Max rank
-            _ => 0      // Invalid rank
+            0 => 500, // Fledgling → Established
+            1 => 1500, // Established → Renowned
+            2 => 3500, // Renowned → Legendary
+            3 => 7500, // Legendary → Mythic
+            4 => 0, // Max rank
+            _ => 0 // Invalid rank
         };
     }
 

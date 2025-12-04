@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using PantheonWars.Models.Enum;
 using PantheonWars.Systems.Interfaces;
-using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
 namespace PantheonWars.Systems.Favor;
@@ -16,24 +15,41 @@ public class ExplorationFavorTracker(
     ICoreServerAPI sapi,
     FavorSystem favorSystem) : IFavorTracker, IDisposable
 {
-    public DeityType DeityType { get; } = DeityType.Lysa;
+    private readonly FavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+
+    // Cache last chunk per player to avoid redundant work between ticks
+    private readonly Dictionary<string, (int cx, int cz)> _lastChunk = new();
+
+    // Track current followers for early exit
+    private readonly HashSet<string> _lysaFollowers = new();
 
     private readonly IPlayerReligionDataManager _playerReligionDataManager =
         playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
-    private readonly FavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
-
-    // Track current followers for early exit
-    private readonly HashSet<string> _lysaFollowers = new();
 
     // Track visited chunks per player (session-scoped). Key format: "cx,cz"
     private readonly Dictionary<string, HashSet<string>> _visitedChunks = new();
 
-    // Cache last chunk per player to avoid redundant work between ticks
-    private readonly Dictionary<string, (int cx, int cz)> _lastChunk = new();
-
     private long _tickListenerId = -1;
+
+    public void Dispose()
+    {
+        if (_tickListenerId != -1)
+        {
+            _sapi.Event.UnregisterGameTickListener(_tickListenerId);
+            _tickListenerId = -1;
+        }
+
+        _playerReligionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
+        _playerReligionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
+
+        _lysaFollowers.Clear();
+        _visitedChunks.Clear();
+        _lastChunk.Clear();
+    }
+
+    public DeityType DeityType { get; } = DeityType.Lysa;
 
     public void Initialize()
     {
@@ -49,25 +65,21 @@ public class ExplorationFavorTracker(
 
     private void RefreshFollowerCache()
     {
-        foreach (var player in _sapi.World.AllOnlinePlayers)
-        {
-            UpdateFollower(player.PlayerUID);
-        }
+        foreach (var player in _sapi.World.AllOnlinePlayers) UpdateFollower(player.PlayerUID);
     }
 
-    private void OnPlayerDataChanged(string playerUid) => UpdateFollower(playerUid);
+    private void OnPlayerDataChanged(string playerUid)
+    {
+        UpdateFollower(playerUid);
+    }
 
     private void UpdateFollower(string playerUid)
     {
         var data = _playerReligionDataManager.GetOrCreatePlayerData(playerUid);
         if (data?.ActiveDeity == DeityType)
-        {
             _lysaFollowers.Add(playerUid);
-        }
         else
-        {
             _lysaFollowers.Remove(playerUid);
-        }
     }
 
     private void OnPlayerLeavesReligion(IServerPlayer player, string religionUid)
@@ -86,10 +98,10 @@ public class ExplorationFavorTracker(
             if (!_lysaFollowers.Contains(player.PlayerUID)) continue;
 
             // Compute chunk coordinates (32x32 blocks per chunk)
-            int x = (int)player.Entity.ServerPos.X;
-            int z = (int)player.Entity.ServerPos.Z;
-            int cx = x >> 5; // divide by 32
-            int cz = z >> 5; // divide by 32
+            var x = (int)player.Entity.ServerPos.X;
+            var z = (int)player.Entity.ServerPos.Z;
+            var cx = x >> 5; // divide by 32
+            var cz = z >> 5; // divide by 32
 
             // Skip if we haven't changed chunks
             if (_lastChunk.TryGetValue(player.PlayerUID, out var prev) && prev.cx == cx && prev.cz == cz)
@@ -104,28 +116,10 @@ public class ExplorationFavorTracker(
                 _visitedChunks[player.PlayerUID] = set;
             }
 
-            string key = cx + "," + cz;
+            var key = cx + "," + cz;
             if (set.Add(key))
-            {
                 // First time entering this chunk this session → award favor
-                _favorSystem.AwardFavorForAction(player, $"exploration", 2f);
-            }
+                _favorSystem.AwardFavorForAction(player, "exploration", 2f);
         }
-    }
-
-    public void Dispose()
-    {
-        if (_tickListenerId != -1)
-        {
-            _sapi.Event.UnregisterGameTickListener(_tickListenerId);
-            _tickListenerId = -1;
-        }
-
-        _playerReligionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
-        _playerReligionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
-
-        _lysaFollowers.Clear();
-        _visitedChunks.Clear();
-        _lastChunk.Clear();
     }
 }

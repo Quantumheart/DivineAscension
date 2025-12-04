@@ -75,14 +75,12 @@ public static class TextRenderer
         }
 
         if (!string.IsNullOrEmpty(currentLine))
-        {
             drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(x, lineY), textColor, currentLine);
-        }
     }
 
     /// <summary>
     ///     Measure the pixel height of a block of word-wrapped info text for a given width.
-    ///     Mirrors the simple wrapping algorithm in <see cref="DrawInfoText"/> so callers can layout correctly.
+    ///     Mirrors the simple wrapping algorithm in <see cref="DrawInfoText" /> so callers can layout correctly.
     /// </summary>
     /// <param name="text">Text to measure</param>
     /// <param name="width">Maximum width for wrapping</param>
@@ -112,10 +110,7 @@ public static class TextRenderer
             }
         }
 
-        if (!string.IsNullOrEmpty(currentLine))
-        {
-            lines++;
-        }
+        if (!string.IsNullOrEmpty(currentLine)) lines++;
 
         return lines <= 0 ? 0f : lines * lineHeight;
     }

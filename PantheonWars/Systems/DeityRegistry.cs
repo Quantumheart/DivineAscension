@@ -37,21 +37,6 @@ public class DeityRegistry : IDeityRegistry
     }
 
     /// <summary>
-    ///     Registers a deity in the registry
-    /// </summary>
-    private void RegisterDeity(Deity deity)
-    {
-        if (_deities.ContainsKey(deity.Type))
-        {
-            _api.Logger.Warning($"[PantheonWars] Deity {deity.Name} already registered, skipping");
-            return;
-        }
-
-        _deities[deity.Type] = deity;
-        _api.Logger.Debug($"[PantheonWars] Registered deity: {deity.Name} ({deity.Domain})");
-    }
-
-    /// <summary>
     ///     Gets a deity by type
     /// </summary>
     public Deity? GetDeity(DeityType type)
@@ -103,6 +88,21 @@ public class DeityRegistry : IDeityRegistry
             DeityRelationshipType.Rival => 2.0f,
             _ => 1.0f
         };
+    }
+
+    /// <summary>
+    ///     Registers a deity in the registry
+    /// </summary>
+    private void RegisterDeity(Deity deity)
+    {
+        if (_deities.ContainsKey(deity.Type))
+        {
+            _api.Logger.Warning($"[PantheonWars] Deity {deity.Name} already registered, skipping");
+            return;
+        }
+
+        _deities[deity.Type] = deity;
+        _api.Logger.Debug($"[PantheonWars] Registered deity: {deity.Name} ({deity.Domain})");
     }
 
     #region Deity Definitions

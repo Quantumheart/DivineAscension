@@ -10,7 +10,6 @@ namespace PantheonWars.Data;
 [ProtoContract]
 public class Civilization
 {
-
     /// <summary>
     ///     Parameterless constructor for serialization
     /// </summary>
@@ -55,7 +54,7 @@ public class Civilization
     /// </summary>
     [ProtoMember(4)]
     public string FounderReligionUID { get; set; } = string.Empty;
-    
+
 
     /// <summary>
     ///     List of religion UIDs that are members (2-4 religions)

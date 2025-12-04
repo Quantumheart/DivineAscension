@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using HarmonyLib;
 using Vintagestory.API.Common;
-using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Server;
 
 namespace PantheonWars.Systems.Patches;
@@ -10,10 +9,9 @@ namespace PantheonWars.Systems.Patches;
 [HarmonyPatch]
 public static class EatingPatches
 {
-    public static event Action<IServerPlayer, ItemStack>? OnFoodEaten;
-
     // Track original stack before eating begins so we know what was eaten
     private static readonly Dictionary<string, ItemStack> _originalEatenStacks = new();
+    public static event Action<IServerPlayer, ItemStack>? OnFoodEaten;
 
     public static void ClearSubscribers()
     {
@@ -33,10 +31,8 @@ public static class EatingPatches
         {
             var uid = eplr.PlayerUID;
             if (!string.IsNullOrEmpty(uid))
-            {
                 // store a clone so later mutations won't affect us
                 _originalEatenStacks[uid] = slot.Itemstack.Clone();
-            }
         }
     }
 
@@ -60,10 +56,14 @@ public static class EatingPatches
             if (eatenStack == null) eatenStack = slot?.Itemstack?.Clone();
 
             if (eatenStack != null)
-            {
-                try { OnFoodEaten?.Invoke(sp, eatenStack); }
-                catch { /* ignore listener errors */ }
-            }
+                try
+                {
+                    OnFoodEaten?.Invoke(sp, eatenStack);
+                }
+                catch
+                {
+                    /* ignore listener errors */
+                }
 
             // cleanup
             _originalEatenStacks.Remove(uid);

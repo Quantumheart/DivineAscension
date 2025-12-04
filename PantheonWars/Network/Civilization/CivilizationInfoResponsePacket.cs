@@ -41,9 +41,11 @@ public class CivilizationInfoResponsePacket
 
         [ProtoMember(7)] public DateTime CreatedDate { get; set; }
 
-        [ProtoMember(8)] public string FounderName { get; set; } = string.Empty; // Player name who founded the civilization
+        [ProtoMember(8)]
+        public string FounderName { get; set; } = string.Empty; // Player name who founded the civilization
 
-        [ProtoMember(9)] public string FounderReligionName { get; set; } = string.Empty; // Religion name that founded the civilization
+        [ProtoMember(9)]
+        public string FounderReligionName { get; set; } = string.Empty; // Religion name that founded the civilization
     }
 
     /// <summary>
@@ -64,7 +66,8 @@ public class CivilizationInfoResponsePacket
 
         [ProtoMember(6)] public int MemberCount { get; set; }
 
-        [ProtoMember(7)] public string FounderName { get; set; } = string.Empty; // Player name who founded this religion
+        [ProtoMember(7)]
+        public string FounderName { get; set; } = string.Empty; // Player name who founded this religion
     }
 
     /// <summary>

@@ -101,7 +101,7 @@ internal static class CivilizationDetailViewRenderer
             8f,
             0f, // No scroll state needed for detail view
             (member, cx, cy, cw, ch) => DrawMemberRow(member, cx, cy, cw, ch, details.FounderReligionUID),
-            emptyText: "No member religions."
+            "No member religions."
         );
 
         currentY += listHeight + 16f;
@@ -109,17 +109,12 @@ internal static class CivilizationDetailViewRenderer
         // Join/Request info
         var isPlayerInCiv = state.MyCivilization?.CivId == details.CivId;
         if (isPlayerInCiv)
-        {
             TextRenderer.DrawInfoText(drawList, "You are a member of this civilization.", x, currentY, width);
-        }
         else if (details.MemberReligions.Count >= 4)
-        {
             TextRenderer.DrawInfoText(drawList, "This civilization is full (4/4 members).", x, currentY, width);
-        }
         else
-        {
-            TextRenderer.DrawInfoText(drawList, "You can receive an invitation from this civilization's founder to join.", x, currentY, width);
-        }
+            TextRenderer.DrawInfoText(drawList,
+                "You can receive an invitation from this civilization's founder to join.", x, currentY, width);
 
         return height;
     }
@@ -152,9 +147,7 @@ internal static class CivilizationDetailViewRenderer
 
         // Founder badge (for the civilization's founding religion)
         if (member.ReligionId == founderReligionUID)
-        {
             drawList.AddText(ImGui.GetFont(), 13f, new Vector2(x + width - 120f, y + (height - 16f) / 2f),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), "* Founder *");
-        }
     }
 }

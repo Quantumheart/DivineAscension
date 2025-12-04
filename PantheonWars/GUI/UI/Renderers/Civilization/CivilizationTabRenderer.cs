@@ -1,8 +1,8 @@
 using ImGuiNET;
 using PantheonWars.GUI.State;
-using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Banners;
+using PantheonWars.GUI.UI.Components.Buttons;
+using PantheonWars.GUI.UI.Utilities;
 using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI.Renderers.Civilization;
@@ -30,21 +30,16 @@ internal static class CivilizationTabRenderer
 
         DrawTabButton("Browse", 0);
         DrawTabButton("My Civilization", 1);
-        if (!manager.HasCivilization())
-        {
-            DrawTabButton("Invites", 2);
-        }
-        if (!manager.HasCivilization())
-        {
-            DrawTabButton("Create", 3);
-        }
+        if (!manager.HasCivilization()) DrawTabButton("Invites", 2);
+        if (!manager.HasCivilization()) DrawTabButton("Create", 3);
+
         void DrawTabButton(string label, int index)
         {
             var tx = tabX + index * (tabWidth + spacing);
-            var isActive = state.CurrentSubTab == (CivilizationSubTab) index;
+            var isActive = state.CurrentSubTab == (CivilizationSubTab)index;
             var clicked = ButtonRenderer.DrawButton(drawList, label, tx, tabY, tabWidth, tabH,
-                isPrimary: isActive, enabled: true,
-                customColor: isActive ? ColorPalette.Gold * 0.7f : ColorPalette.DarkBrown * 0.6f);
+                isActive, true,
+                isActive ? ColorPalette.Gold * 0.7f : ColorPalette.DarkBrown * 0.6f);
             if (clicked)
             {
                 state.CurrentSubTab = (CivilizationSubTab)index;
@@ -75,11 +70,10 @@ internal static class CivilizationTabRenderer
 
         // Error banner (LastActionError has priority)
         var bannerMessage = state.LastActionError;
-        bool showRetry = false;
-        int effectiveTab = (int)state.CurrentSubTab;
+        var showRetry = false;
+        var effectiveTab = (int)state.CurrentSubTab;
 
         if (bannerMessage == null)
-        {
             switch (state.CurrentSubTab)
             {
                 case 0:
@@ -96,12 +90,11 @@ internal static class CivilizationTabRenderer
                     showRetry = bannerMessage != null;
                     break;
             }
-        }
 
         if (bannerMessage != null)
         {
             var consumed = ErrorBannerRenderer.Draw(drawList, x, contentY, width, bannerMessage,
-                out var retryClicked, out var dismissClicked, showRetry: showRetry);
+                out var retryClicked, out var dismissClicked, showRetry);
             contentY += consumed;
             contentHeight -= consumed;
 
@@ -109,11 +102,11 @@ internal static class CivilizationTabRenderer
             {
                 if (state.LastActionError != null) state.LastActionError = null;
                 else
-                {
                     switch (effectiveTab)
                     {
                         case 0:
-                            if (state.ViewingCivilizationId != null) state.DetailsError = null; else state.BrowseError = null;
+                            if (state.ViewingCivilizationId != null) state.DetailsError = null;
+                            else state.BrowseError = null;
                             break;
                         case 1:
                             state.MyCivError = null;
@@ -122,29 +115,22 @@ internal static class CivilizationTabRenderer
                             state.InvitesError = null;
                             break;
                     }
-                }
             }
 
             if (retryClicked)
-            {
                 switch (effectiveTab)
                 {
                     case 0:
                         if (state.ViewingCivilizationId != null)
-                        {
                             manager.RequestCivilizationInfo(state.ViewingCivilizationId);
-                        }
                         else
-                        {
                             manager.RequestCivilizationList(state.DeityFilter);
-                        }
                         break;
                     case 1:
                     case 2:
-                        manager.RequestCivilizationInfo("");
+                        manager.RequestCivilizationInfo();
                         break;
                 }
-            }
         }
 
         switch (state.CurrentSubTab)

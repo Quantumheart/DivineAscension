@@ -18,10 +18,10 @@ public class CivilizationManager
     private const int MAX_RELIGIONS = 4;
     private const int COOLDOWN_DAYS = 7;
     private const int INVITE_EXPIRY_DAYS = 7;
+    private readonly DeityRegistry _deityRegistry;
+    private readonly ReligionManager _religionManager;
 
     private readonly ICoreServerAPI _sapi;
-    private readonly ReligionManager _religionManager;
-    private readonly DeityRegistry _deityRegistry;
     private CivilizationWorldData _data;
 
     public CivilizationManager(ICoreServerAPI sapi, ReligionManager religionManager, DeityRegistry deityRegistry)
@@ -97,7 +97,8 @@ public class CivilizationManager
             // Check if religion is already in a civilization
             if (_data.GetCivilizationByReligion(founderReligionId) != null)
             {
-                _sapi.Logger.Warning($"[PantheonWars] Religion '{founderReligion.ReligionName}' is already in a civilization");
+                _sapi.Logger.Warning(
+                    $"[PantheonWars] Religion '{founderReligion.ReligionName}' is already in a civilization");
                 return null;
             }
 
@@ -175,7 +176,8 @@ public class CivilizationManager
             // Check if religion is already in another civilization
             if (_data.GetCivilizationByReligion(religionId) != null)
             {
-                _sapi.Logger.Warning($"[PantheonWars] Religion '{targetReligion.ReligionName}' is already in a civilization");
+                _sapi.Logger.Warning(
+                    $"[PantheonWars] Religion '{targetReligion.ReligionName}' is already in a civilization");
                 return false;
             }
 
@@ -208,7 +210,8 @@ public class CivilizationManager
             var invite = new CivilizationInvite(inviteId, civId, religionId, DateTime.UtcNow);
             _data.AddInvite(invite);
 
-            _sapi.Logger.Notification($"[PantheonWars] Invited religion '{targetReligion.ReligionName}' to civilization '{civ.Name}'");
+            _sapi.Logger.Notification(
+                $"[PantheonWars] Invited religion '{targetReligion.ReligionName}' to civilization '{civ.Name}'");
             return true;
         }
         catch (Exception ex)
@@ -276,7 +279,8 @@ public class CivilizationManager
             // Remove invite
             _data.RemoveInvite(inviteId);
 
-            _sapi.Logger.Notification($"[PantheonWars] Religion '{religion.ReligionName}' joined civilization '{civ.Name}'");
+            _sapi.Logger.Notification(
+                $"[PantheonWars] Religion '{religion.ReligionName}' joined civilization '{civ.Name}'");
             return true;
         }
         catch (Exception ex)
@@ -333,11 +337,13 @@ public class CivilizationManager
             if (civ.MemberReligionIds.Count < MIN_RELIGIONS)
             {
                 DisbandCivilization(civ.CivId, civ.FounderUID);
-                _sapi.Logger.Notification($"[PantheonWars] Civilization '{civ.Name}' disbanded (below minimum religions)");
+                _sapi.Logger.Notification(
+                    $"[PantheonWars] Civilization '{civ.Name}' disbanded (below minimum religions)");
             }
             else
             {
-                _sapi.Logger.Notification($"[PantheonWars] Religion '{religion.ReligionName}' left civilization '{civ.Name}'");
+                _sapi.Logger.Notification(
+                    $"[PantheonWars] Religion '{religion.ReligionName}' left civilization '{civ.Name}'");
             }
 
             return true;
@@ -404,11 +410,13 @@ public class CivilizationManager
             if (civ.MemberReligionIds.Count < MIN_RELIGIONS)
             {
                 DisbandCivilization(civ.CivId, civ.FounderUID);
-                _sapi.Logger.Notification($"[PantheonWars] Civilization '{civ.Name}' disbanded (below minimum religions)");
+                _sapi.Logger.Notification(
+                    $"[PantheonWars] Civilization '{civ.Name}' disbanded (below minimum religions)");
             }
             else
             {
-                _sapi.Logger.Notification($"[PantheonWars] Religion '{religion.ReligionName}' kicked from civilization '{civ.Name}'");
+                _sapi.Logger.Notification(
+                    $"[PantheonWars] Religion '{religion.ReligionName}' kicked from civilization '{civ.Name}'");
             }
 
             return true;
@@ -513,10 +521,7 @@ public class CivilizationManager
         foreach (var religionId in civ.MemberReligionIds)
         {
             var religion = _religionManager.GetReligion(religionId);
-            if (religion != null)
-            {
-                deities.Add(religion.Deity);
-            }
+            if (religion != null) deities.Add(religion.Deity);
         }
 
         return deities;
@@ -535,10 +540,7 @@ public class CivilizationManager
         foreach (var religionId in civ.MemberReligionIds)
         {
             var religion = _religionManager.GetReligion(religionId);
-            if (religion != null)
-            {
-                religions.Add(religion);
-            }
+            if (religion != null) religions.Add(religion);
         }
 
         return religions;
@@ -587,11 +589,9 @@ public class CivilizationManager
             foreach (var religionId in civ.MemberReligionIds)
             {
                 var religion = _religionManager.GetReligion(religionId);
-                if (religion != null)
-                {
-                    totalMembers += religion.MemberUIDs.Count;
-                }
+                if (religion != null) totalMembers += religion.MemberUIDs.Count;
             }
+
             civ.MemberCount = totalMembers;
         }
     }

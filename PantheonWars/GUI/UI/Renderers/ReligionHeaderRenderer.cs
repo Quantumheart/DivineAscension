@@ -33,7 +33,7 @@ internal static class ReligionHeaderRenderer
     {
         // Two-column header: fixed height, no extra section below
         const float baseHeaderHeight = 130f;
-        float headerHeight = baseHeaderHeight;
+        var headerHeight = baseHeaderHeight;
         const float padding = 16f;
 
         var drawList = ImGui.GetWindowDrawList();
@@ -73,8 +73,8 @@ internal static class ReligionHeaderRenderer
         var innerWidth = width - padding * 2f;
         // Show two columns if the game reports a civilization OR if we have any civ metadata to show
         var twoColumns = manager.HasCivilization()
-                          || !string.IsNullOrEmpty(manager.CurrentCivilizationName)
-                          || (manager.CivilizationMemberReligions?.Count ?? 0) > 0;
+                         || !string.IsNullOrEmpty(manager.CurrentCivilizationName)
+                         || (manager.CivilizationMemberReligions?.Count ?? 0) > 0;
         var columnSpacing = twoColumns ? padding : 0f;
         var colWidth = twoColumns ? (innerWidth - columnSpacing) / 2f : innerWidth;
 
@@ -161,7 +161,7 @@ internal static class ReligionHeaderRenderer
             ColorPalette.Gold,
             ColorPalette.DarkBrown,
             favorLabel,
-            showGlow: favorProgress.ProgressPercentage > 0.8f
+            favorProgress.ProgressPercentage > 0.8f
         );
 
         progressY += progressBarSpacing;
@@ -184,9 +184,9 @@ internal static class ReligionHeaderRenderer
             new Vector4(0.48f, 0.41f, 0.93f, 1f), // Purple
             ColorPalette.DarkBrown,
             prestigeLabel,
-            showGlow: prestigeProgress.ProgressPercentage > 0.8f
+            prestigeProgress.ProgressPercentage > 0.8f
         );
-        
+
         // === CIVILIZATION COLUMN (right side when available) ===
         if (twoColumns)
         {
@@ -202,8 +202,8 @@ internal static class ReligionHeaderRenderer
                 1f);
 
             // Civilization icon/badge
-            float civCurrentX = col2X;
-            float civCurrentY = y + 12f; // small top padding
+            var civCurrentX = col2X;
+            var civCurrentY = y + 12f; // small top padding
             const float civIconSize = 32f;
             var civIconCenter = new Vector2(civCurrentX + civIconSize / 2f, civCurrentY + civIconSize / 2f);
             var civOuter = ImGui.ColorConvertFloat4ToU32(new Vector4(0.4f, 0.6f, 0.8f, 1f));
@@ -234,7 +234,6 @@ internal static class ReligionHeaderRenderer
             const float deityIconSize = 16f;
             const float deityIconSpacing = 4f;
             foreach (var memberReligion in manager.CivilizationMemberReligions)
-            {
                 if (Enum.TryParse<DeityType>(memberReligion.Deity, out var deityType))
                 {
                     var deityColor = DeityHelper.GetDeityColor(deityType);
@@ -257,7 +256,6 @@ internal static class ReligionHeaderRenderer
                     );
                     deityIconX += deityIconSize + deityIconSpacing;
                 }
-            }
 
             // Founder badge
             if (manager.IsCivilizationFounder)

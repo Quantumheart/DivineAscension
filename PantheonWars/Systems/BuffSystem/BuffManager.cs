@@ -51,7 +51,7 @@ public class BuffManager : IBuffManager
         // Add stat modifiers
         if (statModifiers is null)
             return false;
-        
+
         foreach (var modifier in statModifiers)
             effect.AddStatModifier(modifier.Key, modifier.Value);
 
@@ -123,35 +123,6 @@ public class BuffManager : IBuffManager
     }
 
     /// <summary>
-    ///     Get or create a buff tracker behavior on an entity
-    /// </summary>
-    private EntityBehaviorBuffTracker GetOrCreateBuffTracker(EntityAgent target)
-    {
-        // Try to get existing behavior
-        var buffTracker = target.GetBehavior<EntityBehaviorBuffTracker>();
-
-        // If it doesn't exist, create and add it
-        if (buffTracker == null)
-        {
-            buffTracker = new EntityBehaviorBuffTracker(target);
-            target.AddBehavior(buffTracker);
-
-            // Initialize the behavior
-            try
-            {
-                buffTracker.Initialize(target.Properties, null!);
-            }
-            catch (Exception ex)
-            {
-                sapi.Logger.Error($"[PantheonWars] Failed to initialize BuffTracker: {ex.Message}");
-                return null!;
-            }
-        }
-
-        return buffTracker;
-    }
-
-    /// <summary>
     ///     Helper: Apply a damage boost buff to nearby allies (e.g., War Banner)
     /// </summary>
     public int ApplyAoEBuff(
@@ -220,5 +191,34 @@ public class BuffManager : IBuffManager
         if (buffTracker == null) return 1.0f;
 
         return buffTracker.GetReceivedDamageMultiplier();
+    }
+
+    /// <summary>
+    ///     Get or create a buff tracker behavior on an entity
+    /// </summary>
+    private EntityBehaviorBuffTracker GetOrCreateBuffTracker(EntityAgent target)
+    {
+        // Try to get existing behavior
+        var buffTracker = target.GetBehavior<EntityBehaviorBuffTracker>();
+
+        // If it doesn't exist, create and add it
+        if (buffTracker == null)
+        {
+            buffTracker = new EntityBehaviorBuffTracker(target);
+            target.AddBehavior(buffTracker);
+
+            // Initialize the behavior
+            try
+            {
+                buffTracker.Initialize(target.Properties, null!);
+            }
+            catch (Exception ex)
+            {
+                sapi.Logger.Error($"[PantheonWars] Failed to initialize BuffTracker: {ex.Message}");
+                return null!;
+            }
+        }
+
+        return buffTracker;
     }
 }

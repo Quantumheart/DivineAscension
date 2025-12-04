@@ -15,13 +15,12 @@ public static class GaiaEffectHandlers
     /// <summary>
     ///     Pottery Batch Completion Bonus: Chance to craft a duplicate pottery item on completion
     ///     Effect ID: pottery_batch_completion_bonus
-    ///
     ///     Hooks into ClayFormingPatches.OnClayFormingFinished
     /// </summary>
     public class PotteryBatchCompletionEffect : ISpecialEffectHandler
     {
-        private ICoreServerAPI? _sapi;
         private readonly HashSet<string> _activePlayers = new();
+        private ICoreServerAPI? _sapi;
 
         public string EffectId => SpecialEffects.PotteryBatchCompletionBonus;
 
@@ -44,7 +43,9 @@ public static class GaiaEffectHandlers
             _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
         }
 
-        public void OnTick(float deltaTime) { }
+        public void OnTick(float deltaTime)
+        {
+        }
 
         private void HandleClayFormingFinished(IServerPlayer player, ItemStack resultStack)
         {

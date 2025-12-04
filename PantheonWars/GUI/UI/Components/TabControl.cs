@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
@@ -35,24 +34,18 @@ public static class TabControl
         int selectedIndex,
         float tabSpacing = 4f)
     {
-        if (tabs == null || tabs.Length == 0)
-        {
-            return selectedIndex;
-        }
+        if (tabs == null || tabs.Length == 0) return selectedIndex;
 
         // Calculate tab width
         var tabWidth = (width - tabSpacing * (tabs.Length - 1)) / tabs.Length;
         var tabX = x;
         var newSelectedIndex = selectedIndex;
 
-        for (int i = 0; i < tabs.Length; i++)
+        for (var i = 0; i < tabs.Length; i++)
         {
             var isSelected = selectedIndex == i;
 
-            if (DrawTab(drawList, tabs[i], tabX, y, tabWidth, height, isSelected))
-            {
-                newSelectedIndex = i;
-            }
+            if (DrawTab(drawList, tabs[i], tabX, y, tabWidth, height, isSelected)) newSelectedIndex = i;
 
             tabX += tabWidth + tabSpacing;
         }
@@ -64,14 +57,15 @@ public static class TabControl
     ///     Draw a single tab
     /// </summary>
     /// <returns>True if tab was clicked (and was not already selected)</returns>
-    private static bool DrawTab(ImDrawListPtr drawList, string text, float x, float y, float width, float height, bool isSelected)
+    private static bool DrawTab(ImDrawListPtr drawList, string text, float x, float y, float width, float height,
+        bool isSelected)
     {
         var tabStart = new Vector2(x, y);
         var tabEnd = new Vector2(x + width, y + height);
 
         var mousePos = ImGui.GetMousePos();
         var isHovering = mousePos.X >= x && mousePos.X <= x + width &&
-                        mousePos.Y >= y && mousePos.Y <= y + height;
+                         mousePos.Y >= y && mousePos.Y <= y + height;
 
         // Determine background color
         Vector4 bgColor;

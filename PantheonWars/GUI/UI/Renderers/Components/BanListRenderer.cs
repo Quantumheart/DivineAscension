@@ -73,10 +73,7 @@ public static class BanListRenderer
         if (isMouseOver)
         {
             var wheel = ImGui.GetIO().MouseWheel;
-            if (wheel != 0)
-            {
-                scrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
-            }
+            if (wheel != 0) scrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
         }
 
         // Clip to bounds
@@ -103,9 +100,7 @@ public static class BanListRenderer
 
         // Draw scrollbar if needed
         if (contentHeight > height)
-        {
             Scrollbar.Draw(drawList, x + width - scrollbarWidth, y, scrollbarWidth, height, scrollY, maxScroll);
-        }
 
         return scrollY;
     }

@@ -15,8 +15,9 @@ namespace PantheonWars.Systems;
 /// </summary>
 public class PlayerReligionDataManager : IPlayerReligionDataManager, IDisposable
 {
-    public delegate void PlayerReligionDataChangedDelegate(IServerPlayer player, string religionUID);
     public delegate void PlayerDataChangedDelegate(string playerUID);
+
+    public delegate void PlayerReligionDataChangedDelegate(IServerPlayer player, string religionUID);
 
     private const string DATA_KEY = "pantheonwars_playerreligiondata";
     private const int RELIGION_SWITCH_COOLDOWN_DAYS = 7;

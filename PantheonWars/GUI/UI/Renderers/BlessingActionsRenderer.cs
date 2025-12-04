@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
 using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.UI.Renderers;
 
@@ -51,11 +52,9 @@ internal static class BlessingActionsRenderer
             ColorButtonNormal, ColorTextNormal, true, onCloseClicked);
 
         if (closeClicked)
-        {
             // Play click sound
-            api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
+            api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                 api.World.Player.Entity, null, false, 8f, 0.5f);
-        }
 
         // Unlock button - only show if blessing is selected and not already unlocked
         var selectedState = manager.GetSelectedBlessingState();
@@ -72,12 +71,10 @@ internal static class BlessingActionsRenderer
                 buttonColor, textColor, canUnlock, canUnlock ? onUnlockClicked : null);
 
             if (clicked && canUnlock)
-            {
                 // Play click sound when unlock button pressed
                 // Unlock success sound will play when server confirms
-                api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
+                api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                     api.World.Player.Entity, null, false, 8f, 0.5f);
-            }
 
             // Show tooltip on hover if disabled
             if (!canUnlock && IsMouseInRect(unlockButtonX, y, ButtonWidth, ButtonHeight))
@@ -86,10 +83,8 @@ internal static class BlessingActionsRenderer
 
                 // Play error sound on click if locked
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                {
-                    api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/error"),
+                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
                         api.World.Player.Entity, null, false, 8f, 0.3f);
-                }
             }
         }
 

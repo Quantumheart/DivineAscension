@@ -1,8 +1,8 @@
-using System.Numerics;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using ImGuiNET;
-using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.GUI.UI.Components.Buttons;
+using PantheonWars.GUI.UI.Utilities;
 
 namespace PantheonWars.GUI.UI.Components.Banners;
 
@@ -67,18 +67,12 @@ internal static class ErrorBannerRenderer
 
         // Dismiss button
         if (ButtonRenderer.DrawSmallButton(drawList, "Dismiss", curX, btnY, btnW, btnH, ColorPalette.DarkBrown))
-        {
             dismissClicked = true;
-        }
-        curX -= (btnW + 8f);
+        curX -= btnW + 8f;
 
         if (showRetry)
-        {
             if (ButtonRenderer.DrawSmallButton(drawList, "Retry", curX, btnY, btnW, btnH, ColorPalette.Gold * 0.8f))
-            {
                 retryClicked = true;
-            }
-        }
 
         return height + 8f; // include small spacing after banner
     }

@@ -80,17 +80,11 @@ public static class KhorasEffectHandlers
 
             // Get backpack inventory (main inventory bags)
             var backpack = player.InventoryManager.GetOwnInventory(GlobalConstants.backpackInvClassName);
-            if (backpack != null)
-            {
-                repairedCount += RepairToolsInInventory(backpack);
-            }
+            if (backpack != null) repairedCount += RepairToolsInInventory(backpack);
 
             // Get hotbar inventory
             var hotbar = player.InventoryManager.GetOwnInventory(GlobalConstants.hotBarInvClassName);
-            if (hotbar != null)
-            {
-                repairedCount += RepairToolsInInventory(hotbar);
-            }
+            if (hotbar != null) repairedCount += RepairToolsInInventory(hotbar);
 
             if (repairedCount > 0)
             {
@@ -161,5 +155,4 @@ public static class KhorasEffectHandlers
             return false;
         }
     }
-    
 }

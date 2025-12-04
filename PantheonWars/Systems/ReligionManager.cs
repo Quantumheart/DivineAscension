@@ -16,9 +16,9 @@ public class ReligionManager : IReligionManager, IDisposable
 {
     private const string DATA_KEY = "pantheonwars_religions";
     private const string INVITE_DATA_KEY = "pantheonwars_religion_invites";
-    private ReligionWorldData _inviteData = new();
     private readonly Dictionary<string, ReligionData> _religions = new();
     private readonly ICoreServerAPI _sapi;
+    private ReligionWorldData _inviteData = new();
 
     public ReligionManager(ICoreServerAPI sapi)
     {
@@ -440,6 +440,14 @@ public class ReligionManager : IReligionManager, IDisposable
     }
 
     /// <summary>
+    ///     Manually triggers a save of all religion data
+    /// </summary>
+    public void TriggerSave()
+    {
+        SaveAllReligions();
+    }
+
+    /// <summary>
     ///     Handles the founder leaving the religion
     /// </summary>
     private void HandleFounderLeaving(ReligionData religion)
@@ -452,14 +460,6 @@ public class ReligionManager : IReligionManager, IDisposable
             _sapi.Logger.Notification(
                 $"[PantheonWars] Religion {religion.ReligionName} founder transferred to {newFounder}");
         }
-    }
-
-    /// <summary>
-    ///     Manually triggers a save of all religion data
-    /// </summary>
-    public void TriggerSave()
-    {
-        SaveAllReligions();
     }
 
     #region Persistence

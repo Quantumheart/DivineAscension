@@ -183,7 +183,8 @@ public static class BlessingTreeLayout
     /// <summary>
     ///     Find which node (if any) contains the given point
     /// </summary>
-    public static BlessingNodeState? FindNodeAtPoint(Dictionary<string, BlessingNodeState> blessingStates, float x, float y)
+    public static BlessingNodeState? FindNodeAtPoint(Dictionary<string, BlessingNodeState> blessingStates, float x,
+        float y)
     {
         foreach (var state in blessingStates.Values)
             if (IsPointInNode(state, x, y))

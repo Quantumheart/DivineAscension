@@ -36,19 +36,22 @@ internal static class CivilizationCreateRenderer
         foreach (var req in requirements)
         {
             // bullet
-            drawList.AddCircleFilled(new Vector2(x + 8f, currentY + 7f), 2f, ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold));
-            drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 16f, currentY), ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), req);
+            drawList.AddCircleFilled(new Vector2(x + 8f, currentY + 7f), 2f,
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold));
+            drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 16f, currentY),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), req);
             currentY += 18f;
         }
 
         currentY += 16f;
 
         // Civilization name input
-        TextRenderer.DrawLabel(drawList, "Civilization Name:", x, currentY, 14f);
+        TextRenderer.DrawLabel(drawList, "Civilization Name:", x, currentY);
         currentY += 20f;
 
-        state.CreateCivName = TextInput.Draw(drawList, "##createCivName", state.CreateCivName, x, currentY, width * 0.7f, 30f,
-            placeholder: "Enter name (3-32 characters)...", maxLength: 32);
+        state.CreateCivName = TextInput.Draw(drawList, "##createCivName", state.CreateCivName, x, currentY,
+            width * 0.7f, 30f,
+            "Enter name (3-32 characters)...", 32);
         currentY += 40f;
 
         // Create button
@@ -67,14 +70,14 @@ internal static class CivilizationCreateRenderer
 
         // Clear button
         if (ButtonRenderer.DrawButton(drawList, "Clear", x + 210f, currentY, 80f, 36f))
-        {
             state.CreateCivName = string.Empty;
-        }
 
         currentY += 50f;
 
         // Info text
-        TextRenderer.DrawInfoText(drawList, "Once created, you can invite 2-4 religions with different deities to join your civilization. Work together to build a powerful alliance!", x, currentY, width);
+        TextRenderer.DrawInfoText(drawList,
+            "Once created, you can invite 2-4 religions with different deities to join your civilization. Work together to build a powerful alliance!",
+            x, currentY, width);
         currentY += 40f;
 
         return currentY - y;

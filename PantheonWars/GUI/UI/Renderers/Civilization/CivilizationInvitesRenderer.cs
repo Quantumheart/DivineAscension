@@ -23,7 +23,9 @@ internal static class CivilizationInvitesRenderer
         currentY += 26f;
 
         // Help text explaining where to send invites
-        TextRenderer.DrawInfoText(drawList, "This tab shows invitations you've received. To send invitations, go to the \"My Civilization\" tab (founders only).", x, currentY, width);
+        TextRenderer.DrawInfoText(drawList,
+            "This tab shows invitations you've received. To send invitations, go to the \"My Civilization\" tab (founders only).",
+            x, currentY, width);
         currentY += 32f;
 
         if (state.MyInvites.Count == 0)
@@ -70,15 +72,11 @@ internal static class CivilizationInvitesRenderer
 
         var enabled = !manager.CivState.IsInvitesLoading;
         if (ButtonRenderer.DrawButton(drawList, "Accept", x + width - 180f, y + height - 32f, 80f, 28f, true,
-                enabled: enabled))
-        {
+                enabled))
             manager.RequestCivilizationAction("accept", "", invite.InviteId);
-        }
 
         if (ButtonRenderer.DrawButton(drawList, "Decline", x + width - 90f, y + height - 32f, 80f, 28f,
-                isPrimary: false, enabled: enabled))
-        {
+                false, enabled))
             api.ShowChatMessage("Decline functionality coming soon!");
-        }
     }
 }

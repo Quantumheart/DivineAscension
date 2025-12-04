@@ -44,7 +44,10 @@ public static class ErrorMessageConstants
 {
     public const string ErrorPlayerNotFound = "Player not found";
     public const string ErrorNoReligion = "You are not in a religion.";
-    public const string ErrorMustJoinReligion = "You must join a religion to view blessings. Use /religion to get started.";
+
+    public const string ErrorMustJoinReligion =
+        "You must join a religion to view blessings. Use /religion to get started.";
+
     public const string ErrorMustJoinReligionForTree = "You must join a religion to view blessing trees.";
     public const string ErrorMustBeInReligionToUnlock = "You must be in a religion to unlock player blessings.";
     public const string ErrorOnlyFounderCanUnlock = "Only the religion founder can unlock religion blessings.";

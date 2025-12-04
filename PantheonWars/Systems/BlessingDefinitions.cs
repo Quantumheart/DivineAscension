@@ -84,7 +84,8 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "+20% tool durability (total: 45%), +15% ore yield (total: 25%). Requires Masterwork Tools.",
+                Description =
+                    "+20% tool durability (total: 45%), +15% ore yield (total: 25%). Requires Masterwork Tools.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasMasterworkTools },
                 StatModifiers = new Dictionary<string, float>
@@ -92,13 +93,14 @@ public static class BlessingDefinitions
                     { VintageStoryStats.ToolDurability, 0.20f },
                     { VintageStoryStats.OreDropRate, 0.15f }
                 },
-                SpecialEffects = new List<string> { }
+                SpecialEffects = new List<string>()
             },
             new(BlessingIds.KhorasUnyielding, "Unyielding", DeityType.Khoras)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Defense,
-                Description = "+10% reduced armor durability loss, +15% max health (total: 25%). Requires Forgeborn Endurance.",
+                Description =
+                    "+10% reduced armor durability loss, +15% max health (total: 25%). Requires Forgeborn Endurance.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasForgebornEndurance },
                 StatModifiers = new Dictionary<string, float>
@@ -113,9 +115,11 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "Tools repair 1 durability per 5 minutes. +10% armor walk speed. Requires both Legendary Smith and Unyielding.",
+                Description =
+                    "Tools repair 1 durability per 5 minutes. +10% armor walk speed. Requires both Legendary Smith and Unyielding.",
                 RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.KhorasLegendarySmith, BlessingIds.KhorasUnyielding },
+                PrerequisiteBlessings = new List<string>
+                    { BlessingIds.KhorasLegendarySmith, BlessingIds.KhorasUnyielding },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.ArmorWalkSpeedAffectedness, -0.10f }
@@ -159,7 +163,8 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
-                Description = "+20% tool durability, +20% ore yield, +10% armor walk speed for all. Requires Guild of Smiths.",
+                Description =
+                    "+20% tool durability, +20% ore yield, +10% armor walk speed for all. Requires Guild of Smiths.",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasGuildOfSmiths },
                 StatModifiers = new Dictionary<string, float>
@@ -182,7 +187,7 @@ public static class BlessingDefinitions
                 {
                     { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
                 },
-                SpecialEffects = new List<string> { }
+                SpecialEffects = new List<string>()
             }
         };
     }
@@ -210,7 +215,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.ForageDropRate, 0.15f },
                     { VintageStoryStats.WalkSpeed, 0.05f }
                 },
-                SpecialEffects = new List<string> { }
+                SpecialEffects = new List<string>()
             },
 
             // Tier 2 - Disciple (500-1999 favor) - Choose Path
@@ -218,7 +223,8 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "+20% forage drops (total: 35%), +20% wild crop drop rate, food spoils 15% slower. Requires Hunter's Instinct.",
+                Description =
+                    "+20% forage drops (total: 35%), +20% wild crop drop rate, food spoils 15% slower. Requires Hunter's Instinct.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaHuntersInstinct },
                 StatModifiers = new Dictionary<string, float>
@@ -233,7 +239,8 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
-                Description = "+20% animal drops (total: 35%), +10% animal harvesting speed. Requires Hunter's Instinct.",
+                Description =
+                    "+20% animal drops (total: 35%), +10% animal harvesting speed. Requires Hunter's Instinct.",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaHuntersInstinct },
                 StatModifiers = new Dictionary<string, float>
@@ -241,7 +248,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.AnimalDrops, 0.20f },
                     { VintageStoryStats.AnimalHarvestTime, 0.10f }
                 },
-                SpecialEffects = new List<string> { }
+                SpecialEffects = new List<string>()
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
@@ -249,7 +256,8 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "+25% forage drops (total: 60%), food spoils 25% slower (total: 40%). Requires Master Forager.",
+                Description =
+                    "+25% forage drops (total: 60%), food spoils 25% slower (total: 40%). Requires Master Forager.",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.LysaMasterForager },
                 StatModifiers = new Dictionary<string, float>
@@ -271,7 +279,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.RangedWeaponsAccuracy, 0.15f },
                     { VintageStoryStats.RangedWeaponsDamage, 0.15f }
                 },
-                SpecialEffects = new List<string> { }
+                SpecialEffects = new List<string>()
             },
 
             // Tier 4 - Champion (5000-9999 favor) - Capstone
@@ -279,15 +287,17 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "+20% ranged distance, +20% reduced animal seeking range. Requires both Abundance of the Wild and Silent Death.",
+                Description =
+                    "+20% ranged distance, +20% reduced animal seeking range. Requires both Abundance of the Wild and Silent Death.",
                 RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.LysaAbundanceOfWild, BlessingIds.LysaSilentDeath },
+                PrerequisiteBlessings = new List<string>
+                    { BlessingIds.LysaAbundanceOfWild, BlessingIds.LysaSilentDeath },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.RangedWeaponsRange, 0.20f },
                     { VintageStoryStats.AnimalSeekingRange, 0.20f }
                 },
-                SpecialEffects = new List<string> { }
+                SpecialEffects = new List<string>()
             },
 
             // RELIGION BLESSINGS (4 total)
@@ -369,13 +379,14 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "Light brings life and growth. +12% crop yield, +10% satiety from all food, +3°C heat resistance, light sources provide +1°C warmth radius.",
+                Description =
+                    "Light brings life and growth. +12% crop yield, +10% satiety from all food, +3°C heat resistance, light sources provide +1°C warmth radius.",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.CropYield, 0.12f },
                     { VintageStoryStats.Satiety, 0.10f },
-                    { VintageStoryStats.HeatResistance, 3.0f },
+                    { VintageStoryStats.HeatResistance, 3.0f }
                 },
                 SpecialEffects = new List<string> { SpecialEffects.LightWarmthBonus }
             },
@@ -448,7 +459,8 @@ public static class BlessingDefinitions
                     { VintageStoryStats.FoodSpoilage, 0.30f },
                     { VintageStoryStats.HeatResistance, 7.0f }
                 },
-                SpecialEffects = new List<string> { SpecialEffects.TempHealthBuff5, SpecialEffects.FoodSpoilageReduction }
+                SpecialEffects = new List<string>
+                    { SpecialEffects.TempHealthBuff5, SpecialEffects.FoodSpoilageReduction }
             },
 
             // Tier 4 - Champion (5000+ favor) - Capstone (requires both paths)
@@ -459,7 +471,8 @@ public static class BlessingDefinitions
                 Description =
                     "Embody the endless bounty of the harvest. +8% movement speed, +10% max health, never suffer malnutrition penalties, can create blessed meals with powerful buffs. Requires both Master Farmer and Divine Kitchen.",
                 RequiredFavorRank = (int)FavorRank.Champion,
-                PrerequisiteBlessings = new List<string> { BlessingIds.AethraMasterFarmer, BlessingIds.AethraDivineKitchen },
+                PrerequisiteBlessings = new List<string>
+                    { BlessingIds.AethraMasterFarmer, BlessingIds.AethraDivineKitchen },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.WalkSpeed, 0.08f },

@@ -45,7 +45,7 @@ public interface IPlayerDataManager
     bool RemoveFavor(string playerUID, int amount, string reason = "");
 
     /// <summary>
-    /// Adds fractional favor to a player (for passive favor generation)
+    ///     Adds fractional favor to a player (for passive favor generation)
     /// </summary>
     /// <param name="playerUID">The player's unique identifier</param>
     /// <param name="amount">The amount of fractional favor to add</param>

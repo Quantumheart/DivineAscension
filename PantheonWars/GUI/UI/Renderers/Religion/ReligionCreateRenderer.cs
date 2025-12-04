@@ -7,6 +7,7 @@ using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Inputs;
 using PantheonWars.GUI.UI.Utilities;
 using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.UI.Renderers.Religion;
 
@@ -73,19 +74,20 @@ internal static class ReligionCreateRenderer
         if (currentDeityIndex == -1) currentDeityIndex = 0; // Default to Khoras
 
         // Draw deity selection as small tabs
-        var newDeityIndex = TabControl.Draw(drawList, formX, currentY, fieldWidth, 32f, deities, currentDeityIndex, 4f);
+        var newDeityIndex = TabControl.Draw(drawList, formX, currentY, fieldWidth, 32f, deities, currentDeityIndex);
 
         if (newDeityIndex != currentDeityIndex)
         {
             state.CreateDeity = deities[newDeityIndex];
-            api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
+            api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                 api.World.Player.Entity, null, false, 8f, 0.5f);
         }
 
         currentY += 40f;
 
         // Public/Private Toggle
-        state.CreateIsPublic = Checkbox.Draw(drawList, api, "Public (anyone can join)", formX, currentY, state.CreateIsPublic);
+        state.CreateIsPublic =
+            Checkbox.Draw(drawList, api, "Public (anyone can join)", formX, currentY, state.CreateIsPublic);
         currentY += 35f;
 
         // Info text
@@ -112,11 +114,12 @@ internal static class ReligionCreateRenderer
                         && state.CreateReligionName.Length <= 32;
 
         // Draw Create button
-        if (ButtonRenderer.DrawButton(drawList, "Create Religion", createButtonX, currentY, buttonWidth, buttonHeight, isPrimary: true, enabled: canCreate))
+        if (ButtonRenderer.DrawButton(drawList, "Create Religion", createButtonX, currentY, buttonWidth, buttonHeight,
+                true, canCreate))
         {
             if (canCreate)
             {
-                api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
+                api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                     api.World.Player.Entity, null, false, 8f, 0.5f);
 
                 // Request creation via PantheonWarsSystem
@@ -134,7 +137,7 @@ internal static class ReligionCreateRenderer
             }
             else
             {
-                api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/error"),
+                api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
                     api.World.Player.Entity, null, false, 8f, 0.3f);
             }
         }

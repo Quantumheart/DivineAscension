@@ -4,7 +4,9 @@ using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Components;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Renderers.Components;
+using PantheonWars.Network;
 using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.UI.Renderers.Religion;
 
@@ -40,8 +42,7 @@ internal static class ReligionBrowseRenderer
             width,
             tabHeight,
             deityFilters,
-            currentSelectedIndex,
-            tabSpacing);
+            currentSelectedIndex);
 
         // Handle selection change
         if (newSelectedIndex != currentSelectedIndex)
@@ -54,7 +55,7 @@ internal static class ReligionBrowseRenderer
             // Request refresh with new filter
             manager.RequestReligionList(state.DeityFilter);
 
-            api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
+            api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                 api.World.Player.Entity, null, false, 8f, 0.5f);
         }
 
@@ -62,7 +63,7 @@ internal static class ReligionBrowseRenderer
 
         // === RELIGION LIST ===
         var listHeight = height - (currentY - y) - 50f; // Reserve space for bottom buttons
-        Network.ReligionListResponsePacket.ReligionInfo? hoveredReligion;
+        ReligionListResponsePacket.ReligionInfo? hoveredReligion;
         (state.BrowseScrollY, state.SelectedReligionUID, hoveredReligion) = ReligionListRenderer.Draw(
             drawList, api, x, currentY, width, listHeight,
             state.AllReligions, state.IsBrowseLoading, state.BrowseScrollY, state.SelectedReligionUID);
@@ -86,9 +87,10 @@ internal static class ReligionBrowseRenderer
 
             // Create Religion button
             var createButtonX = buttonsStartX;
-            if (ButtonRenderer.DrawButton(drawList, "Create Religion", createButtonX, buttonY, buttonWidth, buttonHeight, isPrimary: true, enabled: true))
+            if (ButtonRenderer.DrawButton(drawList, "Create Religion", createButtonX, buttonY, buttonWidth,
+                    buttonHeight, true))
             {
-                api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
+                api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                     api.World.Player.Entity, null, false, 8f, 0.5f);
                 // Switch to Create tab
                 state.CurrentSubTab = ReligionSubTab.Create;
@@ -96,17 +98,18 @@ internal static class ReligionBrowseRenderer
 
             // Join Religion button
             var joinButtonX = buttonsStartX + buttonWidth + buttonSpacing;
-            if (ButtonRenderer.DrawButton(drawList, canJoin ? "Join Religion" : "Select a religion", joinButtonX, buttonY, buttonWidth, buttonHeight, isPrimary: false, enabled: canJoin))
+            if (ButtonRenderer.DrawButton(drawList, canJoin ? "Join Religion" : "Select a religion", joinButtonX,
+                    buttonY, buttonWidth, buttonHeight, false, canJoin))
             {
                 if (canJoin)
                 {
-                    api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
+                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                         api.World.Player.Entity, null, false, 8f, 0.5f);
                     manager.RequestReligionAction("join", state.SelectedReligionUID!);
                 }
                 else
                 {
-                    api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/error"),
+                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
                         api.World.Player.Entity, null, false, 8f, 0.3f);
                 }
             }
@@ -115,17 +118,18 @@ internal static class ReligionBrowseRenderer
         {
             // User has religion - only show centered Join button (for switching religions)
             var joinButtonX = x + (width - buttonWidth) / 2;
-            if (ButtonRenderer.DrawButton(drawList, canJoin ? "Join Religion" : "Select a religion", joinButtonX, buttonY, buttonWidth, buttonHeight, isPrimary: false, enabled: canJoin))
+            if (ButtonRenderer.DrawButton(drawList, canJoin ? "Join Religion" : "Select a religion", joinButtonX,
+                    buttonY, buttonWidth, buttonHeight, false, canJoin))
             {
                 if (canJoin)
                 {
-                    api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
+                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                         api.World.Player.Entity, null, false, 8f, 0.5f);
                     manager.RequestReligionAction("join", state.SelectedReligionUID!);
                 }
                 else
                 {
-                    api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/error"),
+                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
                         api.World.Player.Entity, null, false, 8f, 0.3f);
                 }
             }

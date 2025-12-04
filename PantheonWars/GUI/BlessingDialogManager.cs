@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using PantheonWars.GUI.Interfaces;
 using PantheonWars.GUI.State;
+using PantheonWars.GUI.UI.Adapters.ReligionMembers;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
+using PantheonWars.Network;
 using PantheonWars.Network.Civilization;
 using PantheonWars.Systems;
-using PantheonWars.GUI.UI.Adapters.ReligionMembers;
 using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI;
@@ -31,25 +32,29 @@ public class BlessingDialogManager : IBlessingDialogManager
     public CivilizationState CivState { get; } = new();
     public ReligionTabState ReligionState { get; } = new();
 
-    // Religion and deity state
-    public string? CurrentReligionUID { get; set; }
-    public DeityType CurrentDeity { get; set; } = DeityType.None;
-    public string? CurrentReligionName { get; set; }
-    public int ReligionMemberCount { get; set; } = 0;
-    public string? PlayerRoleInReligion { get; set; } // "Leader", "Member", etc.
-
     // Civilization state
     public string? CurrentCivilizationId { get; set; }
     public string? CurrentCivilizationName { get; set; }
     public string? CivilizationFounderReligionUID { get; set; }
     public List<CivilizationInfoResponsePacket.MemberReligion> CivilizationMemberReligions { get; set; } = new();
+
     public bool IsCivilizationFounder => !string.IsNullOrEmpty(CurrentReligionUID) &&
-                                          !string.IsNullOrEmpty(CivilizationFounderReligionUID) &&
-                                          CurrentReligionUID == CivilizationFounderReligionUID;
+                                         !string.IsNullOrEmpty(CivilizationFounderReligionUID) &&
+                                         CurrentReligionUID == CivilizationFounderReligionUID;
+
+    // UI-only adapter for supplying religion members (fake or real). Null when not used.
+    internal IReligionMemberProvider? MembersProvider { get; private set; }
+
+    // Religion and deity state
+    public string? CurrentReligionUID { get; set; }
+    public DeityType CurrentDeity { get; set; } = DeityType.None;
+    public string? CurrentReligionName { get; set; }
+    public int ReligionMemberCount { get; set; }
+    public string? PlayerRoleInReligion { get; set; } // "Leader", "Member", etc.
 
     // Player progression state
-    public int CurrentFavorRank { get; set; } = 0;
-    public int CurrentPrestigeRank { get; set; } = 0;
+    public int CurrentFavorRank { get; set; }
+    public int CurrentPrestigeRank { get; set; }
     public int CurrentFavor { get; set; } = 0;
     public int CurrentPrestige { get; set; } = 0;
     public int TotalFavorEarned { get; set; } = 0;
@@ -70,9 +75,6 @@ public class BlessingDialogManager : IBlessingDialogManager
     // Blessing node states (Phase 2)
     public Dictionary<string, BlessingNodeState> PlayerBlessingStates { get; } = new();
     public Dictionary<string, BlessingNodeState> ReligionBlessingStates { get; } = new();
-
-    // UI-only adapter for supplying religion members (fake or real). Null when not used.
-    internal IReligionMemberProvider? MembersProvider { get; private set; }
 
     /// <summary>
     ///     Initialize dialog state from player's current religion data
@@ -232,40 +234,6 @@ public class BlessingDialogManager : IBlessingDialogManager
     }
 
     /// <summary>
-    ///     Check if a blessing can be unlocked based on prerequisites and rank requirements
-    ///     This is a client-side validation - server will do final validation
-    /// </summary>
-    private bool CanUnlockBlessing(BlessingNodeState state)
-    {
-        // Already unlocked
-        if (state.IsUnlocked) return false;
-
-        // Check prerequisites
-        if (state.Blessing.PrerequisiteBlessings != null && state.Blessing.PrerequisiteBlessings.Count > 0)
-        {
-            foreach (var prereqId in state.Blessing.PrerequisiteBlessings)
-            {
-                var prereqState = GetBlessingState(prereqId);
-                if (prereqState == null || !prereqState.IsUnlocked) return false; // Prerequisite not unlocked
-            }
-        }
-
-        // Check rank requirements based on blessing kind
-        if (state.Blessing.Kind == BlessingKind.Player)
-        {
-            // Player blessings require favor rank
-            if (state.Blessing.RequiredFavorRank > CurrentFavorRank) return false;
-        }
-        else if (state.Blessing.Kind == BlessingKind.Religion)
-        {
-            // Religion blessings require prestige rank
-            if (state.Blessing.RequiredPrestigeRank > CurrentPrestigeRank) return false;
-        }
-
-        return true; // All requirements met
-    }
-
-    /// <summary>
     ///     Get player favor progress data
     /// </summary>
     public PlayerFavorProgress GetPlayerFavorProgress()
@@ -293,6 +261,38 @@ public class BlessingDialogManager : IBlessingDialogManager
             NextRank = CurrentPrestigeRank + 1,
             IsMaxRank = CurrentPrestigeRank >= 4
         };
+    }
+
+    /// <summary>
+    ///     Check if a blessing can be unlocked based on prerequisites and rank requirements
+    ///     This is a client-side validation - server will do final validation
+    /// </summary>
+    private bool CanUnlockBlessing(BlessingNodeState state)
+    {
+        // Already unlocked
+        if (state.IsUnlocked) return false;
+
+        // Check prerequisites
+        if (state.Blessing.PrerequisiteBlessings != null && state.Blessing.PrerequisiteBlessings.Count > 0)
+            foreach (var prereqId in state.Blessing.PrerequisiteBlessings)
+            {
+                var prereqState = GetBlessingState(prereqId);
+                if (prereqState == null || !prereqState.IsUnlocked) return false; // Prerequisite not unlocked
+            }
+
+        // Check rank requirements based on blessing kind
+        if (state.Blessing.Kind == BlessingKind.Player)
+        {
+            // Player blessings require favor rank
+            if (state.Blessing.RequiredFavorRank > CurrentFavorRank) return false;
+        }
+        else if (state.Blessing.Kind == BlessingKind.Religion)
+        {
+            // Religion blessings require prestige rank
+            if (state.Blessing.RequiredPrestigeRank > CurrentPrestigeRank) return false;
+        }
+
+        return true; // All requirements met
     }
 
     /// <summary>
@@ -332,7 +332,8 @@ public class BlessingDialogManager : IBlessingDialogManager
             CurrentCivilizationId = details.CivId;
             CurrentCivilizationName = details.Name;
             CivilizationFounderReligionUID = details.FounderReligionUID;
-            CivilizationMemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions);
+            CivilizationMemberReligions =
+                new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions);
             CivState.MyCivilization = details;
             CivState.MyInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(details.PendingInvites);
         }
@@ -368,6 +369,7 @@ public class BlessingDialogManager : IBlessingDialogManager
             CivState.IsDetailsLoading = true;
             CivState.DetailsError = null;
         }
+
         var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
         system?.RequestCivilizationInfo(civIdOrEmpty);
     }
@@ -432,7 +434,7 @@ public class BlessingDialogManager : IBlessingDialogManager
     /// <summary>
     ///     Update religion list from server response
     /// </summary>
-    public void UpdateReligionList(List<Network.ReligionListResponsePacket.ReligionInfo> religions)
+    public void UpdateReligionList(List<ReligionListResponsePacket.ReligionInfo> religions)
     {
         ReligionState.AllReligions = religions;
         ReligionState.IsBrowseLoading = false;
@@ -442,15 +444,15 @@ public class BlessingDialogManager : IBlessingDialogManager
     /// <summary>
     ///     Update player religion info from server response
     /// </summary>
-    public void UpdatePlayerReligionInfo(Network.PlayerReligionInfoResponsePacket? info)
+    public void UpdatePlayerReligionInfo(PlayerReligionInfoResponsePacket? info)
     {
         ReligionState.MyReligionInfo = info;
         ReligionState.Description = info?.Description ?? string.Empty;
         ReligionState.IsMyReligionLoading = false;
         // Update invites (shown when player has no religion)
         ReligionState.MyInvites = info?.PendingInvites != null
-            ? new List<Network.PlayerReligionInfoResponsePacket.ReligionInviteInfo>(info.PendingInvites)
-            : new List<Network.PlayerReligionInfoResponsePacket.ReligionInviteInfo>();
+            ? new List<PlayerReligionInfoResponsePacket.ReligionInviteInfo>(info.PendingInvites)
+            : new List<PlayerReligionInfoResponsePacket.ReligionInviteInfo>();
         ReligionState.IsInvitesLoading = false;
         ReligionState.MyReligionError = null;
     }

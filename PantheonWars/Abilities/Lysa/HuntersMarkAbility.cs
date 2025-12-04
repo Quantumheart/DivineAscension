@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
-using PantheonWars.Systems.BuffSystem;
 using PantheonWars.Systems.BuffSystem.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
