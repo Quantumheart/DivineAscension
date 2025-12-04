@@ -8,7 +8,7 @@ public class BlessingDialogState
     /// <summary>
     ///     Index of the main tab in BlessingDialog (0=Blessings, 1=Religion, 2=Civilization)
     /// </summary>
-    public int CurrentMainTab { get; set; }
+    public MainDialogTab CurrentMainTab { get; set; }
 
     /// <summary>
     ///     Whether the dialog is currently open
@@ -41,4 +41,11 @@ public class BlessingDialogState
         WindowPosX = 0f;
         WindowPosY = 0f;
     }
+}
+
+public enum MainDialogTab
+{
+    ManageReligion = 0,
+    Blessings = 1,
+    Civilization = 2
 }

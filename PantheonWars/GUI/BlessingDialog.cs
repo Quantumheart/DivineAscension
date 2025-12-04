@@ -228,10 +228,7 @@ public partial class BlessingDialog : ModSystem
             windowHeight,
             deltaTime,
             OnUnlockButtonClicked,
-            OnCloseButtonClicked,
-            OnChangeReligionClicked,
-            OnManageReligionClicked,
-            OnLeaveReligionClicked
+            OnCloseButtonClicked
             // OnManageCivilizationClicked
         );
 

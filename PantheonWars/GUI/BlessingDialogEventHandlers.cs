@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using PantheonWars.GUI.State;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network;
@@ -175,36 +174,6 @@ public partial class BlessingDialog
     }
 
     /// <summary>
-    ///     Handle Change Religion button click
-    /// </summary>
-    private void OnChangeReligionClicked()
-    {
-        _capi!.Logger.Debug("[PantheonWars] Opening religion browser");
-        // Switch to Religion tab, Browse sub-tab
-        _state!.CurrentMainTab = 1; // Religion tab
-        _manager!.ReligionState.CurrentSubTab = 0; // Browse sub-tab
-
-        // Request religion list
-        _manager.ReligionState.IsBrowseLoading = true;
-        _pantheonWarsSystem?.RequestReligionList("");
-    }
-
-    /// <summary>
-    ///     Handle Manage Religion button click (for leaders)
-    /// </summary>
-    private void OnManageReligionClicked()
-    {
-        _capi!.Logger.Debug("[PantheonWars] Manage Religion clicked");
-        // Switch to Religion tab, My Religion sub-tab
-        _state!.CurrentMainTab = 1; // Religion tab
-        _manager!.ReligionState.CurrentSubTab = ReligionSubTab.MyReligion; // My Religion sub-tab
-
-        // Request religion info
-        _manager.ReligionState.IsMyReligionLoading = true;
-        _pantheonWarsSystem?.RequestPlayerReligionInfo();
-    }
-
-    /// <summary>
     ///     Handle religion list received from server
     /// </summary>
     private void OnReligionListReceived(ReligionListResponsePacket packet)
@@ -269,86 +238,6 @@ public partial class BlessingDialog
     }
 
     /// <summary>
-    ///     Handle join religion request
-    /// </summary>
-    private void OnJoinReligionClicked(string religionUID)
-    {
-        _capi!.Logger.Debug($"[PantheonWars] Requesting to join religion: {religionUID}");
-        _pantheonWarsSystem?.RequestReligionAction("join", religionUID);
-    }
-
-    /// <summary>
-    ///     Handle religion list refresh request
-    /// </summary>
-    private void OnRefreshReligionList(string deityFilter)
-    {
-        _capi!.Logger.Debug($"[PantheonWars] Refreshing religion list with filter: {deityFilter}");
-        _pantheonWarsSystem?.RequestReligionList(deityFilter);
-    }
-
-    /// <summary>
-    ///     Handle Leave Religion button click
-    /// </summary>
-    private void OnLeaveReligionClicked()
-    {
-        _capi!.Logger.Debug("[PantheonWars] Leave Religion clicked");
-
-        if (_manager!.HasReligion())
-        {
-            // Show confirmation dialog
-            // _overlayCoordinator!.ShowLeaveConfirmation();
-        }
-        else
-        {
-            _capi.ShowChatMessage("You are not in a religion");
-            _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
-                _capi.World.Player.Entity, null, false, 8f, 0.3f);
-        }
-    }
-
-    /// <summary>
-    ///     Handle leave religion confirmation
-    /// </summary>
-    private void OnLeaveReligionConfirmed()
-    {
-        _capi!.Logger.Debug("[PantheonWars] Leave religion confirmed");
-        _pantheonWarsSystem?.RequestReligionAction("leave", _manager!.CurrentReligionUID ?? "");
-    }
-
-    /// <summary>
-    ///     Handle leave religion cancelled
-    /// </summary>
-    private void OnLeaveReligionCancelled()
-    {
-        _capi!.Logger.Debug("[PantheonWars] Leave religion cancelled");
-    }
-
-    /// <summary>
-    ///     Handle Create Religion button click
-    /// </summary>
-    private void OnCreateReligionClicked()
-    {
-        _capi!.Logger.Debug("[PantheonWars] Create Religion clicked");
-        // Switch to Religion tab, Create sub-tab
-        _state!.CurrentMainTab = 1;
-        _manager!.ReligionState.CurrentSubTab = ReligionSubTab.Create; // Create sub-tab is index 4
-    }
-
-    /// <summary>
-    ///     Handle Create Religion form submission
-    /// </summary>
-    private void OnCreateReligionSubmit(string religionName, string deity, bool isPublic)
-    {
-        _capi!.Logger.Debug($"[PantheonWars] Creating religion: {religionName}, Deity: {deity}, Public: {isPublic}");
-        _pantheonWarsSystem?.RequestCreateReligion(religionName, deity, isPublic);
-
-        // Close create form and show browser to see the new religion
-
-        // Request updated religion list to show the newly created religion
-        _pantheonWarsSystem?.RequestReligionList("");
-    }
-
-    /// <summary>
     ///     Handle player religion info received from server
     /// </summary>
     private void OnPlayerReligionInfoReceived(PlayerReligionInfoResponsePacket packet)
@@ -371,74 +260,6 @@ public partial class BlessingDialog
             _manager.ReligionMemberCount = 0;
             _capi!.Logger.Debug("[PantheonWars] Cleared PlayerRoleInReligion (no religion)");
         }
-    }
-
-    /// <summary>
-    ///     Handle request for religion info refresh
-    /// </summary>
-    private void OnRequestReligionInfo()
-    {
-        _capi!.Logger.Debug("[PantheonWars] Requesting religion info refresh");
-        _pantheonWarsSystem?.RequestPlayerReligionInfo();
-    }
-
-    /// <summary>
-    ///     Handle Kick Member action
-    /// </summary>
-    private void OnKickMemberClicked(string memberUID)
-    {
-        _capi!.Logger.Debug($"[PantheonWars] Kicking member: {memberUID}");
-        _pantheonWarsSystem?.RequestReligionAction("kick", _manager!.CurrentReligionUID ?? "", memberUID);
-    }
-
-    /// <summary>
-    ///     Handle Ban Member action
-    /// </summary>
-    private void OnBanMemberClicked(string memberUID)
-    {
-        _capi!.Logger.Debug($"[PantheonWars] Banning member: {memberUID}");
-        // Note: The ban dialog will be shown by the ImGui renderer, which will handle the actual ban request
-        // This is just a placeholder - the actual ban flow goes through BanPlayerDialog in the standard GUI
-        // For ImGui, we need to implement a similar flow or trigger the BanPlayerDialog
-        _pantheonWarsSystem?.RequestReligionAction("ban", _manager!.CurrentReligionUID ?? "", memberUID);
-    }
-
-    /// <summary>
-    ///     Handle Unban Member action
-    /// </summary>
-    private void OnUnbanMemberClicked(string playerUID)
-    {
-        _capi!.Logger.Debug($"[PantheonWars] Unbanning player: {playerUID}");
-        _pantheonWarsSystem?.RequestReligionAction("unban", _manager!.CurrentReligionUID ?? "", playerUID);
-    }
-
-    /// <summary>
-    ///     Handle Invite Player action
-    /// </summary>
-    private void OnInvitePlayerClicked(string playerName)
-    {
-        _capi!.Logger.Debug($"[PantheonWars] Inviting player: {playerName}");
-        // Note: The server expects playerUID, but we're sending playerName
-        // The old system sends playerName in targetPlayerUID field
-        _pantheonWarsSystem?.RequestReligionAction("invite", _manager!.CurrentReligionUID ?? "", playerName);
-    }
-
-    /// <summary>
-    ///     Handle Edit Description action
-    /// </summary>
-    private void OnEditDescriptionClicked(string description)
-    {
-        _capi!.Logger.Debug("[PantheonWars] Editing religion description");
-        _pantheonWarsSystem?.RequestEditDescription(_manager!.CurrentReligionUID ?? "", description);
-    }
-
-    /// <summary>
-    ///     Handle Disband Religion action
-    /// </summary>
-    private void OnDisbandReligionClicked()
-    {
-        _capi!.Logger.Debug("[PantheonWars] Disbanding religion");
-        _pantheonWarsSystem?.RequestReligionAction("disband", _manager!.CurrentReligionUID ?? "");
     }
 
     /// <summary>

@@ -28,10 +28,6 @@ internal static class BlessingUIRenderer
     /// <param name="deltaTime">Time elapsed since last frame (for animations)</param>
     /// <param name="onUnlockClicked">Callback when unlock button clicked</param>
     /// <param name="onCloseClicked">Callback when close button clicked</param>
-    /// <param name="onChangeReligionClicked">Callback when Change Religion button clicked</param>
-    /// <param name="onManageReligionClicked">Callback when Manage Religion button clicked</param>
-    /// <param name="onLeaveReligionClicked">Callback when Leave Religion button clicked</param>
-    /// <param name="onManageCivilizationClicked">Callback when Manage Civilization button clicked</param>
     public static void Draw(
         BlessingDialogManager manager,
         ICoreClientAPI api,
@@ -40,11 +36,7 @@ internal static class BlessingUIRenderer
         int windowHeight,
         float deltaTime,
         Action? onUnlockClicked,
-        Action? onCloseClicked,
-        Action? onChangeReligionClicked = null,
-        Action? onManageReligionClicked = null,
-        Action? onLeaveReligionClicked = null,
-        Action? onManageCivilizationClicked = null)
+        Action? onCloseClicked)
     {
         const float padding = 16f;
         const float tabHeight = 36f;
@@ -66,7 +58,7 @@ internal static class BlessingUIRenderer
 
         // === 2. MAIN TABS ===
         var drawList = ImGui.GetWindowDrawList();
-        var mainTabs = new[] { "Blessings", "Manage Religion", "Civilization" };
+        var mainTabs = new[] { "Religion", "Blessings", "Civilization" };
         var newMainTab = TabControl.Draw(
             drawList,
             windowPos.X + x,
@@ -74,13 +66,13 @@ internal static class BlessingUIRenderer
             width,
             tabHeight,
             mainTabs,
-            state.CurrentMainTab,
+            (int) state.CurrentMainTab,
             4f
         );
 
-        if (newMainTab != state.CurrentMainTab)
+        if (newMainTab != (int) state.CurrentMainTab)
         {
-            state.CurrentMainTab = newMainTab;
+            state.CurrentMainTab = (MainDialogTab) newMainTab;
 
             if (newMainTab == 1) // Religion tab
             {
@@ -108,14 +100,14 @@ internal static class BlessingUIRenderer
 
         switch (state.CurrentMainTab)
         {
-            case 0: // Blessings
+            case MainDialogTab.Blessings: // Blessings
                 DrawBlessingsTab(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight,
                     windowWidth, windowHeight, deltaTime, onUnlockClicked, onCloseClicked);
                 break;
-            case 1: // Manage Religion
+            case MainDialogTab.ManageReligion: // Manage Religion
                 ReligionTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);
                 break;
-            case 2: // Civilization
+            case MainDialogTab.Civilization: // Civilization
                 CivilizationTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);
                 break;
         }
