@@ -60,8 +60,7 @@ internal static class BlessingUIRenderer
         // Top-level religion action buttons have been removed; only pass civilization callback
         var headerHeight = ReligionHeaderRenderer.Draw(
             manager, api,
-            windowPos.X + x, windowPos.Y + y, width,
-            onManageCivilizationClicked
+            windowPos.X + x, windowPos.Y + y, width
         );
         y += headerHeight + 8f;
 

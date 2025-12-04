@@ -18,28 +18,6 @@ namespace PantheonWars.GUI.UI.Renderers;
 internal static class ReligionHeaderRenderer
 {
     /// <summary>
-    ///     Draw the religion header banner (obsolete variant with religion action callbacks).
-    ///     The top-level buttons "Manage Religion", "Change Religion", and "Leave Religion" have been removed
-    ///     from the UI. This method remains for backward compatibility but ignores those callbacks.
-    /// </summary>
-    /// <remarks>
-    ///     Use the overload without religion action callbacks instead.
-    /// </remarks>
-    [Obsolete("Top-level religion action buttons are removed. Use Draw(manager, api, x, y, width, onManageCivilizationClicked) instead.")]
-    public static float Draw(
-        BlessingDialogManager manager,
-        ICoreClientAPI api,
-        float x, float y, float width,
-        Action? onChangeReligionClicked = null,
-        Action? onManageReligionClicked = null,
-        Action? onLeaveReligionClicked = null,
-        Action? onManageCivilizationClicked = null)
-    {
-        // Delegate to new implementation that no longer renders the obsolete religion buttons
-        return Draw(manager, api, x, y, width, onManageCivilizationClicked);
-    }
-
-    /// <summary>
     ///     Draw the religion header banner (current)
     /// </summary>
     /// <param name="manager">Blessing dialog state manager</param>
@@ -47,18 +25,15 @@ internal static class ReligionHeaderRenderer
     /// <param name="x">X position</param>
     /// <param name="y">Y position</param>
     /// <param name="width">Available width</param>
-    /// <param name="onManageCivilizationClicked">Callback when Manage Civilization button clicked (if civ founder)</param>
     /// <returns>Height used by this renderer</returns>
     public static float Draw(
         BlessingDialogManager manager,
         ICoreClientAPI api,
-        float x, float y, float width,
-        Action? onManageCivilizationClicked)
+        float x, float y, float width)
     {
-        // Dynamic height: base + civilization section if in civ
+        // Two-column header: fixed height, no extra section below
         const float baseHeaderHeight = 130f;
-        const float civSectionHeight = 70f; // Reduced to match DrawCivilizationSection
-        float headerHeight = baseHeaderHeight + (manager.HasCivilization() ? civSectionHeight : 0f);
+        float headerHeight = baseHeaderHeight;
         const float padding = 16f;
 
         var drawList = ImGui.GetWindowDrawList();
@@ -92,8 +67,19 @@ internal static class ReligionHeaderRenderer
             return headerHeight;
         }
 
-        // Religion info available - draw detailed header
-        var currentX = x + padding;
+        // Layout calculations (support two columns when civilization exists)
+        var innerX = x + padding;
+        var innerY = y + 0f;
+        var innerWidth = width - padding * 2f;
+        // Show two columns if the game reports a civilization OR if we have any civ metadata to show
+        var twoColumns = manager.HasCivilization()
+                          || !string.IsNullOrEmpty(manager.CurrentCivilizationName)
+                          || (manager.CivilizationMemberReligions?.Count ?? 0) > 0;
+        var columnSpacing = twoColumns ? padding : 0f;
+        var colWidth = twoColumns ? (innerWidth - columnSpacing) / 2f : innerWidth;
+
+        // Religion info available - draw detailed header (left column)
+        var currentX = innerX; // column 1 start
         var centerY = y + headerHeight / 2;
 
         // Draw deity icon (with fallback to colored circle)
@@ -149,11 +135,12 @@ internal static class ReligionHeaderRenderer
         drawList.AddText(ImGui.GetFont(), 13f, infoTextPos, infoTextColor, infoText);
 
         // Progress bars
-        currentX = x + iconSize + padding * 2;
+        currentX = innerX + iconSize + padding;
         var progressY = y + 54f;
-        const float progressBarWidth = 300f;
-        const float progressBarHeight = 20f;
-        const float progressBarSpacing = 28f;
+        // Keep bars readable but not oversized: clamp width and reduce height
+        var progressBarWidth = MathF.Min(380f, MathF.Max(160f, colWidth - 140f));
+        const float progressBarHeight = 14f;
+        const float progressBarSpacing = 22f;
 
         // Player Favor Progress
         var favorProgress = manager.GetPlayerFavorProgress();
@@ -199,135 +186,93 @@ internal static class ReligionHeaderRenderer
             prestigeLabel,
             showGlow: prestigeProgress.ProgressPercentage > 0.8f
         );
-
-        // Top-right religion action buttons (Manage/Change/Leave) have been removed.
-
-        // === CIVILIZATION SECTION ===
-        if (manager.HasCivilization())
+        
+        // === CIVILIZATION COLUMN (right side when available) ===
+        if (twoColumns)
         {
-            DrawCivilizationSection(manager, api, x, y + baseHeaderHeight, width, onManageCivilizationClicked);
+            var col2X = innerX + colWidth + columnSpacing; // right column start
+
+            // Vertical separator between columns
+            var separatorX = col2X - columnSpacing / 2f;
+            var sepColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.3f);
+            ImGui.GetWindowDrawList().AddLine(
+                new Vector2(separatorX, y + 8f),
+                new Vector2(separatorX, y + headerHeight - 8f),
+                sepColor,
+                1f);
+
+            // Civilization icon/badge
+            float civCurrentX = col2X;
+            float civCurrentY = y + 12f; // small top padding
+            const float civIconSize = 32f;
+            var civIconCenter = new Vector2(civCurrentX + civIconSize / 2f, civCurrentY + civIconSize / 2f);
+            var civOuter = ImGui.ColorConvertFloat4ToU32(new Vector4(0.4f, 0.6f, 0.8f, 1f));
+            var civInner = ImGui.ColorConvertFloat4ToU32(new Vector4(0.2f, 0.3f, 0.4f, 1f));
+            drawList.AddCircleFilled(civIconCenter, civIconSize / 2f, civOuter, 16);
+            drawList.AddCircleFilled(civIconCenter, civIconSize / 2f - 4f, civInner, 16);
+
+            civCurrentX += civIconSize + 10f;
+
+            // Civilization name
+            var civName = manager.CurrentCivilizationName ?? "Unknown Civilization";
+            var civNameText = $"Civilization: {civName}";
+            var civNamePos = new Vector2(civCurrentX, civCurrentY);
+            var civNameColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.5f, 0.8f, 1f, 1f));
+            drawList.AddText(ImGui.GetFont(), 15f, civNamePos, civNameColor, civNameText);
+
+            civCurrentY += 22f;
+
+            // Member religions with deity colors
+            var memberCount = manager.CivilizationMemberReligions.Count;
+            var memberText = $"{memberCount}/4 Religions: ";
+            var memberPos = new Vector2(civCurrentX, civCurrentY);
+            var memberColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
+            drawList.AddText(ImGui.GetFont(), 12f, memberPos, memberColor, memberText);
+
+            var textSize = ImGui.CalcTextSize(memberText);
+            var deityIconX = civCurrentX + textSize.X + 4f;
+            const float deityIconSize = 16f;
+            const float deityIconSpacing = 4f;
+            foreach (var memberReligion in manager.CivilizationMemberReligions)
+            {
+                if (Enum.TryParse<DeityType>(memberReligion.Deity, out var deityType))
+                {
+                    var deityColor = DeityHelper.GetDeityColor(deityType);
+                    var deityColorU32 = ImGui.ColorConvertFloat4ToU32(deityColor);
+                    var deityIconPos = new Vector2(deityIconX, civCurrentY);
+                    drawList.AddRectFilled(
+                        deityIconPos,
+                        new Vector2(deityIconPos.X + deityIconSize, deityIconPos.Y + deityIconSize),
+                        deityColorU32,
+                        2f
+                    );
+                    var deityBorderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
+                    drawList.AddRect(
+                        deityIconPos,
+                        new Vector2(deityIconPos.X + deityIconSize, deityIconPos.Y + deityIconSize),
+                        deityBorderColor,
+                        2f,
+                        ImDrawFlags.None,
+                        1f
+                    );
+                    deityIconX += deityIconSize + deityIconSpacing;
+                }
+            }
+
+            // Founder badge
+            if (manager.IsCivilizationFounder)
+            {
+                var founderText = "=== Founder ===";
+                var founderPos = new Vector2(deityIconX + 8f, civCurrentY);
+                var founderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
+                drawList.AddText(ImGui.GetFont(), 11f, founderPos, founderColor, founderText);
+            }
         }
 
         return headerHeight;
     }
 
-    /// <summary>
-    ///     Draw civilization section below religion header
-    /// </summary>
-    private static void DrawCivilizationSection(
-        BlessingDialogManager manager,
-        ICoreClientAPI api,
-        float x, float y, float width,
-        Action? onManageCivilizationClicked)
-    {
-        const float sectionHeight = 70f; // Reduced from 80f
-        const float padding = 12f; // Reduced from 16f
-        const float topPadding = 8f; // Smaller top padding
-
-        var drawList = ImGui.GetWindowDrawList();
-        var startPos = new Vector2(x, y);
-        var endPos = new Vector2(x + width, y + sectionHeight);
-
-        // Draw separator line above civ section with smaller offset
-        var separatorColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.3f);
-        drawList.AddLine(new Vector2(x + padding, y + 2f), new Vector2(x + width - padding, y + 2f), separatorColor, 1f);
-
-        var currentX = x + padding;
-        var currentY = y + topPadding;
-
-        // Civilization icon/badge (simple shield icon or colored circle)
-        const float iconSize = 32f;
-        var iconCenter = new Vector2(currentX + iconSize / 2, currentY + iconSize / 2);
-        var iconColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.4f, 0.6f, 0.8f, 1f)); // Cyan-blue for civ
-        drawList.AddCircleFilled(iconCenter, iconSize / 2, iconColor, 16);
-
-        // Add inner circle for badge effect
-        var innerColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.2f, 0.3f, 0.4f, 1f));
-        drawList.AddCircleFilled(iconCenter, iconSize / 2 - 4f, innerColor, 16);
-
-        currentX += iconSize + padding;
-
-        // Civilization name
-        var civName = manager.CurrentCivilizationName ?? "Unknown Civilization";
-        var civNameText = $"Civilization: {civName}";
-        var civNamePos = new Vector2(currentX, currentY);
-        var civNameColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.5f, 0.8f, 1f, 1f)); // Light cyan
-        drawList.AddText(ImGui.GetFont(), 15f, civNamePos, civNameColor, civNameText); // Slightly smaller font
-
-        currentY += 20f; // Reduced spacing
-
-        // Member religions with deity colors
-        var memberCount = manager.CivilizationMemberReligions.Count;
-        var memberText = $"{memberCount}/4 Religions: ";
-        var memberPos = new Vector2(currentX, currentY);
-        var memberColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), 12f, memberPos, memberColor, memberText); // Smaller font
-
-        // Draw deity color indicators for each member religion
-        var textSize = ImGui.CalcTextSize(memberText);
-        var deityIconX = currentX + textSize.X + 4f;
-        const float deityIconSize = 16f;
-        const float deityIconSpacing = 4f;
-
-        foreach (var memberReligion in manager.CivilizationMemberReligions)
-        {
-            // Parse deity type from string
-            if (Enum.TryParse<DeityType>(memberReligion.Deity, out var deityType))
-            {
-                var deityColor = DeityHelper.GetDeityColor(deityType);
-                var deityColorU32 = ImGui.ColorConvertFloat4ToU32(deityColor);
-                var deityIconPos = new Vector2(deityIconX, currentY);
-
-                // Draw small colored square for deity
-                drawList.AddRectFilled(
-                    deityIconPos,
-                    new Vector2(deityIconPos.X + deityIconSize, deityIconPos.Y + deityIconSize),
-                    deityColorU32,
-                    2f
-                );
-
-                // Add border
-                var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
-                drawList.AddRect(
-                    deityIconPos,
-                    new Vector2(deityIconPos.X + deityIconSize, deityIconPos.Y + deityIconSize),
-                    borderColor,
-                    2f,
-                    ImDrawFlags.None,
-                    1f
-                );
-
-                deityIconX += deityIconSize + deityIconSpacing;
-            }
-        }
-
-        // Founder badge (if player is founder) - on same line as member count
-        if (manager.IsCivilizationFounder)
-        {
-            var founderText = "=== Founder ===";
-            var founderX = deityIconX + (deityIconSize + deityIconSpacing) * memberCount + 8f;
-            var founderPos = new Vector2(founderX, currentY);
-            var founderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-            drawList.AddText(ImGui.GetFont(), 11f, founderPos, founderColor, founderText);
-        }
-
-        // "Manage Civilization" button (only if founder)
-        if (onManageCivilizationClicked != null && manager.IsCivilizationFounder)
-        {
-            const float buttonWidth = 160f;
-            const float buttonHeight = 28f;
-            var buttonX = x + width - padding - buttonWidth;
-            var buttonY = y + (sectionHeight - buttonHeight) / 2;
-
-            if (DrawButton("Manage Civilization", buttonX, buttonY, buttonWidth, buttonHeight,
-                new Vector4(0.3f, 0.5f, 0.7f, 1.0f)))
-            {
-                onManageCivilizationClicked.Invoke();
-                api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
-                    api.World.Player.Entity, null, false, 8f, 0.5f);
-            }
-        }
-    }
+    // Old below-header civilization section removed in favor of two-column layout
 
     /// <summary>
     ///     Get display name for a deity
