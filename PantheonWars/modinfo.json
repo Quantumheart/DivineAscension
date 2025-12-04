@@ -6,7 +6,7 @@
   "authors": [
     "Valinnar"
   ],
-  "description": "A mod for god fearing warriors.",
+  "description": "Deity-driven religions and civilizations for Vintage Story. Create and manage religions tied to deities, earn Favor and Religion Prestige, unlock blessing trees with gameplay effects, and coordinate multi-religion civilizations. Includes PvP hooks, persistence/network sync, and in-game UI.",
   "side": "Universal",
   "dependencies": {
     "game": "1.21.0",
