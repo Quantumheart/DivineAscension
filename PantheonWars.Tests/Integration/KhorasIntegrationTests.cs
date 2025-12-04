@@ -9,7 +9,6 @@ using PantheonWars.Systems;
 using PantheonWars.Systems.Interfaces;
 using PantheonWars.Tests.Helpers;
 using Vintagestory.API.Server;
-using IPlayerDataManager = PantheonWars.Systems.Interfaces.IPlayerDataManager;
 
 namespace PantheonWars.Tests.Integration;
 
@@ -24,7 +23,6 @@ public class KhorasIntegrationTests
 
     private readonly Mock<ICoreServerAPI> _mockAPI;
     private readonly Mock<IDeityRegistry> _mockDeityRegistry;
-    private readonly Mock<IPlayerDataManager> _mockPlayerDataManager;
     private readonly Mock<IPlayerReligionDataManager> _mockPlayerReligionDataManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
     private readonly Mock<IReligionPrestigeManager> _mockPrestigeManager;
@@ -36,7 +34,6 @@ public class KhorasIntegrationTests
     {
         _mockAPI = TestFixtures.CreateMockServerAPI();
         _mockDeityRegistry = TestFixtures.CreateMockDeityRegistry();
-        _mockPlayerDataManager = TestFixtures.CreateMockPlayerDataManager();
         _mockPlayerReligionDataManager = TestFixtures.CreateMockPlayerReligionDataManager();
         _mockReligionManager = TestFixtures.CreateMockReligionManager();
         _mockPrestigeManager = TestFixtures.CreateMockReligionPrestigeManager();

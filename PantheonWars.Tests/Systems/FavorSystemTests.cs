@@ -8,7 +8,6 @@ using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
-using IPlayerDataManager = PantheonWars.Systems.Interfaces.IPlayerDataManager;
 
 namespace PantheonWars.Tests.Systems;
 
@@ -31,7 +30,6 @@ public class FavorSystemTests
 
     private FavorSystem CreateFavorSystem(
         ICoreServerAPI api,
-        IPlayerDataManager playerDataManager,
         IPlayerReligionDataManager playerReligionDataManager,
         IDeityRegistry deityRegistry,
         IReligionManager religionManager)
@@ -54,14 +52,12 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -80,7 +76,6 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -113,7 +108,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -134,7 +128,6 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -158,7 +151,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -178,7 +170,6 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -208,7 +199,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -237,7 +227,6 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -253,7 +242,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -273,7 +261,6 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -289,7 +276,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -309,7 +295,6 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -325,7 +310,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -349,14 +333,12 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -373,14 +355,12 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -402,7 +382,6 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -418,7 +397,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -438,7 +416,6 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -454,7 +431,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -485,7 +461,6 @@ public class FavorSystemTests
         mockWorld.Setup(w => w.Calendar).Returns(mockCalendar.Object);
         mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
 
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -509,7 +484,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -529,7 +503,6 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -545,7 +518,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -565,7 +537,6 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -591,7 +562,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -610,7 +580,6 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -636,7 +605,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -857,7 +825,6 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -873,7 +840,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -905,7 +871,6 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -937,7 +902,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -962,7 +926,6 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -978,7 +941,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -1022,7 +984,6 @@ public class FavorSystemTests
 
         mockWorld.Setup(w => w.AllOnlinePlayers).Returns(new IPlayer[] { mockPlayer1.Object, mockPlayer2.Object });
 
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -1037,7 +998,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -1071,7 +1031,6 @@ public class FavorSystemTests
 
         mockWorld.Setup(w => w.AllOnlinePlayers).Returns(new IPlayer[] { mockPlayer.Object });
 
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -1081,7 +1040,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -1110,14 +1068,12 @@ public class FavorSystemTests
         var mockEventAPI = new Mock<IServerEventAPI>();
         mockAPI.Setup(a => a.Event).Returns(mockEventAPI.Object);
 
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
@@ -1141,7 +1097,6 @@ public class FavorSystemTests
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
-        var mockPlayerDataManager = new Mock<IPlayerDataManager>();
         var mockPlayerReligionDataManager = new Mock<IPlayerReligionDataManager>();
         var mockDeityRegistry = new Mock<IDeityRegistry>();
         var mockReligionManager = new Mock<IReligionManager>();
@@ -1157,7 +1112,6 @@ public class FavorSystemTests
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
-            mockPlayerDataManager.Object,
             mockPlayerReligionDataManager.Object,
             mockDeityRegistry.Object,
             mockReligionManager.Object);
