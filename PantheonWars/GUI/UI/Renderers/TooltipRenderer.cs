@@ -145,25 +145,9 @@ internal static class TooltipRenderer
 
             // Add section spacing after last description line
             if (lines.Count > 0)
-                lines[lines.Count - 1].SpacingAfter = SECTION_SPACING;
+                lines[^1].SpacingAfter = SECTION_SPACING;
         }
-
-        // Stat modifiers
-        if (data.FormattedStats.Count > 0)
-        {
-            foreach (var stat in data.FormattedStats)
-                lines.Add(new TooltipLine
-                {
-                    Text = stat,
-                    Color = ColorPalette.Green,
-                    FontSize = 13f,
-                    SpacingAfter = LINE_SPACING
-                });
-
-            // Add spacing after stats section
-            if (lines.Count > 0)
-                lines[lines.Count - 1].SpacingAfter = SECTION_SPACING;
-        }
+        
 
         // Special effects (wrap if too long)
         if (data.SpecialEffectDescriptions.Count > 0)
