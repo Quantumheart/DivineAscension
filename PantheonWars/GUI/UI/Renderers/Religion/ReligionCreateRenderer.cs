@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using ImGuiNET;
+using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Components;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Inputs;
@@ -129,7 +130,7 @@ internal static class ReligionCreateRenderer
                 state.CreateError = null;
 
                 // Switch to My Religion tab to see the new religion
-                state.CurrentSubTab = 1;
+                state.CurrentSubTab = ReligionSubTab.MyReligion;
             }
             else
             {

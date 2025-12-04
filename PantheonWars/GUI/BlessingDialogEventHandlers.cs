@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using PantheonWars.GUI.State;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network;
@@ -196,7 +197,7 @@ public partial class BlessingDialog
         _capi!.Logger.Debug("[PantheonWars] Manage Religion clicked");
         // Switch to Religion tab, My Religion sub-tab
         _state!.CurrentMainTab = 1; // Religion tab
-        _manager!.ReligionState.CurrentSubTab = 1; // My Religion sub-tab
+        _manager!.ReligionState.CurrentSubTab = ReligionSubTab.MyReligion; // My Religion sub-tab
 
         // Request religion info
         _manager.ReligionState.IsMyReligionLoading = true;
@@ -330,7 +331,7 @@ public partial class BlessingDialog
         _capi!.Logger.Debug("[PantheonWars] Create Religion clicked");
         // Switch to Religion tab, Create sub-tab
         _state!.CurrentMainTab = 1;
-        _manager!.ReligionState.CurrentSubTab = 4; // Create sub-tab is index 4
+        _manager!.ReligionState.CurrentSubTab = ReligionSubTab.Create; // Create sub-tab is index 4
     }
 
     /// <summary>

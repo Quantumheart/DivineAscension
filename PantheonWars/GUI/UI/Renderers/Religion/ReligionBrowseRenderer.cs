@@ -1,9 +1,9 @@
 using System;
 using ImGuiNET;
+using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Components;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Renderers.Components;
-using PantheonWars.GUI.UI.Utilities;
 using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI.Renderers.Religion;
@@ -91,7 +91,7 @@ internal static class ReligionBrowseRenderer
                 api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
                     api.World.Player.Entity, null, false, 8f, 0.5f);
                 // Switch to Create tab
-                state.CurrentSubTab = 4;
+                state.CurrentSubTab = ReligionSubTab.Create;
             }
 
             // Join Religion button

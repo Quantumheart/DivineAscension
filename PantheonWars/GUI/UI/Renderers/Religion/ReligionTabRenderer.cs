@@ -1,4 +1,5 @@
 using ImGuiNET;
+using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Banners;
@@ -31,28 +32,28 @@ internal static class ReligionTabRenderer
         var spacing = 6f;
         var prevTab = state.CurrentSubTab;
 
-        DrawTabButton("Browse", 0);
-        DrawTabButton("My Religion", 1);
-        DrawTabButton("Activity", 2);
-        DrawTabButton("Bonuses", 3);
-        DrawTabButton("Create", 4);
+        DrawTabButton("Browse", (int) ReligionSubTab.Browse);
+        DrawTabButton("My Religion", (int) ReligionSubTab.MyReligion);
+        DrawTabButton("Activity", (int) ReligionSubTab.Activity);
+        DrawTabButton("Bonuses", (int) ReligionSubTab.Bonuses);
+        DrawTabButton("Create", (int) ReligionSubTab.Create);
 
-        void DrawTabButton(string label, int index)
+        void DrawTabButton(string label, int tabIndex)
         {
-            var tx = tabX + index * (tabWidth + spacing);
-            var isActive = state.CurrentSubTab == index;
+            var tx = tabX + tabIndex * (tabWidth + spacing);
+            var isActive = state.CurrentSubTab == (ReligionSubTab) tabIndex;
             var clicked = ButtonRenderer.DrawButton(drawList, label, tx, tabY, tabWidth, tabH,
                 isPrimary: isActive, enabled: true,
                 customColor: isActive ? ColorPalette.Gold * 0.7f : ColorPalette.DarkBrown * 0.6f);
             if (clicked)
             {
-                state.CurrentSubTab = index;
+                state.CurrentSubTab = (ReligionSubTab) tabIndex;
 
                 // Clear transient action error on tab change
                 state.LastActionError = null;
 
                 // Clear context-specific errors when switching into a tab
-                switch (index)
+                switch (tabIndex)
                 {
                     case 0:
                         // Browse
@@ -76,21 +77,21 @@ internal static class ReligionTabRenderer
         // Error banner (LastActionError has priority)
         var bannerMessage = state.LastActionError;
         bool showRetry = false;
-        int effectiveTab = state.CurrentSubTab;
+        int effectiveTab = (int) state.CurrentSubTab;
 
         if (bannerMessage == null)
         {
             switch (state.CurrentSubTab)
             {
-                case 0:
+                case ReligionSubTab.Browse:
                     bannerMessage = state.BrowseError;
                     showRetry = bannerMessage != null;
                     break;
-                case 1:
+                case ReligionSubTab.MyReligion:
                     bannerMessage = state.MyReligionError;
                     showRetry = bannerMessage != null;
                     break;
-                case 4:
+                case ReligionSubTab.Create:
                     bannerMessage = state.CreateError;
                     showRetry = false; // Don't show retry for create errors
                     break;
@@ -141,19 +142,19 @@ internal static class ReligionTabRenderer
         // Route to appropriate sub-renderer based on current sub-tab
         switch (state.CurrentSubTab)
         {
-            case 0:
+            case ReligionSubTab.Browse:
                 ReligionBrowseRenderer.Draw(manager, api, x, contentY, width, contentHeight);
                 break;
-            case 1:
+            case ReligionSubTab.MyReligion:
                 ReligionMyReligionRenderer.Draw(manager, api, x, contentY, width, contentHeight);
                 break;
-            case 2:
+            case ReligionSubTab.Activity:
                 ReligionActivityRenderer.Draw(manager, api, x, contentY, width, contentHeight);
                 break;
-            case 3:
+            case ReligionSubTab.Bonuses:
                 ReligionBonusesRenderer.Draw(manager, api, x, contentY, width, contentHeight);
                 break;
-            case 4:
+            case ReligionSubTab.Create:
                 ReligionCreateRenderer.Draw(manager, api, x, contentY, width, contentHeight);
                 break;
         }
