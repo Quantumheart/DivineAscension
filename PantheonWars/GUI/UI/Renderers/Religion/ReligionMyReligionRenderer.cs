@@ -10,6 +10,8 @@ using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Models.Enum;
 using Vintagestory.API.Client;
 using PantheonWars.GUI.UI.Components.Lists;
+using PantheonWars.GUI.UI.Adapters.ReligionMembers;
+using PantheonWars.Network;
 
 namespace PantheonWars.GUI.UI.Renderers.Religion;
 
@@ -148,9 +150,28 @@ internal static class ReligionMyReligionRenderer
         currentY += 25f;
 
         const float memberListHeight = 180f;
+        // Choose data source: UI-only provider (dev) or real packet data
+        System.Collections.Generic.List<PlayerReligionInfoResponsePacket.MemberInfo> membersForDisplay = religion.Members;
+        if (manager.MembersProvider is { } provider)
+        {
+            var vmList = provider.GetMembers(religion.ReligionUID);
+            var list = new System.Collections.Generic.List<PlayerReligionInfoResponsePacket.MemberInfo>(vmList.Count);
+            foreach (var vm in vmList)
+            {
+                list.Add(new PlayerReligionInfoResponsePacket.MemberInfo
+                {
+                    PlayerUID = vm.PlayerUid,
+                    PlayerName = vm.DisplayName,
+                    FavorRank = "Member", // UI-only adapter: keep simple rank text
+                    Favor = (int)System.Math.Round(vm.Favor),
+                    IsFounder = false
+                });
+            }
+            membersForDisplay = list;
+        }
         state.MemberScrollY = MemberListRenderer.Draw(
             drawList, api, x, currentY, width, memberListHeight,
-            religion.Members, state.MemberScrollY,
+            membersForDisplay, state.MemberScrollY,
             // Kick callback
             religion.IsFounder ? (memberUID) =>
             {

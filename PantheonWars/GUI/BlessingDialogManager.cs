@@ -5,6 +5,7 @@ using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network.Civilization;
 using PantheonWars.Systems;
+using PantheonWars.GUI.UI.Adapters.ReligionMembers;
 using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI;
@@ -19,6 +20,11 @@ public class BlessingDialogManager : IBlessingDialogManager
     public BlessingDialogManager(ICoreClientAPI capi)
     {
         _capi = capi;
+        // Initialize UI-only fake data provider in DEBUG builds. In Release it stays null.
+#if DEBUG
+        MembersProvider = new FakeReligionMemberProvider();
+        MembersProvider.ConfigureDevSeed(500, 20251204);
+#endif
     }
 
     // Composite UI state
@@ -64,6 +70,9 @@ public class BlessingDialogManager : IBlessingDialogManager
     // Blessing node states (Phase 2)
     public Dictionary<string, BlessingNodeState> PlayerBlessingStates { get; } = new();
     public Dictionary<string, BlessingNodeState> ReligionBlessingStates { get; } = new();
+
+    // UI-only adapter for supplying religion members (fake or real). Null when not used.
+    internal IReligionMemberProvider? MembersProvider { get; private set; }
 
     /// <summary>
     ///     Initialize dialog state from player's current religion data
