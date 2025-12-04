@@ -306,6 +306,20 @@ public class PantheonWarsSystem : ModSystem
         else
         {
             response.HasReligion = false;
+
+            // Include pending religion invites for the player
+            var invites = _religionManager!.GetPlayerInvitations(fromPlayer.PlayerUID);
+            foreach (var inv in invites)
+            {
+                var rel = _religionManager.GetReligion(inv.ReligionId);
+                response.PendingInvites.Add(new PlayerReligionInfoResponsePacket.ReligionInviteInfo
+                {
+                    InviteId = inv.InviteId,
+                    ReligionId = inv.ReligionId,
+                    ReligionName = rel?.ReligionName ?? inv.ReligionId,
+                    ExpiresAt = inv.ExpiresDate
+                });
+            }
         }
 
         _serverChannel!.SendPacket(response, fromPlayer);
@@ -352,6 +366,30 @@ public class PantheonWarsSystem : ModSystem
                             "Cannot join this religion. Check if you already have a religion or if it's invite-only.";
                     }
 
+                    break;
+
+                case "accept":
+                    // Accept religion invite; TargetPlayerUID carries InviteId in this action
+                    success = _religionManager!.AcceptInvite(packet.TargetPlayerUID, fromPlayer.PlayerUID);
+                    message = success
+                        ? "You have joined the religion!"
+                        : "Failed to accept invitation. It may have expired or you already have a religion.";
+                    if (success)
+                    {
+                        SendPlayerDataToClient(fromPlayer);
+                        var statePacket = new ReligionStateChangedPacket
+                        {
+                            Reason = "You joined a religion",
+                            HasReligion = true
+                        };
+                        _serverChannel!.SendPacket(statePacket, fromPlayer);
+                    }
+                    break;
+
+                case "decline":
+                    // Decline religion invite; TargetPlayerUID carries InviteId in this action
+                    success = _religionManager!.DeclineInvite(packet.TargetPlayerUID, fromPlayer.PlayerUID);
+                    message = success ? "Invitation declined." : "Failed to decline invitation.";
                     break;
 
                 case "leave":

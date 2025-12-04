@@ -12,12 +12,23 @@ Add religion invite acceptance UI to fully match the existing civilization invit
 - **Actions**: Explicit accept/decline buttons (matching civilizations)
 - **Tab Order**: Browse → My Religion → Activity → Invites → Create
 
+## Implementation Status
+
+- ✅ **Phase 1: Backend Data Layer** - COMPLETED
+- ✅ **Phase 2.1: Network Protocol (Packet Definition)** - COMPLETED
+- ⏳ **Phase 2.2-2.3: Network Protocol (Server Handlers)** - IN PROGRESS
+- ⬜ **Phase 3: UI State** - PENDING
+- ⬜ **Phase 4: UI Rendering** - PENDING
+- ⬜ **Phase 5: Manager Integration** - PENDING
+
 ## Implementation Phases
 
-### Phase 1: Backend Data Layer
+### Phase 1: Backend Data Layer ✅ COMPLETED
 
-#### 1.1 Create ReligionInvite Class
+#### 1.1 Create ReligionInvite Class ✅
 **File**: `PantheonWars/Data/ReligionData.cs`
+
+**Status**: Implemented at lines 327-386
 
 Add new class after `BanEntry`:
 
@@ -48,8 +59,10 @@ public class ReligionInvite
 
 **Reference**: `CivilizationData.cs:118-177`
 
-#### 1.2 Create ReligionWorldData Class
+#### 1.2 Create ReligionWorldData Class ✅
 **File**: `PantheonWars/Data/ReligionWorldData.cs` (NEW)
+
+**Status**: File created with full implementation
 
 Create new world data container for invite persistence:
 
@@ -78,8 +91,18 @@ public class ReligionWorldData
 
 **Reference**: `CivilizationWorldData.cs`
 
-#### 1.3 Update ReligionManager
+#### 1.3 Update ReligionManager ✅
 **File**: `PantheonWars/Systems/ReligionManager.cs`
+
+**Status**: All changes implemented, including:
+- Replaced Dictionary with ReligionWorldData (line 19)
+- Added INVITE_DATA_KEY constant (line 18)
+- Updated InvitePlayer, HasInvitation, RemoveInvitation, GetPlayerInvitations methods
+- Added AcceptInvite method (lines 251-295)
+- Added DeclineInvite method (lines 300-321)
+- Added LoadInviteData and SaveInviteData methods (lines 526-561)
+- Updated OnSaveGameLoaded and OnGameWorldSave to handle invites
+- Updated IReligionManager interface to match new signatures
 
 **Changes**:
 1. Replace line 18: `private readonly Dictionary<string, List<string>> _invitations`
@@ -109,8 +132,13 @@ public class ReligionWorldData
 
 ### Phase 2: Network Protocol
 
-#### 2.1 Add ReligionInviteInfo to Response Packet
+#### 2.1 Add ReligionInviteInfo to Response Packet ✅
 **File**: `PantheonWars/Network/PlayerReligionInfoResponsePacket.cs`
+
+**Status**: Implemented
+- Added PendingInvites field (line 37)
+- Added ReligionInviteInfo nested class (lines 69-79)
+- Added System using statement for DateTime
 
 **Changes**:
 1. Add field after `BannedPlayers` (after line 34):
@@ -132,10 +160,12 @@ public class ReligionWorldData
 
 **Reference**: `CivilizationInfoResponsePacket.cs:70-83`
 
-#### 2.2 Populate Invites in Server Handler
+#### 2.2 Populate Invites in Server Handler ⏳ TODO
 **File**: `PantheonWars/PantheonWarsSystem.cs`
 
-In `OnPlayerReligionInfoRequest` (lines 275-337), add after banned players list (line 323):
+**Status**: Not yet implemented
+
+In `OnPlayerReligionInfoRequest` (around lines 275-337), add after banned players list:
 
 ```csharp
 // Build pending invites list
@@ -156,10 +186,12 @@ foreach (var invite in playerInvites)
 }
 ```
 
-#### 2.3 Add Accept/Decline Action Handlers
+#### 2.3 Add Accept/Decline Action Handlers ⏳ TODO
 **File**: `PantheonWars/PantheonWarsSystem.cs`
 
-In `OnReligionActionRequest` switch statement (after line 455), add new cases:
+**Status**: Not yet implemented
+
+In `OnReligionActionRequest` switch statement, add new cases:
 
 ```csharp
 case "accept":
@@ -204,12 +236,14 @@ case "decline":
 
 ---
 
-### Phase 3: UI State
+### Phase 3: UI State ⬜ PENDING
 
-#### 3.1 Update ReligionSubTab Enum
+#### 3.1 Update ReligionSubTab Enum ⏳ TODO
 **File**: `PantheonWars/GUI/State/ReligionTabState.cs`
 
-Replace enum (lines 101-107):
+**Status**: Not yet implemented
+
+Replace enum (around lines 101-107):
 
 ```csharp
 public enum ReligionSubTab
@@ -222,10 +256,12 @@ public enum ReligionSubTab
 }
 ```
 
-#### 3.2 Add Invite State Properties
+#### 3.2 Add Invite State Properties ⏳ TODO
 **File**: `PantheonWars/GUI/State/ReligionTabState.cs`
 
-Add after `ActivityScrollY` (after line 43):
+**Status**: Not yet implemented
+
+Add after `ActivityScrollY` (around line 43):
 
 ```csharp
 // Invites tab state
@@ -237,10 +273,12 @@ public string? InvitesError { get; set; }
 
 **Reference**: `CivilizationState.cs:31-33, 42`
 
-#### 3.3 Update Reset Method
+#### 3.3 Update Reset Method ⏳ TODO
 **File**: `PantheonWars/GUI/State/ReligionTabState.cs`
 
-Add to `Reset()` method (after line 89):
+**Status**: Not yet implemented
+
+Add to `Reset()` method (around line 89):
 
 ```csharp
 // Invites tab
@@ -252,10 +290,12 @@ InvitesError = null;
 
 ---
 
-### Phase 4: UI Rendering
+### Phase 4: UI Rendering ⬜ PENDING
 
-#### 4.1 Create ReligionInvitesRenderer
+#### 4.1 Create ReligionInvitesRenderer ⏳ TODO
 **File**: `PantheonWars/GUI/UI/Renderers/Religion/ReligionInvitesRenderer.cs` (NEW)
+
+**Status**: Not yet implemented
 
 Create new renderer mirroring `CivilizationInvitesRenderer.cs`:
 
@@ -338,8 +378,10 @@ internal static class ReligionInvitesRenderer
 
 **Reference**: Exact mirror of `CivilizationInvitesRenderer.cs`
 
-#### 4.2 Update ReligionTabRenderer
+#### 4.2 Update ReligionTabRenderer ⏳ TODO
 **File**: `PantheonWars/GUI/UI/Renderers/Religion/ReligionTabRenderer.cs`
+
+**Status**: Not yet implemented
 
 **Changes**:
 
@@ -401,10 +443,12 @@ internal static class ReligionInvitesRenderer
 
 ---
 
-### Phase 5: Manager Integration
+### Phase 5: Manager Integration ⬜ PENDING
 
-#### 5.1 Update BlessingDialogManager
+#### 5.1 Update BlessingDialogManager ⏳ TODO
 **File**: `PantheonWars/GUI/BlessingDialogManager.cs`
+
+**Status**: Not yet implemented
 
 In `UpdatePlayerReligionInfo` method (around line 435-441), add after updating `MyReligionInfo`:
 
@@ -452,8 +496,34 @@ ReligionState.IsInvitesLoading = false;
 
 ## Implementation Order
 
-1. **Backend** (Phase 1) - Data structures and persistence
-2. **Network** (Phase 2) - Protocol updates
-3. **State** (Phase 3) - UI state management
-4. **UI** (Phase 4) - Rendering components
-5. **Integration** (Phase 5) - Wire everything together
+1. ✅ **Backend** (Phase 1) - Data structures and persistence - COMPLETED
+2. ⏳ **Network** (Phase 2) - Protocol updates - IN PROGRESS (1/3 done)
+3. ⬜ **State** (Phase 3) - UI state management - PENDING
+4. ⬜ **UI** (Phase 4) - Rendering components - PENDING
+5. ⬜ **Integration** (Phase 5) - Wire everything together - PENDING
+
+## Progress Notes
+
+### Completed Work (2025-12-04)
+
+**Phase 1 - Backend Data Layer**
+- Created `ReligionInvite` class in `ReligionData.cs` with 7-day expiration
+- Created `ReligionWorldData.cs` for persistent invite storage
+- Updated `ReligionManager` to use structured invites instead of in-memory dictionary
+- Implemented `AcceptInvite` and `DeclineInvite` methods with full validation
+- Added persistence methods `LoadInviteData` and `SaveInviteData`
+- Updated `IReligionManager` interface to match new method signatures
+- Fixed all unit tests to work with `List<ReligionInvite>` return type
+- Build passes with 0 errors, only deprecation warnings
+
+**Phase 2.1 - Network Protocol (Packet Definition)**
+- Added `PendingInvites` field to `PlayerReligionInfoResponsePacket`
+- Created `ReligionInviteInfo` nested class with InviteId, ReligionId, ReligionName, ExpiresAt
+
+### Next Steps
+
+1. Implement Phase 2.2: Populate invites in `OnPlayerReligionInfoRequest` handler
+2. Implement Phase 2.3: Add accept/decline cases in `OnReligionActionRequest` handler
+3. Continue with Phase 3: UI State changes
+4. Continue with Phase 4: UI Rendering
+5. Complete Phase 5: Manager Integration

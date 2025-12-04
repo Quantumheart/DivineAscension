@@ -27,7 +27,7 @@ internal static class ReligionTabRenderer
         var tabW = width;
         var tabH = 36f;
 
-        // Tab buttons: Browse | My Religion | Activity | Bonuses | Create
+        // Tab buttons: Browse | My Religion | Activity | Invites | Create
         var tabWidth = 130f;
         var spacing = 6f;
         var prevTab = state.CurrentSubTab;
@@ -37,6 +37,7 @@ internal static class ReligionTabRenderer
         DrawTabButton("Activity", (int) ReligionSubTab.Activity);
         if (!manager.HasReligion())
         {
+            DrawTabButton("Invites", (int)ReligionSubTab.Invites);
             DrawTabButton("Create", (int)ReligionSubTab.Create);
         }
         void DrawTabButton(string label, int tabIndex)
@@ -151,6 +152,9 @@ internal static class ReligionTabRenderer
                 break;
             case ReligionSubTab.Activity:
                 ReligionActivityRenderer.Draw(manager, api, x, contentY, width, contentHeight);
+                break;
+            case ReligionSubTab.Invites:
+                ReligionInvitesRenderer.Draw(manager, api, x, contentY, width, contentHeight);
                 break;
             case ReligionSubTab.Create:
                 ReligionCreateRenderer.Draw(manager, api, x, contentY, width, contentHeight);

@@ -33,6 +33,12 @@ public class ReligionTabState
     public string? KickConfirmPlayerName { get; set; }
     public string? BanConfirmPlayerName { get; set; }
 
+    // Invites sub-tab state (visible when player has no religion)
+    public List<PlayerReligionInfoResponsePacket.ReligionInviteInfo> MyInvites { get; set; } = new();
+    public float InvitesScrollY { get; set; } = 0f;
+    public bool IsInvitesLoading { get; set; } = false;
+    public string? InvitesError { get; set; }
+
     // Create tab state
     public string CreateReligionName { get; set; } = string.Empty;
     public string CreateDeity { get; set; } = "Khoras";
@@ -79,6 +85,12 @@ public class ReligionTabState
         KickConfirmPlayerName = null;
         BanConfirmPlayerName = null;
 
+        // Invites tab
+        MyInvites.Clear();
+        InvitesScrollY = 0f;
+        IsInvitesLoading = false;
+        InvitesError = null;
+
         // Create tab
         CreateReligionName = string.Empty;
         CreateDeity = "Khoras";
@@ -103,5 +115,6 @@ public enum ReligionSubTab
     Browse = 0,
     MyReligion = 1,
     Activity = 2,
-    Create = 3
+    Invites = 3,
+    Create = 4
 }

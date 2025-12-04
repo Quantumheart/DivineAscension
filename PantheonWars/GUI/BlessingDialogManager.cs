@@ -392,6 +392,7 @@ public class BlessingDialogManager : IBlessingDialogManager
     public void RequestPlayerReligionInfo()
     {
         ReligionState.IsMyReligionLoading = true;
+        ReligionState.IsInvitesLoading = true; // also load invites list for players without a religion
         ReligionState.MyReligionError = null;
         var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
         system?.RequestPlayerReligionInfo();
@@ -437,6 +438,11 @@ public class BlessingDialogManager : IBlessingDialogManager
         ReligionState.MyReligionInfo = info;
         ReligionState.Description = info?.Description ?? string.Empty;
         ReligionState.IsMyReligionLoading = false;
+        // Update invites (shown when player has no religion)
+        ReligionState.MyInvites = info?.PendingInvites != null
+            ? new List<Network.PlayerReligionInfoResponsePacket.ReligionInviteInfo>(info.PendingInvites)
+            : new List<Network.PlayerReligionInfoResponsePacket.ReligionInviteInfo>();
+        ReligionState.IsInvitesLoading = false;
         ReligionState.MyReligionError = null;
     }
 }
