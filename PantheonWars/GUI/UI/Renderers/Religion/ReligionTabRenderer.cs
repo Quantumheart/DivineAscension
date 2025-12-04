@@ -35,7 +35,6 @@ internal static class ReligionTabRenderer
         DrawTabButton("Browse", (int) ReligionSubTab.Browse);
         DrawTabButton("My Religion", (int) ReligionSubTab.MyReligion);
         DrawTabButton("Activity", (int) ReligionSubTab.Activity);
-        DrawTabButton("Bonuses", (int) ReligionSubTab.Bonuses);
         DrawTabButton("Create", (int) ReligionSubTab.Create);
 
         void DrawTabButton(string label, int tabIndex)
@@ -150,9 +149,6 @@ internal static class ReligionTabRenderer
                 break;
             case ReligionSubTab.Activity:
                 ReligionActivityRenderer.Draw(manager, api, x, contentY, width, contentHeight);
-                break;
-            case ReligionSubTab.Bonuses:
-                ReligionBonusesRenderer.Draw(manager, api, x, contentY, width, contentHeight);
                 break;
             case ReligionSubTab.Create:
                 ReligionCreateRenderer.Draw(manager, api, x, contentY, width, contentHeight);

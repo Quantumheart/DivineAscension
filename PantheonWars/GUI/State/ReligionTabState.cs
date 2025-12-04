@@ -10,7 +10,7 @@ namespace PantheonWars.GUI.State;
 public class ReligionTabState
 {
     // Tab navigation
-    public ReligionSubTab CurrentSubTab { get; set; } // 0=Browse, 1=MyReligion, 2=Activity, 3=Bonuses, 4=Create
+    public ReligionSubTab CurrentSubTab { get; set; } // 0=Browse, 1=MyReligion, 2=Activity, 3=Create
 
     // Browse tab state
     public string DeityFilter { get; set; } = string.Empty;
@@ -103,6 +103,5 @@ public enum ReligionSubTab
     Browse = 0,
     MyReligion = 1,
     Activity = 2,
-    Bonuses = 3,
-    Create = 4
+    Create = 3
 }
