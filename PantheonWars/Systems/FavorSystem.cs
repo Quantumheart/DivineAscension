@@ -30,7 +30,6 @@ public class FavorSystem : IFavorSystem, IDisposable
     private SmeltingFavorTracker _smeltingFavorTracker;
     private HuntingFavorTracker _huntingFavorTracker;
     private ForagingFavorTracker _foragingFavorTracker;
-    private ExplorationFavorTracker _explorationFavorTracker;
     private AethraFavorTracker _aethraFavorTracker;
     private GaiaFavorTracker _gaiaFavorTracker;
     private readonly ICoreServerAPI _sapi;
@@ -73,10 +72,7 @@ public class FavorSystem : IFavorSystem, IDisposable
 
         _foragingFavorTracker = new ForagingFavorTracker(_playerReligionDataManager, _sapi, this);
         _foragingFavorTracker.Initialize();
-
-        // _explorationFavorTracker = new ExplorationFavorTracker(_playerReligionDataManager, _sapi, this);
-        // _explorationFavorTracker.Initialize();
-
+        
         _aethraFavorTracker = new AethraFavorTracker(_playerReligionDataManager, _sapi, this);
         _aethraFavorTracker.Initialize();
 
@@ -415,7 +411,6 @@ public class FavorSystem : IFavorSystem, IDisposable
         _smeltingFavorTracker?.Dispose();
         _huntingFavorTracker?.Dispose();
         _foragingFavorTracker?.Dispose();
-        _explorationFavorTracker?.Dispose();
         _aethraFavorTracker?.Dispose();
         _gaiaFavorTracker?.Dispose();
     }
