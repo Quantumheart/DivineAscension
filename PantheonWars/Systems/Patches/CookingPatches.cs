@@ -216,8 +216,8 @@ public static class CookingPatches
                 int count = Math.Min(__state.beforeInv?.Count ?? 0, inv?.Count ?? 0);
                 for (int i = 0; i < count; i++)
                 {
-                    var before = __state.beforeInv[i];
-                    var afterSlot = inv[i];
+                    var before = __state.beforeInv?[i];
+                    var afterSlot = inv?[i];
                     if (afterSlot == null || afterSlot.Empty) continue;
                     var after = afterSlot.Itemstack;
                     if (before == null || before.Collectible?.Code != after.Collectible?.Code)
