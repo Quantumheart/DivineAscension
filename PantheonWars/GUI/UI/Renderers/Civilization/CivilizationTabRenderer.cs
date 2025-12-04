@@ -29,9 +29,14 @@ internal static class CivilizationTabRenderer
 
         DrawTabButton("Browse", 0);
         DrawTabButton("My Civilization", 1);
-        DrawTabButton("Invites", 2);
-        DrawTabButton("Create", 3);
-
+        if (!manager.HasCivilization())
+        {
+            DrawTabButton("Invites", 2);
+        }
+        if (!manager.HasCivilization())
+        {
+            DrawTabButton("Create", 3);
+        }
         void DrawTabButton(string label, int index)
         {
             var tx = tabX + index * (tabWidth + spacing);

@@ -35,8 +35,10 @@ internal static class ReligionTabRenderer
         DrawTabButton("Browse", (int) ReligionSubTab.Browse);
         DrawTabButton("My Religion", (int) ReligionSubTab.MyReligion);
         DrawTabButton("Activity", (int) ReligionSubTab.Activity);
-        DrawTabButton("Create", (int) ReligionSubTab.Create);
-
+        if (!manager.HasReligion())
+        {
+            DrawTabButton("Create", (int)ReligionSubTab.Create);
+        }
         void DrawTabButton(string label, int tabIndex)
         {
             var tx = tabX + tabIndex * (tabWidth + spacing);
