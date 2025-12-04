@@ -63,9 +63,11 @@ internal static class ReligionMyReligionRenderer
 
         // Founder
         TextRenderer.DrawLabel(drawList, "Founder:", leftCol, currentY, 13f, ColorPalette.Grey);
-        var founderText = religion.FounderUID; // TODO: Should be founder player name
+        // Resolve founder player name from members list, fall back to UID if unknown
+        var founderName = religion.Members.Find(m => m.PlayerUID == religion.FounderUID)?.PlayerName
+                           ?? religion.FounderUID;
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 80f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), founderText);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), founderName);
 
         // Prestige
         TextRenderer.DrawLabel(drawList, "Prestige:", rightCol, currentY, 13f, ColorPalette.Grey);
@@ -90,13 +92,19 @@ internal static class ReligionMyReligionRenderer
             // Save Description button
             var saveButtonWidth = 150f;
             var saveButtonX = x + width - saveButtonWidth;
-            if (ButtonRenderer.DrawButton(drawList, "Save Description", saveButtonX, currentY, saveButtonWidth, 32f, false, true))
+            var trimmedDesc = (state.Description ?? string.Empty).Trim();
+            var originalDesc = religion.Description ?? string.Empty;
+            var hasChanges = !string.Equals(trimmedDesc, originalDesc, StringComparison.Ordinal);
+            if (ButtonRenderer.DrawButton(drawList, "Save Description", saveButtonX, currentY, saveButtonWidth, 32f, false, hasChanges))
             {
                 api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
                     api.World.Player.Entity, null, false, 8f, 0.5f);
-                // TODO: Need to update server API to accept description update
-                // For now, use religion action with a workaround
-                api.ShowChatMessage("Description saving coming soon!");
+                // Send description update to server
+                manager.RequestEditReligionDescription(religion.ReligionUID, trimmedDesc);
+                // Optimistically update local model to reflect change immediately; server will refresh as well
+                religion.Description = trimmedDesc;
+                state.Description = trimmedDesc;
+                api.ShowChatMessage("Religion description saved.");
             }
 
             currentY += 40f;

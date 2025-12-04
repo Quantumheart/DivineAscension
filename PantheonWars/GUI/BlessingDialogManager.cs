@@ -409,6 +409,17 @@ public class BlessingDialogManager : IBlessingDialogManager
     }
 
     /// <summary>
+    ///     Request to edit the current religion description
+    /// </summary>
+    public void RequestEditReligionDescription(string religionUID, string description)
+    {
+        // Clear transient action error
+        ReligionState.LastActionError = null;
+        var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
+        system?.RequestEditDescription(religionUID, description);
+    }
+
+    /// <summary>
     ///     Update religion list from server response
     /// </summary>
     public void UpdateReligionList(List<Network.ReligionListResponsePacket.ReligionInfo> religions)
