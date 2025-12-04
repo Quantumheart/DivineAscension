@@ -21,6 +21,7 @@ public class ReligionTabState
 
     // My Religion tab state
     public PlayerReligionInfoResponsePacket? MyReligionInfo { get; set; }
+    public float MyReligionScrollY { get; set; } = 0f;
     public float MemberScrollY { get; set; } = 0f;
     public float BanListScrollY { get; set; } = 0f;
     public string InvitePlayerName { get; set; } = string.Empty;
@@ -66,6 +67,7 @@ public class ReligionTabState
 
         // My Religion tab
         MyReligionInfo = null;
+        MyReligionScrollY = 0f;
         MemberScrollY = 0f;
         BanListScrollY = 0f;
         InvitePlayerName = string.Empty;

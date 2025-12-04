@@ -9,6 +9,7 @@ using PantheonWars.GUI.UI.Renderers.Components;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Models.Enum;
 using Vintagestory.API.Client;
+using PantheonWars.GUI.UI.Components.Lists;
 
 namespace PantheonWars.GUI.UI.Renderers.Religion;
 
@@ -40,6 +41,28 @@ internal static class ReligionMyReligionRenderer
             TextRenderer.DrawInfoText(drawList, "You are not in a religion. Browse or create one!", x, currentY + 8f, width);
             return height;
         }
+
+        // Prepare top-level scroll for long content in My Religion tab
+        const float scrollbarWidth = 16f;
+        var contentHeightEstimate = ComputeContentHeight(religion.IsFounder);
+        var maxScroll = MathF.Max(0f, contentHeightEstimate - height);
+
+        // Mouse wheel scroll when hovering the tab content
+        var mousePos = ImGui.GetMousePos();
+        var isHover = mousePos.X >= x && mousePos.X <= x + width && mousePos.Y >= y && mousePos.Y <= y + height;
+        var scrollY = state.MyReligionScrollY;
+        if (isHover)
+        {
+            var wheel = ImGui.GetIO().MouseWheel;
+            if (wheel != 0)
+            {
+                scrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+            }
+        }
+
+        // Clip to visible area and offset drawing by scroll
+        drawList.PushClipRect(new System.Numerics.Vector2(x, y), new System.Numerics.Vector2(x + width, y + height), true);
+        currentY = y - scrollY;
 
         // === RELIGION HEADER ===
         TextRenderer.DrawLabel(drawList, religion.ReligionName, x, currentY, 20f, ColorPalette.Gold);
@@ -221,6 +244,18 @@ internal static class ReligionMyReligionRenderer
 
         currentY += 40f;
 
+        // End of scrollable content
+        drawList.PopClipRect();
+
+        // Draw scrollbar if needed
+        if (contentHeightEstimate > height)
+        {
+            Scrollbar.Draw(drawList, x + width - scrollbarWidth, y, scrollbarWidth, height, scrollY, maxScroll);
+        }
+
+        // Persist updated scroll position
+        state.MyReligionScrollY = scrollY;
+
         // === CONFIRMATION OVERLAYS ===
         // Disband confirmation
         if (state.ShowDisbandConfirm)
@@ -267,6 +302,50 @@ internal static class ReligionMyReligionRenderer
         }
 
         return height;
+    }
+
+    private static float ComputeContentHeight(bool isFounder)
+    {
+        float h = 0f;
+        // Header
+        h += 32f;
+        // Info grid rows
+        h += 22f;
+        h += 28f;
+        // Description section
+        if (isFounder)
+        {
+            h += 22f; // label
+            h += 80f; // box
+            h += 5f;  // spacing
+            h += 40f; // save button
+        }
+        else
+        {
+            h += 22f; // label
+            h += 40f; // text approx
+        }
+        // Members list
+        h += 25f; // label
+        h += 180f; // list
+        h += 15f; // spacing
+        // Banned players
+        if (isFounder)
+        {
+            h += 25f; // label
+            h += 120f; // list
+            h += 15f; // spacing
+        }
+        // Invite section
+        if (isFounder)
+        {
+            h += 22f; // label
+            h += 40f; // input+button
+        }
+        // Action buttons row
+        h += 40f;
+
+        return h;
     }
 
     private static void DrawDisbandConfirmation(ImDrawListPtr drawList, ICoreClientAPI api, float x, float y, float width, float height,

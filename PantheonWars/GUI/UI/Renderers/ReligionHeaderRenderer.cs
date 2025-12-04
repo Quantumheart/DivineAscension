@@ -18,18 +18,14 @@ namespace PantheonWars.GUI.UI.Renderers;
 internal static class ReligionHeaderRenderer
 {
     /// <summary>
-    ///     Draw the religion header banner
+    ///     Draw the religion header banner (obsolete variant with religion action callbacks).
+    ///     The top-level buttons "Manage Religion", "Change Religion", and "Leave Religion" have been removed
+    ///     from the UI. This method remains for backward compatibility but ignores those callbacks.
     /// </summary>
-    /// <param name="manager">Blessing dialog state manager</param>
-    /// <param name="api">Client API</param>
-    /// <param name="x">X position</param>
-    /// <param name="y">Y position</param>
-    /// <param name="width">Available width</param>
-    /// <param name="onChangeReligionClicked">Callback when Change Religion button clicked</param>
-    /// <param name="onManageReligionClicked">Callback when Manage Religion button clicked (if leader)</param>
-    /// <param name="onLeaveReligionClicked">Callback when Leave Religion button clicked</param>
-    /// <param name="onManageCivilizationClicked">Callback when Manage Civilization button clicked (if civ founder)</param>
-    /// <returns>Height used by this renderer</returns>
+    /// <remarks>
+    ///     Use the overload without religion action callbacks instead.
+    /// </remarks>
+    [Obsolete("Top-level religion action buttons are removed. Use Draw(manager, api, x, y, width, onManageCivilizationClicked) instead.")]
     public static float Draw(
         BlessingDialogManager manager,
         ICoreClientAPI api,
@@ -38,6 +34,26 @@ internal static class ReligionHeaderRenderer
         Action? onManageReligionClicked = null,
         Action? onLeaveReligionClicked = null,
         Action? onManageCivilizationClicked = null)
+    {
+        // Delegate to new implementation that no longer renders the obsolete religion buttons
+        return Draw(manager, api, x, y, width, onManageCivilizationClicked);
+    }
+
+    /// <summary>
+    ///     Draw the religion header banner (current)
+    /// </summary>
+    /// <param name="manager">Blessing dialog state manager</param>
+    /// <param name="api">Client API</param>
+    /// <param name="x">X position</param>
+    /// <param name="y">Y position</param>
+    /// <param name="width">Available width</param>
+    /// <param name="onManageCivilizationClicked">Callback when Manage Civilization button clicked (if civ founder)</param>
+    /// <returns>Height used by this renderer</returns>
+    public static float Draw(
+        BlessingDialogManager manager,
+        ICoreClientAPI api,
+        float x, float y, float width,
+        Action? onManageCivilizationClicked)
     {
         // Dynamic height: base + civilization section if in civ
         const float baseHeaderHeight = 130f;
@@ -71,21 +87,7 @@ internal static class ReligionHeaderRenderer
             var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
             drawList.AddText(ImGui.GetFont(), 16f, textPos, textColor, noReligionText);
 
-            // Add "Browse Religions" button
-            if (onChangeReligionClicked != null)
-            {
-                const float browseButtonWidth = 160f;
-                const float browseButtonHeight = 32f;
-                var browseButtonX = x + (width - browseButtonWidth) / 2;
-                var browseButtonY = y + (headerHeight - browseButtonHeight) / 2 + 20f;
-
-                if (DrawButton("Browse Religions", browseButtonX, browseButtonY, browseButtonWidth, browseButtonHeight))
-                {
-                    onChangeReligionClicked.Invoke();
-                    api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
-                        api.World.Player.Entity, null, false, 8f, 0.5f);
-                }
-            }
+            // Previously, a "Browse Religions" button was rendered here. It has been removed.
 
             return headerHeight;
         }
@@ -198,49 +200,7 @@ internal static class ReligionHeaderRenderer
             showGlow: prestigeProgress.ProgressPercentage > 0.8f
         );
 
-        // Right-side buttons
-        const float buttonWidth = 140f;
-        const float buttonHeight = 28f;
-        const float buttonSpacing = 8f;
-        var buttonY = y + (headerHeight - buttonHeight) / 2;
-        var buttonX = x + width - padding - buttonWidth;
-
-        // "Leave Religion" button (always visible when in a religion)
-        if (onLeaveReligionClicked != null)
-        {
-            if (DrawButton("Leave Religion", buttonX, buttonY, buttonWidth, buttonHeight, new Vector4(0.6f, 0.2f, 0.2f, 1.0f)))
-            {
-                onLeaveReligionClicked.Invoke();
-                api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
-                    api.World.Player.Entity, null, false, 8f, 0.5f);
-            }
-
-            buttonX -= buttonWidth + buttonSpacing;
-        }
-
-        // "Change Religion" button
-        if (onChangeReligionClicked != null)
-        {
-            if (DrawButton("Change Religion", buttonX, buttonY, buttonWidth, buttonHeight))
-            {
-                onChangeReligionClicked.Invoke();
-                api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
-                    api.World.Player.Entity, null, false, 8f, 0.5f);
-            }
-
-            buttonX -= buttonWidth + buttonSpacing;
-        }
-
-        // "Manage Religion" button (only if leader)
-        if (onManageReligionClicked != null && manager.PlayerRoleInReligion == "Leader")
-        {
-            if (DrawButton("Manage Religion", buttonX, buttonY, buttonWidth, buttonHeight))
-            {
-                onManageReligionClicked.Invoke();
-                api.World.PlaySoundAt(new Vintagestory.API.Common.AssetLocation("pantheonwars:sounds/click"),
-                    api.World.Player.Entity, null, false, 8f, 0.5f);
-            }
-        }
+        // Top-right religion action buttons (Manage/Change/Leave) have been removed.
 
         // === CIVILIZATION SECTION ===
         if (manager.HasCivilization())

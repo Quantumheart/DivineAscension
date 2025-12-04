@@ -57,12 +57,10 @@ internal static class BlessingUIRenderer
         var width = windowWidth - padding * 2;
 
         // === 1. RELIGION HEADER (Top Banner, always visible) ===
+        // Top-level religion action buttons have been removed; only pass civilization callback
         var headerHeight = ReligionHeaderRenderer.Draw(
             manager, api,
             windowPos.X + x, windowPos.Y + y, width,
-            onChangeReligionClicked,
-            onManageReligionClicked,
-            onLeaveReligionClicked,
             onManageCivilizationClicked
         );
         y += headerHeight + 8f;
