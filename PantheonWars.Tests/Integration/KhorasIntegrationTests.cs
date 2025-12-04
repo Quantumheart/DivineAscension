@@ -58,7 +58,6 @@ public class KhorasIntegrationTests
 
         _favorSystem = new FavorSystem(
             _mockAPI.Object,
-            _mockPlayerDataManager.Object,
             _mockPlayerReligionDataManager.Object,
             _mockDeityRegistry.Object,
             _mockReligionManager.Object,

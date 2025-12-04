@@ -8,7 +8,6 @@ using PantheonWars.Models.Enum;
 using PantheonWars.Network;
 using PantheonWars.Systems;
 using PantheonWars.Systems.BuffSystem;
-using PantheonWars.Systems.BuffSystem.Interfaces;
 using HarmonyLib;
 using System.Reflection;
 using PantheonWars.Systems.Patches;
@@ -23,28 +22,20 @@ namespace PantheonWars;
 public class PantheonWarsSystem : ModSystem
 {
     public const string NETWORK_CHANNEL = "pantheonwars";
-    private AbilityCommands? _abilityCommands;
-    private AbilityRegistry? _abilityRegistry;
-    private AbilitySystem? _abilitySystem;
 
     // Use interfaces for better testability and dependency injection
-    private IBuffManager? _buffManager;
     private CivilizationManager? _civilizationManager;
     private CivilizationCommands? _civilizationCommands;
 
     // Client-side systems
     private ICoreClientAPI? _capi;
     private IClientNetworkChannel? _clientChannel;
-    private DeityRegistry? _clientDeityRegistry;
-    private AbilityCooldownManager? _cooldownManager;
-    private DeityCommands? _deityCommands;
     private DeityRegistry? _deityRegistry;
     private FavorCommands? _favorCommands;
     private FavorSystem? _favorSystem;
     private BlessingCommands? _blessingCommands;
     private BlessingEffectSystem? _blessingEffectSystem;
     private BlessingRegistry? _blessingRegistry;
-    private PlayerDataManager? _playerDataManager;
     private PlayerReligionDataManager? _playerReligionDataManager;
     private PvPManager? _pvpManager;
     private ReligionCommands? _religionCommands;
@@ -116,21 +107,6 @@ public class PantheonWarsSystem : ModSystem
         _deityRegistry = new DeityRegistry(api);
         _deityRegistry.Initialize();
 
-        // Initialize ability registry
-        _abilityRegistry = new AbilityRegistry(api);
-        _abilityRegistry.Initialize();
-
-        // Initialize player data manager
-        _playerDataManager = new PlayerDataManager(api);
-        _playerDataManager.Initialize();
-
-        // Initialize ability cooldown manager
-        _cooldownManager = new AbilityCooldownManager(api);
-        _cooldownManager.Initialize();
-
-        // Initialize buff manager (concrete implementation, stored as interface)
-        _buffManager = new BuffManager(api);
-
         // Initialize religion systems first (needed by FavorSystem for passive favor)
         _religionManager = new ReligionManager(api);
         _religionManager.Initialize();
@@ -150,12 +126,8 @@ public class PantheonWarsSystem : ModSystem
 
         // Initialize favor system (concrete implementation, stored as interface)
         // Pass interfaces for loose coupling
-        _favorSystem = new FavorSystem(api, _playerDataManager, _playerReligionDataManager, _deityRegistry, _religionManager, _religionPrestigeManager);
+        _favorSystem = new FavorSystem(api, _playerReligionDataManager, _deityRegistry, _religionManager, _religionPrestigeManager);
         _favorSystem.Initialize();
-
-        // Initialize ability system (pass buff manager interface)
-        _abilitySystem = new AbilitySystem(api, _abilityRegistry, _playerDataManager, _cooldownManager, _buffManager);
-        _abilitySystem.Initialize();
 
         // Initialize PvP manager (pass interfaces for loose coupling)
         _pvpManager = new PvPManager(api, _playerReligionDataManager, _religionManager, _religionPrestigeManager,
@@ -1209,7 +1181,7 @@ public class PantheonWarsSystem : ModSystem
 
     private void SendPlayerDataToClient(IServerPlayer player)
     {
-        if (_playerDataManager == null || _deityRegistry == null || _serverChannel == null) return;
+        if (_playerReligionDataManager == null || _religionManager == null || _deityRegistry == null || _serverChannel == null) return;
 
         var playerReligionData = _playerReligionDataManager!.GetOrCreatePlayerData(player.PlayerUID);
         var religionData = _religionManager!.GetPlayerReligion(player.PlayerUID);

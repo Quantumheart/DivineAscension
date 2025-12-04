@@ -39,7 +39,6 @@ public class FavorSystemTests
         var mockPrestige = new Moq.Mock<IReligionPrestigeManager>();
         return new FavorSystem(
             api,
-            playerDataManager,
             playerReligionDataManager,
             deityRegistry,
             religionManager,

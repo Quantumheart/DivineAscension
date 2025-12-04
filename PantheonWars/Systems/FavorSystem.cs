@@ -6,7 +6,6 @@ using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
-using IPlayerDataManager = PantheonWars.Systems.Interfaces.IPlayerDataManager;
 
 namespace PantheonWars.Systems;
 
@@ -21,25 +20,23 @@ public class FavorSystem : IFavorSystem, IDisposable
     private const int PASSIVE_TICK_INTERVAL_MS = 1000; // 1 second ticks
 
     private readonly IDeityRegistry _deityRegistry;
-    private readonly IPlayerDataManager _playerDataManager;
     private readonly IPlayerReligionDataManager _playerReligionDataManager;
     private readonly IReligionManager _religionManager;
     private readonly IReligionPrestigeManager _prestigeManager;
-    private MiningFavorTracker _miningFavorTracker;
-    private AnvilFavorTracker _anvilFavorTracker;
-    private SmeltingFavorTracker _smeltingFavorTracker;
-    private HuntingFavorTracker _huntingFavorTracker;
-    private ForagingFavorTracker _foragingFavorTracker;
-    private AethraFavorTracker _aethraFavorTracker;
-    private GaiaFavorTracker _gaiaFavorTracker;
+    private MiningFavorTracker? _miningFavorTracker;
+    private AnvilFavorTracker? _anvilFavorTracker;
+    private SmeltingFavorTracker? _smeltingFavorTracker;
+    private HuntingFavorTracker? _huntingFavorTracker;
+    private ForagingFavorTracker? _foragingFavorTracker;
+    private AethraFavorTracker? _aethraFavorTracker;
+    private GaiaFavorTracker? _gaiaFavorTracker;
     private readonly ICoreServerAPI _sapi;
 
-    public FavorSystem(ICoreServerAPI sapi, IPlayerDataManager playerDataManager,
+    public FavorSystem(ICoreServerAPI sapi,
         IPlayerReligionDataManager playerReligionDataManager, IDeityRegistry deityRegistry,
         IReligionManager religionManager, IReligionPrestigeManager prestigeManager)
     {
         _sapi = sapi;
-        _playerDataManager = playerDataManager;
         _playerReligionDataManager = playerReligionDataManager;
         _deityRegistry = deityRegistry;
         _religionManager = religionManager;
