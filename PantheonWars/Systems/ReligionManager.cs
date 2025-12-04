@@ -15,7 +15,8 @@ namespace PantheonWars.Systems;
 public class ReligionManager : IReligionManager, IDisposable
 {
     private const string DATA_KEY = "pantheonwars_religions";
-    private readonly Dictionary<string, List<string>> _invitations = new(); // playerUID -> list of religionUIDs
+    private const string INVITE_DATA_KEY = "pantheonwars_religion_invites";
+    private ReligionWorldData _inviteData = new();
     private readonly Dictionary<string, ReligionData> _religions = new();
     private readonly ICoreServerAPI _sapi;
 
@@ -195,14 +196,22 @@ public class ReligionManager : IReligionManager, IDisposable
             return;
         }
 
-        // Add invitation
-        if (!_invitations.ContainsKey(playerUID)) _invitations[playerUID] = new List<string>();
-
-        if (!_invitations[playerUID].Contains(religionUID))
+        // Check if invite already exists
+        if (_inviteData.HasPendingInvite(religionUID, playerUID))
         {
-            _invitations[playerUID].Add(religionUID);
-            _sapi.Logger.Debug($"[PantheonWars] Player {playerUID} invited to religion {religion.ReligionName}");
+            _sapi.Logger.Warning("[PantheonWars] Invite already sent to this player");
+            return;
         }
+
+        // Create structured invite with 7-day expiration
+        var inviteId = Guid.NewGuid().ToString();
+        var invite = new ReligionInvite(inviteId, religionUID, playerUID, DateTime.UtcNow);
+        _inviteData.AddInvite(invite);
+
+        _sapi.Logger.Debug($"[PantheonWars] Player {playerUID} invited to religion {religion.ReligionName}");
+
+        // Save immediately to prevent data loss
+        SaveInviteData();
     }
 
     /// <summary>
@@ -210,7 +219,7 @@ public class ReligionManager : IReligionManager, IDisposable
     /// </summary>
     public bool HasInvitation(string playerUID, string religionUID)
     {
-        return _invitations.TryGetValue(playerUID, out var invites) && invites.Contains(religionUID);
+        return _inviteData.HasPendingInvite(religionUID, playerUID);
     }
 
     /// <summary>
@@ -218,15 +227,97 @@ public class ReligionManager : IReligionManager, IDisposable
     /// </summary>
     public void RemoveInvitation(string playerUID, string religionUID)
     {
-        if (_invitations.TryGetValue(playerUID, out var invites)) invites.Remove(religionUID);
+        var invite = _inviteData.PendingInvites.FirstOrDefault(i =>
+            i.PlayerUID == playerUID && i.ReligionId == religionUID);
+        if (invite != null)
+        {
+            _inviteData.RemoveInvite(invite.InviteId);
+            SaveInviteData();
+        }
     }
 
     /// <summary>
     ///     Gets all invitations for a player
     /// </summary>
-    public List<string> GetPlayerInvitations(string playerUID)
+    public List<ReligionInvite> GetPlayerInvitations(string playerUID)
     {
-        return _invitations.TryGetValue(playerUID, out var invites) ? invites : new List<string>();
+        _inviteData.CleanupExpired();
+        return _inviteData.GetInvitesForPlayer(playerUID);
+    }
+
+    /// <summary>
+    ///     Accepts a religion invite
+    /// </summary>
+    public bool AcceptInvite(string inviteId, string playerUID)
+    {
+        var invite = _inviteData.GetInvite(inviteId);
+        if (invite == null || !invite.IsValid)
+        {
+            _sapi.Logger.Warning($"[PantheonWars] Invalid or expired invite: {inviteId}");
+            return false;
+        }
+
+        if (invite.PlayerUID != playerUID)
+        {
+            _sapi.Logger.Warning($"[PantheonWars] Player {playerUID} cannot accept invite for {invite.PlayerUID}");
+            return false;
+        }
+
+        // Check if player can join
+        if (HasReligion(playerUID))
+        {
+            _sapi.Logger.Warning($"[PantheonWars] Player {playerUID} already has a religion");
+            return false;
+        }
+
+        var religion = GetReligion(invite.ReligionId);
+        if (religion == null)
+        {
+            _sapi.Logger.Warning($"[PantheonWars] Religion {invite.ReligionId} no longer exists");
+            return false;
+        }
+
+        if (religion.IsBanned(playerUID))
+        {
+            _sapi.Logger.Warning($"[PantheonWars] Player {playerUID} is banned from religion {religion.ReligionName}");
+            return false;
+        }
+
+        // Join religion
+        AddMember(invite.ReligionId, playerUID);
+
+        // Remove invite
+        _inviteData.RemoveInvite(inviteId);
+        SaveInviteData();
+
+        _sapi.Logger.Notification($"[PantheonWars] Player {playerUID} accepted invite to {religion.ReligionName}");
+        return true;
+    }
+
+    /// <summary>
+    ///     Declines a religion invite
+    /// </summary>
+    public bool DeclineInvite(string inviteId, string playerUID)
+    {
+        var invite = _inviteData.GetInvite(inviteId);
+        if (invite == null)
+        {
+            _sapi.Logger.Warning($"[PantheonWars] Invite not found: {inviteId}");
+            return false;
+        }
+
+        if (invite.PlayerUID != playerUID)
+        {
+            _sapi.Logger.Warning($"[PantheonWars] Player {playerUID} cannot decline invite for {invite.PlayerUID}");
+            return false;
+        }
+
+        // Remove invite
+        _inviteData.RemoveInvite(inviteId);
+        SaveInviteData();
+
+        _sapi.Logger.Debug($"[PantheonWars] Player {playerUID} declined invite {inviteId}");
+        return true;
     }
 
     /// <summary>
@@ -376,11 +467,13 @@ public class ReligionManager : IReligionManager, IDisposable
     public void OnSaveGameLoaded()
     {
         LoadAllReligions();
+        LoadInviteData();
     }
 
     public void OnGameWorldSave()
     {
         SaveAllReligions();
+        SaveInviteData();
     }
 
     /// <summary>
@@ -423,6 +516,47 @@ public class ReligionManager : IReligionManager, IDisposable
         catch (Exception ex)
         {
             _sapi.Logger.Error($"[PantheonWars] Failed to save religions: {ex.Message}");
+        }
+    }
+
+
+    /// <summary>
+    ///     Loads religion invite data from world storage
+    /// </summary>
+    private void LoadInviteData()
+    {
+        try
+        {
+            var data = _sapi.WorldManager.SaveGame.GetData(INVITE_DATA_KEY);
+            if (data != null)
+            {
+                _inviteData = SerializerUtil.Deserialize<ReligionWorldData>(data) ?? new ReligionWorldData();
+                _inviteData.CleanupExpired();
+                _sapi.Logger.Notification($"[PantheonWars] Loaded {_inviteData.PendingInvites.Count} religion invites");
+            }
+        }
+        catch (Exception ex)
+        {
+            _sapi.Logger.Error($"[PantheonWars] Failed to load religion invites: {ex.Message}");
+            _inviteData = new ReligionWorldData();
+        }
+    }
+
+    /// <summary>
+    ///     Saves religion invite data to world storage
+    /// </summary>
+    private void SaveInviteData()
+    {
+        try
+        {
+            _inviteData.CleanupExpired();
+            var data = SerializerUtil.Serialize(_inviteData);
+            _sapi.WorldManager.SaveGame.StoreData(INVITE_DATA_KEY, data);
+            _sapi.Logger.Debug($"[PantheonWars] Saved {_inviteData.PendingInvites.Count} religion invites");
+        }
+        catch (Exception ex)
+        {
+            _sapi.Logger.Error($"[PantheonWars] Failed to save religion invites: {ex.Message}");
         }
     }
 

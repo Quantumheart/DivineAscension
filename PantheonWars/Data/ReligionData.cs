@@ -323,3 +323,64 @@ public class BanEntry
     [ProtoMember(5)]
     public string BannedByUID { get; set; } = string.Empty;
 }
+
+/// <summary>
+///     Represents an invitation for a player to join a religion
+/// </summary>
+[ProtoContract]
+public class ReligionInvite
+{
+    /// <summary>
+    ///     Parameterless constructor for serialization
+    /// </summary>
+    public ReligionInvite()
+    {
+    }
+
+    /// <summary>
+    ///     Creates a new religion invite
+    /// </summary>
+    public ReligionInvite(string inviteId, string religionId, string playerUID, DateTime sentDate)
+    {
+        InviteId = inviteId;
+        ReligionId = religionId;
+        PlayerUID = playerUID;
+        SentDate = sentDate;
+        ExpiresDate = sentDate.AddDays(7);
+    }
+
+    /// <summary>
+    ///     Unique identifier for the invite
+    /// </summary>
+    [ProtoMember(1)]
+    public string InviteId { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Religion ID this invite is for
+    /// </summary>
+    [ProtoMember(2)]
+    public string ReligionId { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Player UID being invited
+    /// </summary>
+    [ProtoMember(3)]
+    public string PlayerUID { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     When the invite was sent
+    /// </summary>
+    [ProtoMember(4)]
+    public DateTime SentDate { get; set; }
+
+    /// <summary>
+    ///     When the invite expires (7 days from sent date)
+    /// </summary>
+    [ProtoMember(5)]
+    public DateTime ExpiresDate { get; set; }
+
+    /// <summary>
+    ///     Checks if the invite is still valid (not expired)
+    /// </summary>
+    public bool IsValid => DateTime.UtcNow < ExpiresDate;
+}
