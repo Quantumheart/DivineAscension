@@ -10,7 +10,7 @@ namespace PantheonWars.GUI.State;
 public class CivilizationState
 {
     // Main tab selection inside the Civilization tab (0=Browse, 1=My Civ, 2=Invites, 3=Create)
-    public int CurrentSubTab { get; set; }
+    public CivilizationSubTab CurrentSubTab { get; set; }
 
     // Browse tab
     public string DeityFilter { get; set; } = string.Empty;
@@ -91,4 +91,12 @@ public class CivilizationState
         ShowDisbandConfirm = false;
         KickConfirmReligionId = null;
     }
+}
+
+public enum CivilizationSubTab
+{
+    Browse,
+    MyCiv,
+    Invites,    
+    Create,
 }

@@ -1,4 +1,5 @@
 using ImGuiNET;
+using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Banners;
@@ -40,13 +41,13 @@ internal static class CivilizationTabRenderer
         void DrawTabButton(string label, int index)
         {
             var tx = tabX + index * (tabWidth + spacing);
-            var isActive = state.CurrentSubTab == index;
+            var isActive = state.CurrentSubTab == (CivilizationSubTab) index;
             var clicked = ButtonRenderer.DrawButton(drawList, label, tx, tabY, tabWidth, tabH,
                 isPrimary: isActive, enabled: true,
                 customColor: isActive ? ColorPalette.Gold * 0.7f : ColorPalette.DarkBrown * 0.6f);
             if (clicked)
             {
-                state.CurrentSubTab = index;
+                state.CurrentSubTab = (CivilizationSubTab)index;
 
                 // Clear transient action error on tab change
                 state.LastActionError = null;
@@ -75,7 +76,7 @@ internal static class CivilizationTabRenderer
         // Error banner (LastActionError has priority)
         var bannerMessage = state.LastActionError;
         bool showRetry = false;
-        int effectiveTab = state.CurrentSubTab;
+        int effectiveTab = (int)state.CurrentSubTab;
 
         if (bannerMessage == null)
         {
@@ -86,11 +87,11 @@ internal static class CivilizationTabRenderer
                     bannerMessage = state.ViewingCivilizationId != null ? state.DetailsError : state.BrowseError;
                     showRetry = bannerMessage != null; // allow retry for fetch errors
                     break;
-                case 1:
+                case CivilizationSubTab.MyCiv:
                     bannerMessage = state.MyCivError;
                     showRetry = bannerMessage != null;
                     break;
-                case 2:
+                case CivilizationSubTab.Invites:
                     bannerMessage = state.InvitesError;
                     showRetry = bannerMessage != null;
                     break;
@@ -148,16 +149,16 @@ internal static class CivilizationTabRenderer
 
         switch (state.CurrentSubTab)
         {
-            case 0:
+            case CivilizationSubTab.Browse:
                 CivilizationBrowseRenderer.Draw(manager, api, x, contentY, width, contentHeight);
                 break;
-            case 1:
+            case CivilizationSubTab.MyCiv:
                 CivilizationManageRenderer.Draw(manager, api, x, contentY, width, contentHeight);
                 break;
-            case 2:
+            case CivilizationSubTab.Invites:
                 CivilizationInvitesRenderer.Draw(manager, api, x, contentY, width, contentHeight);
                 break;
-            case 3:
+            case CivilizationSubTab.Create:
                 CivilizationCreateRenderer.Draw(manager, api, x, contentY, width, contentHeight);
                 break;
         }
