@@ -35,9 +35,9 @@ public class CivilizationInfoResponsePacket
 
         [ProtoMember(4)] public string FounderReligionUID { get; set; } = string.Empty;
 
-        [ProtoMember(5)] public List<MemberReligion> MemberReligions { get; set; } = new();
+        [ProtoMember(5)] public List<MemberReligion>? MemberReligions { get; set; } = new();
 
-        [ProtoMember(6)] public List<PendingInvite> PendingInvites { get; set; } = new();
+        [ProtoMember(6)] public List<PendingInvite>? PendingInvites { get; set; } = new();
 
         [ProtoMember(7)] public DateTime CreatedDate { get; set; }
 

@@ -559,6 +559,24 @@ public class PantheonWarsSystem : ModSystem
                     {
                         _religionManager.InvitePlayer(religionForInvite.ReligionUID, packet.TargetPlayerUID,
                             fromPlayer.PlayerUID);
+
+                        // Notify invited player if online
+                        var invitedPlayer = _sapi!.World.PlayerByUid(packet.TargetPlayerUID) as IServerPlayer;
+                        if (invitedPlayer != null)
+                        {
+                            var statePacket = new ReligionStateChangedPacket
+                            {
+                                Reason = $"You have been invited to join {religionForInvite.ReligionName}",
+                                HasReligion = false
+                            };
+                            _serverChannel!.SendPacket(statePacket, invitedPlayer);
+                            _sapi.Logger.Debug($"[PantheonWars] Sent invitation notification to {packet.TargetPlayerUID}");
+                        }
+                        else
+                        {
+                            _sapi.Logger.Debug($"[PantheonWars] Player {packet.TargetPlayerUID} is offline, will see invite when they log in");
+                        }
+
                         message = "Invitation sent!";
                         success = true;
                     }
@@ -987,8 +1005,35 @@ public class PantheonWarsSystem : ModSystem
             var religionCiv = _civilizationManager!.GetCivilizationByReligion(playerReligion.ReligionUID);
             if (religionCiv == null)
             {
-                // Player's religion is not in any civilization
-                _serverChannel!.SendPacket(new CivilizationInfoResponsePacket(), fromPlayer);
+                // Player's religion is not in any civilization.
+                // In this case, still return an invites list so the client can render the "Invites" tab.
+                var detailsForInvitesOnly = new CivilizationInfoResponsePacket.CivilizationDetails
+                {
+                    CivId = string.Empty, // signals "no civilization" to the client
+                    Name = string.Empty,
+                    FounderUID = string.Empty,
+                    FounderReligionUID = string.Empty,
+                    CreatedDate = default,
+                    MemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(),
+                    PendingInvites = new List<CivilizationInfoResponsePacket.PendingInvite>()
+                };
+
+                var invitesForReligion = _civilizationManager.GetInvitesForReligion(playerReligion.ReligionUID);
+                foreach (var invite in invitesForReligion)
+                {
+                    var invitingCiv = _civilizationManager.GetCivilization(invite.CivId);
+                    var civName = invitingCiv?.Name ?? invite.CivId;
+                    detailsForInvitesOnly.PendingInvites.Add(new CivilizationInfoResponsePacket.PendingInvite
+                    {
+                        InviteId = invite.InviteId,
+                        ReligionId = invite.ReligionId,
+                        // For invites targeted at this religion, expose the inviting civilization name
+                        ReligionName = civName,
+                        ExpiresAt = invite.ExpiresDate
+                    });
+                }
+
+                _serverChannel!.SendPacket(new CivilizationInfoResponsePacket(detailsForInvitesOnly), fromPlayer);
                 return;
             }
 
@@ -1122,6 +1167,41 @@ public class PantheonWarsSystem : ModSystem
                     response.Message = success
                         ? $"Invitation sent to '{targetReligion.ReligionName}' successfully!"
                         : "Failed to send invitation. Check permissions and civilization requirements.";
+
+                    // Notify all members of invited religion if invitation succeeded
+                    if (success)
+                    {
+                        var civ = _civilizationManager!.GetCivilization(packet.CivId);
+                        if (civ != null)
+                        {
+                            int notifiedCount = 0;
+                            int offlineCount = 0;
+
+                            foreach (var memberUID in targetReligion.MemberUIDs)
+                            {
+                                var memberPlayer = _sapi!.World.PlayerByUid(memberUID) as IServerPlayer;
+                                if (memberPlayer != null)
+                                {
+                                    var statePacket = new ReligionStateChangedPacket
+                                    {
+                                        Reason = $"Your religion has been invited to join the civilization '{civ.Name}'",
+                                        HasReligion = true
+                                    };
+                                    _serverChannel!.SendPacket(statePacket, memberPlayer);
+                                    notifiedCount++;
+                                }
+                                else
+                                {
+                                    offlineCount++;
+                                }
+                            }
+
+                            _sapi!.Logger.Notification(
+                                $"[PantheonWars] Civilization invitation sent to {targetReligion.ReligionName}: " +
+                                $"{notifiedCount} members notified, {offlineCount} offline");
+                        }
+                    }
+
                     response.CivId = packet.CivId;
                     break;
 

@@ -328,14 +328,27 @@ public class BlessingDialogManager : IBlessingDialogManager
         }
         else
         {
-            // Update player's own civilization
-            CurrentCivilizationId = details.CivId;
-            CurrentCivilizationName = details.Name;
-            CivilizationFounderReligionUID = details.FounderReligionUID;
-            CivilizationMemberReligions =
-                new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions);
-            CivState.MyCivilization = details;
-            CivState.MyInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(details.PendingInvites);
+            // Update player's own civilization (or just invites if not in a civilization)
+            if (string.IsNullOrEmpty(details.CivId))
+            {
+                // Player has no civilization; only update invites and keep civ info cleared
+                CurrentCivilizationId = null;
+                CurrentCivilizationName = null;
+                CivilizationFounderReligionUID = null;
+                CivilizationMemberReligions.Clear();
+                CivState.MyCivilization = null;
+                CivState.MyInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(details.PendingInvites);
+            }
+            else
+            {
+                CurrentCivilizationId = details.CivId;
+                CurrentCivilizationName = details.Name;
+                CivilizationFounderReligionUID = details.FounderReligionUID;
+                CivilizationMemberReligions =
+                    new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions);
+                CivState.MyCivilization = details;
+                CivState.MyInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(details.PendingInvites);
+            }
         }
     }
 

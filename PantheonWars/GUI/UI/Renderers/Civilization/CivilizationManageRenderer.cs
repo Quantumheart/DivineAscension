@@ -37,6 +37,13 @@ internal static class CivilizationManageRenderer
             return height;
         }
 
+        // Null safety: ensure all required properties are initialized
+        if (string.IsNullOrEmpty(civ.Name) || civ.MemberReligions == null || civ.PendingInvites == null)
+        {
+            TextRenderer.DrawInfoText(drawList, "Loading civilization data...", x, currentY + 8f, width);
+            return height;
+        }
+
         // Header
         TextRenderer.DrawLabel(drawList, civ.Name, x, currentY + 4f, 18f, ColorPalette.White);
         currentY += 28f;

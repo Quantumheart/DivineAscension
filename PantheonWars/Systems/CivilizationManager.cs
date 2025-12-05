@@ -9,12 +9,12 @@ using Vintagestory.API.Util;
 namespace PantheonWars.Systems;
 
 /// <summary>
-///     Manages civilizations - alliances of 2-4 religions with different deities
+///     Manages civilizations - alliances of 1-4 religions with different deities
 /// </summary>
 public class CivilizationManager
 {
     private const string DATA_KEY = "pantheonwars_civilizations";
-    private const int MIN_RELIGIONS = 2;
+    private const int MIN_RELIGIONS = 1;
     private const int MAX_RELIGIONS = 4;
     private const int COOLDOWN_DAYS = 7;
     private const int INVITE_EXPIRY_DAYS = 7;
@@ -401,10 +401,6 @@ public class CivilizationManager
             // Remove religion from civilization
             _data.RemoveReligionFromCivilization(religionId);
             civ.MemberCount -= religion.MemberUIDs.Count;
-
-            // Add cooldown
-            var cooldown = new CivilizationCooldown(religionId, DateTime.UtcNow.AddDays(COOLDOWN_DAYS));
-            _data.AddCooldown(cooldown);
 
             // Check if civilization falls below minimum
             if (civ.MemberReligionIds.Count < MIN_RELIGIONS)

@@ -131,6 +131,12 @@ public partial class BlessingDialog
 
         // Request fresh data from server (will show "No Religion" state)
         _pantheonWarsSystem?.RequestBlessingData();
+
+        // If notification is about civilization, also refresh civilization data
+        if (packet.Reason.Contains("civilization", StringComparison.OrdinalIgnoreCase))
+        {
+            _manager?.RequestCivilizationInfo("");
+        }
     }
 
     /// <summary>
