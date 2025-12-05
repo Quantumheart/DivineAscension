@@ -149,7 +149,7 @@ internal static class ReligionTabRenderer
                 manager.ReligionStateManager.DrawReligionBrowse(x, contentY, width, contentHeight);
                 break;
             case ReligionSubTab.MyReligion:
-                ReligionMyReligionRenderer.Draw(manager, api, x, contentY, width, contentHeight);
+                ReligionInfoRenderer.Draw(manager, api, x, contentY, width, contentHeight);
                 break;
             case ReligionSubTab.Activity:
                 ReligionActivityRenderer.Draw(manager, api, x, contentY, width, contentHeight);

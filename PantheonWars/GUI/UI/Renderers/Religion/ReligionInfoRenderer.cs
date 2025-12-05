@@ -18,7 +18,7 @@ namespace PantheonWars.GUI.UI.Renderers.Religion;
 ///     Renderer for managing player's own religion
 ///     Migrates functionality from ReligionManagementOverlay
 /// </summary>
-internal static class ReligionMyReligionRenderer
+internal static class ReligionInfoRenderer
 {
     public static float Draw(
         BlessingDialogManager manager,
