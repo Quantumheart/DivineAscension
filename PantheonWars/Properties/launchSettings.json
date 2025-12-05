@@ -3,17 +3,17 @@
     "Vintage Story Client": {
       "commandName": "Executable",
       "executablePath": "dotnet",
-      "commandLineArgs": "\"$(VINTAGE_STORY)/Vintagestory.dll\" --tracelog --addModPath \"$(ProjectDir)/bin/$(Configuration)/Mods/mod\" -o testworld",
+      "commandLineArgs": "\"$(VINTAGE_STORY)/Vintagestory.dll\" --tracelog --addModPath \"$(ProjectDir)/../Releases/\" -o testworld",
       "workingDirectory": "$(VINTAGE_STORY)",
       "environmentVariables": {
         "TEXTURE_DEBUG_DISPOSE": "0",
-        "VAO_DEBUG_DISPOSE": "0"
+        "VAO_DEBUG_DISPOSE": "1"
       }
     },
     "Vintage Story Server": {
       "commandName": "Executable",
       "executablePath": "dotnet",
-      "commandLineArgs": "\"$(VINTAGE_STORY)/VintagestoryServer.dll\" --tracelog --addModPath \"$(ProjectDir)/bin/$(Configuration)/Mods/mod\"",
+      "commandLineArgs": "\"$(VINTAGE_STORY)/VintagestoryServer.dll\" --tracelog --addModPath \"$(ProjectDir)/../Releases/\" -o testworld",
       "workingDirectory": "$(VINTAGE_STORY)"
     }
   }
