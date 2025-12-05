@@ -1,7 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
+using ImGuiNET;
+using PantheonWars.GUI.Events;
 using PantheonWars.GUI.Interfaces;
+using PantheonWars.GUI.Models.Religion;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Adapters.ReligionMembers;
+using PantheonWars.GUI.UI.Renderers.Religion;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network;
@@ -469,5 +474,90 @@ public class BlessingDialogManager : IBlessingDialogManager
             : new List<PlayerReligionInfoResponsePacket.ReligionInviteInfo>();
         ReligionState.IsInvitesLoading = false;
         ReligionState.MyReligionError = null;
+    }
+
+    /// <summary>
+    /// Draws the religion invites tab using the refactored renderer
+    /// Builds ViewModel, calls pure renderer, processes events
+    /// </summary>
+    public void DrawReligionInvites(float x, float y, float width, float height)
+    {
+        // Build view model from state
+        var viewModel = new ReligionInvitesViewModel(
+            invites: ConvertToInviteData(ReligionState.MyInvites),
+            isLoading: ReligionState.IsInvitesLoading,
+            scrollY: ReligionState.InvitesScrollY,
+            x: x, y: y, width: width, height: height
+        );
+
+        // Render (pure function call)
+        var drawList = ImGui.GetWindowDrawList();
+        var result = ReligionInvitesRenderer.Draw(viewModel, drawList);
+
+        // Process events (side effects)
+        ProcessInvitesEvents(result.Events);
+    }
+
+    /// <summary>
+    /// Convert network packet data to view model data
+    /// </summary>
+    private IReadOnlyList<InviteData> ConvertToInviteData(
+        List<PlayerReligionInfoResponsePacket.ReligionInviteInfo> packetInvites)
+    {
+        return packetInvites
+            .Select(i => new InviteData(
+                inviteId: i.InviteId,
+                religionName: i.ReligionName,
+                expiresAt: i.ExpiresAt))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Process events from the invites renderer
+    /// </summary>
+    private void ProcessInvitesEvents(IReadOnlyList<ReligionInvitesEvent> events)
+    {
+        foreach (var evt in events)
+        {
+            switch (evt)
+            {
+                case ReligionInvitesEvent.AcceptInviteClicked e:
+                    HandleAcceptInvite(e.InviteId);
+                    break;
+
+                case ReligionInvitesEvent.DeclineInviteClicked e:
+                    HandleDeclineInvite(e.InviteId);
+                    break;
+
+                case ReligionInvitesEvent.ScrollChanged e:
+                    ReligionState.InvitesScrollY = e.NewScrollY;
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handle accept invite action
+    /// All side effects (network, sound) happen here
+    /// </summary>
+    private void HandleAcceptInvite(string inviteId)
+    {
+        // Send network request
+        RequestReligionAction("accept", string.Empty, inviteId);
+
+        // Optional: Optimistic UI update
+        ReligionState.IsInvitesLoading = true;
+    }
+
+    /// <summary>
+    /// Handle decline invite action
+    /// </summary>
+    private void HandleDeclineInvite(string inviteId)
+    {
+        // Send network request
+        RequestReligionAction("decline", string.Empty, inviteId);
+
+        // Optional: Optimistic UI update
+        ReligionState.IsInvitesLoading = true;
     }
 }

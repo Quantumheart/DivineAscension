@@ -155,7 +155,7 @@ internal static class ReligionTabRenderer
                 ReligionActivityRenderer.Draw(manager, api, x, contentY, width, contentHeight);
                 break;
             case ReligionSubTab.Invites:
-                ReligionInvitesRenderer.Draw(manager, api, x, contentY, width, contentHeight);
+                manager.DrawReligionInvites(x, contentY, width, contentHeight);
                 break;
             case ReligionSubTab.Create:
                 ReligionCreateRenderer.Draw(manager, api, x, contentY, width, contentHeight);
