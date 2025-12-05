@@ -55,7 +55,7 @@ internal static class ReligionTabRenderer
                 // Clear transient action error on tab change
                 state.LastActionError = null;
 
-                // Clear context-specific errors when switching into a tab
+                // Clear context-specific errors and request data when switching into a tab
                 switch (tabIndex)
                 {
                     case 0:
@@ -65,6 +65,12 @@ internal static class ReligionTabRenderer
                     case 1:
                         // My Religion
                         state.MyReligionError = null;
+                        break;
+                    case 3:
+                        // Invites - request player religion info to get invitations
+                        state.InvitesError = null;
+                        state.IsInvitesLoading = true;
+                        manager.RequestPlayerReligionInfo();
                         break;
                     case 4:
                         // Create

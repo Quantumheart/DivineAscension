@@ -312,6 +312,9 @@ public class PantheonWarsSystem : ModSystem
 
             // Include pending religion invites for the player
             var invites = _religionManager!.GetPlayerInvitations(fromPlayer.PlayerUID);
+            _sapi!.Logger.Debug(
+                $"[PantheonWars] Player {fromPlayer.PlayerName} ({fromPlayer.PlayerUID}) has {invites.Count} pending invitations");
+
             foreach (var inv in invites)
             {
                 var rel = _religionManager.GetReligion(inv.ReligionId);
@@ -322,10 +325,14 @@ public class PantheonWarsSystem : ModSystem
                     ReligionName = rel?.ReligionName ?? inv.ReligionId,
                     ExpiresAt = inv.ExpiresDate
                 });
+                _sapi!.Logger.Debug(
+                    $"[PantheonWars] - Invitation to {rel?.ReligionName ?? inv.ReligionId}, expires {inv.ExpiresDate}");
             }
         }
 
         _serverChannel!.SendPacket(response, fromPlayer);
+        _sapi!.Logger.Debug(
+            $"[PantheonWars] Sent PlayerReligionInfoResponse to {fromPlayer.PlayerName}: HasReligion={response.HasReligion}, PendingInvites={response.PendingInvites.Count}");
     }
 
     private void OnReligionActionRequest(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
@@ -557,28 +564,40 @@ public class PantheonWarsSystem : ModSystem
                     var religionForInvite = _religionManager!.GetPlayerReligion(fromPlayer.PlayerUID);
                     if (religionForInvite != null)
                     {
-                        _religionManager.InvitePlayer(religionForInvite.ReligionUID, packet.TargetPlayerUID,
-                            fromPlayer.PlayerUID);
+                        // Convert player name to UID (UI sends player name in TargetPlayerUID field)
+                        var targetPlayer = _sapi!.World.AllOnlinePlayers
+                            .FirstOrDefault(p => p.PlayerName.Equals(packet.TargetPlayerUID,
+                                StringComparison.OrdinalIgnoreCase)) as IServerPlayer;
 
-                        // Notify invited player if online
-                        var invitedPlayer = _sapi!.World.PlayerByUid(packet.TargetPlayerUID) as IServerPlayer;
-                        if (invitedPlayer != null)
+                        if (targetPlayer == null)
                         {
-                            var statePacket = new ReligionStateChangedPacket
-                            {
-                                Reason = $"You have been invited to join {religionForInvite.ReligionName}",
-                                HasReligion = false
-                            };
-                            _serverChannel!.SendPacket(statePacket, invitedPlayer);
-                            _sapi.Logger.Debug($"[PantheonWars] Sent invitation notification to {packet.TargetPlayerUID}");
+                            message = $"Player '{packet.TargetPlayerUID}' not found online.";
+                            success = false;
                         }
                         else
                         {
-                            _sapi.Logger.Debug($"[PantheonWars] Player {packet.TargetPlayerUID} is offline, will see invite when they log in");
-                        }
+                            success = _religionManager.InvitePlayer(religionForInvite.ReligionUID, targetPlayer.PlayerUID,
+                                fromPlayer.PlayerUID);
 
-                        message = "Invitation sent!";
-                        success = true;
+                            if (success)
+                            {
+                                // Notify invited player
+                                var statePacket = new ReligionStateChangedPacket
+                                {
+                                    Reason = $"You have been invited to join {religionForInvite.ReligionName}",
+                                    HasReligion = false
+                                };
+                                _serverChannel!.SendPacket(statePacket, targetPlayer);
+                                _sapi.Logger.Debug(
+                                    $"[PantheonWars] Sent invitation notification to {targetPlayer.PlayerName} ({targetPlayer.PlayerUID})");
+
+                                message = "Invitation sent!";
+                            }
+                            else
+                            {
+                                message = "Failed to send invitation. They may already have a pending invite.";
+                            }
+                        }
                     }
                     else
                     {

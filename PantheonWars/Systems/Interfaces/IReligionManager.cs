@@ -55,7 +55,7 @@ public interface IReligionManager : IDisposable
     /// <summary>
     ///     Invites a player to a religion
     /// </summary>
-    void InvitePlayer(string religionUID, string playerUID, string inviterUID);
+    bool InvitePlayer(string religionUID, string playerUID, string inviterUID);
 
     /// <summary>
     ///     Checks if a player has an invitation to a religion

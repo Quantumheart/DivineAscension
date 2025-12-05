@@ -80,11 +80,17 @@ internal static class BlessingUIRenderer
                 manager.ReligionState.IsBrowseLoading = true;
                 manager.RequestReligionList(manager.ReligionState.DeityFilter);
 
+                // Request player religion info (includes invitations if player has no religion)
                 if (manager.HasReligion())
                 {
                     manager.ReligionState.IsMyReligionLoading = true;
-                    manager.RequestPlayerReligionInfo();
                 }
+                else
+                {
+                    manager.ReligionState.IsInvitesLoading = true;
+                }
+
+                manager.RequestPlayerReligionInfo();
             }
             else if (newMainTab == 2) // Civilization tab
             {
