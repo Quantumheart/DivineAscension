@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
+using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Models.Religion.List;
 using PantheonWars.GUI.UI.Components.Lists;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Network;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.UI.Renderers.Components;
 
@@ -18,31 +19,22 @@ namespace PantheonWars.GUI.UI.Renderers.Components;
 public static class ReligionListRenderer
 {
     /// <summary>
-    ///     Draw religion list with scrolling and selection
+    /// Pure renderer for a scrollable religion list. Emits events instead of mutating state.
     /// </summary>
-    /// <param name="drawList">ImGui draw list</param>
-    /// <param name="api">Client API</param>
-    /// <param name="x">X position</param>
-    /// <param name="y">Y position</param>
-    /// <param name="width">Width of list</param>
-    /// <param name="height">Height of list</param>
-    /// <param name="religions">List of religions to display</param>
-    /// <param name="isLoading">Whether the list is loading</param>
-    /// <param name="scrollY">Current scroll position (will be modified)</param>
-    /// <param name="selectedReligionUID">Currently selected religion UID (will be modified)</param>
-    /// <returns>Tuple of (updated scroll Y, updated selected UID, hovered religion)</returns>
-    public static (float scrollY, string? selectedUID, ReligionListResponsePacket.ReligionInfo? hoveredReligion) Draw(
-        ImDrawListPtr drawList,
-        ICoreClientAPI api,
-        float x,
-        float y,
-        float width,
-        float height,
-        List<ReligionListResponsePacket.ReligionInfo> religions,
-        bool isLoading,
-        float scrollY,
-        string? selectedReligionUID)
+    public static ReligionListRenderResult Draw(
+        ReligionListViewModel viewModel,
+        ImDrawListPtr drawList)
     {
+        var events = new List<ReligionListEvent>();
+        var x = viewModel.X;
+        var y = viewModel.Y;
+        var width = viewModel.Width;
+        var height = viewModel.Height;
+        var religions = new List<ReligionListResponsePacket.ReligionInfo>(viewModel.Religions);
+        var isLoading = viewModel.IsLoading;
+        var scrollY = viewModel.ScrollY;
+        var selectedReligionUID = viewModel.SelectedReligionUID;
+
         const float itemHeight = 80f;
         const float itemSpacing = 8f;
         const float scrollbarWidth = 16f;
@@ -64,7 +56,7 @@ public static class ReligionListRenderer
             );
             var loadingColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
             drawList.AddText(loadingPos, loadingColor, loadingText);
-            return (scrollY, selectedReligionUID, null);
+            return new ReligionListRenderResult(events, null, height);
         }
 
         // No religions state
@@ -78,7 +70,7 @@ public static class ReligionListRenderer
             );
             var noReligionColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
             drawList.AddText(noReligionPos, noReligionColor, noReligionText);
-            return (scrollY, selectedReligionUID, null);
+            return new ReligionListRenderResult(events, null, height);
         }
 
         // Calculate scroll limits
@@ -92,7 +84,15 @@ public static class ReligionListRenderer
         if (isMouseOver)
         {
             var wheel = ImGui.GetIO().MouseWheel;
-            if (wheel != 0) scrollY = Math.Clamp(scrollY - wheel * 40f, 0f, maxScroll);
+            if (wheel != 0)
+            {
+                var newScroll = Math.Clamp(scrollY - wheel * 40f, 0f, maxScroll);
+                if (Math.Abs(newScroll - scrollY) > 0.01f)
+                {
+                    scrollY = newScroll;
+                    events.Add(new ReligionListEvent.ScrollChanged(scrollY));
+                }
+            }
         }
 
         // Clip to list bounds
@@ -112,9 +112,13 @@ public static class ReligionListRenderer
                 continue;
             }
 
-            var (clickedUID, isHovered) = DrawReligionItem(drawList, api, religion, x, itemY, width - scrollbarWidth,
+            var (clickedUID, isHovered) = DrawReligionItem(drawList, religion, x, itemY, width - scrollbarWidth,
                 itemHeight, selectedReligionUID);
-            if (clickedUID != null) selectedReligionUID = clickedUID;
+            if (clickedUID != null)
+            {
+                selectedReligionUID = clickedUID;
+                events.Add(new ReligionListEvent.ItemClicked(clickedUID, scrollY));
+            }
             if (isHovered) hoveredReligion = religion;
             itemY += itemHeight + itemSpacing;
         }
@@ -125,7 +129,7 @@ public static class ReligionListRenderer
         if (contentHeight > height)
             Scrollbar.Draw(drawList, x + width - scrollbarWidth, y, scrollbarWidth, height, scrollY, maxScroll);
 
-        return (scrollY, selectedReligionUID, hoveredReligion);
+        return new ReligionListRenderResult(events, hoveredReligion, height);
     }
 
     /// <summary>
@@ -134,7 +138,6 @@ public static class ReligionListRenderer
     /// <returns>Tuple of (Religion UID if clicked, whether item is hovered)</returns>
     private static (string? clickedUID, bool isHovered) DrawReligionItem(
         ImDrawListPtr drawList,
-        ICoreClientAPI api,
         ReligionListResponsePacket.ReligionInfo religion,
         float x,
         float y,
@@ -181,8 +184,6 @@ public static class ReligionListRenderer
         if (isHovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
         {
             clickedUID = religion.ReligionUID;
-            api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                api.World.Player.Entity, null, false, 8f, 0.5f);
         }
 
         // Draw deity icon (with fallback to colored circle)

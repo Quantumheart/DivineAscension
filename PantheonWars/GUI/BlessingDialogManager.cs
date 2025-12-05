@@ -3,6 +3,7 @@ using PantheonWars.GUI.Interfaces;
 using PantheonWars.GUI.Managers;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Adapters.ReligionMembers;
+using PantheonWars.GUI.UI.Adapters.Religions;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network.Civilization;
@@ -25,6 +26,9 @@ public class BlessingDialogManager : IBlessingDialogManager
 #if DEBUG
         ReligionStateManager.MembersProvider = new FakeReligionMemberProvider();
         ReligionStateManager.MembersProvider.ConfigureDevSeed(500, 20251204);
+        ReligionStateManager.UseReligionProvider(new FakeReligionProvider());
+        ReligionStateManager.ReligionsProvider!.ConfigureDevSeed(500, 20251204);
+        ReligionStateManager.RefreshReligionsFromProvider();
 #endif
     }
 

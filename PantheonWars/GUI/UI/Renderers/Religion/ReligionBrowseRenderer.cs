@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ImGuiNET;
 using PantheonWars.GUI.Events;
 using PantheonWars.GUI.Models.Religion.Browse;
+using PantheonWars.GUI.Models.Religion.List;
 using PantheonWars.GUI.UI.Components;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Renderers.Components;
@@ -56,27 +57,39 @@ internal static class ReligionBrowseRenderer
 
         // === RELIGION LIST ===
         var listHeight = height - (currentY - y) - 50f; // Reserve space for bottom buttons
-        var listResult = ReligionListRenderer.Draw(
-            drawList, api, x, currentY, width, listHeight,
-            [..viewModel.Religions],
-            viewModel.IsLoading,
-            viewModel.ScrollY,
-            viewModel.SelectedReligionUID);
+        var listVm = new ReligionListViewModel(
+            religions: viewModel.Religions,
+            isLoading: viewModel.IsLoading,
+            scrollY: viewModel.ScrollY,
+            selectedReligionUID: viewModel.SelectedReligionUID,
+            x: x,
+            y: currentY,
+            width: width,
+            height: listHeight);
 
-        // Emit selection and/or scroll events as needed
-        var updatedScroll = listResult.scrollY;
-        var updatedSelected = listResult.selectedUID;
-        var hoveredReligion = listResult.hoveredReligion;
+        var listResult = ReligionListRenderer.Draw(listVm, drawList);
 
-        if (Math.Abs(updatedScroll - viewModel.ScrollY) > 0.1)
+        // Translate list events → browse events
+        var updatedSelected = viewModel.SelectedReligionUID;
+        var updatedScroll = viewModel.ScrollY;
+
+        foreach (var le in listResult.Events)
         {
-            events.Add(new ReligionBrowseEvent.ScrollChanged(updatedScroll));
+            switch (le)
+            {
+                case ReligionListEvent.ScrollChanged sc:
+                    updatedScroll = sc.NewScrollY;
+                    events.Add(new ReligionBrowseEvent.ScrollChanged(updatedScroll));
+                    break;
+                case ReligionListEvent.ItemClicked ic:
+                    updatedSelected = ic.ReligionUID;
+                    updatedScroll = ic.NewScrollY;
+                    events.Add(new ReligionBrowseEvent.ReligionSelected(updatedSelected, updatedScroll));
+                    break;
+            }
         }
 
-        if (updatedSelected != viewModel.SelectedReligionUID)
-        {
-            events.Add(new ReligionBrowseEvent.ReligionSelected(updatedSelected, updatedScroll));
-        }
+        var hoveredReligion = listResult.HoveredReligion;
 
         currentY += listHeight + 10f;
 

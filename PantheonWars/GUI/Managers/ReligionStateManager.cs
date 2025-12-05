@@ -6,6 +6,7 @@ using PantheonWars.GUI.Interfaces;
 using PantheonWars.GUI.Models.Religion.Browse;
 using PantheonWars.GUI.Models.Religion.Invites;
 using PantheonWars.GUI.State;
+using PantheonWars.GUI.UI.Adapters.Religions;
 using PantheonWars.GUI.UI.Adapters.ReligionMembers;
 using PantheonWars.GUI.UI.Renderers.Religion;
 using PantheonWars.Models;
@@ -36,8 +37,9 @@ public class ReligionStateManager : IReligionStateManager
     public Dictionary<string, BlessingNodeState> PlayerBlessingStates { get; } = new();
     public Dictionary<string, BlessingNodeState> ReligionBlessingStates { get; } = new();
     
-    // UI-only adapter for supplying religion members (fake or real). Null when not used.
+    // UI-only adapters (fake or real). Null when not used.
     internal IReligionMemberProvider? MembersProvider { get; set; }
+    internal IReligionProvider? ReligionsProvider { get; set; }
 
 
 
@@ -157,11 +159,67 @@ public class ReligionStateManager : IReligionStateManager
 
     public void RequestReligionList(string deityFilter = "")
     {
-        // Set the loading state for browse
+        // Adapter short-circuit: if a UI-only provider is configured, use it instead of network
+        if (ReligionsProvider != null)
+        {
+            State.IsBrowseLoading = true;
+            State.BrowseError = null;
+
+            var items = ReligionsProvider.GetReligions();
+            var filter = deityFilter?.Trim();
+
+            // Apply simple deity filter if provided (case-insensitive)
+            if (!string.IsNullOrEmpty(filter))
+            {
+                items = new List<GUI.UI.Adapters.Religions.ReligionVM>(items)
+                    .FindAll(r => string.Equals(r.deity, filter, System.StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Map adapter VM → Network DTO used by UI state
+            var mapped = new List<ReligionListResponsePacket.ReligionInfo>(items.Count);
+            foreach (var r in items)
+            {
+                mapped.Add(new ReligionListResponsePacket.ReligionInfo
+                {
+                    ReligionUID = r.religionUID,
+                    ReligionName = r.religionName,
+                    Deity = r.deity,
+                    MemberCount = r.memberCount,
+                    Prestige = r.prestige,
+                    PrestigeRank = r.prestigeRank,
+                    IsPublic = r.isPublic,
+                    FounderUID = r.founderUID,
+                    Description = r.description
+                });
+            }
+
+            UpdateReligionList(mapped);
+            return;
+        }
+
+        // Default: request from server
         State.IsBrowseLoading = true;
         State.BrowseError = null;
         var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
         system?.RequestReligionList(deityFilter);
+    }
+
+    /// <summary>
+    /// Configure a UI-only religion data provider (fake or real). When set, RequestReligionList()
+    /// uses it instead of performing a network call.
+    /// </summary>
+    internal void UseReligionProvider(IReligionProvider provider)
+    {
+        ReligionsProvider = provider;
+    }
+
+    /// <summary>
+    /// Refresh the current religion list from the configured provider (if any).
+    /// </summary>
+    public void RefreshReligionsFromProvider()
+    {
+        ReligionsProvider?.Refresh();
+        RequestReligionList(State.DeityFilter);
     }
 
     public void RequestPlayerReligionInfo()
