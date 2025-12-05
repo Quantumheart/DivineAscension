@@ -3,7 +3,7 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using PantheonWars.GUI.Events;
-using PantheonWars.GUI.Models.Religion;
+using PantheonWars.GUI.Models.Religion.Invites;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Lists;
 using PantheonWars.GUI.UI.Utilities;

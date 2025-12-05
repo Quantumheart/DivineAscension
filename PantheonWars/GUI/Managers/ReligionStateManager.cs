@@ -3,7 +3,8 @@ using System.Linq;
 using ImGuiNET;
 using PantheonWars.GUI.Events;
 using PantheonWars.GUI.Interfaces;
-using PantheonWars.GUI.Models.Religion;
+using PantheonWars.GUI.Models.Religion.Browse;
+using PantheonWars.GUI.Models.Religion.Invites;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Adapters.ReligionMembers;
 using PantheonWars.GUI.UI.Renderers.Religion;
@@ -12,6 +13,7 @@ using PantheonWars.Models.Enum;
 using PantheonWars.Network;
 using PantheonWars.Systems;
 using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.Managers;
 
@@ -217,6 +219,42 @@ public class ReligionStateManager : IReligionStateManager
     }
 
     /// <summary>
+    /// Draws the religion browse tab using the refactored renderer (State → ViewModel → Renderer → Events → State)
+    /// </summary>
+    public void DrawReligionBrowse(float x, float y, float width, float height)
+    {
+        // Map State → ViewModel
+        var deityFilters = new[] { "All", "Khoras", "Lysa", "Aethra", "Gaia" };
+        var effectiveFilter = string.IsNullOrEmpty(State.DeityFilter) ? "All" : State.DeityFilter;
+
+        var viewModel = new ReligionBrowseViewModel(
+            deityFilters: deityFilters,
+            currentDeityFilter: effectiveFilter,
+            religions: State.AllReligions,
+            isLoading: State.IsBrowseLoading,
+            scrollY: State.BrowseScrollY,
+            selectedReligionUID: State.SelectedReligionUID,
+            userHasReligion: HasReligion(),
+            x: x,
+            y: y,
+            width: width,
+            height: height);
+
+        var drawList = ImGui.GetWindowDrawList();
+        var result = ReligionBrowseRenderer.Draw(viewModel, drawList, _coreClientApi);
+
+        // Process events (Events → State + side effects)
+        ProcessBrowseEvents(result.Events);
+
+        // Tooltip as side effect (not part of pure renderer output, but uses returned hover info)
+        if (result.HoveredReligion != null)
+        {
+            var mousePos = ImGui.GetMousePos();
+            GUI.UI.Renderers.Components.ReligionListRenderer.DrawTooltip(result.HoveredReligion, mousePos.X, mousePos.Y, width, height);
+        }
+    }
+
+    /// <summary>
     /// Draws the religion invites tab using the refactored renderer
     /// Builds ViewModel, calls pure renderer, processes events
     /// </summary>
@@ -303,6 +341,55 @@ public class ReligionStateManager : IReligionStateManager
 
                 case ReligionInvitesEvent.ScrollChanged e:
                     State.InvitesScrollY = e.NewScrollY;
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handle events from the browse renderer
+    /// </summary>
+    private void ProcessBrowseEvents(IReadOnlyList<ReligionBrowseEvent> events)
+    {
+        foreach (var evt in events)
+        {
+            switch (evt)
+            {
+                case ReligionBrowseEvent.DeityFilterChanged e:
+                    // Update filter (translate "All" → "")
+                    State.DeityFilter = e.NewFilter == "All" ? string.Empty : e.NewFilter;
+                    State.SelectedReligionUID = null;
+                    State.BrowseScrollY = 0f;
+                    // Request refresh with new filter
+                    RequestReligionList(State.DeityFilter);
+                    // Feedback sound
+                    _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
+                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+                    break;
+
+                case ReligionBrowseEvent.ReligionSelected e:
+                    State.SelectedReligionUID = e.ReligionUID;
+                    State.BrowseScrollY = e.NewScrollY;
+                    break;
+
+                case ReligionBrowseEvent.ScrollChanged e:
+                    State.BrowseScrollY = e.NewScrollY;
+                    break;
+
+                case ReligionBrowseEvent.CreateReligionClicked:
+                    // Switch to Create sub-tab
+                    State.CurrentSubTab = GUI.State.ReligionSubTab.Create;
+                    _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
+                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+                    break;
+
+                case ReligionBrowseEvent.JoinReligionClicked e:
+                    if (!string.IsNullOrEmpty(e.ReligionUID))
+                    {
+                        _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
+                            _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+                        RequestReligionAction("join", e.ReligionUID);
+                    }
                     break;
             }
         }

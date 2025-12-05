@@ -146,7 +146,7 @@ internal static class ReligionTabRenderer
         switch (state.CurrentSubTab)
         {
             case ReligionSubTab.Browse:
-                ReligionBrowseRenderer.Draw(manager, api, x, contentY, width, contentHeight);
+                manager.ReligionStateManager.DrawReligionBrowse(x, contentY, width, contentHeight);
                 break;
             case ReligionSubTab.MyReligion:
                 ReligionMyReligionRenderer.Draw(manager, api, x, contentY, width, contentHeight);
