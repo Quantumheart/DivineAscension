@@ -62,9 +62,9 @@ public partial class BlessingDialog
             packet.PrestigeRank);
 
         // Set current favor and prestige values for progress bars
-        _manager.CurrentFavor = packet.CurrentFavor;
-        _manager.CurrentPrestige = packet.CurrentPrestige;
-        _manager.TotalFavorEarned = packet.TotalFavorEarned;
+        _manager.ReligionStateManager.CurrentFavor = packet.CurrentFavor;
+        _manager.ReligionStateManager.CurrentPrestige = packet.CurrentPrestige;
+        _manager.ReligionStateManager.TotalFavorEarned = packet.TotalFavorEarned;
 
         // Convert packet blessings to Blessing objects
         var playerBlessings = packet.PlayerBlessings.Select(p => new Blessing(p.BlessingId, p.Name, deityType)
@@ -90,15 +90,15 @@ public partial class BlessingDialog
         }).ToList();
 
         // Load blessing states into manager
-        _manager.LoadBlessingStates(playerBlessings, religionBlessings);
+        _manager.ReligionStateManager.LoadBlessingStates(playerBlessings, religionBlessings);
 
         // Mark unlocked blessings
-        foreach (var blessingId in packet.UnlockedPlayerBlessings) _manager.SetBlessingUnlocked(blessingId, true);
+        foreach (var blessingId in packet.UnlockedPlayerBlessings) _manager.ReligionStateManager.SetBlessingUnlocked(blessingId, true);
 
-        foreach (var blessingId in packet.UnlockedReligionBlessings) _manager.SetBlessingUnlocked(blessingId, true);
+        foreach (var blessingId in packet.UnlockedReligionBlessings) _manager.ReligionStateManager.SetBlessingUnlocked(blessingId, true);
 
         // Refresh states to update can-unlock status
-        _manager.RefreshAllBlessingStates();
+        _manager.ReligionStateManager.RefreshAllBlessingStates();
 
         _state.IsReady = true;
         _capi.Logger.Notification(
@@ -135,7 +135,7 @@ public partial class BlessingDialog
         // If notification is about civilization, also refresh civilization data
         if (packet.Reason.Contains("civilization", StringComparison.OrdinalIgnoreCase))
         {
-            _manager?.RequestCivilizationInfo("");
+            _manager?.RequestCivilizationInfo(string.Empty);
         }
     }
 
@@ -159,7 +159,7 @@ public partial class BlessingDialog
         var selectedState = _manager!.GetSelectedBlessingState();
         if (selectedState == null || !selectedState.CanUnlock || selectedState.IsUnlocked) return;
 
-        // Client-side validation before sending request
+        // Client-side validation before sending the request
         if (string.IsNullOrEmpty(selectedState.Blessing.BlessingId))
         {
             _capi!.ShowChatMessage("Error: Invalid blessing ID");
@@ -186,7 +186,7 @@ public partial class BlessingDialog
     {
         _capi!.Logger.Debug($"[PantheonWars] Received {packet.Religions.Count} religions from server");
         // Update manager religion tab state
-        _manager!.UpdateReligionList(packet.Religions);
+        _manager!.ReligionStateManager.UpdateReligionList(packet.Religions);
     }
 
     /// <summary>
@@ -213,12 +213,12 @@ public partial class BlessingDialog
             }
 
             // Refresh religion tab data
-            _manager!.ReligionState.IsBrowseLoading = true;
-            _pantheonWarsSystem?.RequestReligionList(_manager.ReligionState.DeityFilter);
+            _manager!.ReligionStateManager.State.IsBrowseLoading = true;
+            _pantheonWarsSystem?.RequestReligionList(_manager.ReligionStateManager.State.DeityFilter);
 
             if (_manager.HasReligion() && packet.Action != "leave")
             {
-                _manager.ReligionState.IsMyReligionLoading = true;
+                _manager.ReligionStateManager.State.IsMyReligionLoading = true;
                 _pantheonWarsSystem?.RequestPlayerReligionInfo();
             }
 
@@ -226,9 +226,9 @@ public partial class BlessingDialog
             _pantheonWarsSystem?.RequestBlessingData();
 
             // Clear confirmations
-            _manager.ReligionState.ShowDisbandConfirm = false;
-            _manager.ReligionState.KickConfirmPlayerUID = null;
-            _manager.ReligionState.BanConfirmPlayerUID = null;
+            _manager.ReligionStateManager.State.ShowDisbandConfirm = false;
+            _manager.ReligionStateManager.State.KickConfirmPlayerUID = null;
+            _manager.ReligionStateManager.State.BanConfirmPlayerUID = null;
         }
         else
         {
@@ -239,7 +239,7 @@ public partial class BlessingDialog
                 _capi.World.Player.Entity, null, false, 8f, 0.5f);
 
             // Store error in state
-            _manager!.ReligionState.LastActionError = packet.Message;
+            _manager!.ReligionStateManager.State.LastActionError = packet.Message;
         }
     }
 
@@ -252,20 +252,20 @@ public partial class BlessingDialog
             $"[PantheonWars] Received player religion info: HasReligion={packet.HasReligion}, IsFounder={packet.IsFounder}");
 
         // Update manager religion tab state
-        _manager!.UpdatePlayerReligionInfo(packet);
+        _manager!.ReligionStateManager.UpdatePlayerReligionInfo(packet);
 
         // Update manager with player's role (enables Manage Religion button for leaders)
         if (packet.HasReligion)
         {
-            _manager.PlayerRoleInReligion = packet.IsFounder ? "Leader" : "Member";
-            _manager.ReligionMemberCount = packet.Members.Count;
+            _manager.ReligionStateManager.PlayerRoleInReligion = packet.IsFounder ? "Leader" : "Member";
+            _manager.ReligionStateManager.ReligionMemberCount = packet.Members.Count;
             _capi!.Logger.Debug(
-                $"[PantheonWars] Set PlayerRoleInReligion to: {_manager.PlayerRoleInReligion}, MemberCount: {_manager.ReligionMemberCount}");
+                $"[PantheonWars] Set PlayerRoleInReligion to: {_manager.ReligionStateManager.PlayerRoleInReligion}, MemberCount: {_manager.ReligionStateManager.ReligionMemberCount}");
         }
         else
         {
-            _manager.PlayerRoleInReligion = null;
-            _manager.ReligionMemberCount = 0;
+            _manager.ReligionStateManager.PlayerRoleInReligion = null;
+            _manager.ReligionStateManager.ReligionMemberCount = 0;
             _capi!.Logger.Debug("[PantheonWars] Cleared PlayerRoleInReligion (no religion)");
         }
     }
@@ -283,21 +283,21 @@ public partial class BlessingDialog
 
         // Always update manager with new values, even if dialog is closed
         // This ensures the UI shows correct values when opened
-        _manager.CurrentFavor = packet.Favor;
-        _manager.CurrentPrestige = packet.Prestige;
-        _manager.TotalFavorEarned = packet.TotalFavorEarned;
+        _manager.ReligionStateManager.CurrentFavor = packet.Favor;
+        _manager.ReligionStateManager.CurrentPrestige = packet.Prestige;
+        _manager.ReligionStateManager.TotalFavorEarned = packet.TotalFavorEarned;
 
         // Update rank if it changed (this affects which blessings can be unlocked)
         // FavorRank comes as enum name (e.g., "Initiate", "Disciple"), parse to get numeric value
         if (Enum.TryParse<FavorRank>(packet.FavorRank, out var favorRankEnum))
-            _manager.CurrentFavorRank = (int)favorRankEnum;
+            _manager.ReligionStateManager.CurrentFavorRank = (int)favorRankEnum;
 
         if (Enum.TryParse<PrestigeRank>(packet.PrestigeRank, out var prestigeRankEnum))
-            _manager.CurrentPrestigeRank = (int)prestigeRankEnum;
+            _manager.ReligionStateManager.CurrentPrestigeRank = (int)prestigeRankEnum;
 
         // Refresh blessing states in case new blessings became available
         // Only do this if dialog is open to avoid unnecessary processing
-        if (_state.IsOpen && _manager.HasReligion()) _manager.RefreshAllBlessingStates();
+        if (_state.IsOpen && _manager.HasReligion()) _manager.ReligionStateManager.RefreshAllBlessingStates();
     }
 
     /// <summary>
@@ -321,7 +321,7 @@ public partial class BlessingDialog
         // Play unlock success sound
         if (_manager != null)
         {
-            switch (_manager.CurrentDeity)
+            switch (_manager.ReligionStateManager.CurrentDeity)
             {
                 case DeityType.None:
                     _capi.World.PlaySoundAt(
@@ -351,10 +351,10 @@ public partial class BlessingDialog
             }
 
             // Update manager state
-            _manager?.SetBlessingUnlocked(blessingId, true);
+            _manager?.ReligionStateManager.SetBlessingUnlocked(blessingId, true);
 
             // Refresh all blessing states to update prerequisites and glow effects
-            _manager?.RefreshAllBlessingStates();
+            _manager?.ReligionStateManager.RefreshAllBlessingStates();
         }
     }
 

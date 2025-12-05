@@ -64,7 +64,7 @@ internal static class BlessingTreeRenderer
         DrawTreePanel(
             manager, api, drawList,
             leftX, treeY, panelWidth, treeAreaHeight,
-            manager.PlayerBlessingStates,
+            manager.ReligionStateManager.PlayerBlessingStates,
             deltaTime,
             ref playerScrollX,
             ref playerScrollY,
@@ -93,7 +93,7 @@ internal static class BlessingTreeRenderer
         DrawTreePanel(
             manager, api, drawList,
             rightX, treeY, panelWidth, treeAreaHeight,
-            manager.ReligionBlessingStates,
+            manager.ReligionStateManager.ReligionBlessingStates,
             deltaTime,
             ref religionScrollX,
             ref religionScrollY,
@@ -190,7 +190,7 @@ internal static class BlessingTreeRenderer
 
         // Draw connection lines first (behind nodes)
         foreach (var state in blessingStates.Values)
-            if (state.Blessing.PrerequisiteBlessings != null && state.Blessing.PrerequisiteBlessings.Count > 0)
+            if (state.Blessing.PrerequisiteBlessings is { Count: > 0 })
                 foreach (var prereqId in state.Blessing.PrerequisiteBlessings)
                     if (blessingStates.TryGetValue(prereqId, out var prereqState))
                         BlessingNodeRenderer.DrawConnectionLine(

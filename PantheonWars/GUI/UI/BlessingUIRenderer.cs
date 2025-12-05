@@ -77,20 +77,21 @@ internal static class BlessingUIRenderer
             if (newMainTab == 0) // Religion tab
             {
                 // Request both browse and my religion data
-                manager.ReligionState.IsBrowseLoading = true;
-                manager.RequestReligionList(manager.ReligionState.DeityFilter);
+                manager.ReligionStateManager.State.IsBrowseLoading = true;
+                manager.ReligionStateManager.RequestReligionList(manager.ReligionStateManager.State.DeityFilter);
+
 
                 // Request player religion info (includes invitations if player has no religion)
                 if (manager.HasReligion())
                 {
-                    manager.ReligionState.IsMyReligionLoading = true;
+                    manager.ReligionStateManager.State.IsMyReligionLoading = true;
                 }
                 else
                 {
-                    manager.ReligionState.IsInvitesLoading = true;
+                    manager.ReligionStateManager.State.IsInvitesLoading = true;
                 }
 
-                manager.RequestPlayerReligionInfo();
+                manager.ReligionStateManager.RequestPlayerReligionInfo();
             }
             else if (newMainTab == 2) // Civilization tab
             {
@@ -170,14 +171,14 @@ internal static class BlessingUIRenderer
         // Tooltips
         if (!string.IsNullOrEmpty(hoveringBlessingId))
         {
-            var hoveringState = manager.GetBlessingState(hoveringBlessingId);
+            var hoveringState = manager.ReligionStateManager.GetBlessingState(hoveringBlessingId);
             if (hoveringState != null)
             {
                 var allBlessings = new Dictionary<string, Blessing>();
-                foreach (var s in manager.PlayerBlessingStates.Values)
+                foreach (var s in manager.ReligionStateManager.PlayerBlessingStates.Values)
                     if (!allBlessings.ContainsKey(s.Blessing.BlessingId))
                         allBlessings[s.Blessing.BlessingId] = s.Blessing;
-                foreach (var s in manager.ReligionBlessingStates.Values)
+                foreach (var s in manager.ReligionStateManager.ReligionBlessingStates.Values)
                     if (!allBlessings.ContainsKey(s.Blessing.BlessingId))
                         allBlessings[s.Blessing.BlessingId] = s.Blessing;
 

@@ -81,7 +81,7 @@ internal static class ReligionHeaderRenderer
 
         // Draw deity icon (with fallback to colored circle)
         const float iconSize = 48f;
-        var deityTextureId = DeityIconLoader.GetDeityTextureId(manager.CurrentDeity);
+        var deityTextureId = DeityIconLoader.GetDeityTextureId(manager.ReligionStateManager.CurrentDeity);
 
         if (deityTextureId != IntPtr.Zero)
         {
@@ -91,7 +91,7 @@ internal static class ReligionHeaderRenderer
             var iconMax = new Vector2(iconPos.X + iconSize, iconPos.Y + iconSize);
 
             // Draw icon with deity color tint for visual cohesion
-            var tintColor = DeityHelper.GetDeityColor(manager.CurrentDeity);
+            var tintColor = DeityHelper.GetDeityColor(manager.ReligionStateManager.CurrentDeity);
             var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)); // Full white = no tint
 
             drawList.AddImage(deityTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
@@ -104,15 +104,15 @@ internal static class ReligionHeaderRenderer
         {
             // Fallback: Use placeholder colored circle if texture not available
             var iconCenter = new Vector2(currentX + iconSize / 2, centerY);
-            var iconColor = ImGui.ColorConvertFloat4ToU32(DeityHelper.GetDeityColor(manager.CurrentDeity));
+            var iconColor = ImGui.ColorConvertFloat4ToU32(DeityHelper.GetDeityColor(manager.ReligionStateManager.CurrentDeity));
             drawList.AddCircleFilled(iconCenter, iconSize / 2, iconColor, 16);
         }
 
         currentX += iconSize + padding;
 
         // Religion name and deity
-        var religionName = manager.CurrentReligionName ?? "Unknown Religion";
-        var deityName = GetDeityDisplayName(manager.CurrentDeity);
+        var religionName = manager.ReligionStateManager.CurrentReligionName ?? "Unknown Religion";
+        var deityName = GetDeityDisplayName(manager.ReligionStateManager.CurrentDeity);
         var headerText = $"{religionName} - {deityName}";
 
         var headerTextPos = new Vector2(currentX, y + 12f);
@@ -120,11 +120,11 @@ internal static class ReligionHeaderRenderer
         drawList.AddText(ImGui.GetFont(), 18f, headerTextPos, headerTextColor, headerText);
 
         // Member count and role
-        var memberInfo = manager.ReligionMemberCount > 0
-            ? $"{manager.ReligionMemberCount} member{(manager.ReligionMemberCount == 1 ? "" : "s")}"
+        var memberInfo = manager.ReligionStateManager.ReligionMemberCount > 0
+            ? $"{manager.ReligionStateManager.ReligionMemberCount} member{(manager.ReligionStateManager.ReligionMemberCount == 1 ? "" : "s")}"
             : "No members";
-        var roleInfo = !string.IsNullOrEmpty(manager.PlayerRoleInReligion)
-            ? $" | {manager.PlayerRoleInReligion}"
+        var roleInfo = !string.IsNullOrEmpty(manager.ReligionStateManager.PlayerRoleInReligion)
+            ? $" | {manager.ReligionStateManager.PlayerRoleInReligion}"
             : "";
         var infoText = $"{memberInfo}{roleInfo}";
         var infoTextPos = new Vector2(currentX, y + 35f);
@@ -140,7 +140,7 @@ internal static class ReligionHeaderRenderer
         const float progressBarSpacing = 22f;
 
         // Player Favor Progress
-        var favorProgress = manager.GetPlayerFavorProgress();
+        var favorProgress = manager.ReligionStateManager.GetPlayerFavorProgress();
         var favorLabel = favorProgress.IsMaxRank
             ? $"{RankRequirements.GetFavorRankName(favorProgress.CurrentRank)} (MAX)"
             : $"{RankRequirements.GetFavorRankName(favorProgress.CurrentRank)} ({favorProgress.CurrentFavor}/{favorProgress.RequiredFavor})";
@@ -164,7 +164,7 @@ internal static class ReligionHeaderRenderer
         progressY += progressBarSpacing;
 
         // Religion Prestige Progress
-        var prestigeProgress = manager.GetReligionPrestigeProgress();
+        var prestigeProgress = manager.ReligionStateManager.GetReligionPrestigeProgress();
         var prestigeLabel = prestigeProgress.IsMaxRank
             ? $"{RankRequirements.GetPrestigeRankName(prestigeProgress.CurrentRank)} (MAX)"
             : $"{RankRequirements.GetPrestigeRankName(prestigeProgress.CurrentRank)} ({prestigeProgress.CurrentPrestige}/{prestigeProgress.RequiredPrestige})";

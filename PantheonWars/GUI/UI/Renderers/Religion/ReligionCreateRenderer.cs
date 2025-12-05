@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using ImGuiNET;
+using PantheonWars.GUI.Managers;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Components;
 using PantheonWars.GUI.UI.Components.Buttons;
@@ -22,7 +23,7 @@ internal static class ReligionCreateRenderer
         ICoreClientAPI api,
         float x, float y, float width, float height)
     {
-        var state = manager.ReligionState;
+        var state = manager.ReligionStateManager.State;
         var drawList = ImGui.GetWindowDrawList();
         var currentY = y;
 
@@ -110,8 +111,7 @@ internal static class ReligionCreateRenderer
         var createButtonX = formX + (formWidth - buttonWidth) / 2;
 
         var canCreate = !string.IsNullOrWhiteSpace(state.CreateReligionName)
-                        && state.CreateReligionName.Length >= 3
-                        && state.CreateReligionName.Length <= 32;
+                        && state.CreateReligionName.Length is >= 3 and <= 32;
 
         // Draw Create button
         if (ButtonRenderer.DrawButton(drawList, "Create Religion", createButtonX, currentY, buttonWidth, buttonHeight,

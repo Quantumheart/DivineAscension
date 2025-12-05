@@ -25,7 +25,7 @@ internal static class ReligionMyReligionRenderer
         ICoreClientAPI api,
         float x, float y, float width, float height)
     {
-        var state = manager.ReligionState;
+        var state = manager.ReligionStateManager.State;
         var drawList = ImGui.GetWindowDrawList();
         var currentY = y;
 
@@ -93,7 +93,7 @@ internal static class ReligionMyReligionRenderer
 
         // Prestige
         TextRenderer.DrawLabel(drawList, "Prestige:", rightCol, currentY, 13f, ColorPalette.Grey);
-        var prestigeProgress = manager.GetReligionPrestigeProgress();
+        var prestigeProgress = manager.ReligionStateManager.GetReligionPrestigeProgress();
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(rightCol + 80f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
             $"{prestigeProgress.CurrentPrestige} (Rank {prestigeProgress.CurrentRank})");
@@ -123,7 +123,7 @@ internal static class ReligionMyReligionRenderer
                 api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                     api.World.Player.Entity, null, false, 8f, 0.5f);
                 // Send description update to server
-                manager.RequestEditReligionDescription(religion.ReligionUID, trimmedDesc);
+                manager.ReligionStateManager.RequestEditReligionDescription(religion.ReligionUID, trimmedDesc);
                 // Optimistically update local model to reflect change immediately; server will refresh as well
                 religion.Description = trimmedDesc;
                 state.Description = trimmedDesc;
@@ -150,7 +150,7 @@ internal static class ReligionMyReligionRenderer
         const float memberListHeight = 180f;
         // Choose data source: UI-only provider (dev) or real packet data
         var membersForDisplay = religion.Members;
-        if (manager.MembersProvider is { } provider)
+        if (manager.ReligionStateManager.MembersProvider is { } provider)
         {
             var vmList = provider.GetMembers(religion.ReligionUID);
             var list = new List<PlayerReligionInfoResponsePacket.MemberInfo>(vmList.Count);
@@ -208,7 +208,7 @@ internal static class ReligionMyReligionRenderer
                 {
                     api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                         api.World.Player.Entity, null, false, 8f, 0.5f);
-                    manager.RequestReligionAction("unban", religion.ReligionUID, playerUID);
+                    manager.ReligionStateManager.RequestReligionAction("unban", religion.ReligionUID, playerUID);
                 }
             );
             currentY += banListHeight + 15f;
@@ -232,7 +232,7 @@ internal static class ReligionMyReligionRenderer
                 {
                     api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                         api.World.Player.Entity, null, false, 8f, 0.5f);
-                    manager.RequestReligionAction("invite", religion.ReligionUID, state.InvitePlayerName.Trim());
+                    manager.ReligionStateManager.RequestReligionAction("invite", religion.ReligionUID, state.InvitePlayerName.Trim());
                     state.InvitePlayerName = "";
                 }
 
@@ -248,7 +248,7 @@ internal static class ReligionMyReligionRenderer
         {
             api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                 api.World.Player.Entity, null, false, 8f, 0.5f);
-            manager.RequestReligionAction("leave", religion.ReligionUID);
+            manager.ReligionStateManager.RequestReligionAction("leave", religion.ReligionUID);
         }
 
         // Disband Religion button (founder only)
@@ -278,7 +278,7 @@ internal static class ReligionMyReligionRenderer
         if (state.ShowDisbandConfirm)
             DrawDisbandConfirmation(drawList, api, x, y, width, height, () =>
             {
-                manager.RequestReligionAction("disband", religion.ReligionUID);
+                manager.ReligionStateManager.RequestReligionAction("disband", religion.ReligionUID);
                 state.ShowDisbandConfirm = false;
             }, () => { state.ShowDisbandConfirm = false; });
 
@@ -288,7 +288,7 @@ internal static class ReligionMyReligionRenderer
                 state.KickConfirmPlayerName ?? state.KickConfirmPlayerUID,
                 () =>
                 {
-                    manager.RequestReligionAction("kick", religion.ReligionUID, state.KickConfirmPlayerUID!);
+                    manager.ReligionStateManager.RequestReligionAction("kick", religion.ReligionUID, state.KickConfirmPlayerUID!);
                     state.KickConfirmPlayerUID = null;
                     state.KickConfirmPlayerName = null;
                 }, () =>
@@ -303,7 +303,7 @@ internal static class ReligionMyReligionRenderer
                 state.BanConfirmPlayerName ?? state.BanConfirmPlayerUID,
                 () =>
                 {
-                    manager.RequestReligionAction("ban", religion.ReligionUID, state.BanConfirmPlayerUID!);
+                    manager.ReligionStateManager.RequestReligionAction("ban", religion.ReligionUID, state.BanConfirmPlayerUID!);
                     state.BanConfirmPlayerUID = null;
                     state.BanConfirmPlayerName = null;
                 }, () =>

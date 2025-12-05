@@ -141,7 +141,7 @@ internal static class BlessingInfoRenderer
                         // Check if we still have space
                         if (currentY > y + height - 20f) break;
 
-                        var prereqState = manager.GetBlessingState(prereqId);
+                        var prereqState = manager.ReligionStateManager.GetBlessingState(prereqId);
                         var prereqName = prereqState?.Blessing.Name ?? prereqId;
                         var prereqText = $"  Unlock: {prereqName}";
 

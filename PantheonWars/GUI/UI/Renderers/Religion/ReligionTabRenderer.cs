@@ -18,7 +18,7 @@ internal static class ReligionTabRenderer
         ICoreClientAPI api,
         float x, float y, float width, float height)
     {
-        var state = manager.ReligionState;
+        var state = manager.ReligionStateManager.State;
         var drawList = ImGui.GetWindowDrawList();
 
         // Sub-tab header
@@ -70,7 +70,7 @@ internal static class ReligionTabRenderer
                         // Invites - request player religion info to get invitations
                         state.InvitesError = null;
                         state.IsInvitesLoading = true;
-                        manager.RequestPlayerReligionInfo();
+                        manager.ReligionStateManager.RequestPlayerReligionInfo();
                         break;
                     case 4:
                         // Create
@@ -134,10 +134,10 @@ internal static class ReligionTabRenderer
                 switch (effectiveTab)
                 {
                     case 0:
-                        manager.RequestReligionList(state.DeityFilter);
+                        manager.ReligionStateManager.RequestReligionList(state.DeityFilter);
                         break;
                     case 1:
-                        manager.RequestPlayerReligionInfo();
+                        manager.ReligionStateManager.RequestPlayerReligionInfo();
                         break;
                 }
         }
@@ -155,7 +155,7 @@ internal static class ReligionTabRenderer
                 ReligionActivityRenderer.Draw(manager, api, x, contentY, width, contentHeight);
                 break;
             case ReligionSubTab.Invites:
-                manager.DrawReligionInvites(x, contentY, width, contentHeight);
+                manager.ReligionStateManager.DrawReligionInvites(x, contentY, width, contentHeight);
                 break;
             case ReligionSubTab.Create:
                 ReligionCreateRenderer.Draw(manager, api, x, contentY, width, contentHeight);

@@ -21,7 +21,7 @@ internal static class ReligionBrowseRenderer
         ICoreClientAPI api,
         float x, float y, float width, float height)
     {
-        var state = manager.ReligionState;
+        var state = manager.ReligionStateManager.State;
         var drawList = ImGui.GetWindowDrawList();
         var currentY = y;
 
@@ -52,7 +52,7 @@ internal static class ReligionBrowseRenderer
             state.BrowseScrollY = 0f;
 
             // Request refresh with new filter
-            manager.RequestReligionList(state.DeityFilter);
+            manager.ReligionStateManager.RequestReligionList(state.DeityFilter);
 
             api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                 api.World.Player.Entity, null, false, 8f, 0.5f);
@@ -104,7 +104,7 @@ internal static class ReligionBrowseRenderer
                 {
                     api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                         api.World.Player.Entity, null, false, 8f, 0.5f);
-                    manager.RequestReligionAction("join", state.SelectedReligionUID!);
+                    manager.ReligionStateManager.RequestReligionAction("join", state.SelectedReligionUID!);
                 }
                 else
                 {
@@ -124,7 +124,7 @@ internal static class ReligionBrowseRenderer
                 {
                     api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                         api.World.Player.Entity, null, false, 8f, 0.5f);
-                    manager.RequestReligionAction("join", state.SelectedReligionUID!);
+                    manager.ReligionStateManager.RequestReligionAction("join", state.SelectedReligionUID!);
                 }
                 else
                 {

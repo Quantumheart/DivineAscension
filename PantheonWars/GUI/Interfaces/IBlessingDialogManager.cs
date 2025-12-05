@@ -9,19 +9,6 @@ namespace PantheonWars.GUI.Interfaces;
 /// </summary>
 public interface IBlessingDialogManager
 {
-    // Religion and deity state
-    string? CurrentReligionUID { get; set; }
-    DeityType CurrentDeity { get; set; }
-    string? CurrentReligionName { get; set; }
-    int ReligionMemberCount { get; set; }
-    string? PlayerRoleInReligion { get; set; }
-
-    // Player progression state
-    int CurrentFavorRank { get; set; }
-    int CurrentPrestigeRank { get; set; }
-    int CurrentFavor { get; set; }
-    int CurrentPrestige { get; set; }
-    int TotalFavorEarned { get; set; }
 
     // Blessing selection state
     string? SelectedBlessingId { get; set; }
@@ -35,11 +22,7 @@ public interface IBlessingDialogManager
 
     // Data loaded flags
     bool IsDataLoaded { get; set; }
-
-    // Blessing node states
-    Dictionary<string, BlessingNodeState> PlayerBlessingStates { get; }
-    Dictionary<string, BlessingNodeState> ReligionBlessingStates { get; }
-
+    
     /// <summary>
     ///     Initialize dialog state from player's current religion data
     /// </summary>
@@ -67,37 +50,7 @@ public interface IBlessingDialogManager
     bool HasReligion();
 
     /// <summary>
-    ///     Load blessing states for player and religion blessings
-    /// </summary>
-    void LoadBlessingStates(List<Blessing> playerBlessings, List<Blessing> religionBlessings);
-
-    /// <summary>
-    ///     Get blessing node state by ID
-    /// </summary>
-    BlessingNodeState? GetBlessingState(string blessingId);
-
-    /// <summary>
     ///     Get selected blessing's state (if any)
     /// </summary>
     BlessingNodeState? GetSelectedBlessingState();
-
-    /// <summary>
-    ///     Update unlock status for a blessing
-    /// </summary>
-    void SetBlessingUnlocked(string blessingId, bool unlocked);
-
-    /// <summary>
-    ///     Update all blessing states based on current unlock status and requirements
-    /// </summary>
-    void RefreshAllBlessingStates();
-
-    /// <summary>
-    ///     Get player favor progress data
-    /// </summary>
-    PlayerFavorProgress GetPlayerFavorProgress();
-
-    /// <summary>
-    ///     Get religion prestige progress data
-    /// </summary>
-    ReligionPrestigeProgress GetReligionPrestigeProgress();
 }
