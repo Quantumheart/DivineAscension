@@ -74,7 +74,7 @@ internal static class BlessingUIRenderer
         {
             state.CurrentMainTab = (MainDialogTab)newMainTab;
 
-            if (newMainTab == 1) // Religion tab
+            if (newMainTab == 0) // Religion tab
             {
                 // Request both browse and my religion data
                 manager.ReligionState.IsBrowseLoading = true;
@@ -106,12 +106,12 @@ internal static class BlessingUIRenderer
 
         switch (state.CurrentMainTab)
         {
+            case MainDialogTab.ManageReligion: // Manage Religion
+                ReligionTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);
+                break;
             case MainDialogTab.Blessings: // Blessings
                 DrawBlessingsTab(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight,
                     windowWidth, windowHeight, deltaTime, onUnlockClicked, onCloseClicked);
-                break;
-            case MainDialogTab.ManageReligion: // Manage Religion
-                ReligionTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);
                 break;
             case MainDialogTab.Civilization: // Civilization
                 CivilizationTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);
