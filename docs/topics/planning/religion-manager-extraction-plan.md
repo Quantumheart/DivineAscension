@@ -1,4 +1,4 @@
-# Extract Religion Functionality into ReligionManager
+# Extract Religion Functionality into ReligionManager ✅
 
 ## Overview
 Extract 26+ religion-related methods from `BlessingDialogManager` (562 lines) into a new `ReligionManager` class using composition pattern. This follows the existing refactored architecture (event-driven, pure renderers, immutable ViewModels).
@@ -54,7 +54,7 @@ manager.Religion.GetPlayerFavorProgress()
    - Methods: `UpdateReligionList()`, `UpdatePlayerReligionInfo()` ✅
    - Methods: `DrawReligionInvites()`✅
 
-3. **Create ReligionManager**: `Managers/ReligionManager.cs` (~650 lines)
+3. **Create ReligionManager**: `Managers/ReligionManager.cs` (~650 lines) ✅
    - Constructor: `public ReligionManager(ICoreClientAPI capi)`
    - Initialize `_system = capi.ModLoader.GetModSystem<PantheonWarsSystem>()`
    - Initialize `State = new ReligionTabState()`
@@ -72,7 +72,7 @@ manager.Religion.GetPlayerFavorProgress()
 
 ### Phase 2: Integrate into BlessingDialogManager
 
-**File**: `PantheonWars/GUI/BlessingDialogManager.cs`
+**File**: `PantheonWars/GUI/BlessingDialogManager.cs`✅
 
 1. **Add property**:
    ```csharp
@@ -93,7 +93,7 @@ manager.Religion.GetPlayerFavorProgress()
    }
    ```
 
-3. **Update coordination methods** (delegate to Religion):
+3. **Update coordination methods** (delegate to Religion): ✅
    ```csharp
    public void Initialize(string? religionUID, DeityType deity, string? religionName,
        int favorRank = 0, int prestigeRank = 0)
@@ -138,7 +138,7 @@ manager.Religion.GetPlayerFavorProgress()
    }
    ```
 
-4. **Update IsCivilizationFounder**:
+4. **Update IsCivilizationFounder**: ✅
    ```csharp
    public bool IsCivilizationFounder =>
        !string.IsNullOrEmpty(Religion.CurrentReligionUID) &&
@@ -152,14 +152,14 @@ manager.Religion.GetPlayerFavorProgress()
    - Blessings: `LoadBlessingStates()`, `GetBlessingState()`, `SetBlessingUnlocked()`, `RefreshAllBlessingStates()`, `GetPlayerFavorProgress()`, `GetReligionPrestigeProgress()`, `CanUnlockBlessing()`
    - Drawing: `DrawReligionInvites()`, `ConvertToInviteData()`, `ProcessInvitesEvents()`, `HandleAcceptInvite()`, `HandleDeclineInvite()`
 
-6. **Remove properties** (now in ReligionManager):
+6. **Remove properties** (now in ReligionManager): ✅
    - `ReligionState`, `CurrentReligionUID`, `CurrentDeity`, `CurrentReligionName`
    - `ReligionMemberCount`, `PlayerRoleInReligion`
    - `CurrentFavorRank`, `CurrentPrestigeRank`, `CurrentFavor`, `CurrentPrestige`, `TotalFavorEarned`
    - `PlayerBlessingStates`, `ReligionBlessingStates`
    - `MembersProvider`
 
-7. **Keep in BlessingDialogManager**:
+7. **Keep in BlessingDialogManager**: ✅
    - `SelectedBlessingId`, `HoveringBlessingId` (UI state for blessing tree)
    - `PlayerTreeScrollX/Y`, `ReligionTreeScrollX/Y` (blessing tree scroll)
    - `CivState`, `CurrentCivilizationId`, etc. (civilization concern)
@@ -168,7 +168,7 @@ manager.Religion.GetPlayerFavorProgress()
 
 ### Phase 3: Update Call Sites (Breaking Changes)
 
-#### File 1: `PantheonWars/GUI/UI/Renderers/Religion/ReligionTabRenderer.cs`
+#### File 1: `PantheonWars/GUI/UI/Renderers/Religion/ReligionTabRenderer.cs` ✅
 **Changes: 4 call sites**
 ```csharp
 // Line 21: State access
@@ -185,7 +185,7 @@ manager.Religion.RequestReligionList(state.DeityFilter);
 manager.Religion.DrawReligionInvites(x, contentY, width, contentHeight);
 ```
 
-#### File 2: `PantheonWars/GUI/UI/Renderers/Religion/ReligionBrowseRenderer.cs`
+#### File 2: `PantheonWars/GUI/UI/Renderers/Religion/ReligionBrowseRenderer.cs` ✅
 **Changes: 3 call sites**
 ```csharp
 // Line 24: State access
@@ -199,7 +199,7 @@ var userHasReligion = manager.Religion.HasReligion();
 manager.Religion.RequestReligionAction("join", state.SelectedReligionUID!);
 ```
 
-#### File 3: `PantheonWars/GUI/UI/Renderers/Religion/ReligionMyReligionRenderer.cs`
+#### File 3: `PantheonWars/GUI/UI/Renderers/Religion/ReligionMyReligionRenderer.cs` ✅
 **Changes: 7 call sites**
 ```csharp
 // Line 28: State access
@@ -223,7 +223,7 @@ manager.Religion.RequestReligionAction("kick", religion.ReligionUID, state.KickC
 manager.Religion.RequestReligionAction("ban", religion.ReligionUID, state.BanConfirmPlayerUID!);
 ```
 
-#### File 4: `PantheonWars/GUI/UI/BlessingUIRenderer.cs`
+#### File 4: `PantheonWars/GUI/UI/BlessingUIRenderer.cs` ✅
 **Changes: 4 call sites**
 ```csharp
 // Line 80-81: State and method
@@ -251,7 +251,7 @@ foreach (var s in manager.Religion.PlayerBlessingStates.Values)
 foreach (var s in manager.Religion.ReligionBlessingStates.Values)
 ```
 
-#### File 5: `PantheonWars/GUI/BlessingDialogEventHandlers.cs`
+#### File 5: `PantheonWars/GUI/BlessingDialogEventHandlers.cs` ✅
 **Changes: 20+ property accesses**
 
 Key changes:
