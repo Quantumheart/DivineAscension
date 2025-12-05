@@ -337,7 +337,8 @@ public class BlessingDialogManager : IBlessingDialogManager
                 CivilizationFounderReligionUID = null;
                 CivilizationMemberReligions.Clear();
                 CivState.MyCivilization = null;
-                CivState.MyInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(details.PendingInvites);
+                CivState.MyInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(details.PendingInvites ??
+                    []);
             }
             else
             {
@@ -345,9 +346,9 @@ public class BlessingDialogManager : IBlessingDialogManager
                 CurrentCivilizationName = details.Name;
                 CivilizationFounderReligionUID = details.FounderReligionUID;
                 CivilizationMemberReligions =
-                    new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions);
+                    new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions ?? []);
                 CivState.MyCivilization = details;
-                CivState.MyInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(details.PendingInvites);
+                CivState.MyInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(details.PendingInvites ?? []);
             }
         }
     }

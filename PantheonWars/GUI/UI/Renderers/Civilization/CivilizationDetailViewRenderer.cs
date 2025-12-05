@@ -61,7 +61,7 @@ internal static class CivilizationDetailViewRenderer
         // Member count
         TextRenderer.DrawLabel(drawList, "Members:", rightCol, currentY, 13f, ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(rightCol + 80f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White), $"{details.MemberReligions.Count}/4");
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.White), $"{details.MemberReligions?.Count}/4");
 
         currentY += 24f;
 
@@ -96,7 +96,7 @@ internal static class CivilizationDetailViewRenderer
             currentY,
             width,
             listHeight,
-            details.MemberReligions,
+            details.MemberReligions!,
             60f,
             8f,
             0f, // No scroll state needed for detail view
@@ -110,7 +110,7 @@ internal static class CivilizationDetailViewRenderer
         var isPlayerInCiv = state.MyCivilization?.CivId == details.CivId;
         if (isPlayerInCiv)
             TextRenderer.DrawInfoText(drawList, "You are a member of this civilization.", x, currentY, width);
-        else if (details.MemberReligions.Count >= 4)
+        else if (details.MemberReligions!.Count >= 4)
             TextRenderer.DrawInfoText(drawList, "This civilization is full (4/4 members).", x, currentY, width);
         else
             TextRenderer.DrawInfoText(drawList,

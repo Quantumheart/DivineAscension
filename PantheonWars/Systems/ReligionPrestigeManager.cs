@@ -221,12 +221,13 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
 
             // Check if all prerequisites are met
             var allPrereqsMet = true;
-            foreach (var prereqId in blessing.PrerequisiteBlessings)
-                if (!religion.UnlockedBlessings.TryGetValue(prereqId, out var prereqUnlocked) || !prereqUnlocked)
-                {
-                    allPrereqsMet = false;
-                    break;
-                }
+            if (blessing.PrerequisiteBlessings != null)
+                foreach (var prereqId in blessing.PrerequisiteBlessings)
+                    if (!religion.UnlockedBlessings.TryGetValue(prereqId, out var prereqUnlocked) || !prereqUnlocked)
+                    {
+                        allPrereqsMet = false;
+                        break;
+                    }
 
             if (allPrereqsMet) newlyUnlockableBlessings.Add(blessing);
         }

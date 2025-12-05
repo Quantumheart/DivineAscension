@@ -115,13 +115,14 @@ public class BlessingRegistry : IBlessingRegistry
                 return (false, $"Requires deity: {blessing.Deity} (Current: {playerData.ActiveDeity})");
 
             // Check prerequisites
-            foreach (var prereqId in blessing.PrerequisiteBlessings)
-                if (!playerData.IsBlessingUnlocked(prereqId))
-                {
-                    var prereqBlessing = GetBlessing(prereqId);
-                    var prereqName = prereqBlessing?.Name ?? prereqId;
-                    return (false, $"Requires prerequisite blessing: {prereqName}");
-                }
+            if (blessing.PrerequisiteBlessings != null)
+                foreach (var prereqId in blessing.PrerequisiteBlessings)
+                    if (!playerData.IsBlessingUnlocked(prereqId))
+                    {
+                        var prereqBlessing = GetBlessing(prereqId);
+                        var prereqName = prereqBlessing?.Name ?? prereqId;
+                        return (false, $"Requires prerequisite blessing: {prereqName}");
+                    }
 
             return (true, "Can unlock");
         }
@@ -146,13 +147,14 @@ public class BlessingRegistry : IBlessingRegistry
             return (false, $"Religion deity mismatch (Blessing: {blessing.Deity}, Religion: {religionData.Deity})");
 
         // Check prerequisites
-        foreach (var prereqId in blessing.PrerequisiteBlessings)
-            if (!religionData.UnlockedBlessings.TryGetValue(prereqId, out var prereqUnlocked) || !prereqUnlocked)
-            {
-                var prereqBlessing = GetBlessing(prereqId);
-                var prereqName = prereqBlessing?.Name ?? prereqId;
-                return (false, $"Requires prerequisite blessing: {prereqName}");
-            }
+        if (blessing.PrerequisiteBlessings != null)
+            foreach (var prereqId in blessing.PrerequisiteBlessings)
+                if (!religionData.UnlockedBlessings.TryGetValue(prereqId, out var prereqUnlocked) || !prereqUnlocked)
+                {
+                    var prereqBlessing = GetBlessing(prereqId);
+                    var prereqName = prereqBlessing?.Name ?? prereqId;
+                    return (false, $"Requires prerequisite blessing: {prereqName}");
+                }
 
         return (true, "Can unlock");
     }

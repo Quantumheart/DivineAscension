@@ -118,7 +118,7 @@ public static class CookingPatches
         var count = Math.Min(__state?.Count ?? 0, inv.Count);
         for (var i = 0; i < count; i++)
         {
-            var before = __state[i];
+            var before = __state?[i];
             var afterSlot = inv[i];
             if (afterSlot == null || afterSlot.Empty) continue;
             var after = afterSlot.Itemstack;
@@ -164,7 +164,7 @@ public static class CookingPatches
         var count = inv?.Count ?? 0;
         for (var i = 0; i < count; i++)
         {
-            var slot = inv[i];
+            var slot = inv?[i];
             before.Add(slot?.Empty == false ? slot.Itemstack.Clone() : null);
         }
 

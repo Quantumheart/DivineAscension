@@ -272,7 +272,7 @@ public class BlessingCommands(
                     mod.Key, mod.Value * 100));
         }
 
-        if (blessing.SpecialEffects.Count > 0)
+        if (blessing.SpecialEffects is { Count: > 0 })
         {
             sb.AppendLine();
             sb.AppendLine(FormatStringConstants.LabelSpecialEffects);

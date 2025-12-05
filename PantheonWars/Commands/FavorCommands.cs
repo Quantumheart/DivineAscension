@@ -292,7 +292,7 @@ public class FavorCommands
 
         if (amount > 999999) return TextCommandResult.Error("Favor amount cannot exceed 999,999.");
 
-        religionData.Favor = amount;
+        if (religionData != null) religionData.Favor = amount;
 
         return TextCommandResult.Success($"Favor set to {amount:N0}");
     }
@@ -315,10 +315,10 @@ public class FavorCommands
 
         if (amount > 999999) return TextCommandResult.Error("Amount cannot exceed 999,999.");
 
-        var oldFavor = religionData.Favor;
+        var oldFavor = religionData?.Favor;
         _playerReligionDataManager.AddFavor(player.PlayerUID, amount);
 
-        return TextCommandResult.Success($"Added {amount:N0} favor ({oldFavor:N0} → {religionData.Favor:N0})");
+        return TextCommandResult.Success($"Added {amount:N0} favor ({oldFavor:N0} → {religionData?.Favor:N0})");
     }
 
     /// <summary>
@@ -339,12 +339,12 @@ public class FavorCommands
 
         if (amount > 999999) return TextCommandResult.Error("Amount cannot exceed 999,999.");
 
-        var oldFavor = religionData.Favor;
+        var oldFavor = religionData?.Favor;
         _playerReligionDataManager.RemoveFavor(player.PlayerUID, amount);
-        var actualRemoved = oldFavor - religionData.Favor;
+        var actualRemoved = oldFavor - religionData?.Favor;
 
         return TextCommandResult.Success(
-            $"Removed {actualRemoved:N0} favor ({oldFavor:N0} → {religionData.Favor:N0})");
+            $"Removed {actualRemoved:N0} favor ({oldFavor:N0} → {religionData?.Favor:N0})");
     }
 
     /// <summary>
@@ -358,8 +358,8 @@ public class FavorCommands
         var (religionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
-        var oldFavor = religionData.Favor;
-        religionData.Favor = 0;
+        var oldFavor = religionData?.Favor;
+        if (religionData != null) religionData.Favor = 0;
 
         return TextCommandResult.Success($"Favor reset to 0 (was {oldFavor:N0})");
     }
@@ -375,6 +375,7 @@ public class FavorCommands
         var (religionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
+        if (religionData is null) return TextCommandResult.Error("Player must have a religion");
         var oldFavor = religionData.Favor;
         religionData.Favor = 99999;
 
@@ -399,6 +400,7 @@ public class FavorCommands
 
         if (amount > 999999) return TextCommandResult.Error("Total favor earned cannot exceed 999,999.");
 
+        if (religionData is null) return TextCommandResult.Error("Player must have a religion");
         var oldTotal = religionData.TotalFavorEarned;
         var oldRank = religionData.FavorRank;
 

@@ -28,7 +28,6 @@ internal static class ReligionBrowseRenderer
         // === DEITY FILTER TABS ===
         var deityFilters = new[] { "All", "Khoras", "Lysa", "Aethra", "Gaia" };
         const float tabHeight = 32f;
-        const float tabSpacing = 4f;
 
         // Find current selected index
         var currentSelectedIndex = Array.IndexOf(deityFilters, state.DeityFilter == "" ? "All" : state.DeityFilter);

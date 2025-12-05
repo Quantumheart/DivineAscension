@@ -401,7 +401,7 @@ public partial class BlessingDialog
 
         if (packet.Details != null)
             _capi.Logger.Notification(
-                $"[PantheonWars] Loaded civilization '{packet.Details.Name}' with {packet.Details.MemberReligions.Count} religions");
+                $"[PantheonWars] Loaded civilization '{packet.Details.Name}' with {packet.Details.MemberReligions?.Count} religions");
         else
             _capi.Logger.Debug("[PantheonWars] Player's religion is not in a civilization");
     }
