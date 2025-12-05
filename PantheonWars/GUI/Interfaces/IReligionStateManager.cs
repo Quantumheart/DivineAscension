@@ -106,4 +106,10 @@ public interface IReligionStateManager
     /// Builds ViewModel, calls pure renderer, processes events
     /// </summary>
     void DrawReligionInvites(float x, float y, float width, float height);
+
+    /// <summary>
+    /// Draws the religion create tab using the refactored renderer
+    /// Builds ViewModel, calls pure renderer, processes events
+    /// </summary>
+    void DrawReligionCreate(float x, float y, float width, float height);
 }

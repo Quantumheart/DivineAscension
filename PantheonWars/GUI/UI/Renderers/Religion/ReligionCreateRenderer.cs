@@ -1,36 +1,37 @@
-using System;
+using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
-using PantheonWars.GUI.Managers;
-using PantheonWars.GUI.State;
+using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Models.Religion.Create;
 using PantheonWars.GUI.UI.Components;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Inputs;
 using PantheonWars.GUI.UI.Utilities;
-using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.UI.Renderers.Religion;
 
 /// <summary>
-///     Renderer for creating a new religion
-///     Migrates functionality from CreateReligionOverlay
+/// Pure renderer for creating a new religion
+/// Takes an immutable view model, returns events representing user interactions
+/// Migrates functionality from CreateReligionOverlay
 /// </summary>
 internal static class ReligionCreateRenderer
 {
-    public static float Draw(
-        BlessingDialogManager manager,
-        ICoreClientAPI api,
-        float x, float y, float width, float height)
+    /// <summary>
+    /// Renders the religion creation form
+    /// Pure function: ViewModel + DrawList → RenderResult
+    /// </summary>
+    public static ReligionCreateRenderResult Draw(
+        ReligionCreateViewModel viewModel,
+        ImDrawListPtr drawList)
     {
-        var state = manager.ReligionStateManager.State;
-        var drawList = ImGui.GetWindowDrawList();
-        var currentY = y;
+        var events = new List<ReligionCreateEvent>();
+        var currentY = viewModel.Y;
 
         // Center the form
-        var formWidth = 500f;
-        var formX = x + (width - formWidth) / 2;
-        var padding = 20f;
+        const float formWidth = 500f;
+        var formX = viewModel.X + (viewModel.Width - formWidth) / 2;
+        const float padding = 20f;
 
         // === HEADER ===
         var headerText = "Create New Religion";
@@ -41,67 +42,95 @@ internal static class ReligionCreateRenderer
         currentY += headerSize.Y + padding;
 
         // === FORM FIELDS ===
-        var fieldWidth = formWidth;
+        const float fieldWidth = formWidth;
 
         // Religion Name
         TextRenderer.DrawLabel(drawList, "Religion Name:", formX, currentY);
         currentY += 25f;
 
-        state.CreateReligionName = TextInput.Draw(drawList, "##createReligionName", state.CreateReligionName,
-            formX, currentY, fieldWidth, 32f, "Enter religion name...", 32);
+        var newReligionName = TextInput.Draw(
+            drawList,
+            "##createReligionName",
+            viewModel.ReligionName,
+            formX,
+            currentY,
+            fieldWidth,
+            32f,
+            "Enter religion name...",
+            32);
+
+        // Emit event if name changed
+        if (newReligionName != viewModel.ReligionName)
+        {
+            events.Add(new ReligionCreateEvent.NameChanged(newReligionName));
+        }
+
         currentY += 40f;
 
         // Validation feedback
-        if (!string.IsNullOrWhiteSpace(state.CreateReligionName))
+        if (!string.IsNullOrWhiteSpace(viewModel.ReligionName))
         {
-            if (state.CreateReligionName.Length < 3)
+            if (viewModel.ReligionName.Length < 3)
             {
                 TextRenderer.DrawErrorText(drawList, "Religion name must be at least 3 characters", formX, currentY);
                 currentY += 25f;
             }
-            else if (state.CreateReligionName.Length > 32)
+            else if (viewModel.ReligionName.Length > 32)
             {
                 TextRenderer.DrawErrorText(drawList, "Religion name must be less than 32 characters", formX, currentY);
                 currentY += 25f;
             }
         }
 
-        // Deity Selection (simple tab-based approach)
+        // Deity Selection (tab-based approach)
         TextRenderer.DrawLabel(drawList, "Deity:", formX, currentY);
         currentY += 25f;
 
-        var deities = new[] { "Khoras", "Lysa", "Aethra", "Gaia" };
-        var currentDeityIndex = Array.IndexOf(deities, state.CreateDeity);
-        if (currentDeityIndex == -1) currentDeityIndex = 0; // Default to Khoras
+        var currentDeityIndex = viewModel.GetCurrentDeityIndex();
 
-        // Draw deity selection as small tabs
-        var newDeityIndex = TabControl.Draw(drawList, formX, currentY, fieldWidth, 32f, deities, currentDeityIndex);
+        // Draw deity selection as tabs
+        var newDeityIndex = TabControl.Draw(
+            drawList,
+            formX,
+            currentY,
+            fieldWidth,
+            32f,
+            viewModel.AvailableDeities,
+            currentDeityIndex);
 
+        // Emit event if deity changed
         if (newDeityIndex != currentDeityIndex)
         {
-            state.CreateDeity = deities[newDeityIndex];
-            api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                api.World.Player.Entity, null, false, 8f, 0.5f);
+            var newDeity = viewModel.AvailableDeities[newDeityIndex];
+            events.Add(new ReligionCreateEvent.DeityChanged(newDeity));
         }
 
         currentY += 40f;
 
         // Public/Private Toggle
-        state.CreateIsPublic =
-            Checkbox.Draw(drawList, api, "Public (anyone can join)", formX, currentY, state.CreateIsPublic);
+        var newIsPublic = CheckboxRenderer.DrawCheckbox(
+            drawList,
+            "Public (anyone can join)",
+            formX,
+            currentY,
+            viewModel.IsPublic);
+
+        // Emit event if public/private changed
+        if (newIsPublic != viewModel.IsPublic)
+        {
+            events.Add(new ReligionCreateEvent.IsPublicChanged(newIsPublic));
+        }
+
         currentY += 35f;
 
         // Info text
-        var infoText = state.CreateIsPublic
-            ? "Public religions appear in the browser and anyone can join."
-            : "Private religions require an invitation from the founder.";
-        TextRenderer.DrawInfoText(drawList, infoText, formX, currentY, fieldWidth);
+        TextRenderer.DrawInfoText(drawList, viewModel.InfoText, formX, currentY, fieldWidth);
         currentY += 50f;
 
         // Error message
-        if (!string.IsNullOrEmpty(state.CreateError))
+        if (!string.IsNullOrEmpty(viewModel.ErrorMessage))
         {
-            TextRenderer.DrawErrorText(drawList, state.CreateError, formX, currentY);
+            TextRenderer.DrawErrorText(drawList, viewModel.ErrorMessage, formX, currentY);
             currentY += 30f;
         }
 
@@ -110,38 +139,22 @@ internal static class ReligionCreateRenderer
         const float buttonHeight = 36f;
         var createButtonX = formX + (formWidth - buttonWidth) / 2;
 
-        var canCreate = !string.IsNullOrWhiteSpace(state.CreateReligionName)
-                        && state.CreateReligionName.Length is >= 3 and <= 32;
-
-        // Draw Create button
-        if (ButtonRenderer.DrawButton(drawList, "Create Religion", createButtonX, currentY, buttonWidth, buttonHeight,
-                true, canCreate))
+        // Draw a Create button
+        if (ButtonRenderer.DrawButton(
+                drawList,
+                "Create Religion",
+                createButtonX,
+                currentY,
+                buttonWidth,
+                buttonHeight,
+                isPrimary: true,
+                enabled: viewModel.CanCreate))
         {
-            if (canCreate)
-            {
-                api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                    api.World.Player.Entity, null, false, 8f, 0.5f);
-
-                // Request creation via PantheonWarsSystem
-                var system = api.ModLoader.GetModSystem<PantheonWarsSystem>();
-                system?.RequestCreateReligion(state.CreateReligionName, state.CreateDeity, state.CreateIsPublic);
-
-                // Clear form
-                state.CreateReligionName = string.Empty;
-                state.CreateDeity = "Khoras";
-                state.CreateIsPublic = true;
-                state.CreateError = null;
-
-                // Switch to My Religion tab to see the new religion
-                state.CurrentSubTab = ReligionSubTab.MyReligion;
-            }
-            else
-            {
-                api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
-                    api.World.Player.Entity, null, false, 8f, 0.3f);
-            }
+            events.Add(new ReligionCreateEvent.SubmitClicked());
         }
 
-        return height;
+        currentY += buttonHeight;
+
+        return new ReligionCreateRenderResult(events, currentY - viewModel.Y);
     }
 }

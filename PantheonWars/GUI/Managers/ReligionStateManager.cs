@@ -4,6 +4,7 @@ using ImGuiNET;
 using PantheonWars.GUI.Events;
 using PantheonWars.GUI.Interfaces;
 using PantheonWars.GUI.Models.Religion.Browse;
+using PantheonWars.GUI.Models.Religion.Create;
 using PantheonWars.GUI.Models.Religion.Invites;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Adapters.Religions;
@@ -335,6 +336,30 @@ public class ReligionStateManager : IReligionStateManager
     }
 
     /// <summary>
+    /// Draws the religion create tab using the refactored renderer
+    /// Builds ViewModel, calls pure renderer, processes events
+    /// </summary>
+    public void DrawReligionCreate(float x, float y, float width, float height)
+    {
+        // Build view model from state
+        var viewModel = new ReligionCreateViewModel(
+            religionName: State.ReligionCreateState.Name,
+            deityName: State.ReligionCreateState.DeityName,
+            isPublic: State.ReligionCreateState.IsPublic,
+            availableDeities: new[] { "Khoras", "Lysa", "Aethra", "Gaia" },
+            errorMessage: State.CreateError,
+            x: x, y: y, width: width, height: height
+        );
+
+        // Render (pure function call)
+        var drawList = ImGui.GetWindowDrawList();
+        var result = ReligionCreateRenderer.Draw(viewModel, drawList);
+
+        // Process events (side effects)
+        ProcessCreateEvents(result.Events);
+    }
+
+    /// <summary>
     ///     Check if a blessing can be unlocked based on prerequisites and rank requirements
     ///     This is a client-side validation - server will do final validation
     /// </summary>
@@ -402,6 +427,76 @@ public class ReligionStateManager : IReligionStateManager
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// Process events from the create renderer
+    /// </summary>
+    private void ProcessCreateEvents(IReadOnlyList<ReligionCreateEvent> events)
+    {
+        foreach (var evt in events)
+        {
+            switch (evt)
+            {
+                case ReligionCreateEvent.NameChanged e:
+                    State.ReligionCreateState.Name = e.NewName;
+                    break;
+
+                case ReligionCreateEvent.DeityChanged e:
+                    State.ReligionCreateState.DeityName = e.NewDeity;
+                    _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
+                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+                    break;
+
+                case ReligionCreateEvent.IsPublicChanged e:
+                    State.ReligionCreateState.IsPublic = e.IsPublic;
+                    _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
+                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.3f);
+                    break;
+
+                case ReligionCreateEvent.SubmitClicked:
+                    HandleCreateReligionSubmit();
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handle the religion creation submission
+    /// </summary>
+    private void HandleCreateReligionSubmit()
+    {
+        // Validate before submission
+        if (string.IsNullOrWhiteSpace(State.ReligionCreateState.Name) ||
+            State.ReligionCreateState.Name.Length < 3 ||
+            State.ReligionCreateState.Name.Length > 32)
+        {
+            // Play error sound
+            _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
+                _coreClientApi.World.Player.Entity, null, false, 8f, 0.3f);
+            return;
+        }
+
+        // Play success sound
+        _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
+            _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+
+        // Request creation
+        RequestReligionCreate(State.ReligionCreateState.Name, State.ReligionCreateState.DeityName, State.ReligionCreateState.IsPublic);
+
+        // Clear form
+        State.ReligionCreateState.Name = string.Empty;
+        State.ReligionCreateState.DeityName = "Khoras";
+        State.ReligionCreateState.IsPublic = true;
+        State.CreateError = null;
+
+        // Switch to My Religion tab to see the new religion
+        State.CurrentSubTab = GUI.State.ReligionSubTab.MyReligion;
+    }
+
+    private void RequestReligionCreate(string religionName, string deity, bool isPublic)
+    {
+        _system?.RequestCreateReligion(religionName, deity, isPublic);
     }
 
     /// <summary>
