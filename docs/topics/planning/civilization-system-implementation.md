@@ -13,7 +13,6 @@ Implementation of a minimal civilization system for PantheonWars - organizationa
 - **Minimal viable product**: Test core concept before adding complexity
 - **Deity diversity**: Each civilization must have different deities (no duplicates)
 - **Founder-controlled**: Only religion founders can manage civilization membership
-- **Cooldown periods**: 7-day cooldowns prevent rapid civ-hopping
 - **Auto-validation**: Civilizations auto-disband if they fall below 2 religions
 
 ---
@@ -411,7 +410,6 @@ Implementation of a minimal civilization system for PantheonWars - organizationa
 
 - Quick lookup map (ReligionId → CivId) for O(1) access
 - Cached member counts to avoid repeated calculations
-- Auto-cleanup of expired invites/cooldowns on save/load
 - Minimal overhead for players not in civilizations
 
 ### Validation Rules
@@ -455,7 +453,6 @@ Implementation of a minimal civilization system for PantheonWars - organizationa
 - [ ] Should civilizations have configurable privacy settings?
 - [ ] Should we allow religion founders to transfer civilization founder role?
 - [ ] Should there be a cost (favor/prestige) to create civilizations?
-- [ ] Should cooldowns be configurable per server?
 
 ---
 

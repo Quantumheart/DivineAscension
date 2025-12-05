@@ -18,7 +18,6 @@ public class CivilizationWorldData
         Civilizations = new Dictionary<string, Civilization>();
         ReligionToCivMap = new Dictionary<string, string>();
         PendingInvites = new List<CivilizationInvite>();
-        Cooldowns = new List<CivilizationCooldown>();
     }
 
     /// <summary>
@@ -38,13 +37,7 @@ public class CivilizationWorldData
     /// </summary>
     [ProtoMember(3)]
     public List<CivilizationInvite> PendingInvites { get; set; }
-
-    /// <summary>
-    ///     Active cooldowns
-    /// </summary>
-    [ProtoMember(4)]
-    public List<CivilizationCooldown> Cooldowns { get; set; }
-
+    
     /// <summary>
     ///     Adds a civilization to the data
     /// </summary>
@@ -155,38 +148,5 @@ public class CivilizationWorldData
     public bool HasPendingInvite(string civId, string religionId)
     {
         return PendingInvites.Any(i => i.CivId == civId && i.ReligionId == religionId && i.IsValid);
-    }
-
-    /// <summary>
-    ///     Adds a cooldown for a religion
-    /// </summary>
-    public void AddCooldown(CivilizationCooldown cooldown)
-    {
-        Cooldowns.Add(cooldown);
-    }
-
-    /// <summary>
-    ///     Gets the cooldown for a religion if active
-    /// </summary>
-    public CivilizationCooldown? GetActiveCooldown(string religionId)
-    {
-        return Cooldowns.FirstOrDefault(c => c.ReligionId == religionId && c.IsActive);
-    }
-
-    /// <summary>
-    ///     Checks if a religion is on cooldown
-    /// </summary>
-    public bool IsOnCooldown(string religionId)
-    {
-        return Cooldowns.Any(c => c.ReligionId == religionId && c.IsActive);
-    }
-
-    /// <summary>
-    ///     Cleans up expired invites and cooldowns
-    /// </summary>
-    public void CleanupExpired()
-    {
-        PendingInvites.RemoveAll(i => !i.IsValid);
-        Cooldowns.RemoveAll(c => !c.IsActive);
     }
 }

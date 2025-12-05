@@ -102,15 +102,6 @@ public class CivilizationManager
                 return null;
             }
 
-            // Check if religion is on cooldown
-            if (_data.IsOnCooldown(founderReligionId))
-            {
-                var cooldown = _data.GetActiveCooldown(founderReligionId);
-                var timeRemaining = cooldown!.CooldownUntil - DateTime.UtcNow;
-                _sapi.Logger.Warning($"[PantheonWars] Religion is on cooldown for {timeRemaining.Days} more days");
-                return null;
-            }
-
             // Create civilization
             var civId = Guid.NewGuid().ToString();
             var civ = new Civilization(civId, name, founderUID, founderReligionId)
@@ -178,15 +169,6 @@ public class CivilizationManager
             {
                 _sapi.Logger.Warning(
                     $"[PantheonWars] Religion '{targetReligion.ReligionName}' is already in a civilization");
-                return false;
-            }
-
-            // Check if religion is on cooldown
-            if (_data.IsOnCooldown(religionId))
-            {
-                var cooldown = _data.GetActiveCooldown(religionId);
-                var timeRemaining = cooldown!.CooldownUntil - DateTime.UtcNow;
-                _sapi.Logger.Warning($"[PantheonWars] Religion is on cooldown for {timeRemaining.Days} more days");
                 return false;
             }
 
@@ -328,10 +310,7 @@ public class CivilizationManager
             // Remove religion from civilization
             _data.RemoveReligionFromCivilization(religionId);
             civ.MemberCount -= religion.MemberUIDs.Count;
-
-            // Add cooldown
-            var cooldown = new CivilizationCooldown(religionId, DateTime.UtcNow.AddDays(COOLDOWN_DAYS));
-            _data.AddCooldown(cooldown);
+            
 
             // Check if civilization falls below minimum
             if (civ.MemberReligionIds.Count < MIN_RELIGIONS)
@@ -557,23 +536,7 @@ public class CivilizationManager
     {
         return _data.GetInvitesForCivilization(civId);
     }
-
-    /// <summary>
-    ///     Checks if a religion is on cooldown
-    /// </summary>
-    public bool IsOnCooldown(string religionId)
-    {
-        return _data.IsOnCooldown(religionId);
-    }
-
-    /// <summary>
-    ///     Gets the active cooldown for a religion
-    /// </summary>
-    public CivilizationCooldown? GetCooldown(string religionId)
-    {
-        return _data.GetActiveCooldown(religionId);
-    }
-
+    
     /// <summary>
     ///     Updates member counts for all civilizations (should be called when religion membership changes)
     /// </summary>
@@ -617,7 +580,6 @@ public class CivilizationManager
                 if (loadedData != null)
                 {
                     _data = loadedData;
-                    _data.CleanupExpired(); // Clean up expired invites and cooldowns on load
                     _sapi.Logger.Notification($"[PantheonWars] Loaded {_data.Civilizations.Count} civilizations");
                 }
                 else
@@ -643,7 +605,6 @@ public class CivilizationManager
     {
         try
         {
-            _data.CleanupExpired(); // Clean up before saving
             var serializedData = SerializerUtil.Serialize(_data);
             _sapi.WorldManager.SaveGame.StoreData(DATA_KEY, serializedData);
             _sapi.Logger.Debug($"[PantheonWars] Saved {_data.Civilizations.Count} civilizations");
