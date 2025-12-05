@@ -6,41 +6,28 @@ namespace PantheonWars.GUI.Models.Religion.Create;
 /// Immutable view model for religion creation form
 /// Contains only the data needed to render the creation UI
 /// </summary>
-public readonly struct ReligionCreateViewModel
+public readonly struct ReligionCreateViewModel(
+    string religionName,
+    string deityName,
+    bool isPublic,
+    string[] availableDeities,
+    string? errorMessage,
+    float x,
+    float y,
+    float width,
+    float height)
 {
-    public ReligionCreateViewModel(
-        string religionName,
-        string deityName,
-        bool isPublic,
-        string[] availableDeities,
-        string? errorMessage,
-        float x,
-        float y,
-        float width,
-        float height)
-    {
-        ReligionName = religionName;
-        DeityName = deityName;
-        IsPublic = isPublic;
-        AvailableDeities = availableDeities;
-        ErrorMessage = errorMessage;
-        X = x;
-        Y = y;
-        Width = width;
-        Height = height;
-    }
-
-    public string ReligionName { get; }
-    public string DeityName { get; }
-    public bool IsPublic { get; }
-    public string[] AvailableDeities { get; }
-    public string? ErrorMessage { get; }
+    public string ReligionName { get; } = religionName;
+    public string DeityName { get; } = deityName;
+    public bool IsPublic { get; } = isPublic;
+    public string[] AvailableDeities { get; } = availableDeities;
+    public string? ErrorMessage { get; } = errorMessage;
 
     // Layout
-    public float X { get; }
-    public float Y { get; }
-    public float Width { get; }
-    public float Height { get; }
+    public float X { get; } = x;
+    public float Y { get; } = y;
+    public float Width { get; } = width;
+    public float Height { get; } = height;
 
     /// <summary>
     /// Gets the index of the currently selected deity in the available deities array
