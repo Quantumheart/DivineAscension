@@ -61,9 +61,7 @@ internal static class ReligionHeaderRenderer
 
             var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
             drawList.AddText(ImGui.GetFont(), 16f, textPos, textColor, noReligionText);
-
-            // Previously, a "Browse Religions" button was rendered here. It has been removed.
-
+            
             return headerHeight;
         }
 
