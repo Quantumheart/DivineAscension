@@ -6,7 +6,7 @@ using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 
-namespace PantheonWars.GUI.UI.Renderers;
+namespace PantheonWars.GUI.UI.Renderers.Blessing;
 
 /// <summary>
 ///     Renders rich tooltips when hovering over blessing nodes

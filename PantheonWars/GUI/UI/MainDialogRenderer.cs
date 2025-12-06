@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using ImGuiNET;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Components;
-using PantheonWars.GUI.UI.Renderers;
+using PantheonWars.GUI.UI.Renderers.Blessing;
 using PantheonWars.GUI.UI.Renderers.Civilization;
 using PantheonWars.GUI.UI.Renderers.Religion;
 using PantheonWars.Models;

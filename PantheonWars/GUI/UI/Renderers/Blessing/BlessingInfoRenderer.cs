@@ -7,7 +7,7 @@ using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using Vintagestory.API.Client;
 
-namespace PantheonWars.GUI.UI.Renderers;
+namespace PantheonWars.GUI.UI.Renderers.Blessing;
 
 /// <summary>
 ///     Renders the selected blessing details panel at the bottom of the dialog
@@ -258,7 +258,7 @@ internal static class BlessingInfoRenderer
             "maxhealthextramultiplier"
         };
 
-        var isPercentage = percentageStats.Any(ps => statLower.Contains(ps.ToLower()));
+        var isPercentage = percentageStats.Any(ps => statLower.Contains((string)ps.ToLower()));
 
         // Map stat names to friendly display names
         var displayName = statLower switch

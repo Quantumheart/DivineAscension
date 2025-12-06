@@ -7,7 +7,7 @@ using PantheonWars.Models;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
-namespace PantheonWars.GUI.UI.Renderers;
+namespace PantheonWars.GUI.UI.Renderers.Blessing;
 
 /// <summary>
 ///     Renders the split-panel blessing tree view

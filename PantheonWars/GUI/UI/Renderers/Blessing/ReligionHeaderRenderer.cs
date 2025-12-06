@@ -8,7 +8,7 @@ using PantheonWars.Models.Enum;
 using PantheonWars.Systems;
 using Vintagestory.API.Client;
 
-namespace PantheonWars.GUI.UI.Renderers;
+namespace PantheonWars.GUI.UI.Renderers.Blessing;
 
 /// <summary>
 ///     Renders the religion/deity header banner at the top of the blessing dialog
