@@ -2,266 +2,120 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Components.Inputs;
+using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Models.Religion.Info;
 using PantheonWars.GUI.UI.Components.Lists;
 using PantheonWars.GUI.UI.Components.Overlays;
 using PantheonWars.GUI.UI.Renderers.Components;
+using PantheonWars.GUI.UI.Renderers.Religion.Info;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Network;
-using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.UI.Renderers.Religion;
 
 /// <summary>
-///     Renderer for managing player's own religion
-///     Migrates functionality from ReligionManagementOverlay
+/// Pure renderer for managing player's own religion
+/// Takes an immutable view model, returns events representing user interactions
+/// Migrates functionality from ReligionManagementOverlay
 /// </summary>
 internal static class ReligionInfoRenderer
 {
-    public static float Draw(
-        BlessingDialogManager manager,
-        ICoreClientAPI api,
-        float x, float y, float width, float height)
+    /// <summary>
+    /// Renders the religion info/management tab
+    /// Pure function: ViewModel + DrawList → RenderResult
+    /// </summary>
+    public static ReligionInfoRenderResult Draw(
+        ReligionInfoViewModel viewModel,
+        ImDrawListPtr drawList)
     {
-        var state = manager.ReligionStateManager.State;
-        var drawList = ImGui.GetWindowDrawList();
+        var events = new List<ReligionInfoEvent>();
+        var x = viewModel.X;
+        var y = viewModel.Y;
+        var width = viewModel.Width;
+        var height = viewModel.Height;
         var currentY = y;
 
         // Loading state
-        if (state.IsMyReligionLoading)
+        if (viewModel.IsLoading)
         {
             TextRenderer.DrawInfoText(drawList, "Loading religion data...", x, currentY + 8f, width);
-            return height;
+            return new ReligionInfoRenderResult(events, height);
         }
 
-        var religion = state.MyReligionInfo;
-        if (religion == null || !religion.HasReligion)
+        if (!viewModel.HasReligion)
         {
             TextRenderer.DrawInfoText(drawList, "You are not in a religion. Browse or create one!", x, currentY + 8f,
                 width);
-            return height;
+            return new ReligionInfoRenderResult(events, height);
         }
 
         // Prepare top-level scroll for long content in My Religion tab
         const float scrollbarWidth = 16f;
-        var contentHeightEstimate = ComputeContentHeight(religion.IsFounder);
+        var contentHeightEstimate = ComputeContentHeight(viewModel.IsFounder);
         var maxScroll = MathF.Max(0f, contentHeightEstimate - height);
 
         // Mouse wheel scroll when hovering the tab content
         var mousePos = ImGui.GetMousePos();
         var isHover = mousePos.X >= x && mousePos.X <= x + width && mousePos.Y >= y && mousePos.Y <= y + height;
-        var scrollY = state.MyReligionScrollY;
+        var scrollY = viewModel.ScrollY;
         if (isHover)
         {
             var wheel = ImGui.GetIO().MouseWheel;
-            if (wheel != 0) scrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+            if (wheel != 0)
+            {
+                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                if (Math.Abs(newScrollY - scrollY) > 0.001f)
+                {
+                    scrollY = newScrollY;
+                    events.Add(new ReligionInfoEvent.ScrollChanged(newScrollY));
+                }
+            }
         }
 
         // Clip to visible area and offset drawing by scroll
         drawList.PushClipRect(new Vector2(x, y), new Vector2(x + width, y + height), true);
         currentY = y - scrollY;
 
-        // === RELIGION HEADER ===
-        TextRenderer.DrawLabel(drawList, religion.ReligionName, x, currentY, 20f, ColorPalette.Gold);
-        currentY += 32f;
-
-        // Info grid
-        var leftCol = x;
-        var rightCol = x + width / 2f;
-
-        // Deity
-        TextRenderer.DrawLabel(drawList, "Deity:", leftCol, currentY, 13f, ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 80f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White), religion.Deity);
-
-        // Member count
-        TextRenderer.DrawLabel(drawList, "Members:", rightCol, currentY, 13f, ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(rightCol + 80f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White), religion.Members.Count.ToString());
-
-        currentY += 22f;
-
-        // Founder
-        TextRenderer.DrawLabel(drawList, "Founder:", leftCol, currentY, 13f, ColorPalette.Grey);
-        // Resolve founder player name from members list, fall back to UID if unknown
-        var founderName = religion.Members.Find(m => m.PlayerUID == religion.FounderUID)?.PlayerName
-                          ?? religion.FounderUID;
-        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 80f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), founderName);
-
-        // Prestige
-        TextRenderer.DrawLabel(drawList, "Prestige:", rightCol, currentY, 13f, ColorPalette.Grey);
-        var prestigeProgress = manager.ReligionStateManager.GetReligionPrestigeProgress();
-        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(rightCol + 80f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
-            $"{prestigeProgress.CurrentPrestige} (Rank {prestigeProgress.CurrentRank})");
-
-        currentY += 28f;
+        // === HEADER AND INFO GRID ===
+        currentY = ReligionInfoHeaderRenderer.Draw(viewModel, drawList, x, currentY, width);
 
         // === DESCRIPTION SECTION ===
-        if (religion.IsFounder)
-        {
-            TextRenderer.DrawLabel(drawList, "Description (editable):", x, currentY, 14f, ColorPalette.White);
-            currentY += 22f;
-
-            const float descHeight = 80f;
-            state.Description = TextInput.DrawMultiline(drawList, "##religionDescription", state.Description,
-                x, currentY, width, descHeight);
-            currentY += descHeight + 5f;
-
-            // Save Description button
-            var saveButtonWidth = 150f;
-            var saveButtonX = x + width - saveButtonWidth;
-            var trimmedDesc = (state.Description ?? string.Empty).Trim();
-            var originalDesc = religion.Description ?? string.Empty;
-            var hasChanges = !string.Equals(trimmedDesc, originalDesc, StringComparison.Ordinal);
-            if (ButtonRenderer.DrawButton(drawList, "Save Description", saveButtonX, currentY, saveButtonWidth, 32f,
-                    false, hasChanges))
-            {
-                api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                    api.World.Player.Entity, null, false, 8f, 0.5f);
-                // Send description update to server
-                manager.ReligionStateManager.RequestEditReligionDescription(religion.ReligionUID, trimmedDesc);
-                // Optimistically update local model to reflect change immediately; server will refresh as well
-                religion.Description = trimmedDesc;
-                state.Description = trimmedDesc;
-                api.ShowChatMessage("Religion description saved.");
-            }
-
-            currentY += 40f;
-        }
-        else
-        {
-            // Read-only description
-            TextRenderer.DrawLabel(drawList, "Description:", x, currentY, 14f, ColorPalette.White);
-            currentY += 22f;
-
-            var desc = string.IsNullOrEmpty(religion.Description) ? "[No description set]" : religion.Description;
-            TextRenderer.DrawInfoText(drawList, desc, x, currentY, width);
-            currentY += 40f;
-        }
+        currentY = ReligionInfoDescriptionRenderer.Draw(viewModel, drawList, x, currentY, width, events);
 
         // === MEMBER LIST SECTION ===
         TextRenderer.DrawLabel(drawList, "Members:", x, currentY, 15f, ColorPalette.Gold);
         currentY += 25f;
 
         const float memberListHeight = 180f;
-        // Choose data source: UI-only provider (dev) or real packet data
-        var membersForDisplay = religion.Members;
-        if (manager.ReligionStateManager.MembersProvider is { } provider)
+        var memberScrollY = DrawMemberList(
+            drawList, viewModel, x, currentY, width, memberListHeight, events);
+        if (Math.Abs(memberScrollY - viewModel.MemberScrollY) > 0.001f)
         {
-            var vmList = provider.GetMembers(religion.ReligionUID);
-            var list = new List<PlayerReligionInfoResponsePacket.MemberInfo>(vmList.Count);
-            foreach (var vm in vmList)
-                list.Add(new PlayerReligionInfoResponsePacket.MemberInfo
-                {
-                    PlayerUID = vm.PlayerUid,
-                    PlayerName = vm.DisplayName,
-                    FavorRank = "Member", // UI-only adapter: keep simple rank text
-                    Favor = (int)Math.Round(vm.Favor),
-                    IsFounder = false
-                });
-            membersForDisplay = list;
+            events.Add(new ReligionInfoEvent.MemberScrollChanged(memberScrollY));
         }
-
-        state.MemberScrollY = MemberListRenderer.Draw(
-            drawList, api, x, currentY, width, memberListHeight,
-            membersForDisplay, state.MemberScrollY,
-            // Kick callback
-            religion.IsFounder
-                ? memberUID =>
-                {
-                    // Store for confirmation
-                    state.KickConfirmPlayerUID = memberUID;
-                    var member = religion.Members.Find(m => m.PlayerUID == memberUID);
-                    state.KickConfirmPlayerName = member?.PlayerName ?? memberUID;
-                }
-                : null,
-            // Ban callback
-            religion.IsFounder
-                ? memberUID =>
-                {
-                    // Store for confirmation
-                    state.BanConfirmPlayerUID = memberUID;
-                    var member = religion.Members.Find(m => m.PlayerUID == memberUID);
-                    state.BanConfirmPlayerName = member?.PlayerName ?? memberUID;
-                }
-                : null
-        );
         currentY += memberListHeight + 15f;
 
         // === BANNED PLAYERS SECTION (founder only) ===
-        if (religion.IsFounder)
+        if (viewModel.IsFounder)
         {
             TextRenderer.DrawLabel(drawList, "Banned Players:", x, currentY, 15f, ColorPalette.Gold);
             currentY += 25f;
 
             const float banListHeight = 120f;
-            var bannedPlayers = religion.BannedPlayers ?? new List<PlayerReligionInfoResponsePacket.BanInfo>();
-            state.BanListScrollY = BanListRenderer.Draw(
-                drawList, api, x, currentY, width, banListHeight,
-                bannedPlayers, state.BanListScrollY,
-                // Unban callback
-                playerUID =>
-                {
-                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        api.World.Player.Entity, null, false, 8f, 0.5f);
-                    manager.ReligionStateManager.RequestReligionAction("unban", religion.ReligionUID, playerUID);
-                }
-            );
+            var banListScrollY = DrawBanList(
+                drawList, viewModel, x, currentY, width, banListHeight, events);
+            if (Math.Abs(banListScrollY - viewModel.BanListScrollY) > 0.001f)
+            {
+                events.Add(new ReligionInfoEvent.BanListScrollChanged(banListScrollY));
+            }
             currentY += banListHeight + 15f;
         }
 
         // === INVITE SECTION (founder only) ===
-        if (religion.IsFounder)
-        {
-            TextRenderer.DrawLabel(drawList, "Invite Player:", x, currentY, 15f, ColorPalette.Gold);
-            currentY += 22f;
-
-            var inviteInputWidth = width - 120f;
-            state.InvitePlayerName = TextInput.Draw(drawList, "##invitePlayer", state.InvitePlayerName,
-                x, currentY, inviteInputWidth, 32f, "Player name...");
-
-            // Invite button
-            var inviteButtonX = x + inviteInputWidth + 10f;
-            if (ButtonRenderer.DrawButton(drawList, "Invite", inviteButtonX, currentY, 100f, 32f, false,
-                    !string.IsNullOrWhiteSpace(state.InvitePlayerName)))
-                if (!string.IsNullOrWhiteSpace(state.InvitePlayerName))
-                {
-                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        api.World.Player.Entity, null, false, 8f, 0.5f);
-                    manager.ReligionStateManager.RequestReligionAction("invite", religion.ReligionUID, state.InvitePlayerName.Trim());
-                    state.InvitePlayerName = "";
-                }
-
-            currentY += 40f;
-        }
+        currentY = ReligionInfoInviteRenderer.Draw(viewModel, drawList, x, currentY, width, events);
 
         // === ACTION BUTTONS ===
-        var buttonY = currentY;
-        var buttonX = x;
-
-        // Leave Religion button (always available)
-        if (ButtonRenderer.DrawButton(drawList, "Leave Religion", buttonX, buttonY, 160f, 34f))
-        {
-            api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                api.World.Player.Entity, null, false, 8f, 0.5f);
-            manager.ReligionStateManager.RequestReligionAction("leave", religion.ReligionUID);
-        }
-
-        // Disband Religion button (founder only)
-        if (religion.IsFounder)
-            if (ButtonRenderer.DrawButton(drawList, "Disband Religion", x + 170f, buttonY, 180f, 34f, false, true,
-                    ColorPalette.Red * 0.7f))
-            {
-                api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                    api.World.Player.Entity, null, false, 8f, 0.5f);
-                state.ShowDisbandConfirm = true;
-            }
-
-        currentY += 40f;
+        currentY = ReligionInfoActionsRenderer.Draw(viewModel, drawList, x, currentY, events);
 
         // End of scrollable content
         drawList.PopClipRect();
@@ -270,49 +124,87 @@ internal static class ReligionInfoRenderer
         if (contentHeightEstimate > height)
             Scrollbar.Draw(drawList, x + width - scrollbarWidth, y, scrollbarWidth, height, scrollY, maxScroll);
 
-        // Persist updated scroll position
-        state.MyReligionScrollY = scrollY;
-
         // === CONFIRMATION OVERLAYS ===
         // Disband confirmation
-        if (state.ShowDisbandConfirm)
-            DrawDisbandConfirmation(drawList, api, x, y, width, height, () =>
-            {
-                manager.ReligionStateManager.RequestReligionAction("disband", religion.ReligionUID);
-                state.ShowDisbandConfirm = false;
-            }, () => { state.ShowDisbandConfirm = false; });
+        if (viewModel.ShowDisbandConfirm)
+            DrawDisbandConfirmation(drawList, events);
 
         // Kick confirmation
-        if (state.KickConfirmPlayerUID != null)
-            DrawKickConfirmation(drawList, api, x, y, width, height,
-                state.KickConfirmPlayerName ?? state.KickConfirmPlayerUID,
-                () =>
-                {
-                    manager.ReligionStateManager.RequestReligionAction("kick", religion.ReligionUID, state.KickConfirmPlayerUID!);
-                    state.KickConfirmPlayerUID = null;
-                    state.KickConfirmPlayerName = null;
-                }, () =>
-                {
-                    state.KickConfirmPlayerUID = null;
-                    state.KickConfirmPlayerName = null;
-                });
+        if (viewModel.KickConfirmPlayerUID != null)
+            DrawKickConfirmation(drawList, viewModel.KickConfirmPlayerName ?? viewModel.KickConfirmPlayerUID,
+                viewModel.KickConfirmPlayerUID, events);
 
         // Ban confirmation
-        if (state.BanConfirmPlayerUID != null)
-            DrawBanConfirmation(drawList, api, x, y, width, height,
-                state.BanConfirmPlayerName ?? state.BanConfirmPlayerUID,
-                () =>
-                {
-                    manager.ReligionStateManager.RequestReligionAction("ban", religion.ReligionUID, state.BanConfirmPlayerUID!);
-                    state.BanConfirmPlayerUID = null;
-                    state.BanConfirmPlayerName = null;
-                }, () =>
-                {
-                    state.BanConfirmPlayerUID = null;
-                    state.BanConfirmPlayerName = null;
-                });
+        if (viewModel.BanConfirmPlayerUID != null)
+            DrawBanConfirmation(drawList, viewModel.BanConfirmPlayerName ?? viewModel.BanConfirmPlayerUID,
+                viewModel.BanConfirmPlayerUID, events);
 
-        return height;
+        return new ReligionInfoRenderResult(events, height);
+    }
+
+    private static float DrawMemberList(
+        ImDrawListPtr drawList,
+        ReligionInfoViewModel viewModel,
+        float x, float y, float width, float height,
+        List<ReligionInfoEvent> events)
+    {
+        return MemberListRenderer.Draw(
+            drawList,
+            null!, // API not needed for pure rendering - will be refactored later
+            x, y, width, height,
+            new List<PlayerReligionInfoResponsePacket.MemberInfo>(viewModel.Members),
+            viewModel.MemberScrollY,
+            // Kick callback (founder only)
+            viewModel.IsFounder
+                ? memberUid =>
+                {
+                    // Emit event to open kick confirmation
+                    var member = FindMemberByUid(viewModel.Members, memberUid);
+                    var memberName = member?.PlayerName ?? memberUid;
+                    events.Add(new ReligionInfoEvent.KickOpen(memberUid, memberName));
+                }
+                : null,
+            // Ban callback (founder only)
+            viewModel.IsFounder
+                ? memberUid =>
+                {
+                    // Emit event to open ban confirmation
+                    var member = FindMemberByUid(viewModel.Members, memberUid);
+                    var memberName = member?.PlayerName ?? memberUid;
+                    events.Add(new ReligionInfoEvent.BanOpen(memberUid, memberName));
+                }
+                : null
+        );
+    }
+
+    private static float DrawBanList(
+        ImDrawListPtr drawList,
+        ReligionInfoViewModel viewModel,
+        float x, float y, float width, float height,
+        List<ReligionInfoEvent> events)
+    {
+        return BanListRenderer.Draw(
+            drawList,
+            null!, // API not needed for pure rendering - will be refactored later
+            x, y, width, height,
+            new List<PlayerReligionInfoResponsePacket.BanInfo>(viewModel.BannedPlayers),
+            viewModel.BanListScrollY,
+            // Unban callback
+            playerUid => { events.Add(new ReligionInfoEvent.UnbanClicked(playerUid)); }
+        );
+    }
+
+    private static PlayerReligionInfoResponsePacket.MemberInfo? FindMemberByUid(
+        IReadOnlyList<PlayerReligionInfoResponsePacket.MemberInfo> members,
+        string memberUid)
+    {
+        foreach (var member in members)
+        {
+            if (member.PlayerUID == memberUid)
+                return member;
+        }
+
+        return null;
     }
 
     private static float ComputeContentHeight(bool isFounder)
@@ -362,9 +254,9 @@ internal static class ReligionInfoRenderer
         return h;
     }
 
-    private static void DrawDisbandConfirmation(ImDrawListPtr drawList, ICoreClientAPI api, float x, float y,
-        float width, float height,
-        Action onConfirm, Action onCancel)
+    private static void DrawDisbandConfirmation(
+        ImDrawListPtr drawList,
+        List<ReligionInfoEvent> events)
     {
         ConfirmOverlay.Draw(
             "Disband Religion?",
@@ -372,13 +264,15 @@ internal static class ReligionInfoRenderer
             out var confirmed, out var cancelled,
             "Disband");
 
-        if (confirmed) onConfirm();
-        if (cancelled) onCancel();
+        if (confirmed) events.Add(new ReligionInfoEvent.DisbandConfirm());
+        if (cancelled) events.Add(new ReligionInfoEvent.DisbandCancel());
     }
 
-    private static void DrawKickConfirmation(ImDrawListPtr drawList, ICoreClientAPI api, float x, float y, float width,
-        float height,
-        string playerName, Action onConfirm, Action onCancel)
+    private static void DrawKickConfirmation(
+        ImDrawListPtr drawList,
+        string playerName,
+        string playerUid,
+        List<ReligionInfoEvent> events)
     {
         ConfirmOverlay.Draw(
             "Kick Player?",
@@ -386,13 +280,15 @@ internal static class ReligionInfoRenderer
             out var confirmed, out var cancelled,
             "Kick");
 
-        if (confirmed) onConfirm();
-        if (cancelled) onCancel();
+        if (confirmed) events.Add(new ReligionInfoEvent.KickConfirm(playerUid));
+        if (cancelled) events.Add(new ReligionInfoEvent.KickCancel());
     }
 
-    private static void DrawBanConfirmation(ImDrawListPtr drawList, ICoreClientAPI api, float x, float y, float width,
-        float height,
-        string playerName, Action onConfirm, Action onCancel)
+    private static void DrawBanConfirmation(
+        ImDrawListPtr drawList,
+        string playerName,
+        string playerUid,
+        List<ReligionInfoEvent> events)
     {
         ConfirmOverlay.Draw(
             "Ban Player?",
@@ -400,7 +296,7 @@ internal static class ReligionInfoRenderer
             out var confirmed, out var cancelled,
             "Ban");
 
-        if (confirmed) onConfirm();
-        if (cancelled) onCancel();
+        if (confirmed) events.Add(new ReligionInfoEvent.BanConfirm(playerUid));
+        if (cancelled) events.Add(new ReligionInfoEvent.BanCancel());
     }
 }
