@@ -7,7 +7,7 @@ using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using Vintagestory.API.Client;
 
-namespace PantheonWars.GUI.UI.Renderers;
+namespace PantheonWars.GUI.UI.Renderers.Blessing;
 
 /// <summary>
 ///     Renders the selected blessing details panel at the bottom of the dialog
@@ -141,7 +141,7 @@ internal static class BlessingInfoRenderer
                         // Check if we still have space
                         if (currentY > y + height - 20f) break;
 
-                        var prereqState = manager.GetBlessingState(prereqId);
+                        var prereqState = manager.ReligionStateManager.GetBlessingState(prereqId);
                         var prereqName = prereqState?.Blessing.Name ?? prereqId;
                         var prereqText = $"  Unlock: {prereqName}";
 
@@ -258,7 +258,7 @@ internal static class BlessingInfoRenderer
             "maxhealthextramultiplier"
         };
 
-        var isPercentage = percentageStats.Any(ps => statLower.Contains(ps.ToLower()));
+        var isPercentage = percentageStats.Any(ps => statLower.Contains((string)ps.ToLower()));
 
         // Map stat names to friendly display names
         var displayName = statLower switch

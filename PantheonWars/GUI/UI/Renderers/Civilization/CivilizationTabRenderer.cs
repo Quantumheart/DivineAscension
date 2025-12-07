@@ -56,10 +56,14 @@ internal static class CivilizationTabRenderer
                         else state.BrowseError = null;
                         break;
                     case 1:
+                        // My Civilization - refresh data to ensure it's current
                         state.MyCivError = null;
+                        manager.RequestCivilizationInfo();
                         break;
                     case 2:
+                        // Invites - refresh data to ensure it's current
                         state.InvitesError = null;
+                        manager.RequestCivilizationInfo();
                         break;
                 }
             }

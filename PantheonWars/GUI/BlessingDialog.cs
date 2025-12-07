@@ -216,7 +216,7 @@ public partial class BlessingDialog : ModSystem
         DrawBackground(windowWidth, windowHeight);
 
         // Draw UI using BlessingUIRenderer coordinator (Phase 4)
-        BlessingUIRenderer.Draw(
+        MainDialogRenderer.Draw(
             _manager!,
             _capi,
             _state,
@@ -225,7 +225,6 @@ public partial class BlessingDialog : ModSystem
             deltaTime,
             OnUnlockButtonClicked,
             OnCloseButtonClicked
-            // OnManageCivilizationClicked
         );
 
         ImGui.End();

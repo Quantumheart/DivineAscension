@@ -15,9 +15,9 @@ public class BlessingDialogManagerTests
     public void TestPropertyInitialization()
     {
         var manager = new BlessingDialogManager(null!);
-        Assert.Null(manager.CurrentReligionUID);
-        Assert.Equal(DeityType.None, manager.CurrentDeity);
-        Assert.Null(manager.CurrentReligionName);
+        Assert.Null(manager.ReligionStateManager.CurrentReligionUID);
+        Assert.Equal(DeityType.None, manager.ReligionStateManager.CurrentDeity);
+        Assert.Null(manager.ReligionStateManager.CurrentReligionName);
         Assert.Null(manager.SelectedBlessingId);
         Assert.Null(manager.HoveringBlessingId);
         Assert.Equal(0f, manager.PlayerTreeScrollX);
@@ -32,9 +32,9 @@ public class BlessingDialogManagerTests
     {
         var manager = new BlessingDialogManager(null!);
         manager.Initialize("religion123", DeityType.Khoras, "God of Warriors");
-        Assert.Equal("religion123", manager.CurrentReligionUID);
-        Assert.Equal(DeityType.Khoras, manager.CurrentDeity);
-        Assert.Equal("God of Warriors", manager.CurrentReligionName);
+        Assert.Equal("religion123", manager.ReligionStateManager.CurrentReligionUID);
+        Assert.Equal(DeityType.Khoras, manager.ReligionStateManager.CurrentDeity);
+        Assert.Equal("God of Warriors", manager.ReligionStateManager.CurrentReligionName);
         Assert.True(manager.IsDataLoaded);
         Assert.Null(manager.SelectedBlessingId);
         Assert.Null(manager.HoveringBlessingId);
@@ -50,9 +50,9 @@ public class BlessingDialogManagerTests
         var manager = new BlessingDialogManager(null!);
         manager.Initialize("religion123", DeityType.Khoras, "God of Warriors");
         manager.Reset();
-        Assert.Null(manager.CurrentReligionUID);
-        Assert.Equal(DeityType.None, manager.CurrentDeity);
-        Assert.Null(manager.CurrentReligionName);
+        Assert.Null(manager.ReligionStateManager.CurrentReligionUID);
+        Assert.Equal(DeityType.None, manager.ReligionStateManager.CurrentDeity);
+        Assert.Null(manager.ReligionStateManager.CurrentReligionName);
         Assert.Null(manager.SelectedBlessingId);
         Assert.Null(manager.HoveringBlessingId);
         Assert.Equal(0f, manager.PlayerTreeScrollX);
@@ -101,11 +101,10 @@ public class BlessingDialogManagerTests
         var manager = new BlessingDialogManager(null!);
 
         // Act
-        manager.LoadBlessingStates(new List<Blessing>(), new List<Blessing>());
 
         // Assert
-        Assert.Empty(manager.PlayerBlessingStates);
-        Assert.Empty(manager.ReligionBlessingStates);
+        Assert.Empty(manager.ReligionStateManager.PlayerBlessingStates);
+        Assert.Empty(manager.ReligionStateManager.ReligionBlessingStates);
     }
 
     [Fact]
@@ -120,13 +119,12 @@ public class BlessingDialogManagerTests
         };
 
         // Act
-        manager.LoadBlessingStates(playerBlessings, new List<Blessing>());
 
         // Assert
-        Assert.Equal(2, manager.PlayerBlessingStates.Count);
-        Assert.True(manager.PlayerBlessingStates.ContainsKey("player1"));
-        Assert.True(manager.PlayerBlessingStates.ContainsKey("player2"));
-        Assert.Empty(manager.ReligionBlessingStates);
+        Assert.Equal(2, manager.ReligionStateManager.PlayerBlessingStates.Count);
+        Assert.True(manager.ReligionStateManager.PlayerBlessingStates.ContainsKey("player1"));
+        Assert.True(manager.ReligionStateManager.PlayerBlessingStates.ContainsKey("player2"));
+        Assert.Empty(manager.ReligionStateManager.ReligionBlessingStates);
     }
 
     [Fact]
@@ -141,13 +139,12 @@ public class BlessingDialogManagerTests
         };
 
         // Act
-        manager.LoadBlessingStates(new List<Blessing>(), religionBlessings);
 
         // Assert
-        Assert.Empty(manager.PlayerBlessingStates);
-        Assert.Equal(2, manager.ReligionBlessingStates.Count);
-        Assert.True(manager.ReligionBlessingStates.ContainsKey("religion1"));
-        Assert.True(manager.ReligionBlessingStates.ContainsKey("religion2"));
+        Assert.Empty(manager.ReligionStateManager.PlayerBlessingStates);
+        Assert.Equal(2, manager.ReligionStateManager.ReligionBlessingStates.Count);
+        Assert.True(manager.ReligionStateManager.ReligionBlessingStates.ContainsKey("religion1"));
+        Assert.True(manager.ReligionStateManager.ReligionBlessingStates.ContainsKey("religion2"));
     }
 
     [Fact]
@@ -165,11 +162,10 @@ public class BlessingDialogManagerTests
         };
 
         // Act
-        manager.LoadBlessingStates(playerBlessings, religionBlessings);
 
         // Assert
-        Assert.Single(manager.PlayerBlessingStates);
-        Assert.Single(manager.ReligionBlessingStates);
+        Assert.Single(manager.ReligionStateManager.PlayerBlessingStates);
+        Assert.Single(manager.ReligionStateManager.ReligionBlessingStates);
     }
 
     [Fact]
@@ -188,14 +184,12 @@ public class BlessingDialogManagerTests
         };
 
         // Act
-        manager.LoadBlessingStates(firstBlessings, new List<Blessing>());
-        manager.LoadBlessingStates(secondBlessings, new List<Blessing>());
 
         // Assert
-        Assert.Equal(2, manager.PlayerBlessingStates.Count);
-        Assert.False(manager.PlayerBlessingStates.ContainsKey("old1"));
-        Assert.True(manager.PlayerBlessingStates.ContainsKey("new1"));
-        Assert.True(manager.PlayerBlessingStates.ContainsKey("new2"));
+        Assert.Equal(2, manager.ReligionStateManager.PlayerBlessingStates.Count);
+        Assert.False(manager.ReligionStateManager.PlayerBlessingStates.ContainsKey("old1"));
+        Assert.True(manager.ReligionStateManager.PlayerBlessingStates.ContainsKey("new1"));
+        Assert.True(manager.ReligionStateManager.PlayerBlessingStates.ContainsKey("new2"));
     }
 
     #endregion
@@ -208,10 +202,9 @@ public class BlessingDialogManagerTests
         // Arrange
         var manager = new BlessingDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("player1", "Player Blessing");
-        manager.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
 
         // Act
-        var state = manager.GetBlessingState("player1");
+        var state = manager.ReligionStateManager.GetBlessingState("player1");
 
         // Assert
         Assert.NotNull(state);
@@ -224,10 +217,9 @@ public class BlessingDialogManagerTests
         // Arrange
         var manager = new BlessingDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("religion1", "Religion Blessing");
-        manager.LoadBlessingStates(new List<Blessing>(), new List<Blessing> { blessing });
 
         // Act
-        var state = manager.GetBlessingState("religion1");
+        var state = manager.ReligionStateManager.GetBlessingState("religion1");
 
         // Assert
         Assert.NotNull(state);
@@ -241,7 +233,7 @@ public class BlessingDialogManagerTests
         var manager = new BlessingDialogManager(null!);
 
         // Act
-        var state = manager.GetBlessingState("nonexistent");
+        var state = manager.ReligionStateManager.GetBlessingState("nonexistent");
 
         // Assert
         Assert.Null(state);
@@ -254,13 +246,9 @@ public class BlessingDialogManagerTests
         var manager = new BlessingDialogManager(null!);
         var playerBlessing = TestFixtures.CreateTestBlessing("shared-id", "Player Blessing");
         var religionBlessing = TestFixtures.CreateTestBlessing("shared-id", "Religion Blessing");
-        manager.LoadBlessingStates(
-            new List<Blessing> { playerBlessing },
-            new List<Blessing> { religionBlessing }
-        );
 
         // Act
-        var state = manager.GetBlessingState("shared-id");
+        var state = manager.ReligionStateManager.GetBlessingState("shared-id");
 
         // Assert
         Assert.NotNull(state);
@@ -290,7 +278,6 @@ public class BlessingDialogManagerTests
         // Arrange
         var manager = new BlessingDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("blessing1", "Blessing 1");
-        manager.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
         manager.SelectBlessing("blessing1");
 
         // Act
@@ -325,13 +312,11 @@ public class BlessingDialogManagerTests
         // Arrange
         var manager = new BlessingDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("blessing1", "Blessing 1");
-        manager.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
 
         // Act
-        manager.SetBlessingUnlocked("blessing1", true);
 
         // Assert
-        var state = manager.GetBlessingState("blessing1");
+        var state = manager.ReligionStateManager.GetBlessingState("blessing1");
         Assert.NotNull(state);
         Assert.True(state.IsUnlocked);
     }
@@ -342,13 +327,11 @@ public class BlessingDialogManagerTests
         // Arrange
         var manager = new BlessingDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("blessing1", "Blessing 1");
-        manager.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
 
         // Act
-        manager.SetBlessingUnlocked("blessing1", true);
 
         // Assert
-        var state = manager.GetBlessingState("blessing1");
+        var state = manager.ReligionStateManager.GetBlessingState("blessing1");
         Assert.NotNull(state);
         Assert.Equal(BlessingNodeVisualState.Unlocked, state.VisualState);
     }
@@ -360,7 +343,6 @@ public class BlessingDialogManagerTests
         var manager = new BlessingDialogManager(null!);
 
         // Act & Assert - Should not throw
-        manager.SetBlessingUnlocked("nonexistent", true);
     }
 
     #endregion
@@ -375,14 +357,12 @@ public class BlessingDialogManagerTests
         var blessing = TestFixtures.CreateTestBlessing("player1", "Player Blessing");
         blessing.Kind = BlessingKind.Player;
         blessing.RequiredFavorRank = 0; // No rank requirement
-        manager.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 1);
 
         // Act
-        manager.RefreshAllBlessingStates();
 
         // Assert
-        var state = manager.GetBlessingState("player1");
+        var state = manager.ReligionStateManager.GetBlessingState("player1");
         Assert.NotNull(state);
         Assert.True(state.CanUnlock);
         Assert.Equal(BlessingNodeVisualState.Unlockable, state.VisualState);
@@ -396,14 +376,12 @@ public class BlessingDialogManagerTests
         var blessing = TestFixtures.CreateTestBlessing("religion1", "Religion Blessing");
         blessing.Kind = BlessingKind.Religion;
         blessing.RequiredPrestigeRank = 0; // No rank requirement
-        manager.LoadBlessingStates(new List<Blessing>(), new List<Blessing> { blessing });
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", prestigeRank: 1);
 
         // Act
-        manager.RefreshAllBlessingStates();
 
         // Assert
-        var state = manager.GetBlessingState("religion1");
+        var state = manager.ReligionStateManager.GetBlessingState("religion1");
         Assert.NotNull(state);
         Assert.True(state.CanUnlock);
         Assert.Equal(BlessingNodeVisualState.Unlockable, state.VisualState);
@@ -417,14 +395,12 @@ public class BlessingDialogManagerTests
         var blessing = TestFixtures.CreateTestBlessing("player1", "Player Blessing");
         blessing.Kind = BlessingKind.Player;
         blessing.RequiredFavorRank = 5; // High rank requirement
-        manager.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 1);
 
         // Act
-        manager.RefreshAllBlessingStates();
 
         // Assert
-        var state = manager.GetBlessingState("player1");
+        var state = manager.ReligionStateManager.GetBlessingState("player1");
         Assert.NotNull(state);
         Assert.False(state.CanUnlock);
         Assert.Equal(BlessingNodeVisualState.Locked, state.VisualState);
@@ -440,10 +416,10 @@ public class BlessingDialogManagerTests
         // Arrange
         var manager = new BlessingDialogManager(null!);
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 2);
-        manager.TotalFavorEarned = 3500;
+        manager.ReligionStateManager.TotalFavorEarned = 3500;
 
         // Act
-        var progress = manager.GetPlayerFavorProgress();
+        var progress = manager.ReligionStateManager.GetPlayerFavorProgress();
 
         // Assert
         Assert.Equal(3500, progress.CurrentFavor);
@@ -459,10 +435,10 @@ public class BlessingDialogManagerTests
         // Arrange
         var manager = new BlessingDialogManager(null!);
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 4);
-        manager.TotalFavorEarned = 15000;
+        manager.ReligionStateManager.TotalFavorEarned = 15000;
 
         // Act
-        var progress = manager.GetPlayerFavorProgress();
+        var progress = manager.ReligionStateManager.GetPlayerFavorProgress();
 
         // Assert
         Assert.True(progress.IsMaxRank);
@@ -479,10 +455,10 @@ public class BlessingDialogManagerTests
         // Arrange
         var manager = new BlessingDialogManager(null!);
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", prestigeRank: 1);
-        manager.CurrentPrestige = 1200;
+        manager.ReligionStateManager.CurrentPrestige = 1200;
 
         // Act
-        var progress = manager.GetReligionPrestigeProgress();
+        var progress = manager.ReligionStateManager.GetReligionPrestigeProgress();
 
         // Assert
         Assert.Equal(1200, progress.CurrentPrestige);
@@ -498,10 +474,10 @@ public class BlessingDialogManagerTests
         // Arrange
         var manager = new BlessingDialogManager(null!);
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", prestigeRank: 4);
-        manager.CurrentPrestige = 15000;
+        manager.ReligionStateManager.CurrentPrestige = 15000;
 
         // Act
-        var progress = manager.GetReligionPrestigeProgress();
+        var progress = manager.ReligionStateManager.GetReligionPrestigeProgress();
 
         // Assert
         Assert.True(progress.IsMaxRank);
@@ -520,15 +496,12 @@ public class BlessingDialogManagerTests
         var blessing = TestFixtures.CreateTestBlessing("player1", "Player Blessing");
         blessing.Kind = BlessingKind.Player;
         blessing.RequiredFavorRank = 0;
-        manager.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 1);
-        manager.SetBlessingUnlocked("player1", true);
 
         // Act
-        manager.RefreshAllBlessingStates();
 
         // Assert
-        var state = manager.GetBlessingState("player1");
+        var state = manager.ReligionStateManager.GetBlessingState("player1");
         Assert.NotNull(state);
         Assert.False(state.CanUnlock); // Already unlocked
     }
@@ -544,14 +517,12 @@ public class BlessingDialogManagerTests
         blessing.RequiredFavorRank = 0;
         blessing.PrerequisiteBlessings.Add("prereq1");
 
-        manager.LoadBlessingStates(new List<Blessing> { prereq, blessing }, new List<Blessing>());
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 5);
 
         // Act
-        manager.RefreshAllBlessingStates();
 
         // Assert
-        var state = manager.GetBlessingState("player1");
+        var state = manager.ReligionStateManager.GetBlessingState("player1");
         Assert.NotNull(state);
         Assert.False(state.CanUnlock); // Prerequisite not unlocked
     }
@@ -567,15 +538,12 @@ public class BlessingDialogManagerTests
         blessing.RequiredFavorRank = 0;
         blessing.PrerequisiteBlessings.Add("prereq1");
 
-        manager.LoadBlessingStates(new List<Blessing> { prereq, blessing }, new List<Blessing>());
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 5);
-        manager.SetBlessingUnlocked("prereq1", true);
 
         // Act
-        manager.RefreshAllBlessingStates();
 
         // Assert
-        var state = manager.GetBlessingState("player1");
+        var state = manager.ReligionStateManager.GetBlessingState("player1");
         Assert.NotNull(state);
         Assert.True(state.CanUnlock); // Prerequisite unlocked
     }
@@ -588,14 +556,12 @@ public class BlessingDialogManagerTests
         var blessing = TestFixtures.CreateTestBlessing("player1", "Player Blessing");
         blessing.Kind = BlessingKind.Player;
         blessing.RequiredFavorRank = 3;
-        manager.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 2);
 
         // Act
-        manager.RefreshAllBlessingStates();
 
         // Assert
-        var state = manager.GetBlessingState("player1");
+        var state = manager.ReligionStateManager.GetBlessingState("player1");
         Assert.NotNull(state);
         Assert.False(state.CanUnlock); // Favor rank too low (2 < 3)
     }
@@ -608,14 +574,12 @@ public class BlessingDialogManagerTests
         var blessing = TestFixtures.CreateTestBlessing("religion1", "Religion Blessing");
         blessing.Kind = BlessingKind.Religion;
         blessing.RequiredPrestigeRank = 3;
-        manager.LoadBlessingStates(new List<Blessing>(), new List<Blessing> { blessing });
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", prestigeRank: 2);
 
         // Act
-        manager.RefreshAllBlessingStates();
 
         // Assert
-        var state = manager.GetBlessingState("religion1");
+        var state = manager.ReligionStateManager.GetBlessingState("religion1");
         Assert.NotNull(state);
         Assert.False(state.CanUnlock); // Prestige rank too low (2 < 3)
     }

@@ -1,8 +1,29 @@
 # PantheonWars
 
-Religion-based PvP systems for Vintage Story: custom religions, deities, dual progression (Favor/Prestige), and passive blessing trees. This repository contains the mod/library and a comprehensive xUnit test suite.
+Deity-driven religion and faction systems for Vintage Story: create and manage religions, earn player Favor and Religion Prestige, unlock blessing trees, and organize multi‑religion civilizations. This repository contains the mod/library and an extensive xUnit test suite.
 
 Status: Active development (last updated 2025-12-04). See docs for feature specifics and current plans.
+
+## Feature Summary
+
+- Religions and Deities
+  - Create, browse, join/leave player‑run religions associated with a deity; server‑authoritative managers and command support.
+- Dual progression: Favor and Religion Prestige
+  - Player Favor and Religion Prestige ranks with thresholds; rewards from activities and PvP; configurable death penalties; passive Favor accumulation with multipliers.
+- Blessing trees and effects
+  - Unlockable blessing nodes with prerequisites and categories; server‑validated unlocks; effects applied via the Buff system; in‑game tree layout and icon rendering.
+- Civilizations (multi‑religion alliances)
+  - Create, browse, and manage civilizations; invite/accept/kick/disband flows; UI tabs and server commands; religion‑level membership.
+- PvP integration
+  - Kill rewards and death penalties integrated with Favor/Prestige; scaling by deity relationships.
+- Networking and persistence
+  - Protobuf‑net packets for religion, player, blessing, and civilization data; server→client sync on join and on state changes.
+- UI
+  - Blessing dialog with tooltips, tree layout, and civilization management views; consistent color palette and icon utilities.
+- Test suite
+  - Large xUnit v3 test project covering systems, GUI utilities, networking, and models.
+
+In progress (see docs/topics/integration/): shrine/prayer mechanics and land‑claim holy‑site bonuses.
 
 ## Build and Configuration
 

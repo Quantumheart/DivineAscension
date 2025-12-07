@@ -349,9 +349,14 @@ public class ReligionCommands(
             return TextCommandResult.Error($"{targetPlayerName} is already a member of {religion.ReligionName}");
 
         // Send invitation
-        _religionManager.InvitePlayer(religion.ReligionUID, targetPlayer.PlayerUID, player.PlayerUID);
+        var success = _religionManager.InvitePlayer(religion.ReligionUID, targetPlayer.PlayerUID, player.PlayerUID);
 
-        // Notify target player
+        if (!success)
+        {
+            return TextCommandResult.Error("Failed to send invitation. They may already have a pending invite.");
+        }
+
+        // Notify target player (only if successful)
         targetPlayer.SendMessage(
             GlobalConstants.GeneralChatGroup,
             $"You have been invited to join {religion.ReligionName}! Use /religion join {religion.ReligionName} to accept.",

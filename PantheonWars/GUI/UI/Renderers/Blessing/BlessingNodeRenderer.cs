@@ -5,7 +5,7 @@ using ImGuiNET;
 using PantheonWars.Models;
 using Vintagestory.API.Client;
 
-namespace PantheonWars.GUI.UI.Renderers;
+namespace PantheonWars.GUI.UI.Renderers.Blessing;
 
 /// <summary>
 ///     Renders individual blessing nodes in the tree

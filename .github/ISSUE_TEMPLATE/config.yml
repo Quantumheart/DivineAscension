@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/quantumheart/PantheonWars#readme
+    about: Read the README for setup, build, and usage information.
+  - name: Build & Test Guidelines
+    url: https://github.com/quantumheart/PantheonWars/blob/main/README.md
+    about: See repository-specific build and testing notes in the repository.

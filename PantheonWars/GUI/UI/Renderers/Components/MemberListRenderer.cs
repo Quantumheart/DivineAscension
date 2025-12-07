@@ -164,7 +164,7 @@ public static class MemberListRenderer
                 {
                     api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
                         api.World.Player.Entity, null, false, 8f, 0.5f);
-                    onBanMember.Invoke(member.PlayerUID);
+                    onBanMember?.Invoke(member.PlayerUID);
                 }
             }
 

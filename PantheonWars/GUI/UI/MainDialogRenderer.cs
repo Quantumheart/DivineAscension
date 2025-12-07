@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using ImGuiNET;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Components;
-using PantheonWars.GUI.UI.Renderers;
+using PantheonWars.GUI.UI.Renderers.Blessing;
 using PantheonWars.GUI.UI.Renderers.Civilization;
 using PantheonWars.GUI.UI.Renderers.Religion;
 using PantheonWars.Models;
@@ -14,11 +14,12 @@ namespace PantheonWars.GUI.UI;
 
 /// <summary>
 ///     Central coordinator that orchestrates all blessing UI renderers
-///     Follows XSkillsGilded pattern - calls renderers in correct order with proper layout
 /// </summary>
 [ExcludeFromCodeCoverage]
-internal static class BlessingUIRenderer
+internal static class MainDialogRenderer
 {
+    private static readonly string[] MainTabNames = [nameof(MainDialogTab.Religion), nameof(MainDialogTab.Blessings), nameof(MainDialogTab.Civilization)];
+
     /// <summary>
     ///     Draw the complete blessing UI
     /// </summary>
@@ -59,14 +60,13 @@ internal static class BlessingUIRenderer
 
         // === 2. MAIN TABS ===
         var drawList = ImGui.GetWindowDrawList();
-        var mainTabs = new[] { "Religion", "Blessings", "Civilization" };
         var newMainTab = TabControl.Draw(
             drawList,
             windowPos.X + x,
             windowPos.Y + y,
             width,
             tabHeight,
-            mainTabs,
+            MainTabNames,
             (int)state.CurrentMainTab
         );
 
@@ -74,17 +74,24 @@ internal static class BlessingUIRenderer
         {
             state.CurrentMainTab = (MainDialogTab)newMainTab;
 
-            if (newMainTab == 1) // Religion tab
+            if (newMainTab == 0) // Religion tab
             {
                 // Request both browse and my religion data
-                manager.ReligionState.IsBrowseLoading = true;
-                manager.RequestReligionList(manager.ReligionState.DeityFilter);
+                manager.ReligionStateManager.State.IsBrowseLoading = true;
+                manager.ReligionStateManager.RequestReligionList(manager.ReligionStateManager.State.DeityFilter);
 
+
+                // Request player religion info (includes invitations if player has no religion)
                 if (manager.HasReligion())
                 {
-                    manager.ReligionState.IsMyReligionLoading = true;
-                    manager.RequestPlayerReligionInfo();
+                    manager.ReligionStateManager.State.IsMyReligionLoading = true;
                 }
+                else
+                {
+                    manager.ReligionStateManager.State.IsInvitesLoading = true;
+                }
+
+                manager.ReligionStateManager.RequestPlayerReligionInfo();
             }
             else if (newMainTab == 2) // Civilization tab
             {
@@ -100,12 +107,12 @@ internal static class BlessingUIRenderer
 
         switch (state.CurrentMainTab)
         {
+            case MainDialogTab.Religion: // Manage Religion
+                ReligionTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);
+                break;
             case MainDialogTab.Blessings: // Blessings
                 DrawBlessingsTab(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight,
                     windowWidth, windowHeight, deltaTime, onUnlockClicked, onCloseClicked);
-                break;
-            case MainDialogTab.ManageReligion: // Manage Religion
-                ReligionTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);
                 break;
             case MainDialogTab.Civilization: // Civilization
                 CivilizationTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);
@@ -164,14 +171,14 @@ internal static class BlessingUIRenderer
         // Tooltips
         if (!string.IsNullOrEmpty(hoveringBlessingId))
         {
-            var hoveringState = manager.GetBlessingState(hoveringBlessingId);
+            var hoveringState = manager.ReligionStateManager.GetBlessingState(hoveringBlessingId);
             if (hoveringState != null)
             {
                 var allBlessings = new Dictionary<string, Blessing>();
-                foreach (var s in manager.PlayerBlessingStates.Values)
+                foreach (var s in manager.ReligionStateManager.PlayerBlessingStates.Values)
                     if (!allBlessings.ContainsKey(s.Blessing.BlessingId))
                         allBlessings[s.Blessing.BlessingId] = s.Blessing;
-                foreach (var s in manager.ReligionBlessingStates.Values)
+                foreach (var s in manager.ReligionStateManager.ReligionBlessingStates.Values)
                     if (!allBlessings.ContainsKey(s.Blessing.BlessingId))
                         allBlessings[s.Blessing.BlessingId] = s.Blessing;
 

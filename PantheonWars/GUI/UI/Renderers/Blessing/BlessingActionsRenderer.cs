@@ -5,7 +5,7 @@ using ImGuiNET;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
-namespace PantheonWars.GUI.UI.Renderers;
+namespace PantheonWars.GUI.UI.Renderers.Blessing;
 
 /// <summary>
 ///     Renders action buttons (Unlock, Close) at the bottom-right of the dialog

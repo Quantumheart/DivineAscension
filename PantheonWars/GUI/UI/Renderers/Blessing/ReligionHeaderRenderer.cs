@@ -8,7 +8,7 @@ using PantheonWars.Models.Enum;
 using PantheonWars.Systems;
 using Vintagestory.API.Client;
 
-namespace PantheonWars.GUI.UI.Renderers;
+namespace PantheonWars.GUI.UI.Renderers.Blessing;
 
 /// <summary>
 ///     Renders the religion/deity header banner at the top of the blessing dialog
@@ -61,15 +61,12 @@ internal static class ReligionHeaderRenderer
 
             var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
             drawList.AddText(ImGui.GetFont(), 16f, textPos, textColor, noReligionText);
-
-            // Previously, a "Browse Religions" button was rendered here. It has been removed.
-
+            
             return headerHeight;
         }
 
         // Layout calculations (support two columns when civilization exists)
         var innerX = x + padding;
-        var innerY = y + 0f;
         var innerWidth = width - padding * 2f;
         // Show two columns if the game reports a civilization OR if we have any civ metadata to show
         var twoColumns = manager.HasCivilization()
@@ -84,7 +81,7 @@ internal static class ReligionHeaderRenderer
 
         // Draw deity icon (with fallback to colored circle)
         const float iconSize = 48f;
-        var deityTextureId = DeityIconLoader.GetDeityTextureId(manager.CurrentDeity);
+        var deityTextureId = DeityIconLoader.GetDeityTextureId(manager.ReligionStateManager.CurrentDeity);
 
         if (deityTextureId != IntPtr.Zero)
         {
@@ -94,7 +91,7 @@ internal static class ReligionHeaderRenderer
             var iconMax = new Vector2(iconPos.X + iconSize, iconPos.Y + iconSize);
 
             // Draw icon with deity color tint for visual cohesion
-            var tintColor = DeityHelper.GetDeityColor(manager.CurrentDeity);
+            var tintColor = DeityHelper.GetDeityColor(manager.ReligionStateManager.CurrentDeity);
             var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)); // Full white = no tint
 
             drawList.AddImage(deityTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
@@ -107,15 +104,15 @@ internal static class ReligionHeaderRenderer
         {
             // Fallback: Use placeholder colored circle if texture not available
             var iconCenter = new Vector2(currentX + iconSize / 2, centerY);
-            var iconColor = ImGui.ColorConvertFloat4ToU32(DeityHelper.GetDeityColor(manager.CurrentDeity));
+            var iconColor = ImGui.ColorConvertFloat4ToU32(DeityHelper.GetDeityColor(manager.ReligionStateManager.CurrentDeity));
             drawList.AddCircleFilled(iconCenter, iconSize / 2, iconColor, 16);
         }
 
         currentX += iconSize + padding;
 
         // Religion name and deity
-        var religionName = manager.CurrentReligionName ?? "Unknown Religion";
-        var deityName = GetDeityDisplayName(manager.CurrentDeity);
+        var religionName = manager.ReligionStateManager.CurrentReligionName ?? "Unknown Religion";
+        var deityName = GetDeityDisplayName(manager.ReligionStateManager.CurrentDeity);
         var headerText = $"{religionName} - {deityName}";
 
         var headerTextPos = new Vector2(currentX, y + 12f);
@@ -123,11 +120,11 @@ internal static class ReligionHeaderRenderer
         drawList.AddText(ImGui.GetFont(), 18f, headerTextPos, headerTextColor, headerText);
 
         // Member count and role
-        var memberInfo = manager.ReligionMemberCount > 0
-            ? $"{manager.ReligionMemberCount} member{(manager.ReligionMemberCount == 1 ? "" : "s")}"
+        var memberInfo = manager.ReligionStateManager.ReligionMemberCount > 0
+            ? $"{manager.ReligionStateManager.ReligionMemberCount} member{(manager.ReligionStateManager.ReligionMemberCount == 1 ? "" : "s")}"
             : "No members";
-        var roleInfo = !string.IsNullOrEmpty(manager.PlayerRoleInReligion)
-            ? $" | {manager.PlayerRoleInReligion}"
+        var roleInfo = !string.IsNullOrEmpty(manager.ReligionStateManager.PlayerRoleInReligion)
+            ? $" | {manager.ReligionStateManager.PlayerRoleInReligion}"
             : "";
         var infoText = $"{memberInfo}{roleInfo}";
         var infoTextPos = new Vector2(currentX, y + 35f);
@@ -143,7 +140,7 @@ internal static class ReligionHeaderRenderer
         const float progressBarSpacing = 22f;
 
         // Player Favor Progress
-        var favorProgress = manager.GetPlayerFavorProgress();
+        var favorProgress = manager.ReligionStateManager.GetPlayerFavorProgress();
         var favorLabel = favorProgress.IsMaxRank
             ? $"{RankRequirements.GetFavorRankName(favorProgress.CurrentRank)} (MAX)"
             : $"{RankRequirements.GetFavorRankName(favorProgress.CurrentRank)} ({favorProgress.CurrentFavor}/{favorProgress.RequiredFavor})";
@@ -167,7 +164,7 @@ internal static class ReligionHeaderRenderer
         progressY += progressBarSpacing;
 
         // Religion Prestige Progress
-        var prestigeProgress = manager.GetReligionPrestigeProgress();
+        var prestigeProgress = manager.ReligionStateManager.GetReligionPrestigeProgress();
         var prestigeLabel = prestigeProgress.IsMaxRank
             ? $"{RankRequirements.GetPrestigeRankName(prestigeProgress.CurrentRank)} (MAX)"
             : $"{RankRequirements.GetPrestigeRankName(prestigeProgress.CurrentRank)} ({prestigeProgress.CurrentPrestige}/{prestigeProgress.RequiredPrestige})";
@@ -223,7 +220,7 @@ internal static class ReligionHeaderRenderer
             civCurrentY += 22f;
 
             // Member religions with deity colors
-            var memberCount = manager.CivilizationMemberReligions.Count;
+            var memberCount = manager.CivilizationMemberReligions?.Count;
             var memberText = $"{memberCount}/4 Religions: ";
             var memberPos = new Vector2(civCurrentX, civCurrentY);
             var memberColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
@@ -233,7 +230,7 @@ internal static class ReligionHeaderRenderer
             var deityIconX = civCurrentX + textSize.X + 4f;
             const float deityIconSize = 16f;
             const float deityIconSpacing = 4f;
-            foreach (var memberReligion in manager.CivilizationMemberReligions)
+            foreach (var memberReligion in manager.CivilizationMemberReligions!)
                 if (Enum.TryParse<DeityType>(memberReligion.Deity, out var deityType))
                 {
                     var deityColor = DeityHelper.GetDeityColor(deityType);
@@ -285,92 +282,6 @@ internal static class ReligionHeaderRenderer
             DeityType.Gaia => "Gaia - Goddess of Earth",
             _ => "Unknown Deity"
         };
-    }
-
-    /// <summary>
-    ///     Get favor rank name from rank number
-    /// </summary>
-    private static string GetFavorRankName(int rank)
-    {
-        return rank switch
-        {
-            0 => "Initiate",
-            1 => "Devoted",
-            2 => "Zealot",
-            3 => "Champion",
-            4 => "Exalted",
-            _ => $"Rank {rank}"
-        };
-    }
-
-    /// <summary>
-    ///     Get prestige rank name from rank number
-    /// </summary>
-    private static string GetPrestigeRankName(int rank)
-    {
-        return rank switch
-        {
-            0 => "Fledgling",
-            1 => "Established",
-            2 => "Renowned",
-            3 => "Legendary",
-            4 => "Mythic",
-            _ => $"Rank {rank}"
-        };
-    }
-
-    /// <summary>
-    ///     Draw a simple button
-    /// </summary>
-    /// <param name="baseColor">Optional base color override (defaults to ColorPalette.DarkBrown)</param>
-    /// <returns>True if clicked</returns>
-    private static bool DrawButton(string text, float x, float y, float width, float height, Vector4? baseColor = null)
-    {
-        var drawList = ImGui.GetWindowDrawList();
-        var buttonStart = new Vector2(x, y);
-        var buttonEnd = new Vector2(x + width, y + height);
-
-        var isHovering = IsMouseInRect(x, y, width, height);
-        var actualBaseColor = baseColor ?? ColorPalette.DarkBrown;
-
-        // Determine button color based on state
-        Vector4 currentColor;
-        if (isHovering && ImGui.IsMouseDown(ImGuiMouseButton.Left))
-        {
-            // Pressed state
-            currentColor = actualBaseColor * 0.8f;
-        }
-        else if (isHovering)
-        {
-            // Hover state
-            currentColor = actualBaseColor * 1.3f;
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-        }
-        else
-        {
-            // Normal state
-            currentColor = actualBaseColor;
-        }
-
-        // Draw button background
-        var bgColor = ImGui.ColorConvertFloat4ToU32(currentColor);
-        drawList.AddRectFilled(buttonStart, buttonEnd, bgColor, 4f);
-
-        // Draw border
-        var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.7f);
-        drawList.AddRect(buttonStart, buttonEnd, borderColor, 4f, ImDrawFlags.None, 1.5f);
-
-        // Draw button text (centered)
-        var textSize = ImGui.CalcTextSize(text);
-        var textPos = new Vector2(
-            x + (width - textSize.X) / 2,
-            y + (height - textSize.Y) / 2
-        );
-        var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
-        drawList.AddText(textPos, textColor, text);
-
-        // Handle click
-        return isHovering && ImGui.IsMouseReleased(ImGuiMouseButton.Left);
     }
 
     /// <summary>

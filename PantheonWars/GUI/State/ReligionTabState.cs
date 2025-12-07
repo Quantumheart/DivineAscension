@@ -3,6 +3,7 @@ using PantheonWars.Network;
 
 namespace PantheonWars.GUI.State;
 
+
 /// <summary>
 ///     State container for the Religion tab in BlessingDialog
 ///     Follows the same pattern as CivilizationState
@@ -38,12 +39,7 @@ public class ReligionTabState
     public float InvitesScrollY { get; set; }
     public bool IsInvitesLoading { get; set; }
     public string? InvitesError { get; set; }
-
-    // Create tab state
-    public string CreateReligionName { get; set; } = string.Empty;
-    public string CreateDeity { get; set; } = "Khoras";
-    public bool CreateIsPublic { get; set; } = true;
-
+    
     // Activity tab state (placeholder for now)
     public List<string> ActivityLog { get; set; } = new(); // Future: activity events
     public float ActivityScrollY { get; set; }
@@ -56,6 +52,8 @@ public class ReligionTabState
     public string? BrowseError { get; set; }
     public string? MyReligionError { get; set; }
     public string? CreateError { get; set; }
+
+    public ReligionCreateState ReligionCreateState { get; } = new ();
 
     /// <summary>
     ///     Reset all state to default values
@@ -92,9 +90,9 @@ public class ReligionTabState
         InvitesError = null;
 
         // Create tab
-        CreateReligionName = string.Empty;
-        CreateDeity = "Khoras";
-        CreateIsPublic = true;
+        ReligionCreateState.Name = string.Empty;
+        ReligionCreateState.DeityName = "Khoras";
+        ReligionCreateState.IsPublic = true;
 
         // Activity tab
         ActivityLog.Clear();
@@ -110,6 +108,14 @@ public class ReligionTabState
         CreateError = null;
     }
 }
+
+public class ReligionCreateState
+{
+    public string Name { get; set; } = string.Empty;
+    public string DeityName { get; set; } = "Khoras";
+    public bool IsPublic { get; set; } = true;
+}
+
 
 public enum ReligionSubTab
 {

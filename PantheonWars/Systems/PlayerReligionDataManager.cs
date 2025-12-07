@@ -13,7 +13,7 @@ namespace PantheonWars.Systems;
 /// <summary>
 ///     Manages player-religion relationships and player progression
 /// </summary>
-public class PlayerReligionDataManager : IPlayerReligionDataManager, IDisposable
+public class PlayerReligionDataManager : IPlayerReligionDataManager
 {
     public delegate void PlayerDataChangedDelegate(string playerUID);
 

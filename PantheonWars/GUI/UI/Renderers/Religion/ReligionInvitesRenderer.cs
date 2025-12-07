@@ -1,83 +1,163 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using ImGuiNET;
+using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Models.Religion.Invites;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Lists;
 using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.Network;
-using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI.Renderers.Religion;
 
+/// <summary>
+/// Pure renderer for religion invitations list
+/// Takes immutable view model, returns events representing user interactions
+/// </summary>
 internal static class ReligionInvitesRenderer
 {
-    public static float Draw(
-        BlessingDialogManager manager,
-        ICoreClientAPI api,
-        float x, float y, float width, float height)
+    /// <summary>
+    /// Renders the invites list
+    /// Pure function: ViewModel + DrawList → RenderResult
+    /// </summary>
+    public static ReligionInvitesRenderResult Draw(
+        ReligionInvitesViewModel viewModel,
+        ImDrawListPtr drawList)
     {
-        var state = manager.ReligionState;
-        var drawList = ImGui.GetWindowDrawList();
-        var currentY = y;
+        var events = new List<ReligionInvitesEvent>();
+        var currentY = viewModel.Y;
 
-        TextRenderer.DrawLabel(drawList, "Your Religion Invitations", x, currentY, 18f, ColorPalette.White);
+        // === HEADER ===
+        TextRenderer.DrawLabel(
+            drawList,
+            "Your Religion Invitations",
+            viewModel.X,
+            currentY,
+            18f,
+            ColorPalette.White);
         currentY += 26f;
 
-        // Help text
-        TextRenderer.DrawInfoText(drawList, "These are invitations you've received from religions.", x, currentY,
-            width);
+        // === HELP TEXT ===
+        TextRenderer.DrawInfoText(
+            drawList,
+            "These are invitations you've received from religions.",
+            viewModel.X,
+            currentY,
+            viewModel.Width);
         currentY += 32f;
 
-        if (state.MyInvites.Count == 0)
+        // === EMPTY STATE ===
+        if (!viewModel.HasInvites)
         {
-            var info = state.IsInvitesLoading ? "Loading invitations..." : "No pending invitations.";
-            TextRenderer.DrawInfoText(drawList, info, x, currentY + 8f, width);
-            return height;
+            TextRenderer.DrawInfoText(
+                drawList,
+                viewModel.EmptyStateMessage,
+                viewModel.X,
+                currentY + 8f,
+                viewModel.Width);
+
+            return new ReligionInvitesRenderResult(events, viewModel.Height);
         }
 
-        state.InvitesScrollY = ScrollableList.Draw(
+        // === SCROLLABLE LIST ===
+        var listHeight = viewModel.Height - (currentY - viewModel.Y);
+
+        // Convert IReadOnlyList to List for ScrollableList.Draw
+        var invitesList = viewModel.Invites.ToList();
+
+        var newScrollY = ScrollableList.Draw(
             drawList,
-            x,
+            viewModel.X,
             currentY,
-            width,
-            height - (currentY - y),
-            state.MyInvites,
-            80f,
-            10f,
-            state.InvitesScrollY,
-            (invite, cx, cy, cw, ch) => DrawInviteCard(invite, cx, cy, cw, ch, manager, api),
-            loadingText: state.IsInvitesLoading ? "Loading invitations..." : null
+            viewModel.Width,
+            listHeight,
+            invitesList,
+            80f,  // itemHeight
+            10f,  // itemSpacing
+            viewModel.ScrollY,
+            (invite, cx, cy, cw, ch) =>
+                DrawInviteCard(invite, cx, cy, cw, ch, drawList, viewModel.IsLoading, events),
+            loadingText: viewModel.IsLoading ? "Loading invitations..." : null
         );
 
-        return height;
+        // Emit scroll event if changed
+        if (newScrollY != viewModel.ScrollY)
+        {
+            events.Add(new ReligionInvitesEvent.ScrollChanged(newScrollY));
+        }
+
+        return new ReligionInvitesRenderResult(events, viewModel.Height);
     }
 
+    /// <summary>
+    /// Draws a single invite card
+    /// </summary>
     private static void DrawInviteCard(
-        PlayerReligionInfoResponsePacket.ReligionInviteInfo invite,
-        float x,
-        float y,
-        float width,
-        float height,
-        BlessingDialogManager manager,
-        ICoreClientAPI api)
+        InviteData invite,
+        float x, float y, float width, float height,
+        ImDrawListPtr drawList,
+        bool isLoading,
+        List<ReligionInvitesEvent> events)
     {
-        var drawList = ImGui.GetWindowDrawList();
-        drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width, y + height),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown), 4f);
+        // === CARD BACKGROUND ===
+        drawList.AddRectFilled(
+            new Vector2(x, y),
+            new Vector2(x + width, y + height),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown),
+            4f);
 
-        TextRenderer.DrawLabel(drawList, "Invitation to Religion", x + 12f, y + 8f, 16f);
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 14f, y + 30f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), $"Religion: {invite.ReligionName}");
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 14f, y + 48f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), $"Expires: {invite.ExpiresAt:yyyy-MM-dd HH:mm}");
+        // === CARD CONTENT ===
+        TextRenderer.DrawLabel(
+            drawList,
+            "Invitation to Religion",
+            x + 12f,
+            y + 8f,
+            16f);
 
-        var enabled = !manager.ReligionState.IsInvitesLoading;
-        if (ButtonRenderer.DrawButton(drawList, "Accept", x + width - 180f, y + height - 32f, 80f, 28f, true,
-                enabled))
-            // Use TargetPlayerUID to carry InviteId as per server handler
-            manager.RequestReligionAction("accept", string.Empty, invite.InviteId);
+        drawList.AddText(
+            ImGui.GetFont(),
+            14f,
+            new Vector2(x + 14f, y + 30f),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
+            $"Religion: {invite.ReligionName}");
 
-        if (ButtonRenderer.DrawButton(drawList, "Decline", x + width - 90f, y + height - 32f, 80f, 28f,
-                false, enabled))
-            manager.RequestReligionAction("decline", string.Empty, invite.InviteId);
+        drawList.AddText(
+            ImGui.GetFont(),
+            14f,
+            new Vector2(x + 14f, y + 48f),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
+            invite.FormattedExpiration);
+
+        // === ACTION BUTTONS ===
+        var buttonsEnabled = !isLoading;
+        var buttonY = y + height - 32f;
+
+        // Accept button
+        if (ButtonRenderer.DrawButton(
+            drawList,
+            "Accept",
+            x + width - 180f,
+            buttonY,
+            80f,
+            28f,
+            isPrimary: true,
+            enabled: buttonsEnabled))
+        {
+            events.Add(new ReligionInvitesEvent.AcceptInviteClicked(invite.InviteId));
+        }
+
+        // Decline button
+        if (ButtonRenderer.DrawButton(
+            drawList,
+            "Decline",
+            x + width - 90f,
+            buttonY,
+            80f,
+            28f,
+            isPrimary: false,
+            enabled: buttonsEnabled))
+        {
+            events.Add(new ReligionInvitesEvent.DeclineInviteClicked(invite.InviteId));
+        }
     }
 }

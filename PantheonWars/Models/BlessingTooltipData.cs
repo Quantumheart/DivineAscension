@@ -108,7 +108,7 @@ public class BlessingTooltipData
             tooltip.FormattedStats.Add(FormatStatModifier(stat.Key, stat.Value));
 
         // Add special effects
-        tooltip.SpecialEffectDescriptions.AddRange(blessing.SpecialEffects);
+        if (blessing.SpecialEffects != null) tooltip.SpecialEffectDescriptions.AddRange(blessing.SpecialEffects);
 
         // Determine unlock block reason
         // Note: Don't set UnlockBlockReason for prerequisites since they're already displayed in PrerequisiteNames

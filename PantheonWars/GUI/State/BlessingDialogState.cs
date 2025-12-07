@@ -45,7 +45,7 @@ public class BlessingDialogState
 
 public enum MainDialogTab
 {
-    ManageReligion = 0,
+    Religion = 0,
     Blessings = 1,
     Civilization = 2
 }

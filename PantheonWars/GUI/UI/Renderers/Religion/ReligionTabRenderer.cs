@@ -18,7 +18,7 @@ internal static class ReligionTabRenderer
         ICoreClientAPI api,
         float x, float y, float width, float height)
     {
-        var state = manager.ReligionState;
+        var state = manager.ReligionStateManager.State;
         var drawList = ImGui.GetWindowDrawList();
 
         // Sub-tab header
@@ -55,7 +55,7 @@ internal static class ReligionTabRenderer
                 // Clear transient action error on tab change
                 state.LastActionError = null;
 
-                // Clear context-specific errors when switching into a tab
+                // Clear context-specific errors and request data when switching into a tab
                 switch (tabIndex)
                 {
                     case 0:
@@ -65,6 +65,12 @@ internal static class ReligionTabRenderer
                     case 1:
                         // My Religion
                         state.MyReligionError = null;
+                        break;
+                    case 3:
+                        // Invites - request player religion info to get invitations
+                        state.InvitesError = null;
+                        state.IsInvitesLoading = true;
+                        manager.ReligionStateManager.RequestPlayerReligionInfo();
                         break;
                     case 4:
                         // Create
@@ -128,10 +134,10 @@ internal static class ReligionTabRenderer
                 switch (effectiveTab)
                 {
                     case 0:
-                        manager.RequestReligionList(state.DeityFilter);
+                        manager.ReligionStateManager.RequestReligionList(state.DeityFilter);
                         break;
                     case 1:
-                        manager.RequestPlayerReligionInfo();
+                        manager.ReligionStateManager.RequestPlayerReligionInfo();
                         break;
                 }
         }
@@ -140,19 +146,19 @@ internal static class ReligionTabRenderer
         switch (state.CurrentSubTab)
         {
             case ReligionSubTab.Browse:
-                ReligionBrowseRenderer.Draw(manager, api, x, contentY, width, contentHeight);
+                manager.ReligionStateManager.DrawReligionBrowse(x, contentY, width, contentHeight);
                 break;
             case ReligionSubTab.MyReligion:
-                ReligionMyReligionRenderer.Draw(manager, api, x, contentY, width, contentHeight);
+                manager.ReligionStateManager.DrawReligionInfo(x, contentY, width, contentHeight);
                 break;
             case ReligionSubTab.Activity:
                 ReligionActivityRenderer.Draw(manager, api, x, contentY, width, contentHeight);
                 break;
             case ReligionSubTab.Invites:
-                ReligionInvitesRenderer.Draw(manager, api, x, contentY, width, contentHeight);
+                manager.ReligionStateManager.DrawReligionInvites(x, contentY, width, contentHeight);
                 break;
             case ReligionSubTab.Create:
-                ReligionCreateRenderer.Draw(manager, api, x, contentY, width, contentHeight);
+                manager.ReligionStateManager.DrawReligionCreate(x, contentY, width, contentHeight);
                 break;
         }
     }
