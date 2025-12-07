@@ -1,0 +1,93 @@
+name: "Bug report"
+description: "Report a problem in PantheonWars"
+title: "[Bug] <short summary>"
+labels: [bug]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug!
+        Please provide as much detail as possible. For repo-specific tips, see docs at the project root and the testing/build notes in the repository.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Precheck
+      options:
+        - label: I am using .NET SDK 8.0 and C# 12 as in this repository.
+          required: true
+        - label: I read the Build and Testing notes and set `VINTAGE_STORY` if needed.
+          required: false
+        - label: I searched existing issues to avoid duplicates.
+          required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: PantheonWars version / commit
+      description: Tag, release, or commit SHA (e.g., v0.5.0 or 1a2b3c4).
+      placeholder: e.g., v0.5.0 or 1a2b3c4
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the problem.
+      placeholder: Describe the bug, what you expected to happen, and what actually happened.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: |
+        Provide a minimal reproducible example. For test-related bugs, prefer targeted runs using Fully Qualified Name (FQN).
+      value: |
+        1. Clone repo and set environment as needed
+           - Linux/macOS: `export VINTAGE_STORY="$HOME/.local/share/Vintagestory"`
+           - Windows PowerShell: `$env:VINTAGE_STORY = "C:\\Games\\Vintagestory"`
+        2. Build: `dotnet build PantheonWars.sln`
+        3. Run tests (subset if applicable):
+           - All: `dotnet test`
+           - Project: `dotnet test PantheonWars.Tests/PantheonWars.Tests.csproj`
+           - FQN example: `dotnet test --filter FullyQualifiedName~PantheonWars.Tests.GUI.UI.Utilities.DeityHelperTests`
+        4. Observe error
+      render: bash
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and error output
+      description: Paste relevant build/test output, stack traces, or in-game logs. Use triple backticks for code formatting if needed.
+      render: shell
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: Provide your environment details.
+      value: |
+        - OS: <!-- e.g., Ubuntu 24.04 / Windows 11 / macOS 15 -->
+        - .NET SDK: <!-- e.g., 8.0.x -->
+        - VINTAGE_STORY: <!-- full path, if relevant to the issue -->
+        - Vintage Story game version: <!-- e.g., 1.19.x -->
+        - Runner: <!-- CLI / Rider / VS Code -->
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Affected area(s)
+      description: Which subsystem(s) seem related?
+      placeholder: e.g., GUI/Renderers/Religion, Systems/Favor, Commands, Network
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Links to PRs, related issues, screenshots, or notes. If the bug relates to deity metadata tests, mention any changes in `PantheonWars/Systems/BlessingDefinitions.cs` or related helpers.

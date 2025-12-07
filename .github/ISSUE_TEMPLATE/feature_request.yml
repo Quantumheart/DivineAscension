@@ -1,0 +1,62 @@
+name: "Feature request"
+description: "Suggest an idea or improvement for PantheonWars"
+title: "[Feature] <short summary>"
+labels: [enhancement]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a new feature! Please answer the prompts to help us evaluate and plan the work.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What user problem or job-to-be-done would this feature address?
+      placeholder: Describe the pain point, who it affects, and why it matters.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe your idea. Include UI/UX notes, API shapes, or examples as appropriate.
+      placeholder: Provide a clear description of how the feature would work.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other solutions or workarounds have you thought about?
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Affected area(s)
+      description: Which subsystem(s) are relevant?
+      placeholder: e.g., GUI/Renderers/Religion, Systems/Favor, Commands, Network
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks and trade-offs
+      description: Performance, complexity, compatibility, or API breaking changes?
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Bullet list of outcomes that indicate the feature is complete.
+      placeholder: |
+        - [ ] Given <context>, when <action>, then <outcome>
+        - [ ] Update docs and tests
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Related issues/PRs, designs, or external links.
