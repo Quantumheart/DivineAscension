@@ -18,7 +18,7 @@ namespace PantheonWars.GUI;
 ///     Follows XSkillsGilded pattern with VSImGui integration
 /// </summary>
 [ExcludeFromCodeCoverage]
-public partial class BlessingDialog : ModSystem
+public partial class GuiDialog : ModSystem
 {
     private const int CheckDataInterval = 1000; // Check for data every 1 second
     private const int WindowBaseWidth = 1400;
@@ -31,7 +31,7 @@ public partial class BlessingDialog : ModSystem
     private long _checkDataId;
     private ImGuiModSystem? _imguiModSystem;
 
-    private BlessingDialogManager? _manager;
+    private GuiDialogManager? _manager;
     private PantheonWarsSystem? _pantheonWarsSystem;
     private Stopwatch? _stopwatch;
     private ImGuiViewportPtr _viewport;
@@ -60,7 +60,7 @@ public partial class BlessingDialog : ModSystem
         _capi.Input.SetHotKeyHandler("pantheonwarsblessings", OnToggleDialog);
 
         // Initialize manager
-        _manager = new BlessingDialogManager(_capi);
+        _manager = new GuiDialogManager(_capi);
 
         // Initialize deity icon loader
         DeityIconLoader.Initialize(_capi);

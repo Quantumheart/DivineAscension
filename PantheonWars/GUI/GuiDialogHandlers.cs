@@ -12,7 +12,7 @@ namespace PantheonWars.GUI;
 /// <summary>
 ///     Event handlers for BlessingDialog - extracted from main class for maintainability
 /// </summary>
-public partial class BlessingDialog
+public partial class GuiDialog
 {
     private const string PANTHEONWARS_SOUNDS_DEITIES = "pantheonwars:sounds/deities/";
 

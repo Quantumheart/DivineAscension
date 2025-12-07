@@ -31,7 +31,7 @@ internal static class MainDialogRenderer
     /// <param name="onUnlockClicked">Callback when unlock button clicked</param>
     /// <param name="onCloseClicked">Callback when close button clicked</param>
     public static void Draw(
-        BlessingDialogManager manager,
+        GuiDialogManager manager,
         ICoreClientAPI api,
         BlessingDialogState state,
         int windowWidth,
@@ -121,7 +121,7 @@ internal static class MainDialogRenderer
     }
 
     private static void DrawBlessingsTab(
-        BlessingDialogManager manager,
+        GuiDialogManager manager,
         ICoreClientAPI api,
         float x,
         float y,

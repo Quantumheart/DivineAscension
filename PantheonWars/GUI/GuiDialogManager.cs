@@ -12,13 +12,13 @@ using Vintagestory.API.Client;
 namespace PantheonWars.GUI;
 
 /// <summary>
-///     Manages state for the Blessing Dialog UI
+///     Manages state for the Gui Dialog
 /// </summary>
-public class BlessingDialogManager : IBlessingDialogManager
+public class GuiDialogManager : IBlessingDialogManager
 {
     private readonly ICoreClientAPI _capi;
 
-    public BlessingDialogManager(ICoreClientAPI capi)
+    public GuiDialogManager(ICoreClientAPI capi)
     {
         _capi = capi;
         ReligionStateManager = new ReligionStateManager(capi);

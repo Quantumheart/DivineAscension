@@ -14,7 +14,7 @@ namespace PantheonWars.GUI.UI.Renderers.Religion;
 internal static class ReligionTabRenderer
 {
     public static void Draw(
-        BlessingDialogManager manager,
+        GuiDialogManager manager,
         ICoreClientAPI api,
         float x, float y, float width, float height)
     {

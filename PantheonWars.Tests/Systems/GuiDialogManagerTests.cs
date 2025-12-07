@@ -9,12 +9,12 @@ using Xunit;
 namespace PantheonWars.Tests.Systems;
 
 [ExcludeFromCodeCoverage]
-public class BlessingDialogManagerTests
+public class GuiDialogManagerTests
 {
     [Fact]
     public void TestPropertyInitialization()
     {
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         Assert.Null(manager.ReligionStateManager.CurrentReligionUID);
         Assert.Equal(DeityType.None, manager.ReligionStateManager.CurrentDeity);
         Assert.Null(manager.ReligionStateManager.CurrentReligionName);
@@ -30,7 +30,7 @@ public class BlessingDialogManagerTests
     [Fact]
     public void TestInitializeMethod()
     {
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         manager.Initialize("religion123", DeityType.Khoras, "God of Warriors");
         Assert.Equal("religion123", manager.ReligionStateManager.CurrentReligionUID);
         Assert.Equal(DeityType.Khoras, manager.ReligionStateManager.CurrentDeity);
@@ -47,7 +47,7 @@ public class BlessingDialogManagerTests
     [Fact]
     public void TestResetMethod()
     {
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         manager.Initialize("religion123", DeityType.Khoras, "God of Warriors");
         manager.Reset();
         Assert.Null(manager.ReligionStateManager.CurrentReligionUID);
@@ -65,7 +65,7 @@ public class BlessingDialogManagerTests
     [Fact]
     public void TestSelectBlessing()
     {
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         manager.SelectBlessing("blessing456");
         Assert.Equal("blessing456", manager.SelectedBlessingId);
     }
@@ -73,7 +73,7 @@ public class BlessingDialogManagerTests
     [Fact]
     public void TestClearSelection()
     {
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         manager.SelectBlessing("blessing456");
         manager.ClearSelection();
         Assert.Null(manager.SelectedBlessingId);
@@ -82,7 +82,7 @@ public class BlessingDialogManagerTests
     [Fact]
     public void TestHasReligion()
     {
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         Assert.False(manager.HasReligion());
 
         manager.Initialize("religion123", DeityType.Khoras, "God of Warriors");
@@ -98,7 +98,7 @@ public class BlessingDialogManagerTests
     public void LoadBlessingStates_WithEmptyLists_ClearsStates()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
 
         // Act
 
@@ -111,7 +111,7 @@ public class BlessingDialogManagerTests
     public void LoadBlessingStates_WithPlayerBlessings_CreatesStates()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var playerBlessings = new List<Blessing>
         {
             TestFixtures.CreateTestBlessing("player1", "Player Blessing 1"),
@@ -131,7 +131,7 @@ public class BlessingDialogManagerTests
     public void LoadBlessingStates_WithReligionBlessings_CreatesStates()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var religionBlessings = new List<Blessing>
         {
             TestFixtures.CreateTestBlessing("religion1", "Religion Blessing 1"),
@@ -151,7 +151,7 @@ public class BlessingDialogManagerTests
     public void LoadBlessingStates_WithBothTypes_CreatesBothStates()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var playerBlessings = new List<Blessing>
         {
             TestFixtures.CreateTestBlessing("player1", "Player Blessing 1")
@@ -172,7 +172,7 @@ public class BlessingDialogManagerTests
     public void LoadBlessingStates_CalledTwice_ReplacesExistingStates()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var firstBlessings = new List<Blessing>
         {
             TestFixtures.CreateTestBlessing("old1", "Old Blessing 1")
@@ -200,7 +200,7 @@ public class BlessingDialogManagerTests
     public void GetBlessingState_WithPlayerBlessing_ReturnsState()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("player1", "Player Blessing");
 
         // Act
@@ -215,7 +215,7 @@ public class BlessingDialogManagerTests
     public void GetBlessingState_WithReligionBlessing_ReturnsState()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("religion1", "Religion Blessing");
 
         // Act
@@ -230,7 +230,7 @@ public class BlessingDialogManagerTests
     public void GetBlessingState_WithNonExistentBlessing_ReturnsNull()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
 
         // Act
         var state = manager.ReligionStateManager.GetBlessingState("nonexistent");
@@ -243,7 +243,7 @@ public class BlessingDialogManagerTests
     public void GetBlessingState_PrefersPlayerBlessingOverReligion()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var playerBlessing = TestFixtures.CreateTestBlessing("shared-id", "Player Blessing");
         var religionBlessing = TestFixtures.CreateTestBlessing("shared-id", "Religion Blessing");
 
@@ -263,7 +263,7 @@ public class BlessingDialogManagerTests
     public void GetSelectedBlessingState_WithNoSelection_ReturnsNull()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
 
         // Act
         var state = manager.GetSelectedBlessingState();
@@ -276,7 +276,7 @@ public class BlessingDialogManagerTests
     public void GetSelectedBlessingState_WithSelection_ReturnsState()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("blessing1", "Blessing 1");
         manager.SelectBlessing("blessing1");
 
@@ -292,7 +292,7 @@ public class BlessingDialogManagerTests
     public void GetSelectedBlessingState_WithInvalidSelection_ReturnsNull()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         manager.SelectBlessing("nonexistent");
 
         // Act
@@ -310,7 +310,7 @@ public class BlessingDialogManagerTests
     public void SetBlessingUnlocked_WithExistingBlessing_UpdatesState()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("blessing1", "Blessing 1");
 
         // Act
@@ -325,7 +325,7 @@ public class BlessingDialogManagerTests
     public void SetBlessingUnlocked_UpdatesVisualState()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("blessing1", "Blessing 1");
 
         // Act
@@ -340,7 +340,7 @@ public class BlessingDialogManagerTests
     public void SetBlessingUnlocked_WithNonExistentBlessing_DoesNotThrow()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
 
         // Act & Assert - Should not throw
     }
@@ -353,7 +353,7 @@ public class BlessingDialogManagerTests
     public void RefreshAllBlessingStates_UpdatesPlayerBlessingStates()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("player1", "Player Blessing");
         blessing.Kind = BlessingKind.Player;
         blessing.RequiredFavorRank = 0; // No rank requirement
@@ -372,7 +372,7 @@ public class BlessingDialogManagerTests
     public void RefreshAllBlessingStates_UpdatesReligionBlessingStates()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("religion1", "Religion Blessing");
         blessing.Kind = BlessingKind.Religion;
         blessing.RequiredPrestigeRank = 0; // No rank requirement
@@ -391,7 +391,7 @@ public class BlessingDialogManagerTests
     public void RefreshAllBlessingStates_WithLockedBlessing_MarksAsNotUnlockable()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("player1", "Player Blessing");
         blessing.Kind = BlessingKind.Player;
         blessing.RequiredFavorRank = 5; // High rank requirement
@@ -414,7 +414,7 @@ public class BlessingDialogManagerTests
     public void GetPlayerFavorProgress_ReturnsCorrectData()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 2);
         manager.ReligionStateManager.TotalFavorEarned = 3500;
 
@@ -433,7 +433,7 @@ public class BlessingDialogManagerTests
     public void GetPlayerFavorProgress_AtMaxRank_ReturnsMaxRankTrue()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", favorRank: 4);
         manager.ReligionStateManager.TotalFavorEarned = 15000;
 
@@ -453,7 +453,7 @@ public class BlessingDialogManagerTests
     public void GetReligionPrestigeProgress_ReturnsCorrectData()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", prestigeRank: 1);
         manager.ReligionStateManager.CurrentPrestige = 1200;
 
@@ -472,7 +472,7 @@ public class BlessingDialogManagerTests
     public void GetReligionPrestigeProgress_AtMaxRank_ReturnsMaxRankTrue()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         manager.Initialize("religion1", DeityType.Khoras, "Test Religion", prestigeRank: 4);
         manager.ReligionStateManager.CurrentPrestige = 15000;
 
@@ -492,7 +492,7 @@ public class BlessingDialogManagerTests
     public void CanUnlockBlessing_AlreadyUnlocked_ReturnsFalse()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("player1", "Player Blessing");
         blessing.Kind = BlessingKind.Player;
         blessing.RequiredFavorRank = 0;
@@ -510,7 +510,7 @@ public class BlessingDialogManagerTests
     public void CanUnlockBlessing_MissingPrerequisite_ReturnsFalse()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var prereq = TestFixtures.CreateTestBlessing("prereq1", "Prerequisite");
         var blessing = TestFixtures.CreateTestBlessing("player1", "Player Blessing");
         blessing.Kind = BlessingKind.Player;
@@ -531,7 +531,7 @@ public class BlessingDialogManagerTests
     public void CanUnlockBlessing_WithUnlockedPrerequisite_ReturnsTrue()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var prereq = TestFixtures.CreateTestBlessing("prereq1", "Prerequisite");
         var blessing = TestFixtures.CreateTestBlessing("player1", "Player Blessing");
         blessing.Kind = BlessingKind.Player;
@@ -552,7 +552,7 @@ public class BlessingDialogManagerTests
     public void CanUnlockBlessing_PlayerBlessing_ChecksFavorRank()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("player1", "Player Blessing");
         blessing.Kind = BlessingKind.Player;
         blessing.RequiredFavorRank = 3;
@@ -570,7 +570,7 @@ public class BlessingDialogManagerTests
     public void CanUnlockBlessing_ReligionBlessing_ChecksPrestigeRank()
     {
         // Arrange
-        var manager = new BlessingDialogManager(null!);
+        var manager = new GuiDialogManager(null!);
         var blessing = TestFixtures.CreateTestBlessing("religion1", "Religion Blessing");
         blessing.Kind = BlessingKind.Religion;
         blessing.RequiredPrestigeRank = 3;
