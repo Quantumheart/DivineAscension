@@ -3,6 +3,7 @@ using System.Linq;
 using ImGuiNET;
 using PantheonWars.GUI.Events;
 using PantheonWars.GUI.Interfaces;
+using PantheonWars.GUI.Models.Religion.Activity;
 using PantheonWars.GUI.Models.Religion.Browse;
 using PantheonWars.GUI.Models.Religion.Create;
 using PantheonWars.GUI.Models.Religion.Info;
@@ -225,8 +226,8 @@ public class ReligionStateManager : IReligionStateManager
 
     public void RequestPlayerReligionInfo()
     {
-        State.InfoState.IsMyReligionLoading = true;
-        State.InvitesState.IsInvitesLoading = true; // also load the invites list for players without a religion
+        State.InfoState.Loading = true;
+        State.InvitesState.Loading = true; // also load the invites list for players without a religion
         State.ErrorState.InfoError = null;
         var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
         system?.RequestPlayerReligionInfo();
@@ -268,12 +269,12 @@ public class ReligionStateManager : IReligionStateManager
     {
         State.InfoState.MyReligionInfo = info;
         State.InfoState.Description = info?.Description ?? string.Empty;
-        State.InfoState.IsMyReligionLoading = false;
+        State.InfoState.Loading = false;
         // Update invites (shown when the player has no religion)
         State.InvitesState.MyInvites = info?.PendingInvites != null
             ? [..info.PendingInvites]
             : new List<PlayerReligionInfoResponsePacket.ReligionInviteInfo>();
-        State.InvitesState.IsInvitesLoading = false;
+        State.InvitesState.Loading = false;
         State.ErrorState.InfoError = null;
     }
 
@@ -322,7 +323,7 @@ public class ReligionStateManager : IReligionStateManager
         // Build view model from state
         var viewModel = new ReligionInvitesViewModel(
             invites: ConvertToInviteData(State.InvitesState.MyInvites),
-            isLoading: State.InvitesState.IsInvitesLoading,
+            isLoading: State.InvitesState.Loading,
             scrollY: State.InvitesState.InvitesScrollY,
             x: x, y: y, width: width, height: height
         );
@@ -370,12 +371,13 @@ public class ReligionStateManager : IReligionStateManager
         var prestigeProgress = GetReligionPrestigeProgress();
 
         var viewModel = new ReligionInfoViewModel(
-            isLoading: State.InfoState.IsMyReligionLoading,
+            isLoading: State.InfoState.Loading,
             hasReligion: religion != null && religion.HasReligion,
             religionUID: religion?.ReligionUID ?? string.Empty,
             religionName: religion?.ReligionName ?? string.Empty,
             deity: religion?.Deity ?? string.Empty,
             founderUID: religion?.FounderUID ?? string.Empty,
+            currentPlayerUID: _coreClientApi.World.Player?.PlayerUID ?? string.Empty,
             isFounder: religion?.IsFounder ?? false,
             description: religion?.Description,
             members: religion?.Members ?? new List<PlayerReligionInfoResponsePacket.MemberInfo>(),
@@ -405,10 +407,135 @@ public class ReligionStateManager : IReligionStateManager
     }
 
     /// <summary>
+    /// Draws the Religion tab header + error banner via pure renderer and routes to active sub-tab.
+    /// This is the EDA orchestration point: builds the tab ViewModel, calls renderer, handles events, then draws sub-tab.
+    /// </summary>
+    public void DrawReligionTab(float x, float y, float width, float height)
+    {
+        // Build view model from state
+        var tabVm = new Models.Religion.Tab.ReligionTabViewModel(
+            currentSubTab: State.CurrentSubTab,
+            errorState: State.ErrorState,
+            hasReligion: HasReligion(),
+            x: x,
+            y: y,
+            width: width,
+            height: height);
+
+        var drawList = ImGui.GetWindowDrawList();
+        var tabResult = ReligionTabRenderer.Draw(tabVm, drawList, _coreClientApi);
+
+        // Handle emitted events
+        foreach (var ev in tabResult.Events)
+        {
+            switch (ev)
+            {
+                case ReligionSubTabEvent.TabChanged(var sub):
+                    State.CurrentSubTab = sub;
+                    // Clear transient action error on tab change
+                    State.ErrorState.LastActionError = null;
+                    // Clear context-specific errors and possibly trigger loads
+                    switch (sub)
+                    {
+                        case SubTab.Browse:
+                            State.ErrorState.BrowseError = null;
+                            break;
+                        case SubTab.Info:
+                            State.ErrorState.InfoError = null;
+                            break;
+                        case SubTab.Activity:
+                            State.ErrorState.ActivityError = null;
+                            break;
+                        case SubTab.Invites:
+                            State.InvitesState.InvitesError = null;
+                            State.InvitesState.Loading = true;
+                            RequestPlayerReligionInfo();
+                            break;
+                        case SubTab.Create:
+                            State.ErrorState.CreateError = null;
+                            break;
+                    }
+                    break;
+                case ReligionSubTabEvent.DismissActionError:
+                    State.ErrorState.LastActionError = null;
+                    break;
+                case ReligionSubTabEvent.DismissContextError(var subTab):
+                    switch (subTab)
+                    {
+                        case SubTab.Browse:
+                            State.ErrorState.BrowseError = null;
+                            break;
+                        case SubTab.Info:
+                            State.ErrorState.InfoError = null;
+                            break;
+                        case SubTab.Create:
+                            State.ErrorState.CreateError = null;
+                            break;
+                    }
+                    break;
+                case ReligionSubTabEvent.RetryRequested(var subTab):
+                    switch (subTab)
+                    {
+                        case SubTab.Browse:
+                            RequestReligionList(State.BrowseState.DeityFilter);
+                            break;
+                        case SubTab.Info:
+                            RequestPlayerReligionInfo();
+                            break;
+                    }
+                    break;
+            }
+        }
+
+        // Route to sub-renderers
+        var contentY = y + tabResult.RenderedHeight;
+        var contentHeight = height - tabResult.RenderedHeight;
+
+        switch (State.CurrentSubTab)
+        {
+            case SubTab.Browse:
+                DrawReligionBrowse(x, contentY, width, contentHeight);
+                break;
+            case SubTab.Info:
+                DrawReligionInfo(x, contentY, width, contentHeight);
+                break;
+            case SubTab.Activity:
+                DrawReligionActivity(x, contentY, width, contentHeight);
+                break;
+            case SubTab.Invites:
+                DrawReligionInvites(x, contentY, width, contentHeight);
+                break;
+            case SubTab.Create:
+                DrawReligionCreate(x, contentY, width, contentHeight);
+                break;
+        }
+    }
+
+    private void DrawReligionActivity(float x, float contentY, float width, float contentHeight)
+    {
+        ReligionActivityViewModel vm = new  ReligionActivityViewModel(x,  contentY, width, contentHeight);
+        var result = ReligionActivityRenderer.Draw(vm);
+        ProcessActivityEvents(result.Events);
+    }
+
+    private void ProcessActivityEvents(IReadOnlyList<ReligionActivityEvent>? resultEvents)
+    {
+        if (resultEvents == null || resultEvents.Count == 0) return;
+        foreach (var ev in resultEvents)
+        {
+            switch (ev)
+            {
+                default:
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
     /// Process events emitted by the ReligionInfoRenderer (My Religion tab)
     /// Maps pure UI intents to state updates and side effects (network requests, sounds, etc.).
     /// </summary>
-    public void ProcessInfoEvents(IReadOnlyList<ReligionInfoEvent> events)
+    private void ProcessInfoEvents(IReadOnlyList<ReligionInfoEvent>? events)
     {
         if (events == null || events.Count == 0) return;
 
@@ -729,7 +856,7 @@ public class ReligionStateManager : IReligionStateManager
         RequestReligionAction("accept", string.Empty, inviteId);
 
         // Optional: Optimistic UI update
-        State.InvitesState.IsInvitesLoading = true;
+        State.InvitesState.Loading = true;
     }
 
     /// <summary>
@@ -741,6 +868,6 @@ public class ReligionStateManager : IReligionStateManager
         RequestReligionAction("decline", string.Empty, inviteId);
 
         // Optional: Optimistic UI update
-        State.InvitesState.IsInvitesLoading = true;
+        State.InvitesState.Loading = true;
     }
 }

@@ -10,7 +10,7 @@ public class InfoState
     public float BanListScrollY { get; set; }
     public string InvitePlayerName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public bool IsMyReligionLoading { get; set; }
+    public bool Loading { get; set; }
     public bool ShowDisbandConfirm { get; set; }
     public string? KickConfirmPlayerUID { get; set; }
     public string? BanConfirmPlayerUID { get; set; }
@@ -25,7 +25,7 @@ public class InfoState
         BanListScrollY = 0f;
         InvitePlayerName = string.Empty;
         Description = string.Empty; 
-        IsMyReligionLoading = false;
+        Loading = false;
         ShowDisbandConfirm = false;
         KickConfirmPlayerUID = null;
         BanConfirmPlayerUID = null;

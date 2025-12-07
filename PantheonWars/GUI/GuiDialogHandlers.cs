@@ -110,7 +110,6 @@ public partial class GuiDialog
         // Request civilization info for player's religion (empty string = my civ)
         _pantheonWarsSystem?.RequestCivilizationInfo("");
 
-        // Dialog will only open when player presses the keybind (Shift+G)
     }
 
     /// <summary>
@@ -218,7 +217,7 @@ public partial class GuiDialog
 
             if (_manager.HasReligion() && packet.Action != "leave")
             {
-                _manager.ReligionStateManager.State.InfoState.IsMyReligionLoading = true;
+                _manager.ReligionStateManager.State.InfoState.Loading = true;
                 _pantheonWarsSystem?.RequestPlayerReligionInfo();
             }
 

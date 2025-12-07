@@ -4,7 +4,7 @@ using PantheonWars.Network;
 
 namespace PantheonWars.GUI.Models.Religion.Browse;
 
-public readonly struct RenderResult(
+public readonly struct ReligionBrowseRenderResult(
     IReadOnlyList<ReligionBrowseEvent> events,
     ReligionListResponsePacket.ReligionInfo? hoveredReligion,
     float renderedHeight)

@@ -1,49 +1,38 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
+using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Models.Religion.Member;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Lists;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Network;
-using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.UI.Renderers.Components;
 
 /// <summary>
-///     Renders a scrollable member list for religion management
+/// Pure EDA renderer for the members list. Emits events instead of mutating state.
 /// </summary>
-[ExcludeFromCodeCoverage]
 public static class MemberListRenderer
 {
     /// <summary>
-    ///     Draw member list with scrolling and kick functionality
+    ///     Draw a member list with scrolling and moderation actions. Pure: ViewModel + DrawList → RenderResult
     /// </summary>
-    /// <param name="drawList">ImGui draw list</param>
-    /// <param name="api">Client API</param>
-    /// <param name="x">X position</param>
-    /// <param name="y">Y position</param>
-    /// <param name="width">Width of list</param>
-    /// <param name="height">Height of list</param>
-    /// <param name="members">List of members to display</param>
-    /// <param name="scrollY">Current scroll position (will be modified)</param>
-    /// <param name="onKickMember">Callback when kick button is clicked (memberUID)</param>
-    /// <param name="onBanMember">Callback when ban button is clicked (memberUID)</param>
-    /// <returns>Updated scroll position</returns>
-    public static float Draw(
-        ImDrawListPtr drawList,
-        ICoreClientAPI api,
-        float x,
-        float y,
-        float width,
-        float height,
-        List<PlayerReligionInfoResponsePacket.MemberInfo> members,
-        float scrollY,
-        Action<string> onKickMember,
-        Action<string>? onBanMember = null)
+    public static MemberListRenderResult Draw(
+        MemberListViewModel viewModel,
+        ImDrawListPtr drawList)
     {
+        var events = new List<ReligionMemberListEvent>();
+        var x = viewModel.X;
+        var y = viewModel.Y;
+        var width = viewModel.Width;
+        var height = viewModel.Height;
+        var members = new List<PlayerReligionInfoResponsePacket.MemberInfo>(viewModel.Members);
+        var scrollY = viewModel.ScrollY;
+        var currentPlayerUid = viewModel.CurrentPlayerUID;
+        var canModerate = viewModel.CanModerate;
+
         const float itemHeight = 30f;
         const float itemSpacing = 4f;
         const float scrollbarWidth = 16f;
@@ -61,7 +50,7 @@ public static class MemberListRenderer
             var noMembersPos = new Vector2(x + (width - noMembersSize.X) / 2, y + (height - noMembersSize.Y) / 2);
             var noMembersColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
             drawList.AddText(noMembersPos, noMembersColor, noMembersText);
-            return scrollY;
+            return new MemberListRenderResult(events, height);
         }
 
         // Calculate scroll
@@ -75,7 +64,15 @@ public static class MemberListRenderer
         if (isMouseOver)
         {
             var wheel = ImGui.GetIO().MouseWheel;
-            if (wheel != 0) scrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+            if (wheel != 0)
+            {
+                var newScroll = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                if (Math.Abs(newScroll - scrollY) > 0.001f)
+                {
+                    scrollY = newScroll;
+                    events.Add(new ReligionMemberListEvent.ScrollChanged(scrollY));
+                }
+            }
         }
 
         // Clip to bounds
@@ -83,7 +80,6 @@ public static class MemberListRenderer
 
         // Draw members
         var itemY = y - scrollY;
-        var currentPlayerUID = api.World.Player.PlayerUID;
 
         foreach (var member in members)
         {
@@ -94,8 +90,8 @@ public static class MemberListRenderer
                 continue;
             }
 
-            DrawMemberItem(drawList, api, member, x, itemY, width - scrollbarWidth - 4f, itemHeight,
-                currentPlayerUID, onKickMember, onBanMember);
+            DrawMemberItem(drawList, member, x, itemY, width - scrollbarWidth - 4f, itemHeight,
+                currentPlayerUid, canModerate, events);
             itemY += itemHeight + itemSpacing;
         }
 
@@ -105,7 +101,7 @@ public static class MemberListRenderer
         if (contentHeight > height)
             Scrollbar.Draw(drawList, x + width - scrollbarWidth, y, scrollbarWidth, height, scrollY, maxScroll);
 
-        return scrollY;
+        return new MemberListRenderResult(events, height);
     }
 
     /// <summary>
@@ -113,15 +109,14 @@ public static class MemberListRenderer
     /// </summary>
     private static void DrawMemberItem(
         ImDrawListPtr drawList,
-        ICoreClientAPI api,
         PlayerReligionInfoResponsePacket.MemberInfo member,
         float x,
         float y,
         float width,
         float height,
-        string currentPlayerUID,
-        Action<string> onKickMember,
-        Action<string>? onBanMember)
+        string currentPlayerUid,
+        bool canModerate,
+        List<ReligionMemberListEvent> events)
     {
         const float padding = 8f;
         const float buttonWidth = 50f;
@@ -144,7 +139,7 @@ public static class MemberListRenderer
         var rankSize = ImGui.CalcTextSize(rankText);
 
         // Calculate button area width (kick + ban buttons if both callbacks provided)
-        var hasBanButton = onBanMember != null;
+        var hasBanButton = canModerate; // founders can ban
         var buttonAreaWidth = hasBanButton ? buttonWidth * 2 + buttonSpacing + padding : buttonWidth + padding;
 
         var rankPos = new Vector2(x + width - buttonAreaWidth - 10f - rankSize.X, y + (height - 14f) / 2);
@@ -152,7 +147,7 @@ public static class MemberListRenderer
         drawList.AddText(rankPos, rankColor, rankText);
 
         // Action buttons (only if not founder and not self)
-        if (!member.IsFounder && member.PlayerUID != currentPlayerUID)
+        if (canModerate && !member.IsFounder && member.PlayerUID != currentPlayerUid)
         {
             var buttonY = y + (height - 22f) / 2;
 
@@ -162,9 +157,7 @@ public static class MemberListRenderer
                 var banButtonX = x + width - (buttonWidth * 2 + buttonSpacing + padding);
                 if (ButtonRenderer.DrawSmallButton(drawList, "Ban", banButtonX, buttonY, buttonWidth, 22f))
                 {
-                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        api.World.Player.Entity, null, false, 8f, 0.5f);
-                    onBanMember?.Invoke(member.PlayerUID);
+                    events.Add(new ReligionMemberListEvent.BanClicked(member.PlayerUID));
                 }
             }
 
@@ -172,9 +165,7 @@ public static class MemberListRenderer
             var kickButtonX = x + width - buttonWidth - padding;
             if (ButtonRenderer.DrawSmallButton(drawList, "Kick", kickButtonX, buttonY, buttonWidth, 22f))
             {
-                api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                    api.World.Player.Entity, null, false, 8f, 0.5f);
-                onKickMember.Invoke(member.PlayerUID);
+                events.Add(new ReligionMemberListEvent.KickClicked(member.PlayerUID));
             }
         }
     }

@@ -20,7 +20,7 @@ internal static class ReligionBrowseRenderer
     /// <summary>
     /// Pure renderer: builds visuals from the view model and emits UI events. No state or side effects.
     /// </summary>
-    public static RenderResult Draw(
+    public static ReligionBrowseRenderResult Draw(
         ReligionBrowseViewModel viewModel,
         ImDrawListPtr drawList,
         ICoreClientAPI api)
@@ -139,6 +139,6 @@ internal static class ReligionBrowseRenderer
             }
         }
 
-        return new RenderResult(events, hoveredReligion, height);
+        return new ReligionBrowseRenderResult(events, hoveredReligion, height);
     }
 }

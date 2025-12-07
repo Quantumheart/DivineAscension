@@ -84,11 +84,11 @@ internal static class MainDialogRenderer
                 // Request player religion info (includes invitations if player has no religion)
                 if (manager.HasReligion())
                 {
-                    manager.ReligionStateManager.State.InfoState.IsMyReligionLoading = true;
+                    manager.ReligionStateManager.State.InfoState.Loading = true;
                 }
                 else
                 {
-                    manager.ReligionStateManager.State.InvitesState.IsInvitesLoading = true;
+                    manager.ReligionStateManager.State.InvitesState.Loading = true;
                 }
 
                 manager.ReligionStateManager.RequestPlayerReligionInfo();
@@ -108,7 +108,7 @@ internal static class MainDialogRenderer
         switch (state.CurrentMainTab)
         {
             case MainDialogTab.Religion: // Manage Religion
-                ReligionTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);
+                manager.ReligionStateManager.DrawReligionTab(windowPos.X + x, windowPos.Y + y, width, contentHeight);
                 break;
             case MainDialogTab.Blessings: // Blessings
                 DrawBlessingsTab(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight,
