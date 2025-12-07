@@ -77,18 +77,18 @@ internal static class MainDialogRenderer
             if (newMainTab == 0) // Religion tab
             {
                 // Request both browse and my religion data
-                manager.ReligionStateManager.State.IsBrowseLoading = true;
-                manager.ReligionStateManager.RequestReligionList(manager.ReligionStateManager.State.DeityFilter);
+                manager.ReligionStateManager.State.BrowseState.IsBrowseLoading = true;
+                manager.ReligionStateManager.RequestReligionList(manager.ReligionStateManager.State.BrowseState.DeityFilter);
 
 
                 // Request player religion info (includes invitations if player has no religion)
                 if (manager.HasReligion())
                 {
-                    manager.ReligionStateManager.State.IsMyReligionLoading = true;
+                    manager.ReligionStateManager.State.InfoState.IsMyReligionLoading = true;
                 }
                 else
                 {
-                    manager.ReligionStateManager.State.IsInvitesLoading = true;
+                    manager.ReligionStateManager.State.InvitesState.IsInvitesLoading = true;
                 }
 
                 manager.ReligionStateManager.RequestPlayerReligionInfo();
