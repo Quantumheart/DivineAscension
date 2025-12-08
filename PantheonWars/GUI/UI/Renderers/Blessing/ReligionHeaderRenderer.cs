@@ -1,12 +1,11 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
+using PantheonWars.GUI.Models.Religion.Header;
 using PantheonWars.GUI.UI.Renderers.Components;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Models.Enum;
 using PantheonWars.Systems;
-using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI.Renderers.Blessing;
 
@@ -14,22 +13,15 @@ namespace PantheonWars.GUI.UI.Renderers.Blessing;
 ///     Renders the religion/deity header banner at the top of the blessing dialog
 ///     Shows: Religion name, deity icon/name, favor/prestige ranks
 /// </summary>
-[ExcludeFromCodeCoverage]
 internal static class ReligionHeaderRenderer
 {
+    private const string NoReligionJoinOrCreateOneToUnlockBlessings =
+        "No Religion - Join or create one to unlock blessings!";
+
     /// <summary>
-    ///     Draw the religion header banner (current)
+    /// Draw a religion header.
     /// </summary>
-    /// <param name="manager">Blessing dialog state manager</param>
-    /// <param name="api">Client API</param>
-    /// <param name="x">X position</param>
-    /// <param name="y">Y position</param>
-    /// <param name="width">Available width</param>
-    /// <returns>Height used by this renderer</returns>
-    public static float Draw(
-        GuiDialogManager manager,
-        ICoreClientAPI api,
-        float x, float y, float width)
+    public static float Draw(ReligionHeaderViewModel viewModel)
     {
         // Two-column header: fixed height, no extra section below
         const float baseHeaderHeight = 130f;
@@ -37,8 +29,8 @@ internal static class ReligionHeaderRenderer
         const float padding = 16f;
 
         var drawList = ImGui.GetWindowDrawList();
-        var startPos = new Vector2(x, y);
-        var endPos = new Vector2(x + width, y + headerHeight);
+        var startPos = new Vector2(viewModel.X, viewModel.Y);
+        var endPos = new Vector2(viewModel.X + viewModel.Width, viewModel.Y + headerHeight);
 
         // Draw header background
         var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
@@ -49,14 +41,14 @@ internal static class ReligionHeaderRenderer
         drawList.AddRect(startPos, endPos, borderColor, 4f, ImDrawFlags.None, 2f);
 
         // Check if player has a religion
-        if (!manager.HasReligion())
+        if (!viewModel.HasReligion)
         {
             // Display "No Religion" message
-            var noReligionText = "No Religion - Join or create one to unlock blessings!";
+            var noReligionText = NoReligionJoinOrCreateOneToUnlockBlessings;
             var textSize = ImGui.CalcTextSize(noReligionText);
             var textPos = new Vector2(
-                x + (width - textSize.X) / 2,
-                y + (headerHeight - textSize.Y) / 2 - 10f
+                viewModel.X + (viewModel.Width - textSize.X) / 2,
+                viewModel.Y + (headerHeight - textSize.Y) / 2 - 10f
             );
 
             var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
@@ -66,22 +58,22 @@ internal static class ReligionHeaderRenderer
         }
 
         // Layout calculations (support two columns when civilization exists)
-        var innerX = x + padding;
-        var innerWidth = width - padding * 2f;
+        var innerX = viewModel.X + padding;
+        var innerWidth = viewModel.Width - padding * 2f;
         // Show two columns if the game reports a civilization OR if we have any civ metadata to show
-        var twoColumns = manager.HasCivilization()
-                         || !string.IsNullOrEmpty(manager.CurrentCivilizationName)
-                         || (manager.CivilizationMemberReligions?.Count ?? 0) > 0;
+        var twoColumns = viewModel.HasCivilization
+                         || !string.IsNullOrEmpty(viewModel.CurrentCivilizationName)
+                         || (viewModel.CivilizationMemberReligions?.Count ?? 0) > 0;
         var columnSpacing = twoColumns ? padding : 0f;
         var colWidth = twoColumns ? (innerWidth - columnSpacing) / 2f : innerWidth;
 
         // Religion info available - draw detailed header (left column)
         var currentX = innerX; // column 1 start
-        var centerY = y + headerHeight / 2;
+        var centerY = viewModel.Y + headerHeight / 2;
 
         // Draw deity icon (with fallback to colored circle)
         const float iconSize = 48f;
-        var deityTextureId = DeityIconLoader.GetDeityTextureId(manager.ReligionStateManager.CurrentDeity);
+        var deityTextureId = DeityIconLoader.GetDeityTextureId(viewModel.CurrentDeity);
 
         if (deityTextureId != IntPtr.Zero)
         {
@@ -91,7 +83,7 @@ internal static class ReligionHeaderRenderer
             var iconMax = new Vector2(iconPos.X + iconSize, iconPos.Y + iconSize);
 
             // Draw icon with deity color tint for visual cohesion
-            var tintColor = DeityHelper.GetDeityColor(manager.ReligionStateManager.CurrentDeity);
+            var tintColor = DeityHelper.GetDeityColor(viewModel.CurrentDeity);
             var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)); // Full white = no tint
 
             drawList.AddImage(deityTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
@@ -104,43 +96,43 @@ internal static class ReligionHeaderRenderer
         {
             // Fallback: Use placeholder colored circle if texture not available
             var iconCenter = new Vector2(currentX + iconSize / 2, centerY);
-            var iconColor = ImGui.ColorConvertFloat4ToU32(DeityHelper.GetDeityColor(manager.ReligionStateManager.CurrentDeity));
+            var iconColor = ImGui.ColorConvertFloat4ToU32(DeityHelper.GetDeityColor(viewModel.CurrentDeity));
             drawList.AddCircleFilled(iconCenter, iconSize / 2, iconColor, 16);
         }
 
         currentX += iconSize + padding;
 
         // Religion name and deity
-        var religionName = manager.ReligionStateManager.CurrentReligionName ?? "Unknown Religion";
-        var deityName = GetDeityDisplayName(manager.ReligionStateManager.CurrentDeity);
+        var religionName = viewModel.CurrentReligionName ?? "Unknown Religion";
+        var deityName = GetDeityDisplayName(viewModel.CurrentDeity);
         var headerText = $"{religionName} - {deityName}";
 
-        var headerTextPos = new Vector2(currentX, y + 12f);
+        var headerTextPos = new Vector2(currentX, viewModel.Y + 12f);
         var headerTextColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
         drawList.AddText(ImGui.GetFont(), 18f, headerTextPos, headerTextColor, headerText);
 
         // Member count and role
-        var memberInfo = manager.ReligionStateManager.ReligionMemberCount > 0
-            ? $"{manager.ReligionStateManager.ReligionMemberCount} member{(manager.ReligionStateManager.ReligionMemberCount == 1 ? "" : "s")}"
+        var memberInfo = viewModel.ReligionMemberCount > 0
+            ? $"{viewModel.ReligionMemberCount} member{(viewModel.ReligionMemberCount == 1 ? "" : "s")}"
             : "No members";
-        var roleInfo = !string.IsNullOrEmpty(manager.ReligionStateManager.PlayerRoleInReligion)
-            ? $" | {manager.ReligionStateManager.PlayerRoleInReligion}"
+        var roleInfo = !string.IsNullOrEmpty(viewModel.PlayerRoleInReligion)
+            ? $" | {viewModel.PlayerRoleInReligion}"
             : "";
         var infoText = $"{memberInfo}{roleInfo}";
-        var infoTextPos = new Vector2(currentX, y + 35f);
+        var infoTextPos = new Vector2(currentX, viewModel.Y + 35f);
         var infoTextColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 13f, infoTextPos, infoTextColor, infoText);
 
         // Progress bars
         currentX = innerX + iconSize + padding;
-        var progressY = y + 54f;
+        var progressY = viewModel.Y + 54f;
         // Keep bars readable but not oversized: clamp width and reduce height
         var progressBarWidth = MathF.Min(380f, MathF.Max(160f, colWidth - 140f));
         const float progressBarHeight = 14f;
         const float progressBarSpacing = 22f;
 
         // Player Favor Progress
-        var favorProgress = manager.ReligionStateManager.GetPlayerFavorProgress();
+        var favorProgress = viewModel.PlayerFavorProgress;
         var favorLabel = favorProgress.IsMaxRank
             ? $"{RankRequirements.GetFavorRankName(favorProgress.CurrentRank)} (MAX)"
             : $"{RankRequirements.GetFavorRankName(favorProgress.CurrentRank)} ({favorProgress.CurrentFavor}/{favorProgress.RequiredFavor})";
@@ -164,7 +156,7 @@ internal static class ReligionHeaderRenderer
         progressY += progressBarSpacing;
 
         // Religion Prestige Progress
-        var prestigeProgress = manager.ReligionStateManager.GetReligionPrestigeProgress();
+        var prestigeProgress = viewModel.ReligionPrestigeProgress;
         var prestigeLabel = prestigeProgress.IsMaxRank
             ? $"{RankRequirements.GetPrestigeRankName(prestigeProgress.CurrentRank)} (MAX)"
             : $"{RankRequirements.GetPrestigeRankName(prestigeProgress.CurrentRank)} ({prestigeProgress.CurrentPrestige}/{prestigeProgress.RequiredPrestige})";
@@ -193,14 +185,14 @@ internal static class ReligionHeaderRenderer
             var separatorX = col2X - columnSpacing / 2f;
             var sepColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.3f);
             ImGui.GetWindowDrawList().AddLine(
-                new Vector2(separatorX, y + 8f),
-                new Vector2(separatorX, y + headerHeight - 8f),
+                new Vector2(separatorX, viewModel.Y + 8f),
+                new Vector2(separatorX, viewModel.Y + headerHeight - 8f),
                 sepColor,
                 1f);
 
             // Civilization icon/badge
             var civCurrentX = col2X;
-            var civCurrentY = y + 12f; // small top padding
+            var civCurrentY = viewModel.Y + 12f; // small top padding
             const float civIconSize = 32f;
             var civIconCenter = new Vector2(civCurrentX + civIconSize / 2f, civCurrentY + civIconSize / 2f);
             var civOuter = ImGui.ColorConvertFloat4ToU32(new Vector4(0.4f, 0.6f, 0.8f, 1f));
@@ -211,7 +203,7 @@ internal static class ReligionHeaderRenderer
             civCurrentX += civIconSize + 10f;
 
             // Civilization name
-            var civName = manager.CurrentCivilizationName ?? "Unknown Civilization";
+            var civName = viewModel.CurrentCivilizationName ?? "Unknown Civilization";
             var civNameText = $"Civilization: {civName}";
             var civNamePos = new Vector2(civCurrentX, civCurrentY);
             var civNameColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.5f, 0.8f, 1f, 1f));
@@ -220,7 +212,7 @@ internal static class ReligionHeaderRenderer
             civCurrentY += 22f;
 
             // Member religions with deity colors
-            var memberCount = manager.CivilizationMemberReligions?.Count;
+            var memberCount = viewModel.CivilizationMemberReligions?.Count;
             var memberText = $"{memberCount}/4 Religions: ";
             var memberPos = new Vector2(civCurrentX, civCurrentY);
             var memberColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
@@ -230,7 +222,7 @@ internal static class ReligionHeaderRenderer
             var deityIconX = civCurrentX + textSize.X + 4f;
             const float deityIconSize = 16f;
             const float deityIconSpacing = 4f;
-            foreach (var memberReligion in manager.CivilizationMemberReligions!)
+            foreach (var memberReligion in viewModel.CivilizationMemberReligions!)
                 if (Enum.TryParse<DeityType>(memberReligion.Deity, out var deityType))
                 {
                     var deityColor = DeityHelper.GetDeityColor(deityType);
@@ -255,7 +247,7 @@ internal static class ReligionHeaderRenderer
                 }
 
             // Founder badge
-            if (manager.IsCivilizationFounder)
+            if (viewModel.IsCivilizationFounder)
             {
                 var founderText = "=== Founder ===";
                 var founderPos = new Vector2(deityIconX + 8f, civCurrentY);
@@ -282,15 +274,5 @@ internal static class ReligionHeaderRenderer
             DeityType.Gaia => "Gaia - Goddess of Earth",
             _ => "Unknown Deity"
         };
-    }
-
-    /// <summary>
-    ///     Check if mouse is within a rectangle
-    /// </summary>
-    private static bool IsMouseInRect(float x, float y, float width, float height)
-    {
-        var mousePos = ImGui.GetMousePos();
-        return mousePos.X >= x && mousePos.X <= x + width &&
-               mousePos.Y >= y && mousePos.Y <= y + height;
     }
 }
