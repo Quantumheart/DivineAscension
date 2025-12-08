@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 
