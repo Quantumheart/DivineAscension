@@ -1,9 +1,9 @@
-using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
-using Vintagestory.API.Client;
-using Vintagestory.API.Common;
+using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Models.Blessing.Actions;
 
 namespace PantheonWars.GUI.UI.Renderers.Blessing;
 
@@ -30,35 +30,25 @@ internal static class BlessingActionsRenderer
     private static readonly Vector4 ColorGold = new(0.996f, 0.682f, 0.204f, 1.0f); // #feae34
 
     /// <summary>
-    ///     Draw action buttons
+    ///     Draw action buttons using EDA style. Emits events based on user interaction.
     /// </summary>
-    /// <param name="manager">Blessing dialog state manager</param>
-    /// <param name="api">Client API</param>
-    /// <param name="x">X position (right-aligned from this point)</param>
-    /// <param name="y">Y position</param>
-    /// <param name="onUnlockClicked">Callback when unlock button is clicked</param>
-    /// <param name="onCloseClicked">Callback when close button is clicked</param>
-    /// <returns>Height used by this renderer</returns>
-    public static float Draw(
-        GuiDialogManager manager,
-        ICoreClientAPI api,
-        float x, float y,
-        Action? onUnlockClicked,
-        Action? onCloseClicked)
+    public static BlessingActionsRendererResult Draw(BlessingActionsViewModel viewModel)
     {
-        // Close button is always visible and enabled
-        var closeButtonX = x - ButtonWidth;
-        var closeClicked = DrawButton("Close", closeButtonX, y, ButtonWidth, ButtonHeight,
-            ColorButtonNormal, ColorTextNormal, true, onCloseClicked);
+        var emitted = new List<BlessingActionsEvent>(2);
+
+        // Close button is always visible and enabled (right-aligned)
+        var closeButtonX = viewModel.X - ButtonWidth;
+        var closeClicked = DrawButton("Close", closeButtonX, viewModel.Y, ButtonWidth, ButtonHeight,
+            ColorButtonNormal, ColorTextNormal, true);
 
         if (closeClicked)
-            // Play click sound
-            api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                api.World.Player.Entity, null, false, 8f, 0.5f);
+        {
+            emitted.Add(new BlessingActionsEvent.CloseClicked());
+        }
 
         // Unlock button - only show if blessing is selected and not already unlocked
-        var selectedState = manager.GetSelectedBlessingState();
-        if (selectedState != null && !selectedState.IsUnlocked)
+        var selectedState = viewModel.BlessingNodeState;
+        if (selectedState is { IsUnlocked: false })
         {
             var unlockButtonX = closeButtonX - ButtonWidth - ButtonSpacing;
             var canUnlock = selectedState.CanUnlock;
@@ -67,28 +57,30 @@ internal static class BlessingActionsRenderer
             var buttonColor = canUnlock ? ColorButtonActive : ColorButtonDisabled;
             var textColor = canUnlock ? ColorTextNormal : ColorTextDisabled;
 
-            var clicked = DrawButton(buttonText, unlockButtonX, y, ButtonWidth, ButtonHeight,
-                buttonColor, textColor, canUnlock, canUnlock ? onUnlockClicked : null);
+            var clicked = DrawButton(buttonText, unlockButtonX, viewModel.Y, ButtonWidth, ButtonHeight,
+                buttonColor, textColor, canUnlock);
 
-            if (clicked && canUnlock)
-                // Play click sound when unlock button pressed
-                // Unlock success sound will play when server confirms
-                api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                    api.World.Player.Entity, null, false, 8f, 0.5f);
+            if (clicked)
+            {
+                if (canUnlock)
+                    emitted.Add(new BlessingActionsEvent.UnlockClicked());
+                else
+                    emitted.Add(new BlessingActionsEvent.UnlockBlockedClicked());
+            }
 
             // Show tooltip on hover if disabled
-            if (!canUnlock && IsMouseInRect(unlockButtonX, y, ButtonWidth, ButtonHeight))
+            if (!canUnlock && IsMouseInRect(unlockButtonX, viewModel.Y, ButtonWidth, ButtonHeight))
             {
                 ImGui.SetMouseCursor(ImGuiMouseCursor.NotAllowed);
 
-                // Play error sound on click if locked
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
-                        api.World.Player.Entity, null, false, 8f, 0.3f);
+                {
+                    emitted.Add(new BlessingActionsEvent.UnlockBlockedClicked());
+                }
             }
         }
 
-        return ButtonHeight;
+        return new BlessingActionsRendererResult(emitted, ButtonHeight);
     }
 
     /// <summary>
@@ -100,8 +92,7 @@ internal static class BlessingActionsRenderer
         float x, float y, float width, float height,
         Vector4 baseColor,
         Vector4 textColor,
-        bool enabled,
-        Action? onClick)
+        bool enabled)
     {
         var drawList = ImGui.GetWindowDrawList();
         var buttonStart = new Vector2(x, y);
@@ -155,7 +146,6 @@ internal static class BlessingActionsRenderer
         if (isHovering && ImGui.IsMouseReleased(ImGuiMouseButton.Left))
         {
             isClicked = true;
-            onClick?.Invoke();
         }
 
         return isClicked;
