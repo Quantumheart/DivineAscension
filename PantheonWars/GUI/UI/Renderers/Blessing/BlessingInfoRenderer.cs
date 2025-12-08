@@ -5,7 +5,6 @@ using ImGuiNET;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
-using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI.Renderers.Blessing;
 
@@ -16,11 +15,12 @@ namespace PantheonWars.GUI.UI.Renderers.Blessing;
 [ExcludeFromCodeCoverage]
 internal static class BlessingInfoRenderer
 {
+    private const string SelectABlessingToViewDetails = "Select a blessing to view details";
+
     /// <summary>
     ///     Draw the blessing info panel
     /// </summary>
     /// <param name="manager">Blessing dialog state manager</param>
-    /// <param name="api">Client API</param>
     /// <param name="x">X position</param>
     /// <param name="y">Y position</param>
     /// <param name="width">Available width</param>
@@ -28,7 +28,6 @@ internal static class BlessingInfoRenderer
     /// <returns>Height used by this renderer</returns>
     public static float Draw(
         GuiDialogManager manager,
-        ICoreClientAPI api,
         float x, float y, float width, float height)
     {
         var drawList = ImGui.GetWindowDrawList();
@@ -49,7 +48,7 @@ internal static class BlessingInfoRenderer
         if (selectedState == null)
         {
             // No blessing selected - show prompt
-            var promptText = "Select a blessing to view details";
+            var promptText = SelectABlessingToViewDetails;
             var textSize = ImGui.CalcTextSize(promptText);
             var textPos = new Vector2(
                 x + (width - textSize.X) / 2,

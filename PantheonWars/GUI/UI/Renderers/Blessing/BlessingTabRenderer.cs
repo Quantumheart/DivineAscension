@@ -40,7 +40,7 @@ internal static class BlessingTabRenderer
 
         // Info Panel
         var infoY = y + treeHeight + padding;
-        BlessingInfoRenderer.Draw(manager, api, x, infoY, width, infoPanelHeight);
+        BlessingInfoRenderer.Draw(manager, x, infoY, width, infoPanelHeight);
 
         // Action Buttons (overlay bottom-right)
         var buttonY = windowHeight - actionButtonHeight - actionButtonPadding;
