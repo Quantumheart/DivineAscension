@@ -16,7 +16,6 @@ namespace PantheonWars.GUI.UI.Renderers.Blessing;
 ///     Right panel: Religion blessings (50% width)
 ///     Both panels are independently scrollable
 /// </summary>
-[ExcludeFromCodeCoverage]
 internal static class BlessingTreeRenderer
 {
     // Color constants
