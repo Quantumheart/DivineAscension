@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using ImGuiNET;
 using PantheonWars.GUI.Events;
@@ -7,7 +6,6 @@ using PantheonWars.GUI.Models.Religion.List;
 using PantheonWars.GUI.UI.Components;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Renderers.Components;
-using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI.Renderers.Religion;
 
@@ -22,8 +20,7 @@ internal static class ReligionBrowseRenderer
     /// </summary>
     public static ReligionBrowseRenderResult Draw(
         ReligionBrowseViewModel viewModel,
-        ImDrawListPtr drawList,
-        ICoreClientAPI api)
+        ImDrawListPtr drawList)
     {
         var events = new List<ReligionBrowseEvent>();
         var x = viewModel.X;

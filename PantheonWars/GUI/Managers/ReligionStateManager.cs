@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ImGuiNET;
@@ -8,10 +9,12 @@ using PantheonWars.GUI.Models.Religion.Browse;
 using PantheonWars.GUI.Models.Religion.Create;
 using PantheonWars.GUI.Models.Religion.Info;
 using PantheonWars.GUI.Models.Religion.Invites;
+using PantheonWars.GUI.Models.Religion.Tab;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.State.Religion;
-using PantheonWars.GUI.UI.Adapters.Religions;
 using PantheonWars.GUI.UI.Adapters.ReligionMembers;
+using PantheonWars.GUI.UI.Adapters.Religions;
+using PantheonWars.GUI.UI.Renderers.Components;
 using PantheonWars.GUI.UI.Renderers.Religion;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
@@ -174,7 +177,7 @@ public class ReligionStateManager : IReligionStateManager
             if (!string.IsNullOrEmpty(filter))
             {
                 items = new List<ReligionVM>(items)
-                    .FindAll(r => string.Equals(r.deity, filter, System.StringComparison.OrdinalIgnoreCase));
+                    .FindAll(r => string.Equals(r.deity, filter, StringComparison.OrdinalIgnoreCase));
             }
 
             // Map adapter VM → Network DTO used by UI state
@@ -301,7 +304,7 @@ public class ReligionStateManager : IReligionStateManager
             height: height);
 
         var drawList = ImGui.GetWindowDrawList();
-        var result = ReligionBrowseRenderer.Draw(viewModel, drawList, _coreClientApi);
+        var result = ReligionBrowseRenderer.Draw(viewModel, drawList);
 
         // Process events (Events → State + side effects)
         ProcessBrowseEvents(result.Events);
@@ -310,7 +313,7 @@ public class ReligionStateManager : IReligionStateManager
         if (result.HoveredReligion != null)
         {
             var mousePos = ImGui.GetMousePos();
-            UI.Renderers.Components.ReligionListRenderer.DrawTooltip(result.HoveredReligion, mousePos.X, mousePos.Y, width, height);
+            ReligionListRenderer.DrawTooltip(result.HoveredReligion, mousePos.X, mousePos.Y, width, height);
         }
     }
 
@@ -413,7 +416,7 @@ public class ReligionStateManager : IReligionStateManager
     public void DrawReligionTab(float x, float y, float width, float height)
     {
         // Build view model from state
-        var tabVm = new Models.Religion.Tab.ReligionTabViewModel(
+        var tabVm = new ReligionTabViewModel(
             currentSubTab: State.CurrentSubTab,
             errorState: State.ErrorState,
             hasReligion: HasReligion(),
