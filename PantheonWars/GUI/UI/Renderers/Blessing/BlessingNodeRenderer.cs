@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
 using PantheonWars.Models;
-using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI.Renderers.Blessing;
 
@@ -27,7 +26,6 @@ internal static class BlessingNodeRenderer
     ///     Draw a single blessing node
     /// </summary>
     /// <param name="state">Blessing node state</param>
-    /// <param name="api">Client API</param>
     /// <param name="offsetX">Scroll offset X</param>
     /// <param name="offsetY">Scroll offset Y</param>
     /// <param name="mouseX">Mouse X position (world space)</param>
@@ -37,7 +35,6 @@ internal static class BlessingNodeRenderer
     /// <returns>True if mouse is hovering over this node</returns>
     public static bool DrawNode(
         BlessingNodeState state,
-        ICoreClientAPI api,
         float offsetX, float offsetY,
         float mouseX, float mouseY,
         float deltaTime,

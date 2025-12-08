@@ -1,11 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
+using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Models.Blessing.Tree;
 using PantheonWars.Models;
-using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.UI.Renderers.Blessing;
 
@@ -23,86 +24,82 @@ internal static class BlessingTreeRenderer
     private static readonly Vector4 ColorLabel = new(0.996f, 0.682f, 0.204f, 1.0f); // #feae34 gold
 
     /// <summary>
-    ///     Draw the split-panel blessing tree
+    ///     Draw the split-panel blessing tree using EDA: returns events instead of mutating state.
     /// </summary>
-    /// <param name="manager">Blessing dialog state manager</param>
-    /// <param name="api">Client API</param>
-    /// <param name="x">X position</param>
-    /// <param name="y">Y position</param>
-    /// <param name="width">Total available width</param>
-    /// <param name="height">Total available height</param>
-    /// <param name="deltaTime">Time elapsed since last frame (for animations)</param>
-    /// <param name="hoveringBlessingId">Output: ID of currently hovered blessing</param>
-    /// <returns>Height used by this renderer</returns>
-    public static float Draw(
-        GuiDialogManager manager,
-        ICoreClientAPI api,
-        float x, float y, float width, float height,
-        float deltaTime,
-        ref string? hoveringBlessingId)
+    public static BlessingTreeRendererResult Draw(BlessingTreeViewModel vm)
     {
         const float labelHeight = 30f;
         const float dividerWidth = 2f;
 
         // Calculate panel dimensions
-        var panelWidth = (width - dividerWidth) / 2f;
-        var treeAreaHeight = height - labelHeight;
+        var panelWidth = (vm.Width - dividerWidth) / 2f;
+        var treeAreaHeight = vm.Height - labelHeight;
 
         var drawList = ImGui.GetWindowDrawList();
 
         // === LEFT PANEL: Player Blessings ===
-        var leftX = x;
-        var leftY = y;
+        var leftX = vm.X;
+        var leftY = vm.Y;
 
         // Draw label
         DrawPanelLabel(drawList, "Player Blessings", leftX, leftY, panelWidth);
 
         // Draw tree area (use local variables for scroll offsets)
         var treeY = leftY + labelHeight;
-        var playerScrollX = manager.PlayerTreeScrollX;
-        var playerScrollY = manager.PlayerTreeScrollY;
-        DrawTreePanel(
-            manager, api, drawList,
+        var leftPanel = DrawTreePanel(drawList,
             leftX, treeY, panelWidth, treeAreaHeight,
-            manager.ReligionStateManager.PlayerBlessingStates,
-            deltaTime,
-            ref playerScrollX,
-            ref playerScrollY,
-            ref hoveringBlessingId
+            vm.PlayerBlessingStates,
+            vm.DeltaTime,
+            vm.PlayerTreeScroll.X,
+            vm.PlayerTreeScroll.Y,
+            vm.SelectedBlessingId
         );
-        manager.PlayerTreeScrollX = playerScrollX;
-        manager.PlayerTreeScrollY = playerScrollY;
 
         // === CENTER DIVIDER ===
-        var dividerX = x + panelWidth;
-        var dividerTop = new Vector2(dividerX, y);
-        var dividerBottom = new Vector2(dividerX, y + height);
+        var dividerX = vm.X + panelWidth;
+        var dividerTop = new Vector2(dividerX, vm.Y);
+        var dividerBottom = new Vector2(dividerX, vm.Y + vm.Height);
         var dividerColor = ImGui.ColorConvertFloat4ToU32(ColorDivider);
         drawList.AddLine(dividerTop, dividerBottom, dividerColor, dividerWidth);
 
         // === RIGHT PANEL: Religion Blessings ===
         var rightX = dividerX + dividerWidth;
-        var rightY = y;
+        var rightY = vm.Y;
 
         // Draw label
         DrawPanelLabel(drawList, "Religion Blessings", rightX, rightY, panelWidth);
 
         // Draw tree area (use local variables for scroll offsets)
-        var religionScrollX = manager.ReligionTreeScrollX;
-        var religionScrollY = manager.ReligionTreeScrollY;
-        DrawTreePanel(
-            manager, api, drawList,
+        var rightPanel = DrawTreePanel(drawList,
             rightX, treeY, panelWidth, treeAreaHeight,
-            manager.ReligionStateManager.ReligionBlessingStates,
-            deltaTime,
-            ref religionScrollX,
-            ref religionScrollY,
-            ref hoveringBlessingId
+            vm.ReligionBlessingStates,
+            vm.DeltaTime,
+            vm.ReligionTreeScroll.X,
+            vm.ReligionTreeScroll.Y,
+            vm.SelectedBlessingId
         );
-        manager.ReligionTreeScrollX = religionScrollX;
-        manager.ReligionTreeScrollY = religionScrollY;
 
-        return height;
+        // Build events
+        var events = new List<BlessingTreeEvent>(4);
+
+        // Hover
+        var hovering = leftPanel.HoveringBlessingId ?? rightPanel.HoveringBlessingId;
+        events.Add(new BlessingTreeEvent.BlessingHovered(hovering));
+
+        // Selection
+        var clicked = leftPanel.ClickedBlessingId ?? rightPanel.ClickedBlessingId;
+        if (!string.IsNullOrEmpty(clicked))
+            events.Add(new BlessingTreeEvent.BlessingSelected(clicked!));
+
+        // Scroll changes
+        if (!NearlyEqual(vm.PlayerTreeScroll.X, leftPanel.ScrollX) ||
+            !NearlyEqual(vm.PlayerTreeScroll.Y, leftPanel.ScrollY))
+            events.Add(new BlessingTreeEvent.PlayerTreeScrollChanged(leftPanel.ScrollX, leftPanel.ScrollY));
+        if (!NearlyEqual(vm.ReligionTreeScroll.X, rightPanel.ScrollX) ||
+            !NearlyEqual(vm.ReligionTreeScroll.Y, rightPanel.ScrollY))
+            events.Add(new BlessingTreeEvent.ReligionTreeScrollChanged(rightPanel.ScrollX, rightPanel.ScrollY));
+
+        return new BlessingTreeRendererResult(events, vm.Height);
     }
 
     /// <summary>
@@ -131,15 +128,13 @@ internal static class BlessingTreeRenderer
     /// <summary>
     ///     Draw a single tree panel with scrolling
     /// </summary>
-    private static void DrawTreePanel(
-        GuiDialogManager manager,
-        ICoreClientAPI api,
+    private static (float ScrollX, float ScrollY, string? HoveringBlessingId, string? ClickedBlessingId) DrawTreePanel(
         ImDrawListPtr drawList,
         float x, float y, float width, float height,
-        Dictionary<string, BlessingNodeState> blessingStates,
+        IReadOnlyDictionary<string, BlessingNodeState> blessingStates,
         float deltaTime,
-        ref float scrollX, ref float scrollY,
-        ref string? hoveringBlessingId)
+        float prevScrollX, float prevScrollY,
+        string? selectedBlessingId)
     {
         const float padding = 16f;
 
@@ -154,16 +149,18 @@ internal static class BlessingTreeRenderer
             );
             var textColor = ImGui.ColorConvertFloat4ToU32(ColorDivider);
             drawList.AddText(textPos, textColor, emptyText);
-            return;
+            return (prevScrollX, prevScrollY, null, null);
         }
 
         // Calculate layout if not already done
         if (blessingStates.Values.First().PositionX == 0 && blessingStates.Values.First().PositionY == 0)
-            BlessingTreeLayout.CalculateLayout(blessingStates, width - padding * 2);
+            BlessingTreeLayout.CalculateLayout(blessingStates.ToDictionary(k => k.Key, v => v.Value),
+                width - padding * 2);
 
         // Get total tree dimensions
-        var totalHeight = BlessingTreeLayout.GetTotalHeight(blessingStates);
-        var totalWidth = BlessingTreeLayout.GetTotalWidth(blessingStates);
+        var dict = blessingStates.ToDictionary(k => k.Key, v => v.Value);
+        var totalHeight = BlessingTreeLayout.GetTotalHeight(dict);
+        var totalWidth = BlessingTreeLayout.GetTotalWidth(dict);
 
         // Create scrollable area using ImGui child window
         var childId = blessingStates.GetHashCode().ToString(); // Unique ID per panel
@@ -181,8 +178,8 @@ internal static class BlessingTreeRenderer
         var childWindowPos = ImGui.GetWindowPos(); // Position of child window in screen space
 
         // Get scroll position
-        scrollX = ImGui.GetScrollX();
-        scrollY = ImGui.GetScrollY();
+        var scrollX = ImGui.GetScrollX();
+        var scrollY = ImGui.GetScrollY();
 
         // Calculate drawing offset (accounts for scroll)
         var drawOffsetX = childWindowPos.X + padding - scrollX;
@@ -199,11 +196,13 @@ internal static class BlessingTreeRenderer
                         );
 
         // Draw blessing nodes
+        string? hoveringBlessingId = null;
+        string? clickedBlessingId = null;
         foreach (var state in blessingStates.Values)
         {
-            var isSelected = manager.SelectedBlessingId == state.Blessing.BlessingId;
+            var isSelected = selectedBlessingId == state.Blessing.BlessingId;
             var isHovering = BlessingNodeRenderer.DrawNode(
-                state, api,
+                state,
                 drawOffsetX, drawOffsetY,
                 mousePos.X, mousePos.Y, // Pass screen-space mouse coordinates
                 deltaTime,
@@ -219,13 +218,7 @@ internal static class BlessingTreeRenderer
                 // Handle click
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
-                    api.Logger.Notification($"[PantheonWars] Clicked blessing: {state.Blessing.Name}");
-                    manager.SelectBlessing(state.Blessing.BlessingId);
-                    api.Logger.Notification($"[PantheonWars] Selected blessing ID: {manager.SelectedBlessingId}");
-
-                    // Play click sound
-                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        api.World.Player.Entity, null, false, 8f, 0.5f);
+                    clickedBlessingId = state.Blessing.BlessingId;
                 }
             }
         }
@@ -237,5 +230,11 @@ internal static class BlessingTreeRenderer
         ImGui.EndChild();
         ImGui.PopStyleColor();
         ImGui.PopStyleVar();
+        return (scrollX, scrollY, hoveringBlessingId, clickedBlessingId);
+    }
+
+    private static bool NearlyEqual(float a, float b)
+    {
+        return Math.Abs(a - b) < 0.5f; // small threshold to avoid spamming events
     }
 }

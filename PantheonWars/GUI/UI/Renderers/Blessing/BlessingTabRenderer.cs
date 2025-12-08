@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using ImGuiNET;
 using PantheonWars.GUI.Events;
 using PantheonWars.GUI.Models.Blessing.Actions;
+using PantheonWars.GUI.Models.Blessing.Tree;
+using PantheonWars.GUI.State;
 using PantheonWars.Models;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -34,12 +36,39 @@ internal static class BlessingTabRenderer
 
         // Blessing Tree (split view)
         var treeHeight = height - infoPanelHeight - padding;
-        BlessingTreeRenderer.Draw(
-            manager, api,
+        var vm = new BlessingTreeViewModel(
+            new ScrollState(manager.PlayerTreeScrollX, manager.PlayerTreeScrollY),
+            new ScrollState(manager.ReligionTreeScrollX, manager.ReligionTreeScrollY),
+            manager.ReligionStateManager.PlayerBlessingStates,
+            manager.ReligionStateManager.ReligionBlessingStates,
             x, y, width, treeHeight,
             deltaTime,
-            ref hoveringBlessingId
+            manager.SelectedBlessingId
         );
+
+        var treeResult = BlessingTreeRenderer.Draw(vm);
+
+        // Dispatch BlessingTree events
+        foreach (var ev in treeResult.Events)
+            switch (ev)
+            {
+                case BlessingTreeEvent.BlessingHovered(var id):
+                    hoveringBlessingId = id;
+                    break;
+                case BlessingTreeEvent.BlessingSelected(var id):
+                    manager.SelectBlessing(id);
+                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
+                        api.World.Player.Entity, null, false, 8f, 0.5f);
+                    break;
+                case BlessingTreeEvent.PlayerTreeScrollChanged(var sx, var sy):
+                    manager.PlayerTreeScrollX = sx;
+                    manager.PlayerTreeScrollY = sy;
+                    break;
+                case BlessingTreeEvent.ReligionTreeScrollChanged(var sx2, var sy2):
+                    manager.ReligionTreeScrollX = sx2;
+                    manager.ReligionTreeScrollY = sy2;
+                    break;
+            }
 
         // Info Panel
         var infoY = y + treeHeight + padding;

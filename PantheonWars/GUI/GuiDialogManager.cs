@@ -70,10 +70,6 @@ public class GuiDialogManager : IBlessingDialogManager
         IsDataLoaded = true;
         SelectedBlessingId = null;
         HoveringBlessingId = null;
-        PlayerTreeScrollX = 0f;
-        PlayerTreeScrollY = 0f;
-        ReligionTreeScrollX = 0f;
-        ReligionTreeScrollY = 0f;
     }
 
     /// <summary>
@@ -85,10 +81,6 @@ public class GuiDialogManager : IBlessingDialogManager
         // Keep blessing UI state reset here
         SelectedBlessingId = null;
         HoveringBlessingId = null;
-        PlayerTreeScrollX = 0f;
-        PlayerTreeScrollY = 0f;
-        ReligionTreeScrollX = 0f;
-        ReligionTreeScrollY = 0f;
         IsDataLoaded = false;
 
         // Keep civilization state (separate concern)
