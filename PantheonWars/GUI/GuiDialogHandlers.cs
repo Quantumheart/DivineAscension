@@ -12,7 +12,7 @@ namespace PantheonWars.GUI;
 /// <summary>
 ///     Event handlers for BlessingDialog - extracted from main class for maintainability
 /// </summary>
-public partial class BlessingDialog
+public partial class GuiDialog
 {
     private const string PANTHEONWARS_SOUNDS_DEITIES = "pantheonwars:sounds/deities/";
 
@@ -110,7 +110,6 @@ public partial class BlessingDialog
         // Request civilization info for player's religion (empty string = my civ)
         _pantheonWarsSystem?.RequestCivilizationInfo("");
 
-        // Dialog will only open when player presses the keybind (Shift+G)
     }
 
     /// <summary>
@@ -213,12 +212,12 @@ public partial class BlessingDialog
             }
 
             // Refresh religion tab data
-            _manager!.ReligionStateManager.State.IsBrowseLoading = true;
-            _pantheonWarsSystem?.RequestReligionList(_manager.ReligionStateManager.State.DeityFilter);
+            _manager!.ReligionStateManager.State.BrowseState.IsBrowseLoading = true;
+            _pantheonWarsSystem?.RequestReligionList(_manager.ReligionStateManager.State.BrowseState.DeityFilter);
 
             if (_manager.HasReligion() && packet.Action != "leave")
             {
-                _manager.ReligionStateManager.State.IsMyReligionLoading = true;
+                _manager.ReligionStateManager.State.InfoState.Loading = true;
                 _pantheonWarsSystem?.RequestPlayerReligionInfo();
             }
 
@@ -226,9 +225,9 @@ public partial class BlessingDialog
             _pantheonWarsSystem?.RequestBlessingData();
 
             // Clear confirmations
-            _manager.ReligionStateManager.State.ShowDisbandConfirm = false;
-            _manager.ReligionStateManager.State.KickConfirmPlayerUID = null;
-            _manager.ReligionStateManager.State.BanConfirmPlayerUID = null;
+            _manager.ReligionStateManager.State.InfoState.ShowDisbandConfirm = false;
+            _manager.ReligionStateManager.State.InfoState.KickConfirmPlayerUID = null;
+            _manager.ReligionStateManager.State.InfoState.BanConfirmPlayerUID = null;
         }
         else
         {
@@ -239,7 +238,7 @@ public partial class BlessingDialog
                 _capi.World.Player.Entity, null, false, 8f, 0.5f);
 
             // Store error in state
-            _manager!.ReligionStateManager.State.LastActionError = packet.Message;
+            _manager!.ReligionStateManager.State.ErrorState.LastActionError = packet.Message;
         }
     }
 

@@ -10,6 +10,7 @@ using PantheonWars.GUI.UI.Renderers.Components;
 using PantheonWars.GUI.UI.Renderers.Religion.Info;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Network;
+using PantheonWars.GUI.Models.Religion.Member;
 
 namespace PantheonWars.GUI.UI.Renderers.Religion;
 
@@ -148,33 +149,46 @@ internal static class ReligionInfoRenderer
         float x, float y, float width, float height,
         List<ReligionInfoEvent> events)
     {
-        return MemberListRenderer.Draw(
-            drawList,
-            null!, // API not needed for pure rendering - will be refactored later
-            x, y, width, height,
-            new List<PlayerReligionInfoResponsePacket.MemberInfo>(viewModel.Members),
-            viewModel.MemberScrollY,
-            // Kick callback (founder only)
-            viewModel.IsFounder
-                ? memberUid =>
+        // Build VM for member list component
+        var mlVm = new MemberListViewModel(
+            x: x,
+            y: y,
+            width: width,
+            height: height,
+            scrollY: viewModel.MemberScrollY,
+            members: viewModel.Members,
+            currentPlayerUID: viewModel.CurrentPlayerUID,
+            canModerate: viewModel.IsFounder);
+
+        var result = MemberListRenderer.Draw(mlVm, drawList);
+
+        // Translate events
+        var newScrollY = viewModel.MemberScrollY;
+        foreach (var ev in result.Events)
+        {
+            switch (ev)
+            {
+                case ReligionMemberListEvent.ScrollChanged(var s):
+                    newScrollY = s;
+                    break;
+                case ReligionMemberListEvent.KickClicked(var uid):
                 {
-                    // Emit event to open kick confirmation
-                    var member = FindMemberByUid(viewModel.Members, memberUid);
-                    var memberName = member?.PlayerName ?? memberUid;
-                    events.Add(new ReligionInfoEvent.KickOpen(memberUid, memberName));
+                    var member = FindMemberByUid(viewModel.Members, uid);
+                    var memberName = member?.PlayerName ?? uid;
+                    events.Add(new ReligionInfoEvent.KickOpen(uid, memberName));
+                    break;
                 }
-                : null,
-            // Ban callback (founder only)
-            viewModel.IsFounder
-                ? memberUid =>
+                case ReligionMemberListEvent.BanClicked(var uid):
                 {
-                    // Emit event to open ban confirmation
-                    var member = FindMemberByUid(viewModel.Members, memberUid);
-                    var memberName = member?.PlayerName ?? memberUid;
-                    events.Add(new ReligionInfoEvent.BanOpen(memberUid, memberName));
+                    var member = FindMemberByUid(viewModel.Members, uid);
+                    var memberName = member?.PlayerName ?? uid;
+                    events.Add(new ReligionInfoEvent.BanOpen(uid, memberName));
+                    break;
                 }
-                : null
-        );
+            }
+        }
+
+        return newScrollY;
     }
 
     private static float DrawBanList(

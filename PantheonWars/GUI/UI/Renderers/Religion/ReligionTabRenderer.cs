@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using ImGuiNET;
-using PantheonWars.GUI.State;
+using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Models.Religion.Tab;
+using PantheonWars.GUI.State.Religion;
 using PantheonWars.GUI.UI.Components.Banners;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Utilities;
@@ -8,158 +11,101 @@ using Vintagestory.API.Client;
 namespace PantheonWars.GUI.UI.Renderers.Religion;
 
 /// <summary>
-///     Main coordinator for the Religion tab in BlessingDialog
-///     Renders sub-tabs and routes to appropriate sub-renderers
+///     Pure renderer for the Religion tab header and error banner.
+///     Accepts a view model and emits UI events. Does not mutate state or perform side effects.
 /// </summary>
 internal static class ReligionTabRenderer
 {
-    public static void Draw(
-        BlessingDialogManager manager,
-        ICoreClientAPI api,
-        float x, float y, float width, float height)
+    public static ReligionSubTabRenderResult Draw(
+        ReligionTabViewModel viewModel,
+        ImDrawListPtr drawList,
+        ICoreClientAPI api)
     {
-        var state = manager.ReligionStateManager.State;
-        var drawList = ImGui.GetWindowDrawList();
+        var events = new List<ReligionSubTabEvent>();
 
-        // Sub-tab header
-        var tabX = x;
-        var tabY = y;
-        var tabW = width;
-        var tabH = 36f;
+        // Sub-tab header metrics
+        var x = viewModel.X;
+        var y = viewModel.Y;
+        var width = viewModel.Width;
+        const float tabH = 36f;
 
-        // Tab buttons: Browse | My Religion | Activity | Invites | Create
-        var tabWidth = 130f;
-        var spacing = 6f;
-        var prevTab = state.CurrentSubTab;
+        // Tab buttons: Browse | My Religion | Activity | Invites | Create (last two only if user has no religion)
+        const float tabWidth = 130f;
+        const float spacing = 6f;
 
-        DrawTabButton("Browse", (int)ReligionSubTab.Browse);
-        DrawTabButton("My Religion", (int)ReligionSubTab.MyReligion);
-        DrawTabButton("Activity", (int)ReligionSubTab.Activity);
-        if (!manager.HasReligion())
+        void DrawTabButton(string label, SubTab tab)
         {
-            DrawTabButton("Invites", (int)ReligionSubTab.Invites);
-            DrawTabButton("Create", (int)ReligionSubTab.Create);
-        }
-
-        void DrawTabButton(string label, int tabIndex)
-        {
-            var tx = tabX + tabIndex * (tabWidth + spacing);
-            var isActive = state.CurrentSubTab == (ReligionSubTab)tabIndex;
-            var clicked = ButtonRenderer.DrawButton(drawList, label, tx, tabY, tabWidth, tabH,
+            var tx = x + (int)tab * (tabWidth + spacing);
+            var isActive = viewModel.CurrentSubTab == tab;
+            var clicked = ButtonRenderer.DrawButton(drawList, label, tx, y, tabWidth, tabH,
                 isActive, true,
                 isActive ? ColorPalette.Gold * 0.7f : ColorPalette.DarkBrown * 0.6f);
-            if (clicked)
+            if (clicked && tab != viewModel.CurrentSubTab)
             {
-                state.CurrentSubTab = (ReligionSubTab)tabIndex;
-
-                // Clear transient action error on tab change
-                state.LastActionError = null;
-
-                // Clear context-specific errors and request data when switching into a tab
-                switch (tabIndex)
-                {
-                    case 0:
-                        // Browse
-                        state.BrowseError = null;
-                        break;
-                    case 1:
-                        // My Religion
-                        state.MyReligionError = null;
-                        break;
-                    case 3:
-                        // Invites - request player religion info to get invitations
-                        state.InvitesError = null;
-                        state.IsInvitesLoading = true;
-                        manager.ReligionStateManager.RequestPlayerReligionInfo();
-                        break;
-                    case 4:
-                        // Create
-                        state.CreateError = null;
-                        break;
-                }
+                events.Add(new ReligionSubTabEvent.TabChanged(tab));
             }
+        }
+
+        DrawTabButton(nameof(SubTab.Browse), SubTab.Browse);
+        DrawTabButton(nameof(SubTab.Info), SubTab.Info);
+        DrawTabButton(nameof(SubTab.Activity), SubTab.Activity);
+        if (!viewModel.HasReligion)
+        {
+            DrawTabButton(nameof(SubTab.Invites), SubTab.Invites);
+            DrawTabButton(nameof(SubTab.Create), SubTab.Create);
         }
 
         var contentY = y + tabH + 10f;
-        var contentHeight = height - (contentY - y);
+        var renderedHeight = tabH + 10f;
 
         // Error banner (LastActionError has priority)
-        var bannerMessage = state.LastActionError;
+        var bannerMessage = viewModel.ErrorState.LastActionError;
         var showRetry = false;
-        var effectiveTab = (int)state.CurrentSubTab;
+        var effectiveTab = viewModel.CurrentSubTab;
 
         if (bannerMessage == null)
-            switch (state.CurrentSubTab)
+        {
+            switch (viewModel.CurrentSubTab)
             {
-                case ReligionSubTab.Browse:
-                    bannerMessage = state.BrowseError;
+                case SubTab.Browse:
+                    bannerMessage = viewModel.ErrorState.BrowseError;
                     showRetry = bannerMessage != null;
                     break;
-                case ReligionSubTab.MyReligion:
-                    bannerMessage = state.MyReligionError;
+                case SubTab.Info:
+                    bannerMessage = viewModel.ErrorState.InfoError;
                     showRetry = bannerMessage != null;
                     break;
-                case ReligionSubTab.Create:
-                    bannerMessage = state.CreateError;
-                    showRetry = false; // Don't show retry for create errors
+                case SubTab.Create:
+                    bannerMessage = viewModel.ErrorState.CreateError;
+                    showRetry = false; // No retry for create errors
                     break;
             }
+        }
 
         if (bannerMessage != null)
         {
             var consumed = ErrorBannerRenderer.Draw(drawList, x, contentY, width, bannerMessage,
                 out var retryClicked, out var dismissClicked, showRetry);
-            contentY += consumed;
-            contentHeight -= consumed;
+            renderedHeight += consumed;
 
             if (dismissClicked)
             {
-                if (state.LastActionError != null) state.LastActionError = null;
+                if (viewModel.ErrorState.LastActionError != null)
+                {
+                    events.Add(new ReligionSubTabEvent.DismissActionError());
+                }
                 else
-                    switch (effectiveTab)
-                    {
-                        case 0:
-                            state.BrowseError = null;
-                            break;
-                        case 1:
-                            state.MyReligionError = null;
-                            break;
-                        case 4:
-                            state.CreateError = null;
-                            break;
-                    }
+                {
+                    events.Add(new ReligionSubTabEvent.DismissContextError(effectiveTab));
+                }
             }
 
             if (retryClicked)
-                switch (effectiveTab)
-                {
-                    case 0:
-                        manager.ReligionStateManager.RequestReligionList(state.DeityFilter);
-                        break;
-                    case 1:
-                        manager.ReligionStateManager.RequestPlayerReligionInfo();
-                        break;
-                }
+            {
+                events.Add(new ReligionSubTabEvent.RetryRequested(effectiveTab));
+            }
         }
 
-        // Route to appropriate sub-renderer based on current sub-tab
-        switch (state.CurrentSubTab)
-        {
-            case ReligionSubTab.Browse:
-                manager.ReligionStateManager.DrawReligionBrowse(x, contentY, width, contentHeight);
-                break;
-            case ReligionSubTab.MyReligion:
-                manager.ReligionStateManager.DrawReligionInfo(x, contentY, width, contentHeight);
-                break;
-            case ReligionSubTab.Activity:
-                ReligionActivityRenderer.Draw(manager, api, x, contentY, width, contentHeight);
-                break;
-            case ReligionSubTab.Invites:
-                manager.ReligionStateManager.DrawReligionInvites(x, contentY, width, contentHeight);
-                break;
-            case ReligionSubTab.Create:
-                manager.ReligionStateManager.DrawReligionCreate(x, contentY, width, contentHeight);
-                break;
-        }
+        return new ReligionSubTabRenderResult(events, renderedHeight);
     }
 }

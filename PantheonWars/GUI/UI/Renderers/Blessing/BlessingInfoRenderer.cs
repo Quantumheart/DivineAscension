@@ -27,7 +27,7 @@ internal static class BlessingInfoRenderer
     /// <param name="height">Available height</param>
     /// <returns>Height used by this renderer</returns>
     public static float Draw(
-        BlessingDialogManager manager,
+        GuiDialogManager manager,
         ICoreClientAPI api,
         float x, float y, float width, float height)
     {

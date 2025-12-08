@@ -13,7 +13,7 @@ namespace PantheonWars.GUI.UI.Renderers.Civilization;
 internal static class CivilizationBrowseRenderer
 {
     public static float Draw(
-        BlessingDialogManager manager,
+        GuiDialogManager manager,
         ICoreClientAPI api,
         float x, float y, float width, float height)
     {
@@ -110,7 +110,7 @@ internal static class CivilizationBrowseRenderer
         float y,
         float width,
         float height,
-        BlessingDialogManager manager,
+        GuiDialogManager manager,
         ICoreClientAPI api)
     {
         var drawList = ImGui.GetWindowDrawList();

@@ -40,7 +40,7 @@ internal static class BlessingActionsRenderer
     /// <param name="onCloseClicked">Callback when close button is clicked</param>
     /// <returns>Height used by this renderer</returns>
     public static float Draw(
-        BlessingDialogManager manager,
+        GuiDialogManager manager,
         ICoreClientAPI api,
         float x, float y,
         Action? onUnlockClicked,

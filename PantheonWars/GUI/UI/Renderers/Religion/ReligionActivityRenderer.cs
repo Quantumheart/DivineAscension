@@ -1,5 +1,6 @@
 using System.Numerics;
 using ImGuiNET;
+using PantheonWars.GUI.Models.Religion.Activity;
 using PantheonWars.GUI.UI.Utilities;
 using Vintagestory.API.Client;
 
@@ -12,18 +13,15 @@ namespace PantheonWars.GUI.UI.Renderers.Religion;
 /// </summary>
 internal static class ReligionActivityRenderer
 {
-    public static float Draw(
-        BlessingDialogManager manager,
-        ICoreClientAPI api,
-        float x, float y, float width, float height)
+    public static ReligionActivityRenderResult Draw(ReligionActivityViewModel viewModel)
     {
         var drawList = ImGui.GetWindowDrawList();
-        var currentY = y + height / 3f; // Center vertically
+        var currentY =  viewModel.Y + viewModel.Height / 3f; // Center vertically
 
         // Background box for the placeholder message
         var boxPadding = 40f;
-        var boxX = x + boxPadding;
-        var boxWidth = width - boxPadding * 2;
+        var boxX = viewModel.X + boxPadding;
+        var boxWidth = viewModel.Width - boxPadding * 2;
         var boxHeight = 120f;
         var boxY = currentY;
 
@@ -80,6 +78,9 @@ internal static class ReligionActivityRenderer
         drawList.AddText(ImGui.GetFont(), 11f, todoPos,
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey * 0.7f), todoText);
 
-        return height;
+        return new ReligionActivityRenderResult()
+        {
+            Events = {}
+        };
     }
 }

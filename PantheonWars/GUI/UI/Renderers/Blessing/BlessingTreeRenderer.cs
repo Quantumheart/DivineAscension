@@ -35,7 +35,7 @@ internal static class BlessingTreeRenderer
     /// <param name="hoveringBlessingId">Output: ID of currently hovered blessing</param>
     /// <returns>Height used by this renderer</returns>
     public static float Draw(
-        BlessingDialogManager manager,
+        GuiDialogManager manager,
         ICoreClientAPI api,
         float x, float y, float width, float height,
         float deltaTime,
@@ -132,7 +132,7 @@ internal static class BlessingTreeRenderer
     ///     Draw a single tree panel with scrolling
     /// </summary>
     private static void DrawTreePanel(
-        BlessingDialogManager manager,
+        GuiDialogManager manager,
         ICoreClientAPI api,
         ImDrawListPtr drawList,
         float x, float y, float width, float height,

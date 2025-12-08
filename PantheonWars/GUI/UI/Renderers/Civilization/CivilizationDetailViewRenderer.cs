@@ -15,7 +15,7 @@ namespace PantheonWars.GUI.UI.Renderers.Civilization;
 internal static class CivilizationDetailViewRenderer
 {
     public static float Draw(
-        BlessingDialogManager manager,
+        GuiDialogManager manager,
         ICoreClientAPI api,
         float x, float y, float width, float height)
     {
