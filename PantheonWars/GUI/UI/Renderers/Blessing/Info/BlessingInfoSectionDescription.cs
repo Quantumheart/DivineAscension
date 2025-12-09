@@ -1,0 +1,18 @@
+using ImGuiNET;
+using PantheonWars.GUI.UI.Utilities;
+using PantheonWars.Models;
+
+namespace PantheonWars.GUI.UI.Renderers.Blessing.Info;
+
+internal static class BlessingInfoSectionDescription
+{
+    public static float Draw(BlessingNodeState selectedState, float x,
+        float currentY, float padding, float contentWidth)
+    {
+        var descriptionColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
+        BlessingInfoTextUtils.DrawWrappedText(selectedState.Blessing.Description,
+            x + padding, currentY, contentWidth, descriptionColorU32, 14f);
+        currentY += 40f; // Approximate space for description
+        return currentY;
+    }
+}

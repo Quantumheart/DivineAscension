@@ -223,7 +223,7 @@ public partial class GuiDialog : ModSystem
             windowWidth,
             windowHeight,
             deltaTime,
-            OnUnlockButtonClicked,
+            _pantheonWarsSystem,
             OnCloseButtonClicked
         );
 

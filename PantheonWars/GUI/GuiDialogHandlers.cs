@@ -90,15 +90,18 @@ public partial class GuiDialog
         }).ToList();
 
         // Load blessing states into manager
-        _manager.ReligionStateManager.LoadBlessingStates(playerBlessings, religionBlessings);
+        _manager.BlessingStateManager.LoadBlessingStates(playerBlessings, religionBlessings);
 
         // Mark unlocked blessings
-        foreach (var blessingId in packet.UnlockedPlayerBlessings) _manager.ReligionStateManager.SetBlessingUnlocked(blessingId, true);
+        foreach (var blessingId in packet.UnlockedPlayerBlessings)
+            _manager.BlessingStateManager.SetBlessingUnlocked(blessingId, true);
 
-        foreach (var blessingId in packet.UnlockedReligionBlessings) _manager.ReligionStateManager.SetBlessingUnlocked(blessingId, true);
+        foreach (var blessingId in packet.UnlockedReligionBlessings)
+            _manager.BlessingStateManager.SetBlessingUnlocked(blessingId, true);
 
         // Refresh states to update can-unlock status
-        _manager.ReligionStateManager.RefreshAllBlessingStates();
+        _manager.BlessingStateManager.RefreshAllBlessingStates(_manager.ReligionStateManager.CurrentFavorRank,
+            _manager.ReligionStateManager.CurrentPrestigeRank);
 
         _state.IsReady = true;
         _capi.Logger.Notification(
@@ -108,7 +111,7 @@ public partial class GuiDialog
         _pantheonWarsSystem?.RequestPlayerReligionInfo();
 
         // Request civilization info for player's religion (empty string = my civ)
-        _pantheonWarsSystem?.RequestCivilizationInfo("");
+        _pantheonWarsSystem?.RequestCivilizationInfo(string.Empty);
 
     }
 
@@ -155,7 +158,7 @@ public partial class GuiDialog
     /// </summary>
     private void OnUnlockButtonClicked()
     {
-        var selectedState = _manager!.GetSelectedBlessingState();
+        var selectedState = _manager!.BlessingStateManager.GetSelectedBlessingState();
         if (selectedState == null || !selectedState.CanUnlock || selectedState.IsUnlocked) return;
 
         // Client-side validation before sending the request
@@ -296,7 +299,9 @@ public partial class GuiDialog
 
         // Refresh blessing states in case new blessings became available
         // Only do this if dialog is open to avoid unnecessary processing
-        if (_state.IsOpen && _manager.HasReligion()) _manager.ReligionStateManager.RefreshAllBlessingStates();
+        if (_state.IsOpen && _manager.HasReligion())
+            _manager.BlessingStateManager.RefreshAllBlessingStates(_manager.ReligionStateManager.CurrentFavorRank,
+                _manager.ReligionStateManager.CurrentPrestigeRank);
     }
 
     /// <summary>
@@ -350,10 +355,11 @@ public partial class GuiDialog
             }
 
             // Update manager state
-            _manager?.ReligionStateManager.SetBlessingUnlocked(blessingId, true);
+            _manager?.BlessingStateManager.SetBlessingUnlocked(blessingId, true);
 
             // Refresh all blessing states to update prerequisites and glow effects
-            _manager?.ReligionStateManager.RefreshAllBlessingStates();
+            _manager?.BlessingStateManager.RefreshAllBlessingStates(_manager.ReligionStateManager.CurrentFavorRank,
+                _manager.ReligionStateManager.CurrentPrestigeRank);
         }
     }
 
@@ -445,7 +451,6 @@ public partial class GuiDialog
             _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
                 _capi.World.Player.Entity, null, false, 8f, 0.5f);
 
-            // Surface the error to UI banner (Task 5.3 Phase C will render it)
             _manager!.CivState.LastActionError = packet.Message;
         }
     }

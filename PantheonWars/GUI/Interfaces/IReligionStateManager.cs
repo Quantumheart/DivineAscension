@@ -19,8 +19,6 @@ public interface IReligionStateManager
     int CurrentFavor { get; set; }
     int CurrentPrestige { get; set; }
     int TotalFavorEarned { get; set; }
-    Dictionary<string, BlessingNodeState> PlayerBlessingStates { get; }
-    Dictionary<string, BlessingNodeState> ReligionBlessingStates { get; }
 
     /// <summary>
     ///     Initialize dialog state from player's current religion data
@@ -37,29 +35,6 @@ public interface IReligionStateManager
     ///     Check if player has a religion
     /// </summary>
     bool HasReligion();
-
-    /// <summary>
-    ///     Load blessing states for player and religion blessings
-    ///     Called in Phase 6 when connected to BlessingRegistry
-    /// </summary>
-    void LoadBlessingStates(List<Blessing> playerBlessings, List<Blessing> religionBlessings);
-
-    /// <summary>
-    ///     Get blessing node state by ID
-    /// </summary>
-    BlessingNodeState? GetBlessingState(string blessingId);
-
-    
-    /// <summary>
-    ///     Update unlock status for a blessing
-    /// </summary>
-    void SetBlessingUnlocked(string blessingId, bool unlocked);
-
-    /// <summary>
-    ///     Update all blessing states based on current unlock status and requirements
-    ///     Called after data refresh in Phase 6
-    /// </summary>
-    void RefreshAllBlessingStates();
 
     /// <summary>
     ///     Get player favor progress data
