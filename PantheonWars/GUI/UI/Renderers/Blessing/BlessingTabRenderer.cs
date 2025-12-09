@@ -52,7 +52,6 @@ internal static class BlessingTabRenderer
                 combinedStates[kv.Key] = kv.Value;
 
         var infoVm = new BlessingInfoViewModel(
-            // todo this is currently coming from GuiManager - should be from BlessingStateManager.State.TreeState
             vm.SelectedBlessingState,
             combinedStates,
             vm.X,
