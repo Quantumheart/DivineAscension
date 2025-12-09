@@ -514,6 +514,10 @@ public class ReligionStateManager : IReligionStateManager
         }
     }
 
+    /// <summary>
+    ///     Temporary orchestration wrapper to draw the Blessings tab via renderer. This mirrors how Religion tab is handled
+    ///     and will be expanded to full EDA-style event processing if needed.
+    /// </summary>
     private void DrawReligionActivity(float x, float contentY, float width, float contentHeight)
     {
         ReligionActivityViewModel vm = new  ReligionActivityViewModel(x,  contentY, width, contentHeight);

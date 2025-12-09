@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using ImGuiNET;
+using PantheonWars.GUI.Models.Blessing.Tab;
 using PantheonWars.GUI.Models.Religion.Header;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Components;
@@ -24,10 +25,11 @@ internal static class MainDialogRenderer
     /// </summary>
     /// <param name="manager">Blessing dialog state manager</param>
     /// <param name="api">Client API</param>
+    /// <param name="state">Dialog state</param>
     /// <param name="windowWidth">Total window width</param>
     /// <param name="windowHeight">Total window height</param>
     /// <param name="deltaTime">Time elapsed since last frame (for animations)</param>
-    /// <param name="onUnlockClicked">Callback when unlock button clicked</param>
+    /// <param name="pantheonWarsSystem">PantheonWars system for network requests</param>
     /// <param name="onCloseClicked">Callback when close button clicked</param>
     public static void Draw(
         GuiDialogManager manager,
@@ -36,7 +38,7 @@ internal static class MainDialogRenderer
         int windowWidth,
         int windowHeight,
         float deltaTime,
-        Action? onUnlockClicked,
+        PantheonWarsSystem? pantheonWarsSystem,
         Action? onCloseClicked)
     {
         const float padding = 16f;
@@ -117,9 +119,24 @@ internal static class MainDialogRenderer
                 manager.ReligionStateManager.DrawReligionTab(windowPos.X + x, windowPos.Y + y, width, contentHeight);
                 break;
             case MainDialogTab.Blessings: // Blessings
-                BlessingTabRenderer.DrawBlessingsTab(manager, api, windowPos.X + x, windowPos.Y + y, width,
+                var vm = new BlessingTabViewModel(
+                    windowPos.X + x,
+                    windowPos.Y + y,
+                    width,
                     contentHeight,
-                    windowWidth, windowHeight, deltaTime, onUnlockClicked, onCloseClicked);
+                    windowWidth,
+                    windowHeight,
+                    deltaTime,
+                    manager.BlessingStateManager.State.TreeState.SelectedBlessingId,
+                    manager.BlessingStateManager.GetSelectedBlessingState(),
+                    manager.BlessingStateManager.State.PlayerBlessingStates,
+                    manager.BlessingStateManager.State.ReligionBlessingStates,
+                    manager.BlessingStateManager.State.TreeState.PlayerScrollState,
+                    manager.BlessingStateManager.State.TreeState.ReligionScrollState
+                );
+
+
+                manager.BlessingStateManager.DrawBlessingsTab(vm);
                 break;
             case MainDialogTab.Civilization: // Civilization
                 CivilizationTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);

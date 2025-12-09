@@ -4,7 +4,6 @@ using PantheonWars.GUI.Managers;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Adapters.ReligionMembers;
 using PantheonWars.GUI.UI.Adapters.Religions;
-using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network.Civilization;
 using Vintagestory.API.Client;
@@ -22,6 +21,7 @@ public class GuiDialogManager : IBlessingDialogManager
     {
         _capi = capi;
         ReligionStateManager = new ReligionStateManager(capi);
+        BlessingStateManager = new BlessingStateManager(capi);
         // Initialize UI-only fake data provider in DEBUG builds. In Release it stays null.
 #if DEBUG
         ReligionStateManager.MembersProvider = new FakeReligionMemberProvider();
@@ -34,8 +34,9 @@ public class GuiDialogManager : IBlessingDialogManager
 
     // Composite UI state
     public CivilizationState CivState { get; } = new();
-    
+
     public ReligionStateManager ReligionStateManager { get; }
+    public BlessingStateManager BlessingStateManager { get; }
 
     // Civilization state
     public string? CurrentCivilizationId { get; set; }
@@ -46,16 +47,7 @@ public class GuiDialogManager : IBlessingDialogManager
     public bool IsCivilizationFounder => !string.IsNullOrEmpty(ReligionStateManager.CurrentReligionUID) &&
                                          !string.IsNullOrEmpty(CivilizationFounderReligionUID) &&
                                          ReligionStateManager.CurrentReligionUID == CivilizationFounderReligionUID;
-
-    // Blessing selection state
-    public string? SelectedBlessingId { get; set; }
-    public string? HoveringBlessingId { get; set; }
-
-    // Scroll state
-    public float PlayerTreeScrollX { get; set; }
-    public float PlayerTreeScrollY { get; set; }
-    public float ReligionTreeScrollX { get; set; }
-    public float ReligionTreeScrollY { get; set; }
+    
 
     // Data loaded flags
     public bool IsDataLoaded { get; set; }
@@ -68,8 +60,7 @@ public class GuiDialogManager : IBlessingDialogManager
     {
         ReligionStateManager.Initialize(religionUID, deity, religionName, favorRank, prestigeRank);
         IsDataLoaded = true;
-        SelectedBlessingId = null;
-        HoveringBlessingId = null;
+        BlessingStateManager.State.Reset();
     }
 
     /// <summary>
@@ -78,9 +69,9 @@ public class GuiDialogManager : IBlessingDialogManager
     public void Reset()
     {
         ReligionStateManager.Reset();
-        // Keep blessing UI state reset here
-        SelectedBlessingId = null;
-        HoveringBlessingId = null;
+        BlessingStateManager.State.Reset();
+
+        // Keep blessing UI state reset here (for backward compatibility)
         IsDataLoaded = false;
 
         // Keep civilization state (separate concern)
@@ -89,40 +80,12 @@ public class GuiDialogManager : IBlessingDialogManager
         CivilizationFounderReligionUID = null;
         CivilizationMemberReligions.Clear();
         CivState.Reset();
-        
-        ReligionStateManager.Reset();
-    }
-
-    /// <summary>
-    ///     Select a blessing (for displaying details)
-    /// </summary>
-    public void SelectBlessing(string blessingId)
-    {
-        SelectedBlessingId = blessingId;
-    }
-
-    /// <summary>
-    ///     Clear blessing selection
-    /// </summary>
-    public void ClearSelection()
-    {
-        SelectedBlessingId = null;
     }
 
     /// <summary>
     ///     Check if player has a religion
     /// </summary>
     public bool HasReligion() => ReligionStateManager.HasReligion();
-
-    /// <summary>
-    ///     Get selected blessing's state (if any)
-    /// </summary>
-    public BlessingNodeState? GetSelectedBlessingState()
-    {
-        if (string.IsNullOrEmpty(SelectedBlessingId)) return null;
-
-        return ReligionStateManager.GetBlessingState(SelectedBlessingId);
-    }
 
     /// <summary>
     ///     Check if player's religion is in a civilization
@@ -167,7 +130,7 @@ public class GuiDialogManager : IBlessingDialogManager
                 CivilizationMemberReligions.Clear();
                 CivState.MyCivilization = null;
                 CivState.MyInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(details.PendingInvites ??
-                    []);
+                                                             []);
             }
             else
             {

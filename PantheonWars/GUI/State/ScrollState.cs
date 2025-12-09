@@ -1,6 +1,6 @@
 namespace PantheonWars.GUI.State;
 
-public struct ScrollState(float x = 0f, float y = 0f)
+public class ScrollState(float x = 0f, float y = 0f)
 {
     public float X { get; set; }
     public float Y { get; set; }

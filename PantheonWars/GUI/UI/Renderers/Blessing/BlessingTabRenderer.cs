@@ -1,30 +1,18 @@
-using System;
 using System.Collections.Generic;
 using ImGuiNET;
 using PantheonWars.GUI.Events;
 using PantheonWars.GUI.Models.Blessing.Actions;
+using PantheonWars.GUI.Models.Blessing.Info;
+using PantheonWars.GUI.Models.Blessing.Tab;
 using PantheonWars.GUI.Models.Blessing.Tree;
-using PantheonWars.GUI.State;
+using PantheonWars.GUI.UI.Renderers.Blessing.Info;
 using PantheonWars.Models;
-using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.UI.Renderers.Blessing;
 
 internal static class BlessingTabRenderer
 {
-    internal static void DrawBlessingsTab(
-        GuiDialogManager manager,
-        ICoreClientAPI api,
-        float x,
-        float y,
-        float width,
-        float height,
-        int windowWidth,
-        int windowHeight,
-        float deltaTime,
-        Action? onUnlockClicked,
-        Action? onCloseClicked)
+    internal static BlessingTabRenderResult DrawBlessingsTab(BlessingTabViewModel vm)
     {
         const float infoPanelHeight = 200f;
         const float padding = 16f;
@@ -35,90 +23,68 @@ internal static class BlessingTabRenderer
         string? hoveringBlessingId = null;
 
         // Blessing Tree (split view)
-        var treeHeight = height - infoPanelHeight - padding;
-        var vm = new BlessingTreeViewModel(
-            new ScrollState(manager.PlayerTreeScrollX, manager.PlayerTreeScrollY),
-            new ScrollState(manager.ReligionTreeScrollX, manager.ReligionTreeScrollY),
-            manager.ReligionStateManager.PlayerBlessingStates,
-            manager.ReligionStateManager.ReligionBlessingStates,
-            x, y, width, treeHeight,
-            deltaTime,
-            manager.SelectedBlessingId
+        var treeHeight = vm.Height - infoPanelHeight - padding;
+        var treeVm = new BlessingTreeViewModel(
+            vm.PlayerTreeScrollState,
+            vm.ReligionTreeScrollState,
+            vm.PlayerBlessingStates,
+            vm.ReligionBlessingStates,
+            vm.X, vm.Y, vm.Width, treeHeight,
+            vm.DeltaTime,
+            vm.SelectedBlessingId
         );
 
-        var treeResult = BlessingTreeRenderer.Draw(vm);
+        var treeResult = BlessingTreeRenderer.Draw(treeVm);
 
-        // Dispatch BlessingTree events
+        // Extract hovering state from tree events
         foreach (var ev in treeResult.Events)
-            switch (ev)
-            {
-                case BlessingTreeEvent.BlessingHovered(var id):
-                    hoveringBlessingId = id;
-                    break;
-                case BlessingTreeEvent.BlessingSelected(var id):
-                    manager.SelectBlessing(id);
-                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        api.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
-                case BlessingTreeEvent.PlayerTreeScrollChanged(var sx, var sy):
-                    manager.PlayerTreeScrollX = sx;
-                    manager.PlayerTreeScrollY = sy;
-                    break;
-                case BlessingTreeEvent.ReligionTreeScrollChanged(var sx2, var sy2):
-                    manager.ReligionTreeScrollX = sx2;
-                    manager.ReligionTreeScrollY = sy2;
-                    break;
-            }
+            if (ev is BlessingTreeEvent.BlessingHovered hovered)
+                hoveringBlessingId = hovered.BlessingId;
 
         // Info Panel
-        var infoY = y + treeHeight + padding;
-        BlessingInfoRenderer.Draw(manager, x, infoY, width, infoPanelHeight);
+        var infoY = vm.Y + treeHeight + padding;
+        var combinedStates = new Dictionary<string, BlessingNodeState>();
+        foreach (var kv in vm.PlayerBlessingStates)
+            if (!combinedStates.ContainsKey(kv.Key))
+                combinedStates[kv.Key] = kv.Value;
+        foreach (var kv in vm.ReligionBlessingStates)
+            if (!combinedStates.ContainsKey(kv.Key))
+                combinedStates[kv.Key] = kv.Value;
+
+        var infoVm = new BlessingInfoViewModel(
+            // todo this is currently coming from GuiManager - should be from BlessingStateManager.State.TreeState
+            vm.SelectedBlessingState,
+            combinedStates,
+            vm.X,
+            infoY,
+            vm.Width,
+            infoPanelHeight);
+        var infoResult = BlessingInfoRenderer.Draw(infoVm);
 
         // Action Buttons (overlay bottom-right)
-        var buttonY = windowHeight - actionButtonHeight - actionButtonPadding;
-        var buttonX = windowWidth - actionButtonPadding;
+        var buttonY = vm.WindowHeight - actionButtonHeight - actionButtonPadding;
+        var buttonX = vm.WindowWidth - actionButtonPadding;
         var actionsVm = new BlessingActionsViewModel(
-            manager.GetSelectedBlessingState(),
+            vm.SelectedBlessingState,
             ImGui.GetWindowPos().X + buttonX,
             ImGui.GetWindowPos().Y + buttonY
         );
 
         var actionsResult = BlessingActionsRenderer.Draw(actionsVm);
 
-        // Dispatch events
-        foreach (var ev in actionsResult.Events)
-            switch (ev)
-            {
-                case BlessingActionsEvent.CloseClicked:
-                    onCloseClicked?.Invoke();
-                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        api.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
-                case BlessingActionsEvent.UnlockClicked:
-                    onUnlockClicked?.Invoke();
-                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        api.World.Player.Entity, null, false, 8f, 0.5f);
-                    break;
-                case BlessingActionsEvent.UnlockBlockedClicked:
-                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
-                        api.World.Player.Entity, null, false, 8f, 0.3f);
-                    break;
-            }
-
-        // Update manager hover state
-        manager.HoveringBlessingId = hoveringBlessingId;
-
-        // Tooltips
+        // Tooltips (side effect - rendering only, no state changes)
         if (!string.IsNullOrEmpty(hoveringBlessingId))
         {
-            var hoveringState = manager.ReligionStateManager.GetBlessingState(hoveringBlessingId);
+            vm.PlayerBlessingStates.TryGetValue(hoveringBlessingId!, out var hoverPlayerState);
+            vm.ReligionBlessingStates.TryGetValue(hoveringBlessingId!, out var hoverReligionState);
+            var hoveringState = hoverPlayerState ?? hoverReligionState;
             if (hoveringState != null)
             {
                 var allBlessings = new Dictionary<string, PantheonWars.Models.Blessing>();
-                foreach (var s in manager.ReligionStateManager.PlayerBlessingStates.Values)
+                foreach (var s in vm.PlayerBlessingStates.Values)
                     if (!allBlessings.ContainsKey(s.Blessing.BlessingId))
                         allBlessings[s.Blessing.BlessingId] = s.Blessing;
-                foreach (var s in manager.ReligionStateManager.ReligionBlessingStates.Values)
+                foreach (var s in vm.ReligionBlessingStates.Values)
                     if (!allBlessings.ContainsKey(s.Blessing.BlessingId))
                         allBlessings[s.Blessing.BlessingId] = s.Blessing;
 
@@ -129,8 +95,16 @@ internal static class BlessingTabRenderer
                 );
 
                 var mousePos = ImGui.GetMousePos();
-                TooltipRenderer.Draw(tooltipData, mousePos.X, mousePos.Y, windowWidth, windowHeight);
+                TooltipRenderer.Draw(tooltipData, mousePos.X, mousePos.Y, vm.WindowWidth, vm.WindowHeight);
             }
         }
+
+        // Return result with all events
+        return new BlessingTabRenderResult(
+            treeResult.Events,
+            actionsResult.Events,
+            hoveringBlessingId,
+            vm.Height
+        );
     }
 }
