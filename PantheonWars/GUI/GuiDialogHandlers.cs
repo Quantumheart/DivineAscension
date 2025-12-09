@@ -299,7 +299,9 @@ public partial class GuiDialog
 
         // Refresh blessing states in case new blessings became available
         // Only do this if dialog is open to avoid unnecessary processing
-        if (_state.IsOpen && _manager.HasReligion()) _manager.ReligionStateManager.RefreshAllBlessingStates();
+        if (_state.IsOpen && _manager.HasReligion())
+            _manager.BlessingStateManager.RefreshAllBlessingStates(_manager.ReligionStateManager.CurrentFavorRank,
+                _manager.ReligionStateManager.CurrentPrestigeRank);
     }
 
     /// <summary>
