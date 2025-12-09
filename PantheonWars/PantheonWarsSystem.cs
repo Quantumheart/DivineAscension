@@ -8,6 +8,7 @@ using PantheonWars.Models.Enum;
 using PantheonWars.Network;
 using PantheonWars.Network.Civilization;
 using PantheonWars.Systems;
+using PantheonWars.Systems.Networking.Server;
 using PantheonWars.Systems.Patches;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -39,6 +40,7 @@ public class PantheonWarsSystem : ModSystem
     // Server-side systems
     private ICoreServerAPI? _sapi;
     private IServerNetworkChannel? _serverChannel;
+    private PlayerDataNetworkHandler? _playerDataNetworkHandler;
 
     public string ModName => "pantheonwars";
 
@@ -102,12 +104,7 @@ public class PantheonWarsSystem : ModSystem
         _favorSystem = result.FavorSystem;
         _blessingRegistry = result.BlessingRegistry;
         _blessingEffectSystem = result.BlessingEffectSystem;
-
-        // Subscribe to player data changed event
-        _playerReligionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
-
-        // Hook player join to send initial data
-        api.Event.PlayerJoin += OnPlayerJoin;
+        _playerDataNetworkHandler = result.PlayerDataNetworkHandler;
 
         api.Logger.Notification("[PantheonWars] Server-side initialization complete");
     }
@@ -131,6 +128,9 @@ public class PantheonWarsSystem : ModSystem
 
         // Unpatch Harmony
         _harmony?.UnpatchAll("com.pantheonwars.patches");
+
+        // Cleanup network handlers
+        _playerDataNetworkHandler?.Dispose();
 
         // Cleanup systems
         _favorSystem?.Dispose();
@@ -311,7 +311,7 @@ public class PantheonWarsSystem : ModSystem
                         var religion = _religionManager.GetReligion(packet.ReligionUID);
                         message = $"Successfully joined {religion?.ReligionName ?? "religion"}!";
                         success = true;
-                        SendPlayerDataToClient(fromPlayer); // Refresh player's HUD
+                        _playerDataNetworkHandler?.SendPlayerDataToClient(fromPlayer); // Refresh player's HUD
                     }
                     else
                     {
@@ -329,7 +329,7 @@ public class PantheonWarsSystem : ModSystem
                         : "Failed to accept invitation. It may have expired or you already have a religion.";
                     if (success)
                     {
-                        SendPlayerDataToClient(fromPlayer);
+                        _playerDataNetworkHandler?.SendPlayerDataToClient(fromPlayer);
                         var statePacket = new ReligionStateChangedPacket
                         {
                             Reason = "You joined a religion",
@@ -354,7 +354,7 @@ public class PantheonWarsSystem : ModSystem
                         _playerReligionDataManager!.LeaveReligion(fromPlayer.PlayerUID);
                         message = $"Left {religionNameForLeave}.";
                         success = true;
-                        SendPlayerDataToClient(fromPlayer); // Refresh player's HUD
+                        _playerDataNetworkHandler?.SendPlayerDataToClient(fromPlayer); // Refresh player's HUD
 
                         // Send religion state changed packet
                         var statePacket = new ReligionStateChangedPacket
@@ -388,7 +388,8 @@ public class PantheonWarsSystem : ModSystem
                                 kickedPlayer.SendMessage(0,
                                     $"You have been kicked from {religionForKick.ReligionName}.",
                                     EnumChatType.Notification);
-                                SendPlayerDataToClient(kickedPlayer); // Refresh kicked player's HUD
+                                _playerDataNetworkHandler
+                                    ?.SendPlayerDataToClient(kickedPlayer); // Refresh kicked player's HUD
 
                                 // Send religion state changed packet
                                 var statePacket = new ReligionStateChangedPacket
@@ -458,7 +459,7 @@ public class PantheonWarsSystem : ModSystem
                                 bannedPlayer.SendMessage(0,
                                     $"You have been banned from {religionForBan.ReligionName}. Reason: {reason}",
                                     EnumChatType.Notification);
-                                SendPlayerDataToClient(bannedPlayer);
+                                _playerDataNetworkHandler?.SendPlayerDataToClient(bannedPlayer);
 
                                 // Send religion state changed packet
                                 var statePacket = new ReligionStateChangedPacket
@@ -661,7 +662,7 @@ public class PantheonWarsSystem : ModSystem
                 success = true;
 
                 // Refresh player's HUD
-                SendPlayerDataToClient(fromPlayer);
+                _playerDataNetworkHandler?.SendPlayerDataToClient(fromPlayer);
             }
         }
         catch (Exception ex)
@@ -756,7 +757,7 @@ public class PantheonWarsSystem : ModSystem
                                 message = $"Successfully unlocked {blessing.Name}!";
 
                                 // Send updated player data to client
-                                SendPlayerDataToClient(fromPlayer);
+                                _playerDataNetworkHandler?.SendPlayerDataToClient(fromPlayer);
                             }
                             else
                             {
@@ -788,7 +789,7 @@ public class PantheonWarsSystem : ModSystem
                                 if (member != null)
                                 {
                                     // Send updated data to each member
-                                    SendPlayerDataToClient(member);
+                                    _playerDataNetworkHandler?.SendPlayerDataToClient(member);
 
                                     member.SendMessage(
                                         GlobalConstants.GeneralChatGroup,
@@ -1251,46 +1252,6 @@ public class PantheonWarsSystem : ModSystem
         _serverChannel!.SendPacket(response, fromPlayer);
     }
 
-    private void OnPlayerJoin(IServerPlayer player)
-    {
-        // Send initial player data to client
-        SendPlayerDataToClient(player);
-    }
-
-    /// <summary>
-    ///     Handle player data changes (favor, rank, etc.) and notify client
-    /// </summary>
-    private void OnPlayerDataChanged(string playerUID)
-    {
-        var player = _sapi!.World.PlayerByUid(playerUID) as IServerPlayer;
-        if (player != null) SendPlayerDataToClient(player);
-    }
-
-    private void SendPlayerDataToClient(IServerPlayer player)
-    {
-        if (_playerReligionDataManager == null || _religionManager == null || _deityRegistry == null ||
-            _serverChannel == null) return;
-
-        var playerReligionData = _playerReligionDataManager!.GetOrCreatePlayerData(player.PlayerUID);
-        var religionData = _religionManager!.GetPlayerReligion(player.PlayerUID);
-        var deity = _deityRegistry.GetDeity(playerReligionData.ActiveDeity);
-        var deityName = deity?.Name ?? "None";
-
-        if (religionData != null)
-        {
-            var packet = new PlayerReligionDataPacket(
-                religionData.ReligionName,
-                deityName,
-                playerReligionData.Favor,
-                playerReligionData.FavorRank.ToString(),
-                religionData.Prestige,
-                religionData.PrestigeRank.ToString(),
-                playerReligionData.TotalFavorEarned
-            );
-
-            _serverChannel.SendPacket(packet, player);
-        }
-    }
 
     #endregion
 

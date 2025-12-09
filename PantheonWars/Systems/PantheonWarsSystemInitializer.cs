@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using PantheonWars.Commands;
 using PantheonWars.Systems.BuffSystem;
+using PantheonWars.Systems.Networking.Server;
 using PantheonWars.Systems.Patches;
 using Vintagestory.API.Server;
 
@@ -81,6 +82,12 @@ public static class PantheonWarsSystemInitializer
             new CivilizationCommands(api, civilizationManager, religionManager, playerReligionDataManager);
         civilizationCommands.RegisterCommands();
 
+        // Create and initialize network handlers
+        var playerDataHandler = new PlayerDataNetworkHandler();
+        playerDataHandler.Initialize(api);
+        playerDataHandler.RegisterHandlers(serverChannel);
+        playerDataHandler.InitializeDependencies(playerReligionDataManager, religionManager, deityRegistry);
+
         api.Logger.Notification("[PantheonWars] All server-side systems initialized successfully");
 
         // Return all initialized components
@@ -98,7 +105,8 @@ public static class PantheonWarsSystemInitializer
             FavorCommands = favorCommands,
             BlessingCommands = blessingCommands,
             ReligionCommands = religionCommands,
-            CivilizationCommands = civilizationCommands
+            CivilizationCommands = civilizationCommands,
+            PlayerDataNetworkHandler = playerDataHandler
         };
     }
 }
@@ -125,4 +133,7 @@ public class InitializationResult
     public BlessingCommands BlessingCommands { get; init; } = null!;
     public ReligionCommands ReligionCommands { get; init; } = null!;
     public CivilizationCommands CivilizationCommands { get; init; } = null!;
+
+    // Network Handlers
+    public PlayerDataNetworkHandler PlayerDataNetworkHandler { get; init; } = null!;
 }
