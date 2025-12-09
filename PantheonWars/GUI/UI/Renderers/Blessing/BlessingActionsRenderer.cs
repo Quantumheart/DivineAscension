@@ -35,22 +35,12 @@ internal static class BlessingActionsRenderer
     public static BlessingActionsRendererResult Draw(BlessingActionsViewModel viewModel)
     {
         var emitted = new List<BlessingActionsEvent>(2);
-
-        // Close button is always visible and enabled (right-aligned)
-        var closeButtonX = viewModel.X - ButtonWidth;
-        var closeClicked = DrawButton("Close", closeButtonX, viewModel.Y, ButtonWidth, ButtonHeight,
-            ColorButtonNormal, ColorTextNormal, true);
-
-        if (closeClicked)
-        {
-            emitted.Add(new BlessingActionsEvent.CloseClicked());
-        }
-
+        
         // Unlock button - only show if blessing is selected and not already unlocked
         var selectedState = viewModel.BlessingNodeState;
         if (selectedState is { IsUnlocked: false })
         {
-            var unlockButtonX = closeButtonX - ButtonWidth - ButtonSpacing;
+            var unlockButtonX = viewModel.X - ButtonWidth - ButtonSpacing;
             var canUnlock = selectedState.CanUnlock;
 
             var buttonText = "Unlock";
