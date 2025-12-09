@@ -4,12 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
-using PantheonWars.Commands;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network;
 using PantheonWars.Network.Civilization;
 using PantheonWars.Systems;
-using PantheonWars.Systems.BuffSystem;
 using PantheonWars.Systems.Patches;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -22,27 +20,21 @@ namespace PantheonWars;
 public class PantheonWarsSystem : ModSystem
 {
     public const string NETWORK_CHANNEL = "pantheonwars";
-    private BlessingCommands? _blessingCommands;
     private BlessingEffectSystem? _blessingEffectSystem;
     private BlessingRegistry? _blessingRegistry;
 
     // Client-side systems
     private ICoreClientAPI? _capi;
-    private CivilizationCommands? _civilizationCommands;
 
     // Use interfaces for better testability and dependency injection
     private CivilizationManager? _civilizationManager;
     private IClientNetworkChannel? _clientChannel;
     private DeityRegistry? _deityRegistry;
-    private FavorCommands? _favorCommands;
     private FavorSystem? _favorSystem;
 
     private Harmony? _harmony;
     private PlayerReligionDataManager? _playerReligionDataManager;
-    private PvPManager? _pvpManager;
-    private ReligionCommands? _religionCommands;
     private ReligionManager? _religionManager;
-    private ReligionPrestigeManager? _religionPrestigeManager;
 
     // Server-side systems
     private ICoreServerAPI? _sapi;
@@ -94,75 +86,26 @@ public class PantheonWarsSystem : ModSystem
         base.StartServerSide(api);
         _sapi = api;
 
-        // Clear any static event subscribers from previous loads
-        PitKilnPatches.ClearSubscribers();
-        AnvilPatches.ClearSubscribers();
-
-        api.Logger.Notification("[PantheonWars] Initializing server-side systems...");
-
-        // Register entity behaviors
-        api.RegisterEntityBehaviorClass("PantheonWarsBuffTracker", typeof(EntityBehaviorBuffTracker));
-
-        // Initialize deity registry (concrete implementation, stored as interface)
-        _deityRegistry = new DeityRegistry(api);
-        _deityRegistry.Initialize();
-
-        // Initialize religion systems first (needed by FavorSystem for passive favor)
-        _religionManager = new ReligionManager(api);
-        _religionManager.Initialize();
-
-        // Initialize civilization manager (depends on ReligionManager and DeityRegistry)
-        _civilizationManager = new CivilizationManager(api, _religionManager, _deityRegistry);
-        _civilizationManager.Initialize();
-
-        _playerReligionDataManager = new PlayerReligionDataManager(api, _religionManager);
-        _playerReligionDataManager.Initialize();
-        _playerReligionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
-
-        // Initialize religion prestige manager (concrete implementation, stored as interface)
-        // MUST be initialized before FavorSystem
-        _religionPrestigeManager = new ReligionPrestigeManager(api, _religionManager);
-        _religionPrestigeManager.Initialize();
-
-        // Initialize favor system (concrete implementation, stored as interface)
-        // Pass interfaces for loose coupling
-        _favorSystem = new FavorSystem(api, _playerReligionDataManager, _deityRegistry, _religionManager,
-            _religionPrestigeManager);
-        _favorSystem.Initialize();
-
-        // Initialize PvP manager (pass interfaces for loose coupling)
-        _pvpManager = new PvPManager(api, _playerReligionDataManager, _religionManager, _religionPrestigeManager,
-            _deityRegistry);
-        _pvpManager.Initialize();
-
-        // Initialize blessing systems (Phase 3.3)
-        _blessingRegistry = new BlessingRegistry(api);
-        _blessingRegistry.Initialize();
-
-        _blessingEffectSystem =
-            new BlessingEffectSystem(api, _blessingRegistry, _playerReligionDataManager, _religionManager);
-        _blessingEffectSystem.Initialize();
-
-        // Connect blessing systems to religion prestige manager
-        _religionPrestigeManager.SetBlessingSystems(_blessingRegistry, _blessingEffectSystem);
-
-        _favorCommands = new FavorCommands(api, _deityRegistry, _playerReligionDataManager);
-        _favorCommands.RegisterCommands();
-
-
-        _blessingCommands = new BlessingCommands(api, _blessingRegistry, _playerReligionDataManager, _religionManager,
-            _blessingEffectSystem);
-        _blessingCommands.RegisterCommands();
-
         // Setup network channel and handlers
         _serverChannel = api.Network.GetChannel(NETWORK_CHANNEL);
         _serverChannel.SetMessageHandler<PlayerReligionDataPacket>(OnServerMessageReceived);
         SetupServerNetworking(api);
-        _religionCommands = new ReligionCommands(api, _religionManager, _playerReligionDataManager, _serverChannel);
-        _religionCommands.RegisterCommands();
-        _civilizationCommands =
-            new CivilizationCommands(api, _civilizationManager, _religionManager, _playerReligionDataManager);
-        _civilizationCommands.RegisterCommands();
+
+        // Initialize all server systems using the initializer
+        var result = PantheonWarsSystemInitializer.InitializeServerSystems(api, _serverChannel);
+
+        // Store references to managers for disposal and event subscriptions
+        _deityRegistry = result.DeityRegistry;
+        _religionManager = result.ReligionManager;
+        _civilizationManager = result.CivilizationManager;
+        _playerReligionDataManager = result.PlayerReligionDataManager;
+        _favorSystem = result.FavorSystem;
+        _blessingRegistry = result.BlessingRegistry;
+        _blessingEffectSystem = result.BlessingEffectSystem;
+
+        // Subscribe to player data changed event
+        _playerReligionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
+
         // Hook player join to send initial data
         api.Event.PlayerJoin += OnPlayerJoin;
 
