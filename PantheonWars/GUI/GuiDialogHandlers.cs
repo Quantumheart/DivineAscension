@@ -26,7 +26,7 @@ public partial class GuiDialog
         // Request blessing data from server
         if (_pantheonWarsSystem != null)
         {
-            _pantheonWarsSystem.RequestBlessingData();
+            _pantheonWarsSystem.NetworkClient?.RequestBlessingData();
             // Don't set _state.IsReady yet - wait for server response in OnBlessingDataReceived
             _capi!.Event.UnregisterGameTickListener(_checkDataId);
         }
@@ -108,10 +108,10 @@ public partial class GuiDialog
             $"[PantheonWars] Loaded {playerBlessings.Count} player blessings and {religionBlessings.Count} religion blessings for {packet.Deity}");
 
         // Request player religion info to get founder status (needed for Manage Religion button)
-        _pantheonWarsSystem?.RequestPlayerReligionInfo();
+        _pantheonWarsSystem?.NetworkClient?.RequestPlayerReligionInfo();
 
         // Request civilization info for player's religion (empty string = my civ)
-        _pantheonWarsSystem?.RequestCivilizationInfo(string.Empty);
+        _pantheonWarsSystem?.NetworkClient?.RequestCivilizationInfo(string.Empty);
 
     }
 
@@ -132,7 +132,7 @@ public partial class GuiDialog
         _state.IsReady = true; // Keep dialog ready so it doesn't close
 
         // Request fresh data from server (will show "No Religion" state)
-        _pantheonWarsSystem?.RequestBlessingData();
+        _pantheonWarsSystem?.NetworkClient?.RequestBlessingData();
 
         // If notification is about civilization, also refresh civilization data
         if (packet.Reason.Contains("civilization", StringComparison.OrdinalIgnoreCase))
@@ -170,7 +170,7 @@ public partial class GuiDialog
 
         // Send unlock request to server
         _capi!.Logger.Debug($"[PantheonWars] Sending unlock request for: {selectedState.Blessing.Name}");
-        _pantheonWarsSystem?.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
+        _pantheonWarsSystem?.NetworkClient?.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
     }
 
     /// <summary>
@@ -216,16 +216,17 @@ public partial class GuiDialog
 
             // Refresh religion tab data
             _manager!.ReligionStateManager.State.BrowseState.IsBrowseLoading = true;
-            _pantheonWarsSystem?.RequestReligionList(_manager.ReligionStateManager.State.BrowseState.DeityFilter);
+            _pantheonWarsSystem?.NetworkClient?.RequestReligionList(_manager.ReligionStateManager.State.BrowseState
+                .DeityFilter);
 
             if (_manager.HasReligion() && packet.Action != "leave")
             {
                 _manager.ReligionStateManager.State.InfoState.Loading = true;
-                _pantheonWarsSystem?.RequestPlayerReligionInfo();
+                _pantheonWarsSystem?.NetworkClient?.RequestPlayerReligionInfo();
             }
 
             // Request fresh blessing data (religion may have changed)
-            _pantheonWarsSystem?.RequestBlessingData();
+            _pantheonWarsSystem?.NetworkClient?.RequestBlessingData();
 
             // Clear confirmations
             _manager.ReligionStateManager.State.InfoState.ShowDisbandConfirm = false;
@@ -433,7 +434,7 @@ public partial class GuiDialog
             // Set loading flags since we're calling system directly (bypassing manager helpers)
             _manager!.CivState.IsBrowseLoading = true;
             _manager.CivState.BrowseError = null;
-            _pantheonWarsSystem?.RequestCivilizationList(_manager.CivState.DeityFilter);
+            _pantheonWarsSystem?.NetworkClient?.RequestCivilizationList(_manager.CivState.DeityFilter);
 
             if (_manager!.HasReligion())
             {
@@ -442,7 +443,7 @@ public partial class GuiDialog
                 _manager.CivState.IsInvitesLoading = true;
                 _manager.CivState.MyCivError = null;
                 _manager.CivState.InvitesError = null;
-                _pantheonWarsSystem?.RequestCivilizationInfo("");
+                _pantheonWarsSystem?.NetworkClient?.RequestCivilizationInfo("");
             }
         }
         else

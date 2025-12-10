@@ -117,14 +117,15 @@ public class BlessingStateManager
             _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
 
         // Send unlock request to server
-        if (_system != null)
+        if (_system?.NetworkClient != null)
         {
             _coreClientApi.Logger.Debug($"[PantheonWars] Sending unlock request for: {selectedState.Blessing.Name}");
-            _system.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
+            _system.NetworkClient.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
         }
         else
         {
-            _coreClientApi.Logger.Warning("[PantheonWars] Cannot unlock blessing: PantheonWarsSystem not available");
+            _coreClientApi.Logger.Warning(
+                "[PantheonWars] Cannot unlock blessing: PantheonWarsSystem or NetworkClient not available");
         }
     }
 

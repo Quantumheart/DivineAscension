@@ -154,7 +154,7 @@ public class GuiDialogManager : IBlessingDialogManager
         CivState.IsBrowseLoading = true;
         CivState.BrowseError = null;
         var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        system?.RequestCivilizationList(deityFilter);
+        system?.NetworkClient?.RequestCivilizationList(deityFilter);
     }
 
     /// <summary>
@@ -177,7 +177,7 @@ public class GuiDialogManager : IBlessingDialogManager
         }
 
         var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        system?.RequestCivilizationInfo(civIdOrEmpty);
+        system?.NetworkClient?.RequestCivilizationInfo(civIdOrEmpty);
     }
 
     /// <summary>
@@ -188,6 +188,6 @@ public class GuiDialogManager : IBlessingDialogManager
         // Clear transient action error; some actions will trigger refreshes
         CivState.LastActionError = null;
         var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        system?.RequestCivilizationAction(action, civId, targetId, name);
+        system?.NetworkClient?.RequestCivilizationAction(action, civId, targetId, name);
     }
 }

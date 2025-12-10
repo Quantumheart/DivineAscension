@@ -149,7 +149,7 @@ public class ReligionStateManager : IReligionStateManager
         State.BrowseState.IsBrowseLoading = true;
         State.ErrorState.BrowseError = null;
         var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        if (deityFilter != null) system?.RequestReligionList(deityFilter);
+        if (deityFilter != null) system?.NetworkClient?.RequestReligionList(deityFilter);
     }
 
     /// <summary>
@@ -176,7 +176,7 @@ public class ReligionStateManager : IReligionStateManager
         State.InvitesState.Loading = true; // also load the invites list for players without a religion
         State.ErrorState.InfoError = null;
         var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        system?.RequestPlayerReligionInfo();
+        system?.NetworkClient?.RequestPlayerReligionInfo();
     }
 
     public void RequestReligionAction(string action, string religionId = "", string targetPlayerId = "")
@@ -184,7 +184,7 @@ public class ReligionStateManager : IReligionStateManager
         // Clear transient action error
         State.ErrorState.LastActionError = null;
         var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        system?.RequestReligionAction(action, religionId, targetPlayerId);
+        system?.NetworkClient?.RequestReligionAction(action, religionId, targetPlayerId);
     }
 
     /// <summary>
@@ -195,7 +195,7 @@ public class ReligionStateManager : IReligionStateManager
         // Clear transient action error
         State.ErrorState.LastActionError = null;
         var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        system?.RequestEditDescription(id, description);
+        system?.NetworkClient?.RequestEditDescription(id, description);
     }
 
     /// <summary>
@@ -712,7 +712,7 @@ public class ReligionStateManager : IReligionStateManager
 
     private void RequestReligionCreate(string religionName, string deity, bool isPublic)
     {
-        _system.RequestCreateReligion(religionName, deity, isPublic);
+        _system?.NetworkClient?.RequestCreateReligion(religionName, deity, isPublic);
     }
 
     /// <summary>
