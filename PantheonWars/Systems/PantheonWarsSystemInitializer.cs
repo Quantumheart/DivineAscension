@@ -98,6 +98,14 @@ public static class PantheonWarsSystemInitializer
         blessingHandler.Initialize(api);
         blessingHandler.RegisterHandlers(serverChannel);
 
+        var religionHandler = new ReligionNetworkHandler(
+            api,
+            religionManager,
+            playerReligionDataManager,
+            serverChannel);
+        religionHandler.Initialize(api);
+        religionHandler.RegisterHandlers(serverChannel);
+
         api.Logger.Notification("[PantheonWars] All server-side systems initialized successfully");
 
         // Return all initialized components
@@ -117,7 +125,8 @@ public static class PantheonWarsSystemInitializer
             ReligionCommands = religionCommands,
             CivilizationCommands = civilizationCommands,
             PlayerDataNetworkHandler = playerDataHandler,
-            BlessingNetworkHandler = blessingHandler
+            BlessingNetworkHandler = blessingHandler,
+            ReligionNetworkHandler = religionHandler
         };
     }
 }
@@ -148,4 +157,5 @@ public class InitializationResult
     // Network Handlers
     public PlayerDataNetworkHandler PlayerDataNetworkHandler { get; init; } = null!;
     public BlessingNetworkHandler BlessingNetworkHandler { get; init; } = null!;
+    public ReligionNetworkHandler ReligionNetworkHandler { get; init; } = null!;
 }
