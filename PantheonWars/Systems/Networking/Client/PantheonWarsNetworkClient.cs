@@ -100,10 +100,6 @@ public class PantheonWarsNetworkClient : IClientNetworkHandler
         else
         {
             _capi?.ShowChatMessage($"Error: {packet.Message}");
-
-            // Play error sound
-            _capi?.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
-                _capi.World.Player.Entity, null, false, 8f, 0.3f);
         }
     }
 

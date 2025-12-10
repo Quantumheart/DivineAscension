@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Interfaces;
 using PantheonWars.GUI.Models.Blessing.Tab;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Renderers.Blessing;
@@ -8,17 +9,19 @@ using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.Managers;
 
 /// <summary>
 ///     Manages blessing tab state and event processing
 /// </summary>
-public class BlessingStateManager(ICoreClientAPI api, IUiService uiService)
+public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISoundManager soundManager)
 {
     private readonly ICoreClientAPI _coreClientApi = api ?? throw new ArgumentNullException(nameof(api));
     private readonly IUiService _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
+
+    private readonly ISoundManager
+        _soundManager = soundManager ?? throw new ArgumentNullException(nameof(soundManager));
 
     public BlessingTabState State { get; } = new();
 
@@ -48,9 +51,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService)
                     // Update state
                     State.TreeState.SelectedBlessingId = e.BlessingId;
                     // Play sound
-                    _coreClientApi.World.PlaySoundAt(
-                        new AssetLocation("pantheonwars:sounds/click"),
-                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+                    _soundManager.PlayClick();
                     break;
 
                 case BlessingTreeEvent.BlessingHovered e:
@@ -79,10 +80,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService)
                     break;
 
                 case BlessingActionsEvent.UnlockBlockedClicked:
-                    // Play error sound
-                    _coreClientApi.World.PlaySoundAt(
-                        new AssetLocation("pantheonwars:sounds/error"),
-                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.3f);
+                    _soundManager.PlayError();
                     break;
             }
     }
@@ -106,10 +104,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService)
         }
 
         // Play click sound
-        if (_coreClientApi.World is not null)
-            _coreClientApi.World.PlaySoundAt(
-                new AssetLocation("pantheonwars:sounds/click"),
-                _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+        _soundManager.PlayClick();
 
         _uiService.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
     }

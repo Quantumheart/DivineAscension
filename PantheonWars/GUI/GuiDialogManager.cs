@@ -20,13 +20,13 @@ public class GuiDialogManager : IBlessingDialogManager
     private readonly ICoreClientAPI _capi;
     private readonly IUiService _uiService;
 
-    public GuiDialogManager(ICoreClientAPI capi, IUiService uiService)
+    public GuiDialogManager(ICoreClientAPI capi, IUiService uiService, ISoundManager soundManager)
     {
         _capi = capi ?? throw new ArgumentNullException(nameof(capi));
         _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
-        ReligionStateManager = new ReligionStateManager(capi, _uiService);
-        BlessingStateManager = new BlessingStateManager(capi, _uiService);
-        CivilizationManager = new CivilizationStateManager(capi, _uiService);
+        ReligionStateManager = new ReligionStateManager(capi, _uiService, soundManager);
+        BlessingStateManager = new BlessingStateManager(capi, _uiService, soundManager);
+        CivilizationManager = new CivilizationStateManager(capi, _uiService, soundManager);
         // Initialize UI-only fake data provider in DEBUG builds. In Release it stays null.
 #if DEBUG
         ReligionStateManager.MembersProvider = new FakeReligionMemberProvider();

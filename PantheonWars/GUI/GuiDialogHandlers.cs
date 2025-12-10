@@ -5,7 +5,6 @@ using PantheonWars.Models.Enum;
 using PantheonWars.Network;
 using PantheonWars.Network.Civilization;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI;
 
@@ -183,8 +182,7 @@ public partial class GuiDialog
             _capi.ShowChatMessage(packet.Message);
 
             // Play success sound
-            _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                _capi.World.Player.Entity, null, false, 8f, 0.5f);
+            _soundManager.PlayClick();
 
 
             // If leaving religion, reset blessing dialog state immediately
@@ -218,8 +216,7 @@ public partial class GuiDialog
             _capi.ShowChatMessage($"Error: {packet.Message}");
 
             // Play error sound
-            _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
-                _capi.World.Player.Entity, null, false, 8f, 0.5f);
+            _soundManager.PlayError();
 
             // Store error in state
             _manager!.ReligionStateManager.State.ErrorState.LastActionError = packet.Message;
@@ -298,8 +295,7 @@ public partial class GuiDialog
             _capi!.Logger.Debug($"[PantheonWars] Blessing unlock failed: {blessingId}");
 
             // Play error sound on failure
-            _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
-                _capi.World.Player.Entity, null, false, 8f, 0.5f);
+            _soundManager.PlayError();
 
             return;
         }
@@ -312,27 +308,18 @@ public partial class GuiDialog
             switch (_manager.ReligionStateManager.CurrentDeity)
             {
                 case DeityType.None:
-                    _capi.World.PlaySoundAt(
-                        new AssetLocation("pantheonwars:sounds/unlock"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
                     break;
                 case DeityType.Khoras:
-                    _capi.World.PlaySoundAt(
-                        new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Khoras)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
+                    _soundManager.PlayDeityUnlock(DeityType.Khoras);
                     break;
                 case DeityType.Lysa:
-                    _capi.World.PlaySoundAt(new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Lysa)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
+                    _soundManager.PlayDeityUnlock(DeityType.Lysa);
                     break;
                 case DeityType.Aethra:
-                    _capi.World.PlaySoundAt(
-                        new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Aethra)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
+                    _soundManager.PlayDeityUnlock(DeityType.Aethra);
                     break;
                 case DeityType.Gaia:
-                    _capi.World.PlaySoundAt(new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Gaia)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
+                    _soundManager.PlayDeityUnlock(DeityType.Gaia);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

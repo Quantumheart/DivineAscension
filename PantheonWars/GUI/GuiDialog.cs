@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
+using PantheonWars.GUI.Interfaces;
+using PantheonWars.GUI.Managers;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI;
 using PantheonWars.GUI.UI.Utilities;
@@ -35,6 +37,7 @@ public partial class GuiDialog : ModSystem
     private PantheonWarsSystem? _pantheonWarsSystem;
     private Stopwatch? _stopwatch;
     private ImGuiViewportPtr _viewport;
+    private ISoundManager _soundManager;
 
     public override bool ShouldLoad(EnumAppSide forSide)
     {
@@ -64,7 +67,8 @@ public partial class GuiDialog : ModSystem
 
         // Get PantheonWarsSystem for network communication
         _pantheonWarsSystem = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        _manager = new GuiDialogManager(_capi, _pantheonWarsSystem!.UiService);
+        _soundManager = new SoundManager(_capi);
+        _manager = new GuiDialogManager(_capi, _pantheonWarsSystem!.UiService, _soundManager);
         if (_pantheonWarsSystem?.NetworkClient != null)
         {
             _pantheonWarsSystem.NetworkClient.BlessingUnlocked += OnBlessingUnlockedFromServer;
@@ -130,10 +134,7 @@ public partial class GuiDialog : ModSystem
         if (!_state.IsOpen) return;
 
         _state.IsOpen = false;
-
-        // TODO: Add close sound in Phase 5
-        // _capi.Gui.PlaySound(new AssetLocation("pantheonwars", "sounds/click.ogg"), false, 0.3f);
-
+        
         _capi!.Logger.Debug("[PantheonWars] Blessing Dialog closed");
     }
 

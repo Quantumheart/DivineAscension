@@ -22,7 +22,6 @@ using PantheonWars.Network;
 using PantheonWars.Systems;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.Managers;
 
@@ -30,9 +29,9 @@ public class ReligionStateManager : IReligionStateManager
 {
     private readonly ICoreClientAPI _coreClientApi;
     private readonly IUiService _uiService;
+    private readonly ISoundManager _soundManager;
 
     public ReligionTabState State { get; } = new();
-    private readonly PantheonWarsSystem _system;
     public string? CurrentReligionUID { get; set; }
     public DeityType CurrentDeity { get; set; }
     public string? CurrentReligionName { get; set; }
@@ -48,11 +47,11 @@ public class ReligionStateManager : IReligionStateManager
     internal IReligionMemberProvider? MembersProvider { get; set; }
     internal IReligionProvider? ReligionsProvider { get; private set; }
 
-    public ReligionStateManager(ICoreClientAPI coreClientApi, IUiService uiService)
+    public ReligionStateManager(ICoreClientAPI coreClientApi, IUiService uiService, ISoundManager soundManager)
     {
         _coreClientApi = coreClientApi ?? throw new ArgumentNullException(nameof(coreClientApi));
         _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
-        _system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
+        _soundManager = soundManager ?? throw new ArgumentNullException(nameof(soundManager));
     }
 
     public void Initialize(string? id, DeityType deity, string? religionName, int favorRank = 0,
@@ -151,7 +150,6 @@ public class ReligionStateManager : IReligionStateManager
         // Default: request from server
         State.BrowseState.IsBrowseLoading = true;
         State.ErrorState.BrowseError = null;
-        var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
         if (deityFilter != null) _uiService.RequestReligionList(deityFilter);
     }
 
@@ -195,7 +193,6 @@ public class ReligionStateManager : IReligionStateManager
     {
         // Clear transient action error
         State.ErrorState.LastActionError = null;
-        var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
         _uiService.RequestEditDescription(id, description);
     }
 
@@ -324,6 +321,7 @@ public class ReligionStateManager : IReligionStateManager
             religionName: religion?.ReligionName ?? string.Empty,
             deity: religion?.Deity ?? string.Empty,
             founderUID: religion?.FounderUID ?? string.Empty,
+            // todo: just send the player id
             currentPlayerUID: _coreClientApi.World.Player?.PlayerUID ?? string.Empty,
             isFounder: religion?.IsFounder ?? false,
             description: religion?.Description,
@@ -661,14 +659,12 @@ public class ReligionStateManager : IReligionStateManager
 
                 case ReligionCreateEvent.DeityChanged e:
                     State.CreateState.DeityName = e.NewDeity;
-                    _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+                    
                     break;
 
                 case ReligionCreateEvent.IsPublicChanged e:
                     State.CreateState.IsPublic = e.IsPublic;
-                    _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.3f);
+                    _soundManager.PlayClick();
                     break;
 
                 case ReligionCreateEvent.SubmitClicked:
@@ -689,14 +685,12 @@ public class ReligionStateManager : IReligionStateManager
             State.CreateState.Name.Length > 32)
         {
             // Play error sound
-            _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
-                _coreClientApi.World.Player.Entity, null, false, 8f, 0.3f);
+            _soundManager.PlayError();
             return;
         }
 
         // Play success sound
-        _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-            _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+        _soundManager.PlayClick();
 
         // Request creation
         RequestReligionCreate(State.CreateState.Name, State.CreateState.DeityName, State.CreateState.IsPublic);
@@ -713,7 +707,7 @@ public class ReligionStateManager : IReligionStateManager
 
     private void RequestReligionCreate(string religionName, string deity, bool isPublic)
     {
-        _system?.NetworkClient?.RequestCreateReligion(religionName, deity, isPublic);
+        _uiService.RequestCreateReligion(religionName, deity, isPublic);
     }
 
     /// <summary>
@@ -733,8 +727,7 @@ public class ReligionStateManager : IReligionStateManager
                     // Request refresh with new filter
                     RequestReligionList(State.BrowseState.DeityFilter);
                     // Feedback sound
-                    _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+                    _soundManager.PlayClick();
                     break;
 
                 case ReligionBrowseEvent.ReligionSelected e:
@@ -749,15 +742,13 @@ public class ReligionStateManager : IReligionStateManager
                 case ReligionBrowseEvent.CreateReligionClicked:
                     // Switch to Create sub-tab
                     State.CurrentSubTab = SubTab.Create;
-                    _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+                    _soundManager.PlayClick();
                     break;
 
                 case ReligionBrowseEvent.JoinReligionClicked e:
                     if (!string.IsNullOrEmpty(e.ReligionUID))
                     {
-                        _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                            _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+                        _soundManager.PlayClick();
                         RequestReligionAction("join", e.ReligionUID);
                     }
                     break;

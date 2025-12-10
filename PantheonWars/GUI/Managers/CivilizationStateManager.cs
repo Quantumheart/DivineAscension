@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ImGuiNET;
 using PantheonWars.GUI.Events.Civilization;
+using PantheonWars.GUI.Interfaces;
 using PantheonWars.GUI.Models.Civilization.Browse;
 using PantheonWars.GUI.Models.Civilization.Create;
 using PantheonWars.GUI.Models.Civilization.Detail;
@@ -14,16 +15,18 @@ using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Network.Civilization;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.Managers;
 
-public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService uiService)
+public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService uiService, ISoundManager soundManager)
 {
     private readonly ICoreClientAPI _coreClientApi =
         coreClientApi ?? throw new ArgumentNullException(nameof(coreClientApi));
 
     private readonly IUiService _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
+
+    private readonly ISoundManager
+        _soundManager = soundManager ?? throw new ArgumentNullException(nameof(soundManager));
 
     private CivilizationTabState State { get; } = new();
 
@@ -432,7 +435,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 case BrowseEvent.DeityFilterChanged dfc:
                     State.BrowseState.DeityFilter = dfc.newFilter == "All" ? string.Empty : dfc.newFilter;
                     RequestCivilizationList(State.BrowseState.DeityFilter);
-                    PlayClickSound();
+                    _soundManager.PlayClick();
                     break;
 
                 case BrowseEvent.ScrollChanged sc:
@@ -586,7 +589,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     else
                     {
                         _coreClientApi.ShowChatMessage("Civilization name must be 3-32 characters.");
-                        PlayErrorSound();
+                        _soundManager.PlayError();
                     }
 
                     break;
@@ -628,38 +631,17 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     {
         if (packet.Success)
         {
-            PlaySuccessSound();
+            _soundManager.PlayClick();
             RequestCivilizationList(State.BrowseState.DeityFilter);
             RequestCivilizationInfo();
         }
         else
         {
-            PlayErrorSound();
+            _soundManager.PlayError();
             State.LastActionError = packet.Message;
         }
     }
 
     #endregion
 
-    #region Helper Methods
-
-    private void PlayClickSound()
-    {
-        _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-            _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
-    }
-
-    private void PlaySuccessSound()
-    {
-        _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-            _coreClientApi.World.Player.Entity, null, false, 8f, 0.7f);
-    }
-
-    private void PlayErrorSound()
-    {
-        _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
-            _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
-    }
-
-    #endregion
 }

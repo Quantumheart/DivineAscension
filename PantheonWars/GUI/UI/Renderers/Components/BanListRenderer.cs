@@ -8,7 +8,6 @@ using PantheonWars.GUI.UI.Components.Lists;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Network;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.UI.Renderers.Components;
 
@@ -150,8 +149,9 @@ public static class BanListRenderer
 
             if (ButtonRenderer.DrawSmallButton(drawList, "Unban", unbanButtonX, buttonY, buttonWidth, 22f))
             {
-                api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                    api.World.Player.Entity, null, false, 8f, 0.5f);
+                // todo: rethink this 
+                // api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
+                // api.World.Player.Entity, null, false, 8f, 0.5f);
                 onUnbanPlayer.Invoke(bannedPlayer.PlayerUID);
             }
         }

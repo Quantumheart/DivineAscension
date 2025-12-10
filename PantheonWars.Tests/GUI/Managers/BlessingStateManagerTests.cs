@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Moq;
 using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Interfaces;
 using PantheonWars.GUI.Managers;
 using PantheonWars.GUI.Models.Blessing.Tab;
 using PantheonWars.Models;
@@ -20,6 +21,7 @@ public class BlessingStateManagerTests
     private readonly Mock<IWorldAccessor> _mockWorld;
     private readonly Mock<Entity> _mockEntity;
     private readonly BlessingStateManager _sut;
+    private readonly Mock<ISoundManager> _mockSoundManager;
 
     public BlessingStateManagerTests()
     {
@@ -27,9 +29,10 @@ public class BlessingStateManagerTests
         _mockUiService = new Mock<IUiService>();
         _mockWorld = new Mock<IWorldAccessor>();
         _mockEntity = new Mock<Entity>();
+        _mockSoundManager = new Mock<ISoundManager>();
 
 
-        _sut = new BlessingStateManager(_mockApi.Object, _mockUiService.Object);
+        _sut = new BlessingStateManager(_mockApi.Object, _mockUiService.Object, _mockSoundManager.Object);
     }
 
     #region Constructor Tests
@@ -38,20 +41,27 @@ public class BlessingStateManagerTests
     public void Constructor_WithNullApi_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            new BlessingStateManager(null!, _mockUiService.Object));
+            new BlessingStateManager(null!, _mockUiService.Object, _mockSoundManager.Object));
     }
 
     [Fact]
     public void Constructor_WithNullUiService_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            new BlessingStateManager(_mockApi.Object, null!));
+            new BlessingStateManager(_mockApi.Object, null!, _mockSoundManager.Object));
+    }
+
+    [Fact]
+    public void Constructor_WithNullSoundManager_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            new BlessingStateManager(_mockApi.Object, _mockUiService.Object, null!));
     }
 
     [Fact]
     public void Constructor_WithValidParameters_CreatesInstance()
     {
-        var manager = new BlessingStateManager(_mockApi.Object, _mockUiService.Object);
+        var manager = new BlessingStateManager(_mockApi.Object, _mockUiService.Object, _mockSoundManager.Object!);
 
         Assert.NotNull(manager);
         Assert.NotNull(manager.State);

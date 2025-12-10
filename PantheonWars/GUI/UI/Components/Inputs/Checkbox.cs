@@ -3,7 +3,6 @@ using System.Numerics;
 using ImGuiNET;
 using PantheonWars.GUI.UI.Utilities;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.UI.Components.Inputs;
 
@@ -36,6 +35,7 @@ public static class Checkbox
         float checkboxSize = 20f,
         float labelPadding = 8f)
     {
+        // todo: why not usages?
         var checkboxStart = new Vector2(x, y);
         var checkboxEnd = new Vector2(x + checkboxSize, y + checkboxSize);
 
@@ -79,8 +79,9 @@ public static class Checkbox
         // Handle click
         if (isHovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
         {
-            api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                api.World.Player.Entity, null, false, 8f, 0.3f);
+            // todo: rethink this
+            // api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
+            // api.World.Player.Entity, null, false, 8f, 0.3f);
             return !isChecked;
         }
 
