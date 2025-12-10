@@ -8,6 +8,7 @@ public class DetailState : IState
     public CivilizationInfoResponsePacket.CivilizationDetails? ViewingCivilizationDetails { get; set; }
     public bool IsLoading { get; set; }
     public string? ErrorMsg { get; set; }
+    public float MemberScrollY { get; set; }
 
     public void Reset()
     {
@@ -15,5 +16,6 @@ public class DetailState : IState
         ViewingCivilizationDetails = null;
         IsLoading = false;
         ErrorMsg = null;
+        MemberScrollY = 0f;
     }
 }

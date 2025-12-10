@@ -67,6 +67,9 @@ public class GuiDialogManager : IBlessingDialogManager
         ReligionStateManager.Initialize(religionUID, deity, religionName, favorRank, prestigeRank);
         IsDataLoaded = true;
         BlessingStateManager.State.Reset();
+
+        // Update civilization manager's religion state
+        UpdateCivilizationReligionState();
     }
 
     /// <summary>
@@ -92,5 +95,15 @@ public class GuiDialogManager : IBlessingDialogManager
     public bool HasCivilization()
     {
         return CivilizationManager.HasCivilization();
+    }
+
+    /// <summary>
+    ///     Update civilization manager's religion state from religion manager
+    /// </summary>
+    public void UpdateCivilizationReligionState()
+    {
+        CivilizationManager.UserHasReligion = HasReligion();
+        CivilizationManager.UserIsReligionFounder =
+            ReligionStateManager.State.InfoState.MyReligionInfo?.IsFounder ?? false;
     }
 }

@@ -6,7 +6,6 @@ using PantheonWars.GUI.Models.Religion.Header;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Components;
 using PantheonWars.GUI.UI.Renderers.Blessing;
-using PantheonWars.GUI.UI.Renderers.Civilization;
 using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI;
@@ -140,7 +139,7 @@ internal static class MainDialogRenderer
                 manager.BlessingStateManager.DrawBlessingsTab(vm);
                 break;
             case MainDialogTab.Civilization: // Civilization
-                CivilizationTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);
+                manager.CivilizationManager.DrawCivilizationTab(windowPos.X + x, windowPos.Y + y, width, contentHeight);
                 break;
         }
     }

@@ -1,107 +1,97 @@
-using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using ImGuiNET;
+using PantheonWars.GUI.Events.Civilization;
+using PantheonWars.GUI.Models.Civilization.Browse;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Inputs;
 using PantheonWars.GUI.UI.Components.Lists;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Network.Civilization;
-using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI.Renderers.Civilization;
 
 internal static class CivilizationBrowseRenderer
 {
-    public static float Draw(
-        GuiDialogManager manager,
-        ICoreClientAPI api,
-        float x, float y, float width, float height)
+    public static CivilizationBrowseRenderResult Draw(
+        CivilizationBrowseViewModel vm,
+        ImDrawListPtr drawList)
     {
-        var state = manager.CivTabState;
-
-        // If viewing a specific civilization's details, show detail view instead
-        if (state.DetailState.ViewingCivilizationId != null)
-            return CivilizationDetailViewRenderer.Draw(manager, api, x, y, width, height);
-
-        var drawList = ImGui.GetWindowDrawList();
-        var currentY = y + 8f;
+        var events = new List<BrowseEvent>();
+        var currentY = vm.Y + 8f;
 
         // Filter label
-        TextRenderer.DrawLabel(drawList, "Filter by deity:", x, currentY);
+        TextRenderer.DrawLabel(drawList, "Filter by deity:", vm.X, currentY);
 
-        // Deity filter dropdown (uses DeityHelper names plus All)
-        var deityNames = DeityHelper.DeityNames;
-        var deities = new string[deityNames.Length + 1];
-        deities[0] = "All";
-        Array.Copy(deityNames, 0, deities, 1, deityNames.Length);
+        var selectedIndex = vm.GetCurrentFilterIndex();
 
-        var selectedIndex = 0;
-        if (!string.IsNullOrEmpty(state.BrowseState.DeityFilter))
-            for (var i = 1; i < deities.Length; i++)
-                if (string.Equals(deities[i], state.BrowseState.DeityFilter, StringComparison.OrdinalIgnoreCase))
-                {
-                    selectedIndex = i;
-                    break;
-                }
-
-        var dropdownX = x + 120f;
+        var dropdownX = vm.X + 120f;
         var dropdownY = currentY - 6f;
         var dropdownW = 200f;
         var dropdownH = 30f;
 
         // Draw dropdown button
-        if (Dropdown.DrawButton(drawList, dropdownX, dropdownY, dropdownW, dropdownH, deities[selectedIndex],
-                state.BrowseState.IsDeityFilterOpen))
-            // Toggle dropdown open/close
-            state.BrowseState.IsDeityFilterOpen = !state.BrowseState.IsDeityFilterOpen;
+        if (Dropdown.DrawButton(drawList, dropdownX, dropdownY, dropdownW, dropdownH,
+                vm.DeityFilters[selectedIndex], vm.IsDeityDropDownOpen))
+            events.Add(new BrowseEvent.DeityDropDownToggled(!vm.IsDeityDropDownOpen));
 
         // Refresh button
         if (ButtonRenderer.DrawButton(drawList, "Refresh", dropdownX + dropdownW + 12f, dropdownY, 100f, dropdownH,
-                false, !state.BrowseState.IsLoading))
-            manager.CivilizationManager.RequestCivilizationList(state.BrowseState.DeityFilter);
+                false, !vm.IsLoading))
+            events.Add(new BrowseEvent.RefreshClicked());
 
         currentY += 40f;
 
         // Scrollable list of civilizations
-        state.BrowseState.BrowseScrollY = ScrollableList.Draw(
+        var civilizationsList = vm.Civilizations.ToList();
+        var listHeight = vm.Height - (currentY - vm.Y);
+
+        var newScrollY = ScrollableList.Draw(
             drawList,
-            x,
+            vm.X,
             currentY,
-            width,
-            height - (currentY - y),
-            state.BrowseState.AllCivilizations,
+            vm.Width,
+            listHeight,
+            civilizationsList,
             90f,
             8f,
-            state.BrowseState.BrowseScrollY,
-            (civ, cx, cy, cw, ch) => DrawCivilizationCard(civ, cx, cy, cw, ch, manager, api),
+            vm.ScrollY,
+            (civ, cx, cy, cw, ch) => DrawCivilizationCard(civ, cx, cy, cw, ch, drawList, events),
             "No civilizations found.",
-            state.BrowseState.IsLoading ? "Loading civilizations..." : null
+            vm.IsLoading ? "Loading civilizations..." : null
         );
 
+        // Emit scroll event if changed
+        if (newScrollY != vm.ScrollY)
+            events.Add(new BrowseEvent.ScrollChanged(newScrollY));
+
         // Draw dropdown menu AFTER the list so it appears on top (z-ordering)
-        if (state.BrowseState.IsDeityFilterOpen)
+        if (vm.IsDeityDropDownOpen)
         {
             // Draw menu visual
-            Dropdown.DrawMenuVisual(drawList, dropdownX, dropdownY, dropdownW, dropdownH, deities, selectedIndex, 34f);
+            Dropdown.DrawMenuVisual(drawList, dropdownX, dropdownY, dropdownW, dropdownH,
+                vm.DeityFilters, selectedIndex, 34f);
 
             // Handle menu interaction
             var (newIndex, shouldClose, clickConsumed) = Dropdown.DrawMenuAndHandleInteraction(
-                drawList, api, dropdownX, dropdownY, dropdownW, dropdownH, deities, selectedIndex, 34f);
+                drawList, null!, dropdownX, dropdownY, dropdownW, dropdownH,
+                vm.DeityFilters, selectedIndex, 34f);
 
             if (shouldClose)
             {
-                state.BrowseState.IsDeityFilterOpen = false;
+                events.Add(new BrowseEvent.DeityDropDownToggled(false));
 
                 // Update filter if selection changed
                 if (newIndex != selectedIndex)
                 {
-                    state.BrowseState.DeityFilter = newIndex == 0 ? string.Empty : deities[newIndex];
-                    manager.CivilizationManager.RequestCivilizationList(state.BrowseState.DeityFilter);
+                    var newFilter = newIndex == 0 ? string.Empty : vm.DeityFilters[newIndex];
+                    events.Add(new BrowseEvent.DeityFilterChanged(newFilter));
                 }
             }
         }
 
-        return height;
+        return new CivilizationBrowseRenderResult(events, vm.Height);
     }
 
     private static void DrawCivilizationCard(
@@ -110,11 +100,9 @@ internal static class CivilizationBrowseRenderer
         float y,
         float width,
         float height,
-        GuiDialogManager manager,
-        ICoreClientAPI api)
+        ImDrawListPtr drawList,
+        List<BrowseEvent> events)
     {
-        var drawList = ImGui.GetWindowDrawList();
-
         // Card background
         drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width, y + height),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown), 4f);
@@ -139,10 +127,6 @@ internal static class CivilizationBrowseRenderer
 
         // View details button
         if (ButtonRenderer.DrawButton(drawList, "View Details", x + width - 130f, y + height - 36f, 120f, 28f, true))
-        {
-            // Set viewing state and request details
-            manager.CivTabState.DetailState.ViewingCivilizationId = civ.CivId;
-            manager.CivilizationManager.RequestCivilizationInfo(civ.CivId);
-        }
+            events.Add(new BrowseEvent.ViewDetailedsClicked(civ.CivId));
     }
 }

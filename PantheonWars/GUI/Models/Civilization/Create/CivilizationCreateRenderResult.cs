@@ -3,8 +3,8 @@ using PantheonWars.GUI.Events.Civilization;
 
 namespace PantheonWars.GUI.Models.Civilization.Create;
 
-public readonly struct CivilizationDetailRenderResult(IReadOnlyList<DetailEvent> events, float renderedHeight)
+public readonly struct CivilizationCreateRenderResult(IReadOnlyList<CreateEvent> events, float renderedHeight)
 {
-    public IReadOnlyList<DetailEvent> Events { get; } = events;
+    public IReadOnlyList<CreateEvent> Events { get; } = events;
     public float RenderedHeight { get; } = renderedHeight;
 }

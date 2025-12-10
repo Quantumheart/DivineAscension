@@ -1,54 +1,62 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using ImGuiNET;
+using PantheonWars.GUI.Events.Civilization;
+using PantheonWars.GUI.Models.Civilization.Invites;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Lists;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Network.Civilization;
-using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI.Renderers.Civilization;
 
 internal static class CivilizationInvitesRenderer
 {
-    public static float Draw(
-        GuiDialogManager manager,
-        ICoreClientAPI api,
-        float x, float y, float width, float height)
+    public static CivilizationInvitesRendererResult Draw(
+        CivilizationInvitesViewModel vm,
+        ImDrawListPtr drawList)
     {
-        var state = manager.CivTabState;
-        var drawList = ImGui.GetWindowDrawList();
-        var currentY = y;
+        var events = new List<InvitesEvent>();
+        var currentY = vm.Y;
 
-        TextRenderer.DrawLabel(drawList, "Your Civilization Invitations", x, currentY, 18f, ColorPalette.White);
+        TextRenderer.DrawLabel(drawList, "Your Civilization Invitations", vm.X, currentY, 18f, ColorPalette.White);
         currentY += 26f;
 
         // Help text explaining where to send invites
         TextRenderer.DrawInfoText(drawList,
             "This tab shows invitations you've received. To send invitations, go to the \"My Civilization\" tab (founders only).",
-            x, currentY, width);
+            vm.X, currentY, vm.Width);
         currentY += 32f;
 
-        if (state.InviteState.MyInvites.Count == 0)
+        if (!vm.HasInvites)
         {
-            TextRenderer.DrawInfoText(drawList, "No pending invitations.", x, currentY + 8f, width);
-            return height;
+            TextRenderer.DrawInfoText(drawList, "No pending invitations.", vm.X, currentY + 8f, vm.Width);
+            return new CivilizationInvitesRendererResult(events, vm.Height);
         }
 
-        state.InviteState.InvitesScrollY = ScrollableList.Draw(
+        var listHeight = vm.Height - (currentY - vm.Y);
+        var invitesList = vm.Invites.ToList();
+
+        var newScrollY = ScrollableList.Draw(
             drawList,
-            x,
+            vm.X,
             currentY,
-            width,
-            height - (currentY - y),
-            state.InviteState.MyInvites,
+            vm.Width,
+            listHeight,
+            invitesList,
             80f,
             10f,
-            state.InviteState.InvitesScrollY,
-            (invite, cx, cy, cw, ch) => DrawInviteCard(invite, cx, cy, cw, ch, manager, api),
-            loadingText: state.InviteState.IsLoading ? "Loading invitations..." : null
+            vm.ScrollY,
+            (invite, cx, cy, cw, ch) => DrawInviteCard(invite, cx, cy, cw, ch, drawList, vm.IsLoading, events),
+            loadingText: vm.IsLoading ? "Loading invitations..." : null
         );
 
-        return height;
+        // Emit scroll event if changed
+        if (newScrollY != vm.ScrollY)
+            events.Add(new InvitesEvent.ScrollChanged(newScrollY));
+
+        return new CivilizationInvitesRendererResult(events, vm.Height);
     }
 
     private static void DrawInviteCard(
@@ -57,10 +65,10 @@ internal static class CivilizationInvitesRenderer
         float y,
         float width,
         float height,
-        GuiDialogManager manager,
-        ICoreClientAPI api)
+        ImDrawListPtr drawList,
+        bool isLoading,
+        List<InvitesEvent> events)
     {
-        var drawList = ImGui.GetWindowDrawList();
         drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width, y + height),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown), 4f);
 
@@ -70,13 +78,14 @@ internal static class CivilizationInvitesRenderer
         drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 14f, y + 48f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), $"Expires: {invite.ExpiresAt:yyyy-MM-dd HH:mm}");
 
-        var enabled = !manager.CivTabState.InviteState.IsLoading;
-        if (ButtonRenderer.DrawButton(drawList, "Accept", x + width - 180f, y + height - 32f, 80f, 28f, true,
-                enabled))
-            manager.CivilizationManager.RequestCivilizationAction("accept", "", invite.InviteId);
+        var enabled = !isLoading;
 
-        if (ButtonRenderer.DrawButton(drawList, "Decline", x + width - 90f, y + height - 32f, 80f, 28f,
-                false, enabled))
-            api.ShowChatMessage("Decline functionality coming soon!");
+        // Accept button
+        if (ButtonRenderer.DrawButton(drawList, "Accept", x + width - 180f, y + height - 32f, 80f, 28f, true, enabled))
+            events.Add(new InvitesEvent.AcceptInviteClicked(invite.InviteId));
+
+        // Decline button
+        if (ButtonRenderer.DrawButton(drawList, "Decline", x + width - 90f, y + height - 32f, 80f, 28f, false, enabled))
+            events.Add(new InvitesEvent.AcceptInviteDeclined(invite.InviteId));
     }
 }

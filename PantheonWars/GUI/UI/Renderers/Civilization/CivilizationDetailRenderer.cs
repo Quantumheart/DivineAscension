@@ -1,10 +1,13 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using ImGuiNET;
+using PantheonWars.GUI.Events.Civilization;
+using PantheonWars.GUI.Models.Civilization.Detail;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Lists;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Network.Civilization;
-using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI.Renderers.Civilization;
 
@@ -12,111 +15,105 @@ namespace PantheonWars.GUI.UI.Renderers.Civilization;
 ///     Renders a detailed view of any civilization's public information.
 ///     Used when clicking "View Details" from the Browse tab.
 /// </summary>
-internal static class CivilizationDetailViewRenderer
+internal static class CivilizationDetailRenderer
 {
-    public static float Draw(
-        GuiDialogManager manager,
-        ICoreClientAPI api,
-        float x, float y, float width, float height)
+    public static CivilizationDetailRendererResult Draw(
+        CivilizationDetailViewModel vm,
+        ImDrawListPtr drawList)
     {
-        var state = manager.CivTabState;
-        var drawList = ImGui.GetWindowDrawList();
-        var currentY = y;
+        var events = new List<DetailEvent>();
+        var currentY = vm.Y;
 
-        if (state.DetailState.IsLoading)
+        if (vm.IsLoading)
         {
-            TextRenderer.DrawInfoText(drawList, "Loading civilization details...", x, currentY + 8f, width);
-            return height;
-        }
-
-        var details = state.DetailState.ViewingCivilizationDetails;
-        if (details == null)
-        {
-            TextRenderer.DrawInfoText(drawList, "Loading civilization details...", x, currentY + 8f, width);
-            return height;
+            TextRenderer.DrawInfoText(drawList, "Loading civilization details...", vm.X, currentY + 8f, vm.Width);
+            return new CivilizationDetailRendererResult(events, vm.Height);
         }
 
         // Back button
-        if (ButtonRenderer.DrawButton(drawList, "<< Back to Browse", x, currentY, 160f, 32f))
-        {
-            state.DetailState.ViewingCivilizationId = null;
-            state.DetailState.ViewingCivilizationDetails = null;
-        }
+        if (ButtonRenderer.DrawButton(drawList, "<< Back to Browse", vm.X, currentY, 160f, 32f))
+            events.Add(new DetailEvent.BackToBrowseClicked());
 
         currentY += 44f;
 
         // Civilization header
-        TextRenderer.DrawLabel(drawList, details.Name, x, currentY, 20f, ColorPalette.White);
+        TextRenderer.DrawLabel(drawList, vm.CivName, vm.X, currentY, 20f, ColorPalette.White);
         currentY += 32f;
 
         // Info grid
-        var leftCol = x;
-        var rightCol = x + width / 2f;
+        var leftCol = vm.X;
+        var rightCol = vm.X + vm.Width / 2f;
 
         // Founded date
         TextRenderer.DrawLabel(drawList, "Founded:", leftCol, currentY, 13f, ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 120f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White), details.CreatedDate.ToString("yyyy-MM-dd"));
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.White), vm.CreatedDate.ToString("yyyy-MM-dd"));
 
         // Member count
         TextRenderer.DrawLabel(drawList, "Members:", rightCol, currentY, 13f, ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(rightCol + 80f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White), $"{details.MemberReligions?.Count}/4");
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.White), $"{vm.MemberCount}/4");
 
         currentY += 24f;
 
         // Civilization founder (player name)
         TextRenderer.DrawLabel(drawList, "Founder:", leftCol, currentY, 13f, ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 120f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), details.FounderName);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), vm.FounderName);
 
         currentY += 24f;
 
         // Founding religion
         TextRenderer.DrawLabel(drawList, "Founding Religion:", leftCol, currentY, 13f, ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 120f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), details.FounderReligionName);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), vm.FounderReligionName);
 
         currentY += 32f;
 
         // Divider line
-        drawList.AddLine(new Vector2(x, currentY), new Vector2(x + width, currentY),
+        drawList.AddLine(new Vector2(vm.X, currentY), new Vector2(vm.X + vm.Width, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey * 0.5f), 1f);
         currentY += 16f;
 
         // Member religions section
-        TextRenderer.DrawLabel(drawList, "Member Religions", x, currentY, 16f, ColorPalette.White);
+        TextRenderer.DrawLabel(drawList, "Member Religions", vm.X, currentY, 16f, ColorPalette.White);
         currentY += 28f;
 
         // Member list (scrollable)
-        var listHeight = height - (currentY - y) - 80f;
-        ScrollableList.Draw(
+        var listHeight = vm.Height - (currentY - vm.Y) - 80f;
+        var membersList = vm.MemberReligions?.ToList() ?? new List<CivilizationInfoResponsePacket.MemberReligion>();
+
+        var newScrollY = ScrollableList.Draw(
             drawList,
-            x,
+            vm.X,
             currentY,
-            width,
+            vm.Width,
             listHeight,
-            details.MemberReligions!,
+            membersList,
             60f,
             8f,
-            0f, // No scroll state needed for detail view
-            (member, cx, cy, cw, ch) => DrawMemberRow(member, cx, cy, cw, ch, details.FounderReligionUID),
+            vm.MemberScrollY,
+            (member, cx, cy, cw, ch) => DrawMemberRow(member, cx, cy, cw, ch, drawList, vm.FounderReligionName),
             "No member religions."
         );
+
+        // Emit scroll event if changed
+        if (newScrollY != vm.MemberScrollY)
+            events.Add(new DetailEvent.MemberScrollChanged(newScrollY));
 
         currentY += listHeight + 16f;
 
         // Join/Request info
-        var isPlayerInCiv = state.InfoState.MyCivilization?.CivId == details.CivId;
-        if (isPlayerInCiv)
-            TextRenderer.DrawInfoText(drawList, "You are a member of this civilization.", x, currentY, width);
-        else if (details.MemberReligions!.Count >= 4)
-            TextRenderer.DrawInfoText(drawList, "This civilization is full (4/4 members).", x, currentY, width);
-        else
+        if (vm.CanRequestToJoin)
             TextRenderer.DrawInfoText(drawList,
-                "You can receive an invitation from this civilization's founder to join.", x, currentY, width);
+                "You can receive an invitation from this civilization's founder to join.", vm.X, currentY, vm.Width);
+        else if (vm.IsFull)
+            TextRenderer.DrawInfoText(drawList, "This civilization is full (4/4 members).", vm.X, currentY, vm.Width);
+        else
+            TextRenderer.DrawInfoText(drawList, "You are already a member of a civilization.", vm.X, currentY,
+                vm.Width);
 
-        return height;
+        return new CivilizationDetailRendererResult(events, vm.Height);
     }
 
     private static void DrawMemberRow(
@@ -125,10 +122,9 @@ internal static class CivilizationDetailViewRenderer
         float y,
         float width,
         float height,
-        string founderReligionUID)
+        ImDrawListPtr drawList,
+        string founderReligionName)
     {
-        var drawList = ImGui.GetWindowDrawList();
-
         // Background
         drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width, y + height),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown), 4f);
@@ -146,7 +142,7 @@ internal static class CivilizationDetailViewRenderer
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), subText);
 
         // Founder badge (for the civilization's founding religion)
-        if (member.ReligionId == founderReligionUID)
+        if (member.ReligionName == founderReligionName)
             drawList.AddText(ImGui.GetFont(), 13f, new Vector2(x + width - 120f, y + (height - 16f) / 2f),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), "* Founder *");
     }

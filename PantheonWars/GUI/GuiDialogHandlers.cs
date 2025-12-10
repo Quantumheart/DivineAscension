@@ -251,6 +251,9 @@ public partial class GuiDialog
             _manager.ReligionStateManager.ReligionMemberCount = 0;
             _capi!.Logger.Debug("[PantheonWars] Cleared PlayerRoleInReligion (no religion)");
         }
+
+        // Update civilization manager's religion state
+        _manager.UpdateCivilizationReligionState();
     }
 
     /// <summary>
@@ -350,11 +353,7 @@ public partial class GuiDialog
     private void OnCivilizationListReceived(CivilizationListResponsePacket packet)
     {
         _capi!.Logger.Debug($"[PantheonWars] Received civilization list: {packet.Civilizations.Count} items");
-
-        // Update manager browse state
-        _manager!.CivTabState.BrowseState.AllCivilizations = packet.Civilizations;
-        _manager.CivTabState.BrowseState.IsLoading = false;
-        _manager.CivTabState.BrowseState.ErrorMsg = null;
+        _manager!.CivilizationManager.OnCivilizationListReceived(packet);
     }
 
     /// <summary>
@@ -363,27 +362,7 @@ public partial class GuiDialog
     private void OnCivilizationInfoReceived(CivilizationInfoResponsePacket packet)
     {
         _capi!.Logger.Debug($"[PantheonWars] Received civilization info: HasCiv={packet.Details != null}");
-
-        // Update manager with civilization state
-        _manager!.CivilizationManager.UpdateCivilizationState(packet.Details);
-
-        // Clear appropriate loading flags depending on whether we're viewing details or my civ
-        if (!string.IsNullOrEmpty(_manager.CivTabState.DetailState.ViewingCivilizationId) &&
-            packet.Details != null &&
-            packet.Details.CivId == _manager.CivTabState.DetailState.ViewingCivilizationId)
-        {
-            _manager.CivTabState.DetailState.IsLoading = false;
-            _manager.CivTabState.DetailState.ErrorMsg = null;
-        }
-        else
-        {
-            // Treat as my-civ refresh (also covers the null details case for "not in a civ")
-            _manager.CivTabState.InfoState.IsLoading = false;
-            _manager.CivTabState.InviteState.IsLoading = false;
-            _manager.CivTabState.InfoState.ErrorMsg = null;
-            _manager.CivTabState.InviteState.ErrorMsg = null;
-            _manager.CivTabState.DetailState.IsLoading = false; // ensure off if previously set
-        }
+        _manager!.CivilizationManager.OnCivilizationInfoReceived(packet);
 
         if (packet.Details != null)
             _capi.Logger.Notification(
@@ -403,36 +382,7 @@ public partial class GuiDialog
         // Show result message to user
         _capi.ShowChatMessage(packet.Message);
 
-        if (packet.Success)
-        {
-            // Play success sound
-            _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                _capi.World.Player.Entity, null, false, 8f, 0.5f);
-
-            // Request updated civilization data to refresh UI
-            // Refresh both the browse list and the player's civilization info
-            // Set loading flags since we're calling system directly (bypassing manager helpers)
-            _manager!.CivTabState.BrowseState.IsLoading = true;
-            _manager.CivTabState.BrowseState.ErrorMsg = null;
-            _pantheonWarsSystem?.NetworkClient?.RequestCivilizationList(_manager.CivTabState.BrowseState.DeityFilter);
-
-            if (_manager!.HasReligion())
-            {
-                // Request civilization info for player's religion (empty string = my civ)
-                _manager.CivTabState.InfoState.IsLoading = true;
-                _manager.CivTabState.InviteState.IsLoading = true;
-                _manager.CivTabState.InfoState.ErrorMsg = null;
-                _manager.CivTabState.InviteState.ErrorMsg = null;
-                _pantheonWarsSystem?.NetworkClient?.RequestCivilizationInfo("");
-            }
-        }
-        else
-        {
-            // Play error sound
-            _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
-                _capi.World.Player.Entity, null, false, 8f, 0.5f);
-
-            _manager!.CivTabState.LastActionError = packet.Message;
-        }
+        // Delegate to StateManager for state updates and side effects
+        _manager!.CivilizationManager.OnCivilizationActionCompleted(packet);
     }
 }

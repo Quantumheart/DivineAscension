@@ -21,6 +21,7 @@ public class CivilizationTabState
 
     // Error messages (null = no error)
     public string? LastActionError { get; set; }
+    public string? CreateError { get; set; }
 
     // Confirmation flags
     public bool ShowDisbandConfirm { get; set; }
@@ -38,6 +39,10 @@ public class CivilizationTabState
         InfoState.Reset();
         InviteState.Reset();
         CreateState.Reset();
+
+        // Errors
+        LastActionError = null;
+        CreateError = null;
 
         // Confirmations
         ShowDisbandConfirm = false;
