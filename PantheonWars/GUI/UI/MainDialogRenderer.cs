@@ -54,7 +54,8 @@ internal static class MainDialogRenderer
         // === 1. RELIGION HEADER (Top Banner, always visible) ===
         // Top-level religion action buttons have been removed; only pass civilization callback
         ReligionHeaderViewModel religionHeaderViewModel = new(manager.HasReligion(), manager.HasCivilization(),
-            manager.CurrentCivilizationName, manager.CivilizationMemberReligions,
+            manager.CivilizationManager.CurrentCivilizationName,
+            manager.CivilizationManager.CivilizationMemberReligions,
             manager.ReligionStateManager.CurrentDeity, manager.ReligionStateManager.CurrentReligionName,
             manager.ReligionStateManager.ReligionMemberCount, manager.ReligionStateManager.PlayerRoleInReligion,
             manager.ReligionStateManager.GetPlayerFavorProgress(),
@@ -103,8 +104,8 @@ internal static class MainDialogRenderer
             }
             else if (newMainTab == 2) // Civilization tab
             {
-                manager.RequestCivilizationList(manager.CivState.DeityFilter);
-                manager.RequestCivilizationInfo();
+                manager.CivilizationManager.RequestCivilizationList(manager.CivTabState.BrowseState.DeityFilter);
+                manager.CivilizationManager.RequestCivilizationInfo();
             }
         }
 

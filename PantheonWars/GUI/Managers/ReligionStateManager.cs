@@ -20,6 +20,7 @@ using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network;
 using PantheonWars.Systems;
+using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
@@ -28,6 +29,7 @@ namespace PantheonWars.GUI.Managers;
 public class ReligionStateManager : IReligionStateManager
 {
     private readonly ICoreClientAPI _coreClientApi;
+    private readonly IUiService _uiService;
 
     public ReligionTabState State { get; } = new();
     private readonly PantheonWarsSystem _system;
@@ -46,9 +48,10 @@ public class ReligionStateManager : IReligionStateManager
     internal IReligionMemberProvider? MembersProvider { get; set; }
     internal IReligionProvider? ReligionsProvider { get; private set; }
 
-    public ReligionStateManager(ICoreClientAPI coreClientApi)
+    public ReligionStateManager(ICoreClientAPI coreClientApi, IUiService uiService)
     {
-        _coreClientApi = coreClientApi;
+        _coreClientApi = coreClientApi ?? throw new ArgumentNullException(nameof(coreClientApi));
+        _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
         _system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
     }
 
@@ -149,7 +152,7 @@ public class ReligionStateManager : IReligionStateManager
         State.BrowseState.IsBrowseLoading = true;
         State.ErrorState.BrowseError = null;
         var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        if (deityFilter != null) system?.NetworkClient?.RequestReligionList(deityFilter);
+        if (deityFilter != null) _uiService.RequestReligionList(deityFilter);
     }
 
     /// <summary>
@@ -175,16 +178,14 @@ public class ReligionStateManager : IReligionStateManager
         State.InfoState.Loading = true;
         State.InvitesState.Loading = true; // also load the invites list for players without a religion
         State.ErrorState.InfoError = null;
-        var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        system?.NetworkClient?.RequestPlayerReligionInfo();
+        _uiService.RequestPlayerReligionInfo();
     }
 
     public void RequestReligionAction(string action, string religionId = "", string targetPlayerId = "")
     {
         // Clear transient action error
         State.ErrorState.LastActionError = null;
-        var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        system?.NetworkClient?.RequestReligionAction(action, religionId, targetPlayerId);
+        _uiService.RequestReligionAction(action, religionId, targetPlayerId);
     }
 
     /// <summary>
@@ -195,7 +196,7 @@ public class ReligionStateManager : IReligionStateManager
         // Clear transient action error
         State.ErrorState.LastActionError = null;
         var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        system?.NetworkClient?.RequestEditDescription(id, description);
+        _uiService.RequestEditDescription(id, description);
     }
 
     /// <summary>

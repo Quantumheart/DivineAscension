@@ -15,7 +15,7 @@ internal static class CivilizationInvitesRenderer
         ICoreClientAPI api,
         float x, float y, float width, float height)
     {
-        var state = manager.CivState;
+        var state = manager.CivTabState;
         var drawList = ImGui.GetWindowDrawList();
         var currentY = y;
 
@@ -28,24 +28,24 @@ internal static class CivilizationInvitesRenderer
             x, currentY, width);
         currentY += 32f;
 
-        if (state.MyInvites.Count == 0)
+        if (state.InviteState.MyInvites.Count == 0)
         {
             TextRenderer.DrawInfoText(drawList, "No pending invitations.", x, currentY + 8f, width);
             return height;
         }
 
-        state.InvitesScrollY = ScrollableList.Draw(
+        state.InviteState.InvitesScrollY = ScrollableList.Draw(
             drawList,
             x,
             currentY,
             width,
             height - (currentY - y),
-            state.MyInvites,
+            state.InviteState.MyInvites,
             80f,
             10f,
-            state.InvitesScrollY,
+            state.InviteState.InvitesScrollY,
             (invite, cx, cy, cw, ch) => DrawInviteCard(invite, cx, cy, cw, ch, manager, api),
-            loadingText: state.IsInvitesLoading ? "Loading invitations..." : null
+            loadingText: state.InviteState.IsLoading ? "Loading invitations..." : null
         );
 
         return height;
@@ -70,10 +70,10 @@ internal static class CivilizationInvitesRenderer
         drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 14f, y + 48f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), $"Expires: {invite.ExpiresAt:yyyy-MM-dd HH:mm}");
 
-        var enabled = !manager.CivState.IsInvitesLoading;
+        var enabled = !manager.CivTabState.InviteState.IsLoading;
         if (ButtonRenderer.DrawButton(drawList, "Accept", x + width - 180f, y + height - 32f, 80f, 28f, true,
                 enabled))
-            manager.RequestCivilizationAction("accept", "", invite.InviteId);
+            manager.CivilizationManager.RequestCivilizationAction("accept", "", invite.InviteId);
 
         if (ButtonRenderer.DrawButton(drawList, "Decline", x + width - 90f, y + height - 32f, 80f, 28f,
                 false, enabled))

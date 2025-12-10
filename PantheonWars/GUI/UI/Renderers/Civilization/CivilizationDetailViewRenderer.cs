@@ -19,17 +19,17 @@ internal static class CivilizationDetailViewRenderer
         ICoreClientAPI api,
         float x, float y, float width, float height)
     {
-        var state = manager.CivState;
+        var state = manager.CivTabState;
         var drawList = ImGui.GetWindowDrawList();
         var currentY = y;
 
-        if (state.IsDetailsLoading)
+        if (state.DetailState.IsLoading)
         {
             TextRenderer.DrawInfoText(drawList, "Loading civilization details...", x, currentY + 8f, width);
             return height;
         }
 
-        var details = state.ViewingCivilizationDetails;
+        var details = state.DetailState.ViewingCivilizationDetails;
         if (details == null)
         {
             TextRenderer.DrawInfoText(drawList, "Loading civilization details...", x, currentY + 8f, width);
@@ -39,8 +39,8 @@ internal static class CivilizationDetailViewRenderer
         // Back button
         if (ButtonRenderer.DrawButton(drawList, "<< Back to Browse", x, currentY, 160f, 32f))
         {
-            state.ViewingCivilizationId = null;
-            state.ViewingCivilizationDetails = null;
+            state.DetailState.ViewingCivilizationId = null;
+            state.DetailState.ViewingCivilizationDetails = null;
         }
 
         currentY += 44f;
@@ -107,7 +107,7 @@ internal static class CivilizationDetailViewRenderer
         currentY += listHeight + 16f;
 
         // Join/Request info
-        var isPlayerInCiv = state.MyCivilization?.CivId == details.CivId;
+        var isPlayerInCiv = state.InfoState.MyCivilization?.CivId == details.CivId;
         if (isPlayerInCiv)
             TextRenderer.DrawInfoText(drawList, "You are a member of this civilization.", x, currentY, width);
         else if (details.MemberReligions!.Count >= 4)

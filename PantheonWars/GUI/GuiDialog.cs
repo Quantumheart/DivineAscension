@@ -58,15 +58,13 @@ public partial class GuiDialog : ModSystem
         _capi.Input.RegisterHotKey("pantheonwarsblessings", "Show/Hide Blessing Dialog", GlKeys.G,
             HotkeyType.GUIOrOtherControls, shiftPressed: true);
         _capi.Input.SetHotKeyHandler("pantheonwarsblessings", OnToggleDialog);
-
-        // Initialize manager
-        _manager = new GuiDialogManager(_capi);
-
+        
         // Initialize deity icon loader
         DeityIconLoader.Initialize(_capi);
 
         // Get PantheonWarsSystem for network communication
         _pantheonWarsSystem = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
+        _manager = new GuiDialogManager(_capi, _pantheonWarsSystem!.UiService);
         if (_pantheonWarsSystem?.NetworkClient != null)
         {
             _pantheonWarsSystem.NetworkClient.BlessingUnlocked += OnBlessingUnlockedFromServer;
@@ -115,18 +113,13 @@ public partial class GuiDialog : ModSystem
         if (!_state.IsReady)
         {
             // Request data from server
-            _pantheonWarsSystem?.NetworkClient?.RequestBlessingData();
-            _capi!.ShowChatMessage("Loading blessing data...");
+            _pantheonWarsSystem!.UiService.RequestReligionList();
             return;
         }
 
         _state.IsOpen = true;
         _imguiModSystem?.Show();
 
-        // TODO: Add open sound in Phase 5
-        // _capi.Gui.PlaySound(new AssetLocation("pantheonwars", "sounds/click.ogg"), false, 0.3f);
-
-        _capi!.Logger.Debug("[PantheonWars] Blessing Dialog opened");
     }
 
     /// <summary>

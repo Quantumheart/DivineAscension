@@ -14,7 +14,7 @@ internal static class CivilizationTabRenderer
         ICoreClientAPI api,
         float x, float y, float width, float height)
     {
-        var state = manager.CivState;
+        var state = manager.CivTabState;
         var drawList = ImGui.GetWindowDrawList();
 
         // Sub-tab header
@@ -52,18 +52,18 @@ internal static class CivilizationTabRenderer
                 {
                     case 0:
                         // Browse/Details errors
-                        if (state.ViewingCivilizationId != null) state.DetailsError = null;
-                        else state.BrowseError = null;
+                        if (state.DetailState.ViewingCivilizationId != null) state.DetailState.ErrorMsg = null;
+                        else state.BrowseState.ErrorMsg = null;
                         break;
                     case 1:
                         // My Civilization - refresh data to ensure it's current
-                        state.MyCivError = null;
-                        manager.RequestCivilizationInfo();
+                        state.InfoState.ErrorMsg = null;
+                        manager.CivilizationManager.RequestCivilizationInfo();
                         break;
                     case 2:
                         // Invites - refresh data to ensure it's current
-                        state.InvitesError = null;
-                        manager.RequestCivilizationInfo();
+                        state.InviteState.ErrorMsg = null;
+                        manager.CivilizationManager.RequestCivilizationInfo();
                         break;
                 }
             }
@@ -82,15 +82,17 @@ internal static class CivilizationTabRenderer
             {
                 case 0:
                     // If viewing details, prioritize details error
-                    bannerMessage = state.ViewingCivilizationId != null ? state.DetailsError : state.BrowseError;
+                    bannerMessage = state.DetailState.ViewingCivilizationId != null
+                        ? state.DetailState.ErrorMsg
+                        : state.BrowseState.ErrorMsg;
                     showRetry = bannerMessage != null; // allow retry for fetch errors
                     break;
                 case CivilizationSubTab.MyCiv:
-                    bannerMessage = state.MyCivError;
+                    bannerMessage = state.InfoState.ErrorMsg;
                     showRetry = bannerMessage != null;
                     break;
                 case CivilizationSubTab.Invites:
-                    bannerMessage = state.InvitesError;
+                    bannerMessage = state.InviteState.ErrorMsg;
                     showRetry = bannerMessage != null;
                     break;
             }
@@ -109,14 +111,14 @@ internal static class CivilizationTabRenderer
                     switch (effectiveTab)
                     {
                         case 0:
-                            if (state.ViewingCivilizationId != null) state.DetailsError = null;
-                            else state.BrowseError = null;
+                            if (state.DetailState.ViewingCivilizationId != null) state.DetailState.ErrorMsg = null;
+                            else state.BrowseState.ErrorMsg = null;
                             break;
                         case 1:
-                            state.MyCivError = null;
+                            state.InfoState.ErrorMsg = null;
                             break;
                         case 2:
-                            state.InvitesError = null;
+                            state.InviteState.ErrorMsg = null;
                             break;
                     }
             }
@@ -125,14 +127,15 @@ internal static class CivilizationTabRenderer
                 switch (effectiveTab)
                 {
                     case 0:
-                        if (state.ViewingCivilizationId != null)
-                            manager.RequestCivilizationInfo(state.ViewingCivilizationId);
+                        if (state.DetailState.ViewingCivilizationId != null)
+                            manager.CivilizationManager.RequestCivilizationInfo(state.DetailState
+                                .ViewingCivilizationId);
                         else
-                            manager.RequestCivilizationList(state.DeityFilter);
+                            manager.CivilizationManager.RequestCivilizationList(state.BrowseState.DeityFilter);
                         break;
                     case 1:
                     case 2:
-                        manager.RequestCivilizationInfo();
+                        manager.CivilizationManager.RequestCivilizationInfo();
                         break;
                 }
         }

@@ -17,10 +17,10 @@ internal static class CivilizationBrowseRenderer
         ICoreClientAPI api,
         float x, float y, float width, float height)
     {
-        var state = manager.CivState;
+        var state = manager.CivTabState;
 
         // If viewing a specific civilization's details, show detail view instead
-        if (state.ViewingCivilizationId != null)
+        if (state.DetailState.ViewingCivilizationId != null)
             return CivilizationDetailViewRenderer.Draw(manager, api, x, y, width, height);
 
         var drawList = ImGui.GetWindowDrawList();
@@ -36,9 +36,9 @@ internal static class CivilizationBrowseRenderer
         Array.Copy(deityNames, 0, deities, 1, deityNames.Length);
 
         var selectedIndex = 0;
-        if (!string.IsNullOrEmpty(state.DeityFilter))
+        if (!string.IsNullOrEmpty(state.BrowseState.DeityFilter))
             for (var i = 1; i < deities.Length; i++)
-                if (string.Equals(deities[i], state.DeityFilter, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(deities[i], state.BrowseState.DeityFilter, StringComparison.OrdinalIgnoreCase))
                 {
                     selectedIndex = i;
                     break;
@@ -51,35 +51,35 @@ internal static class CivilizationBrowseRenderer
 
         // Draw dropdown button
         if (Dropdown.DrawButton(drawList, dropdownX, dropdownY, dropdownW, dropdownH, deities[selectedIndex],
-                state.IsDeityFilterOpen))
+                state.BrowseState.IsDeityFilterOpen))
             // Toggle dropdown open/close
-            state.IsDeityFilterOpen = !state.IsDeityFilterOpen;
+            state.BrowseState.IsDeityFilterOpen = !state.BrowseState.IsDeityFilterOpen;
 
         // Refresh button
         if (ButtonRenderer.DrawButton(drawList, "Refresh", dropdownX + dropdownW + 12f, dropdownY, 100f, dropdownH,
-                false, !state.IsBrowseLoading))
-            manager.RequestCivilizationList(state.DeityFilter);
+                false, !state.BrowseState.IsLoading))
+            manager.CivilizationManager.RequestCivilizationList(state.BrowseState.DeityFilter);
 
         currentY += 40f;
 
         // Scrollable list of civilizations
-        state.BrowseScrollY = ScrollableList.Draw(
+        state.BrowseState.BrowseScrollY = ScrollableList.Draw(
             drawList,
             x,
             currentY,
             width,
             height - (currentY - y),
-            state.AllCivilizations,
+            state.BrowseState.AllCivilizations,
             90f,
             8f,
-            state.BrowseScrollY,
+            state.BrowseState.BrowseScrollY,
             (civ, cx, cy, cw, ch) => DrawCivilizationCard(civ, cx, cy, cw, ch, manager, api),
             "No civilizations found.",
-            state.IsBrowseLoading ? "Loading civilizations..." : null
+            state.BrowseState.IsLoading ? "Loading civilizations..." : null
         );
 
         // Draw dropdown menu AFTER the list so it appears on top (z-ordering)
-        if (state.IsDeityFilterOpen)
+        if (state.BrowseState.IsDeityFilterOpen)
         {
             // Draw menu visual
             Dropdown.DrawMenuVisual(drawList, dropdownX, dropdownY, dropdownW, dropdownH, deities, selectedIndex, 34f);
@@ -90,13 +90,13 @@ internal static class CivilizationBrowseRenderer
 
             if (shouldClose)
             {
-                state.IsDeityFilterOpen = false;
+                state.BrowseState.IsDeityFilterOpen = false;
 
                 // Update filter if selection changed
                 if (newIndex != selectedIndex)
                 {
-                    state.DeityFilter = newIndex == 0 ? string.Empty : deities[newIndex];
-                    manager.RequestCivilizationList(state.DeityFilter);
+                    state.BrowseState.DeityFilter = newIndex == 0 ? string.Empty : deities[newIndex];
+                    manager.CivilizationManager.RequestCivilizationList(state.BrowseState.DeityFilter);
                 }
             }
         }
@@ -141,8 +141,8 @@ internal static class CivilizationBrowseRenderer
         if (ButtonRenderer.DrawButton(drawList, "View Details", x + width - 130f, y + height - 36f, 120f, 28f, true))
         {
             // Set viewing state and request details
-            manager.CivState.ViewingCivilizationId = civ.CivId;
-            manager.RequestCivilizationInfo(civ.CivId);
+            manager.CivTabState.DetailState.ViewingCivilizationId = civ.CivId;
+            manager.CivilizationManager.RequestCivilizationInfo(civ.CivId);
         }
     }
 }

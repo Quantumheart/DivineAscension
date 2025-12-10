@@ -14,7 +14,7 @@ internal static class CivilizationCreateRenderer
         ICoreClientAPI api,
         float x, float y, float width, float height)
     {
-        var state = manager.CivState;
+        var state = manager.CivTabState;
         var drawList = ImGui.GetWindowDrawList();
         var currentY = y;
 
@@ -49,7 +49,8 @@ internal static class CivilizationCreateRenderer
         TextRenderer.DrawLabel(drawList, "Civilization Name:", x, currentY);
         currentY += 20f;
 
-        state.CreateCivName = TextInput.Draw(drawList, "##createCivName", state.CreateCivName, x, currentY,
+        state.CreateState.CreateCivName = TextInput.Draw(drawList, "##createCivName", state.CreateState.CreateCivName,
+            x, currentY,
             width * 0.7f, 30f,
             "Enter name (3-32 characters)...", 32);
         currentY += 40f;
@@ -57,10 +58,12 @@ internal static class CivilizationCreateRenderer
         // Create button
         if (ButtonRenderer.DrawButton(drawList, "Create Civilization", x, currentY, 200f, 36f, true))
         {
-            if (!string.IsNullOrWhiteSpace(state.CreateCivName) && state.CreateCivName.Length >= 3)
+            if (!string.IsNullOrWhiteSpace(state.CreateState.CreateCivName) &&
+                state.CreateState.CreateCivName.Length >= 3)
             {
-                manager.RequestCivilizationAction("create", "", "", state.CreateCivName);
-                state.CreateCivName = string.Empty;
+                manager.CivilizationManager.RequestCivilizationAction("create", "", "",
+                    state.CreateState.CreateCivName);
+                state.CreateState.CreateCivName = string.Empty;
             }
             else
             {
@@ -70,7 +73,7 @@ internal static class CivilizationCreateRenderer
 
         // Clear button
         if (ButtonRenderer.DrawButton(drawList, "Clear", x + 210f, currentY, 80f, 36f))
-            state.CreateCivName = string.Empty;
+            state.CreateState.CreateCivName = string.Empty;
 
         currentY += 50f;
 

@@ -17,20 +17,20 @@ internal static class CivilizationManageRenderer
         ICoreClientAPI api,
         float x, float y, float width, float height)
     {
-        var state = manager.CivState;
+        var state = manager.CivTabState;
         var drawList = ImGui.GetWindowDrawList();
         var currentY = y;
 
         var overlayOpen = state.ShowDisbandConfirm || state.KickConfirmReligionId != null;
 
         // Loading state for My Civilization tab
-        if (state.IsMyCivLoading)
+        if (state.InfoState.IsLoading)
         {
             TextRenderer.DrawInfoText(drawList, "Loading civilization data...", x, currentY + 8f, width);
             return height;
         }
 
-        var civ = state.MyCivilization;
+        var civ = state.InfoState.MyCivilization;
         if (civ == null)
         {
             TextRenderer.DrawInfoText(drawList, "You are not currently in a civilization.", x, currentY + 8f, width);
@@ -83,7 +83,7 @@ internal static class CivilizationManageRenderer
         currentY += 22f;
 
         // Members list
-        state.MemberScrollY = ScrollableList.Draw(
+        state.InfoState.MemberScrollY = ScrollableList.Draw(
             drawList,
             x,
             currentY,
@@ -92,7 +92,7 @@ internal static class CivilizationManageRenderer
             civ.MemberReligions,
             64f,
             6f,
-            state.MemberScrollY,
+            state.InfoState.MemberScrollY,
             (member, cx, cy, cw, ch) => DrawMemberCard(member, cx, cy, cw, ch, manager, api)
         );
 
@@ -106,10 +106,10 @@ internal static class CivilizationManageRenderer
             currentY += 22f;
 
             // Text input
-            state.InviteReligionName = TextInput.Draw(
+            state.InfoState.InviteReligionName = TextInput.Draw(
                 drawList,
                 "##inviteReligion",
-                state.InviteReligionName,
+                state.InfoState.InviteReligionName,
                 x,
                 currentY,
                 width * 0.6f,
@@ -120,19 +120,20 @@ internal static class CivilizationManageRenderer
 
             // Send invite
             var inviteButtonX = x + width * 0.6f + 10f;
-            var canInvite = !overlayOpen && !string.IsNullOrWhiteSpace(state.InviteReligionName) &&
-                            !state.IsInvitesLoading && !state.IsMyCivLoading;
+            var canInvite = !overlayOpen && !string.IsNullOrWhiteSpace(state.InfoState.InviteReligionName) &&
+                            !state.InviteState.IsLoading && !state.InfoState.IsLoading;
             if (ButtonRenderer.DrawButton(drawList, "Send Invite", inviteButtonX, currentY - 2f, 140f, 32f, true,
                     canInvite))
             {
-                manager.RequestCivilizationAction("invite", civ.CivId, state.InviteReligionName);
-                state.InviteReligionName = string.Empty;
+                manager.CivilizationManager.RequestCivilizationAction("invite", civ.CivId,
+                    state.InfoState.InviteReligionName);
+                state.InfoState.InviteReligionName = string.Empty;
             }
 
             currentY += 40f;
 
             // Pending invites list (may be loading)
-            if (state.IsInvitesLoading)
+            if (state.InviteState.IsLoading)
             {
                 TextRenderer.DrawInfoText(drawList, "Loading invitations...", x, currentY + 8f, width);
                 currentY += 30f;
@@ -155,7 +156,7 @@ internal static class CivilizationManageRenderer
         currentY += 10f;
         var leaveEnabled = !overlayOpen;
         if (leaveEnabled && ButtonRenderer.DrawActionButton(drawList, "Leave Civilization", x, currentY, 180f, 34f))
-            manager.RequestCivilizationAction("leave");
+            manager.CivilizationManager.RequestCivilizationAction("leave");
 
         if (isFounder)
         {
@@ -181,7 +182,7 @@ internal static class CivilizationManageRenderer
 
             if (confirmed)
             {
-                manager.RequestCivilizationAction("disband", civ.CivId);
+                manager.CivilizationManager.RequestCivilizationAction("disband", civ.CivId);
                 state.ShowDisbandConfirm = false;
             }
             else if (canceled)
@@ -205,7 +206,7 @@ internal static class CivilizationManageRenderer
 
             if (confirmed)
             {
-                manager.RequestCivilizationAction("kick", civ.CivId, targetId);
+                manager.CivilizationManager.RequestCivilizationAction("kick", civ.CivId, targetId);
                 state.KickConfirmReligionId = null;
             }
             else if (canceled)
@@ -243,16 +244,17 @@ internal static class CivilizationManageRenderer
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), subText);
 
         // Kick button for founder only and not the civilization founder religion
-        var isCivFounderReligion = manager.CivilizationFounderReligionUID == member.ReligionId;
+        var isCivFounderReligion = manager.CivilizationManager.CivilizationFounderReligionUID == member.ReligionId;
         if (manager.IsCivilizationFounder && !isCivFounderReligion)
         {
-            var kickEnabled = !manager.CivState.IsMyCivLoading && manager.CivState.KickConfirmReligionId == null &&
-                              !manager.CivState.ShowDisbandConfirm; // disabled while tab loading or overlay open
+            var kickEnabled = !manager.CivTabState.InfoState.IsLoading &&
+                              manager.CivTabState.KickConfirmReligionId == null &&
+                              !manager.CivTabState.ShowDisbandConfirm; // disabled while tab loading or overlay open
             if (kickEnabled && ButtonRenderer.DrawSmallButton(drawList, "Kick", x + width - 80f,
                     y + (height - 26f) / 2f, 70f, 26f,
                     ColorPalette.Red * 0.7f))
                 // Open confirm overlay; store the target religion id in state
-                manager.CivState.KickConfirmReligionId = member.ReligionId;
+                manager.CivTabState.KickConfirmReligionId = member.ReligionId;
         }
     }
 

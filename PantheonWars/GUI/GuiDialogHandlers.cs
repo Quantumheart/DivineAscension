@@ -137,7 +137,7 @@ public partial class GuiDialog
         // If notification is about civilization, also refresh civilization data
         if (packet.Reason.Contains("civilization", StringComparison.OrdinalIgnoreCase))
         {
-            _manager?.RequestCivilizationInfo(string.Empty);
+            _manager?.CivilizationManager.RequestCivilizationInfo(string.Empty);
         }
     }
 
@@ -151,26 +151,6 @@ public partial class GuiDialog
         else
             Open();
         return true;
-    }
-
-    /// <summary>
-    ///     Handle unlock button click
-    /// </summary>
-    private void OnUnlockButtonClicked()
-    {
-        var selectedState = _manager!.BlessingStateManager.GetSelectedBlessingState();
-        if (selectedState == null || !selectedState.CanUnlock || selectedState.IsUnlocked) return;
-
-        // Client-side validation before sending the request
-        if (string.IsNullOrEmpty(selectedState.Blessing.BlessingId))
-        {
-            _capi!.ShowChatMessage("Error: Invalid blessing ID");
-            return;
-        }
-
-        // Send unlock request to server
-        _capi!.Logger.Debug($"[PantheonWars] Sending unlock request for: {selectedState.Blessing.Name}");
-        _pantheonWarsSystem?.NetworkClient?.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
     }
 
     /// <summary>
@@ -372,9 +352,9 @@ public partial class GuiDialog
         _capi!.Logger.Debug($"[PantheonWars] Received civilization list: {packet.Civilizations.Count} items");
 
         // Update manager browse state
-        _manager!.CivState.AllCivilizations = packet.Civilizations;
-        _manager.CivState.IsBrowseLoading = false;
-        _manager.CivState.BrowseError = null;
+        _manager!.CivTabState.BrowseState.AllCivilizations = packet.Civilizations;
+        _manager.CivTabState.BrowseState.IsLoading = false;
+        _manager.CivTabState.BrowseState.ErrorMsg = null;
     }
 
     /// <summary>
@@ -385,24 +365,24 @@ public partial class GuiDialog
         _capi!.Logger.Debug($"[PantheonWars] Received civilization info: HasCiv={packet.Details != null}");
 
         // Update manager with civilization state
-        _manager!.UpdateCivilizationState(packet.Details);
+        _manager!.CivilizationManager.UpdateCivilizationState(packet.Details);
 
         // Clear appropriate loading flags depending on whether we're viewing details or my civ
-        if (!string.IsNullOrEmpty(_manager.CivState.ViewingCivilizationId) &&
+        if (!string.IsNullOrEmpty(_manager.CivTabState.DetailState.ViewingCivilizationId) &&
             packet.Details != null &&
-            packet.Details.CivId == _manager.CivState.ViewingCivilizationId)
+            packet.Details.CivId == _manager.CivTabState.DetailState.ViewingCivilizationId)
         {
-            _manager.CivState.IsDetailsLoading = false;
-            _manager.CivState.DetailsError = null;
+            _manager.CivTabState.DetailState.IsLoading = false;
+            _manager.CivTabState.DetailState.ErrorMsg = null;
         }
         else
         {
             // Treat as my-civ refresh (also covers the null details case for "not in a civ")
-            _manager.CivState.IsMyCivLoading = false;
-            _manager.CivState.IsInvitesLoading = false;
-            _manager.CivState.MyCivError = null;
-            _manager.CivState.InvitesError = null;
-            _manager.CivState.IsDetailsLoading = false; // ensure off if previously set
+            _manager.CivTabState.InfoState.IsLoading = false;
+            _manager.CivTabState.InviteState.IsLoading = false;
+            _manager.CivTabState.InfoState.ErrorMsg = null;
+            _manager.CivTabState.InviteState.ErrorMsg = null;
+            _manager.CivTabState.DetailState.IsLoading = false; // ensure off if previously set
         }
 
         if (packet.Details != null)
@@ -432,17 +412,17 @@ public partial class GuiDialog
             // Request updated civilization data to refresh UI
             // Refresh both the browse list and the player's civilization info
             // Set loading flags since we're calling system directly (bypassing manager helpers)
-            _manager!.CivState.IsBrowseLoading = true;
-            _manager.CivState.BrowseError = null;
-            _pantheonWarsSystem?.NetworkClient?.RequestCivilizationList(_manager.CivState.DeityFilter);
+            _manager!.CivTabState.BrowseState.IsLoading = true;
+            _manager.CivTabState.BrowseState.ErrorMsg = null;
+            _pantheonWarsSystem?.NetworkClient?.RequestCivilizationList(_manager.CivTabState.BrowseState.DeityFilter);
 
             if (_manager!.HasReligion())
             {
                 // Request civilization info for player's religion (empty string = my civ)
-                _manager.CivState.IsMyCivLoading = true;
-                _manager.CivState.IsInvitesLoading = true;
-                _manager.CivState.MyCivError = null;
-                _manager.CivState.InvitesError = null;
+                _manager.CivTabState.InfoState.IsLoading = true;
+                _manager.CivTabState.InviteState.IsLoading = true;
+                _manager.CivTabState.InfoState.ErrorMsg = null;
+                _manager.CivTabState.InviteState.ErrorMsg = null;
                 _pantheonWarsSystem?.NetworkClient?.RequestCivilizationInfo("");
             }
         }
@@ -452,7 +432,7 @@ public partial class GuiDialog
             _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
                 _capi.World.Player.Entity, null, false, 8f, 0.5f);
 
-            _manager!.CivState.LastActionError = packet.Message;
+            _manager!.CivTabState.LastActionError = packet.Message;
         }
     }
 }

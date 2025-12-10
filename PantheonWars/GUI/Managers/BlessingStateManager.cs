@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using PantheonWars.GUI.Events;
 using PantheonWars.GUI.Models.Blessing.Tab;
@@ -5,6 +6,7 @@ using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Renderers.Blessing;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
+using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
@@ -16,13 +18,15 @@ namespace PantheonWars.GUI.Managers;
 public class BlessingStateManager
 {
     private readonly ICoreClientAPI _coreClientApi;
+    private readonly IUiService _uiService;
     private readonly PantheonWarsSystem? _system;
 
     public BlessingTabState State { get; } = new();
 
-    public BlessingStateManager(ICoreClientAPI api)
+    public BlessingStateManager(ICoreClientAPI api, IUiService uiService)
     {
-        _coreClientApi = api;
+        _coreClientApi = api ?? throw new ArgumentNullException(nameof(api));
+        _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
         _system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
     }
 
@@ -120,7 +124,7 @@ public class BlessingStateManager
         if (_system?.NetworkClient != null)
         {
             _coreClientApi.Logger.Debug($"[PantheonWars] Sending unlock request for: {selectedState.Blessing.Name}");
-            _system.NetworkClient.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
+            _uiService.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
         }
         else
         {

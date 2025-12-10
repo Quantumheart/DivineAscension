@@ -4,6 +4,7 @@ using HarmonyLib;
 using PantheonWars.Network;
 using PantheonWars.Network.Civilization;
 using PantheonWars.Systems;
+using PantheonWars.Systems.Interfaces;
 using PantheonWars.Systems.Networking.Client;
 using PantheonWars.Systems.Networking.Server;
 using PantheonWars.Systems.Patches;
@@ -23,6 +24,7 @@ public class PantheonWarsSystem : ModSystem
 
     // Public network client for UI dialogs
     public PantheonWarsNetworkClient? NetworkClient { get; private set; }
+    public IUiService UiService { get; private set; }
 
     private Harmony? _harmony;
     private PlayerReligionDataManager? _playerReligionDataManager;
@@ -110,6 +112,7 @@ public class PantheonWarsSystem : ModSystem
         NetworkClient = new PantheonWarsNetworkClient();
         NetworkClient.Initialize(api);
         NetworkClient.RegisterHandlers(clientChannel);
+        UiService = new UiService(NetworkClient);
 
         api.Logger.Notification("[PantheonWars] Client-side initialization complete");
     }
