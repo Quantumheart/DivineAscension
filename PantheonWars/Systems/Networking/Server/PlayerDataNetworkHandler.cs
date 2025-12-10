@@ -15,34 +15,31 @@ namespace PantheonWars.Systems.Networking.Server;
 [ExcludeFromCodeCoverage]
 public class PlayerDataNetworkHandler : IServerNetworkHandler
 {
-    private ICoreServerAPI? _sapi;
-    private IPlayerReligionDataManager? _playerReligionDataManager;
-    private IReligionManager? _religionManager;
-    private DeityRegistry? _deityRegistry;
+    private readonly ICoreServerAPI? _sapi;
+    private readonly IPlayerReligionDataManager? _playerReligionDataManager;
+    private readonly IReligionManager? _religionManager;
+    private readonly DeityRegistry? _deityRegistry;
     private IServerNetworkChannel? _serverChannel;
 
-    public void Initialize(ICoreServerAPI sapi)
+    public void RegisterHandlers()
     {
-        _sapi = sapi;
-    }
-
-    public void RegisterHandlers(IServerNetworkChannel channel)
-    {
-        _serverChannel = channel;
     }
 
     /// <summary>
     ///     Initialize the handler with all required dependencies.
     ///     This must be called before RegisterHandlers.
     /// </summary>
-    public void InitializeDependencies(
+    public PlayerDataNetworkHandler(ICoreServerAPI sapi,
         IPlayerReligionDataManager playerReligionDataManager,
         IReligionManager religionManager,
-        DeityRegistry deityRegistry)
+        DeityRegistry deityRegistry,
+        IServerNetworkChannel serverChannel)
     {
+        _sapi = sapi;
         _playerReligionDataManager = playerReligionDataManager;
         _religionManager = religionManager;
         _deityRegistry = deityRegistry;
+        _serverChannel = serverChannel;
 
         // Subscribe to events
         _playerReligionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;

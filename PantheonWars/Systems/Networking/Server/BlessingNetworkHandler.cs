@@ -26,15 +26,11 @@ public class BlessingNetworkHandler(
     IServerNetworkChannel serverChannel)
     : IServerNetworkHandler
 {
-    public void Initialize(ICoreServerAPI sapi)
-    {
-    }
-
-    public void RegisterHandlers(IServerNetworkChannel channel)
+    public void RegisterHandlers()
     {
         // Register handlers for blessing system packets
-        channel.SetMessageHandler<BlessingUnlockRequestPacket>(OnBlessingUnlockRequest);
-        channel.SetMessageHandler<BlessingDataRequestPacket>(OnBlessingDataRequest);
+        serverChannel.SetMessageHandler<BlessingUnlockRequestPacket>(OnBlessingUnlockRequest);
+        serverChannel.SetMessageHandler<BlessingDataRequestPacket>(OnBlessingDataRequest);
     }
 
     public void Dispose()

@@ -15,15 +15,10 @@ namespace PantheonWars.Systems.Networking.Server;
 /// </summary>
 public class ReligionNetworkHandler : IServerNetworkHandler
 {
-    private ICoreServerAPI? _sapi;
-    private readonly IReligionManager? _religionManager;
-    private readonly IPlayerReligionDataManager? _playerReligionDataManager;
-    private IServerNetworkChannel? _serverChannel;
-
-    public void Initialize(ICoreServerAPI sapi)
-    {
-        _sapi = sapi;
-    }
+    private readonly ICoreServerAPI _sapi;
+    private readonly IReligionManager _religionManager;
+    private readonly IPlayerReligionDataManager _playerReligionDataManager;
+    private readonly IServerNetworkChannel _serverChannel;
 
     /// <summary>
     ///     Constructor for dependency injection
@@ -32,20 +27,19 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         ICoreServerAPI sapi,
         IReligionManager religionManager,
         IPlayerReligionDataManager playerReligionDataManager,
-        IServerNetworkChannel serverChannel)
+        IServerNetworkChannel channel)
     {
         _sapi = sapi;
         _religionManager = religionManager;
         _playerReligionDataManager = playerReligionDataManager;
-        _serverChannel = serverChannel;
+        _serverChannel = channel;
     }
 
-    public void RegisterHandlers(IServerNetworkChannel channel)
+    public void RegisterHandlers()
     {
-        _serverChannel = channel;
 
         // Register handlers for religion dialog packets
-        _serverChannel.SetMessageHandler<ReligionListRequestPacket>(OnReligionListRequest);
+        _serverChannel!.SetMessageHandler<ReligionListRequestPacket>(OnReligionListRequest);
         _serverChannel.SetMessageHandler<PlayerReligionInfoRequestPacket>(OnPlayerReligionInfoRequest);
         _serverChannel.SetMessageHandler<ReligionActionRequestPacket>(OnReligionActionRequest);
         _serverChannel.SetMessageHandler<CreateReligionRequestPacket>(OnCreateReligionRequest);

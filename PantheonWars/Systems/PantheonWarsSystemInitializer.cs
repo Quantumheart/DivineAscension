@@ -83,10 +83,9 @@ public static class PantheonWarsSystemInitializer
         civilizationCommands.RegisterCommands();
 
         // Create and initialize network handlers
-        var playerDataHandler = new PlayerDataNetworkHandler();
-        playerDataHandler.Initialize(api);
-        playerDataHandler.RegisterHandlers(serverChannel);
-        playerDataHandler.InitializeDependencies(playerReligionDataManager, religionManager, deityRegistry);
+        var playerDataHandler = new PlayerDataNetworkHandler(api, playerReligionDataManager, religionManager,
+            deityRegistry, serverChannel);
+        playerDataHandler.RegisterHandlers();
 
         var blessingHandler = new BlessingNetworkHandler(
             api,
@@ -95,16 +94,22 @@ public static class PantheonWarsSystemInitializer
             playerReligionDataManager,
             religionManager,
             serverChannel);
-        blessingHandler.Initialize(api);
-        blessingHandler.RegisterHandlers(serverChannel);
+        blessingHandler.RegisterHandlers();
 
         var religionHandler = new ReligionNetworkHandler(
             api,
             religionManager,
             playerReligionDataManager,
             serverChannel);
-        religionHandler.Initialize(api);
-        religionHandler.RegisterHandlers(serverChannel);
+        religionHandler.RegisterHandlers();
+
+        var civilizationHandler = new CivilizationNetworkHandler(
+            api,
+            civilizationManager,
+            religionManager,
+            playerReligionDataManager,
+            serverChannel);
+        civilizationHandler.RegisterHandlers();
 
         api.Logger.Notification("[PantheonWars] All server-side systems initialized successfully");
 
@@ -126,7 +131,8 @@ public static class PantheonWarsSystemInitializer
             CivilizationCommands = civilizationCommands,
             PlayerDataNetworkHandler = playerDataHandler,
             BlessingNetworkHandler = blessingHandler,
-            ReligionNetworkHandler = religionHandler
+            ReligionNetworkHandler = religionHandler,
+            CivilizationNetworkHandler = civilizationHandler
         };
     }
 }
@@ -158,4 +164,5 @@ public class InitializationResult
     public PlayerDataNetworkHandler PlayerDataNetworkHandler { get; init; } = null!;
     public BlessingNetworkHandler BlessingNetworkHandler { get; init; } = null!;
     public ReligionNetworkHandler ReligionNetworkHandler { get; init; } = null!;
+    public CivilizationNetworkHandler CivilizationNetworkHandler { get; init; } = null!;
 }
