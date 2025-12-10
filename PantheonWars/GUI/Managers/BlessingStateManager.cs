@@ -35,7 +35,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService)
     /// <summary>
     ///     Processes all blessing tab events (side effects: state updates, sounds, network requests)
     /// </summary>
-    private void ProcessBlessingTabEvents(BlessingTabRenderResult result)
+    internal void ProcessBlessingTabEvents(BlessingTabRenderResult result)
     {
         // Update hovering state from result
         State.TreeState.HoveringBlessingId = result.HoveringBlessingId;
@@ -106,9 +106,10 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService)
         }
 
         // Play click sound
-        _coreClientApi.World.PlaySoundAt(
-            new AssetLocation("pantheonwars:sounds/click"),
-            _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+        if (_coreClientApi.World is not null)
+            _coreClientApi.World.PlaySoundAt(
+                new AssetLocation("pantheonwars:sounds/click"),
+                _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
 
         _uiService.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
     }

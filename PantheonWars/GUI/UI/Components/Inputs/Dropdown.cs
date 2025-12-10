@@ -2,8 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
 using PantheonWars.GUI.UI.Utilities;
-using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.UI.Components.Inputs;
 
@@ -86,8 +84,6 @@ internal static class Dropdown
     /// <summary>
     ///     Draw dropdown menu and handle interactions
     /// </summary>
-    /// <param name="drawList">ImGui draw list</param>
-    /// <param name="api">Client API (for playing sounds)</param>
     /// <param name="x">X position (same as button)</param>
     /// <param name="y">Y position (same as button)</param>
     /// <param name="width">Dropdown width</param>
@@ -96,10 +92,7 @@ internal static class Dropdown
     /// <param name="selectedIndex">Currently selected index</param>
     /// <param name="itemHeight">Height of each menu item (default 40)</param>
     /// <returns>Tuple of (newSelectedIndex, shouldClose, clickConsumed)</returns>
-    public static (int selectedIndex, bool shouldClose, bool clickConsumed) DrawMenuAndHandleInteraction(
-        ImDrawListPtr drawList,
-        ICoreClientAPI api,
-        float x,
+    public static (int selectedIndex, bool shouldClose, bool clickConsumed) DrawMenuAndHandleInteraction(float x,
         float y,
         float width,
         float height,
@@ -135,8 +128,6 @@ internal static class Dropdown
                 {
                     newSelectedIndex = i;
                     shouldClose = true;
-                    api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        api.World.Player.Entity, null, false, 8f, 0.3f);
                     clickConsumed = true;
                 }
             }

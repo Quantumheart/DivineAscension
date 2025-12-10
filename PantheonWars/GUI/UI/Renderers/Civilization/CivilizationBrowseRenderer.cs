@@ -74,8 +74,8 @@ internal static class CivilizationBrowseRenderer
                 vm.DeityFilters, selectedIndex, 34f);
 
             // Handle menu interaction
-            var (newIndex, shouldClose, clickConsumed) = Dropdown.DrawMenuAndHandleInteraction(
-                drawList, null!, dropdownX, dropdownY, dropdownW, dropdownH,
+            var (newIndex, shouldClose, clickConsumed) = Dropdown.DrawMenuAndHandleInteraction(dropdownX, dropdownY,
+                dropdownW, dropdownH,
                 vm.DeityFilters, selectedIndex, 34f);
 
             if (shouldClose)
