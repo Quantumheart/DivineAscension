@@ -3,7 +3,7 @@ namespace PantheonWars.GUI.State;
 /// <summary>
 ///     State management for BlessingDialog
 /// </summary>
-public class BlessingDialogState
+public class GuiDialogState
 {
     /// <summary>
     ///     Index of the main tab in BlessingDialog (0=Blessings, 1=Religion, 2=Civilization)

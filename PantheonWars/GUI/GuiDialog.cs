@@ -27,7 +27,7 @@ public partial class GuiDialog : ModSystem
     private const int WindowBaseHeight = 900;
 
     // State
-    private readonly BlessingDialogState _state = new();
+    private readonly GuiDialogState _state = new();
 
     private ICoreClientAPI? _capi;
     private long _checkDataId;

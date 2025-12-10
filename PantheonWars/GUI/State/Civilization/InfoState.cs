@@ -1,3 +1,4 @@
+using PantheonWars.GUI.Interfaces;
 using PantheonWars.Network.Civilization;
 
 namespace PantheonWars.GUI.State.Civilization;

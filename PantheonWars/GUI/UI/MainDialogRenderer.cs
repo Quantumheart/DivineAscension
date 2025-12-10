@@ -33,7 +33,7 @@ internal static class MainDialogRenderer
     public static void Draw(
         GuiDialogManager manager,
         ICoreClientAPI api,
-        BlessingDialogState state,
+        GuiDialogState state,
         int windowWidth,
         int windowHeight,
         float deltaTime,

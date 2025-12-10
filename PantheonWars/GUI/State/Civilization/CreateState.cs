@@ -1,3 +1,5 @@
+using PantheonWars.GUI.Interfaces;
+
 namespace PantheonWars.GUI.State.Civilization;
 
 public class CreateState : IState
