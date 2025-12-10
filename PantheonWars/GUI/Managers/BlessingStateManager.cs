@@ -15,30 +15,20 @@ namespace PantheonWars.GUI.Managers;
 /// <summary>
 ///     Manages blessing tab state and event processing
 /// </summary>
-public class BlessingStateManager
+public class BlessingStateManager(ICoreClientAPI api, IUiService uiService)
 {
-    private readonly ICoreClientAPI _coreClientApi;
-    private readonly IUiService _uiService;
-    private readonly PantheonWarsSystem? _system;
+    private readonly ICoreClientAPI _coreClientApi = api ?? throw new ArgumentNullException(nameof(api));
+    private readonly IUiService _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
 
     public BlessingTabState State { get; } = new();
-
-    public BlessingStateManager(ICoreClientAPI api, IUiService uiService)
-    {
-        _coreClientApi = api ?? throw new ArgumentNullException(nameof(api));
-        _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
-        _system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
-    }
 
     /// <summary>
     ///     Draws the blessings tab and processes all events
     /// </summary>
     public void DrawBlessingsTab(BlessingTabViewModel vm)
     {
-        // Render (pure function)
         var result = BlessingTabRenderer.DrawBlessingsTab(vm);
 
-        // Process events (side effects here)
         ProcessBlessingTabEvents(result);
     }
 
@@ -120,17 +110,7 @@ public class BlessingStateManager
             new AssetLocation("pantheonwars:sounds/click"),
             _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
 
-        // Send unlock request to server
-        if (_system?.NetworkClient != null)
-        {
-            _coreClientApi.Logger.Debug($"[PantheonWars] Sending unlock request for: {selectedState.Blessing.Name}");
-            _uiService.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
-        }
-        else
-        {
-            _coreClientApi.Logger.Warning(
-                "[PantheonWars] Cannot unlock blessing: PantheonWarsSystem or NetworkClient not available");
-        }
+        _uiService.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
     }
 
     private BlessingNodeState? GetBlessingState(string? blessingId)
