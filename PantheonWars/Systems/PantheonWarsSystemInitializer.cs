@@ -105,6 +105,7 @@ public static class PantheonWarsSystemInitializer
             api,
             religionManager,
             playerReligionDataManager,
+            roleManager,
             serverChannel);
         religionHandler.RegisterHandlers();
 

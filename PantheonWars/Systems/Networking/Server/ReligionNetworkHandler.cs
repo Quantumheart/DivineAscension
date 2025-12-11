@@ -19,6 +19,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
     private readonly IReligionManager _religionManager;
     private readonly IPlayerReligionDataManager _playerReligionDataManager;
     private readonly IServerNetworkChannel _serverChannel;
+    private readonly IRoleManager _roleManager;
 
     /// <summary>
     ///     Constructor for dependency injection
@@ -27,11 +28,13 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         ICoreServerAPI sapi,
         IReligionManager religionManager,
         IPlayerReligionDataManager playerReligionDataManager,
+        IRoleManager roleManager,
         IServerNetworkChannel channel)
     {
         _sapi = sapi;
         _religionManager = religionManager;
         _playerReligionDataManager = playerReligionDataManager;
+        _roleManager = roleManager;
         _serverChannel = channel;
     }
 
@@ -44,6 +47,14 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         _serverChannel.SetMessageHandler<ReligionActionRequestPacket>(OnReligionActionRequest);
         _serverChannel.SetMessageHandler<CreateReligionRequestPacket>(OnCreateReligionRequest);
         _serverChannel.SetMessageHandler<EditDescriptionRequestPacket>(OnEditDescriptionRequest);
+
+        // Register handlers for role management packets
+        _serverChannel.SetMessageHandler<ReligionRolesRequest>(OnReligionRolesRequest);
+        _serverChannel.SetMessageHandler<CreateRoleRequest>(OnCreateRoleRequest);
+        _serverChannel.SetMessageHandler<ModifyRolePermissionsRequest>(OnModifyRolePermissionsRequest);
+        _serverChannel.SetMessageHandler<AssignRoleRequest>(OnAssignRoleRequest);
+        _serverChannel.SetMessageHandler<DeleteRoleRequest>(OnDeleteRoleRequest);
+        _serverChannel.SetMessageHandler<TransferFounderRequest>(OnTransferFounderRequest);
     }
 
     public void Dispose()
@@ -598,4 +609,315 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         var response = new EditDescriptionResponsePacket(success, message);
         _serverChannel!.SendPacket(response, fromPlayer);
     }
+
+    #region Role Management Handlers
+
+    private void OnReligionRolesRequest(IServerPlayer fromPlayer, ReligionRolesRequest packet)
+    {
+        try
+        {
+            var religion = _religionManager!.GetReligion(packet.ReligionUID);
+
+            if (religion == null)
+            {
+                var errorResponse = new ReligionRolesResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Religion not found"
+                };
+                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                return;
+            }
+
+            // Check if player is a member
+            if (!religion.IsMember(fromPlayer.PlayerUID))
+            {
+                var errorResponse = new ReligionRolesResponse
+                {
+                    Success = false,
+                    ErrorMessage = "You are not a member of this religion"
+                };
+                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                return;
+            }
+
+            var response = new ReligionRolesResponse
+            {
+                Success = true,
+                Roles = _roleManager.GetReligionRoles(packet.ReligionUID),
+                MemberRoles = religion.MemberRoles,
+                ErrorMessage = null
+            };
+
+            _serverChannel!.SendPacket(response, fromPlayer);
+        }
+        catch (Exception ex)
+        {
+            _sapi!.Logger.Error($"[PantheonWars] Error handling ReligionRolesRequest: {ex}");
+            var errorResponse = new ReligionRolesResponse
+            {
+                Success = false,
+                ErrorMessage = $"Error: {ex.Message}"
+            };
+            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+        }
+    }
+
+    private void OnCreateRoleRequest(IServerPlayer fromPlayer, CreateRoleRequest packet)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(packet.ReligionUID) || string.IsNullOrEmpty(packet.RoleName))
+            {
+                var errorResponse = new CreateRoleResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Invalid request data"
+                };
+                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                return;
+            }
+
+            var (success, role, error) = _roleManager.CreateCustomRole(
+                packet.ReligionUID,
+                fromPlayer.PlayerUID,
+                packet.RoleName
+            );
+
+            var response = new CreateRoleResponse
+            {
+                Success = success,
+                CreatedRole = role,
+                ErrorMessage = error
+            };
+
+            _serverChannel!.SendPacket(response, fromPlayer);
+        }
+        catch (Exception ex)
+        {
+            _sapi!.Logger.Error($"[PantheonWars] Error handling CreateRoleRequest: {ex}");
+            var errorResponse = new CreateRoleResponse
+            {
+                Success = false,
+                ErrorMessage = $"Error: {ex.Message}"
+            };
+            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+        }
+    }
+
+    private void OnModifyRolePermissionsRequest(IServerPlayer fromPlayer, ModifyRolePermissionsRequest packet)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(packet.ReligionUID) || string.IsNullOrEmpty(packet.RoleUID) ||
+                packet.Permissions == null)
+            {
+                var errorResponse = new ModifyRolePermissionsResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Invalid request data"
+                };
+                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                return;
+            }
+
+            var (success, role, error) = _roleManager.ModifyRolePermissions(
+                packet.ReligionUID,
+                fromPlayer.PlayerUID,
+                packet.RoleUID,
+                packet.Permissions
+            );
+
+            var response = new ModifyRolePermissionsResponse
+            {
+                Success = success,
+                UpdatedRole = role,
+                ErrorMessage = error
+            };
+
+            _serverChannel!.SendPacket(response, fromPlayer);
+        }
+        catch (Exception ex)
+        {
+            _sapi!.Logger.Error($"[PantheonWars] Error handling ModifyRolePermissionsRequest: {ex}");
+            var errorResponse = new ModifyRolePermissionsResponse
+            {
+                Success = false,
+                ErrorMessage = $"Error: {ex.Message}"
+            };
+            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+        }
+    }
+
+    private void OnAssignRoleRequest(IServerPlayer fromPlayer, AssignRoleRequest packet)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(packet.ReligionUID) || string.IsNullOrEmpty(packet.TargetPlayerUID) ||
+                string.IsNullOrEmpty(packet.RoleUID))
+            {
+                var errorResponse = new AssignRoleResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Invalid request data"
+                };
+                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                return;
+            }
+
+            var (success, error) = _roleManager.AssignRole(
+                packet.ReligionUID,
+                fromPlayer.PlayerUID,
+                packet.TargetPlayerUID,
+                packet.RoleUID
+            );
+
+            var response = new AssignRoleResponse
+            {
+                Success = success,
+                ErrorMessage = error
+            };
+
+            _serverChannel!.SendPacket(response, fromPlayer);
+
+            // Notify the target player if they're online
+            if (success)
+            {
+                var targetPlayer = _sapi!.World.PlayerByUid(packet.TargetPlayerUID) as IServerPlayer;
+                if (targetPlayer != null && targetPlayer.PlayerUID != fromPlayer.PlayerUID)
+                {
+                    var religion = _religionManager!.GetReligion(packet.ReligionUID);
+                    var role = religion?.GetRole(packet.RoleUID);
+                    if (role != null)
+                        targetPlayer.SendMessage(0,
+                            $"Your role in {religion.ReligionName} has been changed to {role.RoleName}",
+                            EnumChatType.Notification);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _sapi!.Logger.Error($"[PantheonWars] Error handling AssignRoleRequest: {ex}");
+            var errorResponse = new AssignRoleResponse
+            {
+                Success = false,
+                ErrorMessage = $"Error: {ex.Message}"
+            };
+            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+        }
+    }
+
+    private void OnDeleteRoleRequest(IServerPlayer fromPlayer, DeleteRoleRequest packet)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(packet.ReligionUID) || string.IsNullOrEmpty(packet.RoleUID))
+            {
+                var errorResponse = new DeleteRoleResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Invalid request data"
+                };
+                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                return;
+            }
+
+            var (success, error) = _roleManager.DeleteRole(
+                packet.ReligionUID,
+                fromPlayer.PlayerUID,
+                packet.RoleUID
+            );
+
+            var response = new DeleteRoleResponse
+            {
+                Success = success,
+                ErrorMessage = error
+            };
+
+            _serverChannel!.SendPacket(response, fromPlayer);
+        }
+        catch (Exception ex)
+        {
+            _sapi!.Logger.Error($"[PantheonWars] Error handling DeleteRoleRequest: {ex}");
+            var errorResponse = new DeleteRoleResponse
+            {
+                Success = false,
+                ErrorMessage = $"Error: {ex.Message}"
+            };
+            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+        }
+    }
+
+    private void OnTransferFounderRequest(IServerPlayer fromPlayer, TransferFounderRequest packet)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(packet.ReligionUID) || string.IsNullOrEmpty(packet.NewFounderUID))
+            {
+                var errorResponse = new TransferFounderResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Invalid request data"
+                };
+                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                return;
+            }
+
+            var (success, error) = _roleManager.TransferFounder(
+                packet.ReligionUID,
+                fromPlayer.PlayerUID,
+                packet.NewFounderUID
+            );
+
+            var response = new TransferFounderResponse
+            {
+                Success = success,
+                ErrorMessage = error
+            };
+
+            _serverChannel!.SendPacket(response, fromPlayer);
+
+            // Notify both players if successful
+            if (success)
+            {
+                var religion = _religionManager!.GetReligion(packet.ReligionUID);
+                if (religion != null)
+                {
+                    // Notify the new founder
+                    var newFounder = _sapi!.World.PlayerByUid(packet.NewFounderUID) as IServerPlayer;
+                    if (newFounder != null)
+                        newFounder.SendMessage(0,
+                            $"You are now the founder of {religion.ReligionName}!",
+                            EnumChatType.Notification);
+
+                    // Notify the old founder (fromPlayer)
+                    fromPlayer.SendMessage(0,
+                        $"You have transferred founder status to {newFounder?.PlayerName ?? packet.NewFounderUID}",
+                        EnumChatType.Notification);
+
+                    // Notify all other members
+                    foreach (var memberUID in religion.MemberUIDs)
+                        if (memberUID != fromPlayer.PlayerUID && memberUID != packet.NewFounderUID)
+                        {
+                            var member = _sapi!.World.PlayerByUid(memberUID) as IServerPlayer;
+                            member?.SendMessage(0,
+                                $"{newFounder?.PlayerName ?? packet.NewFounderUID} is now the founder of {religion.ReligionName}",
+                                EnumChatType.Notification);
+                        }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _sapi!.Logger.Error($"[PantheonWars] Error handling TransferFounderRequest: {ex}");
+            var errorResponse = new TransferFounderResponse
+            {
+                Success = false,
+                ErrorMessage = $"Error: {ex.Message}"
+            };
+            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+        }
+    }
+
+    #endregion
 }
