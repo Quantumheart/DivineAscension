@@ -37,7 +37,7 @@ public partial class GuiDialog : ModSystem
     private PantheonWarsSystem? _pantheonWarsSystem;
     private Stopwatch? _stopwatch;
     private ImGuiViewportPtr _viewport;
-    private ISoundManager _soundManager;
+    private ISoundManager? _soundManager;
 
     public override bool ShouldLoad(EnumAppSide forSide)
     {

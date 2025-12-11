@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Moq;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Blessing;
 using PantheonWars.GUI.Interfaces;
 using PantheonWars.GUI.Managers;
 using PantheonWars.GUI.Models.Blessing.Tab;
@@ -76,8 +76,8 @@ public class BlessingStateManagerTests
     {
         // Arrange
         var result = new BlessingTabRenderResult(
-            new List<BlessingTreeEvent>(),
-            new List<BlessingActionsEvent>(),
+            new List<TreeEvent>(),
+            new List<ActionsEvent>(),
             "hovered-id",
             100f);
 
@@ -94,11 +94,11 @@ public class BlessingStateManagerTests
     {
         // Arrange
         var result = new BlessingTabRenderResult(
-            new List<BlessingTreeEvent>
+            new List<TreeEvent>
             {
-                new BlessingTreeEvent.PlayerTreeScrollChanged(3.25f, -1.5f)
+                new TreeEvent.PlayerTreeScrollChanged(3.25f, -1.5f)
             },
-            new List<BlessingActionsEvent>(),
+            new List<ActionsEvent>(),
             null,
             100f);
 
@@ -115,11 +115,11 @@ public class BlessingStateManagerTests
     {
         // Arrange
         var result = new BlessingTabRenderResult(
-            new List<BlessingTreeEvent>
+            new List<TreeEvent>
             {
-                new BlessingTreeEvent.ReligionTreeScrollChanged(-2f, 5f)
+                new TreeEvent.ReligionTreeScrollChanged(-2f, 5f)
             },
-            new List<BlessingActionsEvent>(),
+            new List<ActionsEvent>(),
             null,
             100f);
 
@@ -140,8 +140,8 @@ public class BlessingStateManagerTests
     {
         // Arrange - no SelectedBlessingId
         var result = new BlessingTabRenderResult(
-            new List<BlessingTreeEvent>(),
-            new List<BlessingActionsEvent> { new BlessingActionsEvent.UnlockClicked() },
+            new List<TreeEvent>(),
+            new List<ActionsEvent> { new ActionsEvent.UnlockClicked() },
             null,
             100f);
 
@@ -165,8 +165,8 @@ public class BlessingStateManagerTests
         _sut.State.PlayerBlessingStates[string.Empty].IsUnlocked = false;
 
         var result = new BlessingTabRenderResult(
-            new List<BlessingTreeEvent>(),
-            new List<BlessingActionsEvent> { new BlessingActionsEvent.UnlockClicked() },
+            new List<TreeEvent>(),
+            new List<ActionsEvent> { new ActionsEvent.UnlockClicked() },
             null,
             100f);
 
@@ -198,8 +198,8 @@ public class BlessingStateManagerTests
         node.IsUnlocked = false;
 
         var result = new BlessingTabRenderResult(
-            new List<BlessingTreeEvent>(),
-            new List<BlessingActionsEvent> { new BlessingActionsEvent.UnlockClicked() },
+            new List<TreeEvent>(),
+            new List<ActionsEvent> { new ActionsEvent.UnlockClicked() },
             null,
             100f);
 

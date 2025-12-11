@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Blessing;
 using PantheonWars.GUI.Models.Blessing.Actions;
 
 namespace PantheonWars.GUI.UI.Renderers.Blessing;
@@ -34,7 +34,7 @@ internal static class BlessingActionsRenderer
     /// </summary>
     public static BlessingActionsRendererResult Draw(BlessingActionsViewModel viewModel)
     {
-        var emitted = new List<BlessingActionsEvent>(2);
+        var emitted = new List<ActionsEvent>(2);
         
         // Unlock button - only show if blessing is selected and not already unlocked
         var selectedState = viewModel.BlessingNodeState;
@@ -53,9 +53,9 @@ internal static class BlessingActionsRenderer
             if (clicked)
             {
                 if (canUnlock)
-                    emitted.Add(new BlessingActionsEvent.UnlockClicked());
+                    emitted.Add(new ActionsEvent.UnlockClicked());
                 else
-                    emitted.Add(new BlessingActionsEvent.UnlockBlockedClicked());
+                    emitted.Add(new ActionsEvent.UnlockBlockedClicked());
             }
 
             // Show tooltip on hover if disabled
@@ -65,7 +65,7 @@ internal static class BlessingActionsRenderer
 
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
-                    emitted.Add(new BlessingActionsEvent.UnlockBlockedClicked());
+                    emitted.Add(new ActionsEvent.UnlockBlockedClicked());
                 }
             }
         }

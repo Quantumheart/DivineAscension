@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Religion;
 using PantheonWars.GUI.Models.Religion.Tab;
 using PantheonWars.GUI.State.Religion;
 using PantheonWars.GUI.UI.Components.Banners;
@@ -21,7 +21,7 @@ internal static class ReligionTabRenderer
         ImDrawListPtr drawList,
         ICoreClientAPI api)
     {
-        var events = new List<ReligionSubTabEvent>();
+        var events = new List<SubTabEvent>();
 
         // Sub-tab header metrics
         var x = viewModel.X;
@@ -42,7 +42,7 @@ internal static class ReligionTabRenderer
                 isActive ? ColorPalette.Gold * 0.7f : ColorPalette.DarkBrown * 0.6f);
             if (clicked && tab != viewModel.CurrentSubTab)
             {
-                events.Add(new ReligionSubTabEvent.TabChanged(tab));
+                events.Add(new SubTabEvent.TabChanged(tab));
             }
         }
 
@@ -92,17 +92,17 @@ internal static class ReligionTabRenderer
             {
                 if (viewModel.ErrorState.LastActionError != null)
                 {
-                    events.Add(new ReligionSubTabEvent.DismissActionError());
+                    events.Add(new SubTabEvent.DismissActionError());
                 }
                 else
                 {
-                    events.Add(new ReligionSubTabEvent.DismissContextError(effectiveTab));
+                    events.Add(new SubTabEvent.DismissContextError(effectiveTab));
                 }
             }
 
             if (retryClicked)
             {
-                events.Add(new ReligionSubTabEvent.RetryRequested(effectiveTab));
+                events.Add(new SubTabEvent.RetryRequested(effectiveTab));
             }
         }
 

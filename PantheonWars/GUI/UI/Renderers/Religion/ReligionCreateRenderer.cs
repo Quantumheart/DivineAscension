@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Religion;
 using PantheonWars.GUI.Models.Religion.Create;
 using PantheonWars.GUI.UI.Components;
 using PantheonWars.GUI.UI.Components.Buttons;
@@ -26,7 +26,7 @@ internal static class ReligionCreateRenderer
         ReligionCreateViewModel viewModel,
         ImDrawListPtr drawList)
     {
-        var events = new List<ReligionCreateEvent>();
+        var events = new List<CreateEvent>();
         var currentY = viewModel.Y;
 
         // Center the form
@@ -63,7 +63,7 @@ internal static class ReligionCreateRenderer
         // Emit event if name changed
         if (newReligionName != viewModel.ReligionName)
         {
-            events.Add(new ReligionCreateEvent.NameChanged(newReligionName));
+            events.Add(new CreateEvent.NameChanged(newReligionName));
         }
 
         currentY += 40f;
@@ -103,7 +103,7 @@ internal static class ReligionCreateRenderer
         if (newDeityIndex != currentDeityIndex)
         {
             var newDeity = viewModel.AvailableDeities[newDeityIndex];
-            events.Add(new ReligionCreateEvent.DeityChanged(newDeity));
+            events.Add(new CreateEvent.DeityChanged(newDeity));
         }
 
         currentY += 40f;
@@ -119,7 +119,7 @@ internal static class ReligionCreateRenderer
         // Emit event if public/private changed
         if (newIsPublic != viewModel.IsPublic)
         {
-            events.Add(new ReligionCreateEvent.IsPublicChanged(newIsPublic));
+            events.Add(new CreateEvent.IsPublicChanged(newIsPublic));
         }
 
         currentY += 35f;
@@ -151,7 +151,7 @@ internal static class ReligionCreateRenderer
                 isPrimary: true,
                 enabled: viewModel.CanCreate))
         {
-            events.Add(new ReligionCreateEvent.SubmitClicked());
+            events.Add(new CreateEvent.SubmitClicked());
         }
 
         currentY += buttonHeight;

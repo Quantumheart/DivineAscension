@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Religion;
 using PantheonWars.GUI.Models.Religion.Browse;
 using PantheonWars.GUI.Models.Religion.List;
 using PantheonWars.GUI.UI.Components;
@@ -22,7 +22,7 @@ internal static class ReligionBrowseRenderer
         ReligionBrowseViewModel viewModel,
         ImDrawListPtr drawList)
     {
-        var events = new List<ReligionBrowseEvent>();
+        var events = new List<BrowseEvent>();
         var x = viewModel.X;
         var y = viewModel.Y;
         var width = viewModel.Width;
@@ -47,7 +47,7 @@ internal static class ReligionBrowseRenderer
         if (newSelectedIndex != currentSelectedIndex)
         {
             var newFilter = viewModel.DeityFilters[newSelectedIndex];
-            events.Add(new ReligionBrowseEvent.DeityFilterChanged(newFilter));
+            events.Add(new BrowseEvent.DeityFilterChanged(newFilter));
         }
 
         currentY += tabHeight + 8f;
@@ -74,14 +74,14 @@ internal static class ReligionBrowseRenderer
         {
             switch (le)
             {
-                case ReligionListEvent.ScrollChanged sc:
+                case ListEvent.ScrollChanged sc:
                     updatedScroll = sc.NewScrollY;
-                    events.Add(new ReligionBrowseEvent.ScrollChanged(updatedScroll));
+                    events.Add(new BrowseEvent.ScrollChanged(updatedScroll));
                     break;
-                case ReligionListEvent.ItemClicked ic:
+                case ListEvent.ItemClicked ic:
                     updatedSelected = ic.ReligionUID;
                     updatedScroll = ic.NewScrollY;
-                    events.Add(new ReligionBrowseEvent.ReligionSelected(updatedSelected, updatedScroll));
+                    events.Add(new BrowseEvent.Selected(updatedSelected, updatedScroll));
                     break;
             }
         }
@@ -108,7 +108,7 @@ internal static class ReligionBrowseRenderer
             if (ButtonRenderer.DrawButton(drawList, "Create Religion", createButtonX, buttonY, buttonWidth,
                     buttonHeight, true))
             {
-                events.Add(new ReligionBrowseEvent.CreateReligionClicked());
+                events.Add(new BrowseEvent.CreateClicked());
             }
 
             // Join Religion
@@ -118,7 +118,7 @@ internal static class ReligionBrowseRenderer
             {
                 if (canJoin && updatedSelected != null)
                 {
-                    events.Add(new ReligionBrowseEvent.JoinReligionClicked(updatedSelected));
+                    events.Add(new BrowseEvent.JoinClicked(updatedSelected));
                 }
             }
         }
@@ -131,7 +131,7 @@ internal static class ReligionBrowseRenderer
             {
                 if (canJoin && updatedSelected != null)
                 {
-                    events.Add(new ReligionBrowseEvent.JoinReligionClicked(updatedSelected));
+                    events.Add(new BrowseEvent.JoinClicked(updatedSelected));
                 }
             }
         }

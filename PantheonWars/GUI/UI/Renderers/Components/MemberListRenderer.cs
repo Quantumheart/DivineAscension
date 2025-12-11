@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Religion;
 using PantheonWars.GUI.Models.Religion.Member;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Lists;
@@ -23,7 +23,7 @@ public static class MemberListRenderer
         MemberListViewModel viewModel,
         ImDrawListPtr drawList)
     {
-        var events = new List<ReligionMemberListEvent>();
+        var events = new List<MemberListEvent>();
         var x = viewModel.X;
         var y = viewModel.Y;
         var width = viewModel.Width;
@@ -70,7 +70,7 @@ public static class MemberListRenderer
                 if (Math.Abs(newScroll - scrollY) > 0.001f)
                 {
                     scrollY = newScroll;
-                    events.Add(new ReligionMemberListEvent.ScrollChanged(scrollY));
+                    events.Add(new MemberListEvent.ScrollChanged(scrollY));
                 }
             }
         }
@@ -116,7 +116,7 @@ public static class MemberListRenderer
         float height,
         string currentPlayerUid,
         bool canModerate,
-        List<ReligionMemberListEvent> events)
+        List<MemberListEvent> events)
     {
         const float padding = 8f;
         const float buttonWidth = 50f;
@@ -157,7 +157,7 @@ public static class MemberListRenderer
                 var banButtonX = x + width - (buttonWidth * 2 + buttonSpacing + padding);
                 if (ButtonRenderer.DrawSmallButton(drawList, "Ban", banButtonX, buttonY, buttonWidth, 22f))
                 {
-                    events.Add(new ReligionMemberListEvent.BanClicked(member.PlayerUID));
+                    events.Add(new MemberListEvent.BanClicked(member.PlayerUID));
                 }
             }
 
@@ -165,7 +165,7 @@ public static class MemberListRenderer
             var kickButtonX = x + width - buttonWidth - padding;
             if (ButtonRenderer.DrawSmallButton(drawList, "Kick", kickButtonX, buttonY, buttonWidth, 22f))
             {
-                events.Add(new ReligionMemberListEvent.KickClicked(member.PlayerUID));
+                events.Add(new MemberListEvent.KickClicked(member.PlayerUID));
             }
         }
     }

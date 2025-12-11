@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Religion;
 using PantheonWars.GUI.Interfaces;
 using PantheonWars.GUI.Models.Religion.Activity;
 using PantheonWars.GUI.Models.Religion.Browse;
@@ -375,7 +375,7 @@ public class ReligionStateManager : IReligionStateManager
         {
             switch (ev)
             {
-                case ReligionSubTabEvent.TabChanged(var sub):
+                case SubTabEvent.TabChanged(var sub):
                     State.CurrentSubTab = sub;
                     // Clear transient action error on tab change
                     State.ErrorState.LastActionError = null;
@@ -404,10 +404,10 @@ public class ReligionStateManager : IReligionStateManager
                             break;
                     }
                     break;
-                case ReligionSubTabEvent.DismissActionError:
+                case SubTabEvent.DismissActionError:
                     State.ErrorState.LastActionError = null;
                     break;
-                case ReligionSubTabEvent.DismissContextError(var subTab):
+                case SubTabEvent.DismissContextError(var subTab):
                     switch (subTab)
                     {
                         case SubTab.Browse:
@@ -421,7 +421,7 @@ public class ReligionStateManager : IReligionStateManager
                             break;
                     }
                     break;
-                case ReligionSubTabEvent.RetryRequested(var subTab):
+                case SubTabEvent.RetryRequested(var subTab):
                     switch (subTab)
                     {
                         case SubTab.Browse:
@@ -470,7 +470,7 @@ public class ReligionStateManager : IReligionStateManager
         ProcessActivityEvents(result.Events);
     }
 
-    private void ProcessActivityEvents(IReadOnlyList<ReligionActivityEvent>? resultEvents)
+    private void ProcessActivityEvents(IReadOnlyList<ActivityEvent>? resultEvents)
     {
         if (resultEvents == null || resultEvents.Count == 0) return;
         foreach (var ev in resultEvents)
@@ -487,7 +487,7 @@ public class ReligionStateManager : IReligionStateManager
     /// Process events emitted by the ReligionInfoRenderer (My Religion tab)
     /// Maps pure UI intents to state updates and side effects (network requests, sounds, etc.).
     /// </summary>
-    private void ProcessInfoEvents(IReadOnlyList<ReligionInfoEvent>? events)
+    private void ProcessInfoEvents(IReadOnlyList<InfoEvent>? events)
     {
         if (events == null || events.Count == 0) return;
 
@@ -500,21 +500,21 @@ public class ReligionStateManager : IReligionStateManager
             switch (ev)
             {
                 // Scrolling
-                case ReligionInfoEvent.ScrollChanged s:
+                case InfoEvent.ScrollChanged s:
                     State.InfoState.MyReligionScrollY = s.NewScrollY;
                     break;
-                case ReligionInfoEvent.MemberScrollChanged ms:
+                case InfoEvent.MemberScrollChanged ms:
                     State.InfoState.MemberScrollY = ms.NewScrollY;
                     break;
-                case ReligionInfoEvent.BanListScrollChanged bs:
+                case InfoEvent.BanListScrollChanged bs:
                     State.InfoState.BanListScrollY = bs.NewScrollY;
                     break;
 
                 // Description edit/save
-                case ReligionInfoEvent.DescriptionChanged dc:
+                case InfoEvent.DescriptionChanged dc:
                     State.InfoState.Description = dc.Text;
                     break;
-                case ReligionInfoEvent.SaveDescriptionClicked sd:
+                case InfoEvent.SaveDescriptionClicked sd:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
                         RequestEditReligionDescription(religionId, sd.Text);
@@ -529,10 +529,10 @@ public class ReligionStateManager : IReligionStateManager
                     break;
 
                 // Invite flow
-                case ReligionInfoEvent.InviteNameChanged inc:
+                case InfoEvent.InviteNameChanged inc:
                     State.InfoState.InvitePlayerName = inc.Text;
                     break;
-                case ReligionInfoEvent.InviteClicked ic:
+                case InfoEvent.InviteClicked ic:
                     if (!string.IsNullOrWhiteSpace(ic.PlayerName) && !string.IsNullOrWhiteSpace(religionId))
                     {
                         _soundManager.PlayClick();
@@ -542,7 +542,7 @@ public class ReligionStateManager : IReligionStateManager
                     break;
 
                 // Membership actions
-                case ReligionInfoEvent.LeaveClicked:
+                case InfoEvent.LeaveClicked:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
                         _soundManager.PlayClick();
@@ -551,13 +551,13 @@ public class ReligionStateManager : IReligionStateManager
                     break;
 
                 // Disband flow
-                case ReligionInfoEvent.DisbandOpen:
+                case InfoEvent.DisbandOpen:
                     State.InfoState.ShowDisbandConfirm = true;
                     break;
-                case ReligionInfoEvent.DisbandCancel:
+                case InfoEvent.DisbandCancel:
                     State.InfoState.ShowDisbandConfirm = false;
                     break;
-                case ReligionInfoEvent.DisbandConfirm:
+                case InfoEvent.DisbandConfirm:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
                         _soundManager.PlayClick();
@@ -567,15 +567,15 @@ public class ReligionStateManager : IReligionStateManager
                     break;
 
                 // Kick flow
-                case ReligionInfoEvent.KickOpen ko:
+                case InfoEvent.KickOpen ko:
                     State.InfoState.KickConfirmPlayerUID = ko.PlayerUID;
                     State.InfoState.KickConfirmPlayerName = ko.PlayerName;
                     break;
-                case ReligionInfoEvent.KickCancel:
+                case InfoEvent.KickCancel:
                     State.InfoState.KickConfirmPlayerUID = null;
                     State.InfoState.KickConfirmPlayerName = null;
                     break;
-                case ReligionInfoEvent.KickConfirm kc:
+                case InfoEvent.KickConfirm kc:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
                         _soundManager.PlayClick();
@@ -586,15 +586,15 @@ public class ReligionStateManager : IReligionStateManager
                     break;
 
                 // Ban flow
-                case ReligionInfoEvent.BanOpen bo:
+                case InfoEvent.BanOpen bo:
                     State.InfoState.BanConfirmPlayerUID = bo.PlayerUID;
                     State.InfoState.BanConfirmPlayerName = bo.PlayerName;
                     break;
-                case ReligionInfoEvent.BanCancel:
+                case InfoEvent.BanCancel:
                     State.InfoState.BanConfirmPlayerUID = null;
                     State.InfoState.BanConfirmPlayerName = null;
                     break;
-                case ReligionInfoEvent.BanConfirm bc:
+                case InfoEvent.BanConfirm bc:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
                         _soundManager.PlayClick();
@@ -605,7 +605,7 @@ public class ReligionStateManager : IReligionStateManager
                     break;
 
                 // Unban
-                case ReligionInfoEvent.UnbanClicked ub:
+                case InfoEvent.UnbanClicked ub:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
                         _soundManager.PlayClick();
@@ -633,21 +633,21 @@ public class ReligionStateManager : IReligionStateManager
     /// <summary>
     /// Process events from the invites renderer
     /// </summary>
-    private void ProcessInvitesEvents(IReadOnlyList<ReligionInvitesEvent> events)
+    private void ProcessInvitesEvents(IReadOnlyList<InvitesEvent> events)
     {
         foreach (var evt in events)
         {
             switch (evt)
             {
-                case ReligionInvitesEvent.AcceptInviteClicked e:
+                case InvitesEvent.AcceptInviteClicked e:
                     HandleAcceptInvite(e.InviteId);
                     break;
 
-                case ReligionInvitesEvent.DeclineInviteClicked e:
+                case InvitesEvent.DeclineInviteClicked e:
                     HandleDeclineInvite(e.InviteId);
                     break;
 
-                case ReligionInvitesEvent.ScrollChanged e:
+                case InvitesEvent.ScrollChanged e:
                     State.InvitesState.InvitesScrollY = e.NewScrollY;
                     break;
             }
@@ -657,27 +657,27 @@ public class ReligionStateManager : IReligionStateManager
     /// <summary>
     /// Process events from the create renderer
     /// </summary>
-    private void ProcessCreateEvents(IReadOnlyList<ReligionCreateEvent> events)
+    private void ProcessCreateEvents(IReadOnlyList<CreateEvent> events)
     {
         foreach (var evt in events)
         {
             switch (evt)
             {
-                case ReligionCreateEvent.NameChanged e:
+                case CreateEvent.NameChanged e:
                     State.CreateState.Name = e.NewName;
                     break;
 
-                case ReligionCreateEvent.DeityChanged e:
+                case CreateEvent.DeityChanged e:
                     State.CreateState.DeityName = e.NewDeity;
                     
                     break;
 
-                case ReligionCreateEvent.IsPublicChanged e:
+                case CreateEvent.IsPublicChanged e:
                     State.CreateState.IsPublic = e.IsPublic;
                     _soundManager.PlayClick();
                     break;
 
-                case ReligionCreateEvent.SubmitClicked:
+                case CreateEvent.SubmitClicked:
                     HandleCreateReligionSubmit();
                     break;
             }
@@ -724,13 +724,13 @@ public class ReligionStateManager : IReligionStateManager
     /// <summary>
     /// Handle events from the browse renderer
     /// </summary>
-    private void ProcessBrowseEvents(IReadOnlyList<ReligionBrowseEvent> events)
+    private void ProcessBrowseEvents(IReadOnlyList<BrowseEvent> events)
     {
         foreach (var evt in events)
         {
             switch (evt)
             {
-                case ReligionBrowseEvent.DeityFilterChanged e:
+                case BrowseEvent.DeityFilterChanged e:
                     // Update filter (translate "All" → "")
                     State.BrowseState.DeityFilter = e.NewFilter == "All" ? string.Empty : e.NewFilter;
                     State.BrowseState.SelectedReligionUID = null;
@@ -741,22 +741,22 @@ public class ReligionStateManager : IReligionStateManager
                     _soundManager.PlayClick();
                     break;
 
-                case ReligionBrowseEvent.ReligionSelected e:
+                case BrowseEvent.Selected e:
                     State.BrowseState.SelectedReligionUID = e.ReligionUID;
                     State.BrowseState.BrowseScrollY = e.NewScrollY;
                     break;
 
-                case ReligionBrowseEvent.ScrollChanged e:
+                case BrowseEvent.ScrollChanged e:
                     State.BrowseState.BrowseScrollY = e.NewScrollY;
                     break;
 
-                case ReligionBrowseEvent.CreateReligionClicked:
+                case BrowseEvent.CreateClicked:
                     // Switch to Create sub-tab
                     State.CurrentSubTab = SubTab.Create;
                     _soundManager.PlayClick();
                     break;
 
-                case ReligionBrowseEvent.JoinReligionClicked e:
+                case BrowseEvent.JoinClicked e:
                     if (!string.IsNullOrEmpty(e.ReligionUID))
                     {
                         _soundManager.PlayClick();

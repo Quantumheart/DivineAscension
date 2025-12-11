@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Blessing;
 
 namespace PantheonWars.GUI.Models.Blessing.Actions;
 
-public readonly struct BlessingActionsRendererResult(IReadOnlyList<BlessingActionsEvent> events, float height)
+public readonly struct BlessingActionsRendererResult(IReadOnlyList<ActionsEvent> events, float height)
 {
-    public IReadOnlyList<BlessingActionsEvent> Events { get; } = events;
+    public IReadOnlyList<ActionsEvent> Events { get; } = events;
     public float Height { get; } = height;
 }

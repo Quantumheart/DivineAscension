@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Blessing;
 using PantheonWars.GUI.Models.Blessing.Info;
 using PantheonWars.GUI.UI.Utilities;
 
@@ -62,6 +62,6 @@ internal static class BlessingInfoRenderer
         // Stats section (if space available)
         currentY = BlessingInfoSectionStats.Draw(selectedState, vm, currentY, padding);
 
-        return new BlessingInfoRenderResult(new List<BlessingInfoEvent>(0), vm.Height);
+        return new BlessingInfoRenderResult(new List<InfoEvent>(0), vm.Height);
     }
 }

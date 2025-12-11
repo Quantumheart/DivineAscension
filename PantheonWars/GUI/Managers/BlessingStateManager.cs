@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Blessing;
 using PantheonWars.GUI.Interfaces;
 using PantheonWars.GUI.Models.Blessing.Tab;
 using PantheonWars.GUI.State;
@@ -64,24 +64,24 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         foreach (var ev in result.TreeEvents)
             switch (ev)
             {
-                case BlessingTreeEvent.BlessingSelected e:
+                case TreeEvent.Selected e:
                     // Update state
                     State.TreeState.SelectedBlessingId = e.BlessingId;
                     // Play sound
                     _soundManager.PlayClick();
                     break;
 
-                case BlessingTreeEvent.BlessingHovered e:
+                case TreeEvent.Hovered e:
                     // State already updated from result.HoveringBlessingId
                     break;
 
-                case BlessingTreeEvent.PlayerTreeScrollChanged e:
+                case TreeEvent.PlayerTreeScrollChanged e:
                     // Update state
                     State.TreeState.PlayerScrollState.X = e.ScrollX;
                     State.TreeState.PlayerScrollState.Y = e.ScrollY;
                     break;
 
-                case BlessingTreeEvent.ReligionTreeScrollChanged e:
+                case TreeEvent.ReligionTreeScrollChanged e:
                     // Update state
                     State.TreeState.ReligionScrollState.X = e.ScrollX;
                     State.TreeState.ReligionScrollState.Y = e.ScrollY;
@@ -92,11 +92,11 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         foreach (var ev in result.ActionsEvents)
             switch (ev)
             {
-                case BlessingActionsEvent.UnlockClicked:
+                case ActionsEvent.UnlockClicked:
                     HandleUnlockClicked();
                     break;
 
-                case BlessingActionsEvent.UnlockBlockedClicked:
+                case ActionsEvent.UnlockBlockedClicked:
                     _soundManager.PlayError();
                     break;
             }
