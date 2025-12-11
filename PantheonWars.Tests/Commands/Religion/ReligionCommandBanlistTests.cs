@@ -1,10 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
-using Moq;
 using PantheonWars.Data;
 using PantheonWars.Models.Enum;
 using PantheonWars.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
-using Vintagestory.API.Server;
 
 namespace PantheonWars.Tests.Commands.Religion;
 
@@ -264,7 +262,7 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Error, result.Status);
-        Assert.Contains("Only the founder can view the ban list", result.StatusMessage);
+        Assert.Contains("You don't have permission to view the ban list", result.StatusMessage);
     }
 
     #endregion

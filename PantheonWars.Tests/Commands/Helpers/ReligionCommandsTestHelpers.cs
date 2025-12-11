@@ -1,16 +1,13 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Moq;
 using PantheonWars.Commands;
 using PantheonWars.Data;
+using PantheonWars.Models;
 using PantheonWars.Models.Enum;
-using PantheonWars.Systems;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Common;
-using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
-using Vintagestory.API.Config;
 
 namespace PantheonWars.Tests.Commands.Helpers;
 
@@ -105,10 +102,17 @@ public class ReligionCommandsTestHelpers
     /// </summary>
     protected ReligionData CreateReligion(string uid, string name, DeityType deity, string founderUID, bool isPublic = true)
     {
-        return new ReligionData(uid, name, deity, founderUID)
+        var religion = new ReligionData(uid, name, deity, founderUID)
         {
-            IsPublic = isPublic
+            IsPublic = isPublic,
+            Roles = RoleDefaults.CreateDefaultRoles(),
+            MemberRoles = new Dictionary<string, string>
+            {
+                [founderUID] = RoleDefaults.FOUNDER_ROLE_ID
+            }
         };
+
+        return religion;
     }
 
     /// <summary>

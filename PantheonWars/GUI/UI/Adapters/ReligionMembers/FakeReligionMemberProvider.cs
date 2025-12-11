@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using PantheonWars.Models.Enum;
 
 namespace PantheonWars.GUI.UI.Adapters.ReligionMembers;
 
@@ -21,7 +22,7 @@ internal sealed class FakeReligionMemberProvider : IReligionMemberProvider
     };
 
     private static readonly string[] Deities =
-        { "Zephra", "Ignarus", "Noctis", "Solara", "Aquantis", "Terras", "Aether", "Umbra" };
+        { nameof(DeityType.Khoras), nameof(DeityType.Lysa), nameof(DeityType.Aethra), nameof(DeityType.Gaia) };
 
     private IReadOnlyList<MemberVM> _cache = Array.Empty<MemberVM>();
     private int _count = 250;

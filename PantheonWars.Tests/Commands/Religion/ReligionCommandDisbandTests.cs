@@ -6,7 +6,6 @@ using PantheonWars.Network;
 using PantheonWars.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
-using Vintagestory.API.Server;
 
 namespace PantheonWars.Tests.Commands.Religion;
 
@@ -285,7 +284,7 @@ public class ReligionCommandDisbandTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Error, result.Status);
-        Assert.Contains("Only the founder can disband the religion", result.StatusMessage);
+        Assert.Contains("You don't have permission to disband the religion", result.StatusMessage);
     }
 
     #endregion

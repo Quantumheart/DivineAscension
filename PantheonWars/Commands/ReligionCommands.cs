@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Text;
 using PantheonWars.Data;
+using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network;
 using PantheonWars.Systems.Interfaces;
@@ -75,32 +76,32 @@ public class ReligionCommands(
             .HandleWith(OnInvitePlayer)
             .EndSubCommand()
             .BeginSubCommand("kick")
-            .WithDescription("Kick a player from your religion (founder only)")
+            .WithDescription("Kick a player from your religion")
             .WithArgs(_sapi.ChatCommands.Parsers.Word("playername"))
             .HandleWith(OnKickPlayer)
             .EndSubCommand()
             .BeginSubCommand("ban")
-            .WithDescription("Ban a player from your religion (founder only)")
+            .WithDescription("Ban a player from your religion")
             .WithArgs(_sapi.ChatCommands.Parsers.Word("playername"),
                 _sapi.ChatCommands.Parsers.OptionalAll("reason"),
                 _sapi.ChatCommands.Parsers.OptionalInt("days"))
             .HandleWith(OnBanPlayer)
             .EndSubCommand()
             .BeginSubCommand("unban")
-            .WithDescription("Unban a player from your religion (founder only)")
+            .WithDescription("Unban a player from your religion")
             .WithArgs(_sapi.ChatCommands.Parsers.Word("playername"))
             .HandleWith(OnUnbanPlayer)
             .EndSubCommand()
             .BeginSubCommand("banlist")
-            .WithDescription("List all banned players (founder only)")
+            .WithDescription("List all banned players")
             .HandleWith(OnListBannedPlayers)
             .EndSubCommand()
             .BeginSubCommand("disband")
-            .WithDescription("Disband your religion (founder only)")
+            .WithDescription("Disband your religion")
             .HandleWith(OnDisbandReligion)
             .EndSubCommand()
             .BeginSubCommand("description")
-            .WithDescription("Set your religion's description (founder only)")
+            .WithDescription("Set your religion's description")
             .WithArgs(_sapi.ChatCommands.Parsers.All("text"))
             .HandleWith(OnSetDescription)
             .EndSubCommand();
@@ -337,6 +338,10 @@ public class ReligionCommands(
         var religion = _religionManager.GetReligion(playerData.ReligionUID!);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
+        // Check if player has permission to invite
+        if (!religion.HasPermission(player.PlayerUID, RolePermissions.INVITE_PLAYERS))
+            return TextCommandResult.Error("You don't have permission to invite players");
+
         // Find target player
         var targetPlayer = _sapi.World.AllOnlinePlayers
                 .FirstOrDefault(p => p.PlayerName.Equals(targetPlayerName, StringComparison.OrdinalIgnoreCase)) as
@@ -383,8 +388,9 @@ public class ReligionCommands(
         var religion = _religionManager.GetReligion(playerData.ReligionUID!);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
-        // Check if player is founder
-        if (!religion.IsFounder(player.PlayerUID)) return TextCommandResult.Error("Only the founder can kick members");
+        // Check if player has permission to kick members
+        if (!religion.HasPermission(player.PlayerUID, RolePermissions.KICK_MEMBERS))
+            return TextCommandResult.Error("You don't have permission to kick members");
 
         // Find target player by name
         var targetPlayer = _sapi.World.AllPlayers
@@ -435,8 +441,9 @@ public class ReligionCommands(
         var religion = _religionManager.GetReligion(playerData.ReligionUID!);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
-        // Check if player is founder
-        if (!religion.IsFounder(player.PlayerUID)) return TextCommandResult.Error("Only the founder can ban members");
+        // Check if player has permission to ban players
+        if (!religion.HasPermission(player.PlayerUID, RolePermissions.BAN_PLAYERS))
+            return TextCommandResult.Error("You don't have permission to ban players");
 
         // Find target player by name
         var targetPlayer = _sapi.World.AllPlayers
@@ -491,9 +498,9 @@ public class ReligionCommands(
         var religion = _religionManager.GetReligion(playerData.ReligionUID!);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
-        // Check if player is founder
-        if (!religion.IsFounder(player.PlayerUID))
-            return TextCommandResult.Error("Only the founder can unban players");
+        // Check if player has permission to ban/unban players
+        if (!religion.HasPermission(player.PlayerUID, RolePermissions.BAN_PLAYERS))
+            return TextCommandResult.Error("You don't have permission to unban players");
 
         // Find target player by name
         var targetPlayer = _sapi.World.AllPlayers
@@ -522,9 +529,9 @@ public class ReligionCommands(
         var religion = _religionManager.GetReligion(playerData.ReligionUID!);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
-        // Check if player is founder
-        if (!religion.IsFounder(player.PlayerUID))
-            return TextCommandResult.Error("Only the founder can view the ban list");
+        // Check if player has permission to view ban list
+        if (!religion.HasPermission(player.PlayerUID, RolePermissions.VIEW_BAN_LIST))
+            return TextCommandResult.Error("You don't have permission to view the ban list");
 
         var bannedPlayers = _religionManager.GetBannedPlayers(religion.ReligionUID);
 
@@ -568,9 +575,9 @@ public class ReligionCommands(
         var religion = _religionManager.GetReligion(playerData.ReligionUID!);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
-        // Check if player is founder
-        if (!religion.IsFounder(player.PlayerUID))
-            return TextCommandResult.Error("Only the founder can disband the religion");
+        // Check if player has permission to disband the religion
+        if (!religion.HasPermission(player.PlayerUID, RolePermissions.DISBAND_RELIGION))
+            return TextCommandResult.Error("You don't have permission to disband the religion");
 
         var religionName = religion.ReligionName;
 
@@ -628,9 +635,9 @@ public class ReligionCommands(
         var religion = _religionManager.GetReligion(playerData.ReligionUID!);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
-        // Check if player is founder
-        if (!religion.IsFounder(player.PlayerUID))
-            return TextCommandResult.Error("Only the founder can set the religion description");
+        // Check if player has permission to edit description
+        if (!religion.HasPermission(player.PlayerUID, RolePermissions.EDIT_DESCRIPTION))
+            return TextCommandResult.Error("You don't have permission to edit the religion description");
 
         // Set description
         religion.Description = description;

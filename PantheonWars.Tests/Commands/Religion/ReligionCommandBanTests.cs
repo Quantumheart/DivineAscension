@@ -5,7 +5,6 @@ using PantheonWars.Models.Enum;
 using PantheonWars.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
-using Vintagestory.API.Server;
 
 namespace PantheonWars.Tests.Commands.Religion;
 
@@ -279,7 +278,7 @@ public class ReligionCommandBanTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Error, result.Status);
-        Assert.Contains("Only the founder can ban members", result.StatusMessage);
+        Assert.Contains("You don't have permission to ban players", result.StatusMessage);
     }
 
     [Fact]

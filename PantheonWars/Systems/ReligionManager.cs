@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using PantheonWars.Data;
+using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Server;
@@ -12,18 +13,13 @@ namespace PantheonWars.Systems;
 /// <summary>
 ///     Manages all religions and congregation membership
 /// </summary>
-public class ReligionManager : IReligionManager, IDisposable
+public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 {
     private const string DATA_KEY = "pantheonwars_religions";
     private const string INVITE_DATA_KEY = "pantheonwars_religion_invites";
     private readonly Dictionary<string, ReligionData> _religions = new();
-    private readonly ICoreServerAPI _sapi;
+    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
     private ReligionWorldData _inviteData = new();
-
-    public ReligionManager(ICoreServerAPI sapi)
-    {
-        _sapi = sapi;
-    }
 
     /// <summary>
     ///     Initializes the religion manager
@@ -63,7 +59,12 @@ public class ReligionManager : IReligionManager, IDisposable
         // Create religion data
         var religion = new ReligionData(religionUID, name, deity, founderUID)
         {
-            IsPublic = isPublic
+            IsPublic = isPublic,
+            Roles = RoleDefaults.CreateDefaultRoles(),
+            MemberRoles = new Dictionary<string, string>
+            {
+                [founderUID] = RoleDefaults.FOUNDER_ROLE_ID
+            }
         };
 
         // Store in dictionary
@@ -482,6 +483,21 @@ public class ReligionManager : IReligionManager, IDisposable
     {
         SaveAllReligions();
         SaveInviteData();
+    }
+
+    public void Save(ReligionData religionData)
+    {
+        try
+        {
+            var data = SerializerUtil.Serialize(religionData);
+            _sapi.WorldManager.SaveGame.StoreData(DATA_KEY, data);
+            _sapi.Logger.Debug($"[PantheonWars] Saved the {religionData.ReligionName} religion");
+        }
+
+        catch (Exception ex)
+        {
+            _sapi.Logger.Error($"[PantheonWars] Failed to save the religion: {ex.Message}");
+        }
     }
 
     /// <summary>
