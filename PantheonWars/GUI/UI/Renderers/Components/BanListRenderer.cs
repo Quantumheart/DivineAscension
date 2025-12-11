@@ -149,9 +149,6 @@ public static class BanListRenderer
 
             if (ButtonRenderer.DrawSmallButton(drawList, "Unban", unbanButtonX, buttonY, buttonWidth, 22f))
             {
-                // todo: rethink this 
-                // api.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                // api.World.Player.Entity, null, false, 8f, 0.5f);
                 onUnbanPlayer.Invoke(bannedPlayer.PlayerUID);
             }
         }

@@ -518,6 +518,7 @@ public class ReligionStateManager : IReligionStateManager
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
                         RequestEditReligionDescription(religionId, sd.Text);
+                        _soundManager.PlayClick();
                         // Optimistically update local model so UI reflects change immediately
                         if (info != null)
                         {
@@ -534,6 +535,7 @@ public class ReligionStateManager : IReligionStateManager
                 case ReligionInfoEvent.InviteClicked ic:
                     if (!string.IsNullOrWhiteSpace(ic.PlayerName) && !string.IsNullOrWhiteSpace(religionId))
                     {
+                        _soundManager.PlayClick();
                         RequestReligionAction("invite", religionId, ic.PlayerName);
                         State.InfoState.InvitePlayerName = string.Empty;
                     }
@@ -543,6 +545,7 @@ public class ReligionStateManager : IReligionStateManager
                 case ReligionInfoEvent.LeaveClicked:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
+                        _soundManager.PlayClick();
                         RequestReligionAction("leave", religionId);
                     }
                     break;
@@ -557,6 +560,7 @@ public class ReligionStateManager : IReligionStateManager
                 case ReligionInfoEvent.DisbandConfirm:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
+                        _soundManager.PlayClick();
                         RequestReligionAction("disband", religionId);
                     }
                     State.InfoState.ShowDisbandConfirm = false;
@@ -574,6 +578,7 @@ public class ReligionStateManager : IReligionStateManager
                 case ReligionInfoEvent.KickConfirm kc:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
+                        _soundManager.PlayClick();
                         RequestReligionAction("kick", religionId, kc.PlayerUID);
                     }
                     State.InfoState.KickConfirmPlayerUID = null;
@@ -592,6 +597,7 @@ public class ReligionStateManager : IReligionStateManager
                 case ReligionInfoEvent.BanConfirm bc:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
+                        _soundManager.PlayClick();
                         RequestReligionAction("ban", religionId, bc.PlayerUID);
                     }
                     State.InfoState.BanConfirmPlayerUID = null;
@@ -602,6 +608,7 @@ public class ReligionStateManager : IReligionStateManager
                 case ReligionInfoEvent.UnbanClicked ub:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
+                        _soundManager.PlayClick();
                         RequestReligionAction("unban", religionId, ub.PlayerUID);
                     }
                     break;
