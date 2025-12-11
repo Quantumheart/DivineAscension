@@ -49,7 +49,11 @@ internal static class ReligionTabRenderer
         DrawTabButton(nameof(SubTab.Browse), SubTab.Browse);
         DrawTabButton(nameof(SubTab.Info), SubTab.Info);
         DrawTabButton(nameof(SubTab.Activity), SubTab.Activity);
-        if (!viewModel.HasReligion)
+        if (viewModel.HasReligion)
+        {
+            DrawTabButton(nameof(SubTab.Roles), SubTab.Roles);
+        }
+        else
         {
             DrawTabButton(nameof(SubTab.Invites), SubTab.Invites);
             DrawTabButton(nameof(SubTab.Create), SubTab.Create);

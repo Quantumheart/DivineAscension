@@ -24,7 +24,7 @@ public class PantheonWarsSystem : ModSystem
 
     // Public network client for UI dialogs
     public PantheonWarsNetworkClient? NetworkClient { get; private set; }
-    public IUiService UiService { get; private set; }
+    public IUiService UiService { get; private set; } = null!;
 
     private Harmony? _harmony;
     private PlayerReligionDataManager? _playerReligionDataManager;

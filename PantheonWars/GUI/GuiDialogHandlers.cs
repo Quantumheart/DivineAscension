@@ -174,7 +174,7 @@ public partial class GuiDialog
             _capi.ShowChatMessage(packet.Message);
 
             // Play success sound
-            _soundManager.PlayClick();
+            _soundManager!.PlayClick();
 
 
             // If leaving religion, reset blessing dialog state immediately
@@ -208,11 +208,70 @@ public partial class GuiDialog
             _capi.ShowChatMessage($"Error: {packet.Message}");
 
             // Play error sound
-            _soundManager.PlayError();
+            _soundManager!.PlayError();
 
             // Store error in state
             _manager!.ReligionStateManager.State.ErrorState.LastActionError = packet.Message;
         }
+    }
+
+    private void OnReligionRolesReceived(ReligionRolesResponse packet)
+    {
+        _capi!.Logger.Debug($"[PantheonWars] Received religion roles response: Success={packet.Success}");
+
+        if (packet.Success)
+        {
+            _manager!.ReligionStateManager.State.RolesState.RolesData = packet;
+            _manager!.ReligionStateManager.State.RolesState.Loading = false;
+            _manager!.ReligionStateManager.State.ErrorState.RolesError = null;
+        }
+        else
+        {
+            _capi!.ShowChatMessage($"Error: {packet.ErrorMessage}");
+            _manager!.ReligionStateManager.State.RolesState.Loading = false;
+            _manager!.ReligionStateManager.State.ErrorState.RolesError = packet.ErrorMessage;
+        }
+    }
+
+    private void OnRoleCreated(CreateRoleResponse packet)
+    {
+        if (packet.Success)
+            // Refresh roles list
+            RefreshRolesList();
+    }
+
+    private void OnRolePermissionsModified(ModifyRolePermissionsResponse packet)
+    {
+        if (packet.Success)
+            // Refresh roles list
+            RefreshRolesList();
+    }
+
+    private void OnRoleAssigned(AssignRoleResponse packet)
+    {
+        if (packet.Success)
+            // Refresh roles list
+            RefreshRolesList();
+    }
+
+    private void OnRoleDeleted(DeleteRoleResponse packet)
+    {
+        if (packet.Success)
+            // Refresh roles list
+            RefreshRolesList();
+    }
+
+    private void OnFounderTransferred(TransferFounderResponse packet)
+    {
+        if (packet.Success)
+            // Refresh roles list
+            RefreshRolesList();
+    }
+
+    private void RefreshRolesList()
+    {
+        var religionUID = _manager!.ReligionStateManager.CurrentReligionUID;
+        if (!string.IsNullOrEmpty(religionUID)) _pantheonWarsSystem!.UiService.RequestReligionRoles(religionUID);
     }
 
     /// <summary>
@@ -287,7 +346,7 @@ public partial class GuiDialog
             _capi!.Logger.Debug($"[PantheonWars] Blessing unlock failed: {blessingId}");
 
             // Play error sound on failure
-            _soundManager.PlayError();
+            _soundManager!.PlayError();
 
             return;
         }
@@ -302,16 +361,16 @@ public partial class GuiDialog
                 case DeityType.None:
                     break;
                 case DeityType.Khoras:
-                    _soundManager.PlayDeityUnlock(DeityType.Khoras);
+                    _soundManager!.PlayDeityUnlock(DeityType.Khoras);
                     break;
                 case DeityType.Lysa:
-                    _soundManager.PlayDeityUnlock(DeityType.Lysa);
+                    _soundManager!.PlayDeityUnlock(DeityType.Lysa);
                     break;
                 case DeityType.Aethra:
-                    _soundManager.PlayDeityUnlock(DeityType.Aethra);
+                    _soundManager!.PlayDeityUnlock(DeityType.Aethra);
                     break;
                 case DeityType.Gaia:
-                    _soundManager.PlayDeityUnlock(DeityType.Gaia);
+                    _soundManager!.PlayDeityUnlock(DeityType.Gaia);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

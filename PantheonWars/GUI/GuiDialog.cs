@@ -76,6 +76,12 @@ public partial class GuiDialog : ModSystem
             _pantheonWarsSystem.NetworkClient.ReligionStateChanged += OnReligionStateChanged;
             _pantheonWarsSystem.NetworkClient.ReligionListReceived += OnReligionListReceived;
             _pantheonWarsSystem.NetworkClient.ReligionActionCompleted += OnReligionActionCompleted;
+            _pantheonWarsSystem.NetworkClient.ReligionRolesReceived += OnReligionRolesReceived;
+            _pantheonWarsSystem.NetworkClient.RoleCreated += OnRoleCreated;
+            _pantheonWarsSystem.NetworkClient.RolePermissionsModified += OnRolePermissionsModified;
+            _pantheonWarsSystem.NetworkClient.RoleAssigned += OnRoleAssigned;
+            _pantheonWarsSystem.NetworkClient.RoleDeleted += OnRoleDeleted;
+            _pantheonWarsSystem.NetworkClient.FounderTransferred += OnFounderTransferred;
             _pantheonWarsSystem.NetworkClient.PlayerReligionInfoReceived += OnPlayerReligionInfoReceived;
             _pantheonWarsSystem.NetworkClient.PlayerReligionDataUpdated += OnPlayerReligionDataUpdated;
             _pantheonWarsSystem.NetworkClient.CivilizationListReceived += OnCivilizationListReceived;

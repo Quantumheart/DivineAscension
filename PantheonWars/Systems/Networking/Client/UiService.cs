@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using PantheonWars.Systems.Interfaces;
 
 namespace PantheonWars.Systems.Networking.Client;
@@ -42,6 +43,36 @@ public class UiService(PantheonWarsNetworkClient networkClient)
     public void RequestEditDescription(string religionUID, string description)
     {
         _networkClient.RequestEditDescription(religionUID, description);
+    }
+
+    public void RequestReligionRoles(string religionUID)
+    {
+        _networkClient.RequestReligionRoles(religionUID);
+    }
+
+    public void RequestCreateRole(string religionUID, string roleName)
+    {
+        _networkClient.RequestCreateRole(religionUID, roleName);
+    }
+
+    public void RequestModifyRolePermissions(string religionUID, string roleUID, HashSet<string> permissions)
+    {
+        _networkClient.RequestModifyRolePermissions(religionUID, roleUID, permissions);
+    }
+
+    public void RequestDeleteRole(string religionUID, string roleUID)
+    {
+        _networkClient.RequestDeleteRole(religionUID, roleUID);
+    }
+
+    public void RequestAssignRole(string religionUID, string targetPlayerUID, string roleUID)
+    {
+        _networkClient.RequestAssignRole(religionUID, targetPlayerUID, roleUID);
+    }
+
+    public void RequestTransferFounder(string religionUID, string newFounderUID)
+    {
+        _networkClient.RequestTransferFounder(religionUID, newFounderUID);
     }
 
     public void RequestCivilizationList(string deityFilter = "")

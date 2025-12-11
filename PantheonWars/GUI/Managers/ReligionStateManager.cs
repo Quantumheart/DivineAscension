@@ -9,6 +9,7 @@ using PantheonWars.GUI.Models.Religion.Browse;
 using PantheonWars.GUI.Models.Religion.Create;
 using PantheonWars.GUI.Models.Religion.Info;
 using PantheonWars.GUI.Models.Religion.Invites;
+using PantheonWars.GUI.Models.Religion.Roles;
 using PantheonWars.GUI.Models.Religion.Tab;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.State.Religion;
@@ -402,6 +403,11 @@ public class ReligionStateManager : IReligionStateManager
                             State.ErrorState.CreateError = null;
                             RequestPlayerReligionInfo();
                             break;
+                        case SubTab.Roles:
+                            State.ErrorState.RolesError = null;
+                            State.RolesState.Loading = true;
+                            _uiService.RequestReligionRoles(CurrentReligionUID ?? string.Empty);
+                            break;
                     }
                     break;
                 case SubTabEvent.DismissActionError:
@@ -455,6 +461,9 @@ public class ReligionStateManager : IReligionStateManager
                 break;
             case SubTab.Create:
                 DrawReligionCreate(x, contentY, width, contentHeight);
+                break;
+            case SubTab.Roles:
+                DrawReligionRoles(x, contentY, width, contentHeight);
                 break;
         }
     }
@@ -790,5 +799,156 @@ public class ReligionStateManager : IReligionStateManager
 
         // Optional: Optimistic UI update
         State.InvitesState.Loading = true;
+    }
+
+    /// <summary>
+    ///     Draws the religion roles tab using the refactored renderer
+    ///     Builds ViewModel, calls pure renderer, processes events
+    /// </summary>
+    public void DrawReligionRoles(float x, float y, float width, float height)
+    {
+        // Build view model from state
+        var viewModel = new ReligionRolesViewModel(
+            State.RolesState.Loading,
+            HasReligion(),
+            CurrentReligionUID ?? string.Empty,
+            _coreClientApi.World.Player?.PlayerUID ?? string.Empty,
+            State.RolesState.RolesData,
+            State.RolesState.ShowRoleEditor,
+            State.RolesState.EditingRoleUID,
+            State.RolesState.EditingRoleName,
+            State.RolesState.EditingPermissions,
+            State.RolesState.ShowCreateRoleDialog,
+            State.RolesState.NewRoleName,
+            State.RolesState.ShowDeleteConfirm,
+            State.RolesState.DeleteRoleUID,
+            State.RolesState.DeleteRoleName,
+            State.RolesState.ShowRoleMembersDialog,
+            State.RolesState.ViewingRoleUID,
+            State.RolesState.ViewingRoleName,
+            x, y, width, height,
+            State.RolesState.ScrollY
+        );
+
+        // Render (pure function call)
+        var drawList = ImGui.GetWindowDrawList();
+        var result = ReligionRolesRenderer.Draw(viewModel, drawList);
+
+        // Process events (side effects)
+        ProcessRolesEvents(result.Events);
+    }
+
+    /// <summary>
+    ///     Process events emitted by the ReligionRolesRenderer
+    ///     Maps pure UI intents to state updates and side effects
+    /// </summary>
+    private void ProcessRolesEvents(IReadOnlyList<RolesEvent>? events)
+    {
+        if (events == null || events.Count == 0) return;
+
+        foreach (var ev in events)
+            switch (ev)
+            {
+                case RolesEvent.ScrollChanged e:
+                    State.RolesState.ScrollY = e.NewScrollY;
+                    break;
+
+                case RolesEvent.CreateRoleOpen:
+                    State.RolesState.ShowCreateRoleDialog = true;
+                    State.RolesState.NewRoleName = string.Empty;
+                    break;
+
+                case RolesEvent.CreateRoleCancel:
+                    State.RolesState.ShowCreateRoleDialog = false;
+                    State.RolesState.NewRoleName = string.Empty;
+                    break;
+
+                case RolesEvent.CreateRoleNameChanged e:
+                    State.RolesState.NewRoleName = e.RoleName;
+                    break;
+
+                case RolesEvent.CreateRoleConfirm e:
+                    State.RolesState.ShowCreateRoleDialog = false;
+                    _uiService.RequestCreateRole(CurrentReligionUID ?? string.Empty, e.RoleName);
+                    _soundManager.PlayClick();
+                    break;
+
+                case RolesEvent.EditRoleOpen e:
+                    var role = State.RolesState.RolesData?.Roles?.FirstOrDefault(r => r.RoleUID == e.RoleUID);
+                    if (role != null)
+                    {
+                        State.RolesState.ShowRoleEditor = true;
+                        State.RolesState.EditingRoleUID = e.RoleUID;
+                        State.RolesState.EditingRoleName = role.RoleName;
+                        State.RolesState.EditingPermissions = new HashSet<string>(role.Permissions);
+                    }
+
+                    break;
+
+                case RolesEvent.EditRoleCancel:
+                    State.RolesState.ShowRoleEditor = false;
+                    State.RolesState.EditingRoleUID = null;
+                    State.RolesState.EditingRoleName = string.Empty;
+                    State.RolesState.EditingPermissions.Clear();
+                    break;
+
+                case RolesEvent.EditRoleNameChanged e:
+                    State.RolesState.EditingRoleName = e.RoleName;
+                    break;
+
+                case RolesEvent.EditRolePermissionToggled e:
+                    if (e.Enabled)
+                        State.RolesState.EditingPermissions.Add(e.Permission);
+                    else
+                        State.RolesState.EditingPermissions.Remove(e.Permission);
+                    break;
+
+                case RolesEvent.EditRoleSave e:
+                    State.RolesState.ShowRoleEditor = false;
+                    _uiService.RequestModifyRolePermissions(CurrentReligionUID ?? string.Empty, e.RoleUID,
+                        e.Permissions);
+                    _soundManager.PlayClick();
+                    State.RolesState.EditingRoleUID = null;
+                    State.RolesState.EditingRoleName = string.Empty;
+                    State.RolesState.EditingPermissions.Clear();
+                    break;
+
+                case RolesEvent.DeleteRoleOpen e:
+                    State.RolesState.ShowDeleteConfirm = true;
+                    State.RolesState.DeleteRoleUID = e.RoleUID;
+                    State.RolesState.DeleteRoleName = e.RoleName;
+                    break;
+
+                case RolesEvent.DeleteRoleConfirm e:
+                    State.RolesState.ShowDeleteConfirm = false;
+                    _uiService.RequestDeleteRole(CurrentReligionUID ?? string.Empty, e.RoleUID);
+                    _soundManager.PlayClick();
+                    State.RolesState.DeleteRoleUID = null;
+                    State.RolesState.DeleteRoleName = null;
+                    break;
+
+                case RolesEvent.DeleteRoleCancel:
+                    State.RolesState.ShowDeleteConfirm = false;
+                    State.RolesState.DeleteRoleUID = null;
+                    State.RolesState.DeleteRoleName = null;
+                    break;
+
+                case RolesEvent.ViewRoleMembersOpen e:
+                    State.RolesState.ShowRoleMembersDialog = true;
+                    State.RolesState.ViewingRoleUID = e.RoleUID;
+                    State.RolesState.ViewingRoleName = e.RoleName;
+                    break;
+
+                case RolesEvent.ViewRoleMembersClose:
+                    State.RolesState.ShowRoleMembersDialog = false;
+                    State.RolesState.ViewingRoleUID = null;
+                    State.RolesState.ViewingRoleName = null;
+                    break;
+
+                case RolesEvent.RefreshRequested:
+                    State.RolesState.Loading = true;
+                    _uiService.RequestReligionRoles(CurrentReligionUID ?? string.Empty);
+                    break;
+            }
     }
 }

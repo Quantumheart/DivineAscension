@@ -7,6 +7,7 @@ public class ErrorState
     public string? InfoError { get; set; }
     public string? CreateError { get; set; }
     public string? ActivityError { get; set; }
+    public string? RolesError { get; set; }
 
     public void Reset()
     {
@@ -15,5 +16,6 @@ public class ErrorState
         InfoError = null;
         CreateError = null;
         ActivityError = null;
+        RolesError = null;
     }
 }

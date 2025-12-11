@@ -23,6 +23,8 @@ public class ReligionTabState
 
     public InvitesState InvitesState { get; } = new InvitesState();
 
+    public RolesState RolesState { get; } = new();
+
     public ErrorState ErrorState { get; } = new ErrorState();
 
     /// <summary>
@@ -34,6 +36,7 @@ public class ReligionTabState
         BrowseState.Reset();
         InfoState.Reset();
         InvitesState.Reset();
+        RolesState.Reset();
         CreateState.Reset();
 
         // _activityState.ActivityLog.Clear();

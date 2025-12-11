@@ -786,9 +786,9 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 var targetPlayer = _sapi!.World.PlayerByUid(packet.TargetPlayerUID) as IServerPlayer;
                 if (targetPlayer != null && targetPlayer.PlayerUID != fromPlayer.PlayerUID)
                 {
-                    var religion = _religionManager!.GetReligion(packet.ReligionUID);
+                    var religion = _religionManager.GetReligion(packet.ReligionUID);
                     var role = religion?.GetRole(packet.RoleUID);
-                    if (role != null)
+                    if (role != null && religion != null)
                         targetPlayer.SendMessage(0,
                             $"Your role in {religion.ReligionName} has been changed to {role.RoleName}",
                             EnumChatType.Notification);
