@@ -106,12 +106,6 @@ public partial class GuiDialog
         _capi.Logger.Notification(
             $"[PantheonWars] Loaded {playerBlessings.Count} player blessings and {religionBlessings.Count} religion blessings for {packet.Deity}");
 
-        // Request player religion info to get founder status (needed for Manage Religion button)
-        _pantheonWarsSystem?.NetworkClient?.RequestPlayerReligionInfo();
-
-        // Request civilization info for player's religion (empty string = my civ)
-        _pantheonWarsSystem?.NetworkClient?.RequestCivilizationInfo(string.Empty);
-
     }
 
     /// <summary>
@@ -123,9 +117,7 @@ public partial class GuiDialog
 
         // Show notification to user
         _capi.ShowChatMessage(packet.Reason);
-
-        // Close any open overlays
-
+        
         // Reset blessing dialog state to "No Religion" mode
         _manager!.Reset();
         _state.IsReady = true; // Keep dialog ready so it doesn't close

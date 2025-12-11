@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using PantheonWars.GUI.State;
-using Xunit;
 
 namespace PantheonWars.Tests.GUI.State;
 
@@ -8,7 +7,7 @@ namespace PantheonWars.Tests.GUI.State;
 ///     Unit tests for BlessingDialogState
 /// </summary>
 [ExcludeFromCodeCoverage]
-public class BlessingDialogStateTests
+public class GuiDialogStateTests
 {
     #region Constructor and Default Values Tests
 
@@ -16,7 +15,7 @@ public class BlessingDialogStateTests
     public void Constructor_InitializesWithDefaultValues()
     {
         // Act
-        var state = new BlessingDialogState();
+        var state = new GuiDialogState();
 
         // Assert
         Assert.False(state.IsOpen);
@@ -33,7 +32,7 @@ public class BlessingDialogStateTests
     public void Properties_CanBeSetAndRetrieved()
     {
         // Arrange
-        var state = new BlessingDialogState();
+        var state = new GuiDialogState();
 
         // Act
         state.IsOpen = true;
@@ -56,7 +55,7 @@ public class BlessingDialogStateTests
     public void Reset_ResetsAllPropertiesToDefaults()
     {
         // Arrange
-        var state = new BlessingDialogState
+        var state = new GuiDialogState
         {
             IsOpen = true,
             IsReady = true,
@@ -78,7 +77,7 @@ public class BlessingDialogStateTests
     public void Reset_CanBeCalledMultipleTimes()
     {
         // Arrange
-        var state = new BlessingDialogState();
+        var state = new GuiDialogState();
         state.IsOpen = true;
         state.WindowPosX = 50f;
 

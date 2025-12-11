@@ -37,7 +37,7 @@ public class GuiDialogState
     {
         IsOpen = false;
         IsReady = false;
-        CurrentMainTab = 0;
+        CurrentMainTab = MainDialogTab.Religion;
         WindowPosX = 0f;
         WindowPosY = 0f;
     }

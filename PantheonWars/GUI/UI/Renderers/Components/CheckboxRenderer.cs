@@ -2,7 +2,7 @@ using System.Numerics;
 using ImGuiNET;
 using PantheonWars.GUI.UI.Utilities;
 
-namespace PantheonWars.GUI.UI.Renderers.Religion;
+namespace PantheonWars.GUI.UI.Renderers.Components;
 
 internal static class CheckboxRenderer
 {

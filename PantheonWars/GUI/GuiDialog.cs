@@ -213,13 +213,10 @@ public partial class GuiDialog : ModSystem
         // Draw UI using BlessingUIRenderer coordinator (Phase 4)
         MainDialogRenderer.Draw(
             _manager!,
-            _capi,
             _state,
             windowWidth,
             windowHeight,
-            deltaTime,
-            _pantheonWarsSystem,
-            OnCloseButtonClicked
+            deltaTime
         );
 
         ImGui.End();

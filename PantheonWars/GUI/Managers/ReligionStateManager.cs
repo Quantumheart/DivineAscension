@@ -383,9 +383,11 @@ public class ReligionStateManager : IReligionStateManager
                     switch (sub)
                     {
                         case SubTab.Browse:
+                            RequestReligionList(State.BrowseState.DeityFilter);
                             State.ErrorState.BrowseError = null;
                             break;
                         case SubTab.Info:
+                            _uiService.RequestPlayerReligionInfo();
                             State.ErrorState.InfoError = null;
                             break;
                         case SubTab.Activity:
@@ -398,6 +400,7 @@ public class ReligionStateManager : IReligionStateManager
                             break;
                         case SubTab.Create:
                             State.ErrorState.CreateError = null;
+                            RequestPlayerReligionInfo();
                             break;
                     }
                     break;
@@ -703,6 +706,7 @@ public class ReligionStateManager : IReligionStateManager
 
         // Switch to My Religion tab to see the new religion
         State.CurrentSubTab = SubTab.Info;
+        RequestPlayerReligionInfo();
     }
 
     private void RequestReligionCreate(string religionName, string deity, bool isPublic)

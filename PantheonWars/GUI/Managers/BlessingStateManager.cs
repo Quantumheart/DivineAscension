@@ -28,8 +28,25 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     /// <summary>
     ///     Draws the blessings tab and processes all events
     /// </summary>
-    public void DrawBlessingsTab(BlessingTabViewModel vm)
+    public void DrawBlessingsTab(float windowPosX, float windowPosY, float width, float contentHeight, int windowWidth,
+        int windowHeight, float deltaTime)
     {
+        var vm = new BlessingTabViewModel(
+            windowPosX,
+            windowPosY,
+            width,
+            contentHeight,
+            windowWidth,
+            windowHeight,
+            deltaTime,
+            State.TreeState.SelectedBlessingId,
+            GetSelectedBlessingState(),
+            State.PlayerBlessingStates,
+            State.ReligionBlessingStates,
+            State.TreeState.PlayerScrollState,
+            State.TreeState.ReligionScrollState
+        );
+        
         var result = BlessingTabRenderer.DrawBlessingsTab(vm);
 
         ProcessBlessingTabEvents(result);
