@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Religion;
 using PantheonWars.GUI.Models.Religion.Info;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Utilities;
@@ -22,14 +22,14 @@ internal static class ReligionInfoActionsRenderer
         ImDrawListPtr drawList,
         float x,
         float y,
-        List<ReligionInfoEvent> events)
+        List<InfoEvent> events)
     {
         var currentY = y;
 
         // Leave Religion button (always available)
         if (ButtonRenderer.DrawButton(drawList, "Leave Religion", x, currentY, 160f, 34f))
         {
-            events.Add(new ReligionInfoEvent.LeaveClicked());
+            events.Add(new InfoEvent.LeaveClicked());
         }
 
         // Disband Religion button (founder only)
@@ -37,7 +37,7 @@ internal static class ReligionInfoActionsRenderer
             if (ButtonRenderer.DrawButton(drawList, "Disband Religion", x + 170f, currentY, 180f, 34f, false, true,
                     ColorPalette.Red * 0.7f))
             {
-                events.Add(new ReligionInfoEvent.DisbandOpen());
+                events.Add(new InfoEvent.DisbandOpen());
             }
 
         currentY += 40f;

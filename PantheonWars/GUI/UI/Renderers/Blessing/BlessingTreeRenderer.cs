@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Blessing;
 using PantheonWars.GUI.Models.Blessing.Tree;
 using PantheonWars.Models;
 
@@ -79,24 +78,24 @@ internal static class BlessingTreeRenderer
         );
 
         // Build events
-        var events = new List<BlessingTreeEvent>(4);
+        var events = new List<TreeEvent>(4);
 
         // Hover
         var hovering = leftPanel.HoveringBlessingId ?? rightPanel.HoveringBlessingId;
-        events.Add(new BlessingTreeEvent.BlessingHovered(hovering));
+        events.Add(new TreeEvent.Hovered(hovering));
 
         // Selection
         var clicked = leftPanel.ClickedBlessingId ?? rightPanel.ClickedBlessingId;
         if (!string.IsNullOrEmpty(clicked))
-            events.Add(new BlessingTreeEvent.BlessingSelected(clicked!));
+            events.Add(new TreeEvent.Selected(clicked!));
 
         // Scroll changes
         if (!NearlyEqual(vm.PlayerTreeScroll.X, leftPanel.ScrollX) ||
             !NearlyEqual(vm.PlayerTreeScroll.Y, leftPanel.ScrollY))
-            events.Add(new BlessingTreeEvent.PlayerTreeScrollChanged(leftPanel.ScrollX, leftPanel.ScrollY));
+            events.Add(new TreeEvent.PlayerTreeScrollChanged(leftPanel.ScrollX, leftPanel.ScrollY));
         if (!NearlyEqual(vm.ReligionTreeScroll.X, rightPanel.ScrollX) ||
             !NearlyEqual(vm.ReligionTreeScroll.Y, rightPanel.ScrollY))
-            events.Add(new BlessingTreeEvent.ReligionTreeScrollChanged(rightPanel.ScrollX, rightPanel.ScrollY));
+            events.Add(new TreeEvent.ReligionTreeScrollChanged(rightPanel.ScrollX, rightPanel.ScrollY));
 
         return new BlessingTreeRendererResult(events, vm.Height);
     }

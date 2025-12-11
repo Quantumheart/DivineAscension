@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Religion;
 
 namespace PantheonWars.GUI.Models.Religion.Create;
 
 public readonly struct ReligionCreateRenderResult(
-    IReadOnlyList<ReligionCreateEvent> events,
+    IReadOnlyList<CreateEvent> events,
     float renderedHeight)
 {
-    public IReadOnlyList<ReligionCreateEvent> Events { get; } = events;
+    public IReadOnlyList<CreateEvent> Events { get; } = events;
     public float RenderedHeight { get; } = renderedHeight;
 }

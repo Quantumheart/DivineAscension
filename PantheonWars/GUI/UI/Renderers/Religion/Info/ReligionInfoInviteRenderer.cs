@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Religion;
 using PantheonWars.GUI.Models.Religion.Info;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Inputs;
@@ -24,7 +24,7 @@ internal static class ReligionInfoInviteRenderer
         float x,
         float y,
         float width,
-        List<ReligionInfoEvent> events)
+        List<InfoEvent> events)
     {
         if (!viewModel.IsFounder)
             return y; // Only founders can invite
@@ -41,7 +41,7 @@ internal static class ReligionInfoInviteRenderer
         // Emit event if invite player name changed
         if (newInvitePlayerName != viewModel.InvitePlayerName)
         {
-            events.Add(new ReligionInfoEvent.InviteNameChanged(newInvitePlayerName));
+            events.Add(new InfoEvent.InviteNameChanged(newInvitePlayerName));
         }
 
         // Invite button
@@ -50,7 +50,7 @@ internal static class ReligionInfoInviteRenderer
                 !string.IsNullOrWhiteSpace(viewModel.InvitePlayerName)))
             if (!string.IsNullOrWhiteSpace(viewModel.InvitePlayerName))
             {
-                events.Add(new ReligionInfoEvent.InviteClicked(viewModel.InvitePlayerName.Trim()));
+                events.Add(new InfoEvent.InviteClicked(viewModel.InvitePlayerName.Trim()));
             }
 
         currentY += 40f;

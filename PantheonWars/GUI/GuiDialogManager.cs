@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using PantheonWars.GUI.Interfaces;
 using PantheonWars.GUI.Managers;
@@ -6,6 +7,7 @@ using PantheonWars.GUI.UI.Adapters.ReligionMembers;
 using PantheonWars.GUI.UI.Adapters.Religions;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network.Civilization;
+using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI;
@@ -16,12 +18,15 @@ namespace PantheonWars.GUI;
 public class GuiDialogManager : IBlessingDialogManager
 {
     private readonly ICoreClientAPI _capi;
+    private readonly IUiService _uiService;
 
-    public GuiDialogManager(ICoreClientAPI capi)
+    public GuiDialogManager(ICoreClientAPI capi, IUiService uiService, ISoundManager soundManager)
     {
-        _capi = capi;
-        ReligionStateManager = new ReligionStateManager(capi);
-        BlessingStateManager = new BlessingStateManager(capi);
+        _capi = capi ?? throw new ArgumentNullException(nameof(capi));
+        _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
+        ReligionStateManager = new ReligionStateManager(capi, _uiService, soundManager);
+        BlessingStateManager = new BlessingStateManager(capi, _uiService, soundManager);
+        CivilizationManager = new CivilizationStateManager(capi, _uiService, soundManager);
         // Initialize UI-only fake data provider in DEBUG builds. In Release it stays null.
 #if DEBUG
         ReligionStateManager.MembersProvider = new FakeReligionMemberProvider();
@@ -32,26 +37,27 @@ public class GuiDialogManager : IBlessingDialogManager
 #endif
     }
 
+
     // Composite UI state
-    public CivilizationState CivState { get; } = new();
+    public CivilizationTabState CivTabState { get; } = new();
 
     public ReligionStateManager ReligionStateManager { get; }
     public BlessingStateManager BlessingStateManager { get; }
 
-    // Civilization state
-    public string? CurrentCivilizationId { get; set; }
-    public string? CurrentCivilizationName { get; set; }
-    public string? CivilizationFounderReligionUID { get; set; }
+    public CivilizationStateManager CivilizationManager { get; set; }
+
+
     public List<CivilizationInfoResponsePacket.MemberReligion> CivilizationMemberReligions { get; set; } = new();
 
     public bool IsCivilizationFounder => !string.IsNullOrEmpty(ReligionStateManager.CurrentReligionUID) &&
-                                         !string.IsNullOrEmpty(CivilizationFounderReligionUID) &&
-                                         ReligionStateManager.CurrentReligionUID == CivilizationFounderReligionUID;
-    
+                                         !string.IsNullOrEmpty(CivilizationManager.CivilizationFounderReligionUID) &&
+                                         ReligionStateManager.CurrentReligionUID ==
+                                         CivilizationManager.CivilizationFounderReligionUID;
+
 
     // Data loaded flags
     public bool IsDataLoaded { get; set; }
-    
+
     /// <summary>
     ///     Initialize dialog state from player's current religion data
     /// </summary>
@@ -61,6 +67,9 @@ public class GuiDialogManager : IBlessingDialogManager
         ReligionStateManager.Initialize(religionUID, deity, religionName, favorRank, prestigeRank);
         IsDataLoaded = true;
         BlessingStateManager.State.Reset();
+
+        // Update civilization manager's religion state
+        UpdateCivilizationReligionState();
     }
 
     /// <summary>
@@ -70,16 +79,9 @@ public class GuiDialogManager : IBlessingDialogManager
     {
         ReligionStateManager.Reset();
         BlessingStateManager.State.Reset();
-
+        CivTabState.Reset();
         // Keep blessing UI state reset here (for backward compatibility)
         IsDataLoaded = false;
-
-        // Keep civilization state (separate concern)
-        CurrentCivilizationId = null;
-        CurrentCivilizationName = null;
-        CivilizationFounderReligionUID = null;
-        CivilizationMemberReligions.Clear();
-        CivState.Reset();
     }
 
     /// <summary>
@@ -92,102 +94,16 @@ public class GuiDialogManager : IBlessingDialogManager
     /// </summary>
     public bool HasCivilization()
     {
-        return !string.IsNullOrEmpty(CurrentCivilizationId);
+        return CivilizationManager.HasCivilization();
     }
 
     /// <summary>
-    ///     Update civilization state from response packet
+    ///     Update civilization manager's religion state from religion manager
     /// </summary>
-    public void UpdateCivilizationState(CivilizationInfoResponsePacket.CivilizationDetails? details)
+    public void UpdateCivilizationReligionState()
     {
-        if (details == null)
-        {
-            // Clear civilization state
-            CurrentCivilizationId = null;
-            CurrentCivilizationName = null;
-            CivilizationFounderReligionUID = null;
-            CivilizationMemberReligions.Clear();
-            CivState.MyCivilization = null;
-            CivState.MyInvites.Clear();
-            return;
-        }
-
-        // Check if this is for a civilization we're viewing (from "View Details")
-        if (!string.IsNullOrEmpty(CivState.ViewingCivilizationId) && details.CivId == CivState.ViewingCivilizationId)
-        {
-            // Update viewing details
-            CivState.ViewingCivilizationDetails = details;
-        }
-        else
-        {
-            // Update player's own civilization (or just invites if not in a civilization)
-            if (string.IsNullOrEmpty(details.CivId))
-            {
-                // Player has no civilization; only update invites and keep civ info cleared
-                CurrentCivilizationId = null;
-                CurrentCivilizationName = null;
-                CivilizationFounderReligionUID = null;
-                CivilizationMemberReligions.Clear();
-                CivState.MyCivilization = null;
-                CivState.MyInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(details.PendingInvites ??
-                                                             []);
-            }
-            else
-            {
-                CurrentCivilizationId = details.CivId;
-                CurrentCivilizationName = details.Name;
-                CivilizationFounderReligionUID = details.FounderReligionUID;
-                CivilizationMemberReligions =
-                    new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions ?? []);
-                CivState.MyCivilization = details;
-                CivState.MyInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(details.PendingInvites ?? []);
-            }
-        }
-    }
-
-    /// <summary>
-    ///     Request the list of civilizations from the server (filtered by deity when provided)
-    /// </summary>
-    public void RequestCivilizationList(string deityFilter = "")
-    {
-        // Set loading state for browse
-        CivState.IsBrowseLoading = true;
-        CivState.BrowseError = null;
-        var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        system?.RequestCivilizationList(deityFilter);
-    }
-
-    /// <summary>
-    ///     Request details for the current civilization (empty string means player religion's civ)
-    /// </summary>
-    public void RequestCivilizationInfo(string civIdOrEmpty = "")
-    {
-        // Toggle loading depending on details vs my civ
-        if (string.IsNullOrEmpty(civIdOrEmpty))
-        {
-            CivState.IsMyCivLoading = true;
-            CivState.IsInvitesLoading = true;
-            CivState.MyCivError = null;
-            CivState.InvitesError = null;
-        }
-        else
-        {
-            CivState.IsDetailsLoading = true;
-            CivState.DetailsError = null;
-        }
-
-        var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        system?.RequestCivilizationInfo(civIdOrEmpty);
-    }
-
-    /// <summary>
-    ///     Request a civilization action (create, invite, accept, leave, kick, disband)
-    /// </summary>
-    public void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "")
-    {
-        // Clear transient action error; some actions will trigger refreshes
-        CivState.LastActionError = null;
-        var system = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        system?.RequestCivilizationAction(action, civId, targetId, name);
+        CivilizationManager.UserHasReligion = HasReligion();
+        CivilizationManager.UserIsReligionFounder =
+            ReligionStateManager.State.InfoState.MyReligionInfo?.IsFounder ?? false;
     }
 }

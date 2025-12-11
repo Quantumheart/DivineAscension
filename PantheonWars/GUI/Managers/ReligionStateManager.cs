@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Religion;
 using PantheonWars.GUI.Interfaces;
 using PantheonWars.GUI.Models.Religion.Activity;
 using PantheonWars.GUI.Models.Religion.Browse;
@@ -20,17 +20,18 @@ using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network;
 using PantheonWars.Systems;
+using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.Managers;
 
 public class ReligionStateManager : IReligionStateManager
 {
     private readonly ICoreClientAPI _coreClientApi;
+    private readonly IUiService _uiService;
+    private readonly ISoundManager _soundManager;
 
     public ReligionTabState State { get; } = new();
-    private readonly PantheonWarsSystem _system;
     public string? CurrentReligionUID { get; set; }
     public DeityType CurrentDeity { get; set; }
     public string? CurrentReligionName { get; set; }
@@ -46,10 +47,11 @@ public class ReligionStateManager : IReligionStateManager
     internal IReligionMemberProvider? MembersProvider { get; set; }
     internal IReligionProvider? ReligionsProvider { get; private set; }
 
-    public ReligionStateManager(ICoreClientAPI coreClientApi)
+    public ReligionStateManager(ICoreClientAPI coreClientApi, IUiService uiService, ISoundManager soundManager)
     {
-        _coreClientApi = coreClientApi;
-        _system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
+        _coreClientApi = coreClientApi ?? throw new ArgumentNullException(nameof(coreClientApi));
+        _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
+        _soundManager = soundManager ?? throw new ArgumentNullException(nameof(soundManager));
     }
 
     public void Initialize(string? id, DeityType deity, string? religionName, int favorRank = 0,
@@ -148,8 +150,7 @@ public class ReligionStateManager : IReligionStateManager
         // Default: request from server
         State.BrowseState.IsBrowseLoading = true;
         State.ErrorState.BrowseError = null;
-        var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        if (deityFilter != null) system?.RequestReligionList(deityFilter);
+        if (deityFilter != null) _uiService.RequestReligionList(deityFilter);
     }
 
     /// <summary>
@@ -175,16 +176,14 @@ public class ReligionStateManager : IReligionStateManager
         State.InfoState.Loading = true;
         State.InvitesState.Loading = true; // also load the invites list for players without a religion
         State.ErrorState.InfoError = null;
-        var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        system?.RequestPlayerReligionInfo();
+        _uiService.RequestPlayerReligionInfo();
     }
 
     public void RequestReligionAction(string action, string religionId = "", string targetPlayerId = "")
     {
         // Clear transient action error
         State.ErrorState.LastActionError = null;
-        var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        system?.RequestReligionAction(action, religionId, targetPlayerId);
+        _uiService.RequestReligionAction(action, religionId, targetPlayerId);
     }
 
     /// <summary>
@@ -194,8 +193,7 @@ public class ReligionStateManager : IReligionStateManager
     {
         // Clear transient action error
         State.ErrorState.LastActionError = null;
-        var system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        system?.RequestEditDescription(id, description);
+        _uiService.RequestEditDescription(id, description);
     }
 
     /// <summary>
@@ -323,6 +321,7 @@ public class ReligionStateManager : IReligionStateManager
             religionName: religion?.ReligionName ?? string.Empty,
             deity: religion?.Deity ?? string.Empty,
             founderUID: religion?.FounderUID ?? string.Empty,
+            // todo: just send the player id
             currentPlayerUID: _coreClientApi.World.Player?.PlayerUID ?? string.Empty,
             isFounder: religion?.IsFounder ?? false,
             description: religion?.Description,
@@ -376,7 +375,7 @@ public class ReligionStateManager : IReligionStateManager
         {
             switch (ev)
             {
-                case ReligionSubTabEvent.TabChanged(var sub):
+                case SubTabEvent.TabChanged(var sub):
                     State.CurrentSubTab = sub;
                     // Clear transient action error on tab change
                     State.ErrorState.LastActionError = null;
@@ -384,9 +383,11 @@ public class ReligionStateManager : IReligionStateManager
                     switch (sub)
                     {
                         case SubTab.Browse:
+                            RequestReligionList(State.BrowseState.DeityFilter);
                             State.ErrorState.BrowseError = null;
                             break;
                         case SubTab.Info:
+                            _uiService.RequestPlayerReligionInfo();
                             State.ErrorState.InfoError = null;
                             break;
                         case SubTab.Activity:
@@ -399,13 +400,14 @@ public class ReligionStateManager : IReligionStateManager
                             break;
                         case SubTab.Create:
                             State.ErrorState.CreateError = null;
+                            RequestPlayerReligionInfo();
                             break;
                     }
                     break;
-                case ReligionSubTabEvent.DismissActionError:
+                case SubTabEvent.DismissActionError:
                     State.ErrorState.LastActionError = null;
                     break;
-                case ReligionSubTabEvent.DismissContextError(var subTab):
+                case SubTabEvent.DismissContextError(var subTab):
                     switch (subTab)
                     {
                         case SubTab.Browse:
@@ -419,7 +421,7 @@ public class ReligionStateManager : IReligionStateManager
                             break;
                     }
                     break;
-                case ReligionSubTabEvent.RetryRequested(var subTab):
+                case SubTabEvent.RetryRequested(var subTab):
                     switch (subTab)
                     {
                         case SubTab.Browse:
@@ -468,7 +470,7 @@ public class ReligionStateManager : IReligionStateManager
         ProcessActivityEvents(result.Events);
     }
 
-    private void ProcessActivityEvents(IReadOnlyList<ReligionActivityEvent>? resultEvents)
+    private void ProcessActivityEvents(IReadOnlyList<ActivityEvent>? resultEvents)
     {
         if (resultEvents == null || resultEvents.Count == 0) return;
         foreach (var ev in resultEvents)
@@ -485,7 +487,7 @@ public class ReligionStateManager : IReligionStateManager
     /// Process events emitted by the ReligionInfoRenderer (My Religion tab)
     /// Maps pure UI intents to state updates and side effects (network requests, sounds, etc.).
     /// </summary>
-    private void ProcessInfoEvents(IReadOnlyList<ReligionInfoEvent>? events)
+    private void ProcessInfoEvents(IReadOnlyList<InfoEvent>? events)
     {
         if (events == null || events.Count == 0) return;
 
@@ -498,24 +500,25 @@ public class ReligionStateManager : IReligionStateManager
             switch (ev)
             {
                 // Scrolling
-                case ReligionInfoEvent.ScrollChanged s:
+                case InfoEvent.ScrollChanged s:
                     State.InfoState.MyReligionScrollY = s.NewScrollY;
                     break;
-                case ReligionInfoEvent.MemberScrollChanged ms:
+                case InfoEvent.MemberScrollChanged ms:
                     State.InfoState.MemberScrollY = ms.NewScrollY;
                     break;
-                case ReligionInfoEvent.BanListScrollChanged bs:
+                case InfoEvent.BanListScrollChanged bs:
                     State.InfoState.BanListScrollY = bs.NewScrollY;
                     break;
 
                 // Description edit/save
-                case ReligionInfoEvent.DescriptionChanged dc:
+                case InfoEvent.DescriptionChanged dc:
                     State.InfoState.Description = dc.Text;
                     break;
-                case ReligionInfoEvent.SaveDescriptionClicked sd:
+                case InfoEvent.SaveDescriptionClicked sd:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
                         RequestEditReligionDescription(religionId, sd.Text);
+                        _soundManager.PlayClick();
                         // Optimistically update local model so UI reflects change immediately
                         if (info != null)
                         {
@@ -526,52 +529,56 @@ public class ReligionStateManager : IReligionStateManager
                     break;
 
                 // Invite flow
-                case ReligionInfoEvent.InviteNameChanged inc:
+                case InfoEvent.InviteNameChanged inc:
                     State.InfoState.InvitePlayerName = inc.Text;
                     break;
-                case ReligionInfoEvent.InviteClicked ic:
+                case InfoEvent.InviteClicked ic:
                     if (!string.IsNullOrWhiteSpace(ic.PlayerName) && !string.IsNullOrWhiteSpace(religionId))
                     {
+                        _soundManager.PlayClick();
                         RequestReligionAction("invite", religionId, ic.PlayerName);
                         State.InfoState.InvitePlayerName = string.Empty;
                     }
                     break;
 
                 // Membership actions
-                case ReligionInfoEvent.LeaveClicked:
+                case InfoEvent.LeaveClicked:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
+                        _soundManager.PlayClick();
                         RequestReligionAction("leave", religionId);
                     }
                     break;
 
                 // Disband flow
-                case ReligionInfoEvent.DisbandOpen:
+                case InfoEvent.DisbandOpen:
                     State.InfoState.ShowDisbandConfirm = true;
                     break;
-                case ReligionInfoEvent.DisbandCancel:
+                case InfoEvent.DisbandCancel:
                     State.InfoState.ShowDisbandConfirm = false;
                     break;
-                case ReligionInfoEvent.DisbandConfirm:
+                case InfoEvent.DisbandConfirm:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
+                        _soundManager.PlayClick();
                         RequestReligionAction("disband", religionId);
                     }
                     State.InfoState.ShowDisbandConfirm = false;
                     break;
 
                 // Kick flow
-                case ReligionInfoEvent.KickOpen ko:
+                case InfoEvent.KickOpen ko:
                     State.InfoState.KickConfirmPlayerUID = ko.PlayerUID;
                     State.InfoState.KickConfirmPlayerName = ko.PlayerName;
                     break;
-                case ReligionInfoEvent.KickCancel:
+                case InfoEvent.KickCancel:
                     State.InfoState.KickConfirmPlayerUID = null;
                     State.InfoState.KickConfirmPlayerName = null;
                     break;
-                case ReligionInfoEvent.KickConfirm kc:
+                case InfoEvent.KickConfirm kc:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
+                        _soundManager.PlayClick();
                         RequestReligionAction("kick", religionId, kc.PlayerUID);
                     }
                     State.InfoState.KickConfirmPlayerUID = null;
@@ -579,17 +586,18 @@ public class ReligionStateManager : IReligionStateManager
                     break;
 
                 // Ban flow
-                case ReligionInfoEvent.BanOpen bo:
+                case InfoEvent.BanOpen bo:
                     State.InfoState.BanConfirmPlayerUID = bo.PlayerUID;
                     State.InfoState.BanConfirmPlayerName = bo.PlayerName;
                     break;
-                case ReligionInfoEvent.BanCancel:
+                case InfoEvent.BanCancel:
                     State.InfoState.BanConfirmPlayerUID = null;
                     State.InfoState.BanConfirmPlayerName = null;
                     break;
-                case ReligionInfoEvent.BanConfirm bc:
+                case InfoEvent.BanConfirm bc:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
+                        _soundManager.PlayClick();
                         RequestReligionAction("ban", religionId, bc.PlayerUID);
                     }
                     State.InfoState.BanConfirmPlayerUID = null;
@@ -597,9 +605,10 @@ public class ReligionStateManager : IReligionStateManager
                     break;
 
                 // Unban
-                case ReligionInfoEvent.UnbanClicked ub:
+                case InfoEvent.UnbanClicked ub:
                     if (!string.IsNullOrWhiteSpace(religionId))
                     {
+                        _soundManager.PlayClick();
                         RequestReligionAction("unban", religionId, ub.PlayerUID);
                     }
                     break;
@@ -624,21 +633,21 @@ public class ReligionStateManager : IReligionStateManager
     /// <summary>
     /// Process events from the invites renderer
     /// </summary>
-    private void ProcessInvitesEvents(IReadOnlyList<ReligionInvitesEvent> events)
+    private void ProcessInvitesEvents(IReadOnlyList<InvitesEvent> events)
     {
         foreach (var evt in events)
         {
             switch (evt)
             {
-                case ReligionInvitesEvent.AcceptInviteClicked e:
+                case InvitesEvent.AcceptInviteClicked e:
                     HandleAcceptInvite(e.InviteId);
                     break;
 
-                case ReligionInvitesEvent.DeclineInviteClicked e:
+                case InvitesEvent.DeclineInviteClicked e:
                     HandleDeclineInvite(e.InviteId);
                     break;
 
-                case ReligionInvitesEvent.ScrollChanged e:
+                case InvitesEvent.ScrollChanged e:
                     State.InvitesState.InvitesScrollY = e.NewScrollY;
                     break;
             }
@@ -648,29 +657,27 @@ public class ReligionStateManager : IReligionStateManager
     /// <summary>
     /// Process events from the create renderer
     /// </summary>
-    private void ProcessCreateEvents(IReadOnlyList<ReligionCreateEvent> events)
+    private void ProcessCreateEvents(IReadOnlyList<CreateEvent> events)
     {
         foreach (var evt in events)
         {
             switch (evt)
             {
-                case ReligionCreateEvent.NameChanged e:
+                case CreateEvent.NameChanged e:
                     State.CreateState.Name = e.NewName;
                     break;
 
-                case ReligionCreateEvent.DeityChanged e:
+                case CreateEvent.DeityChanged e:
                     State.CreateState.DeityName = e.NewDeity;
-                    _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+                    
                     break;
 
-                case ReligionCreateEvent.IsPublicChanged e:
+                case CreateEvent.IsPublicChanged e:
                     State.CreateState.IsPublic = e.IsPublic;
-                    _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.3f);
+                    _soundManager.PlayClick();
                     break;
 
-                case ReligionCreateEvent.SubmitClicked:
+                case CreateEvent.SubmitClicked:
                     HandleCreateReligionSubmit();
                     break;
             }
@@ -688,14 +695,12 @@ public class ReligionStateManager : IReligionStateManager
             State.CreateState.Name.Length > 32)
         {
             // Play error sound
-            _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
-                _coreClientApi.World.Player.Entity, null, false, 8f, 0.3f);
+            _soundManager.PlayError();
             return;
         }
 
         // Play success sound
-        _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-            _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+        _soundManager.PlayClick();
 
         // Request creation
         RequestReligionCreate(State.CreateState.Name, State.CreateState.DeityName, State.CreateState.IsPublic);
@@ -708,23 +713,24 @@ public class ReligionStateManager : IReligionStateManager
 
         // Switch to My Religion tab to see the new religion
         State.CurrentSubTab = SubTab.Info;
+        RequestPlayerReligionInfo();
     }
 
     private void RequestReligionCreate(string religionName, string deity, bool isPublic)
     {
-        _system.RequestCreateReligion(religionName, deity, isPublic);
+        _uiService.RequestCreateReligion(religionName, deity, isPublic);
     }
 
     /// <summary>
     /// Handle events from the browse renderer
     /// </summary>
-    private void ProcessBrowseEvents(IReadOnlyList<ReligionBrowseEvent> events)
+    private void ProcessBrowseEvents(IReadOnlyList<BrowseEvent> events)
     {
         foreach (var evt in events)
         {
             switch (evt)
             {
-                case ReligionBrowseEvent.DeityFilterChanged e:
+                case BrowseEvent.DeityFilterChanged e:
                     // Update filter (translate "All" → "")
                     State.BrowseState.DeityFilter = e.NewFilter == "All" ? string.Empty : e.NewFilter;
                     State.BrowseState.SelectedReligionUID = null;
@@ -732,31 +738,28 @@ public class ReligionStateManager : IReligionStateManager
                     // Request refresh with new filter
                     RequestReligionList(State.BrowseState.DeityFilter);
                     // Feedback sound
-                    _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+                    _soundManager.PlayClick();
                     break;
 
-                case ReligionBrowseEvent.ReligionSelected e:
+                case BrowseEvent.Selected e:
                     State.BrowseState.SelectedReligionUID = e.ReligionUID;
                     State.BrowseState.BrowseScrollY = e.NewScrollY;
                     break;
 
-                case ReligionBrowseEvent.ScrollChanged e:
+                case BrowseEvent.ScrollChanged e:
                     State.BrowseState.BrowseScrollY = e.NewScrollY;
                     break;
 
-                case ReligionBrowseEvent.CreateReligionClicked:
+                case BrowseEvent.CreateClicked:
                     // Switch to Create sub-tab
                     State.CurrentSubTab = SubTab.Create;
-                    _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+                    _soundManager.PlayClick();
                     break;
 
-                case ReligionBrowseEvent.JoinReligionClicked e:
+                case BrowseEvent.JoinClicked e:
                     if (!string.IsNullOrEmpty(e.ReligionUID))
                     {
-                        _coreClientApi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                            _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+                        _soundManager.PlayClick();
                         RequestReligionAction("join", e.ReligionUID);
                     }
                     break;

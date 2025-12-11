@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Religion;
 using PantheonWars.GUI.Models.Religion.List;
 using PantheonWars.GUI.UI.Components.Lists;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Network;
-using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.UI.Renderers.Components;
 
@@ -25,7 +24,7 @@ public static class ReligionListRenderer
         ReligionListViewModel viewModel,
         ImDrawListPtr drawList)
     {
-        var events = new List<ReligionListEvent>();
+        var events = new List<ListEvent>();
         var x = viewModel.X;
         var y = viewModel.Y;
         var width = viewModel.Width;
@@ -90,7 +89,7 @@ public static class ReligionListRenderer
                 if (Math.Abs(newScroll - scrollY) > 0.01f)
                 {
                     scrollY = newScroll;
-                    events.Add(new ReligionListEvent.ScrollChanged(scrollY));
+                    events.Add(new ListEvent.ScrollChanged(scrollY));
                 }
             }
         }
@@ -117,7 +116,7 @@ public static class ReligionListRenderer
             if (clickedUID != null)
             {
                 selectedReligionUID = clickedUID;
-                events.Add(new ReligionListEvent.ItemClicked(clickedUID, scrollY));
+                events.Add(new ListEvent.ItemClicked(clickedUID, scrollY));
             }
             if (isHovered) hoveredReligion = religion;
             itemY += itemHeight + itemSpacing;

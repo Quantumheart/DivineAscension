@@ -1,13 +1,11 @@
-using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using ImGuiNET;
-using PantheonWars.GUI.Models.Blessing.Tab;
 using PantheonWars.GUI.Models.Religion.Header;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Components;
 using PantheonWars.GUI.UI.Renderers.Blessing;
-using PantheonWars.GUI.UI.Renderers.Civilization;
-using Vintagestory.API.Client;
+using PantheonWars.Network.Civilization;
 
 namespace PantheonWars.GUI.UI;
 
@@ -24,22 +22,16 @@ internal static class MainDialogRenderer
     ///     Draw the complete blessing UI
     /// </summary>
     /// <param name="manager">Blessing dialog state manager</param>
-    /// <param name="api">Client API</param>
     /// <param name="state">Dialog state</param>
     /// <param name="windowWidth">Total window width</param>
     /// <param name="windowHeight">Total window height</param>
     /// <param name="deltaTime">Time elapsed since last frame (for animations)</param>
-    /// <param name="pantheonWarsSystem">PantheonWars system for network requests</param>
-    /// <param name="onCloseClicked">Callback when close button clicked</param>
     public static void Draw(
         GuiDialogManager manager,
-        ICoreClientAPI api,
-        BlessingDialogState state,
+        GuiDialogState state,
         int windowWidth,
         int windowHeight,
-        float deltaTime,
-        PantheonWarsSystem? pantheonWarsSystem,
-        Action? onCloseClicked)
+        float deltaTime)
     {
         const float padding = 16f;
         const float tabHeight = 36f;
@@ -54,7 +46,9 @@ internal static class MainDialogRenderer
         // === 1. RELIGION HEADER (Top Banner, always visible) ===
         // Top-level religion action buttons have been removed; only pass civilization callback
         ReligionHeaderViewModel religionHeaderViewModel = new(manager.HasReligion(), manager.HasCivilization(),
-            manager.CurrentCivilizationName, manager.CivilizationMemberReligions,
+            manager.CivilizationManager.CurrentCivilizationName,
+            manager.CivilizationManager.CivilizationMemberReligions ??
+            new List<CivilizationInfoResponsePacket.MemberReligion>(),
             manager.ReligionStateManager.CurrentDeity, manager.ReligionStateManager.CurrentReligionName,
             manager.ReligionStateManager.ReligionMemberCount, manager.ReligionStateManager.PlayerRoleInReligion,
             manager.ReligionStateManager.GetPlayerFavorProgress(),
@@ -103,8 +97,8 @@ internal static class MainDialogRenderer
             }
             else if (newMainTab == 2) // Civilization tab
             {
-                manager.RequestCivilizationList(manager.CivState.DeityFilter);
-                manager.RequestCivilizationInfo();
+                manager.CivilizationManager.RequestCivilizationList(manager.CivTabState.BrowseState.DeityFilter);
+                manager.CivilizationManager.RequestCivilizationInfo();
             }
         }
 
@@ -119,27 +113,17 @@ internal static class MainDialogRenderer
                 manager.ReligionStateManager.DrawReligionTab(windowPos.X + x, windowPos.Y + y, width, contentHeight);
                 break;
             case MainDialogTab.Blessings: // Blessings
-                var vm = new BlessingTabViewModel(
+                manager.BlessingStateManager.DrawBlessingsTab(
                     windowPos.X + x,
                     windowPos.Y + y,
                     width,
                     contentHeight,
                     windowWidth,
                     windowHeight,
-                    deltaTime,
-                    manager.BlessingStateManager.State.TreeState.SelectedBlessingId,
-                    manager.BlessingStateManager.GetSelectedBlessingState(),
-                    manager.BlessingStateManager.State.PlayerBlessingStates,
-                    manager.BlessingStateManager.State.ReligionBlessingStates,
-                    manager.BlessingStateManager.State.TreeState.PlayerScrollState,
-                    manager.BlessingStateManager.State.TreeState.ReligionScrollState
-                );
-
-
-                manager.BlessingStateManager.DrawBlessingsTab(vm);
+                    deltaTime);
                 break;
             case MainDialogTab.Civilization: // Civilization
-                CivilizationTabRenderer.Draw(manager, api, windowPos.X + x, windowPos.Y + y, width, contentHeight);
+                manager.CivilizationManager.DrawCivilizationTab(windowPos.X + x, windowPos.Y + y, width, contentHeight);
                 break;
         }
     }

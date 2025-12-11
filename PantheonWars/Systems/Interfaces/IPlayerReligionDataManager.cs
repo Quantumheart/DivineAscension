@@ -81,4 +81,11 @@ public interface IPlayerReligionDataManager : IDisposable
     /// <param name="amount">Amount of favor to add</param>
     /// <param name="reason">Reason for adding favor (optional)</param>
     void AddFractionalFavor(string playerUID, float amount, string reason = "");
+
+    /// <summary>
+    ///     Triggers the OnPlayerDataChanged event for the specified player.
+    ///     Use this when player data has been modified externally and clients need to be notified.
+    /// </summary>
+    /// <param name="playerUID">Player unique identifier</param>
+    void NotifyPlayerDataChanged(string playerUID);
 }

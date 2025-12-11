@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Religion;
 
 namespace PantheonWars.GUI.Models.Religion.Info;
 
@@ -7,9 +7,9 @@ namespace PantheonWars.GUI.Models.Religion.Info;
 /// Render outcome for ReligionInfo renderer: carries emitted UI events and the rendered height.
 /// </summary>
 public readonly struct ReligionInfoRenderResult(
-    IReadOnlyList<ReligionInfoEvent> events,
+    IReadOnlyList<InfoEvent> events,
     float renderedHeight)
 {
-    public IReadOnlyList<ReligionInfoEvent> Events { get; } = events;
+    public IReadOnlyList<InfoEvent> Events { get; } = events;
     public float RenderedHeight { get; } = renderedHeight;
 }

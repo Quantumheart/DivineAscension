@@ -1,47 +1,61 @@
+using System;
 using System.Collections.Generic;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Blessing;
+using PantheonWars.GUI.Interfaces;
 using PantheonWars.GUI.Models.Blessing.Tab;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Renderers.Blessing;
 using PantheonWars.Models;
 using PantheonWars.Models.Enum;
+using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI.Managers;
 
 /// <summary>
 ///     Manages blessing tab state and event processing
 /// </summary>
-public class BlessingStateManager
+public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISoundManager soundManager)
 {
-    private readonly ICoreClientAPI _coreClientApi;
-    private readonly PantheonWarsSystem? _system;
+    private readonly ICoreClientAPI _coreClientApi = api ?? throw new ArgumentNullException(nameof(api));
+    private readonly IUiService _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
+
+    private readonly ISoundManager
+        _soundManager = soundManager ?? throw new ArgumentNullException(nameof(soundManager));
 
     public BlessingTabState State { get; } = new();
-
-    public BlessingStateManager(ICoreClientAPI api)
-    {
-        _coreClientApi = api;
-        _system = _coreClientApi.ModLoader.GetModSystem<PantheonWarsSystem>();
-    }
 
     /// <summary>
     ///     Draws the blessings tab and processes all events
     /// </summary>
-    public void DrawBlessingsTab(BlessingTabViewModel vm)
+    public void DrawBlessingsTab(float windowPosX, float windowPosY, float width, float contentHeight, int windowWidth,
+        int windowHeight, float deltaTime)
     {
-        // Render (pure function)
+        var vm = new BlessingTabViewModel(
+            windowPosX,
+            windowPosY,
+            width,
+            contentHeight,
+            windowWidth,
+            windowHeight,
+            deltaTime,
+            State.TreeState.SelectedBlessingId,
+            GetSelectedBlessingState(),
+            State.PlayerBlessingStates,
+            State.ReligionBlessingStates,
+            State.TreeState.PlayerScrollState,
+            State.TreeState.ReligionScrollState
+        );
+        
         var result = BlessingTabRenderer.DrawBlessingsTab(vm);
 
-        // Process events (side effects here)
         ProcessBlessingTabEvents(result);
     }
 
     /// <summary>
     ///     Processes all blessing tab events (side effects: state updates, sounds, network requests)
     /// </summary>
-    private void ProcessBlessingTabEvents(BlessingTabRenderResult result)
+    internal void ProcessBlessingTabEvents(BlessingTabRenderResult result)
     {
         // Update hovering state from result
         State.TreeState.HoveringBlessingId = result.HoveringBlessingId;
@@ -50,26 +64,24 @@ public class BlessingStateManager
         foreach (var ev in result.TreeEvents)
             switch (ev)
             {
-                case BlessingTreeEvent.BlessingSelected e:
+                case TreeEvent.Selected e:
                     // Update state
                     State.TreeState.SelectedBlessingId = e.BlessingId;
                     // Play sound
-                    _coreClientApi.World.PlaySoundAt(
-                        new AssetLocation("pantheonwars:sounds/click"),
-                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+                    _soundManager.PlayClick();
                     break;
 
-                case BlessingTreeEvent.BlessingHovered e:
+                case TreeEvent.Hovered e:
                     // State already updated from result.HoveringBlessingId
                     break;
 
-                case BlessingTreeEvent.PlayerTreeScrollChanged e:
+                case TreeEvent.PlayerTreeScrollChanged e:
                     // Update state
                     State.TreeState.PlayerScrollState.X = e.ScrollX;
                     State.TreeState.PlayerScrollState.Y = e.ScrollY;
                     break;
 
-                case BlessingTreeEvent.ReligionTreeScrollChanged e:
+                case TreeEvent.ReligionTreeScrollChanged e:
                     // Update state
                     State.TreeState.ReligionScrollState.X = e.ScrollX;
                     State.TreeState.ReligionScrollState.Y = e.ScrollY;
@@ -80,15 +92,12 @@ public class BlessingStateManager
         foreach (var ev in result.ActionsEvents)
             switch (ev)
             {
-                case BlessingActionsEvent.UnlockClicked:
+                case ActionsEvent.UnlockClicked:
                     HandleUnlockClicked();
                     break;
 
-                case BlessingActionsEvent.UnlockBlockedClicked:
-                    // Play error sound
-                    _coreClientApi.World.PlaySoundAt(
-                        new AssetLocation("pantheonwars:sounds/error"),
-                        _coreClientApi.World.Player.Entity, null, false, 8f, 0.3f);
+                case ActionsEvent.UnlockBlockedClicked:
+                    _soundManager.PlayError();
                     break;
             }
     }
@@ -112,20 +121,9 @@ public class BlessingStateManager
         }
 
         // Play click sound
-        _coreClientApi.World.PlaySoundAt(
-            new AssetLocation("pantheonwars:sounds/click"),
-            _coreClientApi.World.Player.Entity, null, false, 8f, 0.5f);
+        _soundManager.PlayClick();
 
-        // Send unlock request to server
-        if (_system != null)
-        {
-            _coreClientApi.Logger.Debug($"[PantheonWars] Sending unlock request for: {selectedState.Blessing.Name}");
-            _system.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
-        }
-        else
-        {
-            _coreClientApi.Logger.Warning("[PantheonWars] Cannot unlock blessing: PantheonWarsSystem not available");
-        }
+        _uiService.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
     }
 
     private BlessingNodeState? GetBlessingState(string? blessingId)

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Blessing;
 using PantheonWars.GUI.Models.Blessing.Actions;
 using PantheonWars.GUI.Models.Blessing.Info;
 using PantheonWars.GUI.Models.Blessing.Tab;
@@ -38,7 +38,7 @@ internal static class BlessingTabRenderer
 
         // Extract hovering state from tree events
         foreach (var ev in treeResult.Events)
-            if (ev is BlessingTreeEvent.BlessingHovered hovered)
+            if (ev is TreeEvent.Hovered hovered)
                 hoveringBlessingId = hovered.BlessingId;
 
         // Info Panel

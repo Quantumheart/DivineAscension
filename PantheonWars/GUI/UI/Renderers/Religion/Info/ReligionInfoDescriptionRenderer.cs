@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Religion;
 using PantheonWars.GUI.Models.Religion.Info;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Inputs;
@@ -24,7 +24,7 @@ internal static class ReligionInfoDescriptionRenderer
         float x,
         float y,
         float width,
-        List<ReligionInfoEvent> events)
+        List<InfoEvent> events)
     {
         var currentY = y;
 
@@ -41,7 +41,7 @@ internal static class ReligionInfoDescriptionRenderer
             // Emit event if description changed
             if (newDescription != viewModel.DescriptionText)
             {
-                events.Add(new ReligionInfoEvent.DescriptionChanged(newDescription));
+                events.Add(new InfoEvent.DescriptionChanged(newDescription));
             }
 
             currentY += descHeight + 5f;
@@ -54,7 +54,7 @@ internal static class ReligionInfoDescriptionRenderer
             if (ButtonRenderer.DrawButton(drawList, "Save Description", saveButtonX, currentY, saveButtonWidth, 32f,
                     false, hasChanges))
             {
-                events.Add(new ReligionInfoEvent.SaveDescriptionClicked(viewModel.DescriptionText));
+                events.Add(new InfoEvent.SaveDescriptionClicked(viewModel.DescriptionText));
             }
 
             currentY += 40f;

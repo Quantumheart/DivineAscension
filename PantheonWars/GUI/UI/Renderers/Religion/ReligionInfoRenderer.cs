@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Religion;
 using PantheonWars.GUI.Models.Religion.Info;
+using PantheonWars.GUI.Models.Religion.Member;
 using PantheonWars.GUI.UI.Components.Lists;
 using PantheonWars.GUI.UI.Components.Overlays;
 using PantheonWars.GUI.UI.Renderers.Components;
 using PantheonWars.GUI.UI.Renderers.Religion.Info;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Network;
-using PantheonWars.GUI.Models.Religion.Member;
 
 namespace PantheonWars.GUI.UI.Renderers.Religion;
 
@@ -29,7 +29,7 @@ internal static class ReligionInfoRenderer
         ReligionInfoViewModel viewModel,
         ImDrawListPtr drawList)
     {
-        var events = new List<ReligionInfoEvent>();
+        var events = new List<InfoEvent>();
         var x = viewModel.X;
         var y = viewModel.Y;
         var width = viewModel.Width;
@@ -68,7 +68,7 @@ internal static class ReligionInfoRenderer
                 if (Math.Abs(newScrollY - scrollY) > 0.001f)
                 {
                     scrollY = newScrollY;
-                    events.Add(new ReligionInfoEvent.ScrollChanged(newScrollY));
+                    events.Add(new InfoEvent.ScrollChanged(newScrollY));
                 }
             }
         }
@@ -92,7 +92,7 @@ internal static class ReligionInfoRenderer
             drawList, viewModel, x, currentY, width, memberListHeight, events);
         if (Math.Abs(memberScrollY - viewModel.MemberScrollY) > 0.001f)
         {
-            events.Add(new ReligionInfoEvent.MemberScrollChanged(memberScrollY));
+            events.Add(new InfoEvent.MemberScrollChanged(memberScrollY));
         }
         currentY += memberListHeight + 15f;
 
@@ -107,7 +107,7 @@ internal static class ReligionInfoRenderer
                 drawList, viewModel, x, currentY, width, banListHeight, events);
             if (Math.Abs(banListScrollY - viewModel.BanListScrollY) > 0.001f)
             {
-                events.Add(new ReligionInfoEvent.BanListScrollChanged(banListScrollY));
+                events.Add(new InfoEvent.BanListScrollChanged(banListScrollY));
             }
             currentY += banListHeight + 15f;
         }
@@ -147,7 +147,7 @@ internal static class ReligionInfoRenderer
         ImDrawListPtr drawList,
         ReligionInfoViewModel viewModel,
         float x, float y, float width, float height,
-        List<ReligionInfoEvent> events)
+        List<InfoEvent> events)
     {
         // Build VM for member list component
         var mlVm = new MemberListViewModel(
@@ -168,21 +168,21 @@ internal static class ReligionInfoRenderer
         {
             switch (ev)
             {
-                case ReligionMemberListEvent.ScrollChanged(var s):
+                case MemberListEvent.ScrollChanged(var s):
                     newScrollY = s;
                     break;
-                case ReligionMemberListEvent.KickClicked(var uid):
+                case MemberListEvent.KickClicked(var uid):
                 {
                     var member = FindMemberByUid(viewModel.Members, uid);
                     var memberName = member?.PlayerName ?? uid;
-                    events.Add(new ReligionInfoEvent.KickOpen(uid, memberName));
+                    events.Add(new InfoEvent.KickOpen(uid, memberName));
                     break;
                 }
-                case ReligionMemberListEvent.BanClicked(var uid):
+                case MemberListEvent.BanClicked(var uid):
                 {
                     var member = FindMemberByUid(viewModel.Members, uid);
                     var memberName = member?.PlayerName ?? uid;
-                    events.Add(new ReligionInfoEvent.BanOpen(uid, memberName));
+                    events.Add(new InfoEvent.BanOpen(uid, memberName));
                     break;
                 }
             }
@@ -195,7 +195,7 @@ internal static class ReligionInfoRenderer
         ImDrawListPtr drawList,
         ReligionInfoViewModel viewModel,
         float x, float y, float width, float height,
-        List<ReligionInfoEvent> events)
+        List<InfoEvent> events)
     {
         return BanListRenderer.Draw(
             drawList,
@@ -204,7 +204,7 @@ internal static class ReligionInfoRenderer
             new List<PlayerReligionInfoResponsePacket.BanInfo>(viewModel.BannedPlayers),
             viewModel.BanListScrollY,
             // Unban callback
-            playerUid => { events.Add(new ReligionInfoEvent.UnbanClicked(playerUid)); }
+            playerUid => { events.Add(new InfoEvent.UnbanClicked(playerUid)); }
         );
     }
 
@@ -270,7 +270,7 @@ internal static class ReligionInfoRenderer
 
     private static void DrawDisbandConfirmation(
         ImDrawListPtr drawList,
-        List<ReligionInfoEvent> events)
+        List<InfoEvent> events)
     {
         ConfirmOverlay.Draw(
             "Disband Religion?",
@@ -278,15 +278,15 @@ internal static class ReligionInfoRenderer
             out var confirmed, out var cancelled,
             "Disband");
 
-        if (confirmed) events.Add(new ReligionInfoEvent.DisbandConfirm());
-        if (cancelled) events.Add(new ReligionInfoEvent.DisbandCancel());
+        if (confirmed) events.Add(new InfoEvent.DisbandConfirm());
+        if (cancelled) events.Add(new InfoEvent.DisbandCancel());
     }
 
     private static void DrawKickConfirmation(
         ImDrawListPtr drawList,
         string playerName,
         string playerUid,
-        List<ReligionInfoEvent> events)
+        List<InfoEvent> events)
     {
         ConfirmOverlay.Draw(
             "Kick Player?",
@@ -294,15 +294,15 @@ internal static class ReligionInfoRenderer
             out var confirmed, out var cancelled,
             "Kick");
 
-        if (confirmed) events.Add(new ReligionInfoEvent.KickConfirm(playerUid));
-        if (cancelled) events.Add(new ReligionInfoEvent.KickCancel());
+        if (confirmed) events.Add(new InfoEvent.KickConfirm(playerUid));
+        if (cancelled) events.Add(new InfoEvent.KickCancel());
     }
 
     private static void DrawBanConfirmation(
         ImDrawListPtr drawList,
         string playerName,
         string playerUid,
-        List<ReligionInfoEvent> events)
+        List<InfoEvent> events)
     {
         ConfirmOverlay.Draw(
             "Ban Player?",
@@ -310,7 +310,7 @@ internal static class ReligionInfoRenderer
             out var confirmed, out var cancelled,
             "Ban");
 
-        if (confirmed) events.Add(new ReligionInfoEvent.BanConfirm(playerUid));
-        if (cancelled) events.Add(new ReligionInfoEvent.BanCancel());
+        if (confirmed) events.Add(new InfoEvent.BanConfirm(playerUid));
+        if (cancelled) events.Add(new InfoEvent.BanCancel());
     }
 }

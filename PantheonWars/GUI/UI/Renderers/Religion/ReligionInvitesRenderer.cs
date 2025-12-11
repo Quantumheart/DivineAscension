@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using PantheonWars.GUI.Events;
+using PantheonWars.GUI.Events.Religion;
 using PantheonWars.GUI.Models.Religion.Invites;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Lists;
@@ -24,7 +24,7 @@ internal static class ReligionInvitesRenderer
         ReligionInvitesViewModel viewModel,
         ImDrawListPtr drawList)
     {
-        var events = new List<ReligionInvitesEvent>();
+        var events = new List<InvitesEvent>();
         var currentY = viewModel.Y;
 
         // === HEADER ===
@@ -83,7 +83,7 @@ internal static class ReligionInvitesRenderer
         // Emit scroll event if changed
         if (newScrollY != viewModel.ScrollY)
         {
-            events.Add(new ReligionInvitesEvent.ScrollChanged(newScrollY));
+            events.Add(new InvitesEvent.ScrollChanged(newScrollY));
         }
 
         return new ReligionInvitesRenderResult(events, viewModel.Height);
@@ -97,7 +97,7 @@ internal static class ReligionInvitesRenderer
         float x, float y, float width, float height,
         ImDrawListPtr drawList,
         bool isLoading,
-        List<ReligionInvitesEvent> events)
+        List<InvitesEvent> events)
     {
         // === CARD BACKGROUND ===
         drawList.AddRectFilled(
@@ -143,7 +143,7 @@ internal static class ReligionInvitesRenderer
             isPrimary: true,
             enabled: buttonsEnabled))
         {
-            events.Add(new ReligionInvitesEvent.AcceptInviteClicked(invite.InviteId));
+            events.Add(new InvitesEvent.AcceptInviteClicked(invite.InviteId));
         }
 
         // Decline button
@@ -157,7 +157,7 @@ internal static class ReligionInvitesRenderer
             isPrimary: false,
             enabled: buttonsEnabled))
         {
-            events.Add(new ReligionInvitesEvent.DeclineInviteClicked(invite.InviteId));
+            events.Add(new InvitesEvent.DeclineInviteClicked(invite.InviteId));
         }
     }
 }

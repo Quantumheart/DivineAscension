@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
+using PantheonWars.GUI.Interfaces;
+using PantheonWars.GUI.Managers;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI;
 using PantheonWars.GUI.UI.Utilities;
@@ -25,7 +27,7 @@ public partial class GuiDialog : ModSystem
     private const int WindowBaseHeight = 900;
 
     // State
-    private readonly BlessingDialogState _state = new();
+    private readonly GuiDialogState _state = new();
 
     private ICoreClientAPI? _capi;
     private long _checkDataId;
@@ -35,6 +37,7 @@ public partial class GuiDialog : ModSystem
     private PantheonWarsSystem? _pantheonWarsSystem;
     private Stopwatch? _stopwatch;
     private ImGuiViewportPtr _viewport;
+    private ISoundManager? _soundManager;
 
     public override bool ShouldLoad(EnumAppSide forSide)
     {
@@ -58,31 +61,31 @@ public partial class GuiDialog : ModSystem
         _capi.Input.RegisterHotKey("pantheonwarsblessings", "Show/Hide Blessing Dialog", GlKeys.G,
             HotkeyType.GUIOrOtherControls, shiftPressed: true);
         _capi.Input.SetHotKeyHandler("pantheonwarsblessings", OnToggleDialog);
-
-        // Initialize manager
-        _manager = new GuiDialogManager(_capi);
-
+        
         // Initialize deity icon loader
         DeityIconLoader.Initialize(_capi);
 
         // Get PantheonWarsSystem for network communication
         _pantheonWarsSystem = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
-        if (_pantheonWarsSystem != null)
+        _soundManager = new SoundManager(_capi);
+        _manager = new GuiDialogManager(_capi, _pantheonWarsSystem!.UiService, _soundManager);
+        if (_pantheonWarsSystem?.NetworkClient != null)
         {
-            _pantheonWarsSystem.BlessingUnlocked += OnBlessingUnlockedFromServer;
-            _pantheonWarsSystem.BlessingDataReceived += OnBlessingDataReceived;
-            _pantheonWarsSystem.ReligionStateChanged += OnReligionStateChanged;
-            _pantheonWarsSystem.ReligionListReceived += OnReligionListReceived;
-            _pantheonWarsSystem.ReligionActionCompleted += OnReligionActionCompleted;
-            _pantheonWarsSystem.PlayerReligionInfoReceived += OnPlayerReligionInfoReceived;
-            _pantheonWarsSystem.PlayerReligionDataUpdated += OnPlayerReligionDataUpdated;
-            _pantheonWarsSystem.CivilizationListReceived += OnCivilizationListReceived;
-            _pantheonWarsSystem.CivilizationInfoReceived += OnCivilizationInfoReceived;
-            _pantheonWarsSystem.CivilizationActionCompleted += OnCivilizationActionCompleted;
+            _pantheonWarsSystem.NetworkClient.BlessingUnlocked += OnBlessingUnlockedFromServer;
+            _pantheonWarsSystem.NetworkClient.BlessingDataReceived += OnBlessingDataReceived;
+            _pantheonWarsSystem.NetworkClient.ReligionStateChanged += OnReligionStateChanged;
+            _pantheonWarsSystem.NetworkClient.ReligionListReceived += OnReligionListReceived;
+            _pantheonWarsSystem.NetworkClient.ReligionActionCompleted += OnReligionActionCompleted;
+            _pantheonWarsSystem.NetworkClient.PlayerReligionInfoReceived += OnPlayerReligionInfoReceived;
+            _pantheonWarsSystem.NetworkClient.PlayerReligionDataUpdated += OnPlayerReligionDataUpdated;
+            _pantheonWarsSystem.NetworkClient.CivilizationListReceived += OnCivilizationListReceived;
+            _pantheonWarsSystem.NetworkClient.CivilizationInfoReceived += OnCivilizationInfoReceived;
+            _pantheonWarsSystem.NetworkClient.CivilizationActionCompleted += OnCivilizationActionCompleted;
         }
         else
         {
-            _capi.Logger.Error("[PantheonWars] PantheonWarsSystem not found! Blessing unlocking will not work.");
+            _capi.Logger.Error(
+                "[PantheonWars] PantheonWarsSystem or NetworkClient not found! Blessing unlocking will not work.");
         }
 
         // Get ImGui mod system
@@ -114,18 +117,13 @@ public partial class GuiDialog : ModSystem
         if (!_state.IsReady)
         {
             // Request data from server
-            _pantheonWarsSystem?.RequestBlessingData();
-            _capi!.ShowChatMessage("Loading blessing data...");
+            _pantheonWarsSystem!.UiService.RequestReligionList();
             return;
         }
 
         _state.IsOpen = true;
         _imguiModSystem?.Show();
 
-        // TODO: Add open sound in Phase 5
-        // _capi.Gui.PlaySound(new AssetLocation("pantheonwars", "sounds/click.ogg"), false, 0.3f);
-
-        _capi!.Logger.Debug("[PantheonWars] Blessing Dialog opened");
     }
 
     /// <summary>
@@ -136,10 +134,7 @@ public partial class GuiDialog : ModSystem
         if (!_state.IsOpen) return;
 
         _state.IsOpen = false;
-
-        // TODO: Add close sound in Phase 5
-        // _capi.Gui.PlaySound(new AssetLocation("pantheonwars", "sounds/click.ogg"), false, 0.3f);
-
+        
         _capi!.Logger.Debug("[PantheonWars] Blessing Dialog closed");
     }
 
@@ -218,13 +213,10 @@ public partial class GuiDialog : ModSystem
         // Draw UI using BlessingUIRenderer coordinator (Phase 4)
         MainDialogRenderer.Draw(
             _manager!,
-            _capi,
             _state,
             windowWidth,
             windowHeight,
-            deltaTime,
-            _pantheonWarsSystem,
-            OnCloseButtonClicked
+            deltaTime
         );
 
         ImGui.End();
@@ -256,18 +248,18 @@ public partial class GuiDialog : ModSystem
         if (_capi != null && _checkDataId != 0) _capi.Event.UnregisterGameTickListener(_checkDataId);
 
         // Unsubscribe from events
-        if (_pantheonWarsSystem != null)
+        if (_pantheonWarsSystem?.NetworkClient != null)
         {
-            _pantheonWarsSystem.BlessingUnlocked -= OnBlessingUnlockedFromServer;
-            _pantheonWarsSystem.BlessingDataReceived -= OnBlessingDataReceived;
-            _pantheonWarsSystem.ReligionStateChanged -= OnReligionStateChanged;
-            _pantheonWarsSystem.ReligionListReceived -= OnReligionListReceived;
-            _pantheonWarsSystem.ReligionActionCompleted -= OnReligionActionCompleted;
-            _pantheonWarsSystem.PlayerReligionInfoReceived -= OnPlayerReligionInfoReceived;
-            _pantheonWarsSystem.PlayerReligionDataUpdated -= OnPlayerReligionDataUpdated;
-            _pantheonWarsSystem.CivilizationListReceived -= OnCivilizationListReceived;
-            _pantheonWarsSystem.CivilizationInfoReceived -= OnCivilizationInfoReceived;
-            _pantheonWarsSystem.CivilizationActionCompleted -= OnCivilizationActionCompleted;
+            _pantheonWarsSystem.NetworkClient.BlessingUnlocked -= OnBlessingUnlockedFromServer;
+            _pantheonWarsSystem.NetworkClient.BlessingDataReceived -= OnBlessingDataReceived;
+            _pantheonWarsSystem.NetworkClient.ReligionStateChanged -= OnReligionStateChanged;
+            _pantheonWarsSystem.NetworkClient.ReligionListReceived -= OnReligionListReceived;
+            _pantheonWarsSystem.NetworkClient.ReligionActionCompleted -= OnReligionActionCompleted;
+            _pantheonWarsSystem.NetworkClient.PlayerReligionInfoReceived -= OnPlayerReligionInfoReceived;
+            _pantheonWarsSystem.NetworkClient.PlayerReligionDataUpdated -= OnPlayerReligionDataUpdated;
+            _pantheonWarsSystem.NetworkClient.CivilizationListReceived -= OnCivilizationListReceived;
+            _pantheonWarsSystem.NetworkClient.CivilizationInfoReceived -= OnCivilizationInfoReceived;
+            _pantheonWarsSystem.NetworkClient.CivilizationActionCompleted -= OnCivilizationActionCompleted;
         }
 
         // Dispose deity icon loader

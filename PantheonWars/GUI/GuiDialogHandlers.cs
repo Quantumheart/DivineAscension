@@ -5,7 +5,6 @@ using PantheonWars.Models.Enum;
 using PantheonWars.Network;
 using PantheonWars.Network.Civilization;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.GUI;
 
@@ -26,7 +25,7 @@ public partial class GuiDialog
         // Request blessing data from server
         if (_pantheonWarsSystem != null)
         {
-            _pantheonWarsSystem.RequestBlessingData();
+            _pantheonWarsSystem.NetworkClient?.RequestBlessingData();
             // Don't set _state.IsReady yet - wait for server response in OnBlessingDataReceived
             _capi!.Event.UnregisterGameTickListener(_checkDataId);
         }
@@ -107,12 +106,6 @@ public partial class GuiDialog
         _capi.Logger.Notification(
             $"[PantheonWars] Loaded {playerBlessings.Count} player blessings and {religionBlessings.Count} religion blessings for {packet.Deity}");
 
-        // Request player religion info to get founder status (needed for Manage Religion button)
-        _pantheonWarsSystem?.RequestPlayerReligionInfo();
-
-        // Request civilization info for player's religion (empty string = my civ)
-        _pantheonWarsSystem?.RequestCivilizationInfo(string.Empty);
-
     }
 
     /// <summary>
@@ -124,20 +117,18 @@ public partial class GuiDialog
 
         // Show notification to user
         _capi.ShowChatMessage(packet.Reason);
-
-        // Close any open overlays
-
+        
         // Reset blessing dialog state to "No Religion" mode
         _manager!.Reset();
         _state.IsReady = true; // Keep dialog ready so it doesn't close
 
         // Request fresh data from server (will show "No Religion" state)
-        _pantheonWarsSystem?.RequestBlessingData();
+        _pantheonWarsSystem?.NetworkClient?.RequestBlessingData();
 
         // If notification is about civilization, also refresh civilization data
         if (packet.Reason.Contains("civilization", StringComparison.OrdinalIgnoreCase))
         {
-            _manager?.RequestCivilizationInfo(string.Empty);
+            _manager?.CivilizationManager.RequestCivilizationInfo(string.Empty);
         }
     }
 
@@ -151,26 +142,6 @@ public partial class GuiDialog
         else
             Open();
         return true;
-    }
-
-    /// <summary>
-    ///     Handle unlock button click
-    /// </summary>
-    private void OnUnlockButtonClicked()
-    {
-        var selectedState = _manager!.BlessingStateManager.GetSelectedBlessingState();
-        if (selectedState == null || !selectedState.CanUnlock || selectedState.IsUnlocked) return;
-
-        // Client-side validation before sending the request
-        if (string.IsNullOrEmpty(selectedState.Blessing.BlessingId))
-        {
-            _capi!.ShowChatMessage("Error: Invalid blessing ID");
-            return;
-        }
-
-        // Send unlock request to server
-        _capi!.Logger.Debug($"[PantheonWars] Sending unlock request for: {selectedState.Blessing.Name}");
-        _pantheonWarsSystem?.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
     }
 
     /// <summary>
@@ -203,8 +174,7 @@ public partial class GuiDialog
             _capi.ShowChatMessage(packet.Message);
 
             // Play success sound
-            _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                _capi.World.Player.Entity, null, false, 8f, 0.5f);
+            _soundManager.PlayClick();
 
 
             // If leaving religion, reset blessing dialog state immediately
@@ -216,16 +186,17 @@ public partial class GuiDialog
 
             // Refresh religion tab data
             _manager!.ReligionStateManager.State.BrowseState.IsBrowseLoading = true;
-            _pantheonWarsSystem?.RequestReligionList(_manager.ReligionStateManager.State.BrowseState.DeityFilter);
+            _pantheonWarsSystem?.NetworkClient?.RequestReligionList(_manager.ReligionStateManager.State.BrowseState
+                .DeityFilter);
 
             if (_manager.HasReligion() && packet.Action != "leave")
             {
                 _manager.ReligionStateManager.State.InfoState.Loading = true;
-                _pantheonWarsSystem?.RequestPlayerReligionInfo();
+                _pantheonWarsSystem?.NetworkClient?.RequestPlayerReligionInfo();
             }
 
             // Request fresh blessing data (religion may have changed)
-            _pantheonWarsSystem?.RequestBlessingData();
+            _pantheonWarsSystem?.NetworkClient?.RequestBlessingData();
 
             // Clear confirmations
             _manager.ReligionStateManager.State.InfoState.ShowDisbandConfirm = false;
@@ -237,8 +208,7 @@ public partial class GuiDialog
             _capi.ShowChatMessage($"Error: {packet.Message}");
 
             // Play error sound
-            _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
-                _capi.World.Player.Entity, null, false, 8f, 0.5f);
+            _soundManager.PlayError();
 
             // Store error in state
             _manager!.ReligionStateManager.State.ErrorState.LastActionError = packet.Message;
@@ -270,6 +240,9 @@ public partial class GuiDialog
             _manager.ReligionStateManager.ReligionMemberCount = 0;
             _capi!.Logger.Debug("[PantheonWars] Cleared PlayerRoleInReligion (no religion)");
         }
+
+        // Update civilization manager's religion state
+        _manager.UpdateCivilizationReligionState();
     }
 
     /// <summary>
@@ -314,8 +287,7 @@ public partial class GuiDialog
             _capi!.Logger.Debug($"[PantheonWars] Blessing unlock failed: {blessingId}");
 
             // Play error sound on failure
-            _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
-                _capi.World.Player.Entity, null, false, 8f, 0.5f);
+            _soundManager.PlayError();
 
             return;
         }
@@ -328,27 +300,18 @@ public partial class GuiDialog
             switch (_manager.ReligionStateManager.CurrentDeity)
             {
                 case DeityType.None:
-                    _capi.World.PlaySoundAt(
-                        new AssetLocation("pantheonwars:sounds/unlock"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
                     break;
                 case DeityType.Khoras:
-                    _capi.World.PlaySoundAt(
-                        new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Khoras)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
+                    _soundManager.PlayDeityUnlock(DeityType.Khoras);
                     break;
                 case DeityType.Lysa:
-                    _capi.World.PlaySoundAt(new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Lysa)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
+                    _soundManager.PlayDeityUnlock(DeityType.Lysa);
                     break;
                 case DeityType.Aethra:
-                    _capi.World.PlaySoundAt(
-                        new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Aethra)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
+                    _soundManager.PlayDeityUnlock(DeityType.Aethra);
                     break;
                 case DeityType.Gaia:
-                    _capi.World.PlaySoundAt(new AssetLocation($"{PANTHEONWARS_SOUNDS_DEITIES}{nameof(DeityType.Gaia)}"),
-                        _capi.World.Player.Entity, null, false, 8f, 0.5f);
+                    _soundManager.PlayDeityUnlock(DeityType.Gaia);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -369,11 +332,7 @@ public partial class GuiDialog
     private void OnCivilizationListReceived(CivilizationListResponsePacket packet)
     {
         _capi!.Logger.Debug($"[PantheonWars] Received civilization list: {packet.Civilizations.Count} items");
-
-        // Update manager browse state
-        _manager!.CivState.AllCivilizations = packet.Civilizations;
-        _manager.CivState.IsBrowseLoading = false;
-        _manager.CivState.BrowseError = null;
+        _manager!.CivilizationManager.OnCivilizationListReceived(packet);
     }
 
     /// <summary>
@@ -382,27 +341,7 @@ public partial class GuiDialog
     private void OnCivilizationInfoReceived(CivilizationInfoResponsePacket packet)
     {
         _capi!.Logger.Debug($"[PantheonWars] Received civilization info: HasCiv={packet.Details != null}");
-
-        // Update manager with civilization state
-        _manager!.UpdateCivilizationState(packet.Details);
-
-        // Clear appropriate loading flags depending on whether we're viewing details or my civ
-        if (!string.IsNullOrEmpty(_manager.CivState.ViewingCivilizationId) &&
-            packet.Details != null &&
-            packet.Details.CivId == _manager.CivState.ViewingCivilizationId)
-        {
-            _manager.CivState.IsDetailsLoading = false;
-            _manager.CivState.DetailsError = null;
-        }
-        else
-        {
-            // Treat as my-civ refresh (also covers the null details case for "not in a civ")
-            _manager.CivState.IsMyCivLoading = false;
-            _manager.CivState.IsInvitesLoading = false;
-            _manager.CivState.MyCivError = null;
-            _manager.CivState.InvitesError = null;
-            _manager.CivState.IsDetailsLoading = false; // ensure off if previously set
-        }
+        _manager!.CivilizationManager.OnCivilizationInfoReceived(packet);
 
         if (packet.Details != null)
             _capi.Logger.Notification(
@@ -422,36 +361,7 @@ public partial class GuiDialog
         // Show result message to user
         _capi.ShowChatMessage(packet.Message);
 
-        if (packet.Success)
-        {
-            // Play success sound
-            _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/click"),
-                _capi.World.Player.Entity, null, false, 8f, 0.5f);
-
-            // Request updated civilization data to refresh UI
-            // Refresh both the browse list and the player's civilization info
-            // Set loading flags since we're calling system directly (bypassing manager helpers)
-            _manager!.CivState.IsBrowseLoading = true;
-            _manager.CivState.BrowseError = null;
-            _pantheonWarsSystem?.RequestCivilizationList(_manager.CivState.DeityFilter);
-
-            if (_manager!.HasReligion())
-            {
-                // Request civilization info for player's religion (empty string = my civ)
-                _manager.CivState.IsMyCivLoading = true;
-                _manager.CivState.IsInvitesLoading = true;
-                _manager.CivState.MyCivError = null;
-                _manager.CivState.InvitesError = null;
-                _pantheonWarsSystem?.RequestCivilizationInfo("");
-            }
-        }
-        else
-        {
-            // Play error sound
-            _capi.World.PlaySoundAt(new AssetLocation("pantheonwars:sounds/error"),
-                _capi.World.Player.Entity, null, false, 8f, 0.5f);
-
-            _manager!.CivState.LastActionError = packet.Message;
-        }
+        // Delegate to StateManager for state updates and side effects
+        _manager!.CivilizationManager.OnCivilizationActionCompleted(packet);
     }
 }
