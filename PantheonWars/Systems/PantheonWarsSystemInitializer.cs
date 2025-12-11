@@ -75,8 +75,13 @@ public static class PantheonWarsSystemInitializer
             blessingEffectSystem);
         blessingCommands.RegisterCommands();
 
+        var roleManager = new RoleManager(religionManager);
+
         var religionCommands = new ReligionCommands(api, religionManager, playerReligionDataManager, serverChannel);
         religionCommands.RegisterCommands();
+
+        var roleCommands = new RoleCommands(api, roleManager, religionManager, playerReligionDataManager);
+        roleCommands.RegisterCommands();
 
         var civilizationCommands =
             new CivilizationCommands(api, civilizationManager, religionManager, playerReligionDataManager);
@@ -125,9 +130,11 @@ public static class PantheonWarsSystemInitializer
             PvPManager = pvpManager,
             BlessingRegistry = blessingRegistry,
             BlessingEffectSystem = blessingEffectSystem,
+            RoleManager = roleManager,
             FavorCommands = favorCommands,
             BlessingCommands = blessingCommands,
             ReligionCommands = religionCommands,
+            RoleCommands = roleCommands,
             CivilizationCommands = civilizationCommands,
             PlayerDataNetworkHandler = playerDataHandler,
             BlessingNetworkHandler = blessingHandler,
@@ -143,7 +150,7 @@ public static class PantheonWarsSystemInitializer
 [ExcludeFromCodeCoverage]
 public class InitializationResult
 {
-    // 9 Managers
+    // 10 Managers
     public DeityRegistry DeityRegistry { get; init; } = null!;
     public ReligionManager ReligionManager { get; init; } = null!;
     public CivilizationManager CivilizationManager { get; init; } = null!;
@@ -153,11 +160,13 @@ public class InitializationResult
     public PvPManager PvPManager { get; init; } = null!;
     public BlessingRegistry BlessingRegistry { get; init; } = null!;
     public BlessingEffectSystem BlessingEffectSystem { get; init; } = null!;
+    public RoleManager RoleManager { get; init; } = null!;
 
-    // 4 Commands
+    // 5 Commands
     public FavorCommands FavorCommands { get; init; } = null!;
     public BlessingCommands BlessingCommands { get; init; } = null!;
     public ReligionCommands ReligionCommands { get; init; } = null!;
+    public RoleCommands RoleCommands { get; init; } = null!;
     public CivilizationCommands CivilizationCommands { get; init; } = null!;
 
     // Network Handlers
