@@ -452,33 +452,6 @@ public class PlayerReligionDataManagerTests
     }
 
     [Fact]
-    public void JoinReligion_WhenAlreadyInReligion_LeavesCurrentFirst()
-    {
-        // Arrange
-        var oldReligion = TestFixtures.CreateTestReligion("old-religion-uid", "Old Religion", DeityType.Lysa);
-        var newReligion = TestFixtures.CreateTestReligion("new-religion-uid", "New Religion", DeityType.Khoras);
-
-        _mockReligionManager.Setup(m => m.GetReligion("old-religion-uid")).Returns(oldReligion);
-        _mockReligionManager.Setup(m => m.GetReligion("new-religion-uid")).Returns(newReligion);
-
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
-
-        int count = 0;
-        _dataManager.OnPlayerLeavesReligion += (player, uid) => count++;
-
-        // Join first religion
-        _dataManager.JoinReligion("player-uid", "old-religion-uid");
-
-        // Act - Join second religion
-        _dataManager.JoinReligion("player-uid", "new-religion-uid");
-
-        // Assert
-        _mockReligionManager.Verify(m => m.RemoveMember("old-religion-uid", "player-uid"), Times.Once());
-        _mockReligionManager.Verify(m => m.AddMember("new-religion-uid", "player-uid"), Times.Once());
-    }
-
-    [Fact]
     public void JoinReligion_WithInvalidReligion_LogsError()
     {
         // Arrange

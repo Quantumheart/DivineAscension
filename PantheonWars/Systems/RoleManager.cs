@@ -11,9 +11,6 @@ public class RoleManager(IReligionManager religionManager) : IRoleManager
 {
     private const int MAX_CUSTOM_ROLES = 5;
 
-    private readonly IReligionManager? _religionManager =
-        religionManager ?? throw new ArgumentNullException(nameof(religionManager));
-
     private const string ReligionNotFoundMsg = "Religion not found";
     private const string YouDonTHavePermissionToManageRolesMsg = "You don't have permission to manage roles";
     private const string RoleNameMustBeCharactersAndAlphanumeric = "Role name must be 3-30 characters and alphanumeric";
@@ -35,6 +32,9 @@ public class RoleManager(IReligionManager religionManager) : IRoleManager
 
     private const string CannotAssignFounderRoleUseReligionTransferInstead =
         "Cannot assign Founder role. Use /religion transfer instead";
+
+    private readonly IReligionManager? _religionManager =
+        religionManager ?? throw new ArgumentNullException(nameof(religionManager));
 
     public (bool success, RoleData? role, string error) CreateCustomRole(string religionId, string playerId,
         string roleName)
