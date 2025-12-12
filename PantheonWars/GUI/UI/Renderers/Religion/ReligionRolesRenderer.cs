@@ -7,6 +7,7 @@ using PantheonWars.Data;
 using PantheonWars.GUI.Events.Religion;
 using PantheonWars.GUI.Models.Religion.Roles;
 using PantheonWars.GUI.UI.Components.Buttons;
+using PantheonWars.GUI.UI.Components.Inputs;
 using PantheonWars.GUI.UI.Components.Overlays;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Models;
@@ -114,6 +115,8 @@ internal static class ReligionRolesRenderer
         if (viewModel.ShowDeleteConfirm) DrawDeleteConfirmation(viewModel, drawList, events);
 
         if (viewModel.ShowRoleMembersDialog) DrawRoleMembersDialog(viewModel, drawList, events);
+
+        if (viewModel.ShowAssignRoleConfirm) DrawAssignRoleConfirmation(viewModel, drawList, events);
 
         return new ReligionRolesRenderResult(events, contentHeight);
     }
@@ -436,9 +439,9 @@ internal static class ReligionRolesRenderer
         drawList.AddRectFilled(winPos, new Vector2(winPos.X + winSize.X, winPos.Y + winSize.Y),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.7f));
 
-        // Dialog
-        var dialogWidth = 400f;
-        var dialogHeight = 500f;
+        // Dialog (increased size for dropdowns)
+        var dialogWidth = 500f;
+        var dialogHeight = 600f;
         var dlgX = winPos.X + (winSize.X - dialogWidth) / 2f;
         var dlgY = winPos.Y + (winSize.Y - dialogHeight) / 2f;
 
@@ -452,7 +455,7 @@ internal static class ReligionRolesRenderer
 
         // Title
         TextRenderer.DrawLabel(drawList, $"Members with '{viewModel.ViewingRoleName}' role", dlgX + padding, currentY,
-            14f, ColorPalette.Gold);
+            18f, ColorPalette.Gold);
         currentY += 30f;
 
         // Get members with this role
@@ -462,16 +465,92 @@ internal static class ReligionRolesRenderer
             .ToList();
 
         if (membersWithRole.Count == 0)
+        {
             TextRenderer.DrawInfoText(drawList, "No members have this role.", dlgX + padding, currentY,
                 dialogWidth - padding * 2);
+        }
         else
+        {
+            var dropdownWidth = 180f;
+            var dropdownHeight = 28f;
+            var assignableRoles = viewModel.GetAssignableRoles();
+            string? openDropdownMemberUID = null;
+
+            // Draw all member rows with dropdowns
             foreach (var memberUID in membersWithRole)
             {
-                var memberName = viewModel.MemberNames.TryGetValue(memberUID, out var name) ? name : memberUID;
-                TextRenderer.DrawInfoText(drawList, $"• {memberName}", dlgX + padding, currentY,
-                    dialogWidth - padding * 2);
-                currentY += 20f;
+                var memberName = viewModel.MemberNames.GetValueOrDefault(memberUID, memberUID);
+                var memberRoleUID = viewModel.MemberRoles.GetValueOrDefault(memberUID);
+                var memberRoleName = memberRoleUID != null
+                    ? viewModel.Roles.FirstOrDefault(r => r.RoleUID == memberRoleUID)?.RoleName ?? "Unknown"
+                    : "No Role";
+
+                // Member name on left
+                TextRenderer.DrawInfoText(drawList, $"• {memberName}", dlgX + padding, currentY + 4f,
+                    dialogWidth - padding * 2 - dropdownWidth - 10f, 16f);
+
+                // Role dropdown or static text on right
+                if (viewModel.CanAssignRoleToMember(memberUID))
+                {
+                    var dropdownX = dlgX + dialogWidth - padding - dropdownWidth;
+                    var dropdownY = currentY;
+                    var isOpen = viewModel.OpenAssignRoleDropdownMemberUID == memberUID;
+
+                    // Draw dropdown button with larger font
+                    if (Dropdown.DrawButton(drawList, dropdownX, dropdownY, dropdownWidth, dropdownHeight,
+                            memberRoleName, isOpen, 14f))
+                        events.Add(new RolesEvent.AssignRoleDropdownToggled(memberUID, !isOpen));
+
+                    // Track if this dropdown is open (for menu rendering later)
+                    if (isOpen) openDropdownMemberUID = memberUID;
+                }
+                else
+                {
+                    // Static role text for members that can't be changed
+                    var reason = memberUID == viewModel.CurrentPlayerUID ? " (Your role)" :
+                        memberRoleUID == RoleDefaults.FOUNDER_ROLE_ID ? " (Founder)" : "";
+                    TextRenderer.DrawInfoText(drawList, memberRoleName + reason,
+                        dlgX + dialogWidth - padding - dropdownWidth - 10f, currentY + 4f, dropdownWidth + 10f);
+                }
+
+                currentY += 32f;
             }
+
+            // Draw open dropdown menu (after all buttons for proper z-ordering)
+            if (openDropdownMemberUID != null)
+            {
+                var memberUID = openDropdownMemberUID;
+                var dropdownX = dlgX + dialogWidth - padding - dropdownWidth;
+                var memberIndex = membersWithRole.IndexOf(memberUID);
+                var dropdownY = dlgY + padding + 30f + memberIndex * 32f;
+                var memberRoleUID = viewModel.MemberRoles.TryGetValue(memberUID, out var roleUID) ? roleUID : null;
+                var currentRoleIndex = memberRoleUID != null
+                    ? assignableRoles.ToList().FindIndex(r => r.RoleUID == memberRoleUID)
+                    : -1;
+
+                var roleNames = assignableRoles.Select(r => r.RoleName).ToArray();
+
+                // Draw menu visual with larger font (pass button position, not menu position - component handles offset)
+                Dropdown.DrawMenuVisual(drawList, dropdownX, dropdownY, dropdownWidth,
+                    dropdownHeight, roleNames, currentRoleIndex, 32f, 14f);
+
+                // Handle menu interaction
+                var (selectedIndex, shouldClose, clickConsumed) = Dropdown.DrawMenuAndHandleInteraction(
+                    dropdownX, dropdownY, dropdownWidth, dropdownHeight,
+                    roleNames, currentRoleIndex, 32f);
+
+                if (selectedIndex != currentRoleIndex && selectedIndex >= 0)
+                {
+                    // Role changed - open confirmation dialog
+                    var newRole = assignableRoles[selectedIndex];
+                    var memberName = viewModel.MemberNames.TryGetValue(memberUID, out var name) ? name : memberUID;
+                    events.Add(new RolesEvent.AssignRoleConfirmOpen(memberUID, memberName,
+                        memberRoleUID ?? string.Empty, newRole.RoleUID, newRole.RoleName));
+                }
+
+                if (shouldClose) events.Add(new RolesEvent.AssignRoleDropdownToggled(memberUID, false));
+            }
+        }
 
         // Close button
         var btnWidth = 100f;
@@ -480,7 +559,38 @@ internal static class ReligionRolesRenderer
         var btnX = dlgX + (dialogWidth - btnWidth) / 2f;
 
         if (ButtonRenderer.DrawButton(drawList, "Close", btnX, btnY, btnWidth, btnHeight))
+        {
+            // Close any open dropdown when dialog closes
+            if (viewModel.OpenAssignRoleDropdownMemberUID != null)
+                events.Add(new RolesEvent.AssignRoleDropdownToggled(viewModel.OpenAssignRoleDropdownMemberUID,
+                    false));
             events.Add(new RolesEvent.ViewRoleMembersClose());
+        }
+    }
+
+    private static void DrawAssignRoleConfirmation(
+        ReligionRolesViewModel viewModel,
+        ImDrawListPtr drawList,
+        List<RolesEvent> events)
+    {
+        // Get role names for confirmation message
+        var currentRoleName = !string.IsNullOrEmpty(viewModel.AssignRoleConfirmCurrentRoleUID)
+            ? viewModel.Roles.FirstOrDefault(r => r.RoleUID == viewModel.AssignRoleConfirmCurrentRoleUID)?.RoleName ??
+              "Unknown"
+            : "No Role";
+
+        ConfirmOverlay.Draw(
+            "Assign Role",
+            $"Change {viewModel.AssignRoleConfirmMemberName}'s role from '{currentRoleName}' to '{viewModel.AssignRoleConfirmNewRoleName}'?",
+            out var confirmed,
+            out var canceled,
+            "Assign");
+
+        if (confirmed)
+            events.Add(new RolesEvent.AssignRoleConfirm(
+                viewModel.AssignRoleConfirmMemberUID ?? string.Empty,
+                viewModel.AssignRoleConfirmNewRoleUID ?? string.Empty));
+        else if (canceled) events.Add(new RolesEvent.AssignRoleCancel());
     }
 
     private static float ComputeContentHeight(ReligionRolesViewModel viewModel)

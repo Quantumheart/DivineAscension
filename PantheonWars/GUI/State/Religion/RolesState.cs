@@ -37,6 +37,13 @@ public class RolesState
     public string? AssignRoleTargetUID { get; set; }
     public string? AssignRoleTargetName { get; set; }
     public string? SelectedRoleForAssignment { get; set; }
+    public string? OpenAssignRoleDropdownMemberUID { get; set; }
+    public bool ShowAssignRoleConfirm { get; set; }
+    public string? AssignRoleConfirmMemberUID { get; set; }
+    public string? AssignRoleConfirmMemberName { get; set; }
+    public string? AssignRoleConfirmCurrentRoleUID { get; set; }
+    public string? AssignRoleConfirmNewRoleUID { get; set; }
+    public string? AssignRoleConfirmNewRoleName { get; set; }
 
     public void Reset()
     {
@@ -58,5 +65,12 @@ public class RolesState
         AssignRoleTargetUID = null;
         AssignRoleTargetName = null;
         SelectedRoleForAssignment = null;
+        OpenAssignRoleDropdownMemberUID = null;
+        ShowAssignRoleConfirm = false;
+        AssignRoleConfirmMemberUID = null;
+        AssignRoleConfirmMemberName = null;
+        AssignRoleConfirmCurrentRoleUID = null;
+        AssignRoleConfirmNewRoleUID = null;
+        AssignRoleConfirmNewRoleName = null;
     }
 }

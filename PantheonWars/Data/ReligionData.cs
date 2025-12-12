@@ -370,6 +370,20 @@ public class ReligionData
 // Check if player can assign a specific role
     public bool CanAssignRole(string assignerUID, string targetRoleUID)
     {
+        // SYSTEM can always assign roles (for automated assignments like join/invite)
+        if (assignerUID == "SYSTEM")
+        {
+            // Cannot assign Founder role (must use transfer)
+            if (targetRoleUID == RoleDefaults.FOUNDER_ROLE_ID)
+                return false;
+
+            // Role must exist
+            if (!Roles.ContainsKey(targetRoleUID))
+                return false;
+
+            return true;
+        }
+
         // Must have MANAGE_ROLES permission
         if (!HasPermission(assignerUID, RolePermissions.MANAGE_ROLES))
             return false;

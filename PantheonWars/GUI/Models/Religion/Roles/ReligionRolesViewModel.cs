@@ -31,6 +31,13 @@ public readonly struct ReligionRolesViewModel(
     bool showRoleMembersDialog,
     string? viewingRoleUID,
     string? viewingRoleName,
+    string? openAssignRoleDropdownMemberUID,
+    bool showAssignRoleConfirm,
+    string? assignRoleConfirmMemberUID,
+    string? assignRoleConfirmMemberName,
+    string? assignRoleConfirmCurrentRoleUID,
+    string? assignRoleConfirmNewRoleUID,
+    string? assignRoleConfirmNewRoleName,
     // Layout & scrolling
     float x,
     float y,
@@ -64,6 +71,15 @@ public readonly struct ReligionRolesViewModel(
     public bool ShowRoleMembersDialog { get; } = showRoleMembersDialog;
     public string? ViewingRoleUID { get; } = viewingRoleUID;
     public string? ViewingRoleName { get; } = viewingRoleName;
+
+    // UI state - Role Assignment
+    public string? OpenAssignRoleDropdownMemberUID { get; } = openAssignRoleDropdownMemberUID;
+    public bool ShowAssignRoleConfirm { get; } = showAssignRoleConfirm;
+    public string? AssignRoleConfirmMemberUID { get; } = assignRoleConfirmMemberUID;
+    public string? AssignRoleConfirmMemberName { get; } = assignRoleConfirmMemberName;
+    public string? AssignRoleConfirmCurrentRoleUID { get; } = assignRoleConfirmCurrentRoleUID;
+    public string? AssignRoleConfirmNewRoleUID { get; } = assignRoleConfirmNewRoleUID;
+    public string? AssignRoleConfirmNewRoleName { get; } = assignRoleConfirmNewRoleName;
 
     // Layout & scrolling
     public float X { get; } = x;
@@ -122,6 +138,33 @@ public readonly struct ReligionRolesViewModel(
     }
 
     /// <summary>
+    ///     Checks if the current player can assign a role to a specific member.
+    /// </summary>
+    public bool CanAssignRoleToMember(string targetMemberUID)
+    {
+        if (!CanManageRoles()) return false;
+        if (targetMemberUID == CurrentPlayerUID) return false; // Can't change own role
+
+        // Can't change Founder's role
+        var targetRoleUID = MemberRoles.TryGetValue(targetMemberUID, out var roleUID) ? roleUID : null;
+        if (targetRoleUID == RoleDefaults.FOUNDER_ROLE_ID) return false;
+
+        return true;
+    }
+
+    /// <summary>
+    ///     Gets the list of roles that can be assigned (excludes Founder role).
+    /// </summary>
+    public IReadOnlyList<RoleData> GetAssignableRoles()
+    {
+        return Roles
+            .Where(r => r.RoleUID != RoleDefaults.FOUNDER_ROLE_ID)
+            .OrderBy(r => r.DisplayOrder)
+            .ThenBy(r => r.RoleName)
+            .ToList();
+    }
+
+    /// <summary>
     ///     Copy with updated scroll position.
     /// </summary>
     public ReligionRolesViewModel WithScroll(float newScrollY)
@@ -132,6 +175,9 @@ public readonly struct ReligionRolesViewModel(
             ShowCreateRoleDialog, NewRoleName,
             ShowDeleteConfirm, DeleteRoleUID, DeleteRoleName,
             ShowRoleMembersDialog, ViewingRoleUID, ViewingRoleName,
+            OpenAssignRoleDropdownMemberUID, ShowAssignRoleConfirm,
+            AssignRoleConfirmMemberUID, AssignRoleConfirmMemberName,
+            AssignRoleConfirmCurrentRoleUID, AssignRoleConfirmNewRoleUID, AssignRoleConfirmNewRoleName,
             X, Y, Width, Height, newScrollY);
     }
 
@@ -146,6 +192,7 @@ public readonly struct ReligionRolesViewModel(
             false, string.Empty,
             false, null, null,
             false, null, null,
+            null, false, null, null, null, null, null,
             x, y, width, height, 0);
     }
 
@@ -160,6 +207,7 @@ public readonly struct ReligionRolesViewModel(
             false, string.Empty,
             false, null, null,
             false, null, null,
+            null, false, null, null, null, null, null,
             x, y, width, height, 0);
     }
 }

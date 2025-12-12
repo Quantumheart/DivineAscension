@@ -43,6 +43,20 @@ public abstract record RolesEvent
 
     public record ViewRoleMembersClose : RolesEvent;
 
+    // Role assignment
+    public record AssignRoleDropdownToggled(string MemberUID, bool IsOpen) : RolesEvent;
+
+    public record AssignRoleConfirmOpen(
+        string MemberUID,
+        string MemberName,
+        string CurrentRoleUID,
+        string NewRoleUID,
+        string NewRoleName) : RolesEvent;
+
+    public record AssignRoleConfirm(string MemberUID, string NewRoleUID) : RolesEvent;
+
+    public record AssignRoleCancel : RolesEvent;
+
     // Refresh roles data
     public record RefreshRequested : RolesEvent;
 }

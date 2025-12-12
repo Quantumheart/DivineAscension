@@ -844,6 +844,13 @@ public class ReligionStateManager : IReligionStateManager
             State.RolesState.ShowRoleMembersDialog,
             State.RolesState.ViewingRoleUID,
             State.RolesState.ViewingRoleName,
+            State.RolesState.OpenAssignRoleDropdownMemberUID,
+            State.RolesState.ShowAssignRoleConfirm,
+            State.RolesState.AssignRoleConfirmMemberUID,
+            State.RolesState.AssignRoleConfirmMemberName,
+            State.RolesState.AssignRoleConfirmCurrentRoleUID,
+            State.RolesState.AssignRoleConfirmNewRoleUID,
+            State.RolesState.AssignRoleConfirmNewRoleName,
             x, y, width, height,
             State.RolesState.ScrollY
         );
@@ -961,6 +968,46 @@ public class ReligionStateManager : IReligionStateManager
                     State.RolesState.ShowRoleMembersDialog = false;
                     State.RolesState.ViewingRoleUID = null;
                     State.RolesState.ViewingRoleName = null;
+                    break;
+
+                case RolesEvent.AssignRoleDropdownToggled e:
+                    // Only one dropdown open at a time
+                    State.RolesState.OpenAssignRoleDropdownMemberUID = e.IsOpen ? e.MemberUID : null;
+                    break;
+
+                case RolesEvent.AssignRoleConfirmOpen e:
+                    State.RolesState.ShowAssignRoleConfirm = true;
+                    State.RolesState.AssignRoleConfirmMemberUID = e.MemberUID;
+                    State.RolesState.AssignRoleConfirmMemberName = e.MemberName;
+                    State.RolesState.AssignRoleConfirmCurrentRoleUID = e.CurrentRoleUID;
+                    State.RolesState.AssignRoleConfirmNewRoleUID = e.NewRoleUID;
+                    State.RolesState.AssignRoleConfirmNewRoleName = e.NewRoleName;
+                    State.RolesState.OpenAssignRoleDropdownMemberUID = null; // Close dropdown
+                    break;
+
+                case RolesEvent.AssignRoleConfirm e:
+                    State.RolesState.ShowAssignRoleConfirm = false;
+                    _uiService.RequestAssignRole(
+                        CurrentReligionUID ?? string.Empty,
+                        e.MemberUID,
+                        e.NewRoleUID);
+                    _soundManager.PlayClick();
+                    // Clear confirmation state
+                    State.RolesState.AssignRoleConfirmMemberUID = null;
+                    State.RolesState.AssignRoleConfirmMemberName = null;
+                    State.RolesState.AssignRoleConfirmCurrentRoleUID = null;
+                    State.RolesState.AssignRoleConfirmNewRoleUID = null;
+                    State.RolesState.AssignRoleConfirmNewRoleName = null;
+                    break;
+
+                case RolesEvent.AssignRoleCancel:
+                    State.RolesState.ShowAssignRoleConfirm = false;
+                    // Clear confirmation state
+                    State.RolesState.AssignRoleConfirmMemberUID = null;
+                    State.RolesState.AssignRoleConfirmMemberName = null;
+                    State.RolesState.AssignRoleConfirmCurrentRoleUID = null;
+                    State.RolesState.AssignRoleConfirmNewRoleUID = null;
+                    State.RolesState.AssignRoleConfirmNewRoleName = null;
                     break;
 
                 case RolesEvent.RefreshRequested:
