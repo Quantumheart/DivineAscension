@@ -198,7 +198,7 @@ internal static class ReligionRolesRenderer
         // Action buttons
         var buttonY = y + cardHeight - padding - 32f;
         var buttonX = contentX;
-        var buttonWidth = 100f;
+        var buttonWidth = 120f;
         var buttonSpacing = 8f;
 
         // View Members button

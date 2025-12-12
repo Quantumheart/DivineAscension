@@ -164,14 +164,6 @@ public class ReligionCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        // Check if player can switch religions
-        if (!_playerReligionDataManager.CanSwitchReligion(player.PlayerUID))
-        {
-            var cooldown = _playerReligionDataManager.GetSwitchCooldownRemaining(player.PlayerUID);
-            return TextCommandResult.Error(
-                $"You must wait {cooldown?.Days} days, {cooldown?.Hours} hours before switching religions");
-        }
-
         // Find the religion
         var religion = _religionManager.GetReligionByName(religionName);
         if (religion == null) return TextCommandResult.Error($"Religion '{religionName}' not found");

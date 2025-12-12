@@ -30,7 +30,6 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TestReligion");
 
-        _playerReligionDataManager.Setup(m => m.CanSwitchReligion("player-1")).Returns(true);
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns(religion);
         _religionManager.Setup(m => m.CanJoinReligion("religion-1", "player-1")).Returns(true);
@@ -56,7 +55,6 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TestReligion");
 
-        _playerReligionDataManager.Setup(m => m.CanSwitchReligion("player-1")).Returns(true);
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns(religion);
         _religionManager.Setup(m => m.CanJoinReligion("religion-1", "player-1")).Returns(true);
@@ -78,7 +76,6 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "NewReligion");
 
-        _playerReligionDataManager.Setup(m => m.CanSwitchReligion("player-1")).Returns(true);
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("NewReligion")).Returns(religion);
         _religionManager.Setup(m => m.CanJoinReligion("religion-1", "player-1")).Returns(true);
@@ -101,7 +98,6 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TestReligion");
 
-        _playerReligionDataManager.Setup(m => m.CanSwitchReligion("player-1")).Returns(true);
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns(religion);
         _religionManager.Setup(m => m.CanJoinReligion("religion-1", "player-1")).Returns(true);
@@ -142,29 +138,6 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
     }
 
     [Fact]
-    public void OnJoinReligion_WhenOnCooldown_ReturnsError()
-    {
-        // Arrange
-        var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var args = CreateCommandArgs(mockPlayer.Object);
-        SetupParsers(args, "TestReligion");
-
-        _playerReligionDataManager.Setup(m => m.CanSwitchReligion("player-1")).Returns(false);
-        _playerReligionDataManager.Setup(m => m.GetSwitchCooldownRemaining("player-1"))
-            .Returns(new TimeSpan(5, 12, 0, 0)); // 5 days, 12 hours
-
-        // Act
-        var result = _sut!.OnJoinReligion(args);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(EnumCommandStatus.Error, result.Status);
-        Assert.Contains("You must wait", result.StatusMessage);
-        Assert.Contains("5 days", result.StatusMessage);
-        Assert.Contains("12 hours", result.StatusMessage);
-    }
-
-    [Fact]
     public void OnJoinReligion_WhenReligionNotFound_ReturnsError()
     {
         // Arrange
@@ -172,7 +145,6 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "NonExistentReligion");
 
-        _playerReligionDataManager.Setup(m => m.CanSwitchReligion("player-1")).Returns(true);
         _religionManager.Setup(m => m.GetReligionByName("NonExistentReligion")).Returns((ReligionData?)null);
 
         // Act
@@ -193,7 +165,6 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "PrivateReligion");
 
-        _playerReligionDataManager.Setup(m => m.CanSwitchReligion("player-1")).Returns(true);
         _religionManager.Setup(m => m.GetReligionByName("PrivateReligion")).Returns(religion);
         _religionManager.Setup(m => m.CanJoinReligion("religion-1", "player-1")).Returns(false);
 

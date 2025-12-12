@@ -31,7 +31,7 @@ public static class MemberListRenderer
         var members = new List<PlayerReligionInfoResponsePacket.MemberInfo>(viewModel.Members);
         var scrollY = viewModel.ScrollY;
         var currentPlayerUid = viewModel.CurrentPlayerUID;
-        var canModerate = viewModel.CanModerate;
+        var canModerate = viewModel.Role;
 
         const float itemHeight = 30f;
         const float itemSpacing = 4f;
@@ -128,8 +128,8 @@ public static class MemberListRenderer
         var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.8f);
         drawList.AddRectFilled(itemStart, itemEnd, bgColor, 3f);
 
-        // Player name
-        var nameText = member.PlayerName + (member.IsFounder ? " [Founder]" : "");
+        // Player name with role
+        var nameText = $"{member.PlayerName} [{member.RoleName}]";
         var namePos = new Vector2(x + padding, y + (height - 14f) / 2);
         var nameColor = ImGui.ColorConvertFloat4ToU32(member.IsFounder ? ColorPalette.Gold : ColorPalette.White);
         drawList.AddText(namePos, nameColor, nameText);

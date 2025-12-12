@@ -170,6 +170,7 @@ public class ReligionData
     /// </summary>
     public bool RemoveMember(string playerUID)
     {
+        MemberRoles.Remove(playerUID);
         Members.Remove(playerUID); // Also remove from Members dictionary
         return MemberUIDs.Remove(playerUID);
     }

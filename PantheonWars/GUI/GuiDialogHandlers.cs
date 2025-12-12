@@ -105,7 +105,6 @@ public partial class GuiDialog
         _state.IsReady = true;
         _capi.Logger.Notification(
             $"[PantheonWars] Loaded {playerBlessings.Count} player blessings and {religionBlessings.Count} religion blessings for {packet.Deity}");
-
     }
 
     /// <summary>
@@ -117,7 +116,7 @@ public partial class GuiDialog
 
         // Show notification to user
         _capi.ShowChatMessage(packet.Reason);
-        
+
         // Reset blessing dialog state to "No Religion" mode
         _manager!.Reset();
         _state.IsReady = true; // Keep dialog ready so it doesn't close
@@ -290,6 +289,7 @@ public partial class GuiDialog
         {
             _manager.ReligionStateManager.PlayerRoleInReligion = packet.IsFounder ? "Leader" : "Member";
             _manager.ReligionStateManager.ReligionMemberCount = packet.Members.Count;
+            _manager.ReligionStateManager.CurrentReligionUID = packet.ReligionUID;
             _capi!.Logger.Debug(
                 $"[PantheonWars] Set PlayerRoleInReligion to: {_manager.ReligionStateManager.PlayerRoleInReligion}, MemberCount: {_manager.ReligionStateManager.ReligionMemberCount}");
         }

@@ -14,7 +14,7 @@ public readonly struct MemberListViewModel(
     float scrollY,
     IReadOnlyList<PlayerReligionInfoResponsePacket.MemberInfo> members,
     string currentPlayerUID,
-    bool canModerate)
+    bool role)
 {
     public float X { get; } = x;
     public float Y { get; } = y;
@@ -23,5 +23,5 @@ public readonly struct MemberListViewModel(
     public float ScrollY { get; } = scrollY;
     public IReadOnlyList<PlayerReligionInfoResponsePacket.MemberInfo> Members { get; } = members;
     public string CurrentPlayerUID { get; } = currentPlayerUID;
-    public bool CanModerate { get; } = canModerate;
+    public bool Role { get; } = role;
 }

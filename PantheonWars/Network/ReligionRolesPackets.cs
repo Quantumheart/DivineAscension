@@ -97,11 +97,22 @@ public class ModifyRolePermissionsResponse
 
 // Assign role to member
 [ProtoContract]
-public class AssignRoleRequest(string religionUid, string targetPlayerUid, string roleUid)
+public class AssignRoleRequest
 {
-    [ProtoMember(1)] public string ReligionUID = religionUid;
-    [ProtoMember(3)] public string RoleUID = roleUid;
-    [ProtoMember(2)] public string TargetPlayerUID = targetPlayerUid;
+    [ProtoMember(1)] public string ReligionUID = string.Empty;
+    [ProtoMember(3)] public string RoleUID = string.Empty;
+    [ProtoMember(2)] public string TargetPlayerUID = string.Empty;
+
+    public AssignRoleRequest(string religionUid, string targetPlayerUid, string roleUid)
+    {
+        ReligionUID = religionUid;
+        RoleUID = roleUid;
+        TargetPlayerUID = targetPlayerUid;
+    }
+
+    public AssignRoleRequest()
+    {
+    }
 }
 
 [ProtoContract]
@@ -125,8 +136,8 @@ public class AssignRoleResponse
 [ProtoContract]
 public class DeleteRoleRequest
 {
-    [ProtoMember(1)] public string ReligionUID;
-    [ProtoMember(2)] public string RoleUID;
+    [ProtoMember(1)] public string ReligionUID = string.Empty;
+    [ProtoMember(2)] public string RoleUID = string.Empty;
 
     public DeleteRoleRequest()
     {
@@ -150,8 +161,8 @@ public class DeleteRoleResponse
 [ProtoContract]
 public class TransferFounderRequest
 {
-    [ProtoMember(2)] public string NewFounderUID;
-    [ProtoMember(1)] public string ReligionUID;
+    [ProtoMember(2)] public string NewFounderUID = string.Empty;
+    [ProtoMember(1)] public string ReligionUID = string.Empty;
 
     public TransferFounderRequest()
     {

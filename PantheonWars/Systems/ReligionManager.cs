@@ -137,6 +137,8 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             // Save immediately to prevent data loss
             Save(religion);
         }
+
+        Save(religion);
     }
 
     /// <summary>
@@ -152,7 +154,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     /// </summary>
     public ReligionData? GetReligion(string religionUID)
     {
-        return _religions.TryGetValue(religionUID, out var religion) ? religion : null;
+        return _religions.GetValueOrDefault(religionUID);
     }
 
     /// <summary>
@@ -266,50 +268,50 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     /// <summary>
     ///     Accepts a religion invite
     /// </summary>
-    public bool AcceptInvite(string inviteId, string playerUID)
+    public (bool, string, string) AcceptInvite(string inviteId, string playerUID)
     {
         var invite = _inviteData.GetInvite(inviteId);
         if (invite == null || !invite.IsValid)
         {
             _sapi.Logger.Warning($"[PantheonWars] Invalid or expired invite: {inviteId}");
-            return false;
+            return (false, string.Empty, "Invalid or expired invite");
         }
 
         if (invite.PlayerUID != playerUID)
         {
             _sapi.Logger.Warning($"[PantheonWars] Player {playerUID} cannot accept invite for {invite.PlayerUID}");
-            return false;
+            return (false, string.Empty, "Player cannot accept invite");
         }
 
         // Check if player can join
         if (HasReligion(playerUID))
         {
             _sapi.Logger.Warning($"[PantheonWars] Player {playerUID} already has a religion");
-            return false;
+            return (false, string.Empty, "Player has already has a religion");
         }
 
         var religion = GetReligion(invite.ReligionId);
         if (religion == null)
         {
             _sapi.Logger.Warning($"[PantheonWars] Religion {invite.ReligionId} no longer exists");
-            return false;
+            return (false, string.Empty, "No religion");
         }
 
         if (religion.IsBanned(playerUID))
         {
             _sapi.Logger.Warning($"[PantheonWars] Player {playerUID} is banned from religion {religion.ReligionName}");
-            return false;
+            return (false, string.Empty, "Player is banned from religion");
         }
 
         // Join religion
         AddMember(invite.ReligionId, playerUID);
-
+        var religionId = invite.ReligionId;
         // Remove invite
         _inviteData.RemoveInvite(inviteId);
         SaveInviteData();
 
         _sapi.Logger.Notification($"[PantheonWars] Player {playerUID} accepted invite to {religion.ReligionName}");
-        return true;
+        return (true, religionId, string.Empty);
     }
 
     /// <summary>

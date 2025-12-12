@@ -7,6 +7,7 @@ using PantheonWars.Systems.Interfaces;
 using PantheonWars.Tests.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
+using Vintagestory.API.Util;
 
 namespace PantheonWars.Tests.Systems;
 
@@ -17,10 +18,10 @@ namespace PantheonWars.Tests.Systems;
 [ExcludeFromCodeCoverage]
 public class PlayerReligionDataManagerTests
 {
+    private readonly PlayerReligionDataManager _dataManager;
     private readonly Mock<ICoreServerAPI> _mockAPI;
     private readonly Mock<ILogger> _mockLogger;
     private readonly Mock<IReligionManager> _mockReligionManager;
-    private readonly PlayerReligionDataManager _dataManager;
 
     public PlayerReligionDataManagerTests()
     {
@@ -558,98 +559,6 @@ public class PlayerReligionDataManagerTests
 
     #endregion
 
-    #region CanSwitchReligion Tests
-
-    [Fact]
-    public void CanSwitchReligion_FirstTime_ReturnsTrue()
-    {
-        // Arrange
-        _dataManager.GetOrCreatePlayerData("player-uid");
-
-        // Act
-        var canSwitch = _dataManager.CanSwitchReligion("player-uid");
-
-        // Assert
-        Assert.True(canSwitch);
-    }
-
-    [Fact]
-    public void CanSwitchReligion_WithinCooldown_ReturnsFalse()
-    {
-        // Arrange
-        var data = _dataManager.GetOrCreatePlayerData("player-uid");
-        data.LastReligionSwitch = DateTime.UtcNow.AddDays(-3); // 3 days ago (cooldown is 7 days)
-
-        // Act
-        var canSwitch = _dataManager.CanSwitchReligion("player-uid");
-
-        // Assert
-        Assert.False(canSwitch);
-    }
-
-    [Fact]
-    public void CanSwitchReligion_AfterCooldown_ReturnsTrue()
-    {
-        // Arrange
-        var data = _dataManager.GetOrCreatePlayerData("player-uid");
-        data.LastReligionSwitch = DateTime.UtcNow.AddDays(-8); // 8 days ago (cooldown is 7 days)
-
-        // Act
-        var canSwitch = _dataManager.CanSwitchReligion("player-uid");
-
-        // Assert
-        Assert.True(canSwitch);
-    }
-
-    #endregion
-
-    #region GetSwitchCooldownRemaining Tests
-
-    [Fact]
-    public void GetSwitchCooldownRemaining_NeverSwitched_ReturnsNull()
-    {
-        // Arrange
-        _dataManager.GetOrCreatePlayerData("player-uid");
-
-        // Act
-        var cooldown = _dataManager.GetSwitchCooldownRemaining("player-uid");
-
-        // Assert
-        Assert.Null(cooldown);
-    }
-
-    [Fact]
-    public void GetSwitchCooldownRemaining_WithinCooldown_ReturnsTimeRemaining()
-    {
-        // Arrange
-        var data = _dataManager.GetOrCreatePlayerData("player-uid");
-        data.LastReligionSwitch = DateTime.UtcNow.AddDays(-3); // 3 days ago
-
-        // Act
-        var cooldown = _dataManager.GetSwitchCooldownRemaining("player-uid");
-
-        // Assert
-        Assert.NotNull(cooldown);
-        Assert.True(cooldown.Value.TotalDays > 3); // More than 3 days remaining
-        Assert.True(cooldown.Value.TotalDays < 5); // Less than 5 days remaining
-    }
-
-    [Fact]
-    public void GetSwitchCooldownRemaining_AfterCooldown_ReturnsZero()
-    {
-        // Arrange
-        var data = _dataManager.GetOrCreatePlayerData("player-uid");
-        data.LastReligionSwitch = DateTime.UtcNow.AddDays(-10); // 10 days ago
-
-        // Act
-        var cooldown = _dataManager.GetSwitchCooldownRemaining("player-uid");
-
-        // Assert
-        Assert.Equal(TimeSpan.Zero, cooldown);
-    }
-
-    #endregion
-
     #region HandleReligionSwitch Tests
 
     [Fact]
@@ -863,7 +772,8 @@ public class PlayerReligionDataManagerTests
 
         // Assert
         Assert.NotNull(savedData);
-        mockSaveGame.Verify(s => s.StoreData("pantheonwars_playerreligiondata_player-uid", It.IsAny<byte[]>()), Times.Once());
+        mockSaveGame.Verify(s => s.StoreData("pantheonwars_playerreligiondata_player-uid", It.IsAny<byte[]>()),
+            Times.Once());
         _mockLogger.Verify(
             l => l.Debug(It.Is<string>(s => s.Contains("Saved religion data") && s.Contains("player-uid"))),
             Times.Once()
@@ -926,7 +836,7 @@ public class PlayerReligionDataManagerTests
             ActiveDeity = DeityType.Lysa,
             TotalFavorEarned = 200
         };
-        var serialized = Vintagestory.API.Util.SerializerUtil.Serialize(savedData);
+        var serialized = SerializerUtil.Serialize(savedData);
 
         mockSaveGame
             .Setup(s => s.GetData("pantheonwars_playerreligiondata_player-uid"))
@@ -1050,7 +960,7 @@ public class PlayerReligionDataManagerTests
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
 
         var savedData = new PlayerReligionData("player-uid") { Favor = 50 };
-        var serialized = Vintagestory.API.Util.SerializerUtil.Serialize(savedData);
+        var serialized = SerializerUtil.Serialize(savedData);
 
         mockSaveGame
             .Setup(s => s.GetData("pantheonwars_playerreligiondata_player-uid"))

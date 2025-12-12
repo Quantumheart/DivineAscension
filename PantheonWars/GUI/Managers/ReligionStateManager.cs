@@ -251,6 +251,13 @@ public class ReligionStateManager : IReligionStateManager
         ProcessCreateEvents(result.Events);
     }
 
+    internal void RequestReligionRoles()
+    {
+        State.ErrorState.RolesError = null;
+        State.RolesState.Loading = true;
+        _uiService.RequestReligionRoles(CurrentReligionUID ?? string.Empty);
+    }
+
     /// <summary>
     ///     Configure a UI-only religion data provider (fake or real). When set, RequestReligionList()
     ///     uses it instead of performing a network call.
@@ -310,7 +317,7 @@ public class ReligionStateManager : IReligionStateManager
     /// Draws the religion info tab using the refactored renderer
     /// Builds ViewModel, calls pure renderer, processes events
     /// </summary>
-    public void DrawReligionInfo(float x, float y, float width, float height)
+    internal void DrawReligionInfo(float x, float y, float width, float height)
     {
         // Build view model from state
         var religion = State.InfoState.MyReligionInfo;
@@ -405,9 +412,7 @@ public class ReligionStateManager : IReligionStateManager
                             RequestPlayerReligionInfo();
                             break;
                         case SubTab.Roles:
-                            State.ErrorState.RolesError = null;
-                            State.RolesState.Loading = true;
-                            _uiService.RequestReligionRoles(CurrentReligionUID ?? string.Empty);
+                            RequestReligionRoles();
                             break;
                     }
 
