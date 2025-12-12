@@ -16,13 +16,18 @@ public class ReligionData
     /// <summary>
     ///     Creates a new religion with the specified parameters
     /// </summary>
-    public ReligionData(string religionUID, string religionName, DeityType deity, string founderUID)
+    public ReligionData(string religionUID, string religionName, DeityType deity, string founderUID, string founderName)
     {
         ReligionUID = religionUID;
         ReligionName = religionName;
         Deity = deity;
         FounderUID = founderUID;
+        FounderName = founderName;
         MemberUIDs = new List<string> { founderUID }; // Founder is first member
+        Members = new Dictionary<string, MemberEntry>
+        {
+            [founderUID] = new(founderUID, founderName)
+        };
         CreationDate = DateTime.UtcNow;
     }
 
@@ -126,11 +131,38 @@ public class ReligionData
     public Dictionary<string, string> MemberRoles { get; set; } = new();
 
     /// <summary>
-    ///     Adds a member to the religion
+    ///     Dictionary of member entries with cached player names
+    ///     Key: player UID, Value: member entry with name and join date
+    /// </summary>
+    [ProtoMember(16)]
+    public Dictionary<string, MemberEntry> Members { get; set; } = new();
+
+    /// <summary>
+    ///     Cached founder name for quick access
+    /// </summary>
+    [ProtoMember(17)]
+    public string FounderName { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Adds a member to the religion with player name
+    /// </summary>
+    public void AddMember(string playerUID, string playerName)
+    {
+        if (!MemberUIDs.Contains(playerUID))
+            MemberUIDs.Add(playerUID);
+
+        if (!Members.ContainsKey(playerUID))
+            Members[playerUID] = new MemberEntry(playerUID, playerName);
+        else
+            Members[playerUID].UpdateName(playerName);
+    }
+
+    /// <summary>
+    ///     Adds a member to the religion (backward compatibility overload)
     /// </summary>
     public void AddMember(string playerUID)
     {
-        if (!MemberUIDs.Contains(playerUID)) MemberUIDs.Add(playerUID);
+        AddMember(playerUID, playerUID); // Fallback to UID as name
     }
 
     /// <summary>
@@ -138,6 +170,7 @@ public class ReligionData
     /// </summary>
     public bool RemoveMember(string playerUID)
     {
+        Members.Remove(playerUID); // Also remove from Members dictionary
         return MemberUIDs.Remove(playerUID);
     }
 
@@ -163,6 +196,32 @@ public class ReligionData
     public int GetMemberCount()
     {
         return MemberUIDs.Count;
+    }
+
+    /// <summary>
+    ///     Gets the cached player name for a member (fallback to UID if not found)
+    /// </summary>
+    public string GetMemberName(string playerUID)
+    {
+        return Members.TryGetValue(playerUID, out var entry) ? entry.PlayerName : playerUID;
+    }
+
+    /// <summary>
+    ///     Updates the cached player name if the member exists
+    /// </summary>
+    public void UpdateMemberName(string playerUID, string playerName)
+    {
+        if (Members.TryGetValue(playerUID, out var entry))
+            entry.UpdateName(playerName);
+    }
+
+    /// <summary>
+    ///     Updates the founder name and the founder's member entry
+    /// </summary>
+    public void UpdateFounderName(string founderName)
+    {
+        FounderName = founderName;
+        UpdateMemberName(FounderUID, founderName);
     }
 
     /// <summary>

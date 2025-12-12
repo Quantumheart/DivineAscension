@@ -56,8 +56,12 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         // Validate deity type
         if (deity == DeityType.None) throw new ArgumentException("Religion must have a valid deity");
 
+        // Get founder name (player guaranteed to be online during creation)
+        var founderPlayer = _sapi.World.PlayerByUid(founderUID);
+        var founderName = founderPlayer?.PlayerName ?? founderUID;
+
         // Create religion data
-        var religion = new ReligionData(religionUID, name, deity, founderUID)
+        var religion = new ReligionData(religionUID, name, deity, founderUID, founderName)
         {
             IsPublic = isPublic,
             Roles = RoleDefaults.CreateDefaultRoles(),
@@ -71,7 +75,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         _religions[religionUID] = religion;
 
         _sapi.Logger.Notification(
-            $"[PantheonWars] Religion created: {name} (Deity: {deity}, Founder: {founderUID}, Public: {isPublic})");
+            $"[PantheonWars] Religion created: {name} (Deity: {deity}, Founder: {founderName}, Public: {isPublic})");
 
         // Immediately save to prevent data loss if server stops before autosave
         SaveAllReligions();
@@ -90,11 +94,16 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             return;
         }
 
-        religion.AddMember(playerUID);
-        _sapi.Logger.Debug($"[PantheonWars] Added player {playerUID} to religion {religion.ReligionName}");
+        // Get player name (player guaranteed to be online when joining)
+        var player = _sapi.World.PlayerByUid(playerUID);
+        var playerName = player?.PlayerName ?? playerUID;
+
+        religion.AddMember(playerUID, playerName);
+        _sapi.Logger.Debug(
+            $"[PantheonWars] Added player {playerName} ({playerUID}) to religion {religion.ReligionName}");
 
         // Save immediately to prevent data loss
-        SaveAllReligions();
+        Save(religion);
     }
 
     /// <summary>
@@ -126,7 +135,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             }
 
             // Save immediately to prevent data loss
-            SaveAllReligions();
+            Save(religion);
         }
     }
 
@@ -388,6 +397,9 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         );
 
         religion.AddBannedPlayer(playerUID, banEntry);
+        religion.Members.Remove(playerUID);
+        religion.MemberUIDs.Remove(playerUID);
+        Save(religion);
 
         var expiryText = expiryDays.HasValue ? $" for {expiryDays} days" : " permanently";
         _sapi.Logger.Notification(
@@ -408,6 +420,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         }
 
         var removed = religion.RemoveBannedPlayer(playerUID);
+        Save(religion);
 
         if (removed)
             _sapi.Logger.Notification($"[PantheonWars] Player {playerUID} unbanned from {religion.ReligionName}");
@@ -464,10 +477,16 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         // If there are other members, transfer founder to next member
         if (religion.GetMemberCount() > 0)
         {
-            var newFounder = religion.MemberUIDs[0];
-            religion.FounderUID = newFounder;
+            var newFounderUID = religion.MemberUIDs[0];
+            religion.FounderUID = newFounderUID;
+
+            // Update founder name and role
+            var newFounderName = religion.GetMemberName(newFounderUID);
+            religion.UpdateFounderName(newFounderName);
+            religion.MemberRoles[newFounderUID] = RoleDefaults.FOUNDER_ROLE_ID;
+
             _sapi.Logger.Notification(
-                $"[PantheonWars] Religion {religion.ReligionName} founder transferred to {newFounder}");
+                $"[PantheonWars] Religion {religion.ReligionName} founder transferred to {newFounderName}");
         }
     }
 

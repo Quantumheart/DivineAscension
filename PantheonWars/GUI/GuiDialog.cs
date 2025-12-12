@@ -35,9 +35,9 @@ public partial class GuiDialog : ModSystem
 
     private GuiDialogManager? _manager;
     private PantheonWarsSystem? _pantheonWarsSystem;
+    private ISoundManager? _soundManager;
     private Stopwatch? _stopwatch;
     private ImGuiViewportPtr _viewport;
-    private ISoundManager? _soundManager;
 
     public override bool ShouldLoad(EnumAppSide forSide)
     {
@@ -61,7 +61,7 @@ public partial class GuiDialog : ModSystem
         _capi.Input.RegisterHotKey("pantheonwarsblessings", "Show/Hide Blessing Dialog", GlKeys.G,
             HotkeyType.GUIOrOtherControls, shiftPressed: true);
         _capi.Input.SetHotKeyHandler("pantheonwarsblessings", OnToggleDialog);
-        
+
         // Initialize deity icon loader
         DeityIconLoader.Initialize(_capi);
 
@@ -123,13 +123,12 @@ public partial class GuiDialog : ModSystem
         if (!_state.IsReady)
         {
             // Request data from server
-            _pantheonWarsSystem!.UiService.RequestReligionList();
             return;
         }
 
+        _pantheonWarsSystem!.UiService.RequestReligionList();
         _state.IsOpen = true;
         _imguiModSystem?.Show();
-
     }
 
     /// <summary>
@@ -140,7 +139,7 @@ public partial class GuiDialog : ModSystem
         if (!_state.IsOpen) return;
 
         _state.IsOpen = false;
-        
+
         _capi!.Logger.Debug("[PantheonWars] Blessing Dialog closed");
     }
 

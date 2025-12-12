@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network;
 using PantheonWars.Systems.Interfaces;
@@ -15,11 +17,11 @@ namespace PantheonWars.Systems.Networking.Server;
 /// </summary>
 public class ReligionNetworkHandler : IServerNetworkHandler
 {
-    private readonly ICoreServerAPI _sapi;
-    private readonly IReligionManager _religionManager;
     private readonly IPlayerReligionDataManager _playerReligionDataManager;
-    private readonly IServerNetworkChannel _serverChannel;
+    private readonly IReligionManager _religionManager;
     private readonly IRoleManager _roleManager;
+    private readonly ICoreServerAPI _sapi;
+    private readonly IServerNetworkChannel _serverChannel;
 
     /// <summary>
     ///     Constructor for dependency injection
@@ -40,7 +42,6 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
     public void RegisterHandlers()
     {
-
         // Register handlers for religion dialog packets
         _serverChannel!.SetMessageHandler<ReligionListRequestPacket>(OnReligionListRequest);
         _serverChannel.SetMessageHandler<PlayerReligionInfoRequestPacket>(OnPlayerReligionInfoRequest);
@@ -108,8 +109,17 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             foreach (var memberUID in religion.MemberUIDs)
             {
                 var memberPlayerData = _playerReligionDataManager!.GetOrCreatePlayerData(memberUID);
+
+                // Use cached name from Members dictionary
+                var memberName = religion.GetMemberName(memberUID);
+
+                // Opportunistically update name if player is online
                 var memberPlayer = _sapi!.World.PlayerByUid(memberUID);
-                var memberName = memberPlayer?.PlayerName ?? memberUID;
+                if (memberPlayer != null)
+                {
+                    religion.UpdateMemberName(memberUID, memberPlayer.PlayerName);
+                    memberName = memberPlayer.PlayerName;
+                }
 
                 response.Members.Add(new PlayerReligionInfoResponsePacket.MemberInfo
                 {
@@ -268,7 +278,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
                 case "kick":
                     var religionForKick = _religionManager!.GetPlayerReligion(fromPlayer.PlayerUID);
-                    if (religionForKick != null && religionForKick.FounderUID == fromPlayer.PlayerUID)
+                    if (religionForKick != null &&
+                        religionForKick.HasPermission(fromPlayer.PlayerUID, RolePermissions.KICK_MEMBERS))
                     {
                         if (packet.TargetPlayerUID != fromPlayer.PlayerUID)
                         {
@@ -294,6 +305,21 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                                 };
                                 _serverChannel!.SendPacket(statePacket, kickedPlayer);
                             }
+
+                            // Send updated roles/members data to kicker to refresh UI
+                            var rolesResponse = new ReligionRolesResponse
+                            {
+                                Success = true,
+                                Roles = _roleManager!.GetReligionRoles(religionForKick.ReligionUID),
+                                MemberRoles = religionForKick.MemberRoles,
+                                MemberNames = new Dictionary<string, string>()
+                            };
+
+                            // Populate member names
+                            foreach (var uid in religionForKick.MemberUIDs)
+                                rolesResponse.MemberNames[uid] = religionForKick.GetMemberName(uid);
+
+                            _serverChannel!.SendPacket(rolesResponse, fromPlayer);
                         }
                         else
                         {
@@ -302,14 +328,15 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     }
                     else
                     {
-                        message = "Only the founder can kick members.";
+                        message = "You don't have permission to kick members.";
                     }
 
                     break;
 
                 case "ban":
                     var religionForBan = _religionManager!.GetPlayerReligion(fromPlayer.PlayerUID);
-                    if (religionForBan != null && religionForBan.IsFounder(fromPlayer.PlayerUID))
+                    if (religionForBan != null &&
+                        religionForBan.HasPermission(fromPlayer.PlayerUID, RolePermissions.BAN_PLAYERS))
                     {
                         if (packet.TargetPlayerUID != fromPlayer.PlayerUID)
                         {
@@ -365,6 +392,21 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                                 };
                                 _serverChannel!.SendPacket(statePacket, bannedPlayer);
                             }
+
+                            // Send updated roles/members data to banner to refresh UI
+                            var rolesResponse = new ReligionRolesResponse
+                            {
+                                Success = true,
+                                Roles = _roleManager!.GetReligionRoles(religionForBan.ReligionUID),
+                                MemberRoles = religionForBan.MemberRoles,
+                                MemberNames = new Dictionary<string, string>()
+                            };
+
+                            // Populate member names
+                            foreach (var uid in religionForBan.MemberUIDs)
+                                rolesResponse.MemberNames[uid] = religionForBan.GetMemberName(uid);
+
+                            _serverChannel!.SendPacket(rolesResponse, fromPlayer);
                         }
                         else
                         {
@@ -373,7 +415,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     }
                     else
                     {
-                        message = "Only the founder can ban members.";
+                        message = "You don't have permission to ban players.";
                     }
 
                     break;
@@ -646,8 +688,23 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 Success = true,
                 Roles = _roleManager.GetReligionRoles(packet.ReligionUID),
                 MemberRoles = religion.MemberRoles,
+                MemberNames = new Dictionary<string, string>(),
                 ErrorMessage = null
             };
+
+            // Populate member names from cached data
+            foreach (var uid in religion.MemberUIDs)
+            {
+                response.MemberNames[uid] = religion.GetMemberName(uid);
+
+                // Opportunistic update if online
+                var player = _sapi!.World.PlayerByUid(uid);
+                if (player != null)
+                {
+                    religion.UpdateMemberName(uid, player.PlayerName);
+                    response.MemberNames[uid] = player.PlayerName;
+                }
+            }
 
             _serverChannel!.SendPacket(response, fromPlayer);
         }

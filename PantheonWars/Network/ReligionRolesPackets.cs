@@ -27,6 +27,7 @@ public class ReligionRolesResponse
     [ProtoMember(2)] public List<RoleData> Roles { get; set; }
     [ProtoMember(3)] public Dictionary<string, string> MemberRoles { get; set; } // UID → RoleUID
     [ProtoMember(4)] public string ErrorMessage { get; set; } = string.Empty;
+    [ProtoMember(5)] public Dictionary<string, string> MemberNames { get; set; } = new(); // UID → PlayerName
 }
 
 // Create custom role
@@ -50,18 +51,18 @@ public class CreateRoleRequest
 [ProtoContract]
 public class CreateRoleResponse
 {
-    [ProtoMember(1)] public bool Success;
     [ProtoMember(2)] public RoleData? CreatedRole;
     [ProtoMember(3)] public string? ErrorMessage;
+    [ProtoMember(1)] public bool Success;
 }
 
 // Modify role permissions
 [ProtoContract]
 public class ModifyRolePermissionsRequest
 {
+    [ProtoMember(3)] public HashSet<string> Permissions;
     [ProtoMember(1)] public string ReligionUID;
     [ProtoMember(2)] public string RoleUID;
-    [ProtoMember(3)] public HashSet<string> Permissions;
 
     public ModifyRolePermissionsRequest()
     {
@@ -78,9 +79,9 @@ public class ModifyRolePermissionsRequest
 [ProtoContract]
 public class ModifyRolePermissionsResponse
 {
+    [ProtoMember(3)] public string? ErrorMessage;
     [ProtoMember(1)] public bool Success;
     [ProtoMember(2)] public RoleData? UpdatedRole;
-    [ProtoMember(3)] public string? ErrorMessage;
 
     public ModifyRolePermissionsResponse()
     {
@@ -99,15 +100,15 @@ public class ModifyRolePermissionsResponse
 public class AssignRoleRequest(string religionUid, string targetPlayerUid, string roleUid)
 {
     [ProtoMember(1)] public string ReligionUID = religionUid;
-    [ProtoMember(2)] public string TargetPlayerUID = targetPlayerUid;
     [ProtoMember(3)] public string RoleUID = roleUid;
+    [ProtoMember(2)] public string TargetPlayerUID = targetPlayerUid;
 }
 
 [ProtoContract]
 public class AssignRoleResponse
 {
-    [ProtoMember(1)] public bool Success;
     [ProtoMember(2)] public string? ErrorMessage;
+    [ProtoMember(1)] public bool Success;
 
     public AssignRoleResponse()
     {
@@ -141,16 +142,16 @@ public class DeleteRoleRequest
 [ProtoContract]
 public class DeleteRoleResponse
 {
-    [ProtoMember(1)] public bool Success;
     [ProtoMember(2)] public string? ErrorMessage;
+    [ProtoMember(1)] public bool Success;
 }
 
 // Transfer founder
 [ProtoContract]
 public class TransferFounderRequest
 {
-    [ProtoMember(1)] public string ReligionUID;
     [ProtoMember(2)] public string NewFounderUID;
+    [ProtoMember(1)] public string ReligionUID;
 
     public TransferFounderRequest()
     {
@@ -166,8 +167,8 @@ public class TransferFounderRequest
 [ProtoContract]
 public class TransferFounderResponse
 {
-    [ProtoMember(1)] public bool Success;
     [ProtoMember(2)] public string? ErrorMessage;
+    [ProtoMember(1)] public bool Success;
 
     public TransferFounderResponse()
     {

@@ -467,7 +467,8 @@ internal static class ReligionRolesRenderer
         else
             foreach (var memberUID in membersWithRole)
             {
-                TextRenderer.DrawInfoText(drawList, $"• {memberUID}", dlgX + padding, currentY,
+                var memberName = viewModel.MemberNames.TryGetValue(memberUID, out var name) ? name : memberUID;
+                TextRenderer.DrawInfoText(drawList, $"• {memberName}", dlgX + padding, currentY,
                     dialogWidth - padding * 2);
                 currentY += 20f;
             }

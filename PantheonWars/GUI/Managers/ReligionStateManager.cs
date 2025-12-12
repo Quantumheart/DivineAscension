@@ -29,8 +29,19 @@ namespace PantheonWars.GUI.Managers;
 public class ReligionStateManager : IReligionStateManager
 {
     private readonly ICoreClientAPI _coreClientApi;
-    private readonly IUiService _uiService;
     private readonly ISoundManager _soundManager;
+    private readonly IUiService _uiService;
+
+    public ReligionStateManager(ICoreClientAPI coreClientApi, IUiService uiService, ISoundManager soundManager)
+    {
+        _coreClientApi = coreClientApi ?? throw new ArgumentNullException(nameof(coreClientApi));
+        _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
+        _soundManager = soundManager ?? throw new ArgumentNullException(nameof(soundManager));
+    }
+
+    // UI-only adapters (fake or real). Null when not used.
+    internal IReligionMemberProvider? MembersProvider { get; set; }
+    internal IReligionProvider? ReligionsProvider { get; private set; }
 
     public ReligionTabState State { get; } = new();
     public string? CurrentReligionUID { get; set; }
@@ -43,17 +54,6 @@ public class ReligionStateManager : IReligionStateManager
     public int CurrentFavor { get; set; }
     public int CurrentPrestige { get; set; }
     public int TotalFavorEarned { get; set; }
-    
-    // UI-only adapters (fake or real). Null when not used.
-    internal IReligionMemberProvider? MembersProvider { get; set; }
-    internal IReligionProvider? ReligionsProvider { get; private set; }
-
-    public ReligionStateManager(ICoreClientAPI coreClientApi, IUiService uiService, ISoundManager soundManager)
-    {
-        _coreClientApi = coreClientApi ?? throw new ArgumentNullException(nameof(coreClientApi));
-        _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
-        _soundManager = soundManager ?? throw new ArgumentNullException(nameof(soundManager));
-    }
 
     public void Initialize(string? id, DeityType deity, string? religionName, int favorRank = 0,
         int prestigeRank = 0)
@@ -82,7 +82,7 @@ public class ReligionStateManager : IReligionStateManager
     {
         return !string.IsNullOrEmpty(CurrentReligionUID) && CurrentDeity != DeityType.None;
     }
-    
+
 
     public PlayerFavorProgress GetPlayerFavorProgress()
     {
@@ -154,24 +154,6 @@ public class ReligionStateManager : IReligionStateManager
         if (deityFilter != null) _uiService.RequestReligionList(deityFilter);
     }
 
-    /// <summary>
-    /// Configure a UI-only religion data provider (fake or real). When set, RequestReligionList()
-    /// uses it instead of performing a network call.
-    /// </summary>
-    internal void UseReligionProvider(IReligionProvider provider)
-    {
-        ReligionsProvider = provider;
-    }
-
-    /// <summary>
-    /// Refresh the current religion list from the configured provider (if any).
-    /// </summary>
-    public void RefreshReligionsFromProvider()
-    {
-        ReligionsProvider?.Refresh();
-        RequestReligionList(State.BrowseState.DeityFilter);
-    }
-
     public void RequestPlayerReligionInfo()
     {
         State.InfoState.Loading = true;
@@ -224,42 +206,6 @@ public class ReligionStateManager : IReligionStateManager
     }
 
     /// <summary>
-    /// Draws the religion browse tab using the refactored renderer (State → ViewModel → Renderer → Events → State)
-    /// </summary>
-    public void DrawReligionBrowse(float x, float y, float width, float height)
-    {
-        // Map State → ViewModel
-        var deityFilters = new[] { "All", "Khoras", "Lysa", "Aethra", "Gaia" };
-        var effectiveFilter = string.IsNullOrEmpty(State.BrowseState.DeityFilter) ? "All" : State.BrowseState.DeityFilter;
-
-        var viewModel = new ReligionBrowseViewModel(
-            deityFilters: deityFilters,
-            currentDeityFilter: effectiveFilter,
-            religions: State.BrowseState.AllReligions,
-            isLoading: State.BrowseState.IsBrowseLoading,
-            scrollY: State.BrowseState.BrowseScrollY,
-            selectedReligionUID: State.BrowseState.SelectedReligionUID,
-            userHasReligion: HasReligion(),
-            x: x,
-            y: y,
-            width: width,
-            height: height);
-
-        var drawList = ImGui.GetWindowDrawList();
-        var result = ReligionBrowseRenderer.Draw(viewModel, drawList);
-
-        // Process events (Events → State + side effects)
-        ProcessBrowseEvents(result.Events);
-
-        // Tooltip as side effect (not part of pure renderer output, but uses returned hover info)
-        if (result.HoveredReligion != null)
-        {
-            var mousePos = ImGui.GetMousePos();
-            ReligionListRenderer.DrawTooltip(result.HoveredReligion, mousePos.X, mousePos.Y, width, height);
-        }
-    }
-
-    /// <summary>
     /// Draws the religion invites tab using the refactored renderer
     /// Builds ViewModel, calls pure renderer, processes events
     /// </summary>
@@ -303,6 +249,61 @@ public class ReligionStateManager : IReligionStateManager
 
         // Process events (side effects)
         ProcessCreateEvents(result.Events);
+    }
+
+    /// <summary>
+    ///     Configure a UI-only religion data provider (fake or real). When set, RequestReligionList()
+    ///     uses it instead of performing a network call.
+    /// </summary>
+    internal void UseReligionProvider(IReligionProvider provider)
+    {
+        ReligionsProvider = provider;
+    }
+
+    /// <summary>
+    ///     Refresh the current religion list from the configured provider (if any).
+    /// </summary>
+    public void RefreshReligionsFromProvider()
+    {
+        ReligionsProvider?.Refresh();
+        RequestReligionList(State.BrowseState.DeityFilter);
+    }
+
+    /// <summary>
+    ///     Draws the religion browse tab using the refactored renderer (State → ViewModel → Renderer → Events → State)
+    /// </summary>
+    public void DrawReligionBrowse(float x, float y, float width, float height)
+    {
+        // Map State → ViewModel
+        var deityFilters = new[] { "All", "Khoras", "Lysa", "Aethra", "Gaia" };
+        var effectiveFilter =
+            string.IsNullOrEmpty(State.BrowseState.DeityFilter) ? "All" : State.BrowseState.DeityFilter;
+
+        var viewModel = new ReligionBrowseViewModel(
+            deityFilters,
+            effectiveFilter,
+            State.BrowseState.AllReligions,
+            State.BrowseState.IsBrowseLoading,
+            State.BrowseState.BrowseScrollY,
+            State.BrowseState.SelectedReligionUID,
+            HasReligion(),
+            x,
+            y,
+            width,
+            height);
+
+        var drawList = ImGui.GetWindowDrawList();
+        var result = ReligionBrowseRenderer.Draw(viewModel, drawList);
+
+        // Process events (Events → State + side effects)
+        ProcessBrowseEvents(result.Events);
+
+        // Tooltip as side effect (not part of pure renderer output, but uses returned hover info)
+        if (result.HoveredReligion != null)
+        {
+            var mousePos = ImGui.GetMousePos();
+            ReligionListRenderer.DrawTooltip(result.HoveredReligion, mousePos.X, mousePos.Y, width, height);
+        }
     }
 
     /// <summary>
@@ -388,7 +389,7 @@ public class ReligionStateManager : IReligionStateManager
                             State.ErrorState.BrowseError = null;
                             break;
                         case SubTab.Info:
-                            _uiService.RequestPlayerReligionInfo();
+                            RequestPlayerReligionInfo();
                             State.ErrorState.InfoError = null;
                             break;
                         case SubTab.Activity:
@@ -409,6 +410,7 @@ public class ReligionStateManager : IReligionStateManager
                             _uiService.RequestReligionRoles(CurrentReligionUID ?? string.Empty);
                             break;
                     }
+
                     break;
                 case SubTabEvent.DismissActionError:
                     State.ErrorState.LastActionError = null;
@@ -426,6 +428,7 @@ public class ReligionStateManager : IReligionStateManager
                             State.ErrorState.CreateError = null;
                             break;
                     }
+
                     break;
                 case SubTabEvent.RetryRequested(var subTab):
                     switch (subTab)
@@ -437,6 +440,7 @@ public class ReligionStateManager : IReligionStateManager
                             RequestPlayerReligionInfo();
                             break;
                     }
+
                     break;
             }
         }
@@ -474,7 +478,7 @@ public class ReligionStateManager : IReligionStateManager
     /// </summary>
     private void DrawReligionActivity(float x, float contentY, float width, float contentHeight)
     {
-        ReligionActivityViewModel vm = new  ReligionActivityViewModel(x,  contentY, width, contentHeight);
+        var vm = new ReligionActivityViewModel(x, contentY, width, contentHeight);
         var result = ReligionActivityRenderer.Draw(vm);
         ProcessActivityEvents(result.Events);
     }
@@ -533,8 +537,10 @@ public class ReligionStateManager : IReligionStateManager
                         {
                             info.Description = sd.Text;
                         }
+
                         State.InfoState.Description = sd.Text;
                     }
+
                     break;
 
                 // Invite flow
@@ -548,6 +554,7 @@ public class ReligionStateManager : IReligionStateManager
                         RequestReligionAction("invite", religionId, ic.PlayerName);
                         State.InfoState.InvitePlayerName = string.Empty;
                     }
+
                     break;
 
                 // Membership actions
@@ -557,6 +564,7 @@ public class ReligionStateManager : IReligionStateManager
                         _soundManager.PlayClick();
                         RequestReligionAction("leave", religionId);
                     }
+
                     break;
 
                 // Disband flow
@@ -572,6 +580,7 @@ public class ReligionStateManager : IReligionStateManager
                         _soundManager.PlayClick();
                         RequestReligionAction("disband", religionId);
                     }
+
                     State.InfoState.ShowDisbandConfirm = false;
                     break;
 
@@ -590,6 +599,7 @@ public class ReligionStateManager : IReligionStateManager
                         _soundManager.PlayClick();
                         RequestReligionAction("kick", religionId, kc.PlayerUID);
                     }
+
                     State.InfoState.KickConfirmPlayerUID = null;
                     State.InfoState.KickConfirmPlayerName = null;
                     break;
@@ -609,6 +619,7 @@ public class ReligionStateManager : IReligionStateManager
                         _soundManager.PlayClick();
                         RequestReligionAction("ban", religionId, bc.PlayerUID);
                     }
+
                     State.InfoState.BanConfirmPlayerUID = null;
                     State.InfoState.BanConfirmPlayerName = null;
                     break;
@@ -620,11 +631,12 @@ public class ReligionStateManager : IReligionStateManager
                         _soundManager.PlayClick();
                         RequestReligionAction("unban", religionId, ub.PlayerUID);
                     }
+
                     break;
             }
         }
     }
-    
+
     /// <summary>
     /// Convert network packet data to view model data
     /// </summary>
@@ -678,7 +690,7 @@ public class ReligionStateManager : IReligionStateManager
 
                 case CreateEvent.DeityChanged e:
                     State.CreateState.DeityName = e.NewDeity;
-                    
+
                     break;
 
                 case CreateEvent.IsPublicChanged e:
@@ -771,6 +783,7 @@ public class ReligionStateManager : IReligionStateManager
                         _soundManager.PlayClick();
                         RequestReligionAction("join", e.ReligionUID);
                     }
+
                     break;
             }
         }

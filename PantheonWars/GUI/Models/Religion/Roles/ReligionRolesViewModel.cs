@@ -79,6 +79,9 @@ public readonly struct ReligionRolesViewModel(
     public IReadOnlyDictionary<string, string> MemberRoles =>
         (IReadOnlyDictionary<string, string>?)RolesData?.MemberRoles ?? new Dictionary<string, string>();
 
+    public IReadOnlyDictionary<string, string> MemberNames =>
+        (IReadOnlyDictionary<string, string>?)RolesData?.MemberNames ?? new Dictionary<string, string>();
+
     /// <summary>
     ///     Gets the number of members assigned to a specific role.
     /// </summary>
