@@ -820,199 +820,255 @@ public class ReligionStateManager : IReligionStateManager
     }
 
     /// <summary>
-    ///     Draws the religion roles tab using the refactored renderer
-    ///     Builds ViewModel, calls pure renderer, processes events
+    ///     Draws the religion roles tab using conditional rendering pattern
+    ///     Routes to browse or detail view based on state
     /// </summary>
     public void DrawReligionRoles(float x, float y, float width, float height)
     {
-        // Build view model from state
-        var viewModel = new ReligionRolesViewModel(
+        // Check if viewing role details (conditional rendering pattern)
+        if (!string.IsNullOrEmpty(State.RolesState.DetailState.ViewingRoleUID))
+        {
+            DrawRoleDetail(x, y, width, height);
+            return;
+        }
+
+        // Otherwise, draw browse view
+        DrawRolesBrowse(x, y, width, height);
+    }
+
+    /// <summary>
+    ///     Draws the roles browse view (role cards list)
+    /// </summary>
+    private void DrawRolesBrowse(float x, float y, float width, float height)
+    {
+        // Build browse view model
+        var viewModel = new ReligionRolesBrowseViewModel(
             State.RolesState.Loading,
             HasReligion(),
             CurrentReligionUID ?? string.Empty,
             _coreClientApi.World.Player?.PlayerUID ?? string.Empty,
             State.RolesState.RolesData,
-            State.RolesState.ShowRoleEditor,
-            State.RolesState.EditingRoleUID,
-            State.RolesState.EditingRoleName,
-            State.RolesState.EditingPermissions,
-            State.RolesState.ShowCreateRoleDialog,
-            State.RolesState.NewRoleName,
-            State.RolesState.ShowDeleteConfirm,
-            State.RolesState.DeleteRoleUID,
-            State.RolesState.DeleteRoleName,
-            State.RolesState.ShowRoleMembersDialog,
-            State.RolesState.ViewingRoleUID,
-            State.RolesState.ViewingRoleName,
-            State.RolesState.OpenAssignRoleDropdownMemberUID,
-            State.RolesState.ShowAssignRoleConfirm,
-            State.RolesState.AssignRoleConfirmMemberUID,
-            State.RolesState.AssignRoleConfirmMemberName,
-            State.RolesState.AssignRoleConfirmCurrentRoleUID,
-            State.RolesState.AssignRoleConfirmNewRoleUID,
-            State.RolesState.AssignRoleConfirmNewRoleName,
+            State.RolesState.BrowseState.ShowRoleEditor,
+            State.RolesState.BrowseState.EditingRoleUID,
+            State.RolesState.BrowseState.EditingRoleName,
+            State.RolesState.BrowseState.EditingPermissions,
+            State.RolesState.BrowseState.ShowCreateRoleDialog,
+            State.RolesState.BrowseState.NewRoleName,
+            State.RolesState.BrowseState.ShowDeleteConfirm,
+            State.RolesState.BrowseState.DeleteRoleUID,
+            State.RolesState.BrowseState.DeleteRoleName,
             x, y, width, height,
-            State.RolesState.ScrollY
+            State.RolesState.BrowseState.ScrollY
         );
 
-        // Render (pure function call)
+        // Render
         var drawList = ImGui.GetWindowDrawList();
-        var result = ReligionRolesRenderer.Draw(viewModel, drawList);
+        var result = ReligionRolesBrowseRenderer.Draw(viewModel, drawList);
 
-        // Process events (side effects)
-        ProcessRolesEvents(result.Events);
+        // Process events
+        ProcessRolesBrowseEvents(result.Events);
     }
 
     /// <summary>
-    ///     Process events emitted by the ReligionRolesRenderer
+    ///     Draws the role detail view (viewing members with a specific role)
+    /// </summary>
+    private void DrawRoleDetail(float x, float y, float width, float height)
+    {
+        // Build detail view model
+        var viewModel = new ReligionRoleDetailViewModel(
+            State.RolesState.DetailState.ViewingRoleUID ?? string.Empty,
+            State.RolesState.DetailState.ViewingRoleName ?? string.Empty,
+            State.RolesState.Loading,
+            _coreClientApi.World.Player?.PlayerUID ?? string.Empty,
+            State.RolesState.RolesData,
+            State.RolesState.DetailState.OpenAssignRoleDropdownMemberUID,
+            State.RolesState.DetailState.ShowAssignRoleConfirm,
+            State.RolesState.DetailState.AssignRoleConfirmMemberUID,
+            State.RolesState.DetailState.AssignRoleConfirmMemberName,
+            State.RolesState.DetailState.AssignRoleConfirmCurrentRoleUID,
+            State.RolesState.DetailState.AssignRoleConfirmNewRoleUID,
+            State.RolesState.DetailState.AssignRoleConfirmNewRoleName,
+            x, y, width, height,
+            State.RolesState.DetailState.MemberScrollY
+        );
+
+        // Render
+        var drawList = ImGui.GetWindowDrawList();
+        var result = ReligionRoleDetailRenderer.Draw(viewModel, drawList);
+
+        // Process events
+        ProcessRoleDetailEvents(result.Events);
+    }
+
+    /// <summary>
+    ///     Process events emitted by the ReligionRolesBrowseRenderer
     ///     Maps pure UI intents to state updates and side effects
     /// </summary>
-    private void ProcessRolesEvents(IReadOnlyList<RolesEvent>? events)
+    private void ProcessRolesBrowseEvents(IReadOnlyList<RolesBrowseEvent>? events)
     {
         if (events == null || events.Count == 0) return;
 
         foreach (var ev in events)
             switch (ev)
             {
-                case RolesEvent.ScrollChanged e:
-                    State.RolesState.ScrollY = e.NewScrollY;
+                case RolesBrowseEvent.ViewRoleDetailsClicked e:
+                    // Navigate to detail view
+                    State.RolesState.DetailState.ViewingRoleUID = e.RoleUID;
+                    State.RolesState.DetailState.ViewingRoleName = e.RoleName;
+                    State.RolesState.DetailState.MemberScrollY = 0f;
                     break;
 
-                case RolesEvent.CreateRoleOpen:
-                    State.RolesState.ShowCreateRoleDialog = true;
-                    State.RolesState.NewRoleName = string.Empty;
+                case RolesBrowseEvent.ScrollChanged e:
+                    State.RolesState.BrowseState.ScrollY = e.NewScrollY;
                     break;
 
-                case RolesEvent.CreateRoleCancel:
-                    State.RolesState.ShowCreateRoleDialog = false;
-                    State.RolesState.NewRoleName = string.Empty;
+                case RolesBrowseEvent.CreateRoleOpen:
+                    State.RolesState.BrowseState.ShowCreateRoleDialog = true;
+                    State.RolesState.BrowseState.NewRoleName = string.Empty;
                     break;
 
-                case RolesEvent.CreateRoleNameChanged e:
-                    State.RolesState.NewRoleName = e.RoleName;
+                case RolesBrowseEvent.CreateRoleCancel:
+                    State.RolesState.BrowseState.ShowCreateRoleDialog = false;
+                    State.RolesState.BrowseState.NewRoleName = string.Empty;
                     break;
 
-                case RolesEvent.CreateRoleConfirm e:
-                    State.RolesState.ShowCreateRoleDialog = false;
+                case RolesBrowseEvent.CreateRoleNameChanged e:
+                    State.RolesState.BrowseState.NewRoleName = e.RoleName;
+                    break;
+
+                case RolesBrowseEvent.CreateRoleConfirm e:
+                    State.RolesState.BrowseState.ShowCreateRoleDialog = false;
                     _uiService.RequestCreateRole(CurrentReligionUID ?? string.Empty, e.RoleName);
                     _soundManager.PlayClick();
                     break;
 
-                case RolesEvent.EditRoleOpen e:
+                case RolesBrowseEvent.EditRoleOpen e:
                     var role = State.RolesState.RolesData?.Roles?.FirstOrDefault(r => r.RoleUID == e.RoleUID);
                     if (role != null)
                     {
-                        State.RolesState.ShowRoleEditor = true;
-                        State.RolesState.EditingRoleUID = e.RoleUID;
-                        State.RolesState.EditingRoleName = role.RoleName;
-                        State.RolesState.EditingPermissions = new HashSet<string>(role.Permissions);
+                        State.RolesState.BrowseState.ShowRoleEditor = true;
+                        State.RolesState.BrowseState.EditingRoleUID = e.RoleUID;
+                        State.RolesState.BrowseState.EditingRoleName = role.RoleName;
+                        State.RolesState.BrowseState.EditingPermissions = new HashSet<string>(role.Permissions);
                     }
 
                     break;
 
-                case RolesEvent.EditRoleCancel:
-                    State.RolesState.ShowRoleEditor = false;
-                    State.RolesState.EditingRoleUID = null;
-                    State.RolesState.EditingRoleName = string.Empty;
-                    State.RolesState.EditingPermissions.Clear();
+                case RolesBrowseEvent.EditRoleCancel:
+                    State.RolesState.BrowseState.ShowRoleEditor = false;
+                    State.RolesState.BrowseState.EditingRoleUID = null;
+                    State.RolesState.BrowseState.EditingRoleName = string.Empty;
+                    State.RolesState.BrowseState.EditingPermissions.Clear();
                     break;
 
-                case RolesEvent.EditRoleNameChanged e:
-                    State.RolesState.EditingRoleName = e.RoleName;
+                case RolesBrowseEvent.EditRoleNameChanged e:
+                    State.RolesState.BrowseState.EditingRoleName = e.RoleName;
                     break;
 
-                case RolesEvent.EditRolePermissionToggled e:
+                case RolesBrowseEvent.EditRolePermissionToggled e:
                     if (e.Enabled)
-                        State.RolesState.EditingPermissions.Add(e.Permission);
+                        State.RolesState.BrowseState.EditingPermissions.Add(e.Permission);
                     else
-                        State.RolesState.EditingPermissions.Remove(e.Permission);
+                        State.RolesState.BrowseState.EditingPermissions.Remove(e.Permission);
                     break;
 
-                case RolesEvent.EditRoleSave e:
-                    State.RolesState.ShowRoleEditor = false;
+                case RolesBrowseEvent.EditRoleSave e:
+                    State.RolesState.BrowseState.ShowRoleEditor = false;
                     _uiService.RequestModifyRolePermissions(CurrentReligionUID ?? string.Empty, e.RoleUID,
                         e.Permissions);
                     _soundManager.PlayClick();
-                    State.RolesState.EditingRoleUID = null;
-                    State.RolesState.EditingRoleName = string.Empty;
-                    State.RolesState.EditingPermissions.Clear();
+                    State.RolesState.BrowseState.EditingRoleUID = null;
+                    State.RolesState.BrowseState.EditingRoleName = string.Empty;
+                    State.RolesState.BrowseState.EditingPermissions.Clear();
                     break;
 
-                case RolesEvent.DeleteRoleOpen e:
-                    State.RolesState.ShowDeleteConfirm = true;
-                    State.RolesState.DeleteRoleUID = e.RoleUID;
-                    State.RolesState.DeleteRoleName = e.RoleName;
+                case RolesBrowseEvent.DeleteRoleOpen e:
+                    State.RolesState.BrowseState.ShowDeleteConfirm = true;
+                    State.RolesState.BrowseState.DeleteRoleUID = e.RoleUID;
+                    State.RolesState.BrowseState.DeleteRoleName = e.RoleName;
                     break;
 
-                case RolesEvent.DeleteRoleConfirm e:
-                    State.RolesState.ShowDeleteConfirm = false;
+                case RolesBrowseEvent.DeleteRoleConfirm e:
+                    State.RolesState.BrowseState.ShowDeleteConfirm = false;
                     _uiService.RequestDeleteRole(CurrentReligionUID ?? string.Empty, e.RoleUID);
                     _soundManager.PlayClick();
-                    State.RolesState.DeleteRoleUID = null;
-                    State.RolesState.DeleteRoleName = null;
+                    State.RolesState.BrowseState.DeleteRoleUID = null;
+                    State.RolesState.BrowseState.DeleteRoleName = null;
                     break;
 
-                case RolesEvent.DeleteRoleCancel:
-                    State.RolesState.ShowDeleteConfirm = false;
-                    State.RolesState.DeleteRoleUID = null;
-                    State.RolesState.DeleteRoleName = null;
+                case RolesBrowseEvent.DeleteRoleCancel:
+                    State.RolesState.BrowseState.ShowDeleteConfirm = false;
+                    State.RolesState.BrowseState.DeleteRoleUID = null;
+                    State.RolesState.BrowseState.DeleteRoleName = null;
                     break;
 
-                case RolesEvent.ViewRoleMembersOpen e:
-                    State.RolesState.ShowRoleMembersDialog = true;
-                    State.RolesState.ViewingRoleUID = e.RoleUID;
-                    State.RolesState.ViewingRoleName = e.RoleName;
+                case RolesBrowseEvent.RefreshRequested:
+                    State.RolesState.Loading = true;
+                    _uiService.RequestReligionRoles(CurrentReligionUID ?? string.Empty);
+                    break;
+            }
+    }
+
+    /// <summary>
+    ///     Process events emitted by the ReligionRoleDetailRenderer
+    ///     Maps pure UI intents to state updates and side effects
+    /// </summary>
+    private void ProcessRoleDetailEvents(IReadOnlyList<RoleDetailEvent>? events)
+    {
+        if (events == null || events.Count == 0) return;
+
+        foreach (var ev in events)
+            switch (ev)
+            {
+                case RoleDetailEvent.BackToRolesClicked:
+                    // Navigate back to browse view
+                    State.RolesState.DetailState.ViewingRoleUID = null;
+                    State.RolesState.DetailState.ViewingRoleName = null;
+                    State.RolesState.DetailState.Reset();
                     break;
 
-                case RolesEvent.ViewRoleMembersClose:
-                    State.RolesState.ShowRoleMembersDialog = false;
-                    State.RolesState.ViewingRoleUID = null;
-                    State.RolesState.ViewingRoleName = null;
+                case RoleDetailEvent.MemberScrollChanged e:
+                    State.RolesState.DetailState.MemberScrollY = e.NewScrollY;
                     break;
 
-                case RolesEvent.AssignRoleDropdownToggled e:
+                case RoleDetailEvent.AssignRoleDropdownToggled e:
                     // Only one dropdown open at a time
-                    State.RolesState.OpenAssignRoleDropdownMemberUID = e.IsOpen ? e.MemberUID : null;
+                    State.RolesState.DetailState.OpenAssignRoleDropdownMemberUID = e.IsOpen ? e.MemberUID : null;
                     break;
 
-                case RolesEvent.AssignRoleConfirmOpen e:
-                    State.RolesState.ShowAssignRoleConfirm = true;
-                    State.RolesState.AssignRoleConfirmMemberUID = e.MemberUID;
-                    State.RolesState.AssignRoleConfirmMemberName = e.MemberName;
-                    State.RolesState.AssignRoleConfirmCurrentRoleUID = e.CurrentRoleUID;
-                    State.RolesState.AssignRoleConfirmNewRoleUID = e.NewRoleUID;
-                    State.RolesState.AssignRoleConfirmNewRoleName = e.NewRoleName;
-                    State.RolesState.OpenAssignRoleDropdownMemberUID = null; // Close dropdown
+                case RoleDetailEvent.AssignRoleConfirmOpen e:
+                    State.RolesState.DetailState.ShowAssignRoleConfirm = true;
+                    State.RolesState.DetailState.AssignRoleConfirmMemberUID = e.MemberUID;
+                    State.RolesState.DetailState.AssignRoleConfirmMemberName = e.MemberName;
+                    State.RolesState.DetailState.AssignRoleConfirmCurrentRoleUID = e.CurrentRoleUID;
+                    State.RolesState.DetailState.AssignRoleConfirmNewRoleUID = e.NewRoleUID;
+                    State.RolesState.DetailState.AssignRoleConfirmNewRoleName = e.NewRoleName;
+                    State.RolesState.DetailState.OpenAssignRoleDropdownMemberUID = null; // Close dropdown
                     break;
 
-                case RolesEvent.AssignRoleConfirm e:
-                    State.RolesState.ShowAssignRoleConfirm = false;
+                case RoleDetailEvent.AssignRoleConfirm e:
+                    State.RolesState.DetailState.ShowAssignRoleConfirm = false;
                     _uiService.RequestAssignRole(
                         CurrentReligionUID ?? string.Empty,
                         e.MemberUID,
                         e.NewRoleUID);
                     _soundManager.PlayClick();
                     // Clear confirmation state
-                    State.RolesState.AssignRoleConfirmMemberUID = null;
-                    State.RolesState.AssignRoleConfirmMemberName = null;
-                    State.RolesState.AssignRoleConfirmCurrentRoleUID = null;
-                    State.RolesState.AssignRoleConfirmNewRoleUID = null;
-                    State.RolesState.AssignRoleConfirmNewRoleName = null;
+                    State.RolesState.DetailState.AssignRoleConfirmMemberUID = null;
+                    State.RolesState.DetailState.AssignRoleConfirmMemberName = null;
+                    State.RolesState.DetailState.AssignRoleConfirmCurrentRoleUID = null;
+                    State.RolesState.DetailState.AssignRoleConfirmNewRoleUID = null;
+                    State.RolesState.DetailState.AssignRoleConfirmNewRoleName = null;
                     break;
 
-                case RolesEvent.AssignRoleCancel:
-                    State.RolesState.ShowAssignRoleConfirm = false;
+                case RoleDetailEvent.AssignRoleCancel:
+                    State.RolesState.DetailState.ShowAssignRoleConfirm = false;
                     // Clear confirmation state
-                    State.RolesState.AssignRoleConfirmMemberUID = null;
-                    State.RolesState.AssignRoleConfirmMemberName = null;
-                    State.RolesState.AssignRoleConfirmCurrentRoleUID = null;
-                    State.RolesState.AssignRoleConfirmNewRoleUID = null;
-                    State.RolesState.AssignRoleConfirmNewRoleName = null;
-                    break;
-
-                case RolesEvent.RefreshRequested:
-                    State.RolesState.Loading = true;
-                    _uiService.RequestReligionRoles(CurrentReligionUID ?? string.Empty);
+                    State.RolesState.DetailState.AssignRoleConfirmMemberUID = null;
+                    State.RolesState.DetailState.AssignRoleConfirmMemberName = null;
+                    State.RolesState.DetailState.AssignRoleConfirmCurrentRoleUID = null;
+                    State.RolesState.DetailState.AssignRoleConfirmNewRoleUID = null;
+                    State.RolesState.DetailState.AssignRoleConfirmNewRoleName = null;
                     break;
             }
     }
