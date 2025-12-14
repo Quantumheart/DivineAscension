@@ -40,7 +40,7 @@ public static class PantheonWarsSystemInitializer
         var religionManager = new ReligionManager(api);
         religionManager.Initialize();
 
-        var civilizationManager = new CivilizationManager(api, religionManager, deityRegistry);
+        var civilizationManager = new CivilizationManager(api, religionManager);
         civilizationManager.Initialize();
 
         var playerReligionDataManager = new PlayerReligionDataManager(api, religionManager);

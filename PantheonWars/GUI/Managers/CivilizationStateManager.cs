@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using ImGuiNET;
 using PantheonWars.GUI.Events.Civilization;
 using PantheonWars.GUI.Interfaces;
@@ -23,10 +24,10 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     private readonly ICoreClientAPI _coreClientApi =
         coreClientApi ?? throw new ArgumentNullException(nameof(coreClientApi));
 
-    private readonly IUiService _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
-
     private readonly ISoundManager
         _soundManager = soundManager ?? throw new ArgumentNullException(nameof(soundManager));
+
+    private readonly IUiService _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
 
     private CivilizationTabState State { get; } = new();
 
@@ -160,7 +161,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     /// <summary>
     ///     Main EDA orchestrator for Civilization tab: builds ViewModels, calls renderers, processes events
     /// </summary>
-    public void DrawCivilizationTab(float x, float y, float width, float height)
+    internal void DrawCivilizationTab(float x, float y, float width, float height)
     {
         // Build tab ViewModel from state
         var tabVm = new CivilizationTabViewModel(
@@ -206,6 +207,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
     #region Sub-Renderer Orchestrators
 
+    [ExcludeFromCodeCoverage]
     private void DrawCivilizationBrowse(float x, float y, float width, float height)
     {
         // Check if viewing details (overlay mode)
@@ -248,6 +250,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         ProcessBrowseEvents(result.Events);
     }
 
+    [ExcludeFromCodeCoverage]
     private void DrawCivilizationDetail(float x, float y, float width, float height)
     {
         var details = State.DetailState.ViewingCivilizationDetails;
@@ -276,6 +279,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         ProcessDetailEvents(result.Events);
     }
 
+    [ExcludeFromCodeCoverage]
     private void DrawCivilizationInfo(float x, float y, float width, float height)
     {
         var civ = State.InfoState.MyCivilization;
@@ -329,6 +333,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         ProcessInvitesEvents(result.Events);
     }
 
+    [ExcludeFromCodeCoverage]
     private void DrawCivilizationCreate(float x, float y, float width, float height)
     {
         // Build ViewModel
@@ -354,7 +359,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
     #region Event Processors
 
-    private void ProcessTabEvents(IReadOnlyList<SubTabEvent> events)
+    internal void ProcessTabEvents(IReadOnlyList<SubTabEvent> events)
     {
         foreach (var evt in events)
             switch (evt)
@@ -427,7 +432,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             }
     }
 
-    private void ProcessBrowseEvents(IReadOnlyList<BrowseEvent> events)
+    internal void ProcessBrowseEvents(IReadOnlyList<BrowseEvent> events)
     {
         foreach (var evt in events)
             switch (evt)
@@ -458,7 +463,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             }
     }
 
-    private void ProcessDetailEvents(IReadOnlyList<DetailEvent> events)
+    internal void ProcessDetailEvents(IReadOnlyList<DetailEvent> events)
     {
         foreach (var evt in events)
             switch (evt)
@@ -479,7 +484,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             }
     }
 
-    private void ProcessInfoEvents(IReadOnlyList<InfoEvent> events)
+    internal void ProcessInfoEvents(IReadOnlyList<InfoEvent> events)
     {
         var civ = State.InfoState.MyCivilization;
         var civId = civ?.CivId ?? string.Empty;
@@ -549,7 +554,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             }
     }
 
-    private void ProcessInvitesEvents(IReadOnlyList<InvitesEvent> events)
+    internal void ProcessInvitesEvents(IReadOnlyList<InvitesEvent> events)
     {
         foreach (var evt in events)
             switch (evt)
@@ -569,7 +574,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             }
     }
 
-    private void ProcessCreateEvents(IReadOnlyList<CreateEvent> events)
+    internal void ProcessCreateEvents(IReadOnlyList<CreateEvent> events)
     {
         foreach (var evt in events)
             switch (evt)
@@ -643,5 +648,4 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     }
 
     #endregion
-
 }
