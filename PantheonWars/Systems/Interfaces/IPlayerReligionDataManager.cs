@@ -51,11 +51,6 @@ public interface IPlayerReligionDataManager : IDisposable
     void LeaveReligion(string playerUID);
 
     /// <summary>
-    ///     Checks if a player can switch religions (cooldown check)
-    /// </summary>
-    bool CanSwitchReligion(string playerUID);
-
-    /// <summary>
     ///     Gets remaining cooldown time for religion switching
     /// </summary>
     TimeSpan? GetSwitchCooldownRemaining(string playerUID);

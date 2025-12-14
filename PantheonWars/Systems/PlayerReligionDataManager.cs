@@ -201,11 +201,6 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
     {
         var data = GetOrCreatePlayerData(playerUID);
 
-        // Check if player is already in a religion
-        if (data.HasReligion())
-            // Leave current religion first
-            LeaveReligion(playerUID);
-
         // Get religion to set active deity
         var religion = _religionManager.GetReligion(religionUID);
         if (religion == null)
@@ -249,21 +244,6 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
         data.FavorRank = FavorRank.Initiate;
 
         _sapi.Logger.Notification($"[PantheonWars] Player {playerUID} left religion");
-    }
-
-    /// <summary>
-    ///     Checks if a player can switch religions (cooldown check)
-    /// </summary>
-    public bool CanSwitchReligion(string playerUID)
-    {
-        var data = GetOrCreatePlayerData(playerUID);
-
-        // First-time joining is always allowed
-        if (data.LastReligionSwitch == null) return true;
-
-        // Check cooldown
-        var cooldownEnd = data.LastReligionSwitch.Value.AddDays(RELIGION_SWITCH_COOLDOWN_DAYS);
-        return DateTime.UtcNow >= cooldownEnd;
     }
 
     /// <summary>

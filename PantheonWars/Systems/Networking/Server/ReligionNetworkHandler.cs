@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using PantheonWars.Data;
+using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Network;
 using PantheonWars.Systems.Interfaces;
@@ -15,9 +18,10 @@ namespace PantheonWars.Systems.Networking.Server;
 /// </summary>
 public class ReligionNetworkHandler : IServerNetworkHandler
 {
-    private readonly ICoreServerAPI _sapi;
-    private readonly IReligionManager _religionManager;
     private readonly IPlayerReligionDataManager _playerReligionDataManager;
+    private readonly IReligionManager _religionManager;
+    private readonly IRoleManager _roleManager;
+    private readonly ICoreServerAPI _sapi;
     private readonly IServerNetworkChannel _serverChannel;
 
     /// <summary>
@@ -27,23 +31,32 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         ICoreServerAPI sapi,
         IReligionManager religionManager,
         IPlayerReligionDataManager playerReligionDataManager,
+        IRoleManager roleManager,
         IServerNetworkChannel channel)
     {
         _sapi = sapi;
         _religionManager = religionManager;
         _playerReligionDataManager = playerReligionDataManager;
+        _roleManager = roleManager;
         _serverChannel = channel;
     }
 
     public void RegisterHandlers()
     {
-
         // Register handlers for religion dialog packets
         _serverChannel!.SetMessageHandler<ReligionListRequestPacket>(OnReligionListRequest);
         _serverChannel.SetMessageHandler<PlayerReligionInfoRequestPacket>(OnPlayerReligionInfoRequest);
         _serverChannel.SetMessageHandler<ReligionActionRequestPacket>(OnReligionActionRequest);
         _serverChannel.SetMessageHandler<CreateReligionRequestPacket>(OnCreateReligionRequest);
         _serverChannel.SetMessageHandler<EditDescriptionRequestPacket>(OnEditDescriptionRequest);
+
+        // Register handlers for role management packets
+        _serverChannel.SetMessageHandler<ReligionRolesRequest>(OnReligionRolesRequest);
+        _serverChannel.SetMessageHandler<CreateRoleRequest>(OnCreateRoleRequest);
+        _serverChannel.SetMessageHandler<ModifyRolePermissionsRequest>(OnModifyRolePermissionsRequest);
+        _serverChannel.SetMessageHandler<AssignRoleRequest>(OnAssignRoleRequest);
+        _serverChannel.SetMessageHandler<DeleteRoleRequest>(OnDeleteRoleRequest);
+        _serverChannel.SetMessageHandler<TransferFounderRequest>(OnTransferFounderRequest);
     }
 
     public void Dispose()
@@ -97,8 +110,30 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             foreach (var memberUID in religion.MemberUIDs)
             {
                 var memberPlayerData = _playerReligionDataManager!.GetOrCreatePlayerData(memberUID);
+
+                // Use cached name from Members dictionary
+                var memberName = religion.GetMemberName(memberUID);
+
+                // Opportunistically update name if player is online
                 var memberPlayer = _sapi!.World.PlayerByUid(memberUID);
-                var memberName = memberPlayer?.PlayerName ?? memberUID;
+                if (memberPlayer != null)
+                {
+                    religion.UpdateMemberName(memberUID, memberPlayer.PlayerName);
+                    memberName = memberPlayer.PlayerName;
+                }
+
+                // Get member's role name
+                var roleName = "Member"; // Default fallback
+                var roleId = string.Empty;
+                if (religion.MemberRoles.TryGetValue(memberUID, out var roleUID))
+                {
+                    var role = religion.GetRole(roleUID);
+                    if (role != null)
+                    {
+                        roleName = role.RoleName;
+                        roleId = role.RoleUID;
+                    }
+                }
 
                 response.Members.Add(new PlayerReligionInfoResponsePacket.MemberInfo
                 {
@@ -106,7 +141,9 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     PlayerName = memberName,
                     FavorRank = memberPlayerData.FavorRank.ToString(),
                     Favor = memberPlayerData.Favor,
-                    IsFounder = memberUID == religion.FounderUID
+                    IsFounder = memberUID == religion.FounderUID,
+                    RoleName = roleName,
+                    RoleId = roleId
                 });
             }
 
@@ -162,338 +199,40 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
     private void OnReligionActionRequest(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
     {
-        string message;
-        var success = false;
+        ReligionActionResult result;
 
         try
         {
-            switch (packet.Action.ToLower())
+            result = packet.Action.ToLower() switch
             {
-                case "join":
-                    // Check if player is banned before attempting to join
-                    if (_religionManager!.IsBanned(packet.ReligionUID, fromPlayer.PlayerUID))
-                    {
-                        var banDetails = _religionManager.GetBanDetails(packet.ReligionUID, fromPlayer.PlayerUID);
-                        if (banDetails != null)
-                        {
-                            var expiryText = banDetails.ExpiresAt == null
-                                ? "Permanent ban"
-                                : $"Expires: {banDetails.ExpiresAt:yyyy-MM-dd HH:mm}";
-                            message =
-                                $"You are banned from this religion. Reason: {banDetails.Reason}. {expiryText}";
-                        }
-                        else
-                        {
-                            message = "You are banned from this religion.";
-                        }
-                    }
-                    else if (_religionManager.CanJoinReligion(packet.ReligionUID, fromPlayer.PlayerUID))
-                    {
-                        _playerReligionDataManager!.JoinReligion(fromPlayer.PlayerUID, packet.ReligionUID);
-                        var religion = _religionManager.GetReligion(packet.ReligionUID);
-                        message = $"Successfully joined {religion?.ReligionName ?? "religion"}!";
-                        success = true;
-                        _playerReligionDataManager
-                            .NotifyPlayerDataChanged(fromPlayer.PlayerUID); // Refresh player's HUD
-                    }
-                    else
-                    {
-                        message =
-                            "Cannot join this religion. Check if you already have a religion or if it's invite-only.";
-                    }
-
-                    break;
-
-                case "accept":
-                    // Accept religion invite; TargetPlayerUID carries InviteId in this action
-                    success = _religionManager!.AcceptInvite(packet.TargetPlayerUID, fromPlayer.PlayerUID);
-                    message = success
-                        ? "You have joined the religion!"
-                        : "Failed to accept invitation. It may have expired or you already have a religion.";
-                    if (success)
-                    {
-                        _playerReligionDataManager!.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
-                        var statePacket = new ReligionStateChangedPacket
-                        {
-                            Reason = "You joined a religion",
-                            HasReligion = true
-                        };
-                        _serverChannel!.SendPacket(statePacket, fromPlayer);
-                    }
-
-                    break;
-
-                case "decline":
-                    // Decline religion invite; TargetPlayerUID carries InviteId in this action
-                    success = _religionManager!.DeclineInvite(packet.TargetPlayerUID, fromPlayer.PlayerUID);
-                    message = success ? "Invitation declined." : "Failed to decline invitation.";
-                    break;
-
-                case "leave":
-                    var currentReligion = _religionManager!.GetPlayerReligion(fromPlayer.PlayerUID);
-                    if (currentReligion != null)
-                    {
-                        var religionNameForLeave = currentReligion.ReligionName;
-                        _playerReligionDataManager!.LeaveReligion(fromPlayer.PlayerUID);
-                        message = $"Left {religionNameForLeave}.";
-                        success = true;
-                        _playerReligionDataManager
-                            .NotifyPlayerDataChanged(fromPlayer.PlayerUID); // Refresh player's HUD
-
-                        // Send religion state changed packet
-                        var statePacket = new ReligionStateChangedPacket
-                        {
-                            Reason = $"You left {religionNameForLeave}",
-                            HasReligion = false
-                        };
-                        _serverChannel!.SendPacket(statePacket, fromPlayer);
-                    }
-                    else
-                    {
-                        message = "You are not in a religion.";
-                    }
-
-                    break;
-
-                case "kick":
-                    var religionForKick = _religionManager!.GetPlayerReligion(fromPlayer.PlayerUID);
-                    if (religionForKick != null && religionForKick.FounderUID == fromPlayer.PlayerUID)
-                    {
-                        if (packet.TargetPlayerUID != fromPlayer.PlayerUID)
-                        {
-                            _playerReligionDataManager!.LeaveReligion(packet.TargetPlayerUID);
-                            message = "Kicked player from religion.";
-                            success = true;
-
-                            // Notify kicked player if online
-                            var kickedPlayer = _sapi!.World.PlayerByUid(packet.TargetPlayerUID) as IServerPlayer;
-                            if (kickedPlayer != null)
-                            {
-                                kickedPlayer.SendMessage(0,
-                                    $"You have been kicked from {religionForKick.ReligionName}.",
-                                    EnumChatType.Notification);
-                                _playerReligionDataManager!
-                                    .NotifyPlayerDataChanged(kickedPlayer.PlayerUID); // Refresh kicked player's HUD
-
-                                // Send religion state changed packet
-                                var statePacket = new ReligionStateChangedPacket
-                                {
-                                    Reason = $"You have been kicked from {religionForKick.ReligionName}",
-                                    HasReligion = false
-                                };
-                                _serverChannel!.SendPacket(statePacket, kickedPlayer);
-                            }
-                        }
-                        else
-                        {
-                            message = "You cannot kick yourself.";
-                        }
-                    }
-                    else
-                    {
-                        message = "Only the founder can kick members.";
-                    }
-
-                    break;
-
-                case "ban":
-                    var religionForBan = _religionManager!.GetPlayerReligion(fromPlayer.PlayerUID);
-                    if (religionForBan != null && religionForBan.IsFounder(fromPlayer.PlayerUID))
-                    {
-                        if (packet.TargetPlayerUID != fromPlayer.PlayerUID)
-                        {
-                            // Extract ban parameters from packet data
-                            var reason = "No reason provided";
-                            int? expiryDays = null;
-
-                            if (packet.Data != null)
-                            {
-                                if (packet.Data.ContainsKey("Reason"))
-                                    reason = packet.Data["Reason"]?.ToString() ?? "No reason provided";
-
-                                if (packet.Data.ContainsKey("ExpiryDays"))
-                                {
-                                    var expiryValue = packet.Data["ExpiryDays"]?.ToString();
-                                    if (!string.IsNullOrEmpty(expiryValue) && int.TryParse(expiryValue, out var days) &&
-                                        days > 0) expiryDays = days;
-                                }
-                            }
-
-                            // Kick the player if they're still a member
-                            if (religionForBan.IsMember(packet.TargetPlayerUID))
-                                _playerReligionDataManager!.LeaveReligion(packet.TargetPlayerUID);
-
-                            // Ban the player
-                            _religionManager.BanPlayer(
-                                religionForBan.ReligionUID,
-                                packet.TargetPlayerUID,
-                                fromPlayer.PlayerUID,
-                                reason,
-                                expiryDays
-                            );
-
-                            var expiryText = expiryDays.HasValue ? $" for {expiryDays} days" : " permanently";
-                            message = $"Player has been banned from the religion{expiryText}. Reason: {reason}";
-                            success = true;
-
-                            // Notify banned player if online
-                            var bannedPlayer = _sapi!.World.PlayerByUid(packet.TargetPlayerUID) as IServerPlayer;
-                            if (bannedPlayer != null)
-                            {
-                                bannedPlayer.SendMessage(0,
-                                    $"You have been banned from {religionForBan.ReligionName}. Reason: {reason}",
-                                    EnumChatType.Notification);
-                                _playerReligionDataManager!.NotifyPlayerDataChanged(bannedPlayer.PlayerUID);
-
-                                // Send religion state changed packet
-                                var statePacket = new ReligionStateChangedPacket
-                                {
-                                    Reason =
-                                        $"You have been banned from {religionForBan.ReligionName}. Reason: {reason}",
-                                    HasReligion = false
-                                };
-                                _serverChannel!.SendPacket(statePacket, bannedPlayer);
-                            }
-                        }
-                        else
-                        {
-                            message = "You cannot ban yourself.";
-                        }
-                    }
-                    else
-                    {
-                        message = "Only the founder can ban members.";
-                    }
-
-                    break;
-
-                case "unban":
-                    var religionForUnban = _religionManager!.GetPlayerReligion(fromPlayer.PlayerUID);
-                    if (religionForUnban != null && religionForUnban.IsFounder(fromPlayer.PlayerUID))
-                    {
-                        if (_religionManager.UnbanPlayer(religionForUnban.ReligionUID, packet.TargetPlayerUID))
-                        {
-                            message = "Player has been unbanned from the religion.";
-                            success = true;
-                        }
-                        else
-                        {
-                            message = "Failed to unban player. They may not be banned.";
-                        }
-                    }
-                    else
-                    {
-                        message = "Only the founder can unban players.";
-                    }
-
-                    break;
-
-                case "invite":
-                    var religionForInvite = _religionManager!.GetPlayerReligion(fromPlayer.PlayerUID);
-                    if (religionForInvite != null)
-                    {
-                        // Convert player name to UID (UI sends player name in TargetPlayerUID field)
-                        var targetPlayer = _sapi!.World.AllOnlinePlayers
-                            .FirstOrDefault(p => p.PlayerName.Equals(packet.TargetPlayerUID,
-                                StringComparison.OrdinalIgnoreCase)) as IServerPlayer;
-
-                        if (targetPlayer == null)
-                        {
-                            message = $"Player '{packet.TargetPlayerUID}' not found online.";
-                            success = false;
-                        }
-                        else
-                        {
-                            success = _religionManager.InvitePlayer(religionForInvite.ReligionUID,
-                                targetPlayer.PlayerUID,
-                                fromPlayer.PlayerUID);
-
-                            if (success)
-                            {
-                                // Notify invited player
-                                var statePacket = new ReligionStateChangedPacket
-                                {
-                                    Reason = $"You have been invited to join {religionForInvite.ReligionName}",
-                                    HasReligion = false
-                                };
-                                _serverChannel!.SendPacket(statePacket, targetPlayer);
-                                _sapi.Logger.Debug(
-                                    $"[PantheonWars] Sent invitation notification to {targetPlayer.PlayerName} ({targetPlayer.PlayerUID})");
-
-                                message = "Invitation sent!";
-                            }
-                            else
-                            {
-                                message = "Failed to send invitation. They may already have a pending invite.";
-                            }
-                        }
-                    }
-                    else
-                    {
-                        message = "You are not in a religion.";
-                    }
-
-                    break;
-                case "disband":
-                    var religionForDisband = _religionManager!.GetPlayerReligion(fromPlayer.PlayerUID);
-                    if (religionForDisband != null && religionForDisband.FounderUID == fromPlayer.PlayerUID)
-                    {
-                        var religionName = religionForDisband.ReligionName;
-
-                        // Remove all members
-                        var members =
-                            religionForDisband.MemberUIDs.ToList(); // Copy to avoid modification during iteration
-                        foreach (var memberUID in members)
-                        {
-                            _playerReligionDataManager!.LeaveReligion(memberUID);
-
-                            // Notify member if online
-                            var memberPlayer = _sapi!.World.PlayerByUid(memberUID) as IServerPlayer;
-                            if (memberPlayer != null)
-                            {
-                                // Send chat notification to other members
-                                if (memberUID != fromPlayer.PlayerUID)
-                                    memberPlayer.SendMessage(
-                                        GlobalConstants.GeneralChatGroup,
-                                        $"{religionName} has been disbanded by its founder",
-                                        EnumChatType.Notification
-                                    );
-
-                                // Send religion state changed packet to all members (including founder)
-                                var statePacket = new ReligionStateChangedPacket
-                                {
-                                    Reason = $"{religionName} has been disbanded",
-                                    HasReligion = false
-                                };
-                                _serverChannel!.SendPacket(statePacket, memberPlayer);
-                            }
-                        }
-
-                        // Delete the religion
-                        _religionManager.DeleteReligion(religionForDisband.ReligionUID, fromPlayer.PlayerUID);
-
-                        message = $"Successfully disbanded {religionForDisband.ReligionName ?? "religion"}!";
-                    }
-                    else
-                    {
-                        message = "Only the founder can kick members.";
-                    }
-
-                    break;
-
-                default:
-                    message = $"Unknown action: {packet.Action}";
-                    break;
-            }
+                "join" => HandleJoinAction(fromPlayer, packet),
+                "accept" => HandleAcceptAction(fromPlayer, packet),
+                "decline" => HandleDeclineAction(fromPlayer, packet),
+                "leave" => HandleLeaveAction(fromPlayer, packet),
+                "kick" => HandleKickAction(fromPlayer, packet),
+                "ban" => HandleBanAction(fromPlayer, packet),
+                "unban" => HandleUnbanAction(fromPlayer, packet),
+                "invite" => HandleInviteAction(fromPlayer, packet),
+                "disband" => HandleDisbandAction(fromPlayer, packet),
+                _ => new ReligionActionResult
+                {
+                    Success = false,
+                    Message = $"Unknown action: {packet.Action}"
+                }
+            };
         }
         catch (Exception ex)
         {
-            message = $"Error: {ex.Message}";
-            _sapi!.Logger.Error($"[PantheonWars] Religion action error: {ex}");
+            result = new ReligionActionResult
+            {
+                Success = false,
+                Message = $"Error: {ex.Message}"
+            };
+            _sapi.Logger.Error($"[PantheonWars] Religion action error: {ex}");
         }
 
-        var response = new ReligionActionResponsePacket(success, message, packet.Action);
-        _serverChannel!.SendPacket(response, fromPlayer);
+        var response = new ReligionActionResponsePacket(result.Success, result.Message, packet.Action);
+        _serverChannel.SendPacket(response, fromPlayer);
     }
 
     private void OnCreateReligionRequest(IServerPlayer fromPlayer, CreateReligionRequestPacket packet)
@@ -598,4 +337,735 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         var response = new EditDescriptionResponsePacket(success, message);
         _serverChannel!.SendPacket(response, fromPlayer);
     }
+
+    #region Role Management Handlers
+
+    private void OnReligionRolesRequest(IServerPlayer fromPlayer, ReligionRolesRequest packet)
+    {
+        try
+        {
+            var religion = _religionManager!.GetReligion(packet.ReligionUID);
+
+            if (religion == null)
+            {
+                var errorResponse = new ReligionRolesResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Religion not found"
+                };
+                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                return;
+            }
+
+            // Check if player is a member
+            if (!religion.IsMember(fromPlayer.PlayerUID))
+            {
+                var errorResponse = new ReligionRolesResponse
+                {
+                    Success = false,
+                    ErrorMessage = "You are not a member of this religion"
+                };
+                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                return;
+            }
+
+            var response = new ReligionRolesResponse
+            {
+                Success = true,
+                Roles = _roleManager.GetReligionRoles(packet.ReligionUID),
+                MemberRoles = religion.MemberRoles,
+                MemberNames = new Dictionary<string, string>(),
+                ErrorMessage = null
+            };
+
+            // Populate member names from cached data
+            foreach (var uid in religion.MemberUIDs)
+            {
+                response.MemberNames[uid] = religion.GetMemberName(uid);
+
+                // Opportunistic update if online
+                var player = _sapi!.World.PlayerByUid(uid);
+                if (player != null)
+                {
+                    religion.UpdateMemberName(uid, player.PlayerName);
+                    response.MemberNames[uid] = player.PlayerName;
+                }
+            }
+
+            _serverChannel!.SendPacket(response, fromPlayer);
+        }
+        catch (Exception ex)
+        {
+            _sapi!.Logger.Error($"[PantheonWars] Error handling ReligionRolesRequest: {ex}");
+            var errorResponse = new ReligionRolesResponse
+            {
+                Success = false,
+                ErrorMessage = $"Error: {ex.Message}"
+            };
+            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+        }
+    }
+
+    private void OnCreateRoleRequest(IServerPlayer fromPlayer, CreateRoleRequest packet)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(packet.ReligionUID) || string.IsNullOrEmpty(packet.RoleName))
+            {
+                var errorResponse = new CreateRoleResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Invalid request data"
+                };
+                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                return;
+            }
+
+            var (success, role, error) = _roleManager.CreateCustomRole(
+                packet.ReligionUID,
+                fromPlayer.PlayerUID,
+                packet.RoleName
+            );
+
+            var response = new CreateRoleResponse
+            {
+                Success = success,
+                CreatedRole = role,
+                ErrorMessage = error
+            };
+
+            _serverChannel!.SendPacket(response, fromPlayer);
+        }
+        catch (Exception ex)
+        {
+            _sapi!.Logger.Error($"[PantheonWars] Error handling CreateRoleRequest: {ex}");
+            var errorResponse = new CreateRoleResponse
+            {
+                Success = false,
+                ErrorMessage = $"Error: {ex.Message}"
+            };
+            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+        }
+    }
+
+    private void OnModifyRolePermissionsRequest(IServerPlayer fromPlayer, ModifyRolePermissionsRequest packet)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(packet.ReligionUID) || string.IsNullOrEmpty(packet.RoleUID) ||
+                packet.Permissions == null)
+            {
+                var errorResponse = new ModifyRolePermissionsResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Invalid request data"
+                };
+                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                return;
+            }
+
+            var (success, role, error) = _roleManager.ModifyRolePermissions(
+                packet.ReligionUID,
+                fromPlayer.PlayerUID,
+                packet.RoleUID,
+                packet.Permissions
+            );
+
+            var response = new ModifyRolePermissionsResponse
+            {
+                Success = success,
+                UpdatedRole = role,
+                ErrorMessage = error
+            };
+
+            _serverChannel!.SendPacket(response, fromPlayer);
+        }
+        catch (Exception ex)
+        {
+            _sapi!.Logger.Error($"[PantheonWars] Error handling ModifyRolePermissionsRequest: {ex}");
+            var errorResponse = new ModifyRolePermissionsResponse
+            {
+                Success = false,
+                ErrorMessage = $"Error: {ex.Message}"
+            };
+            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+        }
+    }
+
+    private void OnAssignRoleRequest(IServerPlayer fromPlayer, AssignRoleRequest packet)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(packet.ReligionUID) || string.IsNullOrEmpty(packet.TargetPlayerUID) ||
+                string.IsNullOrEmpty(packet.RoleUID))
+            {
+                var errorResponse = new AssignRoleResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Invalid request data"
+                };
+                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                return;
+            }
+
+            var (success, error) = _roleManager.AssignRole(
+                packet.ReligionUID,
+                fromPlayer.PlayerUID,
+                packet.TargetPlayerUID,
+                packet.RoleUID
+            );
+
+            var response = new AssignRoleResponse
+            {
+                Success = success,
+                ErrorMessage = error
+            };
+
+            _serverChannel!.SendPacket(response, fromPlayer);
+
+            // Notify the target player if they're online and broadcast roles update
+            if (success)
+            {
+                var religion = _religionManager.GetReligion(packet.ReligionUID);
+                if (religion != null)
+                {
+                    var targetPlayer = _sapi!.World.PlayerByUid(packet.TargetPlayerUID) as IServerPlayer;
+                    if (targetPlayer != null && targetPlayer.PlayerUID != fromPlayer.PlayerUID)
+                    {
+                        var role = religion.GetRole(packet.RoleUID);
+                        if (role != null)
+                            targetPlayer.SendMessage(0,
+                                $"Your role in {religion.ReligionName} has been changed to {role.RoleName}",
+                                EnumChatType.Notification);
+                    }
+
+                    // Broadcast roles update to all religion members so their UI updates
+                    BroadcastRolesUpdateToReligion(religion);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _sapi!.Logger.Error($"[PantheonWars] Error handling AssignRoleRequest: {ex}");
+            var errorResponse = new AssignRoleResponse
+            {
+                Success = false,
+                ErrorMessage = $"Error: {ex.Message}"
+            };
+            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+        }
+    }
+
+    private void OnDeleteRoleRequest(IServerPlayer fromPlayer, DeleteRoleRequest packet)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(packet.ReligionUID) || string.IsNullOrEmpty(packet.RoleUID))
+            {
+                var errorResponse = new DeleteRoleResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Invalid request data"
+                };
+                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                return;
+            }
+
+            var (success, error) = _roleManager.DeleteRole(
+                packet.ReligionUID,
+                fromPlayer.PlayerUID,
+                packet.RoleUID
+            );
+
+            var response = new DeleteRoleResponse
+            {
+                Success = success,
+                ErrorMessage = error
+            };
+
+            _serverChannel!.SendPacket(response, fromPlayer);
+
+            // Broadcast roles update if deletion succeeded (members were reassigned)
+            if (success)
+            {
+                var religion = _religionManager.GetReligion(packet.ReligionUID);
+                if (religion != null) BroadcastRolesUpdateToReligion(religion);
+            }
+        }
+        catch (Exception ex)
+        {
+            _sapi!.Logger.Error($"[PantheonWars] Error handling DeleteRoleRequest: {ex}");
+            var errorResponse = new DeleteRoleResponse
+            {
+                Success = false,
+                ErrorMessage = $"Error: {ex.Message}"
+            };
+            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+        }
+    }
+
+    private void OnTransferFounderRequest(IServerPlayer fromPlayer, TransferFounderRequest packet)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(packet.ReligionUID) || string.IsNullOrEmpty(packet.NewFounderUID))
+            {
+                var errorResponse = new TransferFounderResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Invalid request data"
+                };
+                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                return;
+            }
+
+            var (success, error) = _roleManager.TransferFounder(
+                packet.ReligionUID,
+                fromPlayer.PlayerUID,
+                packet.NewFounderUID
+            );
+
+            var response = new TransferFounderResponse
+            {
+                Success = success,
+                ErrorMessage = error
+            };
+
+            _serverChannel!.SendPacket(response, fromPlayer);
+
+            // Notify both players if successful
+            if (success)
+            {
+                var religion = _religionManager!.GetReligion(packet.ReligionUID);
+                if (religion != null)
+                {
+                    // Notify the new founder
+                    var newFounder = _sapi!.World.PlayerByUid(packet.NewFounderUID) as IServerPlayer;
+                    if (newFounder != null)
+                        newFounder.SendMessage(0,
+                            $"You are now the founder of {religion.ReligionName}!",
+                            EnumChatType.Notification);
+
+                    // Notify the old founder (fromPlayer)
+                    fromPlayer.SendMessage(0,
+                        $"You have transferred founder status to {newFounder?.PlayerName ?? packet.NewFounderUID}",
+                        EnumChatType.Notification);
+
+                    // Notify all other members
+                    foreach (var memberUID in religion.MemberUIDs)
+                        if (memberUID != fromPlayer.PlayerUID && memberUID != packet.NewFounderUID)
+                        {
+                            var member = _sapi!.World.PlayerByUid(memberUID) as IServerPlayer;
+                            member?.SendMessage(0,
+                                $"{newFounder?.PlayerName ?? packet.NewFounderUID} is now the founder of {religion.ReligionName}",
+                                EnumChatType.Notification);
+                        }
+
+                    // Broadcast roles update to all religion members so their UI updates
+                    BroadcastRolesUpdateToReligion(religion);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _sapi!.Logger.Error($"[PantheonWars] Error handling TransferFounderRequest: {ex}");
+            var errorResponse = new TransferFounderResponse
+            {
+                Success = false,
+                ErrorMessage = $"Error: {ex.Message}"
+            };
+            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+        }
+    }
+
+    #endregion
+
+    #region Action Handlers
+
+    private class ReligionActionResult
+    {
+        public bool Success { get; init; }
+        public string Message { get; init; }
+    }
+
+    private void SendRolesUpdateToPlayer(IServerPlayer player, ReligionData religion)
+    {
+        var rolesResponse = new ReligionRolesResponse
+        {
+            Success = true,
+            Roles = _roleManager.GetReligionRoles(religion.ReligionUID),
+            MemberRoles = religion.MemberRoles,
+            MemberNames = new Dictionary<string, string>()
+        };
+
+        foreach (var uid in religion.MemberUIDs)
+            rolesResponse.MemberNames[uid] = religion.GetMemberName(uid);
+
+        _serverChannel.SendPacket(rolesResponse, player);
+    }
+
+    private void BroadcastRolesUpdateToReligion(ReligionData religion)
+    {
+        var rolesResponse = new ReligionRolesResponse
+        {
+            Success = true,
+            Roles = _roleManager.GetReligionRoles(religion.ReligionUID),
+            MemberRoles = religion.MemberRoles,
+            MemberNames = new Dictionary<string, string>()
+        };
+
+        foreach (var uid in religion.MemberUIDs)
+            rolesResponse.MemberNames[uid] = religion.GetMemberName(uid);
+
+        // Send to all online members
+        foreach (var memberUID in religion.MemberUIDs)
+        {
+            var memberPlayer = _sapi.World.PlayerByUid(memberUID) as IServerPlayer;
+            if (memberPlayer != null) _serverChannel.SendPacket(rolesResponse, memberPlayer);
+        }
+    }
+
+    private void NotifyPlayerReligionStateChanged(IServerPlayer player, string reason, bool hasReligion)
+    {
+        var statePacket = new ReligionStateChangedPacket
+        {
+            Reason = reason,
+            HasReligion = hasReligion
+        };
+        _serverChannel.SendPacket(statePacket, player);
+    }
+
+    private ReligionActionResult HandleJoinAction(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
+    {
+        var religion = _religionManager.GetReligion(packet.ReligionUID);
+
+        if (_religionManager.IsBanned(packet.ReligionUID, fromPlayer.PlayerUID))
+        {
+            var banDetails = _religionManager.GetBanDetails(packet.ReligionUID, fromPlayer.PlayerUID);
+            if (banDetails != null)
+            {
+                var expiryText = banDetails.ExpiresAt == null
+                    ? "Permanent ban"
+                    : $"Expires: {banDetails.ExpiresAt:yyyy-MM-dd HH:mm}";
+                return new ReligionActionResult
+                {
+                    Success = false,
+                    Message = $"You are banned from this religion. Reason: {banDetails.Reason}. {expiryText}"
+                };
+            }
+
+            return new ReligionActionResult
+            {
+                Success = false,
+                Message = "You are banned from this religion."
+            };
+        }
+
+        if (_religionManager.CanJoinReligion(packet.ReligionUID, fromPlayer.PlayerUID))
+        {
+            _playerReligionDataManager.JoinReligion(fromPlayer.PlayerUID, packet.ReligionUID);
+            _roleManager.AssignRole(religion.ReligionUID, "SYSTEM", fromPlayer.PlayerUID, RoleDefaults.MEMBER_ROLE_ID);
+            _playerReligionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
+
+            // Broadcast roles update to all religion members so their UI updates
+            BroadcastRolesUpdateToReligion(religion);
+
+            return new ReligionActionResult
+            {
+                Success = true,
+                Message = $"Successfully joined {religion?.ReligionName ?? "religion"}!"
+            };
+        }
+
+        return new ReligionActionResult
+        {
+            Success = false,
+            Message = "Cannot join this religion. Check if you already have a religion or if it's invite-only."
+        };
+    }
+
+    private ReligionActionResult HandleAcceptAction(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
+    {
+        var (success, religionId, message) =
+            _religionManager.AcceptInvite(packet.TargetPlayerUID, fromPlayer.PlayerUID);
+
+        if (success)
+        {
+            _roleManager.AssignRole(religionId, "SYSTEM", packet.TargetPlayerUID, RoleDefaults.MEMBER_ROLE_ID);
+            _playerReligionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
+            NotifyPlayerReligionStateChanged(fromPlayer, "You joined a religion", true);
+
+            // Broadcast roles update to all religion members so their UI updates
+            var religion = _religionManager.GetReligion(religionId);
+            if (religion != null) BroadcastRolesUpdateToReligion(religion);
+        }
+
+        return new ReligionActionResult
+        {
+            Success = success,
+            Message = success
+                ? "You have joined the religion!"
+                : "Failed to accept invitation. It may have expired or you already have a religion."
+        };
+    }
+
+    private ReligionActionResult HandleDeclineAction(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
+    {
+        var success = _religionManager.DeclineInvite(packet.TargetPlayerUID, fromPlayer.PlayerUID);
+
+        return new ReligionActionResult
+        {
+            Success = success,
+            Message = success ? "Invitation declined." : "Failed to decline invitation."
+        };
+    }
+
+    private ReligionActionResult HandleLeaveAction(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
+    {
+        var currentReligion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+
+        if (currentReligion == null)
+            return new ReligionActionResult
+            {
+                Success = false,
+                Message = "You are not in a religion."
+            };
+
+        var religionName = currentReligion.ReligionName;
+        _playerReligionDataManager.LeaveReligion(fromPlayer.PlayerUID);
+        _playerReligionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
+        NotifyPlayerReligionStateChanged(fromPlayer, $"You left {religionName}", false);
+
+        // Broadcast roles update to remaining members (after player has left)
+        BroadcastRolesUpdateToReligion(currentReligion);
+
+        return new ReligionActionResult
+        {
+            Success = true,
+            Message = $"Left {religionName}."
+        };
+    }
+
+    private ReligionActionResult HandleKickAction(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
+    {
+        var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+
+        if (religion == null || !religion.HasPermission(fromPlayer.PlayerUID, RolePermissions.KICK_MEMBERS))
+            return new ReligionActionResult
+            {
+                Success = false,
+                Message = "You don't have permission to kick members."
+            };
+
+        if (packet.TargetPlayerUID == fromPlayer.PlayerUID)
+            return new ReligionActionResult
+            {
+                Success = false,
+                Message = "You cannot kick yourself."
+            };
+
+        _playerReligionDataManager.LeaveReligion(packet.TargetPlayerUID);
+
+        // Notify kicked player if online
+        var kickedPlayer = _sapi.World.PlayerByUid(packet.TargetPlayerUID) as IServerPlayer;
+        if (kickedPlayer != null)
+        {
+            kickedPlayer.SendMessage(0,
+                $"You have been kicked from {religion.ReligionName}.",
+                EnumChatType.Notification);
+            _playerReligionDataManager.NotifyPlayerDataChanged(kickedPlayer.PlayerUID);
+            NotifyPlayerReligionStateChanged(kickedPlayer,
+                $"You have been kicked from {religion.ReligionName}", false);
+        }
+
+        // Broadcast updated roles/members data to all religion members
+        BroadcastRolesUpdateToReligion(religion);
+
+        return new ReligionActionResult
+        {
+            Success = true,
+            Message = "Kicked player from religion."
+        };
+    }
+
+    private ReligionActionResult HandleBanAction(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
+    {
+        var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+
+        if (religion == null || !religion.HasPermission(fromPlayer.PlayerUID, RolePermissions.BAN_PLAYERS))
+            return new ReligionActionResult
+            {
+                Success = false,
+                Message = "You don't have permission to ban players."
+            };
+
+        if (packet.TargetPlayerUID == fromPlayer.PlayerUID)
+            return new ReligionActionResult
+            {
+                Success = false,
+                Message = "You cannot ban yourself."
+            };
+
+        // Extract ban parameters
+        var reason = "No reason provided";
+        int? expiryDays = null;
+
+        if (packet.Data != null)
+        {
+            if (packet.Data.ContainsKey("Reason"))
+                reason = packet.Data["Reason"]?.ToString() ?? "No reason provided";
+
+            if (packet.Data.ContainsKey("ExpiryDays"))
+            {
+                var expiryValue = packet.Data["ExpiryDays"]?.ToString();
+                if (!string.IsNullOrEmpty(expiryValue) && int.TryParse(expiryValue, out var days) && days > 0)
+                    expiryDays = days;
+            }
+        }
+
+        // Kick the player if they're still a member
+        if (religion.IsMember(packet.TargetPlayerUID))
+            _playerReligionDataManager.LeaveReligion(packet.TargetPlayerUID);
+
+        // Ban the player
+        _religionManager.BanPlayer(
+            religion.ReligionUID,
+            packet.TargetPlayerUID,
+            fromPlayer.PlayerUID,
+            reason,
+            expiryDays
+        );
+
+        // Notify banned player if online
+        var bannedPlayer = _sapi.World.PlayerByUid(packet.TargetPlayerUID) as IServerPlayer;
+        if (bannedPlayer != null)
+        {
+            bannedPlayer.SendMessage(0,
+                $"You have been banned from {religion.ReligionName}. Reason: {reason}",
+                EnumChatType.Notification);
+            _playerReligionDataManager.NotifyPlayerDataChanged(bannedPlayer.PlayerUID);
+            NotifyPlayerReligionStateChanged(bannedPlayer,
+                $"You have been banned from {religion.ReligionName}. Reason: {reason}", false);
+        }
+
+        // Broadcast updated roles/members data to all religion members
+        BroadcastRolesUpdateToReligion(religion);
+
+        var expiryText = expiryDays.HasValue ? $" for {expiryDays} days" : " permanently";
+        return new ReligionActionResult
+        {
+            Success = true,
+            Message = $"Player has been banned from the religion{expiryText}. Reason: {reason}"
+        };
+    }
+
+    private ReligionActionResult HandleUnbanAction(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
+    {
+        var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+
+        if (religion == null || !religion.IsFounder(fromPlayer.PlayerUID))
+            return new ReligionActionResult
+            {
+                Success = false,
+                Message = "Only the founder can unban players."
+            };
+
+        var success = _religionManager.UnbanPlayer(religion.ReligionUID, packet.TargetPlayerUID);
+
+        return new ReligionActionResult
+        {
+            Success = success,
+            Message = success
+                ? "Player has been unbanned from the religion."
+                : "Failed to unban player. They may not be banned."
+        };
+    }
+
+    private ReligionActionResult HandleInviteAction(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
+    {
+        var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+
+        if (religion == null)
+            return new ReligionActionResult
+            {
+                Success = false,
+                Message = "You are not in a religion."
+            };
+
+        // Convert player name to UID (UI sends player name in TargetPlayerUID field)
+        var targetPlayer = _sapi.World.AllOnlinePlayers
+            .FirstOrDefault(p => p.PlayerName.Equals(packet.TargetPlayerUID,
+                StringComparison.OrdinalIgnoreCase)) as IServerPlayer;
+
+        if (targetPlayer == null)
+            return new ReligionActionResult
+            {
+                Success = false,
+                Message = $"Player '{packet.TargetPlayerUID}' not found online."
+            };
+
+        var success = _religionManager.InvitePlayer(religion.ReligionUID,
+            targetPlayer.PlayerUID,
+            fromPlayer.PlayerUID);
+
+        if (success)
+        {
+            NotifyPlayerReligionStateChanged(targetPlayer,
+                $"You have been invited to join {religion.ReligionName}", false);
+            _sapi.Logger.Debug(
+                $"[PantheonWars] Sent invitation notification to {targetPlayer.PlayerName} ({targetPlayer.PlayerUID})");
+        }
+
+        return new ReligionActionResult
+        {
+            Success = success,
+            Message = success
+                ? "Invitation sent!"
+                : "Failed to send invitation. They may already have a pending invite."
+        };
+    }
+
+    private ReligionActionResult HandleDisbandAction(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
+    {
+        var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+
+        if (religion == null || religion.FounderUID != fromPlayer.PlayerUID)
+            return new ReligionActionResult
+            {
+                Success = false,
+                Message = "Only the founder can kick members."
+            };
+
+        var religionName = religion.ReligionName;
+        var members = religion.MemberUIDs.ToList();
+
+        foreach (var memberUID in members)
+        {
+            _playerReligionDataManager.LeaveReligion(memberUID);
+
+            var memberPlayer = _sapi.World.PlayerByUid(memberUID) as IServerPlayer;
+            if (memberPlayer != null)
+            {
+                if (memberUID != fromPlayer.PlayerUID)
+                    memberPlayer.SendMessage(
+                        GlobalConstants.GeneralChatGroup,
+                        $"{religionName} has been disbanded by its founder",
+                        EnumChatType.Notification
+                    );
+
+                NotifyPlayerReligionStateChanged(memberPlayer,
+                    $"{religionName} has been disbanded", false);
+            }
+        }
+
+        _religionManager.DeleteReligion(religion.ReligionUID, fromPlayer.PlayerUID);
+
+        return new ReligionActionResult
+        {
+            Success = true,
+            Message = $"Successfully disbanded {religionName ?? "religion"}!"
+        };
+    }
+
+    #endregion
 }

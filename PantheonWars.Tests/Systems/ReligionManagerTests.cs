@@ -1,13 +1,11 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using System.Reflection;
 using Moq;
 using PantheonWars.Models.Enum;
 using PantheonWars.Systems;
 using PantheonWars.Tests.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
-using Xunit;
 
 namespace PantheonWars.Tests.Systems;
 
@@ -30,6 +28,66 @@ public class ReligionManagerTests
 
         _religionManager = new ReligionManager(_mockAPI.Object);
     }
+
+    #region RemoveInvitation Tests
+
+    [Fact]
+    public void RemoveInvitation_RemovesInvitation()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", false);
+        _religionManager.InvitePlayer(religion.ReligionUID, "invited-player", "founder-uid");
+
+        // Act
+        _religionManager.RemoveInvitation("invited-player", religion.ReligionUID);
+
+        // Assert
+        Assert.False(_religionManager.HasInvitation("invited-player", religion.ReligionUID));
+    }
+
+    #endregion
+
+    #region GetReligionsByDeity Tests
+
+    [Fact]
+    public void GetReligionsByDeity_ReturnsOnlyMatchingReligions()
+    {
+        // Arrange
+        _religionManager.CreateReligion("Khoras Religion 1", DeityType.Khoras, "founder1", true);
+        _religionManager.CreateReligion("Khoras Religion 2", DeityType.Khoras, "founder2", true);
+        _religionManager.CreateReligion("Lysa Religion", DeityType.Lysa, "founder3", true);
+
+        // Act
+        var khorasReligions = _religionManager.GetReligionsByDeity(DeityType.Khoras);
+
+        // Assert
+        Assert.Equal(2, khorasReligions.Count);
+        Assert.All(khorasReligions, r => Assert.Equal(DeityType.Khoras, r.Deity));
+    }
+
+    #endregion
+
+    #region HandleFounderLeaving Tests
+
+    [Fact]
+    public void HandleFounderLeaving_TransfersToNextMember()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        _religionManager.AddMember(religion.ReligionUID, "member-uid");
+
+        // Act - Remove founder
+        _religionManager.RemoveMember(religion.ReligionUID, "founder-uid");
+
+        // Assert - Founder should have transferred
+        Assert.Equal("member-uid", religion.FounderUID);
+        _mockLogger.Verify(
+            l => l.Notification(It.Is<string>(s => s.Contains("founder transferred"))),
+            Times.Once()
+        );
+    }
+
+    #endregion
 
     #region Initialization Tests
 
@@ -63,6 +121,231 @@ public class ReligionManagerTests
             l => l.Notification(It.Is<string>(s => s.Contains("Initializing") && s.Contains("Religion Manager"))),
             Times.Once()
         );
+    }
+
+    #endregion
+
+    #region AcceptInvite Tests
+
+    [Fact]
+    public void AcceptInvite_InvalidOrExpiredInvite_ReturnsFalseAndLogsWarning()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var invitedPlayer = "invited-player";
+        _religionManager.InvitePlayer(religion.ReligionUID, invitedPlayer, "founder-uid");
+
+        // Get the invite and make it expired
+        var invite = _religionManager.GetPlayerInvitations(invitedPlayer).First();
+        invite.ExpiresDate = DateTime.UtcNow.AddDays(-1);
+
+        // Act
+        var (ok, relId, error) = _religionManager.AcceptInvite(invite.InviteId, invitedPlayer);
+
+        // Assert
+        Assert.False(ok);
+        Assert.Equal(string.Empty, relId);
+        Assert.Equal("Invalid or expired invite", error);
+        _mockLogger.Verify(
+            l => l.Warning(It.Is<string>(s => s.Contains("Invalid or expired invite") && s.Contains(invite.InviteId))),
+            Times.Once);
+
+        // Invite should still be present in storage (Cleanup happens elsewhere)
+        Assert.True(!_religionManager.HasInvitation(invitedPlayer, religion.ReligionUID) ||
+                    !invite.IsValid);
+    }
+
+    [Fact]
+    public void AcceptInvite_PlayerMismatch_ReturnsFalseAndKeepsInvite()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var invitedPlayer = "invited-player";
+        _religionManager.InvitePlayer(religion.ReligionUID, invitedPlayer, "founder-uid");
+        var invite = _religionManager.GetPlayerInvitations(invitedPlayer).First();
+
+        // Act
+        var (ok, relId, error) = _religionManager.AcceptInvite(invite.InviteId, "other-player");
+
+        // Assert
+        Assert.False(ok);
+        Assert.Equal(string.Empty, relId);
+        Assert.Equal("Player cannot accept invite", error);
+        _mockLogger.Verify(
+            l => l.Warning(It.Is<string>(s =>
+                s.Contains("cannot accept invite") && s.Contains("other-player") && s.Contains(invitedPlayer))),
+            Times.Once);
+        Assert.True(_religionManager.HasInvitation(invitedPlayer, religion.ReligionUID));
+    }
+
+    [Fact]
+    public void AcceptInvite_PlayerAlreadyHasReligion_ReturnsFalse()
+    {
+        // Arrange: make the player already belong to a different religion
+        var existing = _religionManager.CreateReligion("Existing", DeityType.Lysa, "player-uid", true);
+        // Sanity: player is member of existing (as founder)
+        Assert.Contains("player-uid", existing.MemberUIDs);
+
+        var target = _religionManager.CreateReligion("Target", DeityType.Khoras, "founder-uid", true);
+        _religionManager.InvitePlayer(target.ReligionUID, "player-uid", "founder-uid");
+        var invite = _religionManager.GetPlayerInvitations("player-uid").First();
+
+        // Act
+        var (ok, relId, error) = _religionManager.AcceptInvite(invite.InviteId, "player-uid");
+
+        // Assert
+        Assert.False(ok);
+        Assert.Equal(string.Empty, relId);
+        Assert.Equal("Player has already has a religion", error);
+        _mockLogger.Verify(
+            l => l.Warning(It.Is<string>(s => s.Contains("already has a religion") && s.Contains("player-uid"))),
+            Times.Once);
+        // Invite should remain since acceptance failed
+        Assert.True(_religionManager.HasInvitation("player-uid", target.ReligionUID));
+    }
+
+    [Fact]
+    public void AcceptInvite_ReligionNoLongerExists_ReturnsFalseAndLogsWarning()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Ghost", DeityType.Khoras, "founder-uid", true);
+        var invitedPlayer = "invited-player";
+        _religionManager.InvitePlayer(religion.ReligionUID, invitedPlayer, "founder-uid");
+        var invite = _religionManager.GetPlayerInvitations(invitedPlayer).First();
+
+        // Delete the religion (by founder)
+        var deleted = _religionManager.DeleteReligion(religion.ReligionUID, "founder-uid");
+        Assert.True(deleted);
+
+        // Act
+        var (ok, relId, error) = _religionManager.AcceptInvite(invite.InviteId, invitedPlayer);
+
+        // Assert
+        Assert.False(ok);
+        Assert.Equal(string.Empty, relId);
+        Assert.Equal("No religion", error);
+        _mockLogger.Verify(
+            l => l.Warning(It.Is<string>(s => s.Contains("no longer exists") && s.Contains(invite.ReligionId))),
+            Times.Once);
+    }
+
+    [Fact]
+    public void AcceptInvite_PlayerBanned_ReturnsFalseAndLogsWarning()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Testers", DeityType.Khoras, "founder-uid", true);
+        var bannedPlayer = "banned-player";
+        _religionManager.InvitePlayer(religion.ReligionUID, bannedPlayer, "founder-uid");
+        var invite = _religionManager.GetPlayerInvitations(bannedPlayer).First();
+
+        // Ban the player before they accept
+        var banOk = _religionManager.BanPlayer(religion.ReligionUID, bannedPlayer, "founder-uid", "Bad behavior");
+        Assert.True(banOk);
+
+        // Act
+        var (ok, relId, error) = _religionManager.AcceptInvite(invite.InviteId, bannedPlayer);
+
+        // Assert
+        Assert.False(ok);
+        Assert.Equal(string.Empty, relId);
+        Assert.Equal("Player is banned from religion", error);
+        _mockLogger.Verify(
+            l => l.Warning(It.Is<string>(s =>
+                s.Contains("is banned from religion") && s.Contains(bannedPlayer) &&
+                s.Contains(religion.ReligionName))), Times.Once);
+        // Invite should remain since acceptance failed
+        Assert.True(_religionManager.HasInvitation(bannedPlayer, religion.ReligionUID));
+    }
+
+    [Fact]
+    public void AcceptInvite_Success_JoinsReligion_RemovesInvite_LogsNotification()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Happy Path", DeityType.Khoras, "founder-uid", true);
+        var invitedPlayer = "invited-player";
+        _religionManager.InvitePlayer(religion.ReligionUID, invitedPlayer, "founder-uid");
+        var invite = _religionManager.GetPlayerInvitations(invitedPlayer).First();
+
+        // Act
+        var (ok, relId, error) = _religionManager.AcceptInvite(invite.InviteId, invitedPlayer);
+
+        // Assert
+        Assert.True(ok);
+        Assert.Equal(religion.ReligionUID, relId);
+        Assert.Equal(string.Empty, error);
+        Assert.Contains(invitedPlayer, religion.MemberUIDs);
+        Assert.False(_religionManager.HasInvitation(invitedPlayer, religion.ReligionUID));
+        _mockLogger.Verify(
+            l => l.Notification(It.Is<string>(s =>
+                s.Contains("accepted invite") && s.Contains(invitedPlayer) && s.Contains(religion.ReligionName))),
+            Times.Once);
+    }
+
+    #endregion
+
+    #region DeclineInvite Tests
+
+    [Fact]
+    public void DeclineInvite_InviteNotFound_ReturnsFalseAndLogsWarning()
+    {
+        // Arrange
+        var invalidInviteId = "non-existent-invite";
+
+        // Act
+        var result = _religionManager.DeclineInvite(invalidInviteId, "some-player");
+
+        // Assert
+        Assert.False(result);
+        _mockLogger.Verify(
+            l => l.Warning(It.Is<string>(s => s.Contains("Invite not found") && s.Contains(invalidInviteId))),
+            Times.Once);
+    }
+
+    [Fact]
+    public void DeclineInvite_PlayerMismatch_ReturnsFalseAndLogsWarning()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var invitedPlayer = "invited-player";
+        _religionManager.InvitePlayer(religion.ReligionUID, invitedPlayer, "founder-uid");
+
+        var invite = _religionManager.GetPlayerInvitations(invitedPlayer).First();
+
+        // Act
+        var result = _religionManager.DeclineInvite(invite.InviteId, "other-player");
+
+        // Assert
+        Assert.False(result);
+        _mockLogger.Verify(
+            l => l.Warning(It.Is<string>(s =>
+                s.Contains("cannot decline invite") && s.Contains("other-player") && s.Contains(invitedPlayer))),
+            Times.Once);
+        // Ensure invite still exists
+        Assert.True(_religionManager.HasInvitation(invitedPlayer, religion.ReligionUID));
+    }
+
+    [Fact]
+    public void DeclineInvite_ValidInvite_RemovesInviteAndLogsDebug()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var invitedPlayer = "invited-player";
+        _religionManager.InvitePlayer(religion.ReligionUID, invitedPlayer, "founder-uid");
+        var invite = _religionManager.GetPlayerInvitations(invitedPlayer).First();
+
+        // Pre-assert
+        Assert.True(_religionManager.HasInvitation(invitedPlayer, religion.ReligionUID));
+
+        // Act
+        var result = _religionManager.DeclineInvite(invite.InviteId, invitedPlayer);
+
+        // Assert
+        Assert.True(result);
+        Assert.False(_religionManager.HasInvitation(invitedPlayer, religion.ReligionUID));
+        _mockLogger.Verify(
+            l => l.Debug(It.Is<string>(s =>
+                s.Contains("declined invite") && s.Contains(invitedPlayer) && s.Contains(invite.InviteId))),
+            Times.Once);
     }
 
     #endregion
@@ -542,24 +825,6 @@ public class ReligionManagerTests
 
     #endregion
 
-    #region RemoveInvitation Tests
-
-    [Fact]
-    public void RemoveInvitation_RemovesInvitation()
-    {
-        // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", false);
-        _religionManager.InvitePlayer(religion.ReligionUID, "invited-player", "founder-uid");
-
-        // Act
-        _religionManager.RemoveInvitation("invited-player", religion.ReligionUID);
-
-        // Assert
-        Assert.False(_religionManager.HasInvitation("invited-player", religion.ReligionUID));
-    }
-
-    #endregion
-
     #region GetPlayerInvitations Tests
 
     [Fact]
@@ -649,26 +914,6 @@ public class ReligionManagerTests
 
     #endregion
 
-    #region GetReligionsByDeity Tests
-
-    [Fact]
-    public void GetReligionsByDeity_ReturnsOnlyMatchingReligions()
-    {
-        // Arrange
-        _religionManager.CreateReligion("Khoras Religion 1", DeityType.Khoras, "founder1", true);
-        _religionManager.CreateReligion("Khoras Religion 2", DeityType.Khoras, "founder2", true);
-        _religionManager.CreateReligion("Lysa Religion", DeityType.Lysa, "founder3", true);
-
-        // Act
-        var khorasReligions = _religionManager.GetReligionsByDeity(DeityType.Khoras);
-
-        // Assert
-        Assert.Equal(2, khorasReligions.Count);
-        Assert.All(khorasReligions, r => Assert.Equal(DeityType.Khoras, r.Deity));
-    }
-
-    #endregion
-
     #region DeleteReligion Tests
 
     [Fact]
@@ -717,28 +962,6 @@ public class ReligionManagerTests
 
     #endregion
 
-    #region HandleFounderLeaving Tests
-
-    [Fact]
-    public void HandleFounderLeaving_TransfersToNextMember()
-    {
-        // Arrange
-        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
-        _religionManager.AddMember(religion.ReligionUID, "member-uid");
-
-        // Act - Remove founder
-        _religionManager.RemoveMember(religion.ReligionUID, "founder-uid");
-
-        // Assert - Founder should have transferred
-        Assert.Equal("member-uid", religion.FounderUID);
-        _mockLogger.Verify(
-            l => l.Notification(It.Is<string>(s => s.Contains("founder transferred"))),
-            Times.Once()
-        );
-    }
-
-    #endregion
-
     #region Persistence Tests
 
     [Fact]
@@ -750,8 +973,8 @@ public class ReligionManagerTests
 
         // Act - Use reflection to call private method
         var method = _religionManager.GetType().GetMethod("OnSaveGameLoaded",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance |
-            System.Reflection.BindingFlags.Public);
+            BindingFlags.NonPublic | BindingFlags.Instance |
+            BindingFlags.Public);
         method?.Invoke(_religionManager, Array.Empty<object>());
 
         // Assert - Should attempt to load (even if storage is mock)
@@ -768,8 +991,8 @@ public class ReligionManagerTests
 
         // Act - Use reflection to call private method
         var method = _religionManager.GetType().GetMethod("OnGameWorldSave",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance |
-            System.Reflection.BindingFlags.Public);
+            BindingFlags.NonPublic | BindingFlags.Instance |
+            BindingFlags.Public);
         method?.Invoke(_religionManager, Array.Empty<object>());
 
         // Assert - Should attempt to save (even if storage is mock)

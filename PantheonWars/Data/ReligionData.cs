@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using ProtoBuf;
 
@@ -15,13 +16,18 @@ public class ReligionData
     /// <summary>
     ///     Creates a new religion with the specified parameters
     /// </summary>
-    public ReligionData(string religionUID, string religionName, DeityType deity, string founderUID)
+    public ReligionData(string religionUID, string religionName, DeityType deity, string founderUID, string founderName)
     {
         ReligionUID = religionUID;
         ReligionName = religionName;
         Deity = deity;
         FounderUID = founderUID;
+        FounderName = founderName;
         MemberUIDs = new List<string> { founderUID }; // Founder is first member
+        Members = new Dictionary<string, MemberEntry>
+        {
+            [founderUID] = new(founderUID, founderName)
+        };
         CreationDate = DateTime.UtcNow;
     }
 
@@ -113,11 +119,50 @@ public class ReligionData
     public Dictionary<string, BanEntry> BannedPlayers { get; set; } = new();
 
     /// <summary>
-    ///     Adds a member to the religion
+    ///     Dictionary of roles in the religion
+    /// </summary>
+    [ProtoMember(14)]
+    public Dictionary<string, RoleData> Roles { get; set; } = new();
+
+    /// <summary>
+    ///     A dictionary of roles for the religion. Keys are player UIDs, values are the role IDs.
+    /// </summary>
+    [ProtoMember(15)]
+    public Dictionary<string, string> MemberRoles { get; set; } = new();
+
+    /// <summary>
+    ///     Dictionary of member entries with cached player names
+    ///     Key: player UID, Value: member entry with name and join date
+    /// </summary>
+    [ProtoMember(16)]
+    public Dictionary<string, MemberEntry> Members { get; set; } = new();
+
+    /// <summary>
+    ///     Cached founder name for quick access
+    /// </summary>
+    [ProtoMember(17)]
+    public string FounderName { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Adds a member to the religion with player name
+    /// </summary>
+    public void AddMember(string playerUID, string playerName)
+    {
+        if (!MemberUIDs.Contains(playerUID))
+            MemberUIDs.Add(playerUID);
+
+        if (!Members.ContainsKey(playerUID))
+            Members[playerUID] = new MemberEntry(playerUID, playerName);
+        else
+            Members[playerUID].UpdateName(playerName);
+    }
+
+    /// <summary>
+    ///     Adds a member to the religion (backward compatibility overload)
     /// </summary>
     public void AddMember(string playerUID)
     {
-        if (!MemberUIDs.Contains(playerUID)) MemberUIDs.Add(playerUID);
+        AddMember(playerUID, playerUID); // Fallback to UID as name
     }
 
     /// <summary>
@@ -125,6 +170,8 @@ public class ReligionData
     /// </summary>
     public bool RemoveMember(string playerUID)
     {
+        MemberRoles.Remove(playerUID);
+        Members.Remove(playerUID); // Also remove from Members dictionary
         return MemberUIDs.Remove(playerUID);
     }
 
@@ -150,6 +197,32 @@ public class ReligionData
     public int GetMemberCount()
     {
         return MemberUIDs.Count;
+    }
+
+    /// <summary>
+    ///     Gets the cached player name for a member (fallback to UID if not found)
+    /// </summary>
+    public string GetMemberName(string playerUID)
+    {
+        return Members.TryGetValue(playerUID, out var entry) ? entry.PlayerName : playerUID;
+    }
+
+    /// <summary>
+    ///     Updates the cached player name if the member exists
+    /// </summary>
+    public void UpdateMemberName(string playerUID, string playerName)
+    {
+        if (Members.TryGetValue(playerUID, out var entry))
+            entry.UpdateName(playerName);
+    }
+
+    /// <summary>
+    ///     Updates the founder name and the founder's member entry
+    /// </summary>
+    public void UpdateFounderName(string founderName)
+    {
+        FounderName = founderName;
+        UpdateMemberName(FounderUID, founderName);
     }
 
     /// <summary>
@@ -266,62 +339,138 @@ public class ReligionData
 
         foreach (var playerUID in expiredBans) BannedPlayers.Remove(playerUID);
     }
-}
 
-/// <summary>
-///     Represents a ban entry for a player banned from a religion
-/// </summary>
-[ProtoContract]
-public class BanEntry
-{
-    /// <summary>
-    ///     Parameterless constructor for serialization
-    /// </summary>
-    public BanEntry()
+    // Get player's role
+    public string GetPlayerRole(string playerUID)
     {
+        if (MemberRoles.TryGetValue(playerUID, out var roleUID))
+            return roleUID;
+
+        return RoleDefaults.MEMBER_ROLE_ID; // Fallback
     }
 
-    /// <summary>
-    ///     Creates a new ban entry
-    /// </summary>
-    public BanEntry(string playerUID, string bannedByUID, string reason = "", DateTime? expiresAt = null)
+// Get role data
+    public RoleData? GetRole(string roleUID)
     {
-        PlayerUID = playerUID;
-        BannedByUID = bannedByUID;
-        Reason = reason;
-        BannedAt = DateTime.UtcNow;
-        ExpiresAt = expiresAt;
+        return Roles.TryGetValue(roleUID, out var role) ? role : null;
     }
 
-    /// <summary>
-    ///     The UID of the banned player
-    /// </summary>
-    [ProtoMember(1)]
-    public string PlayerUID { get; set; } = string.Empty;
+// Check if player has a specific permission
+    public bool HasPermission(string playerUID, string permission)
+    {
+        var roleUID = GetPlayerRole(playerUID);
+        var role = GetRole(roleUID);
 
-    /// <summary>
-    ///     Reason for the ban
-    /// </summary>
-    [ProtoMember(2)]
-    public string Reason { get; set; } = "No reason provided";
+        if (role == null)
+            return false;
 
-    /// <summary>
-    ///     When the ban was issued
-    /// </summary>
-    [ProtoMember(3)]
-    public DateTime BannedAt { get; set; } = DateTime.UtcNow;
+        return role.HasPermission(permission);
+    }
 
-    /// <summary>
-    ///     When the ban expires (null = permanent)
-    /// </summary>
-    [ProtoMember(4)]
-    public DateTime? ExpiresAt { get; set; }
+// Check if player can assign a specific role
+    public bool CanAssignRole(string assignerUID, string targetRoleUID)
+    {
+        // SYSTEM can always assign roles (for automated assignments like join/invite)
+        if (assignerUID == "SYSTEM")
+        {
+            // Cannot assign Founder role (must use transfer)
+            if (targetRoleUID == RoleDefaults.FOUNDER_ROLE_ID)
+                return false;
 
-    /// <summary>
-    ///     UID of the player who issued the ban (typically the founder)
-    /// </summary>
-    [ProtoMember(5)]
-    public string BannedByUID { get; set; } = string.Empty;
+            // Role must exist
+            if (!Roles.ContainsKey(targetRoleUID))
+                return false;
+
+            return true;
+        }
+
+        // Must have MANAGE_ROLES permission
+        if (!HasPermission(assignerUID, RolePermissions.MANAGE_ROLES))
+            return false;
+
+        // Cannot assign Founder role (must use transfer)
+        if (targetRoleUID == RoleDefaults.FOUNDER_ROLE_ID)
+            return false;
+
+        // Role must exist
+        if (!Roles.ContainsKey(targetRoleUID))
+            return false;
+
+        return true;
+    }
+
+// Get list of roles a player can assign
+    public List<RoleData> GetAssignableRoles(string playerUID)
+    {
+        var assignable = new List<RoleData>();
+
+        if (!HasPermission(playerUID, RolePermissions.MANAGE_ROLES))
+            return assignable;
+
+        foreach (var role in Roles.Values)
+        {
+            // Cannot assign Founder role
+            if (role.RoleUID == RoleDefaults.FOUNDER_ROLE_ID)
+                continue;
+
+            assignable.Add(role);
+        }
+
+        return assignable;
+    }
+
+// Get role by name (case-insensitive)
+    public RoleData? GetRoleByName(string roleName)
+    {
+        foreach (var role in Roles.Values)
+            if (role.RoleName.Equals(roleName, StringComparison.OrdinalIgnoreCase))
+                return role;
+
+        return null;
+    }
+
+// Check if role name is taken
+    public bool IsRoleNameTaken(string roleName, string? excludeRoleUID = null)
+    {
+        foreach (var role in Roles.Values)
+        {
+            if (role.RoleUID == excludeRoleUID)
+                continue;
+
+            if (role.RoleName.Equals(roleName, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
+    }
+
+// Get members with a specific role
+    public List<string> GetMembersWithRole(string roleUID)
+    {
+        var members = new List<string>();
+
+        foreach (var kvp in MemberRoles)
+            if (kvp.Value == roleUID)
+                members.Add(kvp.Key);
+
+        return members;
+    }
+
+// Count members per role
+    public Dictionary<string, int> GetRoleMemberCounts()
+    {
+        var counts = new Dictionary<string, int>();
+
+        foreach (var role in Roles.Keys) counts[role] = 0;
+
+        foreach (var roleUID in MemberRoles.Values)
+            if (counts.ContainsKey(roleUID))
+                counts[roleUID]++;
+            else
+                counts[roleUID] = 1;
+
+        return counts;
+    }
 }
 
 /// <summary>

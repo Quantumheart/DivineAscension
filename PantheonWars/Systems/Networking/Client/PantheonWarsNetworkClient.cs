@@ -1,9 +1,9 @@
 using System;
+using System.Collections.Generic;
 using PantheonWars.Network;
 using PantheonWars.Network.Civilization;
 using PantheonWars.Systems.Networking.Interfaces;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace PantheonWars.Systems.Networking.Client;
 
@@ -40,6 +40,15 @@ public class PantheonWarsNetworkClient : IClientNetworkHandler
         _clientChannel.SetMessageHandler<CivilizationListResponsePacket>(OnCivilizationListResponse);
         _clientChannel.SetMessageHandler<CivilizationInfoResponsePacket>(OnCivilizationInfoResponse);
         _clientChannel.SetMessageHandler<CivilizationActionResponsePacket>(OnCivilizationActionResponse);
+
+        // Register handlers for role management responses
+        _clientChannel.SetMessageHandler<ReligionRolesResponse>(OnReligionRolesResponse);
+        _clientChannel.SetMessageHandler<CreateRoleResponse>(OnCreateRoleResponse);
+        _clientChannel.SetMessageHandler<ModifyRolePermissionsResponse>(OnModifyRolePermissionsResponse);
+        _clientChannel.SetMessageHandler<AssignRoleResponse>(OnAssignRoleResponse);
+        _clientChannel.SetMessageHandler<DeleteRoleResponse>(OnDeleteRoleResponse);
+        _clientChannel.SetMessageHandler<TransferFounderResponse>(OnTransferFounderResponse);
+
         _clientChannel.RegisterMessageType(typeof(PlayerReligionDataPacket));
     }
 
@@ -56,6 +65,12 @@ public class PantheonWarsNetworkClient : IClientNetworkHandler
         CivilizationListReceived = null;
         CivilizationInfoReceived = null;
         CivilizationActionCompleted = null;
+        ReligionRolesReceived = null;
+        RoleCreated = null;
+        RolePermissionsModified = null;
+        RoleAssigned = null;
+        RoleDeleted = null;
+        FounderTransferred = null;
     }
 
     #endregion
@@ -109,6 +124,79 @@ public class PantheonWarsNetworkClient : IClientNetworkHandler
             _capi?.ShowChatMessage(packet.Message);
         else
             _capi?.ShowChatMessage($"Error: {packet.Message}");
+    }
+
+    private void OnReligionRolesResponse(ReligionRolesResponse packet)
+    {
+        _capi?.Logger.Debug($"[PantheonWars] Received religion roles response: Success={packet.Success}");
+
+        if (!packet.Success)
+        {
+            _capi?.Logger.Warning($"[PantheonWars] Religion roles request failed: {packet.ErrorMessage}");
+            _capi?.ShowChatMessage($"Error: {packet.ErrorMessage}");
+        }
+
+        ReligionRolesReceived?.Invoke(packet);
+    }
+
+    private void OnCreateRoleResponse(CreateRoleResponse packet)
+    {
+        _capi?.Logger.Debug($"[PantheonWars] Create role response: Success={packet.Success}");
+
+        if (packet.Success)
+            _capi?.ShowChatMessage($"Role '{packet.CreatedRole?.RoleName}' created successfully!");
+        else
+            _capi?.ShowChatMessage($"Error: {packet.ErrorMessage}");
+
+        RoleCreated?.Invoke(packet);
+    }
+
+    private void OnModifyRolePermissionsResponse(ModifyRolePermissionsResponse packet)
+    {
+        _capi?.Logger.Debug($"[PantheonWars] Modify role permissions response: Success={packet.Success}");
+
+        if (packet.Success)
+            _capi?.ShowChatMessage("Role permissions updated successfully!");
+        else
+            _capi?.ShowChatMessage($"Error: {packet.ErrorMessage}");
+
+        RolePermissionsModified?.Invoke(packet);
+    }
+
+    private void OnAssignRoleResponse(AssignRoleResponse packet)
+    {
+        _capi?.Logger.Debug($"[PantheonWars] Assign role response: Success={packet.Success}");
+
+        if (packet.Success)
+            _capi?.ShowChatMessage("Role assigned successfully!");
+        else
+            _capi?.ShowChatMessage($"Error: {packet.ErrorMessage}");
+
+        RoleAssigned?.Invoke(packet);
+    }
+
+    private void OnDeleteRoleResponse(DeleteRoleResponse packet)
+    {
+        _capi?.Logger.Debug($"[PantheonWars] Delete role response: Success={packet.Success}");
+
+        if (packet.Success)
+            _capi?.ShowChatMessage("Role deleted successfully!");
+        else
+            _capi?.ShowChatMessage($"Error: {packet.ErrorMessage}");
+
+        RoleDeleted?.Invoke(packet);
+    }
+
+    private void OnTransferFounderResponse(TransferFounderResponse packet)
+    {
+        _capi?.Logger.Debug($"[PantheonWars] Transfer founder response: Success={packet.Success}");
+
+        if (packet.Success)
+            _capi?.ShowChatMessage("Founder status transferred successfully!");
+        else
+            _capi?.ShowChatMessage($"Error: {packet.ErrorMessage}");
+
+        FounderTransferred?.Invoke(packet);
     }
 
     private void OnBlessingUnlockResponse(BlessingUnlockResponsePacket packet)
@@ -289,6 +377,78 @@ public class PantheonWarsNetworkClient : IClientNetworkHandler
     }
 
     /// <summary>
+    ///     Request roles data for a religion
+    /// </summary>
+    public void RequestReligionRoles(string religionUID)
+    {
+        if (!IsNetworkAvailable()) return;
+
+        var request = new ReligionRolesRequest(religionUID);
+        _clientChannel!.SendPacket(request);
+        _capi?.Logger.Debug("[PantheonWars] Sent request religion roles");
+    }
+
+    /// <summary>
+    ///     Request to create a custom role
+    /// </summary>
+    public void RequestCreateRole(string id, string roleName)
+    {
+        if (!IsNetworkAvailable()) return;
+
+        var request = new CreateRoleRequest(id, roleName);
+        _clientChannel!.SendPacket(request);
+        _capi?.Logger.Debug("[PantheonWars] Sent create role request");
+    }
+
+    /// <summary>
+    ///     Request to modify role permissions
+    /// </summary>
+    public void RequestModifyRolePermissions(string id, string roleId, HashSet<string> permissions)
+    {
+        if (!IsNetworkAvailable()) return;
+
+        var request = new ModifyRolePermissionsRequest(id, roleId, permissions);
+        _clientChannel!.SendPacket(request);
+        _capi?.Logger.Debug("[PantheonWars] Sent modify role permissions request");
+    }
+
+    /// <summary>
+    ///     Request to delete a role
+    /// </summary>
+    public void RequestDeleteRole(string id, string roleId)
+    {
+        if (!IsNetworkAvailable()) return;
+
+        var request = new DeleteRoleRequest(id, roleId);
+        _clientChannel!.SendPacket(request);
+        _capi?.Logger.Debug("[PantheonWars] Sent delete role request");
+    }
+
+    /// <summary>
+    ///     Request to assign a role to a player
+    /// </summary>
+    public void RequestAssignRole(string id, string targetPlayerId, string roleId)
+    {
+        if (!IsNetworkAvailable()) return;
+
+        var request = new AssignRoleRequest(id, targetPlayerId, roleId);
+        _clientChannel!.SendPacket(request);
+        _capi?.Logger.Debug("[PantheonWars] Sent assign role request");
+    }
+
+    /// <summary>
+    ///     Request to transfer founder status
+    /// </summary>
+    public void RequestTransferFounder(string id, string founderId)
+    {
+        if (!IsNetworkAvailable()) return;
+
+        var request = new TransferFounderRequest(id, founderId);
+        _clientChannel!.SendPacket(request);
+        _capi?.Logger.Debug("[PantheonWars] Sent transfer founder request");
+    }
+
+    /// <summary>
     ///     Request list of all civilizations
     /// </summary>
     public void RequestCivilizationList(string deityFilter = "")
@@ -338,6 +498,17 @@ public class PantheonWarsNetworkClient : IClientNetworkHandler
 
     #endregion
 
+    private bool IsNetworkAvailable()
+    {
+        if (_clientChannel == null)
+        {
+            _capi?.Logger.Error("[PantheonWars] Cannot edit description: client channel not initialized");
+            return false;
+        }
+
+        return true;
+    }
+    
     #region Events
 
     /// <summary>
@@ -390,6 +561,36 @@ public class PantheonWarsNetworkClient : IClientNetworkHandler
     ///     Event fired when civilization action is completed (create, invite, accept, leave, kick, disband)
     /// </summary>
     public event Action<CivilizationActionResponsePacket>? CivilizationActionCompleted;
+
+    /// <summary>
+    ///     Event fired when religion roles data is received from server
+    /// </summary>
+    public event Action<ReligionRolesResponse>? ReligionRolesReceived;
+
+    /// <summary>
+    ///     Event fired when a role is created
+    /// </summary>
+    public event Action<CreateRoleResponse>? RoleCreated;
+
+    /// <summary>
+    ///     Event fired when role permissions are modified
+    /// </summary>
+    public event Action<ModifyRolePermissionsResponse>? RolePermissionsModified;
+
+    /// <summary>
+    ///     Event fired when a role is assigned to a player
+    /// </summary>
+    public event Action<AssignRoleResponse>? RoleAssigned;
+
+    /// <summary>
+    ///     Event fired when a role is deleted
+    /// </summary>
+    public event Action<DeleteRoleResponse>? RoleDeleted;
+
+    /// <summary>
+    ///     Event fired when founder status is transferred
+    /// </summary>
+    public event Action<TransferFounderResponse>? FounderTransferred;
 
     #endregion
 }

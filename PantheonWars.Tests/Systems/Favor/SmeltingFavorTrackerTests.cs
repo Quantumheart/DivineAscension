@@ -1,16 +1,16 @@
-using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Moq;
 using PantheonWars.Models.Enum;
 using PantheonWars.Systems.Favor;
 using PantheonWars.Systems.Interfaces;
 using PantheonWars.Tests.Helpers;
-using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
 namespace PantheonWars.Tests.Systems.Favor;
 
+[ExcludeFromCodeCoverage]
 public class SmeltingFavorTrackerTests
 {
     private static SmeltingFavorTracker CreateTracker(
@@ -23,7 +23,8 @@ public class SmeltingFavorTrackerTests
 
     private static MethodInfo GetHandleMethod()
     {
-        var mi = typeof(SmeltingFavorTracker).GetMethod("HandleMoldPoured", BindingFlags.Instance | BindingFlags.NonPublic);
+        var mi = typeof(SmeltingFavorTracker).GetMethod("HandleMoldPoured",
+            BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.NotNull(mi);
         return mi!;
     }
@@ -116,7 +117,8 @@ public class SmeltingFavorTrackerTests
         var method = GetHandleMethod();
         method.Invoke(tracker, new object?[] { "player-smelt-3", new BlockPos(5, 5, 5), 100, true });
 
-        mockFavor.Verify(m => m.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<float>()), Times.Never);
+        mockFavor.Verify(m => m.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<float>()),
+            Times.Never);
 
         tracker.Dispose();
     }

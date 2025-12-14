@@ -1,4 +1,4 @@
-using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Moq;
 using PantheonWars.Models.Enum;
@@ -11,6 +11,7 @@ using Vintagestory.API.Server;
 
 namespace PantheonWars.Tests.Systems.Favor;
 
+[ExcludeFromCodeCoverage]
 public class AnvilFavorTrackerTests
 {
     private static AnvilFavorTracker CreateTracker(
@@ -23,12 +24,14 @@ public class AnvilFavorTrackerTests
 
     private static MethodInfo GetHandleMethod()
     {
-        var mi = typeof(AnvilFavorTracker).GetMethod("HandleAnvilRecipeCompleted", BindingFlags.Instance | BindingFlags.NonPublic);
+        var mi = typeof(AnvilFavorTracker).GetMethod("HandleAnvilRecipeCompleted",
+            BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.NotNull(mi);
         return mi!;
     }
 
-    private static (Mock<IServerWorldAccessor> world, Mock<IBlockAccessor> accessor) SetupWorld(Mock<ICoreServerAPI> mockSapi)
+    private static (Mock<IServerWorldAccessor> world, Mock<IBlockAccessor> accessor) SetupWorld(
+        Mock<ICoreServerAPI> mockSapi)
     {
         var mockWorld = new Mock<IServerWorldAccessor>();
         var mockAccessor = new Mock<IBlockAccessor>();
@@ -149,7 +152,8 @@ public class AnvilFavorTrackerTests
 
         method.Invoke(tracker, new object?[] { "player-anvil-3", pos, null });
 
-        mockFavor.Verify(m => m.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        mockFavor.Verify(m => m.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()),
+            Times.Never);
 
         tracker.Dispose();
     }

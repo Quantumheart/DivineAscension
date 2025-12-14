@@ -1,29 +1,26 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Moq;
 using PantheonWars.Commands;
 using PantheonWars.Data;
+using PantheonWars.Models;
 using PantheonWars.Models.Enum;
-using PantheonWars.Systems;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Common;
-using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
-using Vintagestory.API.Config;
 
 namespace PantheonWars.Tests.Commands.Helpers;
 
 [ExcludeFromCodeCoverage]
 public class ReligionCommandsTestHelpers
 {
-    protected Mock<ICoreServerAPI> _mockSapi;
-    protected Mock<ILogger> _mockLogger;
-    protected Mock<IReligionManager> _religionManager;
-    protected Mock<IPlayerReligionDataManager> _playerReligionDataManager;
-    protected Mock<IServerNetworkChannel> _serverChannel;
     protected Mock<IChatCommandApi> _mockChatCommands;
+    protected Mock<ILogger> _mockLogger;
+    protected Mock<ICoreServerAPI> _mockSapi;
     protected Mock<IServerWorldAccessor> _mockWorld;
+    protected Mock<IPlayerReligionDataManager> _playerReligionDataManager;
+    protected Mock<IReligionManager> _religionManager;
+    protected Mock<IServerNetworkChannel> _serverChannel;
     protected ReligionCommands? _sut;
 
     protected ReligionCommandsTestHelpers()
@@ -91,7 +88,8 @@ public class ReligionCommandsTestHelpers
     /// <summary>
     /// Creates test PlayerReligionData
     /// </summary>
-    protected PlayerReligionData CreatePlayerData(string playerUID, string? religionUID = null, DeityType deity = DeityType.None)
+    protected PlayerReligionData CreatePlayerData(string playerUID, string? religionUID = null,
+        DeityType deity = DeityType.None)
     {
         return new PlayerReligionData(playerUID)
         {
@@ -103,12 +101,20 @@ public class ReligionCommandsTestHelpers
     /// <summary>
     /// Creates test ReligionData
     /// </summary>
-    protected ReligionData CreateReligion(string uid, string name, DeityType deity, string founderUID, bool isPublic = true)
+    protected ReligionData CreateReligion(string uid, string name, DeityType deity, string founderUID,
+        bool isPublic = true)
     {
-        return new ReligionData(uid, name, deity, founderUID)
+        var religion = new ReligionData(uid, name, deity, founderUID, "TestFounder")
         {
-            IsPublic = isPublic
+            IsPublic = isPublic,
+            Roles = RoleDefaults.CreateDefaultRoles(),
+            MemberRoles = new Dictionary<string, string>
+            {
+                [founderUID] = RoleDefaults.FOUNDER_ROLE_ID
+            }
         };
+
+        return religion;
     }
 
     /// <summary>

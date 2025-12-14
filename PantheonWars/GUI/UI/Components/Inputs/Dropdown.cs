@@ -22,6 +22,7 @@ internal static class Dropdown
     /// <param name="height">Dropdown height</param>
     /// <param name="selectedText">Text to display for the selected item</param>
     /// <param name="isOpen">Whether the dropdown is currently open</param>
+    /// <param name="fontSize">Font size for the text (default 13f)</param>
     /// <returns>True if the dropdown was clicked</returns>
     public static bool DrawButton(
         ImDrawListPtr drawList,
@@ -30,7 +31,8 @@ internal static class Dropdown
         float width,
         float height,
         string selectedText,
-        bool isOpen)
+        bool isOpen,
+        float fontSize = 13f)
     {
         var dropdownStart = new Vector2(x, y);
         var dropdownEnd = new Vector2(x + width, y + height);
@@ -51,10 +53,18 @@ internal static class Dropdown
 
         if (isHovering) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
-        // Draw selected text
-        var textPos = new Vector2(x + 12f, y + (height - 16f) / 2);
+        // Draw selected text with font scaling
+        var fontScale = fontSize / 13f;
+        ImGui.SetWindowFontScale(fontScale);
+        var scaledTextSize = ImGui.CalcTextSize(selectedText);
+        ImGui.SetWindowFontScale(1f);
+
+        var textPos = new Vector2(x + 12f, y + (height - scaledTextSize.Y) / 2);
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
+
+        ImGui.SetWindowFontScale(fontScale);
         drawList.AddText(textPos, textColor, selectedText);
+        ImGui.SetWindowFontScale(1f);
 
         // Draw dropdown arrow
         var arrowX = x + width - 20f;
@@ -159,6 +169,7 @@ internal static class Dropdown
     /// <param name="items">Array of menu items to display</param>
     /// <param name="selectedIndex">Currently selected index</param>
     /// <param name="itemHeight">Height of each menu item (default 40)</param>
+    /// <param name="fontSize">Font size for the text (default 13f)</param>
     public static void DrawMenuVisual(
         ImDrawListPtr drawList,
         float x,
@@ -167,7 +178,8 @@ internal static class Dropdown
         float height,
         string[] items,
         int selectedIndex,
-        float itemHeight = 40f)
+        float itemHeight = 40f,
+        float fontSize = 13f)
     {
         var mousePos = ImGui.GetMousePos();
         var menuHeight = items.Length * itemHeight;
@@ -201,10 +213,18 @@ internal static class Dropdown
                 drawList.AddRectFilled(itemStart, itemEnd, itemBgColor);
             }
 
-            // Draw item text
-            var itemTextPos = new Vector2(x + 12f, itemY + (itemHeight - 16f) / 2);
+            // Draw item text with font scaling
+            var fontScale = fontSize / 13f;
+            ImGui.SetWindowFontScale(fontScale);
+            var itemTextSize = ImGui.CalcTextSize(items[i]);
+            ImGui.SetWindowFontScale(1f);
+
+            var itemTextPos = new Vector2(x + 12f, itemY + (itemHeight - itemTextSize.Y) / 2);
             var itemTextColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
+
+            ImGui.SetWindowFontScale(fontScale);
             drawList.AddText(itemTextPos, itemTextColor, items[i]);
+            ImGui.SetWindowFontScale(1f);
         }
     }
 }

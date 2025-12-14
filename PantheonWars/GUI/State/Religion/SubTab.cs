@@ -6,5 +6,6 @@ public enum SubTab
     Info = 1,
     Activity = 2,
     Invites = 3,
-    Create = 4
+    Create = 4,
+    Roles = 5
 }

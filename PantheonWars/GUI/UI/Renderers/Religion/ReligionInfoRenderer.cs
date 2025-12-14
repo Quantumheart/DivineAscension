@@ -94,6 +94,7 @@ internal static class ReligionInfoRenderer
         {
             events.Add(new InfoEvent.MemberScrollChanged(memberScrollY));
         }
+
         currentY += memberListHeight + 15f;
 
         // === BANNED PLAYERS SECTION (founder only) ===
@@ -109,6 +110,7 @@ internal static class ReligionInfoRenderer
             {
                 events.Add(new InfoEvent.BanListScrollChanged(banListScrollY));
             }
+
             currentY += banListHeight + 15f;
         }
 
@@ -129,11 +131,6 @@ internal static class ReligionInfoRenderer
         // Disband confirmation
         if (viewModel.ShowDisbandConfirm)
             DrawDisbandConfirmation(drawList, events);
-
-        // Kick confirmation
-        if (viewModel.KickConfirmPlayerUID != null)
-            DrawKickConfirmation(drawList, viewModel.KickConfirmPlayerName ?? viewModel.KickConfirmPlayerUID,
-                viewModel.KickConfirmPlayerUID, events);
 
         // Ban confirmation
         if (viewModel.BanConfirmPlayerUID != null)
@@ -157,8 +154,7 @@ internal static class ReligionInfoRenderer
             height: height,
             scrollY: viewModel.MemberScrollY,
             members: viewModel.Members,
-            currentPlayerUID: viewModel.CurrentPlayerUID,
-            canModerate: viewModel.IsFounder);
+            viewModel.CurrentPlayerUID);
 
         var result = MemberListRenderer.Draw(mlVm, drawList);
 

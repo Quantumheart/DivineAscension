@@ -11,17 +11,19 @@ public class ReligionTabState
     private readonly ActivityState _activityState = new ActivityState();
 
     // Tab navigation
-    public SubTab CurrentSubTab { get; set; } // 0=Browse, 1=Religion Info, 2=Activity, 3=Create
+    public SubTab CurrentSubTab { get; set; } // 0=Browse, 1=Religion Info, 2=Activity, 3=Create, 4=Activity, 5=Roles
 
     // Error handling
 
-    public CreateState CreateState { get; } = new ();
+    public CreateState CreateState { get; } = new();
 
     public BrowseState BrowseState { get; } = new();
 
     public InfoState InfoState { get; } = new InfoState();
 
     public InvitesState InvitesState { get; } = new InvitesState();
+
+    public RolesState RolesState { get; } = new();
 
     public ErrorState ErrorState { get; } = new ErrorState();
 
@@ -34,6 +36,7 @@ public class ReligionTabState
         BrowseState.Reset();
         InfoState.Reset();
         InvitesState.Reset();
+        RolesState.Reset();
         CreateState.Reset();
 
         // _activityState.ActivityLog.Clear();

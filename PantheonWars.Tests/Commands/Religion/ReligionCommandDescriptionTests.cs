@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Moq;
 using PantheonWars.Data;
 using PantheonWars.Models.Enum;
 using PantheonWars.Tests.Commands.Helpers;
@@ -204,7 +203,7 @@ public class ReligionCommandDescriptionTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Error, result.Status);
-        Assert.Contains("Only the founder can set the religion description", result.StatusMessage);
+        Assert.Contains("You don't have permission to edit the religion description", result.StatusMessage);
     }
 
     #endregion

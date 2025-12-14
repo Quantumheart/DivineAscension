@@ -4,7 +4,6 @@ using PantheonWars.Data;
 using PantheonWars.Models.Enum;
 using PantheonWars.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
-using Vintagestory.API.Server;
 
 namespace PantheonWars.Tests.Commands.Religion;
 
@@ -193,7 +192,7 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Error, result.Status);
-        Assert.Contains("Only the founder can unban players", result.StatusMessage);
+        Assert.Contains("You don't have permission to unban players", result.StatusMessage);
     }
 
     [Fact]

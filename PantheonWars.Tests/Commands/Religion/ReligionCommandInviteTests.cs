@@ -5,7 +5,6 @@ using PantheonWars.Models.Enum;
 using PantheonWars.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
-using Vintagestory.API.Server;
 
 namespace PantheonWars.Tests.Commands.Religion;
 
@@ -29,7 +28,7 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         var mockPlayer = CreateMockPlayer("player-1", "InviterName");
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
         var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TargetName");
 
@@ -37,6 +36,7 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
+        _religionManager.Setup(m => m.InvitePlayer("religion-1", "target-1", "player-1")).Returns(true);
         _mockWorld.Setup(w => w.AllOnlinePlayers).Returns(onlinePlayers.ToArray());
 
         // Act
@@ -56,7 +56,7 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         var mockPlayer = CreateMockPlayer("player-1", "InviterName");
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
         var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TargetName");
 
@@ -64,6 +64,7 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
+        _religionManager.Setup(m => m.InvitePlayer("religion-1", "target-1", "player-1")).Returns(true);
         _mockWorld.Setup(w => w.AllOnlinePlayers).Returns(onlinePlayers.ToArray());
 
         // Act
@@ -83,7 +84,7 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         var mockPlayer = CreateMockPlayer("player-1", "InviterName");
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
         var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "targetname"); // lowercase
 
@@ -91,6 +92,7 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
+        _religionManager.Setup(m => m.InvitePlayer("religion-1", "target-1", "player-1")).Returns(true);
         _mockWorld.Setup(w => w.AllOnlinePlayers).Returns(onlinePlayers.ToArray());
 
         // Act
@@ -176,7 +178,7 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "InviterName");
         var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "NonExistentPlayer");
 
@@ -200,7 +202,7 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         var mockPlayer = CreateMockPlayer("player-1", "InviterName");
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
         var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
         religion.MemberUIDs.Add("target-1"); // Target is already a member
 
         var args = CreateCommandArgs(mockPlayer.Object);

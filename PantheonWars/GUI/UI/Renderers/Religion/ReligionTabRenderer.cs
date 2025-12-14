@@ -49,11 +49,9 @@ internal static class ReligionTabRenderer
         DrawTabButton(nameof(SubTab.Browse), SubTab.Browse);
         DrawTabButton(nameof(SubTab.Info), SubTab.Info);
         DrawTabButton(nameof(SubTab.Activity), SubTab.Activity);
-        if (!viewModel.HasReligion)
-        {
-            DrawTabButton(nameof(SubTab.Invites), SubTab.Invites);
-            DrawTabButton(nameof(SubTab.Create), SubTab.Create);
-        }
+        DrawTabButton(nameof(SubTab.Roles), SubTab.Roles);
+        DrawTabButton(nameof(SubTab.Invites), SubTab.Invites);
+        DrawTabButton(nameof(SubTab.Create), SubTab.Create);
 
         var contentY = y + tabH + 10f;
         var renderedHeight = tabH + 10f;

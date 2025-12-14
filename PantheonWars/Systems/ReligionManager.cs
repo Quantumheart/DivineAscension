@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using PantheonWars.Data;
+using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Server;
@@ -12,18 +13,13 @@ namespace PantheonWars.Systems;
 /// <summary>
 ///     Manages all religions and congregation membership
 /// </summary>
-public class ReligionManager : IReligionManager, IDisposable
+public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 {
     private const string DATA_KEY = "pantheonwars_religions";
     private const string INVITE_DATA_KEY = "pantheonwars_religion_invites";
     private readonly Dictionary<string, ReligionData> _religions = new();
-    private readonly ICoreServerAPI _sapi;
+    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
     private ReligionWorldData _inviteData = new();
-
-    public ReligionManager(ICoreServerAPI sapi)
-    {
-        _sapi = sapi;
-    }
 
     /// <summary>
     ///     Initializes the religion manager
@@ -60,17 +56,26 @@ public class ReligionManager : IReligionManager, IDisposable
         // Validate deity type
         if (deity == DeityType.None) throw new ArgumentException("Religion must have a valid deity");
 
+        // Get founder name (player guaranteed to be online during creation)
+        var founderPlayer = _sapi.World.PlayerByUid(founderUID);
+        var founderName = founderPlayer?.PlayerName ?? founderUID;
+
         // Create religion data
-        var religion = new ReligionData(religionUID, name, deity, founderUID)
+        var religion = new ReligionData(religionUID, name, deity, founderUID, founderName)
         {
-            IsPublic = isPublic
+            IsPublic = isPublic,
+            Roles = RoleDefaults.CreateDefaultRoles(),
+            MemberRoles = new Dictionary<string, string>
+            {
+                [founderUID] = RoleDefaults.FOUNDER_ROLE_ID
+            }
         };
 
         // Store in dictionary
         _religions[religionUID] = religion;
 
         _sapi.Logger.Notification(
-            $"[PantheonWars] Religion created: {name} (Deity: {deity}, Founder: {founderUID}, Public: {isPublic})");
+            $"[PantheonWars] Religion created: {name} (Deity: {deity}, Founder: {founderName}, Public: {isPublic})");
 
         // Immediately save to prevent data loss if server stops before autosave
         SaveAllReligions();
@@ -89,11 +94,16 @@ public class ReligionManager : IReligionManager, IDisposable
             return;
         }
 
-        religion.AddMember(playerUID);
-        _sapi.Logger.Debug($"[PantheonWars] Added player {playerUID} to religion {religion.ReligionName}");
+        // Get player name (player guaranteed to be online when joining)
+        var player = _sapi.World.PlayerByUid(playerUID);
+        var playerName = player?.PlayerName ?? playerUID;
+
+        religion.AddMember(playerUID, playerName);
+        _sapi.Logger.Debug(
+            $"[PantheonWars] Added player {playerName} ({playerUID}) to religion {religion.ReligionName}");
 
         // Save immediately to prevent data loss
-        SaveAllReligions();
+        Save(religion);
     }
 
     /// <summary>
@@ -123,10 +133,9 @@ public class ReligionManager : IReligionManager, IDisposable
                 _sapi.Logger.Notification(
                     $"[PantheonWars] Religion {religion.ReligionName} disbanded (no members remaining)");
             }
-
-            // Save immediately to prevent data loss
-            SaveAllReligions();
         }
+
+        SaveAllReligions();
     }
 
     /// <summary>
@@ -142,7 +151,7 @@ public class ReligionManager : IReligionManager, IDisposable
     /// </summary>
     public ReligionData? GetReligion(string religionUID)
     {
-        return _religions.TryGetValue(religionUID, out var religion) ? religion : null;
+        return _religions.GetValueOrDefault(religionUID);
     }
 
     /// <summary>
@@ -256,50 +265,50 @@ public class ReligionManager : IReligionManager, IDisposable
     /// <summary>
     ///     Accepts a religion invite
     /// </summary>
-    public bool AcceptInvite(string inviteId, string playerUID)
+    public (bool, string, string) AcceptInvite(string inviteId, string playerUID)
     {
         var invite = _inviteData.GetInvite(inviteId);
         if (invite == null || !invite.IsValid)
         {
             _sapi.Logger.Warning($"[PantheonWars] Invalid or expired invite: {inviteId}");
-            return false;
+            return (false, string.Empty, "Invalid or expired invite");
         }
 
         if (invite.PlayerUID != playerUID)
         {
             _sapi.Logger.Warning($"[PantheonWars] Player {playerUID} cannot accept invite for {invite.PlayerUID}");
-            return false;
+            return (false, string.Empty, "Player cannot accept invite");
         }
 
         // Check if player can join
         if (HasReligion(playerUID))
         {
             _sapi.Logger.Warning($"[PantheonWars] Player {playerUID} already has a religion");
-            return false;
+            return (false, string.Empty, "Player has already has a religion");
         }
 
         var religion = GetReligion(invite.ReligionId);
         if (religion == null)
         {
             _sapi.Logger.Warning($"[PantheonWars] Religion {invite.ReligionId} no longer exists");
-            return false;
+            return (false, string.Empty, "No religion");
         }
 
         if (religion.IsBanned(playerUID))
         {
             _sapi.Logger.Warning($"[PantheonWars] Player {playerUID} is banned from religion {religion.ReligionName}");
-            return false;
+            return (false, string.Empty, "Player is banned from religion");
         }
 
         // Join religion
         AddMember(invite.ReligionId, playerUID);
-
+        var religionId = invite.ReligionId;
         // Remove invite
         _inviteData.RemoveInvite(inviteId);
         SaveInviteData();
 
         _sapi.Logger.Notification($"[PantheonWars] Player {playerUID} accepted invite to {religion.ReligionName}");
-        return true;
+        return (true, religionId, string.Empty);
     }
 
     /// <summary>
@@ -387,6 +396,9 @@ public class ReligionManager : IReligionManager, IDisposable
         );
 
         religion.AddBannedPlayer(playerUID, banEntry);
+        religion.Members.Remove(playerUID);
+        religion.MemberUIDs.Remove(playerUID);
+        Save(religion);
 
         var expiryText = expiryDays.HasValue ? $" for {expiryDays} days" : " permanently";
         _sapi.Logger.Notification(
@@ -407,6 +419,7 @@ public class ReligionManager : IReligionManager, IDisposable
         }
 
         var removed = religion.RemoveBannedPlayer(playerUID);
+        Save(religion);
 
         if (removed)
             _sapi.Logger.Notification($"[PantheonWars] Player {playerUID} unbanned from {religion.ReligionName}");
@@ -463,10 +476,16 @@ public class ReligionManager : IReligionManager, IDisposable
         // If there are other members, transfer founder to next member
         if (religion.GetMemberCount() > 0)
         {
-            var newFounder = religion.MemberUIDs[0];
-            religion.FounderUID = newFounder;
+            var newFounderUID = religion.MemberUIDs[0];
+            religion.FounderUID = newFounderUID;
+
+            // Update founder name and role
+            var newFounderName = religion.GetMemberName(newFounderUID);
+            religion.UpdateFounderName(newFounderName);
+            religion.MemberRoles[newFounderUID] = RoleDefaults.FOUNDER_ROLE_ID;
+
             _sapi.Logger.Notification(
-                $"[PantheonWars] Religion {religion.ReligionName} founder transferred to {newFounder}");
+                $"[PantheonWars] Religion {religion.ReligionName} founder transferred to {newFounderName}");
         }
     }
 
@@ -482,6 +501,21 @@ public class ReligionManager : IReligionManager, IDisposable
     {
         SaveAllReligions();
         SaveInviteData();
+    }
+
+    public void Save(ReligionData religionData)
+    {
+        try
+        {
+            _religions[religionData.ReligionUID] = religionData;
+            SaveAllReligions();
+            _sapi.Logger.Debug($"[PantheonWars] Saved the {religionData.ReligionName} religion");
+        }
+
+        catch (Exception ex)
+        {
+            _sapi.Logger.Error($"[PantheonWars] Failed to save the religion: {ex.Message}");
+        }
     }
 
     /// <summary>

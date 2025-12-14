@@ -48,6 +48,10 @@ public class PlayerReligionInfoResponsePacket
         [ProtoMember(4)] public int Favor { get; set; }
 
         [ProtoMember(5)] public bool IsFounder { get; set; }
+
+        [ProtoMember(6)] public string RoleName { get; set; } = string.Empty;
+
+        [ProtoMember(7)] public string RoleId { get; set; } = string.Empty;
     }
 
     [ProtoContract]

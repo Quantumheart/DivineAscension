@@ -126,7 +126,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         _uiService.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
     }
 
-    private BlessingNodeState? GetBlessingState(string? blessingId)
+    private BlessingNodeState? GetBlessingState(string blessingId)
     {
         return State.PlayerBlessingStates.TryGetValue(blessingId, out var playerState)
             ? playerState

@@ -75,7 +75,7 @@ public interface IReligionManager : IDisposable
     /// <summary>
     ///     Accepts a religion invite
     /// </summary>
-    bool AcceptInvite(string inviteId, string playerUID);
+    (bool, string, string) AcceptInvite(string inviteId, string playerUID);
 
     /// <summary>
     ///     Declines a religion invite
@@ -135,4 +135,10 @@ public interface IReligionManager : IDisposable
 
     void OnSaveGameLoaded();
     void OnGameWorldSave();
+
+    /// <summary>
+    ///     Saves the given religion data.
+    /// </summary>
+    /// <param name="religionData">The religion data to save.</param>
+    void Save(ReligionData religionData);
 }

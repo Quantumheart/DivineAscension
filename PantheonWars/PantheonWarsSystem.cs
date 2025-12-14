@@ -24,7 +24,7 @@ public class PantheonWarsSystem : ModSystem
 
     // Public network client for UI dialogs
     public PantheonWarsNetworkClient? NetworkClient { get; private set; }
-    public IUiService UiService { get; private set; }
+    public IUiService UiService { get; private set; } = null!;
 
     private Harmony? _harmony;
     private PlayerReligionDataManager? _playerReligionDataManager;
@@ -65,6 +65,18 @@ public class PantheonWarsSystem : ModSystem
             .RegisterMessageType<CreateReligionResponsePacket>()
             .RegisterMessageType<EditDescriptionRequestPacket>()
             .RegisterMessageType<EditDescriptionResponsePacket>()
+            .RegisterMessageType<ReligionRolesRequest>()
+            .RegisterMessageType<ReligionRolesResponse>()
+            .RegisterMessageType<CreateRoleRequest>()
+            .RegisterMessageType<CreateRoleResponse>()
+            .RegisterMessageType<ModifyRolePermissionsRequest>()
+            .RegisterMessageType<ModifyRolePermissionsResponse>()
+            .RegisterMessageType<AssignRoleRequest>()
+            .RegisterMessageType<AssignRoleResponse>()
+            .RegisterMessageType<DeleteRoleRequest>()
+            .RegisterMessageType<DeleteRoleResponse>()
+            .RegisterMessageType<TransferFounderRequest>()
+            .RegisterMessageType<TransferFounderResponse>()
             .RegisterMessageType<BlessingUnlockRequestPacket>()
             .RegisterMessageType<BlessingUnlockResponsePacket>()
             .RegisterMessageType<BlessingDataRequestPacket>()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using PantheonWars.Data;
 using PantheonWars.Models.Enum;
+using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
@@ -16,19 +17,16 @@ public class CivilizationManager
     private const string DATA_KEY = "pantheonwars_civilizations";
     private const int MIN_RELIGIONS = 1;
     private const int MAX_RELIGIONS = 4;
-    private const int COOLDOWN_DAYS = 7;
     private const int INVITE_EXPIRY_DAYS = 7;
-    private readonly DeityRegistry _deityRegistry;
-    private readonly ReligionManager _religionManager;
+    private readonly IReligionManager _religionManager;
 
     private readonly ICoreServerAPI _sapi;
     private CivilizationWorldData _data;
 
-    public CivilizationManager(ICoreServerAPI sapi, ReligionManager religionManager, DeityRegistry deityRegistry)
+    public CivilizationManager(ICoreServerAPI sapi, IReligionManager religionManager)
     {
         _sapi = sapi;
         _religionManager = religionManager;
-        _deityRegistry = deityRegistry;
         _data = new CivilizationWorldData();
     }
 
@@ -279,13 +277,21 @@ public class CivilizationManager
     {
         try
         {
+            // First, determine if the religion is part of any civilization.
+            // Prefer the fast lookup map, but also fall back to scanning in case
+            // the map is out of sync with in-memory test manipulations.
             var civ = _data.GetCivilizationByReligion(religionId);
+            if (civ == null)
+                // Fallback scan for robustness in tests or edge cases
+                civ = _data.Civilizations.Values.FirstOrDefault(c => c.MemberReligionIds.Contains(religionId));
+
             if (civ == null)
             {
                 _sapi.Logger.Warning("[PantheonWars] Religion is not in a civilization");
                 return false;
             }
 
+            // Now ensure the religion itself exists
             var religion = _religionManager.GetReligion(religionId);
             if (religion == null)
             {
@@ -310,7 +316,7 @@ public class CivilizationManager
             // Remove religion from civilization
             _data.RemoveReligionFromCivilization(religionId);
             civ.MemberCount -= religion.MemberUIDs.Count;
-            
+
 
             // Check if civilization falls below minimum
             if (civ.MemberReligionIds.Count < MIN_RELIGIONS)
@@ -536,7 +542,7 @@ public class CivilizationManager
     {
         return _data.GetInvitesForCivilization(civId);
     }
-    
+
     /// <summary>
     ///     Updates member counts for all civilizations (should be called when religion membership changes)
     /// </summary>

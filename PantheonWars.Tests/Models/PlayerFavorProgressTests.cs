@@ -1,8 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using PantheonWars.Models;
-using Xunit;
 
 namespace PantheonWars.Tests.Models;
 
+[ExcludeFromCodeCoverage]
 public class PlayerFavorProgressTests
 {
     [Fact]
