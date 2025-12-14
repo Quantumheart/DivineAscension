@@ -15,7 +15,7 @@ Status: Active development (last updated 2025-12-04). See docs for feature speci
 - Civilizations (multi‑religion alliances)
   - Create, browse, and manage civilizations; invite/accept/kick/disband flows; UI tabs and server commands; religion‑level membership.
 - PvP integration
-  - Kill rewards and death penalties integrated with Favor/Prestige; scaling by deity relationships.
+  - Kill rewards and death penalties integrated with Favor/Prestige.
 - Networking and persistence
   - Protobuf‑net packets for religion, player, blessing, and civilization data; server→client sync on join and on state changes.
 - UI
@@ -145,4 +145,7 @@ See the [LICENSE](LICENSE) file for full details.
 ## Credits
 
 - Built using the official [Vintage Story Mod Template](https://github.com/anegostudios/vsmodtemplate)
-- Inspired by the [Karma System mod](https://mods.vintagestory.at/show/mod/28955)
+- Heavily inspired by mods: 
+  - [Karma System mod](https://mods.vintagestory.at/show/mod/28955)
+  - [xSkills Gilded](https://mods.vintagestory.at/show/mod/26936)
+  - [xSkills](https://mods.vintagestory.at/show/mod/247)
