@@ -510,8 +510,8 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     {
         try
         {
-            var data = SerializerUtil.Serialize(religionData);
-            _sapi.WorldManager.SaveGame.StoreData(DATA_KEY, data);
+            _religions[religionData.ReligionUID] = religionData;
+            SaveAllReligions();
             _sapi.Logger.Debug($"[PantheonWars] Saved the {religionData.ReligionName} religion");
         }
 
