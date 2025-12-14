@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Moq;
 using PantheonWars.Data;
 using PantheonWars.Models;
@@ -8,7 +7,6 @@ using PantheonWars.Systems.BuffSystem.Interfaces;
 using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
-using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Server;
 
 namespace PantheonWars.Tests.Helpers;
@@ -16,8 +14,38 @@ namespace PantheonWars.Tests.Helpers;
 /// <summary>
 ///     Provides reusable test fixtures and mock objects for unit tests
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class TestFixtures
 {
+    #region Mock Players
+
+    /// <summary>
+    ///     Creates a mock IServerPlayer with the specified UID and name
+    /// </summary>
+    public static Mock<IServerPlayer> CreateMockServerPlayer(string uid = "test-player-uid", string name = "TestPlayer")
+    {
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns(uid);
+        mockPlayer.Setup(p => p.PlayerName).Returns(name);
+        return mockPlayer;
+    }
+
+    #endregion
+
+    #region Mock Entity Objects
+
+    /// <summary>
+    ///     Creates a mock EntityAgent for buff/debuff testing
+    /// </summary>
+    public static Mock<EntityAgent> CreateMockEntity()
+    {
+        var mockEntity = new Mock<EntityAgent>(MockBehavior.Loose);
+        mockEntity.CallBase = false;
+        return mockEntity;
+    }
+
+    #endregion
+
     #region Mock API Objects
 
     /// <summary>
@@ -57,21 +85,6 @@ public static class TestFixtures
         var mockLogger = new Mock<ILogger>();
         mockAPI.Setup(a => a.Logger).Returns(mockLogger.Object);
         return mockAPI;
-    }
-
-    #endregion
-
-    #region Mock Players
-
-    /// <summary>
-    ///     Creates a mock IServerPlayer with the specified UID and name
-    /// </summary>
-    public static Mock<IServerPlayer> CreateMockServerPlayer(string uid = "test-player-uid", string name = "TestPlayer")
-    {
-        var mockPlayer = new Mock<IServerPlayer>();
-        mockPlayer.Setup(p => p.PlayerUID).Returns(uid);
-        mockPlayer.Setup(p => p.PlayerName).Returns(name);
-        return mockPlayer;
     }
 
     #endregion
@@ -268,20 +281,6 @@ public static class TestFixtures
             Kind = kind,
             SpecialEffects = new List<string>()
         };
-    }
-
-    #endregion
-
-    #region Mock Entity Objects
-
-    /// <summary>
-    ///     Creates a mock EntityAgent for buff/debuff testing
-    /// </summary>
-    public static Mock<EntityAgent> CreateMockEntity()
-    {
-        var mockEntity = new Mock<EntityAgent>(MockBehavior.Loose);
-        mockEntity.CallBase = false;
-        return mockEntity;
     }
 
     #endregion

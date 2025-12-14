@@ -1,15 +1,17 @@
-using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Moq;
 using PantheonWars.Models.Enum;
 using PantheonWars.Systems.Favor;
 using PantheonWars.Systems.Interfaces;
 using PantheonWars.Tests.Helpers;
 using Vintagestory.API.Common;
-using Vintagestory.API.Server;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 
 namespace PantheonWars.Tests.Systems.Favor;
 
+[ExcludeFromCodeCoverage]
 public class MiningFavorTrackerTests
 {
     private static MiningFavorTracker CreateTracker(
@@ -48,7 +50,8 @@ public class MiningFavorTrackerTests
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
         tracker.Initialize();
 
-        var method = typeof(MiningFavorTracker).GetMethod("OnBlockBroken", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var method =
+            typeof(MiningFavorTracker).GetMethod("OnBlockBroken", BindingFlags.NonPublic | BindingFlags.Instance);
         Assert.NotNull(method);
 
         float dropMult = 1f;
@@ -88,7 +91,8 @@ public class MiningFavorTrackerTests
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
         tracker.Initialize();
 
-        var method = typeof(MiningFavorTracker).GetMethod("OnBlockBroken", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var method =
+            typeof(MiningFavorTracker).GetMethod("OnBlockBroken", BindingFlags.NonPublic | BindingFlags.Instance);
         Assert.NotNull(method);
 
         float dropMult = 1f;
@@ -96,7 +100,8 @@ public class MiningFavorTrackerTests
         var selection = new BlockSelection { Position = new BlockPos(0, 0, 0) };
         method!.Invoke(tracker, new object[] { mockPlayer.Object, selection, dropMult, handling });
 
-        mockFavor.Verify(m => m.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        mockFavor.Verify(m => m.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()),
+            Times.Never);
 
         tracker.Dispose();
     }
@@ -142,7 +147,8 @@ public class MiningFavorTrackerTests
         tracker2.Initialize();
 
         // Call the internal handler via reflection
-        var method = typeof(MiningFavorTracker).GetMethod("OnBlockBroken", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var method =
+            typeof(MiningFavorTracker).GetMethod("OnBlockBroken", BindingFlags.NonPublic | BindingFlags.Instance);
         Assert.NotNull(method);
 
         float dropMult = 1f;
@@ -180,7 +186,8 @@ public class MiningFavorTrackerTests
         tracker.Initialize();
 
         // Invoke handler via reflection
-        var method = typeof(MiningFavorTracker).GetMethod("OnBlockBroken", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var method =
+            typeof(MiningFavorTracker).GetMethod("OnBlockBroken", BindingFlags.NonPublic | BindingFlags.Instance);
         Assert.NotNull(method);
 
         float dropMult = 1f;
@@ -219,7 +226,8 @@ public class MiningFavorTrackerTests
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
         tracker.Initialize();
 
-        var method = typeof(MiningFavorTracker).GetMethod("OnBlockBroken", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var method =
+            typeof(MiningFavorTracker).GetMethod("OnBlockBroken", BindingFlags.NonPublic | BindingFlags.Instance);
         Assert.NotNull(method);
 
         float dropMult = 1f;
@@ -227,7 +235,8 @@ public class MiningFavorTrackerTests
         var selection = new BlockSelection { Position = new BlockPos(0, 0, 0) };
         method!.Invoke(tracker, new object[] { mockPlayer.Object, selection, dropMult, handling });
 
-        mockFavor.Verify(m => m.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+        mockFavor.Verify(m => m.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()),
+            Times.Never);
 
         tracker.Dispose();
     }

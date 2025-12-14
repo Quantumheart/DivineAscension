@@ -598,6 +598,7 @@ public class EntityBehaviorBuffTrackerIntegrationTests
 /// <summary>
 ///     Minimal test entity implementation for testing EntityBehavior
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class TestEntity : Entity
 {
     public TestEntity() : base()

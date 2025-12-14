@@ -1,12 +1,15 @@
+using System.Diagnostics.CodeAnalysis;
 using PantheonWars.Constants;
+using PantheonWars.Models;
 using PantheonWars.Models.Enum;
 using PantheonWars.Systems;
 
 namespace PantheonWars.Tests.Systems;
 
+[ExcludeFromCodeCoverage]
 public class KhorasBlessingTests
 {
-    private static IQueryable<PantheonWars.Models.Blessing> GetKhoras()
+    private static IQueryable<Blessing> GetKhoras()
         => BlessingDefinitions.GetAllBlessings().Where(b => b.Deity == DeityType.Khoras).AsQueryable();
 
     [Fact]
@@ -42,7 +45,7 @@ public class KhorasBlessingTests
         var t2a = blessings.First(b => b.BlessingId == BlessingIds.KhorasMasterworkTools);
         var t3a = blessings.First(b => b.BlessingId == BlessingIds.KhorasLegendarySmith);
 
-        float GetOrZero(PantheonWars.Models.Blessing b, string stat)
+        float GetOrZero(Blessing b, string stat)
             => b.StatModifiers.TryGetValue(stat, out var v) ? v : 0f;
 
         var totalToolDur = GetOrZero(t1, VintageStoryStats.ToolDurability)

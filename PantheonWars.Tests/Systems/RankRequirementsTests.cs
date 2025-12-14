@@ -1,16 +1,17 @@
+using System.Diagnostics.CodeAnalysis;
 using PantheonWars.Systems;
-using Xunit;
 
 namespace PantheonWars.Tests.Systems;
 
+[ExcludeFromCodeCoverage]
 public class RankRequirementsTests
 {
     [Theory]
-    [InlineData(0, 500)]  // Initiate → Devoted
-    [InlineData(1, 2000)]  // Devoted → Zealot
-    [InlineData(2, 5000)]  // Zealot → Champion
+    [InlineData(0, 500)] // Initiate → Devoted
+    [InlineData(1, 2000)] // Devoted → Zealot
+    [InlineData(2, 5000)] // Zealot → Champion
     [InlineData(3, 10000)] // Champion → Exalted
-    [InlineData(4, 0)]    // Max rank
+    [InlineData(4, 0)] // Max rank
     public void GetRequiredFavorForNextRank_ReturnsCorrectValue(int currentRank, int expectedFavor)
     {
         // Act
@@ -21,11 +22,11 @@ public class RankRequirementsTests
     }
 
     [Theory]
-    [InlineData(0, 500)]   // Fledgling → Established
-    [InlineData(1, 1500)]  // Established → Renowned
-    [InlineData(2, 3500)]  // Renowned → Legendary
-    [InlineData(3, 7500)]  // Legendary → Mythic
-    [InlineData(4, 0)]     // Max rank
+    [InlineData(0, 500)] // Fledgling → Established
+    [InlineData(1, 1500)] // Established → Renowned
+    [InlineData(2, 3500)] // Renowned → Legendary
+    [InlineData(3, 7500)] // Legendary → Mythic
+    [InlineData(4, 0)] // Max rank
     public void GetRequiredPrestigeForNextRank_ReturnsCorrectValue(int currentRank, int expectedPrestige)
     {
         // Act
