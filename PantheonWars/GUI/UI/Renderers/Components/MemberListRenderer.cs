@@ -31,7 +31,6 @@ public static class MemberListRenderer
         var members = new List<PlayerReligionInfoResponsePacket.MemberInfo>(viewModel.Members);
         var scrollY = viewModel.ScrollY;
         var currentPlayerUid = viewModel.CurrentPlayerUID;
-        var canModerate = viewModel.Role;
 
         const float itemHeight = 30f;
         const float itemSpacing = 4f;
@@ -91,7 +90,7 @@ public static class MemberListRenderer
             }
 
             DrawMemberItem(drawList, member, x, itemY, width - scrollbarWidth - 4f, itemHeight,
-                currentPlayerUid, canModerate, events);
+                currentPlayerUid, events);
             itemY += itemHeight + itemSpacing;
         }
 
@@ -115,7 +114,6 @@ public static class MemberListRenderer
         float width,
         float height,
         string currentPlayerUid,
-        bool canModerate,
         List<MemberListEvent> events)
     {
         const float padding = 8f;
@@ -138,34 +136,23 @@ public static class MemberListRenderer
         var rankText = $"{member.FavorRank} ({member.Favor})";
         var rankSize = ImGui.CalcTextSize(rankText);
 
-        // Calculate button area width (kick + ban buttons if both callbacks provided)
-        var hasBanButton = canModerate; // founders can ban
-        var buttonAreaWidth = hasBanButton ? buttonWidth * 2 + buttonSpacing + padding : buttonWidth + padding;
+        var buttonAreaWidth = buttonWidth + buttonSpacing + padding;
 
-        var rankPos = new Vector2(x + width - buttonAreaWidth - 10f - rankSize.X, y + (height - 14f) / 2);
+        var rankPos = new Vector2(x + width - buttonAreaWidth - rankSize.X, y + (height - 14f) / 2);
         var rankColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         drawList.AddText(rankPos, rankColor, rankText);
 
         // Action buttons (only if not founder and not self)
-        if (canModerate && !member.IsFounder && member.PlayerUID != currentPlayerUid)
+        if (!member.IsFounder && member.PlayerUID != currentPlayerUid)
         {
             var buttonY = y + (height - 22f) / 2;
 
             // Ban button (leftmost if both buttons present)
-            if (hasBanButton)
-            {
-                var banButtonX = x + width - (buttonWidth * 2 + buttonSpacing + padding);
-                if (ButtonRenderer.DrawSmallButton(drawList, "Ban", banButtonX, buttonY, buttonWidth, 22f))
-                {
-                    events.Add(new MemberListEvent.BanClicked(member.PlayerUID));
-                }
-            }
+            var banButtonX = x + width - buttonWidth - padding;
 
-            // Kick button (rightmost)
-            var kickButtonX = x + width - buttonWidth - padding;
-            if (ButtonRenderer.DrawSmallButton(drawList, "Kick", kickButtonX, buttonY, buttonWidth, 22f))
+            if (ButtonRenderer.DrawSmallButton(drawList, "Ban", banButtonX, buttonY, buttonWidth, 22f))
             {
-                events.Add(new MemberListEvent.KickClicked(member.PlayerUID));
+                events.Add(new MemberListEvent.BanClicked(member.PlayerUID));
             }
         }
     }

@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using PantheonWars.Network;
-using Vintagestory.API.Client;
 
 namespace PantheonWars.GUI.Models.Religion.Info;
 
 /// <summary>
-/// Immutable view model for the "My Religion" info tab.
+/// Immutable view model for the "Info" tab.
 /// Contains only the data needed to render the UI and simple helpers for presentation logic.
 /// </summary>
 public readonly struct ReligionInfoViewModel(
@@ -50,11 +49,15 @@ public readonly struct ReligionInfoViewModel(
     public string ReligionName { get; } = religionName;
     public string Deity { get; } = deity;
     public string FounderUID { get; } = founderUID;
+
     public string CurrentPlayerUID { get; } = currentPlayerUID;
+
     public bool IsFounder { get; } = isFounder;
     public string? Description { get; } = description;
     public IReadOnlyList<PlayerReligionInfoResponsePacket.MemberInfo> Members { get; } = members;
-    public IReadOnlyList<PlayerReligionInfoResponsePacket.BanInfo> BannedPlayers { get; } = bannedPlayers ?? Array.Empty<PlayerReligionInfoResponsePacket.BanInfo>();
+
+    public IReadOnlyList<PlayerReligionInfoResponsePacket.BanInfo> BannedPlayers { get; } =
+        bannedPlayers ?? Array.Empty<PlayerReligionInfoResponsePacket.BanInfo>();
 
     // Prestige snapshot (optional for display)
     public int Prestige { get; } = prestige;
@@ -104,6 +107,7 @@ public readonly struct ReligionInfoViewModel(
             if (m.PlayerUID == FounderUID)
                 return string.IsNullOrWhiteSpace(m.PlayerName) ? FounderUID : m.PlayerName;
         }
+
         return FounderUID;
     }
 

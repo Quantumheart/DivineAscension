@@ -132,11 +132,6 @@ internal static class ReligionInfoRenderer
         if (viewModel.ShowDisbandConfirm)
             DrawDisbandConfirmation(drawList, events);
 
-        // Kick confirmation
-        if (viewModel.KickConfirmPlayerUID != null)
-            DrawKickConfirmation(drawList, viewModel.KickConfirmPlayerName ?? viewModel.KickConfirmPlayerUID,
-                viewModel.KickConfirmPlayerUID, events);
-
         // Ban confirmation
         if (viewModel.BanConfirmPlayerUID != null)
             DrawBanConfirmation(drawList, viewModel.BanConfirmPlayerName ?? viewModel.BanConfirmPlayerUID,
@@ -159,8 +154,7 @@ internal static class ReligionInfoRenderer
             height: height,
             scrollY: viewModel.MemberScrollY,
             members: viewModel.Members,
-            currentPlayerUID: viewModel.CurrentPlayerUID,
-            viewModel.IsFounder);
+            viewModel.CurrentPlayerUID);
 
         var result = MemberListRenderer.Draw(mlVm, drawList);
 
