@@ -133,12 +133,9 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
                 _sapi.Logger.Notification(
                     $"[PantheonWars] Religion {religion.ReligionName} disbanded (no members remaining)");
             }
-
-            // Save immediately to prevent data loss
-            Save(religion);
         }
 
-        Save(religion);
+        SaveAllReligions();
     }
 
     /// <summary>
