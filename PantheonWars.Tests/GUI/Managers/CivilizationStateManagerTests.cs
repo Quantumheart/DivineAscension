@@ -279,7 +279,7 @@ public class CivilizationStateManagerTests
         _sut.RequestCivilizationAction("create", "", "", name);
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationAction("create", "", "", name), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("create", "", "", name, string.Empty), Times.Once);
     }
 
     [Fact]
@@ -293,7 +293,8 @@ public class CivilizationStateManagerTests
         _sut.RequestCivilizationAction("invite", civId, religionName);
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationAction("invite", civId, religionName, ""), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("invite", civId, religionName, "", string.Empty),
+            Times.Once);
     }
 
     [Fact]
@@ -303,7 +304,7 @@ public class CivilizationStateManagerTests
         _sut.RequestCivilizationAction("leave");
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationAction("leave", "", "", ""), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("leave", "", "", "", ""), Times.Once);
     }
 
     #endregion
@@ -438,7 +439,7 @@ public class CivilizationStateManagerTests
         Assert.True(_sut.HasCivilization());
         Assert.Equal("civ-new", _sut.CurrentCivilizationId);
         Assert.Equal("Grand Alliance", _sut.CurrentCivilizationName);
-        _mockUiService.Verify(u => u.RequestCivilizationAction("create", "", "", "Grand Alliance"), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("create", "", "", "Grand Alliance", ""), Times.Once);
         _mockSoundManager.Verify(s => s.PlayClick(), Times.Once);
     }
 
@@ -462,7 +463,8 @@ public class CivilizationStateManagerTests
         _sut.RequestCivilizationAction("invite", "civ-123", "Target Religion");
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationAction("invite", "civ-123", "Target Religion", ""), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("invite", "civ-123", "Target Religion", "", ""),
+            Times.Once);
     }
 
     [Fact]
@@ -502,7 +504,7 @@ public class CivilizationStateManagerTests
 
         // Assert
         Assert.False(_sut.HasCivilization());
-        _mockUiService.Verify(u => u.RequestCivilizationAction("leave", "", "", ""), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("leave", "", "", "", ""), Times.Once);
         _mockSoundManager.Verify(s => s.PlayClick(), Times.Once);
     }
 
@@ -969,7 +971,8 @@ public class CivilizationStateManagerTests
         _sut.ProcessInfoEvents(events);
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationAction("invite", "civ-123", "Target Religion", ""), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("invite", "civ-123", "Target Religion", "", ""),
+            Times.Once);
     }
 
     [Fact]
@@ -993,7 +996,7 @@ public class CivilizationStateManagerTests
         // Assert
         _mockUiService.Verify(
             u => u.RequestCivilizationAction(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>()), Times.Never);
+                It.IsAny<string>(), "default"), Times.Never);
     }
 
     [Fact]
@@ -1011,7 +1014,7 @@ public class CivilizationStateManagerTests
         // Assert
         _mockUiService.Verify(
             u => u.RequestCivilizationAction(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>()), Times.Never);
+                It.IsAny<string>(), "default"), Times.Never);
     }
 
     [Fact]
@@ -1033,7 +1036,7 @@ public class CivilizationStateManagerTests
         _sut.ProcessInfoEvents(events);
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationAction("leave", "", "", ""), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("leave", "", "", "", ""), Times.Once);
     }
 
     [Fact]
@@ -1051,7 +1054,7 @@ public class CivilizationStateManagerTests
         // Assert
         _mockUiService.Verify(
             u => u.RequestCivilizationAction(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>()), Times.Never);
+                It.IsAny<string>(), "default"), Times.Never);
     }
 
     [Fact]
@@ -1105,7 +1108,7 @@ public class CivilizationStateManagerTests
         _sut.ProcessInfoEvents(events);
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationAction("disband", "civ-123", "", ""), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("disband", "civ-123", "", "", ""), Times.Once);
     }
 
     [Fact]
@@ -1123,7 +1126,7 @@ public class CivilizationStateManagerTests
         // Assert
         _mockUiService.Verify(
             u => u.RequestCivilizationAction(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>()), Times.Never);
+                It.IsAny<string>(), "default"), Times.Never);
     }
 
     [Fact]
@@ -1179,7 +1182,7 @@ public class CivilizationStateManagerTests
         _sut.ProcessInfoEvents(events);
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationAction("kick", "civ-123", "religion-456", ""), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("kick", "civ-123", "religion-456", "", ""), Times.Once);
     }
 
     [Fact]
@@ -1203,7 +1206,7 @@ public class CivilizationStateManagerTests
         // Assert
         _mockUiService.Verify(
             u => u.RequestCivilizationAction(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>()), Times.Never);
+                It.IsAny<string>(), "default"), Times.Never);
     }
 
     [Fact]
@@ -1229,8 +1232,8 @@ public class CivilizationStateManagerTests
         _sut.ProcessInfoEvents(events);
 
         // Assert - Should only kick religion-789, not religion-456
-        _mockUiService.Verify(u => u.RequestCivilizationAction("kick", "civ-123", "religion-789", ""), Times.Once);
-        _mockUiService.Verify(u => u.RequestCivilizationAction("kick", "civ-123", "religion-456", ""), Times.Never);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("kick", "civ-123", "religion-789", "", ""), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("kick", "civ-123", "religion-456", "", ""), Times.Never);
     }
 
     #endregion
@@ -1267,7 +1270,8 @@ public class CivilizationStateManagerTests
         _sut.ProcessCreateEvents(events);
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationAction("create", "", "", "Grand Alliance"), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("create", "", "", "Grand Alliance", "default"),
+            Times.Once);
     }
 
     [Fact]
@@ -1288,7 +1292,7 @@ public class CivilizationStateManagerTests
         _mockSoundManager.Verify(s => s.PlayError(), Times.Once);
         _mockUiService.Verify(
             u => u.RequestCivilizationAction(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>()), Times.Never);
+                It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -1310,7 +1314,7 @@ public class CivilizationStateManagerTests
         _mockSoundManager.Verify(s => s.PlayError(), Times.Once);
         _mockUiService.Verify(
             u => u.RequestCivilizationAction(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>()), Times.Never);
+                It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -1331,7 +1335,7 @@ public class CivilizationStateManagerTests
         _mockSoundManager.Verify(s => s.PlayError(), Times.Once);
         _mockUiService.Verify(
             u => u.RequestCivilizationAction(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>()), Times.Never);
+                It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -1365,7 +1369,7 @@ public class CivilizationStateManagerTests
         _sut.ProcessCreateEvents(events);
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationAction("create", "", "", "ABC"), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("create", "", "", "ABC", "default"), Times.Once);
         _mockApi.Verify(a => a.ShowChatMessage(It.IsAny<string>()), Times.Never);
     }
 
@@ -1384,7 +1388,7 @@ public class CivilizationStateManagerTests
         _sut.ProcessCreateEvents(events);
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationAction("create", "", "", name), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("create", "", "", name, "default"), Times.Once);
         _mockApi.Verify(a => a.ShowChatMessage(It.IsAny<string>()), Times.Never);
     }
 
@@ -1421,7 +1425,7 @@ public class CivilizationStateManagerTests
         _sut.ProcessCreateEvents(events);
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationAction("create", "", "", "Final Name"), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("create", "", "", "Final Name", "default"), Times.Once);
     }
 
     #endregion
@@ -1457,7 +1461,7 @@ public class CivilizationStateManagerTests
         _sut.ProcessInvitesEvents(events);
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationAction("accept", "", "invite-123", ""), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("accept", "", "invite-123", "", ""), Times.Once);
     }
 
     [Fact]
@@ -1491,9 +1495,9 @@ public class CivilizationStateManagerTests
         _sut.ProcessInvitesEvents(events);
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationAction("accept", "", "invite-1", ""), Times.Once);
-        _mockUiService.Verify(u => u.RequestCivilizationAction("accept", "", "invite-2", ""), Times.Once);
-        _mockUiService.Verify(u => u.RequestCivilizationAction("accept", "", "invite-3", ""), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("accept", "", "invite-1", "", ""), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("accept", "", "invite-2", "", ""), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("accept", "", "invite-3", "", ""), Times.Once);
     }
 
     #endregion
