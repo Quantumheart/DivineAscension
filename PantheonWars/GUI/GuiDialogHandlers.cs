@@ -13,8 +13,6 @@ namespace PantheonWars.GUI;
 /// </summary>
 public partial class GuiDialog
 {
-    private const string PANTHEONWARS_SOUNDS_DEITIES = "pantheonwars:sounds/deities/";
-
     /// <summary>
     ///     Periodically check if player religion data is available
     /// </summary>
@@ -141,14 +139,6 @@ public partial class GuiDialog
         else
             Open();
         return true;
-    }
-
-    /// <summary>
-    ///     Handle close button click
-    /// </summary>
-    private void OnCloseButtonClicked()
-    {
-        Close();
     }
 
     /// <summary>

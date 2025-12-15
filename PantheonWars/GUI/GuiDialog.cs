@@ -17,7 +17,6 @@ namespace PantheonWars.GUI;
 
 /// <summary>
 ///     Main ImGui-based Blessing Dialog for viewing and unlocking blessings
-///     Follows XSkillsGilded pattern with VSImGui integration
 /// </summary>
 [ExcludeFromCodeCoverage]
 public partial class GuiDialog : ModSystem
