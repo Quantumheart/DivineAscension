@@ -21,6 +21,11 @@ public class GuiDialogState
     public bool IsReady { get; set; }
 
     /// <summary>
+    ///     UI requested to close the dialog (e.g., via X button)
+    /// </summary>
+    public bool RequestClose { get; set; }
+
+    /// <summary>
     ///     Current window X position
     /// </summary>
     public float WindowPosX { get; set; }
@@ -37,6 +42,7 @@ public class GuiDialogState
     {
         IsOpen = false;
         IsReady = false;
+        RequestClose = false;
         CurrentMainTab = MainDialogTab.Religion;
         WindowPosX = 0f;
         WindowPosY = 0f;

@@ -150,6 +150,14 @@ public partial class GuiDialog : ModSystem
     {
         if (!_state.IsOpen) return CallbackGUIStatus.Closed;
 
+        // Close requested by UI (e.g., top-right X button)
+        if (_state.RequestClose)
+        {
+            _state.RequestClose = false;
+            Close();
+            return CallbackGUIStatus.Closed;
+        }
+
         // Allow ESC to close
         if (ImGui.IsKeyPressed(ImGuiKey.Escape))
         {
