@@ -4,6 +4,7 @@ using ImGuiNET;
 using PantheonWars.GUI.Models.Religion.Header;
 using PantheonWars.GUI.State;
 using PantheonWars.GUI.UI.Components;
+using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Renderers.Blessing;
 using PantheonWars.Network.Civilization;
 
@@ -61,6 +62,13 @@ internal static class MainDialogRenderer
 
         // === 2. MAIN TABS ===
         var drawList = ImGui.GetWindowDrawList();
+
+        // Top-right close (X) button
+        const float closeSize = 24f;
+        var closeX = windowPos.X + windowWidth - padding - closeSize;
+        var closeY = windowPos.Y + padding;
+        if (ButtonRenderer.DrawCloseButton(drawList, closeX, closeY, closeSize)) state.RequestClose = true;
+
         var newMainTab = TabControl.Draw(
             drawList,
             windowPos.X + x,
