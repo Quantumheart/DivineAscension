@@ -26,5 +26,7 @@ public interface IUiService
     // Civilization Operations
     void RequestCivilizationList(string deityFilter = "");
     void RequestCivilizationInfo(string civId);
-    void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "");
+
+    void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "",
+        string icon = "");
 }

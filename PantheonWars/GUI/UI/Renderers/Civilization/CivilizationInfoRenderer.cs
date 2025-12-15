@@ -42,9 +42,26 @@ internal static class CivilizationInfoRenderer
             return new CivilizationInfoRendererResult(events, vm.Height);
         }
 
-        // Header
-        TextRenderer.DrawLabel(drawList, vm.CivName, vm.X, currentY + 4f, 18f, ColorPalette.White);
-        currentY += 28f;
+        // Header with icon
+        const float iconSize = 32f;
+        var iconTextureId = CivilizationIconLoader.GetIconTextureId(vm.Icon);
+
+        if (iconTextureId != IntPtr.Zero)
+        {
+            // Draw icon
+            var iconMin = new Vector2(vm.X, currentY);
+            var iconMax = new Vector2(vm.X + iconSize, currentY + iconSize);
+            var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
+            drawList.AddImage(iconTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
+
+            // Draw icon border
+            var iconBorderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
+            drawList.AddRect(iconMin, iconMax, iconBorderColor, 4f, ImDrawFlags.None, 1f);
+        }
+
+        // Draw civilization name next to icon
+        TextRenderer.DrawLabel(drawList, vm.CivName, vm.X + iconSize + 12f, currentY + 4f, 18f, ColorPalette.White);
+        currentY += Math.Max(iconSize + 4f, 32f);
 
         // Info grid
         var leftCol = vm.X;
@@ -164,8 +181,12 @@ internal static class CivilizationInfoRenderer
 
         if (vm.IsFounder)
         {
+            var editIconEnabled = !overlayOpen;
+            if (editIconEnabled && ButtonRenderer.DrawButton(drawList, "Edit Icon", vm.X + 190f, currentY, 120f, 34f))
+                events.Add(new InfoEvent.EditIconClicked());
+
             var disbandEnabled = !overlayOpen;
-            if (disbandEnabled && ButtonRenderer.DrawActionButton(drawList, "Disband Civilization", vm.X + 190f,
+            if (disbandEnabled && ButtonRenderer.DrawActionButton(drawList, "Disband Civilization", vm.X + 320f,
                     currentY, 200f, 34f, true))
                 events.Add(new InfoEvent.DisbandOpened());
         }

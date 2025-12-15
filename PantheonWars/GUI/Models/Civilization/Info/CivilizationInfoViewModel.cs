@@ -8,6 +8,7 @@ public readonly struct CivilizationInfoViewModel(
     bool hasCivilization,
     string civId,
     string civName,
+    string icon,
     string founderName,
     bool isFounder,
     IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> memberReligions,
@@ -25,6 +26,7 @@ public readonly struct CivilizationInfoViewModel(
     public bool HasCivilization { get; } = hasCivilization;
     public string CivId { get; } = civId;
     public string CivName { get; } = civName;
+    public string Icon { get; } = icon;
     public string FounderName { get; } = founderName;
     public bool IsFounder { get; } = isFounder;
     public IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> MemberReligions { get; } = memberReligions;

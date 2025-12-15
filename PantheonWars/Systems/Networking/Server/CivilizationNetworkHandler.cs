@@ -72,7 +72,8 @@ public class CivilizationNetworkHandler(
                 FounderReligionUID = civ.FounderReligionUID,
                 MemberCount = civ.MemberReligionIds.Count,
                 MemberDeities = deities,
-                MemberReligionNames = religionNames
+                MemberReligionNames = religionNames,
+                Icon = civ.Icon
             });
         }
 
@@ -165,6 +166,7 @@ public class CivilizationNetworkHandler(
             FounderReligionUID = civ.FounderReligionUID,
             FounderReligionName = founderReligionName,
             CreatedDate = civ.CreatedDate,
+            Icon = civ.Icon,
             MemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(),
             PendingInvites = new List<CivilizationInfoResponsePacket.PendingInvite>()
         };
@@ -235,8 +237,9 @@ public class CivilizationNetworkHandler(
                         break;
                     }
 
+                    var iconToUse = string.IsNullOrWhiteSpace(packet.Icon) ? "default" : packet.Icon;
                     var newCiv = civilizationManager.CreateCivilization(packet.Name, fromPlayer.PlayerUID,
-                        playerData.ReligionUID);
+                        playerData.ReligionUID, iconToUse);
                     if (newCiv != null)
                     {
                         response.Success = true;
@@ -372,6 +375,16 @@ public class CivilizationNetworkHandler(
                     response.Message = success
                         ? "Civilization disbanded successfully."
                         : "Failed to disband civilization. Only the founder can disband.";
+                    response.CivId = packet.CivId;
+                    break;
+
+                case "updateicon":
+                    success = civilizationManager.UpdateCivilizationIcon(packet.CivId, fromPlayer.PlayerUID,
+                        packet.Icon);
+                    response.Success = success;
+                    response.Message = success
+                        ? "Civilization icon updated successfully!"
+                        : "Failed to update icon. Only the founder can update the civilization icon.";
                     response.CivId = packet.CivId;
                     break;
 

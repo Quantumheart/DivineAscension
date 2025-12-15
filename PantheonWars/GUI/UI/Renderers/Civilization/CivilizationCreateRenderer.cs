@@ -3,6 +3,7 @@ using System.Numerics;
 using ImGuiNET;
 using PantheonWars.GUI.Events.Civilization;
 using PantheonWars.GUI.Models.Civilization.Create;
+using PantheonWars.GUI.UI.Components;
 using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Inputs;
 using PantheonWars.GUI.UI.Utilities;
@@ -58,6 +59,25 @@ internal static class CivilizationCreateRenderer
             events.Add(new CreateEvent.NameChanged(newName));
 
         currentY += 40f;
+
+        // Icon selection
+        TextRenderer.DrawLabel(drawList, "Select Icon:", vm.X, currentY);
+        currentY += 20f;
+
+        var availableIcons = CivilizationIconLoader.GetAvailableIcons();
+        var (clickedIcon, pickerHeight) = IconPicker.Draw(
+            drawList,
+            availableIcons,
+            vm.SelectedIcon,
+            vm.X,
+            currentY,
+            vm.Width * 0.7f // spacing
+        );
+
+        if (clickedIcon != null)
+            events.Add(new CreateEvent.IconSelected(clickedIcon));
+
+        currentY += pickerHeight + 20f;
 
         // Create button
         if (ButtonRenderer.DrawButton(drawList, "Create Civilization", vm.X, currentY, 200f, 36f, true))

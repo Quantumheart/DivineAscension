@@ -19,6 +19,8 @@ public class CivilizationTabState
 
     public CreateState CreateState { get; } = new();
 
+    public EditState EditState { get; } = new();
+
     // Error messages (null = no error)
     public string? LastActionError { get; set; }
     public string? CreateError { get; set; }
@@ -39,6 +41,7 @@ public class CivilizationTabState
         InfoState.Reset();
         InviteState.Reset();
         CreateState.Reset();
+        EditState.Reset();
 
         // Errors
         LastActionError = null;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -107,8 +108,24 @@ internal static class CivilizationBrowseRenderer
         drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width, y + height),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown), 4f);
 
-        // Civ name
-        TextRenderer.DrawLabel(drawList, civ.Name, x + 12f, y + 8f, 16f, ColorPalette.White);
+        // Civilization icon
+        const float iconSize = 28f;
+        var iconTextureId = CivilizationIconLoader.GetIconTextureId(civ.Icon);
+
+        if (iconTextureId != IntPtr.Zero)
+        {
+            var iconMin = new Vector2(x + 12f, y + 8f);
+            var iconMax = new Vector2(x + 12f + iconSize, y + 8f + iconSize);
+            var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
+            drawList.AddImage(iconTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
+
+            // Icon border
+            var iconBorderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.5f);
+            drawList.AddRect(iconMin, iconMax, iconBorderColor, 3f, ImDrawFlags.None, 1f);
+        }
+
+        // Civ name (positioned next to icon)
+        TextRenderer.DrawLabel(drawList, civ.Name, x + 12f + iconSize + 8f, y + 10f, 16f, ColorPalette.White);
 
         // Members and diversity line
         var membersText = $"Members: {civ.MemberCount}";
