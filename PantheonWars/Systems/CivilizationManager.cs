@@ -12,23 +12,18 @@ namespace PantheonWars.Systems;
 /// <summary>
 ///     Manages civilizations - alliances of 1-4 religions with different deities
 /// </summary>
-public class CivilizationManager
+public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionManager)
 {
     private const string DATA_KEY = "pantheonwars_civilizations";
     private const int MIN_RELIGIONS = 1;
     private const int MAX_RELIGIONS = 4;
     private const int INVITE_EXPIRY_DAYS = 7;
-    private readonly IReligionManager _religionManager;
 
-    private readonly ICoreServerAPI _sapi;
-    private CivilizationWorldData _data;
+    private readonly IReligionManager _religionManager =
+        religionManager ?? throw new ArgumentNullException(nameof(religionManager));
 
-    public CivilizationManager(ICoreServerAPI sapi, IReligionManager religionManager)
-    {
-        _sapi = sapi;
-        _religionManager = religionManager;
-        _data = new CivilizationWorldData();
-    }
+    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+    private CivilizationWorldData _data = new();
 
     /// <summary>
     ///     Initializes the civilization manager
@@ -52,8 +47,10 @@ public class CivilizationManager
     /// <param name="name">Name of the civilization</param>
     /// <param name="founderUID">Player UID of the founder</param>
     /// <param name="founderReligionId">Religion ID of the founder</param>
+    /// <param name="icon">Optional icon name for the civilization (defaults to "default")</param>
     /// <returns>The created civilization, or null if creation failed</returns>
-    public Civilization? CreateCivilization(string name, string founderUID, string founderReligionId)
+    public Civilization? CreateCivilization(string name, string founderUID, string founderReligionId,
+        string icon = "default")
     {
         try
         {
@@ -104,7 +101,8 @@ public class CivilizationManager
             var civId = Guid.NewGuid().ToString();
             var civ = new Civilization(civId, name, founderUID, founderReligionId)
             {
-                MemberCount = founderReligion.MemberUIDs.Count
+                MemberCount = founderReligion.MemberUIDs.Count,
+                Icon = icon
             };
 
             _data.AddCivilization(civ);
@@ -445,6 +443,51 @@ public class CivilizationManager
         catch (Exception ex)
         {
             _sapi.Logger.Error($"[PantheonWars] Error disbanding civilization: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    ///     Updates a civilization's icon
+    /// </summary>
+    /// <param name="civId">ID of the civilization</param>
+    /// <param name="requestorUID">Player UID requesting the update</param>
+    /// <param name="icon">New icon name</param>
+    /// <returns>True if successful, false otherwise</returns>
+    public bool UpdateCivilizationIcon(string civId, string requestorUID, string icon)
+    {
+        try
+        {
+            var civ = _data.Civilizations.GetValueOrDefault(civId);
+            if (civ == null)
+            {
+                _sapi.Logger.Warning($"[PantheonWars] Civilization '{civId}' not found");
+                return false;
+            }
+
+            // Check if requestor is the civilization founder
+            if (civ.FounderUID != requestorUID)
+            {
+                _sapi.Logger.Warning("[PantheonWars] Only civilization founder can update icon");
+                return false;
+            }
+
+            // Validate icon name (basic validation)
+            if (string.IsNullOrWhiteSpace(icon))
+            {
+                _sapi.Logger.Warning("[PantheonWars] Icon name cannot be empty");
+                return false;
+            }
+
+            // Update icon
+            civ.UpdateIcon(icon);
+
+            _sapi.Logger.Notification($"[PantheonWars] Civilization '{civ.Name}' icon updated to '{icon}'");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _sapi.Logger.Error($"[PantheonWars] Error updating civilization icon: {ex.Message}");
             return false;
         }
     }
