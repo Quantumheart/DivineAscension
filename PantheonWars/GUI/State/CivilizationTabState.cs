@@ -56,7 +56,7 @@ public class CivilizationTabState
 public enum CivilizationSubTab
 {
     Browse,
-    MyCiv,
+    Info,
     Invites,
     Create
 }

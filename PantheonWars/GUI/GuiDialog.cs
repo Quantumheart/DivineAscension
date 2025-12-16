@@ -63,6 +63,7 @@ public partial class GuiDialog : ModSystem
 
         // Initialize icon loaders
         DeityIconLoader.Initialize(_capi);
+        GuiIconLoader.Initialize(_capi);
         CivilizationIconLoader.Initialize(_capi);
 
         // Get PantheonWarsSystem for network communication

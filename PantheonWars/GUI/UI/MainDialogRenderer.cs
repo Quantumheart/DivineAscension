@@ -70,6 +70,9 @@ internal static class MainDialogRenderer
         var closeY = windowPos.Y + padding;
         if (ButtonRenderer.DrawCloseButton(drawList, closeX, closeY, closeSize)) state.RequestClose = true;
 
+        // Define icon names for main tabs
+        var mainTabIcons = new[] { "temple", "meditation", "castle" };
+
         var newMainTab = TabControl.Draw(
             drawList,
             windowPos.X + x,
@@ -77,7 +80,10 @@ internal static class MainDialogRenderer
             width,
             tabHeight,
             MainTabNames,
-            (int)state.CurrentMainTab
+            (int)state.CurrentMainTab,
+            4f, // tabSpacing (default)
+            "gui", // iconDirectory
+            mainTabIcons // iconNames
         );
 
         if (newMainTab != (int)state.CurrentMainTab)

@@ -729,7 +729,7 @@ public class CivilizationStateManagerTests
         // Arrange
         var events = new List<SubTabEvent>
         {
-            new SubTabEvent.TabChanged(CivilizationSubTab.MyCiv)
+            new SubTabEvent.TabChanged(CivilizationSubTab.Info)
         };
 
         // Act
@@ -809,7 +809,7 @@ public class CivilizationStateManagerTests
         // Arrange
         var events = new List<SubTabEvent>
         {
-            new SubTabEvent.DismissContextError(CivilizationSubTab.MyCiv)
+            new SubTabEvent.DismissContextError(CivilizationSubTab.Info)
         };
 
         // Act
@@ -857,7 +857,7 @@ public class CivilizationStateManagerTests
         // Arrange
         var events = new List<SubTabEvent>
         {
-            new SubTabEvent.RetryRequested(CivilizationSubTab.MyCiv)
+            new SubTabEvent.RetryRequested(CivilizationSubTab.Info)
         };
 
         // Act
@@ -890,7 +890,7 @@ public class CivilizationStateManagerTests
         var events = new List<SubTabEvent>
         {
             new SubTabEvent.DismissActionError(),
-            new SubTabEvent.TabChanged(CivilizationSubTab.MyCiv)
+            new SubTabEvent.TabChanged(CivilizationSubTab.Info)
         };
 
         // Act

@@ -77,7 +77,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             CivilizationIcon = string.Empty;
             CivilizationFounderReligionUID = string.Empty;
             CivilizationMemberReligions?.Clear();
-            State.InfoState.MyCivilization = null;
+            State.InfoState.Info = null;
             State.InviteState.MyInvites.Clear();
             return;
         }
@@ -100,7 +100,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 CivilizationIcon = string.Empty;
                 CivilizationFounderReligionUID = string.Empty;
                 CivilizationMemberReligions?.Clear();
-                State.InfoState.MyCivilization = null;
+                State.InfoState.Info = null;
                 State.InviteState.MyInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(
                     details.PendingInvites ??
                     []);
@@ -113,7 +113,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 CivilizationFounderReligionUID = details.FounderReligionUID;
                 CivilizationMemberReligions =
                     new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions ?? []);
-                State.InfoState.MyCivilization = details;
+                State.InfoState.Info = details;
                 State.InviteState.MyInvites =
                     new List<CivilizationInfoResponsePacket.PendingInvite>(details.PendingInvites ?? []);
             }
@@ -200,7 +200,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             case CivilizationSubTab.Browse:
                 DrawCivilizationBrowse(x, contentY, width, contentHeight);
                 break;
-            case CivilizationSubTab.MyCiv:
+            case CivilizationSubTab.Info:
                 DrawCivilizationInfo(x, contentY, width, contentHeight);
                 break;
             case CivilizationSubTab.Invites:
@@ -289,7 +289,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     [ExcludeFromCodeCoverage]
     private void DrawCivilizationInfo(float x, float y, float width, float height)
     {
-        var civ = State.InfoState.MyCivilization;
+        var civ = State.InfoState.Info;
 
         // Build ViewModel
         var vm = new CivilizationInfoViewModel(
@@ -327,7 +327,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     [ExcludeFromCodeCoverage]
     private void DrawCivilizationEditDialog(float x, float y, float width, float height)
     {
-        var civ = State.InfoState.MyCivilization;
+        var civ = State.InfoState.Info;
         if (civ == null) return;
 
         // Build ViewModel
@@ -415,7 +415,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                             else
                                 State.BrowseState.ErrorMsg = null;
                             break;
-                        case CivilizationSubTab.MyCiv:
+                        case CivilizationSubTab.Info:
                             State.InfoState.ErrorMsg = null;
                             RequestCivilizationInfo();
                             break;
@@ -440,7 +440,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                             else
                                 State.BrowseState.ErrorMsg = null;
                             break;
-                        case CivilizationSubTab.MyCiv:
+                        case CivilizationSubTab.Info:
                             State.InfoState.ErrorMsg = null;
                             break;
                         case CivilizationSubTab.Invites:
@@ -459,7 +459,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                             else
                                 RequestCivilizationList(State.BrowseState.DeityFilter);
                             break;
-                        case CivilizationSubTab.MyCiv:
+                        case CivilizationSubTab.Info:
                         case CivilizationSubTab.Invites:
                             RequestCivilizationInfo();
                             break;
@@ -523,7 +523,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
     internal void ProcessInfoEvents(IReadOnlyList<InfoEvent> events)
     {
-        var civ = State.InfoState.MyCivilization;
+        var civ = State.InfoState.Info;
         var civId = civ?.CivId ?? string.Empty;
 
         foreach (var evt in events)

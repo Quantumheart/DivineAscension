@@ -33,7 +33,8 @@ internal static class CivilizationDetailRenderer
         }
 
         // Back button
-        if (ButtonRenderer.DrawButton(drawList, "<< Back to Browse", vm.X, currentY, 160f, 32f))
+        if (ButtonRenderer.DrawButton(drawList, "Back to Browse", vm.X, currentY, 160f, 32f, directoryPath: "GUI",
+                iconName: "back"))
             events.Add(new DetailEvent.BackToBrowseClicked());
 
         currentY += 44f;
