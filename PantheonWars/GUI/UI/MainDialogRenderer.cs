@@ -53,7 +53,8 @@ internal static class MainDialogRenderer
             manager.ReligionStateManager.CurrentDeity, manager.ReligionStateManager.CurrentReligionName,
             manager.ReligionStateManager.ReligionMemberCount, manager.ReligionStateManager.PlayerRoleInReligion,
             manager.ReligionStateManager.GetPlayerFavorProgress(),
-            manager.ReligionStateManager.GetReligionPrestigeProgress(), manager.IsCivilizationFounder, windowPos.X + x,
+            manager.ReligionStateManager.GetReligionPrestigeProgress(), manager.IsCivilizationFounder,
+            manager.CivilizationManager.CivilizationIcon, windowPos.X + x,
             windowPos.Y + y, width);
         var headerHeight = ReligionHeaderRenderer.Draw(
             religionHeaderViewModel

@@ -9,6 +9,7 @@ using PantheonWars.GUI.UI.Components.Buttons;
 using PantheonWars.GUI.UI.Components.Inputs;
 using PantheonWars.GUI.UI.Components.Lists;
 using PantheonWars.GUI.UI.Utilities;
+using PantheonWars.Models.Enum;
 using PantheonWars.Network.Civilization;
 
 namespace PantheonWars.GUI.UI.Renderers.Civilization;
@@ -132,13 +133,22 @@ internal static class CivilizationBrowseRenderer
         drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 12f, y + 32f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), membersText);
 
-        // Deity indicators for member deities
+        // Deity icons for member deities
+        const float deityIconSize = 12f;
         var iconX = x + 12f;
-        var iconY = y + 52f;
+        var iconY = y + 52f - deityIconSize / 2f;
         foreach (var deityName in civ.MemberDeities)
         {
-            var color = DeityHelper.GetDeityColor(deityName);
-            drawList.AddCircleFilled(new Vector2(iconX, iconY), 6f, ImGui.ColorConvertFloat4ToU32(color));
+            if (Enum.TryParse<DeityType>(deityName, out var deityType))
+            {
+                var deityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
+                drawList.AddImage(deityTextureId,
+                    new Vector2(iconX, iconY),
+                    new Vector2(iconX + deityIconSize, iconY + deityIconSize),
+                    Vector2.Zero, Vector2.One,
+                    ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)));
+            }
+
             iconX += 16f;
         }
 

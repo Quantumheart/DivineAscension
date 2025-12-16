@@ -74,6 +74,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             // Clear civilization state
             CurrentCivilizationId = string.Empty;
             CurrentCivilizationName = string.Empty;
+            CivilizationIcon = string.Empty;
             CivilizationFounderReligionUID = string.Empty;
             CivilizationMemberReligions?.Clear();
             State.InfoState.MyCivilization = null;
@@ -96,6 +97,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 // Player has no civilization; only update invites and keep civ info cleared
                 CurrentCivilizationId = string.Empty;
                 CurrentCivilizationName = string.Empty;
+                CivilizationIcon = string.Empty;
                 CivilizationFounderReligionUID = string.Empty;
                 CivilizationMemberReligions?.Clear();
                 State.InfoState.MyCivilization = null;
@@ -107,6 +109,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             {
                 CurrentCivilizationId = details.CivId;
                 CurrentCivilizationName = details.Name;
+                CivilizationIcon = details.Icon ?? "default";
                 CivilizationFounderReligionUID = details.FounderReligionUID;
                 CivilizationMemberReligions =
                     new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions ?? []);

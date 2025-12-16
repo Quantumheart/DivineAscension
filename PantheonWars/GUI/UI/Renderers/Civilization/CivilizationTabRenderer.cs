@@ -42,7 +42,7 @@ internal static class CivilizationTabRenderer
         }
 
         DrawTabButton("Browse", CivilizationSubTab.Browse);
-        DrawTabButton("My Civilization", CivilizationSubTab.MyCiv);
+        DrawTabButton("Info", CivilizationSubTab.MyCiv);
         if (!vm.HasCivilization) DrawTabButton("Invites", CivilizationSubTab.Invites);
         if (!vm.HasCivilization) DrawTabButton("Create", CivilizationSubTab.Create);
 

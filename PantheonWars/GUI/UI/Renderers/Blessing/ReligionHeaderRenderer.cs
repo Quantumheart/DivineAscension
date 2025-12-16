@@ -53,7 +53,7 @@ internal static class ReligionHeaderRenderer
 
             var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
             drawList.AddText(ImGui.GetFont(), 16f, textPos, textColor, noReligionText);
-            
+
             return headerHeight;
         }
 
@@ -194,11 +194,20 @@ internal static class ReligionHeaderRenderer
             var civCurrentX = col2X;
             var civCurrentY = viewModel.Y + 12f; // small top padding
             const float civIconSize = 32f;
-            var civIconCenter = new Vector2(civCurrentX + civIconSize / 2f, civCurrentY + civIconSize / 2f);
-            var civOuter = ImGui.ColorConvertFloat4ToU32(new Vector4(0.4f, 0.6f, 0.8f, 1f));
-            var civInner = ImGui.ColorConvertFloat4ToU32(new Vector4(0.2f, 0.3f, 0.4f, 1f));
-            drawList.AddCircleFilled(civIconCenter, civIconSize / 2f, civOuter, 16);
-            drawList.AddCircleFilled(civIconCenter, civIconSize / 2f - 4f, civInner, 16);
+
+            // Load and render civilization icon texture
+            var civTextureId = CivilizationIconLoader.GetIconTextureId(viewModel.CivilizationIcon ?? "default");
+            var iconPos = new Vector2(civCurrentX, civCurrentY);
+            var iconMin = iconPos;
+            var iconMax = new Vector2(iconPos.X + civIconSize, iconPos.Y + civIconSize);
+
+            // Render icon (white tint = no tint)
+            var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
+            drawList.AddImage(civTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
+
+            // Add subtle border for visual consistency
+            var civBorderColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.8f, 0.8f, 0.8f, 1f));
+            drawList.AddRect(iconMin, iconMax, civBorderColor, 4f, ImDrawFlags.None, 2f);
 
             civCurrentX += civIconSize + 10f;
 
@@ -225,24 +234,13 @@ internal static class ReligionHeaderRenderer
             foreach (var memberReligion in viewModel.CivilizationMemberReligions!)
                 if (Enum.TryParse<DeityType>(memberReligion.Deity, out var deityType))
                 {
-                    var deityColor = DeityHelper.GetDeityColor(deityType);
-                    var deityColorU32 = ImGui.ColorConvertFloat4ToU32(deityColor);
+                    var memberDeityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
                     var deityIconPos = new Vector2(deityIconX, civCurrentY);
-                    drawList.AddRectFilled(
+                    drawList.AddImage(memberDeityTextureId,
                         deityIconPos,
                         new Vector2(deityIconPos.X + deityIconSize, deityIconPos.Y + deityIconSize),
-                        deityColorU32,
-                        2f
-                    );
-                    var deityBorderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
-                    drawList.AddRect(
-                        deityIconPos,
-                        new Vector2(deityIconPos.X + deityIconSize, deityIconPos.Y + deityIconSize),
-                        deityBorderColor,
-                        2f,
-                        ImDrawFlags.None,
-                        1f
-                    );
+                        Vector2.Zero, Vector2.One,
+                        ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)));
                     deityIconX += deityIconSize + deityIconSpacing;
                 }
 
