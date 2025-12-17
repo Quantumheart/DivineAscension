@@ -81,6 +81,12 @@ public class Civilization
     public int MemberCount { get; set; }
 
     /// <summary>
+    ///     Icon name for the civilization (e.g., "shield", "crown")
+    /// </summary>
+    [ProtoMember(9)]
+    public string Icon { get; set; } = "default";
+
+    /// <summary>
     ///     Checks if the civilization has a valid number of member religions (2-4)
     /// </summary>
     public bool IsValid => MemberReligionIds.Count >= 2 && MemberReligionIds.Count <= 4;
@@ -111,6 +117,14 @@ public class Civilization
     public bool RemoveReligion(string religionId)
     {
         return MemberReligionIds.Remove(religionId);
+    }
+
+    /// <summary>
+    ///     Updates the civilization's icon
+    /// </summary>
+    public void UpdateIcon(string icon)
+    {
+        Icon = icon;
     }
 }
 

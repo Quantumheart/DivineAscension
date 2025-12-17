@@ -12,6 +12,8 @@ public abstract record InfoEvent
 
     public sealed record LeaveClicked : InfoEvent;
 
+    public sealed record EditIconClicked : InfoEvent;
+
     public sealed record DisbandOpened : InfoEvent;
 
     public sealed record DisbandConfirmed : InfoEvent;

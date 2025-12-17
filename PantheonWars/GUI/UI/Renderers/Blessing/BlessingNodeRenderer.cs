@@ -1,7 +1,9 @@
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
+using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Models;
 
 namespace PantheonWars.GUI.UI.Renderers.Blessing;
@@ -13,6 +15,7 @@ namespace PantheonWars.GUI.UI.Renderers.Blessing;
 [ExcludeFromCodeCoverage]
 internal static class BlessingNodeRenderer
 {
+    private const float CornerRadius = 4f;
     private static readonly Vector4 ColorLocked = new(0.573f, 0.502f, 0.416f, 1.0f); // #92806a grey
     private static readonly Vector4 ColorUnlockable = new(0.478f, 0.776f, 0.184f, 1.0f); // #7ac62f lime
     private static readonly Vector4 ColorUnlocked = new(0.996f, 0.682f, 0.204f, 1.0f); // #feae34 gold
@@ -68,9 +71,10 @@ internal static class BlessingNodeRenderer
             drawList.AddRectFilled(glowPos1, glowPos2, glowColorU32, 8f);
         }
 
-        // Draw node background circle
+        // Draw node background as rounded square
+        var nodePos1 = new Vector2(screenX, screenY);
+        var nodePos2 = new Vector2(screenX + state.Width, screenY + state.Height);
         var center = new Vector2(screenX + state.Width / 2, screenY + state.Height / 2);
-        var radius = state.Width / 2;
 
         var nodeColor = state.VisualState switch
         {
@@ -84,53 +88,67 @@ internal static class BlessingNodeRenderer
         if (isHovering) nodeColor = Vector4.Lerp(nodeColor, ColorHover, 0.3f);
 
         var nodeColorU32 = ImGui.ColorConvertFloat4ToU32(nodeColor);
-        drawList.AddCircleFilled(center, radius, nodeColorU32, 24);
+        drawList.AddRectFilled(nodePos1, nodePos2, nodeColorU32, CornerRadius);
 
         // Draw border
         var borderColor = isSelected ? ColorSelected : nodeColor * 0.7f;
         var borderColorU32 = ImGui.ColorConvertFloat4ToU32(borderColor);
         var borderThickness = isSelected ? 3f : 2f;
-        drawList.AddCircle(center, radius, borderColorU32, 24, borderThickness);
+        drawList.AddRect(nodePos1, nodePos2, borderColorU32, CornerRadius, ImDrawFlags.None, borderThickness);
 
-        // Draw blessing name (abbreviated if too long)
-        var blessingName = state.Blessing.Name;
-        const float fontSize = 14f; // Increased from 12f for better readability
-
-        // Calculate text size with actual font
-        var fullTextSize = ImGui.CalcTextSize(blessingName);
-        var maxWidth = radius * 1.8f; // Allow text slightly wider than node
-
-        // Truncate if needed
-        if (fullTextSize.X > maxWidth)
-        {
-            // Find how many characters fit
-            var charCount = blessingName.Length;
-            while (charCount > 3)
-            {
-                var testName = blessingName.Substring(0, charCount - 3) + "...";
-                if (ImGui.CalcTextSize(testName).X <= maxWidth)
-                {
-                    blessingName = testName;
-                    break;
-                }
-
-                charCount--;
-            }
-        }
-
-        var textSize = ImGui.CalcTextSize(blessingName);
-        var textPos = new Vector2(
-            center.X - textSize.X / 2,
-            center.Y - textSize.Y / 2
-        );
-
-        // Text color: white for unlocked, dark for locked
+        // Determine text color based on visual state (used for both icon and text modes)
         var textColor = state.VisualState == BlessingNodeVisualState.Unlocked
             ? new Vector4(0.2f, 0.15f, 0.1f, 1.0f) // Dark text on gold
             : new Vector4(0.9f, 0.9f, 0.9f, 1.0f); // Light text on dark
 
-        var textColorU32 = ImGui.ColorConvertFloat4ToU32(textColor);
-        drawList.AddText(ImGui.GetFont(), fontSize, textPos, textColorU32, blessingName);
+        // Try to load blessing icon
+        var iconTextureId = BlessingIconLoader.GetBlessingTextureId(state.Blessing);
+        var hasIcon = iconTextureId != IntPtr.Zero;
+
+        // Debug logging
+        var debugIconName = state.Blessing?.IconName ?? "null";
+        var debugBlessingName = state.Blessing?.Name ?? "unknown";
+        Debug.WriteLine(
+            $"[BlessingIcon] Blessing: {debugBlessingName}, IconName: '{debugIconName}', HasIcon: {hasIcon}, TextureId: {iconTextureId}");
+
+        if (hasIcon)
+        {
+            // Draw icon centered in node
+            const float iconSize = 48f;
+            var iconPos = new Vector2(
+                center.X - iconSize / 2,
+                center.Y - iconSize / 2
+            );
+            var iconMin = iconPos;
+            var iconMax = new Vector2(iconPos.X + iconSize, iconPos.Y + iconSize);
+
+            // Apply color tint based on state
+            var iconTint = state.VisualState switch
+            {
+                BlessingNodeVisualState.Unlocked => new Vector4(1f, 1f, 1f, 1f), // Full color
+                BlessingNodeVisualState.Unlockable => new Vector4(0.9f, 1f, 0.9f, 1f), // Slight green tint
+                _ => new Vector4(0.6f, 0.6f, 0.6f, 0.7f) // Desaturated/dimmed for locked
+            };
+            var iconTintU32 = ImGui.ColorConvertFloat4ToU32(iconTint);
+
+            drawList.AddImage(iconTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, iconTintU32);
+        }
+        else
+        {
+            // Fallback: Show initials (first 2-3 letters)
+            var blessingName = state.Blessing.Name;
+            var initials = blessingName.Length <= 3 ? blessingName : blessingName.Substring(0, 3);
+            const float fontSize = 16f; // Larger font for initials
+
+            var textSize = ImGui.CalcTextSize(initials);
+            var textPos = new Vector2(
+                center.X - textSize.X / 2,
+                center.Y - textSize.Y / 2
+            );
+
+            var textColorU32 = ImGui.ColorConvertFloat4ToU32(textColor);
+            drawList.AddText(ImGui.GetFont(), fontSize, textPos, textColorU32, initials);
+        }
 
         // Draw tier indicator (small number at bottom)
         var tierText = $"T{state.Tier}";

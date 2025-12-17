@@ -1119,4 +1119,72 @@ public class ReligionManagerTests
     }
 
     #endregion
+
+    #region OnReligionDeleted Event Tests
+
+    [Fact]
+    public void RemoveMember_WhenLastMemberLeaves_FiresOnReligionDeletedEvent()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religionUID = religion.ReligionUID;
+        var eventFired = false;
+        string? deletedReligionId = null;
+
+        _religionManager.OnReligionDeleted += religionId =>
+        {
+            eventFired = true;
+            deletedReligionId = religionId;
+        };
+
+        // Act
+        _religionManager.RemoveMember(religionUID, "founder-uid");
+
+        // Assert
+        Assert.True(eventFired);
+        Assert.Equal(religionUID, deletedReligionId);
+    }
+
+    [Fact]
+    public void DeleteReligion_ByFounder_FiresOnReligionDeletedEvent()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religionUID = religion.ReligionUID;
+        var eventFired = false;
+        string? deletedReligionId = null;
+
+        _religionManager.OnReligionDeleted += religionId =>
+        {
+            eventFired = true;
+            deletedReligionId = religionId;
+        };
+
+        // Act
+        var deleted = _religionManager.DeleteReligion(religionUID, "founder-uid");
+
+        // Assert
+        Assert.True(deleted);
+        Assert.True(eventFired);
+        Assert.Equal(religionUID, deletedReligionId);
+    }
+
+    [Fact]
+    public void RemoveMember_WhenNotLastMember_DoesNotFireEvent()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        _religionManager.AddMember(religion.ReligionUID, "member-uid");
+        var eventFired = false;
+
+        _religionManager.OnReligionDeleted += _ => eventFired = true;
+
+        // Act - Remove member but not founder
+        _religionManager.RemoveMember(religion.ReligionUID, "member-uid");
+
+        // Assert
+        Assert.False(eventFired);
+    }
+
+    #endregion
 }

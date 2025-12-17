@@ -22,6 +22,11 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     private ReligionWorldData _inviteData = new();
 
     /// <summary>
+    ///     Event fired when a religion is deleted (either manually or automatically)
+    /// </summary>
+    public event Action<string>? OnReligionDeleted;
+
+    /// <summary>
     ///     Initializes the religion manager
     /// </summary>
     public void Initialize()
@@ -132,6 +137,9 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
                 _religions.Remove(religionUID);
                 _sapi.Logger.Notification(
                     $"[PantheonWars] Religion {religion.ReligionName} disbanded (no members remaining)");
+
+                // Notify subscribers that religion was deleted
+                OnReligionDeleted?.Invoke(religionUID);
             }
         }
 
@@ -373,6 +381,10 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 
         _religions.Remove(religionUID);
         _sapi.Logger.Notification($"[PantheonWars] Religion {religion.ReligionName} disbanded by founder");
+
+        // Notify subscribers that religion was deleted
+        OnReligionDeleted?.Invoke(religionUID);
+
         return true;
     }
 

@@ -39,5 +39,7 @@ public class CivilizationListResponsePacket
         [ProtoMember(6)] public List<string> MemberDeities { get; set; } = new(); // Deity names for diversity display
 
         [ProtoMember(7)] public List<string> MemberReligionNames { get; set; } = new(); // Religion names
+
+        [ProtoMember(8)] public string Icon { get; set; } = "default"; // Icon identifier for the civilization
     }
 }

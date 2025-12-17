@@ -13,8 +13,6 @@ namespace PantheonWars.GUI;
 /// </summary>
 public partial class GuiDialog
 {
-    private const string PANTHEONWARS_SOUNDS_DEITIES = "pantheonwars:sounds/deities/";
-
     /// <summary>
     ///     Periodically check if player religion data is available
     /// </summary>
@@ -74,7 +72,8 @@ public partial class GuiDialog
             RequiredFavorRank = p.RequiredFavorRank,
             RequiredPrestigeRank = p.RequiredPrestigeRank,
             PrerequisiteBlessings = p.PrerequisiteBlessings,
-            StatModifiers = p.StatModifiers
+            StatModifiers = p.StatModifiers,
+            IconName = p.IconName
         }).ToList();
 
         var religionBlessings = packet.ReligionBlessings.Select(p => new Blessing(p.BlessingId, p.Name, deityType)
@@ -85,7 +84,8 @@ public partial class GuiDialog
             RequiredFavorRank = p.RequiredFavorRank,
             RequiredPrestigeRank = p.RequiredPrestigeRank,
             PrerequisiteBlessings = p.PrerequisiteBlessings,
-            StatModifiers = p.StatModifiers
+            StatModifiers = p.StatModifiers,
+            IconName = p.IconName
         }).ToList();
 
         // Load blessing states into manager
@@ -141,14 +141,6 @@ public partial class GuiDialog
         else
             Open();
         return true;
-    }
-
-    /// <summary>
-    ///     Handle close button click
-    /// </summary>
-    private void OnCloseButtonClicked()
-    {
-        Close();
     }
 
     /// <summary>

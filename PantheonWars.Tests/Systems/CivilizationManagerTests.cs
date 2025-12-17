@@ -1212,4 +1212,168 @@ public class CivilizationManagerTests
     }
 
     #endregion
+
+    #region HandleReligionDeleted Event Tests
+
+    [Fact]
+    public void HandleReligionDeleted_SingleReligionCiv_DisbandsCivilization()
+    {
+        // Arrange
+        var founderUID = "founder-123";
+        var founderReligionId = "religion-1";
+
+        var founderReligion =
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+        _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
+
+        // Initialize to subscribe to events
+        var mockEventAPI = new Mock<IServerEventAPI>();
+        _mockAPI.Setup(a => a.Event).Returns(mockEventAPI.Object);
+        _civilizationManager.Initialize();
+
+        var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
+        Assert.NotNull(civ);
+
+        // Setup the mock to return null after "deletion"
+        _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns((ReligionData?)null);
+
+        // Act - Simulate religion deletion by triggering the event
+        _mockReligionManager.Raise(r => r.OnReligionDeleted += null, founderReligionId);
+
+        // Assert
+        var retrievedCiv = _civilizationManager.GetCivilization(civ.CivId);
+        Assert.Null(retrievedCiv);
+        _mockLogger.Verify(
+            l => l.Notification(It.Is<string>(s =>
+                s.Contains("disbanded") && s.Contains("founder's religion was deleted"))),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public void HandleReligionDeleted_MultiReligionCiv_RemovesReligionOnly()
+    {
+        // Arrange
+        var founderUID = "founder-123";
+        var founderReligionId = "religion-1";
+        var targetUID = "target-456";
+        var targetReligionId = "religion-2";
+
+        var founderReligion =
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+        var targetReligion =
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, targetUID);
+
+        _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
+        _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
+
+        // Initialize to subscribe to events
+        var mockEventAPI = new Mock<IServerEventAPI>();
+        _mockAPI.Setup(a => a.Event).Returns(mockEventAPI.Object);
+        _civilizationManager.Initialize();
+
+        var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
+        Assert.NotNull(civ);
+
+        _civilizationManager.InviteReligion(civ.CivId, targetReligionId, founderUID);
+        var invite = _civilizationManager.GetInvitesForReligion(targetReligionId).First();
+        _civilizationManager.AcceptInvite(invite.InviteId, targetUID);
+
+        // Setup mock to return null for target religion after "deletion"
+        _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns((ReligionData?)null);
+
+        // Act - Simulate target religion deletion
+        _mockReligionManager.Raise(r => r.OnReligionDeleted += null, targetReligionId);
+
+        // Assert
+        var updatedCiv = _civilizationManager.GetCivilization(civ.CivId);
+        Assert.NotNull(updatedCiv);
+        Assert.Single(updatedCiv.MemberReligionIds);
+        Assert.Contains(founderReligionId, updatedCiv.MemberReligionIds);
+        Assert.DoesNotContain(targetReligionId, updatedCiv.MemberReligionIds);
+        _mockLogger.Verify(
+            l => l.Notification(It.Is<string>(s => s.Contains("Removed deleted religion"))),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public void HandleReligionDeleted_ReligionNotInCiv_DoesNothing()
+    {
+        // Arrange
+        var founderUID = "founder-123";
+        var founderReligionId = "religion-1";
+        var otherReligionId = "religion-999";
+
+        var founderReligion =
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+        _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
+
+        var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
+        Assert.NotNull(civ);
+
+        // Act - Simulate deletion of religion not in any civilization
+        _mockReligionManager.Raise(r => r.OnReligionDeleted += null, otherReligionId);
+
+        // Assert - Civilization should remain unchanged
+        var updatedCiv = _civilizationManager.GetCivilization(civ.CivId);
+        Assert.NotNull(updatedCiv);
+        Assert.Single(updatedCiv.MemberReligionIds);
+    }
+
+    [Fact]
+    public void HandleReligionDeleted_FounderReligionDeleted_DisbandsCivilization()
+    {
+        // Arrange
+        var founderUID = "founder-123";
+        var founderReligionId = "religion-1";
+        var targetUID = "target-456";
+        var targetReligionId = "religion-2";
+
+        var founderReligion =
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+        var targetReligion =
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, targetUID);
+
+        _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
+        _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
+
+        // Initialize to subscribe to events
+        var mockEventAPI = new Mock<IServerEventAPI>();
+        _mockAPI.Setup(a => a.Event).Returns(mockEventAPI.Object);
+        _civilizationManager.Initialize();
+
+        var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
+        Assert.NotNull(civ);
+
+        _civilizationManager.InviteReligion(civ.CivId, targetReligionId, founderUID);
+        var invite = _civilizationManager.GetInvitesForReligion(targetReligionId).First();
+        _civilizationManager.AcceptInvite(invite.InviteId, targetUID);
+
+        // Setup mock to return null for founder religion
+        _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns((ReligionData?)null);
+
+        // Act - Simulate founder religion deletion
+        _mockReligionManager.Raise(r => r.OnReligionDeleted += null, founderReligionId);
+
+        // Assert - Civilization should be disbanded
+        var retrievedCiv = _civilizationManager.GetCivilization(civ.CivId);
+        Assert.Null(retrievedCiv);
+    }
+
+    [Fact]
+    public void Initialize_SubscribesToReligionDeletedEvent()
+    {
+        // Arrange
+        var mockEventAPI = new Mock<IServerEventAPI>();
+        _mockAPI.Setup(a => a.Event).Returns(mockEventAPI.Object);
+
+        // Act
+        _civilizationManager.Initialize();
+
+        // Assert - Verify subscription was added
+        _mockReligionManager.VerifyAdd(r => r.OnReligionDeleted += It.IsAny<Action<string>>(), Times.Once);
+    }
+
+    #endregion
 }

@@ -17,7 +17,6 @@ namespace PantheonWars.GUI;
 
 /// <summary>
 ///     Main ImGui-based Blessing Dialog for viewing and unlocking blessings
-///     Follows XSkillsGilded pattern with VSImGui integration
 /// </summary>
 [ExcludeFromCodeCoverage]
 public partial class GuiDialog : ModSystem
@@ -62,8 +61,11 @@ public partial class GuiDialog : ModSystem
             HotkeyType.GUIOrOtherControls, shiftPressed: true);
         _capi.Input.SetHotKeyHandler("pantheonwarsblessings", OnToggleDialog);
 
-        // Initialize deity icon loader
+        // Initialize icon loaders
         DeityIconLoader.Initialize(_capi);
+        GuiIconLoader.Initialize(_capi);
+        CivilizationIconLoader.Initialize(_capi);
+        BlessingIconLoader.Initialize(_capi);
 
         // Get PantheonWarsSystem for network communication
         _pantheonWarsSystem = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
@@ -275,8 +277,10 @@ public partial class GuiDialog : ModSystem
             _pantheonWarsSystem.NetworkClient.CivilizationActionCompleted -= OnCivilizationActionCompleted;
         }
 
-        // Dispose deity icon loader
+        // Dispose icon loaders
         DeityIconLoader.Dispose();
+        CivilizationIconLoader.Dispose();
+        BlessingIconLoader.Dispose();
 
         _capi?.Logger.Notification("[PantheonWars] Blessing Dialog disposed");
     }

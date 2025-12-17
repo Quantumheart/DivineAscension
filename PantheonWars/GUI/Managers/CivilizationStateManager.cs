@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using ImGuiNET;
 using PantheonWars.GUI.Events.Civilization;
 using PantheonWars.GUI.Interfaces;
 using PantheonWars.GUI.Models.Civilization.Browse;
 using PantheonWars.GUI.Models.Civilization.Create;
 using PantheonWars.GUI.Models.Civilization.Detail;
+using PantheonWars.GUI.Models.Civilization.Edit;
 using PantheonWars.GUI.Models.Civilization.Info;
 using PantheonWars.GUI.Models.Civilization.Invites;
 using PantheonWars.GUI.Models.Civilization.Tab;
 using PantheonWars.GUI.State;
+using PantheonWars.GUI.UI.Adapters.Civilizations;
 using PantheonWars.GUI.UI.Renderers.Civilization;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Network.Civilization;
@@ -29,6 +32,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
     private readonly IUiService _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
 
+    // UI-only adapter (fake or real). Null when not used.
+    internal ICivilizationProvider? CivilizationProvider { get; private set; }
+
     private CivilizationTabState State { get; } = new();
 
     public string CurrentCivilizationId { get; set; } = string.Empty;
@@ -38,6 +44,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     public string CivilizationFounderReligionUID { get; set; } = string.Empty;
 
     public string CurrentCivilizationName { get; set; } = string.Empty;
+
+    public string CivilizationIcon { get; set; } = string.Empty;
 
     // Religion state (updated by GuiDialogManager)
     public bool UserHasReligion { get; set; }
@@ -71,9 +79,10 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             // Clear civilization state
             CurrentCivilizationId = string.Empty;
             CurrentCivilizationName = string.Empty;
+            CivilizationIcon = string.Empty;
             CivilizationFounderReligionUID = string.Empty;
             CivilizationMemberReligions?.Clear();
-            State.InfoState.MyCivilization = null;
+            State.InfoState.Info = null;
             State.InviteState.MyInvites.Clear();
             return;
         }
@@ -93,9 +102,10 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 // Player has no civilization; only update invites and keep civ info cleared
                 CurrentCivilizationId = string.Empty;
                 CurrentCivilizationName = string.Empty;
+                CivilizationIcon = string.Empty;
                 CivilizationFounderReligionUID = string.Empty;
                 CivilizationMemberReligions?.Clear();
-                State.InfoState.MyCivilization = null;
+                State.InfoState.Info = null;
                 State.InviteState.MyInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(
                     details.PendingInvites ??
                     []);
@@ -104,10 +114,11 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             {
                 CurrentCivilizationId = details.CivId;
                 CurrentCivilizationName = details.Name;
+                CivilizationIcon = details.Icon ?? "default";
                 CivilizationFounderReligionUID = details.FounderReligionUID;
                 CivilizationMemberReligions =
                     new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions ?? []);
-                State.InfoState.MyCivilization = details;
+                State.InfoState.Info = details;
                 State.InviteState.MyInvites =
                     new List<CivilizationInfoResponsePacket.PendingInvite>(details.PendingInvites ?? []);
             }
@@ -120,7 +131,40 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     /// </summary>
     public void RequestCivilizationList(string deityFilter = "")
     {
-        // Set loading state for browse
+        // Adapter short-circuit: if a UI-only provider is configured, use it instead of network
+        if (CivilizationProvider != null)
+        {
+            State.BrowseState.IsLoading = true;
+            State.BrowseState.ErrorMsg = null;
+
+            var items = CivilizationProvider.GetCivilizations();
+            var filter = deityFilter?.Trim();
+
+            // Apply deity filter if provided
+            if (!string.IsNullOrEmpty(filter))
+                items = items.Where(c => c.memberDeities.Any(d =>
+                    string.Equals(d, filter, StringComparison.OrdinalIgnoreCase))).ToList();
+
+            // Map adapter VM → Network DTO
+            var mapped = items.Select(c => new CivilizationListResponsePacket.CivilizationInfo
+            {
+                CivId = c.civId,
+                Name = c.name,
+                FounderUID = c.founderUID,
+                FounderReligionUID = c.founderReligionUID,
+                MemberCount = c.memberCount,
+                MemberDeities = c.memberDeities,
+                MemberReligionNames = c.memberReligionNames,
+                Icon = c.icon
+            }).ToList();
+
+            State.BrowseState.AllCivilizations = mapped;
+            State.BrowseState.IsLoading = false;
+            State.BrowseState.ErrorMsg = null;
+            return;
+        }
+
+        // Default: request from server
         State.BrowseState.IsLoading = true;
         State.BrowseState.ErrorMsg = null;
         _uiService.RequestCivilizationList(deityFilter);
@@ -149,13 +193,14 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     }
 
     /// <summary>
-    ///     Request a civilization action (create, invite, accept, leave, kick, disband)
+    ///     Request a civilization action (create, invite, accept, leave, kick, disband, updateicon)
     /// </summary>
-    public void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "")
+    public void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "",
+        string icon = "")
     {
         // Clear transient action error; some actions will trigger refreshes
         State.LastActionError = null;
-        _uiService.RequestCivilizationAction(action, civId, targetId, name);
+        _uiService.RequestCivilizationAction(action, civId, targetId, name, icon);
     }
 
     /// <summary>
@@ -193,7 +238,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             case CivilizationSubTab.Browse:
                 DrawCivilizationBrowse(x, contentY, width, contentHeight);
                 break;
-            case CivilizationSubTab.MyCiv:
+            case CivilizationSubTab.Info:
                 DrawCivilizationInfo(x, contentY, width, contentHeight);
                 break;
             case CivilizationSubTab.Invites:
@@ -282,7 +327,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     [ExcludeFromCodeCoverage]
     private void DrawCivilizationInfo(float x, float y, float width, float height)
     {
-        var civ = State.InfoState.MyCivilization;
+        var civ = State.InfoState.Info;
 
         // Build ViewModel
         var vm = new CivilizationInfoViewModel(
@@ -290,6 +335,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             civ != null,
             civ?.CivId ?? string.Empty,
             civ?.Name ?? string.Empty,
+            civ?.Icon ?? "default",
             civ?.FounderName ?? string.Empty,
             !string.IsNullOrEmpty(CivilizationFounderReligionUID) &&
             civ?.FounderReligionUID == CivilizationFounderReligionUID,
@@ -311,6 +357,34 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
         // Process events
         ProcessInfoEvents(result.Events);
+
+        // Draw edit dialog overlay if open
+        if (State.EditState.IsOpen) DrawCivilizationEditDialog(x, y, width, height);
+    }
+
+    [ExcludeFromCodeCoverage]
+    private void DrawCivilizationEditDialog(float x, float y, float width, float height)
+    {
+        var civ = State.InfoState.Info;
+        if (civ == null) return;
+
+        // Build ViewModel
+        var vm = new CivilizationEditViewModel(
+            civ.CivId,
+            civ.Name,
+            civ.Icon,
+            State.EditState.EditingIcon,
+            x,
+            y,
+            width,
+            height);
+
+        // Render
+        var drawList = ImGui.GetWindowDrawList();
+        var result = CivilizationEditRenderer.Draw(vm, drawList);
+
+        // Process events
+        ProcessEditEvents(result.Events);
     }
 
     private void DrawCivilizationInvites(float x, float y, float width, float height)
@@ -339,6 +413,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         // Build ViewModel
         var vm = new CivilizationCreateViewModel(
             State.CreateState.CreateCivName,
+            State.CreateState.SelectedIcon,
             State.CreateError,
             UserIsReligionFounder,
             HasCivilization(),
@@ -378,7 +453,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                             else
                                 State.BrowseState.ErrorMsg = null;
                             break;
-                        case CivilizationSubTab.MyCiv:
+                        case CivilizationSubTab.Info:
                             State.InfoState.ErrorMsg = null;
                             RequestCivilizationInfo();
                             break;
@@ -403,7 +478,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                             else
                                 State.BrowseState.ErrorMsg = null;
                             break;
-                        case CivilizationSubTab.MyCiv:
+                        case CivilizationSubTab.Info:
                             State.InfoState.ErrorMsg = null;
                             break;
                         case CivilizationSubTab.Invites:
@@ -422,7 +497,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                             else
                                 RequestCivilizationList(State.BrowseState.DeityFilter);
                             break;
-                        case CivilizationSubTab.MyCiv:
+                        case CivilizationSubTab.Info:
                         case CivilizationSubTab.Invites:
                             RequestCivilizationInfo();
                             break;
@@ -486,7 +561,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
     internal void ProcessInfoEvents(IReadOnlyList<InfoEvent> events)
     {
-        var civ = State.InfoState.MyCivilization;
+        var civ = State.InfoState.Info;
         var civId = civ?.CivId ?? string.Empty;
 
         foreach (var evt in events)
@@ -516,6 +591,13 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 case InfoEvent.LeaveClicked:
                     if (!string.IsNullOrWhiteSpace(civId))
                         RequestCivilizationAction("leave");
+                    break;
+
+                case InfoEvent.EditIconClicked:
+                    State.EditState.IsOpen = true;
+                    State.EditState.CivId = civId;
+                    State.EditState.EditingIcon = civ?.Icon ?? "default";
+                    _soundManager.PlayClick();
                     break;
 
                 case InfoEvent.DisbandOpened:
@@ -583,13 +665,20 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     State.CreateState.CreateCivName = nc.newName;
                     break;
 
+                case CreateEvent.IconSelected iconSelected:
+                    State.CreateState.SelectedIcon = iconSelected.icon;
+                    _soundManager.PlayClick();
+                    break;
+
                 case CreateEvent.SubmitClicked:
                     if (!string.IsNullOrWhiteSpace(State.CreateState.CreateCivName) &&
                         State.CreateState.CreateCivName.Length >= 3 &&
                         State.CreateState.CreateCivName.Length <= 32)
                     {
-                        RequestCivilizationAction("create", "", "", State.CreateState.CreateCivName);
+                        RequestCivilizationAction("create", "", "", State.CreateState.CreateCivName,
+                            State.CreateState.SelectedIcon);
                         State.CreateState.CreateCivName = string.Empty;
+                        State.CreateState.SelectedIcon = "default";
                     }
                     else
                     {
@@ -601,6 +690,37 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
                 case CreateEvent.ClearClicked:
                     State.CreateState.CreateCivName = string.Empty;
+                    State.CreateState.SelectedIcon = "default";
+                    break;
+            }
+    }
+
+    internal void ProcessEditEvents(IReadOnlyList<EditEvent> events)
+    {
+        foreach (var evt in events)
+            switch (evt)
+            {
+                case EditEvent.IconSelected iconSelected:
+                    State.EditState.EditingIcon = iconSelected.icon;
+                    _soundManager.PlayClick();
+                    break;
+
+                case EditEvent.SubmitClicked:
+                    if (!string.IsNullOrWhiteSpace(State.EditState.CivId) &&
+                        !string.IsNullOrWhiteSpace(State.EditState.EditingIcon))
+                    {
+                        RequestCivilizationAction("updateicon", State.EditState.CivId, "", "",
+                            State.EditState.EditingIcon);
+                        State.EditState.IsOpen = false;
+                        State.EditState.Reset();
+                    }
+
+                    break;
+
+                case EditEvent.CancelClicked:
+                    State.EditState.IsOpen = false;
+                    State.EditState.Reset();
+                    _soundManager.PlayClick();
                     break;
             }
     }
@@ -645,6 +765,28 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             _soundManager.PlayError();
             State.LastActionError = packet.Message;
         }
+    }
+
+    #endregion
+
+    #region Civilization Provider (Adapter Pattern)
+
+    /// <summary>
+    ///     Configure a UI-only civilization data provider (fake or real). When set,
+    ///     RequestCivilizationList() uses it instead of performing a network call.
+    /// </summary>
+    internal void UseCivilizationProvider(ICivilizationProvider provider)
+    {
+        CivilizationProvider = provider;
+    }
+
+    /// <summary>
+    ///     Refresh the current civilization list from the configured provider (if any).
+    /// </summary>
+    public void RefreshCivilizationsFromProvider()
+    {
+        CivilizationProvider?.Refresh();
+        RequestCivilizationList(State.BrowseState.DeityFilter);
     }
 
     #endregion

@@ -16,6 +16,17 @@ public class PantheonWarsNetworkClient : IClientNetworkHandler
     private ICoreClientAPI? _capi;
     private IClientNetworkChannel? _clientChannel;
 
+    private bool IsNetworkAvailable()
+    {
+        if (_clientChannel == null)
+        {
+            _capi?.Logger.Error("[PantheonWars] Cannot edit description: client channel not initialized");
+            return false;
+        }
+
+        return true;
+    }
+
     #region IClientNetworkHandler Implementation
 
     public void Initialize(ICoreClientAPI capi)
@@ -483,7 +494,8 @@ public class PantheonWarsNetworkClient : IClientNetworkHandler
     /// <summary>
     ///     Request a civilization action (create, invite, accept, leave, kick, disband)
     /// </summary>
-    public void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "")
+    public void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "",
+        string icon = "")
     {
         if (_clientChannel == null)
         {
@@ -491,24 +503,13 @@ public class PantheonWarsNetworkClient : IClientNetworkHandler
             return;
         }
 
-        var request = new CivilizationActionRequestPacket(action, civId, targetId, name);
+        var request = new CivilizationActionRequestPacket(action, civId, targetId, name, icon);
         _clientChannel.SendPacket(request);
         _capi?.Logger.Debug($"[PantheonWars] Sent civilization action request: {action}");
     }
 
     #endregion
 
-    private bool IsNetworkAvailable()
-    {
-        if (_clientChannel == null)
-        {
-            _capi?.Logger.Error("[PantheonWars] Cannot edit description: client channel not initialized");
-            return false;
-        }
-
-        return true;
-    }
-    
     #region Events
 
     /// <summary>

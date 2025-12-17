@@ -34,7 +34,9 @@ internal static class ButtonRenderer
         float height,
         bool isPrimary = false,
         bool enabled = true,
-        Vector4? customColor = null)
+        Vector4? customColor = null,
+        string directoryPath = "",
+        string iconName = "")
     {
         var buttonStart = new Vector2(x, y);
         var buttonEnd = new Vector2(x + width, y + height);
@@ -69,9 +71,40 @@ internal static class ButtonRenderer
 
         var borderColor = ImGui.ColorConvertFloat4ToU32(enabled ? ColorPalette.Gold * 0.7f : ColorPalette.Grey * 0.3f);
         drawList.AddRect(buttonStart, buttonEnd, borderColor, 4f, ImDrawFlags.None, 1.5f);
+        // Icon rendering constants
+        const float iconSize = 20f;
+        const float leftPadding = 8f;
+        const float iconSpacing = 6f;
+        const float rightPadding = 8f;
+
+        if (directoryPath != "" && iconName != "")
+        {
+            var textureId = GuiIconLoader.GetTextureId(directoryPath, iconName);
+            var iconY = y + (height - iconSize) / 2f; // Center vertically
+            var iconX = x + leftPadding; // Position from left with padding
+            var iconMin = new Vector2(iconX, iconY);
+            var iconMax = new Vector2(iconX + iconSize, iconY + iconSize);
+            drawList.AddImage(textureId, iconMin, iconMax, Vector2.Zero, Vector2.One);
+        }
 
         var textSize = ImGui.CalcTextSize(text);
-        var textPos = new Vector2(x + (width - textSize.X) / 2, y + (height - textSize.Y) / 2);
+
+        // Calculate horizontal text position accounting for icon
+        float textX;
+        if (directoryPath != "" && iconName != "")
+        {
+            // Icon is present: offset text to the right with padding on both sides
+            var iconTotalWidth = leftPadding + iconSize + iconSpacing;
+            var availableWidth = width - iconTotalWidth - rightPadding;
+            textX = x + iconTotalWidth + (availableWidth - textSize.X) / 2;
+        }
+        else
+        {
+            // No icon: center text in full button width
+            textX = x + (width - textSize.X) / 2;
+        }
+
+        var textPos = new Vector2(textX, y + (height - textSize.Y) / 2);
         var textColor = ImGui.ColorConvertFloat4ToU32(enabled ? ColorPalette.White : ColorPalette.Grey * 0.7f);
         drawList.AddText(textPos, textColor, text);
 

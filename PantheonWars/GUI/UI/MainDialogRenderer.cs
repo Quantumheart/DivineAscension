@@ -53,7 +53,8 @@ internal static class MainDialogRenderer
             manager.ReligionStateManager.CurrentDeity, manager.ReligionStateManager.CurrentReligionName,
             manager.ReligionStateManager.ReligionMemberCount, manager.ReligionStateManager.PlayerRoleInReligion,
             manager.ReligionStateManager.GetPlayerFavorProgress(),
-            manager.ReligionStateManager.GetReligionPrestigeProgress(), manager.IsCivilizationFounder, windowPos.X + x,
+            manager.ReligionStateManager.GetReligionPrestigeProgress(), manager.IsCivilizationFounder,
+            manager.CivilizationManager.CivilizationIcon, windowPos.X + x,
             windowPos.Y + y, width);
         var headerHeight = ReligionHeaderRenderer.Draw(
             religionHeaderViewModel
@@ -69,6 +70,9 @@ internal static class MainDialogRenderer
         var closeY = windowPos.Y + padding;
         if (ButtonRenderer.DrawCloseButton(drawList, closeX, closeY, closeSize)) state.RequestClose = true;
 
+        // Define icon names for main tabs
+        var mainTabIcons = new[] { "temple", "meditation", "castle" };
+
         var newMainTab = TabControl.Draw(
             drawList,
             windowPos.X + x,
@@ -76,7 +80,10 @@ internal static class MainDialogRenderer
             width,
             tabHeight,
             MainTabNames,
-            (int)state.CurrentMainTab
+            (int)state.CurrentMainTab,
+            4f, // tabSpacing (default)
+            "gui", // iconDirectory
+            mainTabIcons // iconNames
         );
 
         if (newMainTab != (int)state.CurrentMainTab)

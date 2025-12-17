@@ -33,25 +33,25 @@ internal static class ReligionTabRenderer
         const float tabWidth = 130f;
         const float spacing = 6f;
 
-        void DrawTabButton(string label, SubTab tab)
+        void DrawTabButton(string label, SubTab tab, string directory = "", string iconName = "")
         {
             var tx = x + (int)tab * (tabWidth + spacing);
             var isActive = viewModel.CurrentSubTab == tab;
             var clicked = ButtonRenderer.DrawButton(drawList, label, tx, y, tabWidth, tabH,
                 isActive, true,
-                isActive ? ColorPalette.Gold * 0.7f : ColorPalette.DarkBrown * 0.6f);
+                isActive ? ColorPalette.Gold * 0.7f : ColorPalette.DarkBrown * 0.6f, directory, iconName);
             if (clicked && tab != viewModel.CurrentSubTab)
             {
                 events.Add(new SubTabEvent.TabChanged(tab));
             }
         }
 
-        DrawTabButton(nameof(SubTab.Browse), SubTab.Browse);
-        DrawTabButton(nameof(SubTab.Info), SubTab.Info);
-        DrawTabButton(nameof(SubTab.Activity), SubTab.Activity);
-        DrawTabButton(nameof(SubTab.Roles), SubTab.Roles);
-        DrawTabButton(nameof(SubTab.Invites), SubTab.Invites);
-        DrawTabButton(nameof(SubTab.Create), SubTab.Create);
+        DrawTabButton(nameof(SubTab.Browse), SubTab.Browse, "GUI", "browse");
+        DrawTabButton(nameof(SubTab.Info), SubTab.Info, "GUI", "info");
+        DrawTabButton(nameof(SubTab.Activity), SubTab.Activity, "GUI", "activity");
+        DrawTabButton(nameof(SubTab.Roles), SubTab.Roles, "GUI", "roles");
+        DrawTabButton(nameof(SubTab.Invites), SubTab.Invites, "GUI", "invites");
+        DrawTabButton(nameof(SubTab.Create), SubTab.Create, "GUI", "create");
 
         var contentY = y + tabH + 10f;
         var renderedHeight = tabH + 10f;

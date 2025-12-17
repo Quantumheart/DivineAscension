@@ -46,6 +46,8 @@ public class CivilizationInfoResponsePacket
 
         [ProtoMember(9)]
         public string FounderReligionName { get; set; } = string.Empty; // Religion name that founded the civilization
+
+        [ProtoMember(10)] public string Icon { get; set; } = "default"; // Icon identifier for the civilization
     }
 
     /// <summary>

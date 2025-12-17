@@ -25,7 +25,7 @@ internal static class CivilizationInvitesRenderer
 
         // Help text explaining where to send invites
         TextRenderer.DrawInfoText(drawList,
-            "This tab shows invitations you've received. To send invitations, go to the \"My Civilization\" tab (founders only).",
+            "This tab shows invitations you've received. To send invitations, go to the \"Info\" tab (founders only).",
             vm.X, currentY, vm.Width);
         currentY += 32f;
 

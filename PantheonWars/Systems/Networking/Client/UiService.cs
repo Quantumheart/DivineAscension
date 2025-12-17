@@ -85,8 +85,9 @@ public class UiService(PantheonWarsNetworkClient networkClient)
         _networkClient.RequestCivilizationInfo(civId);
     }
 
-    public void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "")
+    public void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "",
+        string icon = "")
     {
-        _networkClient.RequestCivilizationAction(action, civId, targetId, name);
+        _networkClient.RequestCivilizationAction(action, civId, targetId, name, icon);
     }
 }
