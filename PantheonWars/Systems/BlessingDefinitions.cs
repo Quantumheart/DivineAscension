@@ -43,7 +43,7 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description = "+10% tool durability, +10% ore yield.",
-                IconName = "hammer",
+                IconName = "hammer-drop",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
@@ -58,7 +58,7 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description = "+15% tool durability (total: 25%), +10% mining speed. Requires Craftsman's Touch.",
-                IconName = "double-hammer",
+                IconName = "miner",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasCraftsmansTouch },
                 StatModifiers = new Dictionary<string, float>
@@ -89,7 +89,7 @@ public static class BlessingDefinitions
                 Category = BlessingCategory.Utility,
                 Description =
                     "+20% tool durability (total: 45%), +15% ore yield (total: 25%). Requires Masterwork Tools.",
-                IconName = "legendary-anvil",
+                IconName = "sword-smithing",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasMasterworkTools },
                 StatModifiers = new Dictionary<string, float>
@@ -122,7 +122,7 @@ public static class BlessingDefinitions
                 Category = BlessingCategory.Utility,
                 Description =
                     "Tools repair 1 durability per 5 minutes. +10% armor walk speed. Requires both Legendary Smith and Unyielding.",
-                IconName = "forge-fire",
+                IconName = "sword-mold",
                 RequiredFavorRank = (int)FavorRank.Champion,
                 PrerequisiteBlessings = new List<string>
                     { BlessingIds.KhorasLegendarySmith, BlessingIds.KhorasUnyielding },
@@ -141,7 +141,7 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description = "+10% tool durability, +10% ore yield for all members.",
-                IconName = "workshop",
+                IconName = "warehouse",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
@@ -156,7 +156,7 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description = "+15% tool durability, +15% ore yield for all. Requires Shared Workshop.",
-                IconName = "guild-emblem",
+                IconName = "blacksmith",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasSharedWorkshop },
                 StatModifiers = new Dictionary<string, float>
@@ -173,7 +173,7 @@ public static class BlessingDefinitions
                 Category = BlessingCategory.Utility,
                 Description =
                     "+20% tool durability, +20% ore yield, +10% armor walk speed for all. Requires Guild of Smiths.",
-                IconName = "master-tools",
+                IconName = "team-upgrade",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasGuildOfSmiths },
                 StatModifiers = new Dictionary<string, float>
@@ -190,7 +190,7 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description = "+10% max health for all. Requires Master Craftsmen.",
-                IconName = "divine-forge",
+                IconName = "freemasonry",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasMasterCraftsmen },
                 StatModifiers = new Dictionary<string, float>
@@ -401,7 +401,7 @@ public static class BlessingDefinitions
                 Category = BlessingCategory.Utility,
                 Description =
                     "Light brings life and growth. +12% crop yield, +10% satiety from all food, +3°C heat resistance, light sources provide +1°C warmth radius.",
-                IconName = "sun",
+                IconName = "sunrise",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
@@ -436,7 +436,7 @@ public static class BlessingDefinitions
                 Category = BlessingCategory.Utility,
                 Description =
                     "Master the art of food preparation. Cooking/baking yields +25% more food, +15% satiety from cooked food, food spoils 20% slower, +5°C heat resistance. Food preparation path. Requires Sun's Blessing.",
-                IconName = "bread",
+                IconName = "sliced-bread",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.AethraSunsBlessing },
                 StatModifiers = new Dictionary<string, float>
@@ -456,7 +456,7 @@ public static class BlessingDefinitions
                 Category = BlessingCategory.Utility,
                 Description =
                     "Achieve ultimate farming mastery. +20% crop yield, +18% satiety from crops, crops have 25% chance for bonus seeds, +30% chance to find rare crop variants, wild crops give +40% yield. Requires Bountiful Harvest.",
-                IconName = "farm",
+                IconName = "farmer",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.AethraBountifulHarvest },
                 StatModifiers = new Dictionary<string, float>
@@ -509,14 +509,14 @@ public static class BlessingDefinitions
 
             // RELIGION BLESSINGS (4 total) - Shared agricultural bonuses
 
-            // Tier 1 - Fledgling (0-499 prestige) - Foundation
+            // Tier 1 - Fledgling (0-499 prestige)
             new(BlessingIds.AethraCommunityFarm, "Community Farm", DeityType.Aethra)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
                     "Your congregation shares agricultural knowledge. +10% crop yield, +8% satiety from all food for all members.",
-                IconName = "community-garden",
+                IconName = "greenhouse",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
@@ -525,14 +525,14 @@ public static class BlessingDefinitions
                 }
             },
 
-            // Tier 2 - Established (500-1999 prestige) - Coordination
+            // Tier 2 - Established (500-1999 prestige)
             new(BlessingIds.AethraHarvestFestival, "Harvest Festival", DeityType.Aethra)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
                     "Celebrate abundant harvests together. +15% crop yield, +12% satiety from all food, food spoils 10% slower for all. Requires Community Farm.",
-                IconName = "festival",
+                IconName = "sun-priest",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
                 PrerequisiteBlessings = new List<string> { BlessingIds.AethraCommunityFarm },
                 StatModifiers = new Dictionary<string, float>
@@ -543,14 +543,14 @@ public static class BlessingDefinitions
                 }
             },
 
-            // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
+            // Tier 3 - Renowned (2000-4999 prestige)
             new(BlessingIds.AethraLandOfPlenty, "Land of Plenty", DeityType.Aethra)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
                     "Your land becomes legendary for its bounty. +22% crop yield, +18% satiety from all food, food spoils 18% slower, +5°C heat resistance for all. Requires Harvest Festival.",
-                IconName = "abundant-field",
+                IconName = "field",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
                 PrerequisiteBlessings = new List<string> { BlessingIds.AethraHarvestFestival },
                 StatModifiers = new Dictionary<string, float>
@@ -567,7 +567,7 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
-                IconName = "divine-sun",
+                IconName = "sun",
                 Description =
                     "Your religion becomes the source of endless bounty. +30% crop yield, +20% satiety from all food, food spoils 25% slower, +8°C heat resistance, religion can build Sacred Granary for all. Requires Land of Plenty.",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
