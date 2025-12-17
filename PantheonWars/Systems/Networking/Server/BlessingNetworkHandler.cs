@@ -179,7 +179,8 @@ public class BlessingNetworkHandler(
                 RequiredPrestigeRank = p.RequiredPrestigeRank,
                 PrerequisiteBlessings = p.PrerequisiteBlessings ?? new List<string>(),
                 Category = (int)p.Category,
-                StatModifiers = p.StatModifiers ?? new Dictionary<string, float>()
+                StatModifiers = p.StatModifiers ?? new Dictionary<string, float>(),
+                IconName = p.IconName
             }).ToList();
 
             // Get religion blessings for this deity
@@ -194,7 +195,8 @@ public class BlessingNetworkHandler(
                 RequiredPrestigeRank = p.RequiredPrestigeRank,
                 PrerequisiteBlessings = p.PrerequisiteBlessings ?? new List<string>(),
                 Category = (int)p.Category,
-                StatModifiers = p.StatModifiers ?? new Dictionary<string, float>()
+                StatModifiers = p.StatModifiers ?? new Dictionary<string, float>(),
+                IconName = p.IconName
             }).ToList();
 
             // Get unlocked player blessings

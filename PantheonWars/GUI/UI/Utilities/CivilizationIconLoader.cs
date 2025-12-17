@@ -71,8 +71,8 @@ internal static class CivilizationIconLoader
             var texture = new LoadedTexture(_api)
             {
                 TextureId = textureId,
-                Width = 32, // Civilization icons are 32x32
-                Height = 32
+                Width = 48, // Civilization icons are 48x48
+                Height = 48
             };
 
             _api.Logger.Debug(

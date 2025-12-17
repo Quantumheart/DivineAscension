@@ -53,11 +53,11 @@ public class CivilizationCommands(
             .HandleWith(OnAcceptInvite)
             .EndSubCommand()
             .BeginSubCommand("leave")
-            .WithDescription("Leave your civilization (7-day cooldown applied)")
+            .WithDescription("Leave your civilization")
             .HandleWith(OnLeaveCivilization)
             .EndSubCommand()
             .BeginSubCommand("kick")
-            .WithDescription("Kick a religion from your civilization (founder only, 7-day cooldown)")
+            .WithDescription("Kick a religion from your civilization (founder only)")
             .WithArgs(_sapi.ChatCommands.Parsers.Word("religionname"))
             .HandleWith(OnKickReligion)
             .EndSubCommand()
@@ -108,7 +108,7 @@ public class CivilizationCommands(
         var civ = _civilizationManager.CreateCivilization(civName, player.PlayerUID, playerData.ReligionUID);
         if (civ == null)
             return TextCommandResult.Error(
-                "Failed to create civilization. Check name requirements (3-32 characters, unique) and cooldown status");
+                "Failed to create civilization. Check name requirements (3-32 characters, unique)");
 
         return TextCommandResult.Success(
             $"Civilization '{civName}' created! You can now invite 1-3 more religions with different deities.");
@@ -147,7 +147,7 @@ public class CivilizationCommands(
         var success = _civilizationManager.InviteReligion(civ.CivId, targetReligion.ReligionUID, player.PlayerUID);
         if (!success)
             return TextCommandResult.Error(
-                "Failed to send invitation. Check: civilization not full (max 4), different deity required, target not on cooldown");
+                "Failed to send invitation. Check: civilization not full (max 4), different deity required");
 
         return TextCommandResult.Success($"Invitation sent to '{religionName}'. It will expire in 7 days.");
     }
@@ -219,8 +219,7 @@ public class CivilizationCommands(
         if (!success)
             return TextCommandResult.Error("Failed to leave civilization");
 
-        return TextCommandResult.Success(
-            "You have left the civilization. A 7-day cooldown has been applied before you can join another civilization.");
+        return TextCommandResult.Success("You have left the civilization.");
     }
 
     /// <summary>
@@ -257,8 +256,7 @@ public class CivilizationCommands(
         if (!success)
             return TextCommandResult.Error("Failed to kick religion. You cannot kick your own religion");
 
-        return TextCommandResult.Success(
-            $"'{religionName}' has been kicked from the civilization. A 7-day cooldown has been applied.");
+        return TextCommandResult.Success($"'{religionName}' has been kicked from the civilization.");
     }
 
     /// <summary>

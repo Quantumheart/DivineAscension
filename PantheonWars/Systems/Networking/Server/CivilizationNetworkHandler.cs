@@ -250,7 +250,7 @@ public class CivilizationNetworkHandler(
                     {
                         response.Success = false;
                         response.Message =
-                            "Failed to create civilization. Check name requirements and cooldown status.";
+                            "Failed to create civilization. Check name requirements.";
                     }
 
                     break;
@@ -356,7 +356,7 @@ public class CivilizationNetworkHandler(
                     success = civilizationManager.LeaveReligion(playerData.ReligionUID, fromPlayer.PlayerUID);
                     response.Success = success;
                     response.Message = success
-                        ? "You have left the civilization. A 7-day cooldown has been applied."
+                        ? "You have left the civilization."
                         : "Failed to leave civilization.";
                     break;
 
@@ -364,7 +364,7 @@ public class CivilizationNetworkHandler(
                     success = civilizationManager.KickReligion(packet.CivId, packet.TargetId, fromPlayer.PlayerUID);
                     response.Success = success;
                     response.Message = success
-                        ? "Religion kicked from civilization. A 7-day cooldown has been applied."
+                        ? "Religion kicked from civilization."
                         : "Failed to kick religion. Only the civilization founder can kick members.";
                     response.CivId = packet.CivId;
                     break;

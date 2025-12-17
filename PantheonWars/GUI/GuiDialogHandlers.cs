@@ -72,7 +72,8 @@ public partial class GuiDialog
             RequiredFavorRank = p.RequiredFavorRank,
             RequiredPrestigeRank = p.RequiredPrestigeRank,
             PrerequisiteBlessings = p.PrerequisiteBlessings,
-            StatModifiers = p.StatModifiers
+            StatModifiers = p.StatModifiers,
+            IconName = p.IconName
         }).ToList();
 
         var religionBlessings = packet.ReligionBlessings.Select(p => new Blessing(p.BlessingId, p.Name, deityType)
@@ -83,7 +84,8 @@ public partial class GuiDialog
             RequiredFavorRank = p.RequiredFavorRank,
             RequiredPrestigeRank = p.RequiredPrestigeRank,
             PrerequisiteBlessings = p.PrerequisiteBlessings,
-            StatModifiers = p.StatModifiers
+            StatModifiers = p.StatModifiers,
+            IconName = p.IconName
         }).ToList();
 
         // Load blessing states into manager

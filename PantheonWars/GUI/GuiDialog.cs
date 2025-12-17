@@ -65,6 +65,7 @@ public partial class GuiDialog : ModSystem
         DeityIconLoader.Initialize(_capi);
         GuiIconLoader.Initialize(_capi);
         CivilizationIconLoader.Initialize(_capi);
+        BlessingIconLoader.Initialize(_capi);
 
         // Get PantheonWarsSystem for network communication
         _pantheonWarsSystem = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
@@ -279,6 +280,7 @@ public partial class GuiDialog : ModSystem
         // Dispose icon loaders
         DeityIconLoader.Dispose();
         CivilizationIconLoader.Dispose();
+        BlessingIconLoader.Dispose();
 
         _capi?.Logger.Notification("[PantheonWars] Blessing Dialog disposed");
     }

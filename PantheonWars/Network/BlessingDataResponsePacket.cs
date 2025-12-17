@@ -56,5 +56,7 @@ public class BlessingDataResponsePacket
         [ProtoMember(7)] public int Category { get; set; } // BlessingCategory as int
 
         [ProtoMember(8)] public Dictionary<string, float> StatModifiers { get; set; } = new();
+
+        [ProtoMember(9)] public string IconName { get; set; } = string.Empty;
     }
 }

@@ -30,8 +30,7 @@ internal static class CivilizationCreateRenderer
         {
             "You must be a religion founder",
             "Your religion must not be in another civilization",
-            "Name must be 3-32 characters",
-            "No cooldowns active"
+            "Name must be 3-32 characters"
         };
 
         foreach (var req in requirements)

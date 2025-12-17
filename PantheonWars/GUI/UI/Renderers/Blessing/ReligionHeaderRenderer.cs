@@ -192,65 +192,68 @@ internal static class ReligionHeaderRenderer
 
             // Civilization icon/badge
             var civCurrentX = col2X;
-            var civCurrentY = viewModel.Y + 12f; // small top padding
-            const float civIconSize = 32f;
+            const float civIconSize = 48f; // Match deity icon size
 
-            // Load and render civilization icon texture
+            // Load and render civilization icon texture (centered vertically like deity icon)
             var civTextureId = CivilizationIconLoader.GetIconTextureId(viewModel.CivilizationIcon ?? "default");
-            var iconPos = new Vector2(civCurrentX, civCurrentY);
-            var iconMin = iconPos;
-            var iconMax = new Vector2(iconPos.X + civIconSize, iconPos.Y + civIconSize);
+            var civIconPos = new Vector2(civCurrentX, centerY - civIconSize / 2);
+            var civIconMin = civIconPos;
+            var civIconMax = new Vector2(civIconPos.X + civIconSize, civIconPos.Y + civIconSize);
 
             // Render icon (white tint = no tint)
-            var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
-            drawList.AddImage(civTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
+            var civTintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
+            drawList.AddImage(civTextureId, civIconMin, civIconMax, Vector2.Zero, Vector2.One, civTintColorU32);
 
             // Add subtle border for visual consistency
             var civBorderColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.8f, 0.8f, 0.8f, 1f));
-            drawList.AddRect(iconMin, iconMax, civBorderColor, 4f, ImDrawFlags.None, 2f);
+            drawList.AddRect(civIconMin, civIconMax, civBorderColor, 4f, ImDrawFlags.None, 2f);
 
-            civCurrentX += civIconSize + 10f;
+            civCurrentX += civIconSize + padding;
 
-            // Civilization name
+            // Civilization name (align with religion header position Y+12)
             var civName = viewModel.CurrentCivilizationName ?? "Unknown Civilization";
             var civNameText = $"Civilization: {civName}";
-            var civNamePos = new Vector2(civCurrentX, civCurrentY);
+            var civNamePos = new Vector2(civCurrentX, viewModel.Y + 12f);
             var civNameColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.5f, 0.8f, 1f, 1f));
             drawList.AddText(ImGui.GetFont(), 15f, civNamePos, civNameColor, civNameText);
 
-            civCurrentY += 22f;
-
-            // Member religions with deity colors
+            // Member religions with deity colors (align with religion info position Y+35)
+            var civInfoY = viewModel.Y + 35f;
             var memberCount = viewModel.CivilizationMemberReligions?.Count;
-            var memberText = $"{memberCount}/4 Religions: ";
-            var memberPos = new Vector2(civCurrentX, civCurrentY);
+            var memberText = $"{memberCount}/4 Religions";
+            var memberPos = new Vector2(civCurrentX, civInfoY);
             var memberColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-            drawList.AddText(ImGui.GetFont(), 12f, memberPos, memberColor, memberText);
+            drawList.AddText(ImGui.GetFont(), 13f, memberPos, memberColor, memberText);
 
-            var textSize = ImGui.CalcTextSize(memberText);
-            var deityIconX = civCurrentX + textSize.X + 4f;
-            const float deityIconSize = 16f;
-            const float deityIconSpacing = 4f;
-            foreach (var memberReligion in viewModel.CivilizationMemberReligions!)
-                if (Enum.TryParse<DeityType>(memberReligion.Deity, out var deityType))
-                {
-                    var memberDeityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
-                    var deityIconPos = new Vector2(deityIconX, civCurrentY);
-                    drawList.AddImage(memberDeityTextureId,
-                        deityIconPos,
-                        new Vector2(deityIconPos.X + deityIconSize, deityIconPos.Y + deityIconSize),
-                        Vector2.Zero, Vector2.One,
-                        ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)));
-                    deityIconX += deityIconSize + deityIconSpacing;
-                }
+            // Add deity icons below member count (add visual balance)
+            if (viewModel.CivilizationMemberReligions?.Count > 0)
+            {
+                var deityIconsY = viewModel.Y + 54f; // Align with progress bar position
+                var deityIconX = civCurrentX;
+                const float deityIconSize = 20f; // Slightly larger for better visibility
+                const float deityIconSpacing = 6f;
 
-            // Founder badge
+                foreach (var memberReligion in viewModel.CivilizationMemberReligions!)
+                    if (Enum.TryParse<DeityType>(memberReligion.Deity, out var deityType))
+                    {
+                        var memberDeityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
+                        var deityIconPos = new Vector2(deityIconX, deityIconsY);
+                        drawList.AddImage(memberDeityTextureId,
+                            deityIconPos,
+                            new Vector2(deityIconPos.X + deityIconSize, deityIconPos.Y + deityIconSize),
+                            Vector2.Zero, Vector2.One,
+                            ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)));
+                        deityIconX += deityIconSize + deityIconSpacing;
+                    }
+            }
+
+            // Founder badge (position below deity icons for visual balance)
             if (viewModel.IsCivilizationFounder)
             {
-                var founderText = "=== Founder ===";
-                var founderPos = new Vector2(deityIconX + 8f, civCurrentY);
+                var founderText = "*** Founder ***";
+                var founderPos = new Vector2(civCurrentX, viewModel.Y + 82f); // Add spacing for visual balance
                 var founderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-                drawList.AddText(ImGui.GetFont(), 11f, founderPos, founderColor, founderText);
+                drawList.AddText(ImGui.GetFont(), 12f, founderPos, founderColor, founderText);
             }
         }
 
