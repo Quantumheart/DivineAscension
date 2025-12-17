@@ -1,7 +1,7 @@
 namespace DivineAscension.Models.Enum;
 
 /// <summary>
-///     Enumeration of all deities in Pantheon Wars
+///     Enumeration of all deities in Divine Ascension
 ///     Updated for utility-focused system (4 deities)
 /// </summary>
 public enum DeityType

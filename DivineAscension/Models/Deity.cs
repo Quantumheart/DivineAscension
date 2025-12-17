@@ -4,7 +4,7 @@ using DivineAscension.Models.Enum;
 namespace DivineAscension.Models;
 
 /// <summary>
-///     Represents a deity in the Pantheon Wars system
+///     Represents a deity in the Divine Ascension system
 /// </summary>
 public class Deity
 {
