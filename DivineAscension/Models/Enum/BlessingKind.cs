@@ -1,4 +1,4 @@
-namespace PantheonWars.Models.Enum;
+namespace DivineAscension.Models.Enum;
 
 /// <summary>
 ///     Type of blessing - determines who benefits and unlock requirements

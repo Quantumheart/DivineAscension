@@ -1,6 +1,6 @@
-using PantheonWars.GUI.State.Religion;
+using DivineAscension.GUI.State.Religion;
 
-namespace PantheonWars.GUI.Models.Religion.Tab;
+namespace DivineAscension.GUI.Models.Religion.Tab;
 
 public readonly struct ReligionTabViewModel(
     SubTab currentSubTab,

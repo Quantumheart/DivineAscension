@@ -2,14 +2,14 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
-using PantheonWars.Constants;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems.Interfaces;
+using DivineAscension.Constants;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Commands;
+namespace DivineAscension.Commands;
 
 /// <summary>
 ///     Commands for managing blessings (Phase 3.3)

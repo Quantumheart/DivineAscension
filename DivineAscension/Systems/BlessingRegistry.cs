@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using PantheonWars.Data;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems.Interfaces;
+using DivineAscension.Data;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 
-namespace PantheonWars.Systems;
+namespace DivineAscension.Systems;
 
 /// <summary>
 ///     Registry for all blessings in the game (Phase 3.3)

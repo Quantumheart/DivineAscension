@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events.Religion;
+using DivineAscension.GUI.Events.Religion;
 
-namespace PantheonWars.GUI.Models.Religion.Header;
+namespace DivineAscension.GUI.Models.Religion.Header;
 
 public readonly struct ReligionHeaderRendererResult(IReadOnlyList<HeaderEvent> events, float height)
 {

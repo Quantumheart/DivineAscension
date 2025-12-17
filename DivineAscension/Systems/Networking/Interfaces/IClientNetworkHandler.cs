@@ -1,6 +1,6 @@
 using Vintagestory.API.Client;
 
-namespace PantheonWars.Systems.Networking.Interfaces;
+namespace DivineAscension.Systems.Networking.Interfaces;
 
 public interface IClientNetworkHandler
 {

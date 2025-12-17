@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Utilities;
 
-namespace PantheonWars.GUI.UI.Components.Banners;
+namespace DivineAscension.GUI.UI.Components.Banners;
 
 /// <summary>
 ///     Simple reusable error/warning banner with optional Retry and Dismiss actions.

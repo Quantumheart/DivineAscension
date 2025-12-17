@@ -1,13 +1,13 @@
 using System;
 using System.Numerics;
+using DivineAscension.GUI.Models.Religion.Header;
+using DivineAscension.GUI.UI.Renderers.Components;
+using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems;
 using ImGuiNET;
-using PantheonWars.GUI.Models.Religion.Header;
-using PantheonWars.GUI.UI.Renderers.Components;
-using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems;
 
-namespace PantheonWars.GUI.UI.Renderers.Blessing;
+namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
 /// <summary>
 ///     Renders the religion/deity header banner at the top of the blessing dialog

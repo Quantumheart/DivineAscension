@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
-using PantheonWars.Network.Civilization;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
+using DivineAscension.Network.Civilization;
 
-namespace PantheonWars.GUI.Models.Religion.Header;
+namespace DivineAscension.GUI.Models.Religion.Header;
 
 public readonly struct ReligionHeaderViewModel(
     bool hasReligion,

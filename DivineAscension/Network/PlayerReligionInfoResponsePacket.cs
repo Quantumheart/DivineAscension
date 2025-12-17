@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using ProtoBuf;
 
-namespace PantheonWars.Network;
+namespace DivineAscension.Network;
 
 /// <summary>
 ///     Server sends player's religion details including member list

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Vintagestory.API.Datastructures;
 
-namespace PantheonWars.Systems.BuffSystem;
+namespace DivineAscension.Systems.BuffSystem;
 
 /// <summary>
 ///     Represents an active buff or debuff effect on an entity

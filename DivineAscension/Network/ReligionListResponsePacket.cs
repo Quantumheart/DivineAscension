@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using ProtoBuf;
 
-namespace PantheonWars.Network;
+namespace DivineAscension.Network;
 
 /// <summary>
 ///     Server sends list of available religions to client

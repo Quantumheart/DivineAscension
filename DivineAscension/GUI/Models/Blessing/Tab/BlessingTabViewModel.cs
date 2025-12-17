@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.State;
-using PantheonWars.Models;
+using DivineAscension.GUI.State;
+using DivineAscension.Models;
 
-namespace PantheonWars.GUI.Models.Blessing.Tab;
+namespace DivineAscension.GUI.Models.Blessing.Tab;
 
 public readonly struct BlessingTabViewModel(
     // Layout

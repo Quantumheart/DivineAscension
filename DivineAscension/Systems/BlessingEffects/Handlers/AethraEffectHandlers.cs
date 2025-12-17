@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using PantheonWars.Constants;
-using PantheonWars.Systems.Patches;
+using DivineAscension.Constants;
+using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems.BlessingEffects.Handlers;
+namespace DivineAscension.Systems.BlessingEffects.Handlers;
 
 /// <summary>
 ///     Special effect handlers for Aethra (Agriculture & Light) deity

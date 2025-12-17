@@ -1,6 +1,6 @@
 using ProtoBuf;
 
-namespace PantheonWars.Network.Civilization;
+namespace DivineAscension.Network.Civilization;
 
 /// <summary>
 ///     Client requests an action on a civilization (create, invite, accept, leave, kick, disband)

@@ -1,6 +1,6 @@
 using System;
 
-namespace PantheonWars.GUI.Models.Religion.Create;
+namespace DivineAscension.GUI.Models.Religion.Create;
 
 /// <summary>
 /// Immutable view model for religion creation form

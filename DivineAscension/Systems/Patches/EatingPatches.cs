@@ -4,7 +4,7 @@ using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems.Patches;
+namespace DivineAscension.Systems.Patches;
 
 [HarmonyPatch]
 public static class EatingPatches

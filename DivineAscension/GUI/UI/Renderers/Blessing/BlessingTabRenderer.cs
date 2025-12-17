@@ -1,14 +1,14 @@
 using System.Collections.Generic;
+using DivineAscension.GUI.Events.Blessing;
+using DivineAscension.GUI.Models.Blessing.Actions;
+using DivineAscension.GUI.Models.Blessing.Info;
+using DivineAscension.GUI.Models.Blessing.Tab;
+using DivineAscension.GUI.Models.Blessing.Tree;
+using DivineAscension.GUI.UI.Renderers.Blessing.Info;
+using DivineAscension.Models;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Blessing;
-using PantheonWars.GUI.Models.Blessing.Actions;
-using PantheonWars.GUI.Models.Blessing.Info;
-using PantheonWars.GUI.Models.Blessing.Tab;
-using PantheonWars.GUI.Models.Blessing.Tree;
-using PantheonWars.GUI.UI.Renderers.Blessing.Info;
-using PantheonWars.Models;
 
-namespace PantheonWars.GUI.UI.Renderers.Blessing;
+namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
 internal static class BlessingTabRenderer
 {
@@ -79,7 +79,7 @@ internal static class BlessingTabRenderer
             var hoveringState = hoverPlayerState ?? hoverReligionState;
             if (hoveringState != null)
             {
-                var allBlessings = new Dictionary<string, PantheonWars.Models.Blessing>();
+                var allBlessings = new Dictionary<string, DivineAscension.Models.Blessing>();
                 foreach (var s in vm.PlayerBlessingStates.Values)
                     if (!allBlessings.ContainsKey(s.Blessing.BlessingId))
                         allBlessings[s.Blessing.BlessingId] = s.Blessing;

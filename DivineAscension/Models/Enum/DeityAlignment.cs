@@ -1,4 +1,4 @@
-namespace PantheonWars.Models.Enum;
+namespace DivineAscension.Models.Enum;
 
 /// <summary>
 ///     Moral alignment of a deity

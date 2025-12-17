@@ -2,18 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using DivineAscension.GUI.Events.Civilization;
+using DivineAscension.GUI.Models.Civilization.Info;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Components.Inputs;
+using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Components.Overlays;
+using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models.Enum;
+using DivineAscension.Network.Civilization;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Civilization;
-using PantheonWars.GUI.Models.Civilization.Info;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Components.Inputs;
-using PantheonWars.GUI.UI.Components.Lists;
-using PantheonWars.GUI.UI.Components.Overlays;
-using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.Models.Enum;
-using PantheonWars.Network.Civilization;
 
-namespace PantheonWars.GUI.UI.Renderers.Civilization;
+namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
 internal static class CivilizationInfoRenderer
 {

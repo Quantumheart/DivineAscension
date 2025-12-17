@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.GUI.Events.Blessing;
+using DivineAscension.GUI.Models.Blessing.Actions;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Blessing;
-using PantheonWars.GUI.Models.Blessing.Actions;
 
-namespace PantheonWars.GUI.UI.Renderers.Blessing;
+namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
 /// <summary>
 ///     Renders action buttons (Unlock, Close) at the bottom-right of the dialog

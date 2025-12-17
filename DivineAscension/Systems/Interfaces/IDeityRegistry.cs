@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
 
-namespace PantheonWars.Systems.Interfaces;
+namespace DivineAscension.Systems.Interfaces;
 
 /// <summary>
 ///     Interface for managing all deities in the game

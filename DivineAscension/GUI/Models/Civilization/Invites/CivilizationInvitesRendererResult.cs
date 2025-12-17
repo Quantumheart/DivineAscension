@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events.Civilization;
+using DivineAscension.GUI.Events.Civilization;
 
-namespace PantheonWars.GUI.Models.Civilization.Invites;
+namespace DivineAscension.GUI.Models.Civilization.Invites;
 
 public readonly struct CivilizationInvitesRendererResult(IReadOnlyList<InvitesEvent> events, float rendererHeight)
 {

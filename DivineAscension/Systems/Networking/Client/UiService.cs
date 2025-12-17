@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.Systems.Interfaces;
+using DivineAscension.Systems.Interfaces;
 
-namespace PantheonWars.Systems.Networking.Client;
+namespace DivineAscension.Systems.Networking.Client;
 
 public class UiService(PantheonWarsNetworkClient networkClient)
     : IUiService

@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace PantheonWars.Systems;
+namespace DivineAscension.Systems;
 
 /// <summary>
 ///     Provides rank requirement calculations and lookups

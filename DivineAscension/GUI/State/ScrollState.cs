@@ -1,4 +1,4 @@
-namespace PantheonWars.GUI.State;
+namespace DivineAscension.GUI.State;
 
 public class ScrollState
 {

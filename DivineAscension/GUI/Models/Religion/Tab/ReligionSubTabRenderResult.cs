@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events.Religion;
+using DivineAscension.GUI.Events.Religion;
 
-namespace PantheonWars.GUI.Models.Religion.Tab;
+namespace DivineAscension.GUI.Models.Religion.Tab;
 
 /// <summary>
 /// The result of rendering the religion sub tab.

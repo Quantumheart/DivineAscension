@@ -1,4 +1,4 @@
-namespace PantheonWars.Models.Enum;
+namespace DivineAscension.Models.Enum;
 
 /// <summary>
 ///     Category of blessing - used for organization and filtering

@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.GUI.Events.Religion;
+using DivineAscension.GUI.Models.Religion.Roles;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Components.Inputs;
+using DivineAscension.GUI.UI.Components.Overlays;
+using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Religion;
-using PantheonWars.GUI.Models.Religion.Roles;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Components.Inputs;
-using PantheonWars.GUI.UI.Components.Overlays;
-using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.Models;
 
-namespace PantheonWars.GUI.UI.Renderers.Religion;
+namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
 ///     Pure renderer for the role detail view (viewing members with a specific role).

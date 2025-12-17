@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using PantheonWars.GUI.UI.Utilities;
+using DivineAscension.GUI.UI.Utilities;
 
 namespace PantheonWars.Tests.GUI.UI.Utilities;
 

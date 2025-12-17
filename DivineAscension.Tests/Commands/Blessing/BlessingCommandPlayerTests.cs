@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Commands;
+using DivineAscension.Constants;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems.Interfaces;
 using Moq;
-using PantheonWars.Commands;
-using PantheonWars.Constants;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems.Interfaces;
 using PantheonWars.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -47,10 +47,10 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
         };
 
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(It.IsAny<string>()))
-            .Returns(new ValueTuple<List<PantheonWars.Models.Blessing>, List<PantheonWars.Models.Blessing>>
+            .Returns(new ValueTuple<List<DivineAscension.Models.Blessing>, List<DivineAscension.Models.Blessing>>
             {
-                Item1 = new List<PantheonWars.Models.Blessing>(),
-                Item2 = new List<PantheonWars.Models.Blessing>()
+                Item1 = new List<DivineAscension.Models.Blessing>(),
+                Item2 = new List<DivineAscension.Models.Blessing>()
             }); // Simulate no blessings
 
 
@@ -73,7 +73,7 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -88,7 +88,7 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
         };
 
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(It.IsAny<string>()))
-            .Returns(new ValueTuple<List<PantheonWars.Models.Blessing>, List<PantheonWars.Models.Blessing>>
+            .Returns(new ValueTuple<List<DivineAscension.Models.Blessing>, List<DivineAscension.Models.Blessing>>
             {
                 Item1 = playerBlessings
             });
@@ -126,14 +126,14 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new() { Name = "Divine Strike" },
             new() { Name = "Faithful Guardian" }
         };
 
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(It.IsAny<string>()))
-            .Returns(new ValueTuple<List<PantheonWars.Models.Blessing>, List<PantheonWars.Models.Blessing>>
+            .Returns(new ValueTuple<List<DivineAscension.Models.Blessing>, List<DivineAscension.Models.Blessing>>
             {
                 Item1 = playerBlessings
             });
@@ -166,7 +166,7 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
         };
 
         var mockBlessingEffectSystem = new Mock<IBlessingEffectSystem>();
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -181,7 +181,7 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
         };
 
         mockBlessingEffectSystem.Setup(p => p.GetActiveBlessings(It.IsAny<string>()))
-            .Returns(new ValueTuple<List<PantheonWars.Models.Blessing>, List<PantheonWars.Models.Blessing>>
+            .Returns(new ValueTuple<List<DivineAscension.Models.Blessing>, List<DivineAscension.Models.Blessing>>
             {
                 Item1 = playerBlessings
             });
@@ -216,7 +216,7 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -226,7 +226,7 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
         };
 
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(It.IsAny<string>()))
-            .Returns(new ValueTuple<List<PantheonWars.Models.Blessing>, List<PantheonWars.Models.Blessing>>
+            .Returns(new ValueTuple<List<DivineAscension.Models.Blessing>, List<DivineAscension.Models.Blessing>>
             {
                 Item1 = playerBlessings
             });
@@ -259,7 +259,7 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -274,7 +274,7 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
         };
 
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(It.IsAny<string>()))
-            .Returns(new ValueTuple<List<PantheonWars.Models.Blessing>, List<PantheonWars.Models.Blessing>>
+            .Returns(new ValueTuple<List<DivineAscension.Models.Blessing>, List<DivineAscension.Models.Blessing>>
             {
                 Item1 = playerBlessings
             });
@@ -307,7 +307,7 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
         };
 
         var mockBlessingEffectSystem = new Mock<IBlessingEffectSystem>();
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -318,7 +318,7 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
         };
 
         mockBlessingEffectSystem.Setup(p => p.GetActiveBlessings(It.IsAny<string>()))
-            .Returns(new ValueTuple<List<PantheonWars.Models.Blessing>, List<PantheonWars.Models.Blessing>>
+            .Returns(new ValueTuple<List<DivineAscension.Models.Blessing>, List<DivineAscension.Models.Blessing>>
             {
                 Item1 = playerBlessings
             });
@@ -350,7 +350,7 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -366,7 +366,7 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
         };
 
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(It.IsAny<string>()))
-            .Returns(new ValueTuple<List<PantheonWars.Models.Blessing>, List<PantheonWars.Models.Blessing>>
+            .Returns(new ValueTuple<List<DivineAscension.Models.Blessing>, List<DivineAscension.Models.Blessing>>
             {
                 Item1 = playerBlessings
             });
@@ -395,12 +395,12 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
         };
 
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new() { Name = "Divine Strike", Category = BlessingCategory.Combat, Description = "Deals extra damage." }
         };
 
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Interfaces;
-using PantheonWars.Network.Civilization;
+using DivineAscension.GUI.Interfaces;
+using DivineAscension.Network.Civilization;
 
-namespace PantheonWars.GUI.State.Civilization;
+namespace DivineAscension.GUI.State.Civilization;
 
 public class InviteState : IState
 {

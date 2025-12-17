@@ -1,6 +1,6 @@
 using ProtoBuf;
 
-namespace PantheonWars.Network;
+namespace DivineAscension.Network;
 
 /// <summary>
 ///     Client requests their own religion information (for "Religion > Info" tab)

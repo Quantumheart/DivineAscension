@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using PantheonWars.Models;
+using DivineAscension.Models;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems.Interfaces;
+namespace DivineAscension.Systems.Interfaces;
 
 public interface IBlessingEffectSystem
 {

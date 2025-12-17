@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
-using PantheonWars.GUI.UI.Utilities;
 
-namespace PantheonWars.GUI.UI.Components;
+namespace DivineAscension.GUI.UI.Components;
 
 /// <summary>
 ///     Reusable icon picker component for selecting civilization icons

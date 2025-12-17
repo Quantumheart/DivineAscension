@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using PantheonWars.Network;
-using PantheonWars.Network.Civilization;
-using PantheonWars.Systems.Interfaces;
-using PantheonWars.Systems.Networking.Interfaces;
+using DivineAscension.Network;
+using DivineAscension.Network.Civilization;
+using DivineAscension.Systems.Interfaces;
+using DivineAscension.Systems.Networking.Interfaces;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems.Networking.Server;
+namespace DivineAscension.Systems.Networking.Server;
 
 /// <summary>
 ///     Handles civilization-related network requests from clients.

@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.GUI.Models.Religion.Header;
+using DivineAscension.GUI.State;
+using DivineAscension.GUI.UI.Components;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Renderers.Blessing;
+using DivineAscension.Network.Civilization;
 using ImGuiNET;
-using PantheonWars.GUI.Models.Religion.Header;
-using PantheonWars.GUI.State;
-using PantheonWars.GUI.UI.Components;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Renderers.Blessing;
-using PantheonWars.Network.Civilization;
 
-namespace PantheonWars.GUI.UI;
+namespace DivineAscension.GUI.UI;
 
 /// <summary>
 ///     Central coordinator that orchestrates all blessing UI renderers

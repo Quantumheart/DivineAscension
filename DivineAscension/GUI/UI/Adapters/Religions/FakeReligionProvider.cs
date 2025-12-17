@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.Models.Enum;
+using DivineAscension.Models.Enum;
 
-namespace PantheonWars.GUI.UI.Adapters.Religions;
+namespace DivineAscension.GUI.UI.Adapters.Religions;
 
 /// <summary>
 ///     Dev-only, UI-only religion provider that generates synthetic religions deterministically.

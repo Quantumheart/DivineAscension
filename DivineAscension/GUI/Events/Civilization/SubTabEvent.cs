@@ -1,6 +1,6 @@
-using PantheonWars.GUI.State;
+using DivineAscension.GUI.State;
 
-namespace PantheonWars.GUI.Events.Civilization;
+namespace DivineAscension.GUI.Events.Civilization;
 
 public abstract record SubTabEvent
 {

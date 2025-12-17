@@ -1,6 +1,6 @@
 using ProtoBuf;
 
-namespace PantheonWars.Network;
+namespace DivineAscension.Network;
 
 /// <summary>
 ///     Client requests to edit religion description

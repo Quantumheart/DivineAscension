@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace PantheonWars.Constants;
+namespace DivineAscension.Constants;
 
 /// <summary>
 ///     Constants for all blessing identifiers across all deities.

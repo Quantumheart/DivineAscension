@@ -1,4 +1,4 @@
-namespace PantheonWars.GUI.Events.Religion;
+namespace DivineAscension.GUI.Events.Religion;
 
 /// <summary>
 ///     Events emitted from the role detail view (viewing members with a specific role).

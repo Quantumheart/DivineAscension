@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace PantheonWars.Systems.Interfaces;
+namespace DivineAscension.Systems.Interfaces;
 
 public interface IUiService
 {

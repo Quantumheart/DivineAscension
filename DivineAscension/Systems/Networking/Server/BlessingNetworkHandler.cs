@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using PantheonWars.Models.Enum;
-using PantheonWars.Network;
-using PantheonWars.Systems.Interfaces;
-using PantheonWars.Systems.Networking.Interfaces;
+using DivineAscension.Models.Enum;
+using DivineAscension.Network;
+using DivineAscension.Systems.Interfaces;
+using DivineAscension.Systems.Networking.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems.Networking.Server;
+namespace DivineAscension.Systems.Networking.Server;
 
 /// <summary>
 ///     Handles blessing-related network requests from clients.

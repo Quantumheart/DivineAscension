@@ -1,11 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
-using PantheonWars.Commands;
-using PantheonWars.Systems.BuffSystem;
-using PantheonWars.Systems.Networking.Server;
-using PantheonWars.Systems.Patches;
+using DivineAscension.Commands;
+using DivineAscension.Systems.BuffSystem;
+using DivineAscension.Systems.Networking.Server;
+using DivineAscension.Systems.Patches;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems;
+namespace DivineAscension.Systems;
 
 /// <summary>
 ///     Handles initialization of all DivineAscension server-side systems.

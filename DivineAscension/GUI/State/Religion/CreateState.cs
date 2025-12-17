@@ -1,6 +1,6 @@
-using PantheonWars.Models.Enum;
+using DivineAscension.Models.Enum;
 
-namespace PantheonWars.GUI.State.Religion;
+namespace DivineAscension.GUI.State.Religion;
 
 public class CreateState
 {

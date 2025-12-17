@@ -1,13 +1,13 @@
 using System;
 using System.Text;
-using PantheonWars.Data;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems;
-using PantheonWars.Systems.Interfaces;
+using DivineAscension.Data;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems;
+using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Commands;
+namespace DivineAscension.Commands;
 
 /// <summary>
 ///     Chat commands for favor management and testing

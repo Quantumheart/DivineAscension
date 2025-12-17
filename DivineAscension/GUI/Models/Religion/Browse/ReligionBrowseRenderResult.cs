@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events.Religion;
-using PantheonWars.Network;
+using DivineAscension.GUI.Events.Religion;
+using DivineAscension.Network;
 
-namespace PantheonWars.GUI.Models.Religion.Browse;
+namespace DivineAscension.GUI.Models.Religion.Browse;
 
 public readonly struct ReligionBrowseRenderResult(
     IReadOnlyList<BrowseEvent> events,

@@ -1,9 +1,9 @@
 using System.Numerics;
+using DivineAscension.GUI.Models.Religion.Info;
+using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
-using PantheonWars.GUI.Models.Religion.Info;
-using PantheonWars.GUI.UI.Utilities;
 
-namespace PantheonWars.GUI.UI.Renderers.Religion.Info;
+namespace DivineAscension.GUI.UI.Renderers.Religion.Info;
 
 /// <summary>
 /// Pure renderer for religion info header and stats grid

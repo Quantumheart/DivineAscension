@@ -1,4 +1,4 @@
-namespace PantheonWars.GUI.UI.Adapters.Religions;
+namespace DivineAscension.GUI.UI.Adapters.Religions;
 
 internal sealed record ReligionVM(
     string religionUID,

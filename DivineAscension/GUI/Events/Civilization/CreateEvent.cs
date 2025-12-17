@@ -1,4 +1,4 @@
-namespace PantheonWars.GUI.Events.Civilization;
+namespace DivineAscension.GUI.Events.Civilization;
 
 public abstract record CreateEvent
 {

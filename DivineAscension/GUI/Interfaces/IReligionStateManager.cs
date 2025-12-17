@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.State;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
-using PantheonWars.Network;
+using DivineAscension.GUI.State;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
+using DivineAscension.Network;
 
-namespace PantheonWars.GUI.Interfaces;
+namespace DivineAscension.GUI.Interfaces;
 
 public interface IReligionStateManager
 {

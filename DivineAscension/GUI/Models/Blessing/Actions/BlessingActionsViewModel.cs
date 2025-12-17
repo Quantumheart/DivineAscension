@@ -1,6 +1,6 @@
-using PantheonWars.Models;
+using DivineAscension.Models;
 
-namespace PantheonWars.GUI.Models.Blessing.Actions;
+namespace DivineAscension.GUI.Models.Blessing.Actions;
 
 public readonly struct BlessingActionsViewModel(BlessingNodeState? blessingNodeState, float x, float y)
 {

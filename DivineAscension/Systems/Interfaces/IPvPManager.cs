@@ -1,6 +1,6 @@
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems.Interfaces;
+namespace DivineAscension.Systems.Interfaces;
 
 /// <summary>
 ///     Interface for managing PvP interactions, favor, and prestige rewards

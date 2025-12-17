@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.Network;
-using PantheonWars.Network.Civilization;
-using PantheonWars.Systems.Networking.Interfaces;
+using DivineAscension.Network;
+using DivineAscension.Network.Civilization;
+using DivineAscension.Systems.Networking.Interfaces;
 using Vintagestory.API.Client;
 
-namespace PantheonWars.Systems.Networking.Client;
+namespace DivineAscension.Systems.Networking.Client;
 
 /// <summary>
 ///     Handles all client-side network communication for the DivineAscension mod.

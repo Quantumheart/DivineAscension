@@ -1,8 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Constants;
+using DivineAscension.Data;
+using DivineAscension.Models.Enum;
 using Moq;
-using PantheonWars.Constants;
-using PantheonWars.Data;
-using PantheonWars.Models.Enum;
 using PantheonWars.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -35,7 +35,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             ReligionUID = "religion-uid"
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -57,7 +57,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
 
         foreach (var playerBlessing in playerBlessings) playerData.UnlockBlessing(playerBlessing.BlessingId);
 
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -165,9 +165,9 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             .Returns(playerData);
 
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player))
-            .Returns(new List<PantheonWars.Models.Blessing>());
+            .Returns(new List<DivineAscension.Models.Blessing>());
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Religion))
-            .Returns(new List<PantheonWars.Models.Blessing>());
+            .Returns(new List<DivineAscension.Models.Blessing>());
 
         // Act
         var result = _sut!.OnList(args);
@@ -202,9 +202,9 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             .Returns(playerData);
 
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player))
-            .Returns(new List<PantheonWars.Models.Blessing>());
+            .Returns(new List<DivineAscension.Models.Blessing>());
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Religion))
-            .Returns(new List<PantheonWars.Models.Blessing>());
+            .Returns(new List<DivineAscension.Models.Blessing>());
 
         // Act
         var result = _sut!.OnList(args);
@@ -234,7 +234,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             ReligionUID = "religion-uid"
         };
 
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -253,7 +253,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             .Returns(religionBlessings);
 
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player))
-            .Returns(new List<PantheonWars.Models.Blessing>());
+            .Returns(new List<DivineAscension.Models.Blessing>());
 
         var religion = new ReligionData
         {
@@ -295,7 +295,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             ReligionUID = "religion-uid"
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -313,7 +313,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player))
             .Returns(playerBlessings);
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Religion))
-            .Returns(new List<PantheonWars.Models.Blessing>());
+            .Returns(new List<DivineAscension.Models.Blessing>());
 
         // Act
         var result = _sut!.OnList(args);
@@ -342,7 +342,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             ReligionUID = "religion-uid"
         };
 
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -358,7 +358,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             .Returns(playerData);
 
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player))
-            .Returns(new List<PantheonWars.Models.Blessing>());
+            .Returns(new List<DivineAscension.Models.Blessing>());
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Religion))
             .Returns(religionBlessings);
 
@@ -398,7 +398,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             ReligionUID = "religion-uid"
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -416,7 +416,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player))
             .Returns(playerBlessings);
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Religion))
-            .Returns(new List<PantheonWars.Models.Blessing>());
+            .Returns(new List<DivineAscension.Models.Blessing>());
 
         // Act
         var result = _sut!.OnList(args);
@@ -447,7 +447,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             ReligionUID = "religion-uid"
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -459,7 +459,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             }
         };
 
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {

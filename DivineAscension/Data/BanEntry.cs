@@ -1,7 +1,7 @@
 using System;
 using ProtoBuf;
 
-namespace PantheonWars.Data;
+namespace DivineAscension.Data;
 
 /// <summary>
 ///     Represents a ban entry for a player banned from a religion

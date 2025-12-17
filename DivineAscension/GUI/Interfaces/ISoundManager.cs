@@ -1,7 +1,7 @@
-using PantheonWars.GUI.Models.Enum;
-using PantheonWars.Models.Enum;
+using DivineAscension.GUI.Models.Enum;
+using DivineAscension.Models.Enum;
 
-namespace PantheonWars.GUI.Interfaces;
+namespace DivineAscension.GUI.Interfaces;
 
 public interface ISoundManager
 {

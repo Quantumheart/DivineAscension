@@ -1,6 +1,6 @@
 using ProtoBuf;
 
-namespace PantheonWars.Network;
+namespace DivineAscension.Network;
 
 /// <summary>
 ///     Client requests blessing data for their current deity

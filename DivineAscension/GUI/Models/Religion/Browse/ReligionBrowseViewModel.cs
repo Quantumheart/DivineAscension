@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.Network;
+using DivineAscension.Network;
 
-namespace PantheonWars.GUI.Models.Religion.Browse;
+namespace DivineAscension.GUI.Models.Religion.Browse;
 
 public readonly struct ReligionBrowseViewModel(
     string[] deityFilters,

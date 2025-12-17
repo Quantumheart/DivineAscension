@@ -1,10 +1,10 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
-using PantheonWars.GUI.UI.Utilities;
 
-namespace PantheonWars.GUI.UI.Renderers.Components;
+namespace DivineAscension.GUI.UI.Renderers.Components;
 
 /// <summary>
 ///     Renders progress bars for favor and prestige tracking

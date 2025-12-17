@@ -1,11 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.GUI.Events.Civilization;
+using DivineAscension.GUI.Interfaces;
+using DivineAscension.GUI.Managers;
+using DivineAscension.GUI.State;
+using DivineAscension.Network.Civilization;
+using DivineAscension.Systems.Interfaces;
 using Moq;
-using PantheonWars.GUI.Events.Civilization;
-using PantheonWars.GUI.Interfaces;
-using PantheonWars.GUI.Managers;
-using PantheonWars.GUI.State;
-using PantheonWars.Network.Civilization;
-using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Client;
 
 namespace PantheonWars.Tests.GUI.Managers;

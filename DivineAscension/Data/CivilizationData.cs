@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using ProtoBuf;
 
-namespace PantheonWars.Data;
+namespace DivineAscension.Data;
 
 /// <summary>
 ///     Represents a civilization - an alliance of 2-4 religions with different deities

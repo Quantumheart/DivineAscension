@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using DivineAscension.GUI.Events.Religion;
+using DivineAscension.GUI.Models.Religion.Invites;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Religion;
-using PantheonWars.GUI.Models.Religion.Invites;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Components.Lists;
-using PantheonWars.GUI.UI.Utilities;
 
-namespace PantheonWars.GUI.UI.Renderers.Religion;
+namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
 /// Pure renderer for religion invitations list

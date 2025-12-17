@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace PantheonWars.GUI.UI.Adapters.Religions;
+namespace DivineAscension.GUI.UI.Adapters.Religions;
 
 /// <summary>
 ///     UI-only data source for listing religion members. Intended for swapping

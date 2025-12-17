@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using PantheonWars.Data;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
-using PantheonWars.Network;
-using PantheonWars.Systems.Interfaces;
-using PantheonWars.Systems.Networking.Interfaces;
+using DivineAscension.Data;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
+using DivineAscension.Network;
+using DivineAscension.Systems.Interfaces;
+using DivineAscension.Systems.Networking.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems.Networking.Server;
+namespace DivineAscension.Systems.Networking.Server;
 
 /// <summary>
 ///     Handles all religion-related network requests from clients

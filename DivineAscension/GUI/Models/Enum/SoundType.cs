@@ -1,4 +1,4 @@
-namespace PantheonWars.GUI.Models.Enum;
+namespace DivineAscension.GUI.Models.Enum;
 
 public enum SoundType
 {

@@ -1,6 +1,6 @@
 using ProtoBuf;
 
-namespace PantheonWars.Network;
+namespace DivineAscension.Network;
 
 /// <summary>
 ///     Server notification to client that their religion state has changed

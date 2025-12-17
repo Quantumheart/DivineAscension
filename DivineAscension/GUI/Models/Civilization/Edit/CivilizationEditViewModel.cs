@@ -1,4 +1,4 @@
-namespace PantheonWars.GUI.Models.Civilization.Edit;
+namespace DivineAscension.GUI.Models.Civilization.Edit;
 
 public readonly struct CivilizationEditViewModel(
     string civilizationId,

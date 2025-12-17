@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using PantheonWars.Models;
+using DivineAscension.Models;
 
-namespace PantheonWars.GUI;
+namespace DivineAscension.GUI;
 
 /// <summary>
 ///     Calculates positions for blessing nodes in the tree layout

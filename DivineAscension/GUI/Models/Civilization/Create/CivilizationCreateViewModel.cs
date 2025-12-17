@@ -1,4 +1,4 @@
-namespace PantheonWars.GUI.Models.Civilization.Create;
+namespace DivineAscension.GUI.Models.Civilization.Create;
 
 public readonly struct CivilizationCreateViewModel(
     string civilizationName,

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace PantheonWars.GUI.UI.Adapters.Civilizations;
+namespace DivineAscension.GUI.UI.Adapters.Civilizations;
 
 /// <summary>
 ///     UI-only data source for listing civilizations. Intended for swapping

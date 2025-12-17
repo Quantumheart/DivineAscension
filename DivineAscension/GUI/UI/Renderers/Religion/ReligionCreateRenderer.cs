@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 using System.Numerics;
+using DivineAscension.GUI.Events.Religion;
+using DivineAscension.GUI.Models.Religion.Create;
+using DivineAscension.GUI.UI.Components;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Components.Inputs;
+using DivineAscension.GUI.UI.Renderers.Components;
+using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Religion;
-using PantheonWars.GUI.Models.Religion.Create;
-using PantheonWars.GUI.UI.Components;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Components.Inputs;
-using PantheonWars.GUI.UI.Renderers.Components;
-using PantheonWars.GUI.UI.Utilities;
 
-namespace PantheonWars.GUI.UI.Renderers.Religion;
+namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
 /// Pure renderer for creating a new religion

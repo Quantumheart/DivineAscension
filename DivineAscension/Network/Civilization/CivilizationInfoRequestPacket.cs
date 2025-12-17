@@ -1,6 +1,6 @@
 using ProtoBuf;
 
-namespace PantheonWars.Network.Civilization;
+namespace DivineAscension.Network.Civilization;
 
 /// <summary>
 ///     Client requests detailed information about a specific civilization

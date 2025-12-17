@@ -2,7 +2,7 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 
-namespace PantheonWars.GUI.UI.Renderers.Blessing.Info;
+namespace DivineAscension.GUI.UI.Renderers.Blessing.Info;
 
 internal static class BlessingInfoTextUtils
 {

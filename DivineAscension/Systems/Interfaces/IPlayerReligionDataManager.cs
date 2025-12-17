@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.Data;
+using DivineAscension.Data;
 
-namespace PantheonWars.Systems.Interfaces;
+namespace DivineAscension.Systems.Interfaces;
 
 public interface IPlayerReligionDataManager : IDisposable
 {

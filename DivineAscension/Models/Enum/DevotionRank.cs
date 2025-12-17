@@ -1,4 +1,4 @@
-namespace PantheonWars.Models.Enum;
+namespace DivineAscension.Models.Enum;
 
 /// <summary>
 ///     Player progression ranks within a deity

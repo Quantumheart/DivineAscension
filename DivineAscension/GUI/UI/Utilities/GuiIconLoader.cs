@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
-namespace PantheonWars.GUI.UI.Utilities;
+namespace DivineAscension.GUI.UI.Utilities;
 
 public static class GuiIconLoader
 {

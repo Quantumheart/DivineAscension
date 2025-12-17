@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events.Religion;
+using DivineAscension.GUI.Events.Religion;
 
-namespace PantheonWars.GUI.Models.Religion.Create;
+namespace DivineAscension.GUI.Models.Religion.Create;
 
 public readonly struct ReligionCreateRenderResult(
     IReadOnlyList<CreateEvent> events,

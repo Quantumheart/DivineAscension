@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.State;
-using PantheonWars.Models;
+using DivineAscension.GUI.State;
+using DivineAscension.Models;
 
-namespace PantheonWars.GUI.Models.Blessing.Tree;
+namespace DivineAscension.GUI.Models.Blessing.Tree;
 
 /// <summary>
 ///     View model for the split blessing tree renderer. Immutable snapshot of inputs for rendering.

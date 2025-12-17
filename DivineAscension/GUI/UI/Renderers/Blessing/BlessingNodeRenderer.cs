@@ -2,11 +2,11 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models;
 using ImGuiNET;
-using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.Models;
 
-namespace PantheonWars.GUI.UI.Renderers.Blessing;
+namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
 /// <summary>
 ///     Renders individual blessing nodes in the tree

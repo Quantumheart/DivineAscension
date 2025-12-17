@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.Models.Enum;
+using DivineAscension.Models.Enum;
 
-namespace PantheonWars.GUI.UI.Adapters.Civilizations;
+namespace DivineAscension.GUI.UI.Adapters.Civilizations;
 
 /// <summary>
 ///     Dev-only, UI-only civilization provider that generates synthetic civilizations deterministically.

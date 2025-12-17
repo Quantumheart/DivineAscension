@@ -1,13 +1,13 @@
 using System.Collections.Generic;
+using DivineAscension.GUI.Events.Religion;
+using DivineAscension.GUI.Models.Religion.Browse;
+using DivineAscension.GUI.Models.Religion.List;
+using DivineAscension.GUI.UI.Components;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Renderers.Components;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Religion;
-using PantheonWars.GUI.Models.Religion.Browse;
-using PantheonWars.GUI.Models.Religion.List;
-using PantheonWars.GUI.UI.Components;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Renderers.Components;
 
-namespace PantheonWars.GUI.UI.Renderers.Religion;
+namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
 ///     Renderer for browsing and joining religions

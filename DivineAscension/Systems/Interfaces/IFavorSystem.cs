@@ -1,7 +1,7 @@
 using System;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems.Interfaces;
+namespace DivineAscension.Systems.Interfaces;
 
 /// <summary>
 ///     Interface for managing divine favor rewards and penalties

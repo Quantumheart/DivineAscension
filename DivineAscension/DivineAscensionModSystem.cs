@@ -1,21 +1,21 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using DivineAscension.Network;
+using DivineAscension.Network.Civilization;
+using DivineAscension.Systems;
+using DivineAscension.Systems.Interfaces;
+using DivineAscension.Systems.Networking.Client;
+using DivineAscension.Systems.Networking.Server;
+using DivineAscension.Systems.Patches;
 using HarmonyLib;
-using PantheonWars.Network;
-using PantheonWars.Network.Civilization;
-using PantheonWars.Systems;
-using PantheonWars.Systems.Interfaces;
-using PantheonWars.Systems.Networking.Client;
-using PantheonWars.Systems.Networking.Server;
-using PantheonWars.Systems.Patches;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
-namespace PantheonWars;
+namespace DivineAscension;
 
 [ExcludeFromCodeCoverage]
-public class PantheonWarsSystem : ModSystem
+public class DivineAscensionModSystem : ModSystem
 {
     public const string NETWORK_CHANNEL = "pantheonwars";
     private BlessingNetworkHandler? _blessingNetworkHandler;

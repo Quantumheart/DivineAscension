@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using PantheonWars.Models;
-using PantheonWars.Systems.Interfaces;
+using DivineAscension.Models;
+using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Commands;
+namespace DivineAscension.Commands;
 
 /// <summary>
 ///     Handles all role-related chat commands

@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using DivineAscension.GUI.Events.Religion;
+using DivineAscension.GUI.Models.Religion.Member;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Network;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Religion;
-using PantheonWars.GUI.Models.Religion.Member;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Components.Lists;
-using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.Network;
 
-namespace PantheonWars.GUI.UI.Renderers.Components;
+namespace DivineAscension.GUI.UI.Renderers.Components;
 
 /// <summary>
 /// Pure EDA renderer for the members list. Emits events instead of mutating state.

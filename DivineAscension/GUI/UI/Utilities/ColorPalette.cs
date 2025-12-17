@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
-namespace PantheonWars.GUI.UI.Utilities;
+namespace DivineAscension.GUI.UI.Utilities;
 
 /// <summary>
 ///     Centralized color palette for all UI components

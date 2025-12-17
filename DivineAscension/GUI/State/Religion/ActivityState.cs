@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace PantheonWars.GUI.State.Religion;
+namespace DivineAscension.GUI.State.Religion;
 
 public class ActivityState
 {

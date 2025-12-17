@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using PantheonWars.Constants;
-using PantheonWars.Models.Enum;
+using DivineAscension.Constants;
+using DivineAscension.Models.Enum;
 using PantheonWars.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
 
@@ -31,7 +31,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
     public void GetBlessingInfo_BlessingNotFound_ReturnsError()
     {
         // Arrange
-        _blessingRegistry.Setup(br => br.GetBlessing("nonexistent")).Returns((PantheonWars.Models.Blessing?)null);
+        _blessingRegistry.Setup(br => br.GetBlessing("nonexistent")).Returns((DivineAscension.Models.Blessing?)null);
 
         // Act
         var result = _sut!.GetInfo("nonexistent");
@@ -49,7 +49,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
     public void GetBlessingInfo_PlayerBlessing_DisplaysBasicInfo()
     {
         // Arrange
-        var blessing = new PantheonWars.Models.Blessing
+        var blessing = new DivineAscension.Models.Blessing
         {
             BlessingId = "divine_strike",
             Name = "Divine Strike",
@@ -82,7 +82,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
     public void GetBlessingInfo_PlayerBlessing_DisplaysFavorRankRequirement()
     {
         // Arrange
-        var blessing = new PantheonWars.Models.Blessing
+        var blessing = new DivineAscension.Models.Blessing
         {
             BlessingId = "advanced_blessing",
             Name = "Advanced Blessing",
@@ -110,7 +110,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
     public void GetBlessingInfo_BlessingWithSinglePrerequisite_DisplaysPrerequisiteName()
     {
         // Arrange
-        var prereqBlessing = new PantheonWars.Models.Blessing
+        var prereqBlessing = new DivineAscension.Models.Blessing
         {
             BlessingId = "basic_blessing",
             Name = "Basic Blessing",
@@ -124,7 +124,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             SpecialEffects = new List<string>()
         };
 
-        var blessing = new PantheonWars.Models.Blessing
+        var blessing = new DivineAscension.Models.Blessing
         {
             BlessingId = "advanced_blessing",
             Name = "Advanced Blessing",
@@ -153,7 +153,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
     public void GetBlessingInfo_BlessingWithMultiplePrerequisites_DisplaysAllPrerequisites()
     {
         // Arrange
-        var prereq1 = new PantheonWars.Models.Blessing
+        var prereq1 = new DivineAscension.Models.Blessing
         {
             BlessingId = "prereq1",
             Name = "First Prerequisite",
@@ -167,7 +167,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             SpecialEffects = new List<string>()
         };
 
-        var prereq2 = new PantheonWars.Models.Blessing
+        var prereq2 = new DivineAscension.Models.Blessing
         {
             BlessingId = "prereq2",
             Name = "Second Prerequisite",
@@ -181,7 +181,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
             SpecialEffects = new List<string>()
         };
 
-        var blessing = new PantheonWars.Models.Blessing
+        var blessing = new DivineAscension.Models.Blessing
         {
             BlessingId = "ultimate_blessing",
             Name = "Ultimate Blessing",
@@ -212,7 +212,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
     public void GetBlessingInfo_PrerequisiteBlessingNotFound_ShowsIdAsFallback()
     {
         // Arrange
-        var blessing = new PantheonWars.Models.Blessing
+        var blessing = new DivineAscension.Models.Blessing
         {
             BlessingId = "orphan_blessing",
             Name = "Orphan Blessing",
@@ -227,7 +227,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         };
 
         _blessingRegistry.Setup(br => br.GetBlessing("orphan_blessing")).Returns(blessing);
-        _blessingRegistry.Setup(br => br.GetBlessing("missing_prereq")).Returns((PantheonWars.Models.Blessing?)null);
+        _blessingRegistry.Setup(br => br.GetBlessing("missing_prereq")).Returns((DivineAscension.Models.Blessing?)null);
 
         // Act
         var result = _sut!.GetInfo("orphan_blessing");
@@ -241,7 +241,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
     public void GetBlessingInfo_BlessingWithStatModifiers_FormatsAsPercentage()
     {
         // Arrange
-        var blessing = new PantheonWars.Models.Blessing
+        var blessing = new DivineAscension.Models.Blessing
         {
             BlessingId = "speed_blessing",
             Name = "Speed Blessing",
@@ -279,7 +279,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
     public void GetBlessingInfo_ReligionBlessing_DisplaysPrestigeRankRequirement()
     {
         // Arrange
-        var blessing = new PantheonWars.Models.Blessing
+        var blessing = new DivineAscension.Models.Blessing
         {
             BlessingId = "divine_sanctuary",
             Name = "Divine Sanctuary",
@@ -308,7 +308,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
     public void GetBlessingInfo_BlessingWithSingleSpecialEffect_DisplaysEffect()
     {
         // Arrange
-        var blessing = new PantheonWars.Models.Blessing
+        var blessing = new DivineAscension.Models.Blessing
         {
             BlessingId = "fire_aura",
             Name = "Fire Aura",
@@ -336,7 +336,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
     public void GetBlessingInfo_BlessingWithMultipleSpecialEffects_DisplaysAllEffects()
     {
         // Arrange
-        var blessing = new PantheonWars.Models.Blessing
+        var blessing = new DivineAscension.Models.Blessing
         {
             BlessingId = "combo_blessing",
             Name = "Combo Blessing",
@@ -370,7 +370,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
     public void GetBlessingInfo_BlessingWithBothStatModifiersAndSpecialEffects_DisplaysBoth()
     {
         // Arrange
-        var blessing = new PantheonWars.Models.Blessing
+        var blessing = new DivineAscension.Models.Blessing
         {
             BlessingId = "complete_blessing",
             Name = "Complete Blessing",
@@ -399,7 +399,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
     public void GetBlessingInfo_BlessingWithEmptyModifiersAndEffects_DoesNotDisplayEmptySections()
     {
         // Arrange
-        var blessing = new PantheonWars.Models.Blessing
+        var blessing = new DivineAscension.Models.Blessing
         {
             BlessingId = "simple_blessing",
             Name = "Simple Blessing",
@@ -429,7 +429,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
     public void GetBlessingInfo_BlessingWithNoPrerequisites_DoesNotDisplayPrerequisitesSection()
     {
         // Arrange
-        var blessing = new PantheonWars.Models.Blessing
+        var blessing = new DivineAscension.Models.Blessing
         {
             BlessingId = "starter_blessing",
             Name = "Starter Blessing",

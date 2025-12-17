@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.Models.Enum;
+using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models.Enum;
 
 namespace PantheonWars.Tests.GUI.UI.Utilities;
 

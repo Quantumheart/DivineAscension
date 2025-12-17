@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Interfaces;
+using DivineAscension.GUI.Interfaces;
 
-namespace PantheonWars.GUI.State.Religion;
+namespace DivineAscension.GUI.State.Religion;
 
 /// <summary>
 ///     State for the roles browse view (list of role cards).

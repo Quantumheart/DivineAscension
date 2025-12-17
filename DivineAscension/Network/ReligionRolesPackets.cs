@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using PantheonWars.Data;
+using DivineAscension.Data;
 using ProtoBuf;
 
-namespace PantheonWars.Network;
+namespace DivineAscension.Network;
 
 // Request all roles for a religion
 [ProtoContract]

@@ -1,30 +1,30 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.GUI.Events.Religion;
+using DivineAscension.GUI.Interfaces;
+using DivineAscension.GUI.Models.Religion.Activity;
+using DivineAscension.GUI.Models.Religion.Browse;
+using DivineAscension.GUI.Models.Religion.Create;
+using DivineAscension.GUI.Models.Religion.Info;
+using DivineAscension.GUI.Models.Religion.Invites;
+using DivineAscension.GUI.Models.Religion.Roles;
+using DivineAscension.GUI.Models.Religion.Tab;
+using DivineAscension.GUI.State;
+using DivineAscension.GUI.State.Religion;
+using DivineAscension.GUI.UI.Adapters.ReligionMembers;
+using DivineAscension.GUI.UI.Adapters.Religions;
+using DivineAscension.GUI.UI.Renderers.Components;
+using DivineAscension.GUI.UI.Renderers.Religion;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
+using DivineAscension.Network;
+using DivineAscension.Systems;
+using DivineAscension.Systems.Interfaces;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Religion;
-using PantheonWars.GUI.Interfaces;
-using PantheonWars.GUI.Models.Religion.Activity;
-using PantheonWars.GUI.Models.Religion.Browse;
-using PantheonWars.GUI.Models.Religion.Create;
-using PantheonWars.GUI.Models.Religion.Info;
-using PantheonWars.GUI.Models.Religion.Invites;
-using PantheonWars.GUI.Models.Religion.Roles;
-using PantheonWars.GUI.Models.Religion.Tab;
-using PantheonWars.GUI.State;
-using PantheonWars.GUI.State.Religion;
-using PantheonWars.GUI.UI.Adapters.ReligionMembers;
-using PantheonWars.GUI.UI.Adapters.Religions;
-using PantheonWars.GUI.UI.Renderers.Components;
-using PantheonWars.GUI.UI.Renderers.Religion;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
-using PantheonWars.Network;
-using PantheonWars.Systems;
-using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Client;
 
-namespace PantheonWars.GUI.Managers;
+namespace DivineAscension.GUI.Managers;
 
 public class ReligionStateManager : IReligionStateManager
 {

@@ -1,11 +1,11 @@
 using System.Collections.Generic;
+using DivineAscension.GUI.Events.Religion;
+using DivineAscension.GUI.Models.Religion.Info;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Religion;
-using PantheonWars.GUI.Models.Religion.Info;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Utilities;
 
-namespace PantheonWars.GUI.UI.Renderers.Religion.Info;
+namespace DivineAscension.GUI.UI.Renderers.Religion.Info;
 
 /// <summary>
 /// Pure renderer for religion action buttons

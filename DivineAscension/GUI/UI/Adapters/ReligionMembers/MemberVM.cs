@@ -1,6 +1,6 @@
 using System;
 
-namespace PantheonWars.GUI.UI.Adapters.ReligionMembers;
+namespace DivineAscension.GUI.UI.Adapters.ReligionMembers;
 
 internal sealed record MemberVM(
     string PlayerUid,

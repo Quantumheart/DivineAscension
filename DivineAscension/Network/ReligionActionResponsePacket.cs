@@ -1,6 +1,6 @@
 using ProtoBuf;
 
-namespace PantheonWars.Network;
+namespace DivineAscension.Network;
 
 /// <summary>
 ///     Server responds to a religion action request with success/failure

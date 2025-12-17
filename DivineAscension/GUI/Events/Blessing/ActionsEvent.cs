@@ -1,4 +1,4 @@
-namespace PantheonWars.GUI.Events.Blessing;
+namespace DivineAscension.GUI.Events.Blessing;
 
 public abstract record ActionsEvent
 {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.Network.Civilization;
+using DivineAscension.Network.Civilization;
 
-namespace PantheonWars.GUI.Models.Civilization.Invites;
+namespace DivineAscension.GUI.Models.Civilization.Invites;
 
 public readonly struct CivilizationInvitesViewModel(
     IReadOnlyList<CivilizationInfoResponsePacket.PendingInvite> invites,

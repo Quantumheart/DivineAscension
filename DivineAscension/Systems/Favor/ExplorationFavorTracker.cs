@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems.Interfaces;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems.Favor;
+namespace DivineAscension.Systems.Favor;
 
 /// <summary>
 ///     Awards favor for exploring new chunks while following Lysa

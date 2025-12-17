@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.Models.Enum;
+using DivineAscension.Models.Enum;
 
-namespace PantheonWars.Models;
+namespace DivineAscension.Models;
 
 /// <summary>
 ///     Contains formatted data for displaying blessing tooltips on hover

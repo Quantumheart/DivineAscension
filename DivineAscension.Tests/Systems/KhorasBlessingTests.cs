@@ -1,8 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
-using PantheonWars.Constants;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems;
+using DivineAscension.Constants;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems;
 
 namespace PantheonWars.Tests.Systems;
 

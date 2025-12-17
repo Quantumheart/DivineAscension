@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.Models;
+using DivineAscension.Models;
 
-namespace PantheonWars.GUI.Models.Blessing.Info;
+namespace DivineAscension.GUI.Models.Blessing.Info;
 
 internal readonly struct BlessingInfoViewModel(
     BlessingNodeState? selectedBlessingState,

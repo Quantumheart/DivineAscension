@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.Models.Enum;
+using DivineAscension.Models.Enum;
 using ProtoBuf;
 
-namespace PantheonWars.Data;
+namespace DivineAscension.Data;
 
 /// <summary>
 ///     Stores player-specific religion and favor data for persistence

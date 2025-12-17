@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using PantheonWars.Data;
-using PantheonWars.Models;
-using PantheonWars.Systems.Interfaces;
+using DivineAscension.Data;
+using DivineAscension.Models;
+using DivineAscension.Systems.Interfaces;
 
-namespace PantheonWars.Systems;
+namespace DivineAscension.Systems;
 
 public class RoleManager(IReligionManager religionManager) : IRoleManager
 {

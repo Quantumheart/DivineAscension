@@ -8,6 +8,8 @@ using Cake.Frosting;
 using Cake.Json;
 using Newtonsoft.Json.Linq;
 
+namespace CakeBuild;
+
 public static class Program
 {
     public static int Main(string[] args)

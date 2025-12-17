@@ -2,25 +2,25 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using DivineAscension.GUI.Events.Civilization;
+using DivineAscension.GUI.Interfaces;
+using DivineAscension.GUI.Models.Civilization.Browse;
+using DivineAscension.GUI.Models.Civilization.Create;
+using DivineAscension.GUI.Models.Civilization.Detail;
+using DivineAscension.GUI.Models.Civilization.Edit;
+using DivineAscension.GUI.Models.Civilization.Info;
+using DivineAscension.GUI.Models.Civilization.Invites;
+using DivineAscension.GUI.Models.Civilization.Tab;
+using DivineAscension.GUI.State;
+using DivineAscension.GUI.UI.Adapters.Civilizations;
+using DivineAscension.GUI.UI.Renderers.Civilization;
+using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Network.Civilization;
+using DivineAscension.Systems.Interfaces;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Civilization;
-using PantheonWars.GUI.Interfaces;
-using PantheonWars.GUI.Models.Civilization.Browse;
-using PantheonWars.GUI.Models.Civilization.Create;
-using PantheonWars.GUI.Models.Civilization.Detail;
-using PantheonWars.GUI.Models.Civilization.Edit;
-using PantheonWars.GUI.Models.Civilization.Info;
-using PantheonWars.GUI.Models.Civilization.Invites;
-using PantheonWars.GUI.Models.Civilization.Tab;
-using PantheonWars.GUI.State;
-using PantheonWars.GUI.UI.Adapters.Civilizations;
-using PantheonWars.GUI.UI.Renderers.Civilization;
-using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.Network.Civilization;
-using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Client;
 
-namespace PantheonWars.GUI.Managers;
+namespace DivineAscension.GUI.Managers;
 
 public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService uiService, ISoundManager soundManager)
 {

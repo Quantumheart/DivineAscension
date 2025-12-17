@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using PantheonWars.Data;
+using DivineAscension.Data;
 
 namespace PantheonWars.Tests.Data;
 

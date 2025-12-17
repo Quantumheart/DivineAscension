@@ -1,8 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Constants;
+using DivineAscension.Data;
+using DivineAscension.Models.Enum;
 using Moq;
-using PantheonWars.Constants;
-using PantheonWars.Data;
-using PantheonWars.Models.Enum;
 using PantheonWars.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -85,7 +85,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
         _religionManager.Setup(r => r.GetReligion(It.IsAny<string>()))
             .Returns(religion);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
-            .Returns((new List<PantheonWars.Models.Blessing>(), new List<PantheonWars.Models.Blessing>()));
+            .Returns((new List<DivineAscension.Models.Blessing>(), new List<DivineAscension.Models.Blessing>()));
 
         // Act
         var result = _sut!.OnReligion(args);
@@ -109,7 +109,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
             ReligionName = "Divine Order"
         };
 
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new() { Name = "Holy Blessing", Category = BlessingCategory.Utility }
         };
@@ -127,7 +127,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
         _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
             .Returns(religion);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
-            .Returns((new List<PantheonWars.Models.Blessing>(), religionBlessings));
+            .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
         // Act
         var result = _sut!.OnReligion(args);
@@ -154,7 +154,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
             ReligionName = "Divine Order"
         };
 
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -181,7 +181,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
         _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
             .Returns(religion);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
-            .Returns((new List<PantheonWars.Models.Blessing>(), religionBlessings));
+            .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
         // Act
         var result = _sut!.OnReligion(args);
@@ -212,7 +212,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
             ReligionName = "Divine Order"
         };
 
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new() { Name = "Holy Blessing", Category = BlessingCategory.Utility },
             new() { Name = "Sacred Shield", Category = BlessingCategory.Defense },
@@ -232,7 +232,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
         _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
             .Returns(religion);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
-            .Returns((new List<PantheonWars.Models.Blessing>(), religionBlessings));
+            .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
         // Act
         var result = _sut!.OnReligion(args);
@@ -258,7 +258,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
             ReligionName = "Divine Order"
         };
 
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new() { Name = "Holy Blessing", Category = BlessingCategory.Utility },
             new() { Name = "Sacred Shield", Category = BlessingCategory.Defense }
@@ -277,7 +277,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
         _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
             .Returns(religion);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
-            .Returns((new List<PantheonWars.Models.Blessing>(), religionBlessings));
+            .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
         // Act
         var result = _sut!.OnReligion(args);
@@ -305,7 +305,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
             ReligionName = "Divine Order"
         };
 
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -328,7 +328,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
         _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
             .Returns(religion);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
-            .Returns((new List<PantheonWars.Models.Blessing>(), religionBlessings));
+            .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
         // Act
         var result = _sut!.OnReligion(args);
@@ -355,7 +355,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
             ReligionName = "Divine Order"
         };
 
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -382,7 +382,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
         _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
             .Returns(religion);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
-            .Returns((new List<PantheonWars.Models.Blessing>(), religionBlessings));
+            .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
         // Act
         var result = _sut!.OnReligion(args);
@@ -407,7 +407,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
             ReligionName = "Divine Order"
         };
 
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -434,7 +434,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
         _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
             .Returns(religion);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
-            .Returns((new List<PantheonWars.Models.Blessing>(), religionBlessings));
+            .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
         // Act
         var result = _sut!.OnReligion(args);
@@ -459,7 +459,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
             ReligionName = "Divine Order"
         };
 
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -488,7 +488,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
         _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
             .Returns(religion);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
-            .Returns((new List<PantheonWars.Models.Blessing>(), religionBlessings));
+            .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
         // Act
         var result = _sut!.OnReligion(args);
@@ -515,12 +515,12 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
             ReligionName = "Divine Order"
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new() { Name = "Personal Blessing", Category = BlessingCategory.Utility }
         };
 
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new() { Name = "Holy Blessing", Category = BlessingCategory.Utility }
         };

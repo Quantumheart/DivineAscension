@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using ProtoBuf;
 
-namespace PantheonWars.Network.Civilization;
+namespace DivineAscension.Network.Civilization;
 
 /// <summary>
 ///     Server sends detailed information about a specific civilization

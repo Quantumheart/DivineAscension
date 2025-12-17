@@ -1,13 +1,13 @@
 using System;
 using System.Linq;
 using System.Text;
-using PantheonWars.Data;
-using PantheonWars.Systems;
-using PantheonWars.Systems.Interfaces;
+using DivineAscension.Data;
+using DivineAscension.Systems;
+using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Commands;
+namespace DivineAscension.Commands;
 
 /// <summary>
 ///     Handles all civilization-related chat commands

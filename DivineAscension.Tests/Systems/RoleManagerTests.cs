@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Data;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems;
+using DivineAscension.Systems.Interfaces;
 using Moq;
-using PantheonWars.Data;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems;
-using PantheonWars.Systems.Interfaces;
 
 namespace PantheonWars.Tests.Systems;
 

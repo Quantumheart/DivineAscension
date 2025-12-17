@@ -1,6 +1,6 @@
-using PantheonWars.GUI.Interfaces;
+using DivineAscension.GUI.Interfaces;
 
-namespace PantheonWars.GUI.State.Civilization;
+namespace DivineAscension.GUI.State.Civilization;
 
 public class EditState : IState
 {

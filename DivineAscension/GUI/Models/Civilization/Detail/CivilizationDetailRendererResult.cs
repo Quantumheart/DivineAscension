@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events.Civilization;
+using DivineAscension.GUI.Events.Civilization;
 
-namespace PantheonWars.GUI.Models.Civilization.Detail;
+namespace DivineAscension.GUI.Models.Civilization.Detail;
 
 public readonly struct CivilizationDetailRendererResult(IReadOnlyList<DetailEvent> events, float rendererHeight)
 {

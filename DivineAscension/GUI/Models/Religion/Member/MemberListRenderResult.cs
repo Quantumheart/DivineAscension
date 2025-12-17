@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events.Religion;
+using DivineAscension.GUI.Events.Religion;
 
-namespace PantheonWars.GUI.Models.Religion.Member;
+namespace DivineAscension.GUI.Models.Religion.Member;
 
 public readonly struct MemberListRenderResult(
     IReadOnlyList<MemberListEvent> events,

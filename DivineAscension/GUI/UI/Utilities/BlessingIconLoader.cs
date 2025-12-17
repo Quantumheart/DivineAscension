@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
-namespace PantheonWars.GUI.UI.Utilities;
+namespace DivineAscension.GUI.UI.Utilities;
 
 /// <summary>
 ///     Manages loading and caching of blessing icon textures for ImGui rendering

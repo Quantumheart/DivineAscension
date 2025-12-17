@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.Models;
+using DivineAscension.Models;
 
-namespace PantheonWars.GUI.State;
+namespace DivineAscension.GUI.State;
 
 public class BlessingTabState
 {

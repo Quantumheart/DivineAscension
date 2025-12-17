@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.Network.Civilization;
+using DivineAscension.Network.Civilization;
 
-namespace PantheonWars.GUI.Models.Civilization.Info;
+namespace DivineAscension.GUI.Models.Civilization.Info;
 
 public readonly struct CivilizationInfoViewModel(
     bool isLoading,

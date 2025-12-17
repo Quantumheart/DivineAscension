@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Numerics;
+using DivineAscension.GUI.Events.Civilization;
+using DivineAscension.GUI.Models.Civilization.Edit;
+using DivineAscension.GUI.UI.Components;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Civilization;
-using PantheonWars.GUI.Models.Civilization.Edit;
-using PantheonWars.GUI.UI.Components;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Utilities;
 
-namespace PantheonWars.GUI.UI.Renderers.Civilization;
+namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
 internal static class CivilizationEditRenderer
 {

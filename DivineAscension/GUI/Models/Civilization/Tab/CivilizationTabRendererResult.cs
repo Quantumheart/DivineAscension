@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events.Civilization;
+using DivineAscension.GUI.Events.Civilization;
 
-namespace PantheonWars.GUI.Models.Civilization.Tab;
+namespace DivineAscension.GUI.Models.Civilization.Tab;
 
 public readonly struct CivilizationTabRendererResult(IReadOnlyList<SubTabEvent> events, float rendererHeight)
 {

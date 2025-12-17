@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using PantheonWars.Models.Enum;
-using PantheonWars.Network;
+using DivineAscension.Models.Enum;
+using DivineAscension.Network;
 using ProtoBuf;
 
 namespace PantheonWars.Tests.Network;

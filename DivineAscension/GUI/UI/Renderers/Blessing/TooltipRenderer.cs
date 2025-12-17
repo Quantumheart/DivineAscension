@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
 using ImGuiNET;
-using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
 
-namespace PantheonWars.GUI.UI.Renderers.Blessing;
+namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
 /// <summary>
 ///     Renders rich tooltips when hovering over blessing nodes

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace PantheonWars.GUI.Events.Religion;
+namespace DivineAscension.GUI.Events.Religion;
 
 /// <summary>
 ///     Events emitted from the roles browse view (role cards list).

@@ -1,11 +1,11 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Utilities;
 
-namespace PantheonWars.GUI.UI.Components.Overlays;
+namespace DivineAscension.GUI.UI.Components.Overlays;
 
 /// <summary>
 ///     Generic modal confirm overlay with title, message and Confirm/Cancel buttons.

@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using PantheonWars.Network;
+using DivineAscension.Network;
 using ProtoBuf;
 
 namespace PantheonWars.Tests.Network;

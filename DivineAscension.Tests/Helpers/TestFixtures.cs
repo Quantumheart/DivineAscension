@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Data;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems.BuffSystem.Interfaces;
+using DivineAscension.Systems.Interfaces;
 using Moq;
-using PantheonWars.Data;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems.BuffSystem.Interfaces;
-using PantheonWars.Systems.Interfaces;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;

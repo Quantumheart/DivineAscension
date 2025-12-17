@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace PantheonWars.GUI.Models.Religion.Invites;
+namespace DivineAscension.GUI.Models.Religion.Invites;
 
 /// <summary>
 /// Immutable view model for religion invites display

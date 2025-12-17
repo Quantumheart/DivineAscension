@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.Models.Enum;
+using DivineAscension.Models.Enum;
 
-namespace PantheonWars.Systems.Interfaces;
+namespace DivineAscension.Systems.Interfaces;
 
 /// <summary>
 ///     Interface for managing religion prestige progression and religion-wide blessings

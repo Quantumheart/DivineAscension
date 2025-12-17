@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
-using PantheonWars.Network;
-using PantheonWars.Systems.Interfaces;
-using PantheonWars.Systems.Networking.Interfaces;
+using DivineAscension.Network;
+using DivineAscension.Systems.Interfaces;
+using DivineAscension.Systems.Networking.Interfaces;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems.Networking.Server;
+namespace DivineAscension.Systems.Networking.Server;
 
 /// <summary>
 ///     Handles player data synchronization between server and client.

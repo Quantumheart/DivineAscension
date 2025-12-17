@@ -1,6 +1,6 @@
-using PantheonWars.GUI.State.Civilization;
+using DivineAscension.GUI.State.Civilization;
 
-namespace PantheonWars.GUI.State;
+namespace DivineAscension.GUI.State;
 
 /// <summary>
 ///     Holds all client-side state for the Civilization tab within the BlessingDialog.

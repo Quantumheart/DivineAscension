@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems.Interfaces;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 
-namespace PantheonWars.Systems;
+namespace DivineAscension.Systems;
 
 /// <summary>
 ///     Central registry for managing all deities in the game

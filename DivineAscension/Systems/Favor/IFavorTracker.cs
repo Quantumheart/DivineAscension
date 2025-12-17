@@ -1,6 +1,6 @@
-using PantheonWars.Models.Enum;
+using DivineAscension.Models.Enum;
 
-namespace PantheonWars.Systems.Favor;
+namespace DivineAscension.Systems.Favor;
 
 public interface IFavorTracker
 {

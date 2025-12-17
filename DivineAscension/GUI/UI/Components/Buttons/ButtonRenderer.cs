@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
-using PantheonWars.GUI.UI.Utilities;
 
-namespace PantheonWars.GUI.UI.Components.Buttons;
+namespace DivineAscension.GUI.UI.Components.Buttons;
 
 /// <summary>
 ///     Reusable button rendering component

@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace PantheonWars.Constants;
+namespace DivineAscension.Constants;
 
 /// <summary>
 ///     Constants for special effect identifiers used in blessings.

@@ -1,11 +1,11 @@
 using System;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems.Interfaces;
-using PantheonWars.Systems.Patches;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems.Interfaces;
+using DivineAscension.Systems.Patches;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems.Favor;
+namespace DivineAscension.Systems.Favor;
 
 /// <summary>
 ///     Tracks metal pouring into molds and awards favor to Khoras followers

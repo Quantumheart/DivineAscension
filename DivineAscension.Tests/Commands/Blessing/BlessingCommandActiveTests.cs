@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Models.Enum;
 using Moq;
-using PantheonWars.Models.Enum;
 using PantheonWars.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -33,8 +33,8 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>();
-        var religionBlessings = new List<PantheonWars.Models.Blessing>();
+        var playerBlessings = new List<DivineAscension.Models.Blessing>();
+        var religionBlessings = new List<DivineAscension.Models.Blessing>();
         var combinedModifiers = new Dictionary<string, float>();
 
         _blessingEffectSystem.Setup(bes => bes.GetActiveBlessings("test-player-uid"))
@@ -67,7 +67,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -80,7 +80,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 StatModifiers = new Dictionary<string, float>()
             }
         };
-        var religionBlessings = new List<PantheonWars.Models.Blessing>();
+        var religionBlessings = new List<DivineAscension.Models.Blessing>();
         var combinedModifiers = new Dictionary<string, float>();
 
         _blessingEffectSystem.Setup(bes => bes.GetActiveBlessings("test-player-uid"))
@@ -112,8 +112,8 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>();
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>();
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -161,7 +161,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -174,7 +174,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 StatModifiers = new Dictionary<string, float>()
             }
         };
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -218,7 +218,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -251,7 +251,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 StatModifiers = new Dictionary<string, float>()
             }
         };
-        var religionBlessings = new List<PantheonWars.Models.Blessing>();
+        var religionBlessings = new List<DivineAscension.Models.Blessing>();
         var combinedModifiers = new Dictionary<string, float>();
 
         _blessingEffectSystem.Setup(bes => bes.GetActiveBlessings("test-player-uid"))
@@ -282,8 +282,8 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>();
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>();
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -336,7 +336,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -359,7 +359,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 StatModifiers = new Dictionary<string, float>()
             }
         };
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -408,8 +408,8 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>();
-        var religionBlessings = new List<PantheonWars.Models.Blessing>();
+        var playerBlessings = new List<DivineAscension.Models.Blessing>();
+        var religionBlessings = new List<DivineAscension.Models.Blessing>();
         var combinedModifiers = new Dictionary<string, float>();
 
         _blessingEffectSystem.Setup(bes => bes.GetActiveBlessings("test-player-uid"))
@@ -440,8 +440,8 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>();
-        var religionBlessings = new List<PantheonWars.Models.Blessing>();
+        var playerBlessings = new List<DivineAscension.Models.Blessing>();
+        var religionBlessings = new List<DivineAscension.Models.Blessing>();
         var combinedModifiers = new Dictionary<string, float>
         {
             { "walkspeed", 0.15f },
@@ -477,7 +477,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>
+        var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -490,7 +490,7 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
                 StatModifiers = new Dictionary<string, float> { { "walkspeed", 0.10f } }
             }
         };
-        var religionBlessings = new List<PantheonWars.Models.Blessing>
+        var religionBlessings = new List<DivineAscension.Models.Blessing>
         {
             new()
             {
@@ -538,8 +538,8 @@ public class BlessingCommandActiveTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerBlessings = new List<PantheonWars.Models.Blessing>();
-        var religionBlessings = new List<PantheonWars.Models.Blessing>();
+        var playerBlessings = new List<DivineAscension.Models.Blessing>();
+        var religionBlessings = new List<DivineAscension.Models.Blessing>();
         var combinedModifiers = new Dictionary<string, float>();
 
         _blessingEffectSystem.Setup(bes => bes.GetActiveBlessings("test-player-uid"))

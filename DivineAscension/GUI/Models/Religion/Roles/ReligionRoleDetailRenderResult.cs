@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events.Religion;
+using DivineAscension.GUI.Events.Religion;
 
-namespace PantheonWars.GUI.Models.Religion.Roles;
+namespace DivineAscension.GUI.Models.Religion.Roles;
 
 /// <summary>
 ///     Render outcome for ReligionRoleDetail renderer: carries emitted UI events and the rendered height.

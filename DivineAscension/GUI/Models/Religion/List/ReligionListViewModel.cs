@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.Network;
+using DivineAscension.Network;
 
-namespace PantheonWars.GUI.Models.Religion.List;
+namespace DivineAscension.GUI.Models.Religion.List;
 
 public readonly struct ReligionListViewModel(
     IReadOnlyList<ReligionListResponsePacket.ReligionInfo> religions,

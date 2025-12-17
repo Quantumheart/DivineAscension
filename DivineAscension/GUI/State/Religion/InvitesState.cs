@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.Network;
+using DivineAscension.Network;
 
-namespace PantheonWars.GUI.State.Religion;
+namespace DivineAscension.GUI.State.Religion;
 
 public class InvitesState
 {

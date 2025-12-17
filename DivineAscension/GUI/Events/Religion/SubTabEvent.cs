@@ -1,6 +1,6 @@
-using PantheonWars.GUI.State.Religion;
+using DivineAscension.GUI.State.Religion;
 
-namespace PantheonWars.GUI.Events.Religion;
+namespace DivineAscension.GUI.Events.Religion;
 
 public abstract record SubTabEvent
 {

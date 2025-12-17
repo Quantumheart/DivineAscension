@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems.Interfaces;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems.Favor;
+namespace DivineAscension.Systems.Favor;
 
 public class ForagingFavorTracker(
     IPlayerReligionDataManager playerReligionDataManager,

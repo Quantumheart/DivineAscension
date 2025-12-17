@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.Network;
+using DivineAscension.Network;
 
-namespace PantheonWars.GUI.Models.Religion.Info;
+namespace DivineAscension.GUI.Models.Religion.Info;
 
 /// <summary>
 /// Immutable view model for the "Info" tab.

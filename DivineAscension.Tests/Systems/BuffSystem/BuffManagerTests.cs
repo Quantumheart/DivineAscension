@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Systems.BuffSystem;
 using Moq;
-using PantheonWars.Systems.BuffSystem;
 using PantheonWars.Tests.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;

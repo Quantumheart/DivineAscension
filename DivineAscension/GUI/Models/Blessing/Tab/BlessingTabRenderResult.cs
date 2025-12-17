@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events.Blessing;
+using DivineAscension.GUI.Events.Blessing;
 
-namespace PantheonWars.GUI.Models.Blessing.Tab;
+namespace DivineAscension.GUI.Models.Blessing.Tab;
 
 /// <summary>
 ///     The result of rendering the blessings tab.

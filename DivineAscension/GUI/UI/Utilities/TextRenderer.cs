@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using ImGuiNET;
 
-namespace PantheonWars.GUI.UI.Utilities;
+namespace DivineAscension.GUI.UI.Utilities;
 
 /// <summary>
 ///     Utility class for rendering various text styles

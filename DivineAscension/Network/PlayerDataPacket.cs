@@ -1,7 +1,7 @@
-using PantheonWars.Models.Enum;
+using DivineAscension.Models.Enum;
 using ProtoBuf;
 
-namespace PantheonWars.Network;
+namespace DivineAscension.Network;
 
 /// <summary>
 ///     Network packet for syncing player deity data from server to client

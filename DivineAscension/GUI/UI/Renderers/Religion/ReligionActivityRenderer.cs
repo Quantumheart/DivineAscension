@@ -1,9 +1,9 @@
 using System.Numerics;
+using DivineAscension.GUI.Models.Religion.Activity;
+using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
-using PantheonWars.GUI.Models.Religion.Activity;
-using PantheonWars.GUI.UI.Utilities;
 
-namespace PantheonWars.GUI.UI.Renderers.Religion;
+namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
 ///     Placeholder renderer for religion activity feed

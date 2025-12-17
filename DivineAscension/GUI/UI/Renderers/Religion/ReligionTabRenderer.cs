@@ -1,14 +1,14 @@
 using System.Collections.Generic;
+using DivineAscension.GUI.Events.Religion;
+using DivineAscension.GUI.Models.Religion.Tab;
+using DivineAscension.GUI.State.Religion;
+using DivineAscension.GUI.UI.Components.Banners;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Religion;
-using PantheonWars.GUI.Models.Religion.Tab;
-using PantheonWars.GUI.State.Religion;
-using PantheonWars.GUI.UI.Components.Banners;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Utilities;
 using Vintagestory.API.Client;
 
-namespace PantheonWars.GUI.UI.Renderers.Religion;
+namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
 ///     Pure renderer for the Religion tab header and error banner.

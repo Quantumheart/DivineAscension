@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
 using ProtoBuf;
 
-namespace PantheonWars.Data;
+namespace DivineAscension.Data;
 
 /// <summary>
 ///     Stores religion-specific data for persistence

@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Systems.BlessingEffects.Handlers;
 using Moq;
-using PantheonWars.Systems.BlessingEffects.Handlers;
 using PantheonWars.Tests.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;

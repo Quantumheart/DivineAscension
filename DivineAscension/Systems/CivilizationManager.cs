@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using PantheonWars.Data;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems.Interfaces;
+using DivineAscension.Data;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
-namespace PantheonWars.Systems;
+namespace DivineAscension.Systems;
 
 /// <summary>
 ///     Manages civilizations - alliances of 1-4 religions with different deities

@@ -1,10 +1,10 @@
 using System.Numerics;
+using DivineAscension.GUI.Models.Blessing.Info;
+using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models;
 using ImGuiNET;
-using PantheonWars.GUI.Models.Blessing.Info;
-using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.Models;
 
-namespace PantheonWars.GUI.UI.Renderers.Blessing.Info;
+namespace DivineAscension.GUI.UI.Renderers.Blessing.Info;
 
 internal static class BlessingInfoSectionHeader
 {

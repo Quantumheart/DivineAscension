@@ -1,18 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using DivineAscension.GUI.Events.Religion;
+using DivineAscension.GUI.Models.Religion.Info;
+using DivineAscension.GUI.Models.Religion.Member;
+using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Components.Overlays;
+using DivineAscension.GUI.UI.Renderers.Components;
+using DivineAscension.GUI.UI.Renderers.Religion.Info;
+using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Network;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Religion;
-using PantheonWars.GUI.Models.Religion.Info;
-using PantheonWars.GUI.Models.Religion.Member;
-using PantheonWars.GUI.UI.Components.Lists;
-using PantheonWars.GUI.UI.Components.Overlays;
-using PantheonWars.GUI.UI.Renderers.Components;
-using PantheonWars.GUI.UI.Renderers.Religion.Info;
-using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.Network;
 
-namespace PantheonWars.GUI.UI.Renderers.Religion;
+namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
 /// Pure renderer for managing player's own religion

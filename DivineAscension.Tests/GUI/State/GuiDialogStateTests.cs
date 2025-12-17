@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using PantheonWars.GUI.State;
+using DivineAscension.GUI.State;
 
 namespace PantheonWars.Tests.GUI.State;
 

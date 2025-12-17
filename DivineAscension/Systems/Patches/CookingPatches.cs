@@ -7,7 +7,7 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 
-namespace PantheonWars.Systems.Patches;
+namespace DivineAscension.Systems.Patches;
 
 /// <summary>
 ///     Cooking completion event source. Harmony hooks will be added to firepit/crock in a later change.

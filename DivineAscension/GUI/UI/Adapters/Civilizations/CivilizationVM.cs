@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace PantheonWars.GUI.UI.Adapters.Civilizations;
+namespace DivineAscension.GUI.UI.Adapters.Civilizations;
 
 /// <summary>
 ///     View model for civilization adapter pattern.

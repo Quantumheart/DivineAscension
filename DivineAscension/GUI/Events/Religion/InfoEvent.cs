@@ -1,4 +1,4 @@
-namespace PantheonWars.GUI.Events.Religion;
+namespace DivineAscension.GUI.Events.Religion;
 
 /// <summary>
 /// Events representing user interactions within the My Religion info renderer.

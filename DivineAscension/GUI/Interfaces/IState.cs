@@ -1,4 +1,4 @@
-namespace PantheonWars.GUI.Interfaces;
+namespace DivineAscension.GUI.Interfaces;
 
 public interface IState
 {

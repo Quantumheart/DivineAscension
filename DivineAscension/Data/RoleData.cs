@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using ProtoBuf;
 
-namespace PantheonWars.Data;
+namespace DivineAscension.Data;
 
 [ProtoContract]
 public class RoleData

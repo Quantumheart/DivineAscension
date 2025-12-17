@@ -1,4 +1,4 @@
-namespace PantheonWars.GUI.Models.Religion.Activity;
+namespace DivineAscension.GUI.Models.Religion.Activity;
 
 public readonly struct ReligionActivityViewModel(float x, float y, float width, float height)
 {

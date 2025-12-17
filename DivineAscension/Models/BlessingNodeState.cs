@@ -1,4 +1,4 @@
-namespace PantheonWars.Models;
+namespace DivineAscension.Models;
 
 /// <summary>
 ///     Represents the visual/UI state of a blessing node in the blessing tree

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events.Civilization;
+using DivineAscension.GUI.Events.Civilization;
 
-namespace PantheonWars.GUI.Models.Civilization.Create;
+namespace DivineAscension.GUI.Models.Civilization.Create;
 
 public readonly struct CivilizationCreateRenderResult(IReadOnlyList<CreateEvent> events, float renderedHeight)
 {

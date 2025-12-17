@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using DivineAscension.GUI.Events.Blessing;
+using DivineAscension.GUI.Models.Blessing.Tree;
+using DivineAscension.Models;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Blessing;
-using PantheonWars.GUI.Models.Blessing.Tree;
-using PantheonWars.Models;
 
-namespace PantheonWars.GUI.UI.Renderers.Blessing;
+namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
 /// <summary>
 ///     Renders the split-panel blessing tree view

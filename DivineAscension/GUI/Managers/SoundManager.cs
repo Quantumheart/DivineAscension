@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Interfaces;
-using PantheonWars.GUI.Models.Enum;
-using PantheonWars.Models.Enum;
+using DivineAscension.GUI.Interfaces;
+using DivineAscension.GUI.Models.Enum;
+using DivineAscension.Models.Enum;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
-namespace PantheonWars.GUI.Managers;
+namespace DivineAscension.GUI.Managers;
 
 public class SoundManager(ICoreClientAPI api) : ISoundManager
 {

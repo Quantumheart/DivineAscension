@@ -1,7 +1,7 @@
 using System.Numerics;
-using PantheonWars.Models.Enum;
+using DivineAscension.Models.Enum;
 
-namespace PantheonWars.GUI.UI.Utilities;
+namespace DivineAscension.GUI.UI.Utilities;
 
 /// <summary>
 ///     Centralized helper for deity-related UI operations

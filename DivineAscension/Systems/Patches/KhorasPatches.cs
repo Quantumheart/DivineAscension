@@ -1,11 +1,11 @@
 using System;
+using DivineAscension.Constants;
 using HarmonyLib;
-using PantheonWars.Constants;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.MathTools;
 
-namespace PantheonWars.Systems.Patches;
+namespace DivineAscension.Systems.Patches;
 
 [HarmonyPatch]
 public static class KhorasPatches

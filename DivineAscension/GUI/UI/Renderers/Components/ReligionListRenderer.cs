@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.GUI.Events.Religion;
+using DivineAscension.GUI.Models.Religion.List;
+using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Network;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Religion;
-using PantheonWars.GUI.Models.Religion.List;
-using PantheonWars.GUI.UI.Components.Lists;
-using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.Network;
 
-namespace PantheonWars.GUI.UI.Renderers.Components;
+namespace DivineAscension.GUI.UI.Renderers.Components;
 
 /// <summary>
 ///     Renders a scrollable religion list for religion browser

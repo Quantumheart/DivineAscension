@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events.Civilization;
+using DivineAscension.GUI.Events.Civilization;
 
-namespace PantheonWars.GUI.Models.Civilization.Browse;
+namespace DivineAscension.GUI.Models.Civilization.Browse;
 
 public readonly struct CivilizationBrowseRenderResult(IReadOnlyList<BrowseEvent> events, float renderedHeight)
 {

@@ -1,6 +1,6 @@
-using PantheonWars.Models.Enum;
+using DivineAscension.Models.Enum;
 
-namespace PantheonWars.GUI.Interfaces;
+namespace DivineAscension.GUI.Interfaces;
 
 /// <summary>
 ///     Interface for managing state for the Blessing Dialog UI

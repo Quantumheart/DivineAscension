@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.GUI.Events.Blessing;
-using PantheonWars.GUI.Interfaces;
-using PantheonWars.GUI.Models.Blessing.Tab;
-using PantheonWars.GUI.State;
-using PantheonWars.GUI.UI.Renderers.Blessing;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems.Interfaces;
+using DivineAscension.GUI.Events.Blessing;
+using DivineAscension.GUI.Interfaces;
+using DivineAscension.GUI.Models.Blessing.Tab;
+using DivineAscension.GUI.State;
+using DivineAscension.GUI.UI.Renderers.Blessing;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Client;
 
-namespace PantheonWars.GUI.Managers;
+namespace DivineAscension.GUI.Managers;
 
 /// <summary>
 ///     Manages blessing tab state and event processing

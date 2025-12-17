@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace PantheonWars.Models;
+namespace DivineAscension.Models;
 
 public static class RolePermissions
 {

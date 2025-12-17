@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Vintagestory.API.Common;
 
-namespace PantheonWars.Systems.BuffSystem.Interfaces;
+namespace DivineAscension.Systems.BuffSystem.Interfaces;
 
 /// <summary>
 ///     Interface for applying and removing buffs/debuffs

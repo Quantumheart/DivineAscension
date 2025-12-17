@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
-using PantheonWars.Network;
-using PantheonWars.Network.Civilization;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
+using DivineAscension.Network;
+using DivineAscension.Network.Civilization;
 using Vintagestory.API.Client;
 
-namespace PantheonWars.GUI;
+namespace DivineAscension.GUI;
 
 /// <summary>
 ///     Event handlers for BlessingDialog - extracted from main class for maintainability

@@ -1,6 +1,6 @@
-using PantheonWars.GUI.State.Religion;
+using DivineAscension.GUI.State.Religion;
 
-namespace PantheonWars.GUI.State;
+namespace DivineAscension.GUI.State;
 
 /// <summary>
 ///     State container for the Religion tab in BlessingDialog

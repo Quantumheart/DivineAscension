@@ -1,4 +1,4 @@
-namespace PantheonWars.Models;
+namespace DivineAscension.Models;
 
 /// <summary>
 ///     Represents religion prestige progression toward the next rank

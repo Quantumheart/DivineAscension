@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using PantheonWars.Systems.BuffSystem;
+using DivineAscension.Systems.BuffSystem;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.GUI.Events.Blessing;
+using DivineAscension.GUI.Events.Blessing;
 
-namespace PantheonWars.GUI.Models.Blessing.Info;
+namespace DivineAscension.GUI.Models.Blessing.Info;
 
 internal readonly struct BlessingInfoRenderResult(IReadOnlyList<InfoEvent> events, float heightUsed)
 {

@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using PantheonWars.Data;
-using PantheonWars.Models.Enum;
+using DivineAscension.Data;
+using DivineAscension.Models.Enum;
 
 namespace PantheonWars.Tests.Data;
 

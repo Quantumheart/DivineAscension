@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using PantheonWars.Constants;
-using PantheonWars.Models;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems.BlessingEffects;
-using PantheonWars.Systems.BlessingEffects.Handlers;
-using PantheonWars.Systems.Interfaces;
+using DivineAscension.Constants;
+using DivineAscension.Models;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems.BlessingEffects;
+using DivineAscension.Systems.BlessingEffects.Handlers;
+using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using Vintagestory.GameContent;
 
-namespace PantheonWars.Systems;
+namespace DivineAscension.Systems;
 
 /// <summary>
 ///     Manages blessing effects and stat modifiers (Phase 3.3)

@@ -1,13 +1,13 @@
 using System.Collections.Generic;
+using DivineAscension.GUI.Events.Civilization;
+using DivineAscension.GUI.Models.Civilization.Tab;
+using DivineAscension.GUI.State;
+using DivineAscension.GUI.UI.Components.Banners;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Civilization;
-using PantheonWars.GUI.Models.Civilization.Tab;
-using PantheonWars.GUI.State;
-using PantheonWars.GUI.UI.Components.Banners;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Utilities;
 
-namespace PantheonWars.GUI.UI.Renderers.Civilization;
+namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
 /// <summary>
 ///     Pure renderer for the Civilization tab header and error banner.

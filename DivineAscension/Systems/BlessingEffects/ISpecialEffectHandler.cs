@@ -1,6 +1,6 @@
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems.BlessingEffects;
+namespace DivineAscension.Systems.BlessingEffects;
 
 /// <summary>
 ///     Interface for special effect handlers that implement complex blessing behaviors

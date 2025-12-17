@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using ProtoBuf;
 
-namespace PantheonWars.Network.Civilization;
+namespace DivineAscension.Network.Civilization;
 
 /// <summary>
 ///     Server sends list of civilizations to client

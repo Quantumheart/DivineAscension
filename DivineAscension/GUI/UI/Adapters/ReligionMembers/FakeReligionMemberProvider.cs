@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.Models.Enum;
+using DivineAscension.Models.Enum;
 
-namespace PantheonWars.GUI.UI.Adapters.ReligionMembers;
+namespace DivineAscension.GUI.UI.Adapters.ReligionMembers;
 
 /// <summary>
 ///     Dev-only, UI-only member provider that generates synthetic members deterministically.

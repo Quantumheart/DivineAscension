@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using PantheonWars.Models.Enum;
+using DivineAscension.Models.Enum;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
-namespace PantheonWars.GUI.UI.Utilities;
+namespace DivineAscension.GUI.UI.Utilities;
 
 /// <summary>
 ///     Manages loading and caching of deity icon textures for ImGui rendering

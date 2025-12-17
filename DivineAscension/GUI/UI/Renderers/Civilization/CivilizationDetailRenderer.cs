@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using DivineAscension.GUI.Events.Civilization;
+using DivineAscension.GUI.Models.Civilization.Detail;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models.Enum;
+using DivineAscension.Network.Civilization;
 using ImGuiNET;
-using PantheonWars.GUI.Events.Civilization;
-using PantheonWars.GUI.Models.Civilization.Detail;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Components.Lists;
-using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.Models.Enum;
-using PantheonWars.Network.Civilization;
 
-namespace PantheonWars.GUI.UI.Renderers.Civilization;
+namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
 /// <summary>
 ///     Renders a detailed view of any civilization's public information.

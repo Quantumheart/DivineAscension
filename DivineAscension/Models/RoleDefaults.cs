@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.Data;
+using DivineAscension.Data;
 
-namespace PantheonWars.Models;
+namespace DivineAscension.Models;
 
 public static class RoleDefaults
 {

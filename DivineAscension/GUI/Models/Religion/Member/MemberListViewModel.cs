@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PantheonWars.Network;
+using DivineAscension.Network;
 
-namespace PantheonWars.GUI.Models.Religion.Member;
+namespace DivineAscension.GUI.Models.Religion.Member;
 
 /// <summary>
 /// Immutable view model for the member list component.

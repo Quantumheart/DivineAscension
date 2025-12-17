@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Network;
 using ImGuiNET;
-using PantheonWars.GUI.UI.Components.Buttons;
-using PantheonWars.GUI.UI.Components.Lists;
-using PantheonWars.GUI.UI.Utilities;
-using PantheonWars.Network;
 using Vintagestory.API.Client;
 
-namespace PantheonWars.GUI.UI.Renderers.Components;
+namespace DivineAscension.GUI.UI.Renderers.Components;
 
 /// <summary>
 ///     Renders a scrollable banned players list for religion management

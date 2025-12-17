@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.Models.Enum;
-using PantheonWars.Systems.Interfaces;
-using PantheonWars.Systems.Patches;
+using DivineAscension.Models.Enum;
+using DivineAscension.Systems.Interfaces;
+using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems.Favor;
+namespace DivineAscension.Systems.Favor;
 
 public class GaiaFavorTracker(
     IPlayerReligionDataManager playerReligionDataManager,

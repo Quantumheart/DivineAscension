@@ -1,4 +1,4 @@
-namespace PantheonWars.GUI.Events.Religion;
+namespace DivineAscension.GUI.Events.Religion;
 
 public abstract record ActivityEvent
 {

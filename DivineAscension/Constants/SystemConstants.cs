@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace PantheonWars.Constants;
+namespace DivineAscension.Constants;
 
 /// <summary>
 ///     System-wide constants for modifier IDs, log prefixes, and cache keys.

@@ -1,6 +1,6 @@
-using PantheonWars.Network;
+using DivineAscension.Network;
 
-namespace PantheonWars.GUI.State.Religion;
+namespace DivineAscension.GUI.State.Religion;
 
 /// <summary>
 ///     Mutable state for the Roles tab within the Religion dialog.

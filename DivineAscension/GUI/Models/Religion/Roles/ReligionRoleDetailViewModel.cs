@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using PantheonWars.Data;
-using PantheonWars.Models;
-using PantheonWars.Network;
+using DivineAscension.Data;
+using DivineAscension.Models;
+using DivineAscension.Network;
 
-namespace PantheonWars.GUI.Models.Religion.Roles;
+namespace DivineAscension.GUI.Models.Religion.Roles;
 
 /// <summary>
 ///     Immutable view model for the role detail view (viewing members with a specific role).

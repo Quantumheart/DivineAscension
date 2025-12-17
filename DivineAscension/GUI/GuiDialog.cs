@@ -2,18 +2,18 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.GUI.Interfaces;
+using DivineAscension.GUI.Managers;
+using DivineAscension.GUI.State;
+using DivineAscension.GUI.UI;
+using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
-using PantheonWars.GUI.Interfaces;
-using PantheonWars.GUI.Managers;
-using PantheonWars.GUI.State;
-using PantheonWars.GUI.UI;
-using PantheonWars.GUI.UI.Utilities;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using VSImGui;
 using VSImGui.API;
 
-namespace PantheonWars.GUI;
+namespace DivineAscension.GUI;
 
 /// <summary>
 ///     Main ImGui-based Blessing Dialog for viewing and unlocking blessings
@@ -33,7 +33,7 @@ public partial class GuiDialog : ModSystem
     private ImGuiModSystem? _imguiModSystem;
 
     private GuiDialogManager? _manager;
-    private PantheonWarsSystem? _pantheonWarsSystem;
+    private DivineAscensionModSystem? _pantheonWarsSystem;
     private ISoundManager? _soundManager;
     private Stopwatch? _stopwatch;
     private ImGuiViewportPtr _viewport;
@@ -68,7 +68,7 @@ public partial class GuiDialog : ModSystem
         BlessingIconLoader.Initialize(_capi);
 
         // Get PantheonWarsSystem for network communication
-        _pantheonWarsSystem = _capi.ModLoader.GetModSystem<PantheonWarsSystem>();
+        _pantheonWarsSystem = _capi.ModLoader.GetModSystem<DivineAscensionModSystem>();
         _soundManager = new SoundManager(_capi);
         _manager = new GuiDialogManager(_capi, _pantheonWarsSystem!.UiService, _soundManager);
         if (_pantheonWarsSystem?.NetworkClient != null)

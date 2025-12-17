@@ -7,7 +7,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
 
-namespace PantheonWars.Systems.Patches;
+namespace DivineAscension.Systems.Patches;
 
 [HarmonyPatch]
 public static class PitKilnPatches

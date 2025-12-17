@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace PantheonWars.Constants;
+namespace DivineAscension.Constants;
 
 // Command and subcommand names
 [ExcludeFromCodeCoverage]

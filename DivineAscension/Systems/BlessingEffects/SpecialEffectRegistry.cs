@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using PantheonWars.Constants;
+using DivineAscension.Constants;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Systems.BlessingEffects;
+namespace DivineAscension.Systems.BlessingEffects;
 
 /// <summary>
 ///     Registry for managing special effect handlers

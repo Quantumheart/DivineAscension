@@ -1,6 +1,6 @@
-using PantheonWars.GUI.State;
+using DivineAscension.GUI.State;
 
-namespace PantheonWars.GUI.Models.Civilization.Tab;
+namespace DivineAscension.GUI.Models.Civilization.Tab;
 
 public readonly struct CivilizationTabViewModel(
     CivilizationSubTab currentSubTab,

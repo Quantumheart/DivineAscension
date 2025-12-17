@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.GUI.Interfaces;
-using PantheonWars.GUI.Managers;
-using PantheonWars.GUI.State;
-using PantheonWars.GUI.UI.Adapters.Civilizations;
-using PantheonWars.GUI.UI.Adapters.ReligionMembers;
-using PantheonWars.GUI.UI.Adapters.Religions;
-using PantheonWars.Models.Enum;
-using PantheonWars.Network.Civilization;
-using PantheonWars.Systems.Interfaces;
+using DivineAscension.GUI.Interfaces;
+using DivineAscension.GUI.Managers;
+using DivineAscension.GUI.State;
+using DivineAscension.GUI.UI.Adapters.Civilizations;
+using DivineAscension.GUI.UI.Adapters.ReligionMembers;
+using DivineAscension.GUI.UI.Adapters.Religions;
+using DivineAscension.Models.Enum;
+using DivineAscension.Network.Civilization;
+using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Client;
 
-namespace PantheonWars.GUI;
+namespace DivineAscension.GUI;
 
 /// <summary>
 ///     Manages state for the Gui Dialog

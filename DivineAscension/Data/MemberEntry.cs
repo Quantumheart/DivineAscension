@@ -1,7 +1,7 @@
 using System;
 using ProtoBuf;
 
-namespace PantheonWars.Data;
+namespace DivineAscension.Data;
 
 /// <summary>
 ///     Represents a member entry in a religion with cached player information

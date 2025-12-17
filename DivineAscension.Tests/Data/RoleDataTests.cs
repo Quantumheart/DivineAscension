@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using PantheonWars.Data;
-using PantheonWars.Models;
+using DivineAscension.Data;
+using DivineAscension.Models;
 
 namespace PantheonWars.Tests.Data;
 

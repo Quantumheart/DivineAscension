@@ -7,7 +7,7 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
 using Vintagestory.GameContent;
 
-namespace PantheonWars.Systems.BuffSystem;
+namespace DivineAscension.Systems.BuffSystem;
 
 /// <summary>
 ///     Entity behavior that tracks active buffs/debuffs and applies their stat modifications

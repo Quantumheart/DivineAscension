@@ -1,6 +1,6 @@
 using ProtoBuf;
 
-namespace PantheonWars.Network.Civilization;
+namespace DivineAscension.Network.Civilization;
 
 /// <summary>
 ///     Server responds to a civilization action request with success/failure

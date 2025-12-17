@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using PantheonWars.Data;
-using PantheonWars.Models.Enum;
+using DivineAscension.Data;
+using DivineAscension.Models.Enum;
 
-namespace PantheonWars.Systems.Interfaces;
+namespace DivineAscension.Systems.Interfaces;
 
 public interface IReligionManager : IDisposable
 {
