@@ -1,0 +1,18 @@
+using DivineAscension.GUI.State.Religion;
+
+namespace DivineAscension.GUI.Events.Religion;
+
+public abstract record SubTabEvent
+{
+    // User clicked a different sub tab header
+    public record TabChanged(SubTab SubTab) : SubTabEvent;
+
+    // User dismissed the top error banner for the last action (global)
+    public record DismissActionError : SubTabEvent;
+
+    // User dismissed the context-specific error for the given tab (Browse/Info/Create)
+    public record DismissContextError(SubTab SubTab) : SubTabEvent;
+
+    // User clicked retry on the error banner for a specific tab (Browse/Info)
+    public record RetryRequested(SubTab SubTab) : SubTabEvent;
+}

@@ -8,6 +8,8 @@ using Cake.Frosting;
 using Cake.Json;
 using Newtonsoft.Json.Linq;
 
+namespace CakeBuild;
+
 public static class Program
 {
     public static int Main(string[] args)
@@ -26,7 +28,7 @@ public class ModInfoDto
 
 public class BuildContext : FrostingContext
 {
-    public const string ProjectName = "PantheonWars";
+    public const string ProjectName = "DivineAscension";
 
     public BuildContext(ICakeContext context)
         : base(context)
@@ -52,7 +54,7 @@ public sealed class ValidateJsonTask : FrostingTask<BuildContext>
     {
         context.Information("Validating JSON files...");
 
-        var jsonFiles = context.GetFiles("./PantheonWars/assets/**/*.json");
+        var jsonFiles = context.GetFiles("./DivineAscension/assets/**/*.json");
         var hasErrors = false;
 
         foreach (var file in jsonFiles)
@@ -80,9 +82,9 @@ public sealed class BuildTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
     {
-        context.Information($"Building PantheonWars in {context.BuildConfiguration} mode...");
+        context.Information($"Building DivineAscension in {context.BuildConfiguration} mode...");
 
-        context.DotNetBuild("./PantheonWars/PantheonWars.csproj", new DotNetBuildSettings
+        context.DotNetBuild("./DivineAscension/DivineAscension.csproj", new DotNetBuildSettings
         {
             Configuration = context.BuildConfiguration
         });

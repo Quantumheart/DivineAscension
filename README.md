@@ -1,4 +1,4 @@
-# PantheonWars
+# Divine Ascension
 
 Deity-driven religion and faction systems for Vintage Story: create and manage religions, earn player Favor and Religion Prestige, unlock blessing trees, and organize multi‑religion civilizations. This repository contains the mod/library and an extensive xUnit test suite.
 
@@ -28,10 +28,10 @@ In progress (see docs/topics/integration/): shrine/prayer mechanics and land‑c
 ## Build and Configuration
 
 - Toolchain: .NET SDK 8.0 (C# 12)
-- Solution: `PantheonWars.sln`
+- Solution: `DivineAscension.sln`
 - Projects:
-  - `PantheonWars` — main mod/library targeting the Vintage Story API
-  - `PantheonWars.Tests` — xUnit v3 test project
+  - `DivineAscension` — main mod/library targeting the Vintage Story API
+  - `DivineAscension.Tests` — xUnit v3 test project
   - `CakeBuild` — C# Cake bootstrapper used by `build.sh`/`build.ps1`
 
 ### Vintage Story dependency
@@ -61,7 +61,7 @@ export VINTAGE_STORY="$HOME/.local/share/Vintagestory"
   - Windows: `./build.ps1`
 
 - Direct solution build:
-  - `dotnet build PantheonWars.sln -c Debug`
+  - `dotnet build DivineAscension.sln -c Debug`
 
 Artifacts are placed under `Releases/` when using the Cake build. See the `Releases/` folder for example outputs.
 
@@ -70,16 +70,16 @@ Artifacts are placed under `Releases/` when using the Cake build. See the `Relea
 - Framework: xUnit v3 with `Microsoft.NET.Test.Sdk` 17.13 and `xunit.runner.visualstudio` 3.1.5
 - Run all tests:
   - `dotnet test` (from repo root), or
-  - `dotnet test PantheonWars.Tests/PantheonWars.Tests.csproj`
+  - `dotnet test DivineAscension.Tests/DivineAscension.Tests.csproj`
 - Target a subset by fully qualified name (preferred):
-  - `dotnet test --filter FullyQualifiedName~PantheonWars.Tests.GUI.UI.Utilities.DeityHelperTests`
+  - `dotnet test --filter FullyQualifiedName~DivineAscension.Tests.GUI.UI.Utilities.DeityHelperTests`
 - Coverage:
   - `./generate-coverage.sh` (auto-installs ReportGenerator and opens HTML report)
   - Manual: `dotnet test --collect:"XPlat Code Coverage" --settings coverlet.runsettings`
 
 Notes
 - If `VINTAGE_STORY` is not set correctly, the test project will fail to build. See the dependency section above.
-- The main project exposes internals to tests via `[assembly: InternalsVisibleTo("PantheonWars.Tests")]`.
+- The main project exposes internals to tests via `[assembly: InternalsVisibleTo("DivineAscension.Tests")]`.
 
 ## Documentation
 
@@ -93,14 +93,14 @@ Notes
 ## Project structure (top-level)
 
 ```
-PantheonWars/
-├── PantheonWars/         # Main mod project
-├── PantheonWars.Tests/   # Tests
-├── CakeBuild/            # Build bootstrapper
-├── docs/                 # Documentation
-├── Releases/             # Example release artifacts
-├── build.sh / build.ps1  # Convenience build scripts
-└── PantheonWars.sln
+DivineAscension/
+├── DivineAscension/         # Main mod project
+├── DivineAscension.Tests/   # Tests
+├── CakeBuild/               # Build bootstrapper
+├── docs/                    # Documentation
+├── Releases/                # Example release artifacts
+├── build.sh / build.ps1     # Convenience build scripts
+└── DivineAscension.sln
 ```
 
 ## Troubleshooting
@@ -113,7 +113,7 @@ PantheonWars/
 
 - Match the existing C# style (C# 12, `ImplicitUsings`, `Nullable` enabled).
 - Keep types `internal` when appropriate; tests already have access via `InternalsVisibleTo`.
-- Place new tests under `PantheonWars.Tests/<Area>/` and align namespaces with folder structure.
+- Place new tests under `DivineAscension.Tests/<Area>/` and align namespaces with folder structure.
 
 ## License
 
