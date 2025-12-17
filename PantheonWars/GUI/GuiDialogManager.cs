@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using PantheonWars.GUI.Interfaces;
 using PantheonWars.GUI.Managers;
 using PantheonWars.GUI.State;
+using PantheonWars.GUI.UI.Adapters.Civilizations;
 using PantheonWars.GUI.UI.Adapters.ReligionMembers;
 using PantheonWars.GUI.UI.Adapters.Religions;
 using PantheonWars.Models.Enum;
@@ -34,6 +35,11 @@ public class GuiDialogManager : IBlessingDialogManager
         ReligionStateManager.UseReligionProvider(new FakeReligionProvider());
         ReligionStateManager.ReligionsProvider!.ConfigureDevSeed(500, 20251204);
         ReligionStateManager.RefreshReligionsFromProvider();
+
+        // Initialize civilization fake provider
+        CivilizationManager.UseCivilizationProvider(new FakeCivilizationProvider());
+        CivilizationManager.CivilizationProvider!.ConfigureDevSeed(25, 20251217);
+        CivilizationManager.RefreshCivilizationsFromProvider();
 #endif
     }
 

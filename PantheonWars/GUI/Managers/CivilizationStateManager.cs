@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using ImGuiNET;
 using PantheonWars.GUI.Events.Civilization;
 using PantheonWars.GUI.Interfaces;
@@ -12,6 +13,7 @@ using PantheonWars.GUI.Models.Civilization.Info;
 using PantheonWars.GUI.Models.Civilization.Invites;
 using PantheonWars.GUI.Models.Civilization.Tab;
 using PantheonWars.GUI.State;
+using PantheonWars.GUI.UI.Adapters.Civilizations;
 using PantheonWars.GUI.UI.Renderers.Civilization;
 using PantheonWars.GUI.UI.Utilities;
 using PantheonWars.Network.Civilization;
@@ -29,6 +31,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         _soundManager = soundManager ?? throw new ArgumentNullException(nameof(soundManager));
 
     private readonly IUiService _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
+
+    // UI-only adapter (fake or real). Null when not used.
+    internal ICivilizationProvider? CivilizationProvider { get; private set; }
 
     private CivilizationTabState State { get; } = new();
 
@@ -126,7 +131,40 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     /// </summary>
     public void RequestCivilizationList(string deityFilter = "")
     {
-        // Set loading state for browse
+        // Adapter short-circuit: if a UI-only provider is configured, use it instead of network
+        if (CivilizationProvider != null)
+        {
+            State.BrowseState.IsLoading = true;
+            State.BrowseState.ErrorMsg = null;
+
+            var items = CivilizationProvider.GetCivilizations();
+            var filter = deityFilter?.Trim();
+
+            // Apply deity filter if provided
+            if (!string.IsNullOrEmpty(filter))
+                items = items.Where(c => c.memberDeities.Any(d =>
+                    string.Equals(d, filter, StringComparison.OrdinalIgnoreCase))).ToList();
+
+            // Map adapter VM → Network DTO
+            var mapped = items.Select(c => new CivilizationListResponsePacket.CivilizationInfo
+            {
+                CivId = c.civId,
+                Name = c.name,
+                FounderUID = c.founderUID,
+                FounderReligionUID = c.founderReligionUID,
+                MemberCount = c.memberCount,
+                MemberDeities = c.memberDeities,
+                MemberReligionNames = c.memberReligionNames,
+                Icon = c.icon
+            }).ToList();
+
+            State.BrowseState.AllCivilizations = mapped;
+            State.BrowseState.IsLoading = false;
+            State.BrowseState.ErrorMsg = null;
+            return;
+        }
+
+        // Default: request from server
         State.BrowseState.IsLoading = true;
         State.BrowseState.ErrorMsg = null;
         _uiService.RequestCivilizationList(deityFilter);
@@ -727,6 +765,28 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             _soundManager.PlayError();
             State.LastActionError = packet.Message;
         }
+    }
+
+    #endregion
+
+    #region Civilization Provider (Adapter Pattern)
+
+    /// <summary>
+    ///     Configure a UI-only civilization data provider (fake or real). When set,
+    ///     RequestCivilizationList() uses it instead of performing a network call.
+    /// </summary>
+    internal void UseCivilizationProvider(ICivilizationProvider provider)
+    {
+        CivilizationProvider = provider;
+    }
+
+    /// <summary>
+    ///     Refresh the current civilization list from the configured provider (if any).
+    /// </summary>
+    public void RefreshCivilizationsFromProvider()
+    {
+        CivilizationProvider?.Refresh();
+        RequestCivilizationList(State.BrowseState.DeityFilter);
     }
 
     #endregion
