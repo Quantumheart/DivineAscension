@@ -70,6 +70,9 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
             _sapi.Logger.Debug(
                 $"[PantheonWars] Handling deletion of religion {religionId} from civilization {civ.Name}");
 
+            // Check if the deleted religion was the founder's religion
+            var isFounderReligion = civ.FounderReligionUID == religionId;
+
             // Remove religion from civilization
             _data.RemoveReligionFromCivilization(religionId);
 
@@ -83,12 +86,16 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
 
             civ.MemberCount = totalMembers;
 
-            // Check if civilization falls below minimum members
-            if (civ.MemberReligionIds.Count < MIN_RELIGIONS)
+            // Disband if founder's religion was deleted OR if below minimum religions
+            if (isFounderReligion || civ.MemberReligionIds.Count < MIN_RELIGIONS)
             {
                 DisbandCivilization(civ.CivId, civ.FounderUID);
-                _sapi.Logger.Notification(
-                    $"[PantheonWars] Civilization '{civ.Name}' disbanded (religion {religionId} was deleted, below minimum)");
+                if (isFounderReligion)
+                    _sapi.Logger.Notification(
+                        $"[PantheonWars] Civilization '{civ.Name}' disbanded (founder's religion was deleted)");
+                else
+                    _sapi.Logger.Notification(
+                        $"[PantheonWars] Civilization '{civ.Name}' disbanded (religion {religionId} was deleted, below minimum)");
             }
             else
             {

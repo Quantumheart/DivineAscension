@@ -1226,6 +1226,11 @@ public class CivilizationManagerTests
             TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
+        // Initialize to subscribe to events
+        var mockEventAPI = new Mock<IServerEventAPI>();
+        _mockAPI.Setup(a => a.Event).Returns(mockEventAPI.Object);
+        _civilizationManager.Initialize();
+
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
         Assert.NotNull(civ);
 
@@ -1239,7 +1244,8 @@ public class CivilizationManagerTests
         var retrievedCiv = _civilizationManager.GetCivilization(civ.CivId);
         Assert.Null(retrievedCiv);
         _mockLogger.Verify(
-            l => l.Notification(It.Is<string>(s => s.Contains("disbanded") && s.Contains("below minimum"))),
+            l => l.Notification(It.Is<string>(s =>
+                s.Contains("disbanded") && s.Contains("founder's religion was deleted"))),
             Times.Once
         );
     }
@@ -1260,6 +1266,11 @@ public class CivilizationManagerTests
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
+
+        // Initialize to subscribe to events
+        var mockEventAPI = new Mock<IServerEventAPI>();
+        _mockAPI.Setup(a => a.Event).Returns(mockEventAPI.Object);
+        _civilizationManager.Initialize();
 
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
         Assert.NotNull(civ);
@@ -1326,6 +1337,11 @@ public class CivilizationManagerTests
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
+
+        // Initialize to subscribe to events
+        var mockEventAPI = new Mock<IServerEventAPI>();
+        _mockAPI.Setup(a => a.Event).Returns(mockEventAPI.Object);
+        _civilizationManager.Initialize();
 
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
         Assert.NotNull(civ);
