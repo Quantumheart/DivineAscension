@@ -19,12 +19,21 @@ public static class KhorasPatches
     {
         if (byEntity == null || amount <= 0) return;
 
-        // Get tool durability bonus (e.g. 0.10 for 10%)
-        double durabilityBonus = byEntity.Stats.GetBlended(VintageStoryStats.ToolDurability);
+        // Get tool durability stat (WeightedSum type, so base is 1.0)
+        // Example: 1.10 means 1.0 (base) + 0.10 (10% bonus)
+        double durabilityStatValue = byEntity.Stats.GetBlended(VintageStoryStats.ToolDurability);
+
+        // Debug logging
+        world.Logger.Debug(
+            $"[PantheonWars] DamageItem called - Item: {itemslot?.Itemstack?.Collectible?.Code}, Amount: {amount}, ToolDurability stat: {durabilityStatValue}");
+
+        // Extract the actual bonus percentage by subtracting the base (1.0)
+        var durabilityBonus = durabilityStatValue - 1.0;
+
         if (durabilityBonus <= 0) return;
 
         // Calculate reduction
-        // Example: amount = 1, bonus = 0.10. reduce = 0.10. 
+        // Example: amount = 1, bonus = 0.10. reduce = 0.10.
         // We want 10% chance to reduce by 1 (making it 0).
 
         var reduceAmount = amount * (float)durabilityBonus;
@@ -33,7 +42,14 @@ public static class KhorasPatches
 
         if (world.Rand.NextDouble() < remainder) reduceInt++;
 
-        amount = Math.Max(0, amount - reduceInt);
+        var finalAmount = Math.Max(0, amount - reduceInt);
+
+        // Debug logging
+        if (finalAmount == 0)
+            world.Logger.Debug(
+                $"[PantheonWars] Tool durability saved! Original amount: {amount}, Bonus: {durabilityBonus}, Final: {finalAmount}");
+
+        amount = finalAmount;
     }
 
     // Patch for Ore Yield
