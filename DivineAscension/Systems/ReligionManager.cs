@@ -15,8 +15,8 @@ namespace DivineAscension.Systems;
 /// </summary>
 public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 {
-    private const string DATA_KEY = "pantheonwars_religions";
-    private const string INVITE_DATA_KEY = "pantheonwars_religion_invites";
+    private const string DATA_KEY = "divineascension_religions";
+    private const string INVITE_DATA_KEY = "divineascension_religion_invites";
     private readonly Dictionary<string, ReligionData> _religions = new();
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
     private ReligionWorldData _inviteData = new();

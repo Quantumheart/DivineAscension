@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
-using PantheonWars.Tests.Helpers;
+using DivineAscension.Tests.Helpers;
 
-namespace PantheonWars.Tests.Models;
+namespace DivineAscension.Tests.Models;
 
 /// <summary>
 ///     Unit tests for BlessingTooltipData model

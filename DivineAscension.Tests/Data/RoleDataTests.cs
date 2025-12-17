@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Data;
 using DivineAscension.Models;
 
-namespace PantheonWars.Tests.Data;
+namespace DivineAscension.Tests.Data;
 
 [ExcludeFromCodeCoverage]
 public class RoleDataTests

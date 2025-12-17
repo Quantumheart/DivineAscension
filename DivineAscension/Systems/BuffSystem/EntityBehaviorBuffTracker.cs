@@ -26,7 +26,7 @@ public class EntityBehaviorBuffTracker : EntityBehavior
 
     public override string PropertyName()
     {
-        return "PantheonWarsBuffTracker";
+        return "DivineAscensionBuffTracker";
     }
 
     public override void Initialize(EntityProperties properties, JsonObject attributes)
@@ -171,7 +171,7 @@ public class EntityBehaviorBuffTracker : EntityBehavior
         foreach (var kvp in lastAppliedModifiers)
         {
             var statName = kvp.Key;
-            entity.Stats.Remove(statName, "pantheonwars-buff");
+            entity.Stats.Remove(statName, "divineascension-buff");
         }
 
         lastAppliedModifiers.Clear();
@@ -191,7 +191,7 @@ public class EntityBehaviorBuffTracker : EntityBehavior
         // Apply accumulated modifiers
         foreach (var modifier in accumulatedModifiers)
         {
-            entity.Stats.Set(modifier.Key, "pantheonwars-buff", modifier.Value);
+            entity.Stats.Set(modifier.Key, "divineascension-buff", modifier.Value);
             lastAppliedModifiers[modifier.Key] = modifier.Value;
         }
     }
@@ -258,8 +258,8 @@ public class EntityBehaviorBuffTracker : EntityBehavior
 
         for (var i = 0; i < activeEffects.Count; i++) effectsTree[$"effect_{i}"] = activeEffects[i].ToTreeAttribute();
 
-        entity.WatchedAttributes["pantheonwars_effects"] = effectsTree;
-        entity.WatchedAttributes.MarkPathDirty("pantheonwars_effects");
+        entity.WatchedAttributes["divineascension_effects"] = effectsTree;
+        entity.WatchedAttributes.MarkPathDirty("divineascension_effects");
     }
 
     /// <summary>
@@ -267,7 +267,7 @@ public class EntityBehaviorBuffTracker : EntityBehavior
     /// </summary>
     private void LoadEffectsFromAttributes()
     {
-        var effectsTree = entity.WatchedAttributes.GetTreeAttribute("pantheonwars_effects");
+        var effectsTree = entity.WatchedAttributes.GetTreeAttribute("divineascension_effects");
         if (effectsTree == null) return;
 
         var count = effectsTree.GetInt("count");

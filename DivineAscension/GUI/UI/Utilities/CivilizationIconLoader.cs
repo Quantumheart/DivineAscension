@@ -36,7 +36,7 @@ internal static class CivilizationIconLoader
         if (_api == null) return null;
 
         var normalizedIconName = iconName.ToLowerInvariant();
-        var assetPath = new AssetLocation($"pantheonwars:textures/icons/civilizations/{normalizedIconName}.png");
+        var assetPath = new AssetLocation($"divineascension:textures/icons/civilizations/{normalizedIconName}.png");
 
         try
         {
@@ -153,7 +153,7 @@ internal static class CivilizationIconLoader
         // Check which icons actually exist in the assets
         foreach (var iconName in knownIcons)
         {
-            var assetPath = new AssetLocation($"pantheonwars:textures/icons/civilizations/{iconName}.png");
+            var assetPath = new AssetLocation($"divineascension:textures/icons/civilizations/{iconName}.png");
             var asset = _api.Assets.TryGet(assetPath);
 
             if (asset != null) icons.Add(iconName);

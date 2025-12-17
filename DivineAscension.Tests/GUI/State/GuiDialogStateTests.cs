@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.GUI.State;
 
-namespace PantheonWars.Tests.GUI.State;
+namespace DivineAscension.Tests.GUI.State;
 
 /// <summary>
 ///     Unit tests for BlessingDialogState

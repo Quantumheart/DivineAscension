@@ -37,7 +37,7 @@ internal static class DeityIconLoader
         if (_api == null) return null;
 
         var deityName = deity.ToString().ToLowerInvariant();
-        var assetPath = new AssetLocation($"pantheonwars:textures/icons/deities/{deityName}.png");
+        var assetPath = new AssetLocation($"divineascension:textures/icons/deities/{deityName}.png");
 
         try
         {

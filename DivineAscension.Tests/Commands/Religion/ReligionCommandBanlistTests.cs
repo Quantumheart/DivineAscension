@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
-using PantheonWars.Tests.Commands.Helpers;
+using DivineAscension.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
 
-namespace PantheonWars.Tests.Commands.Religion;
+namespace DivineAscension.Tests.Commands.Religion;
 
 /// <summary>
 /// Tests for the /religion banlist command handler

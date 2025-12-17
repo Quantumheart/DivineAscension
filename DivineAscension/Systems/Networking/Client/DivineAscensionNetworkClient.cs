@@ -11,7 +11,7 @@ namespace DivineAscension.Systems.Networking.Client;
 ///     Handles all client-side network communication for the DivineAscension mod.
 ///     Manages requests to the server and processes responses for religion, blessing, and civilization systems.
 /// </summary>
-public class PantheonWarsNetworkClient : IClientNetworkHandler
+public class DivineAscensionNetworkClient : IClientNetworkHandler
 {
     private ICoreClientAPI? _capi;
     private IClientNetworkChannel? _clientChannel;

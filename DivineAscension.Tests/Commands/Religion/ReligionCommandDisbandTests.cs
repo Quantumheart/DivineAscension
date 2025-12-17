@@ -2,12 +2,12 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network;
+using DivineAscension.Tests.Commands.Helpers;
 using Moq;
-using PantheonWars.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 
-namespace PantheonWars.Tests.Commands.Religion;
+namespace DivineAscension.Tests.Commands.Religion;
 
 /// <summary>
 /// Tests for the /religion disband command handler

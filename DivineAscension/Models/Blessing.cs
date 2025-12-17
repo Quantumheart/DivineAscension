@@ -47,7 +47,7 @@ public class Blessing
 
     /// <summary>
     ///     Icon name for this blessing (e.g., "bear-head", "strawberry")
-    ///     Icon file loaded from assets/pantheonwars/textures/icons/perks/{deity}/{iconName}.png
+    ///     Icon file loaded from assets/divineascension/textures/icons/perks/{deity}/{iconName}.png
     /// </summary>
     public string IconName { get; set; } = string.Empty;
 

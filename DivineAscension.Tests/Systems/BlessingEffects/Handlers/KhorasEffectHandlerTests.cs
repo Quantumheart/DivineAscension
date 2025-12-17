@@ -1,11 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Systems.BlessingEffects.Handlers;
+using DivineAscension.Tests.Helpers;
 using Moq;
-using PantheonWars.Tests.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Tests.Systems.BlessingEffects.Handlers;
+namespace DivineAscension.Tests.Systems.BlessingEffects.Handlers;
 
 /// <summary>
 /// Tests for Khoras effect handlers

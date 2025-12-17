@@ -1,6 +1,6 @@
-# Pantheon Wars - Icons Directory
+# Divine Ascension - Icons Directory
 
-This directory contains all icon assets for the Pantheon Wars mod.
+This directory contains all icon assets for the Divine Ascension mod.
 
 ## Structure
 
@@ -39,10 +39,10 @@ Icons are referenced using the Vintage Story asset path format:
 
 ```csharp
 // Deity symbols
-string khorasIcon = "pantheonwars:textures/icons/deities/khoras.png";
+string khorasIcon = "divineascension:textures/icons/deities/khoras.png";
 
 // Perk icons
-string perkIcon = "pantheonwars:textures/icons/perks/khoras/warriors_resolve.png";
+string perkIcon = "divineascension:textures/icons/perks/khoras/warriors_resolve.png";
 ```
 
 ## Status

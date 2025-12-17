@@ -9,7 +9,7 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Tests.Helpers;
+namespace DivineAscension.Tests.Helpers;
 
 /// <summary>
 ///     Provides reusable test fixtures and mock objects for unit tests

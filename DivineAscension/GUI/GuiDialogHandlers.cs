@@ -21,9 +21,9 @@ public partial class GuiDialog
         if (_state.IsReady) return;
 
         // Request blessing data from server
-        if (_pantheonWarsSystem != null)
+        if (_divineAscensionModSystem != null)
         {
-            _pantheonWarsSystem.NetworkClient?.RequestBlessingData();
+            _divineAscensionModSystem.NetworkClient?.RequestBlessingData();
             // Don't set _state.IsReady yet - wait for server response in OnBlessingDataReceived
             _capi!.Event.UnregisterGameTickListener(_checkDataId);
         }
@@ -122,7 +122,7 @@ public partial class GuiDialog
         _state.IsReady = true; // Keep dialog ready so it doesn't close
 
         // Request fresh data from server (will show "No Religion" state)
-        _pantheonWarsSystem?.NetworkClient?.RequestBlessingData();
+        _divineAscensionModSystem?.NetworkClient?.RequestBlessingData();
 
         // If notification is about civilization, also refresh civilization data
         if (packet.Reason.Contains("civilization", StringComparison.OrdinalIgnoreCase))
@@ -177,17 +177,18 @@ public partial class GuiDialog
 
             // Refresh religion tab data
             _manager!.ReligionStateManager.State.BrowseState.IsBrowseLoading = true;
-            _pantheonWarsSystem?.NetworkClient?.RequestReligionList(_manager.ReligionStateManager.State.BrowseState
+            _divineAscensionModSystem?.NetworkClient?.RequestReligionList(_manager.ReligionStateManager.State
+                .BrowseState
                 .DeityFilter);
 
             if (_manager.HasReligion() && packet.Action != "leave")
             {
                 _manager.ReligionStateManager.State.InfoState.Loading = true;
-                _pantheonWarsSystem?.NetworkClient?.RequestPlayerReligionInfo();
+                _divineAscensionModSystem?.NetworkClient?.RequestPlayerReligionInfo();
             }
 
             // Request fresh blessing data (religion may have changed)
-            _pantheonWarsSystem?.NetworkClient?.RequestBlessingData();
+            _divineAscensionModSystem?.NetworkClient?.RequestBlessingData();
 
             // Clear confirmations
             _manager.ReligionStateManager.State.InfoState.ShowDisbandConfirm = false;
@@ -262,7 +263,7 @@ public partial class GuiDialog
     private void RefreshRolesList()
     {
         var religionUID = _manager!.ReligionStateManager.CurrentReligionUID;
-        if (!string.IsNullOrEmpty(religionUID)) _pantheonWarsSystem!.UiService.RequestReligionRoles(religionUID);
+        if (!string.IsNullOrEmpty(religionUID)) _divineAscensionModSystem!.UiService.RequestReligionRoles(religionUID);
     }
 
     /// <summary>

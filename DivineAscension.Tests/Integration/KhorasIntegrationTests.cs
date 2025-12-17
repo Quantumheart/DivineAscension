@@ -4,11 +4,11 @@ using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
+using DivineAscension.Tests.Helpers;
 using Moq;
-using PantheonWars.Tests.Helpers;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Tests.Integration;
+namespace DivineAscension.Tests.Integration;
 
 /// <summary>
 /// Integration tests for Khoras deity system

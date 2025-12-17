@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.GUI.UI.Utilities;
 
-namespace PantheonWars.Tests.GUI.UI.Utilities;
+namespace DivineAscension.Tests.GUI.UI.Utilities;
 
 /// <summary>
 ///     Unit tests for ColorPalette utility class

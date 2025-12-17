@@ -30,7 +30,7 @@ public static class GuiIconLoader
         if (_api == null) return null;
 
         var iconName = name.ToLowerInvariant();
-        var assetPath = new AssetLocation($"pantheonwars:textures/icons/{directory}/{iconName}.png");
+        var assetPath = new AssetLocation($"divineascension:textures/icons/{directory}/{iconName}.png");
 
         try
         {

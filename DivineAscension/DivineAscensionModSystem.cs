@@ -17,7 +17,7 @@ namespace DivineAscension;
 [ExcludeFromCodeCoverage]
 public class DivineAscensionModSystem : ModSystem
 {
-    public const string NETWORK_CHANNEL = "pantheonwars";
+    public const string NETWORK_CHANNEL = "divineascension";
     private BlessingNetworkHandler? _blessingNetworkHandler;
     private CivilizationManager? _civilizationManager;
     private CivilizationNetworkHandler? _civilizationNetworkHandler;
@@ -35,10 +35,10 @@ public class DivineAscensionModSystem : ModSystem
     private IServerNetworkChannel? _serverChannel;
 
     // Public network client for UI dialogs
-    public PantheonWarsNetworkClient? NetworkClient { get; private set; }
+    public DivineAscensionNetworkClient? NetworkClient { get; private set; }
     public IUiService UiService { get; private set; } = null!;
 
-    public string ModName => "pantheonwars";
+    public string ModName => "divineascension";
 
     public override void Start(ICoreAPI api)
     {
@@ -48,7 +48,7 @@ public class DivineAscensionModSystem : ModSystem
         // Register Harmony Patches
         if (_harmony == null)
         {
-            _harmony = new Harmony("com.pantheonwars.patches");
+            _harmony = new Harmony("com.divineascension.patches");
             _harmony.PatchAll(Assembly.GetExecutingAssembly());
             api.Logger.Notification("[DivineAscension] Harmony patches registered.");
         }
@@ -101,7 +101,7 @@ public class DivineAscensionModSystem : ModSystem
         SetupServerNetworking(api);
 
         // Initialize all server systems using the initializer
-        var result = PantheonWarsSystemInitializer.InitializeServerSystems(api, _serverChannel);
+        var result = DivineAscensionSystemInitializer.InitializeServerSystems(api, _serverChannel);
 
         // Store references to managers for disposal and event subscriptions
         _religionManager = result.ReligionManager;
@@ -123,7 +123,7 @@ public class DivineAscensionModSystem : ModSystem
 
         // Setup network client
         var clientChannel = api.Network.GetChannel(NETWORK_CHANNEL);
-        NetworkClient = new PantheonWarsNetworkClient();
+        NetworkClient = new DivineAscensionNetworkClient();
         NetworkClient.Initialize(api);
         NetworkClient.RegisterHandlers(clientChannel);
         UiService = new UiService(NetworkClient);
@@ -136,7 +136,7 @@ public class DivineAscensionModSystem : ModSystem
         base.Dispose();
 
         // Unpatch Harmony
-        _harmony?.UnpatchAll("com.pantheonwars.patches");
+        _harmony?.UnpatchAll("com.divineascension.patches");
 
         // Cleanup network handlers
         _playerDataNetworkHandler?.Dispose();

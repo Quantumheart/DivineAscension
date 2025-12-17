@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Systems;
 
-namespace PantheonWars.Tests.Systems;
+namespace DivineAscension.Tests.Systems;
 
 [ExcludeFromCodeCoverage]
 public class RankRequirementsTests

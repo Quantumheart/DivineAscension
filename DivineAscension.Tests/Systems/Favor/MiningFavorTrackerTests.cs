@@ -3,13 +3,13 @@ using System.Reflection;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.Interfaces;
+using DivineAscension.Tests.Helpers;
 using Moq;
-using PantheonWars.Tests.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Tests.Systems.Favor;
+namespace DivineAscension.Tests.Systems.Favor;
 
 [ExcludeFromCodeCoverage]
 public class MiningFavorTrackerTests

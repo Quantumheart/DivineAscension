@@ -11,7 +11,7 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 
-namespace PantheonWars.Tests.GUI.Managers;
+namespace DivineAscension.Tests.GUI.Managers;
 
 [ExcludeFromCodeCoverage]
 public class BlessingStateManagerTests

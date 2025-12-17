@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Data;
 
-namespace PantheonWars.Tests.Data;
+namespace DivineAscension.Tests.Data;
 
 [ExcludeFromCodeCoverage]
 public class CivilizationDataTests

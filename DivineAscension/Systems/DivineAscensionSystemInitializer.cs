@@ -9,11 +9,11 @@ namespace DivineAscension.Systems;
 
 /// <summary>
 ///     Handles initialization of all DivineAscension server-side systems.
-///     This class extracts the complex initialization logic from PantheonWarsSystem.cs
+///     This class extracts the complex initialization logic from DivineAscensionModSystem.cs
 ///     to improve maintainability and testability.
 /// </summary>
 [ExcludeFromCodeCoverage]
-public static class PantheonWarsSystemInitializer
+public static class DivineAscensionSystemInitializer
 {
     /// <summary>
     ///     Initialize all server-side systems in the correct order.
@@ -32,7 +32,7 @@ public static class PantheonWarsSystemInitializer
         PitKilnPatches.ClearSubscribers();
         AnvilPatches.ClearSubscribers();
 
-        api.RegisterEntityBehaviorClass("PantheonWarsBuffTracker", typeof(EntityBehaviorBuffTracker));
+        api.RegisterEntityBehaviorClass("DivineAscensionBuffTracker", typeof(EntityBehaviorBuffTracker));
 
         var deityRegistry = new DeityRegistry(api);
         deityRegistry.Initialize();

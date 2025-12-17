@@ -9,7 +9,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Tests.Commands.Helpers;
+namespace DivineAscension.Tests.Commands.Helpers;
 
 [ExcludeFromCodeCoverage]
 public class ReligionCommandsTestHelpers

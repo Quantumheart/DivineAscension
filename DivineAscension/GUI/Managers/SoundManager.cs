@@ -13,14 +13,14 @@ public class SoundManager(ICoreClientAPI api) : ISoundManager
 
     private static readonly Dictionary<SoundType, string> SoundPaths = new()
     {
-        { SoundType.Click, "pantheonwars:sounds/click" },
-        { SoundType.Error, "pantheonwars:sounds/error" },
-        { SoundType.Unlock, "pantheonwars:sounds/unlock" },
-        { SoundType.Tick, "pantheonwars:sounds/tick" },
-        { SoundType.UnlockKhoras, "pantheonwars:sounds/deities/Khoras" },
-        { SoundType.UnlockLysa, "pantheonwars:sounds/deities/Lysa" },
-        { SoundType.UnlockAethra, "pantheonwars:sounds/deities/Aethra" },
-        { SoundType.UnlockGaia, "pantheonwars:sounds/deities/Gaia" }
+        { SoundType.Click, "divineascension:sounds/click" },
+        { SoundType.Error, "divineascension:sounds/error" },
+        { SoundType.Unlock, "divineascension:sounds/unlock" },
+        { SoundType.Tick, "divineascension:sounds/tick" },
+        { SoundType.UnlockKhoras, "divineascension:sounds/deities/Khoras" },
+        { SoundType.UnlockLysa, "divineascension:sounds/deities/Lysa" },
+        { SoundType.UnlockAethra, "divineascension:sounds/deities/Aethra" },
+        { SoundType.UnlockGaia, "divineascension:sounds/deities/Gaia" }
     };
 
     private static readonly Dictionary<SoundVolume, float> VolumeValues = new()

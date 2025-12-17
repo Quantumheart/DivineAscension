@@ -7,7 +7,7 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 
-namespace PantheonWars.Tests.GUI.Managers;
+namespace DivineAscension.Tests.GUI.Managers;
 
 [ExcludeFromCodeCoverage]
 public class SoundManagerTests
@@ -39,7 +39,7 @@ public class SoundManagerTests
 
         // Assert
         _mockWorld.Verify(w => w.PlaySoundAt(
-            It.Is<AssetLocation>(al => al != null && al.ToString() == "pantheonwars:sounds/click"),
+            It.Is<AssetLocation>(al => al != null && al.ToString() == "divineascension:sounds/click"),
             _mockEntity.Object,
             It.Is<IPlayer?>(p => p == null),
             false,
@@ -54,7 +54,7 @@ public class SoundManagerTests
         _sut.PlayClick();
 
         _mockWorld.Verify(w => w.PlaySoundAt(
-            It.Is<AssetLocation>(al => al.ToString() == "pantheonwars:sounds/click"),
+            It.Is<AssetLocation>(al => al.ToString() == "divineascension:sounds/click"),
             _mockEntity.Object,
             It.IsAny<IPlayer?>(),
             false,
@@ -69,7 +69,7 @@ public class SoundManagerTests
         _sut.PlayError();
 
         _mockWorld.Verify(w => w.PlaySoundAt(
-            It.Is<AssetLocation>(al => al.ToString() == "pantheonwars:sounds/error"),
+            It.Is<AssetLocation>(al => al.ToString() == "divineascension:sounds/error"),
             _mockEntity.Object,
             It.IsAny<IPlayer?>(),
             false,
@@ -84,7 +84,7 @@ public class SoundManagerTests
         _sut.PlaySuccess();
 
         _mockWorld.Verify(w => w.PlaySoundAt(
-            It.Is<AssetLocation>(al => al.ToString() == "pantheonwars:sounds/unlock"),
+            It.Is<AssetLocation>(al => al.ToString() == "divineascension:sounds/unlock"),
             _mockEntity.Object,
             It.IsAny<IPlayer?>(),
             false,
@@ -94,10 +94,10 @@ public class SoundManagerTests
     }
 
     [Theory]
-    [InlineData(DeityType.Khoras, "pantheonwars:sounds/deities/Khoras")]
-    [InlineData(DeityType.Lysa, "pantheonwars:sounds/deities/Lysa")]
-    [InlineData(DeityType.Aethra, "pantheonwars:sounds/deities/Aethra")]
-    [InlineData(DeityType.Gaia, "pantheonwars:sounds/deities/Gaia")]
+    [InlineData(DeityType.Khoras, "divineascension:sounds/deities/Khoras")]
+    [InlineData(DeityType.Lysa, "divineascension:sounds/deities/Lysa")]
+    [InlineData(DeityType.Aethra, "divineascension:sounds/deities/Aethra")]
+    [InlineData(DeityType.Gaia, "divineascension:sounds/deities/Gaia")]
     public void PlayDeityUnlock_MapsDeityToSpecificSound_AtLoudVolume(DeityType deity, string expectedPath)
     {
         _sut.PlayDeityUnlock(deity);

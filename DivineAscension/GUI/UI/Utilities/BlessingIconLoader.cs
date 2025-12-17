@@ -11,7 +11,7 @@ namespace DivineAscension.GUI.UI.Utilities;
 /// <summary>
 ///     Manages loading and caching of blessing icon textures for ImGui rendering
 ///     Provides texture IDs for use with ImGui drawList.AddImage() calls
-///     Icons are organized by deity: assets/pantheonwars/textures/icons/perks/{deity}/{iconName}.png
+///     Icons are organized by deity: assets/divineascension/textures/icons/perks/{deity}/{iconName}.png
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class BlessingIconLoader
@@ -41,7 +41,7 @@ internal static class BlessingIconLoader
 
         var deityName = deity.ToString().ToLowerInvariant();
         var normalizedIconName = iconName.ToLowerInvariant();
-        var assetPath = new AssetLocation($"pantheonwars:textures/icons/perks/{deityName}/{normalizedIconName}.png");
+        var assetPath = new AssetLocation($"divineascension:textures/icons/perks/{deityName}/{normalizedIconName}.png");
 
         try
         {

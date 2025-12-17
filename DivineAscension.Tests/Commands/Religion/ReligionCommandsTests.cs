@@ -1,11 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Commands;
+using DivineAscension.Tests.Commands.Helpers;
 using Moq;
-using PantheonWars.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Tests.Commands.Religion;
+namespace DivineAscension.Tests.Commands.Religion;
 
 /// <summary>
 /// Tests for ReligionCommands constructor and RegisterCommands

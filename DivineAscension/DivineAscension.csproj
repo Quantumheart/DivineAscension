@@ -5,7 +5,7 @@
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <OutputPath>bin\$(Configuration)\Mods\mod</OutputPath>
         <Configurations>Debug;Release</Configurations>
-        <AssemblyName>pantheonwars</AssemblyName>
+        <AssemblyName>divineascension</AssemblyName>
         <Nullable>enable</Nullable>
         <RootNamespace>DivineAscension</RootNamespace>
     </PropertyGroup>

@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
-using PantheonWars.Tests.Commands.Helpers;
+using DivineAscension.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
 
-namespace PantheonWars.Tests.Commands.Favor;
+namespace DivineAscension.Tests.Commands.Favor;
 
 /// <summary>
 /// Tests for the /favor info command

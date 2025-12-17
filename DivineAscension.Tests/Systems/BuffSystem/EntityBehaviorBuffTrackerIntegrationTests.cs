@@ -4,7 +4,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
 
-namespace PantheonWars.Tests.Systems.BuffSystem;
+namespace DivineAscension.Tests.Systems.BuffSystem;
 
 /// <summary>
 ///     Integration tests for EntityBehaviorBuffTracker
@@ -39,7 +39,7 @@ public class EntityBehaviorBuffTrackerIntegrationTests
 
         // Assert
         Assert.NotNull(tracker);
-        Assert.Equal("PantheonWarsBuffTracker", tracker.PropertyName());
+        Assert.Equal("DivineAscensionBuffTracker", tracker.PropertyName());
     }
 
     [Fact]
@@ -471,7 +471,7 @@ public class EntityBehaviorBuffTrackerIntegrationTests
         tracker.AddEffect(effect);
 
         // Assert - Check that data was saved to WatchedAttributes
-        var effectsTree = entity.WatchedAttributes.GetTreeAttribute("pantheonwars_effects");
+        var effectsTree = entity.WatchedAttributes.GetTreeAttribute("divineascension_effects");
         Assert.NotNull(effectsTree);
         Assert.Equal(1, effectsTree.GetInt("count"));
     }
@@ -489,7 +489,7 @@ public class EntityBehaviorBuffTrackerIntegrationTests
         tracker.RemoveEffect("buff");
 
         // Assert - Count should be 0 after removal
-        var effectsTree = entity.WatchedAttributes.GetTreeAttribute("pantheonwars_effects");
+        var effectsTree = entity.WatchedAttributes.GetTreeAttribute("divineascension_effects");
         Assert.NotNull(effectsTree);
         Assert.Equal(0, effectsTree.GetInt("count"));
     }
@@ -506,7 +506,7 @@ public class EntityBehaviorBuffTrackerIntegrationTests
         var effectsTree = new TreeAttribute();
         effectsTree.SetInt("count", 1);
         effectsTree["effect_0"] = effect.ToTreeAttribute();
-        entity.WatchedAttributes["pantheonwars_effects"] = effectsTree;
+        entity.WatchedAttributes["divineascension_effects"] = effectsTree;
 
         // Act - Create tracker and manually call Initialize (can't use constructor because GetBehavior needs SidedProperties)
         var tracker = new EntityBehaviorBuffTracker(entity);

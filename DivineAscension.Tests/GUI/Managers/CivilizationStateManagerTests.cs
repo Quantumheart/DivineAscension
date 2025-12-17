@@ -8,7 +8,7 @@ using DivineAscension.Systems.Interfaces;
 using Moq;
 using Vintagestory.API.Client;
 
-namespace PantheonWars.Tests.GUI.Managers;
+namespace DivineAscension.Tests.GUI.Managers;
 
 [ExcludeFromCodeCoverage]
 public class CivilizationStateManagerTests

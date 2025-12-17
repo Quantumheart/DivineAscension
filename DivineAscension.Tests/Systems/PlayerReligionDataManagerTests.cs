@@ -3,13 +3,13 @@ using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
+using DivineAscension.Tests.Helpers;
 using Moq;
-using PantheonWars.Tests.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
-namespace PantheonWars.Tests.Systems;
+namespace DivineAscension.Tests.Systems;
 
 /// <summary>
 ///     Unit tests for PlayerReligionDataManager
@@ -745,7 +745,7 @@ public class PlayerReligionDataManagerTests
 
         // Assert
         Assert.NotNull(savedData);
-        mockSaveGame.Verify(s => s.StoreData("pantheonwars_playerreligiondata_player-uid", It.IsAny<byte[]>()),
+        mockSaveGame.Verify(s => s.StoreData("divineascension_playerreligiondata_player-uid", It.IsAny<byte[]>()),
             Times.Once());
         _mockLogger.Verify(
             l => l.Debug(It.Is<string>(s => s.Contains("Saved religion data") && s.Contains("player-uid"))),
@@ -812,7 +812,7 @@ public class PlayerReligionDataManagerTests
         var serialized = SerializerUtil.Serialize(savedData);
 
         mockSaveGame
-            .Setup(s => s.GetData("pantheonwars_playerreligiondata_player-uid"))
+            .Setup(s => s.GetData("divineascension_playerreligiondata_player-uid"))
             .Returns(serialized);
 
         // Act
@@ -936,7 +936,7 @@ public class PlayerReligionDataManagerTests
         var serialized = SerializerUtil.Serialize(savedData);
 
         mockSaveGame
-            .Setup(s => s.GetData("pantheonwars_playerreligiondata_player-uid"))
+            .Setup(s => s.GetData("divineascension_playerreligiondata_player-uid"))
             .Returns(serialized);
 
         // Act

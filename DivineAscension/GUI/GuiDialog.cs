@@ -30,10 +30,10 @@ public partial class GuiDialog : ModSystem
 
     private ICoreClientAPI? _capi;
     private long _checkDataId;
+    private DivineAscensionModSystem? _divineAscensionModSystem;
     private ImGuiModSystem? _imguiModSystem;
 
     private GuiDialogManager? _manager;
-    private DivineAscensionModSystem? _pantheonWarsSystem;
     private ISoundManager? _soundManager;
     private Stopwatch? _stopwatch;
     private ImGuiViewportPtr _viewport;
@@ -45,7 +45,7 @@ public partial class GuiDialog : ModSystem
 
     public override double ExecuteOrder()
     {
-        return 1.5; // Load after main PantheonWarsSystem (1.0)
+        return 1.5; // Load after main DivineAscensionModSystem (1.0)
     }
 
     public override void StartClientSide(ICoreClientAPI api)
@@ -57,9 +57,9 @@ public partial class GuiDialog : ModSystem
         _stopwatch = Stopwatch.StartNew();
 
         // Register keybind (P key to open)
-        _capi.Input.RegisterHotKey("pantheonwarsblessings", "Show/Hide Blessing Dialog", GlKeys.G,
+        _capi.Input.RegisterHotKey("divineascensionblessings", "Show/Hide Blessing Dialog", GlKeys.G,
             HotkeyType.GUIOrOtherControls, shiftPressed: true);
-        _capi.Input.SetHotKeyHandler("pantheonwarsblessings", OnToggleDialog);
+        _capi.Input.SetHotKeyHandler("divineascensionblessings", OnToggleDialog);
 
         // Initialize icon loaders
         DeityIconLoader.Initialize(_capi);
@@ -67,33 +67,33 @@ public partial class GuiDialog : ModSystem
         CivilizationIconLoader.Initialize(_capi);
         BlessingIconLoader.Initialize(_capi);
 
-        // Get PantheonWarsSystem for network communication
-        _pantheonWarsSystem = _capi.ModLoader.GetModSystem<DivineAscensionModSystem>();
+        // Get DivineAscensionSystem for network communication
+        _divineAscensionModSystem = _capi.ModLoader.GetModSystem<DivineAscensionModSystem>();
         _soundManager = new SoundManager(_capi);
-        _manager = new GuiDialogManager(_capi, _pantheonWarsSystem!.UiService, _soundManager);
-        if (_pantheonWarsSystem?.NetworkClient != null)
+        _manager = new GuiDialogManager(_capi, _divineAscensionModSystem!.UiService, _soundManager);
+        if (_divineAscensionModSystem?.NetworkClient != null)
         {
-            _pantheonWarsSystem.NetworkClient.BlessingUnlocked += OnBlessingUnlockedFromServer;
-            _pantheonWarsSystem.NetworkClient.BlessingDataReceived += OnBlessingDataReceived;
-            _pantheonWarsSystem.NetworkClient.ReligionStateChanged += OnReligionStateChanged;
-            _pantheonWarsSystem.NetworkClient.ReligionListReceived += OnReligionListReceived;
-            _pantheonWarsSystem.NetworkClient.ReligionActionCompleted += OnReligionActionCompleted;
-            _pantheonWarsSystem.NetworkClient.ReligionRolesReceived += OnReligionRolesReceived;
-            _pantheonWarsSystem.NetworkClient.RoleCreated += OnRoleCreated;
-            _pantheonWarsSystem.NetworkClient.RolePermissionsModified += OnRolePermissionsModified;
-            _pantheonWarsSystem.NetworkClient.RoleAssigned += OnRoleAssigned;
-            _pantheonWarsSystem.NetworkClient.RoleDeleted += OnRoleDeleted;
-            _pantheonWarsSystem.NetworkClient.FounderTransferred += OnFounderTransferred;
-            _pantheonWarsSystem.NetworkClient.PlayerReligionInfoReceived += OnPlayerReligionInfoReceived;
-            _pantheonWarsSystem.NetworkClient.PlayerReligionDataUpdated += OnPlayerReligionDataUpdated;
-            _pantheonWarsSystem.NetworkClient.CivilizationListReceived += OnCivilizationListReceived;
-            _pantheonWarsSystem.NetworkClient.CivilizationInfoReceived += OnCivilizationInfoReceived;
-            _pantheonWarsSystem.NetworkClient.CivilizationActionCompleted += OnCivilizationActionCompleted;
+            _divineAscensionModSystem.NetworkClient.BlessingUnlocked += OnBlessingUnlockedFromServer;
+            _divineAscensionModSystem.NetworkClient.BlessingDataReceived += OnBlessingDataReceived;
+            _divineAscensionModSystem.NetworkClient.ReligionStateChanged += OnReligionStateChanged;
+            _divineAscensionModSystem.NetworkClient.ReligionListReceived += OnReligionListReceived;
+            _divineAscensionModSystem.NetworkClient.ReligionActionCompleted += OnReligionActionCompleted;
+            _divineAscensionModSystem.NetworkClient.ReligionRolesReceived += OnReligionRolesReceived;
+            _divineAscensionModSystem.NetworkClient.RoleCreated += OnRoleCreated;
+            _divineAscensionModSystem.NetworkClient.RolePermissionsModified += OnRolePermissionsModified;
+            _divineAscensionModSystem.NetworkClient.RoleAssigned += OnRoleAssigned;
+            _divineAscensionModSystem.NetworkClient.RoleDeleted += OnRoleDeleted;
+            _divineAscensionModSystem.NetworkClient.FounderTransferred += OnFounderTransferred;
+            _divineAscensionModSystem.NetworkClient.PlayerReligionInfoReceived += OnPlayerReligionInfoReceived;
+            _divineAscensionModSystem.NetworkClient.PlayerReligionDataUpdated += OnPlayerReligionDataUpdated;
+            _divineAscensionModSystem.NetworkClient.CivilizationListReceived += OnCivilizationListReceived;
+            _divineAscensionModSystem.NetworkClient.CivilizationInfoReceived += OnCivilizationInfoReceived;
+            _divineAscensionModSystem.NetworkClient.CivilizationActionCompleted += OnCivilizationActionCompleted;
         }
         else
         {
             _capi.Logger.Error(
-                "[DivineAscension] PantheonWarsSystem or NetworkClient not found! Blessing unlocking will not work.");
+                "[DivineAscension] DivineAscensionModSystem or NetworkClient not found! Blessing unlocking will not work.");
         }
 
         // Get ImGui mod system
@@ -128,7 +128,7 @@ public partial class GuiDialog : ModSystem
             return;
         }
 
-        _pantheonWarsSystem!.UiService.RequestReligionList();
+        _divineAscensionModSystem!.UiService.RequestReligionList();
         _state.IsOpen = true;
         _imguiModSystem?.Show();
     }
@@ -263,18 +263,18 @@ public partial class GuiDialog : ModSystem
         if (_capi != null && _checkDataId != 0) _capi.Event.UnregisterGameTickListener(_checkDataId);
 
         // Unsubscribe from events
-        if (_pantheonWarsSystem?.NetworkClient != null)
+        if (_divineAscensionModSystem?.NetworkClient != null)
         {
-            _pantheonWarsSystem.NetworkClient.BlessingUnlocked -= OnBlessingUnlockedFromServer;
-            _pantheonWarsSystem.NetworkClient.BlessingDataReceived -= OnBlessingDataReceived;
-            _pantheonWarsSystem.NetworkClient.ReligionStateChanged -= OnReligionStateChanged;
-            _pantheonWarsSystem.NetworkClient.ReligionListReceived -= OnReligionListReceived;
-            _pantheonWarsSystem.NetworkClient.ReligionActionCompleted -= OnReligionActionCompleted;
-            _pantheonWarsSystem.NetworkClient.PlayerReligionInfoReceived -= OnPlayerReligionInfoReceived;
-            _pantheonWarsSystem.NetworkClient.PlayerReligionDataUpdated -= OnPlayerReligionDataUpdated;
-            _pantheonWarsSystem.NetworkClient.CivilizationListReceived -= OnCivilizationListReceived;
-            _pantheonWarsSystem.NetworkClient.CivilizationInfoReceived -= OnCivilizationInfoReceived;
-            _pantheonWarsSystem.NetworkClient.CivilizationActionCompleted -= OnCivilizationActionCompleted;
+            _divineAscensionModSystem.NetworkClient.BlessingUnlocked -= OnBlessingUnlockedFromServer;
+            _divineAscensionModSystem.NetworkClient.BlessingDataReceived -= OnBlessingDataReceived;
+            _divineAscensionModSystem.NetworkClient.ReligionStateChanged -= OnReligionStateChanged;
+            _divineAscensionModSystem.NetworkClient.ReligionListReceived -= OnReligionListReceived;
+            _divineAscensionModSystem.NetworkClient.ReligionActionCompleted -= OnReligionActionCompleted;
+            _divineAscensionModSystem.NetworkClient.PlayerReligionInfoReceived -= OnPlayerReligionInfoReceived;
+            _divineAscensionModSystem.NetworkClient.PlayerReligionDataUpdated -= OnPlayerReligionDataUpdated;
+            _divineAscensionModSystem.NetworkClient.CivilizationListReceived -= OnCivilizationListReceived;
+            _divineAscensionModSystem.NetworkClient.CivilizationInfoReceived -= OnCivilizationInfoReceived;
+            _divineAscensionModSystem.NetworkClient.CivilizationActionCompleted -= OnCivilizationActionCompleted;
         }
 
         // Dispose icon loaders

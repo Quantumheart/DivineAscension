@@ -19,7 +19,7 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
 
     public delegate void PlayerReligionDataChangedDelegate(IServerPlayer player, string religionUID);
 
-    private const string DATA_KEY = "pantheonwars_playerreligiondata";
+    private const string DATA_KEY = "divineascension_playerreligiondata";
     private const int RELIGION_SWITCH_COOLDOWN_DAYS = 7;
     private readonly Dictionary<string, PlayerReligionData> _playerData = new();
     private readonly IReligionManager _religionManager;

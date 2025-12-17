@@ -3,7 +3,7 @@ using DivineAscension.Models.Enum;
 using DivineAscension.Network;
 using ProtoBuf;
 
-namespace PantheonWars.Tests.Network;
+namespace DivineAscension.Tests.Network;
 
 [ExcludeFromCodeCoverage]
 public class PlayerDataPacketTests

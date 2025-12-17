@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 
-namespace PantheonWars.Tests.Models;
+namespace DivineAscension.Tests.Models;
 
 [ExcludeFromCodeCoverage]
 public class DeityTests

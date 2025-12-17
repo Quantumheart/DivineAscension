@@ -4,10 +4,10 @@ using DivineAscension.Systems.Interfaces;
 
 namespace DivineAscension.Systems.Networking.Client;
 
-public class UiService(PantheonWarsNetworkClient networkClient)
+public class UiService(DivineAscensionNetworkClient networkClient)
     : IUiService
 {
-    private readonly PantheonWarsNetworkClient _networkClient =
+    private readonly DivineAscensionNetworkClient _networkClient =
         networkClient ?? throw new ArgumentNullException(nameof(networkClient));
 
     public void RequestBlessingData()

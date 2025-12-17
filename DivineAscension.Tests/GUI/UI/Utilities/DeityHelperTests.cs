@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
 
-namespace PantheonWars.Tests.GUI.UI.Utilities;
+namespace DivineAscension.Tests.GUI.UI.Utilities;
 
 /// <summary>
 ///     Unit tests for DeityHelper

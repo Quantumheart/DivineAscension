@@ -14,7 +14,7 @@ namespace DivineAscension.Systems;
 /// </summary>
 public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionManager)
 {
-    private const string DATA_KEY = "pantheonwars_civilizations";
+    private const string DATA_KEY = "divineascension_civilizations";
     private const int MIN_RELIGIONS = 1;
     private const int MAX_RELIGIONS = 4;
     private const int INVITE_EXPIRY_DAYS = 7;

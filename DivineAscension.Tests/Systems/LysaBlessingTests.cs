@@ -4,7 +4,7 @@ using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
 
-namespace PantheonWars.Tests.Systems;
+namespace DivineAscension.Tests.Systems;
 
 /// <summary>
 /// Tests for Lysa (Hunt & Wild) blessing definitions

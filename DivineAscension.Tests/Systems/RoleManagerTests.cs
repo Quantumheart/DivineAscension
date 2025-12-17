@@ -6,7 +6,7 @@ using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using Moq;
 
-namespace PantheonWars.Tests.Systems;
+namespace DivineAscension.Tests.Systems;
 
 /// <summary>
 ///     Unit tests for RoleManager

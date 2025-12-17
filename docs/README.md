@@ -1,6 +1,6 @@
-# PantheonWars Documentation
+# Divine Ascension Documentation
 
-This directory contains contributor documentation for the PantheonWars mod. It is organized by topic to keep design notes, implementation guides, and references easy to find.
+This directory contains contributor documentation for the Divine Ascension mod. It is organized by topic to keep design notes, implementation guides, and references easy to find.
 
 Tip: Build and test instructions live in the root `README.md`. Start there for environment setup and test commands.
 

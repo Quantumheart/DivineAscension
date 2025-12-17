@@ -1,6 +1,7 @@
-# PantheonWars Test Suite
+# Divine Ascension Test Suite
 
-This directory contains comprehensive unit and integration tests for the PantheonWars mod, following industry best practices with proper mocking and dependency injection.
+This directory contains comprehensive unit and integration tests for the Divine Ascension mod, following industry best
+practices with proper mocking and dependency injection.
 
 ## Quick Links
 
@@ -63,7 +64,7 @@ public class MySystemTests
 ## Test Organization
 
 ```
-PantheonWars.Tests/
+DivineAscension.Tests/
 ├── Helpers/
 │   └── TestFixtures.cs           # Reusable mock factories and test data
 ├── Systems/

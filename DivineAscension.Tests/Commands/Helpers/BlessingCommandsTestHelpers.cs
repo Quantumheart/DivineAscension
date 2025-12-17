@@ -5,7 +5,7 @@ using Moq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Tests.Commands.Helpers;
+namespace DivineAscension.Tests.Commands.Helpers;
 
 [ExcludeFromCodeCoverage]
 public class BlessingCommandsTestHelpers

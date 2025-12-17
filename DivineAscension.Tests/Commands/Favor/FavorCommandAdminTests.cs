@@ -1,11 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Tests.Commands.Helpers;
 using Moq;
-using PantheonWars.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
 
-namespace PantheonWars.Tests.Commands.Favor;
+namespace DivineAscension.Tests.Commands.Favor;
 
 /// <summary>
 /// Tests for admin favor commands (add, remove, reset, max, settotal)

@@ -1,11 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
+using DivineAscension.Tests.Helpers;
 using Moq;
-using PantheonWars.Tests.Helpers;
 using Vintagestory.API.Common;
 
-namespace PantheonWars.Tests.Systems;
+namespace DivineAscension.Tests.Systems;
 
 /// <summary>
 ///     Unit tests for DeityRegistry

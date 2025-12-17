@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models;
 
-namespace PantheonWars.Tests.Models;
+namespace DivineAscension.Tests.Models;
 
 [ExcludeFromCodeCoverage]
 public class PlayerFavorProgressTests

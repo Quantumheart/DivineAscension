@@ -2,12 +2,12 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Tests.Commands.Helpers;
 using Moq;
-using PantheonWars.Tests.Commands.Helpers;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Tests.Commands.Blessing;
+namespace DivineAscension.Tests.Commands.Blessing;
 
 [ExcludeFromCodeCoverage]
 public class BlessingCommandReligionTests : BlessingCommandsTestHelpers

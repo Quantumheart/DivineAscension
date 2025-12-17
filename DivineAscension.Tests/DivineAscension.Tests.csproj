@@ -4,7 +4,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <OutputType>Exe</OutputType>
-        <RootNamespace>PantheonWars.Tests</RootNamespace>
+        <RootNamespace>DivineAscension.Tests</RootNamespace>
         <TargetFramework>net8.0</TargetFramework>
         <!--
         This template uses native xUnit.net command line options when using 'dotnet run' and

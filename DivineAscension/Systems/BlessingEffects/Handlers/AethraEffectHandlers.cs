@@ -67,7 +67,7 @@ public static class AethraEffectHandlers
                 dropQuantityMultiplier *= 1.25f;
 
                 // Tag the event for potential downstream integrations via a player attribute flag
-                var tree = player.Entity!.WatchedAttributes.GetOrAddTreeAttribute("pantheonwars");
+                var tree = player.Entity!.WatchedAttributes.GetOrAddTreeAttribute("divineascension");
                 tree.SetString("lastRareCropPath", path);
                 tree.SetLong("lastRareCropGameTimeMs", _sapi.World.ElapsedMilliseconds);
 
@@ -142,7 +142,7 @@ public static class AethraEffectHandlers
             // which may require accessing entity.WatchedAttributes or Stats
 
             // For now, we'll mark the player as having the effect in attributes
-            var tree = entity.WatchedAttributes.GetOrAddTreeAttribute("pantheonwars");
+            var tree = entity.WatchedAttributes.GetOrAddTreeAttribute("divineascension");
             tree.SetBool("never_malnourished", true);
         }
 
@@ -151,7 +151,7 @@ public static class AethraEffectHandlers
             var entity = player.Entity;
             if (entity?.Stats == null) return;
 
-            var tree = entity.WatchedAttributes.GetOrAddTreeAttribute("pantheonwars");
+            var tree = entity.WatchedAttributes.GetOrAddTreeAttribute("divineascension");
             tree.SetBool("never_malnourished", false);
         }
     }
@@ -184,7 +184,7 @@ public static class AethraEffectHandlers
             _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
 
             // Mark player as eligible for blessed meals for other systems to query
-            var tree = player.Entity?.WatchedAttributes.GetOrAddTreeAttribute("pantheonwars");
+            var tree = player.Entity?.WatchedAttributes.GetOrAddTreeAttribute("divineascension");
             tree?.SetBool("blessedMealsEligible", true);
         }
 
@@ -193,7 +193,7 @@ public static class AethraEffectHandlers
             _activePlayers.Remove(player.PlayerUID);
             _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
 
-            var tree = player.Entity?.WatchedAttributes.GetOrAddTreeAttribute("pantheonwars");
+            var tree = player.Entity?.WatchedAttributes.GetOrAddTreeAttribute("divineascension");
             tree?.SetBool("blessedMealsEligible", false);
         }
 
@@ -288,7 +288,7 @@ public static class AethraEffectHandlers
             _activeBuffExpiry[player.PlayerUID] = expiryHours;
 
             // Attribute flag for other systems/UX
-            var tree = entity.WatchedAttributes.GetOrAddTreeAttribute("pantheonwars");
+            var tree = entity.WatchedAttributes.GetOrAddTreeAttribute("divineascension");
             tree.SetDouble("blessedMealBuffExpiryHours", expiryHours);
             tree.SetInt("blessedMealTier", tier);
 
@@ -342,7 +342,7 @@ public static class AethraEffectHandlers
 
             _activeBuffExpiry.Remove(player.PlayerUID);
 
-            var tree = entity.WatchedAttributes.GetOrAddTreeAttribute("pantheonwars");
+            var tree = entity.WatchedAttributes.GetOrAddTreeAttribute("divineascension");
             tree.RemoveAttribute("blessedMealBuffExpiryHours");
             tree.RemoveAttribute("blessedMealTier");
 
