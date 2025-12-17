@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -9,12 +10,22 @@ namespace PantheonWars.Systems.Patches;
 [HarmonyPatch]
 public static class MoldPourPatches
 {
+    private const int DEBOUNCE_MS = 500; // Fire event at most once per 500ms per position
+
+    // Debounce tracking to avoid firing event on every tick during continuous pouring
+    private static readonly ConcurrentDictionary<string, PourAccumulator> ActivePours = new();
+
     // Fires when molten metal is poured into a mold and the fill level increases
     // playerUid may be null if not resolvable
     public static event Action<string?, BlockPos, int, bool>? OnMoldPoured;
 
-    // Patch the generic CollectibleObject to catch crucible pouring without depending on ItemCrucible type
-    [HarmonyPatch(typeof(CollectibleObject), "OnHeldInteractStep")]
+    private static long NowMs()
+    {
+        return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+    }
+
+    // Patch BlockSmeltedContainer (crucible) to catch pouring into molds
+    [HarmonyPatch(typeof(BlockSmeltedContainer), "OnHeldInteractStep")]
     [HarmonyPrefix]
     public static void Prefix_OnHeldInteractStep(
         float secondsUsed,
@@ -55,7 +66,7 @@ public static class MoldPourPatches
         }
     }
 
-    [HarmonyPatch(typeof(CollectibleObject), "OnHeldInteractStep")]
+    [HarmonyPatch(typeof(BlockSmeltedContainer), "OnHeldInteractStep")]
     [HarmonyPostfix]
     public static void Postfix_OnHeldInteractStep(
         float secondsUsed,
@@ -81,7 +92,53 @@ public static class MoldPourPatches
         if (delta <= 0) return;
 
         var playerUid = (byEntity as EntityPlayer)?.Player?.PlayerUID;
-        OnMoldPoured?.Invoke(playerUid, __state.Pos, delta, __state.IsToolMold);
+        if (string.IsNullOrEmpty(playerUid)) return;
+
+        // Use a key combining position and player to track independent pour sessions
+        var key = $"{__state.Pos.X}_{__state.Pos.Y}_{__state.Pos.Z}_{playerUid}";
+        var now = NowMs();
+
+        // Accumulate units and debounce event firing
+        var accumulator = ActivePours.GetOrAdd(key, _ => new PourAccumulator
+        {
+            PlayerUid = playerUid,
+            Pos = __state.Pos.Copy(),
+            IsToolMold = __state.IsToolMold,
+            LastFireMs = now - DEBOUNCE_MS // Allow immediate first fire
+        });
+
+        accumulator.AccumulatedUnits += delta;
+
+        // Only fire event if enough time has passed since last fire
+        if (now - accumulator.LastFireMs >= DEBOUNCE_MS)
+        {
+            OnMoldPoured?.Invoke(playerUid, __state.Pos, accumulator.AccumulatedUnits, __state.IsToolMold);
+            accumulator.AccumulatedUnits = 0;
+            accumulator.LastFireMs = now;
+        }
+    }
+
+    // Hook into OnHeldInteractStop to fire any remaining accumulated units and cleanup
+    [HarmonyPatch(typeof(BlockSmeltedContainer), "OnHeldInteractStop")]
+    [HarmonyPostfix]
+    public static void Postfix_OnHeldInteractStop(
+        float secondsUsed,
+        ItemSlot slot,
+        EntityAgent byEntity,
+        BlockSelection blockSel,
+        EntitySelection entitySel)
+    {
+        if (byEntity?.Api == null || byEntity.Api.Side != EnumAppSide.Server) return;
+        if (blockSel == null) return;
+
+        var playerUid = (byEntity as EntityPlayer)?.Player?.PlayerUID;
+        if (string.IsNullOrEmpty(playerUid)) return;
+
+        var key = $"{blockSel.Position.X}_{blockSel.Position.Y}_{blockSel.Position.Z}_{playerUid}";
+
+        // Fire any remaining accumulated units before cleanup
+        if (ActivePours.TryRemove(key, out var accumulator) && accumulator.AccumulatedUnits > 0)
+            OnMoldPoured?.Invoke(playerUid, blockSel.Position, accumulator.AccumulatedUnits, accumulator.IsToolMold);
     }
 
     // Capture state before a crucible pour step
@@ -91,5 +148,15 @@ public static class MoldPourPatches
         public int PrevLevel;
         public bool IsToolMold;
         public bool Valid;
+    }
+
+    // Accumulates units poured during continuous pour action to debounce event firing
+    private class PourAccumulator
+    {
+        public string PlayerUid { get; set; } = string.Empty;
+        public BlockPos Pos { get; set; } = null!;
+        public bool IsToolMold { get; set; }
+        public int AccumulatedUnits { get; set; }
+        public long LastFireMs { get; set; }
     }
 }
