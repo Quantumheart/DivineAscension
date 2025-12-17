@@ -18,24 +18,25 @@ namespace PantheonWars;
 public class PantheonWarsSystem : ModSystem
 {
     public const string NETWORK_CHANNEL = "pantheonwars";
+    private BlessingNetworkHandler? _blessingNetworkHandler;
+    private CivilizationManager? _civilizationManager;
+    private CivilizationNetworkHandler? _civilizationNetworkHandler;
 
     // Client-side systems
     private FavorSystem? _favorSystem;
 
-    // Public network client for UI dialogs
-    public PantheonWarsNetworkClient? NetworkClient { get; private set; }
-    public IUiService UiService { get; private set; } = null!;
-
     private Harmony? _harmony;
+    private PlayerDataNetworkHandler? _playerDataNetworkHandler;
     private PlayerReligionDataManager? _playerReligionDataManager;
     private ReligionManager? _religionManager;
+    private ReligionNetworkHandler? _religionNetworkHandler;
 
     // Server-side systems
     private IServerNetworkChannel? _serverChannel;
-    private PlayerDataNetworkHandler? _playerDataNetworkHandler;
-    private BlessingNetworkHandler? _blessingNetworkHandler;
-    private ReligionNetworkHandler? _religionNetworkHandler;
-    private CivilizationNetworkHandler? _civilizationNetworkHandler;
+
+    // Public network client for UI dialogs
+    public PantheonWarsNetworkClient? NetworkClient { get; private set; }
+    public IUiService UiService { get; private set; } = null!;
 
     public string ModName => "pantheonwars";
 
@@ -106,6 +107,7 @@ public class PantheonWarsSystem : ModSystem
         _religionManager = result.ReligionManager;
         _playerReligionDataManager = result.PlayerReligionDataManager;
         _favorSystem = result.FavorSystem;
+        _civilizationManager = result.CivilizationManager;
         _playerDataNetworkHandler = result.PlayerDataNetworkHandler;
         _blessingNetworkHandler = result.BlessingNetworkHandler;
         _religionNetworkHandler = result.ReligionNetworkHandler;
@@ -149,6 +151,7 @@ public class PantheonWarsSystem : ModSystem
         _favorSystem?.Dispose();
         _playerReligionDataManager?.Dispose();
         _religionManager?.Dispose();
+        _civilizationManager?.Dispose();
 
         // Clear static events
         PitKilnPatches.ClearSubscribers();

@@ -8,6 +8,11 @@ namespace PantheonWars.Systems.Interfaces;
 public interface IReligionManager : IDisposable
 {
     /// <summary>
+    ///     Event fired when a religion is deleted (either manually or automatically)
+    /// </summary>
+    event Action<string>? OnReligionDeleted;
+
+    /// <summary>
     ///     Initializes the religion manager
     /// </summary>
     void Initialize();

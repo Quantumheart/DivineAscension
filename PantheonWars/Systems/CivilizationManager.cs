@@ -36,8 +36,73 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
         _sapi.Event.SaveGameLoaded += OnSaveGameLoaded;
         _sapi.Event.GameWorldSave += OnGameWorldSave;
 
+        // Subscribe to religion deletion events
+        _religionManager.OnReligionDeleted += HandleReligionDeleted;
+
         _sapi.Logger.Notification("[PantheonWars] Civilization Manager initialized");
     }
+
+    /// <summary>
+    ///     Cleans up event subscriptions
+    /// </summary>
+    public void Dispose()
+    {
+        // Unsubscribe from events
+        _sapi.Event.SaveGameLoaded -= OnSaveGameLoaded;
+        _sapi.Event.GameWorldSave -= OnGameWorldSave;
+        _religionManager.OnReligionDeleted -= HandleReligionDeleted;
+    }
+
+    #region Event Handlers
+
+    /// <summary>
+    ///     Handles religion deletion events from ReligionManager
+    /// </summary>
+    private void HandleReligionDeleted(string religionId)
+    {
+        try
+        {
+            var civ = _data.GetCivilizationByReligion(religionId);
+            if (civ == null)
+                // Religion wasn't in a civilization, nothing to do
+                return;
+
+            _sapi.Logger.Debug(
+                $"[PantheonWars] Handling deletion of religion {religionId} from civilization {civ.Name}");
+
+            // Remove religion from civilization
+            _data.RemoveReligionFromCivilization(religionId);
+
+            // Update member count (recalculate from remaining religions)
+            var totalMembers = 0;
+            foreach (var relId in civ.MemberReligionIds)
+            {
+                var religion = _religionManager.GetReligion(relId);
+                if (religion != null) totalMembers += religion.MemberUIDs.Count;
+            }
+
+            civ.MemberCount = totalMembers;
+
+            // Check if civilization falls below minimum members
+            if (civ.MemberReligionIds.Count < MIN_RELIGIONS)
+            {
+                DisbandCivilization(civ.CivId, civ.FounderUID);
+                _sapi.Logger.Notification(
+                    $"[PantheonWars] Civilization '{civ.Name}' disbanded (religion {religionId} was deleted, below minimum)");
+            }
+            else
+            {
+                _sapi.Logger.Notification(
+                    $"[PantheonWars] Removed deleted religion {religionId} from civilization '{civ.Name}'");
+            }
+        }
+        catch (Exception ex)
+        {
+            _sapi.Logger.Error($"[PantheonWars] Error handling religion deletion: {ex.Message}");
+        }
+    }
+
+    #endregion
 
     #region Civilization CRUD
 
