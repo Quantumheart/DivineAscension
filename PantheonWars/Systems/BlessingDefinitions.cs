@@ -601,7 +601,7 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description = "Foundation for pottery crafting. +20% clay yield when digging, +10% max health.",
-                IconName = "clay-ball",
+                IconName = "dig-hole",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
@@ -617,7 +617,7 @@ public static class BlessingDefinitions
                 Category = BlessingCategory.Utility,
                 Description =
                     "Specialize in pottery crafting. +10% chance to craft duplicate pottery items on completion, +10% digging speed. Crafting path. Requires Clay Shaper.",
-                IconName = "pottery-wheel",
+                IconName = "painted-pottery",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.GaiaClayShaper },
                 StatModifiers = new Dictionary<string, float>
@@ -633,7 +633,7 @@ public static class BlessingDefinitions
                 Category = BlessingCategory.Utility,
                 Description =
                     "Focus on resilience and stonework. +15% armor effectiveness, +15% stone yield. Utility path. Requires Clay Shaper.",
-                IconName = "stone-blocks",
+                IconName = "clay-brick",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.GaiaClayShaper },
                 StatModifiers = new Dictionary<string, float>
@@ -649,8 +649,8 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Achieve legendary pottery crafting. +15% chance to craft duplicate pottery items (total: 60%), +15% digging speed (total: 25%). Requires Master Potter.",
-                IconName = "kiln",
+                    "Achieve legendary pottery crafting. +15% chance to craft duplicate pottery items (total: 45%), +15% digging speed (total: 25%). Requires Master Potter.",
+                IconName = "fire-bowl",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.GaiaMasterPotter },
                 StatModifiers = new Dictionary<string, float>
@@ -666,7 +666,7 @@ public static class BlessingDefinitions
                 Category = BlessingCategory.Utility,
                 Description =
                     "Master fortification and stone gathering. +20% armor effectiveness (total: 35%), +20% stone yield (total: 35%). Requires Earthen Builder.",
-                IconName = "architecture",
+                IconName = "concrete-bag",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthenBuilder },
                 StatModifiers = new Dictionary<string, float>
@@ -701,7 +701,7 @@ public static class BlessingDefinitions
                 Category = BlessingCategory.Utility,
                 Description =
                     "Your congregation shares pottery knowledge. +15% clay yield for all members.",
-                IconName = "pottery-circle",
+                IconName = "cycle",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
@@ -709,14 +709,14 @@ public static class BlessingDefinitions
                 }
             },
 
-            // Tier 2 - Established (500-1999 prestige) - Coordination
+            // Tier 2 - Established (500-1999 prestige)
             new(BlessingIds.GaiaClayGuild, "Clay Guild", DeityType.Gaia)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
                     "A united guild of skilled potters. +5% batch completion chance (craft duplicate pottery) for all. Requires Potter's Circle.",
-                IconName = "clay-guild",
+                IconName = "team-upgrade",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
                 PrerequisiteBlessings = new List<string> { BlessingIds.GaiaPottersCircle },
                 StatModifiers = new Dictionary<string, float>
@@ -726,14 +726,14 @@ public static class BlessingDefinitions
                 SpecialEffects = new List<string> { SpecialEffects.PotteryBatchCompletionBonus }
             },
 
-            // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
+            // Tier 3 - Renowned (2000-4999 prestige)
             new(BlessingIds.GaiaEarthenCommunity, "Earthen Community", DeityType.Gaia)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
                     "A thriving fortified community. +15% armor effectiveness for all. Requires Clay Guild.",
-                IconName = "clay-village",
+                IconName = "armor-upgrade",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
                 PrerequisiteBlessings = new List<string> { BlessingIds.GaiaClayGuild },
                 StatModifiers = new Dictionary<string, float>
@@ -749,7 +749,7 @@ public static class BlessingDefinitions
                 Category = BlessingCategory.Utility,
                 Description =
                     "Your religion becomes legendary potters. +10% max health for all. Requires Earthen Community.",
-                IconName = "divine-pottery",
+                IconName = "mineral-heart",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
                 PrerequisiteBlessings = new List<string> { BlessingIds.GaiaEarthenCommunity },
                 StatModifiers = new Dictionary<string, float>
