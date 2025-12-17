@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using Vintagestory.API.Common;
 
-[assembly: ModInfo("Pantheon Wars", "pantheonwars",
+[assembly: ModInfo("Divine Ascension", "divineascension",
     Description =
         "A religious-themed PvP mod featuring competing deities with unique abilities and favor-based progression system.",
     Version = "1.14.0",
