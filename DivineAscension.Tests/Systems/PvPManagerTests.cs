@@ -557,7 +557,6 @@ public class PvPManagerTests
         var lysa = new Deity(DeityType.Lysa, "Lysa", "Hunt");
         _mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
         _mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Lysa)).Returns(lysa);
-        _mockDeityRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa)).Returns(1.0f);
 
         // Use reflection to call private method
         var method = typeof(PvPManager).GetMethod("ProcessPvPKill",

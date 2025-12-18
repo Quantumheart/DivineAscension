@@ -9,7 +9,7 @@ namespace DivineAscension.Tests.Systems;
 
 /// <summary>
 ///     Unit tests for DeityRegistry
-///     Tests initialization, deity retrieval, relationships, and favor multipliers
+///     Tests initialization and deity retrieval
 /// </summary>
 [ExcludeFromCodeCoverage]
 public class DeityRegistryTests
@@ -132,92 +132,6 @@ public class DeityRegistryTests
         // Act & Assert
         Assert.True(_registry.HasDeity(DeityType.Khoras));
         Assert.True(_registry.HasDeity(DeityType.Lysa));
-    }
-
-    #endregion
-
-    #region Relationship Tests
-
-    [Fact]
-    public void GetRelationship_BetweenAlliedDeities_ReturnsAllied()
-    {
-        // Arrange
-        _registry.Initialize();
-
-        // Act
-        var relationship = _registry.GetRelationship(DeityType.Khoras, DeityType.Lysa);
-
-        // Assert
-        Assert.Equal(DeityRelationshipType.Allied, relationship);
-    }
-
-    [Fact]
-    public void GetRelationship_WithSameDeity_ReturnsNeutral()
-    {
-        // Arrange
-        _registry.Initialize();
-
-        // Act
-        var relationship = _registry.GetRelationship(DeityType.Khoras, DeityType.Khoras);
-
-        // Assert
-        Assert.Equal(DeityRelationshipType.Neutral, relationship);
-    }
-
-    [Fact]
-    public void GetRelationship_WithUnregisteredDeity_ReturnsNeutral()
-    {
-        // Arrange
-        _registry.Initialize();
-
-        // Act
-        var relationship = _registry.GetRelationship(DeityType.Khoras, DeityType.Aethra);
-
-        // Assert
-        Assert.Equal(DeityRelationshipType.Neutral, relationship);
-    }
-
-    #endregion
-
-    #region Favor Multiplier Tests
-
-    [Fact]
-    public void GetFavorMultiplier_ForAlliedDeities_Returns0Point5()
-    {
-        // Arrange
-        _registry.Initialize();
-
-        // Act
-        var multiplier = _registry.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa);
-
-        // Assert
-        Assert.Equal(0.5f, multiplier);
-    }
-
-    [Fact]
-    public void GetFavorMultiplier_ForNeutralDeities_Returns1Point0()
-    {
-        // Arrange
-        _registry.Initialize();
-
-        // Act
-        var multiplier = _registry.GetFavorMultiplier(DeityType.Khoras, DeityType.Aethra);
-
-        // Assert
-        Assert.Equal(1.0f, multiplier);
-    }
-
-    [Fact]
-    public void GetFavorMultiplier_ForSameDeity_Returns1Point0()
-    {
-        // Arrange
-        _registry.Initialize();
-
-        // Act - Checking same deity (through Neutral relationship)
-        var multiplier = _registry.GetFavorMultiplier(DeityType.Khoras, DeityType.Khoras);
-
-        // Assert
-        Assert.Equal(1.0f, multiplier);
     }
 
     #endregion

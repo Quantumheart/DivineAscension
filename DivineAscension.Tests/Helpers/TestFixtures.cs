@@ -107,16 +107,6 @@ public static class TestFixtures
         mockRegistry.Setup(r => r.HasDeity(DeityType.Lysa)).Returns(true);
         mockRegistry.Setup(r => r.GetAllDeities()).Returns(new List<Deity> { khoras, lysa });
 
-        // Setup relationships
-        mockRegistry.Setup(r => r.GetRelationship(DeityType.Khoras, DeityType.Lysa))
-            .Returns(DeityRelationshipType.Allied);
-        mockRegistry.Setup(r => r.GetRelationship(DeityType.Lysa, DeityType.Khoras))
-            .Returns(DeityRelationshipType.Allied);
-
-        // Setup favor multipliers
-        mockRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa)).Returns(0.5f);
-        mockRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Aethra)).Returns(2.0f);
-
         return mockRegistry;
     }
 
@@ -201,10 +191,6 @@ public static class TestFixtures
             PrimaryColor = "#8B0000",
             SecondaryColor = "#FFD700",
             Playstyle = "Test playstyle",
-            Relationships = new Dictionary<DeityType, DeityRelationshipType>
-            {
-                { DeityType.Lysa, DeityRelationshipType.Allied },
-            },
             AbilityIds = new List<string> { "test_ability_1", "test_ability_2" }
         };
     }

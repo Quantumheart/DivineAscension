@@ -138,10 +138,6 @@ public class FavorSystemIntegrationTests
             .Setup(m => m.GetOrCreatePlayerData("victim-uid"))
             .Returns(victimData);
 
-        _mockDeityRegistry
-            .Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Aethra))
-            .Returns(2.0f);
-
         // Act
         _favorSystem.ProcessPvPKill(mockAttacker.Object, mockVictim.Object);
 
@@ -247,21 +243,6 @@ public class FavorSystemIntegrationTests
 
         // Assert
         Assert.Equal(10, reward); // BASE_KILL_FAVOR
-    }
-
-    [Fact]
-    public void CalculateFavorReward_UsesDeityMultiplier_Correctly()
-    {
-        // Arrange
-        _mockDeityRegistry
-            .Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Aethra))
-            .Returns(2.0f);
-
-        // Act
-        var reward = _favorSystem.CalculateFavorReward(DeityType.Khoras, DeityType.Aethra);
-
-        // Assert
-        Assert.Equal(20, reward); // BASE_KILL_FAVOR * 2.0
     }
 
     #endregion

@@ -200,21 +200,11 @@ public class FavorSystem : IFavorSystem, IDisposable
     }
 
     /// <summary>
-    ///     Calculates favor reward based on deity relationships
+    ///     Calculates favor reward
     /// </summary>
     internal int CalculateFavorReward(DeityType attackerDeity, DeityType victimDeity)
     {
-        var baseFavor = BASE_KILL_FAVOR;
-
-        // No victim deity = standard reward
-        if (victimDeity == DeityType.None) return baseFavor;
-
-        // Same deity = reduced favor (discourages infighting)
-        if (attackerDeity == victimDeity) return baseFavor / 2;
-
-        // Apply relationship multiplier
-        var multiplier = _deityRegistry.GetFavorMultiplier(attackerDeity, victimDeity);
-        return (int)(baseFavor * multiplier);
+        return BASE_KILL_FAVOR;
     }
 
     /// <summary>

@@ -262,7 +262,6 @@ public class FavorSystemTests
 
         mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
         mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Lysa)).Returns(lysa);
-        mockDeityRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa)).Returns(0.5f);
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
@@ -353,7 +352,6 @@ public class FavorSystemTests
 
         var khoras = new Deity(DeityType.Khoras, "Khoras", "War");
         mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
-        mockDeityRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa)).Returns(1.0f);
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
@@ -941,7 +939,6 @@ public class FavorSystemTests
         var lysa = new Deity(DeityType.Lysa, "Lysa", "Hunt");
         mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
         mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Lysa)).Returns(lysa);
-        mockDeityRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa)).Returns(1.0f);
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,

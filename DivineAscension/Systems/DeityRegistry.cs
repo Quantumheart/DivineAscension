@@ -61,36 +61,6 @@ public class DeityRegistry : IDeityRegistry
     }
 
     /// <summary>
-    ///     Gets the relationship between two deities
-    /// </summary>
-    public DeityRelationshipType GetRelationship(DeityType deity1, DeityType deity2)
-    {
-        if (deity1 == deity2) return DeityRelationshipType.Neutral;
-
-        var deity = GetDeity(deity1);
-        if (deity == null) return DeityRelationshipType.Neutral;
-
-        return deity.Relationships.TryGetValue(deity2, out var relationship)
-            ? relationship
-            : DeityRelationshipType.Neutral;
-    }
-
-    /// <summary>
-    ///     Gets the favor multiplier based on deity relationship
-    ///     Allied: 0.5x favor, Rival: 2x favor, Neutral: 1x favor
-    /// </summary>
-    public float GetFavorMultiplier(DeityType attackerDeity, DeityType victimDeity)
-    {
-        var relationship = GetRelationship(attackerDeity, victimDeity);
-        return relationship switch
-        {
-            DeityRelationshipType.Allied => 0.5f,
-            DeityRelationshipType.Rival => 2.0f,
-            _ => 1.0f
-        };
-    }
-
-    /// <summary>
     ///     Registers a deity in the registry
     /// </summary>
     private void RegisterDeity(Deity deity)
@@ -117,11 +87,6 @@ public class DeityRegistry : IDeityRegistry
             PrimaryColor = "#8B0000", // Dark Red
             SecondaryColor = "#FFD700", // Gold
             Playstyle = "Aggressive melee combat with high damage abilities and tactical buffs",
-            Relationships = new Dictionary<DeityType, DeityRelationshipType>
-            {
-                { DeityType.Lysa, DeityRelationshipType.Allied }
-                // TODO: Define relationships with Aethra and Gaia when they're implemented
-            },
             AbilityIds = new List<string>
             {
                 // To be implemented in Task 6
@@ -143,11 +108,6 @@ public class DeityRegistry : IDeityRegistry
             PrimaryColor = "#228B22", // Forest Green
             SecondaryColor = "#8B4513", // Saddle Brown
             Playstyle = "Mobile ranged combat with tracking abilities and tactical positioning",
-            Relationships = new Dictionary<DeityType, DeityRelationshipType>
-            {
-                { DeityType.Khoras, DeityRelationshipType.Allied }
-                // TODO: Define relationships with Aethra and Gaia when they're implemented
-            },
             AbilityIds = new List<string>
             {
                 // To be implemented in Task 6
