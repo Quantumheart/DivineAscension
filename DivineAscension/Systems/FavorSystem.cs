@@ -12,7 +12,7 @@ namespace DivineAscension.Systems;
 /// <summary>
 ///     Manages divine favor rewards and penalties
 /// </summary>
-public class FavorSystem : IFavorSystem, IDisposable
+public class FavorSystem : IFavorSystem
 {
     private const int BASE_KILL_FAVOR = 10;
     private const int DEATH_PENALTY_FAVOR = 5;
