@@ -149,3 +149,5 @@ See the [LICENSE](LICENSE) file for full details.
   - [Karma System mod](https://mods.vintagestory.at/show/mod/28955)
   - [xSkills Gilded](https://mods.vintagestory.at/show/mod/26936)
   - [xSkills](https://mods.vintagestory.at/show/mod/247)
+- Assets used from: 
+  - [Game-icons.net](https://game-icons.net/)
