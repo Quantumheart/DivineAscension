@@ -274,7 +274,7 @@ public class FavorSystemTests
 
         // Assert
         mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor("attacker-uid", 5, It.IsAny<string>()), // 10 * 0.5 = 5 (allied deities)
+            m => m.AddFavor("attacker-uid", 10, It.IsAny<string>()), // BASE_KILL_FAVOR (no multiplier)
             Times.Once
         );
         Assert.Equal(1, attackerData.KillCount);
@@ -407,7 +407,7 @@ public class FavorSystemTests
 
         // Assert
         mockPlayerReligionDataManager.Verify(
-            m => m.RemoveFavor("player-uid", 5, "Death penalty"),
+            m => m.RemoveFavor("player-uid", 10, "Death penalty"),
             Times.Once
         );
     }
@@ -507,7 +507,7 @@ public class FavorSystemTests
     }
 
     [Fact]
-    public void CalculateFavorReward_WithSameDeity_ReturnsHalfFavor()
+    public void CalculateFavorReward_WithSameDeity_ReturnsFullFavor()
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
@@ -525,7 +525,7 @@ public class FavorSystemTests
         var reward = favorSystem.CalculateFavorReward(DeityType.Khoras, DeityType.Khoras);
 
         // Assert
-        Assert.Equal(5, reward); // BASE_KILL_FAVOR / 2
+        Assert.Equal(10, reward); // BASE_KILL_FAVOR (no penalty for same deity)
     }
 
     #endregion

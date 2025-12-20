@@ -15,7 +15,7 @@ namespace DivineAscension.Systems;
 public class FavorSystem : IFavorSystem
 {
     private const int BASE_KILL_FAVOR = 10;
-    private const int DEATH_PENALTY_FAVOR = 5;
+    private const int DEATH_PENALTY_FAVOR = 50;
     private const float BASE_FAVOR_PER_HOUR = 0.5f; // Passive favor generation rate
     private const int PASSIVE_TICK_INTERVAL_MS = 1000; // 1 second ticks
 

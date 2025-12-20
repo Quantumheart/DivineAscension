@@ -168,9 +168,9 @@ public class FavorSystemIntegrationTests
         // Act
         _favorSystem.ProcessDeathPenalty(mockPlayer.Object);
 
-        // Assert - Should remove 5 favor (DEATH_PENALTY_FAVOR)
+        // Assert - Should remove 50 favor (DEATH_PENALTY_FAVOR)
         _mockPlayerReligionDataManager.Verify(
-            m => m.RemoveFavor("player-uid", 5, "Death penalty"),
+            m => m.RemoveFavor("player-uid", 10, "Death penalty"),
             Times.Once()
         );
     }

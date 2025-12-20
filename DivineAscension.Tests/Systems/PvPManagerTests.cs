@@ -284,7 +284,7 @@ public class PvPManagerTests
     }
 
     [Fact]
-    public void CalculateFavorReward_WithSameDeity_ReturnsHalfFavor()
+    public void CalculateFavorReward_WithSameDeity_ReturnsFullFavor()
     {
         // Arrange
         var attackerData = TestFixtures.CreateTestPlayerReligionData("attacker-uid", DeityType.Khoras, "religion-uid");
@@ -321,9 +321,9 @@ public class PvPManagerTests
         // Act
         method?.Invoke(_pvpManager, new object[] { mockAttacker.Object, mockVictim.Object });
 
-        // Assert - Half favor should be 5 (10 / 2)
+        // Assert - Full favor (no same-deity penalty)
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor("attacker-uid", 5, It.IsAny<string>()),
+            m => m.AddFavor("attacker-uid", 10, It.IsAny<string>()),
             Times.Once()
         );
     }
@@ -378,7 +378,7 @@ public class PvPManagerTests
     }
 
     [Fact]
-    public void CalculatePrestigeReward_WithSameDeity_ReturnsHalfPrestige()
+    public void CalculatePrestigeReward_WithSameDeity_ReturnsFullPrestige()
     {
         // Arrange
         var attackerData = TestFixtures.CreateTestPlayerReligionData("attacker-uid", DeityType.Khoras, "religion-uid");
@@ -415,9 +415,9 @@ public class PvPManagerTests
         // Act
         method?.Invoke(_pvpManager, new object[] { mockAttacker.Object, mockVictim.Object });
 
-        // Assert - Half prestige should be 7 (15 / 2, rounded down)
+        // Assert - Full prestige (no same-deity penalty)
         _mockPrestigeManager.Verify(
-            m => m.AddPrestige("religion-uid", 7, It.IsAny<string>()),
+            m => m.AddPrestige("religion-uid", 15, It.IsAny<string>()),
             Times.Once()
         );
     }
