@@ -18,25 +18,6 @@ public class DeityTests
         Assert.Equal("#FFFFFF", deity.PrimaryColor);
         Assert.Equal("#CCCCCC", deity.SecondaryColor);
         Assert.Empty(deity.AbilityIds);
-        Assert.Empty(deity.Relationships);
-    }
-
-    [Fact]
-    public void TestRelationshipsDictionary()
-    {
-        var deity = new Deity(DeityType.Khoras, "Khoras", "War");
-        deity.Relationships[DeityType.Aethra] = DeityRelationshipType.Allied;
-        Assert.Equal(DeityRelationshipType.Allied, deity.Relationships[DeityType.Aethra]);
-        Assert.Contains(DeityType.Aethra, deity.Relationships.Keys);
-    }
-
-    [Fact]
-    public void TestEnumValues()
-    {
-        var deity = new Deity(DeityType.Khoras, "Khoras", "War");
-        deity.Relationships.Add(DeityType.Aethra, DeityRelationshipType.Allied);
-        Assert.Equal(DeityType.Khoras, deity.Type);
-        Assert.Equal(DeityRelationshipType.Allied, deity.Relationships[DeityType.Aethra]);
     }
 
     [Fact]

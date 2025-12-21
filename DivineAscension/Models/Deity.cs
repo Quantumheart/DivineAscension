@@ -51,12 +51,6 @@ public class Deity
     public string SecondaryColor { get; set; } = "#CCCCCC";
 
     /// <summary>
-    ///     Relationships with other deities
-    ///     Key: DeityType, Value: RelationshipType
-    /// </summary>
-    public Dictionary<DeityType, DeityRelationshipType> Relationships { get; set; } = new();
-
-    /// <summary>
     ///     Playstyle hints for the deity
     /// </summary>
     public string Playstyle { get; set; } = string.Empty;

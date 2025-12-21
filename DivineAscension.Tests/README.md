@@ -120,10 +120,6 @@ public void ProcessPvPKill_BetweenRivalDeities_Awards2xFavor()
         .Setup(m => m.GetOrCreatePlayerData("attacker-uid"))
         .Returns(attackerData);
 
-    mockDeityRegistry
-        .Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Morthen))
-        .Returns(2.0f);
-
     var favorSystem = new FavorSystem(
         mockAPI.Object,
         mockPlayerDataManager.Object,

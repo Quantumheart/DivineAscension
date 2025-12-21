@@ -28,15 +28,4 @@ public interface IDeityRegistry
     ///     Checks if a deity exists
     /// </summary>
     bool HasDeity(DeityType type);
-
-    /// <summary>
-    ///     Gets the relationship between two deities
-    /// </summary>
-    DeityRelationshipType GetRelationship(DeityType deity1, DeityType deity2);
-
-    /// <summary>
-    ///     Gets the favor multiplier based on deity relationship
-    ///     Allied: 0.5x favor, Rival: 2x favor, Neutral: 1x favor
-    /// </summary>
-    float GetFavorMultiplier(DeityType attackerDeity, DeityType victimDeity);
 }

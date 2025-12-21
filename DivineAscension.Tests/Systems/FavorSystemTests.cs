@@ -262,7 +262,6 @@ public class FavorSystemTests
 
         mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
         mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Lysa)).Returns(lysa);
-        mockDeityRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa)).Returns(0.5f);
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
@@ -275,7 +274,7 @@ public class FavorSystemTests
 
         // Assert
         mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor("attacker-uid", 5, It.IsAny<string>()), // 10 * 0.5 = 5 (allied deities)
+            m => m.AddFavor("attacker-uid", 10, It.IsAny<string>()), // BASE_KILL_FAVOR (no multiplier)
             Times.Once
         );
         Assert.Equal(1, attackerData.KillCount);
@@ -353,7 +352,6 @@ public class FavorSystemTests
 
         var khoras = new Deity(DeityType.Khoras, "Khoras", "War");
         mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
-        mockDeityRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa)).Returns(1.0f);
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
@@ -409,7 +407,7 @@ public class FavorSystemTests
 
         // Assert
         mockPlayerReligionDataManager.Verify(
-            m => m.RemoveFavor("player-uid", 5, "Death penalty"),
+            m => m.RemoveFavor("player-uid", 10, "Death penalty"),
             Times.Once
         );
     }
@@ -509,7 +507,7 @@ public class FavorSystemTests
     }
 
     [Fact]
-    public void CalculateFavorReward_WithSameDeity_ReturnsHalfFavor()
+    public void CalculateFavorReward_WithSameDeity_ReturnsFullFavor()
     {
         // Arrange
         var mockAPI = CreateMockServerAPI();
@@ -527,7 +525,7 @@ public class FavorSystemTests
         var reward = favorSystem.CalculateFavorReward(DeityType.Khoras, DeityType.Khoras);
 
         // Assert
-        Assert.Equal(5, reward); // BASE_KILL_FAVOR / 2
+        Assert.Equal(10, reward); // BASE_KILL_FAVOR (no penalty for same deity)
     }
 
     #endregion
@@ -941,7 +939,6 @@ public class FavorSystemTests
         var lysa = new Deity(DeityType.Lysa, "Lysa", "Hunt");
         mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
         mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Lysa)).Returns(lysa);
-        mockDeityRegistry.Setup(r => r.GetFavorMultiplier(DeityType.Khoras, DeityType.Lysa)).Returns(1.0f);
 
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,

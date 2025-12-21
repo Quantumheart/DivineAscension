@@ -177,38 +177,18 @@ public class PvPManager : IPvPManager
     }
 
     /// <summary>
-    ///     Calculates favor reward based on deity relationships
+    ///     Calculates favor reward
     /// </summary>
     private int CalculateFavorReward(DeityType attackerDeity, DeityType victimDeity)
     {
-        var baseFavor = BASE_FAVOR_REWARD;
-
-        // No victim deity = standard reward
-        if (victimDeity == DeityType.None) return baseFavor;
-
-        // Same deity = reduced favor (discourages infighting)
-        if (attackerDeity == victimDeity) return baseFavor / 2;
-
-        // Apply relationship multiplier
-        var multiplier = _deityRegistry.GetFavorMultiplier(attackerDeity, victimDeity);
-        return (int)(baseFavor * multiplier);
+        return BASE_FAVOR_REWARD;
     }
 
     /// <summary>
-    ///     Calculates prestige reward for religion based on deity relationships
+    ///     Calculates prestige reward for religion
     /// </summary>
     private int CalculatePrestigeReward(DeityType attackerDeity, DeityType victimDeity)
     {
-        var basePrestige = BASE_PRESTIGE_REWARD;
-
-        // No victim deity = standard reward
-        if (victimDeity == DeityType.None) return basePrestige;
-
-        // Same deity = reduced prestige (discourages infighting)
-        if (attackerDeity == victimDeity) return basePrestige / 2;
-
-        // Apply relationship multiplier (same as favor)
-        var multiplier = _deityRegistry.GetFavorMultiplier(attackerDeity, victimDeity);
-        return (int)(basePrestige * multiplier);
+        return BASE_PRESTIGE_REWARD;
     }
 }

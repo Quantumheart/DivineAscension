@@ -2,7 +2,7 @@
 
 Deity-driven religion and faction systems for Vintage Story: create and manage religions, earn player Favor and Religion Prestige, unlock blessing trees, and organize multi‑religion civilizations. This repository contains the mod/library and an extensive xUnit test suite.
 
-Status: Active development (last updated 2025-12-04). See docs for feature specifics and current plans.
+Status: Active development (last updated 2025-12-04). **New to Divine Ascension? Read the [Player Guide](docs/PLAYER_GUIDE.md)!**
 
 ## Feature Summary
 
@@ -149,3 +149,5 @@ See the [LICENSE](LICENSE) file for full details.
   - [Karma System mod](https://mods.vintagestory.at/show/mod/28955)
   - [xSkills Gilded](https://mods.vintagestory.at/show/mod/26936)
   - [xSkills](https://mods.vintagestory.at/show/mod/247)
+- Assets used from: 
+  - [Game-icons.net](https://game-icons.net/)

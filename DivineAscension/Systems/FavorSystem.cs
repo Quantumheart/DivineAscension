@@ -12,10 +12,10 @@ namespace DivineAscension.Systems;
 /// <summary>
 ///     Manages divine favor rewards and penalties
 /// </summary>
-public class FavorSystem : IFavorSystem, IDisposable
+public class FavorSystem : IFavorSystem
 {
     private const int BASE_KILL_FAVOR = 10;
-    private const int DEATH_PENALTY_FAVOR = 5;
+    private const int DEATH_PENALTY_FAVOR = 50;
     private const float BASE_FAVOR_PER_HOUR = 0.5f; // Passive favor generation rate
     private const int PASSIVE_TICK_INTERVAL_MS = 1000; // 1 second ticks
 
@@ -200,21 +200,11 @@ public class FavorSystem : IFavorSystem, IDisposable
     }
 
     /// <summary>
-    ///     Calculates favor reward based on deity relationships
+    ///     Calculates favor reward
     /// </summary>
     internal int CalculateFavorReward(DeityType attackerDeity, DeityType victimDeity)
     {
-        var baseFavor = BASE_KILL_FAVOR;
-
-        // No victim deity = standard reward
-        if (victimDeity == DeityType.None) return baseFavor;
-
-        // Same deity = reduced favor (discourages infighting)
-        if (attackerDeity == victimDeity) return baseFavor / 2;
-
-        // Apply relationship multiplier
-        var multiplier = _deityRegistry.GetFavorMultiplier(attackerDeity, victimDeity);
-        return (int)(baseFavor * multiplier);
+        return BASE_KILL_FAVOR;
     }
 
     /// <summary>

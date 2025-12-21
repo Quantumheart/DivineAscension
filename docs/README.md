@@ -2,7 +2,9 @@
 
 This directory contains contributor documentation for the Divine Ascension mod. It is organized by topic to keep design notes, implementation guides, and references easy to find.
 
-Tip: Build and test instructions live in the root `README.md`. Start there for environment setup and test commands.
+**New Players**: See [`PLAYER_GUIDE.md`](PLAYER_GUIDE.md) for a comprehensive guide to playing with Divine Ascension.
+
+**Contributors**: Build and test instructions live in the root `README.md`. Start there for environment setup and test commands.
 
 ## Topic Areas
 
