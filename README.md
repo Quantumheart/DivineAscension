@@ -2,7 +2,7 @@
 
 Deity-driven religion and faction systems for Vintage Story: create and manage religions, earn player Favor and Religion Prestige, unlock blessing trees, and organize multi‑religion civilizations. This repository contains the mod/library and an extensive xUnit test suite.
 
-Status: Active development (last updated 2025-12-04). See docs for feature specifics and current plans.
+Status: Active development (last updated 2025-12-04). **New to Divine Ascension? Read the [Player Guide](docs/PLAYER_GUIDE.md)!**
 
 ## Feature Summary
 
