@@ -131,11 +131,13 @@ Choose a deity that matches your playstyle. Each deity rewards different activit
 ## Understanding Progression
 
 Divine Ascension features **dual progression**: individual Favor and collective Prestige.
+
 ### Player Favor (Individual Progression)
 
 Favor represents your personal devotion to your deity. It unlocks player-specific blessings.
 
 **Favor Ranks**:
+
 | Rank | Total Favor Required | Unlocks |
 |------|---------------------|---------|
 | **Initiate** | 0 - 499 | Starting tier blessings |
@@ -154,6 +156,7 @@ Favor represents your personal devotion to your deity. It unlocks player-specifi
 Prestige is your religion's reputation, earned collectively by all members. It unlocks religion-wide blessings that benefit everyone.
 
 **Prestige Ranks**:
+
 | Rank | Prestige Required | Unlocks |
 |------|------------------|---------|
 | **Fledgling** | 0 - 499 | Basic religion blessings |
