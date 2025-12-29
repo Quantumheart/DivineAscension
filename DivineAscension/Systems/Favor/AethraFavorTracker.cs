@@ -213,7 +213,7 @@ public class AethraFavorTracker(
         if (meal == null) return 0;
 
         var path = meal.Collectible?.Code?.Path ?? string.Empty;
-        // todo: handle calculation of serving size for favor gourmet meal
+
         if (IsGourmetMeal(path)) return FavorGourmetMeal;
         if (IsComplexMeal(path)) return FavorComplexMeal;
         return FavorSimpleMeal;
