@@ -8,7 +8,7 @@ using Vintagestory.API.Server;
 namespace DivineAscension.Systems;
 
 /// <summary>
-///     Manages PvP interactions for favor and prestige rewards (Phase 3.2)
+///     Manages PvP interactions for favor and prestige rewards
 /// </summary>
 public class PvPManager : IPvPManager
 {
@@ -41,7 +41,7 @@ public class PvPManager : IPvPManager
     /// </summary>
     public void Initialize()
     {
-        _sapi.Logger.Notification("[DivineAscension] Initializing PvP Manager (Phase 3.2)...");
+        _sapi.Logger.Notification("[DivineAscension] Initializing PvP Manager...");
 
         // Hook into player death event for PvP favor/prestige rewards
         _sapi.Event.PlayerDeath += OnPlayerDeath;
