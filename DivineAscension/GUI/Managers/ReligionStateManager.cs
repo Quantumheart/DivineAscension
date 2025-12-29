@@ -376,6 +376,32 @@ public class ReligionStateManager : IReligionStateManager
             width: width,
             height: height);
 
+        // AUTO-CORRECTION: Ensure active tab is valid for current religion state
+        var isCurrentTabValid = State.CurrentSubTab switch
+        {
+            SubTab.Browse => true, // Always visible
+            SubTab.Info => tabVm.ShowInfoTab,
+            SubTab.Activity => tabVm.ShowActivityTab,
+            SubTab.Roles => tabVm.ShowRolesTab,
+            SubTab.Invites => tabVm.ShowInvitesTab,
+            SubTab.Create => tabVm.ShowCreateTab,
+            _ => false
+        };
+
+        if (!isCurrentTabValid)
+        {
+            _coreClientApi.Logger.Debug(
+                $"[DivineAscension] Auto-switching from {State.CurrentSubTab} to Browse (tab now hidden for HasReligion={HasReligion()})");
+            State.CurrentSubTab = SubTab.Browse;
+
+            // Rebuild ViewModel with corrected tab
+            tabVm = new ReligionTabViewModel(
+                currentSubTab: State.CurrentSubTab,
+                errorState: State.ErrorState,
+                hasReligion: HasReligion(),
+                x: x, y: y, width: width, height: height);
+        }
+
         var drawList = ImGui.GetWindowDrawList();
         var tabResult = ReligionTabRenderer.Draw(tabVm, drawList, _coreClientApi);
 
@@ -385,6 +411,25 @@ public class ReligionStateManager : IReligionStateManager
             switch (ev)
             {
                 case SubTabEvent.TabChanged(var sub):
+                    // Validate that the requested tab is visible for current religion state
+                    var isTabVisible = sub switch
+                    {
+                        SubTab.Browse => true,
+                        SubTab.Info => HasReligion(),
+                        SubTab.Activity => HasReligion(),
+                        SubTab.Roles => HasReligion(),
+                        SubTab.Invites => !HasReligion(),
+                        SubTab.Create => !HasReligion(),
+                        _ => false
+                    };
+
+                    if (!isTabVisible)
+                    {
+                        _coreClientApi.Logger.Warning(
+                            $"[DivineAscension] Attempted to switch to hidden tab {sub} (HasReligion={HasReligion()}). Ignoring.");
+                        break; // Don't process the tab change
+                    }
+
                     State.CurrentSubTab = sub;
                     // Clear transient action error on tab change
                     State.ErrorState.LastActionError = null;
