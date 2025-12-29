@@ -126,14 +126,14 @@ public class HuntingFavorTracker(
     {
         // Tier 15: Large predators
         if (code.Contains("bear") ||
-            code.Contains("tiger") || code.Contains("lion") ||
+            code.Contains("tiger") || code.Contains("lion") ||code.Contains("machairodontinae") || 
             code.Contains("predator") || code.Contains("apex"))
             return 15;
 
         // Tier 12: Large herbivores / medium predators
         if (code.Contains("wolf") || code.Contains("moose") ||
             code.Contains("mammoth") || code.Contains("elephant") || code.Contains("rhino") ||
-            code.Contains("bison") || code.Contains("buffalo") || code.Contains("giant"))
+            code.Contains("bison") || code.Contains("buffalo") || code.Contains("bovinae") || code.Contains("giant"))
             return 12;
 
         // Tier 10: Scavengers
@@ -142,10 +142,10 @@ public class HuntingFavorTracker(
             return 10;
 
         // Tier 8: Medium prey animals
-        if (code.Contains("deer") || code.Contains("fox") || code.Contains("bighorn") ||
+        if (code.Contains("deer") || code.Contains("fox") || code.Contains("vulpini") || code.Contains("urocyonini") || code.Contains("cerdocyonina") || code.Contains("canina") || code.Contains("bighorn") ||
             code.Contains("gazelle") ||
             code.Contains("antelope") || code.Contains("caribou") || code.Contains("elk") ||
-            code.Contains("boar") || code.Contains("wildcat"))
+            code.Contains("boar") || code.Contains("lynx") || code.Contains("caracal"))
             return 8;
 
         // Tier 5: Small domesticated / raccoon-sized
