@@ -13,24 +13,6 @@ public class HuntingFavorTracker(
     ICoreServerAPI sapi,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
-    private readonly Dictionary<string, int> _animalFavorValues = new()
-    {
-        { "wolf", 12 },
-        { "bear", 15 },
-        { "deer", 8 },
-        { "moose", 12 },
-        { "bighorn", 8 },
-        { "pig", 5 },
-        { "sheep", 5 },
-        { "chicken", 3 },
-        { "hare", 3 },
-        { "rabbit", 3 },
-        { "fox", 8 },
-        { "raccoon", 5 },
-        { "hyena", 10 },
-        { "gazelle", 8 }
-    };
-
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
     private readonly HashSet<string> _lysaFollowers = new();
@@ -110,17 +92,76 @@ public class HuntingFavorTracker(
 
         var code = entity.Code.Path.ToLower();
 
-        // Monster check
-        if (code.Contains("drifter") || code.Contains("locust") || code.Contains("bell")) return 0;
+        // Filter out non-animals (monsters, constructs, undead)
+        if (IsNonAnimal(code)) return 0;
 
-        // Check exact matches or contains
-        foreach (var kvp in _animalFavorValues)
-            if (code.Contains(kvp.Key))
-                return kvp.Value;
+        // Unified pattern-based detection for all animals
+        return CalculateAnimalFavor(code);
+    }
 
-        // Generic fallback
-        if (code.StartsWith("animal") || code.Contains("/animal/")) return 3;
+    private bool IsNonAnimal(string code)
+    {
+        // Monsters
+        if (code.Contains("drifter") || code.Contains("locust") || code.Contains("bell"))
+            return true;
 
+        // Constructs
+        if (code.Contains("mechanical") || code.Contains("construct") ||
+            code.Contains("automaton") || code.Contains("golem"))
+            return true;
+
+        // Undead
+        if (code.Contains("undead") || code.Contains("skeleton") ||
+            code.Contains("zombie") || code.Contains("ghost") || code.Contains("wraith"))
+            return true;
+
+        // Summons
+        if (code.Contains("summoned") || code.Contains("illusion") || code.Contains("spirit"))
+            return true;
+
+        return false;
+    }
+
+    private int CalculateAnimalFavor(string code)
+    {
+        // Tier 15: Large predators
+        if (code.Contains("bear") ||
+            code.Contains("tiger") || code.Contains("lion") ||
+            code.Contains("predator") || code.Contains("apex"))
+            return 15;
+
+        // Tier 12: Large herbivores / medium predators
+        if (code.Contains("wolf") || code.Contains("moose") ||
+            code.Contains("mammoth") || code.Contains("elephant") || code.Contains("rhino") ||
+            code.Contains("bison") || code.Contains("buffalo") || code.Contains("giant"))
+            return 12;
+
+        // Tier 10: Scavengers
+        if (code.Contains("hyena") ||
+            code.Contains("jackal") || code.Contains("vulture") || code.Contains("scavenger"))
+            return 10;
+
+        // Tier 8: Medium prey animals
+        if (code.Contains("deer") || code.Contains("fox") || code.Contains("bighorn") ||
+            code.Contains("gazelle") ||
+            code.Contains("antelope") || code.Contains("caribou") || code.Contains("elk") ||
+            code.Contains("boar") || code.Contains("wildcat"))
+            return 8;
+
+        // Tier 5: Small domesticated / raccoon-sized
+        if (code.Contains("pig") || code.Contains("sheep") || code.Contains("raccoon") ||
+            code.Contains("goat") || code.Contains("lamb") || code.Contains("calf") ||
+            code.Contains("badger") || code.Contains("otter"))
+            return 5;
+
+        // Tier 3: Tiny animals (default for any animal)
+        if (code.Contains("chicken") || code.Contains("hare") || code.Contains("rabbit") ||
+            code.Contains("bird") || code.Contains("chick") || code.Contains("rodent") ||
+            code.Contains("squirrel") || code.Contains("rat") || code.Contains("mouse") ||
+            code.StartsWith("animal") || code.Contains("/animal/"))
+            return 3;
+
+        // Not recognized as an animal
         return 0;
     }
 }
