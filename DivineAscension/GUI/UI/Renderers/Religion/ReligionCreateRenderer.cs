@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Create;
@@ -6,6 +7,7 @@ using DivineAscension.GUI.UI.Components;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Renderers.Components;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
 
@@ -83,27 +85,42 @@ internal static class ReligionCreateRenderer
             }
         }
 
-        // Deity Selection (tab-based approach)
+        // Deity Selection (tab-based approach with icons and tooltips)
         TextRenderer.DrawLabel(drawList, "Deity:", formX, currentY);
         currentY += 25f;
 
         var currentDeityIndex = viewModel.GetCurrentDeityIndex();
 
-        // Draw deity selection as tabs
-        var newDeityIndex = TabControl.Draw(
+        // Prepare deity icon names for tabs (lowercase for icon loader)
+        var deityIconNames = viewModel.AvailableDeities
+            .Select(d => d.ToLower())
+            .ToArray();
+
+        // Draw deity selection as tabs with icons and hover tracking
+        var (newDeityIndex, hoveredIndex) = TabControl.DrawWithHover(
             drawList,
             formX,
             currentY,
             fieldWidth,
             32f,
             viewModel.AvailableDeities,
-            currentDeityIndex);
+            currentDeityIndex,
+            4f,
+            "deities",  // Icon directory
+            deityIconNames);
 
         // Emit event if deity changed
         if (newDeityIndex != currentDeityIndex)
         {
             var newDeity = viewModel.AvailableDeities[newDeityIndex];
             events.Add(new CreateEvent.DeityChanged(newDeity));
+        }
+
+        // Track hovered deity for tooltip rendering
+        string? hoveredDeityName = null;
+        if (hoveredIndex >= 0 && hoveredIndex < viewModel.AvailableDeities.Length)
+        {
+            hoveredDeityName = viewModel.AvailableDeities[hoveredIndex];
         }
 
         currentY += 40f;
@@ -155,6 +172,18 @@ internal static class ReligionCreateRenderer
         }
 
         currentY += buttonHeight;
+
+        // Render deity tooltip if hovering over a deity tab
+        if (!string.IsNullOrEmpty(hoveredDeityName))
+        {
+            var mousePos = ImGui.GetMousePos();
+            DeityTooltipRenderer.Draw(
+                hoveredDeityName,
+                mousePos.X,
+                mousePos.Y,
+                viewModel.Width,
+                viewModel.Height);
+        }
 
         return new ReligionCreateRenderResult(events, currentY - viewModel.Y);
     }
