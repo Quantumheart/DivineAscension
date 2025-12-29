@@ -124,6 +124,14 @@ public partial class GuiDialog
         // Request fresh data from server (will show "No Religion" state)
         _divineAscensionModSystem?.NetworkClient?.RequestBlessingData();
 
+        // Request player religion info if player now has a religion
+        // This handles accept invite, join, and any other state transitions
+        if (packet.HasReligion)
+        {
+            _manager.ReligionStateManager.State.InfoState.Loading = true;
+            _divineAscensionModSystem?.NetworkClient?.RequestPlayerReligionInfo();
+        }
+
         // If notification is about civilization, also refresh civilization data
         if (packet.Reason.Contains("civilization", StringComparison.OrdinalIgnoreCase))
         {

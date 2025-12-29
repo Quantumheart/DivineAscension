@@ -791,12 +791,22 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
         if (success)
         {
-            _roleManager.AssignRole(religionId, "SYSTEM", packet.TargetPlayerUID, RoleDefaults.MEMBER_ROLE_ID);
+            // Initialize player religion data (ReligionUID, ActiveDeity, LastReligionSwitch)
+            // This is required for blessing data and other systems to work correctly
+            var playerData = _playerReligionDataManager.GetOrCreatePlayerData(fromPlayer.PlayerUID);
+            var religion = _religionManager.GetReligion(religionId);
+            if (religion != null)
+            {
+                playerData.ReligionUID = religionId;
+                playerData.ActiveDeity = religion.Deity;
+                playerData.LastReligionSwitch = DateTime.UtcNow;
+            }
+
+            _roleManager.AssignRole(religionId, "SYSTEM", fromPlayer.PlayerUID, RoleDefaults.MEMBER_ROLE_ID);
             _playerReligionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
             NotifyPlayerReligionStateChanged(fromPlayer, "You joined a religion", true);
 
             // Broadcast roles update to all religion members so their UI updates
-            var religion = _religionManager.GetReligion(religionId);
             if (religion != null) BroadcastRolesUpdateToReligion(religion);
         }
 
@@ -812,6 +822,12 @@ public class ReligionNetworkHandler : IServerNetworkHandler
     private ReligionActionResult HandleDeclineAction(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
     {
         var success = _religionManager.DeclineInvite(packet.TargetPlayerUID, fromPlayer.PlayerUID);
+
+        // Notify client of state change so UI refreshes invite list
+        if (success)
+        {
+            NotifyPlayerReligionStateChanged(fromPlayer, "Invitation declined.", false);
+        }
 
         return new ReligionActionResult
         {
