@@ -15,6 +15,8 @@ public class GaiaFavorTracker(
 {
     // --- Brick Placement Tracking (Part B requirement) ---
     private const int FavorPerBrickPlacement = 2;
+    private const long BrickPlacementCooldownMs = 5000; // 5 seconds between brick placement favor awards
+    private readonly Dictionary<string, long> _lastBrickPlacementTime = new();
     private readonly FavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
     private readonly Guid _instanceId = Guid.NewGuid();
 
@@ -28,6 +30,8 @@ public class GaiaFavorTracker(
         ClayFormingPatches.OnClayFormingFinished -= HandleClayFormingFinished;
         PitKilnPatches.OnPitKilnFired -= HandlePitKilnFired;
         _sapi.Event.DidPlaceBlock -= OnBlockPlaced;
+        _sapi.Event.PlayerDisconnect -= OnPlayerDisconnect;
+        _lastBrickPlacementTime.Clear();
         _sapi.Logger.Debug($"[DivineAscension] GaiaFavorTracker disposed (ID: {_instanceId})");
     }
 
@@ -39,6 +43,8 @@ public class GaiaFavorTracker(
         PitKilnPatches.OnPitKilnFired += HandlePitKilnFired;
         // Track clay brick placements
         _sapi.Event.DidPlaceBlock += OnBlockPlaced;
+        // Clean up cooldown data on player disconnect
+        _sapi.Event.PlayerDisconnect += OnPlayerDisconnect;
         _sapi.Logger.Notification($"[DivineAscension] GaiaFavorTracker initialized (ID: {_instanceId})");
     }
 
@@ -59,8 +65,18 @@ public class GaiaFavorTracker(
         if (religionData.ActiveDeity != DeityType.Gaia) return;
 
         var placedBlock = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
-        if (IsBrickBlock(placedBlock))
-            _favorSystem.AwardFavorForAction(byPlayer, "placing clay bricks", FavorPerBrickPlacement);
+        if (!IsBrickBlock(placedBlock)) return;
+
+        // Debounce check - limit favor awards to one per cooldown period
+        var currentTime = _sapi.World.ElapsedMilliseconds;
+        if (_lastBrickPlacementTime.TryGetValue(byPlayer.PlayerUID, out var lastTime))
+        {
+            if (currentTime - lastTime < BrickPlacementCooldownMs)
+                return; // Still in cooldown
+        }
+
+        _favorSystem.AwardFavorForAction(byPlayer, "placing clay bricks", FavorPerBrickPlacement);
+        _lastBrickPlacementTime[byPlayer.PlayerUID] = currentTime;
     }
 
     private static bool IsBrickBlock(Block block)
@@ -105,6 +121,12 @@ public class GaiaFavorTracker(
 
         // Not a clay/ceramic item
         return 0;
+    }
+
+    private void OnPlayerDisconnect(IServerPlayer player)
+    {
+        // Clean up cooldown tracking data to prevent memory leaks
+        _lastBrickPlacementTime.Remove(player.PlayerUID);
     }
 
     private void HandlePitKilnFired(string playerUid, List<ItemStack> firedItems)
