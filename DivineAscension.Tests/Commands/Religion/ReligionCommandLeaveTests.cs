@@ -159,7 +159,7 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
     }
 
     [Fact]
-    public void OnLeaveReligion_AsFounder_StillLeaves()
+    public void OnLeaveReligion_AsFounder_ReturnsError()
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("founder-1", "FounderPlayer");
@@ -176,8 +176,9 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(EnumCommandStatus.Success, result.Status);
-        _playerReligionDataManager.Verify(m => m.LeaveReligion("founder-1"), Times.Once);
+        Assert.Equal(EnumCommandStatus.Error, result.Status);
+        Assert.Contains("Founders cannot leave", result.StatusMessage);
+        _playerReligionDataManager.Verify(m => m.LeaveReligion("founder-1"), Times.Never);
     }
 
     #endregion

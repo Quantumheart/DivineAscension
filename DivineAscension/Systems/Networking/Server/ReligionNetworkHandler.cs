@@ -847,6 +847,15 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 Message = "You are not in a religion."
             };
 
+        if (currentReligion.GetPlayerRole(fromPlayer.PlayerUID) == RoleDefaults.FOUNDER_ROLE_ID)
+        {
+            return new ReligionActionResult
+            {
+                Success = false,
+                Message = "Founders cannot leave their religion. Transfer founder status or disband the religion instead."
+            };
+        }
+        
         var religionName = currentReligion.ReligionName;
         _playerReligionDataManager.LeaveReligion(fromPlayer.PlayerUID);
         _playerReligionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);

@@ -200,6 +200,12 @@ public class ReligionCommands(
         var religion = _religionManager.GetReligion(playerData.ReligionUID!);
         var religionName = religion?.ReligionName ?? "Unknown";
 
+        // Prevent founders from leaving (use role-based check for consistency)
+        if (religion != null && religion.GetPlayerRole(player.PlayerUID) == RoleDefaults.FOUNDER_ROLE_ID)
+        {
+            return TextCommandResult.Error("Founders cannot leave their religion. Transfer founder status or disband the religion instead.");
+        }
+
         // Leave the religion
         _playerReligionDataManager.LeaveReligion(player.PlayerUID);
 
