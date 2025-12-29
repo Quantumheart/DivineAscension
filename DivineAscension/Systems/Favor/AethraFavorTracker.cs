@@ -22,9 +22,9 @@ public class AethraFavorTracker(
     // Favor values
     private const float FavorPerCropHarvest = 1f;
     private const float FavorPerPlanting = 0.5f;
-    private const int FavorSimpleMeal = 3;
-    private const int FavorComplexMeal = 5;
-    private const int FavorGourmetMeal = 8;
+    private const float FavorSimpleMeal = 1f;
+    private const float FavorComplexMeal = 5f;
+    private const float FavorGourmetMeal = 10f;
     private static readonly TimeSpan CookingAwardCooldown = TimeSpan.FromSeconds(5);
 
     // Cache of active Aethra followers for fast lookup
@@ -208,12 +208,12 @@ public class AethraFavorTracker(
             $"[AethraFavorTracker] Awarded {favor} favor to {player.PlayerName} for cooking {GetMealName(cookedStack)} at {pos}");
     }
 
-    private int CalculateMealFavor(ItemStack meal)
+    private float CalculateMealFavor(ItemStack meal)
     {
         if (meal == null) return 0;
 
         var path = meal.Collectible?.Code?.Path ?? string.Empty;
-
+        // todo: handle calculation of serving size for favor gourmet meal
         if (IsGourmetMeal(path)) return FavorGourmetMeal;
         if (IsComplexMeal(path)) return FavorComplexMeal;
         return FavorSimpleMeal;
