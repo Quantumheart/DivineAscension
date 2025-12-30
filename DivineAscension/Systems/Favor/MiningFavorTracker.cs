@@ -12,6 +12,19 @@ public class MiningFavorTracker(
     ICoreServerAPI sapi,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
+    // Base favor values per mineral tier
+    private const int FavorLowTier = 1;      // Native copper, malachite, cassiterite (tin), bismuthinite
+    private const int FavorMidTier = 2;      // Galena (lead), sphalerite (zinc), rhodochrosite (manganese)
+    private const int FavorHighTier = 3;     // Native silver, native gold
+    private const int FavorEliteTier = 4;    // Hematite, limonite, magnetite (iron), suevite (meteoric iron)
+    private const int FavorSuperEliteTier = 5; // Ilmenite (titanium), pentlandite (nickel), chromite (chromium)
+
+    // Quality multipliers for ore density
+    private const float QualityPoor = 1.0f;
+    private const float QualityMedium = 1.25f;
+    private const float QualityRich = 1.5f;
+    private const float QualityBountiful = 2.0f;
+
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
     // Cache of active Khoras followers for fast lookup (avoids database hit on every block break)
@@ -91,8 +104,16 @@ public class MiningFavorTracker(
 
         if (!_khorasFollowers.Contains(player.PlayerUID)) return;
 
-        // Award favor for mining ore
-        _favorSystem.AwardFavorForAction(player, "mining ore", 2);
+        // Calculate favor based on mineral type and quality
+        var baseFavor = GetMineralTierFavor(block);
+        var qualityMultiplier = GetOreQualityMultiplier(block);
+        var finalFavor = (int)(baseFavor * qualityMultiplier);
+
+        _favorSystem.AwardFavorForAction(player, "mining ore", finalFavor);
+
+        _sapi.Logger.Debug(
+            $"[MiningFavorTracker] Awarded {finalFavor} favor to {player.PlayerName} " +
+            $"for mining {block.Code.Path} (base: {baseFavor}, quality: {qualityMultiplier}x)");
     }
 
     /// <summary>
@@ -104,5 +125,80 @@ public class MiningFavorTracker(
 
         var path = block.Code.Path;
         return path.StartsWith("ore-", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    ///     Get base favor for the mineral type
+    /// </summary>
+    private int GetMineralTierFavor(Block block)
+    {
+        var path = block.Code.Path;
+
+        // Extract mineral name from path (ore-{quality}-{mineral})
+        // Check for most rare minerals first
+        if (IsSuperEliteTierMineral(path)) return FavorSuperEliteTier;
+        if (IsEliteTierMineral(path)) return FavorEliteTier;
+        if (IsHighTierMineral(path)) return FavorHighTier;
+        if (IsMidTierMineral(path)) return FavorMidTier;
+
+        // Default to low tier
+        return FavorLowTier;
+    }
+
+    private bool IsMidTierMineral(string path)
+    {
+        // Galena (lead), sphalerite (zinc), rhodochrosite (manganese)
+        return path.Contains("-galena-") || path.Contains("-sphalerite-") ||
+               path.Contains("-rhodochrosite-") ||
+               path.EndsWith("-galena") || path.EndsWith("-sphalerite") ||
+               path.EndsWith("-rhodochrosite");
+    }
+
+    private bool IsHighTierMineral(string path)
+    {
+        // Native silver, native gold
+        return path.Contains("-nativesilver-") || path.Contains("-nativegold-") ||
+               path.EndsWith("-nativesilver") || path.EndsWith("-nativegold");
+    }
+
+    private bool IsEliteTierMineral(string path)
+    {
+        // Hematite, limonite, magnetite (iron ores), suevite (meteoric iron)
+        return path.Contains("-hematite-") || path.Contains("-limonite-") ||
+               path.Contains("-magnetite-") || path.Contains("-suevite-") ||
+               path.EndsWith("-hematite") || path.EndsWith("-limonite") ||
+               path.EndsWith("-magnetite") || path.EndsWith("-suevite");
+    }
+
+    private bool IsSuperEliteTierMineral(string path)
+    {
+        // Ilmenite (titanium), pentlandite (nickel), chromite (chromium) - very rare and valuable
+        return path.Contains("-ilmenite-") || path.Contains("-pentlandite-") ||
+               path.Contains("-chromite-") ||
+               path.EndsWith("-ilmenite") || path.EndsWith("-pentlandite") ||
+               path.EndsWith("-chromite");
+    }
+
+    /// <summary>
+    ///     Get quality multiplier from ore block path
+    /// </summary>
+    private float GetOreQualityMultiplier(Block block)
+    {
+        var path = block.Code.Path;
+
+        if (path.Contains("ore-poor-") || path.StartsWith("ore-poor"))
+            return QualityPoor;
+
+        if (path.Contains("ore-medium-") || path.StartsWith("ore-medium"))
+            return QualityMedium;
+
+        if (path.Contains("ore-rich-") || path.StartsWith("ore-rich"))
+            return QualityRich;
+
+        if (path.Contains("ore-bountiful-") || path.StartsWith("ore-bountiful"))
+            return QualityBountiful;
+
+        // Default to poor quality if pattern doesn't match
+        return QualityPoor;
     }
 }
