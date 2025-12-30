@@ -11,13 +11,13 @@ namespace DivineAscension.Systems.Favor;
 public class GaiaFavorTracker(
     IPlayerReligionDataManager playerReligionDataManager,
     ICoreServerAPI sapi,
-    FavorSystem favorSystem) : IFavorTracker, IDisposable
+    IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
     // --- Brick Placement Tracking (Part B requirement) ---
     private const int FavorPerBrickPlacement = 2;
     private const long BrickPlacementCooldownMs = 5000; // 5 seconds between brick placement favor awards
     private readonly Dictionary<string, long> _lastBrickPlacementTime = new();
-    private readonly FavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+    private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
     private readonly Guid _instanceId = Guid.NewGuid();
 
     private readonly IPlayerReligionDataManager _playerReligionDataManager =
@@ -48,14 +48,21 @@ public class GaiaFavorTracker(
         _sapi.Logger.Notification($"[DivineAscension] GaiaFavorTracker initialized (ID: {_instanceId})");
     }
 
-    private void HandleClayFormingFinished(IServerPlayer player, ItemStack stack)
+    private void HandleClayFormingFinished(IServerPlayer player, ItemStack stack, int clayConsumed)
     {
         // Verify religion
         var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
         if (religionData.ActiveDeity != DeityType.Gaia) return;
 
-        var favor = CalculateFavor(stack);
-        if (favor > 0) _favorSystem.AwardFavorForAction(player, "Pottery Crafting", favor);
+        if (clayConsumed > 0)
+        {
+            // Clay consumed already accounts for the total batch (don't multiply by stack size)
+            _favorSystem.AwardFavorForAction(player, "Pottery Crafting", clayConsumed);
+
+            _sapi.Logger.Debug(
+                $"[GaiaFavorTracker] Awarded {clayConsumed} favor for clay forming " +
+                $"(stack size: {stack?.StackSize ?? 1}, item: {stack?.Collectible?.Code?.Path ?? "unknown"})");
+        }
     }
 
     private void OnBlockPlaced(IServerPlayer byPlayer, int oldblockId, BlockSelection blockSel, ItemStack withItemStack)
@@ -88,39 +95,38 @@ public class GaiaFavorTracker(
         return path.Contains("brick");
     }
 
-    private int CalculateFavor(ItemStack stack)
+    private int EstimateClayFromFiredItem(ItemStack stack)
     {
         if (stack?.Collectible?.Code == null) return 0;
+
         var path = stack.Collectible.Code.Path?.ToLowerInvariant() ?? string.Empty;
 
-        // Specific mappings first
-        if (path.Contains("rawbrick") || path.Contains("brick")) return 1;
-        if (path.Contains("mold") || path.Contains("crucible")) return 2;
-        if (path.Contains("planter") || path.Contains("flowerpot")) return 4;
-        if (path.Contains("storagevessel") || path.Contains("vessel")) return 5;
+        // Known clay amounts from game data (based on screenshot)
+        if (path.Contains("storagevessel") || path.Contains("vessel")) return 35;
+        if (path.Contains("planter")) return 18;
+        if (path.Contains("anvil") && path.Contains("mold")) return 28;
+        if (path.Contains("prospecting") && path.Contains("mold")) return 13;
+        if (path.Contains("pickaxe") && path.Contains("mold")) return 12;
+        if (path.Contains("hammer") && path.Contains("mold")) return 12;
+        if (path.Contains("blade") && path.Contains("mold")) return 12;
+        if (path.Contains("lamel") && path.Contains("mold")) return 11;
+        if (path.Contains("axe") && path.Contains("mold")) return 11;
+        if (path.Contains("shovel") && path.Contains("mold")) return 11;
+        if (path.Contains("hoe") && path.Contains("mold")) return 12;
+        if (path.Contains("helve") && path.Contains("mold")) return 6;
+        if (path.Contains("ingot") && path.Contains("mold")) return 2; // 2 or 5
+        if (path.Contains("wateringcan")) return 10;
+        if (path.Contains("jug")) return 5;
+        if (path.Contains("shingles")) return 4;
+        if (path.Contains("flowerpot")) return 4; // 4 or 23
+        if (path.Contains("cookingpot") || path.Contains("pot")) return 4; // 4 or 24
+        if (path.Contains("bowl")) return 4; // Conservative estimate (1 or 4)
+        if (path.Contains("crucible")) return 2; // 2 or 13
+        if (path.Contains("crock")) return 2; // 2 or 14
+        if (path.Contains("brick")) return 1;
 
-        // Broad inclusiveness for clay/ceramic items
-        var isClayLike =
-            path.Contains("clay") ||
-            path.Contains("clayform") ||
-            path.Contains("clayforming") ||
-            path.Contains("ceramic") ||
-            path.Contains("pottery") ||
-            path.Contains("bowl") ||
-            path.Contains("pot") ||
-            path.Contains("vase") ||
-            path.Contains("jar") ||
-            path.Contains("jug") ||
-            path.Contains("amphora") ||
-            path.Contains("urn") ||
-            path.Contains("tile") ||
-            path.Contains("crock") ||
-            path.Contains("fireclay");
-
-        if (isClayLike) return 3; // Default for other pottery (bowls, pots, vases, crocks, etc.)
-
-        // Not a clay/ceramic item
-        return 0;
+        // Default for other ceramic items
+        return path.Contains("clay") || path.Contains("ceramic") ? 3 : 0;
     }
 
     private void OnPlayerDisconnect(IServerPlayer player)
@@ -140,8 +146,23 @@ public class GaiaFavorTracker(
         if (religionData.ActiveDeity != DeityType.Gaia) return;
 
         float totalFavor = 0;
-        foreach (var stack in firedItems) totalFavor += CalculateFavor(stack);
+        foreach (var stack in firedItems)
+        {
+            // For pit kiln, estimate per-item clay and multiply by stack size
+            // (unlike clay forming where the recipe gives us the total)
+            int clayEstimate = EstimateClayFromFiredItem(stack);
+            int stackSize = stack?.StackSize ?? 1;
+            totalFavor += clayEstimate * stackSize;
 
-        if (totalFavor > 0) _favorSystem.AwardFavorForAction(playerUid, "Pottery firing", totalFavor);
+            _sapi.Logger.Debug(
+                $"[GaiaFavorTracker] Pit kiln item: {stack?.Collectible?.Code?.Path ?? "unknown"}, " +
+                $"clay estimate: {clayEstimate}, stack: {stackSize}, favor: {clayEstimate * stackSize}");
+        }
+
+        if (totalFavor > 0)
+        {
+            _favorSystem.AwardFavorForAction(playerUid, "Pottery firing", totalFavor);
+            _sapi.Logger.Debug($"[GaiaFavorTracker] Total pit kiln favor awarded: {totalFavor}");
+        }
     }
 }

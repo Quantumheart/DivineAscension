@@ -47,7 +47,7 @@ public static class GaiaEffectHandlers
         {
         }
 
-        private void HandleClayFormingFinished(IServerPlayer player, ItemStack resultStack)
+        private void HandleClayFormingFinished(IServerPlayer player, ItemStack resultStack, int clayConsumed)
         {
             if (_sapi == null) return;
             if (!_activePlayers.Contains(player.PlayerUID)) return;
