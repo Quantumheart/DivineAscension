@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using DivineAscension.GUI.State.Religion;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network;
@@ -121,8 +122,33 @@ public partial class GuiDialog
         _manager!.Reset();
         _state.IsReady = true; // Keep dialog ready so it doesn't close
 
+        // AUTO-CORRECT TAB: If current tab becomes invalid, switch to Browse
+        var hasReligion = packet.HasReligion;
+        var currentTab = _manager.ReligionStateManager.State.CurrentSubTab;
+        var shouldSwitchTab = currentTab switch
+        {
+            SubTab.Info or SubTab.Activity or SubTab.Roles => !hasReligion, // These require religion
+            SubTab.Invites or SubTab.Create => hasReligion, // These require NO religion
+            _ => false
+        };
+
+        if (shouldSwitchTab)
+        {
+            _capi.Logger.Debug(
+                $"[DivineAscension] Switching tab from {currentTab} to Browse due to religion state change");
+            _manager.ReligionStateManager.State.CurrentSubTab = SubTab.Browse;
+        }
+
         // Request fresh data from server (will show "No Religion" state)
         _divineAscensionModSystem?.NetworkClient?.RequestBlessingData();
+
+        // Request player religion info if player now has a religion
+        // This handles accept invite, join, and any other state transitions
+        if (packet.HasReligion)
+        {
+            _manager.ReligionStateManager.State.InfoState.Loading = true;
+            _divineAscensionModSystem?.NetworkClient?.RequestPlayerReligionInfo();
+        }
 
         // If notification is about civilization, also refresh civilization data
         if (packet.Reason.Contains("civilization", StringComparison.OrdinalIgnoreCase))
@@ -173,6 +199,25 @@ public partial class GuiDialog
             {
                 _capi.Logger.Debug("[DivineAscension] Resetting blessing dialog after leaving religion");
                 _manager!.Reset();
+
+                // AUTO-CORRECT TAB: Switch away from member-only tabs
+                var currentTab = _manager.ReligionStateManager.State.CurrentSubTab;
+                if (currentTab is SubTab.Info or SubTab.Activity or SubTab.Roles)
+                {
+                    _capi.Logger.Debug($"[DivineAscension] Switching tab from {currentTab} to Browse after leaving religion");
+                    _manager.ReligionStateManager.State.CurrentSubTab = SubTab.Browse;
+                }
+            }
+
+            // If joining/creating religion, switch to Info to show new religion
+            if (packet.Action is "join" or "create" or "accept")
+            {
+                var currentTab = _manager!.ReligionStateManager.State.CurrentSubTab;
+                if (currentTab is SubTab.Invites or SubTab.Create)
+                {
+                    _capi.Logger.Debug($"[DivineAscension] Switching tab from {currentTab} to Info after joining religion");
+                    _manager.ReligionStateManager.State.CurrentSubTab = SubTab.Info;
+                }
             }
 
             // Refresh religion tab data

@@ -29,29 +29,44 @@ internal static class ReligionTabRenderer
         var width = viewModel.Width;
         const float tabH = 36f;
 
-        // Tab buttons: Browse | My Religion | Activity | Invites | Create (last two only if user has no religion)
+        // Tab buttons: Conditionally render based on religion membership
         const float tabWidth = 130f;
         const float spacing = 6f;
 
+        // Track dynamic X position for visible tabs (avoids gaps when tabs are hidden)
+        float currentX = x;
+
         void DrawTabButton(string label, SubTab tab, string directory = "", string iconName = "")
         {
-            var tx = x + (int)tab * (tabWidth + spacing);
             var isActive = viewModel.CurrentSubTab == tab;
-            var clicked = ButtonRenderer.DrawButton(drawList, label, tx, y, tabWidth, tabH,
+            var clicked = ButtonRenderer.DrawButton(drawList, label, currentX, y, tabWidth, tabH,
                 isActive, true,
                 isActive ? ColorPalette.Gold * 0.7f : ColorPalette.DarkBrown * 0.6f, directory, iconName);
             if (clicked && tab != viewModel.CurrentSubTab)
             {
                 events.Add(new SubTabEvent.TabChanged(tab));
             }
+            currentX += tabWidth + spacing; // Advance position for next visible tab
         }
 
+        // Always show Browse (neutral for all states)
         DrawTabButton(nameof(SubTab.Browse), SubTab.Browse, "GUI", "browse");
-        DrawTabButton(nameof(SubTab.Info), SubTab.Info, "GUI", "info");
-        DrawTabButton(nameof(SubTab.Activity), SubTab.Activity, "GUI", "activity");
-        DrawTabButton(nameof(SubTab.Roles), SubTab.Roles, "GUI", "roles");
-        DrawTabButton(nameof(SubTab.Invites), SubTab.Invites, "GUI", "invites");
-        DrawTabButton(nameof(SubTab.Create), SubTab.Create, "GUI", "create");
+
+        // Conditional tabs based on religion membership
+        if (viewModel.ShowInfoTab)
+            DrawTabButton(nameof(SubTab.Info), SubTab.Info, "GUI", "info");
+
+        if (viewModel.ShowActivityTab)
+            DrawTabButton(nameof(SubTab.Activity), SubTab.Activity, "GUI", "activity");
+
+        if (viewModel.ShowRolesTab)
+            DrawTabButton(nameof(SubTab.Roles), SubTab.Roles, "GUI", "roles");
+
+        if (viewModel.ShowInvitesTab)
+            DrawTabButton(nameof(SubTab.Invites), SubTab.Invites, "GUI", "invites");
+
+        if (viewModel.ShowCreateTab)
+            DrawTabButton(nameof(SubTab.Create), SubTab.Create, "GUI", "create");
 
         var contentY = y + tabH + 10f;
         var renderedHeight = tabH + 10f;

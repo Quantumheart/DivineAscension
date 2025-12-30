@@ -29,7 +29,8 @@ public readonly struct CivilizationTabViewModel(
     public float Width { get; } = width;
     public float Height { get; } = height;
 
-    // Helper methods (no side effects)
-    public bool ShowInvitesTab => HasReligion; // Only religion founders see Invites tab
+    // Helper methods (no side effects) - Tab visibility based on religion/civilization membership
+    public bool ShowInfoTab => HasCivilization; // Only show if user is in a civilization
+    public bool ShowInvitesTab => HasReligion && !HasCivilization; // Only show if has religion but not in civilization
     public bool ShowCreateTab => HasReligion && !HasCivilization; // Only show if user has religion but no civilization
 }

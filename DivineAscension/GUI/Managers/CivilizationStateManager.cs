@@ -223,6 +223,35 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             width,
             height);
 
+        // AUTO-CORRECTION: Ensure active tab is valid for current religion/civilization state
+        var isCurrentTabValid = State.CurrentSubTab switch
+        {
+            CivilizationSubTab.Browse => true, // Always visible
+            CivilizationSubTab.Info => tabVm.ShowInfoTab,
+            CivilizationSubTab.Invites => tabVm.ShowInvitesTab,
+            CivilizationSubTab.Create => tabVm.ShowCreateTab,
+            _ => false
+        };
+
+        if (!isCurrentTabValid)
+        {
+            _coreClientApi.Logger.Debug(
+                $"[DivineAscension] Auto-switching from {State.CurrentSubTab} to Browse (tab now hidden for HasReligion={UserHasReligion}, HasCivilization={HasCivilization()})");
+            State.CurrentSubTab = CivilizationSubTab.Browse;
+
+            // Rebuild ViewModel with corrected tab
+            tabVm = new CivilizationTabViewModel(
+                State.CurrentSubTab,
+                State.LastActionError,
+                State.BrowseState.ErrorMsg,
+                State.InfoState.ErrorMsg,
+                State.InviteState.ErrorMsg,
+                !string.IsNullOrEmpty(State.DetailState.ViewingCivilizationId),
+                UserHasReligion,
+                HasCivilization(),
+                x, y, width, height);
+        }
+
         var drawList = ImGui.GetWindowDrawList();
         var tabResult = CivilizationTabRenderer.Draw(tabVm, drawList);
 
@@ -440,6 +469,23 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             switch (evt)
             {
                 case SubTabEvent.TabChanged tc:
+                    // Validate that the requested tab is visible for current religion/civilization state
+                    var isTabVisible = tc.NewSubTab switch
+                    {
+                        CivilizationSubTab.Browse => true,
+                        CivilizationSubTab.Info => HasCivilization(),
+                        CivilizationSubTab.Invites => UserHasReligion && !HasCivilization(),
+                        CivilizationSubTab.Create => UserHasReligion && !HasCivilization(),
+                        _ => false
+                    };
+
+                    if (!isTabVisible)
+                    {
+                        _coreClientApi.Logger.Warning(
+                            $"[DivineAscension] Attempted to switch to hidden tab {tc.NewSubTab} (HasReligion={UserHasReligion}, HasCivilization={HasCivilization()}). Ignoring.");
+                        break; // Don't process the tab change
+                    }
+
                     State.CurrentSubTab = tc.NewSubTab;
                     // Clear transient action error on tab change
                     State.LastActionError = null;
@@ -757,6 +803,32 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         if (packet.Success)
         {
             _soundManager.PlayClick();
+
+            // AUTO-CORRECT TAB: Switch to appropriate tab based on action
+            var currentTab = State.CurrentSubTab;
+            switch (packet.Action?.ToLowerInvariant())
+            {
+                case "leave" or "disband":
+                    // Leaving civilization - switch to Browse
+                    if (currentTab is CivilizationSubTab.Info)
+                    {
+                        _coreClientApi.Logger.Debug(
+                            $"[DivineAscension] Switching tab from {currentTab} to Browse after leaving civilization");
+                        State.CurrentSubTab = CivilizationSubTab.Browse;
+                    }
+                    break;
+
+                case "join" or "create" or "accept":
+                    // Joining/creating civilization - switch to Info to show new civilization
+                    if (currentTab is CivilizationSubTab.Invites or CivilizationSubTab.Create)
+                    {
+                        _coreClientApi.Logger.Debug(
+                            $"[DivineAscension] Switching tab from {currentTab} to Info after joining civilization");
+                        State.CurrentSubTab = CivilizationSubTab.Info;
+                    }
+                    break;
+            }
+
             RequestCivilizationList(State.BrowseState.DeityFilter);
             RequestCivilizationInfo();
         }

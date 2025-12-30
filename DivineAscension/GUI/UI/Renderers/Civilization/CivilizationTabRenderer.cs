@@ -26,25 +26,36 @@ internal static class CivilizationTabRenderer
         var tabY = vm.Y;
         const float tabH = 36f;
 
-        // Simple tab buttons: Browse | My Civilization | Invites | Create
+        // Tab buttons: Conditionally render based on religion/civilization membership
         const float tabWidth = 150f;
         const float spacing = 6f;
 
+        // Track dynamic X position for visible tabs (avoids gaps when tabs are hidden)
+        float currentX = tabX;
+
         void DrawTabButton(string label, CivilizationSubTab tab, string directory = "", string iconName = "")
         {
-            var tx = tabX + (int)tab * (tabWidth + spacing);
             var isActive = vm.CurrentSubTab == tab;
-            var clicked = ButtonRenderer.DrawButton(drawList, label, tx, tabY, tabWidth, tabH,
+            var clicked = ButtonRenderer.DrawButton(drawList, label, currentX, tabY, tabWidth, tabH,
                 isActive, true,
                 isActive ? ColorPalette.Gold * 0.7f : ColorPalette.DarkBrown * 0.6f, directory, iconName);
             if (clicked && tab != vm.CurrentSubTab)
                 events.Add(new SubTabEvent.TabChanged(tab));
+            currentX += tabWidth + spacing; // Advance position for next visible tab
         }
 
+        // Always show Browse (neutral for all states)
         DrawTabButton("Browse", CivilizationSubTab.Browse, "GUI", "browse");
-        DrawTabButton("Info", CivilizationSubTab.Info, "GUI", "info");
-        DrawTabButton("Invites", CivilizationSubTab.Invites, "GUI", "invites");
-        DrawTabButton("Create", CivilizationSubTab.Create, "GUI", "create");
+
+        // Conditional tabs based on religion/civilization membership
+        if (vm.ShowInfoTab)
+            DrawTabButton("Info", CivilizationSubTab.Info, "GUI", "info");
+
+        if (vm.ShowInvitesTab)
+            DrawTabButton("Invites", CivilizationSubTab.Invites, "GUI", "invites");
+
+        if (vm.ShowCreateTab)
+            DrawTabButton("Create", CivilizationSubTab.Create, "GUI", "create");
 
         var contentY = vm.Y + tabH + 10f;
         var renderedHeight = tabH + 10f;

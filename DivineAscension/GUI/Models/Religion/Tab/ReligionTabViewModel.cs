@@ -18,4 +18,11 @@ public readonly struct ReligionTabViewModel(
     public float Y { get; } = y;
     public float Width { get; } = width;
     public float Height { get; } = height;
+
+    // Tab visibility based on religion membership
+    public bool ShowInfoTab => HasReligion;
+    public bool ShowActivityTab => HasReligion;
+    public bool ShowRolesTab => HasReligion;
+    public bool ShowInvitesTab => !HasReligion;
+    public bool ShowCreateTab => !HasReligion;
 }
