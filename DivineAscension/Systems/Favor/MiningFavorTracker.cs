@@ -13,10 +13,10 @@ public class MiningFavorTracker(
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
     // Base favor values per mineral tier
-    private const int FavorLowTier = 1;      // Native copper, malachite, cassiterite (tin), bismuthinite
-    private const int FavorMidTier = 2;      // Galena (lead), sphalerite (zinc), rhodochrosite (manganese)
-    private const int FavorHighTier = 3;     // Native silver, native gold
-    private const int FavorEliteTier = 4;    // Hematite, limonite, magnetite (iron), suevite (meteoric iron)
+    private const int FavorLowTier = 1; // Native copper, malachite, cassiterite (tin), bismuthinite
+    private const int FavorMidTier = 2; // Galena (lead), sphalerite (zinc), rhodochrosite (manganese)
+    private const int FavorHighTier = 3; // Native silver, native gold
+    private const int FavorEliteTier = 4; // Hematite, limonite, magnetite (iron), suevite (meteoric iron)
     private const int FavorSuperEliteTier = 5; // Ilmenite (titanium), pentlandite (nickel), chromite (chromium)
 
     // Quality multipliers for ore density
@@ -96,7 +96,7 @@ public class MiningFavorTracker(
         _khorasFollowers.Remove(player.PlayerUID);
     }
 
-    private void OnBlockBroken(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier,
+    internal void OnBlockBroken(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier,
         ref EnumHandling handling)
     {
         var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
@@ -119,7 +119,7 @@ public class MiningFavorTracker(
     /// <summary>
     ///     Fast ore block detection using StartsWith
     /// </summary>
-    private bool IsOreBlock(Block block)
+    internal bool IsOreBlock(Block block)
     {
         if (block?.Code is null) return false;
 
@@ -130,7 +130,7 @@ public class MiningFavorTracker(
     /// <summary>
     ///     Get base favor for the mineral type
     /// </summary>
-    private int GetMineralTierFavor(Block block)
+    internal int GetMineralTierFavor(Block block)
     {
         var path = block.Code.Path;
 
@@ -145,7 +145,7 @@ public class MiningFavorTracker(
         return FavorLowTier;
     }
 
-    private bool IsMidTierMineral(string path)
+    internal bool IsMidTierMineral(string path)
     {
         // Galena (lead), sphalerite (zinc), rhodochrosite (manganese)
         return path.Contains("-galena-") || path.Contains("-sphalerite-") ||
@@ -154,14 +154,14 @@ public class MiningFavorTracker(
                path.EndsWith("-rhodochrosite");
     }
 
-    private bool IsHighTierMineral(string path)
+    internal bool IsHighTierMineral(string path)
     {
         // Native silver, native gold
         return path.Contains("-nativesilver-") || path.Contains("-nativegold-") ||
                path.EndsWith("-nativesilver") || path.EndsWith("-nativegold");
     }
 
-    private bool IsEliteTierMineral(string path)
+    internal bool IsEliteTierMineral(string path)
     {
         // Hematite, limonite, magnetite (iron ores), suevite (meteoric iron)
         return path.Contains("-hematite-") || path.Contains("-limonite-") ||
@@ -170,7 +170,7 @@ public class MiningFavorTracker(
                path.EndsWith("-magnetite") || path.EndsWith("-suevite");
     }
 
-    private bool IsSuperEliteTierMineral(string path)
+    internal bool IsSuperEliteTierMineral(string path)
     {
         // Ilmenite (titanium), pentlandite (nickel), chromite (chromium) - very rare and valuable
         return path.Contains("-ilmenite-") || path.Contains("-pentlandite-") ||
@@ -182,7 +182,7 @@ public class MiningFavorTracker(
     /// <summary>
     ///     Get quality multiplier from ore block path
     /// </summary>
-    private float GetOreQualityMultiplier(Block block)
+    internal float GetOreQualityMultiplier(Block block)
     {
         var path = block.Code.Path;
 

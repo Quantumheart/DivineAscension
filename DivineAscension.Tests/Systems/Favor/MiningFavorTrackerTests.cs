@@ -107,7 +107,7 @@ public class MiningFavorTrackerTests
     }
 
     [Fact]
-    public void OnBlockBroken_WhenCopperOre_Awards2Favor()
+    public void OnBlockBroken_WhenCopperOre_Awards1Favor()
     {
         var mockSapi = TestFixtures.CreateMockServerAPI();
         var mockWorld = new Mock<IServerWorldAccessor>();
@@ -125,7 +125,7 @@ public class MiningFavorTrackerTests
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-1"))
             .Returns(TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.Khoras));
 
-        // Copper ore block
+        // Copper ore block (low tier = 1, poor quality = 1.0x, total = 1)
         SetupBlockAt(mockAccessor, "ore-poor-copper");
 
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
@@ -139,7 +139,7 @@ public class MiningFavorTrackerTests
         mockFavor.Verify(m => m.AwardFavorForAction(
             It.Is<IServerPlayer>(p => p.PlayerUID == "player-1"),
             "mining ore",
-            2), Times.Once);
+            1), Times.Once);
 
         tracker.Dispose();
     }
