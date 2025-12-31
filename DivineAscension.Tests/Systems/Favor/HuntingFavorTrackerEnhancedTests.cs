@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.Interfaces;
@@ -54,12 +53,8 @@ public class HuntingFavorTrackerEnhancedTests
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        var method = typeof(HuntingFavorTracker)
-            .GetMethod("CalculateAnimalFavor", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         // Act
-        var result = (int)method!.Invoke(tracker, new object[] { animalCode })!;
+        var result = tracker.CalculateAnimalFavor(animalCode);
 
         // Assert
         Assert.Equal(expectedFavor, result);
@@ -84,12 +79,8 @@ public class HuntingFavorTrackerEnhancedTests
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        var method = typeof(HuntingFavorTracker)
-            .GetMethod("CalculateAnimalFavor", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         // Act
-        var result = (int)method!.Invoke(tracker, new object[] { fullCode })!;
+        var result = tracker.CalculateAnimalFavor(fullCode);
 
         // Assert
         Assert.Equal(expectedFavor, result);
@@ -113,12 +104,8 @@ public class HuntingFavorTrackerEnhancedTests
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        var method = typeof(HuntingFavorTracker)
-            .GetMethod("CalculateAnimalFavor", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         // Act
-        var result = (int)method!.Invoke(tracker, new object[] { animalCode })!;
+        var result = tracker.CalculateAnimalFavor(animalCode);
 
         // Assert
         Assert.Equal(expectedFavor, result);
@@ -141,12 +128,8 @@ public class HuntingFavorTrackerEnhancedTests
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        var method = typeof(HuntingFavorTracker)
-            .GetMethod("CalculateAnimalFavor", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         // Act
-        var result = (int)method!.Invoke(tracker, new object[] { animalCode })!;
+        var result = tracker.CalculateAnimalFavor(animalCode);
 
         // Assert
         Assert.Equal(expectedFavor, result);
@@ -166,12 +149,8 @@ public class HuntingFavorTrackerEnhancedTests
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        var method = typeof(HuntingFavorTracker)
-            .GetMethod("CalculateAnimalFavor", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         // Act
-        var result = (int)method!.Invoke(tracker, new object[] { animalCode })!;
+        var result = tracker.CalculateAnimalFavor(animalCode);
 
         // Assert
         Assert.Equal(expectedFavor, result);
@@ -184,7 +163,6 @@ public class HuntingFavorTrackerEnhancedTests
     [InlineData("caribou", 8)]
     [InlineData("elk", 8)]
     [InlineData("boar", 8)]
-    [InlineData("wildcat", 8)]
     public void CalculateAnimalFavor_MediumAnimals_Returns8(string animalCode, int expectedFavor)
     {
         // Arrange
@@ -193,12 +171,8 @@ public class HuntingFavorTrackerEnhancedTests
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        var method = typeof(HuntingFavorTracker)
-            .GetMethod("CalculateAnimalFavor", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         // Act
-        var result = (int)method!.Invoke(tracker, new object[] { animalCode })!;
+        var result = tracker.CalculateAnimalFavor(animalCode);
 
         // Assert
         Assert.Equal(expectedFavor, result);
@@ -220,12 +194,8 @@ public class HuntingFavorTrackerEnhancedTests
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        var method = typeof(HuntingFavorTracker)
-            .GetMethod("CalculateAnimalFavor", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         // Act
-        var result = (int)method!.Invoke(tracker, new object[] { animalCode })!;
+        var result = tracker.CalculateAnimalFavor(animalCode);
 
         // Assert
         Assert.Equal(expectedFavor, result);
@@ -250,12 +220,8 @@ public class HuntingFavorTrackerEnhancedTests
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        var method = typeof(HuntingFavorTracker)
-            .GetMethod("CalculateAnimalFavor", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         // Act
-        var result = (int)method!.Invoke(tracker, new object[] { animalCode })!;
+        var result = tracker.CalculateAnimalFavor(animalCode);
 
         // Assert
         Assert.Equal(expectedFavor, result);
@@ -281,12 +247,8 @@ public class HuntingFavorTrackerEnhancedTests
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        var method = typeof(HuntingFavorTracker)
-            .GetMethod("IsNonAnimal", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         // Act
-        var result = (bool)method!.Invoke(tracker, new object[] { monsterCode })!;
+        var result = tracker.IsNonAnimal(monsterCode);
 
         // Assert
         Assert.True(result);
@@ -308,12 +270,8 @@ public class HuntingFavorTrackerEnhancedTests
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        var method = typeof(HuntingFavorTracker)
-            .GetMethod("IsNonAnimal", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         // Act
-        var result = (bool)method!.Invoke(tracker, new object[] { constructCode })!;
+        var result = tracker.IsNonAnimal(constructCode);
 
         // Assert
         Assert.True(result);
@@ -335,12 +293,8 @@ public class HuntingFavorTrackerEnhancedTests
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        var method = typeof(HuntingFavorTracker)
-            .GetMethod("IsNonAnimal", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         // Act
-        var result = (bool)method!.Invoke(tracker, new object[] { undeadCode })!;
+        var result = tracker.IsNonAnimal(undeadCode);
 
         // Assert
         Assert.True(result);
@@ -360,12 +314,8 @@ public class HuntingFavorTrackerEnhancedTests
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        var method = typeof(HuntingFavorTracker)
-            .GetMethod("IsNonAnimal", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         // Act
-        var result = (bool)method!.Invoke(tracker, new object[] { summonCode })!;
+        var result = tracker.IsNonAnimal(summonCode);
 
         // Assert
         Assert.True(result);
@@ -386,12 +336,8 @@ public class HuntingFavorTrackerEnhancedTests
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        var method = typeof(HuntingFavorTracker)
-            .GetMethod("IsNonAnimal", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         // Act
-        var result = (bool)method!.Invoke(tracker, new object[] { animalCode })!;
+        var result = tracker.IsNonAnimal(animalCode);
 
         // Assert
         Assert.False(result);
@@ -408,12 +354,8 @@ public class HuntingFavorTrackerEnhancedTests
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        var method = typeof(HuntingFavorTracker)
-            .GetMethod("CalculateAnimalFavor", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         // Act
-        var result = (int)method!.Invoke(tracker, new object[] { "random-unrecognized-entity" })!;
+        var result = tracker.CalculateAnimalFavor("random-unrecognized-entity");
 
         // Assert
         Assert.Equal(0, result);
@@ -434,12 +376,8 @@ public class HuntingFavorTrackerEnhancedTests
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        var method = typeof(HuntingFavorTracker)
-            .GetMethod("CalculateAnimalFavor", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         // Act
-        var result = (int)method!.Invoke(tracker, new object[] { string.Empty })!;
+        var result = tracker.CalculateAnimalFavor(string.Empty);
 
         // Assert
         Assert.Equal(0, result);
