@@ -724,14 +724,15 @@ public class CivilizationStateManagerTests
     }
 
     [Fact]
-    public void ProcessTabEvents_TabChanged_ToMyCiv_RequestsCivilizationInfo()
+    public void ProcessTabEvents_TabChanged_ToInfo_RequestsCivilizationInfo()
     {
         // Arrange
         var events = new List<SubTabEvent>
         {
             new SubTabEvent.TabChanged(CivilizationSubTab.Info)
         };
-
+        _mockApi.Setup(d => d.Logger.Warning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
+        _sut.CurrentCivilizationId = "12345";
         // Act
         _sut.ProcessTabEvents(events);
 
@@ -747,6 +748,8 @@ public class CivilizationStateManagerTests
         {
             new SubTabEvent.TabChanged(CivilizationSubTab.Invites)
         };
+        _mockApi.Setup(d => d.Logger.Warning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
+        _sut.UserHasReligion = true;
 
         // Act
         _sut.ProcessTabEvents(events);
@@ -763,7 +766,8 @@ public class CivilizationStateManagerTests
         {
             new SubTabEvent.TabChanged(CivilizationSubTab.Create)
         };
-
+        _mockApi.Setup(d => d.Logger.Warning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
+        
         // Act
         _sut.ProcessTabEvents(events);
 
@@ -890,8 +894,10 @@ public class CivilizationStateManagerTests
         var events = new List<SubTabEvent>
         {
             new SubTabEvent.DismissActionError(),
-            new SubTabEvent.TabChanged(CivilizationSubTab.Info)
+            new SubTabEvent.TabChanged(CivilizationSubTab.Info),
         };
+        _sut.CurrentCivilizationId = "12345";
+        _mockApi.Setup(d => d.Logger.Warning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
 
         // Act
         _sut.ProcessTabEvents(events);

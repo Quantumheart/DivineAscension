@@ -6,6 +6,7 @@ using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
+using Vintagestory.GameContent;
 
 namespace DivineAscension.Systems.Favor;
 
@@ -44,7 +45,7 @@ public class AethraFavorTracker(
     public void Dispose()
     {
         _sapi.Event.BreakBlock -= OnBlockBroken;
-        _sapi.Event.DidPlaceBlock -= OnBlockPlaced;
+        CropPlantingPatches.OnCropPlanted -= HandleCropPlanted;
         CookingPatches.OnMealCooked -= HandleMealCooked;
         _playerReligionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
         _playerReligionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
@@ -58,8 +59,8 @@ public class AethraFavorTracker(
         // Hook into block break event for crop harvesting
         _sapi.Event.BreakBlock += OnBlockBroken;
 
-        // Hook into block placement for planting detection
-        _sapi.Event.DidPlaceBlock += OnBlockPlaced;
+        // Subscribe to crop planting patch events (uses Harmony patch on BlockEntityFarmland.TryPlant)
+        CropPlantingPatches.OnCropPlanted += HandleCropPlanted;
 
         // Subscribe to cooking completion events (firepit/crock). Attribution must
         // be the last interacting player; patches will ensure correct uid.
@@ -121,17 +122,48 @@ public class AethraFavorTracker(
     }
 
     /// <summary>
-    ///     Checks if a block is a harvestable crop
+    ///     Checks if a block is a harvestable crop (fully grown only)
     /// </summary>
     private bool IsCropBlock(Block block)
     {
+        if (block is not BlockCrop cropBlock) return false;
         if (block?.Code == null) return false;
+
         var path = block.Code.Path;
 
-        // Vintage Story crops are typically in "ripe" state when harvestable
-        // Common crops: wheat, flax, onion, carrot, parsnip, turnip, cabbage, pumpkin, etc.
-        return (path.Contains("crop") || path.Contains("vegetable")) &&
-               !path.Contains("harvested");
+        // Check if it's harvested
+        if (path.Contains("harvested")) return false;
+
+        // Extract current growth stage from block code (e.g., "crop-carrot-7" → 7)
+        var parts = path.Split('-');
+        if (parts.Length < 3 || !int.TryParse(parts[^1], out int currentStage))
+        {
+            _sapi.Logger.Debug($"[AethraFavorTracker] Could not parse growth stage from: {path}");
+            return false;
+        }
+
+        // Try to get max growth stages from CropProps
+        if (cropBlock.CropProps != null)
+        {
+            int maxStages = cropBlock.CropProps.GrowthStages;
+            _sapi.Logger.Debug($"[AethraFavorTracker] Crop: {path}, Current: {currentStage}, Max: {maxStages}");
+            return currentStage >= maxStages;
+        }
+
+        // Fallback: Check block attributes
+        var cropProps = block.Attributes?["cropProps"];
+        if (cropProps != null)
+        {
+            int maxStages = cropProps["growthStages"]?.AsInt() ?? 0;
+            if (maxStages > 0)
+            {
+                _sapi.Logger.Debug($"[AethraFavorTracker] Crop (attrs): {path}, Current: {currentStage}, Max: {maxStages}");
+                return currentStage >= maxStages;
+            }
+        }
+
+        _sapi.Logger.Warning($"[AethraFavorTracker] Could not determine max stages for crop: {path}");
+        return false;
     }
 
     private string GetCropName(Block block)
@@ -160,27 +192,12 @@ public class AethraFavorTracker(
 
     #region Planting Detection
 
-    private void OnBlockPlaced(IServerPlayer byPlayer, int oldblockId, BlockSelection blockSel, ItemStack withItemStack)
+    private void HandleCropPlanted(IServerPlayer player, Block cropBlock)
     {
-        if (!_aethraFollowers.Contains(byPlayer.PlayerUID)) return;
+        if (!_aethraFollowers.Contains(player.PlayerUID)) return;
 
-        var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
-        if (IsPlantedCrop(block))
-            // Award favor for planting crops
-            _favorSystem.AwardFavorForAction(byPlayer, "planting " + GetCropName(block), FavorPerPlanting);
-    }
-
-    /// <summary>
-    ///     Checks if a block is a newly planted crop
-    /// </summary>
-    private bool IsPlantedCrop(Block block)
-    {
-        if (block?.Code == null) return false;
-        var path = block.Code.Path;
-
-        // Newly planted crops are typically in early growth stages
-        return (path.Contains("crop") || path.Contains("vegetable")) &&
-               (path.Contains("1") || path.Contains("seed") || path.StartsWith("crop-"));
+        // Award favor for planting crops
+        _favorSystem.AwardFavorForAction(player, "planting " + GetCropName(cropBlock), FavorPerPlanting);
     }
 
     #endregion

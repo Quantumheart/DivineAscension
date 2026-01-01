@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.Interfaces;
@@ -20,51 +19,6 @@ public class MiningFavorTrackerTests
         Mock<IFavorSystem> mockFavor)
     {
         return new MiningFavorTracker(mockPlayerReligion.Object, mockSapi.Object, mockFavor.Object);
-    }
-
-    [Theory]
-    [InlineData("ore-poor-copper")]
-    [InlineData("ore-medium-tin")]
-    [InlineData("ore-rich-iron")]
-    [InlineData("ore-poor-silver")]
-    [InlineData("ore-medium-gold")]
-    [InlineData("ore-meteorite")]
-    public void OnBlockBroken_AllOreTypes_Award2Favor(string oreBlockCode)
-    {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        var mockAccessor = new Mock<IBlockAccessor>();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
-        var mockFavor = TestFixtures.CreateMockFavorSystem();
-        var mockPlayer = TestFixtures.CreateMockServerPlayer("player-3", "OreRunner");
-
-        mockSapi.Setup(s => s.World).Returns(mockWorld.Object);
-        mockWorld.Setup(w => w.BlockAccessor).Returns(mockAccessor.Object);
-        SetupOnlinePlayer(mockWorld, mockPlayer.Object);
-
-        mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-3"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-3", DeityType.Khoras));
-
-        SetupBlockAt(mockAccessor, oreBlockCode);
-
-        var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
-        tracker.Initialize();
-
-        var method =
-            typeof(MiningFavorTracker).GetMethod("OnBlockBroken", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
-        float dropMult = 1f;
-        EnumHandling handling = EnumHandling.PassThrough;
-        var selection = new BlockSelection { Position = new BlockPos(0, 0, 0) };
-        method!.Invoke(tracker, new object[] { mockPlayer.Object, selection, dropMult, handling });
-
-        mockFavor.Verify(m => m.AwardFavorForAction(
-            It.Is<IServerPlayer>(p => p.PlayerUID == "player-3"),
-            "mining ore",
-            2), Times.Once);
-
-        tracker.Dispose();
     }
 
     [Fact]
@@ -91,14 +45,10 @@ public class MiningFavorTrackerTests
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
         tracker.Initialize();
 
-        var method =
-            typeof(MiningFavorTracker).GetMethod("OnBlockBroken", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         float dropMult = 1f;
         EnumHandling handling = EnumHandling.PassThrough;
         var selection = new BlockSelection { Position = new BlockPos(0, 0, 0) };
-        method!.Invoke(tracker, new object[] { mockPlayer.Object, selection, dropMult, handling });
+        tracker.OnBlockBroken(mockPlayer.Object, selection, ref dropMult, ref handling);
 
         mockFavor.Verify(m => m.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()),
             Times.Never);
@@ -146,22 +96,18 @@ public class MiningFavorTrackerTests
 
         tracker2.Initialize();
 
-        // Call the internal handler via reflection
-        var method =
-            typeof(MiningFavorTracker).GetMethod("OnBlockBroken", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
+        // Call the internal handler directly
         float dropMult = 1f;
         EnumHandling handling = EnumHandling.PassThrough;
         var selection = new BlockSelection { Position = new BlockPos(0, 0, 0) };
-        method!.Invoke(tracker2, new object[] { player, selection, dropMult, handling });
+        tracker2.OnBlockBroken(player, selection, ref dropMult, ref handling);
 
         // Dispose to unhook events
         tracker2.Dispose();
     }
 
     [Fact]
-    public void OnBlockBroken_WhenCopperOre_Awards2Favor()
+    public void OnBlockBroken_WhenCopperOre_Awards1Favor()
     {
         var mockSapi = TestFixtures.CreateMockServerAPI();
         var mockWorld = new Mock<IServerWorldAccessor>();
@@ -179,26 +125,21 @@ public class MiningFavorTrackerTests
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-1"))
             .Returns(TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.Khoras));
 
-        // Copper ore block
+        // Copper ore block (low tier = 1, poor quality = 1.0x, total = 1)
         SetupBlockAt(mockAccessor, "ore-poor-copper");
 
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
         tracker.Initialize();
 
-        // Invoke handler via reflection
-        var method =
-            typeof(MiningFavorTracker).GetMethod("OnBlockBroken", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         float dropMult = 1f;
         EnumHandling handling = EnumHandling.PassThrough;
         var selection = new BlockSelection { Position = new BlockPos(0, 0, 0) };
-        method!.Invoke(tracker, new object[] { mockPlayer.Object, selection, dropMult, handling });
+        tracker.OnBlockBroken(mockPlayer.Object, selection, ref dropMult, ref handling);
 
         mockFavor.Verify(m => m.AwardFavorForAction(
             It.Is<IServerPlayer>(p => p.PlayerUID == "player-1"),
             "mining ore",
-            2), Times.Once);
+            1), Times.Once);
 
         tracker.Dispose();
     }
@@ -226,14 +167,10 @@ public class MiningFavorTrackerTests
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
         tracker.Initialize();
 
-        var method =
-            typeof(MiningFavorTracker).GetMethod("OnBlockBroken", BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.NotNull(method);
-
         float dropMult = 1f;
         EnumHandling handling = EnumHandling.PassThrough;
         var selection = new BlockSelection { Position = new BlockPos(0, 0, 0) };
-        method!.Invoke(tracker, new object[] { mockPlayer.Object, selection, dropMult, handling });
+        tracker.OnBlockBroken(mockPlayer.Object, selection, ref dropMult, ref handling);
 
         mockFavor.Verify(m => m.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()),
             Times.Never);

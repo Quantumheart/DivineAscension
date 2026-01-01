@@ -99,7 +99,7 @@ public class HuntingFavorTracker(
         return CalculateAnimalFavor(code);
     }
 
-    private bool IsNonAnimal(string code)
+    internal bool IsNonAnimal(string code)
     {
         // Monsters
         if (code.Contains("drifter") || code.Contains("locust") || code.Contains("bell"))
@@ -122,11 +122,11 @@ public class HuntingFavorTracker(
         return false;
     }
 
-    private int CalculateAnimalFavor(string code)
+    internal int CalculateAnimalFavor(string code)
     {
         // Tier 15: Large predators
         if (code.Contains("bear") ||
-            code.Contains("tiger") || code.Contains("lion") ||code.Contains("machairodontinae") || 
+            code.Contains("tiger") || code.Contains("lion") || code.Contains("machairodontinae") ||
             code.Contains("predator") || code.Contains("apex"))
             return 15;
 
@@ -142,7 +142,8 @@ public class HuntingFavorTracker(
             return 10;
 
         // Tier 8: Medium prey animals
-        if (code.Contains("deer") || code.Contains("fox") || code.Contains("vulpini") || code.Contains("urocyonini") || code.Contains("cerdocyonina") || code.Contains("canina") || code.Contains("bighorn") ||
+        if (code.Contains("deer") || code.Contains("fox") || code.Contains("vulpini") || code.Contains("urocyonini") ||
+            code.Contains("cerdocyonina") || code.Contains("canina") || code.Contains("bighorn") ||
             code.Contains("gazelle") ||
             code.Contains("antelope") || code.Contains("caribou") || code.Contains("elk") ||
             code.Contains("boar") || code.Contains("lynx") || code.Contains("caracal"))
