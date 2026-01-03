@@ -12,7 +12,7 @@ namespace DivineAscension.Systems;
 /// <summary>
 ///     Manages civilizations - alliances of 1-4 religions with different deities
 /// </summary>
-public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionManager)
+public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionManager) : ICivilizationManager
 {
     private const string DATA_KEY = "divineascension_civilizations";
     private const int MIN_RELIGIONS = 1;

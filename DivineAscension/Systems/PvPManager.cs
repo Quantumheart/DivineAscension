@@ -1,4 +1,5 @@
 using System;
+using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -15,12 +16,12 @@ public class PvPManager : IPvPManager
     private const int BASE_FAVOR_REWARD = 10;
     private const int BASE_PRESTIGE_REWARD = 15;
     private const int DEATH_PENALTY_FAVOR = 5;
+    private readonly ICivilizationManager _civilizationManager;
     private readonly IDeityRegistry _deityRegistry;
+    private readonly IDiplomacyManager _diplomacyManager;
     private readonly IPlayerReligionDataManager _playerReligionDataManager;
     private readonly IReligionPrestigeManager _prestigeManager;
     private readonly IReligionManager _religionManager;
-    private readonly CivilizationManager _civilizationManager;
-    private readonly IDiplomacyManager _diplomacyManager;
 
     private readonly ICoreServerAPI _sapi;
 
@@ -30,7 +31,7 @@ public class PvPManager : IPvPManager
         IReligionManager religionManager,
         IReligionPrestigeManager prestigeManager,
         IDeityRegistry deityRegistry,
-        CivilizationManager civilizationManager,
+        ICivilizationManager civilizationManager,
         IDiplomacyManager diplomacyManager)
     {
         _sapi = sapi;
@@ -152,7 +153,7 @@ public class PvPManager : IPvPManager
             // Apply War multiplier
             if (diplomaticStatus == DiplomaticStatus.War)
             {
-                diplomacyMultiplier = Constants.DiplomacyConstants.WarFavorMultiplier;
+                diplomacyMultiplier = DiplomacyConstants.WarFavorMultiplier;
             }
         }
 
