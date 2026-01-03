@@ -6,7 +6,6 @@ using DivineAscension.Constants;
 using DivineAscension.GUI.UI.Components.Banners;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
-using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.GUI.Utilities;
 using DivineAscension.Models.Enum;
@@ -135,53 +134,102 @@ internal static class DiplomacyTabRenderer
             return currentY + 20f;
         }
 
-        // Table headers
-        var col1 = vm.X;
-        var col2 = vm.X + 200f;
-        var col3 = vm.X + 300f;
-        var col4 = vm.X + 400f;
-        var col5 = vm.X + 500f;
-        var col6 = vm.X + 620f;
+        // Table headers (widened columns for better spacing and readability)
+        var col1 = vm.X; // Civilization
+        var col2 = vm.X + 220f; // Status - 220px spacing
+        var col3 = vm.X + 420f; // Established - 200px spacing (was 100px)
+        var col4 = vm.X + 560f; // Expires - 140px spacing (was 100px)
+        var col5 = vm.X + 700f; // Violations - 140px spacing
+        var col6 = vm.X + 820f; // Actions - 120px spacing
 
+        // Draw headers with clipping to prevent overlap
+        drawList.PushClipRect(new Vector2(col1, currentY), new Vector2(col2 - 10f, currentY + TableRowHeight));
         TextRenderer.DrawLabel(drawList, "Civilization", col1, currentY, LabelSize, ColorPalette.Grey);
+        drawList.PopClipRect();
+
+        drawList.PushClipRect(new Vector2(col2, currentY), new Vector2(col3 - 10f, currentY + TableRowHeight));
         TextRenderer.DrawLabel(drawList, "Status", col2, currentY, LabelSize, ColorPalette.Grey);
+        drawList.PopClipRect();
+
+        drawList.PushClipRect(new Vector2(col3, currentY), new Vector2(col4 - 10f, currentY + TableRowHeight));
         TextRenderer.DrawLabel(drawList, "Established", col3, currentY, LabelSize, ColorPalette.Grey);
+        drawList.PopClipRect();
+
+        drawList.PushClipRect(new Vector2(col4, currentY), new Vector2(col5 - 10f, currentY + TableRowHeight));
         TextRenderer.DrawLabel(drawList, "Expires", col4, currentY, LabelSize, ColorPalette.Grey);
+        drawList.PopClipRect();
+
+        drawList.PushClipRect(new Vector2(col5, currentY), new Vector2(col6 - 10f, currentY + TableRowHeight));
         TextRenderer.DrawLabel(drawList, "Violations", col5, currentY, LabelSize, ColorPalette.Grey);
+        drawList.PopClipRect();
+
+        drawList.PushClipRect(new Vector2(col6, currentY), new Vector2(vm.X + vm.Width, currentY + TableRowHeight));
         TextRenderer.DrawLabel(drawList, "Actions", col6, currentY, LabelSize, ColorPalette.Grey);
+        drawList.PopClipRect();
+
         currentY += TableRowHeight;
 
         // Draw each relationship
+        var rowIndex = 0;
         foreach (var rel in vm.ActiveRelationships)
         {
-            // Civilization name
+            // Add alternating row background for visual separation
+            var isEvenRow = rowIndex % 2 == 0;
+            if (isEvenRow)
+            {
+                var rowBgColor = new Vector4(0.15f, 0.15f, 0.15f, 0.3f);
+                drawList.AddRectFilled(
+                    new Vector2(vm.X, currentY),
+                    new Vector2(vm.X + vm.Width, currentY + TableRowHeight),
+                    ImGui.ColorConvertFloat4ToU32(rowBgColor)
+                );
+            }
+
+            // Civilization name - clipped to prevent overflow
+            drawList.PushClipRect(new Vector2(col1, currentY), new Vector2(col2 - 10f, currentY + TableRowHeight));
             drawList.AddText(ImGui.GetFont(), LabelSize, new Vector2(col1, currentY),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.White), rel.OtherCivName);
+            drawList.PopClipRect();
 
-            // Status (color-coded)
+            // Status (color-coded) - clipped to prevent overflow
             var statusColor = GetStatusColor(rel.Status);
             var statusText = GetStatusText(rel.Status);
+            drawList.PushClipRect(new Vector2(col2, currentY), new Vector2(col3 - 10f, currentY + TableRowHeight));
             drawList.AddText(ImGui.GetFont(), LabelSize, new Vector2(col2, currentY),
                 ImGui.ColorConvertFloat4ToU32(statusColor), statusText);
+            drawList.PopClipRect();
 
-            // Established date
-            drawList.AddText(ImGui.GetFont(), LabelSize, new Vector2(col3, currentY),
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), rel.EstablishedDate.ToString("MM/dd/yy"));
+            // Established date - right-aligned for better readability
+            var establishedText = rel.EstablishedDate.ToString("MM/dd/yy");
+            var establishedTextSize = ImGui.CalcTextSize(establishedText);
+            var establishedX = col4 - 15f - establishedTextSize.X; // Right-align within column
+            drawList.PushClipRect(new Vector2(col3, currentY), new Vector2(col4 - 10f, currentY + TableRowHeight));
+            drawList.AddText(ImGui.GetFont(), LabelSize, new Vector2(establishedX, currentY),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), establishedText);
+            drawList.PopClipRect();
 
-            // Expires date
+            // Expires date - right-aligned for better readability
             var expiresText = rel.ExpiresDate.HasValue
                 ? rel.ExpiresDate.Value.ToString("MM/dd/yy")
                 : "Permanent";
-            drawList.AddText(ImGui.GetFont(), LabelSize, new Vector2(col4, currentY),
+            var expiresTextSize = ImGui.CalcTextSize(expiresText);
+            var expiresX = col5 - 15f - expiresTextSize.X; // Right-align within column
+            drawList.PushClipRect(new Vector2(col4, currentY), new Vector2(col5 - 10f, currentY + TableRowHeight));
+            drawList.AddText(ImGui.GetFont(), LabelSize, new Vector2(expiresX, currentY),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), expiresText);
+            drawList.PopClipRect();
 
-            // Violations
+            // Violations - center-aligned for better readability
             if (rel.Status is DiplomaticStatus.Alliance or DiplomaticStatus.NonAggressionPact)
             {
                 var violationColor = rel.ViolationCount >= 2 ? ColorPalette.Red : ColorPalette.White;
-                drawList.AddText(ImGui.GetFont(), LabelSize, new Vector2(col5, currentY),
-                    ImGui.ColorConvertFloat4ToU32(violationColor),
-                    $"{rel.ViolationCount}/{DiplomacyConstants.MaxViolations}");
+                var violationsText = $"{rel.ViolationCount}/{DiplomacyConstants.MaxViolations}";
+                var violationsTextSize = ImGui.CalcTextSize(violationsText);
+                var violationsX = col5 + (140f - violationsTextSize.X) / 2f; // Center within column
+                drawList.PushClipRect(new Vector2(col5, currentY), new Vector2(col6 - 10f, currentY + TableRowHeight));
+                drawList.AddText(ImGui.GetFont(), LabelSize, new Vector2(violationsX, currentY),
+                    ImGui.ColorConvertFloat4ToU32(violationColor), violationsText);
+                drawList.PopClipRect();
             }
 
             // Actions
@@ -194,7 +242,8 @@ internal static class DiplomacyTabRenderer
                     var hoursRemaining = (rel.BreakScheduledDate.Value - DateTime.UtcNow).TotalHours;
                     if (hoursRemaining > 0)
                     {
-                        var formattedTime = DiplomacyNotificationHelper.FormatTimeRemaining(rel.BreakScheduledDate.Value);
+                        var formattedTime =
+                            DiplomacyNotificationHelper.FormatTimeRemaining(rel.BreakScheduledDate.Value);
                         var countdownText = $"Breaks in {formattedTime}";
                         var isCritical = DiplomacyNotificationHelper.IsTimeCritical(rel.BreakScheduledDate.Value);
                         var timeColor = isCritical ? ColorPalette.Red : ColorPalette.Yellow;
@@ -202,8 +251,7 @@ internal static class DiplomacyTabRenderer
                             ImGui.ColorConvertFloat4ToU32(timeColor), countdownText);
 
                         // Cancel break button
-                        ImGui.SetCursorScreenPos(new Vector2(actionX + 110f, currentY - 2f));
-                        if (ImGui.SmallButton($"Cancel##{rel.RelationshipId}"))
+                        if (ButtonRenderer.DrawSmallButton(drawList, "Cancel", actionX + 110f, currentY - 2f, 60f, 20f))
                         {
                             events.Add(new DiplomacyEvent.CancelBreak(rel.OtherCivId));
                         }
@@ -211,8 +259,7 @@ internal static class DiplomacyTabRenderer
                 }
                 else
                 {
-                    ImGui.SetCursorScreenPos(new Vector2(actionX, currentY - 2f));
-                    if (ImGui.SmallButton($"Schedule Break##{rel.RelationshipId}"))
+                    if (ButtonRenderer.DrawSmallButton(drawList, "Schedule Break", actionX, currentY - 2f, 110f, 20f))
                     {
                         events.Add(new DiplomacyEvent.ScheduleBreak(rel.OtherCivId));
                     }
@@ -220,14 +267,14 @@ internal static class DiplomacyTabRenderer
             }
             else if (rel.Status == DiplomaticStatus.War)
             {
-                ImGui.SetCursorScreenPos(new Vector2(actionX, currentY - 2f));
-                if (ImGui.SmallButton($"Declare Peace##{rel.RelationshipId}"))
+                if (ButtonRenderer.DrawSmallButton(drawList, "Declare Peace", actionX, currentY - 2f, 100f, 20f))
                 {
                     events.Add(new DiplomacyEvent.DeclarePeace(rel.OtherCivId));
                 }
             }
 
             currentY += TableRowHeight;
+            rowIndex++;
         }
 
         return currentY;
@@ -266,14 +313,12 @@ internal static class DiplomacyTabRenderer
                 currentY += 18f;
 
                 // Accept/Decline buttons
-                ImGui.SetCursorScreenPos(new Vector2(vm.X + 20f, currentY));
-                if (ImGui.SmallButton($"Accept##{proposal.ProposalId}"))
+                if (ButtonRenderer.DrawSmallButton(drawList, "Accept", vm.X + 20f, currentY, 70f, 20f))
                 {
                     events.Add(new DiplomacyEvent.AcceptProposal(proposal.ProposalId));
                 }
 
-                ImGui.SameLine();
-                if (ImGui.SmallButton($"Decline##{proposal.ProposalId}"))
+                if (ButtonRenderer.DrawSmallButton(drawList, "Decline", vm.X + 100f, currentY, 70f, 20f))
                 {
                     events.Add(new DiplomacyEvent.DeclineProposal(proposal.ProposalId));
                 }
@@ -406,7 +451,8 @@ internal static class DiplomacyTabRenderer
         // Declare War button (separate, red, requires civilization selection)
         var canDeclareWar = !string.IsNullOrEmpty(vm.SelectedCivId);
         var warButtonColor = ColorPalette.Red * 0.6f;
-        if (ButtonRenderer.DrawButton(drawList, "Declare War", vm.X + 170f, currentY, 120f, 28f, true, canDeclareWar, warButtonColor))
+        if (ButtonRenderer.DrawButton(drawList, "Declare War", vm.X + 170f, currentY, 120f, 28f, true, canDeclareWar,
+                warButtonColor))
         {
             if (string.IsNullOrEmpty(vm.ConfirmWarCivId))
             {
