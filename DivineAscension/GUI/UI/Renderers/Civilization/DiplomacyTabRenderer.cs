@@ -259,7 +259,7 @@ internal static class DiplomacyTabRenderer
                 }
                 else
                 {
-                    if (ButtonRenderer.DrawSmallButton(drawList, "Schedule Break", actionX, currentY - 2f, 110f, 20f))
+                    if (ButtonRenderer.DrawSmallButton(drawList, "Schedule Break", actionX, currentY - 2f, 140f, 20f))
                     {
                         events.Add(new DiplomacyEvent.ScheduleBreak(rel.OtherCivId));
                     }
@@ -267,7 +267,7 @@ internal static class DiplomacyTabRenderer
             }
             else if (rel.Status == DiplomaticStatus.War)
             {
-                if (ButtonRenderer.DrawSmallButton(drawList, "Declare Peace", actionX, currentY - 2f, 100f, 20f))
+                if (ButtonRenderer.DrawSmallButton(drawList, "Declare Peace", actionX, currentY - 2f, 140f, 20f))
                 {
                     events.Add(new DiplomacyEvent.DeclarePeace(rel.OtherCivId));
                 }
