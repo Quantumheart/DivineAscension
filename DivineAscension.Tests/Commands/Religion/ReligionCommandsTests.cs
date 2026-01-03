@@ -187,7 +187,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         _sut!.RegisterCommands();
 
         // Assert
-        Assert.Equal(Privilege.chat, privilegeRequired);
+        Assert.Equal(Privilege.root, privilegeRequired);
     }
 
     #endregion
