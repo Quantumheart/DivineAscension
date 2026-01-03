@@ -183,11 +183,12 @@ contentY = headerHeight + tabHeight + 8f
 - **Icon to Text Spacing:** 6px
 
 **Tab States:**
-| State | Background | Border | Text | Border Width |
-|-------|------------|--------|------|--------------|
-| Selected | `Gold * 0.4` | Gold | White | 2px |
-| Hover | LightBrown | `Grey * 0.5` | Grey | 1px |
-| Normal | DarkBrown | `Grey * 0.5` | Grey | 1px |
+
+| State    | Background   | Border       | Text  | Border Width |
+|----------|--------------|--------------|-------|--------------|
+| Selected | `Gold * 0.4` | Gold         | White | 2px          |
+| Hover    | LightBrown   | `Grey * 0.5` | Grey  | 1px          |
+| Normal   | DarkBrown    | `Grey * 0.5` | Grey  | 1px          |
 
 ### Sub-Tabs
 
@@ -223,11 +224,12 @@ contentY = headerHeight + tabHeight + 8f
 - **Icon Size:** 20px
 
 **States:**
-| State | Background | Border | Text | Cursor |
-|-------|------------|--------|------|--------|
-| Normal | `baseColor * 0.8` | `Gold * 0.7` | White | Default |
-| Hover | `baseColor * 1.2` | `Gold * 0.7` | White | Hand |
-| Active | `baseColor * 0.7` | `Gold * 0.7` | White | Hand |
+
+| State    | Background        | Border       | Text         | Cursor  |
+|----------|-------------------|--------------|--------------|---------|
+| Normal   | `baseColor * 0.8` | `Gold * 0.7` | White        | Default |
+| Hover    | `baseColor * 1.2` | `Gold * 0.7` | White        | Hand    |
+| Active   | `baseColor * 0.7` | `Gold * 0.7` | White        | Hand    |
 | Disabled | `DarkBrown * 0.5` | `Grey * 0.3` | `Grey * 0.7` | Default |
 
 #### Small Button
@@ -295,12 +297,13 @@ contentY = headerHeight + tabHeight + 8f
 - **Label Padding:** 8px (from checkbox to text)
 
 **States:**
-| State | Background | Border | Checkmark |
-|-------|------------|--------|-----------|
-| Unchecked | `DarkBrown * 0.7` | `Grey * 0.5` | None |
-| Unchecked Hover | `LightBrown * 0.7` | `Grey * 0.5` | None |
-| Checked | `DarkBrown * 0.7` | Gold | Gold, 2px width |
-| Checked Hover | `LightBrown * 0.7` | Gold | Gold, 2px width |
+
+| State           | Background         | Border       | Checkmark       |
+|-----------------|--------------------|--------------|-----------------|
+| Unchecked       | `DarkBrown * 0.7`  | `Grey * 0.5` | None            |
+| Unchecked Hover | `LightBrown * 0.7` | `Grey * 0.5` | None            |
+| Checked         | `DarkBrown * 0.7`  | Gold         | Gold, 2px width |
+| Checked Hover   | `LightBrown * 0.7` | Gold         | Gold, 2px width |
 
 ---
 
@@ -329,11 +332,12 @@ contentY = headerHeight + tabHeight + 8f
 - **Font Size:** 13px (customizable)
 
 **Menu Item States:**
-| State | Background |
-|-------|------------|
-| Normal | Transparent |
-| Hover | `LightBrown * 0.6` |
-| Selected | `DarkBrown * 0.8` |
+
+| State    | Background         |
+|----------|--------------------|
+| Normal   | Transparent        |
+| Hover    | `LightBrown * 0.6` |
+| Selected | `DarkBrown * 0.8`  |
 
 ---
 
@@ -425,11 +429,12 @@ contentY = headerHeight + tabHeight + 8f
 - **Scroll Speed:** 40px per wheel tick
 
 **Item States:**
-| State | Background | Border Width | Border Color |
-|-------|------------|--------------|--------------|
-| Normal | DarkBrown | 1px | `Grey * 0.5` |
-| Hover | `LightBrown * 0.7` | 1px | `Grey * 0.5` |
-| Selected | `Gold * 0.3` | 2px | Gold |
+
+| State    | Background         | Border Width | Border Color |
+|----------|--------------------|--------------|--------------|
+| Normal   | DarkBrown          | 1px          | `Grey * 0.5` |
+| Hover    | `LightBrown * 0.7` | 1px          | `Grey * 0.5` |
+| Selected | `Gold * 0.3`       | 2px          | Gold         |
 
 **Text Layout (from top):**
 - **Religion Name:** 16px font, Gold, at `padding + iconSize + padding` from left
@@ -462,12 +467,13 @@ contentY = headerHeight + tabHeight + 8f
 - **Background:** DarkBrown
 
 **Typography:**
-| Element | Font Size | Color |
-|---------|-----------|-------|
-| Title | 16px | Gold |
-| Subtitle | 13px | White |
-| Section Headers | 12px | Grey |
-| Body Text | 13px | White |
+
+| Element         | Font Size | Color |
+|-----------------|-----------|-------|
+| Title           | 16px      | Gold  |
+| Subtitle        | 13px      | White |
+| Section Headers | 12px      | Grey  |
+| Body Text       | 13px      | White |
 
 **Positioning:**
 - **Offset from Mouse:** 16px (X and Y)
@@ -536,13 +542,14 @@ contentY = headerHeight + tabHeight + 8f
 - **Glow Padding:** 8px around node
 
 ### Node States
-| State | Border Color | Background |
-|-------|--------------|------------|
-| Locked | Grey (#92806a) | Semi-transparent |
+
+| State      | Border Color                | Background       |
+|------------|-----------------------------|------------------|
+| Locked     | Grey (#92806a)              | Semi-transparent |
 | Unlockable | Lime Green (#7ac62f) + Glow | Semi-transparent |
-| Unlocked | Gold (#feae34) | Semi-transparent |
-| Selected | White border (3px) | - |
-| Hover | Light blue tint | - |
+| Unlocked   | Gold (#feae34)              | Semi-transparent |
+| Selected   | White border (3px)          | -                |
+| Hover      | Light blue tint             | -                |
 
 ---
 
@@ -572,43 +579,43 @@ contentY = headerHeight + tabHeight + 8f
 
 ## 9. SPACING CONSTANTS SUMMARY
 
-| Element | Spacing Value |
-|---------|---------------|
-| **Base Padding (Outer)** | 16px |
-| **Button Icon/Text Padding** | 8px |
-| **Button Icon Spacing** | 6px |
-| **Checkbox Label Padding** | 8px |
-| **Input Text Padding (Left)** | 8px |
-| **Dropdown Text Padding** | 12px |
-| **List Item Padding** | 8-12px |
-| **List Item Spacing** | 4-8px |
-| **Section Spacing** | 20px |
-| **Tooltip Padding** | 12px |
-| **Tab Spacing (Main)** | 4px |
-| **Tab Spacing (Sub)** | 6px |
-| **Icon Spacing** | 6px |
-| **Table Column Gap** | 10px |
-| **Form Padding** | 20px |
-| **Button Spacing** | 12px |
+| Element                       | Spacing Value |
+|-------------------------------|---------------|
+| **Base Padding (Outer)**      | 16px          |
+| **Button Icon/Text Padding**  | 8px           |
+| **Button Icon Spacing**       | 6px           |
+| **Checkbox Label Padding**    | 8px           |
+| **Input Text Padding (Left)** | 8px           |
+| **Dropdown Text Padding**     | 12px          |
+| **List Item Padding**         | 8-12px        |
+| **List Item Spacing**         | 4-8px         |
+| **Section Spacing**           | 20px          |
+| **Tooltip Padding**           | 12px          |
+| **Tab Spacing (Main)**        | 4px           |
+| **Tab Spacing (Sub)**         | 6px           |
+| **Icon Spacing**              | 6px           |
+| **Table Column Gap**          | 10px          |
+| **Form Padding**              | 20px          |
+| **Button Spacing**            | 12px          |
 
 ---
 
 ## 10. BORDER SPECIFICATIONS SUMMARY
 
-| Component | Radius | Width | Color |
-|-----------|--------|-------|-------|
-| **Button** | 4px | 1.5px | Gold*0.7 (enabled), Grey*0.3 (disabled) |
-| **Small Button** | 4px | 1px | Varies |
-| **Checkbox** | 3px | 1.5px | Gold (checked), Grey*0.5 (unchecked) |
-| **Text Input** | 4px | 1px | Grey*0.5 |
-| **Dropdown Button** | 4px | 1px | Grey*0.5 |
-| **Dropdown Menu** | 4px | 2px | Gold*0.7 |
-| **List Item** | 4px | 1-2px | Grey*0.5 / Gold (selected) |
-| **Progress Bar** | 4px | 1-2px | Gold*0.5 |
-| **Tooltip** | 4px | 2px | Gold*0.6 |
-| **Error Banner** | 6px | 1.5px | Red*0.8 |
-| **Header Panel** | 4px | 2px | Gold*0.5 |
-| **Blessing Node** | 4px | 2-3px | Varies by state |
+| Component           | Radius | Width | Color                                   |
+|---------------------|--------|-------|-----------------------------------------|
+| **Button**          | 4px    | 1.5px | Gold*0.7 (enabled), Grey*0.3 (disabled) |
+| **Small Button**    | 4px    | 1px   | Varies                                  |
+| **Checkbox**        | 3px    | 1.5px | Gold (checked), Grey*0.5 (unchecked)    |
+| **Text Input**      | 4px    | 1px   | Grey*0.5                                |
+| **Dropdown Button** | 4px    | 1px   | Grey*0.5                                |
+| **Dropdown Menu**   | 4px    | 2px   | Gold*0.7                                |
+| **List Item**       | 4px    | 1-2px | Grey*0.5 / Gold (selected)              |
+| **Progress Bar**    | 4px    | 1-2px | Gold*0.5                                |
+| **Tooltip**         | 4px    | 2px   | Gold*0.6                                |
+| **Error Banner**    | 6px    | 1.5px | Red*0.8                                 |
+| **Header Panel**    | 4px    | 2px   | Gold*0.5                                |
+| **Blessing Node**   | 4px    | 2-3px | Varies by state                         |
 
 ---
 
@@ -639,14 +646,14 @@ contentY = headerHeight + tabHeight + 8f
 
 ## 12. CURSOR STATES
 
-| Context | Cursor Type |
-|---------|-------------|
-| **Buttons (hover)** | Hand |
-| **Tabs (hover)** | Hand |
-| **Clickable Items (hover)** | Hand |
-| **Text Inputs (hover/active)** | Text Input |
-| **Default Areas** | Default |
-| **Disabled Elements** | Default (no change) |
+| Context                        | Cursor Type         |
+|--------------------------------|---------------------|
+| **Buttons (hover)**            | Hand                |
+| **Tabs (hover)**               | Hand                |
+| **Clickable Items (hover)**    | Hand                |
+| **Text Inputs (hover/active)** | Text Input          |
+| **Default Areas**              | Default             |
+| **Disabled Elements**          | Default (no change) |
 
 ---
 
