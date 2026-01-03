@@ -78,7 +78,7 @@ public class ReligionDataTests
         var newMemberUID = "member-123";
 
         // Act
-        religion.AddMember(newMemberUID);
+        religion.AddMember(newMemberUID, "Member 123");
 
         // Assert
         Assert.Equal(2, religion.MemberUIDs.Count);
@@ -91,10 +91,10 @@ public class ReligionDataTests
         // Arrange
         var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder", "TestFounder");
         var memberUID = "member-123";
-        religion.AddMember(memberUID);
+        religion.AddMember(memberUID, "Member 123");
 
         // Act
-        religion.AddMember(memberUID); // Try to add again
+        religion.AddMember(memberUID, "Member 123"); // Try to add again
 
         // Assert
         Assert.Equal(2, religion.MemberUIDs.Count);
@@ -107,7 +107,7 @@ public class ReligionDataTests
         // Arrange
         var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder", "TestFounder");
         var memberUID = "member-123";
-        religion.AddMember(memberUID);
+        religion.AddMember(memberUID, "Member 123");
 
         // Act
         var result = religion.RemoveMember(memberUID);
@@ -138,7 +138,7 @@ public class ReligionDataTests
         // Arrange
         var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder", "TestFounder");
         var memberUID = "member-123";
-        religion.AddMember(memberUID);
+        religion.AddMember(memberUID, "Member 123");
 
         // Act
         var result = religion.IsMember(memberUID);
@@ -179,9 +179,9 @@ public class ReligionDataTests
     {
         // Arrange
         var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder", "TestFounder");
-        religion.AddMember("member-1");
-        religion.AddMember("member-2");
-        religion.AddMember("member-3");
+        religion.AddMember("member-1", "Member 1");
+        religion.AddMember("member-2", "Member 2");
+        religion.AddMember("member-3", "Member 3");
 
         // Act
         var count = religion.GetMemberCount();
@@ -214,7 +214,7 @@ public class ReligionDataTests
         // Arrange
         var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder", "TestFounder");
         var memberUID = "member-123";
-        religion.AddMember(memberUID);
+        religion.AddMember(memberUID, "Member 123");
 
         // Act
         var result = religion.IsFounder(memberUID);
@@ -451,9 +451,9 @@ public class ReligionDataTests
         var religion = new ReligionData("religion-1", "Divine Order", DeityType.Khoras, founderUID, "TestFounder");
 
         // Act - Add members
-        religion.AddMember("member-1");
-        religion.AddMember("member-2");
-        religion.AddMember("member-3");
+        religion.AddMember("member-1", "Member 1");
+        religion.AddMember("member-2", "Member 2");
+        religion.AddMember("member-3", "Member 3");
 
         // Act - Gain prestige
         religion.AddPrestige(600); // Should reach Established rank
@@ -502,10 +502,10 @@ public class ReligionDataTests
         var religion = new ReligionData("uid", "name", DeityType.Khoras, "founder", "TestFounder");
 
         // Act - Add multiple members
-        religion.AddMember("member-1");
-        religion.AddMember("member-2");
-        religion.AddMember("member-3");
-        religion.AddMember("member-4");
+        religion.AddMember("member-1", "Member 1");
+        religion.AddMember("member-2", "Member 2");
+        religion.AddMember("member-3", "Member 3");
+        religion.AddMember("member-4", "Member 4");
         Assert.Equal(5, religion.GetMemberCount());
 
         // Act - Remove some members

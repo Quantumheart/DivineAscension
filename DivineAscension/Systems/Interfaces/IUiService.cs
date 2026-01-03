@@ -29,4 +29,8 @@ public interface IUiService
 
     void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "",
         string icon = "");
+
+    // Diplomacy Operations
+    void RequestDiplomacyInfo(string civId);
+    void RequestDiplomacyAction(string action, string targetCivId = "", string proposalOrRelationshipId = "", string proposedStatus = "");
 }

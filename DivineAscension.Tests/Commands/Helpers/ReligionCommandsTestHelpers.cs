@@ -42,10 +42,12 @@ public class ReligionCommandsTestHelpers
 
     protected ReligionCommands InitializeMocksAndSut()
     {
+        var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         return new ReligionCommands(
             _mockSapi.Object,
             _religionManager.Object,
             _playerReligionDataManager.Object,
+            mockPrestigeManager.Object,
             _serverChannel.Object);
     }
 

@@ -63,7 +63,9 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 
         // Get founder name (player guaranteed to be online during creation)
         var founderPlayer = _sapi.World.PlayerByUid(founderUID);
-        var founderName = founderPlayer?.PlayerName ?? founderUID;
+        var founderName = !string.IsNullOrEmpty(founderPlayer?.PlayerName)
+            ? founderPlayer.PlayerName
+            : founderUID;
 
         // Create religion data
         var religion = new ReligionData(religionUID, name, deity, founderUID, founderName)
@@ -401,12 +403,18 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             return false;
         }
 
+        // Get player name from cached Members dictionary before removing them
+        var playerName = religion.GetMemberName(playerUID);
+
         var banEntry = new BanEntry(
             playerUID,
             bannedByUID,
             reason,
             expiryDays.HasValue ? DateTime.UtcNow.AddDays(expiryDays.Value) : null
-        );
+        )
+        {
+            PlayerName = playerName // Cache the player name for display when offline
+        };
 
         religion.AddBannedPlayer(playerUID, banEntry);
         religion.Members.Remove(playerUID);

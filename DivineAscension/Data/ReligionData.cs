@@ -153,16 +153,6 @@ public class ReligionData
 
         if (!Members.ContainsKey(playerUID))
             Members[playerUID] = new MemberEntry(playerUID, playerName);
-        else
-            Members[playerUID].UpdateName(playerName);
-    }
-
-    /// <summary>
-    ///     Adds a member to the religion (backward compatibility overload)
-    /// </summary>
-    public void AddMember(string playerUID)
-    {
-        AddMember(playerUID, playerUID); // Fallback to UID as name
     }
 
     /// <summary>
@@ -171,7 +161,7 @@ public class ReligionData
     public bool RemoveMember(string playerUID)
     {
         MemberRoles.Remove(playerUID);
-        Members.Remove(playerUID); // Also remove from Members dictionary
+        Members.Remove(playerUID);
         return MemberUIDs.Remove(playerUID);
     }
 
@@ -204,7 +194,18 @@ public class ReligionData
     /// </summary>
     public string GetMemberName(string playerUID)
     {
-        return Members.TryGetValue(playerUID, out var entry) ? entry.PlayerName : playerUID;
+        // Special case for founder - use FounderName as fallback
+        if (playerUID == FounderUID && !string.IsNullOrEmpty(FounderName))
+        {
+            if (Members.TryGetValue(playerUID, out var founderEntry) && !string.IsNullOrEmpty(founderEntry.PlayerName))
+                return founderEntry.PlayerName;
+            return FounderName;
+        }
+
+        // For non-founders
+        return Members.TryGetValue(playerUID, out var entry) && !string.IsNullOrEmpty(entry.PlayerName)
+            ? entry.PlayerName
+            : playerUID;
     }
 
     /// <summary>

@@ -57,6 +57,9 @@ internal static class CivilizationTabRenderer
         if (vm.ShowCreateTab)
             DrawTabButton("Create", CivilizationSubTab.Create, "GUI", "create");
 
+        if (vm.ShowDiplomacyTab)
+            DrawTabButton("Diplomacy", CivilizationSubTab.Diplomacy, "GUI", "diplomacy");
+
         var contentY = vm.Y + tabH + 10f;
         var renderedHeight = tabH + 10f;
 

@@ -54,8 +54,11 @@ public static class DivineAscensionSystemInitializer
             religionPrestigeManager);
         favorSystem.Initialize();
 
+        var diplomacyManager = new DiplomacyManager(api, civilizationManager, religionPrestigeManager, religionManager);
+        diplomacyManager.Initialize();
+
         var pvpManager = new PvPManager(api, playerReligionDataManager, religionManager, religionPrestigeManager,
-            deityRegistry);
+            deityRegistry, civilizationManager, diplomacyManager);
         pvpManager.Initialize();
 
         var blessingRegistry = new BlessingRegistry(api);
@@ -68,6 +71,9 @@ public static class DivineAscensionSystemInitializer
         // CRITICAL: Must be called AFTER BlessingEffectSystem is initialized
         religionPrestigeManager.SetBlessingSystems(blessingRegistry, blessingEffectSystem);
 
+        // CRITICAL: Must be called AFTER DiplomacyManager is initialized
+        religionPrestigeManager.SetDiplomacyManager(diplomacyManager, civilizationManager);
+
         var favorCommands = new FavorCommands(api, deityRegistry, playerReligionDataManager);
         favorCommands.RegisterCommands();
 
@@ -77,7 +83,7 @@ public static class DivineAscensionSystemInitializer
 
         var roleManager = new RoleManager(religionManager);
 
-        var religionCommands = new ReligionCommands(api, religionManager, playerReligionDataManager, serverChannel);
+        var religionCommands = new ReligionCommands(api, religionManager, playerReligionDataManager, religionPrestigeManager, serverChannel);
         religionCommands.RegisterCommands();
 
         var roleCommands = new RoleCommands(api, roleManager, religionManager, playerReligionDataManager);
@@ -117,6 +123,15 @@ public static class DivineAscensionSystemInitializer
             serverChannel);
         civilizationHandler.RegisterHandlers();
 
+        var diplomacyHandler = new DiplomacyNetworkHandler(
+            api,
+            diplomacyManager,
+            civilizationManager,
+            religionManager,
+            playerReligionDataManager,
+            serverChannel);
+        diplomacyHandler.RegisterHandlers();
+
         api.Logger.Notification("[DivineAscension] All server-side systems initialized successfully");
 
         // Return all initialized components
@@ -129,6 +144,7 @@ public static class DivineAscensionSystemInitializer
             ReligionPrestigeManager = religionPrestigeManager,
             FavorSystem = favorSystem,
             PvPManager = pvpManager,
+            DiplomacyManager = diplomacyManager,
             BlessingRegistry = blessingRegistry,
             BlessingEffectSystem = blessingEffectSystem,
             RoleManager = roleManager,
@@ -140,7 +156,8 @@ public static class DivineAscensionSystemInitializer
             PlayerDataNetworkHandler = playerDataHandler,
             BlessingNetworkHandler = blessingHandler,
             ReligionNetworkHandler = religionHandler,
-            CivilizationNetworkHandler = civilizationHandler
+            CivilizationNetworkHandler = civilizationHandler,
+            DiplomacyNetworkHandler = diplomacyHandler
         };
     }
 }
@@ -151,7 +168,7 @@ public static class DivineAscensionSystemInitializer
 [ExcludeFromCodeCoverage]
 public class InitializationResult
 {
-    // 10 Managers
+    // 11 Managers
     public DeityRegistry DeityRegistry { get; init; } = null!;
     public ReligionManager ReligionManager { get; init; } = null!;
     public CivilizationManager CivilizationManager { get; init; } = null!;
@@ -159,6 +176,7 @@ public class InitializationResult
     public ReligionPrestigeManager ReligionPrestigeManager { get; init; } = null!;
     public FavorSystem FavorSystem { get; init; } = null!;
     public PvPManager PvPManager { get; init; } = null!;
+    public DiplomacyManager DiplomacyManager { get; init; } = null!;
     public BlessingRegistry BlessingRegistry { get; init; } = null!;
     public BlessingEffectSystem BlessingEffectSystem { get; init; } = null!;
     public RoleManager RoleManager { get; init; } = null!;
@@ -175,4 +193,5 @@ public class InitializationResult
     public BlessingNetworkHandler BlessingNetworkHandler { get; init; } = null!;
     public ReligionNetworkHandler ReligionNetworkHandler { get; init; } = null!;
     public CivilizationNetworkHandler CivilizationNetworkHandler { get; init; } = null!;
+    public DiplomacyNetworkHandler DiplomacyNetworkHandler { get; init; } = null!;
 }

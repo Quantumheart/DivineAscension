@@ -100,6 +100,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             response.ReligionName = religion.ReligionName;
             response.Deity = religion.Deity.ToString();
             response.FounderUID = religion.FounderUID;
+            response.FounderName = religion.FounderName;
             response.Prestige = religion.Prestige;
             response.PrestigeRank = religion.PrestigeRank.ToString();
             response.IsPublic = religion.IsPublic;
@@ -107,25 +108,17 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             response.IsFounder = religion.FounderUID == fromPlayer.PlayerUID;
 
             // Build member list with player names and favor ranks
-            foreach (var memberUID in religion.MemberUIDs)
+            foreach (var member in religion.Members)
             {
-                var memberPlayerData = _playerReligionDataManager!.GetOrCreatePlayerData(memberUID);
+                var memberPlayerData = _playerReligionDataManager!.GetOrCreatePlayerData(member.Key);
 
                 // Use cached name from Members dictionary
-                var memberName = religion.GetMemberName(memberUID);
-
-                // Opportunistically update name if player is online
-                var memberPlayer = _sapi!.World.PlayerByUid(memberUID);
-                if (memberPlayer != null)
-                {
-                    religion.UpdateMemberName(memberUID, memberPlayer.PlayerName);
-                    memberName = memberPlayer.PlayerName;
-                }
+                var memberName = religion.GetMemberName(member.Key);
 
                 // Get member's role name
                 var roleName = "Member"; // Default fallback
                 var roleId = string.Empty;
-                if (religion.MemberRoles.TryGetValue(memberUID, out var roleUID))
+                if (religion.MemberRoles.TryGetValue(member.Key, out var roleUID))
                 {
                     var role = religion.GetRole(roleUID);
                     if (role != null)
@@ -137,11 +130,11 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
                 response.Members.Add(new PlayerReligionInfoResponsePacket.MemberInfo
                 {
-                    PlayerUID = memberUID,
+                    PlayerUID = member.Key,
                     PlayerName = memberName,
                     FavorRank = memberPlayerData.FavorRank.ToString(),
                     Favor = memberPlayerData.Favor,
-                    IsFounder = memberUID == religion.FounderUID,
+                    IsFounder = roleId == RoleDefaults.FOUNDER_ROLE_ID,
                     RoleName = roleName,
                     RoleId = roleId
                 });
@@ -153,8 +146,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 var bannedPlayers = _religionManager!.GetBannedPlayers(religion.ReligionUID);
                 foreach (var banEntry in bannedPlayers)
                 {
-                    var bannedPlayer = _sapi!.World.PlayerByUid(banEntry.PlayerUID);
-                    var bannedName = bannedPlayer?.PlayerName ?? banEntry.PlayerUID;
+                    // Use cached player name from BanEntry
+                    var bannedName = !string.IsNullOrEmpty(banEntry.PlayerName) ? banEntry.PlayerName : banEntry.PlayerUID;
 
                     response.BannedPlayers.Add(new PlayerReligionInfoResponsePacket.BanInfo
                     {
@@ -278,8 +271,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     packet.IsPublic
                 );
 
-                // Auto-join the founder
-                _playerReligionDataManager!.JoinReligion(fromPlayer.PlayerUID, newReligion.ReligionUID);
+                // Set up founder's player religion data (already added to Members via constructor)
+                _playerReligionDataManager!.SetPlayerReligionData(fromPlayer.PlayerUID, newReligion.ReligionUID);
 
                 religionUID = newReligion.ReligionUID;
                 message = $"Successfully created {packet.ReligionName}!";

@@ -37,6 +37,16 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
     private CivilizationTabState State { get; } = new();
 
+    /// <summary>
+    ///     Public accessor for diplomacy state (for network client access)
+    /// </summary>
+    public State.Civilization.DiplomacyState DiplomacyState => State.DiplomacyState;
+
+    /// <summary>
+    ///     Public accessor for current sub-tab (for network client access)
+    /// </summary>
+    public CivilizationSubTab CurrentSubTab => State.CurrentSubTab;
+
     public string CurrentCivilizationId { get; set; } = string.Empty;
 
     public List<CivilizationInfoResponsePacket.MemberReligion>? CivilizationMemberReligions { get; set; } = new();
@@ -50,6 +60,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     // Religion state (updated by GuiDialogManager)
     public bool UserHasReligion { get; set; }
     public bool UserIsReligionFounder { get; set; }
+    public int UserPrestigeRank { get; set; }
 
     public void Reset()
     {
@@ -204,6 +215,45 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     }
 
     /// <summary>
+    ///     Request diplomacy information for the current civilization
+    /// </summary>
+    public void RequestDiplomacyInfo()
+    {
+        if (!HasCivilization())
+        {
+            State.DiplomacyState.ErrorMessage = "Not in a civilization";
+            return;
+        }
+
+        State.DiplomacyState.IsLoading = true;
+        State.DiplomacyState.ErrorMessage = null;
+
+        _uiService.RequestDiplomacyInfo(CurrentCivilizationId);
+        _coreClientApi.Logger.Debug($"[DivineAscension:Diplomacy] Requested diplomacy info for civ: {CurrentCivilizationId}");
+    }
+
+    /// <summary>
+    ///     Request a diplomacy action (propose, accept, decline, schedulebreak, cancelbreak, declarewar, declarepeace)
+    /// </summary>
+    internal void RequestDiplomacyAction(string action, string targetCivId = "", string proposalOrRelationshipId = "", string proposedStatus = "")
+    {
+        if (!HasCivilization())
+        {
+            State.DiplomacyState.ErrorMessage = "Not in a civilization";
+            _soundManager.PlayError();
+            return;
+        }
+
+        State.DiplomacyState.ErrorMessage = null;
+
+        _uiService.RequestDiplomacyAction(action, targetCivId, proposalOrRelationshipId, proposedStatus);
+        _coreClientApi.Logger.Debug(
+            $"[DivineAscension:Diplomacy] Requested diplomacy action: action={action}, targetCivId={targetCivId}, id={proposalOrRelationshipId}, status={proposedStatus}");
+
+        _soundManager.PlayClick();
+    }
+
+    /// <summary>
     ///     Main EDA orchestrator for Civilization tab: builds ViewModels, calls renderers, processes events
     /// </summary>
     internal void DrawCivilizationTab(float x, float y, float width, float height)
@@ -230,6 +280,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             CivilizationSubTab.Info => tabVm.ShowInfoTab,
             CivilizationSubTab.Invites => tabVm.ShowInvitesTab,
             CivilizationSubTab.Create => tabVm.ShowCreateTab,
+            CivilizationSubTab.Diplomacy => tabVm.ShowDiplomacyTab,
             _ => false
         };
 
@@ -275,6 +326,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 break;
             case CivilizationSubTab.Create:
                 DrawCivilizationCreate(x, contentY, width, contentHeight);
+                break;
+            case CivilizationSubTab.Diplomacy:
+                DrawCivilizationDiplomacy(x, contentY, width, contentHeight);
                 break;
         }
     }
@@ -459,6 +513,56 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         ProcessCreateEvents(result.Events);
     }
 
+    [ExcludeFromCodeCoverage]
+    private void DrawCivilizationDiplomacy(float x, float y, float width, float height)
+    {
+        // Auto-refresh: Check if data is stale (> 30 seconds old or null)
+        var isStale = State.DiplomacyState.LastRefresh == null ||
+                      (DateTime.UtcNow - State.DiplomacyState.LastRefresh.Value).TotalSeconds > 30;
+
+        if (isStale && !State.DiplomacyState.IsLoading && HasCivilization())
+        {
+            _coreClientApi.Logger.Debug("[DivineAscension:Diplomacy] Auto-refreshing stale diplomacy data");
+            RequestDiplomacyInfo();
+        }
+
+        // Get list of available civilizations (exclude player's own civilization)
+        var availableCivs = State.BrowseState.AllCivilizations
+            .Where(c => c.CivId != CurrentCivilizationId)
+            .Select(c => new CivilizationInfo(c.CivId, c.Name))
+            .ToList();
+
+        // Get current prestige rank from user's religion
+        var currentRank = UserPrestigeRank;
+
+        // Build ViewModel
+        var vm = new DiplomacyTabViewModel(
+            x,
+            y,
+            width,
+            height,
+            State.DiplomacyState.IsLoading,
+            HasCivilization(),
+            State.DiplomacyState.ErrorMessage,
+            State.DiplomacyState.ActiveRelationships,
+            State.DiplomacyState.IncomingProposals,
+            State.DiplomacyState.OutgoingProposals,
+            availableCivs,
+            State.DiplomacyState.SelectedCivId,
+            State.DiplomacyState.SelectedProposalType,
+            currentRank,
+            State.DiplomacyState.ConfirmWarCivId,
+            State.DiplomacyState.IsCivDropdownOpen,
+            State.DiplomacyState.IsTypeDropdownOpen);
+
+        // Render
+        var drawList = ImGui.GetWindowDrawList();
+        var result = DiplomacyTabRenderer.Draw(vm, drawList);
+
+        // Process events
+        ProcessDiplomacyEvents(result.Events);
+    }
+
     #endregion
 
     #region Event Processors
@@ -476,6 +580,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                         CivilizationSubTab.Info => HasCivilization(),
                         CivilizationSubTab.Invites => UserHasReligion && !HasCivilization(),
                         CivilizationSubTab.Create => UserHasReligion && !HasCivilization(),
+                        CivilizationSubTab.Diplomacy => HasCivilization(),
                         _ => false
                     };
 
@@ -507,6 +612,10 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                             State.InviteState.ErrorMsg = null;
                             RequestCivilizationInfo();
                             break;
+                        case CivilizationSubTab.Diplomacy:
+                            State.DiplomacyState.ErrorMessage = null;
+                            RequestDiplomacyInfo();
+                            break;
                     }
 
                     break;
@@ -530,6 +639,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                         case CivilizationSubTab.Invites:
                             State.InviteState.ErrorMsg = null;
                             break;
+                        case CivilizationSubTab.Diplomacy:
+                            State.DiplomacyState.ErrorMessage = null;
+                            break;
                     }
 
                     break;
@@ -546,6 +658,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                         case CivilizationSubTab.Info:
                         case CivilizationSubTab.Invites:
                             RequestCivilizationInfo();
+                            break;
+                        case CivilizationSubTab.Diplomacy:
+                            RequestDiplomacyInfo();
                             break;
                     }
 
@@ -767,6 +882,89 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     State.EditState.IsOpen = false;
                     State.EditState.Reset();
                     _soundManager.PlayClick();
+                    break;
+            }
+    }
+
+    internal void ProcessDiplomacyEvents(IReadOnlyList<DiplomacyEvent> events)
+    {
+        foreach (var evt in events)
+            switch (evt)
+            {
+                case DiplomacyEvent.ProposeRelationship pr:
+                    if (!string.IsNullOrEmpty(pr.TargetCivId) && !string.IsNullOrEmpty(CurrentCivilizationId))
+                    {
+                        RequestDiplomacyAction("propose", pr.TargetCivId, "", pr.ProposedStatus.ToString());
+                        State.DiplomacyState.SelectedCivId = string.Empty;
+                    }
+                    break;
+
+                case DiplomacyEvent.AcceptProposal ap:
+                    if (!string.IsNullOrEmpty(ap.ProposalId))
+                        RequestDiplomacyAction("accept", "", ap.ProposalId);
+                    break;
+
+                case DiplomacyEvent.DeclineProposal dp:
+                    if (!string.IsNullOrEmpty(dp.ProposalId))
+                        RequestDiplomacyAction("decline", "", dp.ProposalId);
+                    break;
+
+                case DiplomacyEvent.ScheduleBreak sb:
+                    if (!string.IsNullOrEmpty(sb.TargetCivId))
+                    {
+                        RequestDiplomacyAction("schedulebreak", sb.TargetCivId);
+                        State.DiplomacyState.ConfirmBreakRelationshipId = null;
+                    }
+                    break;
+
+                case DiplomacyEvent.CancelBreak cb:
+                    if (!string.IsNullOrEmpty(cb.TargetCivId))
+                        RequestDiplomacyAction("cancelbreak", cb.TargetCivId);
+                    break;
+
+                case DiplomacyEvent.DeclareWar dw:
+                    if (!string.IsNullOrEmpty(dw.TargetCivId))
+                    {
+                        RequestDiplomacyAction("declarewar", dw.TargetCivId);
+                        State.DiplomacyState.ConfirmWarCivId = null;
+                    }
+                    break;
+
+                case DiplomacyEvent.DeclarePeace dp:
+                    if (!string.IsNullOrEmpty(dp.TargetCivId))
+                        RequestDiplomacyAction("declarepeace", dp.TargetCivId);
+                    break;
+
+                case DiplomacyEvent.SelectCivilization sc:
+                    State.DiplomacyState.SelectedCivId = sc.CivId;
+                    break;
+
+                case DiplomacyEvent.SelectProposalType spt:
+                    State.DiplomacyState.SelectedProposalType = spt.ProposalType;
+                    break;
+
+                case DiplomacyEvent.ShowWarConfirmation swc:
+                    State.DiplomacyState.ConfirmWarCivId = swc.CivId;
+                    break;
+
+                case DiplomacyEvent.CancelWarConfirmation:
+                    State.DiplomacyState.ConfirmWarCivId = null;
+                    break;
+
+                case DiplomacyEvent.ToggleCivDropdown tcd:
+                    State.DiplomacyState.IsCivDropdownOpen = tcd.IsOpen;
+                    // Close the other dropdown
+                    if (tcd.IsOpen) State.DiplomacyState.IsTypeDropdownOpen = false;
+                    break;
+
+                case DiplomacyEvent.ToggleTypeDropdown ttd:
+                    State.DiplomacyState.IsTypeDropdownOpen = ttd.IsOpen;
+                    // Close the other dropdown
+                    if (ttd.IsOpen) State.DiplomacyState.IsCivDropdownOpen = false;
+                    break;
+
+                case DiplomacyEvent.DismissError:
+                    State.DiplomacyState.ErrorMessage = null;
                     break;
             }
     }

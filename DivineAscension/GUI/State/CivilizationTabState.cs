@@ -21,6 +21,8 @@ public class CivilizationTabState
 
     public EditState EditState { get; } = new();
 
+    public DiplomacyState DiplomacyState { get; } = new();
+
     // Error messages (null = no error)
     public string? LastActionError { get; set; }
     public string? CreateError { get; set; }
@@ -42,6 +44,7 @@ public class CivilizationTabState
         InviteState.Reset();
         CreateState.Reset();
         EditState.Reset();
+        DiplomacyState.Reset();
 
         // Errors
         LastActionError = null;
@@ -58,5 +61,6 @@ public enum CivilizationSubTab
     Browse,
     Info,
     Invites,
-    Create
+    Create,
+    Diplomacy
 }

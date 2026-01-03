@@ -24,6 +24,8 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
     private readonly ICoreServerAPI _sapi;
     private IBlessingEffectSystem? _blessingEffectSystem;
     private IBlessingRegistry? _blessingRegistry;
+    private IDiplomacyManager? _diplomacyManager;
+    private CivilizationManager? _civilizationManager;
 
     public ReligionPrestigeManager(ICoreServerAPI sapi, IReligionManager religionManager)
     {
@@ -38,6 +40,19 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
     {
         _blessingRegistry = blessingRegistry;
         _blessingEffectSystem = blessingEffectSystem;
+    }
+
+    /// <summary>
+    ///     Sets the diplomacy manager and civilization manager (called after they're initialized)
+    /// </summary>
+    public void SetDiplomacyManager(IDiplomacyManager diplomacyManager, CivilizationManager civilizationManager)
+    {
+        _diplomacyManager = diplomacyManager;
+        _civilizationManager = civilizationManager;
+
+        // Subscribe to diplomacy events
+        _diplomacyManager.OnRelationshipEstablished += HandleRelationshipEstablished;
+        _diplomacyManager.OnWarDeclared += HandleWarDeclared;
     }
 
     /// <summary>
@@ -317,5 +332,79 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
 
         // Refresh blessing effects for all members
         _blessingEffectSystem.RefreshReligionBlessings(religionUID);
+    }
+
+    /// <summary>
+    ///     Handles when a diplomatic relationship is established
+    /// </summary>
+    private void HandleRelationshipEstablished(string civId1, string civId2, DiplomaticStatus status)
+    {
+        // Award prestige bonus for Alliance formation
+        if (status == DiplomaticStatus.Alliance)
+        {
+            if (_civilizationManager == null)
+            {
+                _sapi.Logger.Warning("[DivineAscension:Diplomacy] Civilization manager not set, cannot award Alliance prestige");
+                return;
+            }
+
+            var civ1 = _civilizationManager.GetCivilization(civId1);
+            var civ2 = _civilizationManager.GetCivilization(civId2);
+
+            if (civ1 == null || civ2 == null)
+            {
+                _sapi.Logger.Warning($"[DivineAscension:Diplomacy] Cannot find civilizations for Alliance prestige: {civId1}, {civId2}");
+                return;
+            }
+
+            // Award prestige to all religions in both civilizations
+            var allReligionIds = civ1.MemberReligionIds.Concat(civ2.MemberReligionIds).Distinct();
+
+            foreach (var religionId in allReligionIds)
+            {
+                AddPrestige(religionId, Constants.DiplomacyConstants.AlliancePrestigeBonus,
+                    $"Alliance formed between {civ1.Name} and {civ2.Name}");
+            }
+
+            _sapi.Logger.Notification($"[DivineAscension:Diplomacy] Alliance formed: {civ1.Name} and {civ2.Name} - {allReligionIds.Count()} religions gained {Constants.DiplomacyConstants.AlliancePrestigeBonus} prestige");
+        }
+    }
+
+    /// <summary>
+    ///     Handles when war is declared between civilizations
+    /// </summary>
+    private void HandleWarDeclared(string declarerCivId, string targetCivId)
+    {
+        if (_civilizationManager == null)
+        {
+            _sapi.Logger.Warning("[DivineAscension:Diplomacy] Civilization manager not set, cannot announce war");
+            return;
+        }
+
+        var declarerCiv = _civilizationManager.GetCivilization(declarerCivId);
+        var targetCiv = _civilizationManager.GetCivilization(targetCivId);
+
+        if (declarerCiv == null || targetCiv == null)
+        {
+            _sapi.Logger.Warning($"[DivineAscension:Diplomacy] Cannot find civilizations for war announcement: {declarerCivId}, {targetCivId}");
+            return;
+        }
+
+        // Broadcast war declaration to all online players
+        var message = $"[Diplomacy] {declarerCiv.Name} has declared WAR on {targetCiv.Name}!";
+
+        foreach (var player in _sapi.World.AllOnlinePlayers)
+        {
+            if (player is IServerPlayer serverPlayer)
+            {
+                serverPlayer.SendMessage(
+                    GlobalConstants.GeneralChatGroup,
+                    message,
+                    EnumChatType.Notification
+                );
+            }
+        }
+
+        _sapi.Logger.Notification($"[DivineAscension:Diplomacy] WAR declared: {declarerCiv.Name} vs {targetCiv.Name}");
     }
 }

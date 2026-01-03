@@ -16,6 +16,7 @@ public readonly struct ReligionInfoViewModel(
     string religionName,
     string deity,
     string founderUID,
+    string founderName,
     string currentPlayerUID,
     bool isFounder,
     string? description,
@@ -49,6 +50,7 @@ public readonly struct ReligionInfoViewModel(
     public string ReligionName { get; } = religionName;
     public string Deity { get; } = deity;
     public string FounderUID { get; } = founderUID;
+    public string FounderName { get; } = founderName;
 
     public string CurrentPlayerUID { get; } = currentPlayerUID;
 
@@ -98,24 +100,18 @@ public readonly struct ReligionInfoViewModel(
     }
 
     /// <summary>
-    /// Returns the founder's display name if present in the member list, otherwise the raw founder UID.
+    /// Returns the founder's cached display name, falling back to UID if not available.
     /// </summary>
     public string GetFounderDisplayName()
     {
-        foreach (var m in Members)
-        {
-            if (m.PlayerUID == FounderUID)
-                return string.IsNullOrWhiteSpace(m.PlayerName) ? FounderUID : m.PlayerName;
-        }
-
-        return FounderUID;
+        return string.IsNullOrWhiteSpace(FounderName) ? FounderUID : FounderName;
     }
 
     /// <summary>
     /// Copy with updated overall scroll position for the tab content.
     /// </summary>
     public ReligionInfoViewModel WithScroll(float newScrollY) => new(
-        IsLoading, HasReligion, ReligionUID, ReligionName, Deity, FounderUID, CurrentPlayerUID, IsFounder, Description,
+        IsLoading, HasReligion, ReligionUID, ReligionName, Deity, FounderUID, FounderName, CurrentPlayerUID, IsFounder, Description,
         Members, BannedPlayers, Prestige, PrestigeRank, IsPublic,
         DescriptionText, InvitePlayerName, ShowDisbandConfirm,
         KickConfirmPlayerUID, KickConfirmPlayerName, BanConfirmPlayerUID, BanConfirmPlayerName,
@@ -126,7 +122,7 @@ public readonly struct ReligionInfoViewModel(
     /// Copy with updated member list scroll position.
     /// </summary>
     public ReligionInfoViewModel WithMemberScroll(float newMemberScrollY) => new(
-        IsLoading, HasReligion, ReligionUID, ReligionName, Deity, FounderUID, CurrentPlayerUID, IsFounder, Description,
+        IsLoading, HasReligion, ReligionUID, ReligionName, Deity, FounderUID, FounderName, CurrentPlayerUID, IsFounder, Description,
         Members, BannedPlayers, Prestige, PrestigeRank, IsPublic,
         DescriptionText, InvitePlayerName, ShowDisbandConfirm,
         KickConfirmPlayerUID, KickConfirmPlayerName, BanConfirmPlayerUID, BanConfirmPlayerName,
@@ -137,7 +133,7 @@ public readonly struct ReligionInfoViewModel(
     /// Copy with updated banned list scroll position.
     /// </summary>
     public ReligionInfoViewModel WithBanListScroll(float newBanListScrollY) => new(
-        IsLoading, HasReligion, ReligionUID, ReligionName, Deity, FounderUID, CurrentPlayerUID, IsFounder, Description,
+        IsLoading, HasReligion, ReligionUID, ReligionName, Deity, FounderUID, FounderName, CurrentPlayerUID, IsFounder, Description,
         Members, BannedPlayers, Prestige, PrestigeRank, IsPublic,
         DescriptionText, InvitePlayerName, ShowDisbandConfirm,
         KickConfirmPlayerUID, KickConfirmPlayerName, BanConfirmPlayerUID, BanConfirmPlayerName,
@@ -148,7 +144,7 @@ public readonly struct ReligionInfoViewModel(
     /// Convenience factory for empty/loading state when no religion data is available yet.
     /// </summary>
     public static ReligionInfoViewModel Loading(float x = 0, float y = 0, float width = 0, float height = 0) => new(
-        true, false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, false, string.Empty,
+        true, false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, false, string.Empty,
         Array.Empty<PlayerReligionInfoResponsePacket.MemberInfo>(),
         Array.Empty<PlayerReligionInfoResponsePacket.BanInfo>(),
         0, string.Empty, true,

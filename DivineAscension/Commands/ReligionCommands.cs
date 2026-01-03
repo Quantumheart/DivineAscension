@@ -19,6 +19,7 @@ public class ReligionCommands(
     ICoreServerAPI sapi,
     IReligionManager religionManager,
     IPlayerReligionDataManager playerReligionDataManager,
+    IReligionPrestigeManager religionPrestigeManager,
     IServerNetworkChannel serverChannel)
 {
     private readonly IPlayerReligionDataManager _playerReligionDataManager =
@@ -26,6 +27,9 @@ public class ReligionCommands(
 
     private readonly IReligionManager _religionManager =
         religionManager ?? throw new ArgumentNullException(nameof(religionManager));
+
+    private readonly IReligionPrestigeManager _religionPrestigeManager =
+        religionPrestigeManager ?? throw new ArgumentNullException(nameof(religionPrestigeManager));
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
 
@@ -104,6 +108,29 @@ public class ReligionCommands(
             .WithDescription("Set your religion's description")
             .WithArgs(_sapi.ChatCommands.Parsers.All("text"))
             .HandleWith(OnSetDescription)
+            .EndSubCommand()
+            .BeginSubCommand("prestige")
+            .WithDescription("Manage religion prestige")
+            .BeginSubCommand("info")
+            .WithDescription("View detailed prestige information for a religion")
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("religionname"))
+            .HandleWith(OnPrestigeInfo)
+            .EndSubCommand()
+            .BeginSubCommand("add")
+            .WithDescription("Add prestige to a religion (Admin only)")
+            .WithArgs(_sapi.ChatCommands.Parsers.Word("religionname"),
+                _sapi.ChatCommands.Parsers.Int("amount"),
+                _sapi.ChatCommands.Parsers.OptionalAll("reason"))
+            .RequiresPrivilege(Privilege.root)
+            .HandleWith(OnPrestigeAdd)
+            .EndSubCommand()
+            .BeginSubCommand("set")
+            .WithDescription("Set religion prestige to a specific amount (Admin only)")
+            .WithArgs(_sapi.ChatCommands.Parsers.Word("religionname"),
+                _sapi.ChatCommands.Parsers.Int("amount"))
+            .RequiresPrivilege(Privilege.root)
+            .HandleWith(OnPrestigeSet)
+            .EndSubCommand()
             .EndSubCommand();
 
         _sapi.Logger.Notification("[DivineAscension] Religion commands registered");
@@ -147,8 +174,8 @@ public class ReligionCommands(
         // Create the religion
         var religion = _religionManager.CreateReligion(religionName, deity, player.PlayerUID, isPublic);
 
-        // Auto-join the founder
-        _playerReligionDataManager.JoinReligion(player.PlayerUID, religion.ReligionUID);
+        // Set up founder's player religion data (already added to Members via constructor)
+        _playerReligionDataManager.SetPlayerReligionData(player.PlayerUID, religion.ReligionUID);
 
         return TextCommandResult.Success(
             $"Religion '{religionName}' created! You are now the founder serving {deity}.");
@@ -203,7 +230,8 @@ public class ReligionCommands(
         // Prevent founders from leaving (use role-based check for consistency)
         if (religion != null && religion.GetPlayerRole(player.PlayerUID) == RoleDefaults.FOUNDER_ROLE_ID)
         {
-            return TextCommandResult.Error("Founders cannot leave their religion. Transfer founder status or disband the religion instead.");
+            return TextCommandResult.Error(
+                "Founders cannot leave their religion. Transfer founder status or disband the religion instead.");
         }
 
         // Leave the religion
@@ -280,8 +308,8 @@ public class ReligionCommands(
         sb.AppendLine($"Prestige: {religion.Prestige} (Total: {religion.TotalPrestige})");
         sb.AppendLine($"Created: {religion.CreationDate:yyyy-MM-dd}");
 
-        var founderPlayer = _sapi.World.PlayerByUid(religion.FounderUID);
-        sb.AppendLine($"Founder: {founderPlayer?.PlayerName ?? "Unknown"}");
+        // Use cached founder name
+        sb.AppendLine($"Founder: {religion.FounderName}");
 
         if (!string.IsNullOrEmpty(religion.Description)) sb.AppendLine($"Description: {religion.Description}");
 
@@ -641,6 +669,114 @@ public class ReligionCommands(
         religion.Description = description;
 
         return TextCommandResult.Success($"Description set for {religion.ReligionName}");
+    }
+
+    /// <summary>
+    ///     Handler for /religion prestige info [religionname]
+    /// </summary>
+    internal TextCommandResult OnPrestigeInfo(TextCommandCallingArgs args)
+    {
+        var player = args.Caller.Player as IServerPlayer;
+        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+
+        var religionName = args.Parsers.Count > 0 ? (string?)args[0] : null;
+
+        // Get the religion
+        ReligionData? religion;
+        if (!string.IsNullOrEmpty(religionName))
+        {
+            religion = _religionManager.GetReligionByName(religionName);
+            if (religion == null) return TextCommandResult.Error($"Religion '{religionName}' not found");
+        }
+        else
+        {
+            // Show current religion's prestige
+            var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
+            if (!playerData.HasReligion())
+                return TextCommandResult.Error("You are not in any religion. Specify a religion name to view.");
+            religion = _religionManager.GetReligion(playerData.ReligionUID!);
+            if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        }
+
+        // Get prestige progress
+        var (current, nextThreshold, nextRank) = _religionPrestigeManager.GetPrestigeProgress(religion.ReligionUID);
+        var currentRank = religion.PrestigeRank;
+
+        // Build info display
+        var sb = new StringBuilder();
+        sb.AppendLine($"=== {religion.ReligionName} Prestige ===");
+        sb.AppendLine($"Current Rank: {(int)currentRank} ({currentRank})");
+        sb.AppendLine($"Current Prestige: {current}");
+        sb.AppendLine($"Total Prestige Earned: {religion.TotalPrestige}");
+
+        if (currentRank < PrestigeRank.Mythic)
+        {
+            sb.AppendLine($"Next Rank: {nextRank} ({(PrestigeRank)nextRank})");
+            sb.AppendLine($"Progress: {current}/{nextThreshold} ({current * 100 / nextThreshold}%)");
+            sb.AppendLine($"Remaining: {nextThreshold - current}");
+        }
+        else
+        {
+            sb.AppendLine("Maximum rank achieved!");
+        }
+
+        return TextCommandResult.Success(sb.ToString());
+    }
+
+    /// <summary>
+    ///     Handler for /religion prestige add <religionname> <amount> [reason]
+    /// </summary>
+    internal TextCommandResult OnPrestigeAdd(TextCommandCallingArgs args)
+    {
+        var religionName = (string)args[0];
+        var amount = (int)args[1];
+        var reason = args.Parsers.Count > 2 ? (string?)args[2] : "Admin command";
+
+        if (amount <= 0) return TextCommandResult.Error("Amount must be positive");
+
+        var religion = _religionManager.GetReligionByName(religionName);
+        if (religion == null) return TextCommandResult.Error($"Religion '{religionName}' not found");
+
+        var oldPrestige = religion.Prestige;
+        var oldRank = religion.PrestigeRank;
+
+        _religionPrestigeManager.AddPrestige(religion.ReligionUID, amount, reason ?? "Admin command");
+
+        var newPrestige = religion.Prestige;
+        var newRank = religion.PrestigeRank;
+
+        var rankChanged = newRank > oldRank ? $" (Rank: {oldRank} → {newRank})" : "";
+
+        return TextCommandResult.Success(
+            $"Added {amount} prestige to {religionName}. Total: {oldPrestige} → {newPrestige}{rankChanged}");
+    }
+
+    /// <summary>
+    ///     Handler for /religion prestige set <religionname> <amount>
+    /// </summary>
+    internal TextCommandResult OnPrestigeSet(TextCommandCallingArgs args)
+    {
+        var religionName = (string)args[0];
+        var amount = (int)args[1];
+
+        if (amount < 0) return TextCommandResult.Error("Amount cannot be negative");
+
+        var religion = _religionManager.GetReligionByName(religionName);
+        if (religion == null) return TextCommandResult.Error($"Religion '{religionName}' not found");
+
+        var oldPrestige = religion.Prestige;
+        var oldRank = religion.PrestigeRank;
+
+        // Set prestige directly and update rank
+        religion.Prestige = amount;
+        religion.TotalPrestige = Math.Max(religion.TotalPrestige, amount); // Ensure total is at least as high
+        _religionPrestigeManager.UpdatePrestigeRank(religion.ReligionUID);
+
+        var newRank = religion.PrestigeRank;
+        var rankChanged = newRank != oldRank ? $" (Rank: {oldRank} → {newRank})" : "";
+
+        return TextCommandResult.Success(
+            $"Set {religionName} prestige to {amount} (was {oldPrestige}){rankChanged}");
     }
 
     #endregion

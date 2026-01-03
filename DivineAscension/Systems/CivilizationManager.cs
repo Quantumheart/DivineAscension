@@ -26,6 +26,11 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     private CivilizationWorldData _data = new();
 
     /// <summary>
+    ///     Event fired when a civilization is disbanded
+    /// </summary>
+    public event Action<string>? OnCivilizationDisbanded;
+
+    /// <summary>
     ///     Initializes the civilization manager
     /// </summary>
     public void Initialize()
@@ -51,6 +56,7 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
         _sapi.Event.SaveGameLoaded -= OnSaveGameLoaded;
         _sapi.Event.GameWorldSave -= OnGameWorldSave;
         _religionManager.OnReligionDeleted -= HandleReligionDeleted;
+        OnCivilizationDisbanded = null;
     }
 
     #region Event Handlers
@@ -508,6 +514,9 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
 
             // Remove civilization
             _data.RemoveCivilization(civId);
+
+            // Fire event to notify other systems
+            OnCivilizationDisbanded?.Invoke(civId);
 
             _sapi.Logger.Notification($"[DivineAscension] Civilization '{civ.Name}' disbanded by founder");
             return true;

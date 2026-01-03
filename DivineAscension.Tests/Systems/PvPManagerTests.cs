@@ -25,6 +25,8 @@ public class PvPManagerTests
     private readonly Mock<IPlayerReligionDataManager> _mockPlayerReligionDataManager;
     private readonly Mock<IReligionPrestigeManager> _mockPrestigeManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
+    private readonly Mock<CivilizationManager> _mockCivilizationManager;
+    private readonly Mock<IDiplomacyManager> _mockDiplomacyManager;
     private readonly PvPManager _pvpManager;
 
     public PvPManagerTests()
@@ -34,13 +36,17 @@ public class PvPManagerTests
         _mockReligionManager = new Mock<IReligionManager>();
         _mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         _mockDeityRegistry = new Mock<IDeityRegistry>();
+        _mockCivilizationManager = new Mock<CivilizationManager>();
+        _mockDiplomacyManager = new Mock<IDiplomacyManager>();
 
         _pvpManager = new PvPManager(
             _mockAPI.Object,
             _mockPlayerReligionDataManager.Object,
             _mockReligionManager.Object,
             _mockPrestigeManager.Object,
-            _mockDeityRegistry.Object
+            _mockDeityRegistry.Object,
+            _mockCivilizationManager.Object,
+            _mockDiplomacyManager.Object
         );
     }
 

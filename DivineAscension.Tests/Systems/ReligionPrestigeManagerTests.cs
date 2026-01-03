@@ -516,8 +516,8 @@ public class ReligionPrestigeManagerTests
         // Arrange
         _testReligion.TotalPrestige = 450;
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
-        _testReligion.AddMember("member-1");
-        _testReligion.AddMember("member-2");
+        _testReligion.AddMember("member-1", "Member 1");
+        _testReligion.AddMember("member-2", "Member 2");
 
         var mockWorld = new Mock<IServerWorldAccessor>();
         var mockPlayer1 = new Mock<IServerPlayer>();
@@ -558,7 +558,7 @@ public class ReligionPrestigeManagerTests
         // Arrange
         _testReligion.TotalPrestige = 100;
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
-        _testReligion.AddMember("member-1");
+        _testReligion.AddMember("member-1", "Member 1");
 
         var mockWorld = new Mock<IServerWorldAccessor>();
         var mockPlayer = new Mock<IServerPlayer>();
@@ -582,7 +582,7 @@ public class ReligionPrestigeManagerTests
         // Arrange
         _testReligion.TotalPrestige = 450;
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
-        _testReligion.AddMember("offline-player");
+        _testReligion.AddMember("offline-player", "Offline Player");
 
         var mockWorld = new Mock<IServerWorldAccessor>();
         mockWorld.Setup(w => w.PlayerByUid("offline-player")).Returns((IServerPlayer)null!);
@@ -622,7 +622,7 @@ public class ReligionPrestigeManagerTests
 
         _testReligion.TotalPrestige = 500;
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
-        _testReligion.AddMember("member-1");
+        _testReligion.AddMember("member-1", "Member 1");
 
         var mockWorld = new Mock<IServerWorldAccessor>();
         var mockPlayer = new Mock<IServerPlayer>();

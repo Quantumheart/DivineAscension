@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Commands;
+using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Commands.Helpers;
 using Moq;
 using Vintagestory.API.Common;
@@ -23,55 +24,65 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
     [Fact]
     public void Constructor_ThrowsWhenSAPIIsNull()
     {
+        var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             null!,
             _religionManager.Object,
             _playerReligionDataManager.Object,
+            mockPrestigeManager.Object,
             _serverChannel.Object));
     }
 
     [Fact]
     public void Constructor_ThrowsWhenReligionManagerIsNull()
     {
+        var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
             null!,
             _playerReligionDataManager.Object,
+            mockPrestigeManager.Object,
             _serverChannel.Object));
     }
 
     [Fact]
     public void Constructor_ThrowsWhenPlayerReligionDataManagerIsNull()
     {
+        var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
             _religionManager.Object,
             null!,
+            mockPrestigeManager.Object,
             _serverChannel.Object));
     }
 
     [Fact]
     public void Constructor_AcceptsNullServerChannel()
     {
+        var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
             _religionManager.Object,
             _playerReligionDataManager.Object,
+            mockPrestigeManager.Object,
             null!));
     }
 
     [Fact]
     public void Constructor_SetsDependenciesCorrectly()
     {
+        var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         // Act
         var commands = new ReligionCommands(
             _mockSapi.Object,
             _religionManager.Object,
             _playerReligionDataManager.Object,
+            mockPrestigeManager.Object,
             _serverChannel.Object);
 
         // Assert
