@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
+using DivineAscension.Network.Diplomacy;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Client;
@@ -21,6 +22,7 @@ public class DivineAscensionModSystem : ModSystem
     private BlessingNetworkHandler? _blessingNetworkHandler;
     private CivilizationManager? _civilizationManager;
     private CivilizationNetworkHandler? _civilizationNetworkHandler;
+    private DiplomacyNetworkHandler? _diplomacyNetworkHandler;
 
     // Client-side systems
     private FavorSystem? _favorSystem;
@@ -88,7 +90,12 @@ public class DivineAscensionModSystem : ModSystem
             .RegisterMessageType<CivilizationInfoRequestPacket>()
             .RegisterMessageType<CivilizationInfoResponsePacket>()
             .RegisterMessageType<CivilizationActionRequestPacket>()
-            .RegisterMessageType<CivilizationActionResponsePacket>();
+            .RegisterMessageType<CivilizationActionResponsePacket>()
+            .RegisterMessageType<DiplomacyInfoRequestPacket>()
+            .RegisterMessageType<DiplomacyInfoResponsePacket>()
+            .RegisterMessageType<DiplomacyActionRequestPacket>()
+            .RegisterMessageType<DiplomacyActionResponsePacket>()
+            .RegisterMessageType<WarDeclarationPacket>();
     }
 
     public override void StartServerSide(ICoreServerAPI api)
@@ -112,6 +119,7 @@ public class DivineAscensionModSystem : ModSystem
         _blessingNetworkHandler = result.BlessingNetworkHandler;
         _religionNetworkHandler = result.ReligionNetworkHandler;
         _civilizationNetworkHandler = result.CivilizationNetworkHandler;
+        _diplomacyNetworkHandler = result.DiplomacyNetworkHandler;
 
         api.Logger.Notification("[DivineAscension] Server-side initialization complete");
     }

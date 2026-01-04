@@ -41,6 +41,12 @@ public interface IPlayerReligionDataManager : IDisposable
     List<string> GetActivePlayerBlessings(string playerUID);
 
     /// <summary>
+    ///     Sets up player religion data without adding to religion members
+    ///     Used for founders who are already added via ReligionData constructor
+    /// </summary>
+    void SetPlayerReligionData(string playerUID, string religionUID);
+
+    /// <summary>
     ///     Joins a player to a religion
     /// </summary>
     void JoinReligion(string playerUID, string religionUID);

@@ -22,6 +22,8 @@ public class PlayerReligionInfoResponsePacket
 
     [ProtoMember(6)] public int Prestige { get; set; }
 
+    [ProtoMember(14)] public string FounderName { get; set; } = string.Empty;
+
     [ProtoMember(7)] public string PrestigeRank { get; set; } = string.Empty;
 
     [ProtoMember(8)] public bool IsPublic { get; set; }

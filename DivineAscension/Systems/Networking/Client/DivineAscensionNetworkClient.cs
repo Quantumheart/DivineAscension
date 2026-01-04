@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.GUI.Utilities;
 using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Systems.Networking.Interfaces;
@@ -60,6 +61,11 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _clientChannel.SetMessageHandler<DeleteRoleResponse>(OnDeleteRoleResponse);
         _clientChannel.SetMessageHandler<TransferFounderResponse>(OnTransferFounderResponse);
 
+        // Register handlers for diplomacy responses
+        _clientChannel.SetMessageHandler<Network.Diplomacy.DiplomacyInfoResponsePacket>(OnDiplomacyInfoResponse);
+        _clientChannel.SetMessageHandler<Network.Diplomacy.DiplomacyActionResponsePacket>(OnDiplomacyActionResponse);
+        _clientChannel.SetMessageHandler<Network.Diplomacy.WarDeclarationPacket>(OnWarDeclarationBroadcast);
+
         _clientChannel.RegisterMessageType(typeof(PlayerReligionDataPacket));
     }
 
@@ -82,6 +88,9 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         RoleAssigned = null;
         RoleDeleted = null;
         FounderTransferred = null;
+        DiplomacyInfoReceived = null;
+        DiplomacyActionCompleted = null;
+        WarDeclared = null;
     }
 
     #endregion
@@ -270,6 +279,143 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         if (!string.IsNullOrEmpty(packet.Message)) _capi?.ShowChatMessage(packet.Message);
 
         CivilizationActionCompleted?.Invoke(packet);
+    }
+
+    private void OnDiplomacyInfoResponse(Network.Diplomacy.DiplomacyInfoResponsePacket packet)
+    {
+        try
+        {
+            _capi?.Logger.Debug(
+                $"[DivineAscension:Diplomacy] Received diplomacy info for civ {packet.CivId}: {packet.Relationships.Count} relationships, {packet.IncomingProposals.Count} incoming, {packet.OutgoingProposals.Count} outgoing");
+
+            // Update civilization state manager via GuiDialogManager
+            var guiDialogManager = _capi?.ModLoader.GetModSystem<GUI.GuiDialog>()?.DialogManager;
+            if (guiDialogManager != null)
+            {
+                var civManager = guiDialogManager.CivilizationManager;
+                var diplomacyState = civManager.DiplomacyState;
+
+                // Update state with received data
+                diplomacyState.ActiveRelationships = packet.Relationships;
+                diplomacyState.IncomingProposals = packet.IncomingProposals;
+                diplomacyState.OutgoingProposals = packet.OutgoingProposals;
+                diplomacyState.IsLoading = false;
+                diplomacyState.LastRefresh = DateTime.UtcNow;
+                diplomacyState.ErrorMessage = null;
+
+                _capi?.Logger.Debug("[DivineAscension:Diplomacy] Updated diplomacy state successfully");
+            }
+            else
+            {
+                _capi?.Logger.Warning("[DivineAscension:Diplomacy] Could not access GuiDialogManager to update state");
+            }
+
+            // Fire event for additional subscribers
+            DiplomacyInfoReceived?.Invoke(packet.CivId);
+        }
+        catch (Exception ex)
+        {
+            _capi?.Logger.Error($"[DivineAscension:Diplomacy] Error processing diplomacy info response: {ex.Message}");
+            _capi?.Logger.Error($"Stack trace: {ex.StackTrace}");
+
+            // Set error in state if accessible
+            var guiDialogManager = _capi?.ModLoader.GetModSystem<GUI.GuiDialog>()?.DialogManager;
+            if (guiDialogManager != null)
+            {
+                var civManager = guiDialogManager.CivilizationManager;
+                civManager.DiplomacyState.ErrorMessage = "Failed to load diplomacy data";
+                civManager.DiplomacyState.IsLoading = false;
+            }
+        }
+    }
+
+    private void OnDiplomacyActionResponse(Network.Diplomacy.DiplomacyActionResponsePacket packet)
+    {
+        try
+        {
+            _capi?.Logger.Debug(
+                $"[DivineAscension:Diplomacy] Diplomacy action '{packet.Action}' response: Success={packet.Success}");
+
+            // Show message to user
+            if (!string.IsNullOrEmpty(packet.Message))
+            {
+                if (packet.Success)
+                    _capi?.ShowChatMessage(packet.Message);
+                else
+                    _capi?.ShowChatMessage($"Error: {packet.Message}");
+            }
+
+            // Update state
+            var guiDialogManager = _capi?.ModLoader.GetModSystem<GUI.GuiDialog>()?.DialogManager;
+            if (guiDialogManager != null)
+            {
+                var civManager = guiDialogManager.CivilizationManager;
+                var diplomacyState = civManager.DiplomacyState;
+
+                if (packet.Success)
+                {
+                    // Clear confirmation flags on success
+                    diplomacyState.ConfirmBreakRelationshipId = null;
+                    diplomacyState.ConfirmWarCivId = null;
+                    diplomacyState.ErrorMessage = null;
+
+                    // Trigger refresh of diplomacy data
+                    civManager.RequestDiplomacyInfo();
+                }
+                else
+                {
+                    // Set error message
+                    diplomacyState.ErrorMessage = packet.Message;
+                }
+            }
+
+            // Fire event for additional subscribers
+            DiplomacyActionCompleted?.Invoke(packet.Action ?? string.Empty, packet.Success);
+        }
+        catch (Exception ex)
+        {
+            _capi?.Logger.Error($"[DivineAscension:Diplomacy] Error processing diplomacy action response: {ex.Message}");
+            _capi?.Logger.Error($"Stack trace: {ex.StackTrace}");
+        }
+    }
+
+    private void OnWarDeclarationBroadcast(Network.Diplomacy.WarDeclarationPacket packet)
+    {
+        try
+        {
+            _capi?.Logger.Debug(
+                $"[DivineAscension:Diplomacy] War declared: {packet.DeclarerCivName} vs {packet.TargetCivName}");
+
+            // Check if player is in either civilization
+            var guiDialogManager = _capi?.ModLoader.GetModSystem<GUI.GuiDialog>()?.DialogManager;
+            if (guiDialogManager != null)
+            {
+                var civManager = guiDialogManager.CivilizationManager;
+                var playerCivId = civManager.CurrentCivilizationId;
+
+                var isInvolved = playerCivId == packet.DeclarerCivId || playerCivId == packet.TargetCivId;
+
+                // Show notification using helper
+                if (_capi != null)
+                {
+                    DiplomacyNotificationHelper.NotifyWarDeclared(_capi, packet.DeclarerCivName, packet.TargetCivName, isInvolved);
+                }
+
+                // Refresh diplomacy data if tab is open and player is involved
+                if (isInvolved && civManager.CurrentSubTab == GUI.State.CivilizationSubTab.Diplomacy)
+                {
+                    civManager.RequestDiplomacyInfo();
+                }
+            }
+
+            // Fire event for additional subscribers
+            WarDeclared?.Invoke(packet.DeclarerCivId, packet.TargetCivId);
+        }
+        catch (Exception ex)
+        {
+            _capi?.Logger.Error($"[DivineAscension:Diplomacy] Error processing war declaration broadcast: {ex.Message}");
+            _capi?.Logger.Error($"Stack trace: {ex.StackTrace}");
+        }
     }
 
     #endregion
@@ -509,6 +655,42 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _capi?.Logger.Debug($"[DivineAscension] Sent civilization action request: {action}");
     }
 
+    /// <summary>
+    ///     Request diplomacy information for a civilization
+    /// </summary>
+    public void RequestDiplomacyInfo(string civId)
+    {
+        if (_clientChannel == null)
+        {
+            _capi?.Logger.Error("[DivineAscension:Diplomacy] Cannot request diplomacy info: client channel not initialized");
+            return;
+        }
+
+        var request = new Network.Diplomacy.DiplomacyInfoRequestPacket(civId);
+        _clientChannel.SendPacket(request);
+        _capi?.Logger.Debug($"[DivineAscension:Diplomacy] Sent diplomacy info request for civilization: {civId}");
+    }
+
+    /// <summary>
+    ///     Request a diplomacy action (propose, accept, decline, schedulebreak, cancelbreak, declarewar, declarepeace)
+    /// </summary>
+    public void RequestDiplomacyAction(string action, string targetCivId = "", string proposalOrRelationshipId = "", string proposedStatus = "")
+    {
+        if (_clientChannel == null)
+        {
+            _capi?.Logger.Error("[DivineAscension:Diplomacy] Cannot request diplomacy action: client channel not initialized");
+            return;
+        }
+
+        var request = new Network.Diplomacy.DiplomacyActionRequestPacket(
+            action: action,
+            targetCivId: targetCivId,
+            proposalId: proposalOrRelationshipId,
+            proposedStatus: proposedStatus);
+        _clientChannel.SendPacket(request);
+        _capi?.Logger.Debug($"[DivineAscension:Diplomacy] Sent diplomacy action request: {action}, target: {targetCivId}, id: {proposalOrRelationshipId}, status: {proposedStatus}");
+    }
+
     #endregion
 
     #region Events
@@ -593,6 +775,21 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     ///     Event fired when founder status is transferred
     /// </summary>
     public event Action<TransferFounderResponse>? FounderTransferred;
+
+    /// <summary>
+    ///     Event fired when diplomacy info is received for a civilization
+    /// </summary>
+    public event Action<string>? DiplomacyInfoReceived;
+
+    /// <summary>
+    ///     Event fired when a diplomacy action completes (success or failure)
+    /// </summary>
+    public event Action<string, bool>? DiplomacyActionCompleted;
+
+    /// <summary>
+    ///     Event fired when a war declaration broadcast is received
+    /// </summary>
+    public event Action<string, string>? WarDeclared;
 
     #endregion
 }

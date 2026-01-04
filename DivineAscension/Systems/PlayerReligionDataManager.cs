@@ -196,6 +196,30 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
     }
 
     /// <summary>
+    ///     Sets up player religion data without adding to religion members
+    ///     Used for founders who are already added via ReligionData constructor
+    /// </summary>
+    public void SetPlayerReligionData(string playerUID, string religionUID)
+    {
+        var data = GetOrCreatePlayerData(playerUID);
+
+        // Get religion to set active deity
+        var religion = _religionManager.GetReligion(religionUID);
+        if (religion == null)
+        {
+            _sapi.Logger.Error($"[DivineAscension] Cannot set religion data for non-existent religion: {religionUID}");
+            return;
+        }
+
+        // Set religion and deity (NO AddMember call)
+        data.ReligionUID = religionUID;
+        data.ActiveDeity = religion.Deity;
+        data.LastReligionSwitch = DateTime.UtcNow;
+
+        _sapi.Logger.Notification($"[DivineAscension] Set player {playerUID} religion data for {religion.ReligionName}");
+    }
+
+    /// <summary>
     ///     Joins a player to a religion
     /// </summary>
     public void JoinReligion(string playerUID, string religionUID)

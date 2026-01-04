@@ -330,6 +330,7 @@ public class ReligionStateManager : IReligionStateManager
             religionName: religion?.ReligionName ?? string.Empty,
             deity: religion?.Deity ?? string.Empty,
             founderUID: religion?.FounderUID ?? string.Empty,
+            founderName: religion?.FounderName ?? string.Empty,
             // todo: just send the player id
             currentPlayerUID: _coreClientApi.World.Player?.PlayerUID ?? string.Empty,
             isFounder: religion?.IsFounder ?? false,

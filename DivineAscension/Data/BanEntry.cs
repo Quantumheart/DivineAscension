@@ -26,6 +26,7 @@ public class BanEntry
         Reason = reason;
         BannedAt = DateTime.UtcNow;
         ExpiresAt = expiresAt;
+        PlayerName = string.Empty; // Will be set by the manager
     }
 
     /// <summary>
@@ -33,6 +34,12 @@ public class BanEntry
     /// </summary>
     [ProtoMember(1)]
     public string PlayerUID { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Cached name of the banned player (for display when offline)
+    /// </summary>
+    [ProtoMember(6)]
+    public string PlayerName { get; set; } = string.Empty;
 
     /// <summary>
     ///     Reason for the ban

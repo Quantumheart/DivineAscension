@@ -1,4 +1,5 @@
 using System;
+using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -15,7 +16,9 @@ public class PvPManager : IPvPManager
     private const int BASE_FAVOR_REWARD = 10;
     private const int BASE_PRESTIGE_REWARD = 15;
     private const int DEATH_PENALTY_FAVOR = 5;
+    private readonly ICivilizationManager _civilizationManager;
     private readonly IDeityRegistry _deityRegistry;
+    private readonly IDiplomacyManager _diplomacyManager;
     private readonly IPlayerReligionDataManager _playerReligionDataManager;
     private readonly IReligionPrestigeManager _prestigeManager;
     private readonly IReligionManager _religionManager;
@@ -27,13 +30,17 @@ public class PvPManager : IPvPManager
         IPlayerReligionDataManager playerReligionDataManager,
         IReligionManager religionManager,
         IReligionPrestigeManager prestigeManager,
-        IDeityRegistry deityRegistry)
+        IDeityRegistry deityRegistry,
+        ICivilizationManager civilizationManager,
+        IDiplomacyManager diplomacyManager)
     {
         _sapi = sapi;
         _playerReligionDataManager = playerReligionDataManager;
         _religionManager = religionManager;
         _prestigeManager = prestigeManager;
         _deityRegistry = deityRegistry;
+        _civilizationManager = civilizationManager;
+        _diplomacyManager = diplomacyManager;
     }
 
     /// <summary>
@@ -115,9 +122,48 @@ public class PvPManager : IPvPManager
             return;
         }
 
+        // Check diplomatic status between civilizations
+        var attackerCiv = _civilizationManager.GetCivilizationByPlayer(attacker.PlayerUID);
+        var victimCiv = _civilizationManager.GetCivilizationByPlayer(victim.PlayerUID);
+
+        var diplomacyMultiplier = 1.0;
+
+        if (attackerCiv != null && victimCiv != null && attackerCiv.CivId != victimCiv.CivId)
+        {
+            var diplomaticStatus = _diplomacyManager.GetDiplomaticStatus(attackerCiv.CivId, victimCiv.CivId);
+
+            // Handle NAP or Alliance violations
+            if (diplomaticStatus == DiplomaticStatus.Alliance || diplomaticStatus == DiplomaticStatus.NonAggressionPact)
+            {
+                var violationCount = _diplomacyManager.RecordPvPViolation(attackerCiv.CivId, victimCiv.CivId);
+
+                attacker.SendMessage(
+                    GlobalConstants.GeneralChatGroup,
+                    $"[Diplomacy Warning] Attacking allied civilization! (Violation {violationCount}/3)",
+                    EnumChatType.CommandError
+                );
+
+                _sapi.Logger.Warning(
+                    $"[DivineAscension:Diplomacy] PvP violation: {attacker.PlayerName} ({attackerCiv.Name}) attacked {victim.PlayerName} ({victimCiv.Name}) - Status: {diplomaticStatus}, Violations: {violationCount}");
+
+                // No rewards for attacking allies
+                return;
+            }
+
+            // Apply War multiplier
+            if (diplomaticStatus == DiplomaticStatus.War)
+            {
+                diplomacyMultiplier = DiplomacyConstants.WarFavorMultiplier;
+            }
+        }
+
         // Calculate rewards
-        var favorReward = CalculateFavorReward(attackerData.ActiveDeity, victimData.ActiveDeity);
-        var prestigeReward = CalculatePrestigeReward(attackerData.ActiveDeity, victimData.ActiveDeity);
+        var baseFavorReward = CalculateFavorReward(attackerData.ActiveDeity, victimData.ActiveDeity);
+        var basePrestigeReward = CalculatePrestigeReward(attackerData.ActiveDeity, victimData.ActiveDeity);
+
+        // Apply diplomacy multiplier
+        var favorReward = (int)(baseFavorReward * diplomacyMultiplier);
+        var prestigeReward = (int)(basePrestigeReward * diplomacyMultiplier);
 
         // Award favor to player
         _playerReligionDataManager.AddFavor(attacker.PlayerUID, favorReward, $"PvP kill against {victim.PlayerName}");
@@ -131,9 +177,10 @@ public class PvPManager : IPvPManager
         var deityName = deity?.Name ?? attackerData.ActiveDeity.ToString();
 
         // Notify attacker with combined rewards
+        var warBonus = diplomacyMultiplier > 1.0 ? " [WAR BONUS +50%]" : "";
         attacker.SendMessage(
             GlobalConstants.GeneralChatGroup,
-            $"[Divine Victory] {deityName} rewards you with {favorReward} favor! Your religion gains {prestigeReward} prestige!",
+            $"[Divine Victory] {deityName} rewards you with {favorReward} favor! Your religion gains {prestigeReward} prestige!{warBonus}",
             EnumChatType.Notification
         );
 
@@ -156,7 +203,7 @@ public class PvPManager : IPvPManager
     /// <summary>
     ///     Applies death penalty to the player
     /// </summary>
-    private void ProcessDeathPenalty(IServerPlayer player)
+    internal void ProcessDeathPenalty(IServerPlayer player)
     {
         var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
 

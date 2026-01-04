@@ -149,13 +149,10 @@ public class CivilizationNetworkHandler(
             return;
         }
 
-        // Get civilization founder's player name
-        var founderPlayer = sapi.World.PlayerByUid(civ.FounderUID);
-        var founderPlayerName = founderPlayer?.PlayerName ?? civ.FounderUID;
-
-        // Get founding religion name
+        // Get founding religion name and founder's cached name
         var founderReligion = religionManager.GetReligion(civ.FounderReligionUID);
         var founderReligionName = founderReligion?.ReligionName ?? "Unknown";
+        var founderPlayerName = founderReligion?.GetMemberName(civ.FounderUID) ?? civ.FounderUID;
 
         var details = new CivilizationInfoResponsePacket.CivilizationDetails
         {
@@ -175,9 +172,8 @@ public class CivilizationNetworkHandler(
         var religions = civilizationManager.GetCivReligions(civ.CivId);
         foreach (var religion in religions)
         {
-            // Get religion founder's player name
-            var religionFounderPlayer = sapi.World.PlayerByUid(religion.FounderUID);
-            var religionFounderName = religionFounderPlayer?.PlayerName ?? religion.FounderUID;
+            // Use cached religion founder name
+            var religionFounderName = religion.FounderName;
 
             details.MemberReligions.Add(new CivilizationInfoResponsePacket.MemberReligion
             {

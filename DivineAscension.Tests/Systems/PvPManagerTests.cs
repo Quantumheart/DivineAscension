@@ -21,7 +21,9 @@ namespace DivineAscension.Tests.Systems;
 public class PvPManagerTests
 {
     private readonly Mock<ICoreServerAPI> _mockAPI;
+    private readonly Mock<ICivilizationManager> _mockCivilizationManager;
     private readonly Mock<IDeityRegistry> _mockDeityRegistry;
+    private readonly Mock<IDiplomacyManager> _mockDiplomacyManager;
     private readonly Mock<IPlayerReligionDataManager> _mockPlayerReligionDataManager;
     private readonly Mock<IReligionPrestigeManager> _mockPrestigeManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
@@ -34,13 +36,17 @@ public class PvPManagerTests
         _mockReligionManager = new Mock<IReligionManager>();
         _mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         _mockDeityRegistry = new Mock<IDeityRegistry>();
+        _mockCivilizationManager = new Mock<ICivilizationManager>();
+        _mockDiplomacyManager = new Mock<IDiplomacyManager>();
 
         _pvpManager = new PvPManager(
             _mockAPI.Object,
             _mockPlayerReligionDataManager.Object,
             _mockReligionManager.Object,
             _mockPrestigeManager.Object,
-            _mockDeityRegistry.Object
+            _mockDeityRegistry.Object,
+            _mockCivilizationManager.Object,
+            _mockDiplomacyManager.Object
         );
     }
 
@@ -631,12 +637,8 @@ public class PvPManagerTests
         var mockPlayer = new Mock<IServerPlayer>();
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
 
-        // Use reflection to call private method
-        var method = typeof(PvPManager).GetMethod("ProcessDeathPenalty",
-            BindingFlags.NonPublic | BindingFlags.Instance);
-
         // Act
-        method?.Invoke(_pvpManager, new object[] { mockPlayer.Object });
+        _pvpManager.ProcessDeathPenalty(mockPlayer.Object);
 
         // Assert - Should have removed only 3 favor (all available)
         Assert.Equal(0, playerData.Favor);
@@ -667,12 +669,7 @@ public class PvPManagerTests
         var mockPlayer = new Mock<IServerPlayer>();
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
 
-        // Use reflection to call private method
-        var method = typeof(PvPManager).GetMethod("ProcessDeathPenalty",
-            BindingFlags.NonPublic | BindingFlags.Instance);
-
-        // Act
-        method?.Invoke(_pvpManager, new object[] { mockPlayer.Object });
+        _pvpManager.ProcessDeathPenalty(mockPlayer.Object);
 
         // Assert - Should not send any notification
         mockPlayer.Verify(
@@ -700,12 +697,7 @@ public class PvPManagerTests
         var mockPlayer = new Mock<IServerPlayer>();
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
 
-        // Use reflection to call private method
-        var method = typeof(PvPManager).GetMethod("ProcessDeathPenalty",
-            BindingFlags.NonPublic | BindingFlags.Instance);
-
-        // Act
-        method?.Invoke(_pvpManager, new object[] { mockPlayer.Object });
+        _pvpManager.ProcessDeathPenalty(mockPlayer.Object);
 
         // Assert - Favor should remain unchanged
         Assert.Equal(10, playerData.Favor);
@@ -736,12 +728,7 @@ public class PvPManagerTests
         var mockPlayer = new Mock<IServerPlayer>();
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
 
-        // Use reflection to call private method
-        var method = typeof(PvPManager).GetMethod("ProcessDeathPenalty",
-            BindingFlags.NonPublic | BindingFlags.Instance);
-
-        // Act
-        method?.Invoke(_pvpManager, new object[] { mockPlayer.Object });
+        _pvpManager.ProcessDeathPenalty(mockPlayer.Object);
 
         // Assert - Favor should remain unchanged
         Assert.Equal(10, playerData.Favor);

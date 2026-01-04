@@ -79,7 +79,7 @@ public class ReligionCommandInfoTests : ReligionCommandsTestHelpers
         Assert.Contains("Renowned", result.StatusMessage);
         Assert.Contains("500", result.StatusMessage);
         Assert.Contains("1000", result.StatusMessage);
-        Assert.Contains("FounderName", result.StatusMessage);
+        Assert.Contains("TestFounder", result.StatusMessage);
         Assert.Contains("A great religion", result.StatusMessage);
     }
 
@@ -197,7 +197,7 @@ public class ReligionCommandInfoTests : ReligionCommandsTestHelpers
     #region Edge Cases
 
     [Fact]
-    public void OnReligionInfo_WhenFounderOffline_ShowsUnknown()
+    public void OnReligionInfo_WhenFounderOffline_ShowsFounderName()
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
@@ -211,8 +211,8 @@ public class ReligionCommandInfoTests : ReligionCommandsTestHelpers
         // Act
         var result = _sut!.OnReligionInfo(args);
 
-        // Assert
-        Assert.Contains("Unknown", result.StatusMessage);
+        // Assert - Should show founder name from FounderName field even when offline
+        Assert.Contains("TestFounder", result.StatusMessage);
     }
 
     [Fact]

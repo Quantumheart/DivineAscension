@@ -78,7 +78,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         Assert.Contains("Khoras", result.StatusMessage);
 
         _religionManager.Verify(m => m.CreateReligion("TestReligion", DeityType.Khoras, "player-1", true), Times.Once);
-        _playerReligionDataManager.Verify(m => m.JoinReligion("player-1", "religion-1"), Times.Once);
+        _playerReligionDataManager.Verify(m => m.SetPlayerReligionData("player-1", "religion-1"), Times.Once);
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         var result = _sut!.OnCreateReligion(args);
 
         // Assert
-        _playerReligionDataManager.Verify(m => m.JoinReligion("player-1", "religion-1"), Times.Once);
+        _playerReligionDataManager.Verify(m => m.SetPlayerReligionData("player-1", "religion-1"), Times.Once);
     }
 
     [Theory]

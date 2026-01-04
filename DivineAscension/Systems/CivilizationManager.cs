@@ -12,7 +12,7 @@ namespace DivineAscension.Systems;
 /// <summary>
 ///     Manages civilizations - alliances of 1-4 religions with different deities
 /// </summary>
-public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionManager)
+public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionManager) : ICivilizationManager
 {
     private const string DATA_KEY = "divineascension_civilizations";
     private const int MIN_RELIGIONS = 1;
@@ -24,6 +24,11 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
     private CivilizationWorldData _data = new();
+
+    /// <summary>
+    ///     Event fired when a civilization is disbanded
+    /// </summary>
+    public event Action<string>? OnCivilizationDisbanded;
 
     /// <summary>
     ///     Initializes the civilization manager
@@ -51,6 +56,7 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
         _sapi.Event.SaveGameLoaded -= OnSaveGameLoaded;
         _sapi.Event.GameWorldSave -= OnGameWorldSave;
         _religionManager.OnReligionDeleted -= HandleReligionDeleted;
+        OnCivilizationDisbanded = null;
     }
 
     #region Event Handlers
@@ -508,6 +514,9 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
 
             // Remove civilization
             _data.RemoveCivilization(civId);
+
+            // Fire event to notify other systems
+            OnCivilizationDisbanded?.Invoke(civId);
 
             _sapi.Logger.Notification($"[DivineAscension] Civilization '{civ.Name}' disbanded by founder");
             return true;

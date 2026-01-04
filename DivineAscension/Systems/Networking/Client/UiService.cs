@@ -90,4 +90,14 @@ public class UiService(DivineAscensionNetworkClient networkClient)
     {
         _networkClient.RequestCivilizationAction(action, civId, targetId, name, icon);
     }
+
+    public void RequestDiplomacyInfo(string civId)
+    {
+        _networkClient.RequestDiplomacyInfo(civId);
+    }
+
+    public void RequestDiplomacyAction(string action, string targetCivId = "", string proposalOrRelationshipId = "", string proposedStatus = "")
+    {
+        _networkClient.RequestDiplomacyAction(action, targetCivId, proposalOrRelationshipId, proposedStatus);
+    }
 }

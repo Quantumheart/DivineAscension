@@ -38,6 +38,11 @@ public partial class GuiDialog : ModSystem
     private Stopwatch? _stopwatch;
     private ImGuiViewportPtr _viewport;
 
+    /// <summary>
+    ///     Public accessor for the dialog manager (for network client access)
+    /// </summary>
+    public GuiDialogManager? DialogManager => _manager;
+
     public override bool ShouldLoad(EnumAppSide forSide)
     {
         return forSide == EnumAppSide.Client;
