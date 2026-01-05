@@ -455,16 +455,10 @@ public class PlayerReligionDataManagerTests
     public void JoinReligion_WithInvalidReligion_LogsError()
     {
         // Arrange
-        _mockReligionManager.Setup(m => m.GetReligion("invalid-uid")).Returns((ReligionData)null!);
+        _mockReligionManager.Setup(m => m.GetReligion("invalid-uid"));
 
-        // Act
-        _dataManager.JoinReligion("player-uid", "invalid-uid");
-
-        // Assert
-        _mockLogger.Verify(
-            l => l.Error(It.Is<string>(s => s.Contains("Cannot join non-existent religion"))),
-            Times.Once()
-        );
+        // Act / Assert
+        Assert.Throws<InvalidOperationException>(() => _dataManager.JoinReligion("player-uid", "invalid-uid"));
     }
 
     #endregion
