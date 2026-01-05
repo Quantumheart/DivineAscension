@@ -232,7 +232,7 @@ public class RoleManager(IReligionManager religionManager) : IRoleManager
         return (true, string.Empty);
     }
 
-    public List<RoleData> GetReligionRoles(string religionId)
+    public List<RoleData> GetReligionRoles(string? religionId)
     {
         var religion = _religionManager?.GetReligion(religionId);
         if (religion == null)

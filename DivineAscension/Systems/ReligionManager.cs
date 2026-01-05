@@ -167,9 +167,9 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     /// <summary>
     ///     Gets a religion by UID
     /// </summary>
-    public ReligionData? GetReligion(string religionUID)
+    public ReligionData? GetReligion(string? religionUID)
     {
-        return _religions.GetValueOrDefault(religionUID);
+        return _religions!.GetValueOrDefault(religionUID);
     }
 
     /// <summary>

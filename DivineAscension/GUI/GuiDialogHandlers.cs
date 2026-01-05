@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
+using DivineAscension.GUI.State;
 using DivineAscension.GUI.State.Religion;
+using DivineAscension.GUI.Utilities;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network;
@@ -42,6 +44,10 @@ public partial class GuiDialog
             _capi.Logger.Debug("[DivineAscension] Player has no religion - data ready for 'No Religion' state");
             _manager!.Reset();
             _state.IsReady = true; // Set ready so dialog can open to show "No Religion" state
+
+            // Clear previous ranks when player has no religion
+            _state.PreviousFavorRank = string.Empty;
+            _state.PreviousPrestigeRank = string.Empty;
 
             // Dialog will only open when player presses the keybind (Shift+G)
 
@@ -103,6 +109,14 @@ public partial class GuiDialog
         _manager.BlessingStateManager.RefreshAllBlessingStates(_manager.ReligionStateManager.CurrentFavorRank,
             _manager.ReligionStateManager.CurrentPrestigeRank);
 
+        // Initialize previous ranks to prevent false positives on first update
+        var favorRankName = ((FavorRank)packet.FavorRank).ToString();
+        var prestigeRankName = ((PrestigeRank)packet.PrestigeRank).ToString();
+        _state.PreviousFavorRank = favorRankName;
+        _state.PreviousPrestigeRank = prestigeRankName;
+        _capi.Logger.Debug(
+            $"[DivineAscension] Initialized previous ranks: Favor={favorRankName}, Prestige={prestigeRankName}");
+
         _state.IsReady = true;
         _capi.Logger.Notification(
             $"[DivineAscension] Loaded {playerBlessings.Count} player blessings and {religionBlessings.Count} religion blessings for {packet.Deity}");
@@ -117,6 +131,17 @@ public partial class GuiDialog
 
         // Show notification to user
         _capi.ShowChatMessage(packet.Reason);
+
+        // Clear notification queue and previous ranks when player leaves religion
+        if (!packet.HasReligion)
+        {
+            _manager!.NotificationManager.State.IsVisible = false;
+            _manager.NotificationManager.State.PendingNotifications.Clear();
+            _state.PreviousFavorRank = string.Empty;
+            _state.PreviousPrestigeRank = string.Empty;
+            _capi.Logger.Debug(
+                "[DivineAscension] Cleared notification queue and previous ranks due to religion state change");
+        }
 
         // Reset blessing dialog state to "No Religion" mode
         _manager!.Reset();
@@ -159,13 +184,19 @@ public partial class GuiDialog
 
     /// <summary>
     ///     Keybind handler - toggle dialog open/close
+    ///     Opens to Blessings tab by default
     /// </summary>
     private bool OnToggleDialog(KeyCombination keyCombination)
     {
         if (_state.IsOpen)
             Close();
         else
+        {
+            // Default to Blessings tab when opening via hotkey
+            _state.CurrentMainTab = MainDialogTab.Blessings;
             Open();
+        }
+
         return true;
     }
 
@@ -204,7 +235,8 @@ public partial class GuiDialog
                 var currentTab = _manager.ReligionStateManager.State.CurrentSubTab;
                 if (currentTab is SubTab.Info or SubTab.Activity or SubTab.Roles)
                 {
-                    _capi.Logger.Debug($"[DivineAscension] Switching tab from {currentTab} to Browse after leaving religion");
+                    _capi.Logger.Debug(
+                        $"[DivineAscension] Switching tab from {currentTab} to Browse after leaving religion");
                     _manager.ReligionStateManager.State.CurrentSubTab = SubTab.Browse;
                 }
             }
@@ -215,7 +247,8 @@ public partial class GuiDialog
                 var currentTab = _manager!.ReligionStateManager.State.CurrentSubTab;
                 if (currentTab is SubTab.Invites or SubTab.Create)
                 {
-                    _capi.Logger.Debug($"[DivineAscension] Switching tab from {currentTab} to Info after joining religion");
+                    _capi.Logger.Debug(
+                        $"[DivineAscension] Switching tab from {currentTab} to Info after joining religion");
                     _manager.ReligionStateManager.State.CurrentSubTab = SubTab.Info;
                 }
             }
@@ -366,6 +399,42 @@ public partial class GuiDialog
 
         if (Enum.TryParse<PrestigeRank>(packet.PrestigeRank, out var prestigeRankEnum))
             _manager.ReligionStateManager.CurrentPrestigeRank = (int)prestigeRankEnum;
+
+        // Check for favor rank-up
+        if (!string.IsNullOrEmpty(_state.PreviousFavorRank) &&
+            Enum.TryParse<FavorRank>(_state.PreviousFavorRank, out var previousFavorRank) &&
+            favorRankEnum > previousFavorRank)
+        {
+            _capi!.Logger.Notification(
+                $"[DivineAscension] Favor rank increased: {previousFavorRank} → {favorRankEnum}");
+            var description = FavorRankDescriptions.GetDescription(favorRankEnum);
+            if (packet.FavorRank != null)
+                _manager.NotificationManager.QueueRankUpNotification(
+                    NotificationType.FavorRankUp,
+                    packet.FavorRank,
+                    description,
+                    _manager.ReligionStateManager.CurrentDeity);
+        }
+
+        // Check for prestige rank-up
+        if (!string.IsNullOrEmpty(_state.PreviousPrestigeRank) &&
+            Enum.TryParse<PrestigeRank>(_state.PreviousPrestigeRank, out var previousPrestigeRank) &&
+            prestigeRankEnum > previousPrestigeRank)
+        {
+            _capi!.Logger.Notification(
+                $"[DivineAscension] Prestige rank increased: {previousPrestigeRank} → {prestigeRankEnum}");
+            var description = PrestigeRankDescriptions.GetDescription(prestigeRankEnum);
+            if (packet.PrestigeRank != null)
+                _manager.NotificationManager.QueueRankUpNotification(
+                    NotificationType.PrestigeRankUp,
+                    packet.PrestigeRank,
+                    description,
+                    _manager.ReligionStateManager.CurrentDeity);
+        }
+
+        // Update previous ranks for next comparison
+        if (packet.FavorRank != null) _state.PreviousFavorRank = packet.FavorRank;
+        if (packet.PrestigeRank != null) _state.PreviousPrestigeRank = packet.PrestigeRank;
 
         // Refresh blessing states in case new blessings became available
         // Only do this if dialog is open to avoid unnecessary processing

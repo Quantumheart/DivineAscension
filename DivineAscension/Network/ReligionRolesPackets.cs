@@ -8,7 +8,7 @@ namespace DivineAscension.Network;
 [ProtoContract]
 public class ReligionRolesRequest
 {
-    [ProtoMember(1)] public readonly string ReligionUID;
+    [ProtoMember(1)] public readonly string? ReligionUID;
 
     public ReligionRolesRequest()
     {
@@ -24,10 +24,10 @@ public class ReligionRolesRequest
 public class ReligionRolesResponse
 {
     [ProtoMember(1)] public bool Success { get; set; }
-    [ProtoMember(2)] public List<RoleData> Roles { get; set; }
-    [ProtoMember(3)] public Dictionary<string, string> MemberRoles { get; set; } // UID → RoleUID
-    [ProtoMember(4)] public string ErrorMessage { get; set; } = string.Empty;
-    [ProtoMember(5)] public Dictionary<string, string> MemberNames { get; set; } = new(); // UID → PlayerName
+    [ProtoMember(2)] public List<RoleData>? Roles { get; set; }
+    [ProtoMember(3)] public Dictionary<string, string>? MemberRoles { get; set; } // UID → RoleUID
+    [ProtoMember(4)] public string? ErrorMessage { get; set; } = string.Empty;
+    [ProtoMember(5)] public Dictionary<string, string>? MemberNames { get; set; } = new(); // UID → PlayerName
 }
 
 // Create custom role
@@ -60,9 +60,9 @@ public class CreateRoleResponse
 [ProtoContract]
 public class ModifyRolePermissionsRequest
 {
-    [ProtoMember(3)] public HashSet<string> Permissions;
-    [ProtoMember(1)] public string ReligionUID;
-    [ProtoMember(2)] public string RoleUID;
+    [ProtoMember(3)] public HashSet<string>? Permissions;
+    [ProtoMember(1)] public string? ReligionUID;
+    [ProtoMember(2)] public string? RoleUID;
 
     public ModifyRolePermissionsRequest()
     {

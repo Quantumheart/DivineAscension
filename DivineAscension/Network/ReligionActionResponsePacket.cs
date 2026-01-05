@@ -12,10 +12,10 @@ public class ReligionActionResponsePacket
     {
     }
 
-    public ReligionActionResponsePacket(bool success, string message, string action = "")
+    public ReligionActionResponsePacket(bool success, string? message, string action = "")
     {
         Success = success;
-        Message = message;
+        Message = message ?? string.Empty;
         Action = action;
     }
 

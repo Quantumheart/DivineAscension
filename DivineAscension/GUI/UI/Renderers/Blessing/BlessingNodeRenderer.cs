@@ -136,7 +136,7 @@ internal static class BlessingNodeRenderer
         else
         {
             // Fallback: Show initials (first 2-3 letters)
-            var blessingName = state.Blessing.Name;
+            var blessingName = state.Blessing!.Name;
             var initials = blessingName.Length <= 3 ? blessingName : blessingName.Substring(0, 3);
             const float fontSize = 16f; // Larger font for initials
 

@@ -40,7 +40,7 @@ public interface IReligionManager : IDisposable
     /// <summary>
     ///     Gets a religion by UID
     /// </summary>
-    ReligionData? GetReligion(string religionUID);
+    ReligionData? GetReligion(string? religionUID);
 
     /// <summary>
     ///     Gets a religion by name
