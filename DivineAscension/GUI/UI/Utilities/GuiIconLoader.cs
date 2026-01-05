@@ -95,4 +95,17 @@ public static class GuiIconLoader
 
         return IntPtr.Zero;
     }
+
+    /// <summary>
+    ///     Dispose all loaded textures (call when dialog is closed/disposed)
+    /// </summary>
+    public static void Dispose()
+    {
+        foreach (var texture in _dictionary.Values) texture?.Dispose();
+
+        _dictionary.Clear();
+        _textureIds.Clear();
+        _initialized = false;
+        _api = null;
+    }
 }

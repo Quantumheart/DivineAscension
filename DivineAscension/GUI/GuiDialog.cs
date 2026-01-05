@@ -385,6 +385,7 @@ public partial class GuiDialog : ModSystem
 
         // Dispose icon loaders
         DeityIconLoader.Dispose();
+        GuiIconLoader.Dispose();
         CivilizationIconLoader.Dispose();
         BlessingIconLoader.Dispose();
 
