@@ -15,7 +15,8 @@
 *.userprefs
 
 # Cake
-tools/
+tools/*
+!tools/hooks/
 .dotnet/
 
 # Server data

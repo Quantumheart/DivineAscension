@@ -1,0 +1,148 @@
+#!/bin/bash
+# Commit-msg hook that automatically bumps version and updates changelog
+# based on conventional commit message format
+
+set -e
+
+# Files to update
+MODINFO_FILE="DivineAscension/modinfo.json"
+ASSEMBLYINFO_FILE="DivineAscension/Properties/AssemblyInfo.cs"
+CHANGELOG_FILE="CHANGELOG.md"
+
+# Get the commit message
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Skip for merge commits
+if git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
+    echo "Skipping version bump for merge commit"
+    exit 0
+fi
+
+# Skip if commit message starts with "Merge"
+if echo "$COMMIT_MSG" | grep -q "^Merge"; then
+    echo "Skipping version bump for merge commit"
+    exit 0
+fi
+
+# Determine bump type from commit message
+BUMP_TYPE="none"
+COMMIT_TYPE=""
+
+# Check for breaking changes (major bump)
+if echo "$COMMIT_MSG" | grep -q 'BREAKING CHANGE:'; then
+    BUMP_TYPE="major"
+    COMMIT_TYPE="BREAKING"
+elif echo "$COMMIT_MSG" | grep -qE '^[a-z]+(\([a-z/]+\))?!:'; then
+    BUMP_TYPE="major"
+    COMMIT_TYPE=$(echo "$COMMIT_MSG" | grep -oE '^[a-z]+' | head -1)
+# Check for features (minor bump)
+elif echo "$COMMIT_MSG" | grep -qE '^(feat|feature)(\([a-z/]+\))?:'; then
+    BUMP_TYPE="minor"
+    COMMIT_TYPE="feat"
+# Check for fixes (patch bump)
+elif echo "$COMMIT_MSG" | grep -qE '^(fix|bugfix)(\([a-z/]+\))?:'; then
+    BUMP_TYPE="patch"
+    COMMIT_TYPE="fix"
+fi
+
+# Exit if no bump needed
+if [ "$BUMP_TYPE" = "none" ]; then
+    echo "No version bump needed (commit type not feat/fix/breaking)"
+    exit 0
+fi
+
+# Read current version from modinfo.json
+CURRENT_VERSION=$(grep -oP '"version":\s*"\K[0-9]+\.[0-9]+\.[0-9]+' "$MODINFO_FILE")
+
+if [ -z "$CURRENT_VERSION" ]; then
+    echo "Error: Could not read version from $MODINFO_FILE"
+    exit 1
+fi
+
+# Parse version components
+IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+# Bump version based on type
+case "$BUMP_TYPE" in
+    major)
+        MAJOR=$((MAJOR + 1))
+        MINOR=0
+        PATCH=0
+        ;;
+    minor)
+        MINOR=$((MINOR + 1))
+        PATCH=0
+        ;;
+    patch)
+        PATCH=$((PATCH + 1))
+        ;;
+esac
+
+NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+
+echo "Version bumped: $CURRENT_VERSION → $NEW_VERSION ($BUMP_TYPE)"
+
+# Update modinfo.json
+sed -i "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" "$MODINFO_FILE"
+
+# Update AssemblyInfo.cs
+sed -i "s/Version = \"$CURRENT_VERSION\"/Version = \"$NEW_VERSION\"/" "$ASSEMBLYINFO_FILE"
+
+# Extract commit description (first line without type prefix)
+COMMIT_DESC=$(echo "$COMMIT_MSG" | head -1 | sed -E 's/^[a-z]+(\([a-z/]+\))?!?:\s*//')
+
+# Update CHANGELOG.md
+TODAY=$(date +%Y-%m-%d)
+
+# Create changelog entry based on commit type
+CHANGELOG_ENTRY=""
+case "$COMMIT_TYPE" in
+    feat|feature)
+        CHANGELOG_ENTRY="### Added\n- $COMMIT_DESC"
+        ;;
+    fix|bugfix)
+        CHANGELOG_ENTRY="### Fixed\n- $COMMIT_DESC"
+        ;;
+    BREAKING|*)
+        CHANGELOG_ENTRY="### Changed\n- **BREAKING:** $COMMIT_DESC"
+        ;;
+esac
+
+# Check if this version already exists in changelog
+if ! grep -q "## \[$NEW_VERSION\]" "$CHANGELOG_FILE"; then
+    # Create new version section
+    # Find the line number of the first version header (after title)
+    FIRST_VERSION_LINE=$(grep -n "^## \[" "$CHANGELOG_FILE" | head -1 | cut -d: -f1)
+
+    if [ -n "$FIRST_VERSION_LINE" ]; then
+        # Insert new version before the first existing version
+        sed -i "${FIRST_VERSION_LINE}i\\## [$NEW_VERSION] - $TODAY\n\n$CHANGELOG_ENTRY\n" "$CHANGELOG_FILE"
+    else
+        # No versions yet, append to end of file
+        echo -e "\n## [$NEW_VERSION] - $TODAY\n\n$CHANGELOG_ENTRY" >> "$CHANGELOG_FILE"
+    fi
+else
+    # Version exists, append to the appropriate section
+    # Find the line number of this version
+    VERSION_LINE=$(grep -n "^## \[$NEW_VERSION\]" "$CHANGELOG_FILE" | cut -d: -f1)
+
+    # Find the next section (Added, Changed, Fixed, etc.) or next version
+    NEXT_SECTION_LINE=$(tail -n +$((VERSION_LINE + 1)) "$CHANGELOG_FILE" | grep -n "^###\|^## \[" | head -1 | cut -d: -f1)
+
+    if [ -n "$NEXT_SECTION_LINE" ]; then
+        INSERT_LINE=$((VERSION_LINE + NEXT_SECTION_LINE))
+    else
+        # No next section, append after version header
+        INSERT_LINE=$((VERSION_LINE + 2))
+    fi
+
+    sed -i "${INSERT_LINE}i\\$CHANGELOG_ENTRY" "$CHANGELOG_FILE"
+fi
+
+# Stage the modified files (this will include them in the current commit)
+git add "$MODINFO_FILE" "$ASSEMBLYINFO_FILE" "$CHANGELOG_FILE"
+
+echo "Updated: modinfo.json, AssemblyInfo.cs, CHANGELOG.md"
+
+exit 0

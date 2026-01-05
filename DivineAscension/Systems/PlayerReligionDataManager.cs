@@ -216,7 +216,8 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
         data.ActiveDeity = religion.Deity;
         data.LastReligionSwitch = DateTime.UtcNow;
 
-        _sapi.Logger.Notification($"[DivineAscension] Set player {playerUID} religion data for {religion.ReligionName}");
+        _sapi.Logger.Notification(
+            $"[DivineAscension] Set player {playerUID} religion data for {religion.ReligionName}");
     }
 
     /// <summary>
@@ -231,18 +232,35 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
         if (religion == null)
         {
             _sapi.Logger.Error($"[DivineAscension] Cannot join non-existent religion: {religionUID}");
-            return;
+            throw new InvalidOperationException($"Cannot join non-existent religion: {religionUID}");
         }
 
-        // Set religion and deity
-        data.ReligionUID = religionUID;
-        data.ActiveDeity = religion.Deity;
-        data.LastReligionSwitch = DateTime.UtcNow;
+        // Save old state for rollback in case of failure
+        var oldReligionUID = data.ReligionUID;
+        var oldDeity = data.ActiveDeity;
+        var oldLastSwitch = data.LastReligionSwitch;
 
-        // Add player to religion
-        _religionManager.AddMember(religionUID, playerUID);
+        try
+        {
+            // Step 1: Update PlayerData
+            data.ReligionUID = religionUID;
+            data.ActiveDeity = religion.Deity;
+            data.LastReligionSwitch = DateTime.UtcNow;
 
-        _sapi.Logger.Notification($"[DivineAscension] Player {playerUID} joined religion {religion.ReligionName}");
+            // Step 2: Add to ReligionManager (idempotent, safe to call multiple times)
+            _religionManager.AddMember(religionUID, playerUID);
+
+            _sapi.Logger.Notification($"[DivineAscension] Player {playerUID} joined religion {religion.ReligionName}");
+        }
+        catch (Exception ex)
+        {
+            // Rollback PlayerData on failure
+            _sapi.Logger.Error($"[DivineAscension] Failed to join religion, rolling back: {ex}");
+            data.ReligionUID = oldReligionUID;
+            data.ActiveDeity = oldDeity;
+            data.LastReligionSwitch = oldLastSwitch;
+            throw;
+        }
     }
 
     /// <summary>
