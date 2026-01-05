@@ -50,9 +50,9 @@ internal static class RankUpNotificationOverlay
                           ButtonHeight + // Button
                           Padding; // Bottom padding
 
-        // Center panel on screen
+        // Position panel at top-center of screen
         var panelX = winPos.X + (windowWidth - PanelWidth) / 2f;
-        var panelY = winPos.Y + (windowHeight - panelHeight) / 2f;
+        var panelY = winPos.Y + 50f; // 50px from top
 
         // Draw panel with rounded corners
         var panelMin = new Vector2(panelX, panelY);
