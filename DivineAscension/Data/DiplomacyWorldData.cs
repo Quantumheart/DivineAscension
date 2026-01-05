@@ -100,6 +100,9 @@ public class DiplomacyWorldData
     {
         Relationships[relationship.RelationshipId] = relationship;
 
+        // Initialize CivRelationshipMap if null (for old save file compatibility)
+        CivRelationshipMap ??= new Dictionary<string, List<string>>();
+
         // Update lookup map for both civilizations
         if (!CivRelationshipMap.ContainsKey(relationship.CivId1))
             CivRelationshipMap[relationship.CivId1] = new List<string>();
@@ -132,6 +135,9 @@ public class DiplomacyWorldData
     /// </summary>
     public List<DiplomaticRelationship> GetRelationshipsForCiv(string civId)
     {
+        // Initialize if null (for old save file compatibility)
+        CivRelationshipMap ??= new Dictionary<string, List<string>>();
+
         if (!CivRelationshipMap.TryGetValue(civId, out var relationshipIds))
             return new List<DiplomaticRelationship>();
 

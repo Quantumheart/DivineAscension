@@ -95,7 +95,8 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
             // Disband if founder's religion was deleted OR if below minimum religions
             if (isFounderReligion || civ.MemberReligionIds.Count < MIN_RELIGIONS)
             {
-                DisbandCivilization(civ.CivId, civ.FounderUID);
+                // Use ForceDisband to bypass permission checks (system cleanup)
+                ForceDisband(civ.CivId);
                 if (isFounderReligion)
                     _sapi.Logger.Notification(
                         $"[DivineAscension] Civilization '{civ.Name}' disbanded (founder's religion was deleted)");
@@ -112,6 +113,29 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
         catch (Exception ex)
         {
             _sapi.Logger.Error($"[DivineAscension] Error handling religion deletion: {ex.Message}");
+
+            // If disband failed but religion was removed, manually clean up any orphaned civilizations
+            var orphanedCivs = _data.Civilizations.Values
+                .Where(c => c.MemberReligionIds.Count == 0)
+                .ToList();
+
+            if (orphanedCivs.Any())
+            {
+                _sapi.Logger.Warning(
+                    $"[DivineAscension] Found {orphanedCivs.Count} orphaned civilization(s) after exception, forcing cleanup");
+                foreach (var orphan in orphanedCivs)
+                {
+                    try
+                    {
+                        ForceDisband(orphan.CivId);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        _sapi.Logger.Error(
+                            $"[DivineAscension] Failed to cleanup orphaned civilization {orphan.Name}: {cleanupEx.Message}");
+                    }
+                }
+            }
         }
     }
 
@@ -525,6 +549,44 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
         {
             _sapi.Logger.Error($"[DivineAscension] Error disbanding civilization: {ex.Message}");
             return false;
+        }
+    }
+
+    /// <summary>
+    ///     Force-disbands a civilization without permission checks (for system cleanup)
+    ///     Used when a civilization becomes invalid due to religion deletion or data corruption
+    /// </summary>
+    private void ForceDisband(string civId)
+    {
+        try
+        {
+            var civ = _data.Civilizations.GetValueOrDefault(civId);
+            if (civ == null)
+            {
+                _sapi.Logger.Debug($"[DivineAscension] Civilization '{civId}' not found for forced disband");
+                return;
+            }
+
+            // Mark as disbanded
+            civ.DisbandedDate = DateTime.UtcNow;
+
+            // Remove all pending invites for this civilization
+            _data.PendingInvites.RemoveAll(i => i.CivId == civId);
+
+            // Remove civilization
+            _data.RemoveCivilization(civId);
+
+            // Fire event to notify other systems (diplomacy cleanup)
+            OnCivilizationDisbanded?.Invoke(civId);
+
+            _sapi.Logger.Notification(
+                $"[DivineAscension] Civilization '{civ.Name}' forcibly disbanded (invalid state)");
+        }
+        catch (Exception ex)
+        {
+            _sapi.Logger.Error($"[DivineAscension] Error force-disbanding civilization {civId}: {ex.Message}");
+            // Do not swallow - let it propagate to alert admins
+            throw;
         }
     }
 

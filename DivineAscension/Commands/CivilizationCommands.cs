@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using DivineAscension.Data;
@@ -35,7 +36,7 @@ public class CivilizationCommands(
     public void RegisterCommands()
     {
         _sapi.ChatCommands.Create("civ")
-            .WithDescription("Manage civilizations - alliances of 2-4 different-deity religions")
+            .WithDescription("Manage civilizations - alliances of 1-4 different-deity religions")
             .RequiresPrivilege(Privilege.chat)
             .BeginSubCommand("create")
             .WithDescription("Create a new civilization")
@@ -78,6 +79,11 @@ public class CivilizationCommands(
             .BeginSubCommand("invites")
             .WithDescription("Show your pending civilization invitations")
             .HandleWith(OnListInvites)
+            .EndSubCommand()
+            .BeginSubCommand("cleanup")
+            .WithDescription("Clean up orphaned civilizations and diplomacy data (Admin only)")
+            .RequiresPrivilege(Privilege.root)
+            .HandleWith(OnCleanupOrphanedData)
             .EndSubCommand();
     }
 
@@ -437,5 +443,41 @@ public class CivilizationCommands(
         }
 
         return TextCommandResult.Success(sb.ToString());
+    }
+
+    /// <summary>
+    ///     Handler for /civ cleanup (Admin only)
+    ///     Removes orphaned civilizations and their associated diplomacy data
+    /// </summary>
+    internal TextCommandResult OnCleanupOrphanedData(TextCommandCallingArgs args)
+    {
+        var orphanedCivs = new List<string>();
+
+        // Find civilizations with 0 religions or invalid state
+        foreach (var civ in _civilizationManager.GetAllCivilizations())
+        {
+            if (civ.MemberReligionIds.Count == 0 || !civ.IsValid)
+            {
+                orphanedCivs.Add(civ.CivId);
+            }
+        }
+
+        if (orphanedCivs.Count == 0)
+        {
+            return TextCommandResult.Success("No orphaned civilizations found.");
+        }
+
+        // Disband orphaned civilizations
+        foreach (var civId in orphanedCivs)
+        {
+            var civ = _civilizationManager.GetCivilization(civId);
+            if (civ != null)
+            {
+                _civilizationManager.DisbandCivilization(civ.CivId, civ.FounderUID);
+            }
+        }
+
+        return TextCommandResult.Success(
+            $"Cleaned up {orphanedCivs.Count} orphaned civilization(s). Associated diplomacy data was also removed.");
     }
 }

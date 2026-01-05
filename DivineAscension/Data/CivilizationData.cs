@@ -5,7 +5,7 @@ using ProtoBuf;
 namespace DivineAscension.Data;
 
 /// <summary>
-///     Represents a civilization - an alliance of 2-4 religions with different deities
+///     Represents a civilization - an alliance of 1-4 religions with different deities
 /// </summary>
 [ProtoContract]
 public class Civilization
@@ -57,7 +57,7 @@ public class Civilization
 
 
     /// <summary>
-    ///     List of religion UIDs that are members (2-4 religions)
+    ///     List of religion UIDs that are members (1-4 religions)
     /// </summary>
     [ProtoMember(5)]
     public List<string> MemberReligionIds { get; set; } = new();
@@ -87,9 +87,9 @@ public class Civilization
     public string Icon { get; set; } = "default";
 
     /// <summary>
-    ///     Checks if the civilization has a valid number of member religions (2-4)
+    ///     Checks if the civilization has a valid number of member religions (1-4)
     /// </summary>
-    public bool IsValid => MemberReligionIds.Count >= 2 && MemberReligionIds.Count <= 4;
+    public bool IsValid => MemberReligionIds.Count >= 1 && MemberReligionIds.Count <= 4;
 
     /// <summary>
     ///     Checks if a religion is a member of this civilization
