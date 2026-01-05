@@ -147,7 +147,9 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 foreach (var banEntry in bannedPlayers)
                 {
                     // Use cached player name from BanEntry
-                    var bannedName = !string.IsNullOrEmpty(banEntry.PlayerName) ? banEntry.PlayerName : banEntry.PlayerUID;
+                    var bannedName = !string.IsNullOrEmpty(banEntry.PlayerName)
+                        ? banEntry.PlayerName
+                        : banEntry.PlayerUID;
 
                     response.BannedPlayers.Add(new PlayerReligionInfoResponsePacket.BanInfo
                     {
@@ -784,23 +786,34 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
         if (success)
         {
-            // Initialize player religion data (ReligionUID, ActiveDeity, LastReligionSwitch)
-            // This is required for blessing data and other systems to work correctly
-            var playerData = _playerReligionDataManager.GetOrCreatePlayerData(fromPlayer.PlayerUID);
             var religion = _religionManager.GetReligion(religionId);
             if (religion != null)
             {
-                playerData.ReligionUID = religionId;
-                playerData.ActiveDeity = religion.Deity;
-                playerData.LastReligionSwitch = DateTime.UtcNow;
+                try
+                {
+                    // Note: AcceptInvite already called AddMember, but JoinReligion is idempotent
+                    // It will skip re-adding if already a member
+                    _playerReligionDataManager.JoinReligion(fromPlayer.PlayerUID, religionId);
+                }
+                catch (Exception ex)
+                {
+                    _sapi.Logger.Error($"[DivineAscension] Failed to join religion after accepting invite: {ex}");
+                    // Rollback: Remove from ReligionManager if JoinReligion failed
+                    _religionManager.RemoveMember(religionId, fromPlayer.PlayerUID);
+                    return new ReligionActionResult
+                    {
+                        Success = false,
+                        Message = "Failed to join religion due to internal error. Please try again."
+                    };
+                }
+
+                _roleManager.AssignRole(religionId, "SYSTEM", fromPlayer.PlayerUID, RoleDefaults.MEMBER_ROLE_ID);
+                _playerReligionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
+                NotifyPlayerReligionStateChanged(fromPlayer, "You joined a religion", true);
+
+                // Broadcast roles update to all religion members so their UI updates
+                BroadcastRolesUpdateToReligion(religion);
             }
-
-            _roleManager.AssignRole(religionId, "SYSTEM", fromPlayer.PlayerUID, RoleDefaults.MEMBER_ROLE_ID);
-            _playerReligionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
-            NotifyPlayerReligionStateChanged(fromPlayer, "You joined a religion", true);
-
-            // Broadcast roles update to all religion members so their UI updates
-            if (religion != null) BroadcastRolesUpdateToReligion(religion);
         }
 
         return new ReligionActionResult
@@ -845,10 +858,11 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             return new ReligionActionResult
             {
                 Success = false,
-                Message = "Founders cannot leave their religion. Transfer founder status or disband the religion instead."
+                Message =
+                    "Founders cannot leave their religion. Transfer founder status or disband the religion instead."
             };
         }
-        
+
         var religionName = currentReligion.ReligionName;
         _playerReligionDataManager.LeaveReligion(fromPlayer.PlayerUID);
         _playerReligionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);

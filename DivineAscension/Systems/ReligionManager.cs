@@ -101,6 +101,14 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             return;
         }
 
+        // Check if already a member (idempotency - prevents double-adding)
+        if (religion.IsMember(playerUID))
+        {
+            _sapi.Logger.Debug(
+                $"[DivineAscension] Player {playerUID} already in religion {religion.ReligionName} - skipping add");
+            return;
+        }
+
         // Get player name (player guaranteed to be online when joining)
         var player = _sapi.World.PlayerByUid(playerUID);
         var playerName = player?.PlayerName ?? playerUID;
@@ -507,6 +515,121 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 
             _sapi.Logger.Notification(
                 $"[DivineAscension] Religion {religion.ReligionName} founder transferred to {newFounderName}");
+        }
+    }
+
+    /// <summary>
+    ///     Validates membership consistency between ReligionManager and PlayerReligionData.
+    ///     Returns a detailed report of any inconsistencies found.
+    /// </summary>
+    /// <param name="playerUID">Player UID to validate</param>
+    /// <param name="playerReligionDataManager">PlayerReligionDataManager instance</param>
+    /// <returns>Tuple: (isConsistent, issues found, suggested fix)</returns>
+    public (bool IsConsistent, string Issues, string SuggestedFix) ValidateMembershipConsistency(
+        string playerUID,
+        PlayerReligionDataManager playerReligionDataManager)
+    {
+        var playerData = playerReligionDataManager.GetOrCreatePlayerData(playerUID);
+        var religionFromManager = GetPlayerReligion(playerUID);
+        var hasReligionInManager = religionFromManager != null;
+        var hasReligionInPlayerData = playerData.HasReligion();
+
+        // Case 1: Both agree - no religion
+        if (!hasReligionInManager && !hasReligionInPlayerData)
+        {
+            return (true, "Consistent: Player not in any religion", "");
+        }
+
+        // Case 2: Both agree - in religion, same UID
+        if (hasReligionInManager && hasReligionInPlayerData &&
+            religionFromManager!.ReligionUID == playerData.ReligionUID)
+        {
+            return (true, "Consistent: Player in religion", "");
+        }
+
+        // Case 3: ReligionManager says YES, PlayerData says NO (the reported bug)
+        if (hasReligionInManager && !hasReligionInPlayerData)
+        {
+            var issues = $"INCONSISTENT: ReligionManager has player in '{religionFromManager!.ReligionName}' " +
+                         $"({religionFromManager.ReligionUID}), but PlayerData.ReligionUID is NULL";
+            var fix = $"Set PlayerData.ReligionUID = '{religionFromManager.ReligionUID}'";
+            return (false, issues, fix);
+        }
+
+        // Case 4: ReligionManager says NO, PlayerData says YES
+        if (!hasReligionInManager && hasReligionInPlayerData)
+        {
+            var issues = $"INCONSISTENT: PlayerData.ReligionUID = '{playerData.ReligionUID}', " +
+                         "but ReligionManager does not list player as member";
+            var fix = "Clear PlayerData.ReligionUID (set to null)";
+            return (false, issues, fix);
+        }
+
+        // Case 5: Both say YES, but different religions (edge case)
+        if (hasReligionInManager && hasReligionInPlayerData &&
+            religionFromManager!.ReligionUID != playerData.ReligionUID)
+        {
+            var issues = $"INCONSISTENT: ReligionManager has player in '{religionFromManager.ReligionName}' " +
+                         $"({religionFromManager.ReligionUID}), but PlayerData.ReligionUID = '{playerData.ReligionUID}'";
+            var fix =
+                $"Set PlayerData.ReligionUID = '{religionFromManager.ReligionUID}' (use ReligionManager as authority)";
+            return (false, issues, fix);
+        }
+
+        return (true, "Unknown state", "");
+    }
+
+    /// <summary>
+    ///     Repairs membership inconsistency by syncing PlayerReligionData to match ReligionManager (authority).
+    ///     ReligionManager is always treated as the source of truth.
+    /// </summary>
+    /// <param name="playerUID">Player UID to repair</param>
+    /// <param name="playerReligionDataManager">PlayerReligionDataManager instance</param>
+    /// <returns>Tuple: (wasRepaired, description of fix applied)</returns>
+    public (bool WasRepaired, string FixDescription) RepairMembershipConsistency(
+        string playerUID,
+        PlayerReligionDataManager playerReligionDataManager)
+    {
+        var (isConsistent, issues, suggestedFix) =
+            ValidateMembershipConsistency(playerUID, playerReligionDataManager);
+
+        if (isConsistent)
+        {
+            return (false, "No repair needed - membership is consistent");
+        }
+
+        var playerData = playerReligionDataManager.GetOrCreatePlayerData(playerUID);
+        var religionFromManager = GetPlayerReligion(playerUID);
+
+        // ReligionManager is authority - sync PlayerData to match
+        if (religionFromManager != null)
+        {
+            // Player SHOULD be in this religion
+            playerData.ReligionUID = religionFromManager.ReligionUID;
+            playerData.ActiveDeity = religionFromManager.Deity;
+
+            // Only set LastReligionSwitch if it's null (don't overwrite existing cooldowns)
+            if (playerData.LastReligionSwitch == null)
+            {
+                playerData.LastReligionSwitch = DateTime.UtcNow;
+            }
+
+            _sapi.Logger.Warning(
+                $"[DivineAscension] REPAIRED: Set PlayerData for {playerUID} to religion " +
+                $"'{religionFromManager.ReligionName}' ({religionFromManager.ReligionUID})");
+
+            return (true, $"Synced PlayerData to ReligionManager: {religionFromManager.ReligionName}");
+        }
+        else
+        {
+            // Player should NOT be in any religion
+            playerData.ReligionUID = null;
+            playerData.ActiveDeity = DeityType.None;
+
+            _sapi.Logger.Warning(
+                $"[DivineAscension] REPAIRED: Cleared PlayerData for {playerUID} (not in any religion per ReligionManager)");
+
+            return (true, "Cleared PlayerData (not in any religion)");
         }
     }
 
