@@ -680,7 +680,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
     private class ReligionActionResult
     {
         public bool Success { get; init; }
-        public string Message { get; init; }
+        public string? Message { get; init; }
     }
 
     private void SendRolesUpdateToPlayer(IServerPlayer player, ReligionData religion)
@@ -759,7 +759,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         if (_religionManager.CanJoinReligion(packet.ReligionUID, fromPlayer.PlayerUID))
         {
             _playerReligionDataManager.JoinReligion(fromPlayer.PlayerUID, packet.ReligionUID);
-            _roleManager.AssignRole(religion.ReligionUID, "SYSTEM", fromPlayer.PlayerUID, RoleDefaults.MEMBER_ROLE_ID);
+            _roleManager.AssignRole(religion!.ReligionUID, "SYSTEM", fromPlayer.PlayerUID, RoleDefaults.MEMBER_ROLE_ID);
             _playerReligionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
 
             // Broadcast roles update to all religion members so their UI updates

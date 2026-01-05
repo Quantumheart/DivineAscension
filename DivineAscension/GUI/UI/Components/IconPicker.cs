@@ -177,7 +177,6 @@ public static class IconPicker
         float y,
         float iconSize = 48f)
     {
-        const float padding = 8f;
         const float spacing = 8f;
 
         // Draw label

@@ -19,6 +19,7 @@ namespace DivineAscension.GUI;
 public class GuiDialogManager : IBlessingDialogManager
 {
     private readonly ICoreClientAPI _capi;
+    private readonly INotificationManager _notificationManager;
     private readonly IUiService _uiService;
 
     public GuiDialogManager(ICoreClientAPI capi, IUiService uiService, ISoundManager soundManager)
@@ -28,6 +29,7 @@ public class GuiDialogManager : IBlessingDialogManager
         ReligionStateManager = new ReligionStateManager(capi, _uiService, soundManager);
         BlessingStateManager = new BlessingStateManager(capi, _uiService, soundManager);
         CivilizationManager = new CivilizationStateManager(capi, _uiService, soundManager);
+        _notificationManager = new NotificationManager(soundManager);
         // Initialize UI-only fake data provider in DEBUG builds. In Release it stays null.
 #if DEBUG
         ReligionStateManager.MembersProvider = new FakeReligionMemberProvider();
@@ -51,6 +53,8 @@ public class GuiDialogManager : IBlessingDialogManager
     public BlessingStateManager BlessingStateManager { get; }
 
     public CivilizationStateManager CivilizationManager { get; set; }
+
+    public INotificationManager NotificationManager => _notificationManager;
 
 
     public List<CivilizationInfoResponsePacket.MemberReligion> CivilizationMemberReligions { get; set; } = new();

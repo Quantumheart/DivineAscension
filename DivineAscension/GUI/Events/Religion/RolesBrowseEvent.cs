@@ -20,7 +20,7 @@ public abstract record RolesBrowseEvent
 
     public record CreateRoleNameChanged(string RoleName) : RolesBrowseEvent;
 
-    public record CreateRoleConfirm(string RoleName) : RolesBrowseEvent;
+    public record CreateRoleConfirm(string? RoleName) : RolesBrowseEvent;
 
     // Role editing
     public record EditRoleOpen(string RoleUID) : RolesBrowseEvent;
@@ -31,7 +31,7 @@ public abstract record RolesBrowseEvent
 
     public record EditRolePermissionToggled(string Permission, bool Enabled) : RolesBrowseEvent;
 
-    public record EditRoleSave(string RoleUID, string RoleName, HashSet<string> Permissions) : RolesBrowseEvent;
+    public record EditRoleSave(string RoleUID, string? RoleName, HashSet<string> Permissions) : RolesBrowseEvent;
 
     // Role deletion
     public record DeleteRoleOpen(string RoleUID, string RoleName) : RolesBrowseEvent;

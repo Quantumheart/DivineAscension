@@ -35,6 +35,10 @@ public class GuiDialogState
     /// </summary>
     public float WindowPosY { get; set; }
 
+    public NotificationState? NotificationState { get; set; }
+    public string? PreviousFavorRank { get; set; }
+    public string? PreviousPrestigeRank { get; set; }
+
     /// <summary>
     ///     Initialize/reset all state to defaults
     /// </summary>
@@ -46,6 +50,7 @@ public class GuiDialogState
         CurrentMainTab = MainDialogTab.Religion;
         WindowPosX = 0f;
         WindowPosY = 0f;
+        NotificationState?.Reset();
     }
 }
 

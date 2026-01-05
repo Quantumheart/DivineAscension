@@ -33,7 +33,7 @@ public static class TextRenderer
     }
 
     /// <summary>
-    ///     Draw info text (grey text, 12pt, word-wrapped)
+    ///     Draw info text (light grey text, 12pt, word-wrapped)
     /// </summary>
     /// <param name="drawList">ImGui draw list</param>
     /// <param name="text">Text to display</param>
@@ -41,15 +41,19 @@ public static class TextRenderer
     /// <param name="y">Y position</param>
     /// <param name="width">Maximum width for word wrapping</param>
     /// <param name="fontSize">Font size (default 12f)</param>
+    /// <param name="color">Optional color override (default lighter grey for better contrast)</param>
     public static void DrawInfoText(
         ImDrawListPtr drawList,
         string text,
         float x,
         float y,
         float width,
-        float fontSize = 12f)
+        float fontSize = 12f,
+        Vector4? color = null)
     {
-        var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
+        // Use a lighter grey (0.8, 0.8, 0.8) for better contrast on dark backgrounds
+        var defaultColor = new Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+        var textColor = ImGui.ColorConvertFloat4ToU32(color ?? defaultColor);
 
         // Simple word wrap
         var words = text.Split(' ');

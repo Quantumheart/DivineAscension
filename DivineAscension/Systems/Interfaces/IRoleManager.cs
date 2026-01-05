@@ -20,7 +20,7 @@ public interface IRoleManager
     (bool success, string error) TransferFounder(string religionId, string currentFounderId, string newFounderId);
 
     // Queries
-    List<RoleData> GetReligionRoles(string religionId);
+    List<RoleData> GetReligionRoles(string? religionId);
     RoleData? GetPlayerRole(string religionId, string playerId);
     Dictionary<string, int> GetRoleMemberCounts(string religionId);
     List<string> GetPlayersWithRole(string religionId, string roleId);

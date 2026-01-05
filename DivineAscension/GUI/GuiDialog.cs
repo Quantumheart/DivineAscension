@@ -6,6 +6,7 @@ using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Managers;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI;
+using DivineAscension.GUI.UI.Components.Overlays;
 using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
 using Vintagestory.API.Client;
@@ -106,7 +107,11 @@ public partial class GuiDialog : ModSystem
         if (_imguiModSystem != null)
         {
             _imguiModSystem.Draw += OnDraw;
+            _imguiModSystem.Draw += OnDrawNotifications; // Always-active notification overlay
             _imguiModSystem.Closed += OnClose;
+
+            // Set callback for notification manager to trigger ImGui showing
+            _manager.NotificationManager.SetShowImGuiCallback(() => _imguiModSystem.Show());
         }
         else
         {
@@ -123,7 +128,7 @@ public partial class GuiDialog : ModSystem
     /// <summary>
     ///     Open the blessing dialog
     /// </summary>
-    private void Open()
+    internal void Open()
     {
         if (_state.IsOpen) return;
 
@@ -174,6 +179,94 @@ public partial class GuiDialog : ModSystem
 
         DrawWindow();
 
+        return CallbackGUIStatus.GrabMouse;
+    }
+
+    /// <summary>
+    ///     ImGui Draw callback for notifications - always active, independent of main dialog
+    /// </summary>
+    private CallbackGUIStatus OnDrawNotifications(float deltaSeconds)
+    {
+        // If no notification is visible, return Closed so ImGui doesn't capture input
+        if (!_manager!.NotificationManager.State.IsVisible)
+        {
+            return CallbackGUIStatus.Closed;
+        }
+
+        // If main dialog is open, don't capture input - let the main dialog handle it
+        if (_state.IsOpen)
+        {
+            // Still render the notification, but don't grab input
+            return CallbackGUIStatus.Closed;
+        }
+
+        // Update notification timer
+        _manager.NotificationManager.Update(deltaSeconds);
+
+        // Get window bounds
+        var window = _capi!.Gui.WindowBounds;
+        var windowWidth = Math.Min(WindowBaseWidth, (int)window.OuterWidth - 128);
+        var windowHeight = Math.Min(WindowBaseHeight, (int)window.OuterHeight - 128);
+
+        // Create invisible fullscreen window to render notification overlay
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+        ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 0)); // Fully transparent
+
+        ImGui.SetNextWindowSize(new Vector2(windowWidth, windowHeight));
+        ImGui.SetNextWindowPos(new Vector2(
+            _viewport.Pos.X + (_viewport.Size.X - windowWidth) / 2,
+            _viewport.Pos.Y + (_viewport.Size.Y - windowHeight) / 2
+        ));
+
+        var flags = ImGuiWindowFlags.NoTitleBar |
+                    ImGuiWindowFlags.NoResize |
+                    ImGuiWindowFlags.NoMove |
+                    ImGuiWindowFlags.NoScrollbar |
+                    ImGuiWindowFlags.NoScrollWithMouse |
+                    ImGuiWindowFlags.NoBackground;
+
+        ImGui.Begin("DivineAscension Notification Overlay", flags);
+
+        // Render notification overlay
+        RankUpNotificationOverlay.Draw(
+            _manager.NotificationManager.State,
+            out var dismissed,
+            out var viewBlessingsClicked,
+            windowWidth,
+            windowHeight
+        );
+
+        // Handle notification interactions
+        if (dismissed)
+        {
+            _manager.NotificationManager.DismissCurrentNotification();
+        }
+
+        if (viewBlessingsClicked)
+        {
+            // Set the tab BEFORE opening the dialog to ensure it opens on the correct tab
+            _state.CurrentMainTab = MainDialogTab.Blessings;
+
+            _manager.NotificationManager.OnViewBlessingsClicked(
+                () =>
+                {
+                    if (!_state.IsOpen) Open();
+                },
+                () =>
+                {
+                    // Tab already set above, but this ensures it's set if dialog was already open
+                    _state.CurrentMainTab = MainDialogTab.Blessings;
+                }
+            );
+        }
+
+        ImGui.End();
+        ImGui.PopStyleColor();
+        ImGui.PopStyleVar(3);
+
+        // Return GrabMouse to capture input while notification is visible
         return CallbackGUIStatus.GrabMouse;
     }
 
@@ -267,6 +360,14 @@ public partial class GuiDialog : ModSystem
 
         if (_capi != null && _checkDataId != 0) _capi.Event.UnregisterGameTickListener(_checkDataId);
 
+        // Unsubscribe from ImGui events
+        if (_imguiModSystem != null)
+        {
+            _imguiModSystem.Draw -= OnDraw;
+            _imguiModSystem.Draw -= OnDrawNotifications;
+            _imguiModSystem.Closed -= OnClose;
+        }
+
         // Unsubscribe from events
         if (_divineAscensionModSystem?.NetworkClient != null)
         {
@@ -284,6 +385,7 @@ public partial class GuiDialog : ModSystem
 
         // Dispose icon loaders
         DeityIconLoader.Dispose();
+        GuiIconLoader.Dispose();
         CivilizationIconLoader.Dispose();
         BlessingIconLoader.Dispose();
 
