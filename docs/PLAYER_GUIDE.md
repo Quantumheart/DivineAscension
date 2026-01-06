@@ -11,6 +11,7 @@
 - [Earning Favor](#earning-favor)
 - [Unlocking Blessings](#unlocking-blessings)
 - [Civilizations](#civilizations)
+- [Diplomacy](#diplomacy)
 - [PvP & Combat](#pvp--combat)
 - [Commands Reference](#commands-reference)
 - [GUI Overview](#gui-overview)
@@ -150,6 +151,8 @@ Favor represents your personal devotion to your deity. It unlocks player-specifi
 - Your Favor Rank is based on **lifetime favor earned**, not current favor
 - Ranks persist even if you switch religions
 - Spending favor on blessings doesn't reduce your rank
+- **Rank Up Notifications**: When you reach a new favor rank, you'll receive an on-screen notification celebrating your
+  achievement!
 
 ### Religion Prestige (Collective Progression)
 
@@ -185,6 +188,8 @@ Prestige is your religion's reputation, earned collectively by all members. It u
 **Parameters**:
 - `name`: Your religion's name (use quotes if it contains spaces)
 - `deity`: Choose from `khoras`, `lysa`, `aethra`, or `gaia`
+    - **Tip**: In the GUI creation screen, hover over a deity's icon to see detailed information about their domain,
+      playstyle, and favor sources!
 - `visibility`: `public` (anyone can join) or `private` (invite-only)
 
 **As Founder, You Can**:
@@ -216,6 +221,74 @@ Wait for an invitation, then accept via the GUI (`Shift+G`)
 ```
 
 ⚠️ **Warning**: This starts a 7-day cooldown before you can join another religion!
+
+**Important**: If you are the **Founder** of a religion, you cannot leave it. You must either:
+
+- Transfer founder status to another member (if available)
+- Disband the religion entirely using `/religion disband`
+
+### Managing Members (Founder/Elder)
+
+As a religion Founder or Elder, you have additional management tools:
+
+**Inviting Members**:
+
+```
+/religion invite <player_name>
+```
+
+Send an invitation to a player to join your religion (for private religions).
+
+**Kicking Members**:
+
+```
+/religion kick <player_name>
+```
+
+Remove a member from your religion immediately.
+
+**Banning Members**:
+
+You can ban problematic members to prevent them from rejoining:
+
+```
+/religion ban <player_name> [reason] [days]
+```
+
+**Parameters**:
+
+- `player_name`: The player to ban (required)
+- `reason`: Optional reason for the ban (shown in ban list)
+- `days`: Optional duration in days (default: permanent)
+
+**Examples**:
+
+- `/religion ban BadPlayer` - Permanent ban
+- `/religion ban BadPlayer "Toxic behavior"` - Permanent ban with reason
+- `/religion ban BadPlayer "Needs timeout" 7` - 7-day temporary ban
+
+**Viewing Bans**:
+
+```
+/religion banlist
+```
+
+Shows all active bans with player names, reasons, and expiration dates.
+
+**Unbanning Players**:
+
+```
+/religion unban <player_name>
+```
+
+Removes a ban, allowing the player to join again (if invited or if religion is public).
+
+**Ban Features**:
+
+- Banned players cannot join the religion (even if public)
+- Banned players cannot accept invitations
+- Temporary bans automatically expire after the specified duration
+- Ban list persists across server restarts
 
 ---
 
@@ -365,6 +438,241 @@ Use `/civilization` commands or the GUI (`Shift+G` → Civilizations tab) to:
 
 ---
 
+## Diplomacy
+
+Civilizations can establish diplomatic relationships with each other, creating strategic alliances, trade agreements, or
+declaring war. The diplomacy system adds a layer of politics and strategy to inter-civilization interactions.
+
+### Diplomatic Relationships
+
+There are **four types** of diplomatic relationships between civilizations:
+
+#### 1. Neutral (Default)
+
+- **Description**: No formal relationship exists
+- **Requirements**: None
+- **Duration**: Permanent until changed
+- **Effects**: Standard PvP rules apply (10 favor, 15 prestige per kill)
+
+#### 2. Non-Aggression Pact (NAP)
+
+- **Description**: Formal agreement not to attack each other
+- **Requirements**:
+    - Both civilizations must be at least **Established** rank (500+ prestige)
+    - Must be proposed and accepted by both civilization founders
+- **Duration**: **3 days** (real-time), then automatically reverts to Neutral
+- **Effects**:
+    - Attacking allied civilization members results in **violations** (see Violation System)
+    - No favor/prestige rewards for attacking NAP members
+    - Can be broken with 24-hour notice (see Breaking Treaties)
+
+#### 3. Alliance
+
+- **Description**: Strong alliance between civilizations
+- **Requirements**:
+    - Both civilizations must be at least **Renowned** rank (2,000+ prestige)
+    - Must be proposed and accepted by both civilization founders
+- **Duration**: **Permanent** until broken or war is declared
+- **Effects**:
+    - **100 prestige** awarded to ALL religions in BOTH civilizations upon formation
+    - Attacking allied civilization members results in **violations**
+    - No favor/prestige rewards for attacking Alliance members
+    - Can be broken with 24-hour notice
+
+#### 4. War
+
+- **Description**: Official state of war between civilizations
+- **Requirements**:
+    - Can be declared **unilaterally** by any civilization founder
+    - No prestige rank requirements
+- **Duration**: Until **peace is declared** by one side
+- **Effects**:
+    - **1.5x multiplier** on favor and prestige for PvP kills (15 favor, 22.5 prestige per kill)
+    - Server-wide announcement when war is declared
+    - Automatically cancels any pending NAP or Alliance proposals
+
+### Proposing Relationships
+
+**Civilization founders** can propose diplomatic relationships through the GUI or commands:
+
+1. **Via GUI** (`Shift+G` → Civilizations → Diplomacy):
+    - Select target civilization from dropdown
+    - Choose relationship type (NAP or Alliance)
+    - Click "Send Proposal"
+    - Proposal expires in **7 days** if not accepted
+
+2. **Via Commands**:
+
+```
+/diplomacy propose <civilization_id> <type>
+```
+
+Example: `/diplomacy propose "Golden Empire" alliance`
+
+**Important Rules**:
+
+- Only **one pending proposal** allowed per civilization pair
+- **Bidirectional proposals** (both sides proposing to each other) are blocked
+- Target civilization must have a **different deity** than yours
+- Both civilizations must meet the **prestige rank requirements**
+
+### Accepting or Declining Proposals
+
+When you receive a diplomatic proposal:
+
+1. **Via GUI**: Navigate to Civilizations → Diplomacy → Pending Proposals (Incoming)
+    - Review the proposal details
+    - Check prestige rank requirements
+    - Click **Accept** or **Decline**
+
+2. **Via Commands**:
+
+```
+/diplomacy accept <proposal_id>
+/diplomacy decline <proposal_id>
+```
+
+**Acceptance Requirements**:
+
+- Must still meet prestige rank requirements at time of acceptance
+- Your civilization must not already be in a conflicting relationship
+
+### Breaking Treaties (NAP/Alliance)
+
+Treaties can be broken with a **24-hour warning period**:
+
+1. **Schedule a Break**:
+    - Via GUI: Click "Schedule Break" next to the relationship
+    - Via command: `/diplomacy break <civilization_id>`
+
+2. **Warning Period**:
+    - Both civilizations are notified
+    - **24-hour countdown** begins
+    - During this time, the treaty is still active
+
+3. **Cancel Scheduled Break**:
+    - Change your mind during the 24-hour period
+    - Via GUI: Click "Cancel Break"
+    - Via command: `/diplomacy cancelbreak <civilization_id>`
+
+4. **After 24 Hours**:
+    - Relationship automatically reverts to **Neutral**
+    - No penalties applied
+
+**Important**: There are **no penalties** for breaking treaties, but your reputation may suffer among other players.
+
+### Violation System
+
+Attacking members of civilizations you have a NAP or Alliance with triggers the **violation system**:
+
+**How It Works**:
+
+1. When you attack an allied civilization member:
+    - The attack **succeeds** normally (damage is dealt)
+    - **No favor or prestige** is awarded
+    - A **violation** is recorded (counter increments)
+    - Warning message: "Warning: Attacking allied civilization! (Violation X/3)"
+
+2. **3-Strike System**:
+    - Each attack = 1 violation
+    - After **3 violations**, the treaty **automatically breaks**
+    - No 24-hour warning - immediate reversion to Neutral
+    - Violation counter resets when new relationship is established
+
+**Strategic Note**: The violation system allows for mistakes or reactive breaking without requiring the 24-hour warning
+period.
+
+### Declaring War
+
+War can be declared **unilaterally** (no proposal required):
+
+1. **Via GUI**: Navigate to Diplomacy → "Declare War" button (requires confirmation)
+2. **Via Command**: `/war <civilization_id>` or `/diplomacy declarewar <civilization_id>`
+
+**Effects**:
+
+- **Both civilizations** automatically enter War status
+- Server-wide announcement: "[Diplomacy] {Your Civ} has declared war on {Target Civ}!"
+- Any pending NAP or Alliance proposals between the civilizations are **cancelled**
+- PvP kills reward **1.5x favor and prestige** (15 favor, 22.5 prestige)
+
+### Declaring Peace
+
+To end a war, either side can declare peace:
+
+1. **Via GUI**: Click "Declare Peace" next to the War relationship
+2. **Via Command**: `/peace <civilization_id>` or `/diplomacy declarepeace <civilization_id>`
+
+**Effects**:
+
+- Both civilizations return to **Neutral** status
+- Normal PvP rewards resume (10 favor, 15 prestige)
+
+### Diplomacy Tab (GUI)
+
+Access via `Shift+G` → Civilizations → **Diplomacy**
+
+**Current Relationships Panel**:
+
+- View all active diplomatic relationships
+- Color-coded status badges (Green=Alliance, Yellow=NAP, Red=War, Gray=Neutral)
+- Shows: Civilization name, status, established date, expiration (for NAP), violations (X/3)
+- Actions: Schedule/cancel break, declare peace
+
+**Pending Proposals Panel**:
+
+- **Incoming**: Proposals from other civilizations (Accept/Decline buttons)
+- **Outgoing**: Your sent proposals (Cancel option)
+- Shows expiration countdown (7 days)
+
+**Propose Relationship Panel**:
+
+- Select target civilization
+- Choose relationship type (displays rank requirements)
+- Send proposal or declare war
+
+### Diplomacy Commands Reference
+
+| Command                            | Description                                   |
+|------------------------------------|-----------------------------------------------|
+| `/diplomacy status`                | Show diplomatic status with all civilizations |
+| `/diplomacy propose <civ> <type>`  | Propose NAP or Alliance                       |
+| `/diplomacy accept <proposal_id>`  | Accept incoming proposal                      |
+| `/diplomacy decline <proposal_id>` | Decline incoming proposal                     |
+| `/diplomacy break <civ>`           | Schedule treaty break (24-hour warning)       |
+| `/diplomacy cancelbreak <civ>`     | Cancel scheduled break                        |
+| `/war <civ>`                       | Declare war (shortcut)                        |
+| `/peace <civ>`                     | Declare peace (shortcut)                      |
+
+### Strategy Tips
+
+**Forming Alliances**:
+
+- Focus on reaching **Renowned rank** (2,000 prestige) to unlock alliances
+- Coordinate with complementary deity civilizations
+- Alliance prestige bonus (100 to all religions in both civs) is significant
+- Build trust before proposing - broken treaties damage reputation
+
+**Using NAPs**:
+
+- Great for temporary peace during resource gathering
+- Remember they expire in **3 days** - coordinate renewal if needed
+- Lower prestige requirement (Established/500) makes them accessible early
+
+**Declaring War**:
+
+- Use strategically for **1.5x PvP rewards** (15 favor, 22.5 prestige per kill)
+- Server announcement can rally your allies and intimidate opponents
+- Can be declared unilaterally - no waiting for acceptance
+
+**Breaking Treaties**:
+
+- **Planned Break**: Use 24-hour warning for diplomatic approach
+- **Reactive Break**: Trigger 3 violations for immediate break
+- No penalties, but consider long-term reputation
+
+---
+
 ## PvP & Combat
 
 ### Favor Rewards
@@ -467,6 +775,12 @@ Press **`Shift+G`** to open the Divine Ascension interface.
 - **Create**: Form a new civilization (founder only)
 - **Manage**: Invite religions, view members
 - **Info**: Civilization details and member list
+- **Diplomacy**: Manage diplomatic relationships between civilizations (founder only)
+    - View current relationships (NAP, Alliance, War, Neutral)
+    - Send/accept/decline diplomatic proposals
+    - Declare war or peace
+    - Monitor violation counters
+    - Schedule treaty breaks with 24-hour warnings
 
 ### Interface Tips
 
@@ -608,5 +922,5 @@ A: It depends on your playstyle:
 
 ---
 
-*Last Updated: December 19, 2025*
-*Divine Ascension v1.0 (Beta)*
+*Last Updated: January 5, 2026*
+*Divine Ascension v1.25.1*
