@@ -21,7 +21,7 @@ public class BlessingNetworkHandler(
     ICoreServerAPI sapi,
     BlessingRegistry blessingRegistry,
     BlessingEffectSystem blessingEffectSystem,
-    IPlayerReligionDataManager playerReligionDataManager,
+    IPlayerProgressionDataManager playerProgressionDataManager,
     IReligionManager religionManager,
     IServerNetworkChannel serverChannel)
     : IServerNetworkHandler
@@ -52,10 +52,9 @@ public class BlessingNetworkHandler(
             }
             else
             {
-                var playerData = playerReligionDataManager!.GetOrCreatePlayerData(fromPlayer.PlayerUID);
-                var religion = playerData.ReligionUID != null
-                    ? religionManager!.GetReligion(playerData.ReligionUID)
-                    : null;
+                var playerData = playerProgressionDataManager!.GetOrCreatePlayerData(fromPlayer.PlayerUID);
+                var religion = religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+
 
                 var (canUnlock, reason) = blessingRegistry.CanUnlockBlessing(playerData, religion, blessing);
                 if (!canUnlock)
@@ -73,7 +72,7 @@ public class BlessingNetworkHandler(
                         }
                         else
                         {
-                            success = playerReligionDataManager.UnlockPlayerBlessing(fromPlayer.PlayerUID,
+                            success = playerProgressionDataManager.UnlockPlayerBlessing(fromPlayer.PlayerUID,
                                 packet.BlessingId);
                             if (success)
                             {
@@ -81,7 +80,7 @@ public class BlessingNetworkHandler(
                                 message = $"Successfully unlocked {blessing.Name}!";
 
                                 // Notify player data changed (triggers event that sends HUD update to client)
-                                playerReligionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
+                                playerProgressionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
                             }
                             else
                             {
@@ -110,7 +109,7 @@ public class BlessingNetworkHandler(
                             foreach (var memberUid in religion.MemberUIDs)
                             {
                                 // Notify player data changed (triggers event that sends HUD update to client)
-                                playerReligionDataManager.NotifyPlayerDataChanged(memberUid);
+                                playerProgressionDataManager.NotifyPlayerDataChanged(memberUid);
 
                                 var member = sapi!.World.PlayerByUid(memberUid) as IServerPlayer;
                                 if (member != null)
@@ -146,12 +145,11 @@ public class BlessingNetworkHandler(
 
         try
         {
-            var playerData = playerReligionDataManager!.GetOrCreatePlayerData(fromPlayer.PlayerUID);
-            var religion = playerData.ReligionUID != null
-                ? religionManager!.GetReligion(playerData.ReligionUID)
-                : null;
+            var playerData = playerProgressionDataManager!.GetOrCreatePlayerData(fromPlayer.PlayerUID);
 
-            if (religion == null || playerData.ActiveDeity == DeityType.None)
+            var religion = religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+            var deity = playerProgressionDataManager.GetPlayerDeityType(fromPlayer.PlayerUID);
+            if (religion == null || deity == DeityType.None)
             {
                 response.HasReligion = false;
                 serverChannel!.SendPacket(response, fromPlayer);
@@ -161,7 +159,7 @@ public class BlessingNetworkHandler(
             response.HasReligion = true;
             response.ReligionUID = religion.ReligionUID;
             response.ReligionName = religion.ReligionName;
-            response.Deity = playerData.ActiveDeity.ToString();
+            response.Deity = deity.ToString();
             response.FavorRank = (int)playerData.FavorRank;
             response.PrestigeRank = (int)religion.PrestigeRank;
             response.CurrentFavor = playerData.Favor;
@@ -169,7 +167,7 @@ public class BlessingNetworkHandler(
             response.TotalFavorEarned = playerData.TotalFavorEarned;
 
             // Get player blessings for this deity
-            var playerBlessings = blessingRegistry!.GetBlessingsForDeity(playerData.ActiveDeity, BlessingKind.Player);
+            var playerBlessings = blessingRegistry!.GetBlessingsForDeity(deity, BlessingKind.Player);
             response.PlayerBlessings = playerBlessings.Select(p => new BlessingDataResponsePacket.BlessingInfo
             {
                 BlessingId = p.BlessingId,
@@ -185,7 +183,7 @@ public class BlessingNetworkHandler(
 
             // Get religion blessings for this deity
             var religionBlessings =
-                blessingRegistry.GetBlessingsForDeity(playerData.ActiveDeity, BlessingKind.Religion);
+                blessingRegistry.GetBlessingsForDeity(deity, BlessingKind.Religion);
             response.ReligionBlessings = religionBlessings.Select(p => new BlessingDataResponsePacket.BlessingInfo
             {
                 BlessingId = p.BlessingId,
@@ -201,8 +199,6 @@ public class BlessingNetworkHandler(
 
             // Get unlocked player blessings
             response.UnlockedPlayerBlessings = playerData.UnlockedBlessings
-                .Where(kvp => kvp.Value)
-                .Select(kvp => kvp.Key)
                 .ToList();
 
             // Get unlocked religion blessings

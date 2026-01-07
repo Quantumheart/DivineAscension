@@ -17,9 +17,11 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 {
     private const string DATA_KEY = "divineascension_religions";
     private const string INVITE_DATA_KEY = "divineascension_religion_invites";
+    private readonly Dictionary<string, string> _playerToReligionIndex = new();
     private readonly Dictionary<string, ReligionData> _religions = new();
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
     private ReligionWorldData _inviteData = new();
+    internal IReadOnlyDictionary<string, string> PlayerToReligionIndex => _playerToReligionIndex;
 
     /// <summary>
     ///     Event fired when a religion is deleted (either manually or automatically)
@@ -40,6 +42,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         // Load data immediately in case SaveGameLoaded event already fired
         LoadAllReligions();
         LoadInviteData();
+        RebuildPlayerIndex();
 
         _sapi.Logger.Notification("[DivineAscension] Religion Manager initialized");
     }
@@ -80,6 +83,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 
         // Store in dictionary
         _religions[religionUID] = religion;
+        _playerToReligionIndex.Add(founderUID, religionUID);
 
         _sapi.Logger.Notification(
             $"[DivineAscension] Religion created: {name} (Deity: {deity}, Founder: {founderName}, Public: {isPublic})");
@@ -114,6 +118,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         var playerName = player?.PlayerName ?? playerUID;
 
         religion.AddMember(playerUID, playerName);
+        _playerToReligionIndex[playerUID] = religionUID; // Use indexer to avoid duplicate key exception
         _sapi.Logger.Debug(
             $"[DivineAscension] Added player {playerName} ({playerUID}) to religion {religion.ReligionName}");
 
@@ -136,6 +141,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 
         if (removed)
         {
+            _playerToReligionIndex.Remove(playerUID);
             _sapi.Logger.Debug($"[DivineAscension] Removed player {playerUID} from religion {religion.ReligionName}");
 
             // Handle founder leaving
@@ -159,9 +165,19 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     /// <summary>
     ///     Gets the religion a player belongs to
     /// </summary>
-    public ReligionData? GetPlayerReligion(string playerUID)
+    public ReligionData? GetPlayerReligion(string playerId)
     {
-        return _religions.Values.FirstOrDefault(r => r.IsMember(playerUID));
+        if (_playerToReligionIndex.TryGetValue(playerId, out var religionId))
+            return _religions.GetValueOrDefault(religionId);
+        return null;
+    }
+
+    /// <summary>
+    ///     Gets the religion ID a player belongs to (O(1) lookup)
+    /// </summary>
+    public string? GetPlayerReligionId(string playerId)
+    {
+        return _playerToReligionIndex.TryGetValue(playerId, out var religionId) ? religionId : null;
     }
 
     /// <summary>
@@ -184,9 +200,9 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     /// <summary>
     ///     Gets the active deity for a player
     /// </summary>
-    public DeityType GetPlayerActiveDeity(string playerUID)
+    public DeityType GetPlayerActiveDeity(string playerId)
     {
-        var religion = GetPlayerReligion(playerUID);
+        var religion = GetPlayerReligion(playerId);
         return religion?.Deity ?? DeityType.None;
     }
 
@@ -390,6 +406,12 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         // Only founder can delete
         if (!religion.IsFounder(requesterUID)) return false;
 
+        // Remove all members from the index before deleting religion
+        foreach (var memberUID in religion.MemberUIDs.ToList())
+        {
+            _playerToReligionIndex.Remove(memberUID);
+        }
+
         _religions.Remove(religionUID);
         _sapi.Logger.Notification($"[DivineAscension] Religion {religion.ReligionName} disbanded by founder");
 
@@ -427,6 +449,10 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         religion.AddBannedPlayer(playerUID, banEntry);
         religion.Members.Remove(playerUID);
         religion.MemberUIDs.Remove(playerUID);
+
+        // Remove from player-to-religion index since they're no longer a member
+        _playerToReligionIndex.Remove(playerUID);
+
         Save(religion);
 
         var expiryText = expiryDays.HasValue ? $" for {expiryDays} days" : " permanently";
@@ -519,118 +545,24 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     }
 
     /// <summary>
-    ///     Validates membership consistency between ReligionManager and PlayerReligionData.
-    ///     Returns a detailed report of any inconsistencies found.
+    /// Rebuilds the internal player-to-religion index based on the current data in the religion manager.
+    /// This index maps player unique IDs (UIDs) to the corresponding religion UIDs they are members of.
+    /// The method iterates through all registered religions and their members to populate the index.
+    /// Useful for ensuring quick lookups of player-religion relationships.
     /// </summary>
-    /// <param name="playerUID">Player UID to validate</param>
-    /// <param name="playerReligionDataManager">PlayerReligionDataManager instance</param>
-    /// <returns>Tuple: (isConsistent, issues found, suggested fix)</returns>
-    public (bool IsConsistent, string Issues, string SuggestedFix) ValidateMembershipConsistency(
-        string playerUID,
-        PlayerReligionDataManager playerReligionDataManager)
+    internal void RebuildPlayerIndex()
     {
-        var playerData = playerReligionDataManager.GetOrCreatePlayerData(playerUID);
-        var religionFromManager = GetPlayerReligion(playerUID);
-        var hasReligionInManager = religionFromManager != null;
-        var hasReligionInPlayerData = playerData.HasReligion();
-
-        // Case 1: Both agree - no religion
-        if (!hasReligionInManager && !hasReligionInPlayerData)
+        _playerToReligionIndex.Clear();
+        foreach (var religion in _religions)
         {
-            return (true, "Consistent: Player not in any religion", "");
-        }
-
-        // Case 2: Both agree - in religion, same UID
-        if (hasReligionInManager && hasReligionInPlayerData &&
-            religionFromManager!.ReligionUID == playerData.ReligionUID)
-        {
-            return (true, "Consistent: Player in religion", "");
-        }
-
-        // Case 3: ReligionManager says YES, PlayerData says NO (the reported bug)
-        if (hasReligionInManager && !hasReligionInPlayerData)
-        {
-            var issues = $"INCONSISTENT: ReligionManager has player in '{religionFromManager!.ReligionName}' " +
-                         $"({religionFromManager.ReligionUID}), but PlayerData.ReligionUID is NULL";
-            var fix = $"Set PlayerData.ReligionUID = '{religionFromManager.ReligionUID}'";
-            return (false, issues, fix);
-        }
-
-        // Case 4: ReligionManager says NO, PlayerData says YES
-        if (!hasReligionInManager && hasReligionInPlayerData)
-        {
-            var issues = $"INCONSISTENT: PlayerData.ReligionUID = '{playerData.ReligionUID}', " +
-                         "but ReligionManager does not list player as member";
-            var fix = "Clear PlayerData.ReligionUID (set to null)";
-            return (false, issues, fix);
-        }
-
-        // Case 5: Both say YES, but different religions (edge case)
-        if (hasReligionInManager && hasReligionInPlayerData &&
-            religionFromManager!.ReligionUID != playerData.ReligionUID)
-        {
-            var issues = $"INCONSISTENT: ReligionManager has player in '{religionFromManager.ReligionName}' " +
-                         $"({religionFromManager.ReligionUID}), but PlayerData.ReligionUID = '{playerData.ReligionUID}'";
-            var fix =
-                $"Set PlayerData.ReligionUID = '{religionFromManager.ReligionUID}' (use ReligionManager as authority)";
-            return (false, issues, fix);
-        }
-
-        return (true, "Unknown state", "");
-    }
-
-    /// <summary>
-    ///     Repairs membership inconsistency by syncing PlayerReligionData to match ReligionManager (authority).
-    ///     ReligionManager is always treated as the source of truth.
-    /// </summary>
-    /// <param name="playerUID">Player UID to repair</param>
-    /// <param name="playerReligionDataManager">PlayerReligionDataManager instance</param>
-    /// <returns>Tuple: (wasRepaired, description of fix applied)</returns>
-    public (bool WasRepaired, string FixDescription) RepairMembershipConsistency(
-        string playerUID,
-        PlayerReligionDataManager playerReligionDataManager)
-    {
-        var (isConsistent, issues, suggestedFix) =
-            ValidateMembershipConsistency(playerUID, playerReligionDataManager);
-
-        if (isConsistent)
-        {
-            return (false, "No repair needed - membership is consistent");
-        }
-
-        var playerData = playerReligionDataManager.GetOrCreatePlayerData(playerUID);
-        var religionFromManager = GetPlayerReligion(playerUID);
-
-        // ReligionManager is authority - sync PlayerData to match
-        if (religionFromManager != null)
-        {
-            // Player SHOULD be in this religion
-            playerData.ReligionUID = religionFromManager.ReligionUID;
-            playerData.ActiveDeity = religionFromManager.Deity;
-
-            // Only set LastReligionSwitch if it's null (don't overwrite existing cooldowns)
-            if (playerData.LastReligionSwitch == null)
+            foreach (var userId in religion.Value.MemberUIDs)
             {
-                playerData.LastReligionSwitch = DateTime.UtcNow;
+                _playerToReligionIndex.Add(userId, religion.Key);
             }
-
-            _sapi.Logger.Warning(
-                $"[DivineAscension] REPAIRED: Set PlayerData for {playerUID} to religion " +
-                $"'{religionFromManager.ReligionName}' ({religionFromManager.ReligionUID})");
-
-            return (true, $"Synced PlayerData to ReligionManager: {religionFromManager.ReligionName}");
         }
-        else
-        {
-            // Player should NOT be in any religion
-            playerData.ReligionUID = null;
-            playerData.ActiveDeity = DeityType.None;
 
-            _sapi.Logger.Warning(
-                $"[DivineAscension] REPAIRED: Cleared PlayerData for {playerUID} (not in any religion per ReligionManager)");
-
-            return (true, "Cleared PlayerData (not in any religion)");
-        }
+        _sapi.Logger.Debug(
+            $"[DivineAscension] Rebuilt player-to-religion index with {_playerToReligionIndex.Count} entries");
     }
 
     #region Persistence

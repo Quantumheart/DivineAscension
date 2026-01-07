@@ -31,7 +31,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
 
         var existingReligion = CreateReligion("religion-existing", "ExistingReligion", DeityType.Lysa, "other-player");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("ExistingReligion")).Returns(existingReligion);
 
         // Act
@@ -63,7 +63,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
 
         var createdReligion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1", true);
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns((ReligionData?)null);
         _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityType.Khoras, "player-1", true))
             .Returns(createdReligion);
@@ -78,7 +78,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         Assert.Contains("Khoras", result.StatusMessage);
 
         _religionManager.Verify(m => m.CreateReligion("TestReligion", DeityType.Khoras, "player-1", true), Times.Once);
-        _playerReligionDataManager.Verify(m => m.SetPlayerReligionData("player-1", "religion-1"), Times.Once);
+        _playerProgressionDataManager.Verify(m => m.SetPlayerReligionData("player-1", "religion-1"), Times.Once);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
 
         var createdReligion = CreateReligion("religion-1", "SecretReligion", DeityType.Lysa, "player-1", false);
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("SecretReligion")).Returns((ReligionData?)null);
         _religionManager.Setup(m => m.CreateReligion("SecretReligion", DeityType.Lysa, "player-1", false))
             .Returns(createdReligion);
@@ -117,7 +117,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
 
         var createdReligion = CreateReligion("religion-1", "DefaultReligion", DeityType.Lysa, "player-1", true);
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("DefaultReligion")).Returns((ReligionData?)null);
         _religionManager.Setup(m => m.CreateReligion("DefaultReligion", DeityType.Lysa, "player-1", true))
             .Returns(createdReligion);
@@ -142,7 +142,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
 
         var createdReligion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1", true);
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns((ReligionData?)null);
         _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityType.Khoras, "player-1", true))
             .Returns(createdReligion);
@@ -151,7 +151,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         var result = _sut!.OnCreateReligion(args);
 
         // Assert
-        _playerReligionDataManager.Verify(m => m.SetPlayerReligionData("player-1", "religion-1"), Times.Once);
+        _playerProgressionDataManager.Verify(m => m.SetPlayerReligionData("player-1", "religion-1"), Times.Once);
     }
 
     [Theory]
@@ -170,7 +170,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         var deity = Enum.Parse<DeityType>(deityName);
         var createdReligion = CreateReligion("religion-1", "TestReligion", deity, "player-1", true);
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns((ReligionData?)null);
         _religionManager.Setup(m => m.CreateReligion("TestReligion", deity, "player-1", true))
             .Returns(createdReligion);
@@ -217,12 +217,12 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", "existing-religion", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1");
         var args = CreateCommandArgs(mockPlayer.Object, "NewReligion", "Lysa", "public");
         SetupParsers(args, "NewReligion", "Lysa", "public");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         // Act
         var result = _sut!.OnCreateReligion(args);
 
@@ -251,7 +251,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "InvalidDeity", "public");
         SetupParsers(args, "TestReligion", "InvalidDeity", "public");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
 
         // Act
         var result = _sut!.OnCreateReligion(args);
@@ -277,7 +277,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "None", "public");
         SetupParsers(args, "TestReligion", "None", "public");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
 
         // Act
         var result = _sut!.OnCreateReligion(args);
@@ -297,7 +297,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "", "public");
         SetupParsers(args, "TestReligion", "", "public");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
 
         // Act
         var result = _sut!.OnCreateReligion(args);
@@ -326,7 +326,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
 
         var createdReligion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1", true);
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns((ReligionData?)null);
         _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityType.Khoras, "player-1", true))
             .Returns(createdReligion);
@@ -353,7 +353,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
 
         var createdReligion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1", false);
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns((ReligionData?)null);
         _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityType.Khoras, "player-1", false))
             .Returns(createdReligion);
@@ -382,7 +382,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
 
         var createdReligion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1", true);
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns((ReligionData?)null);
         _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityType.Khoras, "player-1", true))
             .Returns(createdReligion);

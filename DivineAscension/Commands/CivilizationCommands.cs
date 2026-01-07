@@ -16,14 +16,10 @@ namespace DivineAscension.Commands;
 public class CivilizationCommands(
     ICoreServerAPI sapi,
     CivilizationManager civilizationManager,
-    IReligionManager religionManager,
-    IPlayerReligionDataManager playerReligionDataManager)
+    IReligionManager religionManager)
 {
     private readonly CivilizationManager _civilizationManager =
         civilizationManager ?? throw new ArgumentNullException(nameof(civilizationManager));
-
-    private readonly IPlayerReligionDataManager _playerReligionDataManager =
-        playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
 
     private readonly IReligionManager _religionManager =
         religionManager ?? throw new ArgumentNullException(nameof(religionManager));
@@ -98,11 +94,10 @@ public class CivilizationCommands(
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
         // Get player's religion
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (string.IsNullOrEmpty(playerData.ReligionUID))
+        if (!_religionManager.HasReligion(player.PlayerUID))
             return TextCommandResult.Error("You must be in a religion to create a civilization");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID);
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         if (religion == null)
             return TextCommandResult.Error("Your religion was not found");
 
@@ -111,7 +106,7 @@ public class CivilizationCommands(
             return TextCommandResult.Error("Only religion founders can create civilizations");
 
         // Create civilization
-        var civ = _civilizationManager.CreateCivilization(civName, player.PlayerUID, playerData.ReligionUID);
+        var civ = _civilizationManager.CreateCivilization(civName, player.PlayerUID, religion.ReligionUID);
         if (civ == null)
             return TextCommandResult.Error(
                 "Failed to create civilization. Check name requirements (3-32 characters, unique)");
@@ -130,13 +125,12 @@ public class CivilizationCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        // Get player's religion
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (string.IsNullOrEmpty(playerData.ReligionUID))
+        if (!_religionManager.HasReligion(player.PlayerUID))
             return TextCommandResult.Error("You must be in a religion");
 
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         // Get player's civilization
-        var civ = _civilizationManager.GetCivilizationByReligion(playerData.ReligionUID);
+        var civ = _civilizationManager.GetCivilizationByReligion(religion!.ReligionUID);
         if (civ == null)
             return TextCommandResult.Error("You are not in a civilization. Use /civ create first");
 
@@ -168,12 +162,11 @@ public class CivilizationCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        // Get player's religion
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (string.IsNullOrEmpty(playerData.ReligionUID))
+
+        if (!_religionManager.HasReligion(player.PlayerUID))
             return TextCommandResult.Error("You must be in a religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID);
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         if (religion == null)
             return TextCommandResult.Error("Your religion was not found");
 
@@ -199,20 +192,20 @@ public class CivilizationCommands(
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
         // Get player's religion
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (string.IsNullOrEmpty(playerData.ReligionUID))
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId))
             return TextCommandResult.Error("You must be in a religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID);
+        var religion = _religionManager.GetPlayerReligion(playerId);
         if (religion == null)
             return TextCommandResult.Error("Your religion was not found");
 
         // Check if player is founder of their religion
-        if (religion.FounderUID != player.PlayerUID)
+        if (religion.FounderUID != playerId)
             return TextCommandResult.Error("Only religion founders can leave civilizations");
 
         // Get civilization
-        var civ = _civilizationManager.GetCivilizationByReligion(playerData.ReligionUID);
+        var civ = _civilizationManager.GetCivilizationByReligion(religion.ReligionUID);
         if (civ == null)
             return TextCommandResult.Error("You are not in a civilization");
 
@@ -221,7 +214,7 @@ public class CivilizationCommands(
             return TextCommandResult.Error("Civilization founders cannot leave. Use /civ disband instead");
 
         // Leave civilization
-        var success = _civilizationManager.LeaveReligion(playerData.ReligionUID, player.PlayerUID);
+        var success = _civilizationManager.LeaveReligion(religion.ReligionUID, player.PlayerUID);
         if (!success)
             return TextCommandResult.Error("Failed to leave civilization");
 
@@ -239,12 +232,14 @@ public class CivilizationCommands(
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
         // Get player's religion
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (string.IsNullOrEmpty(playerData.ReligionUID))
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId))
             return TextCommandResult.Error("You must be in a religion");
 
+        var religion = _religionManager.GetPlayerReligion(playerId);
+
         // Get civilization
-        var civ = _civilizationManager.GetCivilizationByReligion(playerData.ReligionUID);
+        var civ = _civilizationManager.GetCivilizationByReligion(religion!.ReligionUID);
         if (civ == null)
             return TextCommandResult.Error("You are not in a civilization");
 
@@ -258,7 +253,7 @@ public class CivilizationCommands(
             return TextCommandResult.Error($"Religion '{religionName}' not found");
 
         // Kick religion
-        var success = _civilizationManager.KickReligion(civ.CivId, targetReligion.ReligionUID, player.PlayerUID);
+        var success = _civilizationManager.KickReligion(civ.CivId, targetReligion.ReligionUID, playerId);
         if (!success)
             return TextCommandResult.Error("Failed to kick religion. You cannot kick your own religion");
 
@@ -274,21 +269,23 @@ public class CivilizationCommands(
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
         // Get player's religion
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (string.IsNullOrEmpty(playerData.ReligionUID))
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId))
             return TextCommandResult.Error("You must be in a religion");
 
+        var religion = _religionManager.GetPlayerReligion(playerId);
+
         // Get civilization
-        var civ = _civilizationManager.GetCivilizationByReligion(playerData.ReligionUID);
+        var civ = _civilizationManager.GetCivilizationByReligion(religion!.ReligionUID);
         if (civ == null)
             return TextCommandResult.Error("You are not in a civilization");
 
         // Check if player is founder
-        if (civ.FounderUID != player.PlayerUID)
+        if (civ.FounderUID != playerId)
             return TextCommandResult.Error("Only the civilization founder can disband it");
 
         // Disband
-        var success = _civilizationManager.DisbandCivilization(civ.CivId, player.PlayerUID);
+        var success = _civilizationManager.DisbandCivilization(civ.CivId, playerId);
         if (!success)
             return TextCommandResult.Error("Failed to disband civilization");
 
@@ -350,11 +347,12 @@ public class CivilizationCommands(
         else
         {
             // Get player's civilization
-            var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-            if (string.IsNullOrEmpty(playerData.ReligionUID))
+            var playerId = player.PlayerUID;
+            if (!_religionManager.HasReligion(playerId))
                 return TextCommandResult.Error("You must be in a religion. Specify a civilization name to view others");
 
-            civ = _civilizationManager.GetCivilizationByReligion(playerData.ReligionUID);
+            var religion = _religionManager.GetPlayerReligion(playerId);
+            civ = _civilizationManager.GetCivilizationByReligion(religion.ReligionUID);
             if (civ == null)
                 return TextCommandResult.Error(
                     "You are not in a civilization. Specify a civilization name to view others");
@@ -409,20 +407,21 @@ public class CivilizationCommands(
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
         // Get player's religion
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (string.IsNullOrEmpty(playerData.ReligionUID))
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId))
             return TextCommandResult.Error("You must be in a religion to receive invitations");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID);
+        var religion = _religionManager.GetPlayerReligion(playerId);
+
         if (religion == null)
             return TextCommandResult.Error("Your religion was not found");
 
         // Check if player is founder
-        if (religion.FounderUID != player.PlayerUID)
+        if (religion.FounderUID != playerId)
             return TextCommandResult.Error("Only religion founders can view civilization invitations");
 
         // Get invites
-        var invites = _civilizationManager.GetInvitesForReligion(playerData.ReligionUID);
+        var invites = _civilizationManager.GetInvitesForReligion(religion.ReligionUID);
 
         if (!invites.Any())
             return TextCommandResult.Success("You have no pending civilization invitations");

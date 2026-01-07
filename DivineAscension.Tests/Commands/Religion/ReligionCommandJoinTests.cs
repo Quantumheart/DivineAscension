@@ -25,12 +25,12 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", null); // No current religion
+        var playerData = CreatePlayerData("player-1"); // No current religion
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1", isPublic: true);
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TestReligion");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns(religion);
         _religionManager.Setup(m => m.CanJoinReligion("religion-1", "player-1")).Returns(true);
 
@@ -42,7 +42,7 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("You have joined TestReligion", result.StatusMessage);
         Assert.Contains("Khoras", result.StatusMessage);
-        _playerReligionDataManager.Verify(m => m.JoinReligion("player-1", "religion-1"), Times.Once);
+        _playerProgressionDataManager.Verify(m => m.JoinReligion("player-1", "religion-1"), Times.Once);
     }
 
     [Fact]
@@ -50,12 +50,12 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", null);
+        var playerData = CreatePlayerData("player-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1", isPublic: true);
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TestReligion");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns(religion);
         _religionManager.Setup(m => m.CanJoinReligion("religion-1", "player-1")).Returns(true);
 
@@ -71,12 +71,12 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", "old-religion"); // Has current religion
+        var playerData = CreatePlayerData("player-1"); // Has current religion
         var religion = CreateReligion("religion-1", "NewReligion", DeityType.Lysa, "founder-1", isPublic: true);
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "NewReligion");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("NewReligion")).Returns(religion);
         _religionManager.Setup(m => m.CanJoinReligion("religion-1", "player-1")).Returns(true);
 
@@ -84,8 +84,8 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         _sut!.OnJoinReligion(args);
 
         // Assert
-        _playerReligionDataManager.Verify(m => m.HandleReligionSwitch("player-1"), Times.Once);
-        _playerReligionDataManager.Verify(m => m.JoinReligion("player-1", "religion-1"), Times.Once);
+        _religionManager.Verify(m => m.RemoveInvitation("player-1", "religion-1"), Times.Once);
+        _playerProgressionDataManager.Verify(m => m.JoinReligion("player-1", "religion-1"), Times.Once);
     }
 
     [Fact]
@@ -93,12 +93,12 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", null); // No current religion
+        var playerData = CreatePlayerData("player-1"); // No current religion
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1", isPublic: true);
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TestReligion");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns(religion);
         _religionManager.Setup(m => m.CanJoinReligion("religion-1", "player-1")).Returns(true);
 
@@ -106,7 +106,7 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         _sut!.OnJoinReligion(args);
 
         // Assert
-        _playerReligionDataManager.Verify(m => m.HandleReligionSwitch(It.IsAny<string>()), Times.Never);
+        _playerProgressionDataManager.Verify(m => m.HandleReligionSwitch(It.IsAny<string>()), Times.Never);
     }
 
     #endregion

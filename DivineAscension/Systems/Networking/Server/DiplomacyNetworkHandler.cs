@@ -24,7 +24,7 @@ public class DiplomacyNetworkHandler(
     IDiplomacyManager diplomacyManager,
     CivilizationManager civilizationManager,
     IReligionManager religionManager,
-    IPlayerReligionDataManager playerReligionDataManager,
+    IPlayerProgressionDataManager playerProgressionDataManager,
     IServerNetworkChannel serverChannel)
     : IServerNetworkHandler
 {
@@ -125,22 +125,21 @@ public class DiplomacyNetworkHandler(
         sapi.Logger.Debug(
             $"{DiplomacyConstants.LogPrefix} Diplomacy action '{packet.Action}' requested by {fromPlayer.PlayerName}");
 
-        var playerData = playerReligionDataManager.GetOrCreatePlayerData(fromPlayer.PlayerUID);
-        if (playerData.ReligionUID == null)
+        var religion = religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+        if (!religionManager.HasReligion(fromPlayer.PlayerUID))
         {
             SendActionResponse(fromPlayer, false, "You must be in a religion to use diplomacy.", packet.Action);
             return;
         }
 
         // Verify the player is the founder of their civilization
-        var playerReligion = religionManager.GetReligion(playerData.ReligionUID);
-        if (playerReligion == null)
+        if (religion == null)
         {
             SendActionResponse(fromPlayer, false, "Your religion no longer exists.", packet.Action);
             return;
         }
 
-        var playerCiv = civilizationManager.GetCivilizationByReligion(playerData.ReligionUID);
+        var playerCiv = civilizationManager.GetCivilizationByReligion(religion.ReligionUID);
         if (playerCiv == null)
         {
             SendActionResponse(fromPlayer, false, "Your religion is not part of a civilization.", packet.Action);

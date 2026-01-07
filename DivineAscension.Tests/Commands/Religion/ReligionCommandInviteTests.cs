@@ -27,15 +27,16 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "InviterName");
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TargetName");
 
         var onlinePlayers = new List<IPlayer> { mockTarget.Object };
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.InvitePlayer("religion-1", "target-1", "player-1")).Returns(true);
         _mockWorld.Setup(w => w.AllOnlinePlayers).Returns(onlinePlayers.ToArray());
 
@@ -55,15 +56,16 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "InviterName");
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TargetName");
 
         var onlinePlayers = new List<IPlayer> { mockTarget.Object };
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.InvitePlayer("religion-1", "target-1", "player-1")).Returns(true);
         _mockWorld.Setup(w => w.AllOnlinePlayers).Returns(onlinePlayers.ToArray());
 
@@ -83,15 +85,16 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "InviterName");
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "targetname"); // lowercase
 
         var onlinePlayers = new List<IPlayer> { mockTarget.Object };
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.InvitePlayer("religion-1", "target-1", "player-1")).Returns(true);
         _mockWorld.Setup(w => w.AllOnlinePlayers).Returns(onlinePlayers.ToArray());
 
@@ -136,11 +139,11 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "InviterName");
-        var playerData = CreatePlayerData("player-1", null); // No religion
+        var playerData = CreatePlayerData("player-1"); // No religion
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TargetName");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
 
         // Act
         var result = _sut!.OnInvitePlayer(args);
@@ -156,12 +159,13 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "InviterName");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TargetName");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns((ReligionData?)null);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns((ReligionData?)null);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
 
         // Act
         var result = _sut!.OnInvitePlayer(args);
@@ -177,13 +181,14 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "InviterName");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "NonExistentPlayer");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _mockWorld.Setup(w => w.AllOnlinePlayers).Returns(Array.Empty<IPlayer>());
 
         // Act
@@ -201,7 +206,7 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "InviterName");
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
         religion.MemberUIDs.Add("target-1"); // Target is already a member
 
@@ -210,8 +215,10 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
 
         var onlinePlayers = new List<IPlayer> { mockTarget.Object };
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _mockWorld.Setup(w => w.AllOnlinePlayers).Returns(onlinePlayers.ToArray());
 
         // Act

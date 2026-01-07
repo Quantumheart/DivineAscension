@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
@@ -15,19 +14,22 @@ namespace DivineAscension.Commands;
 public class FavorCommands
 {
     private readonly IDeityRegistry _deityRegistry;
-    private readonly IPlayerReligionDataManager _playerReligionDataManager;
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
+    private readonly IReligionManager _religionManager;
     private readonly ICoreServerAPI _sapi;
 
     // ReSharper disable once ConvertToPrimaryConstructor
     public FavorCommands(
         ICoreServerAPI sapi,
         IDeityRegistry deityRegistry,
-        IPlayerReligionDataManager playerReligionDataManager)
+        IPlayerProgressionDataManager playerReligionDataManager,
+        IReligionManager religionManager)
     {
         _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
         _deityRegistry = deityRegistry ?? throw new ArgumentNullException(nameof(deityRegistry));
-        _playerReligionDataManager = playerReligionDataManager ??
-                                     throw new ArgumentNullException(nameof(playerReligionDataManager));
+        _playerProgressionDataManager = playerReligionDataManager ??
+                                        throw new ArgumentNullException(nameof(playerReligionDataManager));
+        _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
     }
 
     /// <summary>
@@ -101,20 +103,21 @@ public class FavorCommands
     /// <summary>
     ///     Get player's religion data and validate they have a deity
     /// </summary>
-    internal (PlayerReligionData? religionData, string? religionName, TextCommandResult? errorResult)
+    internal (PlayerProgressionData? playerProgressionData, string? religionName, TextCommandResult? errorResult)
         ValidatePlayerHasDeity(IServerPlayer player)
     {
-        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
+        var playerProgressionData = _playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
 
-        if (religionData.ActiveDeity == DeityType.None)
+        if (_religionManager.GetPlayerActiveDeity(player.PlayerUID) == DeityType.None)
             return (null, null, TextCommandResult.Error("You are not in a religion or do not have an active deity."));
 
         // Get religion name if in a religion
         string? religionName = null;
-        if (!string.IsNullOrEmpty(religionData.ReligionUID))
-            religionName = religionData.ReligionUID; // This will be improved when we have access to ReligionManager
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
+        if (!string.IsNullOrEmpty(religion.ReligionUID))
+            religionName = religion.ReligionName; // This will be improved when we have access to ReligionManager
 
-        return (religionData, religionName, null);
+        return (playerProgressionData, religionName, null);
     }
 
     /// <summary>
@@ -141,14 +144,14 @@ public class FavorCommands
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command must be used by a player");
 
-        var (religionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
+        var (playerProgressionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
-        var deity = _deityRegistry.GetDeity(religionData!.ActiveDeity);
-        var deityName = deity?.Name ?? religionData.ActiveDeity.ToString();
+        var deity = _deityRegistry.GetDeity(_religionManager.GetPlayerActiveDeity(player.PlayerUID));
+        var deityName = deity?.Name;
 
         return TextCommandResult.Success(
-            $"You have {religionData.Favor} favor with {deityName} (Rank: {religionData.FavorRank})"
+            $"You have {playerProgressionData.Favor} favor with {deityName} (Rank: {playerProgressionData.FavorRank})"
         );
     }
 
@@ -160,21 +163,21 @@ public class FavorCommands
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command must be used by a player");
 
-        var (religionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
+        var (playerProgressionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
-        var deity = _deityRegistry.GetDeity(religionData!.ActiveDeity);
-        var deityName = deity?.Name ?? religionData.ActiveDeity.ToString();
+        var deity = _deityRegistry.GetDeity(_religionManager.GetPlayerActiveDeity(player.PlayerUID));
+        var deityName = deity?.Name;
 
         // Get current rank based on total favor
-        var currentRank = GetCurrentFavorRank(religionData.TotalFavorEarned);
+        var currentRank = GetCurrentFavorRank(playerProgressionData.TotalFavorEarned);
         var currentRankName = RankRequirements.GetFavorRankName(currentRank);
 
         var sb = new StringBuilder();
         sb.AppendLine("=== Divine Favor ===");
         sb.AppendLine($"Deity: {deityName}");
-        sb.AppendLine($"Current Favor: {religionData.Favor:N0}");
-        sb.AppendLine($"Total Favor Earned: {religionData.TotalFavorEarned:N0}");
+        sb.AppendLine($"Current Favor: {playerProgressionData.Favor:N0}");
+        sb.AppendLine($"Total Favor Earned: {playerProgressionData.TotalFavorEarned:N0}");
         sb.AppendLine($"Current Rank: {currentRankName}");
 
         // Calculate next rank
@@ -186,8 +189,8 @@ public class FavorCommands
 
             sb.AppendLine($"Next Rank: {nextRankName} ({nextThreshold:N0} total favor required)");
 
-            var remaining = nextThreshold - religionData.TotalFavorEarned;
-            var progress = (float)religionData.TotalFavorEarned / nextThreshold * 100f;
+            var remaining = nextThreshold - playerProgressionData.TotalFavorEarned;
+            var progress = (float)playerProgressionData.TotalFavorEarned / nextThreshold * 100f;
             sb.AppendLine($"Progress: {progress:F1}% ({remaining:N0} favor needed)");
         }
         else
@@ -206,30 +209,22 @@ public class FavorCommands
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command must be used by a player");
 
-        var (religionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
+        var (playerProgressionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
-        var deity = _deityRegistry.GetDeity(religionData!.ActiveDeity);
-        var deityName = deity?.Name ?? religionData.ActiveDeity.ToString();
+        var deity = _deityRegistry.GetDeity(_religionManager.GetPlayerActiveDeity(player.PlayerUID));
+        var deityName = deity?.Name;
 
         // Get current rank based on total favor
-        var currentRank = GetCurrentFavorRank(religionData.TotalFavorEarned);
+        var currentRank = GetCurrentFavorRank(playerProgressionData.TotalFavorEarned);
         var currentRankName = RankRequirements.GetFavorRankName(currentRank);
 
         var sb = new StringBuilder();
         sb.AppendLine("=== Divine Statistics ===");
         sb.AppendLine($"Deity: {deityName}");
-        sb.AppendLine($"Current Favor: {religionData.Favor:N0}");
-        sb.AppendLine($"Total Favor Earned: {religionData.TotalFavorEarned:N0}");
+        sb.AppendLine($"Current Favor: {playerProgressionData.Favor:N0}");
+        sb.AppendLine($"Total Favor Earned: {playerProgressionData.TotalFavorEarned:N0}");
         sb.AppendLine($"Devotion Rank: {currentRankName}");
-        sb.AppendLine($"Kill Count: {religionData.KillCount}");
-
-        if (religionData.LastReligionSwitch.HasValue)
-        {
-            var daysServed = (DateTime.UtcNow - religionData.LastReligionSwitch.Value).Days;
-            sb.AppendLine($"Days Served: {daysServed}");
-            sb.AppendLine($"Join Date: {religionData.LastReligionSwitch.Value:yyyy-MM-dd}");
-        }
 
         // Calculate next rank
         if (currentRank < 4) // Not at max rank
@@ -237,7 +232,7 @@ public class FavorCommands
             var nextRank = currentRank + 1;
             var nextRankName = RankRequirements.GetFavorRankName(nextRank);
             var nextThreshold = RankRequirements.GetRequiredFavorForNextRank(currentRank);
-            var remaining = nextThreshold - religionData.TotalFavorEarned;
+            var remaining = nextThreshold - playerProgressionData.TotalFavorEarned;
 
             sb.AppendLine();
             sb.AppendLine($"Next Rank: {nextRankName}");
@@ -316,7 +311,7 @@ public class FavorCommands
         if (amount > 999999) return TextCommandResult.Error("Amount cannot exceed 999,999.");
 
         var oldFavor = religionData?.Favor;
-        _playerReligionDataManager.AddFavor(player.PlayerUID, amount);
+        _playerProgressionDataManager.AddFavor(player.PlayerUID, amount);
 
         return TextCommandResult.Success($"Added {amount:N0} favor ({oldFavor:N0} → {religionData?.Favor:N0})");
     }
@@ -340,7 +335,7 @@ public class FavorCommands
         if (amount > 999999) return TextCommandResult.Error("Amount cannot exceed 999,999.");
 
         var oldFavor = religionData?.Favor;
-        _playerReligionDataManager.RemoveFavor(player.PlayerUID, amount);
+        _playerProgressionDataManager.RemoveFavor(player.PlayerUID, amount);
         var actualRemoved = oldFavor - religionData?.Favor;
 
         return TextCommandResult.Success(
@@ -405,7 +400,6 @@ public class FavorCommands
         var oldRank = religionData.FavorRank;
 
         religionData.TotalFavorEarned = amount;
-        religionData.UpdateFavorRank();
 
         var newRank = religionData.FavorRank;
 

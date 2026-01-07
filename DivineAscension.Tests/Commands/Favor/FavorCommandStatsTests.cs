@@ -2,6 +2,8 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Tests.Commands.Helpers;
+using DivineAscension.Tests.Helpers;
+using Moq;
 using Vintagestory.API.Common;
 
 namespace DivineAscension.Tests.Commands.Favor;
@@ -49,15 +51,16 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1", DeityType.Khoras, 1500, 3000,
             FavorRank.Zealot);
-        playerData.KillCount = 42;
-        playerData.LastReligionSwitch = DateTime.UtcNow.AddDays(-30);
         var args = CreateCommandArgs(mockPlayer.Object);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
             .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
-
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
+            .Returns(TestFixtures.CreateTestReligion());
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Khoras);
         // Act
         var result = _sut!.OnFavorStats(args);
 
@@ -69,8 +72,6 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
         Assert.Contains("1,500", result.StatusMessage); // Current favor
         Assert.Contains("3,000", result.StatusMessage); // Total favor
         Assert.Contains("Zealot", result.StatusMessage);
-        Assert.Contains("42", result.StatusMessage); // Kill count
-        Assert.Contains("Days Served", result.StatusMessage);
     }
 
     [Fact]
@@ -80,13 +81,16 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1", DeityType.Lysa, 100, 100,
             FavorRank.Initiate);
-        playerData.LastReligionSwitch = null;
         var args = CreateCommandArgs(mockPlayer.Object);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _deityRegistry.Setup(d => d.GetDeity(DeityType.Lysa))
             .Returns(new Deity(DeityType.Lysa, nameof(DeityType.Lysa), "Hunt"));
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
+            .Returns(TestFixtures.CreateTestReligion());
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Lysa);
 
         // Act
         var result = _sut!.OnFavorStats(args);
@@ -111,7 +115,10 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra))
             .Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Death"));
-
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
+            .Returns(TestFixtures.CreateTestReligion());
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Khoras);
         // Act
         var result = _sut!.OnFavorStats(args);
 
@@ -135,7 +142,10 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra))
             .Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Light"));
-
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
+            .Returns(TestFixtures.CreateTestReligion());
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Aethra);
         // Act
         var result = _sut!.OnFavorStats(args);
 

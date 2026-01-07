@@ -9,19 +9,19 @@ using Vintagestory.API.Server;
 namespace DivineAscension.Systems.Favor;
 
 public class GaiaFavorTracker(
-    IPlayerReligionDataManager playerReligionDataManager,
+    IPlayerProgressionDataManager playerProgressionDataManager,
     ICoreServerAPI sapi,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
     // --- Brick Placement Tracking (Part B requirement) ---
     private const int FavorPerBrickPlacement = 2;
     private const long BrickPlacementCooldownMs = 5000; // 5 seconds between brick placement favor awards
-    private readonly Dictionary<string, long> _lastBrickPlacementTime = new();
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
     private readonly Guid _instanceId = Guid.NewGuid();
+    private readonly Dictionary<string, long> _lastBrickPlacementTime = new();
 
-    private readonly IPlayerReligionDataManager _playerReligionDataManager =
-        playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
+        playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
 
@@ -51,8 +51,8 @@ public class GaiaFavorTracker(
     private void HandleClayFormingFinished(IServerPlayer player, ItemStack stack, int clayConsumed)
     {
         // Verify religion
-        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (religionData.ActiveDeity != DeityType.Gaia) return;
+        var deityType = _playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID);
+        if (deityType != DeityType.Gaia) return;
 
         if (clayConsumed > 0)
         {
@@ -68,8 +68,8 @@ public class GaiaFavorTracker(
     private void OnBlockPlaced(IServerPlayer byPlayer, int oldblockId, BlockSelection blockSel, ItemStack withItemStack)
     {
         // Verify religion
-        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(byPlayer.PlayerUID);
-        if (religionData.ActiveDeity != DeityType.Gaia) return;
+        var deityType = _playerProgressionDataManager.GetPlayerDeityType(byPlayer.PlayerUID);
+        if (deityType != DeityType.Gaia) return;
 
         var placedBlock = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
         if (!IsBrickBlock(placedBlock)) return;
@@ -142,8 +142,8 @@ public class GaiaFavorTracker(
 
         if (string.IsNullOrEmpty(playerUid)) return;
 
-        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(playerUid);
-        if (religionData.ActiveDeity != DeityType.Gaia) return;
+        var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerUid);
+        if (deityType != DeityType.Gaia) return;
 
         float totalFavor = 0;
         foreach (var stack in firedItems)
@@ -161,7 +161,7 @@ public class GaiaFavorTracker(
 
         if (totalFavor > 0)
         {
-            _favorSystem.AwardFavorForAction(playerUid, "Pottery firing", totalFavor);
+            _favorSystem.AwardFavorForAction(playerUid, "Pottery firing", totalFavor, deityType);
             _sapi.Logger.Debug($"[GaiaFavorTracker] Total pit kiln favor awarded: {totalFavor}");
         }
     }

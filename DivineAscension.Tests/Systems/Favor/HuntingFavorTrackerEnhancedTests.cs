@@ -18,11 +18,34 @@ public class HuntingFavorTrackerEnhancedTests
 {
     private static HuntingFavorTracker CreateTracker(
         Mock<ICoreServerAPI> mockSapi,
-        Mock<IPlayerReligionDataManager> mockPlayerReligion,
+        Mock<IPlayerProgressionDataManager> mockPlayerReligion,
         Mock<IFavorSystem> mockFavor)
     {
         return new HuntingFavorTracker(mockPlayerReligion.Object, mockSapi.Object, mockFavor.Object);
     }
+
+    #region Documentation Tests
+
+    [Fact]
+    public void FavorTiers_Documentation()
+    {
+        // This test documents the 6-tier favor system
+        // Tier 15: Large predators (bear, dragon, tiger, lion)
+        // Tier 12: Large herbivores / medium predators (wolf, moose, mammoth, elephant)
+        // Tier 10: Scavengers (hyena, jackal, vulture)
+        // Tier 8: Medium prey (deer, fox, bighorn, gazelle, antelope, elk)
+        // Tier 5: Small domesticated (pig, sheep, raccoon, goat, lamb)
+        // Tier 3: Tiny animals (chicken, hare, rabbit, bird, rodent, mouse)
+
+        Assert.Equal(15, 15); // Tier 15 exists
+        Assert.Equal(12, 12); // Tier 12 exists
+        Assert.Equal(10, 10); // Tier 10 exists
+        Assert.Equal(8, 8); // Tier 8 exists
+        Assert.Equal(5, 5); // Tier 5 exists
+        Assert.Equal(3, 3); // Tier 3 exists
+    }
+
+    #endregion
 
     #region Vanilla Animal Regression Tests
 
@@ -49,7 +72,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -75,7 +98,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -100,7 +123,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -124,7 +147,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -145,7 +168,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -167,7 +190,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -190,7 +213,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -216,7 +239,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -243,7 +266,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -266,7 +289,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -289,7 +312,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -310,7 +333,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -332,7 +355,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -350,7 +373,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -372,7 +395,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -390,7 +413,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -406,7 +429,7 @@ public class HuntingFavorTrackerEnhancedTests
     {
         // Arrange
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -414,29 +437,6 @@ public class HuntingFavorTrackerEnhancedTests
         Assert.Equal(DeityType.Lysa, tracker.DeityType);
 
         tracker.Dispose();
-    }
-
-    #endregion
-
-    #region Documentation Tests
-
-    [Fact]
-    public void FavorTiers_Documentation()
-    {
-        // This test documents the 6-tier favor system
-        // Tier 15: Large predators (bear, dragon, tiger, lion)
-        // Tier 12: Large herbivores / medium predators (wolf, moose, mammoth, elephant)
-        // Tier 10: Scavengers (hyena, jackal, vulture)
-        // Tier 8: Medium prey (deer, fox, bighorn, gazelle, antelope, elk)
-        // Tier 5: Small domesticated (pig, sheep, raccoon, goat, lamb)
-        // Tier 3: Tiny animals (chicken, hare, rabbit, bird, rodent, mouse)
-
-        Assert.Equal(15, 15); // Tier 15 exists
-        Assert.Equal(12, 12); // Tier 12 exists
-        Assert.Equal(10, 10); // Tier 10 exists
-        Assert.Equal(8, 8);   // Tier 8 exists
-        Assert.Equal(5, 5);   // Tier 5 exists
-        Assert.Equal(3, 3);   // Tier 3 exists
     }
 
     #endregion

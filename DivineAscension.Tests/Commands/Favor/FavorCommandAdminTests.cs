@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Tests.Commands.Helpers;
+using DivineAscension.Tests.Helpers;
 using Moq;
 using Vintagestory.API.Common;
 
@@ -32,6 +33,10 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra))
             .Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Light"));
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
+            .Returns(TestFixtures.CreateTestReligion());
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Aethra);
 
         // Act
         var result = _sut!.OnResetFavor(args);
@@ -59,7 +64,10 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra))
             .Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Shadows"));
-
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
+            .Returns(TestFixtures.CreateTestReligion());
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Khoras);
         // Act
         var result = _sut!.OnMaxFavor(args);
 
@@ -112,6 +120,10 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
             .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
         _playerReligionDataManager.Setup(m => m.AddFavor("player-1", 50, It.IsAny<string>()))
             .Callback(() => playerData.Favor += 50);
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
+            .Returns(TestFixtures.CreateTestReligion());
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Khoras);
 
         // Act
         var result = _sut!.OnAddFavor(args);
@@ -137,6 +149,10 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
             .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
+            .Returns(TestFixtures.CreateTestReligion());
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Khoras);
 
         // Act
         var result = _sut!.OnAddFavor(args);
@@ -167,6 +183,10 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.RemoveFavor("player-1", 50, It.IsAny<string>()))
             .Callback(() => playerData.Favor = Math.Max(0, playerData.Favor - 50))
             .Returns(true);
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
+            .Returns(TestFixtures.CreateTestReligion());
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Khoras);
 
         // Act
         var result = _sut!.OnRemoveFavor(args);
@@ -194,6 +214,10 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.RemoveFavor("player-1", 100, It.IsAny<string>()))
             .Callback(() => playerData.Favor = 0)
             .Returns(true);
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
+            .Returns(TestFixtures.CreateTestReligion());
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Khoras);
 
         // Act
         var result = _sut!.OnRemoveFavor(args);
@@ -217,6 +241,10 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
             .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
+            .Returns(TestFixtures.CreateTestReligion());
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Khoras);
 
         // Act
         var result = _sut!.OnRemoveFavor(args);
@@ -245,6 +273,10 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra))
             .Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Storms"));
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
+            .Returns(TestFixtures.CreateTestReligion());
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Aethra);
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
@@ -273,6 +305,10 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _deityRegistry.Setup(d => d.GetDeity(DeityType.Gaia))
             .Returns(new Deity(DeityType.Gaia, nameof(DeityType.Gaia), "Earth"));
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
+            .Returns(TestFixtures.CreateTestReligion());
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Gaia);
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
@@ -297,6 +333,10 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
             .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
+            .Returns(TestFixtures.CreateTestReligion());
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Khoras);
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
@@ -320,6 +360,10 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
             .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
+            .Returns(TestFixtures.CreateTestReligion());
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Khoras);
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);

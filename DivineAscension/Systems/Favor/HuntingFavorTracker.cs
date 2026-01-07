@@ -9,7 +9,7 @@ using Vintagestory.API.Server;
 namespace DivineAscension.Systems.Favor;
 
 public class HuntingFavorTracker(
-    IPlayerReligionDataManager playerReligionDataManager,
+    IPlayerProgressionDataManager playerProgressionDataManager,
     ICoreServerAPI sapi,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
@@ -17,16 +17,16 @@ public class HuntingFavorTracker(
 
     private readonly HashSet<string> _lysaFollowers = new();
 
-    private readonly IPlayerReligionDataManager _playerReligionDataManager =
-        playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
+        playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
 
     public void Dispose()
     {
         _sapi.Event.OnEntityDeath -= OnEntityDeath;
-        _playerReligionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
-        _playerReligionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
+        _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
+        _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
         _lysaFollowers.Clear();
     }
 
@@ -40,8 +40,8 @@ public class HuntingFavorTracker(
         // Cache followers
         RefreshFollowerCache();
 
-        _playerReligionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
-        _playerReligionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesReligion;
+        _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
+        _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
     }
 
     private void RefreshFollowerCache()
@@ -59,14 +59,14 @@ public class HuntingFavorTracker(
 
     private void UpdateFollower(string playerId)
     {
-        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(playerId);
-        if (religionData?.ActiveDeity == DeityType)
+        var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerId);
+        if (deityType == DeityType)
             _lysaFollowers.Add(playerId);
         else
             _lysaFollowers.Remove(playerId);
     }
 
-    private void OnPlayerLeavesReligion(IServerPlayer player, string religionId)
+    private void OnPlayerLeavesProgression(IServerPlayer player, string religionId)
     {
         _lysaFollowers.Remove(player.PlayerUID);
     }

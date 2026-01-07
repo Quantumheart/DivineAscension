@@ -17,7 +17,7 @@ namespace DivineAscension.Commands;
 public class BlessingCommands(
     ICoreServerAPI? sapi,
     IBlessingRegistry? blessingRegistry,
-    IPlayerReligionDataManager? playerReligionDataManager,
+    IPlayerProgressionDataManager? playerReligionDataManager,
     IReligionManager? religionManager,
     IBlessingEffectSystem? blessingEffectSystem)
 {
@@ -27,7 +27,7 @@ public class BlessingCommands(
     private readonly IBlessingRegistry _blessingRegistry =
         blessingRegistry ?? throw new ArgumentNullException($"{nameof(blessingRegistry)}");
 
-    private readonly IPlayerReligionDataManager _playerReligionDataManager =
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerReligionDataManager ?? throw new ArgumentNullException($"{nameof(playerReligionDataManager)}");
 
     private readonly IReligionManager _religionManager =
@@ -87,16 +87,16 @@ public class BlessingCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error(ErrorMessageConstants.ErrorPlayerNotFound);
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-
-        if (playerData.ActiveDeity == DeityType.None)
+        var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
+        var playerDeity = _religionManager.GetPlayerActiveDeity(player.PlayerUID);
+        if (playerDeity == DeityType.None)
             return TextCommandResult.Error(ErrorMessageConstants.ErrorMustJoinReligion);
 
-        var playerBlessings = _blessingRegistry.GetBlessingsForDeity(playerData.ActiveDeity, BlessingKind.Player);
-        var religionBlessings = _blessingRegistry.GetBlessingsForDeity(playerData.ActiveDeity, BlessingKind.Religion);
+        var playerBlessings = _blessingRegistry.GetBlessingsForDeity(playerDeity, BlessingKind.Player);
+        var religionBlessings = _blessingRegistry.GetBlessingsForDeity(playerDeity, BlessingKind.Religion);
 
         var sb = new StringBuilder();
-        sb.AppendLine(string.Format(FormatStringConstants.HeaderBlessingsForDeity, playerData.ActiveDeity));
+        sb.AppendLine(string.Format(FormatStringConstants.HeaderBlessingsForDeity, playerDeity));
         sb.AppendLine();
 
         sb.AppendLine(FormatStringConstants.HeaderPlayerBlessings);
@@ -112,7 +112,7 @@ public class BlessingCommands(
         }
 
         sb.AppendLine(FormatStringConstants.HeaderReligionBlessings);
-        var religion = playerData.ReligionUID != null ? _religionManager.GetReligion(playerData.ReligionUID) : null;
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         foreach (var blessing in religionBlessings)
         {
             var unlocked = religion?.UnlockedBlessings.TryGetValue(blessing.BlessingId, out var u) == true && u;
@@ -172,15 +172,15 @@ public class BlessingCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error(ErrorMessageConstants.ErrorPlayerNotFound);
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (playerData.ReligionUID == null) return TextCommandResult.Error(ErrorMessageConstants.ErrorNoReligion);
+        if (!_religionManager.HasReligion(player.PlayerUID))
+            return TextCommandResult.Error(ErrorMessageConstants.ErrorNoReligion);
 
         var (_, religionBlessings) = _blessingEffectSystem.GetActiveBlessings(player.PlayerUID);
 
         if (religionBlessings.Count == 0)
             return TextCommandResult.Success(InfoMessageConstants.InfoNoReligionBlessings);
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID);
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         var sb = new StringBuilder();
         sb.AppendLine(string.Format(FormatStringConstants.HeaderReligionBlessingsWithName, religion?.ReligionName,
             religionBlessings.Count));
@@ -302,8 +302,9 @@ public class BlessingCommands(
     [ExcludeFromCodeCoverage(Justification = "Arg parsing difficult")]
     private TextCommandResult GetTree(string playerUid, string? type)
     {
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(playerUid);
-        if (playerData.ActiveDeity == DeityType.None)
+        var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(playerUid);
+        var playerDeity = _religionManager.GetPlayerActiveDeity(playerUid);
+        if (playerDeity == DeityType.None)
             return TextCommandResult.Error(ErrorMessageConstants.ErrorMustJoinReligionForTree);
 
         type = type ?? FormatStringConstants.TypePlayer;
@@ -313,14 +314,13 @@ public class BlessingCommands(
             ? BlessingKind.Religion
             : BlessingKind.Player;
 
-        var blessings = _blessingRegistry.GetBlessingsForDeity(playerData.ActiveDeity, blessingKind);
+        var blessings = _blessingRegistry.GetBlessingsForDeity(playerDeity, blessingKind);
 
-        var religion = playerData.ReligionUID != null
-            ? _religionManager.GetReligion(playerData.ReligionUID)
-            : null;
+        var religion = _religionManager.GetPlayerReligion(playerUid);
+
 
         var sb = new StringBuilder();
-        sb.AppendLine(string.Format(FormatStringConstants.HeaderBlessingTree, playerData.ActiveDeity, blessingKind));
+        sb.AppendLine(string.Format(FormatStringConstants.HeaderBlessingTree, playerDeity, blessingKind));
         sb.AppendLine();
 
         // Group by rank
@@ -421,8 +421,8 @@ public class BlessingCommands(
         if (blessing == null)
             return TextCommandResult.Error(string.Format(ErrorMessageConstants.ErrorBlessingNotFound, blessingId));
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(playerUid);
-        var religion = playerData.ReligionUID != null ? _religionManager.GetReligion(playerData.ReligionUID) : null;
+        var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(playerUid);
+        var religion = _religionManager.GetPlayerReligion(playerUid);
 
         var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(playerData, religion, blessing);
         if (!canUnlock)
@@ -433,7 +433,7 @@ public class BlessingCommands(
         {
             if (religion == null) return TextCommandResult.Error(ErrorMessageConstants.ErrorMustBeInReligionToUnlock);
 
-            var success = _playerReligionDataManager.UnlockPlayerBlessing(playerUid, blessingId);
+            var success = _playerProgressionDataManager.UnlockPlayerBlessing(playerUid, blessingId);
             if (!success) return TextCommandResult.Error(ErrorMessageConstants.ErrorFailedToUnlock);
 
             _blessingEffectSystem.RefreshPlayerBlessings(playerUid);

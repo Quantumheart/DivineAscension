@@ -12,7 +12,7 @@ namespace DivineAscension.Systems.Favor;
 ///     Awards favor to Khoras followers when an anvil recipe is completed (event-driven)
 /// </summary>
 public class AnvilFavorTracker(
-    IPlayerReligionDataManager playerReligionDataManager,
+    IPlayerProgressionDataManager playerProgressionDataManager,
     ICoreServerAPI sapi,
     IFavorSystem favorSystem)
     : IFavorTracker, IDisposable
@@ -29,8 +29,8 @@ public class AnvilFavorTracker(
 
     private readonly Guid _instanceId = Guid.NewGuid();
 
-    private readonly IPlayerReligionDataManager _playerReligionDataManager =
-        playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
+        playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
 
@@ -56,8 +56,8 @@ public class AnvilFavorTracker(
         if (player == null) return;
 
         // Verify religion
-        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (religionData.ActiveDeity != DeityType.Khoras) return;
+        var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerUid);
+        if (deityType != DeityType.Khoras) return;
 
         // Compute favor from output preview (fallback to mid tier)
         var baseFavor = outputPreview != null ? CalculateBaseFavor(outputPreview) : FavorMidTier;

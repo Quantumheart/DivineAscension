@@ -3,6 +3,7 @@ using DivineAscension.Commands;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using Moq;
 using Vintagestory.API.Common;
@@ -18,7 +19,7 @@ public class ReligionCommandsTestHelpers
     protected Mock<ILogger> _mockLogger;
     protected Mock<ICoreServerAPI> _mockSapi;
     protected Mock<IServerWorldAccessor> _mockWorld;
-    protected Mock<IPlayerReligionDataManager> _playerReligionDataManager;
+    protected Mock<IPlayerProgressionDataManager> _playerProgressionDataManager;
     protected Mock<IReligionManager> _religionManager;
     protected Mock<IServerNetworkChannel> _serverChannel;
     protected ReligionCommands? _sut;
@@ -36,7 +37,7 @@ public class ReligionCommandsTestHelpers
 
         _religionManager = new Mock<IReligionManager>();
 
-        _playerReligionDataManager = new Mock<IPlayerReligionDataManager>();
+        _playerProgressionDataManager = new Mock<IPlayerProgressionDataManager>();
         _serverChannel = new Mock<IServerNetworkChannel>();
     }
 
@@ -46,7 +47,7 @@ public class ReligionCommandsTestHelpers
         return new ReligionCommands(
             _mockSapi.Object,
             _religionManager.Object,
-            _playerReligionDataManager.Object,
+            _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
             _serverChannel.Object);
     }
@@ -90,13 +91,10 @@ public class ReligionCommandsTestHelpers
     /// <summary>
     /// Creates test PlayerReligionData
     /// </summary>
-    protected PlayerReligionData CreatePlayerData(string playerUID, string? religionUID = null,
-        DeityType deity = DeityType.None)
+    protected PlayerProgressionData CreatePlayerData(string playerUID)
     {
-        return new PlayerReligionData(playerUID)
+        return new PlayerProgressionData(playerUID)
         {
-            ReligionUID = religionUID,
-            ActiveDeity = deity
         };
     }
 

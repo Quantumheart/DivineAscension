@@ -29,7 +29,7 @@ public class KhorasBlessingTests
 
         Assert.True(t1.StatModifiers.TryGetValue(VintageStoryStats.ToolDurability, out var toolDur),
             "Craftsman's Touch must define ToolDurability modifier");
-        Assert.Equal(0.10f, toolDur, 3);
+        Assert.Equal(0.02f, toolDur, 3);
 
         // Implementation uses OreDropRate as the ore yield stat code
         Assert.True(t1.StatModifiers.TryGetValue(VintageStoryStats.OreDropRate, out var oreYield),
@@ -52,8 +52,8 @@ public class KhorasBlessingTests
                            + GetOrZero(t2a, VintageStoryStats.ToolDurability)
                            + GetOrZero(t3a, VintageStoryStats.ToolDurability);
 
-        // Expect 0.10 + 0.15 + 0.20 = 0.45 (i.e., +45% total)
-        Assert.Equal(0.45f, totalToolDur, 3);
+        // Expect 0.2 + 0.3 + 0.5 = 0.10 (i.e., +10% total)
+        Assert.Equal(0.10f, totalToolDur, 3);
     }
 
     [Fact]

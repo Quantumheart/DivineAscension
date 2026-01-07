@@ -21,14 +21,14 @@ public class BlessingEffectSystemTests
     private readonly BlessingEffectSystem _effectSystem;
     private readonly Mock<ICoreServerAPI> _mockAPI;
     private readonly Mock<IBlessingRegistry> _mockBlessingRegistry;
-    private readonly Mock<IPlayerReligionDataManager> _mockPlayerReligionDataManager;
+    private readonly Mock<IPlayerProgressionDataManager> _mockPlayerReligionDataManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
 
     public BlessingEffectSystemTests()
     {
         _mockAPI = TestFixtures.CreateMockServerAPI();
         _mockBlessingRegistry = new Mock<IBlessingRegistry>();
-        _mockPlayerReligionDataManager = TestFixtures.CreateMockPlayerReligionDataManager();
+        _mockPlayerReligionDataManager = TestFixtures.CreateMockPlayerProgressionDataManager();
         _mockReligionManager = new Mock<IReligionManager>();
 
         _effectSystem = new BlessingEffectSystem(
@@ -71,7 +71,8 @@ public class BlessingEffectSystemTests
         _effectSystem.GetPlayerStatModifiers("player-uid");
 
         // Assert - Should have fetched player data twice (once before refresh, once after)
-        _mockPlayerReligionDataManager.Verify(m => m.GetOrCreatePlayerData("player-uid"), Times.Exactly(3));
+        _mockReligionManager.Verify(m => m.GetPlayerReligion("player-uid"), Times.Exactly(1));
+        _mockPlayerReligionDataManager.Verify(m => m.GetOrCreatePlayerData("player-uid"), Times.Exactly(2));
     }
 
     #endregion
@@ -401,6 +402,14 @@ public class BlessingEffectSystemTests
             .Returns(playerData);
 
         _mockReligionManager
+            .Setup(m => m.GetPlayerReligion("player-uid"))
+            .Returns(religion);
+
+        _mockReligionManager
+            .Setup(m => m.HasReligion("player-uid"))
+            .Returns(true);
+
+        _mockReligionManager
             .Setup(m => m.GetReligion("religion-uid"))
             .Returns(religion);
 
@@ -457,16 +466,11 @@ public class BlessingEffectSystemTests
         var member2Data = TestFixtures.CreateTestPlayerReligionData("member2", DeityType.Khoras, "religion-uid");
 
         _mockReligionManager
-            .Setup(m => m.GetReligion("religion-uid"))
+            .Setup(m => m.GetReligion("member1"))
             .Returns(religion);
-
-        _mockPlayerReligionDataManager
-            .Setup(m => m.GetOrCreatePlayerData("member1"))
-            .Returns(member1Data);
-
-        _mockPlayerReligionDataManager
-            .Setup(m => m.GetOrCreatePlayerData("member2"))
-            .Returns(member2Data);
+        _mockReligionManager
+            .Setup(m => m.GetReligion("member2"))
+            .Returns(religion);
 
         var mockWorld = new Mock<IServerWorldAccessor>();
         _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
@@ -476,8 +480,7 @@ public class BlessingEffectSystemTests
         _effectSystem.RefreshReligionBlessings("religion-uid");
 
         // Assert - Should attempt to get data for both members
-        _mockPlayerReligionDataManager.Verify(m => m.GetOrCreatePlayerData("member1"), Times.Once());
-        _mockPlayerReligionDataManager.Verify(m => m.GetOrCreatePlayerData("member2"), Times.Once());
+        _mockReligionManager.Verify(m => m.GetReligion("religion-uid"), Times.Exactly(1));
     }
 
     [Fact]
@@ -514,7 +517,7 @@ public class BlessingEffectSystemTests
             .Returns(playerData);
 
         _mockReligionManager
-            .Setup(m => m.GetReligion("religion-uid"))
+            .Setup(m => m.GetPlayerReligion("player-uid"))
             .Returns(religion);
 
         _mockBlessingRegistry.Setup(r => r.GetBlessing("player_blessing")).Returns(playerBlessing);
@@ -698,21 +701,18 @@ public class BlessingEffectSystemTests
             .Returns(playerData);
 
         _mockReligionManager
-            .Setup(m => m.GetReligion("religion-uid"))
+            .Setup(m => m.GetPlayerReligion("player-uid"))
             .Returns(religion);
 
         var mockWorld = new Mock<IServerWorldAccessor>();
         _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
         mockWorld.Setup(w => w.PlayerByUid("player-uid")).Returns((IServerPlayer)null!);
 
-        // Act - Use reflection to call internal method
-        var method = _effectSystem.GetType().GetMethod("OnPlayerLeavesReligion",
-            BindingFlags.NonPublic | BindingFlags.Instance);
-        method?.Invoke(_effectSystem, new object[] { mockPlayer.Object, "religion-uid" });
+        // Act
+        _effectSystem.OnPlayerLeavesProgression(mockPlayer.Object, "religion-uid");
 
         // Assert - Should access both player and religion data
-        _mockPlayerReligionDataManager.Verify(m => m.GetOrCreatePlayerData("player-uid"), Times.AtLeastOnce());
-        _mockReligionManager.Verify(m => m.GetReligion("religion-uid"), Times.AtLeastOnce());
+        _mockReligionManager.Verify(m => m.GetPlayerReligion("player-uid"), Times.AtLeastOnce());
     }
 
     [Fact]
@@ -727,7 +727,7 @@ public class BlessingEffectSystemTests
 
         // Assert
         _mockPlayerReligionDataManager.VerifyAdd(
-            m => m.OnPlayerLeavesReligion += It.IsAny<PlayerReligionDataManager.PlayerReligionDataChangedDelegate>(),
+            m => m.OnPlayerLeavesReligion += It.IsAny<PlayerProgressionDataManager.PlayerReligionDataChangedDelegate>(),
             Times.Once());
     }
 

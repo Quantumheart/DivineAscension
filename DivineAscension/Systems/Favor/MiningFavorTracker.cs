@@ -8,7 +8,7 @@ using Vintagestory.API.Server;
 namespace DivineAscension.Systems.Favor;
 
 public class MiningFavorTracker(
-    IPlayerReligionDataManager playerReligionDataManager,
+    IPlayerProgressionDataManager playerProgressionDataManager,
     ICoreServerAPI sapi,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
@@ -30,16 +30,16 @@ public class MiningFavorTracker(
     // Cache of active Khoras followers for fast lookup (avoids database hit on every block break)
     private readonly HashSet<string> _khorasFollowers = new();
 
-    private readonly IPlayerReligionDataManager _playerReligionDataManager =
-        playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
+        playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
 
     public void Dispose()
     {
         _sapi.Event.BreakBlock -= OnBlockBroken;
-        _playerReligionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
-        _playerReligionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
+        _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
+        _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
         _khorasFollowers.Clear();
     }
 
@@ -53,8 +53,8 @@ public class MiningFavorTracker(
         RefreshFollowerCache();
 
         // Listen for religion changes to update cache
-        _playerReligionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
-        _playerReligionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesReligion;
+        _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
+        _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
     }
 
     /// <summary>
@@ -70,8 +70,8 @@ public class MiningFavorTracker(
 
         foreach (var player in onlinePlayers)
         {
-            var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-            if (religionData?.ActiveDeity == DeityType) _khorasFollowers.Add(player.PlayerUID);
+            if (_playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID) == DeityType)
+                _khorasFollowers.Add(player.PlayerUID);
         }
     }
 
@@ -80,8 +80,7 @@ public class MiningFavorTracker(
     /// </summary>
     private void OnPlayerDataChanged(string playerUID)
     {
-        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(playerUID);
-        if (religionData?.ActiveDeity == DeityType)
+        if (_playerProgressionDataManager.GetPlayerDeityType(playerUID) == DeityType)
             _khorasFollowers.Add(playerUID);
         else
             _khorasFollowers.Remove(playerUID);
@@ -90,7 +89,7 @@ public class MiningFavorTracker(
     /// <summary>
     ///     Update cache when a player leaves a religion
     /// </summary>
-    private void OnPlayerLeavesReligion(IServerPlayer player, string religionUID)
+    private void OnPlayerLeavesProgression(IServerPlayer player, string religionUID)
     {
         // Player left religion, remove from cache
         _khorasFollowers.Remove(player.PlayerUID);

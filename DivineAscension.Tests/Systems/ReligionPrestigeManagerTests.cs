@@ -96,7 +96,7 @@ public class ReligionPrestigeManagerTests
         var mockBlessingEffectSystem = new Mock<BlessingEffectSystem>(
             _mockAPI.Object,
             mockBlessingRegistry.Object,
-            new Mock<IPlayerReligionDataManager>().Object,
+            new Mock<IPlayerProgressionDataManager>().Object,
             _mockReligionManager.Object);
 
         // Act

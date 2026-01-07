@@ -15,7 +15,7 @@ namespace DivineAscension.Systems.Favor;
 ///     Activities: crop harvesting, planting, and cooking meals
 /// </summary>
 public class AethraFavorTracker(
-    IPlayerReligionDataManager playerReligionDataManager,
+    IPlayerProgressionDataManager playerProgressionDataManager,
     ICoreServerAPI sapi,
     FavorSystem favorSystem)
     : IFavorTracker, IDisposable
@@ -37,8 +37,8 @@ public class AethraFavorTracker(
     // Simple per-player cooking award rate limit (to prevent rapid repeats)
     private readonly Dictionary<string, DateTime> _lastCookingAwardUtc = new();
 
-    private readonly IPlayerReligionDataManager _playerReligionDataManager =
-        playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
+        playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
 
@@ -47,8 +47,8 @@ public class AethraFavorTracker(
         _sapi.Event.BreakBlock -= OnBlockBroken;
         CropPlantingPatches.OnCropPlanted -= HandleCropPlanted;
         CookingPatches.OnMealCooked -= HandleMealCooked;
-        _playerReligionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
-        _playerReligionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
+        _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
+        _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
         _aethraFollowers.Clear();
     }
 
@@ -70,11 +70,23 @@ public class AethraFavorTracker(
         RefreshFollowerCache();
 
         // Listen for religion changes to update cache
-        _playerReligionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
-        _playerReligionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesReligion;
+        _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
+        _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
 
         _sapi.Logger.Notification("[DivineAscension] AethraFavorTracker initialized");
     }
+
+    #region Planting Detection
+
+    private void HandleCropPlanted(IServerPlayer player, Block cropBlock)
+    {
+        if (!_aethraFollowers.Contains(player.PlayerUID)) return;
+
+        // Award favor for planting crops
+        _favorSystem.AwardFavorForAction(player, "planting " + GetCropName(cropBlock), FavorPerPlanting);
+    }
+
+    #endregion
 
     #region Follower Cache Management
 
@@ -87,21 +99,20 @@ public class AethraFavorTracker(
 
         foreach (var player in onlinePlayers)
         {
-            var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-            if (religionData?.ActiveDeity == DeityType) _aethraFollowers.Add(player.PlayerUID);
+            if (_playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID) == DeityType)
+                _aethraFollowers.Add(player.PlayerUID);
         }
     }
 
     private void OnPlayerDataChanged(string playerUID)
     {
-        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(playerUID);
-        if (religionData?.ActiveDeity == DeityType)
+        if (_playerProgressionDataManager.GetPlayerDeityType(playerUID) == DeityType)
             _aethraFollowers.Add(playerUID);
         else
             _aethraFollowers.Remove(playerUID);
     }
 
-    private void OnPlayerLeavesReligion(IServerPlayer player, string religionUID)
+    private void OnPlayerLeavesProgression(IServerPlayer player, string religionUID)
     {
         _aethraFollowers.Remove(player.PlayerUID);
     }
@@ -157,7 +168,8 @@ public class AethraFavorTracker(
             int maxStages = cropProps["growthStages"]?.AsInt() ?? 0;
             if (maxStages > 0)
             {
-                _sapi.Logger.Debug($"[AethraFavorTracker] Crop (attrs): {path}, Current: {currentStage}, Max: {maxStages}");
+                _sapi.Logger.Debug(
+                    $"[AethraFavorTracker] Crop (attrs): {path}, Current: {currentStage}, Max: {maxStages}");
                 return currentStage >= maxStages;
             }
         }
@@ -186,18 +198,6 @@ public class AethraFavorTracker(
         if (path.Contains("spelt")) return "spelt";
 
         return "crops";
-    }
-
-    #endregion
-
-    #region Planting Detection
-
-    private void HandleCropPlanted(IServerPlayer player, Block cropBlock)
-    {
-        if (!_aethraFollowers.Contains(player.PlayerUID)) return;
-
-        // Award favor for planting crops
-        _favorSystem.AwardFavorForAction(player, "planting " + GetCropName(cropBlock), FavorPerPlanting);
     }
 
     #endregion

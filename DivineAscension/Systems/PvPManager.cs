@@ -15,11 +15,11 @@ public class PvPManager : IPvPManager
 {
     private const int BASE_FAVOR_REWARD = 10;
     private const int BASE_PRESTIGE_REWARD = 15;
-    private const int DEATH_PENALTY_FAVOR = 5;
+    private const int DEATH_PENALTY_FAVOR = 50;
     private readonly ICivilizationManager _civilizationManager;
     private readonly IDeityRegistry _deityRegistry;
     private readonly IDiplomacyManager _diplomacyManager;
-    private readonly IPlayerReligionDataManager _playerReligionDataManager;
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionPrestigeManager _prestigeManager;
     private readonly IReligionManager _religionManager;
 
@@ -27,7 +27,7 @@ public class PvPManager : IPvPManager
 
     public PvPManager(
         ICoreServerAPI sapi,
-        IPlayerReligionDataManager playerReligionDataManager,
+        IPlayerProgressionDataManager playerProgressionDataManager,
         IReligionManager religionManager,
         IReligionPrestigeManager prestigeManager,
         IDeityRegistry deityRegistry,
@@ -35,7 +35,7 @@ public class PvPManager : IPvPManager
         IDiplomacyManager diplomacyManager)
     {
         _sapi = sapi;
-        _playerReligionDataManager = playerReligionDataManager;
+        _playerProgressionDataManager = playerProgressionDataManager;
         _religionManager = religionManager;
         _prestigeManager = prestigeManager;
         _deityRegistry = deityRegistry;
@@ -61,16 +61,16 @@ public class PvPManager : IPvPManager
     /// </summary>
     public void AwardRewardsForAction(IServerPlayer player, string actionType, int favorAmount, int prestigeAmount)
     {
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-
-        if (playerData.ActiveDeity == DeityType.None || playerData.ReligionUID == null) return;
+        var playerReligion = _religionManager.GetPlayerReligion(player.PlayerUID);
+        if (_playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID) == DeityType.None ||
+            !_playerProgressionDataManager.HasReligion(player.PlayerUID)) return;
 
         // Award favor
-        if (favorAmount > 0) _playerReligionDataManager.AddFavor(player.PlayerUID, favorAmount, actionType);
+        if (favorAmount > 0) _playerProgressionDataManager.AddFavor(player.PlayerUID, favorAmount, actionType);
 
         // Award prestige
         if (prestigeAmount > 0)
-            _prestigeManager.AddPrestige(playerData.ReligionUID, prestigeAmount,
+            _prestigeManager.AddPrestige(playerReligion!.ReligionUID, prestigeAmount,
                 $"{actionType} by {player.PlayerName}");
 
         player.SendMessage(
@@ -98,13 +98,16 @@ public class PvPManager : IPvPManager
     /// <summary>
     ///     Processes PvP kill and awards favor/prestige
     /// </summary>
-    private void ProcessPvPKill(IServerPlayer attacker, IServerPlayer victim)
+    internal void ProcessPvPKill(IServerPlayer attacker, IServerPlayer victim)
     {
-        var attackerData = _playerReligionDataManager.GetOrCreatePlayerData(attacker.PlayerUID);
-        var victimData = _playerReligionDataManager.GetOrCreatePlayerData(victim.PlayerUID);
+        var attackerActiveDeityType = _religionManager.GetPlayerActiveDeity(attacker.PlayerUID);
+        var attackerReligion = _religionManager.GetPlayerReligion(attacker.PlayerUID);
+
+        var victimActiveDeityType = _religionManager.GetPlayerActiveDeity(victim.PlayerUID);
+        var victimReligion = _religionManager.GetPlayerReligion(victim.PlayerUID);
 
         // Check if attacker has a religion
-        if (attackerData.ReligionUID == null || attackerData.ActiveDeity == DeityType.None)
+        if (attackerReligion == null || attackerActiveDeityType == DeityType.None)
         {
             attacker.SendMessage(
                 GlobalConstants.GeneralChatGroup,
@@ -114,11 +117,13 @@ public class PvPManager : IPvPManager
             return;
         }
 
-        var attackerReligion = _religionManager.GetReligion(attackerData.ReligionUID);
-        if (attackerReligion == null)
+        // Prevention of "Friendly Fire" farming
+        if (attackerReligion != null && victimReligion != null &&
+            attackerReligion.ReligionUID == victimReligion.ReligionUID)
         {
-            _sapi.Logger.Warning(
-                $"[DivineAscension] Attacker {attacker.PlayerName} has invalid religion UID: {attackerData.ReligionUID}");
+            attacker.SendMessage(GlobalConstants.GeneralChatGroup,
+                "[Divine Ascension] You gain no favor for shedding the blood of your own faith.",
+                EnumChatType.Notification);
             return;
         }
 
@@ -158,23 +163,24 @@ public class PvPManager : IPvPManager
         }
 
         // Calculate rewards
-        var baseFavorReward = CalculateFavorReward(attackerData.ActiveDeity, victimData.ActiveDeity);
-        var basePrestigeReward = CalculatePrestigeReward(attackerData.ActiveDeity, victimData.ActiveDeity);
+        var baseFavorReward = CalculateFavorReward(attackerActiveDeityType, victimActiveDeityType);
+        var basePrestigeReward = CalculatePrestigeReward(attackerActiveDeityType, victimActiveDeityType);
 
         // Apply diplomacy multiplier
         var favorReward = (int)(baseFavorReward * diplomacyMultiplier);
         var prestigeReward = (int)(basePrestigeReward * diplomacyMultiplier);
 
         // Award favor to player
-        _playerReligionDataManager.AddFavor(attacker.PlayerUID, favorReward, $"PvP kill against {victim.PlayerName}");
+        _playerProgressionDataManager.AddFavor(attacker.PlayerUID, favorReward,
+            $"PvP kill against {victim.PlayerName}");
 
         // Award prestige to religion
         _prestigeManager.AddPrestige(attackerReligion.ReligionUID, prestigeReward,
             $"PvP kill by {attacker.PlayerName} against {victim.PlayerName}");
 
         // Get deity for display
-        var deity = _deityRegistry.GetDeity(attackerData.ActiveDeity);
-        var deityName = deity?.Name ?? attackerData.ActiveDeity.ToString();
+        var deity = _deityRegistry.GetDeity(attackerActiveDeityType);
+        var deityName = deity?.Name ?? nameof(attackerActiveDeityType);
 
         // Notify attacker with combined rewards
         var warBonus = diplomacyMultiplier > 1.0 ? " [WAR BONUS +50%]" : "";
@@ -185,10 +191,10 @@ public class PvPManager : IPvPManager
         );
 
         // Notify victim
-        if (victimData.ActiveDeity != DeityType.None)
+        if (victimActiveDeityType != DeityType.None)
         {
-            var victimDeity = _deityRegistry.GetDeity(victimData.ActiveDeity);
-            var victimDeityName = victimDeity?.Name ?? victimData.ActiveDeity.ToString();
+            var victimDeity = _deityRegistry.GetDeity(victimActiveDeityType);
+            var victimDeityName = victimDeity?.Name ?? nameof(victimActiveDeityType);
             victim.SendMessage(
                 GlobalConstants.GeneralChatGroup,
                 $"[Divine Defeat] {victimDeityName} is displeased by your defeat.",
@@ -205,15 +211,17 @@ public class PvPManager : IPvPManager
     /// </summary>
     internal void ProcessDeathPenalty(IServerPlayer player)
     {
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
+        var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
+        var activeDeityType = _playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID);
+        var religionId = _religionManager.GetPlayerReligion(player.PlayerUID);
 
-        if (playerData.ActiveDeity == DeityType.None || playerData.ReligionUID == null) return;
+        if (activeDeityType == DeityType.None || religionId == null) return;
 
         // Remove favor as penalty (minimum 0)
         var penalty = Math.Min(DEATH_PENALTY_FAVOR, playerData.Favor);
         if (penalty > 0)
         {
-            playerData.RemoveFavor(penalty);
+            playerData.Favor -= penalty;
 
             player.SendMessage(
                 GlobalConstants.GeneralChatGroup,

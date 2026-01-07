@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Systems;
 using DivineAscension.Systems.BuffSystem.Interfaces;
 using DivineAscension.Systems.Interfaces;
 using Moq;
@@ -113,9 +114,9 @@ public static class TestFixtures
     /// <summary>
     ///     Creates a mock IPlayerReligionDataManager with basic setup
     /// </summary>
-    public static Mock<IPlayerReligionDataManager> CreateMockPlayerReligionDataManager()
+    public static Mock<IPlayerProgressionDataManager> CreateMockPlayerProgressionDataManager()
     {
-        var mock = new Mock<IPlayerReligionDataManager>();
+        var mock = new Mock<IPlayerProgressionDataManager>();
 
         // Default: return empty player data
         mock.Setup(m => m.GetOrCreatePlayerData(It.IsAny<string>()))
@@ -198,24 +199,18 @@ public static class TestFixtures
     /// <summary>
     ///     Creates test PlayerReligionData with default values
     /// </summary>
-    public static PlayerReligionData CreateTestPlayerReligionData(
-        string playerUID = "test-player-uid",
+    public static PlayerProgressionData CreateTestPlayerReligionData(string playerUID = "test-player-uid",
         DeityType deity = DeityType.Khoras,
         string? religionUID = "test-religion-uid",
         int favor = 100,
         int totalFavorEarned = 500)
     {
-        return new PlayerReligionData
+        return new PlayerProgressionData()
         {
-            PlayerUID = playerUID,
-            ActiveDeity = deity,
-            ReligionUID = religionUID,
+            Id = playerUID,
             Favor = favor,
             TotalFavorEarned = totalFavorEarned,
-            FavorRank = FavorRank.Disciple,
-            KillCount = 0,
-            LastReligionSwitch = DateTime.UtcNow.AddDays(-30),
-            UnlockedBlessings = new Dictionary<string, bool>()
+            UnlockedBlessings = new()
         };
     }
 

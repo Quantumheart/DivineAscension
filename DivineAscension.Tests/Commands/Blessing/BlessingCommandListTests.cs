@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Systems;
 using DivineAscension.Tests.Commands.Helpers;
 using Moq;
 using Vintagestory.API.Common;
@@ -29,10 +30,8 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData()
         {
-            ActiveDeity = DeityType.Aethra,
-            ReligionUID = "religion-uid"
         };
 
         var playerBlessings = new List<DivineAscension.Models.Blessing>
@@ -71,7 +70,8 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
 
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
-
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Aethra);
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player))
             .Returns(playerBlessings);
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Religion))
@@ -86,7 +86,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             }
         };
 
-        _religionManager.Setup(rm => rm.GetReligion("religion-uid"))
+        _religionManager.Setup(rm => rm.GetPlayerReligion(It.IsAny<string>()))
             .Returns(religion);
 
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
@@ -134,7 +134,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         };
 
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
-            .Returns(new PlayerReligionData { ActiveDeity = DeityType.None });
+            .Returns(new PlayerProgressionData() { });
 
         // Act
         var result = _sut!.OnList(args);
@@ -155,15 +155,14 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData()
         {
-            ActiveDeity = DeityType.Aethra,
-            ReligionUID = "religion-uid"
         };
 
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
-
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Aethra);
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player))
             .Returns(new List<DivineAscension.Models.Blessing>());
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Religion))
@@ -192,15 +191,14 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData()
         {
-            ActiveDeity = DeityType.Aethra,
-            ReligionUID = "religion-uid"
         };
 
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
-
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Aethra);
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player))
             .Returns(new List<DivineAscension.Models.Blessing>());
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Religion))
@@ -228,10 +226,8 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            ActiveDeity = DeityType.Aethra,
-            ReligionUID = "religion-uid"
         };
 
         var religionBlessings = new List<DivineAscension.Models.Blessing>
@@ -249,6 +245,8 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
 
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Aethra);
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Religion))
             .Returns(religionBlessings);
 
@@ -264,7 +262,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             }
         };
 
-        _religionManager.Setup(rm => rm.GetReligion("religion-uid"))
+        _religionManager.Setup(rm => rm.GetPlayerReligion(It.IsAny<string>()))
             .Returns(religion);
 
         // Act
@@ -289,10 +287,8 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            ActiveDeity = DeityType.Aethra,
-            ReligionUID = "religion-uid"
         };
 
         var playerBlessings = new List<DivineAscension.Models.Blessing>
@@ -309,7 +305,8 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
 
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
-
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Aethra);
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player))
             .Returns(playerBlessings);
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Religion))
@@ -336,10 +333,8 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            ActiveDeity = DeityType.Aethra,
-            ReligionUID = "religion-uid"
         };
 
         var religionBlessings = new List<DivineAscension.Models.Blessing>
@@ -356,7 +351,8 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
 
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
-
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Aethra);
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player))
             .Returns(new List<DivineAscension.Models.Blessing>());
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Religion))
@@ -392,10 +388,8 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            ActiveDeity = DeityType.Aethra,
-            ReligionUID = "religion-uid"
         };
 
         var playerBlessings = new List<DivineAscension.Models.Blessing>
@@ -412,7 +406,8 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
 
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
-
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Aethra);
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player))
             .Returns(playerBlessings);
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Religion))
@@ -441,10 +436,8 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             }
         };
 
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            ActiveDeity = DeityType.Aethra,
-            ReligionUID = "religion-uid"
         };
 
         var playerBlessings = new List<DivineAscension.Models.Blessing>
@@ -473,7 +466,8 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
 
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
-
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
+            .Returns(DeityType.Aethra);
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Player))
             .Returns(playerBlessings);
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityType.Aethra, BlessingKind.Religion))

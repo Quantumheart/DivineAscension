@@ -19,7 +19,7 @@ public class HuntingFavorTrackerTests
 {
     private static HuntingFavorTracker CreateTracker(
         Mock<ICoreServerAPI> mockSapi,
-        Mock<IPlayerReligionDataManager> mockPlayerReligion,
+        Mock<IPlayerProgressionDataManager> mockPlayerReligion,
         Mock<IFavorSystem> mockFavor)
     {
         return new HuntingFavorTracker(mockPlayerReligion.Object, mockSapi.Object, mockFavor.Object);
@@ -38,7 +38,7 @@ public class HuntingFavorTrackerTests
     public void Initialize_HandlesMultiplePlayers()
     {
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
 
         var mockPlayer1 = TestFixtures.CreateMockServerPlayer("player-1", "Hunter1");
@@ -77,7 +77,7 @@ public class HuntingFavorTrackerTests
     public void Initialize_RegistersEventHandlers()
     {
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
 
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
@@ -93,7 +93,7 @@ public class HuntingFavorTrackerTests
     public void Dispose_UnregistersEventHandlers()
     {
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
 
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
@@ -108,7 +108,7 @@ public class HuntingFavorTrackerTests
     public void DeityType_ReturnsLysa()
     {
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
 
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
@@ -126,7 +126,7 @@ public class HuntingFavorTrackerTests
     public void Initialize_CachesLysaFollowers()
     {
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var mockPlayer = TestFixtures.CreateMockServerPlayer("player-1", "Hunter");
 
@@ -149,7 +149,7 @@ public class HuntingFavorTrackerTests
     public void Initialize_IgnoresNonLysaFollowers()
     {
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var mockPlayer = TestFixtures.CreateMockServerPlayer("player-1", "Miner");
 
@@ -172,7 +172,7 @@ public class HuntingFavorTrackerTests
     public void Initialize_HandlesNoOnlinePlayers()
     {
         var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
 
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
