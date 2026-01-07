@@ -1,4 +1,9 @@
 
+## [2.0.0] - 2026-01-07
+
+### Changed
+- **BREAKING:** move to single source of truth for religions
+
 ## [1.25.1] - 2026-01-05
 
 ### Fixed
