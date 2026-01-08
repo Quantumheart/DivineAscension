@@ -210,7 +210,6 @@ Wait for an invitation, then accept via the GUI (`Shift+G`)
 
 **Important Notes**:
 - You can only be in one religion at a time
-- There's a **7-day cooldown** after leaving a religion
 - Your Favor Rank persists across religion changes
 - You'll lose access to your previous religion's blessings
 
@@ -219,8 +218,6 @@ Wait for an invitation, then accept via the GUI (`Shift+G`)
 ```
 /religion leave
 ```
-
-⚠️ **Warning**: This starts a 7-day cooldown before you can join another religion!
 
 **Important**: If you are the **Founder** of a religion, you cannot leave it. You must either:
 
@@ -700,20 +697,20 @@ Killing another player awards:
 
 ### Religion Commands
 
-| Command | Description |
-|---------|-------------|
-| `/religion create <name> <deity> [visibility]` | Create a new religion |
-| `/religion join <name>` | Join a public religion |
-| `/religion leave` | Leave your current religion (7-day cooldown) |
-| `/religion list [deity]` | List all religions (optionally filter by deity) |
-| `/religion info <name>` | Show detailed religion information |
-| `/religion members` | View members of your religion |
-| `/religion invite <player>` | Invite a player to your religion (founder/elder) |
-| `/religion kick <player>` | Remove a player from your religion (founder/elder) |
-| `/religion ban <player> [reason] [days]` | Ban a player from your religion |
-| `/religion unban <player>` | Unban a player |
-| `/religion banlist` | View banned players |
-| `/religion disband` | Permanently delete your religion (founder only) |
+| Command                                        | Description                                        |
+|------------------------------------------------|----------------------------------------------------|
+| `/religion create <name> <deity> [visibility]` | Create a new religion                              |
+| `/religion join <name>`                        | Join a public religion                             |
+| `/religion leave`                              | Leave your current religion                        |
+| `/religion list [deity]`                       | List all religions (optionally filter by deity)    |
+| `/religion info <name>`                        | Show detailed religion information                 |
+| `/religion members`                            | View members of your religion                      |
+| `/religion invite <player>`                    | Invite a player to your religion (founder/elder)   |
+| `/religion kick <player>`                      | Remove a player from your religion (founder/elder) |
+| `/religion ban <player> [reason] [days]`       | Ban a player from your religion                    |
+| `/religion unban <player>`                     | Unban a player                                     |
+| `/religion banlist`                            | View banned players                                |
+| `/religion disband`                            | Permanently delete your religion (founder only)    |
 
 ### Favor Commands
 
@@ -831,7 +828,6 @@ Press **`Shift+G`** to open the Divine Ascension interface.
 - Contribute regularly to religion prestige
 - Communicate with leadership about blessing priorities
 - Participate in group activities and PvP
-- Respect the 7-day cooldown before switching religions
 
 ### Blessing Strategy
 
@@ -868,7 +864,7 @@ Press **`Shift+G`** to open the Divine Ascension interface.
 ## Troubleshooting
 
 **Q: I can't join a religion after leaving one**
-A: There's a 7-day cooldown after leaving. Wait until the cooldown expires.
+A: Make sure the religion you're trying to join is public, or that you have a valid invitation if it's private.
 
 **Q: My favor isn't increasing**
 A: Make sure you're performing activities aligned with your deity:
@@ -884,7 +880,8 @@ A: Check the requirements: Favor Rank, prerequisite blessings, and favor cost. A
 A: Make sure you're pressing `Shift+G` (not just `G`). Check for keybind conflicts with other mods.
 
 **Q: Can I change deities without leaving my religion?**
-A: No, deities are tied to religions. To switch deities, you must leave your religion and join one devoted to a different deity (subject to 7-day cooldown).
+A: No, deities are tied to religions. To switch deities, you must leave your religion and join one devoted to a
+different deity.
 
 ---
 

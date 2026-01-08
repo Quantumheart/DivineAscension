@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network;
+using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -130,6 +132,14 @@ public class ReligionCommands(
                 _sapi.ChatCommands.Parsers.Int("amount"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnPrestigeSet)
+            .EndSubCommand()
+            .EndSubCommand()
+            .BeginSubCommand("admin")
+            .WithDescription("Admin commands for religion management")
+            .RequiresPrivilege(Privilege.root)
+            .BeginSubCommand("repair")
+            .WithDescription("Repair religion membership inconsistencies")
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .EndSubCommand()
             .EndSubCommand();
 
@@ -776,6 +786,178 @@ public class ReligionCommands(
 
         return TextCommandResult.Success(
             $"Set {religionName} prestige to {amount} (was {oldPrestige}){rankChanged}");
+    }
+
+    /// <summary>
+    ///     Repairs a specific player's membership state
+    /// </summary>
+    private TextCommandResult RepairSpecificPlayer(string playerName)
+    {
+        // Find player by name (check both online and offline)
+        var player = _sapi.World.AllPlayers
+            .FirstOrDefault(p => p.PlayerName.Equals(playerName, StringComparison.OrdinalIgnoreCase));
+
+        if (player == null)
+        {
+            return TextCommandResult.Error($"Player '{playerName}' not found");
+        }
+
+        // Cast to concrete type for validation method
+        var religionManager = _religionManager;
+        var playerDataManager = _playerProgressionDataManager as PlayerProgressionDataManager;
+
+        if (religionManager == null || playerDataManager == null)
+        {
+            return TextCommandResult.Error("Internal error: Could not access managers");
+        }
+
+        // Validate consistency
+        var (isConsistent, issues) =
+            religionManager.ValidateMembershipConsistency(player.PlayerUID);
+
+        if (isConsistent)
+        {
+            return TextCommandResult.Success($"{playerName}: No issues found - membership is consistent");
+        }
+
+        // Repair inconsistency
+        var wasRepaired =
+            religionManager.RepairMembershipConsistency(player.PlayerUID);
+
+        if (wasRepaired)
+        {
+            // Trigger save and notify player if online
+            _playerProgressionDataManager.NotifyPlayerDataChanged(player.PlayerUID);
+            religionManager.TriggerSave();
+
+            var serverPlayer = player as IServerPlayer;
+            if (serverPlayer != null)
+            {
+                serverPlayer.SendMessage(
+                    GlobalConstants.GeneralChatGroup,
+                    "Your religion membership has been repaired by an administrator",
+                    EnumChatType.Notification
+                );
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"REPAIRED: {playerName}");
+            sb.AppendLine($"Issue: {issues}");
+            return TextCommandResult.Success(sb.ToString());
+        }
+
+        return TextCommandResult.Error($"Failed to repair {playerName}");
+    }
+
+    /// <summary>
+    ///     Scans and repairs ALL players' membership state
+    /// </summary>
+    private TextCommandResult RepairAllPlayers()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("=== Religion Membership Repair Scan ===");
+
+        int scanned = 0;
+        int consistent = 0;
+        int repaired = 0;
+        int failed = 0;
+
+        // Cast to concrete type for validation method
+        var religionManager = _religionManager as ReligionManager;
+        var playerDataManager = _playerProgressionDataManager as PlayerProgressionDataManager;
+
+        if (religionManager == null || playerDataManager == null)
+        {
+            return TextCommandResult.Error("Internal error: Could not access managers");
+        }
+
+        // Get all players (online and offline)
+        // Note: This only checks players who have PlayerReligionData saved
+        // We also need to check ReligionManager for all members
+        var allPlayerUIDs = new HashSet<string>();
+
+        // Collect UIDs from all religions
+        foreach (var religion in _religionManager.GetAllReligions())
+        {
+            foreach (var memberUID in religion.MemberUIDs)
+            {
+                allPlayerUIDs.Add(memberUID);
+            }
+        }
+
+        // Collect UIDs from all online players
+        foreach (var player in _sapi.World.AllPlayers)
+        {
+            allPlayerUIDs.Add(player.PlayerUID);
+        }
+
+        // Scan each player
+        foreach (var playerUID in allPlayerUIDs)
+        {
+            scanned++;
+
+            var (isConsistent, issues) =
+                religionManager.ValidateMembershipConsistency(playerUID);
+
+            if (isConsistent)
+            {
+                consistent++;
+                continue;
+            }
+
+            // Found inconsistency - attempt repair
+            var player = _sapi.World.PlayerByUid(playerUID);
+            var playerName = player?.PlayerName ?? playerUID;
+
+            var wasRepaired =
+                religionManager.RepairMembershipConsistency(playerUID);
+
+            if (wasRepaired)
+            {
+                repaired++;
+                sb.AppendLine($"✓ REPAIRED: {playerName}");
+                sb.AppendLine($"  Issue: {issues}");
+                sb.AppendLine();
+
+                // Notify player if online
+                _playerProgressionDataManager.NotifyPlayerDataChanged(playerUID);
+                var serverPlayer = player as IServerPlayer;
+                if (serverPlayer != null)
+                {
+                    serverPlayer.SendMessage(
+                        GlobalConstants.GeneralChatGroup,
+                        "Your religion membership has been repaired by an administrator",
+                        EnumChatType.Notification
+                    );
+                }
+            }
+            else
+            {
+                failed++;
+                sb.AppendLine($"✗ FAILED: {playerName}");
+                sb.AppendLine($"  Issue: {issues}");
+                sb.AppendLine();
+            }
+        }
+
+        // Trigger save after all repairs
+        if (repaired > 0)
+        {
+            religionManager.TriggerSave();
+        }
+
+        sb.AppendLine("=== Summary ===");
+        sb.AppendLine($"Scanned: {scanned} players");
+        sb.AppendLine($"Consistent: {consistent}");
+        sb.AppendLine($"Repaired: {repaired}");
+        sb.AppendLine($"Failed: {failed}");
+
+        if (repaired == 0 && failed == 0)
+        {
+            return TextCommandResult.Success("All players have consistent membership state");
+        }
+
+        return TextCommandResult.Success(sb.ToString());
     }
 
     #endregion

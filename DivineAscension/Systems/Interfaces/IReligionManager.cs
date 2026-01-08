@@ -151,4 +151,8 @@ public interface IReligionManager : IDisposable
     /// </summary>
     /// <param name="religionData">The religion data to save.</param>
     void Save(ReligionData religionData);
+
+    bool RepairMembershipConsistency(string playerUID);
+
+    (bool IsConsistent, string Issues) ValidateMembershipConsistency(string playerUID);
 }

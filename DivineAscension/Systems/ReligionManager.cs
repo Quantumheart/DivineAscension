@@ -397,25 +397,57 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     }
 
     /// <summary>
-    ///     Deletes a religion (founder only)
+    ///     Deletes a religion (founder only).
+    ///     Removes all members from the index and deletes the religion data.
     /// </summary>
     public bool DeleteReligion(string religionUID, string requesterUID)
     {
-        if (!_religions.TryGetValue(religionUID, out var religion)) return false;
-
-        // Only founder can delete
-        if (!religion.IsFounder(requesterUID)) return false;
-
-        // Remove all members from the index before deleting religion
-        foreach (var memberUID in religion.MemberUIDs.ToList())
+        if (!_religions.TryGetValue(religionUID, out var religion))
         {
-            _playerToReligionIndex.Remove(memberUID);
+            _sapi.Logger.Error($"[DivineAscension] Cannot delete non-existent religion: {religionUID}");
+            return false;
         }
 
+        // Only founder can delete
+        if (!religion.IsFounder(requesterUID))
+        {
+            _sapi.Logger.Warning(
+                $"[DivineAscension] Player {requesterUID} is not founder of {religion.ReligionName}, cannot delete");
+            return false;
+        }
+
+        var memberCount = religion.GetMemberCount();
+        _sapi.Logger.Notification(
+            $"[DivineAscension] Deleting religion {religion.ReligionName} with {memberCount} member(s)...");
+
+        // Remove all members from the index before deleting religion
+        var removedCount = 0;
+        foreach (var memberUID in religion.MemberUIDs.ToList())
+        {
+            if (_playerToReligionIndex.Remove(memberUID))
+            {
+                removedCount++;
+                _sapi.Logger.Debug($"[DivineAscension] Removed player {memberUID} from index during religion deletion");
+            }
+        }
+
+        _sapi.Logger.Notification(
+            $"[DivineAscension] Removed {removedCount} member(s) from index for religion {religion.ReligionName}");
+
+        // Verify all members removed
+        if (removedCount != memberCount)
+        {
+            _sapi.Logger.Warning(
+                $"[DivineAscension] Member count mismatch: expected {memberCount}, removed {removedCount}");
+        }
+
+        // Delete the religion
         _religions.Remove(religionUID);
+        SaveAllReligions();
+
         _sapi.Logger.Notification($"[DivineAscension] Religion {religion.ReligionName} disbanded by founder");
 
-        // Notify subscribers that religion was deleted
+        // Notify subscribers that religion was deleted (CivilizationManager cleans up alliances)
         OnReligionDeleted?.Invoke(religionUID);
 
         return true;
@@ -524,6 +556,119 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     }
 
     /// <summary>
+    ///     Validates membership consistency for a single player.
+    ///     Checks if the player-to-religion index matches the actual membership in religion data.
+    /// </summary>
+    /// <param name="playerUID">Player UID to validate</param>
+    /// <returns>Tuple: (isConsistent, issues description)</returns>
+    public (bool IsConsistent, string Issues) ValidateMembershipConsistency(string playerUID)
+    {
+        var inIndex = _playerToReligionIndex.TryGetValue(playerUID, out var indexReligionUID);
+        ReligionData? religionInIndex = inIndex ? _religions.GetValueOrDefault(indexReligionUID) : null;
+
+        // Find which religion(s) actually have this player as a member
+        var actualReligions = _religions.Values.Where(r => r.IsMember(playerUID)).ToList();
+
+        // Case 1: Player in multiple religions (should be impossible, but check anyway)
+        if (actualReligions.Count > 1)
+        {
+            var religionNames = string.Join(", ", actualReligions.Select(r => r.ReligionName));
+            return (false,
+                $"CRITICAL: Player in multiple religions: {religionNames}. This should never happen!");
+        }
+
+        // Case 2: Player in one religion
+        if (actualReligions.Count == 1)
+        {
+            var actualReligion = actualReligions[0];
+
+            // Check if index matches
+            if (!inIndex)
+            {
+                return (false,
+                    $"INCONSISTENT: Player is member of '{actualReligion.ReligionName}' " +
+                    $"({actualReligion.ReligionUID}) but NOT in index");
+            }
+
+            if (indexReligionUID != actualReligion.ReligionUID)
+            {
+                return (false,
+                    $"INCONSISTENT: Index points to '{indexReligionUID}' but player is member of " +
+                    $"'{actualReligion.ReligionName}' ({actualReligion.ReligionUID})");
+            }
+
+            // Consistent
+            return (true, "Consistent: Player in religion and index matches");
+        }
+
+        // Case 3: Player not in any religion
+        if (actualReligions.Count == 0)
+        {
+            if (inIndex)
+            {
+                var indexedReligionName = religionInIndex?.ReligionName ?? indexReligionUID!;
+                return (false,
+                    $"INCONSISTENT: Index points to '{indexedReligionName}' but player is not a member of any religion");
+            }
+
+            // Consistent - not in any religion
+            return (true, "Consistent: Player not in any religion");
+        }
+
+        return (true, "Unknown state");
+    }
+
+    /// <summary>
+    ///     Repairs membership inconsistency for a single player.
+    ///     Uses religion membership lists as the source of truth and updates the index accordingly.
+    /// </summary>
+    /// <param name="playerUID">Player UID to repair</param>
+    /// <returns>True if repair was successful, false otherwise</returns>
+    public bool RepairMembershipConsistency(string playerUID)
+    {
+        try
+        {
+            // Find which religion(s) actually have this player as a member
+            var actualReligions = _religions.Values.Where(r => r.IsMember(playerUID)).ToList();
+
+            // Remove player from index first
+            _playerToReligionIndex.Remove(playerUID);
+
+            // If player is in exactly one religion, add them to index
+            if (actualReligions.Count == 1)
+            {
+                var religion = actualReligions[0];
+                _playerToReligionIndex[playerUID] = religion.ReligionUID;
+                _sapi.Logger.Debug(
+                    $"[DivineAscension] Repaired index: Added {playerUID} -> {religion.ReligionName}");
+                return true;
+            }
+
+            // If player is in no religions, index removal is sufficient
+            if (actualReligions.Count == 0)
+            {
+                _sapi.Logger.Debug($"[DivineAscension] Repaired index: Removed {playerUID} (no religion)");
+                return true;
+            }
+
+            // If player is in multiple religions (critical error), we can't auto-repair
+            if (actualReligions.Count > 1)
+            {
+                _sapi.Logger.Error(
+                    $"[DivineAscension] Cannot auto-repair: Player {playerUID} is in multiple religions");
+                return false;
+            }
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _sapi.Logger.Error($"[DivineAscension] Error repairing membership for {playerUID}: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     ///     Handles the founder leaving the religion
     /// </summary>
     private void HandleFounderLeaving(ReligionData religion)
@@ -548,21 +693,120 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     /// Rebuilds the internal player-to-religion index based on the current data in the religion manager.
     /// This index maps player unique IDs (UIDs) to the corresponding religion UIDs they are members of.
     /// The method iterates through all registered religions and their members to populate the index.
-    /// Useful for ensuring quick lookups of player-religion relationships.
+    /// Handles data corruption gracefully by detecting players in multiple religions.
     /// </summary>
     internal void RebuildPlayerIndex()
     {
         _playerToReligionIndex.Clear();
+        var corruptionDetected = false;
+
         foreach (var religion in _religions)
         {
             foreach (var userId in religion.Value.MemberUIDs)
             {
-                _playerToReligionIndex.Add(userId, religion.Key);
+                // Check if player already exists in index (data corruption scenario)
+                if (_playerToReligionIndex.ContainsKey(userId))
+                {
+                    corruptionDetected = true;
+                    var existingReligionId = _playerToReligionIndex[userId];
+                    var existingReligion = _religions.GetValueOrDefault(existingReligionId);
+
+                    _sapi.Logger.Error(
+                        $"[DivineAscension] CRITICAL DATA CORRUPTION: Player {userId} is in multiple religions: " +
+                        $"'{existingReligion?.ReligionName}' ({existingReligionId}) and " +
+                        $"'{religion.Value.ReligionName}' ({religion.Key}). " +
+                        $"Using first religion as authority. Run '/religion admin repair {userId}' to fix.");
+
+                    // Use first religion found as authority, skip duplicate
+                    continue;
+                }
+
+                _playerToReligionIndex[userId] = religion.Key;
             }
         }
 
-        _sapi.Logger.Debug(
-            $"[DivineAscension] Rebuilt player-to-religion index with {_playerToReligionIndex.Count} entries");
+        if (corruptionDetected)
+        {
+            _sapi.Logger.Warning(
+                $"[DivineAscension] Index rebuilt with {_playerToReligionIndex.Count} entries, " +
+                "but data corruption was detected. Validation will attempt auto-repair.");
+        }
+        else
+        {
+            _sapi.Logger.Debug(
+                $"[DivineAscension] Rebuilt player-to-religion index with {_playerToReligionIndex.Count} entries");
+        }
+    }
+
+
+    /// <summary>
+    ///     Validates all memberships to ensure consistency between the player-to-religion index
+    ///     and the actual membership lists in each religion.
+    /// </summary>
+    /// <returns>Validation summary with counts of total, consistent, repaired, and failed players</returns>
+    public (int Total, int Consistent, int Repaired, int Failed) ValidateAllMemberships()
+    {
+        var totalPlayers = 0;
+        var consistentPlayers = 0;
+        var repairedPlayers = 0;
+        var failedPlayers = 0;
+
+        // Build a set of all unique player UIDs from both sources
+        var allPlayerUIDs = new HashSet<string>();
+
+        // Add players from the index
+        foreach (var playerUID in _playerToReligionIndex.Keys)
+        {
+            allPlayerUIDs.Add(playerUID);
+        }
+
+        // Add players from all religion member lists
+        foreach (var religion in _religions.Values)
+        {
+            foreach (var memberUID in religion.MemberUIDs)
+            {
+                allPlayerUIDs.Add(memberUID);
+            }
+        }
+
+        _sapi.Logger.Notification(
+            $"[DivineAscension] Starting membership validation for {allPlayerUIDs.Count} players...");
+
+        // Validate each player
+        foreach (var playerUID in allPlayerUIDs)
+        {
+            totalPlayers++;
+            var (isConsistent, issues) = ValidateMembershipConsistency(playerUID);
+
+            if (isConsistent)
+            {
+                consistentPlayers++;
+            }
+            else
+            {
+                _sapi.Logger.Warning($"[DivineAscension] Player {playerUID}: {issues}");
+
+                // Attempt to repair by rebuilding index from authoritative religion data
+                var wasRepaired = RepairMembershipConsistency(playerUID);
+                if (wasRepaired)
+                {
+                    repairedPlayers++;
+                    _sapi.Logger.Notification($"[DivineAscension] Successfully repaired membership for {playerUID}");
+                }
+                else
+                {
+                    failedPlayers++;
+                    _sapi.Logger.Error($"[DivineAscension] Failed to repair membership for {playerUID}");
+                }
+            }
+        }
+
+        // Log summary
+        _sapi.Logger.Notification(
+            $"[DivineAscension] Membership validation complete: " +
+            $"Total={totalPlayers}, Consistent={consistentPlayers}, Repaired={repairedPlayers}, Failed={failedPlayers}");
+
+        return (totalPlayers, consistentPlayers, repairedPlayers, failedPlayers);
     }
 
     #region Persistence

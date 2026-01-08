@@ -132,6 +132,29 @@ public static class DivineAscensionSystemInitializer
             serverChannel);
         diplomacyHandler.RegisterHandlers();
 
+        // Validate all memberships after initialization
+        api.Logger.Notification("[DivineAscension] Running membership validation...");
+        var (total, consistent, repaired, failed) =
+            religionManager.ValidateAllMemberships();
+
+        if (failed > 0)
+        {
+            api.Logger.Warning(
+                $"[DivineAscension] Membership validation completed with {failed} failed repair(s). " +
+                "Manual intervention may be required.");
+        }
+        else if (repaired > 0)
+        {
+            api.Logger.Notification(
+                $"[DivineAscension] Membership validation completed successfully. " +
+                $"Automatically repaired {repaired} inconsistenc{(repaired == 1 ? "y" : "ies")}.");
+        }
+        else
+        {
+            api.Logger.Notification(
+                $"[DivineAscension] Membership validation completed. All {total} player membership(s) are consistent.");
+        }
+
         api.Logger.Notification("[DivineAscension] All server-side systems initialized successfully");
 
         // Return all initialized components
