@@ -1,4 +1,9 @@
 
+## [2.1.0] - 2026-01-08
+
+### Added
+- implement PlayerDataMigration v2 -> v3
+
 ## [2.0.0] - 2026-01-07
 
 ### Changed

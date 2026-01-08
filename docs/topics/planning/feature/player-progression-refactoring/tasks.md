@@ -3,7 +3,7 @@
 This checklist breaks down the implementation plan from `player-progression-refactor.md` into specific, actionable
 tasks.
 
-## Phase 1: Add Player-to-Religion Index (FOUNDATION)
+## Phase 1: Add Player-to-Religion Index (FOUNDATION) ✅
 
 - [x] Add `_playerToReligionIndex` Dictionary field to ReligionManager
 - [x] Update `AddMember()` to maintain player-to-religion index
@@ -11,10 +11,10 @@ tasks.
 - [x] Add `RebuildPlayerIndex()` method called after `LoadAllReligions()`
 - [x] Add `GetPlayerReligionId()` public method for O(1) lookup
 - [x] Optimize `GetPlayerReligion()` to use the new index
-- [ ] Write tests for index updates on AddMember/RemoveMember
-- [ ] Write tests for index rebuild on load and O(1) performance
+- [x] Write tests for index updates on AddMember/RemoveMember
+- [x] Write tests for index rebuild on load and O(1) performance
 
-## Phase 2: Simplify PlayerReligionData (CORE REFACTOR)
+## Phase 2: Simplify PlayerReligionData (CORE REFACTOR) ✅
 
 ### Data Model & Migration
 
@@ -38,22 +38,14 @@ tasks.
 
 - [x] Update all network handlers to use new types
 - [x] Update all UI code to use new types
-- [ ] Update all 46 test files to use new types
+- [x] Update all 46 test files to use new types
 
 ### Testing
 
-- [ ] Write tests for v2 to v3 migration
-- [ ] Write tests for HashSet blessing storage and computed FavorRank
+- [x] Write tests for v2 to v3 migration
+- [x] Write tests for HashSet blessing storage and computed FavorRank
 
-## Phase 3: Enforce Invariants (VALIDATION)
-
-- [ ] Create `MembershipValidator.cs`
-- [ ] Add validation to `JoinReligion()` with auto-repair
-- [ ] Add validation to `LeaveReligion()` with auto-repair
-- [ ] Add logging for all validation failures and repairs
-- [ ] Write tests for validation detection and auto-repair
-
-## Phase 4: Load-Time Validation & Deletion Constraints (SAFETY)
+## Phase 3: Load-Time Validation & Deletion Constraints (SAFETY)
 
 - [ ] Add `ValidateAllMemberships()` to ReligionManager
 - [ ] Update `DeleteReligion()` to remove all members first

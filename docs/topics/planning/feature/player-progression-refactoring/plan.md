@@ -89,30 +89,7 @@ This plan addresses the dual-state problem between `ReligionManager` and `Player
 
 ---
 
-### Phase 3: Enforce Invariants (VALIDATION)
-
-**Goal**: Prevent inconsistencies at write-time with automatic repair
-
-**Files to Create**:
-
-- `/DivineAscension/Systems/MembershipValidator.cs`
-
-**Files to Modify**:
-
-- `/DivineAscension/Systems/PlayerProgressionDataManager.cs` (add validation to join/leave)
-
-**Validation Logic**:
-
-- After `JoinReligion()`: Verify `GetPlayerReligionUID()` returns correct value, auto-repair if not
-- After `LeaveReligion()`: Verify `GetPlayerReligionUID()` returns null, auto-repair if not
-- Log all validation failures and repairs
-- Use existing `RepairMembershipConsistency()` for fixes
-
-**Why Third**: Requires Phase 2's simplified model, adds safety without breaking functionality
-
----
-
-### Phase 4: Load-Time Validation & Deletion Constraints (SAFETY)
+### Phase 3: Load-Time Validation & Deletion Constraints (SAFETY)
 
 **Goal**: Catch issues at startup and enforce clean deletion
 
