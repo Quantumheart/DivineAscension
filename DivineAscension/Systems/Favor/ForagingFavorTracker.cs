@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
+using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
@@ -35,7 +36,7 @@ public class ForagingFavorTracker(
     public void Initialize()
     {
         _sapi.Event.BreakBlock += OnBlockBroken;
-        _sapi.Event.DidUseBlock += OnBlockUsed;
+        ForagingPatches.Picked += OnBlockUsed;
 
         // Cache followers
         RefreshFollowerCache();
@@ -85,12 +86,20 @@ public class ForagingFavorTracker(
     /// <summary>
     ///     Handles block usage (right-click) to detect berry harvesting
     /// </summary>
-    private void OnBlockUsed(IServerPlayer player, BlockSelection blockSel)
+    private void OnBlockUsed(IServerPlayer? player, BlockSelection? blockSel)
     {
-        if (!_lysaFollowers.Contains(player.PlayerUID)) return;
+        // Defensive check: If the player or block selection is null, 
+        // we cannot process favor, so we exit early to prevent a crash.
+        if (player == null || blockSel == null)
+        {
+            return;
+        }
 
-        var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
-        if (IsBerryBush(block) && HasRipeBerries(block))
+        if (!_lysaFollowers.Contains(player.PlayerUID)) return;
+        // Ensure the block at the selection still exists or is valid
+        var block = player.Entity.World.BlockAccessor.GetBlock(blockSel.Position);
+        if (block == null) return;
+        if (IsBerryBush(block))
             // Award 0.5 favor for harvesting berries
             _favorSystem.AwardFavorForAction(player, "harvesting " + GetBerryName(block), 0.5f);
     }
