@@ -26,40 +26,40 @@ public class PlayerProgressionData
     /// <summary>
     ///     Player's unique identifier
     /// </summary>
-    [ProtoMember(1)]
+    [ProtoMember(100)]
     public string Id { get; set; } = string.Empty;
 
 
     /// <summary>
     ///     Current favor points
     /// </summary>
-    [ProtoMember(2)]
+    [ProtoMember(101)]
     public int Favor { get; set; }
 
     /// <summary>
     ///     Total favor earned (lifetime stat, persists across religion changes)
     /// </summary>
-    [ProtoMember(3)]
+    [ProtoMember(102)]
     public int TotalFavorEarned { get; set; }
 
     /// <summary>
     ///     Dictionary of unlocked player blessings
     ///     Key: blessing ID, Value: unlock status (true if unlocked)
     /// </summary>
-    [ProtoMember(4)]
+    [ProtoMember(103)]
     public HashSet<string> UnlockedBlessings { get; set; } = new();
 
 
     /// <summary>
     ///     Data version for migration purposes
     /// </summary>
-    [ProtoMember(5)]
+    [ProtoMember(104)]
     public int DataVersion { get; set; } = 3;
 
     /// <summary>
     ///     Accumulated fractional favor (not yet awarded) for passive generation
     /// </summary>
-    [ProtoMember(6)]
+    [ProtoMember(105)]
     public float AccumulatedFractionalFavor { get; set; }
 
     // === COMPUTED PROPERTIES (not serialized) ===
