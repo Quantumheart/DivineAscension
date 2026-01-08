@@ -19,7 +19,8 @@ internal static class ColorPalette
     // Background Colors
     public static readonly Vector4 DarkBrown = new(0.24f, 0.18f, 0.13f, 1.0f); // #3d2e20
     public static readonly Vector4 LightBrown = new(0.35f, 0.26f, 0.19f, 1.0f); // Hover
-    public static readonly Vector4 Background = new(0.16f, 0.12f, 0.09f, 0.95f); // Panel background
+    public static readonly Vector4 Background = new(0.161f, 0.118f, 0.086f, 1.0f); // #291e16 - Main window background
+    public static readonly Vector4 BorderColor = new(0.349f, 0.259f, 0.184f, 1.0f); // #59422f - Standard border color
 
     // State Colors
     public static readonly Vector4 Red = new(0.8f, 0.2f, 0.2f, 1.0f); // Error/Danger

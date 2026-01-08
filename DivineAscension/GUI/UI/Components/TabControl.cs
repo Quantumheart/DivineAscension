@@ -160,9 +160,9 @@ public static class TabControl
         var bgColorU32 = ImGui.ColorConvertFloat4ToU32(bgColor);
         drawList.AddRectFilled(tabStart, tabEnd, bgColorU32, 4f);
 
-        // Draw border
-        var borderColor = ImGui.ColorConvertFloat4ToU32(isSelected ? ColorPalette.Gold : ColorPalette.Grey * 0.5f);
-        drawList.AddRect(tabStart, tabEnd, borderColor, 4f, ImDrawFlags.None, isSelected ? 2f : 1f);
+        // Draw border (Issue #71: Consistent 2px border width)
+        var borderColor = ImGui.ColorConvertFloat4ToU32(isSelected ? ColorPalette.Gold : ColorPalette.BorderColor);
+        drawList.AddRect(tabStart, tabEnd, borderColor, 4f, ImDrawFlags.None, 2f);
 
         // Draw icon if provided
         if (iconDirectory != "" && iconName != "")
@@ -253,9 +253,9 @@ public static class TabControl
         var bgColorU32 = ImGui.ColorConvertFloat4ToU32(bgColor);
         drawList.AddRectFilled(tabStart, tabEnd, bgColorU32, 4f);
 
-        // Draw border
-        var borderColor = ImGui.ColorConvertFloat4ToU32(isSelected ? ColorPalette.Gold : ColorPalette.Grey * 0.5f);
-        drawList.AddRect(tabStart, tabEnd, borderColor, 4f, ImDrawFlags.None, isSelected ? 2f : 1f);
+        // Draw border (Issue #71: Consistent 2px border width)
+        var borderColor = ImGui.ColorConvertFloat4ToU32(isSelected ? ColorPalette.Gold : ColorPalette.BorderColor);
+        drawList.AddRect(tabStart, tabEnd, borderColor, 4f, ImDrawFlags.None, 2f);
 
         // Draw icon if provided
         if (iconDirectory != "" && iconName != "")

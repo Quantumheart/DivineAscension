@@ -29,8 +29,8 @@ internal static class ReligionBrowseRenderer
         var height = viewModel.Height;
         var currentY = y;
 
-        // === DEITY FILTER TABS ===
-        const float tabHeight = 32f;
+        // === DEITY FILTER TABS === (Issue #71: 36px height, 4px spacing)
+        const float tabHeight = 36f;
 
         var currentSelectedIndex = viewModel.GetCurrentFilterIndex();
         if (currentSelectedIndex == -1) currentSelectedIndex = 0; // Default to "All"

@@ -26,9 +26,9 @@ internal static class CivilizationTabRenderer
         var tabY = vm.Y;
         const float tabH = 36f;
 
-        // Tab buttons: Conditionally render based on religion/civilization membership
-        const float tabWidth = 150f;
-        const float spacing = 6f;
+        // Tab buttons: Conditionally render based on religion/civilization membership (Issue #71: 130px width, 4px spacing)
+        const float tabWidth = 130f;
+        const float spacing = 4f;
 
         // Track dynamic X position for visible tabs (avoids gaps when tabs are hidden)
         float currentX = tabX;
