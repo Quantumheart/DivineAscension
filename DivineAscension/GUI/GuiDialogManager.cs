@@ -116,5 +116,6 @@ public class GuiDialogManager : IBlessingDialogManager
         CivilizationManager.UserIsReligionFounder =
             ReligionStateManager.State.InfoState.MyReligionInfo?.IsFounder ?? false;
         CivilizationManager.UserPrestigeRank = ReligionStateManager.CurrentPrestigeRank;
+        CivilizationManager.UserIsCivilizationFounder = IsCivilizationFounder;
     }
 }

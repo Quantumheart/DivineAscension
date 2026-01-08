@@ -12,6 +12,7 @@ using DivineAscension.GUI.Models.Civilization.Info;
 using DivineAscension.GUI.Models.Civilization.Invites;
 using DivineAscension.GUI.Models.Civilization.Tab;
 using DivineAscension.GUI.State;
+using DivineAscension.GUI.State.Civilization;
 using DivineAscension.GUI.UI.Adapters.Civilizations;
 using DivineAscension.GUI.UI.Renderers.Civilization;
 using DivineAscension.GUI.UI.Utilities;
@@ -40,7 +41,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     /// <summary>
     ///     Public accessor for diplomacy state (for network client access)
     /// </summary>
-    public State.Civilization.DiplomacyState DiplomacyState => State.DiplomacyState;
+    public DiplomacyState DiplomacyState => State.DiplomacyState;
 
     /// <summary>
     ///     Public accessor for current sub-tab (for network client access)
@@ -61,6 +62,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     public bool UserHasReligion { get; set; }
     public bool UserIsReligionFounder { get; set; }
     public int UserPrestigeRank { get; set; }
+    public bool UserIsCivilizationFounder { get; set; }
 
     public void Reset()
     {
@@ -229,13 +231,15 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         State.DiplomacyState.ErrorMessage = null;
 
         _uiService.RequestDiplomacyInfo(CurrentCivilizationId);
-        _coreClientApi.Logger.Debug($"[DivineAscension:Diplomacy] Requested diplomacy info for civ: {CurrentCivilizationId}");
+        _coreClientApi.Logger.Debug(
+            $"[DivineAscension:Diplomacy] Requested diplomacy info for civ: {CurrentCivilizationId}");
     }
 
     /// <summary>
     ///     Request a diplomacy action (propose, accept, decline, schedulebreak, cancelbreak, declarewar, declarepeace)
     /// </summary>
-    internal void RequestDiplomacyAction(string action, string targetCivId = "", string proposalOrRelationshipId = "", string proposedStatus = "")
+    internal void RequestDiplomacyAction(string action, string targetCivId = "", string proposalOrRelationshipId = "",
+        string proposedStatus = "")
     {
         if (!HasCivilization())
         {
@@ -420,8 +424,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             civ?.Name ?? string.Empty,
             civ?.Icon ?? "default",
             civ?.FounderName ?? string.Empty,
-            !string.IsNullOrEmpty(CivilizationFounderReligionUID) &&
-            civ?.FounderReligionUID == CivilizationFounderReligionUID,
+            UserIsCivilizationFounder,
             civ?.MemberReligions ?? new List<CivilizationInfoResponsePacket.MemberReligion>(),
             State.InfoState.InviteReligionName ?? string.Empty,
             State.ShowDisbandConfirm,
@@ -897,6 +900,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                         RequestDiplomacyAction("propose", pr.TargetCivId, "", pr.ProposedStatus.ToString());
                         State.DiplomacyState.SelectedCivId = string.Empty;
                     }
+
                     break;
 
                 case DiplomacyEvent.AcceptProposal ap:
@@ -915,6 +919,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                         RequestDiplomacyAction("schedulebreak", sb.TargetCivId);
                         State.DiplomacyState.ConfirmBreakRelationshipId = null;
                     }
+
                     break;
 
                 case DiplomacyEvent.CancelBreak cb:
@@ -928,6 +933,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                         RequestDiplomacyAction("declarewar", dw.TargetCivId);
                         State.DiplomacyState.ConfirmWarCivId = null;
                     }
+
                     break;
 
                 case DiplomacyEvent.DeclarePeace dp:
@@ -1014,6 +1020,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                             $"[DivineAscension] Switching tab from {currentTab} to Browse after leaving civilization");
                         State.CurrentSubTab = CivilizationSubTab.Browse;
                     }
+
                     break;
 
                 case "join" or "create" or "accept":
@@ -1024,6 +1031,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                             $"[DivineAscension] Switching tab from {currentTab} to Info after joining civilization");
                         State.CurrentSubTab = CivilizationSubTab.Info;
                     }
+
                     break;
             }
 
