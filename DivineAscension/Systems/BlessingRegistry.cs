@@ -9,7 +9,7 @@ using Vintagestory.API.Common;
 namespace DivineAscension.Systems;
 
 /// <summary>
-///     Registry for all blessings in the game (Phase 3.3)
+///     Registry for all blessings in the game
 /// </summary>
 public class BlessingRegistry : IBlessingRegistry
 {
@@ -29,7 +29,7 @@ public class BlessingRegistry : IBlessingRegistry
     {
         _api.Logger.Notification("[DivineAscension] Initializing Blessing Registry...");
 
-        // Register all blessings from BlessingDefinitions (Phase 3.4)
+        // Register all blessings from BlessingDefinitions
         var allBlessings = BlessingDefinitions.GetAllBlessings();
         foreach (var blessing in allBlessings) RegisterBlessing(blessing);
 
@@ -88,8 +88,7 @@ public class BlessingRegistry : IBlessingRegistry
     /// <summary>
     ///     Checks if a blessing can be unlocked by a player/religion
     /// </summary>
-    public (bool canUnlock, string reason) CanUnlockBlessing(
-        PlayerReligionData playerData,
+    public (bool canUnlock, string reason) CanUnlockBlessing(PlayerProgressionData playerData,
         ReligionData? religionData,
         Blessing? blessing)
     {
@@ -99,7 +98,7 @@ public class BlessingRegistry : IBlessingRegistry
         // Check blessing type and corresponding requirements
         if (blessing.Kind == BlessingKind.Player)
         {
-            if (!playerData.HasReligion()) return (false, "Not in a religion");
+            if (religionData == null) return (false, "Not in a religion");
 
             // Check if already unlocked
             if (playerData.IsBlessingUnlocked(blessing.BlessingId)) return (false, "Blessing already unlocked");
@@ -112,8 +111,8 @@ public class BlessingRegistry : IBlessingRegistry
             }
 
             // Check deity matches
-            if (playerData.ActiveDeity != blessing.Deity)
-                return (false, $"Requires deity: {blessing.Deity} (Current: {playerData.ActiveDeity})");
+            if (religionData!.Deity != blessing.Deity)
+                return (false, $"Requires deity: {blessing.Deity} (Current: {religionData!.Deity})");
 
             // Check prerequisites
             if (blessing.PrerequisiteBlessings != null)

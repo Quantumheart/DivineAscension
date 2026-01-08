@@ -29,7 +29,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             null!,
             _religionManager.Object,
-            _playerReligionDataManager.Object,
+            _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
             _serverChannel.Object));
     }
@@ -42,7 +42,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
             null!,
-            _playerReligionDataManager.Object,
+            _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
             _serverChannel.Object));
     }
@@ -68,7 +68,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
             _religionManager.Object,
-            _playerReligionDataManager.Object,
+            _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
             null!));
     }
@@ -81,7 +81,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         var commands = new ReligionCommands(
             _mockSapi.Object,
             _religionManager.Object,
-            _playerReligionDataManager.Object,
+            _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
             _serverChannel.Object);
 

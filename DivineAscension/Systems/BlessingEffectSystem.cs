@@ -24,7 +24,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
 
     // Cache for stat modifiers to reduce computation
     private readonly Dictionary<string, Dictionary<string, float>> _playerModifierCache = new();
-    private readonly IPlayerReligionDataManager _playerReligionDataManager;
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionManager _religionManager;
     private readonly Dictionary<string, Dictionary<string, float>> _religionModifierCache = new();
     private readonly ICoreServerAPI _sapi;
@@ -33,12 +33,12 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     public BlessingEffectSystem(
         ICoreServerAPI sapi,
         IBlessingRegistry blessingRegistry,
-        IPlayerReligionDataManager playerReligionDataManager,
+        IPlayerProgressionDataManager playerProgressionDataManager,
         IReligionManager religionManager)
     {
         _sapi = sapi;
         _blessingRegistry = blessingRegistry;
-        _playerReligionDataManager = playerReligionDataManager;
+        _playerProgressionDataManager = playerProgressionDataManager;
         _religionManager = religionManager;
         _specialEffectRegistry = new SpecialEffectRegistry(sapi);
     }
@@ -58,7 +58,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
 
         // Register event handlers
         _sapi.Event.PlayerJoin += OnPlayerJoin;
-        _playerReligionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesReligion;
+        _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
 
         _sapi.Logger.Notification($"{SystemConstants.LogPrefix} {SystemConstants.InfoBlessingSystemInitialized}");
     }
@@ -73,12 +73,10 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             return new Dictionary<string, float>(cachedModifiers);
 
         var modifiers = new Dictionary<string, float>();
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(playerUID);
+        var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(playerUID);
 
         // Get all unlocked player blessings
         var unlockedBlessingIds = playerData.UnlockedBlessings
-            .Where(kvp => kvp.Value)
-            .Select(kvp => kvp.Key)
             .ToList();
 
         // Combine stat modifiers from all blessings
@@ -141,10 +139,10 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         CombineModifiers(combined, playerModifiers);
 
         // Get religion modifiers
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(playerUID);
-        if (playerData.ReligionUID != null)
+        if (_religionManager.HasReligion(playerUID))
         {
-            var religionModifiers = GetReligionStatModifiers(playerData.ReligionUID);
+            var playerReligion = _religionManager.GetPlayerReligion(playerUID);
+            var religionModifiers = GetReligionStatModifiers(playerReligion.ReligionUID);
             CombineModifiers(combined, religionModifiers);
         }
 
@@ -243,8 +241,8 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         // Clear cached modifiers
         _playerModifierCache.Remove(playerUID);
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(playerUID);
-        if (playerData.ReligionUID != null) _religionModifierCache.Remove(playerData.ReligionUID);
+        var playerReligion = _religionManager.GetPlayerReligion(playerUID);
+        if (playerReligion != null) _religionModifierCache.Remove(playerReligion.ReligionUID);
 
         // Recalculate and apply
         var player = _sapi.World.PlayerByUid(playerUID) as IServerPlayer;
@@ -284,12 +282,10 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         var playerBlessings = new List<Blessing>();
         var religionBlessings = new List<Blessing>();
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(playerUID);
+        var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(playerUID);
 
         // Get player blessings
         var playerBlessingIds = playerData.UnlockedBlessings
-            .Where(kvp => kvp.Value)
-            .Select(kvp => kvp.Key)
             .ToList();
 
         foreach (var blessingId in playerBlessingIds)
@@ -299,22 +295,19 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         }
 
         // Get religion blessings
-        if (playerData.ReligionUID != null)
-        {
-            var religion = _religionManager.GetReligion(playerData.ReligionUID);
-            if (religion != null)
-            {
-                var religionBlessingIds = religion.UnlockedBlessings
-                    .Where(kvp => kvp.Value)
-                    .Select(kvp => kvp.Key)
-                    .ToList();
+        var playerReligion = _religionManager.GetPlayerReligion(playerUID);
 
-                foreach (var blessingId in religionBlessingIds)
-                {
-                    var blessing = _blessingRegistry.GetBlessing(blessingId);
-                    if (blessing != null) religionBlessings.Add(blessing);
-                }
-            }
+        if (playerReligion == null) return (playerBlessings, religionBlessings);
+
+        var religionBlessingIds = playerReligion.UnlockedBlessings
+            .Where(kvp => kvp.Value)
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        foreach (var blessingId in religionBlessingIds)
+        {
+            var blessing = _blessingRegistry.GetBlessing(blessingId);
+            if (blessing != null) religionBlessings.Add(blessing);
         }
 
         return (playerBlessings, religionBlessings);
@@ -349,7 +342,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         return string.Join("\n", lines);
     }
 
-    internal void OnPlayerLeavesReligion(IServerPlayer player, string religionUID)
+    internal void OnPlayerLeavesProgression(IServerPlayer player, string religionUID)
     {
         RemoveBlessingsFromPlayer(player);
         RefreshBlessings(player.PlayerUID, religionUID);

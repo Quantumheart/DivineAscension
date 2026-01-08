@@ -8,7 +8,7 @@ using Vintagestory.API.Server;
 namespace DivineAscension.Systems.Favor;
 
 public class ForagingFavorTracker(
-    IPlayerReligionDataManager playerReligionDataManager,
+    IPlayerProgressionDataManager playerProgressionDataManager,
     ICoreServerAPI sapi,
     FavorSystem favorSystem) : IFavorTracker, IDisposable
 {
@@ -16,8 +16,8 @@ public class ForagingFavorTracker(
 
     private readonly HashSet<string> _lysaFollowers = new();
 
-    private readonly IPlayerReligionDataManager _playerReligionDataManager =
-        playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
+        playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
 
@@ -25,8 +25,8 @@ public class ForagingFavorTracker(
     {
         _sapi.Event.BreakBlock -= OnBlockBroken;
         _sapi.Event.DidUseBlock -= OnBlockUsed;
-        _playerReligionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
-        _playerReligionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
+        _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
+        _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
         _lysaFollowers.Clear();
     }
 
@@ -40,8 +40,8 @@ public class ForagingFavorTracker(
         // Cache followers
         RefreshFollowerCache();
 
-        _playerReligionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
-        _playerReligionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesReligion;
+        _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
+        _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
     }
 
     private void RefreshFollowerCache()
@@ -59,14 +59,14 @@ public class ForagingFavorTracker(
 
     private void UpdateFollower(string playerUID)
     {
-        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(playerUID);
-        if (religionData?.ActiveDeity == DeityType)
+        var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerUID);
+        if (deityType == DeityType)
             _lysaFollowers.Add(playerUID);
         else
             _lysaFollowers.Remove(playerUID);
     }
 
-    private void OnPlayerLeavesReligion(IServerPlayer player, string religionUID)
+    private void OnPlayerLeavesProgression(IServerPlayer player, string religionUID)
     {
         _lysaFollowers.Remove(player.PlayerUID);
     }
@@ -99,6 +99,7 @@ public class ForagingFavorTracker(
     {
         if (block?.Code == null) return false;
         var path = block.Code.Path;
+
 
         // Berry bushes: blackberry, blueberry, cranberry, redcurrant, whitecurrant
         return path.Contains("berrybush");

@@ -20,7 +20,6 @@ public class CivilizationNetworkHandler(
     ICoreServerAPI sapi,
     CivilizationManager civilizationManager,
     IReligionManager religionManager,
-    IPlayerReligionDataManager playerReligionDataManager,
     IServerNetworkChannel serverChannel)
     : IServerNetworkHandler
 {
@@ -219,14 +218,14 @@ public class CivilizationNetworkHandler(
 
         var response = new CivilizationActionResponsePacket();
         response.Action = packet.Action;
+        var religion = religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
 
         try
         {
             switch (packet.Action.ToLower())
             {
                 case "create":
-                    var playerData = playerReligionDataManager.GetOrCreatePlayerData(fromPlayer.PlayerUID);
-                    if (string.IsNullOrEmpty(playerData.ReligionUID))
+                    if (string.IsNullOrEmpty(religion.ReligionUID))
                     {
                         response.Success = false;
                         response.Message = "You must be in a religion to create a civilization.";
@@ -235,7 +234,7 @@ public class CivilizationNetworkHandler(
 
                     var iconToUse = string.IsNullOrWhiteSpace(packet.Icon) ? "default" : packet.Icon;
                     var newCiv = civilizationManager.CreateCivilization(packet.Name, fromPlayer.PlayerUID,
-                        playerData.ReligionUID, iconToUse);
+                        religion.ReligionUID, iconToUse);
                     if (newCiv != null)
                     {
                         response.Success = true;
@@ -315,8 +314,7 @@ public class CivilizationNetworkHandler(
                     break;
 
                 case "leave":
-                    playerData = playerReligionDataManager.GetOrCreatePlayerData(fromPlayer.PlayerUID);
-                    if (string.IsNullOrEmpty(playerData.ReligionUID))
+                    if (string.IsNullOrEmpty(religion.ReligionUID))
                     {
                         response.Success = false;
                         response.Message = "You are not in a religion.";
@@ -324,7 +322,7 @@ public class CivilizationNetworkHandler(
                     }
 
                     // Get religion to check if player is the founder
-                    var playerReligion = religionManager.GetReligion(playerData.ReligionUID);
+                    var playerReligion = religionManager.GetReligion(religion.ReligionUID);
                     if (playerReligion == null)
                     {
                         response.Success = false;
@@ -341,7 +339,7 @@ public class CivilizationNetworkHandler(
                     }
 
                     // Check if player is the civilization founder
-                    var playerCiv = civilizationManager.GetCivilizationByReligion(playerData.ReligionUID);
+                    var playerCiv = civilizationManager.GetCivilizationByReligion(religion.ReligionUID);
                     if (playerCiv != null && playerCiv.FounderUID == fromPlayer.PlayerUID)
                     {
                         response.Success = false;
@@ -349,7 +347,7 @@ public class CivilizationNetworkHandler(
                         break;
                     }
 
-                    success = civilizationManager.LeaveReligion(playerData.ReligionUID, fromPlayer.PlayerUID);
+                    success = civilizationManager.LeaveReligion(religion.ReligionUID, fromPlayer.PlayerUID);
                     response.Success = success;
                     response.Message = success
                         ? "You have left the civilization."

@@ -18,7 +18,7 @@ namespace DivineAscension.Systems.Networking.Server;
 /// </summary>
 public class ReligionNetworkHandler : IServerNetworkHandler
 {
-    private readonly IPlayerReligionDataManager _playerReligionDataManager;
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionManager _religionManager;
     private readonly IRoleManager _roleManager;
     private readonly ICoreServerAPI _sapi;
@@ -30,13 +30,13 @@ public class ReligionNetworkHandler : IServerNetworkHandler
     public ReligionNetworkHandler(
         ICoreServerAPI sapi,
         IReligionManager religionManager,
-        IPlayerReligionDataManager playerReligionDataManager,
+        IPlayerProgressionDataManager playerProgressionDataManager,
         IRoleManager roleManager,
         IServerNetworkChannel channel)
     {
         _sapi = sapi;
         _religionManager = religionManager;
-        _playerReligionDataManager = playerReligionDataManager;
+        _playerProgressionDataManager = playerProgressionDataManager;
         _roleManager = roleManager;
         _serverChannel = channel;
     }
@@ -110,7 +110,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             // Build member list with player names and favor ranks
             foreach (var member in religion.Members)
             {
-                var memberPlayerData = _playerReligionDataManager!.GetOrCreatePlayerData(member.Key);
+                var memberPlayerData = _playerProgressionDataManager!.GetOrCreatePlayerData(member.Key);
 
                 // Use cached name from Members dictionary
                 var memberName = religion.GetMemberName(member.Key);
@@ -274,14 +274,14 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 );
 
                 // Set up founder's player religion data (already added to Members via constructor)
-                _playerReligionDataManager!.SetPlayerReligionData(fromPlayer.PlayerUID, newReligion.ReligionUID);
+                _playerProgressionDataManager!.SetPlayerReligionData(fromPlayer.PlayerUID, newReligion.ReligionUID);
 
                 religionUID = newReligion.ReligionUID;
                 message = $"Successfully created {packet.ReligionName}!";
                 success = true;
 
                 // Refresh player's HUD
-                _playerReligionDataManager!.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
+                _playerProgressionDataManager!.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
             }
         }
         catch (Exception ex)
@@ -758,9 +758,9 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
         if (_religionManager.CanJoinReligion(packet.ReligionUID, fromPlayer.PlayerUID))
         {
-            _playerReligionDataManager.JoinReligion(fromPlayer.PlayerUID, packet.ReligionUID);
+            _playerProgressionDataManager.JoinReligion(fromPlayer.PlayerUID, packet.ReligionUID);
             _roleManager.AssignRole(religion!.ReligionUID, "SYSTEM", fromPlayer.PlayerUID, RoleDefaults.MEMBER_ROLE_ID);
-            _playerReligionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
+            _playerProgressionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
 
             // Broadcast roles update to all religion members so their UI updates
             BroadcastRolesUpdateToReligion(religion);
@@ -793,7 +793,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 {
                     // Note: AcceptInvite already called AddMember, but JoinReligion is idempotent
                     // It will skip re-adding if already a member
-                    _playerReligionDataManager.JoinReligion(fromPlayer.PlayerUID, religionId);
+                    _playerProgressionDataManager.JoinReligion(fromPlayer.PlayerUID, religionId);
                 }
                 catch (Exception ex)
                 {
@@ -808,7 +808,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 }
 
                 _roleManager.AssignRole(religionId, "SYSTEM", fromPlayer.PlayerUID, RoleDefaults.MEMBER_ROLE_ID);
-                _playerReligionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
+                _playerProgressionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
                 NotifyPlayerReligionStateChanged(fromPlayer, "You joined a religion", true);
 
                 // Broadcast roles update to all religion members so their UI updates
@@ -864,8 +864,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         }
 
         var religionName = currentReligion.ReligionName;
-        _playerReligionDataManager.LeaveReligion(fromPlayer.PlayerUID);
-        _playerReligionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
+        _playerProgressionDataManager.LeaveReligion(fromPlayer.PlayerUID);
+        _playerProgressionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
         NotifyPlayerReligionStateChanged(fromPlayer, $"You left {religionName}", false);
 
         // Broadcast roles update to remaining members (after player has left)
@@ -896,7 +896,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 Message = "You cannot kick yourself."
             };
 
-        _playerReligionDataManager.LeaveReligion(packet.TargetPlayerUID);
+        _playerProgressionDataManager.LeaveReligion(packet.TargetPlayerUID);
 
         // Notify kicked player if online
         var kickedPlayer = _sapi.World.PlayerByUid(packet.TargetPlayerUID) as IServerPlayer;
@@ -905,7 +905,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             kickedPlayer.SendMessage(0,
                 $"You have been kicked from {religion.ReligionName}.",
                 EnumChatType.Notification);
-            _playerReligionDataManager.NotifyPlayerDataChanged(kickedPlayer.PlayerUID);
+            _playerProgressionDataManager.NotifyPlayerDataChanged(kickedPlayer.PlayerUID);
             NotifyPlayerReligionStateChanged(kickedPlayer,
                 $"You have been kicked from {religion.ReligionName}", false);
         }
@@ -957,7 +957,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
         // Kick the player if they're still a member
         if (religion.IsMember(packet.TargetPlayerUID))
-            _playerReligionDataManager.LeaveReligion(packet.TargetPlayerUID);
+            _playerProgressionDataManager.LeaveReligion(packet.TargetPlayerUID);
 
         // Ban the player
         _religionManager.BanPlayer(
@@ -975,7 +975,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             bannedPlayer.SendMessage(0,
                 $"You have been banned from {religion.ReligionName}. Reason: {reason}",
                 EnumChatType.Notification);
-            _playerReligionDataManager.NotifyPlayerDataChanged(bannedPlayer.PlayerUID);
+            _playerProgressionDataManager.NotifyPlayerDataChanged(bannedPlayer.PlayerUID);
             NotifyPlayerReligionStateChanged(bannedPlayer,
                 $"You have been banned from {religion.ReligionName}. Reason: {reason}", false);
         }
@@ -1073,7 +1073,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
         foreach (var memberUID in members)
         {
-            _playerReligionDataManager.LeaveReligion(memberUID);
+            _playerProgressionDataManager.LeaveReligion(memberUID);
 
             var memberPlayer = _sapi.World.PlayerByUid(memberUID) as IServerPlayer;
             if (memberPlayer != null)

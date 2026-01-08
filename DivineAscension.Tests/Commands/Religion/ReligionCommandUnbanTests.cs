@@ -26,7 +26,7 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
         // Arrange
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
+        var founderData = CreatePlayerData("founder-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
 
         var args = CreateCommandArgs(mockFounder.Object);
@@ -34,8 +34,9 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
 
         var allPlayers = new List<IPlayer> { mockFounder.Object, mockTarget.Object };
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
+        _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.UnbanPlayer("religion-1", "target-1")).Returns(true);
         _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
 
@@ -55,7 +56,7 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
         // Arrange
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
+        var founderData = CreatePlayerData("founder-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
 
         var args = CreateCommandArgs(mockFounder.Object);
@@ -63,8 +64,9 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
 
         var allPlayers = new List<IPlayer> { mockFounder.Object, mockTarget.Object };
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
+        _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.UnbanPlayer("religion-1", "target-1")).Returns(false);
         _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
 
@@ -83,7 +85,7 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
         // Arrange
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
+        var founderData = CreatePlayerData("founder-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
 
         var args = CreateCommandArgs(mockFounder.Object);
@@ -91,8 +93,9 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
 
         var allPlayers = new List<IPlayer> { mockFounder.Object, mockTarget.Object };
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
+        _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.UnbanPlayer("religion-1", "target-1")).Returns(true);
         _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
 
@@ -137,11 +140,11 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "PlayerName");
-        var playerData = CreatePlayerData("player-1", null);
+        var playerData = CreatePlayerData("player-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TargetName");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
 
         // Act
         var result = _sut!.OnUnbanPlayer(args);
@@ -157,13 +160,13 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "PlayerName");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TargetName");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns((ReligionData?)null);
-
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns((ReligionData?)null);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         // Act
         var result = _sut!.OnUnbanPlayer(args);
 
@@ -178,14 +181,14 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "MemberName");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TargetName");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
-
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         // Act
         var result = _sut!.OnUnbanPlayer(args);
 
@@ -200,13 +203,14 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
-        var founderData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
+        var founderData = CreatePlayerData("founder-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args, "NonExistentPlayer");
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
+        _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { mockFounder.Object });
 
         // Act

@@ -59,7 +59,7 @@ public class KhorasIntegrationTests
 
     private readonly Mock<ICoreServerAPI> _mockAPI;
     private readonly Mock<IDeityRegistry> _mockDeityRegistry;
-    private readonly Mock<IPlayerReligionDataManager> _mockPlayerReligionDataManager;
+    private readonly Mock<IPlayerProgressionDataManager> _mockPlayerReligionDataManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
     private readonly Mock<IReligionPrestigeManager> _mockPrestigeManager;
     private readonly Mock<IBlessingRegistry> _mockBlessingRegistry;
@@ -70,7 +70,7 @@ public class KhorasIntegrationTests
     {
         _mockAPI = TestFixtures.CreateMockServerAPI();
         _mockDeityRegistry = TestFixtures.CreateMockDeityRegistry();
-        _mockPlayerReligionDataManager = TestFixtures.CreateMockPlayerReligionDataManager();
+        _mockPlayerReligionDataManager = TestFixtures.CreateMockPlayerProgressionDataManager();
         _mockReligionManager = TestFixtures.CreateMockReligionManager();
         _mockPrestigeManager = TestFixtures.CreateMockReligionPrestigeManager();
         _mockBlessingRegistry = TestFixtures.CreateMockBlessingRegistry();
@@ -105,14 +105,13 @@ public class KhorasIntegrationTests
         );
     }
 
-    private PlayerReligionData SetupKhorasFollower(string playerUID)
+    private PlayerProgressionData SetupKhorasFollower(string playerUID)
     {
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            PlayerUID = playerUID,
-            ActiveDeity = DeityType.Khoras,
+            Id = playerUID,
             Favor = 0,
-            UnlockedBlessings = new Dictionary<string, bool>()
+            UnlockedBlessings = new()
         };
 
         _mockPlayerReligionDataManager.Setup(m => m.GetOrCreatePlayerData(playerUID))
@@ -205,8 +204,8 @@ public class KhorasIntegrationTests
         if (t3a.StatModifiers.TryGetValue(VintageStoryStats.ToolDurability, out var t3aDur))
             totalToolDurability += t3aDur;
 
-        // Assert - Should add up to 45% (0.10 + 0.15 + 0.20)
-        Assert.Equal(0.45f, totalToolDurability, precision: 3);
+        // Assert - Should add up to 10% (0.02 + 0.03 + 0.05)
+        Assert.Equal(0.10f, totalToolDurability, precision: 3);
     }
 
     [Fact]
@@ -232,7 +231,7 @@ public class KhorasIntegrationTests
             .Returns(religionData);
 
         // Player has T1 blessing (Craftsman's Touch: +10% tool durability)
-        playerData.UnlockedBlessings[BlessingIds.KhorasCraftsmansTouch] = true;
+        playerData.UnlockedBlessings.Add(BlessingIds.KhorasCraftsmansTouch);
 
         // Religion has R1 blessing (Shared Workshop: +10% tool durability)
         // This is validated in the blessing definitions
@@ -248,8 +247,8 @@ public class KhorasIntegrationTests
 
         var totalBonus = playerBonus + religionBonus;
 
-        // Assert - Total should be 20% (0.10 + 0.10)
-        Assert.Equal(0.20f, totalBonus, precision: 3);
+        // Assert - Total should be 5% (0.2 + 0.1)
+        Assert.Equal(0.03f, totalBonus, precision: 3);
     }
 
     #endregion

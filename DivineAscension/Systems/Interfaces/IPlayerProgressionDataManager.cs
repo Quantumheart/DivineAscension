@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using DivineAscension.Data;
+using DivineAscension.Models.Enum;
 
 namespace DivineAscension.Systems.Interfaces;
 
-public interface IPlayerReligionDataManager : IDisposable
+public interface IPlayerProgressionDataManager : IDisposable
 {
-    event PlayerReligionDataManager.PlayerReligionDataChangedDelegate OnPlayerLeavesReligion;
+    event PlayerProgressionDataManager.PlayerReligionDataChangedDelegate OnPlayerLeavesReligion;
 
-    event PlayerReligionDataManager.PlayerDataChangedDelegate OnPlayerDataChanged;
+    event PlayerProgressionDataManager.PlayerDataChangedDelegate OnPlayerDataChanged;
 
     /// <summary>
     ///     Initializes the player religion data manager
@@ -18,17 +18,12 @@ public interface IPlayerReligionDataManager : IDisposable
     /// <summary>
     ///     Gets or creates player data
     /// </summary>
-    PlayerReligionData GetOrCreatePlayerData(string playerUID);
+    PlayerProgressionData GetOrCreatePlayerData(string playerUID);
 
     /// <summary>
     ///     Adds favor to a player
     /// </summary>
     void AddFavor(string playerUID, int amount, string reason = "");
-
-    /// <summary>
-    ///     Updates favor rank for a player
-    /// </summary>
-    void UpdateFavorRank(string playerUID);
 
     /// <summary>
     ///     Unlocks a player blessing
@@ -55,11 +50,6 @@ public interface IPlayerReligionDataManager : IDisposable
     ///     Removes a player from their current religion
     /// </summary>
     void LeaveReligion(string playerUID);
-
-    /// <summary>
-    ///     Gets remaining cooldown time for religion switching
-    /// </summary>
-    TimeSpan? GetSwitchCooldownRemaining(string playerUID);
 
     /// <summary>
     ///     Applies switching penalty when changing religions
@@ -89,4 +79,25 @@ public interface IPlayerReligionDataManager : IDisposable
     /// </summary>
     /// <param name="playerUID">Player unique identifier</param>
     void NotifyPlayerDataChanged(string playerUID);
+
+    /// <summary>
+    /// Determines whether the specified player is associated with a religion.
+    /// </summary>
+    /// <param name="playerId">The unique identifier of the player.</param>
+    /// <returns>
+    /// True if the player has a religion; otherwise, false.
+    /// </returns>
+    public bool HasReligion(string playerId);
+
+    /// <summary>
+    /// Retrieves the deity type associated with the specified player.
+    /// </summary>
+    /// <param name="playerId">
+    /// The unique identifier of the player whose deity type is to be retrieved.
+    /// </param>
+    /// <returns>
+    /// The <see cref="DeityType"/> representing the player's associated deity.
+    /// Returns <see cref="DeityType.None"/> if the player has no associated deity.
+    /// </returns>
+    public DeityType GetPlayerDeityType(string playerId);
 }

@@ -35,12 +35,17 @@ public interface IReligionManager : IDisposable
     /// <summary>
     ///     Gets the religion a player belongs to
     /// </summary>
-    ReligionData? GetPlayerReligion(string playerUID);
+    ReligionData? GetPlayerReligion(string playerId);
+
+    /// <summary>
+    ///     Gets the religion ID a player belongs to (O(1) lookup)
+    /// </summary>
+    string? GetPlayerReligionId(string playerId);
 
     /// <summary>
     ///     Gets a religion by UID
     /// </summary>
-    ReligionData? GetReligion(string? religionUID);
+    ReligionData? GetReligion(string? religionId);
 
     /// <summary>
     ///     Gets a religion by name
@@ -50,7 +55,7 @@ public interface IReligionManager : IDisposable
     /// <summary>
     ///     Gets the active deity for a player
     /// </summary>
-    DeityType GetPlayerActiveDeity(string playerUID);
+    DeityType GetPlayerActiveDeity(string playerId);
 
     /// <summary>
     ///     Checks if a player can join a religion
@@ -146,4 +151,8 @@ public interface IReligionManager : IDisposable
     /// </summary>
     /// <param name="religionData">The religion data to save.</param>
     void Save(ReligionData religionData);
+
+    bool RepairMembershipConsistency(string playerUID);
+
+    (bool IsConsistent, string Issues) ValidateMembershipConsistency(string playerUID);
 }

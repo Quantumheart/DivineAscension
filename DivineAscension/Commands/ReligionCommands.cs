@@ -20,11 +20,11 @@ namespace DivineAscension.Commands;
 public class ReligionCommands(
     ICoreServerAPI sapi,
     IReligionManager religionManager,
-    IPlayerReligionDataManager playerReligionDataManager,
+    IPlayerProgressionDataManager playerReligionDataManager,
     IReligionPrestigeManager religionPrestigeManager,
     IServerNetworkChannel serverChannel)
 {
-    private readonly IPlayerReligionDataManager _playerReligionDataManager =
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
 
     private readonly IReligionManager _religionManager =
@@ -140,7 +140,6 @@ public class ReligionCommands(
             .BeginSubCommand("repair")
             .WithDescription("Repair religion membership inconsistencies")
             .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("playername"))
-            .HandleWith(OnAdminRepair)
             .EndSubCommand()
             .EndSubCommand();
 
@@ -164,8 +163,8 @@ public class ReligionCommands(
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
         // Check if player already has a religion
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (playerData.HasReligion())
+        var playerId = player.PlayerUID;
+        if (_religionManager.HasReligion(playerId))
             return TextCommandResult.Error("You are already in a religion. Use /religion leave first.");
 
         // Parse deity type
@@ -186,7 +185,7 @@ public class ReligionCommands(
         var religion = _religionManager.CreateReligion(religionName, deity, player.PlayerUID, isPublic);
 
         // Set up founder's player religion data (already added to Members via constructor)
-        _playerReligionDataManager.SetPlayerReligionData(player.PlayerUID, religion.ReligionUID);
+        _playerProgressionDataManager.SetPlayerReligionData(player.PlayerUID, religion.ReligionUID);
 
         return TextCommandResult.Success(
             $"Religion '{religionName}' created! You are now the founder serving {deity}.");
@@ -211,11 +210,11 @@ public class ReligionCommands(
             return TextCommandResult.Error("This religion is private and you have not been invited");
 
         // Apply switching penalty if needed
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (playerData.HasReligion()) _playerReligionDataManager.HandleReligionSwitch(player.PlayerUID);
+        if (_religionManager.HasReligion(player.PlayerUID))
+            _playerProgressionDataManager.HandleReligionSwitch(player.PlayerUID);
 
         // Join the religion
-        _playerReligionDataManager.JoinReligion(player.PlayerUID, religion.ReligionUID);
+        _playerProgressionDataManager.JoinReligion(player.PlayerUID, religion.ReligionUID);
 
         // Remove invitation if exists
         _religionManager.RemoveInvitation(player.PlayerUID, religion.ReligionUID);
@@ -231,11 +230,11 @@ public class ReligionCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(player.PlayerUID))
+            return TextCommandResult.Error("You are not in any religion");
 
         // Get religion info before leaving
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         var religionName = religion?.ReligionName ?? "Unknown";
 
         // Prevent founders from leaving (use role-based check for consistency)
@@ -246,7 +245,7 @@ public class ReligionCommands(
         }
 
         // Leave the religion
-        _playerReligionDataManager.LeaveReligion(player.PlayerUID);
+        _playerProgressionDataManager.LeaveReligion(player.PlayerUID);
 
         return TextCommandResult.Success($"You have left {religionName}");
     }
@@ -302,10 +301,9 @@ public class ReligionCommands(
         else
         {
             // Show current religion
-            var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-            if (!playerData.HasReligion())
+            if (!_religionManager.HasReligion(player.PlayerUID))
                 return TextCommandResult.Error("You are not in any religion. Specify a religion name to view.");
-            religion = _religionManager.GetReligion(playerData.ReligionUID!);
+            religion = _religionManager.GetPlayerReligion(player.PlayerUID);
             if (religion == null) return TextCommandResult.Error("Could not find your religion data");
         }
 
@@ -335,10 +333,10 @@ public class ReligionCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(player.PlayerUID))
+            return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         var sb = new StringBuilder();
@@ -349,7 +347,7 @@ public class ReligionCommands(
             var memberPlayer = _sapi.World.PlayerByUid(memberUID);
             var memberName = memberPlayer?.PlayerName ?? "Unknown";
 
-            var memberData = _playerReligionDataManager.GetOrCreatePlayerData(memberUID);
+            var memberData = _playerProgressionDataManager.GetOrCreatePlayerData(memberUID);
             var role = religion.IsFounder(memberUID) ? "Founder" : "Member";
 
             sb.AppendLine($"- {memberName} ({role}) | Rank: {memberData.FavorRank} | Favor: {memberData.Favor}");
@@ -369,10 +367,10 @@ public class ReligionCommands(
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
         // Check if player is in a religion
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(player.PlayerUID))
+            return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Check if player has permission to invite
@@ -419,10 +417,10 @@ public class ReligionCommands(
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
         // Check if player is in a religion
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(player.PlayerUID))
+            return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Check if player has permission to kick members
@@ -445,7 +443,7 @@ public class ReligionCommands(
                 "You cannot kick yourself. Use /religion disband or /religion leave instead.");
 
         // Kick the player
-        _playerReligionDataManager.LeaveReligion(targetPlayer.PlayerUID);
+        _playerProgressionDataManager.LeaveReligion(targetPlayer.PlayerUID);
 
         // Notify target if online
         var targetServerPlayer = targetPlayer as IServerPlayer;
@@ -472,10 +470,10 @@ public class ReligionCommands(
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
         // Check if player is in a religion
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(player.PlayerUID))
+            return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Check if player has permission to ban players
@@ -493,7 +491,8 @@ public class ReligionCommands(
             return TextCommandResult.Error("You cannot ban yourself.");
 
         // Kick the player if they're still a member
-        if (religion.IsMember(targetPlayer.PlayerUID)) _playerReligionDataManager.LeaveReligion(targetPlayer.PlayerUID);
+        if (religion.IsMember(targetPlayer.PlayerUID))
+            _playerProgressionDataManager.LeaveReligion(targetPlayer.PlayerUID);
 
         // Ban the player
         _religionManager.BanPlayer(
@@ -529,10 +528,10 @@ public class ReligionCommands(
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
         // Check if player is in a religion
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(player.PlayerUID))
+            return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Check if player has permission to ban/unban players
@@ -560,10 +559,10 @@ public class ReligionCommands(
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
         // Check if player is in a religion
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(player.PlayerUID))
+            return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Check if player has permission to view ban list
@@ -606,10 +605,10 @@ public class ReligionCommands(
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
         // Check if player is in a religion
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Check if player has permission to disband the religion
@@ -622,7 +621,7 @@ public class ReligionCommands(
         var members = religion.MemberUIDs.ToList(); // Copy to avoid modification during iteration
         foreach (var memberUID in members)
         {
-            _playerReligionDataManager.LeaveReligion(memberUID);
+            _playerProgressionDataManager.LeaveReligion(memberUID);
 
             // Notify member if online
             var memberPlayer = _sapi.World.PlayerByUid(memberUID) as IServerPlayer;
@@ -666,14 +665,14 @@ public class ReligionCommands(
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
         // Check if player is in a religion
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Check if player has permission to edit description
-        if (!religion.HasPermission(player.PlayerUID, RolePermissions.EDIT_DESCRIPTION))
+        if (!religion.HasPermission(playerId, RolePermissions.EDIT_DESCRIPTION))
             return TextCommandResult.Error("You don't have permission to edit the religion description");
 
         // Set description
@@ -702,10 +701,9 @@ public class ReligionCommands(
         else
         {
             // Show current religion's prestige
-            var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-            if (!playerData.HasReligion())
+            if (!_religionManager.HasReligion(player.PlayerUID))
                 return TextCommandResult.Error("You are not in any religion. Specify a religion name to view.");
-            religion = _religionManager.GetReligion(playerData.ReligionUID!);
+            religion = _religionManager.GetPlayerReligion(player.PlayerUID);
             if (religion == null) return TextCommandResult.Error("Could not find your religion data");
         }
 
@@ -791,26 +789,6 @@ public class ReligionCommands(
     }
 
     /// <summary>
-    ///     Handler for /religion admin repair [playername]
-    ///     Repairs membership state inconsistencies by syncing to ReligionManager (authority)
-    /// </summary>
-    internal TextCommandResult OnAdminRepair(TextCommandCallingArgs args)
-    {
-        var targetPlayerName = args.Parsers.Count > 0 ? (string?)args[0] : null;
-
-        if (!string.IsNullOrEmpty(targetPlayerName))
-        {
-            // Repair specific player
-            return RepairSpecificPlayer(targetPlayerName);
-        }
-        else
-        {
-            // Scan and repair ALL players
-            return RepairAllPlayers();
-        }
-    }
-
-    /// <summary>
     ///     Repairs a specific player's membership state
     /// </summary>
     private TextCommandResult RepairSpecificPlayer(string playerName)
@@ -825,8 +803,8 @@ public class ReligionCommands(
         }
 
         // Cast to concrete type for validation method
-        var religionManager = _religionManager as ReligionManager;
-        var playerDataManager = _playerReligionDataManager as PlayerReligionDataManager;
+        var religionManager = _religionManager;
+        var playerDataManager = _playerProgressionDataManager as PlayerProgressionDataManager;
 
         if (religionManager == null || playerDataManager == null)
         {
@@ -834,8 +812,8 @@ public class ReligionCommands(
         }
 
         // Validate consistency
-        var (isConsistent, issues, suggestedFix) =
-            religionManager.ValidateMembershipConsistency(player.PlayerUID, playerDataManager);
+        var (isConsistent, issues) =
+            religionManager.ValidateMembershipConsistency(player.PlayerUID);
 
         if (isConsistent)
         {
@@ -843,13 +821,13 @@ public class ReligionCommands(
         }
 
         // Repair inconsistency
-        var (wasRepaired, fixDescription) =
-            religionManager.RepairMembershipConsistency(player.PlayerUID, playerDataManager);
+        var wasRepaired =
+            religionManager.RepairMembershipConsistency(player.PlayerUID);
 
         if (wasRepaired)
         {
             // Trigger save and notify player if online
-            _playerReligionDataManager.NotifyPlayerDataChanged(player.PlayerUID);
+            _playerProgressionDataManager.NotifyPlayerDataChanged(player.PlayerUID);
             religionManager.TriggerSave();
 
             var serverPlayer = player as IServerPlayer;
@@ -865,11 +843,10 @@ public class ReligionCommands(
             var sb = new StringBuilder();
             sb.AppendLine($"REPAIRED: {playerName}");
             sb.AppendLine($"Issue: {issues}");
-            sb.AppendLine($"Fix: {fixDescription}");
             return TextCommandResult.Success(sb.ToString());
         }
 
-        return TextCommandResult.Error($"Failed to repair {playerName}: {fixDescription}");
+        return TextCommandResult.Error($"Failed to repair {playerName}");
     }
 
     /// <summary>
@@ -887,7 +864,7 @@ public class ReligionCommands(
 
         // Cast to concrete type for validation method
         var religionManager = _religionManager as ReligionManager;
-        var playerDataManager = _playerReligionDataManager as PlayerReligionDataManager;
+        var playerDataManager = _playerProgressionDataManager as PlayerProgressionDataManager;
 
         if (religionManager == null || playerDataManager == null)
         {
@@ -919,8 +896,8 @@ public class ReligionCommands(
         {
             scanned++;
 
-            var (isConsistent, issues, suggestedFix) =
-                religionManager.ValidateMembershipConsistency(playerUID, playerDataManager);
+            var (isConsistent, issues) =
+                religionManager.ValidateMembershipConsistency(playerUID);
 
             if (isConsistent)
             {
@@ -932,19 +909,18 @@ public class ReligionCommands(
             var player = _sapi.World.PlayerByUid(playerUID);
             var playerName = player?.PlayerName ?? playerUID;
 
-            var (wasRepaired, fixDescription) =
-                religionManager.RepairMembershipConsistency(playerUID, playerDataManager);
+            var wasRepaired =
+                religionManager.RepairMembershipConsistency(playerUID);
 
             if (wasRepaired)
             {
                 repaired++;
                 sb.AppendLine($"✓ REPAIRED: {playerName}");
                 sb.AppendLine($"  Issue: {issues}");
-                sb.AppendLine($"  Fix: {fixDescription}");
                 sb.AppendLine();
 
                 // Notify player if online
-                _playerReligionDataManager.NotifyPlayerDataChanged(playerUID);
+                _playerProgressionDataManager.NotifyPlayerDataChanged(playerUID);
                 var serverPlayer = player as IServerPlayer;
                 if (serverPlayer != null)
                 {
@@ -960,7 +936,6 @@ public class ReligionCommands(
                 failed++;
                 sb.AppendLine($"✗ FAILED: {playerName}");
                 sb.AppendLine($"  Issue: {issues}");
-                sb.AppendLine($"  Error: {fixDescription}");
                 sb.AppendLine();
             }
         }

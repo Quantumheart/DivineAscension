@@ -25,14 +25,14 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
-
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         // Act
         var result = _sut!.OnLeaveReligion(args);
 
@@ -40,7 +40,7 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("You have left TestReligion", result.StatusMessage);
-        _playerReligionDataManager.Verify(m => m.LeaveReligion("player-1"), Times.Once);
+        _playerProgressionDataManager.Verify(m => m.LeaveReligion("player-1"), Times.Once);
     }
 
     [Fact]
@@ -48,14 +48,14 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1");
         var religion = CreateReligion("religion-1", "MyCustomReligion", DeityType.Khoras, "founder-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
-
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         // Act
         var result = _sut!.OnLeaveReligion(args);
 
@@ -68,19 +68,19 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
-
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         // Act
         _sut!.OnLeaveReligion(args);
 
         // Assert
-        _playerReligionDataManager.Verify(m => m.LeaveReligion("player-1"), Times.Once);
+        _playerProgressionDataManager.Verify(m => m.LeaveReligion("player-1"), Times.Once);
     }
 
     #endregion
@@ -116,11 +116,11 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", null); // No religion
+        var playerData = CreatePlayerData("player-1"); // No religion
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
 
         // Act
         var result = _sut!.OnLeaveReligion(args);
@@ -129,7 +129,7 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Error, result.Status);
         Assert.Contains("You are not in any religion", result.StatusMessage);
-        _playerReligionDataManager.Verify(m => m.LeaveReligion(It.IsAny<string>()), Times.Never);
+        _playerProgressionDataManager.Verify(m => m.LeaveReligion(It.IsAny<string>()), Times.Never);
     }
 
     #endregion
@@ -141,13 +141,13 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns((ReligionData?)null);
-
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
+        _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns((ReligionData?)null);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         // Act
         var result = _sut!.OnLeaveReligion(args);
 
@@ -155,7 +155,7 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("Unknown", result.StatusMessage);
-        _playerReligionDataManager.Verify(m => m.LeaveReligion("player-1"), Times.Once);
+        _playerProgressionDataManager.Verify(m => m.LeaveReligion("player-1"), Times.Once);
     }
 
     [Fact]
@@ -163,14 +163,14 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("founder-1", "FounderPlayer");
-        var playerData = CreatePlayerData("founder-1", "religion-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("founder-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
-        _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
-
+        _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(playerData);
+        _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
+        _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         // Act
         var result = _sut!.OnLeaveReligion(args);
 
@@ -178,7 +178,7 @@ public class ReligionCommandLeaveTests : ReligionCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Error, result.Status);
         Assert.Contains("Founders cannot leave", result.StatusMessage);
-        _playerReligionDataManager.Verify(m => m.LeaveReligion("founder-1"), Times.Never);
+        _playerProgressionDataManager.Verify(m => m.LeaveReligion("founder-1"), Times.Never);
     }
 
     #endregion

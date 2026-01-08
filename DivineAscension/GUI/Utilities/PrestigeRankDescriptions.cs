@@ -1,5 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models.Enum;
 
+[ExcludeFromCodeCoverage]
 public static class PrestigeRankDescriptions
 {
     public static string GetDescription(PrestigeRank rank) => rank switch

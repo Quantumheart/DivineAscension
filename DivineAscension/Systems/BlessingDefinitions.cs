@@ -42,12 +42,12 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "+10% tool durability, +10% ore yield.",
+                Description = "+2% chance for tools to take no damage, +10% ore yield.",
                 IconName = "hammer-drop",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ToolDurability, 0.10f },
+                    { VintageStoryStats.ToolDurability, 0.02f },
                     { VintageStoryStats.OreDropRate, 0.10f }
                 }
             },
@@ -57,13 +57,14 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description = "+15% tool durability (total: 25%), +10% mining speed. Requires Craftsman's Touch.",
+                Description =
+                    "+3% chance for tools to take no damage (total: 5%), +10% mining speed. Requires Craftsman's Touch.",
                 IconName = "miner",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasCraftsmansTouch },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ToolDurability, 0.15f },
+                    { VintageStoryStats.ToolDurability, 0.03f },
                     { VintageStoryStats.MiningSpeed, 0.10f }
                 }
             },
@@ -88,13 +89,13 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "+20% tool durability (total: 45%), +15% ore yield (total: 25%). Requires Masterwork Tools.",
+                    "+5% chance for tools to take no damage (total: 10%), +15% ore yield (total: 25%). Requires Masterwork Tools.",
                 IconName = "sword-smithing",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasMasterworkTools },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ToolDurability, 0.20f },
+                    { VintageStoryStats.ToolDurability, 0.05f },
                     { VintageStoryStats.OreDropRate, 0.15f }
                 },
                 SpecialEffects = new List<string>()
@@ -140,12 +141,12 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
-                Description = "+10% tool durability, +10% ore yield for all members.",
+                Description = "+1% chance for tools to take no damage, +10% ore yield for all members.",
                 IconName = "warehouse",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ToolDurability, 0.10f },
+                    { VintageStoryStats.ToolDurability, 0.01f },
                     { VintageStoryStats.OreDropRate, 0.10f }
                 }
             },
@@ -155,13 +156,14 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
-                Description = "+15% tool durability, +15% ore yield for all. Requires Shared Workshop.",
+                Description =
+                    "+2% chance for tools to take no damage, +15% ore yield for all. Requires Shared Workshop.",
                 IconName = "blacksmith",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasSharedWorkshop },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ToolDurability, 0.15f },
+                    { VintageStoryStats.ToolDurability, 0.02f },
                     { VintageStoryStats.OreDropRate, 0.15f }
                 }
             },
@@ -172,13 +174,13 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "+20% tool durability, +20% ore yield, +10% armor walk speed for all. Requires Guild of Smiths.",
+                    "+2% chance for tools to take no damage, +20% ore yield, +10% armor walk speed for all. Requires Guild of Smiths.",
                 IconName = "team-upgrade",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
                 PrerequisiteBlessings = new List<string> { BlessingIds.KhorasGuildOfSmiths },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ToolDurability, 0.20f },
+                    { VintageStoryStats.ToolDurability, 0.02f },
                     { VintageStoryStats.OreDropRate, 0.20f },
                     { VintageStoryStats.ArmorWalkSpeedAffectedness, -0.10f }
                 }

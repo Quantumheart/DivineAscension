@@ -13,21 +13,20 @@ namespace DivineAscension.Systems;
 /// <summary>
 ///     Manages player-religion relationships and player progression
 /// </summary>
-public class PlayerReligionDataManager : IPlayerReligionDataManager
+public class PlayerProgressionDataManager : IPlayerProgressionDataManager
 {
     public delegate void PlayerDataChangedDelegate(string playerUID);
 
     public delegate void PlayerReligionDataChangedDelegate(IServerPlayer player, string religionUID);
 
-    private const string DATA_KEY = "divineascension_playerreligiondata";
-    private const int RELIGION_SWITCH_COOLDOWN_DAYS = 7;
-    private readonly Dictionary<string, PlayerReligionData> _playerData = new();
+    private const string DATA_KEY = "divineascension_playerprogressiondata";
+    private readonly Dictionary<string, PlayerProgressionData> _playerData = new();
     private readonly IReligionManager _religionManager;
 
     private readonly ICoreServerAPI _sapi;
 
     // ReSharper disable once ConvertToPrimaryConstructor
-    public PlayerReligionDataManager(ICoreServerAPI sapi, IReligionManager religionManager)
+    public PlayerProgressionDataManager(ICoreServerAPI sapi, IReligionManager religionManager)
     {
         _sapi = sapi;
         _religionManager = religionManager;
@@ -63,13 +62,13 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
     /// <summary>
     ///     Gets or creates player data
     /// </summary>
-    public PlayerReligionData GetOrCreatePlayerData(string playerUID)
+    public PlayerProgressionData GetOrCreatePlayerData(string playerUID)
     {
         if (!_playerData.TryGetValue(playerUID, out var data))
         {
-            data = new PlayerReligionData(playerUID);
+            data = new PlayerProgressionData(playerUID);
             _playerData[playerUID] = data;
-            _sapi.Logger.Debug($"[DivineAscension] Created new player religion data for {playerUID}");
+            _sapi.Logger.Debug($"[DivineAscension] Created new player progression data for {playerUID}");
         }
 
         return data;
@@ -144,26 +143,6 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
     }
 
     /// <summary>
-    ///     Updates favor rank for a player
-    /// </summary>
-    public void UpdateFavorRank(string playerUID)
-    {
-        var data = GetOrCreatePlayerData(playerUID);
-        var oldRank = data.FavorRank;
-
-        data.UpdateFavorRank();
-
-        // Check for rank change
-        if (data.FavorRank != oldRank)
-        {
-            _sapi.Logger.Notification(
-                $"[DivineAscension] Player {playerUID} rank changed: {oldRank} -> {data.FavorRank}");
-
-            if (data.FavorRank > oldRank) SendRankUpNotification(playerUID, data.FavorRank);
-        }
-    }
-
-    /// <summary>
     ///     Unlocks a player blessing
     /// </summary>
     public bool UnlockPlayerBlessing(string playerUID, string blessingId)
@@ -188,9 +167,9 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
         var data = GetOrCreatePlayerData(playerUID);
         var unlockedBlessings = new List<string>();
 
-        foreach (var kvp in data.UnlockedBlessings)
-            if (kvp.Value) // If unlocked
-                unlockedBlessings.Add(kvp.Key);
+        foreach (var id in data.UnlockedBlessings)
+            if (!string.IsNullOrEmpty(id)) // If unlocked
+                unlockedBlessings.Add(id);
 
         return unlockedBlessings;
     }
@@ -211,11 +190,6 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
             return;
         }
 
-        // Set religion and deity (NO AddMember call)
-        data.ReligionUID = religionUID;
-        data.ActiveDeity = religion.Deity;
-        data.LastReligionSwitch = DateTime.UtcNow;
-
         _sapi.Logger.Notification(
             $"[DivineAscension] Set player {playerUID} religion data for {religion.ReligionName}");
     }
@@ -235,32 +209,8 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
             throw new InvalidOperationException($"Cannot join non-existent religion: {religionUID}");
         }
 
-        // Save old state for rollback in case of failure
-        var oldReligionUID = data.ReligionUID;
-        var oldDeity = data.ActiveDeity;
-        var oldLastSwitch = data.LastReligionSwitch;
-
-        try
-        {
-            // Step 1: Update PlayerData
-            data.ReligionUID = religionUID;
-            data.ActiveDeity = religion.Deity;
-            data.LastReligionSwitch = DateTime.UtcNow;
-
-            // Step 2: Add to ReligionManager (idempotent, safe to call multiple times)
-            _religionManager.AddMember(religionUID, playerUID);
-
-            _sapi.Logger.Notification($"[DivineAscension] Player {playerUID} joined religion {religion.ReligionName}");
-        }
-        catch (Exception ex)
-        {
-            // Rollback PlayerData on failure
-            _sapi.Logger.Error($"[DivineAscension] Failed to join religion, rolling back: {ex}");
-            data.ReligionUID = oldReligionUID;
-            data.ActiveDeity = oldDeity;
-            data.LastReligionSwitch = oldLastSwitch;
-            throw;
-        }
+        _religionManager.AddMember(religionUID, playerUID);
+        _sapi.Logger.Notification($"[DivineAscension] Player {playerUID} joined religion {religion.ReligionName}");
     }
 
     /// <summary>
@@ -270,38 +220,28 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
     {
         var data = GetOrCreatePlayerData(playerUID);
 
-        if (!data.HasReligion()) return;
-
-        var religionUID = data.ReligionUID!;
+        if (!HasReligion(playerUID)) return;
 
         HandleReligionSwitch(playerUID);
+        var playerReligion = _religionManager.GetPlayerReligion(playerUID);
         // Remove from religion
-        _religionManager.RemoveMember(religionUID, playerUID);
+        _religionManager.RemoveMember(playerReligion.ReligionUID, playerUID);
 
-        OnPlayerLeavesReligion.Invoke((_sapi.World.PlayerByUid(playerUID) as IServerPlayer)!, religionUID);
+        OnPlayerLeavesReligion.Invoke((_sapi.World.PlayerByUid(playerUID) as IServerPlayer)!,
+            playerReligion.ReligionUID);
         // Clear player data
-        data.ReligionUID = null;
-        data.ActiveDeity = DeityType.None;
         data.Favor = 0;
         data.TotalFavorEarned = 0;
-        data.FavorRank = FavorRank.Initiate;
 
         _sapi.Logger.Notification($"[DivineAscension] Player {playerUID} left religion");
     }
 
-    /// <summary>
-    ///     Gets remaining cooldown time for religion switching
-    /// </summary>
-    public TimeSpan? GetSwitchCooldownRemaining(string playerUID)
+    public bool HasReligion(string playerUid) => _religionManager.HasReligion(playerUid);
+
+
+    public DeityType GetPlayerDeityType(string playerId)
     {
-        var data = GetOrCreatePlayerData(playerUID);
-
-        if (data.LastReligionSwitch == null) return null;
-
-        var cooldownEnd = data.LastReligionSwitch.Value.AddDays(RELIGION_SWITCH_COOLDOWN_DAYS);
-        var remaining = cooldownEnd - DateTime.UtcNow;
-
-        return remaining.TotalSeconds > 0 ? remaining : TimeSpan.Zero;
+        return _religionManager.GetPlayerActiveDeity(playerId);
     }
 
     /// <summary>
@@ -358,7 +298,7 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
     #region Persistence
 
     /// <summary>
-    ///     Loads player data from world storage
+    ///     Loads player data from world storage, with automatic migration from v2 to v3
     /// </summary>
     internal void LoadPlayerData(string playerUID)
     {
@@ -367,17 +307,68 @@ public class PlayerReligionDataManager : IPlayerReligionDataManager
             var data = _sapi.WorldManager.SaveGame.GetData($"{DATA_KEY}_{playerUID}");
             if (data != null)
             {
-                var playerData = SerializerUtil.Deserialize<PlayerReligionData>(data);
+                // Try to deserialize as current version first
+                PlayerProgressionData? playerData = null;
+
+                try
+                {
+                    playerData = SerializerUtil.Deserialize<PlayerProgressionData>(data);
+
+                    // If deserialization succeeded but data is old version, we still need to migrate
+                    if (playerData != null && PlayerDataMigration.NeedsMigration(playerData.DataVersion))
+                    {
+                        _sapi.Logger.Debug(
+                            $"[DivineAscension] Player {playerUID} data version {playerData.DataVersion} needs migration");
+                        playerData = null; // Force migration path
+                    }
+                }
+                catch
+                {
+                    // Deserialization failed, likely old format - will try migration
+                    _sapi.Logger.Debug(
+                        $"[DivineAscension] Could not deserialize as v3, attempting migration for {playerUID}");
+                }
+
+                // If v3 deserialization failed or version is old, try migration from v2
+                if (playerData == null)
+                {
+                    try
+                    {
+                        var oldData = SerializerUtil.Deserialize<PlayerReligionData>(data);
+                        if (oldData != null && oldData.DataVersion == 2)
+                        {
+                            _sapi.Logger.Notification(
+                                $"[DivineAscension] Migrating player {playerUID} data from v2 to v3...");
+
+                            playerData = PlayerDataMigration.MigrateV2ToV3(oldData, _religionManager, _sapi.Logger);
+
+                            // Save migrated data immediately
+                            _playerData[playerUID] = playerData;
+                            SavePlayerData(playerUID);
+
+                            _sapi.Logger.Notification(
+                                $"[DivineAscension] Successfully migrated and saved player {playerUID} data");
+                        }
+                    }
+                    catch (Exception migrationEx)
+                    {
+                        _sapi.Logger.Error(
+                            $"[DivineAscension] Failed to migrate player {playerUID} data: {migrationEx.Message}");
+                    }
+                }
+
+                // Store the loaded or migrated data
                 if (playerData != null)
                 {
                     _playerData[playerUID] = playerData;
-                    _sapi.Logger.Debug($"[DivineAscension] Loaded religion data for player {playerUID}");
+                    _sapi.Logger.Debug(
+                        $"[DivineAscension] Loaded data for player {playerUID} (v{playerData.DataVersion})");
                 }
             }
         }
         catch (Exception ex)
         {
-            _sapi.Logger.Error($"[DivineAscension] Failed to load religion data for player {playerUID}: {ex.Message}");
+            _sapi.Logger.Error($"[DivineAscension] Failed to load data for player {playerUID}: {ex.Message}");
         }
     }
 

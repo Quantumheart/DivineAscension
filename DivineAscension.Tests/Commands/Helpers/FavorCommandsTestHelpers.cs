@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Commands;
-using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using Moq;
 using Vintagestory.API.Common;
@@ -18,7 +18,8 @@ public class FavorCommandsTestHelpers
     protected Mock<ILogger> _mockLogger;
     protected Mock<ICoreServerAPI> _mockSapi;
     protected Mock<IServerWorldAccessor> _mockWorld;
-    protected Mock<IPlayerReligionDataManager> _playerReligionDataManager;
+    protected Mock<IPlayerProgressionDataManager> _playerReligionDataManager;
+    protected Mock<IReligionManager> _religionManager;
     protected FavorCommands? _sut;
 
     protected FavorCommandsTestHelpers()
@@ -33,7 +34,8 @@ public class FavorCommandsTestHelpers
         _mockSapi.Setup(api => api.World).Returns(_mockWorld.Object);
 
         _deityRegistry = new Mock<IDeityRegistry>();
-        _playerReligionDataManager = new Mock<IPlayerReligionDataManager>();
+        _playerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
+        _religionManager = new Mock<IReligionManager>();
     }
 
     protected FavorCommands InitializeMocksAndSut()
@@ -41,7 +43,8 @@ public class FavorCommandsTestHelpers
         return new FavorCommands(
             _mockSapi.Object,
             _deityRegistry.Object,
-            _playerReligionDataManager.Object);
+            _playerReligionDataManager.Object,
+            _religionManager.Object);
     }
 
     /// <summary>
@@ -104,20 +107,16 @@ public class FavorCommandsTestHelpers
     /// <summary>
     /// Creates test PlayerReligionData
     /// </summary>
-    protected PlayerReligionData CreatePlayerData(
-        string playerUID,
+    protected PlayerProgressionData CreatePlayerData(string playerUID,
         DeityType deity = DeityType.Khoras,
         int favor = 0,
         int totalFavor = 0,
         FavorRank rank = FavorRank.Initiate)
     {
-        return new PlayerReligionData(playerUID)
+        return new PlayerProgressionData(playerUID)
         {
-            ActiveDeity = deity,
             Favor = favor,
             TotalFavorEarned = totalFavor,
-            FavorRank = rank,
-            ReligionUID = "test-religion-uid"
         };
     }
 

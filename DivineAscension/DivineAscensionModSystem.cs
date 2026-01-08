@@ -29,7 +29,7 @@ public class DivineAscensionModSystem : ModSystem
 
     private Harmony? _harmony;
     private PlayerDataNetworkHandler? _playerDataNetworkHandler;
-    private PlayerReligionDataManager? _playerReligionDataManager;
+    private PlayerProgressionDataManager? _playerReligionDataManager;
     private ReligionManager? _religionManager;
     private ReligionNetworkHandler? _religionNetworkHandler;
 
@@ -112,7 +112,7 @@ public class DivineAscensionModSystem : ModSystem
 
         // Store references to managers for disposal and event subscriptions
         _religionManager = result.ReligionManager;
-        _playerReligionDataManager = result.PlayerReligionDataManager;
+        _playerReligionDataManager = result.PlayerProgressionDataManager;
         _favorSystem = result.FavorSystem;
         _civilizationManager = result.CivilizationManager;
         _playerDataNetworkHandler = result.PlayerDataNetworkHandler;

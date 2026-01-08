@@ -16,7 +16,7 @@ namespace DivineAscension.Systems.Networking.Server;
 public class PlayerDataNetworkHandler : IServerNetworkHandler
 {
     private readonly DeityRegistry? _deityRegistry;
-    private readonly IPlayerReligionDataManager? _playerReligionDataManager;
+    private readonly IPlayerProgressionDataManager? _playerProgressionDataManager;
     private readonly IReligionManager? _religionManager;
     private readonly ICoreServerAPI? _sapi;
     private IServerNetworkChannel? _serverChannel;
@@ -26,19 +26,19 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
     ///     This must be called before RegisterHandlers.
     /// </summary>
     public PlayerDataNetworkHandler(ICoreServerAPI sapi,
-        IPlayerReligionDataManager playerReligionDataManager,
+        IPlayerProgressionDataManager playerProgressionDataManager,
         IReligionManager religionManager,
         DeityRegistry deityRegistry,
         IServerNetworkChannel serverChannel)
     {
         _sapi = sapi;
-        _playerReligionDataManager = playerReligionDataManager;
+        _playerProgressionDataManager = playerProgressionDataManager;
         _religionManager = religionManager;
         _deityRegistry = deityRegistry;
         _serverChannel = serverChannel;
 
         // Subscribe to events
-        _playerReligionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
+        _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
         _sapi!.Event.PlayerJoin += OnPlayerJoin;
     }
 
@@ -49,8 +49,8 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
     public void Dispose()
     {
         // Unsubscribe from events
-        if (_playerReligionDataManager != null)
-            _playerReligionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
+        if (_playerProgressionDataManager != null)
+            _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
 
         if (_sapi != null)
             _sapi.Event.PlayerJoin -= OnPlayerJoin;
@@ -77,19 +77,19 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
     /// </summary>
     public void SendPlayerDataToClient(IServerPlayer player)
     {
-        if (_playerReligionDataManager == null || _religionManager == null || _deityRegistry == null ||
+        if (_playerProgressionDataManager == null || _religionManager == null || _deityRegistry == null ||
             _serverChannel == null) return;
 
-        var playerReligionData = _playerReligionDataManager!.GetOrCreatePlayerData(player.PlayerUID);
+        var playerReligionData = _playerProgressionDataManager!.GetOrCreatePlayerData(player.PlayerUID);
         var religionData = _religionManager!.GetPlayerReligion(player.PlayerUID);
-        var deity = _deityRegistry.GetDeity(playerReligionData.ActiveDeity);
-        var deityName = deity?.Name ?? "None";
+        var deity = _playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID);
 
         if (religionData != null)
         {
             var packet = new PlayerReligionDataPacket(
                 religionData.ReligionName,
-                deityName,
+                // todo: need to validate this is correct
+                deity.ToString(),
                 playerReligionData.Favor,
                 playerReligionData.FavorRank.ToString(),
                 religionData.Prestige,

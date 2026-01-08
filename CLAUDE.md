@@ -113,9 +113,9 @@ Releases/                      # Packaged mod artifacts from Cake build
 
 **CRITICAL INITIALIZATION ORDER** (in `DivineAscensionSystemInitializer.cs`):
 1. `DeityRegistry` - Register deities (Khoras, Lysa, Aethra, Gaia)
-2. `ReligionManager` - Religion CRUD and membership
+2. `ReligionManager` - Religion CRUD and membership with O(1) player-to-religion index
 3. `CivilizationManager` - Civilization management (depends on ReligionManager)
-4. `PlayerReligionDataManager` - Per-player data
+4. `PlayerProgressionDataManager` - Per-player data
 5. `ReligionPrestigeManager` - Religion-level progression
 6. `FavorSystem` - Divine favor rewards (**depends on PrestigeManager**)
 7. `PvPManager` - PvP favor rewards
@@ -123,6 +123,7 @@ Releases/                      # Packaged mod artifacts from Cake build
 9. `BlessingEffectSystem` - Stat modifiers and effects (**must register with PrestigeManager after initialization**)
 10. Command handlers (Favor, Blessing, Religion, Role, Civilization)
 11. Network handlers (PlayerData, Blessing, Religion, Civilization)
+12. **Membership validation** - Validates and repairs player-to-religion index consistency
 
 **Never reorder these** - dependency chains will break.
 
@@ -135,11 +136,12 @@ Releases/                      # Packaged mod artifacts from Cake build
 - Events: `OnReligionDeleted` (triggers cleanup cascades)
 - Persistence via world save/load
 
-**PlayerReligionDataManager** (`/Systems/PlayerReligionDataManager.cs`):
-- Per-player favor rank (Initiate → Avatar) and points
-- Unlocked player blessings tracking
-- Religion switch cooldown (7 days)
+**PlayerProgressionDataManager** (`/Systems/PlayerProgressionDataManager.cs`):
+- Per-player favor points and lifetime favor earned
+- Favor rank (Initiate → Avatar) computed from lifetime favor
+- Unlocked player blessings tracking (HashSet)
 - Events: `OnPlayerLeavesReligion`, `OnPlayerDataChanged`
+- Queries ReligionManager for player's current religion and deity
 
 **CivilizationManager** (`/Systems/CivilizationManager.cs`):
 - Alliances of 1-4 religions with different deities
@@ -237,7 +239,10 @@ Releases/                      # Packaged mod artifacts from Cake build
 All data stored via Vintage Story's world save system with ProtoBuf serialization (`[ProtoContract]` attributes):
 - `ReligionWorldData` - All religions
 - `CivilizationWorldData` - All civilizations
-- `PlayerReligionData` - Per-player data (loaded on join)
+- `PlayerProgressionData` - Per-player progression data (loaded on join, DataVersion=3)
+  - Simplified from v2: removed ReligionUID, ActiveDeity, LastReligionSwitch
+  - Player religion membership tracked via ReligionManager's player-to-religion index
+  - Automatic migration from v2 to v3 on first load
 
 Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
 
@@ -255,11 +260,11 @@ Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
 
 1. **Initialization order is critical** - See initialization section above
 2. **Single network channel** - All packets share `"divineascension"` channel
-3. **Religion switch cooldown** - 7 days to prevent favor farming
-4. **Civilization limits** - 1-4 religions per civilization
-5. **Favor rank persistence** - Favor rank tied to lifetime favor earned, persists across religion changes
-6. **Blessing prerequisites** - Can require other blessings unlocked first
-7. **Deity-bound blessings** - Only unlock if player matches deity
+3. **Civilization limits** - 1-4 religions per civilization
+4. **Favor rank persistence** - Favor rank tied to lifetime favor earned, persists across religion changes
+5. **Blessing prerequisites** - Can require other blessings unlocked first
+6. **Deity-bound blessings** - Only unlock if player matches deity
+7. **Single source of truth** - ReligionManager is authoritative for membership; PlayerProgressionData queries it
 8. **InternalsVisibleTo** - Main project exposes internals to tests via `[assembly: InternalsVisibleTo("DivineAscension.Tests")]`
 
 ## Development Practices

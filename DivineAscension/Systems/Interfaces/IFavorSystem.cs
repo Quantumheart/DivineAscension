@@ -1,4 +1,5 @@
 using System;
+using DivineAscension.Models.Enum;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Systems.Interfaces;
@@ -24,12 +25,7 @@ public interface IFavorSystem : IDisposable
     void AwardFavorForAction(IServerPlayer player, string actionType, float amount);
 
     /// <summary>
-    ///     Awards favor for deity-aligned actions by player UID (for async/delayed events)
-    /// </summary>
-    void AwardFavorForAction(string playerUid, string actionType, int amount);
-
-    /// <summary>
     ///     Awards a fractional amount of favor by player UID (for async/delayed events)
     /// </summary>
-    void AwardFavorForAction(string playerUid, string actionType, float amount);
+    void AwardFavorForAction(string playerUid, string actionType, float amount, DeityType deityType);
 }

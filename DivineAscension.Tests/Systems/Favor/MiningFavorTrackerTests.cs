@@ -15,7 +15,7 @@ public class MiningFavorTrackerTests
 {
     private static MiningFavorTracker CreateTracker(
         Mock<ICoreServerAPI> mockSapi,
-        Mock<IPlayerReligionDataManager> mockPlayerReligion,
+        Mock<IPlayerProgressionDataManager> mockPlayerReligion,
         Mock<IFavorSystem> mockFavor)
     {
         return new MiningFavorTracker(mockPlayerReligion.Object, mockSapi.Object, mockFavor.Object);
@@ -27,7 +27,7 @@ public class MiningFavorTrackerTests
         var mockSapi = TestFixtures.CreateMockServerAPI();
         var mockWorld = new Mock<IServerWorldAccessor>();
         var mockAccessor = new Mock<IBlockAccessor>();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var mockPlayer = TestFixtures.CreateMockServerPlayer("player-4", "NotKhoras");
 
@@ -86,7 +86,7 @@ public class MiningFavorTrackerTests
         SetupOnlinePlayer(mockWorld, player);
 
         // Recreate tracker bound to this sapi
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var tracker2 = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -112,7 +112,8 @@ public class MiningFavorTrackerTests
         var mockSapi = TestFixtures.CreateMockServerAPI();
         var mockWorld = new Mock<IServerWorldAccessor>();
         var mockAccessor = new Mock<IBlockAccessor>();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerProgression = TestFixtures.CreateMockPlayerProgressionDataManager();
+        var mockReligionManager = TestFixtures.CreateMockReligionManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var mockPlayer = TestFixtures.CreateMockServerPlayer("player-1", "TestPlayer");
 
@@ -122,13 +123,15 @@ public class MiningFavorTrackerTests
         SetupOnlinePlayer(mockWorld, mockPlayer.Object);
 
         // Player follows Khoras
-        mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-1"))
+        mockPlayerProgression.Setup(m => m.GetOrCreatePlayerData("player-1"))
             .Returns(TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.Khoras));
+        mockPlayerProgression.Setup(d => d.GetPlayerDeityType("player-1"))
+            .Returns(DeityType.Khoras);
 
         // Copper ore block (low tier = 1, poor quality = 1.0x, total = 1)
         SetupBlockAt(mockAccessor, "ore-poor-copper");
 
-        var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
+        var tracker = CreateTracker(mockSapi, mockPlayerProgression, mockFavor);
         tracker.Initialize();
 
         float dropMult = 1f;
@@ -150,7 +153,7 @@ public class MiningFavorTrackerTests
         var mockSapi = TestFixtures.CreateMockServerAPI();
         var mockWorld = new Mock<IServerWorldAccessor>();
         var mockAccessor = new Mock<IBlockAccessor>();
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var mockPlayer = TestFixtures.CreateMockServerPlayer("player-2", "StoneTester");
 

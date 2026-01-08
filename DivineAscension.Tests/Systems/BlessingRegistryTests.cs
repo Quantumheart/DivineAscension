@@ -316,10 +316,11 @@ public class BlessingRegistryTests
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, "religion-uid");
         var blessing = TestFixtures.CreateTestBlessing("test_blessing", "Test", DeityType.Khoras, BlessingKind.Player);
+        var religion = TestFixtures.CreateTestReligion();
         playerData.UnlockBlessing("test_blessing");
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing(playerData, null, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing(playerData, religion, blessing);
 
         // Assert
         Assert.False(canUnlock);
@@ -331,13 +332,12 @@ public class BlessingRegistryTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, "religion-uid");
-        playerData.FavorRank = FavorRank.Initiate; // Rank 0
-
+        var religion = TestFixtures.CreateTestReligion();
         var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityType.Khoras, BlessingKind.Player);
         blessing.RequiredFavorRank = 2; // Requires Disciple
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing(playerData, null, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing(playerData, religion, blessing);
 
         // Assert
         Assert.False(canUnlock);
@@ -350,9 +350,10 @@ public class BlessingRegistryTests
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, "religion-uid");
         var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityType.Lysa, BlessingKind.Player);
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityType.Khoras, "player-uid");
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing(playerData, null, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing(playerData, religion, blessing);
 
         // Assert
         Assert.False(canUnlock);
@@ -364,7 +365,6 @@ public class BlessingRegistryTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, "religion-uid");
-        playerData.FavorRank = FavorRank.Champion;
 
         var prereqBlessing = TestFixtures.CreateTestBlessing("prereq", "Prerequisite", DeityType.Khoras);
         _registry.RegisterBlessing(prereqBlessing);
@@ -372,8 +372,11 @@ public class BlessingRegistryTests
         var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityType.Khoras, BlessingKind.Player);
         blessing.PrerequisiteBlessings.Add("prereq");
 
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityType.Khoras, "player-uid");
+
+
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing(playerData, null, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing(playerData, religion, blessing);
 
         // Assert
         Assert.False(canUnlock);
@@ -385,13 +388,14 @@ public class BlessingRegistryTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, "religion-uid");
-        playerData.FavorRank = FavorRank.Champion;
 
         var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityType.Khoras, BlessingKind.Player);
         blessing.RequiredFavorRank = 1;
 
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityType.Khoras, "player-uid");
+
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing(playerData, null, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing(playerData, religion, blessing);
 
         // Assert
         Assert.True(canUnlock);

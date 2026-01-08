@@ -16,7 +16,7 @@ public class AnvilFavorTrackerTests
 {
     private static AnvilFavorTracker CreateTracker(
         Mock<ICoreServerAPI> mockSapi,
-        Mock<IPlayerReligionDataManager> mockPlayerReligion,
+        Mock<IPlayerProgressionDataManager> mockPlayerReligion,
         Mock<IFavorSystem> mockFavor)
     {
         return new AnvilFavorTracker(mockPlayerReligion.Object, mockSapi.Object, mockFavor.Object);
@@ -71,7 +71,8 @@ public class AnvilFavorTrackerTests
     {
         var mockSapi = TestFixtures.CreateMockServerAPI();
         var (mockWorld, mockAccessor) = SetupWorld(mockSapi);
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
+        var mockReligionManager = TestFixtures.CreateMockReligionManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var player = TestFixtures.CreateMockServerPlayer("player-anvil-1", "Smith");
         SetupPlayer(mockWorld, player.Object);
@@ -79,7 +80,8 @@ public class AnvilFavorTrackerTests
         // Player follows Khoras
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-anvil-1"))
             .Returns(TestFixtures.CreateTestPlayerReligionData("player-anvil-1", DeityType.Khoras));
-
+        mockReligionManager.Setup(d => d.GetPlayerActiveDeity(It.IsAny<string>())).Returns(DeityType.Khoras);
+        mockPlayerReligion.Setup(d => d.GetPlayerDeityType(It.IsAny<string>())).Returns(DeityType.Khoras);
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
         tracker.Initialize();
         var method = GetHandleMethod();
@@ -103,13 +105,16 @@ public class AnvilFavorTrackerTests
     {
         var mockSapi = TestFixtures.CreateMockServerAPI();
         var (mockWorld, mockAccessor) = SetupWorld(mockSapi);
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
+        var mockReligionManager = TestFixtures.CreateMockReligionManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var player = TestFixtures.CreateMockServerPlayer("player-anvil-2", "Hammerer");
         SetupPlayer(mockWorld, player.Object);
 
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-anvil-2"))
             .Returns(TestFixtures.CreateTestPlayerReligionData("player-anvil-2", DeityType.Khoras));
+        mockReligionManager.Setup(d => d.GetPlayerActiveDeity(It.IsAny<string>())).Returns(DeityType.Khoras);
+        mockPlayerReligion.Setup(d => d.GetPlayerDeityType(It.IsAny<string>())).Returns(DeityType.Khoras);
 
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
         tracker.Initialize();
@@ -134,7 +139,7 @@ public class AnvilFavorTrackerTests
     {
         var mockSapi = TestFixtures.CreateMockServerAPI();
         var (mockWorld, mockAccessor) = SetupWorld(mockSapi);
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerReligionDataManager();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var player = TestFixtures.CreateMockServerPlayer("player-anvil-3", "Other");
         SetupPlayer(mockWorld, player.Object);

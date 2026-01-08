@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Systems;
 using DivineAscension.Tests.Commands.Helpers;
 using Moq;
 using Vintagestory.API.Common;
@@ -38,7 +39,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
     {
         // Arrange
         var player = new Mock<IServerPlayer>().Object;
-        var playerData = new Mock<PlayerReligionData>().Object;
+        var playerData = new Mock<PlayerProgressionData>().Object;
 
         var args = new TextCommandCallingArgs
         {
@@ -63,9 +64,8 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
     {
         // Arrange
         var player = new Mock<IServerPlayer>().Object;
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            ReligionUID = "foobar"
         };
         var religion = new ReligionData
         {
@@ -82,8 +82,10 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
 
         _playerReligionDataManager.Setup(p => p.GetOrCreatePlayerData(player.PlayerUID))
             .Returns(playerData);
-        _religionManager.Setup(r => r.GetReligion(It.IsAny<string>()))
+        _religionManager.Setup(r => r.GetPlayerReligion(player.PlayerUID))
             .Returns(religion);
+        _religionManager.Setup(rm => rm.HasReligion(It.IsAny<string>()))
+            .Returns(true);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
             .Returns((new List<DivineAscension.Models.Blessing>(), new List<DivineAscension.Models.Blessing>()));
 
@@ -99,9 +101,8 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
     {
         // Arrange
         var player = new Mock<IServerPlayer>().Object;
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            ReligionUID = "test-religion-uid"
         };
         var religion = new ReligionData
         {
@@ -124,8 +125,10 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
 
         _playerReligionDataManager.Setup(p => p.GetOrCreatePlayerData(player.PlayerUID))
             .Returns(playerData);
-        _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
+        _religionManager.Setup(r => r.GetPlayerReligion(player.PlayerUID))
             .Returns(religion);
+        _religionManager.Setup(rm => rm.HasReligion(It.IsAny<string>()))
+            .Returns(true);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
             .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
@@ -144,9 +147,8 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
     {
         // Arrange
         var player = new Mock<IServerPlayer>().Object;
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            ReligionUID = "test-religion-uid"
         };
         var religion = new ReligionData
         {
@@ -178,8 +180,10 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
 
         _playerReligionDataManager.Setup(p => p.GetOrCreatePlayerData(player.PlayerUID))
             .Returns(playerData);
-        _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
+        _religionManager.Setup(r => r.GetPlayerReligion(player.PlayerUID))
             .Returns(religion);
+        _religionManager.Setup(rm => rm.HasReligion(It.IsAny<string>()))
+            .Returns(true);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
             .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
@@ -202,9 +206,8 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
     {
         // Arrange
         var player = new Mock<IServerPlayer>().Object;
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            ReligionUID = "test-religion-uid"
         };
         var religion = new ReligionData
         {
@@ -229,8 +232,10 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
 
         _playerReligionDataManager.Setup(p => p.GetOrCreatePlayerData(player.PlayerUID))
             .Returns(playerData);
-        _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
+        _religionManager.Setup(r => r.GetPlayerReligion(player.PlayerUID))
             .Returns(religion);
+        _religionManager.Setup(rm => rm.HasReligion(It.IsAny<string>()))
+            .Returns(true);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
             .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
@@ -248,9 +253,8 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
     {
         // Arrange
         var player = new Mock<IServerPlayer>().Object;
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            ReligionUID = "test-religion-uid"
         };
         var religion = new ReligionData
         {
@@ -274,8 +278,10 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
 
         _playerReligionDataManager.Setup(p => p.GetOrCreatePlayerData(player.PlayerUID))
             .Returns(playerData);
-        _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
+        _religionManager.Setup(r => r.GetPlayerReligion(player.PlayerUID))
             .Returns(religion);
+        _religionManager.Setup(rm => rm.HasReligion(It.IsAny<string>()))
+            .Returns(true);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
             .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
@@ -295,9 +301,8 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
     {
         // Arrange
         var player = new Mock<IServerPlayer>().Object;
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            ReligionUID = "test-religion-uid"
         };
         var religion = new ReligionData
         {
@@ -325,8 +330,10 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
 
         _playerReligionDataManager.Setup(p => p.GetOrCreatePlayerData(player.PlayerUID))
             .Returns(playerData);
-        _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
+        _religionManager.Setup(r => r.GetPlayerReligion(player.PlayerUID))
             .Returns(religion);
+        _religionManager.Setup(rm => rm.HasReligion(It.IsAny<string>()))
+            .Returns(true);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
             .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
@@ -345,9 +352,8 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
     {
         // Arrange
         var player = new Mock<IServerPlayer>().Object;
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            ReligionUID = "test-religion-uid"
         };
         var religion = new ReligionData
         {
@@ -379,8 +385,10 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
 
         _playerReligionDataManager.Setup(p => p.GetOrCreatePlayerData(player.PlayerUID))
             .Returns(playerData);
-        _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
+        _religionManager.Setup(r => r.GetPlayerReligion(player.PlayerUID))
             .Returns(religion);
+        _religionManager.Setup(rm => rm.HasReligion(It.IsAny<string>()))
+            .Returns(true);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
             .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
@@ -397,9 +405,8 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
     {
         // Arrange
         var player = new Mock<IServerPlayer>().Object;
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            ReligionUID = "test-religion-uid"
         };
         var religion = new ReligionData
         {
@@ -431,8 +438,10 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
 
         _playerReligionDataManager.Setup(p => p.GetOrCreatePlayerData(player.PlayerUID))
             .Returns(playerData);
-        _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
+        _religionManager.Setup(r => r.GetPlayerReligion(player.PlayerUID))
             .Returns(religion);
+        _religionManager.Setup(rm => rm.HasReligion(It.IsAny<string>()))
+            .Returns(true);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
             .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
@@ -449,9 +458,8 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
     {
         // Arrange
         var player = new Mock<IServerPlayer>().Object;
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            ReligionUID = "test-religion-uid"
         };
         var religion = new ReligionData
         {
@@ -485,8 +493,10 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
 
         _playerReligionDataManager.Setup(p => p.GetOrCreatePlayerData(player.PlayerUID))
             .Returns(playerData);
-        _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
+        _religionManager.Setup(r => r.GetPlayerReligion(player.PlayerUID))
             .Returns(religion);
+        _religionManager.Setup(rm => rm.HasReligion(It.IsAny<string>()))
+            .Returns(true);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
             .Returns((new List<DivineAscension.Models.Blessing>(), religionBlessings));
 
@@ -505,9 +515,8 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
     {
         // Arrange
         var player = new Mock<IServerPlayer>().Object;
-        var playerData = new PlayerReligionData
+        var playerData = new PlayerProgressionData
         {
-            ReligionUID = "test-religion-uid"
         };
         var religion = new ReligionData
         {
@@ -535,8 +544,10 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
 
         _playerReligionDataManager.Setup(p => p.GetOrCreatePlayerData(player.PlayerUID))
             .Returns(playerData);
-        _religionManager.Setup(r => r.GetReligion(playerData.ReligionUID))
+        _religionManager.Setup(r => r.GetPlayerReligion(player.PlayerUID))
             .Returns(religion);
+        _religionManager.Setup(rm => rm.HasReligion(It.IsAny<string>()))
+            .Returns(true);
         _blessingEffectSystem.Setup(p => p.GetActiveBlessings(player.PlayerUID))
             .Returns((playerBlessings, religionBlessings));
 

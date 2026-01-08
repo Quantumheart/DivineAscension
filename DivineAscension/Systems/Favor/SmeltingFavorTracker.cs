@@ -11,7 +11,7 @@ namespace DivineAscension.Systems.Favor;
 ///     Tracks metal pouring into molds and awards favor to Khoras followers
 /// </summary>
 public class SmeltingFavorTracker(
-    IPlayerReligionDataManager playerReligionDataManager,
+    IPlayerProgressionDataManager playerProgressionDataManager,
     ICoreServerAPI sapi,
     IFavorSystem favorSystem)
     : IFavorTracker, IDisposable
@@ -23,8 +23,8 @@ public class SmeltingFavorTracker(
 
     private readonly Guid _instanceId = Guid.NewGuid();
 
-    private readonly IPlayerReligionDataManager _playerReligionDataManager =
-        playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
+        playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
 
@@ -87,8 +87,7 @@ public class SmeltingFavorTracker(
             return;
 
         // Check if player follows Khoras
-        var religionData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (religionData.ActiveDeity != DeityType.Khoras)
+        if (_playerProgressionDataManager.GetPlayerDeityType(playerId) != DeityType.Khoras)
             return;
 
         // Calculate favor

@@ -17,9 +17,9 @@ public class RoleCommands(
     ICoreServerAPI sapi,
     IRoleManager roleManager,
     IReligionManager religionManager,
-    IPlayerReligionDataManager playerReligionDataManager)
+    IPlayerProgressionDataManager playerReligionDataManager)
 {
-    private readonly IPlayerReligionDataManager _playerReligionDataManager =
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
 
     private readonly IReligionManager _religionManager =
@@ -116,10 +116,10 @@ public class RoleCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(playerId);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         var roles = _roleManager.GetReligionRoles(religion.ReligionUID);
@@ -156,14 +156,14 @@ public class RoleCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(playerId);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Check if player has permission to view members
-        if (!religion.HasPermission(player.PlayerUID, RolePermissions.VIEW_MEMBERS))
+        if (!religion.HasPermission(playerId, RolePermissions.VIEW_MEMBERS))
             return TextCommandResult.Error("You don't have permission to view members");
 
         // Find role by name
@@ -183,7 +183,7 @@ public class RoleCommands(
             {
                 var memberPlayer = _sapi.World.PlayerByUid(memberUID);
                 var memberName = memberPlayer?.PlayerName ?? "Unknown";
-                var memberData = _playerReligionDataManager.GetOrCreatePlayerData(memberUID);
+                var memberData = _playerProgressionDataManager.GetOrCreatePlayerData(memberUID);
 
                 sb.AppendLine($"• {memberName} | Rank: {memberData.FavorRank} | Favor: {memberData.Favor}");
             }
@@ -201,10 +201,10 @@ public class RoleCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(playerId);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Create the role
@@ -227,10 +227,10 @@ public class RoleCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(playerId);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Find role by name
@@ -245,11 +245,19 @@ public class RoleCommands(
         return TextCommandResult.Success($"Role '{roleName}' has been deleted");
     }
 
+
     /// <summary>
-    ///     Handler for /religion role rename
-    ///     <oldname>
-    ///         <newname>
+    /// Renames a role within a player's religion.
     /// </summary>
+    /// <param name="args">
+    /// The command arguments, where the first argument represents the old name of the role,
+    /// and the second argument represents the new name. Includes the caller's player information.
+    /// </param>
+    /// <returns>
+    /// A <see cref="TextCommandResult"/> indicating success or an error message if the operation fails.
+    /// Returns an error if the caller is not a player, if the player is not part of a religion,
+    /// if the role is not found, or if the renaming operation encounters an issue.
+    /// </returns>
     internal TextCommandResult OnRenameRole(TextCommandCallingArgs args)
     {
         var oldName = (string)args[0];
@@ -258,10 +266,10 @@ public class RoleCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(playerId);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Find role by name
@@ -270,7 +278,7 @@ public class RoleCommands(
 
         // Rename the role
         var (success, updatedRole, error) =
-            _roleManager.RenameRole(religion.ReligionUID, player.PlayerUID, role.RoleUID, newName);
+            _roleManager.RenameRole(religion.ReligionUID, playerId, role.RoleUID, newName);
 
         if (!success) return TextCommandResult.Error(error);
 
@@ -290,10 +298,10 @@ public class RoleCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(playerId);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Find target player by name
@@ -337,10 +345,10 @@ public class RoleCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(playerId);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Find role by name
@@ -384,10 +392,10 @@ public class RoleCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(playerId);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Find role by name
@@ -429,10 +437,10 @@ public class RoleCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(playerId);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Find role by name
@@ -476,10 +484,10 @@ public class RoleCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command can only be used by players");
 
-        var playerData = _playerReligionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        if (!playerData.HasReligion()) return TextCommandResult.Error("You are not in any religion");
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
 
-        var religion = _religionManager.GetReligion(playerData.ReligionUID!);
+        var religion = _religionManager.GetPlayerReligion(playerId);
         if (religion == null) return TextCommandResult.Error("Could not find your religion data");
 
         // Find target player by name

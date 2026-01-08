@@ -43,7 +43,7 @@ public static class DivineAscensionSystemInitializer
         var civilizationManager = new CivilizationManager(api, religionManager);
         civilizationManager.Initialize();
 
-        var playerReligionDataManager = new PlayerReligionDataManager(api, religionManager);
+        var playerReligionDataManager = new PlayerProgressionDataManager(api, religionManager);
         playerReligionDataManager.Initialize();
 
         // CRITICAL: MUST be initialized before FavorSystem
@@ -74,7 +74,7 @@ public static class DivineAscensionSystemInitializer
         // CRITICAL: Must be called AFTER DiplomacyManager is initialized
         religionPrestigeManager.SetDiplomacyManager(diplomacyManager, civilizationManager);
 
-        var favorCommands = new FavorCommands(api, deityRegistry, playerReligionDataManager);
+        var favorCommands = new FavorCommands(api, deityRegistry, playerReligionDataManager, religionManager);
         favorCommands.RegisterCommands();
 
         var blessingCommands = new BlessingCommands(api, blessingRegistry, playerReligionDataManager, religionManager,
@@ -83,14 +83,15 @@ public static class DivineAscensionSystemInitializer
 
         var roleManager = new RoleManager(religionManager);
 
-        var religionCommands = new ReligionCommands(api, religionManager, playerReligionDataManager, religionPrestigeManager, serverChannel);
+        var religionCommands = new ReligionCommands(api, religionManager, playerReligionDataManager,
+            religionPrestigeManager, serverChannel);
         religionCommands.RegisterCommands();
 
         var roleCommands = new RoleCommands(api, roleManager, religionManager, playerReligionDataManager);
         roleCommands.RegisterCommands();
 
         var civilizationCommands =
-            new CivilizationCommands(api, civilizationManager, religionManager, playerReligionDataManager);
+            new CivilizationCommands(api, civilizationManager, religionManager);
         civilizationCommands.RegisterCommands();
 
         // Create and initialize network handlers
@@ -119,7 +120,6 @@ public static class DivineAscensionSystemInitializer
             api,
             civilizationManager,
             religionManager,
-            playerReligionDataManager,
             serverChannel);
         civilizationHandler.RegisterHandlers();
 
@@ -132,6 +132,29 @@ public static class DivineAscensionSystemInitializer
             serverChannel);
         diplomacyHandler.RegisterHandlers();
 
+        // Validate all memberships after initialization
+        api.Logger.Notification("[DivineAscension] Running membership validation...");
+        var (total, consistent, repaired, failed) =
+            religionManager.ValidateAllMemberships();
+
+        if (failed > 0)
+        {
+            api.Logger.Warning(
+                $"[DivineAscension] Membership validation completed with {failed} failed repair(s). " +
+                "Manual intervention may be required.");
+        }
+        else if (repaired > 0)
+        {
+            api.Logger.Notification(
+                $"[DivineAscension] Membership validation completed successfully. " +
+                $"Automatically repaired {repaired} inconsistenc{(repaired == 1 ? "y" : "ies")}.");
+        }
+        else
+        {
+            api.Logger.Notification(
+                $"[DivineAscension] Membership validation completed. All {total} player membership(s) are consistent.");
+        }
+
         api.Logger.Notification("[DivineAscension] All server-side systems initialized successfully");
 
         // Return all initialized components
@@ -140,7 +163,7 @@ public static class DivineAscensionSystemInitializer
             DeityRegistry = deityRegistry,
             ReligionManager = religionManager,
             CivilizationManager = civilizationManager,
-            PlayerReligionDataManager = playerReligionDataManager,
+            PlayerProgressionDataManager = playerReligionDataManager,
             ReligionPrestigeManager = religionPrestigeManager,
             FavorSystem = favorSystem,
             PvPManager = pvpManager,
@@ -172,7 +195,7 @@ public class InitializationResult
     public DeityRegistry DeityRegistry { get; init; } = null!;
     public ReligionManager ReligionManager { get; init; } = null!;
     public CivilizationManager CivilizationManager { get; init; } = null!;
-    public PlayerReligionDataManager PlayerReligionDataManager { get; init; } = null!;
+    public PlayerProgressionDataManager PlayerProgressionDataManager { get; init; } = null!;
     public ReligionPrestigeManager ReligionPrestigeManager { get; init; } = null!;
     public FavorSystem FavorSystem { get; init; } = null!;
     public PvPManager PvPManager { get; init; } = null!;

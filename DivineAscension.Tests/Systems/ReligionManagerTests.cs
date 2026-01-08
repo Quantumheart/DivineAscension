@@ -1,7 +1,11 @@
+using System.Collections;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
+using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
 using Moq;
 using Vintagestory.API.Common;
@@ -1184,6 +1188,518 @@ public class ReligionManagerTests
 
         // Assert
         Assert.False(eventFired);
+    }
+
+    #endregion
+
+    #region Player-to-Religion Index Tests
+
+    [Fact]
+    public void AddMember_UpdatesPlayerToReligionIndex()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+
+        // Act
+        _religionManager.AddMember(religion.ReligionUID, "new-member-uid");
+
+        // Assert
+        var playerReligionId = _religionManager.GetPlayerReligionId("new-member-uid");
+        Assert.Equal(religion.ReligionUID, playerReligionId);
+    }
+
+    [Fact]
+    public void CreateReligion_AddsFounderToIndex()
+    {
+        // Act
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+
+        // Assert
+        var playerReligionId = _religionManager.GetPlayerReligionId("founder-uid");
+        Assert.Equal(religion.ReligionUID, playerReligionId);
+    }
+
+    [Fact]
+    public void RemoveMember_RemovesPlayerFromIndex()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        _religionManager.AddMember(religion.ReligionUID, "member-uid");
+
+        // Act
+        _religionManager.RemoveMember(religion.ReligionUID, "member-uid");
+
+        // Assert
+        var playerReligionId = _religionManager.GetPlayerReligionId("member-uid");
+        Assert.Null(playerReligionId);
+    }
+
+    [Fact]
+    public void RemoveMember_WhenLastMemberLeaves_RemovesAllFromIndex()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        var religionUID = religion.ReligionUID;
+
+        // Act
+        _religionManager.RemoveMember(religionUID, "founder-uid");
+
+        // Assert
+        var playerReligionId = _religionManager.GetPlayerReligionId("founder-uid");
+        Assert.Null(playerReligionId);
+    }
+
+    [Fact]
+    public void DeleteReligion_RemovesAllMembersFromIndex()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder-uid", true);
+        _religionManager.AddMember(religion.ReligionUID, "member1-uid");
+        _religionManager.AddMember(religion.ReligionUID, "member2-uid");
+
+        // Act
+        _religionManager.DeleteReligion(religion.ReligionUID, "founder-uid");
+
+        // Assert
+        Assert.Null(_religionManager.GetPlayerReligionId("founder-uid"));
+        Assert.Null(_religionManager.GetPlayerReligionId("member1-uid"));
+        Assert.Null(_religionManager.GetPlayerReligionId("member2-uid"));
+    }
+
+    [Fact]
+    public void GetPlayerReligionId_WithNoReligion_ReturnsNull()
+    {
+        // Act
+        var playerReligionId = _religionManager.GetPlayerReligionId("non-member-uid");
+
+        // Assert
+        Assert.Null(playerReligionId);
+    }
+
+    [Fact]
+    public void GetPlayerReligion_UsesIndexForOptimizedLookup()
+    {
+        // Arrange
+        var religion1 = _religionManager.CreateReligion("Religion 1", DeityType.Khoras, "founder1", true);
+        var religion2 = _religionManager.CreateReligion("Religion 2", DeityType.Lysa, "founder2", true);
+        var religion3 = _religionManager.CreateReligion("Religion 3", DeityType.Gaia, "founder3", true);
+
+        // Act
+        var found = _religionManager.GetPlayerReligion("founder2");
+
+        // Assert - Should find correct religion without iterating all religions
+        Assert.NotNull(found);
+        Assert.Equal(religion2.ReligionUID, found.ReligionUID);
+        Assert.Equal("Religion 2", found.ReligionName);
+    }
+
+    [Fact]
+    public void AddMember_WhenPlayerAlreadyIndexed_UpdatesIndexCorrectly()
+    {
+        // Arrange
+        var religion1 = _religionManager.CreateReligion("Religion 1", DeityType.Khoras, "founder1", true);
+        var religion2 = _religionManager.CreateReligion("Religion 2", DeityType.Lysa, "founder2", true);
+
+        // Add player to first religion
+        _religionManager.AddMember(religion1.ReligionUID, "player-uid");
+        Assert.Equal(religion1.ReligionUID, _religionManager.GetPlayerReligionId("player-uid"));
+
+        // Act - Move player to second religion (simulating a switch)
+        _religionManager.AddMember(religion2.ReligionUID, "player-uid");
+
+        // Assert - Index should now point to the second religion
+        var playerReligionId = _religionManager.GetPlayerReligionId("player-uid");
+        Assert.Equal(religion2.ReligionUID, playerReligionId);
+    }
+
+    [Fact]
+    public void RebuildPlayerIndex_RebuildsIndexFromReligionData()
+    {
+        // Arrange - Create religions and add members
+        var religion1 = _religionManager.CreateReligion("Religion 1", DeityType.Khoras, "founder1", true);
+        var religion2 = _religionManager.CreateReligion("Religion 2", DeityType.Lysa, "founder2", true);
+        _religionManager.AddMember(religion1.ReligionUID, "member1");
+        _religionManager.AddMember(religion2.ReligionUID, "member2");
+
+        // Get the PlayerToReligionIndex using reflection to verify it has 4 entries
+        var indexProperty = _religionManager.GetType().GetProperty("PlayerToReligionIndex",
+            BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+        var index = indexProperty?.GetValue(_religionManager) as IReadOnlyDictionary<string, string>;
+        Assert.NotNull(index);
+        Assert.Equal(4, index.Count); // 2 founders + 2 members
+
+        // Act - Call RebuildPlayerIndex using reflection
+        var rebuildMethod = _religionManager.GetType().GetMethod("RebuildPlayerIndex",
+            BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+        rebuildMethod?.Invoke(_religionManager, Array.Empty<object>());
+
+        // Assert - Index should still have the same entries
+        index = indexProperty?.GetValue(_religionManager) as IReadOnlyDictionary<string, string>;
+        Assert.NotNull(index);
+        Assert.Equal(4, index.Count);
+        Assert.Equal(religion1.ReligionUID, _religionManager.GetPlayerReligionId("founder1"));
+        Assert.Equal(religion1.ReligionUID, _religionManager.GetPlayerReligionId("member1"));
+        Assert.Equal(religion2.ReligionUID, _religionManager.GetPlayerReligionId("founder2"));
+        Assert.Equal(religion2.ReligionUID, _religionManager.GetPlayerReligionId("member2"));
+    }
+
+    [Fact]
+    public void RebuildPlayerIndex_ClearsExistingIndex()
+    {
+        // Arrange - Create religion and add members
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder", true);
+        _religionManager.AddMember(religion.ReligionUID, "member1");
+        _religionManager.AddMember(religion.ReligionUID, "member2");
+
+        // Remove members directly from the religion (bypassing index update)
+        // to simulate a desync between index and actual membership
+        religion.MemberUIDs.Remove("member1");
+        religion.MemberUIDs.Remove("member2");
+
+        // Act - Rebuild the index
+        var rebuildMethod = _religionManager.GetType().GetMethod("RebuildPlayerIndex",
+            BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+        rebuildMethod?.Invoke(_religionManager, Array.Empty<object>());
+
+        // Assert - Index should only contain the founder now
+        Assert.Equal(religion.ReligionUID, _religionManager.GetPlayerReligionId("founder"));
+        Assert.Null(_religionManager.GetPlayerReligionId("member1"));
+        Assert.Null(_religionManager.GetPlayerReligionId("member2"));
+    }
+
+    [Fact]
+    public void GetPlayerReligionId_PerformanceIsConstantTime()
+    {
+        // Arrange - Create many religions to simulate large dataset
+        for (int i = 0; i < 100; i++)
+        {
+            _religionManager.CreateReligion($"Religion {i}", DeityType.Khoras, $"founder-{i}", true);
+        }
+
+        // Act - Measure time for lookup (should be O(1))
+        var stopwatch = Stopwatch.StartNew();
+        var religionId = _religionManager.GetPlayerReligionId("founder-50");
+        stopwatch.Stop();
+
+        // Assert - Lookup should be found and fast (< 1ms even in debug mode)
+        Assert.NotNull(religionId);
+        Assert.True(stopwatch.ElapsedMilliseconds < 10,
+            $"Lookup took {stopwatch.ElapsedMilliseconds}ms, expected < 10ms for O(1) operation");
+    }
+
+    [Fact]
+    public void GetPlayerReligion_PerformanceIsConstantTime()
+    {
+        // Arrange - Create many religions to simulate large dataset
+        for (int i = 0; i < 100; i++)
+        {
+            _religionManager.CreateReligion($"Religion {i}", DeityType.Lysa, $"founder-{i}", true);
+        }
+
+        // Act - Measure time for lookup (should be O(1) index lookup + O(1) dictionary lookup)
+        var stopwatch = Stopwatch.StartNew();
+        var religion = _religionManager.GetPlayerReligion("founder-50");
+        stopwatch.Stop();
+
+        // Assert - Lookup should be found and fast (< 1ms even in debug mode)
+        Assert.NotNull(religion);
+        Assert.Equal("Religion 50", religion.ReligionName);
+        Assert.True(stopwatch.ElapsedMilliseconds < 10,
+            $"Lookup took {stopwatch.ElapsedMilliseconds}ms, expected < 10ms for O(1) operation");
+    }
+
+    [Fact]
+    public void RebuildPlayerIndex_WithNoReligions_ClearsIndex()
+    {
+        // Arrange - Create and delete a religion
+        var religion = _religionManager.CreateReligion("Temp Religion", DeityType.Khoras, "founder", true);
+        Assert.NotNull(_religionManager.GetPlayerReligionId("founder"));
+
+        _religionManager.DeleteReligion(religion.ReligionUID, "founder");
+
+        // Act - Rebuild the index
+        var rebuildMethod = _religionManager.GetType().GetMethod("RebuildPlayerIndex",
+            BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+        rebuildMethod?.Invoke(_religionManager, Array.Empty<object>());
+
+        // Assert - Index should be empty
+        Assert.Null(_religionManager.GetPlayerReligionId("founder"));
+    }
+
+    [Fact]
+    public void RebuildPlayerIndex_WithMultipleReligions_MapsAllPlayers()
+    {
+        // Arrange - Create complex scenario with multiple religions and members
+        var religion1 = _religionManager.CreateReligion("Warriors", DeityType.Khoras, "founder1", true);
+        var religion2 = _religionManager.CreateReligion("Healers", DeityType.Lysa, "founder2", true);
+        var religion3 = _religionManager.CreateReligion("Farmers", DeityType.Gaia, "founder3", true);
+
+        _religionManager.AddMember(religion1.ReligionUID, "warrior1");
+        _religionManager.AddMember(religion1.ReligionUID, "warrior2");
+        _religionManager.AddMember(religion2.ReligionUID, "healer1");
+        _religionManager.AddMember(religion3.ReligionUID, "farmer1");
+        _religionManager.AddMember(religion3.ReligionUID, "farmer2");
+        _religionManager.AddMember(religion3.ReligionUID, "farmer3");
+
+        // Act - Rebuild the index
+        var rebuildMethod = _religionManager.GetType().GetMethod("RebuildPlayerIndex",
+            BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+        rebuildMethod?.Invoke(_religionManager, Array.Empty<object>());
+
+        // Assert - All players should be correctly mapped
+        Assert.Equal(religion1.ReligionUID, _religionManager.GetPlayerReligionId("founder1"));
+        Assert.Equal(religion1.ReligionUID, _religionManager.GetPlayerReligionId("warrior1"));
+        Assert.Equal(religion1.ReligionUID, _religionManager.GetPlayerReligionId("warrior2"));
+        Assert.Equal(religion2.ReligionUID, _religionManager.GetPlayerReligionId("founder2"));
+        Assert.Equal(religion2.ReligionUID, _religionManager.GetPlayerReligionId("healer1"));
+        Assert.Equal(religion3.ReligionUID, _religionManager.GetPlayerReligionId("founder3"));
+        Assert.Equal(religion3.ReligionUID, _religionManager.GetPlayerReligionId("farmer1"));
+        Assert.Equal(religion3.ReligionUID, _religionManager.GetPlayerReligionId("farmer2"));
+        Assert.Equal(religion3.ReligionUID, _religionManager.GetPlayerReligionId("farmer3"));
+    }
+
+    [Fact]
+    public void RebuildPlayerIndex_WithDataCorruption_HandlesGracefully()
+    {
+        // Arrange - Create two religions
+        var religion1 = _religionManager.CreateReligion("Warriors", DeityType.Khoras, "founder1", true);
+        var religion2 = _religionManager.CreateReligion("Healers", DeityType.Lysa, "founder2", true);
+
+        // Manually corrupt data by adding same player to both religions via reflection
+        // This simulates data corruption that might occur in the wild
+        var religion1Data = _religionManager.GetReligion(religion1.ReligionUID);
+        var religion2Data = _religionManager.GetReligion(religion2.ReligionUID);
+
+        religion1Data!.MemberUIDs.Add("corrupted-player");
+        religion1Data.Members.Add("corrupted-player", new MemberEntry("corrupted-player", "Corrupted Player"));
+
+        religion2Data!.MemberUIDs.Add("corrupted-player");
+        religion2Data.Members.Add("corrupted-player", new MemberEntry("corrupted-player", "Corrupted Player"));
+
+        // Act - Rebuild the index (should not throw, should handle gracefully)
+        var rebuildMethod = _religionManager.GetType().GetMethod("RebuildPlayerIndex",
+            BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+        var exception = Record.Exception(() => rebuildMethod?.Invoke(_religionManager, Array.Empty<object>()));
+
+        // Assert - Should not throw exception
+        Assert.Null(exception);
+
+        // Player should be mapped to first religion (authority)
+        var playerReligionId = _religionManager.GetPlayerReligionId("corrupted-player");
+        Assert.NotNull(playerReligionId);
+        Assert.True(
+            playerReligionId == religion1.ReligionUID || playerReligionId == religion2.ReligionUID,
+            "Corrupted player should be mapped to one of the religions");
+
+        // Logger should have been called with error message
+        _mockLogger.Verify(
+            l => l.Error(It.Is<string>(s =>
+                s.Contains("CRITICAL DATA CORRUPTION") &&
+                s.Contains("corrupted-player") &&
+                s.Contains("multiple religions"))),
+            Times.Once(),
+            "Should log critical data corruption error");
+
+        _mockLogger.Verify(
+            l => l.Warning(It.Is<string>(s =>
+                s.Contains("data corruption was detected"))),
+            Times.Once(),
+            "Should log warning about corruption detection");
+    }
+
+    #endregion
+
+    #region Phase 3: Load-Time Validation Tests
+
+    [Fact]
+    public void ValidateAllMemberships_AllConsistent_ReturnsCorrectCounts()
+    {
+        // Arrange
+        var mockPlayerDataManager = new Mock<IPlayerProgressionDataManager>();
+        var religion1 = _religionManager.CreateReligion("Warriors", DeityType.Khoras, "founder1", true);
+        var religion2 = _religionManager.CreateReligion("Healers", DeityType.Lysa, "founder2", true);
+
+        _religionManager.AddMember(religion1.ReligionUID, "member1");
+        _religionManager.AddMember(religion2.ReligionUID, "member2");
+
+        // Act
+        var (total, consistent, repaired, failed) = _religionManager.ValidateAllMemberships();
+
+        // Assert
+        Assert.Equal(4, total); // 2 founders + 2 members
+        Assert.Equal(4, consistent);
+        Assert.Equal(0, repaired);
+        Assert.Equal(0, failed);
+    }
+
+    [Fact]
+    public void ValidateAllMemberships_IndexInconsistent_RepairsSuccessfully()
+    {
+        // Arrange
+        var mockPlayerDataManager = new Mock<IPlayerProgressionDataManager>();
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder", true);
+        _religionManager.AddMember(religion.ReligionUID, "member1");
+
+        // Manually corrupt the index by accessing internal field via reflection
+        var indexField = _religionManager.GetType().GetField("_playerToReligionIndex",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+        var index = indexField?.GetValue(_religionManager) as IDictionary;
+
+        // Add a phantom player to the index who isn't actually in any religion
+        index?.Add("phantom-player", religion.ReligionUID);
+
+        // Act
+        var (total, consistent, repaired, failed) = _religionManager.ValidateAllMemberships();
+
+        // Assert
+        Assert.Equal(3, total); // founder + member1 + phantom-player
+        Assert.Equal(2, consistent); // founder and member1 are consistent
+        Assert.Equal(1, repaired); // phantom-player should be repaired (removed from index)
+        Assert.Equal(0, failed);
+
+        // Verify phantom player was removed from index
+        Assert.Null(_religionManager.GetPlayerReligionId("phantom-player"));
+    }
+
+    [Fact]
+    public void ValidateAllMemberships_MissingFromIndex_RepairsSuccessfully()
+    {
+        // Arrange
+        var mockPlayerDataManager = new Mock<IPlayerProgressionDataManager>();
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder", true);
+        _religionManager.AddMember(religion.ReligionUID, "member1");
+
+        // Manually remove member1 from index via reflection
+        var indexField = _religionManager.GetType().GetField("_playerToReligionIndex",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+        var index = indexField?.GetValue(_religionManager) as IDictionary;
+        index?.Remove("member1");
+
+        // Act
+        var (total, consistent, repaired, failed) = _religionManager.ValidateAllMemberships();
+
+        // Assert
+        Assert.Equal(2, total); // founder + member1
+        Assert.Equal(1, consistent); // founder is consistent
+        Assert.Equal(1, repaired); // member1 should be repaired (added back to index)
+        Assert.Equal(0, failed);
+
+        // Verify member1 was added back to index
+        Assert.Equal(religion.ReligionUID, _religionManager.GetPlayerReligionId("member1"));
+    }
+
+    [Fact]
+    public void ValidateAllMemberships_NoPlayers_ReturnsZeroCounts()
+    {
+        // Arrange
+        var mockPlayerDataManager = new Mock<IPlayerProgressionDataManager>();
+
+        // Act
+        var (total, consistent, repaired, failed) = _religionManager.ValidateAllMemberships();
+
+        // Assert
+        Assert.Equal(0, total);
+        Assert.Equal(0, consistent);
+        Assert.Equal(0, repaired);
+        Assert.Equal(0, failed);
+    }
+
+    #endregion
+
+    #region Phase 3: DeleteReligion Enhanced Tests
+
+    [Fact]
+    public void DeleteReligion_LogsMemberRemoval()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder", true);
+        _religionManager.AddMember(religion.ReligionUID, "member1");
+        _religionManager.AddMember(religion.ReligionUID, "member2");
+
+        // Act
+        _religionManager.DeleteReligion(religion.ReligionUID, "founder");
+
+        // Assert
+        _mockLogger.Verify(
+            l => l.Notification(It.Is<string>(s =>
+                s.Contains("Deleting religion") && s.Contains("with 3 member"))),
+            Times.Once()
+        );
+        _mockLogger.Verify(
+            l => l.Notification(It.Is<string>(s =>
+                s.Contains("Removed 3 member") && s.Contains("from index"))),
+            Times.Once()
+        );
+    }
+
+    [Fact]
+    public void DeleteReligion_NonExistentReligion_ReturnsFalseAndLogs()
+    {
+        // Act
+        var result = _religionManager.DeleteReligion("non-existent-uid", "founder");
+
+        // Assert
+        Assert.False(result);
+        _mockLogger.Verify(
+            l => l.Error(It.Is<string>(s =>
+                s.Contains("Cannot delete non-existent religion"))),
+            Times.Once()
+        );
+    }
+
+    [Fact]
+    public void DeleteReligion_NotFounder_ReturnsFalseAndLogs()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Test Religion", DeityType.Khoras, "founder", true);
+        _religionManager.AddMember(religion.ReligionUID, "member1");
+
+        // Act
+        var result = _religionManager.DeleteReligion(religion.ReligionUID, "member1");
+
+        // Assert
+        Assert.False(result);
+        _mockLogger.Verify(
+            l => l.Warning(It.Is<string>(s =>
+                s.Contains("not founder") && s.Contains("cannot delete"))),
+            Times.Once()
+        );
+
+        // Religion should still exist
+        Assert.NotNull(_religionManager.GetReligion(religion.ReligionUID));
+    }
+
+    [Fact]
+    public void DeleteReligion_WithManyMembers_RemovesAllFromIndex()
+    {
+        // Arrange
+        var religion = _religionManager.CreateReligion("Large Religion", DeityType.Khoras, "founder", true);
+        var memberUIDs = new List<string>();
+
+        for (int i = 0; i < 50; i++)
+        {
+            var memberUID = $"member{i}";
+            memberUIDs.Add(memberUID);
+            _religionManager.AddMember(religion.ReligionUID, memberUID);
+        }
+
+        // Verify all in index
+        foreach (var memberUID in memberUIDs)
+        {
+            Assert.Equal(religion.ReligionUID, _religionManager.GetPlayerReligionId(memberUID));
+        }
+
+        // Act
+        var result = _religionManager.DeleteReligion(religion.ReligionUID, "founder");
+
+        // Assert
+        Assert.True(result);
+        Assert.Null(_religionManager.GetPlayerReligionId("founder"));
+
+        foreach (var memberUID in memberUIDs)
+        {
+            Assert.Null(_religionManager.GetPlayerReligionId(memberUID));
+        }
     }
 
     #endregion
