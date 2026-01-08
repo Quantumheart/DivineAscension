@@ -1,4 +1,9 @@
 
+## [2.2.1] - 2026-01-08
+
+### Fixed
+- hide controls for non civilization founders
+
 ## [2.2.0] - 2026-01-08
 
 ### Added
