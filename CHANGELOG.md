@@ -1,4 +1,9 @@
 
+## [2.2.2] - 2026-01-08
+
+### Fixed
+- attempt to fix foraging hacks
+
 ## [2.2.1] - 2026-01-08
 
 ### Fixed
