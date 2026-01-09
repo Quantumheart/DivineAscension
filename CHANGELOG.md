@@ -1,4 +1,9 @@
 
+## [2.6.0] - 2026-01-09
+
+### Added
+- add commands to in game documentation
+
 ## [2.5.0] - 2026-01-09
 
 ### Added
