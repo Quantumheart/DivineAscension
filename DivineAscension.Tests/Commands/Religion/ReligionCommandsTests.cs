@@ -25,65 +25,75 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
     public void Constructor_ThrowsWhenSAPIIsNull()
     {
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
+        var mockRoleManager = new Mock<IRoleManager>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             null!,
             _religionManager.Object,
             _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
-            _serverChannel.Object));
+            _serverChannel.Object,
+            mockRoleManager.Object));
     }
 
     [Fact]
     public void Constructor_ThrowsWhenReligionManagerIsNull()
     {
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
+        var mockRoleManager = new Mock<IRoleManager>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
             null!,
             _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
-            _serverChannel.Object));
+            _serverChannel.Object,
+            mockRoleManager.Object));
     }
 
     [Fact]
     public void Constructor_ThrowsWhenPlayerReligionDataManagerIsNull()
     {
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
+        var mockRoleManager = new Mock<IRoleManager>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
             _religionManager.Object,
             null!,
             mockPrestigeManager.Object,
-            _serverChannel.Object));
+            _serverChannel.Object,
+            mockRoleManager.Object));
     }
 
     [Fact]
     public void Constructor_AcceptsNullServerChannel()
     {
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
+        var mockRoleManager = new Mock<IRoleManager>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
             _religionManager.Object,
             _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
-            null!));
+            null!,
+            mockRoleManager.Object));
     }
 
     [Fact]
     public void Constructor_SetsDependenciesCorrectly()
     {
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
+        var mockRoleManager = new Mock<IRoleManager>();
         // Act
         var commands = new ReligionCommands(
             _mockSapi.Object,
             _religionManager.Object,
             _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
-            _serverChannel.Object);
+            _serverChannel.Object,
+            mockRoleManager.Object);
 
         // Assert
         Assert.NotNull(commands);

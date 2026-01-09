@@ -25,7 +25,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _blessingRegistry.Object,
             _playerReligionDataManager.Object,
             _religionManager.Object,
-            _blessingEffectSystem.Object));
+            _blessingEffectSystem.Object,
+            _serverChannel.Object));
     }
 
     [Fact]
@@ -36,7 +37,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             null,
             _playerReligionDataManager.Object,
             _religionManager.Object,
-            _blessingEffectSystem.Object));
+            _blessingEffectSystem.Object,
+            _serverChannel.Object));
     }
 
     [Fact]
@@ -47,7 +49,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _blessingRegistry.Object,
             null,
             _religionManager.Object,
-            _blessingEffectSystem.Object));
+            _blessingEffectSystem.Object,
+            _serverChannel.Object));
     }
 
     [Fact]
@@ -58,7 +61,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _blessingRegistry.Object,
             _playerReligionDataManager.Object,
             null,
-            _blessingEffectSystem.Object));
+            _blessingEffectSystem.Object,
+            _serverChannel.Object));
     }
 
     [Fact]
@@ -69,7 +73,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _blessingRegistry.Object,
             _playerReligionDataManager.Object,
             _religionManager.Object,
-            null));
+            null,
+            _serverChannel.Object));
     }
 
     [Fact]
@@ -81,7 +86,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _blessingRegistry.Object,
             _playerReligionDataManager.Object,
             _religionManager.Object,
-            _blessingEffectSystem.Object);
+            _blessingEffectSystem.Object,
+            _serverChannel.Object);
 
         Assert.NotNull(commands);
     }
@@ -106,6 +112,9 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
         mockCommandBuilder.Setup(b => b.BeginSubCommand(It.IsAny<string>())).Returns(mockCommandBuilder.Object);
         mockCommandBuilder.Setup(b => b.WithArgs(It.IsAny<ICommandArgumentParser>()))
             .Returns(mockCommandBuilder.Object);
+        mockCommandBuilder
+            .Setup(b => b.WithArgs(It.IsAny<ICommandArgumentParser>(), It.IsAny<ICommandArgumentParser>()))
+            .Returns(mockCommandBuilder.Object);
         mockCommandBuilder.Setup(b => b.HandleWith(It.IsAny<OnCommandDelegate>()))
             .Returns(mockCommandBuilder.Object);
         mockCommandBuilder.Setup(b => b.EndSubCommand()).Returns(mockCommandBuilder.Object);
@@ -115,13 +124,16 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
         mockSapi.Setup(s => s.ChatCommands).Returns(mockChatCommands.Object);
         mockSapi.Setup(s => s.Logger).Returns(mockLogger.Object);
 
+        var mockServerChannel = new Mock<IServerNetworkChannel>();
+
         // Create BlessingCommands with properly configured mock
         var blessingCommands = new BlessingCommands(
             mockSapi.Object,
             _blessingRegistry.Object,
             _playerReligionDataManager.Object,
             _religionManager.Object,
-            _blessingEffectSystem.Object);
+            _blessingEffectSystem.Object,
+            mockServerChannel.Object);
 
         // Act & Assert - should not throw any exceptions
         var exception = Record.Exception(() => blessingCommands.RegisterCommands());
@@ -152,6 +164,9 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
         mockCommandBuilder.Setup(b => b.BeginSubCommand(It.IsAny<string>())).Returns(mockCommandBuilder.Object);
         mockCommandBuilder.Setup(b => b.WithArgs(It.IsAny<ICommandArgumentParser>()))
             .Returns(mockCommandBuilder.Object);
+        mockCommandBuilder
+            .Setup(b => b.WithArgs(It.IsAny<ICommandArgumentParser>(), It.IsAny<ICommandArgumentParser>()))
+            .Returns(mockCommandBuilder.Object);
         mockCommandBuilder.Setup(b => b.HandleWith(It.IsAny<OnCommandDelegate>()))
             .Returns(mockCommandBuilder.Object);
         mockCommandBuilder.Setup(b => b.EndSubCommand()).Returns(mockCommandBuilder.Object);
@@ -161,13 +176,16 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
         mockSapi.Setup(s => s.ChatCommands).Returns(mockChatCommands.Object);
         mockSapi.Setup(s => s.Logger).Returns(mockLogger.Object);
 
+        var mockServerChannel = new Mock<IServerNetworkChannel>();
+
         // Create BlessingCommands with properly configured mock
         var blessingCommands = new BlessingCommands(
             mockSapi.Object,
             _blessingRegistry.Object,
             _playerReligionDataManager.Object,
             _religionManager.Object,
-            _blessingEffectSystem.Object);
+            _blessingEffectSystem.Object,
+            mockServerChannel.Object);
 
         // Act
         blessingCommands.RegisterCommands();
@@ -181,9 +199,15 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
         mockCommandBuilder.Verify(b => b.BeginSubCommand(BlessingCommandConstants.SubCommandReligion), Times.Once);
         mockCommandBuilder.Verify(b => b.BeginSubCommand(BlessingCommandConstants.SubCommandInfo), Times.Once);
         mockCommandBuilder.Verify(b => b.BeginSubCommand(BlessingCommandConstants.SubCommandTree), Times.Once);
-        mockCommandBuilder.Verify(b => b.BeginSubCommand(BlessingCommandConstants.SubCommandUnlock), Times.Once);
+        mockCommandBuilder.Verify(b => b.BeginSubCommand(BlessingCommandConstants.SubCommandUnlock),
+            Times.Exactly(2)); // Regular + admin unlock
         mockCommandBuilder.Verify(b => b.BeginSubCommand(BlessingCommandConstants.SubCommandActive), Times.Once);
-        mockCommandBuilder.Verify(b => b.EndSubCommand(), Times.Exactly(7)); // 7 subcommands
+        mockCommandBuilder.Verify(b => b.BeginSubCommand("admin"), Times.Once);
+        mockCommandBuilder.Verify(b => b.BeginSubCommand("lock"), Times.Once); // Admin lock command
+        mockCommandBuilder.Verify(b => b.BeginSubCommand("reset"), Times.Once); // Admin reset command
+        mockCommandBuilder.Verify(b => b.BeginSubCommand("unlockall"), Times.Once); // Admin unlockall command
+        mockCommandBuilder.Verify(b => b.EndSubCommand(),
+            Times.Exactly(12)); // 7 original + 4 admin subcommands + 1 admin group
     }
 
     [Fact]
@@ -206,6 +230,9 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
         mockCommandBuilder.Setup(b => b.BeginSubCommand(It.IsAny<string>())).Returns(mockCommandBuilder.Object);
         mockCommandBuilder.Setup(b => b.WithArgs(It.IsAny<ICommandArgumentParser>()))
             .Returns(mockCommandBuilder.Object);
+        mockCommandBuilder
+            .Setup(b => b.WithArgs(It.IsAny<ICommandArgumentParser>(), It.IsAny<ICommandArgumentParser>()))
+            .Returns(mockCommandBuilder.Object);
         mockCommandBuilder.Setup(b => b.HandleWith(It.IsAny<OnCommandDelegate>()))
             .Returns(mockCommandBuilder.Object);
         mockCommandBuilder.Setup(b => b.EndSubCommand()).Returns(mockCommandBuilder.Object);
@@ -215,13 +242,16 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
         mockSapi.Setup(s => s.ChatCommands).Returns(mockChatCommands.Object);
         mockSapi.Setup(s => s.Logger).Returns(mockLogger.Object);
 
+        var mockServerChannel = new Mock<IServerNetworkChannel>();
+
         // Create BlessingCommands with properly configured mock
         var blessingCommands = new BlessingCommands(
             mockSapi.Object,
             _blessingRegistry.Object,
             _playerReligionDataManager.Object,
             _religionManager.Object,
-            _blessingEffectSystem.Object);
+            _blessingEffectSystem.Object,
+            mockServerChannel.Object);
 
         // Act
         blessingCommands.RegisterCommands();
@@ -231,5 +261,7 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             "RequiresPlayer() should be called once during command registration");
         mockCommandBuilder.Verify(b => b.RequiresPrivilege(Privilege.chat), Times.Once,
             "RequiresPrivilege(Privilege.chat) should be called once during command registration");
+        mockCommandBuilder.Verify(b => b.RequiresPrivilege(Privilege.root), Times.Once,
+            "RequiresPrivilege(Privilege.root) should be called once for admin commands");
     }
 }

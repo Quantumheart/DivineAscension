@@ -1,9 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Commands;
 using DivineAscension.Data;
-using DivineAscension.Models;
 using DivineAscension.Models.Enum;
-using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using Moq;
 using Vintagestory.API.Common;
@@ -13,18 +11,18 @@ using Vintagestory.API.Server;
 namespace DivineAscension.Tests.Commands.Helpers;
 
 [ExcludeFromCodeCoverage]
-public class ReligionCommandsTestHelpers
+public class CivilizationCommandsTestHelpers
 {
+    protected Mock<ICivilizationManager> _civilizationManager;
     protected Mock<IChatCommandApi> _mockChatCommands;
     protected Mock<ILogger> _mockLogger;
     protected Mock<ICoreServerAPI> _mockSapi;
     protected Mock<IServerWorldAccessor> _mockWorld;
     protected Mock<IPlayerProgressionDataManager> _playerProgressionDataManager;
     protected Mock<IReligionManager> _religionManager;
-    protected Mock<IServerNetworkChannel> _serverChannel;
-    protected ReligionCommands? _sut;
+    protected CivilizationCommands? _sut;
 
-    protected ReligionCommandsTestHelpers()
+    protected CivilizationCommandsTestHelpers()
     {
         _mockSapi = new Mock<ICoreServerAPI>();
         _mockLogger = new Mock<ILogger>();
@@ -35,23 +33,18 @@ public class ReligionCommandsTestHelpers
         _mockSapi.Setup(api => api.ChatCommands).Returns(_mockChatCommands.Object);
         _mockSapi.Setup(api => api.World).Returns(_mockWorld.Object);
 
+        _civilizationManager = new Mock<ICivilizationManager>();
         _religionManager = new Mock<IReligionManager>();
-
         _playerProgressionDataManager = new Mock<IPlayerProgressionDataManager>();
-        _serverChannel = new Mock<IServerNetworkChannel>();
     }
 
-    protected ReligionCommands InitializeMocksAndSut()
+    protected CivilizationCommands InitializeMocksAndSut()
     {
-        var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
-        var mockRoleManager = new Mock<IRoleManager>();
-        return new ReligionCommands(
+        return new CivilizationCommands(
             _mockSapi.Object,
+            _civilizationManager.Object,
             _religionManager.Object,
-            _playerProgressionDataManager.Object,
-            mockPrestigeManager.Object,
-            _serverChannel.Object,
-            mockRoleManager.Object);
+            _playerProgressionDataManager.Object);
     }
 
     /// <summary>
@@ -66,8 +59,8 @@ public class ReligionCommandsTestHelpers
             {
                 Type = EnumCallerType.Player,
                 Player = player,
-                CallerPrivileges = new[] { "chat" },
-                CallerRole = "player",
+                CallerPrivileges = new[] { "chat", "root" },
+                CallerRole = "admin",
                 Pos = new Vec3d(0, 0, 0)
             },
             RawArgs = new CmdArgs(args),
@@ -91,32 +84,34 @@ public class ReligionCommandsTestHelpers
     }
 
     /// <summary>
-    /// Creates test PlayerReligionData
-    /// </summary>
-    protected PlayerProgressionData CreatePlayerData(string playerUID)
-    {
-        return new PlayerProgressionData(playerUID)
-        {
-        };
-    }
-
-    /// <summary>
     /// Creates test ReligionData
     /// </summary>
-    protected ReligionData CreateReligion(string uid, string name, DeityType deity, string founderUID,
-        bool isPublic = true)
+    protected ReligionData CreateReligion(string uid, string name, DeityType deity, string founderUID)
     {
         var religion = new ReligionData(uid, name, deity, founderUID, "TestFounder")
         {
-            IsPublic = isPublic,
-            Roles = RoleDefaults.CreateDefaultRoles(),
-            MemberRoles = new Dictionary<string, string>
-            {
-                [founderUID] = RoleDefaults.FOUNDER_ROLE_ID
-            }
+            IsPublic = true,
+            MemberUIDs = new List<string> { founderUID }
         };
 
         return religion;
+    }
+
+    /// <summary>
+    /// Creates test Civilization
+    /// </summary>
+    protected DivineAscension.Data.Civilization CreateCivilization(string civId, string name, string founderUID,
+        List<string> religionIds)
+    {
+        return new DivineAscension.Data.Civilization
+        {
+            CivId = civId,
+            Name = name,
+            FounderUID = founderUID,
+            MemberReligionIds = religionIds,
+            MemberCount = 0,
+            Icon = "default"
+        };
     }
 
     /// <summary>

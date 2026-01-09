@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
+using DivineAscension.Network;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -12,14 +13,15 @@ using Vintagestory.API.Server;
 namespace DivineAscension.Commands;
 
 /// <summary>
-///     Commands for managing blessings (Phase 3.3)
+///     Commands for managing blessings
 /// </summary>
 public class BlessingCommands(
     ICoreServerAPI? sapi,
     IBlessingRegistry? blessingRegistry,
     IPlayerProgressionDataManager? playerReligionDataManager,
     IReligionManager? religionManager,
-    IBlessingEffectSystem? blessingEffectSystem)
+    IBlessingEffectSystem? blessingEffectSystem,
+    IServerNetworkChannel? serverChannel)
 {
     private readonly IBlessingEffectSystem _blessingEffectSystem =
         blessingEffectSystem ?? throw new ArgumentNullException($"{nameof(blessingEffectSystem)}");
@@ -34,6 +36,9 @@ public class BlessingCommands(
         religionManager ?? throw new ArgumentNullException($"{nameof(religionManager)}");
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException($"{nameof(sapi)}");
+
+    private readonly IServerNetworkChannel _serverChannel =
+        serverChannel ?? throw new ArgumentNullException($"{nameof(serverChannel)}");
 
     /// <summary>
     ///     Registers all blessing commands
@@ -74,6 +79,32 @@ public class BlessingCommands(
             .BeginSubCommand(BlessingCommandConstants.SubCommandActive)
             .WithDescription(BlessingDescriptionConstants.DescriptionActive)
             .HandleWith(OnActive)
+            .EndSubCommand()
+            .BeginSubCommand("admin")
+            .WithDescription("Admin commands for blessing management")
+            .RequiresPrivilege(Privilege.root)
+            .BeginSubCommand("unlock")
+            .WithDescription("Force unlock a blessing for a player (bypasses requirements)")
+            .WithArgs(_sapi.ChatCommands.Parsers.Word(ParameterConstants.ParamBlessingId),
+                _sapi.ChatCommands.Parsers.OptionalWord("playername"))
+            .HandleWith(OnAdminUnlock)
+            .EndSubCommand()
+            .BeginSubCommand("lock")
+            .WithDescription("Remove a specific unlocked blessing from a player")
+            .WithArgs(_sapi.ChatCommands.Parsers.Word(ParameterConstants.ParamBlessingId),
+                _sapi.ChatCommands.Parsers.OptionalWord("playername"))
+            .HandleWith(OnAdminLock)
+            .EndSubCommand()
+            .BeginSubCommand("reset")
+            .WithDescription("Clear all unlocked blessings from a player")
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("playername"))
+            .HandleWith(OnAdminReset)
+            .EndSubCommand()
+            .BeginSubCommand("unlockall")
+            .WithDescription("Unlock all available blessings for a player")
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("playername"))
+            .HandleWith(OnAdminUnlockAll)
+            .EndSubCommand()
             .EndSubCommand();
 
         _sapi.Logger.Notification(LogMessageConstants.LogBlessingCommandsRegistered);
@@ -437,6 +468,18 @@ public class BlessingCommands(
             if (!success) return TextCommandResult.Error(ErrorMessageConstants.ErrorFailedToUnlock);
 
             _blessingEffectSystem.RefreshPlayerBlessings(playerUid);
+
+            // Notify player data changed (triggers HUD update)
+            _playerProgressionDataManager.NotifyPlayerDataChanged(playerUid);
+
+            // Send blessing unlock notification to client for GUI update
+            var player = _sapi.World.PlayerByUid(playerUid) as IServerPlayer;
+            if (player != null)
+            {
+                var packet = new BlessingUnlockResponsePacket(true, $"Unlocked {blessing.Name}!", blessing.BlessingId);
+                _serverChannel.SendPacket(packet, player);
+            }
+
             return TextCommandResult.Success(string.Format(SuccessMessageConstants.SuccessUnlockedPlayerBlessing,
                 blessing.Name));
         }
@@ -454,11 +497,23 @@ public class BlessingCommands(
         foreach (var memberUid in religion.MemberUIDs)
         {
             var member = _sapi.World.PlayerByUid(memberUid) as IServerPlayer;
-            member?.SendMessage(
-                GlobalConstants.GeneralChatGroup,
-                string.Format(SuccessMessageConstants.NotificationBlessingUnlocked, blessing.Name),
-                EnumChatType.Notification
-            );
+            if (member != null)
+            {
+                // Send chat notification
+                member.SendMessage(
+                    GlobalConstants.GeneralChatGroup,
+                    string.Format(SuccessMessageConstants.NotificationBlessingUnlocked, blessing.Name),
+                    EnumChatType.Notification
+                );
+
+                // Notify player data changed (triggers HUD update)
+                _playerProgressionDataManager.NotifyPlayerDataChanged(memberUid);
+
+                // Send blessing unlock packet for GUI update
+                var packet = new BlessingUnlockResponsePacket(true, $"Religion blessing unlocked: {blessing.Name}!",
+                    blessing.BlessingId);
+                _serverChannel.SendPacket(packet, member);
+            }
         }
 
         return TextCommandResult.Success(string.Format(SuccessMessageConstants.SuccessUnlockedReligionBlessing,
@@ -505,4 +560,330 @@ public class BlessingCommands(
 
         return TextCommandResult.Success(sb.ToString());
     }
+
+    #region Admin Commands (Privilege.root)
+
+    /// <summary>
+    ///     /blessings admin unlock blessingid> [playername] - Force unlock a blessing for a player, bypassing all validation
+    /// </summary>
+    internal TextCommandResult OnAdminUnlock(TextCommandCallingArgs args)
+    {
+        var player = args.Caller.Player as IServerPlayer;
+        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+
+        var blessingId = (string)args[0];
+        var targetPlayerName = args.Parsers.Count > 1 ? (string?)args[1] : null;
+
+        // Resolve target player
+        var (targetPlayer, targetPlayerData, errorResult) = CommandHelpers.ResolveTargetPlayer(
+            player, targetPlayerName, _sapi, _playerProgressionDataManager, _religionManager);
+        if (errorResult is { Status: EnumCommandStatus.Error })
+            return errorResult;
+
+        // Validate blessing exists
+        var blessing = _blessingRegistry.GetBlessing(blessingId);
+        if (blessing == null)
+            return TextCommandResult.Error($"Blessing '{blessingId}' not found");
+
+        // Get target's religion
+        var targetReligion = _religionManager.GetPlayerReligion(targetPlayer.PlayerUID);
+        if (targetReligion == null || string.IsNullOrEmpty(targetReligion.ReligionUID))
+            return TextCommandResult.Error($"{targetPlayer.PlayerName} is not in a religion");
+
+        // Handle based on blessing kind
+        if (blessing.Kind == BlessingKind.Player)
+        {
+            // Player blessing - unlock for target player
+            if (targetPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
+                return TextCommandResult.Success(
+                    $"{targetPlayer.PlayerName} already has blessing '{blessing.Name}' unlocked");
+
+            targetPlayerData.UnlockedBlessings.Add(blessing.BlessingId);
+            _blessingEffectSystem.RefreshPlayerBlessings(targetPlayer.PlayerUID);
+
+            // Notify player data changed (triggers HUD update)
+            _playerProgressionDataManager.NotifyPlayerDataChanged(targetPlayer.PlayerUID);
+
+            // Send blessing unlock notification to target player for GUI update
+            var packet =
+                new BlessingUnlockResponsePacket(true, $"Admin unlocked {blessing.Name}!", blessing.BlessingId);
+            _serverChannel.SendPacket(packet, targetPlayer);
+
+            _sapi.Logger.Notification(
+                $"[DivineAscension] Admin: {player.PlayerName} unlocked player blessing '{blessing.Name}' for {targetPlayer.PlayerName}");
+
+            return TextCommandResult.Success(
+                $"Unlocked player blessing '{blessing.Name}' for {targetPlayer.PlayerName}");
+        }
+        else
+        {
+            // Religion blessing - only founder can unlock (admin doesn't bypass this for game balance)
+            if (targetReligion.FounderUID != targetPlayer.PlayerUID)
+                return TextCommandResult.Error("Only the religion founder can unlock religion blessings");
+
+            if (targetReligion.UnlockedBlessings.ContainsKey(blessing.BlessingId))
+                return TextCommandResult.Success(
+                    $"{targetReligion.ReligionName} already has blessing '{blessing.Name}' unlocked");
+
+            targetReligion.UnlockedBlessings.Add(blessing.BlessingId, true);
+            _blessingEffectSystem.RefreshReligionBlessings(targetReligion.ReligionUID);
+            _religionManager.Save(targetReligion);
+
+            // Notify all members of the religion
+            foreach (var memberUid in targetReligion.MemberUIDs)
+            {
+                var member = _sapi.World.PlayerByUid(memberUid) as IServerPlayer;
+                if (member != null)
+                {
+                    // Notify player data changed (triggers HUD update)
+                    _playerProgressionDataManager.NotifyPlayerDataChanged(memberUid);
+
+                    // Send blessing unlock packet for GUI update
+                    var memberPacket = new BlessingUnlockResponsePacket(true,
+                        $"Admin unlocked religion blessing: {blessing.Name}!", blessing.BlessingId);
+                    _serverChannel.SendPacket(memberPacket, member);
+                }
+            }
+
+            _sapi.Logger.Notification(
+                $"[DivineAscension] Admin: {player.PlayerName} unlocked religion blessing '{blessing.Name}' for {targetReligion.ReligionName}");
+
+            return TextCommandResult.Success(
+                $"Unlocked religion blessing '{blessing.Name}' for {targetReligion.ReligionName}");
+        }
+    }
+
+    /// <summary>
+    ///     /blessings admin lock <blessingid> [playername] - Remove a specific unlocked blessing from a player
+    /// </summary>
+    internal TextCommandResult OnAdminLock(TextCommandCallingArgs args)
+    {
+        var player = args.Caller.Player as IServerPlayer;
+        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+
+        var blessingId = (string)args[0];
+        var targetPlayerName = args.Parsers.Count > 1 ? (string?)args[1] : null;
+
+        // Resolve target player
+        var (targetPlayer, targetPlayerData, errorResult) = CommandHelpers.ResolveTargetPlayer(
+            player, targetPlayerName, _sapi, _playerProgressionDataManager, _religionManager);
+        if (errorResult is { Status: EnumCommandStatus.Error })
+            return errorResult;
+
+        // Validate blessing exists
+        var blessing = _blessingRegistry.GetBlessing(blessingId);
+        if (blessing == null)
+            return TextCommandResult.Error($"Blessing '{blessingId}' not found");
+
+        // Get target's religion
+        var targetReligion = _religionManager.GetPlayerReligion(targetPlayer.PlayerUID);
+        if (targetReligion == null || string.IsNullOrEmpty(targetReligion.ReligionUID))
+            return TextCommandResult.Error($"{targetPlayer.PlayerName} is not in a religion");
+
+        // Handle based on blessing kind
+        if (blessing.Kind == BlessingKind.Player)
+        {
+            // Player blessing - lock for target player
+            if (!targetPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
+                return TextCommandResult.Success(
+                    $"{targetPlayer.PlayerName} doesn't have blessing '{blessing.Name}' unlocked");
+
+            targetPlayerData.UnlockedBlessings.Remove(blessing.BlessingId);
+            _blessingEffectSystem.RefreshPlayerBlessings(targetPlayer.PlayerUID);
+
+            // Notify player data changed (triggers HUD update)
+            _playerProgressionDataManager.NotifyPlayerDataChanged(targetPlayer.PlayerUID);
+
+            // Send blessing lock notification to target player for GUI update
+            var packet = new BlessingUnlockResponsePacket(false, $"Admin locked {blessing.Name}", blessing.BlessingId);
+            _serverChannel.SendPacket(packet, targetPlayer);
+
+            _sapi.Logger.Notification(
+                $"[DivineAscension] Admin: {player.PlayerName} locked player blessing '{blessing.Name}' for {targetPlayer.PlayerName}");
+
+            return TextCommandResult.Success($"Locked player blessing '{blessing.Name}' for {targetPlayer.PlayerName}");
+        }
+        else
+        {
+            // Religion blessing - only founder can lock
+            if (targetReligion.FounderUID != targetPlayer.PlayerUID)
+                return TextCommandResult.Error("Only the religion founder can lock religion blessings");
+
+            if (!targetReligion.UnlockedBlessings.ContainsKey(blessing.BlessingId))
+                return TextCommandResult.Success(
+                    $"{targetReligion.ReligionName} doesn't have blessing '{blessing.Name}' unlocked");
+
+            targetReligion.UnlockedBlessings.Remove(blessing.BlessingId);
+            _blessingEffectSystem.RefreshReligionBlessings(targetReligion.ReligionUID);
+            _religionManager.Save(targetReligion);
+
+            // Notify all members of the religion
+            foreach (var memberUid in targetReligion.MemberUIDs)
+            {
+                var member = _sapi.World.PlayerByUid(memberUid) as IServerPlayer;
+                if (member != null)
+                {
+                    // Notify player data changed (triggers HUD update)
+                    _playerProgressionDataManager.NotifyPlayerDataChanged(memberUid);
+
+                    // Send blessing lock packet for GUI update
+                    var memberPacket = new BlessingUnlockResponsePacket(false,
+                        $"Admin locked religion blessing: {blessing.Name}", blessing.BlessingId);
+                    _serverChannel.SendPacket(memberPacket, member);
+                }
+            }
+
+            _sapi.Logger.Notification(
+                $"[DivineAscension] Admin: {player.PlayerName} locked religion blessing '{blessing.Name}' for {targetReligion.ReligionName}");
+
+            return TextCommandResult.Success(
+                $"Locked religion blessing '{blessing.Name}' for {targetReligion.ReligionName}");
+        }
+    }
+
+    /// <summary>
+    ///     /blessings admin reset [playername] - Clear all unlocked blessings from a player
+    /// </summary>
+    internal TextCommandResult OnAdminReset(TextCommandCallingArgs args)
+    {
+        var player = args.Caller.Player as IServerPlayer;
+        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+
+        var targetPlayerName = args.Parsers.Count > 0 ? (string?)args[0] : null;
+
+        // Resolve target player
+        var (targetPlayer, targetPlayerData, errorResult) = CommandHelpers.ResolveTargetPlayer(
+            player, targetPlayerName, _sapi, _playerProgressionDataManager, _religionManager);
+        if (errorResult is { Status: EnumCommandStatus.Error })
+            return errorResult;
+
+        var blessingCount = targetPlayerData.UnlockedBlessings.Count;
+        if (blessingCount == 0)
+            return TextCommandResult.Success($"{targetPlayer.PlayerName} has no blessings to reset");
+
+        targetPlayerData.UnlockedBlessings.Clear();
+        _blessingEffectSystem.RefreshPlayerBlessings(targetPlayer.PlayerUID);
+
+        // Notify player data changed (triggers HUD update)
+        // Note: For reset, we don't send individual blessing packets since all were removed
+        // The NotifyPlayerDataChanged will trigger a full state refresh on the client
+        _playerProgressionDataManager.NotifyPlayerDataChanged(targetPlayer.PlayerUID);
+
+        _sapi.Logger.Notification(
+            $"[DivineAscension] Admin: {player.PlayerName} reset all blessings for {targetPlayer.PlayerName}");
+
+        return TextCommandResult.Success($"Reset {blessingCount} blessing(s) for {targetPlayer.PlayerName}");
+    }
+
+    /// <summary>
+    ///     /blessings admin unlockall [playername] - Unlock all available blessings for a player
+    /// </summary>
+    internal TextCommandResult OnAdminUnlockAll(TextCommandCallingArgs args)
+    {
+        var player = args.Caller.Player as IServerPlayer;
+        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+
+        var targetPlayerName = args.Parsers.Count > 0 ? (string?)args[0] : null;
+
+        // Resolve target player
+        var (targetPlayer, targetPlayerData, errorResult) = CommandHelpers.ResolveTargetPlayer(
+            player, targetPlayerName, _sapi, _playerProgressionDataManager, _religionManager);
+        if (errorResult is { Status: EnumCommandStatus.Error })
+            return errorResult;
+
+        // Get target's deity
+        var targetDeity = _religionManager.GetPlayerActiveDeity(targetPlayer.PlayerUID);
+        if (targetDeity == DeityType.None)
+            return TextCommandResult.Error($"{targetPlayer.PlayerName} is not in a religion");
+
+        // Get target's religion
+        var targetReligion = _religionManager.GetPlayerReligion(targetPlayer.PlayerUID);
+        if (targetReligion == null || string.IsNullOrEmpty(targetReligion.ReligionUID))
+            return TextCommandResult.Error($"{targetPlayer.PlayerName} is not in a religion");
+
+        // Get all blessings for this deity
+        var playerBlessings = _blessingRegistry.GetBlessingsForDeity(targetDeity, BlessingKind.Player);
+        var religionBlessings = _blessingRegistry.GetBlessingsForDeity(targetDeity, BlessingKind.Religion);
+
+        int playerUnlocked = 0;
+        int religionUnlocked = 0;
+
+        // Unlock all player blessings
+        foreach (var blessing in playerBlessings)
+        {
+            if (!targetPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
+            {
+                targetPlayerData.UnlockedBlessings.Add(blessing.BlessingId);
+                playerUnlocked++;
+            }
+        }
+
+        // Unlock all religion blessings (only if founder)
+        if (targetReligion.FounderUID == targetPlayer.PlayerUID)
+        {
+            foreach (var blessing in religionBlessings)
+            {
+                if (!targetReligion.UnlockedBlessings.ContainsKey(blessing.BlessingId))
+                {
+                    targetReligion.UnlockedBlessings.Add(blessing.BlessingId, true);
+                    religionUnlocked++;
+                }
+            }
+
+            if (religionUnlocked > 0)
+            {
+                _blessingEffectSystem.RefreshReligionBlessings(targetReligion.ReligionUID);
+                _religionManager.Save(targetReligion);
+
+                // Notify all members of the religion
+                foreach (var memberUid in targetReligion.MemberUIDs)
+                {
+                    var member = _sapi.World.PlayerByUid(memberUid) as IServerPlayer;
+                    if (member != null)
+                    {
+                        // Notify player data changed (triggers HUD update)
+                        _playerProgressionDataManager.NotifyPlayerDataChanged(memberUid);
+
+                        // Send unlock notifications for all religion blessings
+                        foreach (var blessing in religionBlessings)
+                        {
+                            if (targetReligion.UnlockedBlessings.ContainsKey(blessing.BlessingId))
+                            {
+                                var memberPacket = new BlessingUnlockResponsePacket(true,
+                                    $"Religion blessing unlocked: {blessing.Name}!", blessing.BlessingId);
+                                _serverChannel.SendPacket(memberPacket, member);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (playerUnlocked > 0)
+        {
+            _blessingEffectSystem.RefreshPlayerBlessings(targetPlayer.PlayerUID);
+
+            // Notify player data changed (triggers HUD update)
+            _playerProgressionDataManager.NotifyPlayerDataChanged(targetPlayer.PlayerUID);
+
+            // Send unlock notifications for all player blessings
+            foreach (var blessing in playerBlessings)
+            {
+                if (targetPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
+                {
+                    var packet = new BlessingUnlockResponsePacket(true, $"Unlocked {blessing.Name}!",
+                        blessing.BlessingId);
+                    _serverChannel.SendPacket(packet, targetPlayer);
+                }
+            }
+        }
+
+        _sapi.Logger.Notification(
+            $"[DivineAscension] Admin: {player.PlayerName} unlocked all blessings for {targetPlayer.PlayerName} ({playerUnlocked} player, {religionUnlocked} religion)");
+
+        return TextCommandResult.Success(
+            $"Unlocked {playerUnlocked} player blessing(s) and {religionUnlocked} religion blessing(s) for {targetPlayer.PlayerName}");
+    }
+
+    #endregion
 }

@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using DivineAscension.Data;
-using DivineAscension.Systems;
+using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Commands;
@@ -15,11 +16,15 @@ namespace DivineAscension.Commands;
 /// </summary>
 public class CivilizationCommands(
     ICoreServerAPI sapi,
-    CivilizationManager civilizationManager,
-    IReligionManager religionManager)
+    ICivilizationManager civilizationManager,
+    IReligionManager religionManager,
+    IPlayerProgressionDataManager playerProgressionDataManager)
 {
-    private readonly CivilizationManager _civilizationManager =
+    private readonly ICivilizationManager _civilizationManager =
         civilizationManager ?? throw new ArgumentNullException(nameof(civilizationManager));
+
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
+        playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
     private readonly IReligionManager _religionManager =
         religionManager ?? throw new ArgumentNullException(nameof(religionManager));
@@ -76,10 +81,27 @@ public class CivilizationCommands(
             .WithDescription("Show your pending civilization invitations")
             .HandleWith(OnListInvites)
             .EndSubCommand()
-            .BeginSubCommand("cleanup")
-            .WithDescription("Clean up orphaned civilizations and diplomacy data (Admin only)")
+            .BeginSubCommand("admin")
+            .WithDescription("Admin commands for civilization management")
             .RequiresPrivilege(Privilege.root)
+            .BeginSubCommand("create")
+            .WithDescription("Force create a civilization with specified religions")
+            .WithArgs(_sapi.ChatCommands.Parsers.Word("civname"),
+                _sapi.ChatCommands.Parsers.Word("religion1"),
+                _sapi.ChatCommands.Parsers.OptionalWord("religion2"),
+                _sapi.ChatCommands.Parsers.OptionalWord("religion3"),
+                _sapi.ChatCommands.Parsers.OptionalWord("religion4"))
+            .HandleWith(OnAdminCreate)
+            .EndSubCommand()
+            .BeginSubCommand("dissolve")
+            .WithDescription("Force dissolve a civilization (Admin only)")
+            .WithArgs(_sapi.ChatCommands.Parsers.Word("civname"))
+            .HandleWith(OnAdminDissolve)
+            .EndSubCommand()
+            .BeginSubCommand("cleanup")
+            .WithDescription("Clean up orphaned civilizations and diplomacy data")
             .HandleWith(OnCleanupOrphanedData)
+            .EndSubCommand()
             .EndSubCommand();
     }
 
@@ -479,4 +501,169 @@ public class CivilizationCommands(
         return TextCommandResult.Success(
             $"Cleaned up {orphanedCivs.Count} orphaned civilization(s). Associated diplomacy data was also removed.");
     }
+
+    #region Admin Commands (Privilege.root)
+
+    /// <summary>
+    ///     /civ admin create <civname> <religion1> [religion2] [religion3] [religion4] - Force create civilization with religions
+    /// </summary>
+    internal TextCommandResult OnAdminCreate(TextCommandCallingArgs args)
+    {
+        var player = args.Caller.Player as IServerPlayer;
+        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+
+        var civName = (string)args[0];
+        var religion1Name = (string)args[1];
+        var religion2Name = args.Parsers.Count > 2 ? (string?)args[2] : null;
+        var religion3Name = args.Parsers.Count > 3 ? (string?)args[3] : null;
+        var religion4Name = args.Parsers.Count > 4 ? (string?)args[4] : null;
+
+        // Collect all religion names
+        var religionNames = new List<string> { religion1Name };
+        if (religion2Name != null) religionNames.Add(religion2Name);
+        if (religion3Name != null) religionNames.Add(religion3Name);
+        if (religion4Name != null) religionNames.Add(religion4Name);
+
+        // Validate all religions exist
+        var religions = new List<ReligionData>();
+        foreach (var name in religionNames)
+        {
+            var religion = _religionManager.GetReligionByName(name);
+            if (religion == null)
+                return TextCommandResult.Error($"Religion '{name}' not found");
+            religions.Add(religion);
+        }
+
+        // Check deity uniqueness
+        var deitySet = new HashSet<DeityType>();
+        var duplicateDeities = new List<DeityType>();
+        foreach (var religion in religions)
+        {
+            if (!deitySet.Add(religion.Deity))
+            {
+                if (!duplicateDeities.Contains(religion.Deity))
+                    duplicateDeities.Add(religion.Deity);
+            }
+        }
+
+        if (duplicateDeities.Count > 0)
+        {
+            var deityNames = string.Join(", ", duplicateDeities);
+            return TextCommandResult.Error(
+                $"Duplicate deity/deities found: {deityNames}. Each deity can only appear once in a civilization.");
+        }
+
+        // Check if any religion is already in a civilization
+        foreach (var religion in religions)
+        {
+            var existingCiv = _civilizationManager.GetCivilizationByReligion(religion.ReligionUID);
+            if (existingCiv != null)
+                return TextCommandResult.Error(
+                    $"Religion '{religion.ReligionName}' is already part of civilization '{existingCiv.Name}'");
+        }
+
+        // Create civilization with first religion as founder
+        var founderReligion = religions[0];
+        var civilization = _civilizationManager.CreateCivilization(civName, founderReligion.FounderUID,
+            founderReligion.ReligionUID);
+
+        if (civilization == null)
+            return TextCommandResult.Error("Failed to create civilization");
+
+        // Add remaining religions directly (bypass invitation system)
+        for (int i = 1; i < religions.Count; i++)
+        {
+            var religion = religions[i];
+            civilization.MemberReligionIds.Add(religion.ReligionUID);
+        }
+
+        // Update member count
+        int totalMembers = 0;
+        foreach (var religionId in civilization.MemberReligionIds)
+        {
+            var religion = _religionManager.GetReligion(religionId);
+            if (religion != null) totalMembers += religion.MemberUIDs.Count;
+        }
+
+        civilization.MemberCount = totalMembers;
+
+        // Notify all members of all affected religions (not just founders)
+        foreach (var religion in religions)
+        {
+            foreach (var memberUid in religion.MemberUIDs)
+            {
+                var member = _sapi.World.PlayerByUid(memberUid) as IServerPlayer;
+                if (member != null)
+                {
+                    // Send chat notification
+                    member.SendMessage(GlobalConstants.GeneralChatGroup,
+                        $"Your religion '{religion.ReligionName}' is now part of civilization '{civName}'",
+                        EnumChatType.Notification);
+
+                    // Trigger player data refresh (updates HUD)
+                    _playerProgressionDataManager.NotifyPlayerDataChanged(memberUid);
+                }
+            }
+        }
+
+        _sapi.Logger.Notification(
+            $"[DivineAscension] Admin: {player.PlayerName} created civilization '{civName}' with {religions.Count} religion(s)");
+
+        return TextCommandResult.Success(
+            $"Created civilization '{civName}' with {religions.Count} religion(s) and {totalMembers} total members");
+    }
+
+    /// <summary>
+    ///     /civ admin dissolve <civname> - Force dissolve a civilization
+    /// </summary>
+    internal TextCommandResult OnAdminDissolve(TextCommandCallingArgs args)
+    {
+        var player = args.Caller.Player as IServerPlayer;
+        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+
+        var civName = (string)args[0];
+
+        // Find civilization by name
+        var civilization = _civilizationManager.GetAllCivilizations()
+            .FirstOrDefault(c => string.Equals(c.Name, civName, StringComparison.OrdinalIgnoreCase));
+
+        if (civilization == null)
+            return TextCommandResult.Error($"Civilization '{civName}' not found");
+
+        // Get all member religions before disbanding
+        var memberReligionIds = civilization.MemberReligionIds.ToList();
+        var memberCount = memberReligionIds.Count;
+
+        // Use DisbandCivilization with founder UID (admin override)
+        _civilizationManager.DisbandCivilization(civilization.CivId, civilization.FounderUID);
+
+        // Notify all members of all affected religions
+        foreach (var religionUID in memberReligionIds)
+        {
+            var religion = _religionManager.GetReligion(religionUID);
+            if (religion == null) continue;
+
+            foreach (var memberUid in religion.MemberUIDs)
+            {
+                var member = _sapi.World.PlayerByUid(memberUid) as IServerPlayer;
+                if (member != null)
+                {
+                    // Send chat notification
+                    member.SendMessage(GlobalConstants.GeneralChatGroup,
+                        $"Civilization '{civName}' has been disbanded by an admin",
+                        EnumChatType.Notification);
+
+                    // Trigger player data refresh
+                    _playerProgressionDataManager.NotifyPlayerDataChanged(memberUid);
+                }
+            }
+        }
+
+        _sapi.Logger.Notification(
+            $"[DivineAscension] Admin: {player.PlayerName} disbanded civilization '{civName}' ({memberCount} religion(s))");
+
+        return TextCommandResult.Success($"Civilization '{civName}' has been disbanded");
+    }
+
+    #endregion
 }

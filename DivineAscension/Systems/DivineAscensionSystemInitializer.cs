@@ -78,20 +78,20 @@ public static class DivineAscensionSystemInitializer
         favorCommands.RegisterCommands();
 
         var blessingCommands = new BlessingCommands(api, blessingRegistry, playerReligionDataManager, religionManager,
-            blessingEffectSystem);
+            blessingEffectSystem, serverChannel);
         blessingCommands.RegisterCommands();
 
         var roleManager = new RoleManager(religionManager);
 
         var religionCommands = new ReligionCommands(api, religionManager, playerReligionDataManager,
-            religionPrestigeManager, serverChannel);
+            religionPrestigeManager, serverChannel, roleManager);
         religionCommands.RegisterCommands();
 
         var roleCommands = new RoleCommands(api, roleManager, religionManager, playerReligionDataManager);
         roleCommands.RegisterCommands();
 
         var civilizationCommands =
-            new CivilizationCommands(api, civilizationManager, religionManager);
+            new CivilizationCommands(api, civilizationManager, religionManager, playerReligionDataManager);
         civilizationCommands.RegisterCommands();
 
         // Create and initialize network handlers
