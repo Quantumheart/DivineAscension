@@ -28,7 +28,7 @@ public class FavorCommandSetTests : FavorCommandsTestHelpers
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1", DeityType.Khoras, favor: 100, totalFavor: 500);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "1000");
-        SetupParsers(args, 1000);
+        SetupParsers(args, 1000, null);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
@@ -55,7 +55,7 @@ public class FavorCommandSetTests : FavorCommandsTestHelpers
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1", DeityType.Lysa, favor: 5000, totalFavor: 5000);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "0");
-        SetupParsers(args, 0);
+        SetupParsers(args, 0, null);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
@@ -81,7 +81,7 @@ public class FavorCommandSetTests : FavorCommandsTestHelpers
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1", DeityType.Aethra);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "999999");
-        SetupParsers(args, 999999);
+        SetupParsers(args, 999999, null);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
@@ -112,7 +112,7 @@ public class FavorCommandSetTests : FavorCommandsTestHelpers
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1", DeityType.Khoras);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "-100");
-        SetupParsers(args, -100);
+        SetupParsers(args, -100, null);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
@@ -138,7 +138,7 @@ public class FavorCommandSetTests : FavorCommandsTestHelpers
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1", DeityType.Khoras);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "1000000");
-        SetupParsers(args, 1000000);
+        SetupParsers(args, 1000000, null);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
@@ -165,7 +165,7 @@ public class FavorCommandSetTests : FavorCommandsTestHelpers
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1", DeityType.None);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "100");
-        SetupParsers(args, 100);
+        SetupParsers(args, 100, null);
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
 
