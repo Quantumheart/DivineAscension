@@ -6,6 +6,7 @@ using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Models.Religion.Activity;
 using DivineAscension.GUI.Models.Religion.Browse;
 using DivineAscension.GUI.Models.Religion.Create;
+using DivineAscension.GUI.Models.Religion.Detail;
 using DivineAscension.GUI.Models.Religion.Info;
 using DivineAscension.GUI.Models.Religion.Invites;
 using DivineAscension.GUI.Models.Religion.Roles;
@@ -281,6 +282,13 @@ public class ReligionStateManager : IReligionStateManager
     /// </summary>
     public void DrawReligionBrowse(float x, float y, float width, float height)
     {
+        // Check if viewing detail (conditional rendering pattern)
+        if (!string.IsNullOrEmpty(State.BrowseState.DetailState.ViewingReligionUID))
+        {
+            DrawReligionDetail(x, y, width, height);
+            return;
+        }
+
         // Map State → ViewModel
         var deityFilters = new[] { "All", "Khoras", "Lysa", "Aethra", "Gaia" };
         var effectiveFilter =
@@ -311,6 +319,83 @@ public class ReligionStateManager : IReligionStateManager
             var mousePos = ImGui.GetMousePos();
             ReligionListRenderer.DrawTooltip(result.HoveredReligion, mousePos.X, mousePos.Y, width, height);
         }
+    }
+
+    /// <summary>
+    ///     Draws the religion detail view
+    /// </summary>
+    private void DrawReligionDetail(float x, float y, float width, float height)
+    {
+        var details = State.BrowseState.DetailState.ViewingReligionDetails;
+        var canJoin = !HasReligion();
+
+        var vm = new ReligionDetailViewModel(
+            State.BrowseState.DetailState.IsLoading,
+            State.BrowseState.DetailState.ViewingReligionUID ?? string.Empty,
+            details?.ReligionName ?? string.Empty,
+            details?.Deity ?? string.Empty,
+            details?.PrestigeRank ?? string.Empty,
+            details?.Prestige ?? 0,
+            details?.IsPublic ?? true,
+            details?.Description ?? string.Empty,
+            details?.Members ?? new List<ReligionDetailResponsePacket.MemberInfo>(),
+            State.BrowseState.DetailState.MemberScrollY,
+            canJoin,
+            x, y, width, height
+        );
+
+        var drawList = ImGui.GetWindowDrawList();
+        var result = ReligionDetailRenderer.Draw(vm, drawList);
+        ProcessDetailEvents(result.Events);
+    }
+
+    /// <summary>
+    ///     Process events from detail renderer
+    /// </summary>
+    private void ProcessDetailEvents(IReadOnlyList<DetailEvent> events)
+    {
+        foreach (var evt in events)
+        {
+            switch (evt)
+            {
+                case DetailEvent.BackToBrowseClicked:
+                    State.BrowseState.DetailState.Reset();
+                    _soundManager.PlayClick();
+                    break;
+
+                case DetailEvent.MemberScrollChanged msc:
+                    State.BrowseState.DetailState.MemberScrollY = msc.NewScrollY;
+                    break;
+
+                case DetailEvent.JoinClicked jc:
+                    if (!string.IsNullOrEmpty(jc.ReligionUID))
+                    {
+                        _soundManager.PlayClick();
+                        RequestReligionAction("join", jc.ReligionUID);
+                    }
+
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Request detailed information about a religion
+    /// </summary>
+    private void RequestReligionDetail(string religionUID)
+    {
+        State.BrowseState.DetailState.IsLoading = true;
+        State.BrowseState.DetailState.ViewingReligionUID = religionUID;
+        _uiService.RequestReligionDetail(religionUID);
+    }
+
+    /// <summary>
+    ///     Update religion detail state from network response
+    /// </summary>
+    public void UpdateReligionDetail(ReligionDetailResponsePacket packet)
+    {
+        State.BrowseState.DetailState.ViewingReligionDetails = packet;
+        State.BrowseState.DetailState.IsLoading = false;
     }
 
     /// <summary>
@@ -814,7 +899,12 @@ public class ReligionStateManager : IReligionStateManager
                     break;
 
                 case BrowseEvent.Selected e:
-                    State.BrowseState.SelectedReligionUID = e.ReligionUID;
+                    // Navigate to detail view instead of just selecting
+                    if (e.ReligionUID != null)
+                    {
+                        RequestReligionDetail(e.ReligionUID);
+                    }
+
                     State.BrowseState.BrowseScrollY = e.NewScrollY;
                     break;
 

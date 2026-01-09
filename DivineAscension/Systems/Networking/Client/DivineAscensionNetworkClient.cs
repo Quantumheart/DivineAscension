@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.GUI.State;
 using DivineAscension.GUI.Utilities;
 using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
+using DivineAscension.Network.Diplomacy;
 using DivineAscension.Systems.Networking.Interfaces;
 using Vintagestory.API.Client;
+using GuiDialog = DivineAscension.GUI.GuiDialog;
 
 namespace DivineAscension.Systems.Networking.Client;
 
@@ -43,6 +46,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _clientChannel.SetMessageHandler<PlayerReligionDataPacket>(OnServerPlayerDataUpdate);
         _clientChannel.SetMessageHandler<ReligionListResponsePacket>(OnReligionListResponse);
         _clientChannel.SetMessageHandler<PlayerReligionInfoResponsePacket>(OnPlayerReligionInfoResponse);
+        _clientChannel.SetMessageHandler<ReligionDetailResponsePacket>(OnReligionDetailResponse);
         _clientChannel.SetMessageHandler<ReligionActionResponsePacket>(OnReligionActionResponse);
         _clientChannel.SetMessageHandler<CreateReligionResponsePacket>(OnCreateReligionResponse);
         _clientChannel.SetMessageHandler<EditDescriptionResponsePacket>(OnEditDescriptionResponse);
@@ -62,9 +66,9 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _clientChannel.SetMessageHandler<TransferFounderResponse>(OnTransferFounderResponse);
 
         // Register handlers for diplomacy responses
-        _clientChannel.SetMessageHandler<Network.Diplomacy.DiplomacyInfoResponsePacket>(OnDiplomacyInfoResponse);
-        _clientChannel.SetMessageHandler<Network.Diplomacy.DiplomacyActionResponsePacket>(OnDiplomacyActionResponse);
-        _clientChannel.SetMessageHandler<Network.Diplomacy.WarDeclarationPacket>(OnWarDeclarationBroadcast);
+        _clientChannel.SetMessageHandler<DiplomacyInfoResponsePacket>(OnDiplomacyInfoResponse);
+        _clientChannel.SetMessageHandler<DiplomacyActionResponsePacket>(OnDiplomacyActionResponse);
+        _clientChannel.SetMessageHandler<WarDeclarationPacket>(OnWarDeclarationBroadcast);
 
         _clientChannel.RegisterMessageType(typeof(PlayerReligionDataPacket));
     }
@@ -111,6 +115,11 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     private void OnPlayerReligionInfoResponse(PlayerReligionInfoResponsePacket packet)
     {
         PlayerReligionInfoReceived?.Invoke(packet);
+    }
+
+    private void OnReligionDetailResponse(ReligionDetailResponsePacket packet)
+    {
+        ReligionDetailReceived?.Invoke(packet);
     }
 
     private void OnReligionActionResponse(ReligionActionResponsePacket packet)
@@ -281,7 +290,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         CivilizationActionCompleted?.Invoke(packet);
     }
 
-    private void OnDiplomacyInfoResponse(Network.Diplomacy.DiplomacyInfoResponsePacket packet)
+    private void OnDiplomacyInfoResponse(DiplomacyInfoResponsePacket packet)
     {
         try
         {
@@ -289,7 +298,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
                 $"[DivineAscension:Diplomacy] Received diplomacy info for civ {packet.CivId}: {packet.Relationships.Count} relationships, {packet.IncomingProposals.Count} incoming, {packet.OutgoingProposals.Count} outgoing");
 
             // Update civilization state manager via GuiDialogManager
-            var guiDialogManager = _capi?.ModLoader.GetModSystem<GUI.GuiDialog>()?.DialogManager;
+            var guiDialogManager = _capi?.ModLoader.GetModSystem<GuiDialog>()?.DialogManager;
             if (guiDialogManager != null)
             {
                 var civManager = guiDialogManager.CivilizationManager;
@@ -319,7 +328,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
             _capi?.Logger.Error($"Stack trace: {ex.StackTrace}");
 
             // Set error in state if accessible
-            var guiDialogManager = _capi?.ModLoader.GetModSystem<GUI.GuiDialog>()?.DialogManager;
+            var guiDialogManager = _capi?.ModLoader.GetModSystem<GuiDialog>()?.DialogManager;
             if (guiDialogManager != null)
             {
                 var civManager = guiDialogManager.CivilizationManager;
@@ -329,7 +338,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         }
     }
 
-    private void OnDiplomacyActionResponse(Network.Diplomacy.DiplomacyActionResponsePacket packet)
+    private void OnDiplomacyActionResponse(DiplomacyActionResponsePacket packet)
     {
         try
         {
@@ -346,7 +355,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
             }
 
             // Update state
-            var guiDialogManager = _capi?.ModLoader.GetModSystem<GUI.GuiDialog>()?.DialogManager;
+            var guiDialogManager = _capi?.ModLoader.GetModSystem<GuiDialog>()?.DialogManager;
             if (guiDialogManager != null)
             {
                 var civManager = guiDialogManager.CivilizationManager;
@@ -374,12 +383,13 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         }
         catch (Exception ex)
         {
-            _capi?.Logger.Error($"[DivineAscension:Diplomacy] Error processing diplomacy action response: {ex.Message}");
+            _capi?.Logger.Error(
+                $"[DivineAscension:Diplomacy] Error processing diplomacy action response: {ex.Message}");
             _capi?.Logger.Error($"Stack trace: {ex.StackTrace}");
         }
     }
 
-    private void OnWarDeclarationBroadcast(Network.Diplomacy.WarDeclarationPacket packet)
+    private void OnWarDeclarationBroadcast(WarDeclarationPacket packet)
     {
         try
         {
@@ -387,7 +397,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
                 $"[DivineAscension:Diplomacy] War declared: {packet.DeclarerCivName} vs {packet.TargetCivName}");
 
             // Check if player is in either civilization
-            var guiDialogManager = _capi?.ModLoader.GetModSystem<GUI.GuiDialog>()?.DialogManager;
+            var guiDialogManager = _capi?.ModLoader.GetModSystem<GuiDialog>()?.DialogManager;
             if (guiDialogManager != null)
             {
                 var civManager = guiDialogManager.CivilizationManager;
@@ -398,11 +408,12 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
                 // Show notification using helper
                 if (_capi != null)
                 {
-                    DiplomacyNotificationHelper.NotifyWarDeclared(_capi, packet.DeclarerCivName, packet.TargetCivName, isInvolved);
+                    DiplomacyNotificationHelper.NotifyWarDeclared(_capi, packet.DeclarerCivName, packet.TargetCivName,
+                        isInvolved);
                 }
 
                 // Refresh diplomacy data if tab is open and player is involved
-                if (isInvolved && civManager.CurrentSubTab == GUI.State.CivilizationSubTab.Diplomacy)
+                if (isInvolved && civManager.CurrentSubTab == CivilizationSubTab.Diplomacy)
                 {
                     civManager.RequestDiplomacyInfo();
                 }
@@ -413,7 +424,8 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         }
         catch (Exception ex)
         {
-            _capi?.Logger.Error($"[DivineAscension:Diplomacy] Error processing war declaration broadcast: {ex.Message}");
+            _capi?.Logger.Error(
+                $"[DivineAscension:Diplomacy] Error processing war declaration broadcast: {ex.Message}");
             _capi?.Logger.Error($"Stack trace: {ex.StackTrace}");
         }
     }
@@ -532,6 +544,22 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         var request = new EditDescriptionRequestPacket(religionUID, description);
         _clientChannel.SendPacket(request);
         _capi?.Logger.Debug("[DivineAscension] Sent edit description request");
+    }
+
+    /// <summary>
+    ///     Request detailed information about a specific religion
+    /// </summary>
+    public void RequestReligionDetail(string religionUID)
+    {
+        if (_clientChannel == null)
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot request religion detail: client channel not initialized");
+            return;
+        }
+
+        var request = new ReligionDetailRequestPacket { ReligionUID = religionUID };
+        _clientChannel.SendPacket(request);
+        _capi?.Logger.Debug($"[DivineAscension] Sent religion detail request for {religionUID}");
     }
 
     /// <summary>
@@ -662,11 +690,12 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     {
         if (_clientChannel == null)
         {
-            _capi?.Logger.Error("[DivineAscension:Diplomacy] Cannot request diplomacy info: client channel not initialized");
+            _capi?.Logger.Error(
+                "[DivineAscension:Diplomacy] Cannot request diplomacy info: client channel not initialized");
             return;
         }
 
-        var request = new Network.Diplomacy.DiplomacyInfoRequestPacket(civId);
+        var request = new DiplomacyInfoRequestPacket(civId);
         _clientChannel.SendPacket(request);
         _capi?.Logger.Debug($"[DivineAscension:Diplomacy] Sent diplomacy info request for civilization: {civId}");
     }
@@ -674,21 +703,24 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     /// <summary>
     ///     Request a diplomacy action (propose, accept, decline, schedulebreak, cancelbreak, declarewar, declarepeace)
     /// </summary>
-    public void RequestDiplomacyAction(string action, string targetCivId = "", string proposalOrRelationshipId = "", string proposedStatus = "")
+    public void RequestDiplomacyAction(string action, string targetCivId = "", string proposalOrRelationshipId = "",
+        string proposedStatus = "")
     {
         if (_clientChannel == null)
         {
-            _capi?.Logger.Error("[DivineAscension:Diplomacy] Cannot request diplomacy action: client channel not initialized");
+            _capi?.Logger.Error(
+                "[DivineAscension:Diplomacy] Cannot request diplomacy action: client channel not initialized");
             return;
         }
 
-        var request = new Network.Diplomacy.DiplomacyActionRequestPacket(
+        var request = new DiplomacyActionRequestPacket(
             action: action,
             targetCivId: targetCivId,
             proposalId: proposalOrRelationshipId,
             proposedStatus: proposedStatus);
         _clientChannel.SendPacket(request);
-        _capi?.Logger.Debug($"[DivineAscension:Diplomacy] Sent diplomacy action request: {action}, target: {targetCivId}, id: {proposalOrRelationshipId}, status: {proposedStatus}");
+        _capi?.Logger.Debug(
+            $"[DivineAscension:Diplomacy] Sent diplomacy action request: {action}, target: {targetCivId}, id: {proposalOrRelationshipId}, status: {proposedStatus}");
     }
 
     #endregion
@@ -730,6 +762,11 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     ///     Event fired when player religion info is received from server
     /// </summary>
     public event Action<PlayerReligionInfoResponsePacket>? PlayerReligionInfoReceived;
+
+    /// <summary>
+    ///     Event fired when religion detail info is received from server
+    /// </summary>
+    public event Action<ReligionDetailResponsePacket>? ReligionDetailReceived;
 
     /// <summary>
     ///     Event fired when civilization list is received from server

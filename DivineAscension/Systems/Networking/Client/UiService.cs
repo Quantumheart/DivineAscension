@@ -45,6 +45,11 @@ public class UiService(DivineAscensionNetworkClient networkClient)
         _networkClient.RequestEditDescription(religionUID, description);
     }
 
+    public void RequestReligionDetail(string religionUID)
+    {
+        _networkClient.RequestReligionDetail(religionUID);
+    }
+
     public void RequestReligionRoles(string religionUID)
     {
         _networkClient.RequestReligionRoles(religionUID);
@@ -96,7 +101,8 @@ public class UiService(DivineAscensionNetworkClient networkClient)
         _networkClient.RequestDiplomacyInfo(civId);
     }
 
-    public void RequestDiplomacyAction(string action, string targetCivId = "", string proposalOrRelationshipId = "", string proposedStatus = "")
+    public void RequestDiplomacyAction(string action, string targetCivId = "", string proposalOrRelationshipId = "",
+        string proposedStatus = "")
     {
         _networkClient.RequestDiplomacyAction(action, targetCivId, proposalOrRelationshipId, proposedStatus);
     }

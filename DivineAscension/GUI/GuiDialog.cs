@@ -91,6 +91,7 @@ public partial class GuiDialog : ModSystem
             _divineAscensionModSystem.NetworkClient.RoleDeleted += OnRoleDeleted;
             _divineAscensionModSystem.NetworkClient.FounderTransferred += OnFounderTransferred;
             _divineAscensionModSystem.NetworkClient.PlayerReligionInfoReceived += OnPlayerReligionInfoReceived;
+            _divineAscensionModSystem.NetworkClient.ReligionDetailReceived += OnReligionDetailReceived;
             _divineAscensionModSystem.NetworkClient.PlayerReligionDataUpdated += OnPlayerReligionDataUpdated;
             _divineAscensionModSystem.NetworkClient.CivilizationListReceived += OnCivilizationListReceived;
             _divineAscensionModSystem.NetworkClient.CivilizationInfoReceived += OnCivilizationInfoReceived;
@@ -377,6 +378,7 @@ public partial class GuiDialog : ModSystem
             _divineAscensionModSystem.NetworkClient.ReligionListReceived -= OnReligionListReceived;
             _divineAscensionModSystem.NetworkClient.ReligionActionCompleted -= OnReligionActionCompleted;
             _divineAscensionModSystem.NetworkClient.PlayerReligionInfoReceived -= OnPlayerReligionInfoReceived;
+            _divineAscensionModSystem.NetworkClient.ReligionDetailReceived -= OnReligionDetailReceived;
             _divineAscensionModSystem.NetworkClient.PlayerReligionDataUpdated -= OnPlayerReligionDataUpdated;
             _divineAscensionModSystem.NetworkClient.CivilizationListReceived -= OnCivilizationListReceived;
             _divineAscensionModSystem.NetworkClient.CivilizationInfoReceived -= OnCivilizationInfoReceived;

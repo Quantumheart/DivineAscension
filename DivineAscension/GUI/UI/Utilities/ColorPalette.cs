@@ -22,6 +22,9 @@ internal static class ColorPalette
     public static readonly Vector4 Background = new(0.161f, 0.118f, 0.086f, 1.0f); // #291e16 - Main window background
     public static readonly Vector4 BorderColor = new(0.349f, 0.259f, 0.184f, 1.0f); // #59422f - Standard border color
 
+    public static readonly Vector4
+        TableBackground = new(0.141f, 0.106f, 0.078f, 1.0f); // #241B14 - Table container background
+
     // State Colors
     public static readonly Vector4 Red = new(0.8f, 0.2f, 0.2f, 1.0f); // Error/Danger
     public static readonly Vector4 Green = new(0.2f, 0.8f, 0.2f, 1.0f); // Success

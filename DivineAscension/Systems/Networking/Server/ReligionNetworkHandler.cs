@@ -49,6 +49,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         _serverChannel.SetMessageHandler<ReligionActionRequestPacket>(OnReligionActionRequest);
         _serverChannel.SetMessageHandler<CreateReligionRequestPacket>(OnCreateReligionRequest);
         _serverChannel.SetMessageHandler<EditDescriptionRequestPacket>(OnEditDescriptionRequest);
+        _serverChannel.SetMessageHandler<ReligionDetailRequestPacket>(OnReligionDetailRequest);
 
         // Register handlers for role management packets
         _serverChannel.SetMessageHandler<ReligionRolesRequest>(OnReligionRolesRequest);
@@ -190,6 +191,53 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         _serverChannel!.SendPacket(response, fromPlayer);
         _sapi!.Logger.Debug(
             $"[DivineAscension] Sent PlayerReligionInfoResponse to {fromPlayer.PlayerName}: HasReligion={response.HasReligion}, PendingInvites={response.PendingInvites.Count}");
+    }
+
+    private void OnReligionDetailRequest(IServerPlayer fromPlayer, ReligionDetailRequestPacket packet)
+    {
+        var religion = _religionManager!.GetReligion(packet.ReligionUID);
+        var response = new ReligionDetailResponsePacket();
+
+        if (religion == null)
+        {
+            // Return empty response if religion doesn't exist
+            _serverChannel!.SendPacket(response, fromPlayer);
+            _sapi!.Logger.Warning(
+                $"[DivineAscension] Religion detail request for non-existent religion: {packet.ReligionUID}");
+            return;
+        }
+
+        // Build response with religion details
+        response.ReligionUID = religion.ReligionUID;
+        response.ReligionName = religion.ReligionName;
+        response.Deity = religion.Deity.ToString();
+        response.Description = religion.Description;
+        response.Prestige = religion.Prestige;
+        response.PrestigeRank = religion.PrestigeRank.ToString();
+        response.IsPublic = religion.IsPublic;
+        response.FounderUID = religion.FounderUID;
+        response.FounderName = religion.FounderName;
+
+        // Build member list with player names and favor ranks
+        foreach (var member in religion.Members)
+        {
+            var memberPlayerData = _playerProgressionDataManager!.GetOrCreatePlayerData(member.Key);
+
+            // Use cached name from Members dictionary
+            var memberName = religion.GetMemberName(member.Key);
+
+            response.Members.Add(new ReligionDetailResponsePacket.MemberInfo
+            {
+                PlayerUID = member.Key,
+                PlayerName = memberName,
+                FavorRank = memberPlayerData.FavorRank.ToString(),
+                Favor = memberPlayerData.Favor
+            });
+        }
+
+        _serverChannel!.SendPacket(response, fromPlayer);
+        _sapi!.Logger.Debug(
+            $"[DivineAscension] Sent ReligionDetailResponse to {fromPlayer.PlayerName} for {religion.ReligionName} with {response.Members.Count} members");
     }
 
     private void OnReligionActionRequest(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
