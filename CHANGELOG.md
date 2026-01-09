@@ -1,4 +1,9 @@
 
+## [2.5.0] - 2026-01-09
+
+### Added
+- add admin commands for religion, civs, blessing
+
 ## [2.4.0] - 2026-01-09
 
 ### Added
