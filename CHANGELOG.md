@@ -1,4 +1,9 @@
 
+## [2.3.0] - 2026-01-08
+
+### Added
+- implement religion detail
+
 ## [2.2.2] - 2026-01-08
 
 ### Fixed
