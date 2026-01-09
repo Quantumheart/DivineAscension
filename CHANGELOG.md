@@ -1,4 +1,9 @@
 
+## [2.4.0] - 2026-01-09
+
+### Added
+- improve favor commands; allow admin commands to have a player variable
+
 ## [2.3.0] - 2026-01-08
 
 ### Added
