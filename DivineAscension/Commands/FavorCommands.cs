@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
@@ -62,35 +63,37 @@ public class FavorCommands
             .EndSubCommand()
             .BeginSubCommand("set")
             .WithDescription("Set favor to a specific amount (Admin only)")
-            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"))
+            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"), _sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnSetFavor)
             .EndSubCommand()
             .BeginSubCommand("add")
             .WithDescription("Add favor (Admin only)")
-            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"))
+            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"), _sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnAddFavor)
             .EndSubCommand()
             .BeginSubCommand("remove")
             .WithDescription("Remove favor (Admin only)")
-            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"))
+            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"), _sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnRemoveFavor)
             .EndSubCommand()
             .BeginSubCommand("reset")
             .WithDescription("Reset favor to 0 (Admin only)")
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnResetFavor)
             .EndSubCommand()
             .BeginSubCommand("max")
             .WithDescription("Set favor to maximum (Admin only)")
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnMaxFavor)
             .EndSubCommand()
             .BeginSubCommand("settotal")
             .WithDescription("Set total favor earned and update rank (Admin only)")
-            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"))
+            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"), _sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnSetTotalFavor)
             .EndSubCommand();
@@ -99,26 +102,6 @@ public class FavorCommands
     }
 
     #region Helper Methods
-
-    /// <summary>
-    ///     Get player's religion data and validate they have a deity
-    /// </summary>
-    internal (PlayerProgressionData? playerProgressionData, string? religionName, TextCommandResult? errorResult)
-        ValidatePlayerHasDeity(IServerPlayer player)
-    {
-        var playerProgressionData = _playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-
-        if (_religionManager.GetPlayerActiveDeity(player.PlayerUID) == DeityType.None)
-            return (null, null, TextCommandResult.Error("You are not in a religion or do not have an active deity."));
-
-        // Get religion name if in a religion
-        string? religionName = null;
-        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
-        if (!string.IsNullOrEmpty(religion.ReligionUID))
-            religionName = religion.ReligionName; // This will be improved when we have access to ReligionManager
-
-        return (playerProgressionData, religionName, null);
-    }
 
     /// <summary>
     ///     Gets the current favor rank as integer (0-4)
@@ -130,6 +113,24 @@ public class FavorCommands
         if (totalFavorEarned >= 2000) return 2; // Zealot
         if (totalFavorEarned >= 500) return 1; // Disciple
         return 0; // Initiate
+    }
+
+    /// <summary>
+    ///     Formats the result message for total favor changes
+    /// </summary>
+    private static string FormatTotalFavorResult(PlayerProgressionData playerData, int newAmount, int oldTotal,
+        FavorRank oldRank)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"Total favor earned set to {newAmount:N0} (was {oldTotal:N0})");
+
+        var newRank = playerData.FavorRank;
+        if (oldRank != newRank)
+            sb.Append($"Rank updated: {oldRank} → {newRank}");
+        else
+            sb.Append($"Rank unchanged: {newRank}");
+
+        return sb.ToString();
     }
 
     #endregion
@@ -144,7 +145,8 @@ public class FavorCommands
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command must be used by a player");
 
-        var (playerProgressionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
+        var (playerProgressionData, religionName, errorResult) =
+            CommandHelpers.ValidatePlayerHasDeity(player, _playerProgressionDataManager, _religionManager);
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
         var deity = _deityRegistry.GetDeity(_religionManager.GetPlayerActiveDeity(player.PlayerUID));
@@ -163,7 +165,8 @@ public class FavorCommands
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command must be used by a player");
 
-        var (playerProgressionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
+        var (playerProgressionData, religionName, errorResult) =
+            CommandHelpers.ValidatePlayerHasDeity(player, _playerProgressionDataManager, _religionManager);
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
         var deity = _deityRegistry.GetDeity(_religionManager.GetPlayerActiveDeity(player.PlayerUID));
@@ -209,7 +212,8 @@ public class FavorCommands
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command must be used by a player");
 
-        var (playerProgressionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
+        var (playerProgressionData, religionName, errorResult) =
+            CommandHelpers.ValidatePlayerHasDeity(player, _playerProgressionDataManager, _religionManager);
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
         var deity = _deityRegistry.GetDeity(_religionManager.GetPlayerActiveDeity(player.PlayerUID));
@@ -277,19 +281,26 @@ public class FavorCommands
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command must be used by a player");
 
-        var (religionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
-        if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
-
         var amount = (int)args[0];
+        var targetPlayerName = (string)args[1];
 
         // Validate amount
         if (amount < 0) return TextCommandResult.Error("Favor amount cannot be negative.");
-
         if (amount > 999999) return TextCommandResult.Error("Favor amount cannot exceed 999,999.");
 
-        if (religionData != null) religionData.Favor = amount;
+        // Resolve target player
+        var (targetPlayer, playerData, errorResult) = CommandHelpers.ResolveTargetPlayer(player, targetPlayerName,
+            _sapi, _playerProgressionDataManager, _religionManager);
+        if (errorResult is { Status: EnumCommandStatus.Error })
+            return errorResult;
 
-        return TextCommandResult.Success($"Favor set to {amount:N0}");
+        if (playerData is null)
+            return TextCommandResult.Error("Player must have a religion");
+
+        playerData.Favor = amount;
+
+        var targetName = targetPlayerName != null ? $" for {targetPlayer?.PlayerName}" : "";
+        return TextCommandResult.Success($"Favor set to {amount:N0}{targetName}");
     }
 
     /// <summary>
@@ -300,20 +311,28 @@ public class FavorCommands
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command must be used by a player");
 
-        var (religionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
-        if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
-
         var amount = (int)args[0];
+        var targetPlayerName = (string)args[1];
 
         // Validate amount
         if (amount <= 0) return TextCommandResult.Error("Amount must be greater than 0.");
-
         if (amount > 999999) return TextCommandResult.Error("Amount cannot exceed 999,999.");
 
-        var oldFavor = religionData?.Favor;
-        _playerProgressionDataManager.AddFavor(player.PlayerUID, amount);
+        // Resolve target player
+        var (targetPlayer, playerData, errorResult) = CommandHelpers.ResolveTargetPlayer(player, targetPlayerName,
+            _sapi, _playerProgressionDataManager, _religionManager);
+        if (errorResult is { Status: EnumCommandStatus.Error })
+            return errorResult;
 
-        return TextCommandResult.Success($"Added {amount:N0} favor ({oldFavor:N0} → {religionData?.Favor:N0})");
+        if (playerData is null || targetPlayer is null)
+            return TextCommandResult.Error("Player must have a religion");
+
+        var oldFavor = playerData.Favor;
+        _playerProgressionDataManager.AddFavor(targetPlayer.PlayerUID, amount);
+
+        var targetName = targetPlayerName != null ? $" for {targetPlayer.PlayerName}" : "";
+        return TextCommandResult.Success(
+            $"Added {amount:N0} favor{targetName} ({oldFavor:N0} → {playerData.Favor:N0})");
     }
 
     /// <summary>
@@ -324,22 +343,29 @@ public class FavorCommands
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command must be used by a player");
 
-        var (religionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
-        if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
-
         var amount = (int)args[0];
+        var targetPlayerName = (string)args[1];
 
         // Validate amount
         if (amount <= 0) return TextCommandResult.Error("Amount must be greater than 0.");
-
         if (amount > 999999) return TextCommandResult.Error("Amount cannot exceed 999,999.");
 
-        var oldFavor = religionData?.Favor;
-        _playerProgressionDataManager.RemoveFavor(player.PlayerUID, amount);
-        var actualRemoved = oldFavor - religionData?.Favor;
+        // Resolve target player
+        var (targetPlayer, playerData, errorResult) = CommandHelpers.ResolveTargetPlayer(player, targetPlayerName,
+            _sapi, _playerProgressionDataManager, _religionManager);
+        if (errorResult is { Status: EnumCommandStatus.Error })
+            return errorResult;
 
+        if (playerData is null || targetPlayer is null)
+            return TextCommandResult.Error("Player must have a religion");
+
+        var oldFavor = playerData.Favor;
+        _playerProgressionDataManager.RemoveFavor(targetPlayer.PlayerUID, amount);
+        var actualRemoved = oldFavor - playerData.Favor;
+
+        var targetName = targetPlayerName != null ? $" for {targetPlayer.PlayerName}" : "";
         return TextCommandResult.Success(
-            $"Removed {actualRemoved:N0} favor ({oldFavor:N0} → {religionData?.Favor:N0})");
+            $"Removed {actualRemoved:N0} favor{targetName} ({oldFavor:N0} → {playerData.Favor:N0})");
     }
 
     /// <summary>
@@ -350,13 +376,22 @@ public class FavorCommands
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command must be used by a player");
 
-        var (religionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
-        if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
+        var targetPlayerName = (string)args[0];
 
-        var oldFavor = religionData?.Favor;
-        if (religionData != null) religionData.Favor = 0;
+        // Resolve target player
+        var (targetPlayer, playerData, errorResult) = CommandHelpers.ResolveTargetPlayer(player, targetPlayerName,
+            _sapi, _playerProgressionDataManager, _religionManager);
+        if (errorResult is { Status: EnumCommandStatus.Error })
+            return errorResult;
 
-        return TextCommandResult.Success($"Favor reset to 0 (was {oldFavor:N0})");
+        if (playerData is null)
+            return TextCommandResult.Error("Player must have a religion");
+
+        var oldFavor = playerData.Favor;
+        playerData.Favor = 0;
+
+        var targetName = targetPlayerName != null ? $" for {targetPlayer?.PlayerName}" : "";
+        return TextCommandResult.Success($"Favor reset to 0{targetName} (was {oldFavor:N0})");
     }
 
     /// <summary>
@@ -367,14 +402,22 @@ public class FavorCommands
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command must be used by a player");
 
-        var (religionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
-        if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
+        var targetPlayerName = (string)args[0];
 
-        if (religionData is null) return TextCommandResult.Error("Player must have a religion");
-        var oldFavor = religionData.Favor;
-        religionData.Favor = 99999;
+        // Resolve target player
+        var (targetPlayer, playerData, errorResult) = CommandHelpers.ResolveTargetPlayer(player, targetPlayerName,
+            _sapi, _playerProgressionDataManager, _religionManager);
+        if (errorResult is { Status: EnumCommandStatus.Error })
+            return errorResult;
 
-        return TextCommandResult.Success($"Favor set to maximum: 99,999 (was {oldFavor:N0})");
+        if (playerData is null)
+            return TextCommandResult.Error("Player must have a religion");
+
+        var oldFavor = playerData.Favor;
+        playerData.Favor = 99999;
+
+        var targetName = targetPlayerName != null ? $" for {targetPlayer?.PlayerName}" : "";
+        return TextCommandResult.Success($"Favor set to maximum: 99,999{targetName} (was {oldFavor:N0})");
     }
 
     /// <summary>
@@ -385,9 +428,6 @@ public class FavorCommands
         var player = args.Caller.Player as IServerPlayer;
         if (player == null) return TextCommandResult.Error("Command must be used by a player");
 
-        var (religionData, religionName, errorResult) = ValidatePlayerHasDeity(player);
-        if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
-
         var amount = (int)args[0];
 
         // Validate amount
@@ -395,23 +435,52 @@ public class FavorCommands
 
         if (amount > 999999) return TextCommandResult.Error("Total favor earned cannot exceed 999,999.");
 
-        if (religionData is null) return TextCommandResult.Error("Player must have a religion");
-        var oldTotal = religionData.TotalFavorEarned;
-        var oldRank = religionData.FavorRank;
+        var targetPlayerArg = (string)args[1];
+
+        // Handle targeting another player
+        if (targetPlayerArg != null)
+        {
+            var targetPlayer = _sapi.World.AllPlayers
+                .FirstOrDefault(p => string.Equals(p.PlayerName, targetPlayerArg, StringComparison.OrdinalIgnoreCase));
+
+            if (targetPlayer is null)
+                return TextCommandResult.Error($"Cannot find player with name '{targetPlayerArg}'");
+
+            var serverPlayer = targetPlayer as IServerPlayer;
+            if (serverPlayer is null)
+                return TextCommandResult.Error("Target player is not a server player");
+
+            var (targetProgressionData, _, targetErrorResult) =
+                CommandHelpers.ValidatePlayerHasDeity(serverPlayer, _playerProgressionDataManager, _religionManager);
+            if (targetErrorResult is { Status: EnumCommandStatus.Error })
+                return targetErrorResult;
+
+            if (targetProgressionData is null)
+                return TextCommandResult.Error("Target must have a religion");
+
+            var oldTotal = targetProgressionData.TotalFavorEarned;
+            var oldRank = targetProgressionData.FavorRank;
+
+            targetProgressionData.TotalFavorEarned = amount;
+
+            return TextCommandResult.Success(FormatTotalFavorResult(targetProgressionData, amount, oldTotal, oldRank));
+        }
+
+        // Handle setting own favor
+        var (religionData, _, errorResult) =
+            CommandHelpers.ValidatePlayerHasDeity(player, _playerProgressionDataManager, _religionManager);
+        if (errorResult is { Status: EnumCommandStatus.Error })
+            return errorResult;
+
+        if (religionData is null)
+            return TextCommandResult.Error("Player must have a religion");
+
+        var callerOldTotal = religionData.TotalFavorEarned;
+        var callerOldRank = religionData.FavorRank;
 
         religionData.TotalFavorEarned = amount;
 
-        var newRank = religionData.FavorRank;
-
-        var sb = new StringBuilder();
-        sb.AppendLine($"Total favor earned set to {amount:N0} (was {oldTotal:N0})");
-
-        if (oldRank != newRank)
-            sb.AppendLine($"Rank updated: {oldRank} → {newRank}");
-        else
-            sb.AppendLine($"Rank unchanged: {newRank}");
-
-        return TextCommandResult.Success(sb.ToString());
+        return TextCommandResult.Success(FormatTotalFavorResult(religionData, amount, callerOldTotal, callerOldRank));
     }
 
     #endregion

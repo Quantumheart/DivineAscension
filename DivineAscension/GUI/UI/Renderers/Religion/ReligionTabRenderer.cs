@@ -29,9 +29,9 @@ internal static class ReligionTabRenderer
         var width = viewModel.Width;
         const float tabH = 36f;
 
-        // Tab buttons: Conditionally render based on religion membership
+        // Tab buttons: Conditionally render based on religion membership (Issue #71: 130px width, 4px spacing)
         const float tabWidth = 130f;
-        const float spacing = 6f;
+        const float spacing = 4f;
 
         // Track dynamic X position for visible tabs (avoids gaps when tabs are hidden)
         float currentX = x;
@@ -46,6 +46,7 @@ internal static class ReligionTabRenderer
             {
                 events.Add(new SubTabEvent.TabChanged(tab));
             }
+
             currentX += tabWidth + spacing; // Advance position for next visible tab
         }
 

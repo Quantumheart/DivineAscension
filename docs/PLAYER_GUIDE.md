@@ -14,6 +14,7 @@
 - [Diplomacy](#diplomacy)
 - [PvP & Combat](#pvp--combat)
 - [Commands Reference](#commands-reference)
+- [Admin Commands](#admin-commands)
 - [GUI Overview](#gui-overview)
 - [Advanced Tips](#advanced-tips)
 
@@ -748,6 +749,160 @@ Killing another player awards:
 
 ---
 
+## Admin Commands
+
+**Note**: All admin commands require **server administrator privileges** (`root` permission). These commands bypass
+normal restrictions and are designed for server management and troubleshooting.
+
+### Blessing Admin Commands
+
+Admin commands for managing player blessings, bypassing all validation requirements (rank, deity, prerequisites).
+
+| Command                                             | Description                                                |
+|-----------------------------------------------------|------------------------------------------------------------|
+| `/blessings admin unlock <blessingid> [playername]` | Unlock a blessing for a player, bypassing all requirements |
+| `/blessings admin lock <blessingid> [playername]`   | Remove/lock a blessing from a player                       |
+| `/blessings admin reset [playername]`               | Clear all unlocked blessings from a player                 |
+| `/blessings admin unlockall [playername]`           | Unlock all blessings for the player's deity                |
+
+**Player Targeting**:
+
+- If `[playername]` is **omitted**, the command targets yourself (the admin)
+- If `[playername]` is **provided**, the command targets that specific player
+
+**Examples**:
+
+```
+/blessings admin unlock khoras_mining_speed_1 Alice
+/blessings admin lock khoras_health_boost_2 Bob
+/blessings admin reset Charlie
+/blessings admin unlockall
+```
+
+**Important Notes**:
+
+- **Unlock** bypasses rank requirements, deity matching, and prerequisite checks
+- **Lock** removes the blessing if it was unlocked; shows friendly message if not unlocked
+- **Reset** clears all player blessings (useful for testing or correcting errors)
+- **UnlockAll** unlocks ALL player blessings for the target's current deity (religion blessings require founder)
+
+### Religion Admin Commands
+
+Admin commands for managing religion membership and fixing data issues.
+
+| Command                                            | Description                                      |
+|----------------------------------------------------|--------------------------------------------------|
+| `/religion admin repair [playername]`              | Repair religion data for a player or all players |
+| `/religion admin join <religionname> [playername]` | Force a player to join a religion                |
+| `/religion admin leave [playername]`               | Force a player to leave their religion           |
+
+**Examples**:
+
+```
+/religion admin repair
+/religion admin repair Alice
+/religion admin join "Knights of Khoras" Bob
+/religion admin leave Charlie
+```
+
+**Repair Command**:
+
+- If `[playername]` is **omitted**: Repairs data for ALL players
+- If `[playername]` is **provided**: Repairs data for that specific player
+- Fixes inconsistencies in religion membership data
+
+**Join Command**:
+
+- Bypasses all restrictions (religion visibility, bans, capacity)
+- If player is already in a religion, they are automatically removed first
+- **No favor penalty** is applied (admin command skips the normal religion switching penalty)
+- Invitations are automatically cleared
+
+**Leave Command**:
+
+- **Special Founder Handling**:
+    - If target is founder **with other members**: Founder role is transferred to the oldest member
+    - If target is founder **and sole member**: Religion is automatically disbanded
+- Otherwise: Player is simply removed from the religion
+
+### Civilization Admin Commands
+
+Admin commands for managing civilizations.
+
+| Command                                                                       | Description                                                     |
+|-------------------------------------------------------------------------------|-----------------------------------------------------------------|
+| `/civ admin create <civname> <religion1> [religion2] [religion3] [religion4]` | Create a civilization with 1-4 religions                        |
+| `/civ admin dissolve <civname>`                                               | Force-disband a civilization                                    |
+| `/civ admin cleanup`                                                          | Remove orphaned civilizations (civilizations with no religions) |
+
+**Examples**:
+
+```
+/civ admin create "Northern Alliance" "Knights of Khoras" "Hunters of Lysa"
+/civ admin dissolve "Southern Coalition"
+/civ admin cleanup
+```
+
+**Create Command**:
+
+- Accepts **1-4 religion names** (use quotes if names contain spaces)
+- Validates all religions exist
+- **Enforces deity uniqueness**: Cannot create a civilization with duplicate deities (returns error listing conflicts)
+- First religion's founder becomes the civilization founder
+- Automatically adds all specified religions to the civilization
+
+**Dissolve Command**:
+
+- Bypasses permission checks (no need to be founder)
+- Automatically cleans up pending invitations
+- Notifies all member religion founders
+
+**Cleanup Command**:
+
+- Scans all civilizations for those with zero member religions
+- Automatically disbands orphaned civilizations
+- Reports the number of civilizations cleaned up
+
+### Favor Admin Commands
+
+Admin commands for managing player favor. *(Already documented in previous version - included for reference)*
+
+| Command                                 | Description                                         |
+|-----------------------------------------|-----------------------------------------------------|
+| `/favor set <amount> [playername]`      | Set a player's current favor to an exact amount     |
+| `/favor add <amount> [playername]`      | Add favor to a player                               |
+| `/favor remove <amount> [playername]`   | Remove favor from a player                          |
+| `/favor reset [playername]`             | Reset a player's favor to 0                         |
+| `/favor max [playername]`               | Set a player's favor to maximum (10,000)            |
+| `/favor settotal <amount> [playername]` | Set a player's lifetime favor earned (affects rank) |
+
+**Examples**:
+
+```
+/favor set 500 Alice
+/favor add 100 Bob
+/favor remove 50 Charlie
+/favor max
+```
+
+### Admin Command Best Practices
+
+**When to Use Admin Commands**:
+
+- **Testing**: Rapidly test blessing combinations or game mechanics
+- **Bug Fixes**: Repair corrupted player data or religion memberships
+- **Events**: Set up special scenarios or events for players
+- **Recovery**: Restore lost progress due to bugs or server issues
+
+**Caution**:
+
+- Admin commands **bypass all game balance** - use sparingly to preserve gameplay integrity
+- Always **back up save data** before running mass operations (like `/religion admin repair` without a player name)
+- Consider **informing players** when making changes that affect them
+- Use **`/favor settotal`** carefully - changing lifetime favor affects Favor Rank permanently
+
+---
+
 ## GUI Overview
 
 Press **`Shift+G`** to open the Divine Ascension interface.
@@ -919,5 +1074,5 @@ A: It depends on your playstyle:
 
 ---
 
-*Last Updated: January 5, 2026*
-*Divine Ascension v1.25.1*
+*Last Updated: January 9, 2026*
+*Divine Ascension v2.4.0*

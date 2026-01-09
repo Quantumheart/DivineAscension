@@ -376,6 +376,18 @@ public partial class GuiDialog
     }
 
     /// <summary>
+    ///     Handle religion detail response
+    /// </summary>
+    private void OnReligionDetailReceived(ReligionDetailResponsePacket packet)
+    {
+        _capi!.Logger.Debug(
+            $"[DivineAscension] Received religion detail: {packet.ReligionName}, Members={packet.Members.Count}");
+
+        // Update religion state manager
+        _manager!.ReligionStateManager.UpdateReligionDetail(packet);
+    }
+
+    /// <summary>
     ///     Handle player religion data updates (favor, rank, etc.)
     /// </summary>
     private void OnPlayerReligionDataUpdated(PlayerReligionDataPacket packet)

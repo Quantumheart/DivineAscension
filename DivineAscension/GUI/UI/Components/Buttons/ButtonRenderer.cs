@@ -69,8 +69,9 @@ internal static class ButtonRenderer
         var bgColorU32 = ImGui.ColorConvertFloat4ToU32(bgColor);
         drawList.AddRectFilled(buttonStart, buttonEnd, bgColorU32, 4f);
 
-        var borderColor = ImGui.ColorConvertFloat4ToU32(enabled ? ColorPalette.Gold * 0.7f : ColorPalette.Grey * 0.3f);
-        drawList.AddRect(buttonStart, buttonEnd, borderColor, 4f, ImDrawFlags.None, 1.5f);
+        // Issue #71: Use BorderColor from palette, consistent 2px border width
+        var borderColor = ImGui.ColorConvertFloat4ToU32(enabled ? ColorPalette.Gold * 0.7f : ColorPalette.BorderColor);
+        drawList.AddRect(buttonStart, buttonEnd, borderColor, 4f, ImDrawFlags.None, 2f);
         // Icon rendering constants
         const float iconSize = 20f;
         const float leftPadding = 8f;

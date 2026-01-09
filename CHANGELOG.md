@@ -1,4 +1,29 @@
 
+## [2.6.0] - 2026-01-09
+
+### Added
+- add commands to in game documentation
+
+## [2.5.0] - 2026-01-09
+
+### Added
+- add admin commands for religion, civs, blessing
+
+## [2.4.0] - 2026-01-09
+
+### Added
+- improve favor commands; allow admin commands to have a player variable
+
+## [2.3.0] - 2026-01-08
+
+### Added
+- implement religion detail
+
+## [2.2.2] - 2026-01-08
+
+### Fixed
+- attempt to fix foraging hacks
+
 ## [2.2.1] - 2026-01-08
 
 ### Fixed

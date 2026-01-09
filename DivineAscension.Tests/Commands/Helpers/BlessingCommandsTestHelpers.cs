@@ -16,6 +16,7 @@ public class BlessingCommandsTestHelpers
     protected Mock<ICoreServerAPI> _mockSapi;
     protected Mock<IPlayerProgressionDataManager> _playerReligionDataManager;
     protected Mock<IReligionManager> _religionManager;
+    protected Mock<IServerNetworkChannel> _serverChannel;
     protected BlessingCommands? _sut;
 
     protected BlessingCommandsTestHelpers()
@@ -31,6 +32,7 @@ public class BlessingCommandsTestHelpers
         _religionManager = new Mock<IReligionManager>();
         _playerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
         _blessingEffectSystem = new Mock<IBlessingEffectSystem>();
+        _serverChannel = new Mock<IServerNetworkChannel>();
     }
 
     protected BlessingCommands InitializeMocksAndSut()
@@ -40,6 +42,7 @@ public class BlessingCommandsTestHelpers
             _blessingRegistry.Object,
             _playerReligionDataManager.Object,
             _religionManager.Object,
-            _blessingEffectSystem.Object);
+            _blessingEffectSystem.Object,
+            _serverChannel.Object);
     }
 }

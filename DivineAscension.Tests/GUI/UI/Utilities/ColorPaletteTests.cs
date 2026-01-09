@@ -27,7 +27,7 @@ public class ColorPaletteTests
         // Assert
         Assert.Equal(new Vector4(0.24f, 0.18f, 0.13f, 1.0f), ColorPalette.DarkBrown);
         Assert.Equal(new Vector4(0.35f, 0.26f, 0.19f, 1.0f), ColorPalette.LightBrown);
-        Assert.Equal(new Vector4(0.16f, 0.12f, 0.09f, 0.95f), ColorPalette.Background);
+        Assert.Equal(new Vector4(0.161f, 0.118f, 0.086f, 1f), ColorPalette.Background);
     }
 
     [Fact]

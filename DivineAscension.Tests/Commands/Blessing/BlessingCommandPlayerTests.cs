@@ -93,12 +93,14 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
                 Item1 = playerBlessings
             });
 
+        var mockServerChannel = new Mock<IServerNetworkChannel>();
         var sut = new BlessingCommands(
             _mockSapi.Object,
             _blessingRegistry.Object,
             _playerReligionDataManager.Object,
             _religionManager.Object,
-            _blessingEffectSystem.Object);
+            _blessingEffectSystem.Object,
+            mockServerChannel.Object);
 
         // Act
         var result = sut.OnPlayer(args);
@@ -138,12 +140,14 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
                 Item1 = playerBlessings
             });
 
+        var mockServerChannel = new Mock<IServerNetworkChannel>();
         var sut = new BlessingCommands(
             _mockSapi.Object,
             _blessingRegistry.Object,
             _playerReligionDataManager.Object,
             _religionManager.Object,
-            _blessingEffectSystem.Object);
+            _blessingEffectSystem.Object,
+            mockServerChannel.Object);
 
         // Act
         var result = sut.OnPlayer(args);
@@ -186,12 +190,14 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
                 Item1 = playerBlessings
             });
 
+        var mockServerChannel = new Mock<IServerNetworkChannel>();
         var sut = new BlessingCommands(
             _mockSapi.Object,
             _blessingRegistry.Object,
             _playerReligionDataManager.Object,
             _religionManager.Object,
-            mockBlessingEffectSystem.Object);
+            mockBlessingEffectSystem.Object,
+            mockServerChannel.Object);
 
         // Act
         var result = sut.OnPlayer(args);
@@ -231,12 +237,14 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
                 Item1 = playerBlessings
             });
 
+        var mockServerChannel = new Mock<IServerNetworkChannel>();
         var sut = new BlessingCommands(
             _mockSapi.Object,
             _blessingRegistry.Object,
             _playerReligionDataManager.Object,
             _religionManager.Object,
-            _blessingEffectSystem.Object);
+            _blessingEffectSystem.Object,
+            mockServerChannel.Object);
 
         // Act
         var result = sut.OnPlayer(args);
@@ -279,12 +287,14 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
                 Item1 = playerBlessings
             });
 
+        var mockServerChannel = new Mock<IServerNetworkChannel>();
         var sut = new BlessingCommands(
             _mockSapi.Object,
             _blessingRegistry.Object,
             _playerReligionDataManager.Object,
             _religionManager.Object,
-            _blessingEffectSystem.Object);
+            _blessingEffectSystem.Object,
+            mockServerChannel.Object);
 
         // Act
         var result = sut.OnPlayer(args);
@@ -323,12 +333,14 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
                 Item1 = playerBlessings
             });
 
+        var mockServerChannel = new Mock<IServerNetworkChannel>();
         var sut = new BlessingCommands(
             _mockSapi.Object,
             _blessingRegistry.Object,
             _playerReligionDataManager.Object,
             _religionManager.Object,
-            mockBlessingEffectSystem.Object);
+            mockBlessingEffectSystem.Object,
+            mockServerChannel.Object);
 
         // Act
         var result = sut.OnPlayer(args);

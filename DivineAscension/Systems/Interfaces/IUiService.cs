@@ -11,6 +11,7 @@ public interface IUiService
     // Religion Operations
     void RequestReligionList(string deityFilter = "");
     void RequestPlayerReligionInfo();
+    void RequestReligionDetail(string religionUID);
     void RequestReligionAction(string action, string religionUID = "", string targetPlayerUID = "");
     void RequestCreateReligion(string religionName, string deity, bool isPublic);
     void RequestEditDescription(string religionUID, string description);
@@ -32,5 +33,7 @@ public interface IUiService
 
     // Diplomacy Operations
     void RequestDiplomacyInfo(string civId);
-    void RequestDiplomacyAction(string action, string targetCivId = "", string proposalOrRelationshipId = "", string proposedStatus = "");
+
+    void RequestDiplomacyAction(string action, string targetCivId = "", string proposalOrRelationshipId = "",
+        string proposedStatus = "");
 }

@@ -95,7 +95,9 @@ public class DivineAscensionModSystem : ModSystem
             .RegisterMessageType<DiplomacyInfoResponsePacket>()
             .RegisterMessageType<DiplomacyActionRequestPacket>()
             .RegisterMessageType<DiplomacyActionResponsePacket>()
-            .RegisterMessageType<WarDeclarationPacket>();
+            .RegisterMessageType<WarDeclarationPacket>()
+            .RegisterMessageType<ReligionDetailRequestPacket>()
+            .RegisterMessageType<ReligionDetailResponsePacket>();
     }
 
     public override void StartServerSide(ICoreServerAPI api)

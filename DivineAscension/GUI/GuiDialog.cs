@@ -91,6 +91,7 @@ public partial class GuiDialog : ModSystem
             _divineAscensionModSystem.NetworkClient.RoleDeleted += OnRoleDeleted;
             _divineAscensionModSystem.NetworkClient.FounderTransferred += OnFounderTransferred;
             _divineAscensionModSystem.NetworkClient.PlayerReligionInfoReceived += OnPlayerReligionInfoReceived;
+            _divineAscensionModSystem.NetworkClient.ReligionDetailReceived += OnReligionDetailReceived;
             _divineAscensionModSystem.NetworkClient.PlayerReligionDataUpdated += OnPlayerReligionDataUpdated;
             _divineAscensionModSystem.NetworkClient.CivilizationListReceived += OnCivilizationListReceived;
             _divineAscensionModSystem.NetworkClient.CivilizationInfoReceived += OnCivilizationInfoReceived;
@@ -310,8 +311,8 @@ public partial class GuiDialog : ModSystem
                     ImGuiWindowFlags.NoScrollbar |
                     ImGuiWindowFlags.NoScrollWithMouse;
 
-        // Set window background color
-        ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.16f, 0.12f, 0.09f, 1.0f)); // Dark brown
+        // Set window background color (Issue #71: Use ColorPalette.Background)
+        ImGui.PushStyleColor(ImGuiCol.WindowBg, ColorPalette.Background);
 
         ImGui.Begin("DivineAscension Blessing Dialog", flags);
 
@@ -345,12 +346,12 @@ public partial class GuiDialog : ModSystem
         var drawList = ImGui.GetWindowDrawList();
         var pos = new Vector2(_state.WindowPosX, _state.WindowPosY);
 
-        // Draw dark brown background rectangle
-        var bgColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.16f, 0.12f, 0.09f, 1.0f)); // #2a1f16
+        // Draw main window background (Issue #71: Use ColorPalette.Background #291e16)
+        var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Background);
         drawList.AddRectFilled(pos, new Vector2(pos.X + width, pos.Y + height), bgColor);
 
-        // Draw lighter brown frame/border
-        var frameColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.24f, 0.18f, 0.13f, 1.0f)); // #3d2e20
+        // Draw main window border (Issue #71: Use ColorPalette.BorderColor #59422f, 4px width)
+        var frameColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor);
         drawList.AddRect(pos, new Vector2(pos.X + width, pos.Y + height), frameColor, 0, ImDrawFlags.None, 4);
     }
 
@@ -377,6 +378,7 @@ public partial class GuiDialog : ModSystem
             _divineAscensionModSystem.NetworkClient.ReligionListReceived -= OnReligionListReceived;
             _divineAscensionModSystem.NetworkClient.ReligionActionCompleted -= OnReligionActionCompleted;
             _divineAscensionModSystem.NetworkClient.PlayerReligionInfoReceived -= OnPlayerReligionInfoReceived;
+            _divineAscensionModSystem.NetworkClient.ReligionDetailReceived -= OnReligionDetailReceived;
             _divineAscensionModSystem.NetworkClient.PlayerReligionDataUpdated -= OnPlayerReligionDataUpdated;
             _divineAscensionModSystem.NetworkClient.CivilizationListReceived -= OnCivilizationListReceived;
             _divineAscensionModSystem.NetworkClient.CivilizationInfoReceived -= OnCivilizationInfoReceived;
