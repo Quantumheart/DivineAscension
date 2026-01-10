@@ -1,7 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Components.Banners;
@@ -66,12 +68,16 @@ internal static class ErrorBannerRenderer
         var curX = x + width - rightPadding - btnW;
 
         // Dismiss button
-        if (ButtonRenderer.DrawSmallButton(drawList, "Dismiss", curX, btnY, btnW, btnH, ColorPalette.DarkBrown))
+        if (ButtonRenderer.DrawSmallButton(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_DISMISS), curX, btnY, btnW, btnH,
+                ColorPalette.DarkBrown))
             dismissClicked = true;
         curX -= btnW + 8f;
 
         if (showRetry)
-            if (ButtonRenderer.DrawSmallButton(drawList, "Retry", curX, btnY, btnW, btnH, ColorPalette.Gold * 0.8f))
+            if (ButtonRenderer.DrawSmallButton(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_RETRY), curX, btnY, btnW, btnH,
+                    ColorPalette.Gold * 0.8f))
                 retryClicked = true;
 
         return height + 8f; // include small spacing after banner

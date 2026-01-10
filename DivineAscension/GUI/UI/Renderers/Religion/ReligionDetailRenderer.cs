@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using DivineAscension.Constants;
+using DivineAscension.Extensions;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Detail;
 using DivineAscension.GUI.UI.Components.Buttons;
@@ -9,6 +11,7 @@ using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using ImGuiNET;
 
@@ -29,12 +32,15 @@ internal static class ReligionDetailRenderer
         // Loading state
         if (vm.IsLoading)
         {
-            TextRenderer.DrawInfoText(drawList, "Loading religion details...", vm.X, currentY + 8f, vm.Width);
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_LOADING), vm.X, currentY + 8f,
+                vm.Width);
             return new ReligionDetailRendererResult(events, vm.Height);
         }
 
         // Back button (top left)
-        if (ButtonRenderer.DrawButton(drawList, "Back to Browse", vm.X, currentY, 160f, 32f,
+        if (ButtonRenderer.DrawButton(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_BACK), vm.X, currentY, 160f, 32f,
                 directoryPath: "GUI", iconName: "back"))
             events.Add(new DetailEvent.BackToBrowseClicked());
 
@@ -42,7 +48,9 @@ internal static class ReligionDetailRenderer
         if (vm.CanJoin)
         {
             var joinButtonX = vm.X + vm.Width - 130f - 16f;
-            if (ButtonRenderer.DrawButton(drawList, "Join", joinButtonX, currentY, 130f, 36f,
+            if (ButtonRenderer.DrawButton(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTION_JOIN), joinButtonX, currentY,
+                    130f, 36f,
                     isPrimary: true))
                 events.Add(new DetailEvent.JoinClicked(vm.ReligionUID));
         }
@@ -95,17 +103,27 @@ internal static class ReligionDetailRenderer
         var headerColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.239f, 0.180f, 0.125f, 1f)); // #3D2E20
 
         // Name header (centered in 270px column at 291px)
-        var nameHeaderWidth = ImGui.CalcTextSize("Name").X;
-        drawList.AddText(font, 16f, new Vector2(nameCenter - nameHeaderWidth / 2f, currentY), headerColor, "Name");
+        var nameHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_NAME);
+        var nameHeaderWidth = ImGui.CalcTextSize(nameHeader).X;
+        drawList.AddText(font, 16f, new Vector2(nameCenter - nameHeaderWidth / 2f, currentY), headerColor, nameHeader);
 
-        // Deity header (5 chars * 8px = 40px, half = 20px)
-        drawList.AddText(font, 16f, new Vector2(deityCenter - 20f, currentY), headerColor, "Deity");
+        // Deity header
+        var deityHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_DEITY);
+        var deityHeaderWidth = ImGui.CalcTextSize(deityHeader).X;
+        drawList.AddText(font, 16f, new Vector2(deityCenter - deityHeaderWidth / 2f, currentY), headerColor,
+            deityHeader);
 
-        // Prestige header (8 chars * 8px = 64px, half = 32px)
-        drawList.AddText(font, 16f, new Vector2(prestigeCenter - 32f, currentY), headerColor, "Prestige");
+        // Prestige header
+        var prestigeHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_PRESTIGE);
+        var prestigeHeaderWidth = ImGui.CalcTextSize(prestigeHeader).X;
+        drawList.AddText(font, 16f, new Vector2(prestigeCenter - prestigeHeaderWidth / 2f, currentY), headerColor,
+            prestigeHeader);
 
-        // Public header (6 chars * 8px = 48px, half = 24px)
-        drawList.AddText(font, 16f, new Vector2(publicCenter - 24f, currentY), headerColor, "Public");
+        // Public header
+        var publicHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_PUBLIC);
+        var publicHeaderWidth = ImGui.CalcTextSize(publicHeader).X;
+        drawList.AddText(font, 16f, new Vector2(publicCenter - publicHeaderWidth / 2f, currentY), headerColor,
+            publicHeader);
 
         currentY += 32f;
 
@@ -167,9 +185,11 @@ internal static class ReligionDetailRenderer
         // Prestige rank with progress (format: "Fledgling Prestige (149/500)")
         var prestigeRankNum = GetPrestigeRankNumber(vm.PrestigeRank);
         var requiredPrestige = RankRequirements.GetRequiredPrestigeForNextRank(prestigeRankNum);
+        var localizedRankName = GetLocalizedPrestigeRankName(vm.PrestigeRank);
+        var prestigeLabel = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_PRESTIGE);
         var prestigeDisplay = requiredPrestige > 0
-            ? $"{vm.PrestigeRank} Prestige\n({vm.Prestige}/{requiredPrestige})"
-            : $"{vm.PrestigeRank} Prestige\n(MAX)";
+            ? $"{localizedRankName} {prestigeLabel}\n({vm.Prestige}/{requiredPrestige})"
+            : $"{localizedRankName} {prestigeLabel}\n(MAX)";
         var prestigeLines = prestigeDisplay.Split('\n');
         var prestigeStartY = deityValueY - (prestigeLines.Length > 1 ? 8f : 0f); // Adjust if multi-line
 
@@ -183,7 +203,9 @@ internal static class ReligionDetailRenderer
         }
 
         // Public/Private (show as Yes/No per spec)
-        var publicText = vm.IsPublic ? "Yes" : "No";
+        var publicText = vm.IsPublic
+            ? LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_PUBLIC)
+            : LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_PRIVATE);
         var publicApproxWidth = publicText.Length * 6.5f;
         drawList.AddText(font, 13f,
             new Vector2(publicCenter - publicApproxWidth / 2f, deityValueY),
@@ -202,9 +224,10 @@ internal static class ReligionDetailRenderer
         const float descColumnLeft = 291f;
         // Description header (centered like Name header)
         var descCenter = vm.X + descColumnLeft + (columnWidth / 2f);
-        var descHeaderWidth = ImGui.CalcTextSize("Description").X;
+        var descHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_DESCRIPTION);
+        var descHeaderWidth = ImGui.CalcTextSize(descHeader).X;
         drawList.AddText(font, 16f, new Vector2(descCenter - descHeaderWidth / 2f, currentY), headerColor,
-            "Description");
+            descHeader);
 
         currentY += 28f;
 
@@ -262,7 +285,7 @@ internal static class ReligionDetailRenderer
         var font = ImGui.GetFont();
 
         // Members header
-        var headerText = $"Members ({vm.MemberCount})";
+        var headerText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_MEMBERS, vm.MemberCount);
         drawList.AddText(font, 16f, new Vector2(vm.X + 16, currentY), headerColor, headerText);
 
         currentY += 28f;
@@ -282,7 +305,7 @@ internal static class ReligionDetailRenderer
             8f, // Item spacing
             vm.MemberScrollY,
             (member, cx, cy, cw, ch) => DrawMemberRow(member, cx, cy, cw, ch, drawList),
-            "No members"
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_NO_MEMBERS)
         );
 
         // Emit scroll event if changed
@@ -326,18 +349,21 @@ internal static class ReligionDetailRenderer
     }
 
     /// <summary>
-    ///     Get display name for a deity with full title
+    ///     Get display name for a deity with full title (multi-line format)
     /// </summary>
     private static string GetDeityDisplayName(DeityType deity)
     {
-        return deity switch
+        var name = deity.ToLocalizedString();
+        var title = deity switch
         {
-            DeityType.Khoras => "Khoras\nGod of the Forge & Craft",
-            DeityType.Lysa => "Lysa\nGoddess of the Hunt",
-            DeityType.Aethra => "Aethra\nGoddess of Light",
-            DeityType.Gaia => "Gaia\nGoddess of Earth",
-            _ => "Unknown Deity"
+            DeityType.Khoras => LocalizationService.Instance.Get(LocalizationKeys.DEITY_KHORAS_TITLE),
+            DeityType.Lysa => LocalizationService.Instance.Get(LocalizationKeys.DEITY_LYSA_TITLE),
+            DeityType.Aethra => LocalizationService.Instance.Get(LocalizationKeys.DEITY_AETHRA_TITLE),
+            DeityType.Gaia => LocalizationService.Instance.Get(LocalizationKeys.DEITY_GAIA_TITLE),
+            _ => ""
         };
+
+        return string.IsNullOrEmpty(title) ? name : $"{name}\n{title}";
     }
 
     /// <summary>
@@ -353,6 +379,22 @@ internal static class ReligionDetailRenderer
             "Legendary" => 3,
             "Mythic" => 4,
             _ => 0
+        };
+    }
+
+    /// <summary>
+    ///     Get localized prestige rank name from string
+    /// </summary>
+    private static string GetLocalizedPrestigeRankName(string rankName)
+    {
+        return rankName switch
+        {
+            "Fledgling" => LocalizationService.Instance.Get(LocalizationKeys.RANK_PRESTIGE_FLEDGLING),
+            "Established" => LocalizationService.Instance.Get(LocalizationKeys.RANK_PRESTIGE_ESTABLISHED),
+            "Renowned" => LocalizationService.Instance.Get(LocalizationKeys.RANK_PRESTIGE_RENOWNED),
+            "Legendary" => LocalizationService.Instance.Get(LocalizationKeys.RANK_PRESTIGE_LEGENDARY),
+            "Mythic" => LocalizationService.Instance.Get(LocalizationKeys.RANK_PRESTIGE_MYTHIC),
+            _ => rankName
         };
     }
 }

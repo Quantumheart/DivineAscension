@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Models.Religion.Header;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI.Components;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Renderers.Blessing;
 using DivineAscension.Network.Civilization;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI;
@@ -16,8 +18,12 @@ namespace DivineAscension.GUI.UI;
 [ExcludeFromCodeCoverage]
 internal static class MainDialogRenderer
 {
-    private static readonly string[] MainTabNames =
-        [nameof(MainDialogTab.Religion), nameof(MainDialogTab.Blessings), nameof(MainDialogTab.Civilization)];
+    private static string[] GetMainTabNames() =>
+    [
+        LocalizationService.Instance.Get(LocalizationKeys.UI_TAB_RELIGION),
+        LocalizationService.Instance.Get(LocalizationKeys.UI_TAB_BLESSINGS),
+        LocalizationService.Instance.Get(LocalizationKeys.UI_TAB_CIVILIZATION)
+    ];
 
     /// <summary>
     ///     Draw the complete blessing UI
@@ -79,7 +85,7 @@ internal static class MainDialogRenderer
             windowPos.Y + y,
             width,
             tabHeight,
-            MainTabNames,
+            GetMainTabNames(),
             (int)state.CurrentMainTab,
             4f, // tabSpacing (default)
             "gui", // iconDirectory

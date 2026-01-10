@@ -3,6 +3,7 @@ using System.Reflection;
 using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Network.Diplomacy;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Client;
@@ -130,6 +131,9 @@ public class DivineAscensionModSystem : ModSystem
     {
         base.StartClientSide(api);
         api.Logger.Notification("[DivineAscension] Initializing client-side systems...");
+
+        // Initialize localization service
+        LocalizationService.Instance.InitializeClient(api);
 
         // Setup network client
         var clientChannel = api.Network.GetChannel(NETWORK_CHANNEL);

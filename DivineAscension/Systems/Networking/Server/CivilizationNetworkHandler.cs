@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using DivineAscension.Constants;
 using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Interfaces;
 using Vintagestory.API.Server;
@@ -150,7 +152,8 @@ public class CivilizationNetworkHandler(
 
         // Get founding religion name and founder's cached name
         var founderReligion = religionManager.GetReligion(civ.FounderReligionUID);
-        var founderReligionName = founderReligion?.ReligionName ?? "Unknown";
+        var founderReligionName = founderReligion?.ReligionName ??
+                                  LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_UNKNOWN);
         var founderPlayerName = founderReligion?.GetMemberName(civ.FounderUID) ?? civ.FounderUID;
 
         var details = new CivilizationInfoResponsePacket.CivilizationDetails
@@ -228,7 +231,8 @@ public class CivilizationNetworkHandler(
                     if (string.IsNullOrEmpty(religion.ReligionUID))
                     {
                         response.Success = false;
-                        response.Message = "You must be in a religion to create a civilization.";
+                        response.Message =
+                            LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_MUST_BE_IN_RELIGION);
                         break;
                     }
 
@@ -238,14 +242,14 @@ public class CivilizationNetworkHandler(
                     if (newCiv != null)
                     {
                         response.Success = true;
-                        response.Message = $"Civilization '{newCiv.Name}' created successfully!";
+                        response.Message =
+                            LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_CREATED, newCiv.Name);
                         response.CivId = newCiv.CivId;
                     }
                     else
                     {
                         response.Success = false;
-                        response.Message =
-                            "Failed to create civilization. Check name requirements.";
+                        response.Message = LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_CREATE_FAILED);
                     }
 
                     break;
@@ -256,7 +260,8 @@ public class CivilizationNetworkHandler(
                     if (targetReligion == null)
                     {
                         response.Success = false;
-                        response.Message = $"Religion '{packet.TargetId}' not found.";
+                        response.Message = LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_RELIGION_NOT_FOUND,
+                            packet.TargetId);
                         break;
                     }
 
@@ -264,8 +269,9 @@ public class CivilizationNetworkHandler(
                         fromPlayer.PlayerUID);
                     response.Success = success;
                     response.Message = success
-                        ? $"Invitation sent to '{targetReligion.ReligionName}' successfully!"
-                        : "Failed to send invitation. Check permissions and civilization requirements.";
+                        ? LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_INVITE_SENT,
+                            targetReligion.ReligionName)
+                        : LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_INVITE_FAILED);
 
                     // Notify all members of invited religion if invitation succeeded
                     if (success)
@@ -283,8 +289,8 @@ public class CivilizationNetworkHandler(
                                 {
                                     var statePacket = new ReligionStateChangedPacket
                                     {
-                                        Reason =
-                                            $"Your religion has been invited to join the civilization '{civ.Name}'",
+                                        Reason = LocalizationService.Instance.Get(
+                                            LocalizationKeys.NET_CIV_INVITED_NOTIFICATION, civ.Name),
                                         HasReligion = true
                                     };
                                     serverChannel.SendPacket(statePacket, memberPlayer);
@@ -309,15 +315,15 @@ public class CivilizationNetworkHandler(
                     success = civilizationManager.AcceptInvite(packet.TargetId, fromPlayer.PlayerUID);
                     response.Success = success;
                     response.Message = success
-                        ? "You have joined the civilization!"
-                        : "Failed to accept invitation. It may have expired or the civilization is full.";
+                        ? LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_JOINED)
+                        : LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_JOIN_FAILED);
                     break;
 
                 case "leave":
                     if (string.IsNullOrEmpty(religion.ReligionUID))
                     {
                         response.Success = false;
-                        response.Message = "You are not in a religion.";
+                        response.Message = LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_NOT_IN_RELIGION);
                         break;
                     }
 
@@ -326,7 +332,8 @@ public class CivilizationNetworkHandler(
                     if (playerReligion == null)
                     {
                         response.Success = false;
-                        response.Message = "Your religion was not found.";
+                        response.Message =
+                            LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_RELIGION_NOT_FOUND_PLAYER);
                         break;
                     }
 
@@ -334,7 +341,8 @@ public class CivilizationNetworkHandler(
                     if (playerReligion.FounderUID != fromPlayer.PlayerUID)
                     {
                         response.Success = false;
-                        response.Message = "Only religion founders can leave a civilization.";
+                        response.Message =
+                            LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_ONLY_FOUNDER_LEAVE);
                         break;
                     }
 
@@ -343,23 +351,24 @@ public class CivilizationNetworkHandler(
                     if (playerCiv != null && playerCiv.FounderUID == fromPlayer.PlayerUID)
                     {
                         response.Success = false;
-                        response.Message = "Civilization founders must disband instead of leaving.";
+                        response.Message =
+                            LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_FOUNDER_MUST_DISBAND);
                         break;
                     }
 
                     success = civilizationManager.LeaveReligion(religion.ReligionUID, fromPlayer.PlayerUID);
                     response.Success = success;
                     response.Message = success
-                        ? "You have left the civilization."
-                        : "Failed to leave civilization.";
+                        ? LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_LEFT)
+                        : LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_LEAVE_FAILED);
                     break;
 
                 case "kick":
                     success = civilizationManager.KickReligion(packet.CivId, packet.TargetId, fromPlayer.PlayerUID);
                     response.Success = success;
                     response.Message = success
-                        ? "Religion kicked from civilization."
-                        : "Failed to kick religion. Only the civilization founder can kick members.";
+                        ? LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_KICKED)
+                        : LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_KICK_FAILED);
                     response.CivId = packet.CivId;
                     break;
 
@@ -367,8 +376,8 @@ public class CivilizationNetworkHandler(
                     success = civilizationManager.DisbandCivilization(packet.CivId, fromPlayer.PlayerUID);
                     response.Success = success;
                     response.Message = success
-                        ? "Civilization disbanded successfully."
-                        : "Failed to disband civilization. Only the founder can disband.";
+                        ? LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_DISBANDED)
+                        : LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_DISBAND_FAILED);
                     response.CivId = packet.CivId;
                     break;
 
@@ -377,14 +386,15 @@ public class CivilizationNetworkHandler(
                         packet.Icon);
                     response.Success = success;
                     response.Message = success
-                        ? "Civilization icon updated successfully!"
-                        : "Failed to update icon. Only the founder can update the civilization icon.";
+                        ? LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_ICON_UPDATED)
+                        : LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_ICON_UPDATE_FAILED);
                     response.CivId = packet.CivId;
                     break;
 
                 default:
                     response.Success = false;
-                    response.Message = $"Unknown action: {packet.Action}";
+                    response.Message =
+                        LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_UNKNOWN_ACTION, packet.Action);
                     break;
             }
         }
@@ -392,7 +402,7 @@ public class CivilizationNetworkHandler(
         {
             sapi.Logger.Error($"[DivineAscension] Error handling civilization action '{packet.Action}': {ex}");
             response.Success = false;
-            response.Message = "An error occurred while processing your request.";
+            response.Message = LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_ERROR);
         }
 
         serverChannel.SendPacket(response, fromPlayer);

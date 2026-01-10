@@ -11,6 +11,11 @@ namespace DivineAscension.Tests.Models;
 [ExcludeFromCodeCoverage]
 public class BlessingTooltipDataTests
 {
+    public BlessingTooltipDataTests()
+    {
+        TestFixtures.InitializeLocalizationForTests();
+    }
+
     #region Stat Formatting Tests
 
     [Theory]
@@ -367,10 +372,10 @@ public class BlessingTooltipDataTests
 
     [Theory]
     [InlineData(0, "Initiate")]
-    [InlineData(1, "Devoted")]
+    [InlineData(1, "Disciple")]
     [InlineData(2, "Zealot")]
     [InlineData(3, "Champion")]
-    [InlineData(4, "Exalted")]
+    [InlineData(4, "Avatar")]
     [InlineData(5, "Rank 5")]
     [InlineData(99, "Rank 99")]
     public void FromBlessingAndState_FavorRanks_FormatsCorrectly(int rank, string expected)

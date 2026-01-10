@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Info;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion.Info;
@@ -27,14 +29,18 @@ internal static class ReligionInfoActionsRenderer
         var currentY = y;
 
         // Leave Religion button (always available)
-        if (ButtonRenderer.DrawButton(drawList, "Leave Religion", x, currentY, 160f, 34f))
+        if (ButtonRenderer.DrawButton(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTION_LEAVE),
+                x, currentY, 160f, 34f))
         {
             events.Add(new InfoEvent.LeaveClicked());
         }
 
         // Disband Religion button (founder only)
         if (viewModel.IsFounder)
-            if (ButtonRenderer.DrawButton(drawList, "Disband Religion", x + 170f, currentY, 180f, 34f, false, true,
+            if (ButtonRenderer.DrawButton(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTION_DISBAND),
+                    x + 170f, currentY, 180f, 34f, false, true,
                     ColorPalette.Red * 0.7f))
             {
                 events.Add(new InfoEvent.DisbandOpen());

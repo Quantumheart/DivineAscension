@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
+using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -23,7 +25,8 @@ public static class CommandHelpers
         var playerProgressionData = playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
 
         if (religionManager.GetPlayerActiveDeity(player.PlayerUID) == DeityType.None)
-            return (null, null, TextCommandResult.Error("You are not in a religion or do not have an active deity."));
+            return (null, null,
+                TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NO_DEITY)));
 
         // Get religion name if in a religion
         string? religionName = null;
@@ -49,11 +52,16 @@ public static class CommandHelpers
                 .FirstOrDefault(p => string.Equals(p.PlayerName, targetPlayerName, StringComparison.OrdinalIgnoreCase));
 
             if (targetPlayer is null)
-                return (null, null, TextCommandResult.Error($"Cannot find player with name '{targetPlayerName}'"));
+                return (null, null,
+                    TextCommandResult.Error(
+                        LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_PLAYER_NOT_FOUND,
+                            targetPlayerName)));
 
             var serverPlayer = targetPlayer as IServerPlayer;
             if (serverPlayer is null)
-                return (null, null, TextCommandResult.Error("Target player is not a server player"));
+                return (null, null,
+                    TextCommandResult.Error(
+                        LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_NOT_SERVER_PLAYER)));
 
             var (targetPlayerData, _, targetErrorResult) =
                 ValidatePlayerHasDeity(serverPlayer, playerProgressionDataManager, religionManager);
@@ -61,7 +69,9 @@ public static class CommandHelpers
                 return (null, null, targetErrorResult);
 
             if (targetPlayerData is null)
-                return (null, null, TextCommandResult.Error("Target must have a religion"));
+                return (null, null,
+                    TextCommandResult.Error(
+                        LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_TARGET_NO_RELIGION)));
 
             return (serverPlayer, targetPlayerData, null);
         }
@@ -73,7 +83,9 @@ public static class CommandHelpers
             return (null, null, callerErrorResult);
 
         if (callerData is null)
-            return (null, null, TextCommandResult.Error("Player must have a religion"));
+            return (null, null,
+                TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION)));
 
         return (caller, callerData, null);
     }

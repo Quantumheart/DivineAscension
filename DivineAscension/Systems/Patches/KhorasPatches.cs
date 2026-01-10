@@ -14,7 +14,7 @@ public static class KhorasPatches
     // Target: CollectibleObject.DamageItem
     // Logic: Reduce damage amount based on ToolDurability stat
     [HarmonyPatch(typeof(CollectibleObject), "DamageItem")]
-    [HarmonyPrefix]
+    [HarmonyPostfix]
     public static void Prefix_DamageItem(IWorldAccessor world, Entity byEntity, ItemSlot itemslot, ref int amount)
     {
         if (byEntity == null || amount <= 0) return;

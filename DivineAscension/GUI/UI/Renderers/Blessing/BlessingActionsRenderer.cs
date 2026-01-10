@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Blessing;
 using DivineAscension.GUI.Models.Blessing.Actions;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing;
@@ -43,7 +45,7 @@ internal static class BlessingActionsRenderer
             var unlockButtonX = viewModel.X - ButtonWidth - ButtonSpacing;
             var canUnlock = selectedState.CanUnlock;
 
-            var buttonText = "Unlock";
+            var buttonText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNLOCK_BUTTON);
             var buttonColor = canUnlock ? ColorButtonActive : ColorButtonDisabled;
             var textColor = canUnlock ? ColorTextNormal : ColorTextDisabled;
 

@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using DivineAscension.Constants;
+using DivineAscension.Extensions;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 
 namespace DivineAscension.Models;
 
@@ -169,21 +172,25 @@ public class BlessingTooltipData
         // Normalize to lowercase for matching (matching BlessingInfoRenderer.cs logic)
         var statLower = statName.ToLower();
 
-        return statLower switch
+        string? key = statLower switch
         {
-            var s when s.Contains("walkspeed") => "Movement Speed",
-            var s when s.Contains("meleeDamage") || s.Contains("meleeweaponsdamage") => "Melee Damage",
-            var s when s.Contains("rangedDamage") || s.Contains("rangedweaponsdamage") => "Ranged Damage",
-            var s when s.Contains("maxhealth") && s.Contains("multiplier") => "Max Health",
-            var s when s.Contains("maxhealth") && s.Contains("points") => "Max Health",
-            var s when s.Contains("maxhealth") => "Max Health",
-            var s when s.Contains("armor") => "Armor",
-            var s when s.Contains("speed") => "Speed",
-            var s when s.Contains("damage") => "Damage",
-            var s when s.Contains("health") => "Health",
-            var s when s.Contains("healingeffectivness") => "Healing Effectiveness",
-            _ => statName
+            var s when s.Contains("walkspeed") => LocalizationKeys.STAT_WALK_SPEED,
+            var s when s.Contains("meleeDamage") || s.Contains("meleeweaponsdamage") => LocalizationKeys
+                .STAT_MELEE_DAMAGE,
+            var s when s.Contains("rangedDamage") || s.Contains("rangedweaponsdamage") => LocalizationKeys
+                .STAT_RANGED_DAMAGE,
+            var s when s.Contains("maxhealth") && s.Contains("multiplier") => LocalizationKeys.STAT_MAX_HEALTH,
+            var s when s.Contains("maxhealth") && s.Contains("points") => LocalizationKeys.STAT_MAX_HEALTH,
+            var s when s.Contains("maxhealth") => LocalizationKeys.STAT_MAX_HEALTH,
+            var s when s.Contains("armor") => LocalizationKeys.STAT_ARMOR,
+            var s when s.Contains("speed") => LocalizationKeys.STAT_ATTACK_SPEED,
+            var s when s.Contains("damage") => LocalizationKeys.STAT_MELEE_DAMAGE,
+            var s when s.Contains("health") => LocalizationKeys.STAT_HEALTH_REGEN,
+            var s when s.Contains("healingeffectivness") => LocalizationKeys.STAT_HEALTH_REGEN,
+            _ => null
         };
+
+        return key != null ? LocalizationService.Instance.Get(key) : statName;
     }
 
     /// <summary>
@@ -191,15 +198,10 @@ public class BlessingTooltipData
     /// </summary>
     private static string GetFavorRankName(int rank)
     {
-        return rank switch
-        {
-            0 => "Initiate",
-            1 => "Devoted",
-            2 => "Zealot",
-            3 => "Champion",
-            4 => "Exalted",
-            _ => $"Rank {rank}"
-        };
+        if (rank < 0 || rank > 4)
+            return LocalizationService.Instance.Get(LocalizationKeys.UI_RANK_UNKNOWN, rank);
+
+        return ((FavorRank)rank).ToLocalizedString();
     }
 
     /// <summary>
@@ -207,14 +209,9 @@ public class BlessingTooltipData
     /// </summary>
     private static string GetPrestigeRankName(int rank)
     {
-        return rank switch
-        {
-            0 => "Fledgling",
-            1 => "Established",
-            2 => "Renowned",
-            3 => "Legendary",
-            4 => "Mythic",
-            _ => $"Rank {rank}"
-        };
+        if (rank < 0 || rank > 4)
+            return LocalizationService.Instance.Get(LocalizationKeys.UI_RANK_UNKNOWN, rank);
+
+        return ((PrestigeRank)rank).ToLocalizedString();
     }
 }

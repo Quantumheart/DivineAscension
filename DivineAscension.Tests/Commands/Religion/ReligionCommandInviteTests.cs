@@ -75,7 +75,7 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         // Assert
         mockTarget.Verify(t => t.SendMessage(
             GlobalConstants.GeneralChatGroup,
-            It.Is<string>(msg => msg.IndexOf("You have been invited to join TestReligion") >= 0),
+            It.Is<string>(msg => msg.IndexOf("has invited you to join TestReligion") >= 0),
             EnumChatType.Notification, null), Times.Once);
     }
 

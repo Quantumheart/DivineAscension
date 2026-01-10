@@ -4,6 +4,7 @@ using System.Linq;
 using DivineAscension.Constants;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.BlessingEffects;
 using DivineAscension.Systems.BlessingEffects.Handlers;
 using DivineAscension.Systems.Interfaces;
@@ -495,30 +496,32 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     /// </summary>
     internal string FormatStatName(string statKey)
     {
-        return statKey switch
+        string? key = statKey switch
         {
-            VintageStoryStats.MeleeWeaponsDamage => SystemConstants.StatDisplayMeleeDamage,
-            VintageStoryStats.RangedWeaponsDamage => SystemConstants.StatDisplayRangedDamage,
-            VintageStoryStats.MeleeWeaponsSpeed => SystemConstants.StatDisplayAttackSpeed,
-            VintageStoryStats.MeleeWeaponArmor => SystemConstants.StatDisplayArmor,
-            VintageStoryStats.ArmorEffectiveness => SystemConstants.StatDisplayArmorEffectiveness,
-            VintageStoryStats.MaxHealthExtraPoints => SystemConstants.StatDisplayMaxHealth,
-            VintageStoryStats.WalkSpeed => SystemConstants.StatDisplayWalkSpeed,
-            VintageStoryStats.HealingEffectiveness => SystemConstants.StatDisplayHealthRegen,
-            VintageStoryStats.ToolDurability => SystemConstants.StatDisplayToolDurability,
-            VintageStoryStats.OreDropRate => SystemConstants.StatDisplayOreYield,
-            VintageStoryStats.ColdResistance => SystemConstants.StatDisplayColdResistance,
-            VintageStoryStats.MiningSpeed => SystemConstants.StatDisplayMiningSpeed,
-            VintageStoryStats.RepairCostReduction => SystemConstants.StatDisplayRepairCostReduction,
-            VintageStoryStats.RepairEfficiency => SystemConstants.StatDisplayRepairEfficiency,
-            VintageStoryStats.SmithingCostReduction => SystemConstants.StatDisplaySmithingCostReduction,
-            VintageStoryStats.MetalArmorBonus => SystemConstants.StatDisplayMetalArmorBonus,
-            VintageStoryStats.HungerRate => SystemConstants.StatDisplayHungerRate,
-            VintageStoryStats.ArmorDurabilityLoss => SystemConstants.StatDisplayArmorDurabilityLoss,
-            VintageStoryStats.ArmorWalkSpeedAffectedness => SystemConstants.StatDisplayArmorWalkSpeed,
-            VintageStoryStats.PotteryBatchCompletionChance => SystemConstants.StatDisplayPotteryBatchCompletion,
-            _ => statKey
+            VintageStoryStats.MeleeWeaponsDamage => LocalizationKeys.STAT_MELEE_DAMAGE,
+            VintageStoryStats.RangedWeaponsDamage => LocalizationKeys.STAT_RANGED_DAMAGE,
+            VintageStoryStats.MeleeWeaponsSpeed => LocalizationKeys.STAT_ATTACK_SPEED,
+            VintageStoryStats.MeleeWeaponArmor => LocalizationKeys.STAT_ARMOR,
+            VintageStoryStats.ArmorEffectiveness => LocalizationKeys.STAT_ARMOR_EFFECTIVENESS,
+            VintageStoryStats.MaxHealthExtraPoints => LocalizationKeys.STAT_MAX_HEALTH,
+            VintageStoryStats.WalkSpeed => LocalizationKeys.STAT_WALK_SPEED,
+            VintageStoryStats.HealingEffectiveness => LocalizationKeys.STAT_HEALTH_REGEN,
+            VintageStoryStats.ToolDurability => LocalizationKeys.STAT_TOOL_DURABILITY,
+            VintageStoryStats.OreDropRate => LocalizationKeys.STAT_ORE_YIELD,
+            VintageStoryStats.ColdResistance => LocalizationKeys.STAT_COLD_RESISTANCE,
+            VintageStoryStats.MiningSpeed => LocalizationKeys.STAT_MINING_SPEED,
+            VintageStoryStats.RepairCostReduction => LocalizationKeys.STAT_REPAIR_COST_REDUCTION,
+            VintageStoryStats.RepairEfficiency => LocalizationKeys.STAT_REPAIR_EFFICIENCY,
+            VintageStoryStats.SmithingCostReduction => LocalizationKeys.STAT_SMITHING_COST_REDUCTION,
+            VintageStoryStats.MetalArmorBonus => LocalizationKeys.STAT_METAL_ARMOR_BONUS,
+            VintageStoryStats.HungerRate => LocalizationKeys.STAT_HUNGER_RATE,
+            VintageStoryStats.ArmorDurabilityLoss => LocalizationKeys.STAT_ARMOR_DURABILITY_LOSS,
+            VintageStoryStats.ArmorWalkSpeedAffectedness => LocalizationKeys.STAT_ARMOR_WALK_SPEED,
+            VintageStoryStats.PotteryBatchCompletionChance => LocalizationKeys.STAT_POTTERY_BATCH_COMPLETION,
+            _ => null
         };
+
+        return key != null ? LocalizationService.Instance.Get(key) : statKey;
     }
 
     /// <summary>

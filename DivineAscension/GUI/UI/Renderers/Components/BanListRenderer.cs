@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network;
+using DivineAscension.Services;
 using ImGuiNET;
 using Vintagestory.API.Client;
 
@@ -53,7 +55,7 @@ public static class BanListRenderer
 
         if (bannedPlayers.Count == 0)
         {
-            var noPlayersText = "No banned players";
+            var noPlayersText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_BANNED_NO_PLAYERS);
             var noPlayersSize = ImGui.CalcTextSize(noPlayersText);
             var noPlayersPos = new Vector2(x + (width - noPlayersSize.X) / 2, y + (height - noPlayersSize.Y) / 2);
             var noPlayersColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
@@ -133,8 +135,12 @@ public static class BanListRenderer
         drawList.AddText(namePos, nameColor, nameText);
 
         // Ban details (second line)
-        var expiryText = bannedPlayer.IsPermanent ? "Never" : bannedPlayer.ExpiresAt;
-        var detailsText = $"Banned: {bannedPlayer.BannedAt} | Expires: {expiryText}";
+        var expiryText = bannedPlayer.IsPermanent
+            ? LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_BANNED_NEVER)
+            : bannedPlayer.ExpiresAt;
+        var bannedLabel = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_BANNED_AT_LABEL);
+        var expiresLabel = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_BANNED_EXPIRES_LABEL);
+        var detailsText = $"{bannedLabel} {bannedPlayer.BannedAt} | {expiresLabel} {expiryText}";
         var detailsPos = new Vector2(x + padding + 10f, y + padding + 16f);
         var detailsColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey * 0.9f);
 
@@ -147,7 +153,9 @@ public static class BanListRenderer
             var buttonY = y + (height - 22f) / 2;
             var unbanButtonX = x + width - buttonWidth - padding;
 
-            if (ButtonRenderer.DrawSmallButton(drawList, "Unban", unbanButtonX, buttonY, buttonWidth, 22f))
+            if (ButtonRenderer.DrawSmallButton(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_UNBAN_BUTTON),
+                    unbanButtonX, buttonY, buttonWidth, 22f))
             {
                 onUnbanPlayer.Invoke(bannedPlayer.PlayerUID);
             }

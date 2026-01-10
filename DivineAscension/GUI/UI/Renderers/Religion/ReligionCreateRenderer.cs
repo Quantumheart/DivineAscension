@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Create;
 using DivineAscension.GUI.UI.Components;
@@ -9,6 +10,7 @@ using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Renderers.Components;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
@@ -37,7 +39,7 @@ internal static class ReligionCreateRenderer
         const float padding = 20f;
 
         // === HEADER ===
-        var headerText = "Create New Religion";
+        var headerText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CREATE_TITLE);
         var headerSize = ImGui.CalcTextSize(headerText);
         var headerPos = new Vector2(formX, currentY);
         var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
@@ -48,7 +50,8 @@ internal static class ReligionCreateRenderer
         const float fieldWidth = formWidth;
 
         // Religion Name
-        TextRenderer.DrawLabel(drawList, "Religion Name:", formX, currentY);
+        TextRenderer.DrawLabel(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_LABEL),
+            formX, currentY);
         currentY += 25f;
 
         var newReligionName = TextInput.Draw(
@@ -59,7 +62,7 @@ internal static class ReligionCreateRenderer
             currentY,
             fieldWidth,
             32f,
-            "Enter religion name...",
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_PLACEHOLDER),
             32);
 
         // Emit event if name changed
@@ -75,18 +78,23 @@ internal static class ReligionCreateRenderer
         {
             if (viewModel.ReligionName.Length < 3)
             {
-                TextRenderer.DrawErrorText(drawList, "Religion name must be at least 3 characters", formX, currentY);
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_TOO_SHORT), formX,
+                    currentY);
                 currentY += 25f;
             }
             else if (viewModel.ReligionName.Length > 32)
             {
-                TextRenderer.DrawErrorText(drawList, "Religion name must be less than 32 characters", formX, currentY);
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_TOO_LONG), formX,
+                    currentY);
                 currentY += 25f;
             }
         }
 
         // Deity Selection (tab-based approach with icons and tooltips)
-        TextRenderer.DrawLabel(drawList, "Deity:", formX, currentY);
+        TextRenderer.DrawLabel(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_LABEL),
+            formX, currentY);
         currentY += 25f;
 
         var currentDeityIndex = viewModel.GetCurrentDeityIndex();
@@ -106,7 +114,7 @@ internal static class ReligionCreateRenderer
             viewModel.AvailableDeities,
             currentDeityIndex,
             4f,
-            "deities",  // Icon directory
+            "deities", // Icon directory
             deityIconNames);
 
         // Emit event if deity changed
@@ -128,7 +136,7 @@ internal static class ReligionCreateRenderer
         // Public/Private Toggle
         var newIsPublic = CheckboxRenderer.DrawCheckbox(
             drawList,
-            "Public (anyone can join)",
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_PUBLIC_CHECKBOX),
             formX,
             currentY,
             viewModel.IsPublic);
@@ -160,7 +168,7 @@ internal static class ReligionCreateRenderer
         // Draw a Create button
         if (ButtonRenderer.DrawButton(
                 drawList,
-                "Create Religion",
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CREATE_BUTTON),
                 createButtonX,
                 currentY,
                 buttonWidth,

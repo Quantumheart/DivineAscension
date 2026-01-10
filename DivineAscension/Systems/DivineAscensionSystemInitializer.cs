@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Commands;
+using DivineAscension.Services;
 using DivineAscension.Systems.BuffSystem;
 using DivineAscension.Systems.Networking.Server;
 using DivineAscension.Systems.Patches;
@@ -27,6 +28,9 @@ public static class DivineAscensionSystemInitializer
         IServerNetworkChannel serverChannel)
     {
         api.Logger.Notification("[DivineAscension] Starting server-side system initialization...");
+
+        // Initialize localization service for server
+        LocalizationService.Instance.InitializeServer(api);
 
         // Step 1: Clear any static event subscribers from previous loads
         PitKilnPatches.ClearSubscribers();

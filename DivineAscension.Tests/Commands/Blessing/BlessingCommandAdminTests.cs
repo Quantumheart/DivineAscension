@@ -115,8 +115,7 @@ public class BlessingCommandAdminTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("Unlocked player blessing", result.StatusMessage);
-        Assert.Contains("Strength", result.StatusMessage);
+        Assert.Contains("Force-unlocked Strength for Player", result.StatusMessage);
         Assert.True(playerData.UnlockedBlessings.Contains("khoras_strength"));
         _mockBlessingEffectSystem.Verify(s => s.RefreshPlayerBlessings("player-1"), Times.Once);
     }
@@ -235,7 +234,7 @@ public class BlessingCommandAdminTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("Locked player blessing", result.StatusMessage);
+        Assert.Contains("Removed Strength from Player", result.StatusMessage);
         Assert.False(playerData.UnlockedBlessings.Contains("khoras_strength"));
         _mockBlessingEffectSystem.Verify(s => s.RefreshPlayerBlessings("player-1"), Times.Once);
     }
@@ -296,7 +295,7 @@ public class BlessingCommandAdminTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("Reset 2 blessing(s)", result.StatusMessage);
+        Assert.Contains("Reset all blessings for Player", result.StatusMessage);
         Assert.Empty(playerData.UnlockedBlessings);
         _mockBlessingEffectSystem.Verify(s => s.RefreshPlayerBlessings("player-1"), Times.Once);
     }
@@ -362,7 +361,7 @@ public class BlessingCommandAdminTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("Unlocked 2 player blessing(s)", result.StatusMessage);
+        Assert.Contains("Unlocked all 2 blessings for Player", result.StatusMessage);
         Assert.Contains("khoras_strength", playerData.UnlockedBlessings);
         Assert.Contains("khoras_defense", playerData.UnlockedBlessings);
         _mockBlessingEffectSystem.Verify(s => s.RefreshPlayerBlessings("player-1"), Times.Once);

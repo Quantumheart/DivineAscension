@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DivineAscension.Constants;
+using DivineAscension.Extensions;
 using DivineAscension.Models;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -43,61 +46,61 @@ public class RoleCommands(
 
         // Add main roles command
         religionCmd.BeginSubCommand("roles")
-            .WithDescription("View all roles in your religion")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLES_DESC))
             .HandleWith(OnListRoles)
             .EndSubCommand();
 
         // Add transfer command
         religionCmd.BeginSubCommand("transfer")
-            .WithDescription("Transfer founder status to another member")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_TRANSFER_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("playername"))
             .HandleWith(OnTransferFounder)
             .EndSubCommand();
 
         // Add role subcommands
         religionCmd.BeginSubCommand("role")
-            .WithDescription("Manage roles")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_DESC))
             .BeginSubCommand("members")
-            .WithDescription("View members with a specific role")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_MEMBERS_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("rolename"))
             .HandleWith(OnListRoleMembers)
             .EndSubCommand()
             .BeginSubCommand("create")
-            .WithDescription("Create a custom role")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_CREATE_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("name"))
             .HandleWith(OnCreateRole)
             .EndSubCommand()
             .BeginSubCommand("delete")
-            .WithDescription("Delete a custom role")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_DELETE_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("name"))
             .HandleWith(OnDeleteRole)
             .EndSubCommand()
             .BeginSubCommand("rename")
-            .WithDescription("Rename a role")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_RENAME_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("oldname"),
                 _sapi.ChatCommands.Parsers.Word("newname"))
             .HandleWith(OnRenameRole)
             .EndSubCommand()
             .BeginSubCommand("assign")
-            .WithDescription("Assign a role to a member")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_ASSIGN_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("playername"),
                 _sapi.ChatCommands.Parsers.Word("rolename"))
             .HandleWith(OnAssignRole)
             .EndSubCommand()
             .BeginSubCommand("grant")
-            .WithDescription("Grant a permission to a role")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_GRANT_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("rolename"),
                 _sapi.ChatCommands.Parsers.Word("permission"))
             .HandleWith(OnGrantPermission)
             .EndSubCommand()
             .BeginSubCommand("revoke")
-            .WithDescription("Revoke a permission from a role")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_REVOKE_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("rolename"),
                 _sapi.ChatCommands.Parsers.Word("permission"))
             .HandleWith(OnRevokePermission)
             .EndSubCommand()
             .BeginSubCommand("permissions")
-            .WithDescription("View permissions for a role")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_PERMISSIONS_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("rolename"))
             .HandleWith(OnListRolePermissions)
             .EndSubCommand()
@@ -114,34 +117,45 @@ public class RoleCommands(
     internal TextCommandResult OnListRoles(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var playerId = player.PlayerUID;
-        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(playerId))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_IN_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(playerId);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_RELIGION_DATA_NOT_FOUND));
 
         var roles = _roleManager.GetReligionRoles(religion.ReligionUID);
         var roleCounts = _roleManager.GetRoleMemberCounts(religion.ReligionUID);
 
         var sb = new StringBuilder();
-        sb.AppendLine($"=== {religion.ReligionName} Roles ===");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_HEADER_ROLES, religion.ReligionName));
         sb.AppendLine();
 
         foreach (var role in roles)
         {
             var memberCount = roleCounts.ContainsKey(role.RoleUID) ? roleCounts[role.RoleUID] : 0;
-            var roleType = role.IsDefault ? " (Default)" : " (Custom)";
-            var protectedTag = role.IsProtected ? " [Protected]" : "";
+            var roleType = role.IsDefault
+                ? LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_LABEL_DEFAULT)
+                : LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_LABEL_CUSTOM);
+            var protectedTag = role.IsProtected
+                ? LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_LABEL_PROTECTED)
+                : "";
 
             sb.AppendLine($"• {role.RoleName}{roleType}{protectedTag}");
-            sb.AppendLine($"  Members: {memberCount}");
-            sb.AppendLine($"  Permissions: {role.Permissions.Count}");
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_LABEL_MEMBERS, memberCount));
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_LABEL_PERMISSIONS,
+                role.Permissions.Count));
             sb.AppendLine();
         }
 
-        sb.AppendLine("Use '/religion role permissions <rolename>' to view a role's permissions");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_FOOTER_VIEW_PERMISSIONS));
 
         return TextCommandResult.Success(sb.ToString());
     }
@@ -154,38 +168,50 @@ public class RoleCommands(
         var roleName = (string)args[0];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var playerId = player.PlayerUID;
-        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(playerId))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_IN_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(playerId);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_RELIGION_DATA_NOT_FOUND));
 
         // Check if player has permission to view members
         if (!religion.HasPermission(playerId, RolePermissions.VIEW_MEMBERS))
-            return TextCommandResult.Error("You don't have permission to view members");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_ERROR_NO_VIEW_PERMISSION));
 
         // Find role by name
         var role = religion.GetRoleByName(roleName);
-        if (role == null) return TextCommandResult.Error($"Role '{roleName}' not found");
+        if (role == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_ERROR_ROLE_NOT_FOUND, roleName));
 
         var membersWithRole = _roleManager.GetPlayersWithRole(religion.ReligionUID, role.RoleUID);
 
         var sb = new StringBuilder();
-        sb.AppendLine($"=== Members with role '{role.RoleName}' ({membersWithRole.Count}) ===");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_HEADER_MEMBERS_WITH_ROLE,
+            role.RoleName, membersWithRole.Count));
         sb.AppendLine();
 
         if (membersWithRole.Count == 0)
-            sb.AppendLine("No members have this role.");
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_NO_MEMBERS));
         else
             foreach (var memberUID in membersWithRole)
             {
                 var memberPlayer = _sapi.World.PlayerByUid(memberUID);
-                var memberName = memberPlayer?.PlayerName ?? "Unknown";
+                var memberName = memberPlayer?.PlayerName ??
+                                 LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_UNKNOWN);
                 var memberData = _playerProgressionDataManager.GetOrCreatePlayerData(memberUID);
 
-                sb.AppendLine($"• {memberName} | Rank: {memberData.FavorRank} | Favor: {memberData.Favor}");
+                sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_FORMAT_MEMBER_INFO,
+                    memberName, memberData.FavorRank.ToLocalizedString(), memberData.Favor));
             }
 
         return TextCommandResult.Success(sb.ToString());
@@ -199,13 +225,19 @@ public class RoleCommands(
         var roleName = (string)args[0];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var playerId = player.PlayerUID;
-        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(playerId))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_IN_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(playerId);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_RELIGION_DATA_NOT_FOUND));
 
         // Create the role
         var (success, role, error) =
@@ -214,7 +246,7 @@ public class RoleCommands(
         if (!success) return TextCommandResult.Error(error);
 
         return TextCommandResult.Success(
-            $"Custom role '{role!.RoleName}' created! Use '/religion role grant {roleName} <permission>' to add permissions.");
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_SUCCESS_CREATED, role!.RoleName, roleName));
     }
 
     /// <summary>
@@ -225,24 +257,33 @@ public class RoleCommands(
         var roleName = (string)args[0];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var playerId = player.PlayerUID;
-        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(playerId))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_IN_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(playerId);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_RELIGION_DATA_NOT_FOUND));
 
         // Find role by name
         var role = religion.GetRoleByName(roleName);
-        if (role == null) return TextCommandResult.Error($"Role '{roleName}' not found");
+        if (role == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_ERROR_ROLE_NOT_FOUND, roleName));
 
         // Delete the role
         var (success, error) = _roleManager.DeleteRole(religion.ReligionUID, player.PlayerUID, role.RoleUID);
 
         if (!success) return TextCommandResult.Error(error);
 
-        return TextCommandResult.Success($"Role '{roleName}' has been deleted");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_SUCCESS_DELETED, roleName));
     }
 
 
@@ -264,17 +305,25 @@ public class RoleCommands(
         var newName = (string)args[1];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var playerId = player.PlayerUID;
-        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(playerId))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_IN_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(playerId);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_RELIGION_DATA_NOT_FOUND));
 
         // Find role by name
         var role = religion.GetRoleByName(oldName);
-        if (role == null) return TextCommandResult.Error($"Role '{oldName}' not found");
+        if (role == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_ERROR_ROLE_NOT_FOUND, oldName));
 
         // Rename the role
         var (success, updatedRole, error) =
@@ -282,7 +331,8 @@ public class RoleCommands(
 
         if (!success) return TextCommandResult.Error(error);
 
-        return TextCommandResult.Success($"Role renamed from '{oldName}' to '{newName}'");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_SUCCESS_RENAMED, oldName, newName));
     }
 
     /// <summary>
@@ -296,23 +346,33 @@ public class RoleCommands(
         var roleName = (string)args[1];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var playerId = player.PlayerUID;
-        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(playerId))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_IN_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(playerId);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_RELIGION_DATA_NOT_FOUND));
 
         // Find target player by name
         var targetPlayer = _sapi.World.AllPlayers
             .FirstOrDefault(p => p.PlayerName.Equals(targetPlayerName, StringComparison.OrdinalIgnoreCase));
 
-        if (targetPlayer == null) return TextCommandResult.Error($"Player '{targetPlayerName}' not found");
+        if (targetPlayer == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_ERROR_PLAYER_NOT_FOUND, targetPlayerName));
 
         // Find role by name
         var role = religion.GetRoleByName(roleName);
-        if (role == null) return TextCommandResult.Error($"Role '{roleName}' not found");
+        if (role == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_ERROR_ROLE_NOT_FOUND, roleName));
 
         // Assign the role
         var (success, error) =
@@ -325,11 +385,14 @@ public class RoleCommands(
         if (targetServerPlayer != null)
             targetServerPlayer.SendMessage(
                 GlobalConstants.GeneralChatGroup,
-                $"You have been assigned the '{role.RoleName}' role in {religion.ReligionName}",
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_SUCCESS_ASSIGNED_NOTIFICATION,
+                    role.RoleName, religion.ReligionName),
                 EnumChatType.Notification
             );
 
-        return TextCommandResult.Success($"{targetPlayerName} has been assigned the '{role.RoleName}' role");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_SUCCESS_ASSIGNED, targetPlayerName,
+                role.RoleName));
     }
 
     /// <summary>
@@ -343,17 +406,25 @@ public class RoleCommands(
         var permissionName = (string)args[1];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var playerId = player.PlayerUID;
-        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(playerId))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_IN_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(playerId);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_RELIGION_DATA_NOT_FOUND));
 
         // Find role by name
         var role = religion.GetRoleByName(roleName);
-        if (role == null) return TextCommandResult.Error($"Role '{roleName}' not found");
+        if (role == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_ERROR_ROLE_NOT_FOUND, roleName));
 
         // Find permission by name (case insensitive)
         var permission = RolePermissions.AllPermissions
@@ -363,7 +434,8 @@ public class RoleCommands(
         {
             var availablePerms = string.Join(", ", RolePermissions.AllPermissions);
             return TextCommandResult.Error(
-                $"Invalid permission '{permissionName}'. Available permissions: {availablePerms}");
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_ERROR_INVALID_PERMISSION,
+                    permissionName, availablePerms));
         }
 
         // Add permission to the role
@@ -376,7 +448,8 @@ public class RoleCommands(
         if (!success) return TextCommandResult.Error(error);
 
         return TextCommandResult.Success(
-            $"Permission '{RolePermissions.GetDisplayName(permission)}' granted to role '{role.RoleName}'");
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_SUCCESS_PERMISSION_GRANTED,
+                RolePermissions.GetDisplayName(permission), role.RoleName));
     }
 
     /// <summary>
@@ -390,17 +463,25 @@ public class RoleCommands(
         var permissionName = (string)args[1];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var playerId = player.PlayerUID;
-        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(playerId))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_IN_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(playerId);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_RELIGION_DATA_NOT_FOUND));
 
         // Find role by name
         var role = religion.GetRoleByName(roleName);
-        if (role == null) return TextCommandResult.Error($"Role '{roleName}' not found");
+        if (role == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_ERROR_ROLE_NOT_FOUND, roleName));
 
         // Find permission by name (case insensitive)
         var permission = RolePermissions.AllPermissions
@@ -410,7 +491,8 @@ public class RoleCommands(
         {
             var availablePerms = string.Join(", ", RolePermissions.AllPermissions);
             return TextCommandResult.Error(
-                $"Invalid permission '{permissionName}'. Available permissions: {availablePerms}");
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_ERROR_INVALID_PERMISSION,
+                    permissionName, availablePerms));
         }
 
         // Remove permission from the role
@@ -424,7 +506,8 @@ public class RoleCommands(
         if (!success) return TextCommandResult.Error(error);
 
         return TextCommandResult.Success(
-            $"Permission '{RolePermissions.GetDisplayName(permission)}' revoked from role '{role.RoleName}'");
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_SUCCESS_PERMISSION_REVOKED,
+                RolePermissions.GetDisplayName(permission), role.RoleName));
     }
 
     /// <summary>
@@ -435,24 +518,32 @@ public class RoleCommands(
         var roleName = (string)args[0];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var playerId = player.PlayerUID;
-        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(playerId))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_IN_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(playerId);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_RELIGION_DATA_NOT_FOUND));
 
         // Find role by name
         var role = religion.GetRoleByName(roleName);
-        if (role == null) return TextCommandResult.Error($"Role '{roleName}' not found");
+        if (role == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_ERROR_ROLE_NOT_FOUND, roleName));
 
         var sb = new StringBuilder();
-        sb.AppendLine($"=== Permissions for '{role.RoleName}' ===");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_HEADER_PERMISSIONS, role.RoleName));
         sb.AppendLine();
 
         if (role.Permissions.Count == 0)
-            sb.AppendLine("This role has no permissions.");
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_NO_PERMISSIONS));
         else
             foreach (var permission in role.Permissions.OrderBy(p => p))
             {
@@ -463,7 +554,7 @@ public class RoleCommands(
                 sb.AppendLine();
             }
 
-        sb.AppendLine("Available permissions:");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_LABEL_AVAILABLE_PERMISSIONS));
         foreach (var permission in RolePermissions.AllPermissions.OrderBy(p => p))
             if (!role.Permissions.Contains(permission))
             {
@@ -482,19 +573,27 @@ public class RoleCommands(
         var targetPlayerName = (string)args[0];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var playerId = player.PlayerUID;
-        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(playerId))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_IN_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(playerId);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_RELIGION_DATA_NOT_FOUND));
 
         // Find target player by name
         var targetPlayer = _sapi.World.AllPlayers
             .FirstOrDefault(p => p.PlayerName.Equals(targetPlayerName, StringComparison.OrdinalIgnoreCase));
 
-        if (targetPlayer == null) return TextCommandResult.Error($"Player '{targetPlayerName}' not found");
+        if (targetPlayer == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_ERROR_PLAYER_NOT_FOUND, targetPlayerName));
 
         // Transfer founder status
         var (success, error) =
@@ -509,12 +608,14 @@ public class RoleCommands(
             if (memberPlayer != null)
                 memberPlayer.SendMessage(
                     GlobalConstants.GeneralChatGroup,
-                    $"Founder status has been transferred from {player.PlayerName} to {targetPlayerName} in {religion.ReligionName}",
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_SUCCESS_FOUNDER_TRANSFERRED_NOTIFICATION,
+                        player.PlayerName, targetPlayerName, religion.ReligionName),
                     EnumChatType.Notification
                 );
         }
 
-        return TextCommandResult.Success($"Founder status transferred to {targetPlayerName}");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_SUCCESS_FOUNDER_TRANSFERRED, targetPlayerName));
     }
 
     #endregion

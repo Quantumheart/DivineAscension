@@ -10,6 +10,11 @@ namespace DivineAscension.Tests.Models;
 [ExcludeFromCodeCoverage]
 public class BlessingNodeStateTests
 {
+    public BlessingNodeStateTests()
+    {
+        TestFixtures.InitializeLocalizationForTests();
+    }
+
     #region Constructor Tests
 
     [Fact]

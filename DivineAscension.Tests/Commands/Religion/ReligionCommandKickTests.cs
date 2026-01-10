@@ -47,7 +47,7 @@ public class ReligionCommandKickTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("TargetName has been removed from TestReligion", result.StatusMessage);
+        Assert.Contains("TargetName has been kicked from TestReligion", result.StatusMessage);
         _playerProgressionDataManager.Verify(m => m.LeaveReligion("target-1"), Times.Once);
     }
 
@@ -77,7 +77,7 @@ public class ReligionCommandKickTests : ReligionCommandsTestHelpers
         // Assert
         mockTarget.Verify(t => t.SendMessage(
             GlobalConstants.GeneralChatGroup,
-            It.Is<string>(msg => msg.IndexOf("You have been removed from TestReligion") >= 0),
+            It.Is<string>(msg => msg.IndexOf("You have been kicked from TestReligion") >= 0),
             EnumChatType.Notification, null), Times.Once);
     }
 
@@ -308,7 +308,7 @@ public class ReligionCommandKickTests : ReligionCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Error, result.Status);
         Assert.Contains("You cannot kick yourself", result.StatusMessage);
-        Assert.Contains("Use /religion disband or /religion leave instead", result.StatusMessage);
+        Assert.Contains("Use /religion leave instead", result.StatusMessage);
     }
 
     #endregion

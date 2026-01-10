@@ -13,7 +13,7 @@
     "Vintage Story Client - Debug": {
       "commandName": "Executable",
       "executablePath": "dotnet",
-      "commandLineArgs": "\"$(VINTAGE_STORY)/Vintagestory.dll\" --tracelog --addModPath \"$(ProjectDir)/bin/$(Configuration)/Mods/mod\" -o testworld",
+      "commandLineArgs": "\"$(VINTAGE_STORY)/Vintagestory.dll\" --tracelog --addModPath \"$(ProjectDir)/bin/$(Configuration)/Mods\" -o testworld",
       "workingDirectory": "$(VINTAGE_STORY)",
       "environmentVariables": {
         "TEXTURE_DEBUG_DISPOSE": "0",

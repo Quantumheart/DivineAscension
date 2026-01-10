@@ -10,6 +10,7 @@ using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.GUI.Utilities;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network.Diplomacy;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
@@ -31,15 +32,18 @@ internal static class DiplomacyTabRenderer
         // Loading state
         if (vm.IsLoading)
         {
-            TextRenderer.DrawInfoText(drawList, "Loading diplomacy data...", vm.X, currentY + 8f, vm.Width);
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_LOADING),
+                vm.X, currentY + 8f, vm.Width);
             return new DiplomacyTabRendererResult(events, vm.Height);
         }
 
         // Not in civilization state
         if (!vm.HasCivilization)
         {
-            TextRenderer.DrawInfoText(drawList, "Your religion must be in a civilization to use diplomacy.", vm.X,
-                currentY + 8f, vm.Width);
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_NO_CIVILIZATION),
+                vm.X, currentY + 8f, vm.Width);
             return new DiplomacyTabRendererResult(events, vm.Height);
         }
 
@@ -96,7 +100,11 @@ internal static class DiplomacyTabRenderer
             var typeDropdownY = 18f + vm.Y + 18f + 36f + 18f; // Match the type dropdown button position
             var typeDropdownW = 500f;
             var typeDropdownH = 30f;
-            var typeItems = new[] { "Non-Aggression Pact (Rank 1: Established)", "Alliance (Rank 2: Renowned)" };
+            var typeItems = new[]
+            {
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_TYPE_NAP),
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_TYPE_ALLIANCE)
+            };
             var typeIndex = vm.SelectedProposalType == DiplomaticStatus.NonAggressionPact ? 0 : 1;
 
             Dropdown.DrawMenuVisual(drawList, typeDropdownX, typeDropdownY, typeDropdownW, typeDropdownH, typeItems,
@@ -125,12 +133,16 @@ internal static class DiplomacyTabRenderer
         var currentY = startY;
 
         // Section header
-        TextRenderer.DrawLabel(drawList, "Current Relationships", vm.X, currentY, HeaderSize, ColorPalette.Gold);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_CURRENT_RELATIONSHIPS),
+            vm.X, currentY, HeaderSize, ColorPalette.Gold);
         currentY += 24f;
 
         if (!vm.ActiveRelationships.Any())
         {
-            TextRenderer.DrawInfoText(drawList, "No active relationships.", vm.X + 10f, currentY, vm.Width - 20f);
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_NO_RELATIONSHIPS),
+                vm.X + 10f, currentY, vm.Width - 20f);
             return currentY + 20f;
         }
 
@@ -144,27 +156,39 @@ internal static class DiplomacyTabRenderer
 
         // Draw headers with clipping to prevent overlap
         drawList.PushClipRect(new Vector2(col1, currentY), new Vector2(col2 - 10f, currentY + TableRowHeight));
-        TextRenderer.DrawLabel(drawList, "Civilization", col1, currentY, LabelSize, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_COL_CIVILIZATION),
+            col1, currentY, LabelSize, ColorPalette.Grey);
         drawList.PopClipRect();
 
         drawList.PushClipRect(new Vector2(col2, currentY), new Vector2(col3 - 10f, currentY + TableRowHeight));
-        TextRenderer.DrawLabel(drawList, "Status", col2, currentY, LabelSize, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_COL_STATUS),
+            col2, currentY, LabelSize, ColorPalette.Grey);
         drawList.PopClipRect();
 
         drawList.PushClipRect(new Vector2(col3, currentY), new Vector2(col4 - 10f, currentY + TableRowHeight));
-        TextRenderer.DrawLabel(drawList, "Established", col3, currentY, LabelSize, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_COL_ESTABLISHED),
+            col3, currentY, LabelSize, ColorPalette.Grey);
         drawList.PopClipRect();
 
         drawList.PushClipRect(new Vector2(col4, currentY), new Vector2(col5 - 10f, currentY + TableRowHeight));
-        TextRenderer.DrawLabel(drawList, "Expires", col4, currentY, LabelSize, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_COL_EXPIRES),
+            col4, currentY, LabelSize, ColorPalette.Grey);
         drawList.PopClipRect();
 
         drawList.PushClipRect(new Vector2(col5, currentY), new Vector2(col6 - 10f, currentY + TableRowHeight));
-        TextRenderer.DrawLabel(drawList, "Violations", col5, currentY, LabelSize, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_COL_VIOLATIONS),
+            col5, currentY, LabelSize, ColorPalette.Grey);
         drawList.PopClipRect();
 
         drawList.PushClipRect(new Vector2(col6, currentY), new Vector2(vm.X + vm.Width, currentY + TableRowHeight));
-        TextRenderer.DrawLabel(drawList, "Actions", col6, currentY, LabelSize, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_COL_ACTIONS),
+            col6, currentY, LabelSize, ColorPalette.Grey);
         drawList.PopClipRect();
 
         currentY += TableRowHeight;
@@ -211,7 +235,7 @@ internal static class DiplomacyTabRenderer
             // Expires date - right-aligned for better readability
             var expiresText = rel.ExpiresDate.HasValue
                 ? rel.ExpiresDate.Value.ToString("MM/dd/yy")
-                : "Permanent";
+                : LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_PERMANENT);
             var expiresTextSize = ImGui.CalcTextSize(expiresText);
             var expiresX = col5 - 15f - expiresTextSize.X; // Right-align within column
             drawList.PushClipRect(new Vector2(col4, currentY), new Vector2(col5 - 10f, currentY + TableRowHeight));
@@ -244,14 +268,17 @@ internal static class DiplomacyTabRenderer
                     {
                         var formattedTime =
                             DiplomacyNotificationHelper.FormatTimeRemaining(rel.BreakScheduledDate.Value);
-                        var countdownText = $"Breaks in {formattedTime}";
+                        var countdownText = LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_BREAKS_IN,
+                            formattedTime);
                         var isCritical = DiplomacyNotificationHelper.IsTimeCritical(rel.BreakScheduledDate.Value);
                         var timeColor = isCritical ? ColorPalette.Red : ColorPalette.Yellow;
                         drawList.AddText(ImGui.GetFont(), LabelSize, new Vector2(actionX, currentY),
                             ImGui.ColorConvertFloat4ToU32(timeColor), countdownText);
 
                         // Cancel break button
-                        if (ButtonRenderer.DrawSmallButton(drawList, "Cancel", actionX + 110f, currentY - 2f, 60f, 20f))
+                        if (ButtonRenderer.DrawSmallButton(drawList,
+                                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_CANCEL_BUTTON),
+                                actionX + 110f, currentY - 2f, 60f, 20f))
                         {
                             events.Add(new DiplomacyEvent.CancelBreak(rel.OtherCivId));
                         }
@@ -259,7 +286,9 @@ internal static class DiplomacyTabRenderer
                 }
                 else
                 {
-                    if (ButtonRenderer.DrawSmallButton(drawList, "Schedule Break", actionX, currentY - 2f, 140f, 20f))
+                    if (ButtonRenderer.DrawSmallButton(drawList,
+                            LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_SCHEDULE_BREAK_BUTTON),
+                            actionX, currentY - 2f, 140f, 20f))
                     {
                         events.Add(new DiplomacyEvent.ScheduleBreak(rel.OtherCivId));
                     }
@@ -267,7 +296,9 @@ internal static class DiplomacyTabRenderer
             }
             else if (rel.Status == DiplomaticStatus.War)
             {
-                if (ButtonRenderer.DrawSmallButton(drawList, "Declare Peace", actionX, currentY - 2f, 140f, 20f))
+                if (ButtonRenderer.DrawSmallButton(drawList,
+                        LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_DECLARE_PEACE_BUTTON),
+                        actionX, currentY - 2f, 140f, 20f))
                 {
                     events.Add(new DiplomacyEvent.DeclarePeace(rel.OtherCivId));
                 }
@@ -289,13 +320,17 @@ internal static class DiplomacyTabRenderer
         var currentY = startY;
 
         // Section header
-        TextRenderer.DrawLabel(drawList, "Pending Proposals", vm.X, currentY, HeaderSize, ColorPalette.Gold);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_PENDING_PROPOSALS),
+            vm.X, currentY, HeaderSize, ColorPalette.Gold);
         currentY += 24f;
 
         // Incoming proposals
         if (vm.IncomingProposals.Any())
         {
-            TextRenderer.DrawLabel(drawList, "Incoming:", vm.X, currentY, LabelSize, ColorPalette.White);
+            TextRenderer.DrawLabel(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_INCOMING_LABEL),
+                vm.X, currentY, LabelSize, ColorPalette.White);
             currentY += 20f;
 
             foreach (var proposal in vm.IncomingProposals)
@@ -313,12 +348,16 @@ internal static class DiplomacyTabRenderer
                 currentY += 18f;
 
                 // Accept/Decline buttons
-                if (ButtonRenderer.DrawSmallButton(drawList, "Accept", vm.X + 20f, currentY, 70f, 20f))
+                if (ButtonRenderer.DrawSmallButton(drawList,
+                        LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_ACCEPT_BUTTON),
+                        vm.X + 20f, currentY, 70f, 20f))
                 {
                     events.Add(new DiplomacyEvent.AcceptProposal(proposal.ProposalId));
                 }
 
-                if (ButtonRenderer.DrawSmallButton(drawList, "Decline", vm.X + 100f, currentY, 70f, 20f))
+                if (ButtonRenderer.DrawSmallButton(drawList,
+                        LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_DECLINE_BUTTON),
+                        vm.X + 100f, currentY, 70f, 20f))
                 {
                     events.Add(new DiplomacyEvent.DeclineProposal(proposal.ProposalId));
                 }
@@ -330,7 +369,9 @@ internal static class DiplomacyTabRenderer
         // Outgoing proposals
         if (vm.OutgoingProposals.Any())
         {
-            TextRenderer.DrawLabel(drawList, "Outgoing:", vm.X, currentY, LabelSize, ColorPalette.White);
+            TextRenderer.DrawLabel(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_OUTGOING_LABEL),
+                vm.X, currentY, LabelSize, ColorPalette.White);
             currentY += 20f;
 
             foreach (var proposal in vm.OutgoingProposals)
@@ -338,8 +379,8 @@ internal static class DiplomacyTabRenderer
                 var formattedTime = DiplomacyNotificationHelper.FormatTimeRemaining(proposal.ExpiresDate);
                 var isCritical = DiplomacyNotificationHelper.IsTimeCritical(proposal.ExpiresDate);
                 var statusText = GetStatusText(proposal.ProposedStatus);
-                var proposalText =
-                    $"To {proposal.OtherCivName}: {statusText} (expires in {formattedTime})";
+                var proposalText = LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_PROPOSAL_TO,
+                    proposal.OtherCivName, statusText, formattedTime);
 
                 var textColor = isCritical ? ColorPalette.Red : ColorPalette.Grey;
                 drawList.AddText(ImGui.GetFont(), LabelSize, new Vector2(vm.X + 10f, currentY),
@@ -351,7 +392,9 @@ internal static class DiplomacyTabRenderer
 
         if (!vm.IncomingProposals.Any() && !vm.OutgoingProposals.Any())
         {
-            TextRenderer.DrawInfoText(drawList, "No pending proposals.", vm.X + 10f, currentY, vm.Width - 20f);
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_NO_PROPOSALS),
+                vm.X + 10f, currentY, vm.Width - 20f);
             currentY += 20f;
         }
 
@@ -367,18 +410,23 @@ internal static class DiplomacyTabRenderer
         var currentY = startY;
 
         // Section header
-        TextRenderer.DrawLabel(drawList, "Propose New Relationship", vm.X, currentY, HeaderSize, ColorPalette.Gold);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_PROPOSE_NEW),
+            vm.X, currentY, HeaderSize, ColorPalette.Gold);
         currentY += 24f;
 
         if (!vm.AvailableCivilizations.Any())
         {
-            TextRenderer.DrawInfoText(drawList, "No civilizations available for new relationships.", vm.X + 10f,
-                currentY, vm.Width - 20f);
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_NO_CIVS_AVAILABLE),
+                vm.X + 10f, currentY, vm.Width - 20f);
             return currentY + 20f;
         }
 
         // Civilization selection
-        TextRenderer.DrawLabel(drawList, "Target Civilization:", vm.X, currentY, LabelSize, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_TARGET_CIV_LABEL),
+            vm.X, currentY, LabelSize, ColorPalette.Grey);
         currentY += 18f;
 
         var civDropdownX = vm.X + 10f;
@@ -389,7 +437,7 @@ internal static class DiplomacyTabRenderer
         var selectedCivIndex = vm.AvailableCivilizations.FindIndex(c => c.CivId == vm.SelectedCivId);
         var selectedCivName = selectedCivIndex >= 0 && selectedCivIndex < vm.AvailableCivilizations.Count
             ? vm.AvailableCivilizations[selectedCivIndex].Name
-            : "Select a civilization...";
+            : LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_SELECT_CIV_PLACEHOLDER);
         var civItems = vm.AvailableCivilizations.Select(c => c.Name).ToArray();
 
         // Draw civilization dropdown button
@@ -400,7 +448,9 @@ internal static class DiplomacyTabRenderer
         currentY += 36f;
 
         // Relationship type selection
-        TextRenderer.DrawLabel(drawList, "Relationship Type:", vm.X, currentY, LabelSize, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_RELATIONSHIP_TYPE_LABEL),
+            vm.X, currentY, LabelSize, ColorPalette.Grey);
         currentY += 18f;
 
         var typeDropdownX = vm.X + 10f;
@@ -408,7 +458,11 @@ internal static class DiplomacyTabRenderer
         var typeDropdownW = 500f;
         var typeDropdownH = 30f;
 
-        var typeItems = new[] { "Non-Aggression Pact (Rank 1: Established)", "Alliance (Rank 2: Renowned)" };
+        var typeItems = new[]
+        {
+            LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_TYPE_NAP),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_TYPE_ALLIANCE)
+        };
         var typeIndex = vm.SelectedProposalType == DiplomaticStatus.NonAggressionPact ? 0 : 1;
         var selectedTypeName = typeItems[typeIndex];
 
@@ -420,8 +474,11 @@ internal static class DiplomacyTabRenderer
         currentY += 30f;
 
         // Duration display
-        var duration = vm.SelectedProposalType == DiplomaticStatus.NonAggressionPact ? "3 days" : "Permanent";
-        TextRenderer.DrawLabel(drawList, $"Duration: {duration}", vm.X, currentY, LabelSize, ColorPalette.Grey);
+        var durationLabel = LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_DURATION_LABEL);
+        var duration = vm.SelectedProposalType == DiplomaticStatus.NonAggressionPact
+            ? LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_DURATION_3DAYS)
+            : LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_DURATION_PERMANENT);
+        TextRenderer.DrawLabel(drawList, $"{durationLabel} {duration}", vm.X, currentY, LabelSize, ColorPalette.Grey);
         currentY += 24f;
 
         // Rank requirement check
@@ -436,14 +493,17 @@ internal static class DiplomacyTabRenderer
                 ? DiplomacyConstants.NonAggressionPactRankName
                 : DiplomacyConstants.AllianceRankName;
             TextRenderer.DrawLabel(drawList,
-                $"Insufficient Rank: Requires {requiredRankName} (Rank {requiredRank})", vm.X, currentY,
-                LabelSize, ColorPalette.Red);
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_INSUFFICIENT_RANK,
+                    requiredRankName, requiredRank),
+                vm.X, currentY, LabelSize, ColorPalette.Red);
             currentY += 24f;
         }
 
         // Send Proposal button
         var canSendProposal = hasRank && !string.IsNullOrEmpty(vm.SelectedCivId);
-        if (ButtonRenderer.DrawButton(drawList, "Send Proposal", vm.X, currentY, 150f, 28f, true, canSendProposal))
+        if (ButtonRenderer.DrawButton(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_SEND_PROPOSAL_BUTTON),
+                vm.X, currentY, 150f, 28f, true, canSendProposal))
         {
             events.Add(new DiplomacyEvent.ProposeRelationship(vm.SelectedCivId, vm.SelectedProposalType));
         }
@@ -451,8 +511,9 @@ internal static class DiplomacyTabRenderer
         // Declare War button (separate, red, requires civilization selection)
         var canDeclareWar = !string.IsNullOrEmpty(vm.SelectedCivId);
         var warButtonColor = ColorPalette.Red * 0.6f;
-        if (ButtonRenderer.DrawButton(drawList, "Declare War", vm.X + 170f, currentY, 120f, 28f, true, canDeclareWar,
-                warButtonColor))
+        if (ButtonRenderer.DrawButton(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_DECLARE_WAR_BUTTON),
+                vm.X + 170f, currentY, 120f, 28f, true, canDeclareWar, warButtonColor))
         {
             if (string.IsNullOrEmpty(vm.ConfirmWarCivId))
             {
@@ -466,17 +527,22 @@ internal static class DiplomacyTabRenderer
         if (!string.IsNullOrEmpty(vm.ConfirmWarCivId))
         {
             var confirmCivName = vm.AvailableCivilizations.FirstOrDefault(c => c.CivId == vm.ConfirmWarCivId)?.Name ??
-                                 "Unknown";
-            TextRenderer.DrawLabel(drawList, $"Confirm war declaration against {confirmCivName}?", vm.X, currentY,
-                LabelSize, ColorPalette.Red);
+                                 LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_UNKNOWN_CIV);
+            TextRenderer.DrawLabel(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_CONFIRM_WAR_MESSAGE, confirmCivName),
+                vm.X, currentY, LabelSize, ColorPalette.Red);
             currentY += 20f;
 
-            if (ButtonRenderer.DrawActionButton(drawList, "Yes, Declare War", vm.X, currentY, 150f, 24f, true))
+            if (ButtonRenderer.DrawActionButton(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_YES_DECLARE_WAR),
+                    vm.X, currentY, 150f, 24f, true))
             {
                 events.Add(new DiplomacyEvent.DeclareWar(vm.ConfirmWarCivId));
             }
 
-            if (ButtonRenderer.DrawButton(drawList, "Cancel", vm.X + 160f, currentY, 80f, 24f))
+            if (ButtonRenderer.DrawButton(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_CANCEL),
+                    vm.X + 160f, currentY, 80f, 24f))
             {
                 events.Add(new DiplomacyEvent.CancelWarConfirmation());
             }
@@ -502,10 +568,12 @@ internal static class DiplomacyTabRenderer
     {
         return status switch
         {
-            DiplomaticStatus.Alliance => "Alliance",
-            DiplomaticStatus.NonAggressionPact => "Non-Aggression Pact",
-            DiplomaticStatus.War => "War",
-            _ => "Neutral"
+            DiplomaticStatus.Alliance =>
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_STATUS_ALLIANCE),
+            DiplomaticStatus.NonAggressionPact =>
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_STATUS_NAP),
+            DiplomaticStatus.War => LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_STATUS_WAR),
+            _ => LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_STATUS_NEUTRAL)
         };
     }
 }

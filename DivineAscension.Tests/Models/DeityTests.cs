@@ -1,12 +1,18 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Tests.Helpers;
 
 namespace DivineAscension.Tests.Models;
 
 [ExcludeFromCodeCoverage]
 public class DeityTests
 {
+    public DeityTests()
+    {
+        TestFixtures.InitializeLocalizationForTests();
+    }
+
     [Fact]
     public void TestPropertyInitialization()
     {

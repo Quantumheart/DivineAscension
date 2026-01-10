@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Invites;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
@@ -30,7 +32,7 @@ internal static class ReligionInvitesRenderer
         // === HEADER ===
         TextRenderer.DrawLabel(
             drawList,
-            "Your Religion Invitations",
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_TITLE),
             viewModel.X,
             currentY,
             18f,
@@ -40,7 +42,7 @@ internal static class ReligionInvitesRenderer
         // === HELP TEXT ===
         TextRenderer.DrawInfoText(
             drawList,
-            "These are invitations you've received from religions.",
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_SUBTITLE),
             viewModel.X,
             currentY,
             viewModel.Width);
@@ -77,7 +79,9 @@ internal static class ReligionInvitesRenderer
             viewModel.ScrollY,
             (invite, cx, cy, cw, ch) =>
                 DrawInviteCard(invite, cx, cy, cw, ch, drawList, viewModel.IsLoading, events),
-            loadingText: viewModel.IsLoading ? "Loading invitations..." : null
+            loadingText: viewModel.IsLoading
+                ? LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_LOADING)
+                : null
         );
 
         // Emit scroll event if changed
@@ -109,7 +113,7 @@ internal static class ReligionInvitesRenderer
         // === CARD CONTENT ===
         TextRenderer.DrawLabel(
             drawList,
-            "Invitation to Religion",
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_CARD_TITLE),
             x + 12f,
             y + 8f,
             16f);
@@ -119,7 +123,7 @@ internal static class ReligionInvitesRenderer
             14f,
             new Vector2(x + 14f, y + 30f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
-            $"Religion: {invite.ReligionName}");
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_RELIGION_LABEL, invite.ReligionName));
 
         drawList.AddText(
             ImGui.GetFont(),
@@ -135,7 +139,7 @@ internal static class ReligionInvitesRenderer
         // Accept button
         if (ButtonRenderer.DrawButton(
                 drawList,
-                "Accept",
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_ACCEPT),
                 x + width - 180f,
                 buttonY,
                 80f,
@@ -149,7 +153,7 @@ internal static class ReligionInvitesRenderer
         // Decline button
         if (ButtonRenderer.DrawButton(
                 drawList,
-                "Decline",
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_DECLINE),
                 x + width - 90f,
                 buttonY,
                 80f,

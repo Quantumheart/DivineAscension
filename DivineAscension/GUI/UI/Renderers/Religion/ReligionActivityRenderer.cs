@@ -1,6 +1,8 @@
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Models.Religion.Activity;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
@@ -57,21 +59,21 @@ internal static class ReligionActivityRenderer
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White), "i");
 
         // Message title
-        var titleText = "Activity Feed Coming Soon!";
+        var titleText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTIVITY_TITLE);
         var titleY = boxY + 20f;
         var titlePos = new Vector2(iconX + iconRadius + 20f, titleY);
         drawList.AddText(ImGui.GetFont(), 16f, titlePos,
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White), titleText);
 
         // Description
-        var descText = "Track religion events, member activity, and prestige milestones.";
+        var descText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTIVITY_DESCRIPTION);
         var descY = titleY + 25f;
         var descPos = new Vector2(iconX + iconRadius + 20f, descY);
         drawList.AddText(ImGui.GetFont(), 13f, descPos,
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), descText);
 
         // TODO comment
-        var todoText = "TODO: Implement server-side activity logging and event tracking.";
+        var todoText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTIVITY_TODO);
         var todoY = descY + 25f;
         var todoPos = new Vector2(iconX + iconRadius + 20f, todoY);
         drawList.AddText(ImGui.GetFont(), 11f, todoPos,

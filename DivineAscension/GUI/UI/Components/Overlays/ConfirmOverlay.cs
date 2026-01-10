@@ -1,8 +1,10 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Components.Overlays;
@@ -19,12 +21,16 @@ internal static class ConfirmOverlay
         string message,
         out bool confirmed,
         out bool canceled,
-        string confirmLabel = "Confirm",
-        string cancelLabel = "Cancel",
+        string? confirmLabel = null,
+        string? cancelLabel = null,
         float dialogWidth = 520f)
     {
         confirmed = false;
         canceled = false;
+
+        // Use localized defaults if not provided
+        confirmLabel ??= LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_CONFIRM);
+        cancelLabel ??= LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_CANCEL);
 
         var drawList = ImGui.GetWindowDrawList();
         var winPos = ImGui.GetWindowPos();

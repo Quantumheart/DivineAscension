@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Member;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Components;
@@ -44,7 +46,7 @@ public static class MemberListRenderer
 
         if (members.Count == 0)
         {
-            var noMembersText = "No members";
+            var noMembersText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MEMBERS_NO_MEMBERS);
             var noMembersSize = ImGui.CalcTextSize(noMembersText);
             var noMembersPos = new Vector2(x + (width - noMembersSize.X) / 2, y + (height - noMembersSize.Y) / 2);
             var noMembersColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
@@ -150,7 +152,9 @@ public static class MemberListRenderer
             // Ban button (leftmost if both buttons present)
             var banButtonX = x + width - buttonWidth - padding;
 
-            if (ButtonRenderer.DrawSmallButton(drawList, "Ban", banButtonX, buttonY, buttonWidth, 22f))
+            if (ButtonRenderer.DrawSmallButton(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_BAN_BUTTON),
+                    banButtonX, buttonY, buttonWidth, 22f))
             {
                 events.Add(new MemberListEvent.BanClicked(member.PlayerUID));
             }

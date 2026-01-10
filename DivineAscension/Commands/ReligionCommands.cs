@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DivineAscension.Constants;
 using DivineAscension.Data;
+using DivineAscension.Extensions;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -48,82 +51,82 @@ public class ReligionCommands(
     public void RegisterCommands()
     {
         _sapi.ChatCommands.Create("religion")
-            .WithDescription("Manage religions and congregation membership")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_DESC))
             .RequiresPrivilege(Privilege.chat)
             .BeginSubCommand("create")
-            .WithDescription("Create a new religion")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_CREATE_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("name"),
                 _sapi.ChatCommands.Parsers.Word("deity"),
                 _sapi.ChatCommands.Parsers.OptionalWord("visibility"))
             .HandleWith(OnCreateReligion)
             .EndSubCommand()
             .BeginSubCommand("join")
-            .WithDescription("Join a religion")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_JOIN_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("name"))
             .HandleWith(OnJoinReligion)
             .EndSubCommand()
             .BeginSubCommand("leave")
-            .WithDescription("Leave your current religion")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_LEAVE_DESC))
             .HandleWith(OnLeaveReligion)
             .EndSubCommand()
             .BeginSubCommand("list")
-            .WithDescription("List all religions")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_LIST_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("deity"))
             .HandleWith(OnListReligions)
             .EndSubCommand()
             .BeginSubCommand("info")
-            .WithDescription("Show religion information")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_INFO_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("name"))
             .HandleWith(OnReligionInfo)
             .EndSubCommand()
             .BeginSubCommand("members")
-            .WithDescription("Show members of your religion")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_MEMBERS_DESC))
             .HandleWith(OnListMembers)
             .EndSubCommand()
             .BeginSubCommand("invite")
-            .WithDescription("Invite a player to your religion")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_INVITE_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("playername"))
             .HandleWith(OnInvitePlayer)
             .EndSubCommand()
             .BeginSubCommand("kick")
-            .WithDescription("Kick a player from your religion")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_KICK_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("playername"))
             .HandleWith(OnKickPlayer)
             .EndSubCommand()
             .BeginSubCommand("ban")
-            .WithDescription("Ban a player from your religion")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_BAN_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("playername"),
                 _sapi.ChatCommands.Parsers.OptionalAll("reason"),
                 _sapi.ChatCommands.Parsers.OptionalInt("days"))
             .HandleWith(OnBanPlayer)
             .EndSubCommand()
             .BeginSubCommand("unban")
-            .WithDescription("Unban a player from your religion")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_UNBAN_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("playername"))
             .HandleWith(OnUnbanPlayer)
             .EndSubCommand()
             .BeginSubCommand("banlist")
-            .WithDescription("List all banned players")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_BANLIST_DESC))
             .HandleWith(OnListBannedPlayers)
             .EndSubCommand()
             .BeginSubCommand("disband")
-            .WithDescription("Disband your religion")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_DISBAND_DESC))
             .HandleWith(OnDisbandReligion)
             .EndSubCommand()
             .BeginSubCommand("description")
-            .WithDescription("Set your religion's description")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_DESCRIPTION_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.All("text"))
             .HandleWith(OnSetDescription)
             .EndSubCommand()
             .BeginSubCommand("prestige")
-            .WithDescription("Manage religion prestige")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_PRESTIGE_DESC))
             .BeginSubCommand("info")
-            .WithDescription("View detailed prestige information for a religion")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_PRESTIGE_INFO_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("religionname"))
             .HandleWith(OnPrestigeInfo)
             .EndSubCommand()
             .BeginSubCommand("add")
-            .WithDescription("Add prestige to a religion (Admin only)")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_PRESTIGE_ADD_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("religionname"),
                 _sapi.ChatCommands.Parsers.Int("amount"),
                 _sapi.ChatCommands.Parsers.OptionalAll("reason"))
@@ -131,7 +134,7 @@ public class ReligionCommands(
             .HandleWith(OnPrestigeAdd)
             .EndSubCommand()
             .BeginSubCommand("set")
-            .WithDescription("Set religion prestige to a specific amount (Admin only)")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_PRESTIGE_SET_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("religionname"),
                 _sapi.ChatCommands.Parsers.Int("amount"))
             .RequiresPrivilege(Privilege.root)
@@ -139,21 +142,21 @@ public class ReligionCommands(
             .EndSubCommand()
             .EndSubCommand()
             .BeginSubCommand("admin")
-            .WithDescription("Admin commands for religion management")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ADMIN_DESC))
             .RequiresPrivilege(Privilege.root)
             .BeginSubCommand("repair")
-            .WithDescription("Repair religion membership inconsistencies")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ADMIN_REPAIR_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .HandleWith(OnAdminRepair)
             .EndSubCommand()
             .BeginSubCommand("join")
-            .WithDescription("Force join a player to a religion (Admin only)")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ADMIN_JOIN_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("religionname"),
                 _sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .HandleWith(OnAdminJoin)
             .EndSubCommand()
             .BeginSubCommand("leave")
-            .WithDescription("Force remove a player from their religion (Admin only)")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ADMIN_LEAVE_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .HandleWith(OnAdminLeave)
             .EndSubCommand()
@@ -176,18 +179,21 @@ public class ReligionCommands(
         var visibility = args.Parsers.Count > 2 ? (string?)args[2] : "public";
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         // Check if player already has a religion
         var playerId = player.PlayerUID;
         if (_religionManager.HasReligion(playerId))
-            return TextCommandResult.Error("You are already in a religion. Use /religion leave first.");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_ALREADY_IN_RELIGION));
 
         // Parse deity type
         if (!Enum.TryParse(deityName, true, out DeityType deity) || deity == DeityType.None)
         {
             var validDeities = string.Join(", ", Enum.GetNames(typeof(DeityType)).Where(d => d != "None"));
-            return TextCommandResult.Error($"Invalid deity. Valid options: {validDeities}");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_INVALID_DEITY, validDeities));
         }
 
         // Parse visibility
@@ -195,7 +201,8 @@ public class ReligionCommands(
 
         // Check if religion name already exists
         if (_religionManager.GetReligionByName(religionName) != null)
-            return TextCommandResult.Error($"A religion named '{religionName}' already exists");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NAME_EXISTS, religionName));
 
         // Create the religion
         var religion = _religionManager.CreateReligion(religionName, deity, player.PlayerUID, isPublic);
@@ -204,7 +211,8 @@ public class ReligionCommands(
         _playerProgressionDataManager.SetPlayerReligionData(player.PlayerUID, religion.ReligionUID);
 
         return TextCommandResult.Success(
-            $"Religion '{religionName}' created! You are now the founder serving {deity}.");
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_CREATED,
+                religionName, deity.ToLocalizedString()));
     }
 
     /// <summary>
@@ -215,15 +223,19 @@ public class ReligionCommands(
         var religionName = (string)args[0];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         // Find the religion
         var religion = _religionManager.GetReligionByName(religionName);
-        if (religion == null) return TextCommandResult.Error($"Religion '{religionName}' not found");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NOT_FOUND, religionName));
 
         // Check if player can join
         if (!_religionManager.CanJoinReligion(religion.ReligionUID, player.PlayerUID))
-            return TextCommandResult.Error("This religion is private and you have not been invited");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_PRIVATE_NO_INVITE));
 
         // Apply switching penalty if needed
         if (_religionManager.HasReligion(player.PlayerUID))
@@ -235,7 +247,9 @@ public class ReligionCommands(
         // Remove invitation if exists
         _religionManager.RemoveInvitation(player.PlayerUID, religion.ReligionUID);
 
-        return TextCommandResult.Success($"You have joined {religion.ReligionName}! May {religion.Deity} guide you.");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_JOINED,
+                religion.ReligionName, religion.Deity.ToLocalizedString()));
     }
 
     /// <summary>
@@ -244,26 +258,30 @@ public class ReligionCommands(
     internal TextCommandResult OnLeaveReligion(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         if (!_religionManager.HasReligion(player.PlayerUID))
-            return TextCommandResult.Error("You are not in any religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_RELIGION));
 
         // Get religion info before leaving
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
-        var religionName = religion?.ReligionName ?? "Unknown";
+        var religionName = religion?.ReligionName ??
+                           LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_UNKNOWN);
 
         // Prevent founders from leaving (use role-based check for consistency)
         if (religion != null && religion.GetPlayerRole(player.PlayerUID) == RoleDefaults.FOUNDER_ROLE_ID)
         {
             return TextCommandResult.Error(
-                "Founders cannot leave their religion. Transfer founder status or disband the religion instead.");
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_FOUNDER_CANNOT_LEAVE));
         }
 
         // Leave the religion
         _playerProgressionDataManager.LeaveReligion(player.PlayerUID);
 
-        return TextCommandResult.Success($"You have left {religionName}");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_LEFT, religionName));
     }
 
     /// <summary>
@@ -279,19 +297,30 @@ public class ReligionCommands(
         if (!string.IsNullOrEmpty(deityFilter))
         {
             if (!Enum.TryParse(deityFilter, true, out DeityType deity))
-                return TextCommandResult.Error($"Invalid deity: {deityFilter}");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_INVALID_DEITY_FILTER,
+                        deityFilter));
             religions = _religionManager.GetReligionsByDeity(deity);
         }
 
-        if (religions.Count == 0) return TextCommandResult.Success("No religions found");
+        if (religions.Count == 0)
+            return TextCommandResult.Success(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_INFO_NO_RELIGIONS));
 
         var sb = new StringBuilder();
-        sb.AppendLine("=== Religions ===");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_HEADER_LIST, religions.Count));
         foreach (var religion in religions.OrderByDescending(r => r.TotalPrestige))
         {
-            var visibility = religion.IsPublic ? "Public" : "Private";
+            var visibility = religion.IsPublic
+                ? LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_VISIBILITY_PUBLIC)
+                : LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_VISIBILITY_PRIVATE);
             sb.AppendLine(
-                $"- {religion.ReligionName} ({religion.Deity}) | {visibility} | {religion.GetMemberCount()} members | Rank: {religion.PrestigeRank}");
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_LIST_ENTRY,
+                    religion.ReligionName,
+                    religion.Deity.ToLocalizedString(),
+                    visibility,
+                    religion.GetMemberCount(),
+                    religion.PrestigeRank.ToLocalizedString()));
         }
 
         return TextCommandResult.Success(sb.ToString());
@@ -303,7 +332,8 @@ public class ReligionCommands(
     internal TextCommandResult OnReligionInfo(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var religionName = args.Parsers.Count > 0 ? (string?)args[0] : null;
 
@@ -312,31 +342,48 @@ public class ReligionCommands(
         if (!string.IsNullOrEmpty(religionName))
         {
             religion = _religionManager.GetReligionByName(religionName);
-            if (religion == null) return TextCommandResult.Error($"Religion '{religionName}' not found");
+            if (religion == null)
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NOT_FOUND, religionName));
         }
         else
         {
             // Show current religion
             if (!_religionManager.HasReligion(player.PlayerUID))
-                return TextCommandResult.Error("You are not in any religion. Specify a religion name to view.");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_RELIGION_SPECIFY));
             religion = _religionManager.GetPlayerReligion(player.PlayerUID);
-            if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+            if (religion == null)
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_DATA_NOT_FOUND));
         }
 
         // Build info display
         var sb = new StringBuilder();
-        sb.AppendLine($"=== {religion.ReligionName} ===");
-        sb.AppendLine($"Deity: {religion.Deity}");
-        sb.AppendLine($"Visibility: {(religion.IsPublic ? "Public" : "Private")}");
-        sb.AppendLine($"Members: {religion.GetMemberCount()}");
-        sb.AppendLine($"Prestige Rank: {religion.PrestigeRank}");
-        sb.AppendLine($"Prestige: {religion.Prestige} (Total: {religion.TotalPrestige})");
-        sb.AppendLine($"Created: {religion.CreationDate:yyyy-MM-dd}");
+        sb.AppendLine(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_HEADER_INFO, religion.ReligionName));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_DEITY,
+            religion.Deity.ToLocalizedString()));
+        var visibility = religion.IsPublic
+            ? LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_VISIBILITY_PUBLIC)
+            : LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_VISIBILITY_PRIVATE);
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_VISIBILITY, visibility));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_MEMBERS,
+            religion.GetMemberCount()));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_PRESTIGE_RANK,
+            religion.PrestigeRank.ToLocalizedString()));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_PRESTIGE,
+            religion.Prestige, religion.TotalPrestige));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_CREATED,
+            religion.CreationDate.ToString("yyyy-MM-dd")));
 
         // Use cached founder name
-        sb.AppendLine($"Founder: {religion.FounderName}");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_FOUNDER,
+            religion.FounderName));
 
-        if (!string.IsNullOrEmpty(religion.Description)) sb.AppendLine($"Description: {religion.Description}");
+        if (!string.IsNullOrEmpty(religion.Description))
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_DESCRIPTION,
+                religion.Description));
 
         return TextCommandResult.Success(sb.ToString());
     }
@@ -347,26 +394,35 @@ public class ReligionCommands(
     internal TextCommandResult OnListMembers(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         if (!_religionManager.HasReligion(player.PlayerUID))
-            return TextCommandResult.Error("You are not in any religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_DATA_NOT_FOUND));
 
         var sb = new StringBuilder();
-        sb.AppendLine($"=== {religion.ReligionName} Members ({religion.GetMemberCount()}) ===");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_HEADER_MEMBERS,
+            religion.ReligionName, religion.GetMemberCount()));
 
         foreach (var memberUID in religion.MemberUIDs)
         {
             var memberPlayer = _sapi.World.PlayerByUid(memberUID);
-            var memberName = memberPlayer?.PlayerName ?? "Unknown";
+            var memberName = memberPlayer?.PlayerName ??
+                             LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_UNKNOWN);
 
             var memberData = _playerProgressionDataManager.GetOrCreatePlayerData(memberUID);
-            var role = religion.IsFounder(memberUID) ? "Founder" : "Member";
+            var role = religion.IsFounder(memberUID)
+                ? LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_ROLE_FOUNDER)
+                : LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_ROLE_MEMBER);
 
-            sb.AppendLine($"- {memberName} ({role}) | Rank: {memberData.FavorRank} | Favor: {memberData.Favor}");
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_MEMBER,
+                memberName, role, memberData.FavorRank.ToLocalizedString(), memberData.Favor));
         }
 
         return TextCommandResult.Success(sb.ToString());
@@ -380,46 +436,59 @@ public class ReligionCommands(
         var targetPlayerName = (string)args[0];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         // Check if player is in a religion
         if (!_religionManager.HasReligion(player.PlayerUID))
-            return TextCommandResult.Error("You are not in any religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_DATA_NOT_FOUND));
 
         // Check if player has permission to invite
         if (!religion.HasPermission(player.PlayerUID, RolePermissions.INVITE_PLAYERS))
-            return TextCommandResult.Error("You don't have permission to invite players");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_PERMISSION_INVITE));
 
         // Find target player
         var targetPlayer = _sapi.World.AllOnlinePlayers
                 .FirstOrDefault(p => p.PlayerName.Equals(targetPlayerName, StringComparison.OrdinalIgnoreCase)) as
             IServerPlayer;
 
-        if (targetPlayer == null) return TextCommandResult.Error($"Player '{targetPlayerName}' not found online");
+        if (targetPlayer == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_PLAYER_NOT_FOUND_ONLINE,
+                    targetPlayerName));
 
         // Check if target is already a member
         if (religion.IsMember(targetPlayer.PlayerUID))
-            return TextCommandResult.Error($"{targetPlayerName} is already a member of {religion.ReligionName}");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_ALREADY_MEMBER,
+                    targetPlayerName, religion.ReligionName));
 
         // Send invitation
         var success = _religionManager.InvitePlayer(religion.ReligionUID, targetPlayer.PlayerUID, player.PlayerUID);
 
         if (!success)
         {
-            return TextCommandResult.Error("Failed to send invitation. They may already have a pending invite.");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_INVITE_FAILED));
         }
 
         // Notify target player (only if successful)
         targetPlayer.SendMessage(
             GlobalConstants.GeneralChatGroup,
-            $"You have been invited to join {religion.ReligionName}! Use /religion join {religion.ReligionName} to accept.",
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_NOTIFICATION_INVITED,
+                religion.ReligionName, religion.ReligionName),
             EnumChatType.Notification
         );
 
-        return TextCommandResult.Success($"Invitation sent to {targetPlayerName}");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_INVITE_SENT, targetPlayerName));
     }
 
     /// <summary>
@@ -430,33 +499,43 @@ public class ReligionCommands(
         var targetPlayerName = (string)args[0];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         // Check if player is in a religion
         if (!_religionManager.HasReligion(player.PlayerUID))
-            return TextCommandResult.Error("You are not in any religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_DATA_NOT_FOUND));
 
         // Check if player has permission to kick members
         if (!religion.HasPermission(player.PlayerUID, RolePermissions.KICK_MEMBERS))
-            return TextCommandResult.Error("You don't have permission to kick members");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_PERMISSION_KICK));
 
         // Find target player by name
         var targetPlayer = _sapi.World.AllPlayers
             .FirstOrDefault(p => p.PlayerName.Equals(targetPlayerName, StringComparison.OrdinalIgnoreCase));
 
-        if (targetPlayer == null) return TextCommandResult.Error($"Player '{targetPlayerName}' not found");
+        if (targetPlayer == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_PLAYER_NOT_FOUND,
+                    targetPlayerName));
 
         // Check if target is a member
         if (!religion.IsMember(targetPlayer.PlayerUID))
-            return TextCommandResult.Error($"{targetPlayerName} is not a member of {religion.ReligionName}");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NOT_MEMBER,
+                    targetPlayerName, religion.ReligionName));
 
         // Cannot kick yourself
         if (targetPlayer.PlayerUID == player.PlayerUID)
             return TextCommandResult.Error(
-                "You cannot kick yourself. Use /religion disband or /religion leave instead.");
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_CANNOT_KICK_SELF));
 
         // Kick the player
         _playerProgressionDataManager.LeaveReligion(targetPlayer.PlayerUID);
@@ -466,11 +545,14 @@ public class ReligionCommands(
         if (targetServerPlayer != null)
             targetServerPlayer.SendMessage(
                 GlobalConstants.GeneralChatGroup,
-                $"You have been removed from {religion.ReligionName}",
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_NOTIFICATION_KICKED,
+                    religion.ReligionName),
                 EnumChatType.Notification
             );
 
-        return TextCommandResult.Success($"{targetPlayerName} has been removed from {religion.ReligionName}");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_KICKED,
+                targetPlayerName, religion.ReligionName));
     }
 
     /// <summary>
@@ -479,43 +561,54 @@ public class ReligionCommands(
     internal TextCommandResult OnBanPlayer(TextCommandCallingArgs args)
     {
         var targetPlayerName = (string)args[0];
-        var reason = args.Parsers.Count > 1 ? (string?)args[1] : "No reason provided";
+        var reason = args.Parsers.Count > 1 ? (string?)args[1] : null;
         var expiryDays = args.Parsers.Count > 2 ? (int?)args[2] : null;
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         // Check if player is in a religion
         if (!_religionManager.HasReligion(player.PlayerUID))
-            return TextCommandResult.Error("You are not in any religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_DATA_NOT_FOUND));
 
         // Check if player has permission to ban players
         if (!religion.HasPermission(player.PlayerUID, RolePermissions.BAN_PLAYERS))
-            return TextCommandResult.Error("You don't have permission to ban players");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_PERMISSION_BAN));
 
         // Find target player by name
         var targetPlayer = _sapi.World.AllPlayers
             .FirstOrDefault(p => p.PlayerName.Equals(targetPlayerName, StringComparison.OrdinalIgnoreCase));
 
-        if (targetPlayer == null) return TextCommandResult.Error($"Player '{targetPlayerName}' not found");
+        if (targetPlayer == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_PLAYER_NOT_FOUND,
+                    targetPlayerName));
 
         // Cannot ban yourself
         if (targetPlayer.PlayerUID == player.PlayerUID)
-            return TextCommandResult.Error("You cannot ban yourself.");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_CANNOT_BAN_SELF));
 
         // Kick the player if they're still a member
         if (religion.IsMember(targetPlayer.PlayerUID))
             _playerProgressionDataManager.LeaveReligion(targetPlayer.PlayerUID);
 
         // Ban the player
+        var finalReason = reason ??
+                          LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_NO_REASON);
         _religionManager.BanPlayer(
             religion.ReligionUID,
             targetPlayer.PlayerUID,
             player.PlayerUID,
-            reason ?? "No reason provided",
+            finalReason,
             expiryDays
         );
 
@@ -524,13 +617,17 @@ public class ReligionCommands(
         if (targetServerPlayer != null)
             targetServerPlayer.SendMessage(
                 GlobalConstants.GeneralChatGroup,
-                $"You have been banned from {religion.ReligionName}. Reason: {reason}",
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_NOTIFICATION_BANNED,
+                    religion.ReligionName, finalReason),
                 EnumChatType.Notification
             );
 
-        var expiryText = expiryDays.HasValue ? $" for {expiryDays} days" : " permanently";
+        var expiryText = expiryDays.HasValue
+            ? LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_BAN_TEMPORARY, expiryDays.Value)
+            : LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_BAN_PERMANENT);
         return TextCommandResult.Success(
-            $"{targetPlayerName} has been banned from {religion.ReligionName}{expiryText}");
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_BANNED,
+                targetPlayerName, religion.ReligionName, expiryText));
     }
 
     /// <summary>
@@ -541,29 +638,41 @@ public class ReligionCommands(
         var targetPlayerName = (string)args[0];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         // Check if player is in a religion
         if (!_religionManager.HasReligion(player.PlayerUID))
-            return TextCommandResult.Error("You are not in any religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_DATA_NOT_FOUND));
 
         // Check if player has permission to ban/unban players
         if (!religion.HasPermission(player.PlayerUID, RolePermissions.BAN_PLAYERS))
-            return TextCommandResult.Error("You don't have permission to unban players");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_PERMISSION_UNBAN));
 
         // Find target player by name
         var targetPlayer = _sapi.World.AllPlayers
             .FirstOrDefault(p => p.PlayerName.Equals(targetPlayerName, StringComparison.OrdinalIgnoreCase));
 
-        if (targetPlayer == null) return TextCommandResult.Error($"Player '{targetPlayerName}' not found");
+        if (targetPlayer == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_PLAYER_NOT_FOUND,
+                    targetPlayerName));
 
         // Unban the player
         if (_religionManager.UnbanPlayer(religion.ReligionUID, targetPlayer.PlayerUID))
-            return TextCommandResult.Success($"{targetPlayerName} has been unbanned from {religion.ReligionName}");
-        return TextCommandResult.Error($"{targetPlayerName} is not banned from {religion.ReligionName}");
+            return TextCommandResult.Success(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_UNBANNED,
+                    targetPlayerName, religion.ReligionName));
+        return TextCommandResult.Error(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NOT_BANNED,
+                targetPlayerName, religion.ReligionName));
     }
 
     /// <summary>
@@ -572,40 +681,54 @@ public class ReligionCommands(
     internal TextCommandResult OnListBannedPlayers(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         // Check if player is in a religion
         if (!_religionManager.HasReligion(player.PlayerUID))
-            return TextCommandResult.Error("You are not in any religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_DATA_NOT_FOUND));
 
         // Check if player has permission to view ban list
         if (!religion.HasPermission(player.PlayerUID, RolePermissions.VIEW_BAN_LIST))
-            return TextCommandResult.Error("You don't have permission to view the ban list");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_PERMISSION_VIEW_BANLIST));
 
         var bannedPlayers = _religionManager.GetBannedPlayers(religion.ReligionUID);
 
         if (bannedPlayers.Count == 0)
-            return TextCommandResult.Success("No players are currently banned from your religion");
+            return TextCommandResult.Success(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_INFO_NO_BANNED_PLAYERS));
 
         var sb = new StringBuilder();
-        sb.AppendLine($"Banned players in {religion.ReligionName}:");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_HEADER_BANLIST,
+            religion.ReligionName));
         sb.AppendLine();
 
         foreach (var ban in bannedPlayers)
         {
-            var playerName = _sapi.World.PlayerByUid(ban.PlayerUID)?.PlayerName ?? "Unknown";
-            var bannedBy = _sapi.World.PlayerByUid(ban.BannedByUID)?.PlayerName ?? "Unknown";
+            var playerName = _sapi.World.PlayerByUid(ban.PlayerUID)?.PlayerName ??
+                             LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_UNKNOWN);
+            var bannedBy = _sapi.World.PlayerByUid(ban.BannedByUID)?.PlayerName ??
+                           LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_UNKNOWN);
             var expiry = ban.ExpiresAt.HasValue
-                ? $"expires on {ban.ExpiresAt.Value:yyyy-MM-dd HH:mm}"
-                : "permanent";
+                ? LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_BAN_EXPIRES,
+                    ban.ExpiresAt.Value.ToString("yyyy-MM-dd HH:mm"))
+                : LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_BAN_PERMANENT);
 
-            sb.AppendLine($"  • {playerName}");
-            sb.AppendLine($"    Reason: {ban.Reason}");
-            sb.AppendLine($"    Banned by: {bannedBy} on {ban.BannedAt:yyyy-MM-dd HH:mm}");
-            sb.AppendLine($"    Status: {expiry}");
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_BAN_ENTRY_HEADER,
+                playerName));
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_BAN_ENTRY_REASON,
+                ban.Reason));
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_BAN_ENTRY_BANNEDBY,
+                bannedBy, ban.BannedAt.ToString("yyyy-MM-dd HH:mm")));
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_BAN_ENTRY_STATUS,
+                expiry));
             sb.AppendLine();
         }
 
@@ -618,18 +741,24 @@ public class ReligionCommands(
     internal TextCommandResult OnDisbandReligion(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         // Check if player is in a religion
         var playerId = player.PlayerUID;
-        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(playerId))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_DATA_NOT_FOUND));
 
         // Check if player has permission to disband the religion
         if (!religion.HasPermission(player.PlayerUID, RolePermissions.DISBAND_RELIGION))
-            return TextCommandResult.Error("You don't have permission to disband the religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_PERMISSION_DISBAND));
 
         var religionName = religion.ReligionName;
 
@@ -647,7 +776,9 @@ public class ReligionCommands(
                 if (memberUID != player.PlayerUID)
                     memberPlayer.SendMessage(
                         GlobalConstants.GeneralChatGroup,
-                        $"{religionName} has been disbanded by its founder",
+                        LocalizationService.Instance.Get(
+                            LocalizationKeys.CMD_RELIGION_NOTIFICATION_DISBANDED_BY_FOUNDER,
+                            religionName),
                         EnumChatType.Notification
                     );
 
@@ -656,7 +787,8 @@ public class ReligionCommands(
                 {
                     var statePacket = new ReligionStateChangedPacket
                     {
-                        Reason = $"{religionName} has been disbanded",
+                        Reason = LocalizationService.Instance.Get(
+                            LocalizationKeys.CMD_RELIGION_NOTIFICATION_DISBANDED, religionName),
                         HasReligion = false
                     };
                     _serverChannel.SendPacket(statePacket, memberPlayer);
@@ -667,7 +799,8 @@ public class ReligionCommands(
         // Delete the religion
         _religionManager.DeleteReligion(religion.ReligionUID, player.PlayerUID);
 
-        return TextCommandResult.Success($"{religionName} has been disbanded");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_DISBANDED, religionName));
     }
 
     /// <summary>
@@ -678,23 +811,31 @@ public class ReligionCommands(
         var description = (string)args[0];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         // Check if player is in a religion
         var playerId = player.PlayerUID;
-        if (!_religionManager.HasReligion(playerId)) return TextCommandResult.Error("You are not in any religion");
+        if (!_religionManager.HasReligion(playerId))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
-        if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_DATA_NOT_FOUND));
 
         // Check if player has permission to edit description
         if (!religion.HasPermission(playerId, RolePermissions.EDIT_DESCRIPTION))
-            return TextCommandResult.Error("You don't have permission to edit the religion description");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_PERMISSION_EDIT_DESC));
 
         // Set description
         religion.Description = description;
 
-        return TextCommandResult.Success($"Description set for {religion.ReligionName}");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_DESCRIPTION_SET,
+                religion.ReligionName));
     }
 
     /// <summary>
@@ -703,7 +844,8 @@ public class ReligionCommands(
     internal TextCommandResult OnPrestigeInfo(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var religionName = args.Parsers.Count > 0 ? (string?)args[0] : null;
 
@@ -712,15 +854,20 @@ public class ReligionCommands(
         if (!string.IsNullOrEmpty(religionName))
         {
             religion = _religionManager.GetReligionByName(religionName);
-            if (religion == null) return TextCommandResult.Error($"Religion '{religionName}' not found");
+            if (religion == null)
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NOT_FOUND, religionName));
         }
         else
         {
             // Show current religion's prestige
             if (!_religionManager.HasReligion(player.PlayerUID))
-                return TextCommandResult.Error("You are not in any religion. Specify a religion name to view.");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_RELIGION_SPECIFY));
             religion = _religionManager.GetPlayerReligion(player.PlayerUID);
-            if (religion == null) return TextCommandResult.Error("Could not find your religion data");
+            if (religion == null)
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_DATA_NOT_FOUND));
         }
 
         // Get prestige progress
@@ -729,20 +876,28 @@ public class ReligionCommands(
 
         // Build info display
         var sb = new StringBuilder();
-        sb.AppendLine($"=== {religion.ReligionName} Prestige ===");
-        sb.AppendLine($"Current Rank: {(int)currentRank} ({currentRank})");
-        sb.AppendLine($"Current Prestige: {current}");
-        sb.AppendLine($"Total Prestige Earned: {religion.TotalPrestige}");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_HEADER_PRESTIGE,
+            religion.ReligionName));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_PRESTIGE_CURRENT_RANK,
+            (int)currentRank, currentRank.ToLocalizedString()));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_PRESTIGE_CURRENT,
+            current));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_PRESTIGE_TOTAL,
+            religion.TotalPrestige));
 
         if (currentRank < PrestigeRank.Mythic)
         {
-            sb.AppendLine($"Next Rank: {nextRank} ({(PrestigeRank)nextRank})");
-            sb.AppendLine($"Progress: {current}/{nextThreshold} ({current * 100 / nextThreshold}%)");
-            sb.AppendLine($"Remaining: {nextThreshold - current}");
+            var nextRankEnum = (PrestigeRank)nextRank;
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_PRESTIGE_NEXT_RANK,
+                nextRank, nextRankEnum.ToLocalizedString()));
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_PRESTIGE_PROGRESS,
+                current, nextThreshold, current * 100 / nextThreshold));
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_PRESTIGE_REMAINING,
+                nextThreshold - current));
         }
         else
         {
-            sb.AppendLine("Maximum rank achieved!");
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_INFO_MAX_RANK));
         }
 
         return TextCommandResult.Success(sb.ToString());
@@ -755,25 +910,35 @@ public class ReligionCommands(
     {
         var religionName = (string)args[0];
         var amount = (int)args[1];
-        var reason = args.Parsers.Count > 2 ? (string?)args[2] : "Admin command";
+        var reason = args.Parsers.Count > 2 ? (string?)args[2] : null;
 
-        if (amount <= 0) return TextCommandResult.Error("Amount must be positive");
+        if (amount <= 0)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_AMOUNT_POSITIVE));
 
         var religion = _religionManager.GetReligionByName(religionName);
-        if (religion == null) return TextCommandResult.Error($"Religion '{religionName}' not found");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NOT_FOUND, religionName));
 
         var oldPrestige = religion.Prestige;
         var oldRank = religion.PrestigeRank;
 
-        _religionPrestigeManager.AddPrestige(religion.ReligionUID, amount, reason ?? "Admin command");
+        var finalReason = reason ??
+                          LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_ADMIN_COMMAND);
+        _religionPrestigeManager.AddPrestige(religion.ReligionUID, amount, finalReason);
 
         var newPrestige = religion.Prestige;
         var newRank = religion.PrestigeRank;
 
-        var rankChanged = newRank > oldRank ? $" (Rank: {oldRank} → {newRank})" : "";
+        var rankChanged = newRank > oldRank
+            ? LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_PRESTIGE_RANK_CHANGE,
+                oldRank.ToLocalizedString(), newRank.ToLocalizedString())
+            : "";
 
         return TextCommandResult.Success(
-            $"Added {amount} prestige to {religionName}. Total: {oldPrestige} → {newPrestige}{rankChanged}");
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_PRESTIGE_ADDED,
+                amount, religionName, oldPrestige, newPrestige, rankChanged));
     }
 
     /// <summary>
@@ -784,10 +949,14 @@ public class ReligionCommands(
         var religionName = (string)args[0];
         var amount = (int)args[1];
 
-        if (amount < 0) return TextCommandResult.Error("Amount cannot be negative");
+        if (amount < 0)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_AMOUNT_NON_NEGATIVE));
 
         var religion = _religionManager.GetReligionByName(religionName);
-        if (religion == null) return TextCommandResult.Error($"Religion '{religionName}' not found");
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NOT_FOUND, religionName));
 
         var oldPrestige = religion.Prestige;
         var oldRank = religion.PrestigeRank;
@@ -798,10 +967,14 @@ public class ReligionCommands(
         _religionPrestigeManager.UpdatePrestigeRank(religion.ReligionUID);
 
         var newRank = religion.PrestigeRank;
-        var rankChanged = newRank != oldRank ? $" (Rank: {oldRank} → {newRank})" : "";
+        var rankChanged = newRank != oldRank
+            ? LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_PRESTIGE_RANK_CHANGE,
+                oldRank.ToLocalizedString(), newRank.ToLocalizedString())
+            : "";
 
         return TextCommandResult.Success(
-            $"Set {religionName} prestige to {amount} (was {oldPrestige}){rankChanged}");
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_PRESTIGE_SET,
+                religionName, amount, oldPrestige, rankChanged));
     }
 
     /// <summary>
@@ -815,7 +988,8 @@ public class ReligionCommands(
 
         if (player == null)
         {
-            return TextCommandResult.Error($"Player '{playerName}' not found");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_PLAYER_NOT_FOUND, playerName));
         }
 
         // Cast to concrete type for validation method
@@ -824,7 +998,8 @@ public class ReligionCommands(
 
         if (religionManager == null || playerDataManager == null)
         {
-            return TextCommandResult.Error("Internal error: Could not access managers");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_INTERNAL));
         }
 
         // Validate consistency
@@ -833,7 +1008,8 @@ public class ReligionCommands(
 
         if (isConsistent)
         {
-            return TextCommandResult.Success($"{playerName}: No issues found - membership is consistent");
+            return TextCommandResult.Success(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_INFO_REPAIR_NO_ISSUES, playerName));
         }
 
         // Repair inconsistency
@@ -851,18 +1027,19 @@ public class ReligionCommands(
             {
                 serverPlayer.SendMessage(
                     GlobalConstants.GeneralChatGroup,
-                    "Your religion membership has been repaired by an administrator",
+                    LocalizationService.Instance.Get(
+                        LocalizationKeys.CMD_RELIGION_NOTIFICATION_MEMBERSHIP_REPAIRED),
                     EnumChatType.Notification
                 );
             }
 
-            var sb = new StringBuilder();
-            sb.AppendLine($"REPAIRED: {playerName}");
-            sb.AppendLine($"Issue: {issues}");
-            return TextCommandResult.Success(sb.ToString());
+            return TextCommandResult.Success(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_REPAIR_PLAYER,
+                    playerName, issues));
         }
 
-        return TextCommandResult.Error($"Failed to repair {playerName}");
+        return TextCommandResult.Error(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_REPAIR_FAILED, playerName));
     }
 
     /// <summary>
@@ -871,7 +1048,7 @@ public class ReligionCommands(
     private TextCommandResult RepairAllPlayers()
     {
         var sb = new StringBuilder();
-        sb.AppendLine("=== Religion Membership Repair Scan ===");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_HEADER_REPAIR_SCAN));
 
         int scanned = 0;
         int consistent = 0;
@@ -884,7 +1061,8 @@ public class ReligionCommands(
 
         if (religionManager == null || playerDataManager == null)
         {
-            return TextCommandResult.Error("Internal error: Could not access managers");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_INTERNAL));
         }
 
         // Get all players (online and offline)
@@ -931,8 +1109,10 @@ public class ReligionCommands(
             if (wasRepaired)
             {
                 repaired++;
-                sb.AppendLine($"✓ REPAIRED: {playerName}");
-                sb.AppendLine($"  Issue: {issues}");
+                sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_REPAIR_SUCCESS,
+                    playerName));
+                sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_REPAIR_ISSUE,
+                    issues));
                 sb.AppendLine();
 
                 // Notify player if online
@@ -942,7 +1122,8 @@ public class ReligionCommands(
                 {
                     serverPlayer.SendMessage(
                         GlobalConstants.GeneralChatGroup,
-                        "Your religion membership has been repaired by an administrator",
+                        LocalizationService.Instance.Get(
+                            LocalizationKeys.CMD_RELIGION_NOTIFICATION_MEMBERSHIP_REPAIRED),
                         EnumChatType.Notification
                     );
                 }
@@ -950,8 +1131,10 @@ public class ReligionCommands(
             else
             {
                 failed++;
-                sb.AppendLine($"✗ FAILED: {playerName}");
-                sb.AppendLine($"  Issue: {issues}");
+                sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_REPAIR_FAILED_ENTRY,
+                    playerName));
+                sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_REPAIR_ISSUE,
+                    issues));
                 sb.AppendLine();
             }
         }
@@ -962,15 +1145,18 @@ public class ReligionCommands(
             religionManager.TriggerSave();
         }
 
-        sb.AppendLine("=== Summary ===");
-        sb.AppendLine($"Scanned: {scanned} players");
-        sb.AppendLine($"Consistent: {consistent}");
-        sb.AppendLine($"Repaired: {repaired}");
-        sb.AppendLine($"Failed: {failed}");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_HEADER_REPAIR_SUMMARY));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_REPAIR_SCANNED, scanned));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_REPAIR_CONSISTENT,
+            consistent));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_REPAIR_REPAIRED, repaired));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_REPAIR_FAILED_COUNT,
+            failed));
 
         if (repaired == 0 && failed == 0)
         {
-            return TextCommandResult.Success("All players have consistent membership state");
+            return TextCommandResult.Success(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_INFO_ALL_CONSISTENT));
         }
 
         return TextCommandResult.Success(sb.ToString());
@@ -1005,7 +1191,8 @@ public class ReligionCommands(
     internal TextCommandResult OnAdminJoin(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var religionName = (string)args[0];
         var targetPlayerName = args.Parsers.Count > 1 ? (string?)args[1] : null;
@@ -1017,10 +1204,13 @@ public class ReligionCommands(
             var found = _sapi.World.AllPlayers
                 .FirstOrDefault(p => string.Equals(p.PlayerName, targetPlayerName, StringComparison.OrdinalIgnoreCase));
             if (found is null)
-                return TextCommandResult.Error($"Cannot find player with name '{targetPlayerName}'");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_PLAYER_NOT_FOUND,
+                        targetPlayerName));
             targetPlayer = found as IServerPlayer;
             if (targetPlayer is null)
-                return TextCommandResult.Error("Target player is not a server player");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_INTERNAL));
         }
         else
         {
@@ -1030,12 +1220,15 @@ public class ReligionCommands(
         // Find the religion
         var religion = _religionManager.GetReligionByName(religionName);
         if (religion == null)
-            return TextCommandResult.Error($"Religion '{religionName}' not found");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NOT_FOUND, religionName));
 
         // Check if player already in this religion
         var currentReligion = _religionManager.GetPlayerReligion(targetPlayer.PlayerUID);
         if (currentReligion != null && currentReligion.ReligionUID == religion.ReligionUID)
-            return TextCommandResult.Success($"{targetPlayer.PlayerName} is already a member of {religionName}");
+            return TextCommandResult.Success(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_INFO_ALREADY_MEMBER_ADMIN,
+                    targetPlayer.PlayerName, religionName));
 
         // If player is in a different religion, force leave first
         if (currentReligion != null && !string.IsNullOrEmpty(currentReligion.ReligionUID))
@@ -1062,7 +1255,8 @@ public class ReligionCommands(
         {
             var statePacket = new ReligionStateChangedPacket
             {
-                Reason = $"Admin added you to {religionName}",
+                Reason = LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_NOTIFICATION_ADMIN_ADDED,
+                    religionName),
                 HasReligion = true
             };
             _serverChannel.SendPacket(statePacket, targetPlayer);
@@ -1094,7 +1288,9 @@ public class ReligionCommands(
         _sapi.Logger.Notification(
             $"[DivineAscension] Admin: {player.PlayerName} added {targetPlayer.PlayerName} to {religionName}");
 
-        return TextCommandResult.Success($"{targetPlayer.PlayerName} has been added to {religionName}");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_ADMIN_ADDED,
+                targetPlayer.PlayerName, religionName));
     }
 
     /// <summary>
@@ -1103,7 +1299,8 @@ public class ReligionCommands(
     internal TextCommandResult OnAdminLeave(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var targetPlayerName = args.Parsers.Count > 0 ? (string?)args[0] : null;
 
@@ -1114,10 +1311,13 @@ public class ReligionCommands(
             var found = _sapi.World.AllPlayers
                 .FirstOrDefault(p => string.Equals(p.PlayerName, targetPlayerName, StringComparison.OrdinalIgnoreCase));
             if (found is null)
-                return TextCommandResult.Error($"Cannot find player with name '{targetPlayerName}'");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_PLAYER_NOT_FOUND,
+                        targetPlayerName));
             targetPlayer = found as IServerPlayer;
             if (targetPlayer is null)
-                return TextCommandResult.Error("Target player is not a server player");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_INTERNAL));
         }
         else
         {
@@ -1126,12 +1326,16 @@ public class ReligionCommands(
 
         // Check if player is in a religion
         if (!_religionManager.HasReligion(targetPlayer.PlayerUID))
-            return TextCommandResult.Error($"{targetPlayer.PlayerName} is not in any religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_PLAYER_NO_RELIGION,
+                    targetPlayer.PlayerName));
 
         // Get the religion
         var religion = _religionManager.GetPlayerReligion(targetPlayer.PlayerUID);
         if (religion == null)
-            return TextCommandResult.Error($"{targetPlayer.PlayerName} is not in any religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_PLAYER_NO_RELIGION,
+                    targetPlayer.PlayerName));
 
         var religionName = religion.ReligionName;
 
@@ -1145,7 +1349,9 @@ public class ReligionCommands(
                 var result = _roleManager.TransferFounder(religion.ReligionUID, targetPlayer.PlayerUID, newFounderUID);
 
                 if (!result.success)
-                    return TextCommandResult.Error($"Failed to transfer founder: {result.error}");
+                    return TextCommandResult.Error(
+                        LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_TRANSFER_FOUNDER_FAILED,
+                            result.error));
 
                 // Now leave
                 _playerProgressionDataManager.LeaveReligion(targetPlayer.PlayerUID);
@@ -1158,7 +1364,8 @@ public class ReligionCommands(
                 {
                     var statePacket = new ReligionStateChangedPacket
                     {
-                        Reason = $"Admin removed you from {religionName}",
+                        Reason = LocalizationService.Instance.Get(
+                            LocalizationKeys.CMD_RELIGION_NOTIFICATION_ADMIN_REMOVED, religionName),
                         HasReligion = false
                     };
                     _serverChannel.SendPacket(statePacket, targetPlayer);
@@ -1192,7 +1399,8 @@ public class ReligionCommands(
                     $"[DivineAscension] Admin: {player.PlayerName} removed founder {targetPlayer.PlayerName} from {religionName}. Founder transferred to {newFounderName}");
 
                 return TextCommandResult.Success(
-                    $"{targetPlayer.PlayerName} has left {religionName}. Founder role transferred to {newFounderName}");
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_ADMIN_LEFT_FOUNDER_TRANSFER,
+                        targetPlayer.PlayerName, religionName, newFounderName));
             }
             else
             {
@@ -1207,7 +1415,8 @@ public class ReligionCommands(
                 {
                     var statePacket = new ReligionStateChangedPacket
                     {
-                        Reason = $"Admin disbanded {religionName}",
+                        Reason = LocalizationService.Instance.Get(
+                            LocalizationKeys.CMD_RELIGION_NOTIFICATION_ADMIN_DISBANDED, religionName),
                         HasReligion = false
                     };
                     _serverChannel.SendPacket(statePacket, targetPlayer);
@@ -1217,7 +1426,8 @@ public class ReligionCommands(
                     $"[DivineAscension] Admin: {player.PlayerName} removed sole founder {targetPlayer.PlayerName} from {religionName}. Religion disbanded");
 
                 return TextCommandResult.Success(
-                    $"{targetPlayer.PlayerName} has left {religionName}. Religion disbanded (no members remaining)");
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_ADMIN_LEFT_DISBANDED,
+                        targetPlayer.PlayerName, religionName));
             }
         }
         else
@@ -1233,7 +1443,8 @@ public class ReligionCommands(
             {
                 var statePacket = new ReligionStateChangedPacket
                 {
-                    Reason = $"Admin removed you from {religionName}",
+                    Reason = LocalizationService.Instance.Get(
+                        LocalizationKeys.CMD_RELIGION_NOTIFICATION_ADMIN_REMOVED, religionName),
                     HasReligion = false
                 };
                 _serverChannel.SendPacket(statePacket, targetPlayer);
@@ -1265,7 +1476,9 @@ public class ReligionCommands(
             _sapi.Logger.Notification(
                 $"[DivineAscension] Admin: {player.PlayerName} removed {targetPlayer.PlayerName} from {religionName}");
 
-            return TextCommandResult.Success($"{targetPlayer.PlayerName} has left {religionName}");
+            return TextCommandResult.Success(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_ADMIN_LEFT,
+                    targetPlayer.PlayerName, religionName));
         }
     }
 

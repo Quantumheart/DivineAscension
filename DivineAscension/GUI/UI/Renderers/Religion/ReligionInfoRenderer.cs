@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Info;
 using DivineAscension.GUI.Models.Religion.Member;
@@ -10,6 +11,7 @@ using DivineAscension.GUI.UI.Renderers.Components;
 using DivineAscension.GUI.UI.Renderers.Religion.Info;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
@@ -39,14 +41,17 @@ internal static class ReligionInfoRenderer
         // Loading state
         if (viewModel.IsLoading)
         {
-            TextRenderer.DrawInfoText(drawList, "Loading religion data...", x, currentY + 8f, width);
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_LOADING),
+                x, currentY + 8f, width);
             return new ReligionInfoRenderResult(events, height);
         }
 
         if (!viewModel.HasReligion)
         {
-            TextRenderer.DrawInfoText(drawList, "You are not in a religion. Browse or create one!", x, currentY + 8f,
-                width);
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_NO_RELIGION),
+                x, currentY + 8f, width);
             return new ReligionInfoRenderResult(events, height);
         }
 
@@ -84,7 +89,9 @@ internal static class ReligionInfoRenderer
         currentY = ReligionInfoDescriptionRenderer.Draw(viewModel, drawList, x, currentY, width, events);
 
         // === MEMBER LIST SECTION ===
-        TextRenderer.DrawLabel(drawList, "Members:", x, currentY, 15f, ColorPalette.Gold);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MEMBERS_LABEL),
+            x, currentY, 15f, ColorPalette.Gold);
         currentY += 25f;
 
         const float memberListHeight = 180f;
@@ -100,7 +107,9 @@ internal static class ReligionInfoRenderer
         // === BANNED PLAYERS SECTION (founder only) ===
         if (viewModel.IsFounder)
         {
-            TextRenderer.DrawLabel(drawList, "Banned Players:", x, currentY, 15f, ColorPalette.Gold);
+            TextRenderer.DrawLabel(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_BANNED_LABEL),
+                x, currentY, 15f, ColorPalette.Gold);
             currentY += 25f;
 
             const float banListHeight = 120f;
@@ -269,10 +278,10 @@ internal static class ReligionInfoRenderer
         List<InfoEvent> events)
     {
         ConfirmOverlay.Draw(
-            "Disband Religion?",
-            "This will permanently delete the religion and remove all members. This cannot be undone.",
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DISBAND_TITLE),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DISBAND_MESSAGE),
             out var confirmed, out var cancelled,
-            "Disband");
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DISBAND_CONFIRM));
 
         if (confirmed) events.Add(new InfoEvent.DisbandConfirm());
         if (cancelled) events.Add(new InfoEvent.DisbandCancel());
@@ -285,10 +294,10 @@ internal static class ReligionInfoRenderer
         List<InfoEvent> events)
     {
         ConfirmOverlay.Draw(
-            "Kick Player?",
-            $"Remove {playerName} from the religion? They can rejoin if invited again.",
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_KICK_TITLE),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_KICK_MESSAGE, playerName),
             out var confirmed, out var cancelled,
-            "Kick");
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_KICK_CONFIRM));
 
         if (confirmed) events.Add(new InfoEvent.KickConfirm(playerUid));
         if (cancelled) events.Add(new InfoEvent.KickCancel());
@@ -301,10 +310,10 @@ internal static class ReligionInfoRenderer
         List<InfoEvent> events)
     {
         ConfirmOverlay.Draw(
-            "Ban Player?",
-            $"Permanently ban {playerName} from the religion? They cannot rejoin unless unbanned.",
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_BAN_TITLE),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_BAN_MESSAGE, playerName),
             out var confirmed, out var cancelled,
-            "Ban");
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_BAN_CONFIRM));
 
         if (confirmed) events.Add(new InfoEvent.BanConfirm(playerUid));
         if (cancelled) events.Add(new InfoEvent.BanCancel());

@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Table;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Components;
@@ -146,7 +148,14 @@ internal static class ReligionTableRenderer
         const float fontSize = 16f;
 
         // Column labels
-        var columns = new[] { "Name", "Deity", "Prestige", "Members", "Public" };
+        var columns = new[]
+        {
+            LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_NAME),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_DEITY),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_PRESTIGE),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_MEMBERS),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_PUBLIC)
+        };
 
         for (var i = 0; i < columns.Length; i++)
         {
@@ -321,7 +330,9 @@ internal static class ReligionTableRenderer
         const float fontSize = 13f;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
-        var publicText = religion.IsPublic ? "Yes" : "No";
+        var publicText = religion.IsPublic
+            ? LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_PUBLIC)
+            : LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_PRIVATE);
         DrawCenteredText(drawList, publicText, colX, centerY, ColumnWidth, textColor, fontSize);
     }
 
@@ -378,7 +389,7 @@ internal static class ReligionTableRenderer
     /// </summary>
     private static void DrawLoadingState(ImDrawListPtr drawList, float x, float y)
     {
-        var loadingText = "Loading religions...";
+        var loadingText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_BROWSE_LOADING);
         var loadingSize = ImGui.CalcTextSize(loadingText);
         var loadingPos = new Vector2(
             x + (TableWidth - loadingSize.X) / 2f,
@@ -393,7 +404,7 @@ internal static class ReligionTableRenderer
     /// </summary>
     private static void DrawEmptyState(ImDrawListPtr drawList, float x, float y)
     {
-        var emptyText = "No religions found";
+        var emptyText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_BROWSE_NO_RELIGIONS);
         var emptySize = ImGui.CalcTextSize(emptyText);
         var emptyPos = new Vector2(
             x + (TableWidth - emptySize.X) / 2f,

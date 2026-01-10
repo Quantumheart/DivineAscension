@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.Tab;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI.Components.Banners;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
@@ -45,20 +47,25 @@ internal static class CivilizationTabRenderer
         }
 
         // Always show Browse (neutral for all states)
-        DrawTabButton("Browse", CivilizationSubTab.Browse, "GUI", "browse");
+        DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_BROWSE),
+            CivilizationSubTab.Browse, "GUI", "browse");
 
         // Conditional tabs based on religion/civilization membership
         if (vm.ShowInfoTab)
-            DrawTabButton("Info", CivilizationSubTab.Info, "GUI", "info");
+            DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_INFO),
+                CivilizationSubTab.Info, "GUI", "info");
 
         if (vm.ShowInvitesTab)
-            DrawTabButton("Invites", CivilizationSubTab.Invites, "GUI", "invites");
+            DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_INVITES),
+                CivilizationSubTab.Invites, "GUI", "invites");
 
         if (vm.ShowCreateTab)
-            DrawTabButton("Create", CivilizationSubTab.Create, "GUI", "create");
+            DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_CREATE),
+                CivilizationSubTab.Create, "GUI", "create");
 
         if (vm.ShowDiplomacyTab)
-            DrawTabButton("Diplomacy", CivilizationSubTab.Diplomacy, "GUI", "diplomacy");
+            DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_DIPLOMACY),
+                CivilizationSubTab.Diplomacy, "GUI", "diplomacy");
 
         var contentY = vm.Y + tabH + 10f;
         var renderedHeight = tabH + 10f;

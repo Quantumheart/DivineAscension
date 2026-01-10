@@ -1,6 +1,8 @@
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Models.Religion.Info;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion.Info;
@@ -33,28 +35,37 @@ internal static class ReligionInfoHeaderRenderer
         var rightCol = x + width / 2f;
 
         // Deity
-        TextRenderer.DrawLabel(drawList, "Deity:", leftCol, currentY, 13f, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DEITY_LABEL),
+            leftCol, currentY, 13f, ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 80f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White), viewModel.Deity);
 
         // Member count
-        TextRenderer.DrawLabel(drawList, "Members:", rightCol, currentY, 13f, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MEMBERS_COUNT),
+            rightCol, currentY, 13f, ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(rightCol + 80f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White), viewModel.MemberCount.ToString());
 
         currentY += 22f;
 
         // Founder
-        TextRenderer.DrawLabel(drawList, "Founder:", leftCol, currentY, 13f, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_FOUNDER_LABEL),
+            leftCol, currentY, 13f, ColorPalette.Grey);
         var founderName = viewModel.GetFounderDisplayName();
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 80f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), founderName);
 
         // Prestige
-        TextRenderer.DrawLabel(drawList, "Prestige:", rightCol, currentY, 13f, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_PRESTIGE_LABEL),
+            rightCol, currentY, 13f, ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(rightCol + 80f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
-            $"{viewModel.Prestige} (Rank {viewModel.PrestigeRank})");
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_PRESTIGE_VALUE,
+                viewModel.Prestige, viewModel.PrestigeRank));
 
         currentY += 28f;
 

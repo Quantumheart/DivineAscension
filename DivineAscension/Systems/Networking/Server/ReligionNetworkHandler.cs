@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Interfaces;
 using Vintagestory.API.Common;
@@ -117,7 +119,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 var memberName = religion.GetMemberName(member.Key);
 
                 // Get member's role name
-                var roleName = "Member"; // Default fallback
+                var roleName =
+                    LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_DEFAULT_ROLE); // Default fallback
                 var roleId = string.Empty;
                 if (religion.MemberRoles.TryGetValue(member.Key, out var roleUID))
                 {
@@ -158,7 +161,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                         PlayerName = bannedName,
                         Reason = banEntry.Reason,
                         BannedAt = banEntry.BannedAt.ToString("yyyy-MM-dd HH:mm"),
-                        ExpiresAt = banEntry.ExpiresAt?.ToString("yyyy-MM-dd HH:mm") ?? "Never",
+                        ExpiresAt = banEntry.ExpiresAt?.ToString("yyyy-MM-dd HH:mm") ??
+                                    LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_NEVER),
                         IsPermanent = banEntry.ExpiresAt == null
                     });
                 }
@@ -260,7 +264,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 _ => new ReligionActionResult
                 {
                     Success = false,
-                    Message = $"Unknown action: {packet.Action}"
+                    Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_UNKNOWN_ACTION,
+                        packet.Action)
                 }
             };
         }
@@ -269,7 +274,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             result = new ReligionActionResult
             {
                 Success = false,
-                Message = $"Error: {ex.Message}"
+                Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ERROR, ex.Message)
             };
             _sapi.Logger.Error($"[DivineAscension] Religion action error: {ex}");
         }
@@ -289,27 +294,27 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             // Validate inputs
             if (string.IsNullOrWhiteSpace(packet.ReligionName))
             {
-                message = "Religion name cannot be empty.";
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NAME_EMPTY);
             }
             else if (packet.ReligionName.Length < 3)
             {
-                message = "Religion name must be at least 3 characters.";
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NAME_TOO_SHORT);
             }
             else if (packet.ReligionName.Length > 32)
             {
-                message = "Religion name must be 32 characters or less.";
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NAME_TOO_LONG);
             }
             else if (_religionManager!.GetReligionByName(packet.ReligionName) != null)
             {
-                message = "A religion with that name already exists.";
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NAME_EXISTS);
             }
             else if (_religionManager.HasReligion(fromPlayer.PlayerUID))
             {
-                message = "You are already in a religion. Leave your current religion first.";
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ALREADY_IN_RELIGION);
             }
             else if (!Enum.TryParse<DeityType>(packet.Deity, out var deity) || deity == DeityType.None)
             {
-                message = "Invalid deity selected.";
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVALID_DEITY);
             }
             else
             {
@@ -325,7 +330,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 _playerProgressionDataManager!.SetPlayerReligionData(fromPlayer.PlayerUID, newReligion.ReligionUID);
 
                 religionUID = newReligion.ReligionUID;
-                message = $"Successfully created {packet.ReligionName}!";
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_CREATED, packet.ReligionName);
                 success = true;
 
                 // Refresh player's HUD
@@ -334,7 +339,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         }
         catch (Exception ex)
         {
-            message = $"Error creating religion: {ex.Message}";
+            message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_CREATE_ERROR, ex.Message);
             _sapi!.Logger.Error($"[DivineAscension] Religion creation error: {ex}");
         }
 
@@ -353,27 +358,27 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
             if (religion == null)
             {
-                message = "Religion not found.";
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NOT_FOUND);
             }
             else if (religion.FounderUID != fromPlayer.PlayerUID)
             {
-                message = "Only the founder can edit the description.";
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ONLY_FOUNDER_EDIT);
             }
             else if (packet.Description.Length > 200)
             {
-                message = "Description must be 200 characters or less.";
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_DESC_TOO_LONG);
             }
             else
             {
                 // Update description
                 religion.Description = packet.Description;
-                message = "Description updated successfully!";
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_DESC_UPDATED);
                 success = true;
             }
         }
         catch (Exception ex)
         {
-            message = $"Error updating description: {ex.Message}";
+            message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_DESC_ERROR, ex.Message);
             _sapi!.Logger.Error($"[DivineAscension] Description edit error: {ex}");
         }
 
@@ -394,7 +399,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 var errorResponse = new ReligionRolesResponse
                 {
                     Success = false,
-                    ErrorMessage = "Religion not found"
+                    ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NOT_FOUND)
                 };
                 _serverChannel!.SendPacket(errorResponse, fromPlayer);
                 return;
@@ -406,7 +411,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 var errorResponse = new ReligionRolesResponse
                 {
                     Success = false,
-                    ErrorMessage = "You are not a member of this religion"
+                    ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NOT_MEMBER)
                 };
                 _serverChannel!.SendPacket(errorResponse, fromPlayer);
                 return;
@@ -443,7 +448,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             var errorResponse = new ReligionRolesResponse
             {
                 Success = false,
-                ErrorMessage = $"Error: {ex.Message}"
+                ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ERROR, ex.Message)
             };
             _serverChannel!.SendPacket(errorResponse, fromPlayer);
         }
@@ -458,7 +463,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 var errorResponse = new CreateRoleResponse
                 {
                     Success = false,
-                    ErrorMessage = "Invalid request data"
+                    ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVALID_REQUEST)
                 };
                 _serverChannel!.SendPacket(errorResponse, fromPlayer);
                 return;
@@ -485,7 +490,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             var errorResponse = new CreateRoleResponse
             {
                 Success = false,
-                ErrorMessage = $"Error: {ex.Message}"
+                ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ERROR, ex.Message)
             };
             _serverChannel!.SendPacket(errorResponse, fromPlayer);
         }
@@ -501,7 +506,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 var errorResponse = new ModifyRolePermissionsResponse
                 {
                     Success = false,
-                    ErrorMessage = "Invalid request data"
+                    ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVALID_REQUEST)
                 };
                 _serverChannel!.SendPacket(errorResponse, fromPlayer);
                 return;
@@ -529,7 +534,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             var errorResponse = new ModifyRolePermissionsResponse
             {
                 Success = false,
-                ErrorMessage = $"Error: {ex.Message}"
+                ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ERROR, ex.Message)
             };
             _serverChannel!.SendPacket(errorResponse, fromPlayer);
         }
@@ -545,7 +550,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 var errorResponse = new AssignRoleResponse
                 {
                     Success = false,
-                    ErrorMessage = "Invalid request data"
+                    ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVALID_REQUEST)
                 };
                 _serverChannel!.SendPacket(errorResponse, fromPlayer);
                 return;
@@ -578,7 +583,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                         var role = religion.GetRole(packet.RoleUID);
                         if (role != null)
                             targetPlayer.SendMessage(0,
-                                $"Your role in {religion.ReligionName} has been changed to {role.RoleName}",
+                                LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ROLE_CHANGED,
+                                    religion.ReligionName, role.RoleName),
                                 EnumChatType.Notification);
                     }
 
@@ -593,7 +599,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             var errorResponse = new AssignRoleResponse
             {
                 Success = false,
-                ErrorMessage = $"Error: {ex.Message}"
+                ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ERROR, ex.Message)
             };
             _serverChannel!.SendPacket(errorResponse, fromPlayer);
         }
@@ -608,7 +614,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 var errorResponse = new DeleteRoleResponse
                 {
                     Success = false,
-                    ErrorMessage = "Invalid request data"
+                    ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVALID_REQUEST)
                 };
                 _serverChannel!.SendPacket(errorResponse, fromPlayer);
                 return;
@@ -641,7 +647,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             var errorResponse = new DeleteRoleResponse
             {
                 Success = false,
-                ErrorMessage = $"Error: {ex.Message}"
+                ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ERROR, ex.Message)
             };
             _serverChannel!.SendPacket(errorResponse, fromPlayer);
         }
@@ -656,7 +662,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 var errorResponse = new TransferFounderResponse
                 {
                     Success = false,
-                    ErrorMessage = "Invalid request data"
+                    ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVALID_REQUEST)
                 };
                 _serverChannel!.SendPacket(errorResponse, fromPlayer);
                 return;
@@ -686,12 +692,14 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     var newFounder = _sapi!.World.PlayerByUid(packet.NewFounderUID) as IServerPlayer;
                     if (newFounder != null)
                         newFounder.SendMessage(0,
-                            $"You are now the founder of {religion.ReligionName}!",
+                            LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_FOUNDER_TRANSFERRED,
+                                religion.ReligionName),
                             EnumChatType.Notification);
 
                     // Notify the old founder (fromPlayer)
                     fromPlayer.SendMessage(0,
-                        $"You have transferred founder status to {newFounder?.PlayerName ?? packet.NewFounderUID}",
+                        LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_FOUNDER_TRANSFER_SUCCESS,
+                            newFounder?.PlayerName ?? packet.NewFounderUID),
                         EnumChatType.Notification);
 
                     // Notify all other members
@@ -700,7 +708,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                         {
                             var member = _sapi!.World.PlayerByUid(memberUID) as IServerPlayer;
                             member?.SendMessage(0,
-                                $"{newFounder?.PlayerName ?? packet.NewFounderUID} is now the founder of {religion.ReligionName}",
+                                LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_FOUNDER_TRANSFERRED,
+                                    religion.ReligionName),
                                 EnumChatType.Notification);
                         }
 
@@ -715,7 +724,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             var errorResponse = new TransferFounderResponse
             {
                 Success = false,
-                ErrorMessage = $"Error: {ex.Message}"
+                ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ERROR, ex.Message)
             };
             _serverChannel!.SendPacket(errorResponse, fromPlayer);
         }
@@ -788,19 +797,21 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             if (banDetails != null)
             {
                 var expiryText = banDetails.ExpiresAt == null
-                    ? "Permanent ban"
-                    : $"Expires: {banDetails.ExpiresAt:yyyy-MM-dd HH:mm}";
+                    ? LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_BANNED_PERMANENT)
+                    : LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_BANNED_EXPIRES,
+                        banDetails.ExpiresAt?.ToString("yyyy-MM-dd HH:mm") ?? "");
                 return new ReligionActionResult
                 {
                     Success = false,
-                    Message = $"You are banned from this religion. Reason: {banDetails.Reason}. {expiryText}"
+                    Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_BANNED_WITH_REASON,
+                        banDetails.Reason, expiryText)
                 };
             }
 
             return new ReligionActionResult
             {
                 Success = false,
-                Message = "You are banned from this religion."
+                Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_BANNED_GENERIC)
             };
         }
 
@@ -816,14 +827,15 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             return new ReligionActionResult
             {
                 Success = true,
-                Message = $"Successfully joined {religion?.ReligionName ?? "religion"}!"
+                Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_JOINED,
+                    religion?.ReligionName ?? "religion")
             };
         }
 
         return new ReligionActionResult
         {
             Success = false,
-            Message = "Cannot join this religion. Check if you already have a religion or if it's invite-only."
+            Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_CANNOT_JOIN)
         };
     }
 
@@ -851,13 +863,14 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     return new ReligionActionResult
                     {
                         Success = false,
-                        Message = "Failed to join religion due to internal error. Please try again."
+                        Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_JOIN_ERROR)
                     };
                 }
 
                 _roleManager.AssignRole(religionId, "SYSTEM", fromPlayer.PlayerUID, RoleDefaults.MEMBER_ROLE_ID);
                 _playerProgressionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
-                NotifyPlayerReligionStateChanged(fromPlayer, "You joined a religion", true);
+                NotifyPlayerReligionStateChanged(fromPlayer,
+                    LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_YOU_JOINED), true);
 
                 // Broadcast roles update to all religion members so their UI updates
                 BroadcastRolesUpdateToReligion(religion);
@@ -868,8 +881,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         {
             Success = success,
             Message = success
-                ? "You have joined the religion!"
-                : "Failed to accept invitation. It may have expired or you already have a religion."
+                ? LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVITE_ACCEPTED)
+                : LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVITE_FAILED)
         };
     }
 
@@ -880,13 +893,16 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         // Notify client of state change so UI refreshes invite list
         if (success)
         {
-            NotifyPlayerReligionStateChanged(fromPlayer, "Invitation declined.", false);
+            NotifyPlayerReligionStateChanged(fromPlayer,
+                LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVITE_DECLINED), false);
         }
 
         return new ReligionActionResult
         {
             Success = success,
-            Message = success ? "Invitation declined." : "Failed to decline invitation."
+            Message = success
+                ? LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVITE_DECLINED)
+                : LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVITE_DECLINE_FAILED)
         };
     }
 
@@ -898,7 +914,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             return new ReligionActionResult
             {
                 Success = false,
-                Message = "You are not in a religion."
+                Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NOT_IN_RELIGION)
             };
 
         if (currentReligion.GetPlayerRole(fromPlayer.PlayerUID) == RoleDefaults.FOUNDER_ROLE_ID)
@@ -906,15 +922,15 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             return new ReligionActionResult
             {
                 Success = false,
-                Message =
-                    "Founders cannot leave their religion. Transfer founder status or disband the religion instead."
+                Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_FOUNDER_CANNOT_LEAVE)
             };
         }
 
         var religionName = currentReligion.ReligionName;
         _playerProgressionDataManager.LeaveReligion(fromPlayer.PlayerUID);
         _playerProgressionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
-        NotifyPlayerReligionStateChanged(fromPlayer, $"You left {religionName}", false);
+        NotifyPlayerReligionStateChanged(fromPlayer,
+            LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_YOU_LEFT, religionName), false);
 
         // Broadcast roles update to remaining members (after player has left)
         BroadcastRolesUpdateToReligion(currentReligion);
@@ -922,7 +938,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         return new ReligionActionResult
         {
             Success = true,
-            Message = $"Left {religionName}."
+            Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_LEFT, religionName)
         };
     }
 
@@ -934,14 +950,14 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             return new ReligionActionResult
             {
                 Success = false,
-                Message = "You don't have permission to kick members."
+                Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NO_KICK_PERMISSION)
             };
 
         if (packet.TargetPlayerUID == fromPlayer.PlayerUID)
             return new ReligionActionResult
             {
                 Success = false,
-                Message = "You cannot kick yourself."
+                Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_CANNOT_KICK_SELF)
             };
 
         _playerProgressionDataManager.LeaveReligion(packet.TargetPlayerUID);
@@ -951,11 +967,13 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         if (kickedPlayer != null)
         {
             kickedPlayer.SendMessage(0,
-                $"You have been kicked from {religion.ReligionName}.",
+                LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_KICKED_NOTIFICATION,
+                    religion.ReligionName),
                 EnumChatType.Notification);
             _playerProgressionDataManager.NotifyPlayerDataChanged(kickedPlayer.PlayerUID);
             NotifyPlayerReligionStateChanged(kickedPlayer,
-                $"You have been kicked from {religion.ReligionName}", false);
+                LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_KICKED_NOTIFICATION,
+                    religion.ReligionName), false);
         }
 
         // Broadcast updated roles/members data to all religion members
@@ -964,7 +982,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         return new ReligionActionResult
         {
             Success = true,
-            Message = "Kicked player from religion."
+            Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_KICKED)
         };
     }
 
@@ -976,24 +994,25 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             return new ReligionActionResult
             {
                 Success = false,
-                Message = "You don't have permission to ban players."
+                Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NO_BAN_PERMISSION)
             };
 
         if (packet.TargetPlayerUID == fromPlayer.PlayerUID)
             return new ReligionActionResult
             {
                 Success = false,
-                Message = "You cannot ban yourself."
+                Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_CANNOT_BAN_SELF)
             };
 
         // Extract ban parameters
-        var reason = "No reason provided";
+        var reason = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NO_REASON);
         int? expiryDays = null;
 
         if (packet.Data != null)
         {
             if (packet.Data.ContainsKey("Reason"))
-                reason = packet.Data["Reason"]?.ToString() ?? "No reason provided";
+                reason = packet.Data["Reason"]?.ToString() ??
+                         LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NO_REASON);
 
             if (packet.Data.ContainsKey("ExpiryDays"))
             {
@@ -1021,21 +1040,23 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         if (bannedPlayer != null)
         {
             bannedPlayer.SendMessage(0,
-                $"You have been banned from {religion.ReligionName}. Reason: {reason}",
+                LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_BANNED_NOTIFICATION,
+                    religion.ReligionName, reason),
                 EnumChatType.Notification);
             _playerProgressionDataManager.NotifyPlayerDataChanged(bannedPlayer.PlayerUID);
             NotifyPlayerReligionStateChanged(bannedPlayer,
-                $"You have been banned from {religion.ReligionName}. Reason: {reason}", false);
+                LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_BANNED_NOTIFICATION,
+                    religion.ReligionName, reason), false);
         }
 
         // Broadcast updated roles/members data to all religion members
         BroadcastRolesUpdateToReligion(religion);
 
-        var expiryText = expiryDays.HasValue ? $" for {expiryDays} days" : " permanently";
         return new ReligionActionResult
         {
             Success = true,
-            Message = $"Player has been banned from the religion{expiryText}. Reason: {reason}"
+            Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_PLAYER_BANNED,
+                expiryDays?.ToString() ?? "permanently", reason)
         };
     }
 
@@ -1047,7 +1068,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             return new ReligionActionResult
             {
                 Success = false,
-                Message = "Only the founder can unban players."
+                Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ONLY_FOUNDER_UNBAN)
             };
 
         var success = _religionManager.UnbanPlayer(religion.ReligionUID, packet.TargetPlayerUID);
@@ -1056,8 +1077,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         {
             Success = success,
             Message = success
-                ? "Player has been unbanned from the religion."
-                : "Failed to unban player. They may not be banned."
+                ? LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_UNBANNED)
+                : LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_UNBAN_FAILED)
         };
     }
 
@@ -1069,7 +1090,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             return new ReligionActionResult
             {
                 Success = false,
-                Message = "You are not in a religion."
+                Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NOT_IN_RELIGION)
             };
 
         // Convert player name to UID (UI sends player name in TargetPlayerUID field)
@@ -1081,7 +1102,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             return new ReligionActionResult
             {
                 Success = false,
-                Message = $"Player '{packet.TargetPlayerUID}' not found online."
+                Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_PLAYER_NOT_FOUND,
+                    packet.TargetPlayerUID)
             };
 
         var success = _religionManager.InvitePlayer(religion.ReligionUID,
@@ -1091,7 +1113,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         if (success)
         {
             NotifyPlayerReligionStateChanged(targetPlayer,
-                $"You have been invited to join {religion.ReligionName}", false);
+                LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVITED_NOTIFICATION,
+                    religion.ReligionName), false);
             _sapi.Logger.Debug(
                 $"[DivineAscension] Sent invitation notification to {targetPlayer.PlayerName} ({targetPlayer.PlayerUID})");
         }
@@ -1100,8 +1123,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         {
             Success = success,
             Message = success
-                ? "Invitation sent!"
-                : "Failed to send invitation. They may already have a pending invite."
+                ? LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVITE_SENT)
+                : LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVITE_SEND_FAILED)
         };
     }
 
@@ -1113,7 +1136,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             return new ReligionActionResult
             {
                 Success = false,
-                Message = "Only the founder can kick members."
+                Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ONLY_FOUNDER_KICK)
             };
 
         var religionName = religion.ReligionName;
@@ -1129,12 +1152,12 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 if (memberUID != fromPlayer.PlayerUID)
                     memberPlayer.SendMessage(
                         GlobalConstants.GeneralChatGroup,
-                        $"{religionName} has been disbanded by its founder",
+                        LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_DISBANDED, religionName),
                         EnumChatType.Notification
                     );
 
                 NotifyPlayerReligionStateChanged(memberPlayer,
-                    $"{religionName} has been disbanded", false);
+                    LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_DISBANDED, religionName), false);
             }
         }
 
@@ -1143,7 +1166,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         return new ReligionActionResult
         {
             Success = true,
-            Message = $"Successfully disbanded {religionName ?? "religion"}!"
+            Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_DISBANDED,
+                religionName ?? "religion")
         };
     }
 

@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Interfaces;
 using Vintagestory.API.Common;
@@ -48,7 +50,7 @@ public class BlessingNetworkHandler(
             var blessing = blessingRegistry!.GetBlessing(packet.BlessingId);
             if (blessing == null)
             {
-                message = $"Blessing '{packet.BlessingId}' not found.";
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_NOT_FOUND, packet.BlessingId);
             }
             else
             {
@@ -68,7 +70,8 @@ public class BlessingNetworkHandler(
                     {
                         if (religion == null)
                         {
-                            message = "You must be in a religion to unlock player blessings.";
+                            message = LocalizationService.Instance.Get(LocalizationKeys
+                                .NET_BLESSING_MUST_BE_IN_RELIGION_PLAYER);
                         }
                         else
                         {
@@ -77,14 +80,16 @@ public class BlessingNetworkHandler(
                             if (success)
                             {
                                 blessingEffectSystem!.RefreshPlayerBlessings(fromPlayer.PlayerUID);
-                                message = $"Successfully unlocked {blessing.Name}!";
+                                message = LocalizationService.Instance.Get(
+                                    LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED, blessing.Name);
 
                                 // Notify player data changed (triggers event that sends HUD update to client)
                                 playerProgressionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
                             }
                             else
                             {
-                                message = "Failed to unlock blessing. Please try again.";
+                                message = LocalizationService.Instance.Get(LocalizationKeys
+                                    .NET_BLESSING_FAILED_TO_UNLOCK);
                             }
                         }
                     }
@@ -92,17 +97,20 @@ public class BlessingNetworkHandler(
                     {
                         if (religion == null)
                         {
-                            message = "You must be in a religion to unlock religion blessings.";
+                            message = LocalizationService.Instance.Get(LocalizationKeys
+                                .NET_BLESSING_MUST_BE_IN_RELIGION_RELIGION);
                         }
                         else if (!religion.IsFounder(fromPlayer.PlayerUID))
                         {
-                            message = "Only the religion founder can unlock religion blessings.";
+                            message = LocalizationService.Instance.Get(LocalizationKeys
+                                .NET_BLESSING_ONLY_FOUNDER_CAN_UNLOCK);
                         }
                         else
                         {
                             religion.UnlockedBlessings[packet.BlessingId] = true;
                             blessingEffectSystem!.RefreshReligionBlessings(religion.ReligionUID);
-                            message = $"Successfully unlocked {blessing.Name} for all religion members!";
+                            message = LocalizationService.Instance.Get(
+                                LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED_FOR_RELIGION, blessing.Name);
                             success = true;
 
                             // Notify all members
@@ -115,7 +123,8 @@ public class BlessingNetworkHandler(
                                 if (member != null)
                                     member.SendMessage(
                                         GlobalConstants.GeneralChatGroup,
-                                        $"{blessing.Name} has been unlocked!",
+                                        LocalizationService.Instance.Get(
+                                            LocalizationKeys.NET_BLESSING_UNLOCKED_NOTIFICATION, blessing.Name),
                                         EnumChatType.Notification
                                     );
                             }
@@ -126,7 +135,7 @@ public class BlessingNetworkHandler(
         }
         catch (Exception ex)
         {
-            message = $"Error unlocking blessing: {ex.Message}";
+            message = LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_ERROR_UNLOCKING, ex.Message);
             sapi!.Logger.Error($"[DivineAscension] Blessing unlock error: {ex}");
         }
 

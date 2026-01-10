@@ -26,6 +26,8 @@ public class BlessingEffectSystemTests
 
     public BlessingEffectSystemTests()
     {
+        TestFixtures.InitializeLocalizationForTests();
+
         _mockAPI = TestFixtures.CreateMockServerAPI();
         _mockBlessingRegistry = new Mock<IBlessingRegistry>();
         _mockPlayerReligionDataManager = TestFixtures.CreateMockPlayerProgressionDataManager();
@@ -152,7 +154,7 @@ public class BlessingEffectSystemTests
     [InlineData("meleeWeaponsDamage", "Melee Damage")]
     [InlineData("rangedWeaponsDamage", "Ranged Damage")]
     [InlineData("meleeWeaponsSpeed", "Attack Speed")]
-    [InlineData("walkspeed", "Walk Speed")]
+    [InlineData("walkspeed", "Movement Speed")]
     [InlineData("maxhealthExtraPoints", "Max Health")]
     [InlineData("healingeffectivness", "Health Regen")]
     [InlineData("unknown_stat", "unknown_stat")]

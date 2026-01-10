@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Commands;
 using DivineAscension.Systems.Interfaces;
+using DivineAscension.Tests.Helpers;
 using Moq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -21,6 +22,9 @@ public class BlessingCommandsTestHelpers
 
     protected BlessingCommandsTestHelpers()
     {
+        // Initialize localization for tests
+        TestFixtures.InitializeLocalizationForTests();
+
         _mockSapi = new Mock<ICoreServerAPI>();
         _mockApi = new Mock<ICoreAPI>();
 

@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Blessing;
 using DivineAscension.GUI.Models.Blessing.Info;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing.Info;
@@ -13,8 +15,6 @@ namespace DivineAscension.GUI.UI.Renderers.Blessing.Info;
 /// </summary>
 internal static class BlessingInfoRenderer
 {
-    private const string SelectABlessingToViewDetails = "Select a blessing to view details";
-
     /// <summary>
     ///     Draw the blessing info panel
     /// </summary>
@@ -33,7 +33,7 @@ internal static class BlessingInfoRenderer
         if (selectedState == null)
         {
             // No blessing selected - show prompt
-            var promptText = SelectABlessingToViewDetails;
+            var promptText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_SELECT_TO_VIEW);
             var textSize = ImGui.CalcTextSize(promptText);
             var textPos = new Vector2(
                 vm.X + (vm.Width - textSize.X) / 2,
