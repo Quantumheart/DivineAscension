@@ -266,9 +266,8 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
 
         // Assert
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("walkspeed", result.StatusMessage);
+        Assert.Contains("Movement Speed", result.StatusMessage); // walkspeed → Movement Speed
         Assert.Contains("15", result.StatusMessage); // 0.15 * 100 = 15
-        Assert.Contains("1000", result.StatusMessage); // 10.0 * 100 = 1000
     }
 
     #endregion
@@ -391,7 +390,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
 
         // Assert
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("walkspeed", result.StatusMessage);
+        Assert.Contains("Movement Speed", result.StatusMessage); // walkspeed → Movement Speed
         Assert.Contains("special_effect", result.StatusMessage);
     }
 

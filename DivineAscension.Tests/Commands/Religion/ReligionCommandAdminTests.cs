@@ -147,7 +147,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("Player has been added to TestReligion", result.StatusMessage);
+        Assert.Contains("Successfully added Player to religion TestReligion", result.StatusMessage);
         _playerProgressionDataManager.Verify(m => m.JoinReligion("player-1", "religion-1"), Times.Once);
         _religionManager.Verify(m => m.RemoveInvitation("player-1", "religion-1"), Times.Once);
     }
@@ -178,7 +178,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("Player has been added to NewReligion", result.StatusMessage);
+        Assert.Contains("Successfully added Player to religion NewReligion", result.StatusMessage);
         _playerProgressionDataManager.Verify(m => m.LeaveReligion("player-1"), Times.Once);
         _playerProgressionDataManager.Verify(m => m.JoinReligion("player-1", "new-religion"), Times.Once);
         _playerProgressionDataManager.Verify(m => m.HandleReligionSwitch("player-1"), Times.Never);
@@ -208,7 +208,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("Admin has been added to TestReligion", result.StatusMessage);
+        Assert.Contains("Successfully added Admin to religion TestReligion", result.StatusMessage);
         _playerProgressionDataManager.Verify(m => m.JoinReligion("admin-1", "religion-1"), Times.Once);
     }
 
@@ -294,7 +294,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("Player has left TestReligion", result.StatusMessage);
+        Assert.Contains("Successfully removed Player from religion TestReligion", result.StatusMessage);
         _playerProgressionDataManager.Verify(m => m.LeaveReligion("player-1"), Times.Once);
     }
 
@@ -330,7 +330,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("Founder has left TestReligion", result.StatusMessage);
+        Assert.Contains("has left the religion", result.StatusMessage);
         Assert.Contains("Founder role transferred to", result.StatusMessage);
         _mockRoleManager.Verify(m => m.TransferFounder("religion-1", "founder-1", "member-1"), Times.Once);
         _playerProgressionDataManager.Verify(m => m.LeaveReligion("founder-1"), Times.Once);
@@ -361,8 +361,8 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("Founder has left TestReligion", result.StatusMessage);
-        Assert.Contains("Religion disbanded", result.StatusMessage);
+        Assert.Contains("was the last member", result.StatusMessage);
+        Assert.Contains("has been disbanded", result.StatusMessage);
         _religionManager.Verify(m => m.DeleteReligion("religion-1", "founder-1"), Times.Once);
     }
 
@@ -391,7 +391,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("Admin has left TestReligion", result.StatusMessage);
+        Assert.Contains("Successfully removed Admin from religion TestReligion", result.StatusMessage);
         _playerProgressionDataManager.Verify(m => m.LeaveReligion("admin-1"), Times.Once);
     }
 

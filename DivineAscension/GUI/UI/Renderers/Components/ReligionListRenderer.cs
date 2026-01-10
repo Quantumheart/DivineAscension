@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.List;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Components;
@@ -47,7 +49,7 @@ public static class ReligionListRenderer
         // Loading state
         if (isLoading)
         {
-            var loadingText = "Loading religions...";
+            var loadingText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_BROWSE_LOADING);
             var loadingSize = ImGui.CalcTextSize(loadingText);
             var loadingPos = new Vector2(
                 x + (width - loadingSize.X) / 2,
@@ -61,7 +63,7 @@ public static class ReligionListRenderer
         // No religions state
         if (religions.Count == 0)
         {
-            var noReligionText = "No religions found";
+            var noReligionText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_BROWSE_NO_RELIGIONS);
             var noReligionSize = ImGui.CalcTextSize(noReligionText);
             var noReligionPos = new Vector2(
                 x + (width - noReligionSize.X) / 2,
@@ -228,8 +230,11 @@ public static class ReligionListRenderer
         drawList.AddText(ImGui.GetFont(), 13f, deityPos, deityColorU32, deityText);
 
         // Draw member count and prestige
-        var infoText =
-            $"{religion.MemberCount} members | {religion.PrestigeRank} Prestige | {(religion.IsPublic ? "Public" : "Private")}";
+        var statusText = religion.IsPublic
+            ? LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_PUBLIC)
+            : LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_PRIVATE);
+        var infoText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_LIST_INFO_SHORT,
+            religion.MemberCount, religion.PrestigeRank, statusText);
         var infoPos = new Vector2(x + padding * 2 + iconSize, y + padding + 42f);
         var infoColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 12f, infoPos, infoColor, infoText);
@@ -266,19 +271,24 @@ public static class ReligionListRenderer
         lines.Add(""); // Empty line for spacing
 
         // Member count
-        lines.Add($"Members: {religion.MemberCount}");
+        lines.Add(
+            $"{LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_LIST_MEMBERS_LABEL)} {religion.MemberCount}");
 
         // Prestige
-        lines.Add($"Prestige: {religion.PrestigeRank} ({religion.Prestige})");
+        lines.Add(
+            $"{LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_LIST_PRESTIGE_LABEL)} {religion.PrestigeRank} ({religion.Prestige})");
 
         // Public/Private status
-        lines.Add($"Status: {(religion.IsPublic ? "Public" : "Private")}");
+        var status = religion.IsPublic
+            ? LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_PUBLIC)
+            : LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_PRIVATE);
+        lines.Add($"{LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_LIST_STATUS_LABEL)} {status}");
 
         // Description (if available)
         if (!string.IsNullOrEmpty(religion.Description))
         {
             lines.Add(""); // Empty line for spacing
-            lines.Add("Description:");
+            lines.Add(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_LIST_DESCRIPTION_LABEL));
 
             // Wrap description text
             var wrappedDesc = WrapText(religion.Description, tooltipMaxWidth - tooltipPadding * 2, 13f);
@@ -354,8 +364,13 @@ public static class ReligionListRenderer
                 textColor = ColorPalette.White;
                 fontSize = 13f;
             }
-            else if (line.StartsWith("Description:") || line.StartsWith("Members:") || line.StartsWith("Prestige:") ||
-                     line.StartsWith("Status:"))
+            else if (line.StartsWith(
+                         LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_LIST_DESCRIPTION_LABEL)) ||
+                     line.StartsWith(
+                         LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_LIST_MEMBERS_LABEL)) ||
+                     line.StartsWith(
+                         LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_LIST_PRESTIGE_LABEL)) ||
+                     line.StartsWith(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_LIST_STATUS_LABEL)))
             {
                 // Section headers
                 textColor = ColorPalette.Grey;

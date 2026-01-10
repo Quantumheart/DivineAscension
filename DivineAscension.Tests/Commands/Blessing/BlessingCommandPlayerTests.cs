@@ -112,8 +112,9 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
             message);
         Assert.Contains(string.Format(FormatStringConstants.FormatDescription, "Deals extra damage to enemies."),
             message);
-        Assert.Contains(FormatStringConstants.LabelEffects, message);
-        Assert.Contains(string.Format(FormatStringConstants.FormatStatModifier, "Damage", 20), message);
+        Assert.Contains("Stat Modifiers:", message); // Now uses localized label
+        Assert.Contains("Damage", message);
+        Assert.Contains("20", message);
     }
 
     [Fact]

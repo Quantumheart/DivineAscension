@@ -1,9 +1,12 @@
 using System;
 using System.Numerics;
+using DivineAscension.Constants;
+using DivineAscension.Extensions;
 using DivineAscension.GUI.Models.Religion.Header;
 using DivineAscension.GUI.UI.Renderers.Components;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using ImGuiNET;
 
@@ -15,9 +18,6 @@ namespace DivineAscension.GUI.UI.Renderers.Blessing;
 /// </summary>
 internal static class ReligionHeaderRenderer
 {
-    private const string NoReligionJoinOrCreateOneToUnlockBlessings =
-        "No Religion - Join or create one to unlock blessings!";
-
     /// <summary>
     /// Draw a religion header.
     /// </summary>
@@ -44,7 +44,7 @@ internal static class ReligionHeaderRenderer
         if (!viewModel.HasReligion)
         {
             // Display "No Religion" message
-            var noReligionText = NoReligionJoinOrCreateOneToUnlockBlessings;
+            var noReligionText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_NO_RELIGION);
             var textSize = ImGui.CalcTextSize(noReligionText);
             var textPos = new Vector2(
                 viewModel.X + (viewModel.Width - textSize.X) / 2,
@@ -103,7 +103,8 @@ internal static class ReligionHeaderRenderer
         currentX += iconSize + padding;
 
         // Religion name and deity
-        var religionName = viewModel.CurrentReligionName ?? "Unknown Religion";
+        var religionName = viewModel.CurrentReligionName ??
+                           LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNKNOWN_RELIGION);
         var deityName = GetDeityDisplayName(viewModel.CurrentDeity);
         var headerText = $"{religionName} - {deityName}";
 
@@ -113,8 +114,9 @@ internal static class ReligionHeaderRenderer
 
         // Member count and role
         var memberInfo = viewModel.ReligionMemberCount > 0
-            ? $"{viewModel.ReligionMemberCount} member{(viewModel.ReligionMemberCount == 1 ? "" : "s")}"
-            : "No members";
+            ? LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_MEMBER_COUNT, viewModel.ReligionMemberCount,
+                viewModel.ReligionMemberCount == 1 ? "" : "s")
+            : LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_NO_MEMBERS);
         var roleInfo = !string.IsNullOrEmpty(viewModel.PlayerRoleInReligion)
             ? $" | {viewModel.PlayerRoleInReligion}"
             : "";
@@ -140,7 +142,8 @@ internal static class ReligionHeaderRenderer
         // Label
         var favorLabelPos = new Vector2(currentX, progressY);
         var labelColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
-        drawList.AddText(ImGui.GetFont(), 12f, favorLabelPos, labelColor, "Player Progress:");
+        drawList.AddText(ImGui.GetFont(), 12f, favorLabelPos, labelColor,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PLAYER_PROGRESS));
 
         // Progress bar
         ProgressBarRenderer.DrawProgressBar(
@@ -163,7 +166,8 @@ internal static class ReligionHeaderRenderer
 
         // Label
         var prestigeLabelPos = new Vector2(currentX, progressY);
-        drawList.AddText(ImGui.GetFont(), 12f, prestigeLabelPos, labelColor, "Religion Progress:");
+        drawList.AddText(ImGui.GetFont(), 12f, prestigeLabelPos, labelColor,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_RELIGION_PROGRESS));
 
         // Progress bar (purple color)
         ProgressBarRenderer.DrawProgressBar(
@@ -211,8 +215,9 @@ internal static class ReligionHeaderRenderer
             civCurrentX += civIconSize + padding;
 
             // Civilization name (align with religion header position Y+12)
-            var civName = viewModel.CurrentCivilizationName ?? "Unknown Civilization";
-            var civNameText = $"Civilization: {civName}";
+            var civName = viewModel.CurrentCivilizationName ??
+                          LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNKNOWN_CIVILIZATION);
+            var civNameText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_CIVILIZATION, civName);
             var civNamePos = new Vector2(civCurrentX, viewModel.Y + 12f);
             var civNameColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.5f, 0.8f, 1f, 1f));
             drawList.AddText(ImGui.GetFont(), 15f, civNamePos, civNameColor, civNameText);
@@ -220,7 +225,8 @@ internal static class ReligionHeaderRenderer
             // Member religions with deity colors (align with religion info position Y+35)
             var civInfoY = viewModel.Y + 35f;
             var memberCount = viewModel.CivilizationMemberReligions?.Count;
-            var memberText = $"{memberCount}/4 Religions";
+            var memberText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_RELIGIONS_COUNT,
+                memberCount);
             var memberPos = new Vector2(civCurrentX, civInfoY);
             var memberColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
             drawList.AddText(ImGui.GetFont(), 13f, memberPos, memberColor, memberText);
@@ -263,17 +269,10 @@ internal static class ReligionHeaderRenderer
     // Old below-header civilization section removed in favor of two-column layout
 
     /// <summary>
-    ///     Get display name for a deity
+    ///     Get display name for a deity with title
     /// </summary>
     private static string GetDeityDisplayName(DeityType deity)
     {
-        return deity switch
-        {
-            DeityType.Khoras => "Khoras - God of War",
-            DeityType.Lysa => "Lysa - Goddess of the Hunt",
-            DeityType.Aethra => "Aethra - Goddess of Light",
-            DeityType.Gaia => "Gaia - Goddess of Earth",
-            _ => "Unknown Deity"
-        };
+        return deity.ToLocalizedStringWithTitle();
     }
 }

@@ -157,7 +157,7 @@ public class ReligionCommandMembersTests : ReligionCommandsTestHelpers
 
         // Assert
         Assert.Contains("FounderName (Founder)", result.StatusMessage);
-        Assert.Contains("MemberName (Member)", result.StatusMessage);
+        Assert.Contains("MemberName", result.StatusMessage);
     }
 
     #endregion

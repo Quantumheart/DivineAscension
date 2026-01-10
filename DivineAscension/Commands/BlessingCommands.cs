@@ -3,8 +3,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using DivineAscension.Constants;
+using DivineAscension.Extensions;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -46,42 +48,42 @@ public class BlessingCommands(
     public void RegisterCommands()
     {
         _sapi.ChatCommands.Create(BlessingCommandConstants.CommandName)
-            .WithDescription(BlessingDescriptionConstants.CommandDescription)
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSINGS_DESC))
             .RequiresPlayer()
             .RequiresPrivilege(Privilege.chat)
             .BeginSubCommand(BlessingCommandConstants.SubCommandList)
-            .WithDescription(BlessingDescriptionConstants.DescriptionList)
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSINGS_LIST_DESC))
             .HandleWith(OnList)
             .EndSubCommand()
             .BeginSubCommand(BlessingCommandConstants.SubCommandPlayer)
-            .WithDescription(BlessingDescriptionConstants.DescriptionPlayer)
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSINGS_PLAYER_DESC))
             .HandleWith(OnPlayer)
             .EndSubCommand()
             .BeginSubCommand(BlessingCommandConstants.SubCommandReligion)
-            .WithDescription(BlessingDescriptionConstants.DescriptionReligion)
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSINGS_RELIGION_DESC))
             .HandleWith(OnReligion)
             .EndSubCommand()
             .BeginSubCommand(BlessingCommandConstants.SubCommandInfo)
-            .WithDescription(BlessingDescriptionConstants.DescriptionInfo)
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSINGS_INFO_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord(ParameterConstants.ParamBlessingId))
             .HandleWith(OnInfo)
             .EndSubCommand()
             .BeginSubCommand(BlessingCommandConstants.SubCommandTree)
-            .WithDescription(BlessingDescriptionConstants.DescriptionTree)
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSINGS_TREE_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word(ParameterConstants.ParamType))
             .HandleWith(OnTree)
             .EndSubCommand()
             .BeginSubCommand(BlessingCommandConstants.SubCommandUnlock)
-            .WithDescription(BlessingDescriptionConstants.DescriptionUnlock)
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSINGS_UNLOCK_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word(ParameterConstants.ParamBlessingId))
             .HandleWith(OnUnlock)
             .EndSubCommand()
             .BeginSubCommand(BlessingCommandConstants.SubCommandActive)
-            .WithDescription(BlessingDescriptionConstants.DescriptionActive)
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSINGS_ACTIVE_DESC))
             .HandleWith(OnActive)
             .EndSubCommand()
             .BeginSubCommand("admin")
-            .WithDescription("Admin commands for blessing management")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSINGS_ADMIN_DESC))
             .RequiresPrivilege(Privilege.root)
             .BeginSubCommand("unlock")
             .WithDescription("Force unlock a blessing for a player (bypasses requirements)")
@@ -116,43 +118,55 @@ public class BlessingCommands(
     internal TextCommandResult OnList(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error(ErrorMessageConstants.ErrorPlayerNotFound);
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_PLAYER_NOT_FOUND));
 
         var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
         var playerDeity = _religionManager.GetPlayerActiveDeity(player.PlayerUID);
         if (playerDeity == DeityType.None)
-            return TextCommandResult.Error(ErrorMessageConstants.ErrorMustJoinReligion);
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_IN_RELIGION));
 
         var playerBlessings = _blessingRegistry.GetBlessingsForDeity(playerDeity, BlessingKind.Player);
         var religionBlessings = _blessingRegistry.GetBlessingsForDeity(playerDeity, BlessingKind.Religion);
 
         var sb = new StringBuilder();
-        sb.AppendLine(string.Format(FormatStringConstants.HeaderBlessingsForDeity, playerDeity));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_HEADER_FOR_DEITY,
+            playerDeity.ToLocalizedString()));
         sb.AppendLine();
 
-        sb.AppendLine(FormatStringConstants.HeaderPlayerBlessings);
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_HEADER_PLAYER));
         foreach (var blessing in playerBlessings)
         {
-            var status = playerData.IsBlessingUnlocked(blessing.BlessingId) ? FormatStringConstants.LabelUnlocked : "";
+            var status = playerData.IsBlessingUnlocked(blessing.BlessingId)
+                ? LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_FORMAT_UNLOCKED, blessing.Name)
+                : LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_FORMAT_LOCKED, blessing.Name);
             var requiredRank = (FavorRank)blessing.RequiredFavorRank;
-            sb.AppendLine($"{blessing.Name} {status}");
-            sb.AppendLine(string.Format(FormatStringConstants.FormatBlessingId, blessing.BlessingId));
-            sb.AppendLine(string.Format(FormatStringConstants.FormatRequiredRank, requiredRank));
-            sb.AppendLine(string.Format(FormatStringConstants.FormatDescription, blessing.Description));
+            sb.AppendLine(status);
+            sb.AppendLine(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_FORMAT_ID, blessing.BlessingId));
+            sb.AppendLine(
+                $"  {LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_FAVOR_RANK)} {requiredRank.ToLocalizedString()}");
+            sb.AppendLine($"  {blessing.Description}");
             sb.AppendLine();
         }
 
-        sb.AppendLine(FormatStringConstants.HeaderReligionBlessings);
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_HEADER_RELIGION));
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         foreach (var blessing in religionBlessings)
         {
             var unlocked = religion?.UnlockedBlessings.TryGetValue(blessing.BlessingId, out var u) == true && u;
-            var status = unlocked ? FormatStringConstants.LabelUnlocked : "";
+            var status = unlocked
+                ? LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_FORMAT_UNLOCKED, blessing.Name)
+                : LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_FORMAT_LOCKED, blessing.Name);
             var requiredRank = (PrestigeRank)blessing.RequiredPrestigeRank;
-            sb.AppendLine($"{blessing.Name} {status}");
-            sb.AppendLine(string.Format(FormatStringConstants.FormatBlessingId, blessing.BlessingId));
-            sb.AppendLine(string.Format(FormatStringConstants.FormatRequiredRank, requiredRank));
-            sb.AppendLine(string.Format(FormatStringConstants.FormatDescription, blessing.Description));
+            sb.AppendLine(status);
+            sb.AppendLine(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_FORMAT_ID, blessing.BlessingId));
+            sb.AppendLine(
+                $"  {LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_PRESTIGE_RANK)} {requiredRank.ToLocalizedString()}");
+            sb.AppendLine($"  {blessing.Description}");
             sb.AppendLine();
         }
 
@@ -165,28 +179,34 @@ public class BlessingCommands(
     internal TextCommandResult OnPlayer(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error(ErrorMessageConstants.ErrorPlayerNotFound);
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_PLAYER_NOT_FOUND));
 
         var (playerBlessings, _) = _blessingEffectSystem.GetActiveBlessings(player.PlayerUID);
 
-        if (playerBlessings.Count == 0) return TextCommandResult.Success(InfoMessageConstants.InfoNoPlayerBlessings);
+        if (playerBlessings.Count == 0)
+            return TextCommandResult.Success(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_INFO_NO_PLAYER_UNLOCKED));
 
         var sb = new StringBuilder();
-        sb.AppendLine(string.Format(FormatStringConstants.HeaderUnlockedPlayerBlessings, playerBlessings.Count));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_HEADER_UNLOCKED_PLAYER,
+            playerBlessings.Count));
         sb.AppendLine();
 
         foreach (var blessing in playerBlessings)
         {
-            sb.AppendLine(string.Format(FormatStringConstants.FormatBlessingNameCategory, blessing.Name,
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_FORMAT_NAME, blessing.Name,
                 blessing.Category));
-            sb.AppendLine(string.Format(FormatStringConstants.FormatDescription, blessing.Description));
+            sb.AppendLine($"  {blessing.Description}");
 
             if (blessing.StatModifiers.Count > 0)
             {
-                sb.AppendLine(FormatStringConstants.LabelEffects);
+                sb.AppendLine(
+                    $"  {LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_STAT_MODIFIERS)}");
                 foreach (var mod in blessing.StatModifiers)
-                    sb.AppendLine(string.Format(FormatStringConstants.FormatStatModifier, mod.Key,
-                        mod.Value * 100));
+                    sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_FORMAT_STAT_MODIFIER,
+                        FormatStatName(mod.Key), mod.Value * 100));
             }
 
             sb.AppendLine();
@@ -201,34 +221,38 @@ public class BlessingCommands(
     internal TextCommandResult OnReligion(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error(ErrorMessageConstants.ErrorPlayerNotFound);
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_PLAYER_NOT_FOUND));
 
         if (!_religionManager.HasReligion(player.PlayerUID))
-            return TextCommandResult.Error(ErrorMessageConstants.ErrorNoReligion);
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NO_RELIGION));
 
         var (_, religionBlessings) = _blessingEffectSystem.GetActiveBlessings(player.PlayerUID);
 
         if (religionBlessings.Count == 0)
-            return TextCommandResult.Success(InfoMessageConstants.InfoNoReligionBlessings);
+            return TextCommandResult.Success(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_INFO_NO_RELIGION_UNLOCKED));
 
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         var sb = new StringBuilder();
-        sb.AppendLine(string.Format(FormatStringConstants.HeaderReligionBlessingsWithName, religion?.ReligionName,
-            religionBlessings.Count));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_HEADER_RELIGION_WITH_NAME,
+            religion?.ReligionName, religionBlessings.Count));
         sb.AppendLine();
 
         foreach (var blessing in religionBlessings)
         {
-            sb.AppendLine(string.Format(FormatStringConstants.FormatBlessingNameCategory, blessing.Name,
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_FORMAT_NAME, blessing.Name,
                 blessing.Category));
-            sb.AppendLine(string.Format(FormatStringConstants.FormatDescription, blessing.Description));
+            sb.AppendLine($"  {blessing.Description}");
 
             if (blessing.StatModifiers.Count > 0)
             {
-                sb.AppendLine(FormatStringConstants.LabelEffectsForAllMembers);
+                sb.AppendLine(
+                    $"  {LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_STAT_MODIFIERS)}");
                 foreach (var mod in blessing.StatModifiers)
-                    sb.AppendLine(string.Format(FormatStringConstants.FormatStatModifier, mod.Key,
-                        mod.Value * 100));
+                    sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_FORMAT_STAT_MODIFIER,
+                        FormatStatName(mod.Key), mod.Value * 100));
             }
 
             sb.AppendLine();
@@ -251,45 +275,49 @@ public class BlessingCommands(
     /// </summary>
     internal TextCommandResult GetInfo(string? blessingId)
     {
-        if (string.IsNullOrEmpty(blessingId)) return TextCommandResult.Error(UsageMessageConstants.UsageBlessingsInfo);
+        if (string.IsNullOrEmpty(blessingId))
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_USAGE_INFO));
 
         var blessing = _blessingRegistry.GetBlessing(blessingId);
         if (blessing == null)
-            return TextCommandResult.Error(string.Format(ErrorMessageConstants.ErrorBlessingNotFound,
-                blessingId));
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_FOUND, blessingId));
 
         var sb = new StringBuilder();
-        sb.AppendLine(string.Format(FormatStringConstants.HeaderBlessingInfo, blessing.Name));
-        sb.AppendLine(string.Format(FormatStringConstants.LabelId, blessing.BlessingId));
-        sb.AppendLine(string.Format(FormatStringConstants.LabelDeity, blessing.Deity));
-        sb.AppendLine(string.Format(FormatStringConstants.LabelType, blessing.Kind));
-        sb.AppendLine(string.Format(FormatStringConstants.LabelCategory, blessing.Category));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_HEADER_BLESSING_INFO,
+            blessing.Name));
+        sb.AppendLine(
+            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_ID)} {blessing.BlessingId}");
+        sb.AppendLine(
+            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_DEITY)} {blessing.Deity.ToLocalizedString()}");
+        sb.AppendLine($"{LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_TYPE)} {blessing.Kind}");
+        sb.AppendLine(
+            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_CATEGORY)} {blessing.Category}");
         sb.AppendLine();
-        sb.AppendLine(string.Format(FormatStringConstants.LabelDescriptionStandalone,
-            blessing.Description));
+        sb.AppendLine($"{blessing.Description}");
         sb.AppendLine();
 
         if (blessing.Kind == BlessingKind.Player)
         {
             var requiredRank = (FavorRank)blessing.RequiredFavorRank;
             sb.AppendLine(
-                string.Format(FormatStringConstants.LabelRequiredFavorRank, requiredRank));
+                $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_FAVOR_RANK)} {requiredRank.ToLocalizedString()}");
         }
         else
         {
             var requiredRank = (PrestigeRank)blessing.RequiredPrestigeRank;
-            sb.AppendLine(string.Format(FormatStringConstants.LabelRequiredPrestigeRank,
-                requiredRank));
+            sb.AppendLine(
+                $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_PRESTIGE_RANK)} {requiredRank.ToLocalizedString()}");
         }
 
         if (blessing.PrerequisiteBlessings is { Count: > 0 })
         {
-            sb.AppendLine(FormatStringConstants.LabelPrerequisites);
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_PREREQUISITES));
             foreach (var prereqId in blessing.PrerequisiteBlessings)
             {
                 var prereq = _blessingRegistry.GetBlessing(prereqId);
                 var prereqName = prereq?.Name ?? prereqId;
-                sb.AppendLine(string.Format(FormatStringConstants.LabelPrerequisiteItem,
+                sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_FORMAT_PREREQUISITE,
                     prereqName));
             }
         }
@@ -297,18 +325,18 @@ public class BlessingCommands(
         if (blessing.StatModifiers.Count > 0)
         {
             sb.AppendLine();
-            sb.AppendLine(FormatStringConstants.LabelStatModifiers);
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_STAT_MODIFIERS));
             foreach (var mod in blessing.StatModifiers)
-                sb.AppendLine(string.Format(FormatStringConstants.FormatStatModifierPercent,
-                    mod.Key, mod.Value * 100));
+                sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_FORMAT_STAT_MODIFIER,
+                    FormatStatName(mod.Key), mod.Value * 100));
         }
 
         if (blessing.SpecialEffects is { Count: > 0 })
         {
             sb.AppendLine();
-            sb.AppendLine(FormatStringConstants.LabelSpecialEffects);
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_SPECIAL_EFFECTS));
             foreach (var effect in blessing.SpecialEffects)
-                sb.AppendLine(string.Format(FormatStringConstants.LabelSpecialEffectItem, effect));
+                sb.AppendLine($"  - {effect}");
         }
 
         return TextCommandResult.Success(sb.ToString());
@@ -321,7 +349,8 @@ public class BlessingCommands(
     private TextCommandResult OnTree(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error(ErrorMessageConstants.ErrorPlayerNotFound);
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var type = args[0] as string;
         return GetTree(player.PlayerUID, type);
@@ -336,12 +365,13 @@ public class BlessingCommands(
         var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(playerUid);
         var playerDeity = _religionManager.GetPlayerActiveDeity(playerUid);
         if (playerDeity == DeityType.None)
-            return TextCommandResult.Error(ErrorMessageConstants.ErrorMustJoinReligionForTree);
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_MUST_JOIN_FOR_TREE));
 
-        type = type ?? FormatStringConstants.TypePlayer;
+        type = type ?? "player";
         type = type.ToLower();
 
-        var blessingKind = type == FormatStringConstants.TypeReligion
+        var blessingKind = type == "religion"
             ? BlessingKind.Religion
             : BlessingKind.Player;
 
@@ -351,7 +381,8 @@ public class BlessingCommands(
 
 
         var sb = new StringBuilder();
-        sb.AppendLine(string.Format(FormatStringConstants.HeaderBlessingTree, playerDeity, blessingKind));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_HEADER_BLESSING_TREE,
+            playerDeity.ToLocalizedString(), blessingKind));
         sb.AppendLine();
 
         // Group by rank
@@ -365,18 +396,19 @@ public class BlessingCommands(
                 if (rankBlessings.Count == 0)
                     continue;
 
-                sb.AppendLine(string.Format(FormatStringConstants.HeaderRankSection, rank));
+                sb.AppendLine($"=== {rank.ToLocalizedString()} ===");
                 foreach (var blessing in rankBlessings)
                 {
                     var unlocked = playerData.IsBlessingUnlocked(blessing.BlessingId);
                     var status = unlocked
-                        ? FormatStringConstants.LabelChecked
-                        : FormatStringConstants.LabelUnchecked;
+                        ? "✓"
+                        : "✗";
                     sb.AppendLine($"{status} {blessing.Name}");
 
                     if (blessing.PrerequisiteBlessings is { Count: > 0 })
                     {
-                        sb.Append(FormatStringConstants.LabelRequires);
+                        sb.Append(
+                            $"  {LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_PREREQUISITES)} ");
                         var prereqNames = blessing.PrerequisiteBlessings
                             .Select(id =>
                             {
@@ -399,18 +431,19 @@ public class BlessingCommands(
                 if (rankBlessings.Count == 0)
                     continue;
 
-                sb.AppendLine(string.Format(FormatStringConstants.HeaderRankSection, rank));
+                sb.AppendLine($"=== {rank.ToLocalizedString()} ===");
                 foreach (var blessing in rankBlessings)
                 {
                     var unlocked = religion?.UnlockedBlessings.TryGetValue(blessing.BlessingId, out var u) == true && u;
                     var status = unlocked
-                        ? FormatStringConstants.LabelChecked
-                        : FormatStringConstants.LabelUnchecked;
+                        ? "✓"
+                        : "✗";
                     sb.AppendLine($"{status} {blessing.Name}");
 
                     if (blessing.PrerequisiteBlessings is { Count: > 0 })
                     {
-                        sb.Append(FormatStringConstants.LabelRequires);
+                        sb.Append(
+                            $"  {LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_PREREQUISITES)} ");
                         var prereqNames = blessing.PrerequisiteBlessings
                             .Select(id =>
                             {
@@ -434,7 +467,8 @@ public class BlessingCommands(
     private TextCommandResult OnUnlock(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error(ErrorMessageConstants.ErrorPlayerNotFound);
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
         var blessingId = args[0] as string;
         return Unlock(player.PlayerUID, blessingId);
     }
@@ -446,26 +480,32 @@ public class BlessingCommands(
     private TextCommandResult Unlock(string playerUid, string? blessingId)
     {
         if (string.IsNullOrEmpty(blessingId))
-            return TextCommandResult.Error(UsageMessageConstants.UsageBlessingsUnlock);
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_USAGE_UNLOCK));
 
         var blessing = _blessingRegistry.GetBlessing(blessingId);
         if (blessing == null)
-            return TextCommandResult.Error(string.Format(ErrorMessageConstants.ErrorBlessingNotFound, blessingId));
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_FOUND, blessingId));
 
         var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(playerUid);
         var religion = _religionManager.GetPlayerReligion(playerUid);
 
         var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(playerData, religion, blessing);
         if (!canUnlock)
-            return TextCommandResult.Error(string.Format(ErrorMessageConstants.ErrorCannotUnlockBlessing, reason));
+            return TextCommandResult.Error(reason);
 
         // Unlock the blessing
         if (blessing.Kind == BlessingKind.Player)
         {
-            if (religion == null) return TextCommandResult.Error(ErrorMessageConstants.ErrorMustBeInReligionToUnlock);
+            if (religion == null)
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_IN_RELIGION));
 
             var success = _playerProgressionDataManager.UnlockPlayerBlessing(playerUid, blessingId);
-            if (!success) return TextCommandResult.Error(ErrorMessageConstants.ErrorFailedToUnlock);
+            if (!success)
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_ALREADY_UNLOCKED));
 
             _blessingEffectSystem.RefreshPlayerBlessings(playerUid);
 
@@ -476,20 +516,24 @@ public class BlessingCommands(
             var player = _sapi.World.PlayerByUid(playerUid) as IServerPlayer;
             if (player != null)
             {
-                var packet = new BlessingUnlockResponsePacket(true, $"Unlocked {blessing.Name}!", blessing.BlessingId);
+                var packet = new BlessingUnlockResponsePacket(true,
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_UNLOCKED, blessing.Name),
+                    blessing.BlessingId);
                 _serverChannel.SendPacket(packet, player);
             }
 
-            return TextCommandResult.Success(string.Format(SuccessMessageConstants.SuccessUnlockedPlayerBlessing,
-                blessing.Name));
+            return TextCommandResult.Success(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_UNLOCKED, blessing.Name));
         }
 
         // Religion blessing
-        if (religion == null) return TextCommandResult.Error(ErrorMessageConstants.ErrorMustBeInReligionToUnlock);
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_IN_RELIGION));
 
         // Only founder can unlock religion blessings (optional restriction)
         if (!religion.IsFounder(playerUid))
-            return TextCommandResult.Error(ErrorMessageConstants.ErrorOnlyFounderCanUnlock);
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_FOUNDER));
 
         religion.UnlockedBlessings[blessingId] = true;
         _blessingEffectSystem.RefreshReligionBlessings(religion.ReligionUID);
@@ -502,7 +546,7 @@ public class BlessingCommands(
                 // Send chat notification
                 member.SendMessage(
                     GlobalConstants.GeneralChatGroup,
-                    string.Format(SuccessMessageConstants.NotificationBlessingUnlocked, blessing.Name),
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_UNLOCKED, blessing.Name),
                     EnumChatType.Notification
                 );
 
@@ -510,14 +554,15 @@ public class BlessingCommands(
                 _playerProgressionDataManager.NotifyPlayerDataChanged(memberUid);
 
                 // Send blessing unlock packet for GUI update
-                var packet = new BlessingUnlockResponsePacket(true, $"Religion blessing unlocked: {blessing.Name}!",
+                var packet = new BlessingUnlockResponsePacket(true,
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_UNLOCKED, blessing.Name),
                     blessing.BlessingId);
                 _serverChannel.SendPacket(packet, member);
             }
         }
 
-        return TextCommandResult.Success(string.Format(SuccessMessageConstants.SuccessUnlockedReligionBlessing,
-            blessing.Name));
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_UNLOCKED, blessing.Name));
     }
 
     /// <summary>
@@ -526,40 +571,88 @@ public class BlessingCommands(
     internal TextCommandResult OnActive(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error(ErrorMessageConstants.ErrorPlayerNotFound);
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_PLAYER_NOT_FOUND));
 
         var (playerBlessings, religionBlessings) = _blessingEffectSystem.GetActiveBlessings(player.PlayerUID);
         var combinedModifiers = _blessingEffectSystem.GetCombinedStatModifiers(player.PlayerUID);
 
         var sb = new StringBuilder();
-        sb.AppendLine(FormatStringConstants.HeaderActiveBlessings);
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_HEADER_ACTIVE_BLESSINGS));
         sb.AppendLine();
 
-        sb.AppendLine(string.Format(FormatStringConstants.LabelPlayerBlessingsSection, playerBlessings.Count));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_TOTAL_PLAYER,
+            playerBlessings.Count));
         if (playerBlessings.Count == 0)
-            sb.AppendLine(FormatStringConstants.LabelNone);
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_FORMAT_NONE));
         else
             foreach (var blessing in playerBlessings)
-                sb.AppendLine(string.Format(FormatStringConstants.LabelBlessingItem, blessing.Name));
+                sb.AppendLine($"  - {blessing.Name}");
 
         sb.AppendLine();
 
-        sb.AppendLine(string.Format(FormatStringConstants.LabelReligionBlessingsSection, religionBlessings.Count));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_TOTAL_RELIGION,
+            religionBlessings.Count));
         if (religionBlessings.Count == 0)
-            sb.AppendLine(FormatStringConstants.LabelNone);
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_FORMAT_NONE));
         else
             foreach (var blessing in religionBlessings)
-                sb.AppendLine(string.Format(FormatStringConstants.LabelBlessingItem, blessing.Name));
+                sb.AppendLine($"  - {blessing.Name}");
 
         sb.AppendLine();
 
-        sb.AppendLine(FormatStringConstants.LabelCombinedStatModifiers);
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_HEADER_COMBINED_STATS));
         sb.AppendLine(combinedModifiers.Count == 0
-            ? FormatStringConstants.LabelNoActiveModifiers
+            ? LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_NO_ACTIVE)
             : _blessingEffectSystem.FormatStatModifiers(combinedModifiers));
 
         return TextCommandResult.Success(sb.ToString());
     }
+
+    #region Helper Methods
+
+    /// <summary>
+    ///     Converts a stat key to its localized display name
+    /// </summary>
+    private static string FormatStatName(string statKey)
+    {
+        var localizationKey = statKey switch
+        {
+            VintageStoryStats.MeleeWeaponsDamage => LocalizationKeys.STAT_MELEE_DAMAGE,
+            VintageStoryStats.RangedWeaponsDamage => LocalizationKeys.STAT_RANGED_DAMAGE,
+            VintageStoryStats.WalkSpeed => LocalizationKeys.STAT_WALK_SPEED,
+            VintageStoryStats.MaxHealthExtraPoints => LocalizationKeys.STAT_MAX_HEALTH,
+            VintageStoryStats.MeleeWeaponArmor => LocalizationKeys.STAT_ARMOR,
+            VintageStoryStats.ArmorEffectiveness => LocalizationKeys.STAT_ARMOR_EFFECTIVENESS,
+            VintageStoryStats.MiningSpeed => LocalizationKeys.STAT_MINING_SPEED,
+            VintageStoryStats.MeleeWeaponsSpeed => LocalizationKeys.STAT_ATTACK_SPEED,
+            VintageStoryStats.HealingEffectiveness => LocalizationKeys.STAT_HEAL_EFFECTIVENESS,
+            VintageStoryStats.HungerRate => LocalizationKeys.STAT_HUNGER_RATE,
+            VintageStoryStats.ToolDurability => LocalizationKeys.STAT_TOOL_DURABILITY,
+            VintageStoryStats.OreDropRate => LocalizationKeys.STAT_ORE_YIELD,
+            VintageStoryStats.ColdResistance => LocalizationKeys.STAT_COLD_RESISTANCE,
+            VintageStoryStats.RepairCostReduction => LocalizationKeys.STAT_REPAIR_COST_REDUCTION,
+            VintageStoryStats.RepairEfficiency => LocalizationKeys.STAT_REPAIR_EFFICIENCY,
+            VintageStoryStats.SmithingCostReduction => LocalizationKeys.STAT_SMITHING_COST_REDUCTION,
+            VintageStoryStats.MetalArmorBonus => LocalizationKeys.STAT_METAL_ARMOR_BONUS,
+            VintageStoryStats.ArmorDurabilityLoss => LocalizationKeys.STAT_ARMOR_DURABILITY_LOSS,
+            VintageStoryStats.ArmorWalkSpeedAffectedness => LocalizationKeys.STAT_ARMOR_WALK_SPEED,
+            VintageStoryStats.PotteryBatchCompletionChance => LocalizationKeys.STAT_POTTERY_BATCH_COMPLETION,
+            VintageStoryStats.AnimalDrops => LocalizationKeys.STAT_ANIMAL_LOOT_DROPS,
+            VintageStoryStats.ForageDropRate => LocalizationKeys.STAT_FORAGE_DROPS,
+            VintageStoryStats.RangedWeaponsAccuracy => LocalizationKeys.STAT_RANGED_WEAPONS_SPEED,
+            VintageStoryStats.CropYield => LocalizationKeys.STAT_CROP_GROWTH_SPEED,
+            VintageStoryStats.StorageVesselCapacity => LocalizationKeys.STAT_WHOLE_VESSEL_CAPACITY,
+            _ => null
+        };
+
+        return localizationKey != null
+            ? LocalizationService.Instance.Get(localizationKey)
+            : statKey; // Fallback to original key if no mapping exists
+    }
+
+    #endregion
 
     #region Admin Commands (Privilege.root)
 
@@ -569,7 +662,8 @@ public class BlessingCommands(
     internal TextCommandResult OnAdminUnlock(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+        if (player == null)
+            return TextCommandResult.Error("LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY)");
 
         var blessingId = (string)args[0];
         var targetPlayerName = args.Parsers.Count > 1 ? (string?)args[1] : null;
@@ -583,12 +677,13 @@ public class BlessingCommands(
         // Validate blessing exists
         var blessing = _blessingRegistry.GetBlessing(blessingId);
         if (blessing == null)
-            return TextCommandResult.Error($"Blessing '{blessingId}' not found");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_FOUND, blessingId));
 
         // Get target's religion
         var targetReligion = _religionManager.GetPlayerReligion(targetPlayer.PlayerUID);
         if (targetReligion == null || string.IsNullOrEmpty(targetReligion.ReligionUID))
-            return TextCommandResult.Error($"{targetPlayer.PlayerName} is not in a religion");
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NO_RELIGION));
 
         // Handle based on blessing kind
         if (blessing.Kind == BlessingKind.Player)
@@ -596,7 +691,7 @@ public class BlessingCommands(
             // Player blessing - unlock for target player
             if (targetPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
                 return TextCommandResult.Success(
-                    $"{targetPlayer.PlayerName} already has blessing '{blessing.Name}' unlocked");
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_ALREADY_UNLOCKED));
 
             targetPlayerData.UnlockedBlessings.Add(blessing.BlessingId);
             _blessingEffectSystem.RefreshPlayerBlessings(targetPlayer.PlayerUID);
@@ -606,24 +701,27 @@ public class BlessingCommands(
 
             // Send blessing unlock notification to target player for GUI update
             var packet =
-                new BlessingUnlockResponsePacket(true, $"Admin unlocked {blessing.Name}!", blessing.BlessingId);
+                new BlessingUnlockResponsePacket(true,
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_UNLOCKED,
+                        blessing.Name, targetPlayer.PlayerName), blessing.BlessingId);
             _serverChannel.SendPacket(packet, targetPlayer);
 
             _sapi.Logger.Notification(
                 $"[DivineAscension] Admin: {player.PlayerName} unlocked player blessing '{blessing.Name}' for {targetPlayer.PlayerName}");
 
-            return TextCommandResult.Success(
-                $"Unlocked player blessing '{blessing.Name}' for {targetPlayer.PlayerName}");
+            return TextCommandResult.Success(LocalizationService.Instance.Get(
+                LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_UNLOCKED, blessing.Name, targetPlayer.PlayerName));
         }
         else
         {
             // Religion blessing - only founder can unlock (admin doesn't bypass this for game balance)
             if (targetReligion.FounderUID != targetPlayer.PlayerUID)
-                return TextCommandResult.Error("Only the religion founder can unlock religion blessings");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_FOUNDER));
 
             if (targetReligion.UnlockedBlessings.ContainsKey(blessing.BlessingId))
                 return TextCommandResult.Success(
-                    $"{targetReligion.ReligionName} already has blessing '{blessing.Name}' unlocked");
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_ALREADY_UNLOCKED));
 
             targetReligion.UnlockedBlessings.Add(blessing.BlessingId, true);
             _blessingEffectSystem.RefreshReligionBlessings(targetReligion.ReligionUID);
@@ -640,7 +738,8 @@ public class BlessingCommands(
 
                     // Send blessing unlock packet for GUI update
                     var memberPacket = new BlessingUnlockResponsePacket(true,
-                        $"Admin unlocked religion blessing: {blessing.Name}!", blessing.BlessingId);
+                        LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_UNLOCKED,
+                            blessing.Name, targetReligion.ReligionName), blessing.BlessingId);
                     _serverChannel.SendPacket(memberPacket, member);
                 }
             }
@@ -648,8 +747,8 @@ public class BlessingCommands(
             _sapi.Logger.Notification(
                 $"[DivineAscension] Admin: {player.PlayerName} unlocked religion blessing '{blessing.Name}' for {targetReligion.ReligionName}");
 
-            return TextCommandResult.Success(
-                $"Unlocked religion blessing '{blessing.Name}' for {targetReligion.ReligionName}");
+            return TextCommandResult.Success(LocalizationService.Instance.Get(
+                LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_UNLOCKED, blessing.Name, targetReligion.ReligionName));
         }
     }
 
@@ -659,7 +758,8 @@ public class BlessingCommands(
     internal TextCommandResult OnAdminLock(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+        if (player == null)
+            return TextCommandResult.Error("LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY)");
 
         var blessingId = (string)args[0];
         var targetPlayerName = args.Parsers.Count > 1 ? (string?)args[1] : null;
@@ -673,12 +773,13 @@ public class BlessingCommands(
         // Validate blessing exists
         var blessing = _blessingRegistry.GetBlessing(blessingId);
         if (blessing == null)
-            return TextCommandResult.Error($"Blessing '{blessingId}' not found");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_FOUND, blessingId));
 
         // Get target's religion
         var targetReligion = _religionManager.GetPlayerReligion(targetPlayer.PlayerUID);
         if (targetReligion == null || string.IsNullOrEmpty(targetReligion.ReligionUID))
-            return TextCommandResult.Error($"{targetPlayer.PlayerName} is not in a religion");
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NO_RELIGION));
 
         // Handle based on blessing kind
         if (blessing.Kind == BlessingKind.Player)
@@ -695,19 +796,23 @@ public class BlessingCommands(
             _playerProgressionDataManager.NotifyPlayerDataChanged(targetPlayer.PlayerUID);
 
             // Send blessing lock notification to target player for GUI update
-            var packet = new BlessingUnlockResponsePacket(false, $"Admin locked {blessing.Name}", blessing.BlessingId);
+            var packet = new BlessingUnlockResponsePacket(false,
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_LOCKED, blessing.Name,
+                    targetPlayer.PlayerName), blessing.BlessingId);
             _serverChannel.SendPacket(packet, targetPlayer);
 
             _sapi.Logger.Notification(
                 $"[DivineAscension] Admin: {player.PlayerName} locked player blessing '{blessing.Name}' for {targetPlayer.PlayerName}");
 
-            return TextCommandResult.Success($"Locked player blessing '{blessing.Name}' for {targetPlayer.PlayerName}");
+            return TextCommandResult.Success(LocalizationService.Instance.Get(
+                LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_LOCKED, blessing.Name, targetPlayer.PlayerName));
         }
         else
         {
             // Religion blessing - only founder can lock
             if (targetReligion.FounderUID != targetPlayer.PlayerUID)
-                return TextCommandResult.Error("Only the religion founder can lock religion blessings");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_FOUNDER));
 
             if (!targetReligion.UnlockedBlessings.ContainsKey(blessing.BlessingId))
                 return TextCommandResult.Success(
@@ -728,7 +833,8 @@ public class BlessingCommands(
 
                     // Send blessing lock packet for GUI update
                     var memberPacket = new BlessingUnlockResponsePacket(false,
-                        $"Admin locked religion blessing: {blessing.Name}", blessing.BlessingId);
+                        LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_LOCKED,
+                            blessing.Name, targetReligion.ReligionName), blessing.BlessingId);
                     _serverChannel.SendPacket(memberPacket, member);
                 }
             }
@@ -736,8 +842,8 @@ public class BlessingCommands(
             _sapi.Logger.Notification(
                 $"[DivineAscension] Admin: {player.PlayerName} locked religion blessing '{blessing.Name}' for {targetReligion.ReligionName}");
 
-            return TextCommandResult.Success(
-                $"Locked religion blessing '{blessing.Name}' for {targetReligion.ReligionName}");
+            return TextCommandResult.Success(LocalizationService.Instance.Get(
+                LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_LOCKED, blessing.Name, targetReligion.ReligionName));
         }
     }
 
@@ -747,7 +853,8 @@ public class BlessingCommands(
     internal TextCommandResult OnAdminReset(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+        if (player == null)
+            return TextCommandResult.Error("LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY)");
 
         var targetPlayerName = args.Parsers.Count > 0 ? (string?)args[0] : null;
 
@@ -772,7 +879,9 @@ public class BlessingCommands(
         _sapi.Logger.Notification(
             $"[DivineAscension] Admin: {player.PlayerName} reset all blessings for {targetPlayer.PlayerName}");
 
-        return TextCommandResult.Success($"Reset {blessingCount} blessing(s) for {targetPlayer.PlayerName}");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_RESET,
+                targetPlayer.PlayerName));
     }
 
     /// <summary>
@@ -781,7 +890,8 @@ public class BlessingCommands(
     internal TextCommandResult OnAdminUnlockAll(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+        if (player == null)
+            return TextCommandResult.Error("LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY)");
 
         var targetPlayerName = args.Parsers.Count > 0 ? (string?)args[0] : null;
 
@@ -794,12 +904,12 @@ public class BlessingCommands(
         // Get target's deity
         var targetDeity = _religionManager.GetPlayerActiveDeity(targetPlayer.PlayerUID);
         if (targetDeity == DeityType.None)
-            return TextCommandResult.Error($"{targetPlayer.PlayerName} is not in a religion");
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NO_RELIGION));
 
         // Get target's religion
         var targetReligion = _religionManager.GetPlayerReligion(targetPlayer.PlayerUID);
         if (targetReligion == null || string.IsNullOrEmpty(targetReligion.ReligionUID))
-            return TextCommandResult.Error($"{targetPlayer.PlayerName} is not in a religion");
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NO_RELIGION));
 
         // Get all blessings for this deity
         var playerBlessings = _blessingRegistry.GetBlessingsForDeity(targetDeity, BlessingKind.Player);
@@ -850,7 +960,9 @@ public class BlessingCommands(
                             if (targetReligion.UnlockedBlessings.ContainsKey(blessing.BlessingId))
                             {
                                 var memberPacket = new BlessingUnlockResponsePacket(true,
-                                    $"Religion blessing unlocked: {blessing.Name}!", blessing.BlessingId);
+                                    LocalizationService.Instance.Get(
+                                        LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED_FOR_RELIGION, blessing.Name),
+                                    blessing.BlessingId);
                                 _serverChannel.SendPacket(memberPacket, member);
                             }
                         }
@@ -871,7 +983,8 @@ public class BlessingCommands(
             {
                 if (targetPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
                 {
-                    var packet = new BlessingUnlockResponsePacket(true, $"Unlocked {blessing.Name}!",
+                    var packet = new BlessingUnlockResponsePacket(true,
+                        LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED, blessing.Name),
                         blessing.BlessingId);
                     _serverChannel.SendPacket(packet, targetPlayer);
                 }
@@ -881,8 +994,8 @@ public class BlessingCommands(
         _sapi.Logger.Notification(
             $"[DivineAscension] Admin: {player.PlayerName} unlocked all blessings for {targetPlayer.PlayerName} ({playerUnlocked} player, {religionUnlocked} religion)");
 
-        return TextCommandResult.Success(
-            $"Unlocked {playerUnlocked} player blessing(s) and {religionUnlocked} religion blessing(s) for {targetPlayer.PlayerName}");
+        return TextCommandResult.Success(LocalizationService.Instance.Get(
+            LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_UNLOCKALL, playerUnlocked, targetPlayer.PlayerName));
     }
 
     #endregion

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Roles;
 using DivineAscension.GUI.UI.Components.Buttons;
@@ -7,6 +8,7 @@ using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Components.Overlays;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
@@ -33,13 +35,16 @@ internal static class ReligionRoleDetailRenderer
         var currentY = y;
 
         // Back button (like civilization detail view)
-        if (ButtonRenderer.DrawButton(drawList, "< Back to Roles", x, currentY, 160f, 32f))
+        if (ButtonRenderer.DrawButton(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_BACK),
+                x, currentY, 160f, 32f))
             events.Add(new RoleDetailEvent.BackToRolesClicked());
         currentY += 42f;
 
         // Title
-        TextRenderer.DrawLabel(drawList, $"Members with '{viewModel.ViewingRoleName}' role", x, currentY,
-            18f, ColorPalette.Gold);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_TITLE, viewModel.ViewingRoleName),
+            x, currentY, 18f, ColorPalette.Gold);
         currentY += 30f;
 
         // Get members with this role
@@ -47,7 +52,9 @@ internal static class ReligionRoleDetailRenderer
 
         if (membersWithRole.Count == 0)
         {
-            TextRenderer.DrawInfoText(drawList, "No members have this role.", x, currentY, width);
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_NO_MEMBERS),
+                x, currentY, width);
             return new ReligionRoleDetailRenderResult(events, height);
         }
 
@@ -63,8 +70,9 @@ internal static class ReligionRoleDetailRenderer
             var memberName = viewModel.MemberNames.GetValueOrDefault(memberUID, memberUID);
             var memberRoleUID = viewModel.MemberRoles.GetValueOrDefault(memberUID);
             var memberRoleName = memberRoleUID != null
-                ? viewModel.Roles.FirstOrDefault(r => r.RoleUID == memberRoleUID)?.RoleName ?? "Unknown"
-                : "No Role";
+                ? viewModel.Roles.FirstOrDefault(r => r.RoleUID == memberRoleUID)?.RoleName ??
+                  LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_UNKNOWN_ROLE)
+                : LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_NO_ROLE);
 
             // Member name on left
             TextRenderer.DrawInfoText(drawList, $"- {memberName}", x, currentY + 4f,
@@ -88,8 +96,11 @@ internal static class ReligionRoleDetailRenderer
             else
             {
                 // Static role text for members that can't be changed
-                var reason = memberUID == viewModel.CurrentPlayerUID ? " (Your role)" :
-                    memberRoleUID == RoleDefaults.FOUNDER_ROLE_ID ? " (Founder)" : "";
+                var reason = memberUID == viewModel.CurrentPlayerUID
+                    ? LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_YOUR_ROLE)
+                    : memberRoleUID == RoleDefaults.FOUNDER_ROLE_ID
+                        ? LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_FOUNDER_ROLE)
+                        : "";
                 TextRenderer.DrawInfoText(drawList, memberRoleName + reason,
                     x + width - dropdownWidth - 10f, currentY + 4f, dropdownWidth + 10f);
             }
@@ -147,15 +158,16 @@ internal static class ReligionRoleDetailRenderer
         // Get role names for confirmation message
         var currentRoleName = !string.IsNullOrEmpty(viewModel.AssignRoleConfirmCurrentRoleUID)
             ? viewModel.Roles.FirstOrDefault(r => r.RoleUID == viewModel.AssignRoleConfirmCurrentRoleUID)?.RoleName ??
-              "Unknown"
-            : "No Role";
+              LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_UNKNOWN_ROLE)
+            : LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_NO_ROLE);
 
         ConfirmOverlay.Draw(
-            "Assign Role",
-            $"Change {viewModel.AssignRoleConfirmMemberName}'s role from '{currentRoleName}' to '{viewModel.AssignRoleConfirmNewRoleName}'?",
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_ASSIGN_CONFIRM_TITLE),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_ASSIGN_CONFIRM_MESSAGE,
+                viewModel.AssignRoleConfirmMemberName, currentRoleName, viewModel.AssignRoleConfirmNewRoleName),
             out var confirmed,
             out var canceled,
-            "Assign");
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_ASSIGN_CONFIRM_BUTTON));
 
         if (confirmed)
             events.Add(new RoleDetailEvent.AssignRoleConfirm(

@@ -54,7 +54,7 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
         Assert.Contains("BannedPlayer", result.StatusMessage);
         Assert.Contains("Violation of rules", result.StatusMessage);
         Assert.Contains("FounderName", result.StatusMessage);
-        Assert.Contains("expires on", result.StatusMessage);
+        Assert.Contains("Expires:", result.StatusMessage);
     }
 
     [Fact]

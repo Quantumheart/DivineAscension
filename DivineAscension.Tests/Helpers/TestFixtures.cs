@@ -1,7 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.BuffSystem.Interfaces;
 using DivineAscension.Systems.Interfaces;
@@ -290,6 +293,100 @@ public static class TestFixtures
             Times.AtLeastOnce(),
             $"Expected logger debug containing: {expectedSubstring}"
         );
+    }
+
+    #endregion
+
+    #region Localization Helpers
+
+    /// <summary>
+    ///     Initializes the LocalizationService for testing by loading translations from en.json.
+    ///     Call this in test constructors or setup methods.
+    /// </summary>
+    public static void InitializeLocalizationForTests()
+    {
+        // Load translations from the actual en.json file
+        var projectRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+        var enJsonPath = Path.Combine(projectRoot, "DivineAscension", "assets", "divineascension", "lang", "en.json");
+
+        var logPath = Path.Combine(AppContext.BaseDirectory, "test_localization_debug.log");
+        using var logWriter = new StreamWriter(logPath, append: true);
+
+        logWriter.WriteLine($"=== TestFixtures.InitializeLocalizationForTests called at {DateTime.Now} ===");
+        logWriter.WriteLine($"Base directory: {AppContext.BaseDirectory}");
+        logWriter.WriteLine($"Project root: {projectRoot}");
+        logWriter.WriteLine($"en.json path: {enJsonPath}");
+        logWriter.WriteLine($"File exists: {File.Exists(enJsonPath)}");
+
+        Dictionary<string, string> translations = new();
+
+        try
+        {
+            if (File.Exists(enJsonPath))
+            {
+                var json = File.ReadAllText(enJsonPath);
+                logWriter.WriteLine($"Loaded JSON, length: {json.Length}");
+
+                var deserialized = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+                logWriter.WriteLine($"Deserialized: {deserialized != null}");
+
+                if (deserialized != null)
+                {
+                    logWriter.WriteLine($"Total entries before filter: {deserialized.Count}");
+
+                    // Filter out comment entries (start with "_")
+                    translations = deserialized
+                        .Where(kvp => !kvp.Key.StartsWith("_"))
+                        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                    logWriter.WriteLine($"Total entries after filter: {translations.Count}");
+
+                    // Log first few translations
+                    logWriter.WriteLine("First 5 translations:");
+                    foreach (var kvp in translations.Take(5))
+                    {
+                        logWriter.WriteLine($"  {kvp.Key} => {kvp.Value}");
+                    }
+                }
+            }
+            else
+            {
+                logWriter.WriteLine($"File not found at path: {enJsonPath}");
+            }
+        }
+        catch (Exception ex)
+        {
+            logWriter.WriteLine($"ERROR: Failed to load en.json for tests: {ex.Message}");
+            logWriter.WriteLine($"Stack trace: {ex.StackTrace}");
+        }
+
+        // If no translations loaded, use minimal fallback
+        if (translations.Count == 0)
+        {
+            logWriter.WriteLine("Using fallback translations");
+            translations = new Dictionary<string, string>
+            {
+                [LocalizationKeys.CMD_ERROR_PLAYERS_ONLY] = "This command can only be used by players.",
+                [LocalizationKeys.CMD_ERROR_NO_RELIGION] = "You are not in a religion."
+            };
+        }
+
+        logWriter.WriteLine($"Initializing LocalizationService with {translations.Count} translations");
+        LocalizationService.Instance.InitializeForTesting(translations);
+
+        // Verify a key works
+        var testKey = LocalizationKeys.CMD_ERROR_NO_RELIGION;
+        var testValue = LocalizationService.Instance.Get(testKey);
+        logWriter.WriteLine($"Test lookup: {testKey} => {testValue}");
+        logWriter.WriteLine("=== End initialization ===\n");
+    }
+
+    /// <summary>
+    ///     Resets the LocalizationService. Call this in test teardown if needed.
+    /// </summary>
+    public static void ResetLocalization()
+    {
+        LocalizationService.Instance.ClearCache();
     }
 
     #endregion

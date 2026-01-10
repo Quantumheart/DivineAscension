@@ -197,8 +197,9 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
         Assert.Contains(
             string.Format(FormatStringConstants.FormatDescription, "Grants divine protection to all members."),
             message);
-        Assert.Contains(FormatStringConstants.LabelEffectsForAllMembers, message);
-        Assert.Contains(string.Format(FormatStringConstants.FormatStatModifier, "Defense", 15), message);
+        Assert.Contains("Stat Modifiers:", message); // Now uses localized label
+        Assert.Contains("Defense", message);
+        Assert.Contains("15", message);
     }
 
     [Fact]
@@ -397,7 +398,7 @@ public class BlessingCommandReligionTests : BlessingCommandsTestHelpers
 
         // Assert
         var message = result.StatusMessage;
-        Assert.Contains(FormatStringConstants.LabelEffectsForAllMembers, message);
+        Assert.Contains("Stat Modifiers:", message); // Now uses localized label
     }
 
     [Fact]

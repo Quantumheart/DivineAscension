@@ -19,8 +19,14 @@ public static class KhorasPatches
     {
         if (byEntity == null || amount <= 0) return;
 
+        // Only apply to items with mining/tool properties
+        if (itemslot?.Itemstack?.Collectible is not Item item) return;
+        if (item.Tool == null) return; // Not a tool
+
         // Get tool durability bonus (e.g. 0.10 for 10%)
+        // Handle both FlatSum (base 0) and legacy WeightedSum (base 1.0) registrations
         double durabilityBonus = byEntity.Stats.GetBlended(VintageStoryStats.ToolDurability);
+        if (durabilityBonus > 1.0) durabilityBonus -= 1.0; // Legacy WeightedSum: subtract base
         if (durabilityBonus <= 0) return;
 
         // Calculate reduction
@@ -47,7 +53,9 @@ public static class KhorasPatches
         if (byPlayer?.Entity == null || __result == null || __result.Length == 0) return;
 
         // Get ore yield bonus
+        // Handle both FlatSum (base 0) and legacy WeightedSum (base 1.0) registrations
         double yieldBonus = byPlayer.Entity.Stats.GetBlended(VintageStoryStats.OreDropRate);
+        if (yieldBonus > 1.0) yieldBonus -= 1.0; // Legacy WeightedSum: subtract base
         if (yieldBonus <= 0) return;
 
         // Check if block is an ore block (simple check by code)

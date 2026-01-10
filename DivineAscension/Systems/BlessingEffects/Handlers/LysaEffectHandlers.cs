@@ -67,7 +67,9 @@ public static class LysaEffectHandlers
                 var player = _sapi.World.PlayerByUid(uid) as IServerPlayer;
                 if (player?.Entity == null) continue;
 
+                // Handle both FlatSum (base 0) and legacy WeightedSum (base 1.0) registrations
                 var reduction = player.Entity.Stats.GetBlended(VintageStoryStats.FoodSpoilage);
+                if (reduction > 1.0) reduction -= 1.0f; // Legacy WeightedSum: subtract base
                 if (reduction <= 0) continue;
 
                 ApplySpoilageReduction(player, (float)deltaHours, reduction);
@@ -152,6 +154,9 @@ public static class LysaEffectHandlers
                 var player = _sapi.World.PlayerByUid(uid) as IServerPlayer;
                 if (player?.Entity == null) continue;
 
+                // TemperatureResistance is an absolute value (degrees), not a percentage
+                // Legacy WeightedSum would add 1.0 (e.g., 5.0 -> 6.0), but we don't subtract
+                // since 5.0 > 1.0 and the 1 degree difference is acceptable for existing players
                 var resistance = player.Entity.Stats.GetBlended(VintageStoryStats.TemperatureResistance);
                 if (resistance <= 0) continue;
 

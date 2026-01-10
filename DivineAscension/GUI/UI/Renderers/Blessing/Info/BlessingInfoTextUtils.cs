@@ -1,5 +1,9 @@
 using System.Linq;
 using System.Numerics;
+using DivineAscension.Constants;
+using DivineAscension.Extensions;
+using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing.Info;
@@ -52,16 +56,21 @@ internal static class BlessingInfoTextUtils
 
         var displayName = statLower switch
         {
-            var s when s.Contains("walkspeed") => "Movement Speed",
-            var s when s.Contains("meleeDamage") || s.Contains("meleeweaponsdamage") => "Melee Damage",
-            var s when s.Contains("rangedDamage") || s.Contains("rangedweaponsdamage") => "Ranged Damage",
-            var s when s.Contains("maxhealth") && s.Contains("multiplier") => "Max Health",
-            var s when s.Contains("maxhealth") && s.Contains("points") => "Max Health",
-            var s when s.Contains("maxhealth") => "Max Health",
-            var s when s.Contains("armor") => "Armor",
-            var s when s.Contains("speed") => "Speed",
-            var s when s.Contains("damage") => "Damage",
-            var s when s.Contains("health") => "Health",
+            var s when s.Contains("walkspeed") =>
+                LocalizationService.Instance.Get(LocalizationKeys.STAT_MOVEMENT_SPEED),
+            var s when s.Contains("meleeDamage") || s.Contains("meleeweaponsdamage") =>
+                LocalizationService.Instance.Get(LocalizationKeys.STAT_MELEE_DAMAGE),
+            var s when s.Contains("rangedDamage") || s.Contains("rangedweaponsdamage") => LocalizationService.Instance
+                .Get(LocalizationKeys.STAT_RANGED_DAMAGE),
+            var s when s.Contains("maxhealth") && s.Contains("multiplier") => LocalizationService.Instance.Get(
+                LocalizationKeys.STAT_MAX_HEALTH),
+            var s when s.Contains("maxhealth") && s.Contains("points") => LocalizationService.Instance.Get(
+                LocalizationKeys.STAT_MAX_HEALTH),
+            var s when s.Contains("maxhealth") => LocalizationService.Instance.Get(LocalizationKeys.STAT_MAX_HEALTH),
+            var s when s.Contains("armor") => LocalizationService.Instance.Get(LocalizationKeys.STAT_ARMOR),
+            var s when s.Contains("speed") => LocalizationService.Instance.Get(LocalizationKeys.STAT_SPEED),
+            var s when s.Contains("damage") => LocalizationService.Instance.Get(LocalizationKeys.STAT_DAMAGE),
+            var s when s.Contains("health") => LocalizationService.Instance.Get(LocalizationKeys.STAT_HEALTH),
             _ => statName
         };
 
@@ -74,24 +83,14 @@ internal static class BlessingInfoTextUtils
     public static string GetRankName(int rank, bool isFavorRank)
     {
         if (isFavorRank)
-            return rank switch
-            {
-                0 => "Initiate",
-                1 => "Devoted",
-                2 => "Zealot",
-                3 => "Champion",
-                4 => "Exalted",
-                _ => $"Rank {rank}"
-            };
-
-        return rank switch
         {
-            0 => "Fledgling",
-            1 => "Established",
-            2 => "Renowned",
-            3 => "Legendary",
-            4 => "Mythic",
-            _ => $"Rank {rank}"
-        };
+            if (rank >= 0 && rank <= 4)
+                return ((FavorRank)rank).ToLocalizedString();
+            return LocalizationService.Instance.Get(LocalizationKeys.UI_RANK_UNKNOWN, rank);
+        }
+
+        if (rank >= 0 && rank <= 4)
+            return ((PrestigeRank)rank).ToLocalizedString();
+        return LocalizationService.Instance.Get(LocalizationKeys.UI_RANK_UNKNOWN, rank);
     }
 }

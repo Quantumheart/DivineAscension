@@ -79,7 +79,7 @@ public class ReligionCommandBanTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("permanently", result.StatusMessage);
+        Assert.Contains("permanent", result.StatusMessage);
         _religionManager.Verify(m => m.BanPlayer("religion-1", "target-1", "founder-1", "Bad behavior", null),
             Times.Once);
     }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Roles;
@@ -9,6 +10,7 @@ using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Overlays;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
@@ -41,19 +43,24 @@ internal static class ReligionRolesBrowseRenderer
         // Loading state
         if (viewModel.IsLoading)
         {
-            TextRenderer.DrawInfoText(drawList, "Loading roles data...", x, currentY + 8f, width);
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_LOADING),
+                x, currentY + 8f, width);
             return new ReligionRolesBrowseRenderResult(events, height);
         }
 
         if (!viewModel.HasReligion)
         {
-            TextRenderer.DrawInfoText(drawList, "You are not in a religion.", x, currentY + 8f, width);
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_NOT_IN_RELIGION),
+                x, currentY + 8f, width);
             return new ReligionRolesBrowseRenderResult(events, height);
         }
 
         if (!viewModel.HasRolesData)
         {
-            var errorMsg = viewModel.RolesData?.ErrorMessage ?? "Failed to load roles data.";
+            var errorMsg = viewModel.RolesData?.ErrorMessage ??
+                           LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_FAILED);
             TextRenderer.DrawInfoText(drawList, errorMsg, x, currentY + 8f, width);
             return new ReligionRolesBrowseRenderResult(events, height);
         }
@@ -85,13 +92,17 @@ internal static class ReligionRolesBrowseRenderer
         currentY = y - scrollY;
 
         // Header
-        TextRenderer.DrawLabel(drawList, "Religion Roles", x, currentY, 16f, ColorPalette.Gold);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_TITLE),
+            x, currentY, 16f, ColorPalette.Gold);
         currentY += 30f;
 
         // Create Role button (if player can manage roles)
         if (viewModel.CanManageRoles())
         {
-            if (ButtonRenderer.DrawButton(drawList, "+ Create Custom Role", x, currentY, 200f, 32f))
+            if (ButtonRenderer.DrawButton(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_CREATE_BUTTON),
+                    x, currentY, 200f, 32f))
                 events.Add(new RolesBrowseEvent.CreateRoleOpen());
             currentY += 42f;
         }
@@ -147,7 +158,10 @@ internal static class ReligionRolesBrowseRenderer
 
         // Member count badge
         var memberCount = viewModel.GetMemberCount(role.RoleUID);
-        var badge = $"{memberCount} member{(memberCount != 1 ? "s" : "")}";
+        var badge = LocalizationService.Instance.Get(
+            LocalizationKeys.UI_RELIGION_ROLES_MEMBER_COUNT,
+            memberCount,
+            memberCount != 1 ? "s" : "");
         var badgeSize = ImGui.CalcTextSize(badge);
         var badgeX = x + width - padding - badgeSize.X - 8f;
         var badgeY = currentY;
@@ -162,20 +176,27 @@ internal static class ReligionRolesBrowseRenderer
         // Protection/default status
         if (role.IsProtected)
         {
-            TextRenderer.DrawInfoText(drawList, "System Role (Cannot be deleted)", contentX, currentY, contentWidth);
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_SYSTEM_ROLE),
+                contentX, currentY, contentWidth);
             currentY += 16f;
         }
         else if (role.IsDefault)
         {
-            TextRenderer.DrawInfoText(drawList, "Default Role", contentX, currentY, contentWidth);
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_DEFAULT_ROLE),
+                contentX, currentY, contentWidth);
             currentY += 16f;
         }
 
         // Permissions summary
         var permCount = role.Permissions.Count;
         var permText = role.RoleUID == RoleDefaults.FOUNDER_ROLE_ID
-            ? "All permissions"
-            : $"{permCount} permission{(permCount != 1 ? "s" : "")}";
+            ? LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_ALL_PERMISSIONS)
+            : LocalizationService.Instance.Get(
+                LocalizationKeys.UI_RELIGION_ROLES_PERMISSIONS_COUNT,
+                permCount,
+                permCount != 1 ? "s" : "");
 
         if (permCount > 0 && permCount <= 3 && role.RoleUID != RoleDefaults.FOUNDER_ROLE_ID)
         {
@@ -200,21 +221,27 @@ internal static class ReligionRolesBrowseRenderer
         var buttonSpacing = 8f;
 
         // View Details button (CHANGED from ViewRoleMembersOpen to ViewRoleDetailsClicked)
-        if (ButtonRenderer.DrawButton(drawList, "View Details", buttonX, buttonY, buttonWidth, 28f))
+        if (ButtonRenderer.DrawButton(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_VIEW_DETAILS),
+                buttonX, buttonY, buttonWidth, 28f))
             events.Add(new RolesBrowseEvent.ViewRoleDetailsClicked(role.RoleUID, role.RoleName));
         buttonX += buttonWidth + buttonSpacing;
 
         // Edit button (if can manage and not founder)
         if (viewModel.CanEditRole(role))
         {
-            if (ButtonRenderer.DrawButton(drawList, "Edit", buttonX, buttonY, buttonWidth, 28f))
+            if (ButtonRenderer.DrawButton(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_EDIT),
+                    buttonX, buttonY, buttonWidth, 28f))
                 events.Add(new RolesBrowseEvent.EditRoleOpen(role.RoleUID));
             buttonX += buttonWidth + buttonSpacing;
         }
 
         // Delete button (if can delete)
         if (viewModel.CanDeleteRole(role))
-            if (ButtonRenderer.DrawButton(drawList, "Delete", buttonX, buttonY, buttonWidth, 28f, false, true,
+            if (ButtonRenderer.DrawButton(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_DELETE),
+                    buttonX, buttonY, buttonWidth, 28f, false, true,
                     ColorPalette.Red * 0.8f))
                 events.Add(new RolesBrowseEvent.DeleteRoleOpen(role.RoleUID, role.RoleName));
 
@@ -248,11 +275,15 @@ internal static class ReligionRolesBrowseRenderer
         var currentY = dlgY + padding;
 
         // Title
-        TextRenderer.DrawLabel(drawList, "Create Custom Role", dlgX + padding, currentY, 15f, ColorPalette.Gold);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_CREATE_DIALOG_TITLE), dlgX + padding,
+            currentY, 15f, ColorPalette.Gold);
         currentY += 30f;
 
         // Role name input
-        TextRenderer.DrawLabel(drawList, "Role Name:", dlgX + padding, currentY, 13f, ColorPalette.White);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_NAME_LABEL), dlgX + padding, currentY,
+            13f, ColorPalette.White);
         currentY += 20f;
 
         // Actual text input using ImGui
@@ -277,11 +308,14 @@ internal static class ReligionRolesBrowseRenderer
         var btn2X = dlgX + dialogWidth - padding - btnWidth;
         var btn1X = btn2X - btnWidth - btnSpacing;
 
-        if (ButtonRenderer.DrawButton(drawList, "Cancel", btn1X, btnY, btnWidth, btnHeight))
+        if (ButtonRenderer.DrawButton(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_CANCEL),
+                btn1X, btnY, btnWidth, btnHeight))
             events.Add(new RolesBrowseEvent.CreateRoleCancel());
 
         var canCreate = !string.IsNullOrWhiteSpace(viewModel.NewRoleName);
-        if (ButtonRenderer.DrawButton(drawList, "Create", btn2X, btnY, btnWidth, btnHeight, true, canCreate))
+        if (ButtonRenderer.DrawButton(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_CREATE_BUTTON_TEXT), btn2X, btnY,
+                btnWidth, btnHeight, true, canCreate))
             events.Add(new RolesBrowseEvent.CreateRoleConfirm(viewModel.NewRoleName));
     }
 
@@ -317,20 +351,26 @@ internal static class ReligionRolesBrowseRenderer
         var currentY = dlgY + padding;
 
         // Title
-        TextRenderer.DrawLabel(drawList, $"Edit Role: {role.RoleName}", dlgX + padding, currentY, 15f,
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_EDIT_TITLE, role.RoleName),
+            dlgX + padding, currentY, 15f,
             ColorPalette.Gold);
         currentY += 30f;
 
         // Role name (non-editable for founder, editable for others)
         if (role.RoleUID == RoleDefaults.FOUNDER_ROLE_ID)
         {
-            TextRenderer.DrawInfoText(drawList, "Founder role name cannot be changed", dlgX + padding, currentY,
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_FOUNDER_NO_EDIT), dlgX + padding,
+                currentY,
                 dialogWidth - padding * 2);
             currentY += 20f;
         }
         else
         {
-            TextRenderer.DrawLabel(drawList, "Role Name:", dlgX + padding, currentY, 13f, ColorPalette.White);
+            TextRenderer.DrawLabel(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_NAME_LABEL), dlgX + padding,
+                currentY, 13f, ColorPalette.White);
             currentY += 20f;
 
             var inputX = dlgX + padding;
@@ -348,7 +388,9 @@ internal static class ReligionRolesBrowseRenderer
         }
 
         // Permissions section
-        TextRenderer.DrawLabel(drawList, "Permissions:", dlgX + padding, currentY, 14f, ColorPalette.Gold);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_PERMISSIONS_LABEL), dlgX + padding,
+            currentY, 14f, ColorPalette.Gold);
         currentY += 25f;
 
         // Permission checkboxes
@@ -397,10 +439,13 @@ internal static class ReligionRolesBrowseRenderer
         var btn2X = dlgX + dialogWidth - padding - btnWidth;
         var btn1X = btn2X - btnWidth - btnSpacing;
 
-        if (ButtonRenderer.DrawButton(drawList, "Cancel", btn1X, btnY, btnWidth, btnHeight))
+        if (ButtonRenderer.DrawButton(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_CANCEL),
+                btn1X, btnY, btnWidth, btnHeight))
             events.Add(new RolesBrowseEvent.EditRoleCancel());
 
-        if (ButtonRenderer.DrawButton(drawList, "Save Changes", btn2X, btnY, btnWidth, btnHeight, true))
+        if (ButtonRenderer.DrawButton(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_SAVE_BUTTON), btn2X, btnY, btnWidth,
+                btnHeight, true))
             events.Add(new RolesBrowseEvent.EditRoleSave(role.RoleUID, viewModel.EditingRoleName,
                 viewModel.EditingPermissions));
     }
@@ -411,11 +456,12 @@ internal static class ReligionRolesBrowseRenderer
         List<RolesBrowseEvent> events)
     {
         ConfirmOverlay.Draw(
-            "Delete Role",
-            $"Are you sure you want to delete the role '{viewModel.DeleteRoleName}'? This action cannot be undone.",
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_DELETE_CONFIRM_TITLE),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_DELETE_CONFIRM_MESSAGE,
+                viewModel.DeleteRoleName),
             out var confirmed,
             out var canceled,
-            "Delete");
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_DELETE_CONFIRM_BUTTON));
 
         if (confirmed && viewModel.DeleteRoleUID != null)
             events.Add(new RolesBrowseEvent.DeleteRoleConfirm(viewModel.DeleteRoleUID));

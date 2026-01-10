@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Tab;
 using DivineAscension.GUI.State.Religion;
 using DivineAscension.GUI.UI.Components.Banners;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 using Vintagestory.API.Client;
 
@@ -51,23 +53,29 @@ internal static class ReligionTabRenderer
         }
 
         // Always show Browse (neutral for all states)
-        DrawTabButton(nameof(SubTab.Browse), SubTab.Browse, "GUI", "browse");
+        DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_BROWSE), SubTab.Browse, "GUI",
+            "browse");
 
         // Conditional tabs based on religion membership
         if (viewModel.ShowInfoTab)
-            DrawTabButton(nameof(SubTab.Info), SubTab.Info, "GUI", "info");
+            DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_INFO), SubTab.Info, "GUI",
+                "info");
 
         if (viewModel.ShowActivityTab)
-            DrawTabButton(nameof(SubTab.Activity), SubTab.Activity, "GUI", "activity");
+            DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_ACTIVITY), SubTab.Activity,
+                "GUI", "activity");
 
         if (viewModel.ShowRolesTab)
-            DrawTabButton(nameof(SubTab.Roles), SubTab.Roles, "GUI", "roles");
+            DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_ROLES), SubTab.Roles, "GUI",
+                "roles");
 
         if (viewModel.ShowInvitesTab)
-            DrawTabButton(nameof(SubTab.Invites), SubTab.Invites, "GUI", "invites");
+            DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_INVITES), SubTab.Invites,
+                "GUI", "invites");
 
         if (viewModel.ShowCreateTab)
-            DrawTabButton(nameof(SubTab.Create), SubTab.Create, "GUI", "create");
+            DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_CREATE), SubTab.Create,
+                "GUI", "create");
 
         var contentY = y + tabH + 10f;
         var renderedHeight = tabH + 10f;

@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.Edit;
 using DivineAscension.GUI.UI.Components;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
@@ -46,29 +48,36 @@ internal static class CivilizationEditRenderer
         var contentWidth = dialogWidth - 40f;
 
         // Title
-        TextRenderer.DrawLabel(drawList, "Edit Civilization Icon", contentX, currentY, 18f, ColorPalette.White);
+        TextRenderer.DrawLabel(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_EDIT_TITLE),
+            contentX, currentY, 18f, ColorPalette.White);
         currentY += 40f;
 
         // Civilization name
-        TextRenderer.DrawLabel(drawList, $"Civilization: {vm.CivilizationName}", contentX, currentY, 14f,
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_EDIT_CIV_LABEL, vm.CivilizationName),
+            contentX, currentY, 14f,
             ColorPalette.Grey);
         currentY += 30f;
 
         // Current icon preview
-        TextRenderer.DrawLabel(drawList, "Current Icon:", contentX, currentY, 14f, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_EDIT_CURRENT_ICON), contentX, currentY,
+            14f, ColorPalette.Grey);
         currentY += 25f;
 
         var previewHeight = IconPicker.DrawPreview(
             drawList,
             vm.CurrentIcon,
-            "Icon",
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_EDIT_ICON_LABEL),
             contentX,
             currentY
         );
         currentY += previewHeight + 20f;
 
         // Icon selection
-        TextRenderer.DrawLabel(drawList, "Select New Icon:", contentX, currentY, 14f, ColorPalette.White);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_EDIT_SELECT_ICON), contentX, currentY,
+            14f, ColorPalette.White);
         currentY += 25f;
 
         var availableIcons = CivilizationIconLoader.GetAvailableIcons();
@@ -88,10 +97,13 @@ internal static class CivilizationEditRenderer
 
         // Buttons
         var buttonY = dialogY + dialogHeight - 60f;
-        if (ButtonRenderer.DrawButton(drawList, "Update Icon", contentX, buttonY, 150f, 36f, true))
+        if (ButtonRenderer.DrawButton(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_EDIT_UPDATE_BUTTON), contentX,
+                buttonY, 150f, 36f, true))
             events.Add(new EditEvent.SubmitClicked());
 
-        if (ButtonRenderer.DrawButton(drawList, "Cancel", contentX + 160f, buttonY, 100f, 36f))
+        if (ButtonRenderer.DrawButton(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_CANCEL),
+                contentX + 160f, buttonY, 100f, 36f))
             events.Add(new EditEvent.CancelClicked());
 
         return new CivilizationEditRenderResult(events);

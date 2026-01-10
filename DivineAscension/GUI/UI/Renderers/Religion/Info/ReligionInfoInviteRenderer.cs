@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Info;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion.Info;
@@ -31,12 +33,15 @@ internal static class ReligionInfoInviteRenderer
 
         var currentY = y;
 
-        TextRenderer.DrawLabel(drawList, "Invite Player:", x, currentY, 15f, ColorPalette.Gold);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_INVITE_LABEL),
+            x, currentY, 15f, ColorPalette.Gold);
         currentY += 22f;
 
         var inviteInputWidth = width - 120f;
         var newInvitePlayerName = TextInput.Draw(drawList, "##invitePlayer", viewModel.InvitePlayerName,
-            x, currentY, inviteInputWidth, 32f, "Player name...");
+            x, currentY, inviteInputWidth, 32f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_INVITE_PLACEHOLDER));
 
         // Emit event if invite player name changed
         if (newInvitePlayerName != viewModel.InvitePlayerName)
@@ -46,7 +51,9 @@ internal static class ReligionInfoInviteRenderer
 
         // Invite button
         var inviteButtonX = x + inviteInputWidth + 10f;
-        if (ButtonRenderer.DrawButton(drawList, "Invite", inviteButtonX, currentY, 100f, 32f, false,
+        if (ButtonRenderer.DrawButton(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_INVITE_BUTTON),
+                inviteButtonX, currentY, 100f, 32f, false,
                 !string.IsNullOrWhiteSpace(viewModel.InvitePlayerName)))
             if (!string.IsNullOrWhiteSpace(viewModel.InvitePlayerName))
             {

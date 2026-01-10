@@ -1,8 +1,10 @@
 using System;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Components.Overlays;
@@ -80,7 +82,7 @@ internal static class RankUpNotificationOverlay
         currentY += IconSize + Spacing;
 
         // Draw "Rank Up!" title (centered, white, 20pt)
-        var titleText = "Rank Up!";
+        var titleText = LocalizationService.Instance.Get(LocalizationKeys.UI_RANKUP_TITLE);
         var titleSize = ImGui.CalcTextSize(titleText);
         var titleX = panelX + (PanelWidth - titleSize.X) / 2f;
         TextRenderer.DrawLabel(drawList, titleText, titleX, currentY, TitleFontSize, ColorPalette.White);
@@ -107,7 +109,7 @@ internal static class RankUpNotificationOverlay
         var buttonX = panelX + (PanelWidth - ButtonWidth) / 2f;
         var buttonClicked = ButtonRenderer.DrawButton(
             drawList,
-            "View Blessings (Shift+G)",
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RANKUP_VIEW_BLESSINGS),
             buttonX,
             currentY,
             ButtonWidth,

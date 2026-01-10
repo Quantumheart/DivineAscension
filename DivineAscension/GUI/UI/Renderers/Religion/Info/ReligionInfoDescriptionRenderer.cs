@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Info;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion.Info;
@@ -31,7 +33,9 @@ internal static class ReligionInfoDescriptionRenderer
         if (viewModel.IsFounder)
         {
             // Editable description for founder
-            TextRenderer.DrawLabel(drawList, "Description (editable):", x, currentY, 14f, ColorPalette.White);
+            TextRenderer.DrawLabel(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DESCRIPTION_EDITABLE),
+                x, currentY, 14f, ColorPalette.White);
             currentY += 22f;
 
             const float descHeight = 80f;
@@ -51,8 +55,9 @@ internal static class ReligionInfoDescriptionRenderer
             var saveButtonX = x + width - saveButtonWidth;
             var hasChanges = viewModel.HasDescriptionChanges();
 
-            if (ButtonRenderer.DrawButton(drawList, "Save Description", saveButtonX, currentY, saveButtonWidth, 32f,
-                    false, hasChanges))
+            if (ButtonRenderer.DrawButton(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_SAVE_DESCRIPTION),
+                    saveButtonX, currentY, saveButtonWidth, 32f, false, hasChanges))
             {
                 events.Add(new InfoEvent.SaveDescriptionClicked(viewModel.DescriptionText));
             }
@@ -62,10 +67,14 @@ internal static class ReligionInfoDescriptionRenderer
         else
         {
             // Read-only description for members
-            TextRenderer.DrawLabel(drawList, "Description:", x, currentY, 14f, ColorPalette.White);
+            TextRenderer.DrawLabel(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DESCRIPTION_LABEL),
+                x, currentY, 14f, ColorPalette.White);
             currentY += 22f;
 
-            var desc = string.IsNullOrEmpty(viewModel.Description) ? "[No description set]" : viewModel.Description;
+            var desc = string.IsNullOrEmpty(viewModel.Description)
+                ? LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DESCRIPTION_EMPTY)
+                : viewModel.Description;
             TextRenderer.DrawInfoText(drawList, desc, x, currentY, width);
             currentY += 40f;
         }

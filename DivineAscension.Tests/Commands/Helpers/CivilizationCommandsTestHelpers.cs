@@ -3,6 +3,7 @@ using DivineAscension.Commands;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
+using DivineAscension.Tests.Helpers;
 using Moq;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -24,6 +25,9 @@ public class CivilizationCommandsTestHelpers
 
     protected CivilizationCommandsTestHelpers()
     {
+        // Initialize localization for tests
+        TestFixtures.InitializeLocalizationForTests();
+
         _mockSapi = new Mock<ICoreServerAPI>();
         _mockLogger = new Mock<ILogger>();
         _mockChatCommands = new Mock<IChatCommandApi>();

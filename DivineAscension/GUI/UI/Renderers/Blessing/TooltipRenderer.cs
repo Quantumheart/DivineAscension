@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing;
@@ -118,9 +120,10 @@ internal static class TooltipRenderer
         });
 
         // Category and Tier
-        var categoryText = $"{data.Category} | Tier {data.Tier}";
+        var categoryText =
+            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_CATEGORY_TIER, data.Category, data.Tier);
         if (data.Kind == BlessingKind.Religion)
-            categoryText += " (Religion)";
+            categoryText += " " + LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_RELIGION_LABEL);
 
         lines.Add(new TooltipLine
         {
@@ -181,7 +184,8 @@ internal static class TooltipRenderer
                 data.CanUnlock ? ColorPalette.White : ColorPalette.Red;
             lines.Add(new TooltipLine
             {
-                Text = $"Requires: {data.RequiredFavorRank} (Favor)",
+                Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_FAVOR_RANK,
+                    data.RequiredFavorRank),
                 Color = rankColor,
                 FontSize = 13f,
                 SpacingAfter = LINE_SPACING
@@ -195,7 +199,8 @@ internal static class TooltipRenderer
                 data.CanUnlock ? ColorPalette.White : ColorPalette.Red;
             lines.Add(new TooltipLine
             {
-                Text = $"Requires: {data.RequiredPrestigeRank} (Prestige)",
+                Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_PRESTIGE_RANK,
+                    data.RequiredPrestigeRank),
                 Color = rankColor,
                 FontSize = 13f,
                 SpacingAfter = LINE_SPACING
@@ -213,7 +218,7 @@ internal static class TooltipRenderer
                     data.CanUnlock ? ColorPalette.White : ColorPalette.Red;
                 lines.Add(new TooltipLine
                 {
-                    Text = $"Requires: {prereq}",
+                    Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_BLESSING, prereq),
                     Color = prereqColor,
                     FontSize = 13f,
                     SpacingAfter = LINE_SPACING
@@ -232,7 +237,7 @@ internal static class TooltipRenderer
         {
             lines.Add(new TooltipLine
             {
-                Text = "[UNLOCKED]",
+                Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNLOCKED),
                 Color = ColorPalette.Green,
                 FontSize = 14f,
                 IsBold = true,
@@ -243,7 +248,7 @@ internal static class TooltipRenderer
         {
             lines.Add(new TooltipLine
             {
-                Text = "Click to unlock",
+                Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_CLICK_TO_UNLOCK),
                 Color = ColorPalette.Green,
                 FontSize = 13f,
                 SpacingAfter = 0
@@ -254,7 +259,7 @@ internal static class TooltipRenderer
             // Show lock reason if available, otherwise show generic locked message
             var lockMessage = !string.IsNullOrEmpty(data.UnlockBlockReason)
                 ? data.UnlockBlockReason
-                : "LOCKED";
+                : LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_LOCKED);
 
             lines.Add(new TooltipLine
             {

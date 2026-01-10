@@ -169,7 +169,7 @@ public class ReligionCommandInfoTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Error, result.Status);
-        Assert.Contains("You are not in any religion", result.StatusMessage);
+        Assert.Contains("You are not in a religion", result.StatusMessage);
         Assert.Contains("Specify a religion name to view", result.StatusMessage);
     }
 

@@ -5,6 +5,7 @@ using System.Linq;
 using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network.Diplomacy;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Interfaces;
 using Vintagestory.API.Common;
@@ -128,21 +129,26 @@ public class DiplomacyNetworkHandler(
         var religion = religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
         if (!religionManager.HasReligion(fromPlayer.PlayerUID))
         {
-            SendActionResponse(fromPlayer, false, "You must be in a religion to use diplomacy.", packet.Action);
+            SendActionResponse(fromPlayer, false,
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_MUST_BE_IN_RELIGION), packet.Action);
             return;
         }
 
         // Verify the player is the founder of their civilization
         if (religion == null)
         {
-            SendActionResponse(fromPlayer, false, "Your religion no longer exists.", packet.Action);
+            SendActionResponse(fromPlayer, false,
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_RELIGION_NO_LONGER_EXISTS),
+                packet.Action);
             return;
         }
 
         var playerCiv = civilizationManager.GetCivilizationByReligion(religion.ReligionUID);
         if (playerCiv == null)
         {
-            SendActionResponse(fromPlayer, false, "Your religion is not part of a civilization.", packet.Action);
+            SendActionResponse(fromPlayer, false,
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_NOT_PART_OF_CIVILIZATION),
+                packet.Action);
             return;
         }
 
@@ -170,7 +176,9 @@ public class DiplomacyNetworkHandler(
                 HandleDeclarePeaceAction(fromPlayer, playerCiv.CivId, packet);
                 break;
             default:
-                SendActionResponse(fromPlayer, false, $"Unknown diplomacy action: {packet.Action}", packet.Action);
+                SendActionResponse(fromPlayer, false,
+                    LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_UNKNOWN_ACTION, packet.Action),
+                    packet.Action);
                 break;
         }
     }
@@ -179,19 +187,24 @@ public class DiplomacyNetworkHandler(
     {
         if (string.IsNullOrEmpty(packet.TargetCivId))
         {
-            SendActionResponse(player, false, "Target civilization ID is required.", packet.Action);
+            SendActionResponse(player, false,
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_TARGET_CIV_REQUIRED), packet.Action);
             return;
         }
 
         if (string.IsNullOrEmpty(packet.ProposedStatus))
         {
-            SendActionResponse(player, false, "Proposed status is required.", packet.Action);
+            SendActionResponse(player, false,
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_PROPOSED_STATUS_REQUIRED),
+                packet.Action);
             return;
         }
 
         if (!Enum.TryParse<DiplomaticStatus>(packet.ProposedStatus, out var proposedStatus))
         {
-            SendActionResponse(player, false, $"Invalid diplomatic status: {packet.ProposedStatus}", packet.Action);
+            SendActionResponse(player, false,
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_INVALID_STATUS, packet.ProposedStatus),
+                packet.Action);
             return;
         }
 
@@ -208,7 +221,8 @@ public class DiplomacyNetworkHandler(
         {
             // Notify target civilization founder
             NotifyTargetCivilization(packet.TargetCivId,
-                $"Your civilization has received a {proposedStatus} proposal from {GetCivName(civId)}");
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_PROPOSAL_RECEIVED, proposedStatus,
+                    GetCivName(civId)));
         }
     }
 
@@ -216,7 +230,8 @@ public class DiplomacyNetworkHandler(
     {
         if (string.IsNullOrEmpty(packet.ProposalId))
         {
-            SendActionResponse(player, false, "Proposal ID is required.", packet.Action);
+            SendActionResponse(player, false,
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_PROPOSAL_ID_REQUIRED), packet.Action);
             return;
         }
 
@@ -233,7 +248,8 @@ public class DiplomacyNetworkHandler(
             {
                 var otherCivId = relationship.GetOtherCivilization(civId);
                 NotifyTargetCivilization(otherCivId,
-                    $"{GetCivName(civId)} has accepted your {relationship.Status} proposal!");
+                    LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_PROPOSAL_ACCEPTED,
+                        GetCivName(civId), relationship.Status));
             }
         }
     }
@@ -242,7 +258,8 @@ public class DiplomacyNetworkHandler(
     {
         if (string.IsNullOrEmpty(packet.ProposalId))
         {
-            SendActionResponse(player, false, "Proposal ID is required.", packet.Action);
+            SendActionResponse(player, false,
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_PROPOSAL_ID_REQUIRED), packet.Action);
             return;
         }
 
@@ -257,7 +274,8 @@ public class DiplomacyNetworkHandler(
     {
         if (string.IsNullOrEmpty(packet.TargetCivId))
         {
-            SendActionResponse(player, false, "Target civilization ID is required.", packet.Action);
+            SendActionResponse(player, false,
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_TARGET_CIV_REQUIRED), packet.Action);
             return;
         }
 
@@ -268,7 +286,8 @@ public class DiplomacyNetworkHandler(
         if (result.success)
         {
             NotifyTargetCivilization(packet.TargetCivId,
-                $"{GetCivName(civId)} has scheduled a treaty break. The treaty will end in 24 hours.");
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_TREATY_BREAK_SCHEDULED,
+                    GetCivName(civId)));
         }
     }
 
@@ -276,7 +295,8 @@ public class DiplomacyNetworkHandler(
     {
         if (string.IsNullOrEmpty(packet.TargetCivId))
         {
-            SendActionResponse(player, false, "Target civilization ID is required.", packet.Action);
+            SendActionResponse(player, false,
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_TARGET_CIV_REQUIRED), packet.Action);
             return;
         }
 
@@ -287,7 +307,8 @@ public class DiplomacyNetworkHandler(
         if (result.success)
         {
             NotifyTargetCivilization(packet.TargetCivId,
-                $"{GetCivName(civId)} has canceled the scheduled treaty break.");
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_TREATY_BREAK_CANCELED,
+                    GetCivName(civId)));
         }
     }
 
@@ -295,7 +316,8 @@ public class DiplomacyNetworkHandler(
     {
         if (string.IsNullOrEmpty(packet.TargetCivId))
         {
-            SendActionResponse(player, false, "Target civilization ID is required.", packet.Action);
+            SendActionResponse(player, false,
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_TARGET_CIV_REQUIRED), packet.Action);
             return;
         }
 
@@ -310,7 +332,8 @@ public class DiplomacyNetworkHandler(
     {
         if (string.IsNullOrEmpty(packet.TargetCivId))
         {
-            SendActionResponse(player, false, "Target civilization ID is required.", packet.Action);
+            SendActionResponse(player, false,
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_TARGET_CIV_REQUIRED), packet.Action);
             return;
         }
 
@@ -321,7 +344,7 @@ public class DiplomacyNetworkHandler(
         if (result.success)
         {
             NotifyTargetCivilization(packet.TargetCivId,
-                $"{GetCivName(civId)} has declared peace. The war has ended.");
+                LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_PEACE_DECLARED, GetCivName(civId)));
         }
     }
 
@@ -353,9 +376,10 @@ public class DiplomacyNetworkHandler(
         var founderPlayer = sapi.World.AllOnlinePlayers.FirstOrDefault(p => p.PlayerUID == targetCiv.FounderUID);
         if (founderPlayer is IServerPlayer serverPlayer)
         {
+            var prefix = LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_PREFIX);
             serverPlayer.SendMessage(
                 GlobalConstants.GeneralChatGroup,
-                $"[Diplomacy] {message}",
+                $"{prefix} {message}",
                 EnumChatType.Notification,
                 null);
         }

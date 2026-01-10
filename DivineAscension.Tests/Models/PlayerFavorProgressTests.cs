@@ -1,11 +1,17 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models;
+using DivineAscension.Tests.Helpers;
 
 namespace DivineAscension.Tests.Models;
 
 [ExcludeFromCodeCoverage]
 public class PlayerFavorProgressTests
 {
+    public PlayerFavorProgressTests()
+    {
+        TestFixtures.InitializeLocalizationForTests();
+    }
+
     [Fact]
     public void ProgressPercentage_WithCurrentAndRequired_CalculatesCorrectly()
     {

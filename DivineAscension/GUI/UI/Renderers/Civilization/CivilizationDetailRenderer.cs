@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.Detail;
 using DivineAscension.GUI.UI.Components.Buttons;
@@ -9,6 +10,7 @@ using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network.Civilization;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
@@ -28,13 +30,16 @@ internal static class CivilizationDetailRenderer
 
         if (vm.IsLoading)
         {
-            TextRenderer.DrawInfoText(drawList, "Loading civilization details...", vm.X, currentY + 8f, vm.Width);
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_LOADING),
+                vm.X, currentY + 8f, vm.Width);
             return new CivilizationDetailRendererResult(events, vm.Height);
         }
 
         // Back button
-        if (ButtonRenderer.DrawButton(drawList, "Back to Browse", vm.X, currentY, 160f, 32f, directoryPath: "GUI",
-                iconName: "back"))
+        if (ButtonRenderer.DrawButton(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_BACK),
+                vm.X, currentY, 160f, 32f, directoryPath: "GUI", iconName: "back"))
             events.Add(new DetailEvent.BackToBrowseClicked());
 
         currentY += 44f;
@@ -48,26 +53,34 @@ internal static class CivilizationDetailRenderer
         var rightCol = vm.X + vm.Width / 2f;
 
         // Founded date
-        TextRenderer.DrawLabel(drawList, "Founded:", leftCol, currentY, 13f, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_FOUNDED),
+            leftCol, currentY, 13f, ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 120f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White), vm.CreatedDate.ToString("yyyy-MM-dd"));
 
         // Member count
-        TextRenderer.DrawLabel(drawList, "Members:", rightCol, currentY, 13f, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_MEMBERS),
+            rightCol, currentY, 13f, ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(rightCol + 80f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White), $"{vm.MemberCount}/4");
 
         currentY += 24f;
 
         // Civilization founder (player name)
-        TextRenderer.DrawLabel(drawList, "Founder:", leftCol, currentY, 13f, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_FOUNDER),
+            leftCol, currentY, 13f, ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 120f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), vm.FounderName);
 
         currentY += 24f;
 
         // Founding religion
-        TextRenderer.DrawLabel(drawList, "Founding Religion:", leftCol, currentY, 13f, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_FOUNDING_RELIGION),
+            leftCol, currentY, 13f, ColorPalette.Grey);
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 120f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), vm.FounderReligionName);
 
@@ -79,7 +92,9 @@ internal static class CivilizationDetailRenderer
         currentY += 16f;
 
         // Member religions section
-        TextRenderer.DrawLabel(drawList, "Member Religions", vm.X, currentY, 16f, ColorPalette.White);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_MEMBER_RELIGIONS),
+            vm.X, currentY, 16f, ColorPalette.White);
         currentY += 28f;
 
         // Member list (scrollable)
@@ -97,7 +112,7 @@ internal static class CivilizationDetailRenderer
             8f,
             vm.MemberScrollY,
             (member, cx, cy, cw, ch) => DrawMemberRow(member, cx, cy, cw, ch, drawList, vm.FounderReligionName),
-            "No member religions."
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_NO_MEMBERS)
         );
 
         // Emit scroll event if changed
@@ -109,11 +124,16 @@ internal static class CivilizationDetailRenderer
         // Join/Request info
         if (vm.CanRequestToJoin)
             TextRenderer.DrawInfoText(drawList,
-                "You can receive an invitation from this civilization's founder to join.", vm.X, currentY, vm.Width);
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_CAN_RECEIVE_INVITE), vm.X,
+                currentY, vm.Width);
         else if (vm.IsFull)
-            TextRenderer.DrawInfoText(drawList, "This civilization is full (4/4 members).", vm.X, currentY, vm.Width);
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_FULL), vm.X, currentY,
+                vm.Width);
         else
-            TextRenderer.DrawInfoText(drawList, "You are already a member of a civilization.", vm.X, currentY,
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_ALREADY_MEMBER), vm.X,
+                currentY,
                 vm.Width);
 
         return new CivilizationDetailRendererResult(events, vm.Height);
@@ -150,7 +170,8 @@ internal static class CivilizationDetailRenderer
         TextRenderer.DrawLabel(drawList, member.ReligionName, x + 40f, y + 8f, 15f);
 
         // Sub info - includes deity, member count, and religion founder name
-        var subText = $"Deity: {member.Deity}  |  Members: {member.MemberCount}  |  Founded by: {member.FounderName}";
+        var subText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_MEMBER_CARD_INFO,
+            member.Deity, member.MemberCount, member.FounderName);
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(x + 40f, y + 32f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), subText);
 

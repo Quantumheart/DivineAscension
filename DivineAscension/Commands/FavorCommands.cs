@@ -1,7 +1,10 @@
 using System;
 using System.Linq;
 using System.Text;
+using DivineAscension.Constants;
+using DivineAscension.Extensions;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -40,59 +43,59 @@ public class FavorCommands
     {
         // Main /favor command with subcommands
         _sapi.ChatCommands.Create("favor")
-            .WithDescription("Manage and check your divine favor")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_DESC))
             .RequiresPlayer()
             .RequiresPrivilege(Privilege.chat)
             .HandleWith(OnCheckFavor) // Default behavior: show current favor
             .BeginSubCommand("get")
-            .WithDescription("Check your current divine favor")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_GET_DESC))
             .HandleWith(OnCheckFavor)
             .EndSubCommand()
             .BeginSubCommand("info")
-            .WithDescription("View detailed favor information and rank progression")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_INFO_DESC))
             .HandleWith(OnFavorInfo)
             .EndSubCommand()
             .BeginSubCommand("stats")
-            .WithDescription("View comprehensive favor statistics")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_STATS_DESC))
             .HandleWith(OnFavorStats)
             .EndSubCommand()
             .BeginSubCommand("ranks")
-            .WithDescription("List all devotion ranks and their requirements")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_RANKS_DESC))
             .RequiresPrivilege(Privilege.chat)
             .HandleWith(OnListRanks)
             .EndSubCommand()
             .BeginSubCommand("set")
-            .WithDescription("Set favor to a specific amount (Admin only)")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SET_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"), _sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnSetFavor)
             .EndSubCommand()
             .BeginSubCommand("add")
-            .WithDescription("Add favor (Admin only)")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ADD_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"), _sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnAddFavor)
             .EndSubCommand()
             .BeginSubCommand("remove")
-            .WithDescription("Remove favor (Admin only)")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_REMOVE_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"), _sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnRemoveFavor)
             .EndSubCommand()
             .BeginSubCommand("reset")
-            .WithDescription("Reset favor to 0 (Admin only)")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_RESET_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnResetFavor)
             .EndSubCommand()
             .BeginSubCommand("max")
-            .WithDescription("Set favor to maximum (Admin only)")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_MAX_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnMaxFavor)
             .EndSubCommand()
             .BeginSubCommand("settotal")
-            .WithDescription("Set total favor earned and update rank (Admin only)")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SETTOTAL_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"), _sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnSetTotalFavor)
@@ -122,13 +125,16 @@ public class FavorCommands
         FavorRank oldRank)
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"Total favor earned set to {newAmount:N0} (was {oldTotal:N0})");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_TOTAL_SET,
+            newAmount.ToString("N0"), oldTotal.ToString("N0")));
 
         var newRank = playerData.FavorRank;
         if (oldRank != newRank)
-            sb.Append($"Rank updated: {oldRank} → {newRank}");
+            sb.Append(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_RANK_UPDATE,
+                oldRank.ToLocalizedString(), newRank.ToLocalizedString()));
         else
-            sb.Append($"Rank unchanged: {newRank}");
+            sb.Append(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_RANK_UNCHANGED,
+                newRank.ToLocalizedString()));
 
         return sb.ToString();
     }
@@ -143,7 +149,9 @@ public class FavorCommands
     internal TextCommandResult OnCheckFavor(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_BE_PLAYER));
 
         var (playerProgressionData, religionName, errorResult) =
             CommandHelpers.ValidatePlayerHasDeity(player, _playerProgressionDataManager, _religionManager);
@@ -153,7 +161,8 @@ public class FavorCommands
         var deityName = deity?.Name;
 
         return TextCommandResult.Success(
-            $"You have {playerProgressionData.Favor} favor with {deityName} (Rank: {playerProgressionData.FavorRank})"
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_CHECK, playerProgressionData.Favor,
+                deityName, playerProgressionData.FavorRank.ToLocalizedString())
         );
     }
 
@@ -163,7 +172,9 @@ public class FavorCommands
     internal TextCommandResult OnFavorInfo(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_BE_PLAYER));
 
         var (playerProgressionData, religionName, errorResult) =
             CommandHelpers.ValidatePlayerHasDeity(player, _playerProgressionDataManager, _religionManager);
@@ -177,11 +188,14 @@ public class FavorCommands
         var currentRankName = RankRequirements.GetFavorRankName(currentRank);
 
         var sb = new StringBuilder();
-        sb.AppendLine("=== Divine Favor ===");
-        sb.AppendLine($"Deity: {deityName}");
-        sb.AppendLine($"Current Favor: {playerProgressionData.Favor:N0}");
-        sb.AppendLine($"Total Favor Earned: {playerProgressionData.TotalFavorEarned:N0}");
-        sb.AppendLine($"Current Rank: {currentRankName}");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_HEADER_INFO));
+        sb.AppendLine($"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_DEITY)} {deityName}");
+        sb.AppendLine(
+            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_CURRENT)} {playerProgressionData.Favor:N0}");
+        sb.AppendLine(
+            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_TOTAL_EARNED)} {playerProgressionData.TotalFavorEarned:N0}");
+        sb.AppendLine(
+            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_CURRENT_RANK)} {currentRankName}");
 
         // Calculate next rank
         if (currentRank < 4) // Not at max rank
@@ -190,15 +204,18 @@ public class FavorCommands
             var nextRankName = RankRequirements.GetFavorRankName(nextRank);
             var nextThreshold = RankRequirements.GetRequiredFavorForNextRank(currentRank);
 
-            sb.AppendLine($"Next Rank: {nextRankName} ({nextThreshold:N0} total favor required)");
+            sb.AppendLine(
+                $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_NEXT_RANK)} {nextRankName} ({nextThreshold:N0} total favor required)");
 
             var remaining = nextThreshold - playerProgressionData.TotalFavorEarned;
             var progress = (float)playerProgressionData.TotalFavorEarned / nextThreshold * 100f;
-            sb.AppendLine($"Progress: {progress:F1}% ({remaining:N0} favor needed)");
+            sb.AppendLine(
+                $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_PROGRESS)} {progress:F1}% ({remaining:N0} favor needed)");
         }
         else
         {
-            sb.AppendLine("Next Rank: None (Maximum rank achieved!)");
+            sb.AppendLine(
+                $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_NEXT_RANK)} {LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_MAX_RANK)}");
         }
 
         return TextCommandResult.Success(sb.ToString());
@@ -210,7 +227,9 @@ public class FavorCommands
     internal TextCommandResult OnFavorStats(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_BE_PLAYER));
 
         var (playerProgressionData, religionName, errorResult) =
             CommandHelpers.ValidatePlayerHasDeity(player, _playerProgressionDataManager, _religionManager);
@@ -224,11 +243,14 @@ public class FavorCommands
         var currentRankName = RankRequirements.GetFavorRankName(currentRank);
 
         var sb = new StringBuilder();
-        sb.AppendLine("=== Divine Statistics ===");
-        sb.AppendLine($"Deity: {deityName}");
-        sb.AppendLine($"Current Favor: {playerProgressionData.Favor:N0}");
-        sb.AppendLine($"Total Favor Earned: {playerProgressionData.TotalFavorEarned:N0}");
-        sb.AppendLine($"Devotion Rank: {currentRankName}");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_HEADER_STATS));
+        sb.AppendLine($"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_DEITY)} {deityName}");
+        sb.AppendLine(
+            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_CURRENT)} {playerProgressionData.Favor:N0}");
+        sb.AppendLine(
+            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_TOTAL_EARNED)} {playerProgressionData.TotalFavorEarned:N0}");
+        sb.AppendLine(
+            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_DEVOTION_RANK)} {currentRankName}");
 
         // Calculate next rank
         if (currentRank < 4) // Not at max rank
@@ -239,8 +261,10 @@ public class FavorCommands
             var remaining = nextThreshold - playerProgressionData.TotalFavorEarned;
 
             sb.AppendLine();
-            sb.AppendLine($"Next Rank: {nextRankName}");
-            sb.AppendLine($"Favor Needed: {remaining:N0}");
+            sb.AppendLine(
+                $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_NEXT_RANK)} {nextRankName}");
+            sb.AppendLine(
+                $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_FAVOR_NEEDED)} {remaining:N0}");
         }
 
         return TextCommandResult.Success(sb.ToString());
@@ -253,18 +277,19 @@ public class FavorCommands
     internal TextCommandResult OnListRanks(TextCommandCallingArgs args)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("=== Favor Ranks ===");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_HEADER_RANKS));
 
         // List all ranks with their requirements
         for (var rank = 0; rank <= 4; rank++)
         {
             var rankName = RankRequirements.GetFavorRankName(rank);
             var totalRequired = rank == 0 ? 0 : RankRequirements.GetRequiredFavorForNextRank(rank - 1);
-            sb.AppendLine($"{rankName}: {totalRequired:N0} total favor");
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_FORMAT_RANK_REQUIREMENT, rankName,
+                totalRequired.ToString("N0")));
         }
 
         sb.AppendLine();
-        sb.AppendLine("Higher ranks unlock more powerful blessings.");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_UNLOCK_MESSAGE));
 
         return TextCommandResult.Success(sb.ToString());
     }
@@ -279,14 +304,20 @@ public class FavorCommands
     internal TextCommandResult OnSetFavor(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_BE_PLAYER));
 
         var amount = (int)args[0];
         var targetPlayerName = (string)args[1];
 
         // Validate amount
-        if (amount < 0) return TextCommandResult.Error("Favor amount cannot be negative.");
-        if (amount > 999999) return TextCommandResult.Error("Favor amount cannot exceed 999,999.");
+        if (amount < 0)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_NEGATIVE_AMOUNT));
+        if (amount > 999999)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_EXCEEDS_MAX));
 
         // Resolve target player
         var (targetPlayer, playerData, errorResult) = CommandHelpers.ResolveTargetPlayer(player, targetPlayerName,
@@ -295,12 +326,14 @@ public class FavorCommands
             return errorResult;
 
         if (playerData is null)
-            return TextCommandResult.Error("Player must have a religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
         playerData.Favor = amount;
 
         var targetName = targetPlayerName != null ? $" for {targetPlayer?.PlayerName}" : "";
-        return TextCommandResult.Success($"Favor set to {amount:N0}{targetName}");
+        return TextCommandResult.Success(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_SET,
+            amount.ToString("N0"), targetName));
     }
 
     /// <summary>
@@ -309,14 +342,20 @@ public class FavorCommands
     internal TextCommandResult OnAddFavor(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_BE_PLAYER));
 
         var amount = (int)args[0];
         var targetPlayerName = (string)args[1];
 
         // Validate amount
-        if (amount <= 0) return TextCommandResult.Error("Amount must be greater than 0.");
-        if (amount > 999999) return TextCommandResult.Error("Amount cannot exceed 999,999.");
+        if (amount <= 0)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_AMOUNT_TOO_SMALL));
+        if (amount > 999999)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_EXCEEDS_MAX));
 
         // Resolve target player
         var (targetPlayer, playerData, errorResult) = CommandHelpers.ResolveTargetPlayer(player, targetPlayerName,
@@ -325,14 +364,16 @@ public class FavorCommands
             return errorResult;
 
         if (playerData is null || targetPlayer is null)
-            return TextCommandResult.Error("Player must have a religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
         var oldFavor = playerData.Favor;
         _playerProgressionDataManager.AddFavor(targetPlayer.PlayerUID, amount);
 
         var targetName = targetPlayerName != null ? $" for {targetPlayer.PlayerName}" : "";
         return TextCommandResult.Success(
-            $"Added {amount:N0} favor{targetName} ({oldFavor:N0} → {playerData.Favor:N0})");
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_ADD, amount.ToString("N0"), targetName,
+                oldFavor.ToString("N0"), playerData.Favor.ToString("N0")));
     }
 
     /// <summary>
@@ -341,14 +382,20 @@ public class FavorCommands
     internal TextCommandResult OnRemoveFavor(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_BE_PLAYER));
 
         var amount = (int)args[0];
         var targetPlayerName = (string)args[1];
 
         // Validate amount
-        if (amount <= 0) return TextCommandResult.Error("Amount must be greater than 0.");
-        if (amount > 999999) return TextCommandResult.Error("Amount cannot exceed 999,999.");
+        if (amount <= 0)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_AMOUNT_TOO_SMALL));
+        if (amount > 999999)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_EXCEEDS_MAX));
 
         // Resolve target player
         var (targetPlayer, playerData, errorResult) = CommandHelpers.ResolveTargetPlayer(player, targetPlayerName,
@@ -357,7 +404,8 @@ public class FavorCommands
             return errorResult;
 
         if (playerData is null || targetPlayer is null)
-            return TextCommandResult.Error("Player must have a religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
         var oldFavor = playerData.Favor;
         _playerProgressionDataManager.RemoveFavor(targetPlayer.PlayerUID, amount);
@@ -365,7 +413,8 @@ public class FavorCommands
 
         var targetName = targetPlayerName != null ? $" for {targetPlayer.PlayerName}" : "";
         return TextCommandResult.Success(
-            $"Removed {actualRemoved:N0} favor{targetName} ({oldFavor:N0} → {playerData.Favor:N0})");
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_REMOVE, actualRemoved.ToString("N0"),
+                targetName, oldFavor.ToString("N0"), playerData.Favor.ToString("N0")));
     }
 
     /// <summary>
@@ -374,7 +423,9 @@ public class FavorCommands
     internal TextCommandResult OnResetFavor(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_BE_PLAYER));
 
         var targetPlayerName = (string)args[0];
 
@@ -385,13 +436,15 @@ public class FavorCommands
             return errorResult;
 
         if (playerData is null)
-            return TextCommandResult.Error("Player must have a religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
         var oldFavor = playerData.Favor;
         playerData.Favor = 0;
 
         var targetName = targetPlayerName != null ? $" for {targetPlayer?.PlayerName}" : "";
-        return TextCommandResult.Success($"Favor reset to 0{targetName} (was {oldFavor:N0})");
+        return TextCommandResult.Success(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_RESET,
+            targetName, oldFavor.ToString("N0")));
     }
 
     /// <summary>
@@ -400,7 +453,9 @@ public class FavorCommands
     internal TextCommandResult OnMaxFavor(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_BE_PLAYER));
 
         var targetPlayerName = (string)args[0];
 
@@ -411,13 +466,15 @@ public class FavorCommands
             return errorResult;
 
         if (playerData is null)
-            return TextCommandResult.Error("Player must have a religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
         var oldFavor = playerData.Favor;
         playerData.Favor = 99999;
 
         var targetName = targetPlayerName != null ? $" for {targetPlayer?.PlayerName}" : "";
-        return TextCommandResult.Success($"Favor set to maximum: 99,999{targetName} (was {oldFavor:N0})");
+        return TextCommandResult.Success(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_MAX,
+            targetName, oldFavor.ToString("N0")));
     }
 
     /// <summary>
@@ -426,14 +483,20 @@ public class FavorCommands
     internal TextCommandResult OnSetTotalFavor(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command must be used by a player");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_BE_PLAYER));
 
         var amount = (int)args[0];
 
         // Validate amount
-        if (amount < 0) return TextCommandResult.Error("Total favor earned cannot be negative.");
+        if (amount < 0)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_TOTAL_NEGATIVE));
 
-        if (amount > 999999) return TextCommandResult.Error("Total favor earned cannot exceed 999,999.");
+        if (amount > 999999)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_TOTAL_EXCEEDS_MAX));
 
         var targetPlayerArg = (string)args[1];
 
@@ -444,11 +507,14 @@ public class FavorCommands
                 .FirstOrDefault(p => string.Equals(p.PlayerName, targetPlayerArg, StringComparison.OrdinalIgnoreCase));
 
             if (targetPlayer is null)
-                return TextCommandResult.Error($"Cannot find player with name '{targetPlayerArg}'");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_PLAYER_NOT_FOUND,
+                        targetPlayerArg));
 
             var serverPlayer = targetPlayer as IServerPlayer;
             if (serverPlayer is null)
-                return TextCommandResult.Error("Target player is not a server player");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_NOT_SERVER_PLAYER));
 
             var (targetProgressionData, _, targetErrorResult) =
                 CommandHelpers.ValidatePlayerHasDeity(serverPlayer, _playerProgressionDataManager, _religionManager);
@@ -456,7 +522,8 @@ public class FavorCommands
                 return targetErrorResult;
 
             if (targetProgressionData is null)
-                return TextCommandResult.Error("Target must have a religion");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_TARGET_NO_RELIGION));
 
             var oldTotal = targetProgressionData.TotalFavorEarned;
             var oldRank = targetProgressionData.FavorRank;
@@ -473,7 +540,8 @@ public class FavorCommands
             return errorResult;
 
         if (religionData is null)
-            return TextCommandResult.Error("Player must have a religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
         var callerOldTotal = religionData.TotalFavorEarned;
         var callerOldRank = religionData.FavorRank;

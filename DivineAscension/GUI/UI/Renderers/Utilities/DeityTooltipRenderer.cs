@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.UI.Utilities;
-using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Utilities;
@@ -83,7 +84,9 @@ internal static class DeityTooltipRenderer
         lines.Add(new TooltipLine(info.Title, ColorPalette.Gold, 14f, false, SECTION_SPACING));
 
         // Domain in grey, 13px
-        lines.Add(new TooltipLine($"Domain: {info.Domain}", ColorPalette.Grey, 13f, false, SECTION_SPACING));
+        lines.Add(new TooltipLine(
+            $"{LocalizationService.Instance.Get(LocalizationKeys.DEITY_DOMAIN_LABEL)} {info.Domain}", ColorPalette.Grey,
+            13f, false, SECTION_SPACING));
 
         // Description wrapped, white, 13px (reserve space for icon on right)
         var wrappedDesc = WrapText(info.Description, TOOLTIP_MAX_WIDTH - TOOLTIP_PADDING * 2 - 40f, 13f);
@@ -105,6 +108,7 @@ internal static class DeityTooltipRenderer
         {
             totalHeight += line.Height + line.SpacingAfter;
         }
+
         return totalHeight;
     }
 

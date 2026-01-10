@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -37,55 +39,55 @@ public class CivilizationCommands(
     public void RegisterCommands()
     {
         _sapi.ChatCommands.Create("civ")
-            .WithDescription("Manage civilizations - alliances of 1-4 different-deity religions")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_DESC))
             .RequiresPrivilege(Privilege.chat)
             .BeginSubCommand("create")
-            .WithDescription("Create a new civilization")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_CREATE_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("name"))
             .HandleWith(OnCreateCivilization)
             .EndSubCommand()
             .BeginSubCommand("invite")
-            .WithDescription("Invite a religion to your civilization (founder only)")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_INVITE_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("religionname"))
             .HandleWith(OnInviteReligion)
             .EndSubCommand()
             .BeginSubCommand("accept")
-            .WithDescription("Accept a civilization invitation")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ACCEPT_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("inviteid"))
             .HandleWith(OnAcceptInvite)
             .EndSubCommand()
             .BeginSubCommand("leave")
-            .WithDescription("Leave your civilization")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_LEAVE_DESC))
             .HandleWith(OnLeaveCivilization)
             .EndSubCommand()
             .BeginSubCommand("kick")
-            .WithDescription("Kick a religion from your civilization (founder only)")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_KICK_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("religionname"))
             .HandleWith(OnKickReligion)
             .EndSubCommand()
             .BeginSubCommand("disband")
-            .WithDescription("Disband your civilization (founder only)")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_DISBAND_DESC))
             .HandleWith(OnDisbandCivilization)
             .EndSubCommand()
             .BeginSubCommand("list")
-            .WithDescription("List all civilizations")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_LIST_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("deity"))
             .HandleWith(OnListCivilizations)
             .EndSubCommand()
             .BeginSubCommand("info")
-            .WithDescription("Show civilization information")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_INFO_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("name"))
             .HandleWith(OnCivilizationInfo)
             .EndSubCommand()
             .BeginSubCommand("invites")
-            .WithDescription("Show your pending civilization invitations")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_INVITES_DESC))
             .HandleWith(OnListInvites)
             .EndSubCommand()
             .BeginSubCommand("admin")
-            .WithDescription("Admin commands for civilization management")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ADMIN_DESC))
             .RequiresPrivilege(Privilege.root)
             .BeginSubCommand("create")
-            .WithDescription("Force create a civilization with specified religions")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ADMIN_CREATE_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("civname"),
                 _sapi.ChatCommands.Parsers.Word("religion1"),
                 _sapi.ChatCommands.Parsers.OptionalWord("religion2"),
@@ -94,12 +96,12 @@ public class CivilizationCommands(
             .HandleWith(OnAdminCreate)
             .EndSubCommand()
             .BeginSubCommand("dissolve")
-            .WithDescription("Force dissolve a civilization (Admin only)")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ADMIN_DISSOLVE_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.Word("civname"))
             .HandleWith(OnAdminDissolve)
             .EndSubCommand()
             .BeginSubCommand("cleanup")
-            .WithDescription("Clean up orphaned civilizations and diplomacy data")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ADMIN_CLEANUP_DESC))
             .HandleWith(OnCleanupOrphanedData)
             .EndSubCommand()
             .EndSubCommand();
@@ -113,28 +115,33 @@ public class CivilizationCommands(
         var civName = (string)args[0];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         // Get player's religion
         if (!_religionManager.HasReligion(player.PlayerUID))
-            return TextCommandResult.Error("You must be in a religion to create a civilization");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_MUST_BE_IN_RELIGION_TO_CREATE));
 
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         if (religion == null)
-            return TextCommandResult.Error("Your religion was not found");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_RELIGION_NOT_FOUND_GENERIC));
 
         // Check if player is founder
         if (religion.FounderUID != player.PlayerUID)
-            return TextCommandResult.Error("Only religion founders can create civilizations");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ONLY_FOUNDERS_CREATE));
 
         // Create civilization
         var civ = _civilizationManager.CreateCivilization(civName, player.PlayerUID, religion.ReligionUID);
         if (civ == null)
             return TextCommandResult.Error(
-                "Failed to create civilization. Check name requirements (3-32 characters, unique)");
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_CREATE_FAILED));
 
         return TextCommandResult.Success(
-            $"Civilization '{civName}' created! You can now invite 1-3 more religions with different deities.");
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_CREATED, civName));
     }
 
     /// <summary>
@@ -145,33 +152,40 @@ public class CivilizationCommands(
         var religionName = (string)args[0];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         if (!_religionManager.HasReligion(player.PlayerUID))
-            return TextCommandResult.Error("You must be in a religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_MUST_BE_IN_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         // Get player's civilization
         var civ = _civilizationManager.GetCivilizationByReligion(religion!.ReligionUID);
         if (civ == null)
-            return TextCommandResult.Error("You are not in a civilization. Use /civ create first");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_NOT_IN_CIV_USE_CREATE));
 
         // Check if player is founder
         if (civ.FounderUID != player.PlayerUID)
-            return TextCommandResult.Error("Only the civilization founder can send invitations");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ONLY_FOUNDER_INVITE));
 
         // Find target religion
         var targetReligion = _religionManager.GetReligionByName(religionName);
         if (targetReligion == null)
-            return TextCommandResult.Error($"Religion '{religionName}' not found");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_RELIGION_NOT_FOUND, religionName));
 
         // Send invitation
         var success = _civilizationManager.InviteReligion(civ.CivId, targetReligion.ReligionUID, player.PlayerUID);
         if (!success)
             return TextCommandResult.Error(
-                "Failed to send invitation. Check: civilization not full (max 4), different deity required");
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_INVITE_FAILED));
 
-        return TextCommandResult.Success($"Invitation sent to '{religionName}'. It will expire in 7 days.");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_INVITE_SENT, religionName));
     }
 
     /// <summary>
@@ -182,27 +196,33 @@ public class CivilizationCommands(
         var inviteId = (string)args[0];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
 
         if (!_religionManager.HasReligion(player.PlayerUID))
-            return TextCommandResult.Error("You must be in a religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_MUST_BE_IN_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         if (religion == null)
-            return TextCommandResult.Error("Your religion was not found");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_RELIGION_NOT_FOUND_GENERIC));
 
         // Check if player is founder
         if (religion.FounderUID != player.PlayerUID)
-            return TextCommandResult.Error("Only religion founders can accept civilization invitations");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ONLY_FOUNDERS_ACCEPT));
 
         // Accept invitation
         var success = _civilizationManager.AcceptInvite(inviteId, player.PlayerUID);
         if (!success)
             return TextCommandResult.Error(
-                "Failed to accept invitation. It may have expired or the civilization is full");
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ACCEPT_FAILED));
 
-        return TextCommandResult.Success("You have joined the civilization!");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_JOINED));
     }
 
     /// <summary>
@@ -211,36 +231,45 @@ public class CivilizationCommands(
     internal TextCommandResult OnLeaveCivilization(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         // Get player's religion
         var playerId = player.PlayerUID;
         if (!_religionManager.HasReligion(playerId))
-            return TextCommandResult.Error("You must be in a religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_MUST_BE_IN_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(playerId);
         if (religion == null)
-            return TextCommandResult.Error("Your religion was not found");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_RELIGION_NOT_FOUND_GENERIC));
 
         // Check if player is founder of their religion
         if (religion.FounderUID != playerId)
-            return TextCommandResult.Error("Only religion founders can leave civilizations");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ONLY_FOUNDERS_LEAVE));
 
         // Get civilization
         var civ = _civilizationManager.GetCivilizationByReligion(religion.ReligionUID);
         if (civ == null)
-            return TextCommandResult.Error("You are not in a civilization");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_NOT_IN_CIV));
 
         // Check if player is civilization founder
         if (civ.FounderUID == player.PlayerUID)
-            return TextCommandResult.Error("Civilization founders cannot leave. Use /civ disband instead");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_FOUNDER_CANNOT_LEAVE));
 
         // Leave civilization
         var success = _civilizationManager.LeaveReligion(religion.ReligionUID, player.PlayerUID);
         if (!success)
-            return TextCommandResult.Error("Failed to leave civilization");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_LEAVE_FAILED));
 
-        return TextCommandResult.Success("You have left the civilization.");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_LEFT));
     }
 
     /// <summary>
@@ -251,35 +280,43 @@ public class CivilizationCommands(
         var religionName = (string)args[0];
 
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         // Get player's religion
         var playerId = player.PlayerUID;
         if (!_religionManager.HasReligion(playerId))
-            return TextCommandResult.Error("You must be in a religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_MUST_BE_IN_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(playerId);
 
         // Get civilization
         var civ = _civilizationManager.GetCivilizationByReligion(religion!.ReligionUID);
         if (civ == null)
-            return TextCommandResult.Error("You are not in a civilization");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_NOT_IN_CIV));
 
         // Check if player is founder
         if (civ.FounderUID != player.PlayerUID)
-            return TextCommandResult.Error("Only the civilization founder can kick religions");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ONLY_FOUNDER_KICK));
 
         // Find target religion
         var targetReligion = _religionManager.GetReligionByName(religionName);
         if (targetReligion == null)
-            return TextCommandResult.Error($"Religion '{religionName}' not found");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_RELIGION_NOT_FOUND, religionName));
 
         // Kick religion
         var success = _civilizationManager.KickReligion(civ.CivId, targetReligion.ReligionUID, playerId);
         if (!success)
-            return TextCommandResult.Error("Failed to kick religion. You cannot kick your own religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_KICK_FAILED));
 
-        return TextCommandResult.Success($"'{religionName}' has been kicked from the civilization.");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_KICKED, religionName));
     }
 
     /// <summary>
@@ -288,30 +325,37 @@ public class CivilizationCommands(
     internal TextCommandResult OnDisbandCivilization(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         // Get player's religion
         var playerId = player.PlayerUID;
         if (!_religionManager.HasReligion(playerId))
-            return TextCommandResult.Error("You must be in a religion");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_MUST_BE_IN_RELIGION));
 
         var religion = _religionManager.GetPlayerReligion(playerId);
 
         // Get civilization
         var civ = _civilizationManager.GetCivilizationByReligion(religion!.ReligionUID);
         if (civ == null)
-            return TextCommandResult.Error("You are not in a civilization");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_NOT_IN_CIV));
 
         // Check if player is founder
         if (civ.FounderUID != playerId)
-            return TextCommandResult.Error("Only the civilization founder can disband it");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ONLY_FOUNDER_DISBAND));
 
         // Disband
         var success = _civilizationManager.DisbandCivilization(civ.CivId, playerId);
         if (!success)
-            return TextCommandResult.Error("Failed to disband civilization");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_DISBAND_FAILED));
 
-        return TextCommandResult.Success("Civilization disbanded. All member religions have been freed.");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_DISBANDED));
     }
 
     /// <summary>
@@ -324,10 +368,11 @@ public class CivilizationCommands(
         var civilizations = _civilizationManager.GetAllCivilizations();
 
         if (!civilizations.Any())
-            return TextCommandResult.Success("No civilizations exist yet. Create one with /civ create!");
+            return TextCommandResult.Success(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_NO_CIVS));
 
         var sb = new StringBuilder();
-        sb.AppendLine("=== Civilizations ===");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_HEADER_LIST));
 
         foreach (var civ in civilizations)
         {
@@ -339,9 +384,12 @@ public class CivilizationCommands(
                 !deities.Any(d => d.Contains(deityFilter, StringComparison.OrdinalIgnoreCase)))
                 continue;
 
-            sb.AppendLine($"• {civ.Name} ({civ.MemberReligionIds.Count}/4 religions)");
-            sb.AppendLine($"  Deities: {string.Join(", ", deities)}");
-            sb.AppendLine($"  Religions: {string.Join(", ", religions.Select(r => r.ReligionName))}");
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_FORMAT_LIST_ITEM,
+                civ.Name, civ.MemberReligionIds.Count));
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_LABEL_DEITIES,
+                string.Join(", ", deities)));
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_LABEL_RELIGIONS,
+                string.Join(", ", religions.Select(r => r.ReligionName))));
         }
 
         return TextCommandResult.Success(sb.ToString());
@@ -353,7 +401,9 @@ public class CivilizationCommands(
     internal TextCommandResult OnCivilizationInfo(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         Civilization? civ;
 
@@ -364,36 +414,42 @@ public class CivilizationCommands(
             civ = _civilizationManager.GetAllCivilizations()
                 .FirstOrDefault(c => c.Name.Equals(civName, StringComparison.OrdinalIgnoreCase));
             if (civ == null)
-                return TextCommandResult.Error($"Civilization '{civName}' not found");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_CIV_NOT_FOUND, civName));
         }
         else
         {
             // Get player's civilization
             var playerId = player.PlayerUID;
             if (!_religionManager.HasReligion(playerId))
-                return TextCommandResult.Error("You must be in a religion. Specify a civilization name to view others");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_MUST_BE_IN_RELIGION_SPECIFY_NAME));
 
             var religion = _religionManager.GetPlayerReligion(playerId);
             civ = _civilizationManager.GetCivilizationByReligion(religion.ReligionUID);
             if (civ == null)
                 return TextCommandResult.Error(
-                    "You are not in a civilization. Specify a civilization name to view others");
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_NOT_IN_CIV_SPECIFY_NAME));
         }
 
         // Build info display
         var sb = new StringBuilder();
-        sb.AppendLine($"=== {civ.Name} ===");
-        sb.AppendLine($"Founded: {civ.CreatedDate:yyyy-MM-dd}");
-        sb.AppendLine($"Members: {civ.MemberReligionIds.Count}/4 religions");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_HEADER_INFO, civ.Name));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_LABEL_FOUNDED,
+            civ.CreatedDate.ToString("yyyy-MM-dd")));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_LABEL_MEMBERS,
+            civ.MemberReligionIds.Count));
         sb.AppendLine();
 
-        sb.AppendLine("Member Religions:");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_LABEL_MEMBER_RELIGIONS));
         var religions = _civilizationManager.GetCivReligions(civ.CivId);
         foreach (var religion in religions)
         {
-            var isFounder = religion.ReligionUID == civ.MemberReligionIds[0] ? " [Founder]" : "";
-            sb.AppendLine(
-                $"  • {religion.ReligionName} ({religion.Deity}) - {religion.MemberUIDs.Count} members{isFounder}");
+            var isFounder = religion.ReligionUID == civ.MemberReligionIds[0]
+                ? LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_LABEL_FOUNDER)
+                : "";
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_FORMAT_MEMBER_RELIGION,
+                religion.ReligionName, religion.Deity, religion.MemberUIDs.Count, isFounder));
         }
 
         // Show pending invites only to founder
@@ -403,15 +459,15 @@ public class CivilizationCommands(
             var invites = _civilizationManager.GetInvitesForCiv(civ.CivId);
             if (invites.Any())
             {
-                sb.AppendLine("Pending Invitations:");
+                sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_LABEL_PENDING_INVITES));
                 foreach (var invite in invites)
                 {
                     var targetReligion = _religionManager.GetReligion(invite.ReligionId);
                     if (targetReligion != null)
                     {
                         var daysLeft = (invite.ExpiresDate - DateTime.UtcNow).Days;
-                        sb.AppendLine(
-                            $"  • {targetReligion.ReligionName} (expires in {daysLeft} days) - ID: {invite.InviteId}");
+                        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_FORMAT_PENDING_INVITE,
+                            targetReligion.ReligionName, daysLeft, invite.InviteId));
                     }
                 }
             }
@@ -426,30 +482,36 @@ public class CivilizationCommands(
     internal TextCommandResult OnListInvites(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         // Get player's religion
         var playerId = player.PlayerUID;
         if (!_religionManager.HasReligion(playerId))
-            return TextCommandResult.Error("You must be in a religion to receive invitations");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_MUST_BE_IN_RELIGION_FOR_INVITES));
 
         var religion = _religionManager.GetPlayerReligion(playerId);
 
         if (religion == null)
-            return TextCommandResult.Error("Your religion was not found");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_RELIGION_NOT_FOUND_GENERIC));
 
         // Check if player is founder
         if (religion.FounderUID != playerId)
-            return TextCommandResult.Error("Only religion founders can view civilization invitations");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ONLY_FOUNDERS_VIEW_INVITES));
 
         // Get invites
         var invites = _civilizationManager.GetInvitesForReligion(religion.ReligionUID);
 
         if (!invites.Any())
-            return TextCommandResult.Success("You have no pending civilization invitations");
+            return TextCommandResult.Success(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_NO_INVITES));
 
         var sb = new StringBuilder();
-        sb.AppendLine("=== Pending Civilization Invitations ===");
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_HEADER_INVITES));
 
         foreach (var invite in invites)
         {
@@ -457,9 +519,12 @@ public class CivilizationCommands(
             if (civ != null)
             {
                 var daysLeft = (invite.ExpiresDate - DateTime.UtcNow).Days;
-                sb.AppendLine($"• {civ.Name} ({civ.MemberReligionIds.Count}/4 religions) - expires in {daysLeft} days");
-                sb.AppendLine($"  Invite ID: {invite.InviteId}");
-                sb.AppendLine($"  Use: /civ accept {invite.InviteId}");
+                sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_FORMAT_INVITE_ITEM,
+                    civ.Name, civ.MemberReligionIds.Count, daysLeft));
+                sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_LABEL_INVITE_ID,
+                    invite.InviteId));
+                sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_LABEL_USE_ACCEPT,
+                    invite.InviteId));
             }
         }
 
@@ -485,7 +550,8 @@ public class CivilizationCommands(
 
         if (orphanedCivs.Count == 0)
         {
-            return TextCommandResult.Success("No orphaned civilizations found.");
+            return TextCommandResult.Success(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_NO_ORPHANED));
         }
 
         // Disband orphaned civilizations
@@ -499,7 +565,7 @@ public class CivilizationCommands(
         }
 
         return TextCommandResult.Success(
-            $"Cleaned up {orphanedCivs.Count} orphaned civilization(s). Associated diplomacy data was also removed.");
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_CLEANUP, orphanedCivs.Count));
     }
 
     #region Admin Commands (Privilege.root)
@@ -510,7 +576,9 @@ public class CivilizationCommands(
     internal TextCommandResult OnAdminCreate(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var civName = (string)args[0];
         var religion1Name = (string)args[1];
@@ -530,7 +598,8 @@ public class CivilizationCommands(
         {
             var religion = _religionManager.GetReligionByName(name);
             if (religion == null)
-                return TextCommandResult.Error($"Religion '{name}' not found");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_RELIGION_NOT_FOUND, name));
             religions.Add(religion);
         }
 
@@ -550,7 +619,7 @@ public class CivilizationCommands(
         {
             var deityNames = string.Join(", ", duplicateDeities);
             return TextCommandResult.Error(
-                $"Duplicate deity/deities found: {deityNames}. Each deity can only appear once in a civilization.");
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_DUPLICATE_DEITIES, deityNames));
         }
 
         // Check if any religion is already in a civilization
@@ -559,7 +628,8 @@ public class CivilizationCommands(
             var existingCiv = _civilizationManager.GetCivilizationByReligion(religion.ReligionUID);
             if (existingCiv != null)
                 return TextCommandResult.Error(
-                    $"Religion '{religion.ReligionName}' is already part of civilization '{existingCiv.Name}'");
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_RELIGION_ALREADY_IN_CIV,
+                        religion.ReligionName, existingCiv.Name));
         }
 
         // Create civilization with first religion as founder
@@ -568,7 +638,8 @@ public class CivilizationCommands(
             founderReligion.ReligionUID);
 
         if (civilization == null)
-            return TextCommandResult.Error("Failed to create civilization");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ADMIN_CREATE_FAILED));
 
         // Add remaining religions directly (bypass invitation system)
         for (int i = 1; i < religions.Count; i++)
@@ -597,7 +668,8 @@ public class CivilizationCommands(
                 {
                     // Send chat notification
                     member.SendMessage(GlobalConstants.GeneralChatGroup,
-                        $"Your religion '{religion.ReligionName}' is now part of civilization '{civName}'",
+                        LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_RELIGION_JOINED_NOTIFICATION,
+                            religion.ReligionName, civName),
                         EnumChatType.Notification);
 
                     // Trigger player data refresh (updates HUD)
@@ -610,7 +682,8 @@ public class CivilizationCommands(
             $"[DivineAscension] Admin: {player.PlayerName} created civilization '{civName}' with {religions.Count} religion(s)");
 
         return TextCommandResult.Success(
-            $"Created civilization '{civName}' with {religions.Count} religion(s) and {totalMembers} total members");
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_ADMIN_CREATED,
+                civName, religions.Count, totalMembers));
     }
 
     /// <summary>
@@ -619,7 +692,9 @@ public class CivilizationCommands(
     internal TextCommandResult OnAdminDissolve(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Command can only be used by players");
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var civName = (string)args[0];
 
@@ -628,7 +703,8 @@ public class CivilizationCommands(
             .FirstOrDefault(c => string.Equals(c.Name, civName, StringComparison.OrdinalIgnoreCase));
 
         if (civilization == null)
-            return TextCommandResult.Error($"Civilization '{civName}' not found");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_CIV_NOT_FOUND, civName));
 
         // Get all member religions before disbanding
         var memberReligionIds = civilization.MemberReligionIds.ToList();
@@ -650,7 +726,8 @@ public class CivilizationCommands(
                 {
                     // Send chat notification
                     member.SendMessage(GlobalConstants.GeneralChatGroup,
-                        $"Civilization '{civName}' has been disbanded by an admin",
+                        LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_ADMIN_DISBANDED_NOTIFICATION,
+                            civName),
                         EnumChatType.Notification);
 
                     // Trigger player data refresh
@@ -662,7 +739,8 @@ public class CivilizationCommands(
         _sapi.Logger.Notification(
             $"[DivineAscension] Admin: {player.PlayerName} disbanded civilization '{civName}' ({memberCount} religion(s))");
 
-        return TextCommandResult.Success($"Civilization '{civName}' has been disbanded");
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_ADMIN_DISBANDED, civName));
     }
 
     #endregion

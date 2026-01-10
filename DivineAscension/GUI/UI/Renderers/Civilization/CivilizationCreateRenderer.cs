@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.Create;
 using DivineAscension.GUI.UI.Components;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
@@ -19,18 +21,22 @@ internal static class CivilizationCreateRenderer
         var events = new List<CreateEvent>();
         var currentY = vm.Y;
 
-        TextRenderer.DrawLabel(drawList, "Create a New Civilization", vm.X, currentY, 18f, ColorPalette.White);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_TITLE), vm.X, currentY, 18f,
+            ColorPalette.White);
         currentY += 32f;
 
         // Requirements
-        TextRenderer.DrawLabel(drawList, "Requirements:", vm.X, currentY, 14f, ColorPalette.Grey);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_REQUIREMENTS), vm.X, currentY, 14f,
+            ColorPalette.Grey);
         currentY += 22f;
 
         var requirements = new[]
         {
-            "You must be a religion founder",
-            "Your religion must not be in another civilization",
-            "Name must be 3-32 characters"
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_REQ_FOUNDER),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_REQ_NOT_IN_CIV),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_REQ_NAME_LENGTH)
         };
 
         foreach (var req in requirements)
@@ -46,13 +52,14 @@ internal static class CivilizationCreateRenderer
         currentY += 16f;
 
         // Civilization name input
-        TextRenderer.DrawLabel(drawList, "Civilization Name:", vm.X, currentY);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_NAME_LABEL), vm.X, currentY);
         currentY += 20f;
 
         var newName = TextInput.Draw(drawList, "##createCivName", vm.CivilizationName,
             vm.X, currentY,
             vm.Width * 0.7f, 30f,
-            "Enter name (3-32 characters)...", 32);
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_NAME_PLACEHOLDER), 32);
 
         if (newName != vm.CivilizationName)
             events.Add(new CreateEvent.NameChanged(newName));
@@ -60,7 +67,8 @@ internal static class CivilizationCreateRenderer
         currentY += 40f;
 
         // Icon selection
-        TextRenderer.DrawLabel(drawList, "Select Icon:", vm.X, currentY);
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_ICON_LABEL), vm.X, currentY);
         currentY += 20f;
 
         var availableIcons = CivilizationIconLoader.GetAvailableIcons();
@@ -79,18 +87,22 @@ internal static class CivilizationCreateRenderer
         currentY += pickerHeight + 20f;
 
         // Create button
-        if (ButtonRenderer.DrawButton(drawList, "Create Civilization", vm.X, currentY, 200f, 36f, true))
+        if (ButtonRenderer.DrawButton(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_BUTTON), vm.X, currentY, 200f,
+                36f, true))
             events.Add(new CreateEvent.SubmitClicked());
 
         // Clear button
-        if (ButtonRenderer.DrawButton(drawList, "Clear", vm.X + 210f, currentY, 80f, 36f))
+        if (ButtonRenderer.DrawButton(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_CLEAR_BUTTON), vm.X + 210f,
+                currentY, 80f, 36f))
             events.Add(new CreateEvent.ClearClicked());
 
         currentY += 50f;
 
         // Info text
         TextRenderer.DrawInfoText(drawList,
-            "Once created, you can invite 2-4 religions with different deities to join your civilization. Work together to build a powerful alliance!",
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_INFO_TEXT),
             vm.X, currentY, vm.Width);
         currentY += 40f;
 

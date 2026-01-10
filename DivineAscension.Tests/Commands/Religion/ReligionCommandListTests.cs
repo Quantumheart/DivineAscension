@@ -184,7 +184,7 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Error, result.Status);
-        Assert.Contains("Invalid deity: InvalidDeity", result.StatusMessage);
+        Assert.Contains("Invalid deity filter: InvalidDeity", result.StatusMessage);
     }
 
     #endregion

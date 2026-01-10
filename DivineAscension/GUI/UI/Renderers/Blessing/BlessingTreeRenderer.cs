@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Blessing;
 using DivineAscension.GUI.Models.Blessing.Tree;
 using DivineAscension.Models;
+using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing;
@@ -40,7 +42,9 @@ internal static class BlessingTreeRenderer
         var leftY = vm.Y;
 
         // Draw label
-        DrawPanelLabel(drawList, "Player Blessings", leftX, leftY, panelWidth);
+        DrawPanelLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_TREE_PLAYER_PANEL),
+            leftX, leftY, panelWidth);
 
         // Draw tree area (use local variables for scroll offsets)
         var treeY = leftY + labelHeight;
@@ -65,7 +69,9 @@ internal static class BlessingTreeRenderer
         var rightY = vm.Y;
 
         // Draw label
-        DrawPanelLabel(drawList, "Religion Blessings", rightX, rightY, panelWidth);
+        DrawPanelLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_TREE_RELIGION_PANEL),
+            rightX, rightY, panelWidth);
 
         // Draw tree area (use local variables for scroll offsets)
         var rightPanel = DrawTreePanel(drawList,
@@ -139,7 +145,7 @@ internal static class BlessingTreeRenderer
         // If no blessings, show placeholder
         if (blessingStates.Count == 0)
         {
-            var emptyText = "No blessings available";
+            var emptyText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_TREE_NO_BLESSINGS);
             var textSize = ImGui.CalcTextSize(emptyText);
             var textPos = new Vector2(
                 x + (width - textSize.X) / 2,

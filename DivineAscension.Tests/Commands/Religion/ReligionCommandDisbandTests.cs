@@ -44,7 +44,7 @@ public class ReligionCommandDisbandTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Contains("TestReligion has been disbanded", result.StatusMessage);
+        Assert.Contains("Your religion has been disbanded", result.StatusMessage);
         _playerProgressionDataManager.Verify(m => m.LeaveReligion("founder-1"), Times.AtLeastOnce);
         _religionManager.Verify(m => m.DeleteReligion("religion-1", "founder-1"), Times.Once);
     }
@@ -293,7 +293,7 @@ public class ReligionCommandDisbandTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Error, result.Status);
-        Assert.Contains("You don't have permission to disband the religion", result.StatusMessage);
+        Assert.Contains("You do not have permission to disband this religion", result.StatusMessage);
     }
 
     #endregion
