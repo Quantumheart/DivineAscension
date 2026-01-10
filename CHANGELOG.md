@@ -1,4 +1,9 @@
 
+## [3.0.0] - 2026-01-10
+
+### Added
+- add localization - need translations
+
 ## [2.6.0] - 2026-01-09
 
 ### Added
