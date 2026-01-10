@@ -1,4 +1,9 @@
 
+## [3.1.0] - 2026-01-10
+
+### Added
+- implement french translations
+
 ## [3.0.1] - 2026-01-10
 
 ### Fixed

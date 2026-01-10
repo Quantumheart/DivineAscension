@@ -2,14 +2,14 @@
   "type": "code",
   "name": "Divine Ascension",
   "modid": "divineascension",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "authors": [
     "Valinnar"
   ],
   "description": "Deity-driven religions and civilizations for Vintage Story. Create and manage religions tied to deities, earn Favor and Religion Prestige, unlock blessing trees with gameplay effects, and coordinate multi-religion civilizations. Includes PvP hooks, persistence/network sync, and in-game UI.",
   "side": "Universal",
   "dependencies": {
-    "game": "1.21.0",
+    "game": "1.21.5",
     "vsimgui": "0.0.6"
   }
 }
