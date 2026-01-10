@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -298,7 +297,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     #region Persistence
 
     /// <summary>
-    ///     Loads player data from world storage, with automatic migration from v2 to v3
+    ///     Loads player data from world storage
     /// </summary>
     internal void LoadPlayerData(string playerUID)
     {
@@ -307,62 +306,28 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
             var data = _sapi.WorldManager.SaveGame.GetData($"{DATA_KEY}_{playerUID}");
             if (data != null)
             {
-                // Try to deserialize as current version first
-                PlayerProgressionData? playerData = null;
-
                 try
                 {
-                    playerData = SerializerUtil.Deserialize<PlayerProgressionData>(data);
+                    var playerData = SerializerUtil.Deserialize<PlayerProgressionData>(data);
 
-                    // If deserialization succeeded but data is old version, we still need to migrate
-                    if (playerData != null && PlayerDataMigration.NeedsMigration(playerData.DataVersion))
+                    // Validate the data is actually v3 format by checking Id is populated
+                    // (v2 data will deserialize with empty Id due to different ProtoBuf member numbers)
+                    if (playerData != null && !string.IsNullOrEmpty(playerData.Id))
                     {
+                        _playerData[playerUID] = playerData;
                         _sapi.Logger.Debug(
-                            $"[DivineAscension] Player {playerUID} data version {playerData.DataVersion} needs migration");
-                        playerData = null; // Force migration path
+                            $"[DivineAscension] Loaded data for player {playerUID} (v{playerData.DataVersion})");
                     }
-                }
-                catch
-                {
-                    // Deserialization failed, likely old format - will try migration
-                    _sapi.Logger.Debug(
-                        $"[DivineAscension] Could not deserialize as v3, attempting migration for {playerUID}");
-                }
-
-                // If v3 deserialization failed or version is old, try migration from v2
-                if (playerData == null)
-                {
-                    try
+                    else
                     {
-                        var oldData = SerializerUtil.Deserialize<PlayerReligionData>(data);
-                        if (oldData != null && oldData.DataVersion == 2)
-                        {
-                            _sapi.Logger.Notification(
-                                $"[DivineAscension] Migrating player {playerUID} data from v2 to v3...");
-
-                            playerData = PlayerDataMigration.MigrateV2ToV3(oldData, _religionManager, _sapi.Logger);
-
-                            // Save migrated data immediately
-                            _playerData[playerUID] = playerData;
-                            SavePlayerData(playerUID);
-
-                            _sapi.Logger.Notification(
-                                $"[DivineAscension] Successfully migrated and saved player {playerUID} data");
-                        }
-                    }
-                    catch (Exception migrationEx)
-                    {
-                        _sapi.Logger.Error(
-                            $"[DivineAscension] Failed to migrate player {playerUID} data: {migrationEx.Message}");
+                        _sapi.Logger.Warning(
+                            $"[DivineAscension] Player {playerUID} has incompatible data format (v2). Starting fresh.");
                     }
                 }
-
-                // Store the loaded or migrated data
-                if (playerData != null)
+                catch (Exception ex)
                 {
-                    _playerData[playerUID] = playerData;
-                    _sapi.Logger.Debug(
-                        $"[DivineAscension] Loaded data for player {playerUID} (v{playerData.DataVersion})");
+                    _sapi.Logger.Warning(
+                        $"[DivineAscension] Could not load data for player {playerUID}: {ex.Message}. Starting fresh.");
                 }
             }
         }
