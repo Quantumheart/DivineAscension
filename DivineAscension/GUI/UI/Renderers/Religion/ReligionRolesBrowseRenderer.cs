@@ -458,7 +458,7 @@ internal static class ReligionRolesBrowseRenderer
         ConfirmOverlay.Draw(
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_DELETE_CONFIRM_TITLE),
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_DELETE_CONFIRM_MESSAGE,
-                viewModel.DeleteRoleName),
+                viewModel.DeleteRoleName ?? "Unknown"),
             out var confirmed,
             out var canceled,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_DELETE_CONFIRM_BUTTON));

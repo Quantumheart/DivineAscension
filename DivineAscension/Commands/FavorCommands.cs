@@ -158,10 +158,10 @@ public class FavorCommands
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
         var deity = _deityRegistry.GetDeity(_religionManager.GetPlayerActiveDeity(player.PlayerUID));
-        var deityName = deity?.Name;
+        var deityName = deity?.Name ?? "Unknown";
 
         return TextCommandResult.Success(
-            LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_CHECK, playerProgressionData.Favor,
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_CHECK, playerProgressionData!.Favor,
                 deityName, playerProgressionData.FavorRank.ToLocalizedString())
         );
     }
@@ -181,10 +181,10 @@ public class FavorCommands
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
         var deity = _deityRegistry.GetDeity(_religionManager.GetPlayerActiveDeity(player.PlayerUID));
-        var deityName = deity?.Name;
+        var deityName = deity?.Name ?? "Unknown";
 
         // Get current rank based on total favor
-        var currentRank = GetCurrentFavorRank(playerProgressionData.TotalFavorEarned);
+        var currentRank = GetCurrentFavorRank(playerProgressionData!.TotalFavorEarned);
         var currentRankName = RankRequirements.GetFavorRankName(currentRank);
 
         var sb = new StringBuilder();
@@ -236,10 +236,10 @@ public class FavorCommands
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
         var deity = _deityRegistry.GetDeity(_religionManager.GetPlayerActiveDeity(player.PlayerUID));
-        var deityName = deity?.Name;
+        var deityName = deity?.Name ?? "Unknown";
 
         // Get current rank based on total favor
-        var currentRank = GetCurrentFavorRank(playerProgressionData.TotalFavorEarned);
+        var currentRank = GetCurrentFavorRank(playerProgressionData!.TotalFavorEarned);
         var currentRankName = RankRequirements.GetFavorRankName(currentRank);
 
         var sb = new StringBuilder();

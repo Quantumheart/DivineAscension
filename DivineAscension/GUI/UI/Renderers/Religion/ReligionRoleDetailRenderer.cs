@@ -164,7 +164,8 @@ internal static class ReligionRoleDetailRenderer
         ConfirmOverlay.Draw(
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_ASSIGN_CONFIRM_TITLE),
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_ASSIGN_CONFIRM_MESSAGE,
-                viewModel.AssignRoleConfirmMemberName, currentRoleName, viewModel.AssignRoleConfirmNewRoleName),
+                viewModel.AssignRoleConfirmMemberName ?? "Unknown", currentRoleName,
+                viewModel.AssignRoleConfirmNewRoleName ?? "Unknown"),
             out var confirmed,
             out var canceled,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_ASSIGN_CONFIRM_BUTTON));

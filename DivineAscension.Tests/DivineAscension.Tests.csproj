@@ -3,6 +3,8 @@
     <PropertyGroup>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <!-- Suppress nullable warnings in test code since tests often intentionally use null values -->
+        <NoWarn>$(NoWarn);CS8600;CS8602;CS8604;CS8620;CS8625</NoWarn>
         <OutputType>Exe</OutputType>
         <RootNamespace>DivineAscension.Tests</RootNamespace>
         <TargetFramework>net8.0</TargetFramework>

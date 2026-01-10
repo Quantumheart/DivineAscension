@@ -223,6 +223,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
 
         HandleReligionSwitch(playerUID);
         var playerReligion = _religionManager.GetPlayerReligion(playerUID);
+        if (playerReligion == null) return;
         // Remove from religion
         _religionManager.RemoveMember(playerReligion.ReligionUID, playerUID);
 

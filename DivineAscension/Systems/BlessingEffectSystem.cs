@@ -143,8 +143,11 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         if (_religionManager.HasReligion(playerUID))
         {
             var playerReligion = _religionManager.GetPlayerReligion(playerUID);
-            var religionModifiers = GetReligionStatModifiers(playerReligion.ReligionUID);
-            CombineModifiers(combined, religionModifiers);
+            if (playerReligion != null)
+            {
+                var religionModifiers = GetReligionStatModifiers(playerReligion.ReligionUID);
+                CombineModifiers(combined, religionModifiers);
+            }
         }
 
         return combined;
