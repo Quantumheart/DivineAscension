@@ -1,4 +1,9 @@
 
+## [3.0.1] - 2026-01-10
+
+### Fixed
+- Drop Player Migration v2 -> v3 logic
+
 ## [3.0.0] - 2026-01-10
 
 ### Added
