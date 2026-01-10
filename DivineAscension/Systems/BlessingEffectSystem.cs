@@ -376,7 +376,8 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         var stats = player.Entity.Stats;
 
         // Khoras (Forge & Craft) - Most are percentage modifiers
-        RegisterStatIfNeeded(stats, VintageStoryStats.ToolDurability, EnumStatBlendType.WeightedSum);
+        // ToolDurability uses FlatSum (base 0) since we want the raw bonus value in our patch
+        RegisterStatIfNeeded(stats, VintageStoryStats.ToolDurability, EnumStatBlendType.FlatSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.OreDropRate, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.ColdResistance, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.RepairCostReduction, EnumStatBlendType.WeightedSum);
@@ -389,9 +390,11 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             EnumStatBlendType.FlatSum); // Additive chance
         RegisterStatIfNeeded(stats, VintageStoryStats.AnimalDamage, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.AnimalDrops, EnumStatBlendType.WeightedSum);
-        RegisterStatIfNeeded(stats, VintageStoryStats.FoodSpoilage, EnumStatBlendType.WeightedSum);
+        // FoodSpoilage uses FlatSum (base 0) since we want the raw bonus value in our handler
+        RegisterStatIfNeeded(stats, VintageStoryStats.FoodSpoilage, EnumStatBlendType.FlatSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.Satiety, EnumStatBlendType.WeightedSum);
-        RegisterStatIfNeeded(stats, VintageStoryStats.TemperatureResistance, EnumStatBlendType.WeightedSum);
+        // TemperatureResistance uses FlatSum (base 0) since we want the raw bonus value in our handler
+        RegisterStatIfNeeded(stats, VintageStoryStats.TemperatureResistance, EnumStatBlendType.FlatSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.AnimalHarvestTime, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.ForagingYield, EnumStatBlendType.WeightedSum);
 

@@ -204,8 +204,8 @@ public class KhorasIntegrationTests
         if (t3a.StatModifiers.TryGetValue(VintageStoryStats.ToolDurability, out var t3aDur))
             totalToolDurability += t3aDur;
 
-        // Assert - Should add up to 10% (0.02 + 0.03 + 0.05)
-        Assert.Equal(0.10f, totalToolDurability, precision: 3);
+        // Assert - Should add up to 45% (0.10 + 0.15 + 0.20)
+        Assert.Equal(0.45f, totalToolDurability, precision: 3);
     }
 
     [Fact]
@@ -247,8 +247,8 @@ public class KhorasIntegrationTests
 
         var totalBonus = playerBonus + religionBonus;
 
-        // Assert - Total should be 5% (0.2 + 0.1)
-        Assert.Equal(0.03f, totalBonus, precision: 3);
+        // Assert - Total should be 20% (0.10 + 0.10)
+        Assert.Equal(0.20f, totalBonus, precision: 3);
     }
 
     #endregion
