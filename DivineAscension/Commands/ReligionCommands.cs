@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DivineAscension.Commands.Parsers;
 using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Extensions;
@@ -55,14 +56,14 @@ public class ReligionCommands(
             .RequiresPrivilege(Privilege.chat)
             .BeginSubCommand("create")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_CREATE_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.Word("name"),
+            .WithArgs(_sapi.ChatCommands.Parsers.QuotedString("name"),
                 _sapi.ChatCommands.Parsers.Word("deity"),
                 _sapi.ChatCommands.Parsers.OptionalWord("visibility"))
             .HandleWith(OnCreateReligion)
             .EndSubCommand()
             .BeginSubCommand("join")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_JOIN_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.Word("name"))
+            .WithArgs(_sapi.ChatCommands.Parsers.QuotedString("name"))
             .HandleWith(OnJoinReligion)
             .EndSubCommand()
             .BeginSubCommand("leave")
@@ -76,7 +77,7 @@ public class ReligionCommands(
             .EndSubCommand()
             .BeginSubCommand("info")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_INFO_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.Word("name"))
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalQuotedString("name"))
             .HandleWith(OnReligionInfo)
             .EndSubCommand()
             .BeginSubCommand("members")
@@ -122,12 +123,12 @@ public class ReligionCommands(
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_PRESTIGE_DESC))
             .BeginSubCommand("info")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_PRESTIGE_INFO_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("religionname"))
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalQuotedString("religionname"))
             .HandleWith(OnPrestigeInfo)
             .EndSubCommand()
             .BeginSubCommand("add")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_PRESTIGE_ADD_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.Word("religionname"),
+            .WithArgs(_sapi.ChatCommands.Parsers.QuotedString("religionname"),
                 _sapi.ChatCommands.Parsers.Int("amount"),
                 _sapi.ChatCommands.Parsers.OptionalAll("reason"))
             .RequiresPrivilege(Privilege.root)
@@ -135,7 +136,7 @@ public class ReligionCommands(
             .EndSubCommand()
             .BeginSubCommand("set")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_PRESTIGE_SET_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.Word("religionname"),
+            .WithArgs(_sapi.ChatCommands.Parsers.QuotedString("religionname"),
                 _sapi.ChatCommands.Parsers.Int("amount"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnPrestigeSet)
@@ -151,7 +152,7 @@ public class ReligionCommands(
             .EndSubCommand()
             .BeginSubCommand("join")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ADMIN_JOIN_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.Word("religionname"),
+            .WithArgs(_sapi.ChatCommands.Parsers.QuotedString("religionname"),
                 _sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .HandleWith(OnAdminJoin)
             .EndSubCommand()
