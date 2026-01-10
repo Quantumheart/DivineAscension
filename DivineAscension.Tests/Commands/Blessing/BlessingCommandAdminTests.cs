@@ -116,7 +116,7 @@ public class BlessingCommandAdminTests
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("Force-unlocked Strength for Player", result.StatusMessage);
-        Assert.True(playerData.UnlockedBlessings.Contains("khoras_strength"));
+        Assert.Contains("khoras_strength", playerData.UnlockedBlessings);
         _mockBlessingEffectSystem.Verify(s => s.RefreshPlayerBlessings("player-1"), Times.Once);
     }
 
@@ -144,7 +144,7 @@ public class BlessingCommandAdminTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.True(playerData.UnlockedBlessings.Contains("lysa_healing"));
+        Assert.Contains("lysa_healing", playerData.UnlockedBlessings);
     }
 
     [Fact]
@@ -235,7 +235,7 @@ public class BlessingCommandAdminTests
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("Removed Strength from Player", result.StatusMessage);
-        Assert.False(playerData.UnlockedBlessings.Contains("khoras_strength"));
+        Assert.DoesNotContain("khoras_strength", playerData.UnlockedBlessings);
         _mockBlessingEffectSystem.Verify(s => s.RefreshPlayerBlessings("player-1"), Times.Once);
     }
 

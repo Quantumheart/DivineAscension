@@ -14,7 +14,7 @@ public static class ForagingPatches
     private static readonly FieldInfo _harvestTimeField =
         AccessTools.Field(typeof(BlockBehaviorHarvestable), "harvestTime");
 
-    public static Action<IServerPlayer?, BlockSelection> Picked { get; set; }
+    public static Action<IServerPlayer?, BlockSelection>? Picked { get; set; }
 
     /// <summary>
     /// Patch BlockBehaviorHarvestable.OnBlockInteractStop - this is called when player forages
@@ -35,9 +35,9 @@ public static class ForagingPatches
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (_harvestTimeField != null)
         {
-            float harvestTime = (float)_harvestTimeField.GetValue(__instance);
-            if (secondsUsed > harvestTime)
-                Picked.Invoke(byPlayer as IServerPlayer, blockSel);
+            var harvestTimeValue = _harvestTimeField.GetValue(__instance);
+            if (harvestTimeValue is float harvestTime && secondsUsed > harvestTime)
+                Picked?.Invoke(byPlayer as IServerPlayer, blockSel);
         }
     }
 }

@@ -20,6 +20,7 @@ namespace DivineAscension.Systems.Networking.Server;
 ///     (propose, accept, decline, schedulebreak, cancelbreak, declarewar, declarepeace).
 /// </summary>
 [ExcludeFromCodeCoverage]
+#pragma warning disable CS9113 // Parameter is unread - kept for interface consistency and future use
 public class DiplomacyNetworkHandler(
     ICoreServerAPI sapi,
     IDiplomacyManager diplomacyManager,
@@ -27,6 +28,7 @@ public class DiplomacyNetworkHandler(
     IReligionManager religionManager,
     IPlayerProgressionDataManager playerProgressionDataManager,
     IServerNetworkChannel serverChannel)
+#pragma warning restore CS9113
     : IServerNetworkHandler
 {
     public void RegisterHandlers()

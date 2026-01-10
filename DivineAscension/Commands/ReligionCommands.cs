@@ -1198,7 +1198,7 @@ public class ReligionCommands(
         var targetPlayerName = args.Parsers.Count > 1 ? (string?)args[1] : null;
 
         // Find the target player (default to caller)
-        IServerPlayer targetPlayer;
+        IServerPlayer resolvedTargetPlayer;
         if (targetPlayerName != null)
         {
             var found = _sapi.World.AllPlayers
@@ -1207,14 +1207,14 @@ public class ReligionCommands(
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_PLAYER_NOT_FOUND,
                         targetPlayerName));
-            targetPlayer = found as IServerPlayer;
-            if (targetPlayer is null)
+            if (found is not IServerPlayer serverPlayer)
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_INTERNAL));
+            resolvedTargetPlayer = serverPlayer;
         }
         else
         {
-            targetPlayer = player;
+            resolvedTargetPlayer = player;
         }
 
         // Find the religion
@@ -1224,31 +1224,31 @@ public class ReligionCommands(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NOT_FOUND, religionName));
 
         // Check if player already in this religion
-        var currentReligion = _religionManager.GetPlayerReligion(targetPlayer.PlayerUID);
+        var currentReligion = _religionManager.GetPlayerReligion(resolvedTargetPlayer.PlayerUID);
         if (currentReligion != null && currentReligion.ReligionUID == religion.ReligionUID)
             return TextCommandResult.Success(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_INFO_ALREADY_MEMBER_ADMIN,
-                    targetPlayer.PlayerName, religionName));
+                    resolvedTargetPlayer.PlayerName, religionName));
 
         // If player is in a different religion, force leave first
         if (currentReligion != null && !string.IsNullOrEmpty(currentReligion.ReligionUID))
         {
-            _playerProgressionDataManager.LeaveReligion(targetPlayer.PlayerUID);
+            _playerProgressionDataManager.LeaveReligion(resolvedTargetPlayer.PlayerUID);
             _sapi.Logger.Notification(
-                $"[DivineAscension] Admin: {player.PlayerName} removed {targetPlayer.PlayerName} from {currentReligion.ReligionName}");
+                $"[DivineAscension] Admin: {player.PlayerName} removed {resolvedTargetPlayer.PlayerName} from {currentReligion.ReligionName}");
         }
 
         // Join the new religion (bypass CanJoinReligion check)
-        _playerProgressionDataManager.JoinReligion(targetPlayer.PlayerUID, religion.ReligionUID);
+        _playerProgressionDataManager.JoinReligion(resolvedTargetPlayer.PlayerUID, religion.ReligionUID);
 
         // Remove any pending invitation if exists
-        if (_religionManager.HasInvitation(targetPlayer.PlayerUID, religion.ReligionUID))
+        if (_religionManager.HasInvitation(resolvedTargetPlayer.PlayerUID, religion.ReligionUID))
         {
-            _religionManager.RemoveInvitation(targetPlayer.PlayerUID, religion.ReligionUID);
+            _religionManager.RemoveInvitation(resolvedTargetPlayer.PlayerUID, religion.ReligionUID);
         }
 
         // Notify player data changed (triggers HUD update)
-        _playerProgressionDataManager.NotifyPlayerDataChanged(targetPlayer.PlayerUID);
+        _playerProgressionDataManager.NotifyPlayerDataChanged(resolvedTargetPlayer.PlayerUID);
 
         // Send religion state changed packet to target player
         if (_serverChannel != null)
@@ -1259,7 +1259,7 @@ public class ReligionCommands(
                     religionName),
                 HasReligion = true
             };
-            _serverChannel.SendPacket(statePacket, targetPlayer);
+            _serverChannel.SendPacket(statePacket, resolvedTargetPlayer);
         }
 
         // Broadcast role updates to all religion members (so they see the new member in the member list)
@@ -1286,11 +1286,11 @@ public class ReligionCommands(
         }
 
         _sapi.Logger.Notification(
-            $"[DivineAscension] Admin: {player.PlayerName} added {targetPlayer.PlayerName} to {religionName}");
+            $"[DivineAscension] Admin: {player.PlayerName} added {resolvedTargetPlayer.PlayerName} to {religionName}");
 
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_ADMIN_ADDED,
-                targetPlayer.PlayerName, religionName));
+                resolvedTargetPlayer.PlayerName, religionName));
     }
 
     /// <summary>
@@ -1305,7 +1305,7 @@ public class ReligionCommands(
         var targetPlayerName = args.Parsers.Count > 0 ? (string?)args[0] : null;
 
         // Find the target player (default to caller)
-        IServerPlayer targetPlayer;
+        IServerPlayer resolvedTargetPlayer;
         if (targetPlayerName != null)
         {
             var found = _sapi.World.AllPlayers
@@ -1314,39 +1314,40 @@ public class ReligionCommands(
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_PLAYER_NOT_FOUND,
                         targetPlayerName));
-            targetPlayer = found as IServerPlayer;
-            if (targetPlayer is null)
+            if (found is not IServerPlayer serverPlayer)
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_INTERNAL));
+            resolvedTargetPlayer = serverPlayer;
         }
         else
         {
-            targetPlayer = player;
+            resolvedTargetPlayer = player;
         }
 
         // Check if player is in a religion
-        if (!_religionManager.HasReligion(targetPlayer.PlayerUID))
+        if (!_religionManager.HasReligion(resolvedTargetPlayer.PlayerUID))
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_PLAYER_NO_RELIGION,
-                    targetPlayer.PlayerName));
+                    resolvedTargetPlayer.PlayerName));
 
         // Get the religion
-        var religion = _religionManager.GetPlayerReligion(targetPlayer.PlayerUID);
+        var religion = _religionManager.GetPlayerReligion(resolvedTargetPlayer.PlayerUID);
         if (religion == null)
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_PLAYER_NO_RELIGION,
-                    targetPlayer.PlayerName));
+                    resolvedTargetPlayer.PlayerName));
 
         var religionName = religion.ReligionName;
 
         // Handle founder special cases
-        if (religion.FounderUID == targetPlayer.PlayerUID)
+        if (religion.FounderUID == resolvedTargetPlayer.PlayerUID)
         {
             if (religion.MemberUIDs.Count > 1)
             {
                 // Transfer founder to oldest member first
                 var newFounderUID = religion.MemberUIDs[1]; // First member (oldest)
-                var result = _roleManager.TransferFounder(religion.ReligionUID, targetPlayer.PlayerUID, newFounderUID);
+                var result = _roleManager.TransferFounder(religion.ReligionUID, resolvedTargetPlayer.PlayerUID,
+                    newFounderUID);
 
                 if (!result.success)
                     return TextCommandResult.Error(
@@ -1354,10 +1355,10 @@ public class ReligionCommands(
                             result.error));
 
                 // Now leave
-                _playerProgressionDataManager.LeaveReligion(targetPlayer.PlayerUID);
+                _playerProgressionDataManager.LeaveReligion(resolvedTargetPlayer.PlayerUID);
 
                 // Notify player data changed (triggers HUD update)
-                _playerProgressionDataManager.NotifyPlayerDataChanged(targetPlayer.PlayerUID);
+                _playerProgressionDataManager.NotifyPlayerDataChanged(resolvedTargetPlayer.PlayerUID);
 
                 // Send religion state changed packet to target player
                 if (_serverChannel != null)
@@ -1368,7 +1369,7 @@ public class ReligionCommands(
                             LocalizationKeys.CMD_RELIGION_NOTIFICATION_ADMIN_REMOVED, religionName),
                         HasReligion = false
                     };
-                    _serverChannel.SendPacket(statePacket, targetPlayer);
+                    _serverChannel.SendPacket(statePacket, resolvedTargetPlayer);
                 }
 
                 // Broadcast role updates to remaining religion members (so they see updated member list and new founder)
@@ -1396,19 +1397,19 @@ public class ReligionCommands(
 
                 var newFounderName = religion.GetMemberName(newFounderUID);
                 _sapi.Logger.Notification(
-                    $"[DivineAscension] Admin: {player.PlayerName} removed founder {targetPlayer.PlayerName} from {religionName}. Founder transferred to {newFounderName}");
+                    $"[DivineAscension] Admin: {player.PlayerName} removed founder {resolvedTargetPlayer.PlayerName} from {religionName}. Founder transferred to {newFounderName}");
 
                 return TextCommandResult.Success(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_ADMIN_LEFT_FOUNDER_TRANSFER,
-                        targetPlayer.PlayerName, religionName, newFounderName));
+                        resolvedTargetPlayer.PlayerName, religionName, newFounderName));
             }
             else
             {
                 // Sole member - disband religion
-                _religionManager.DeleteReligion(religion.ReligionUID, targetPlayer.PlayerUID);
+                _religionManager.DeleteReligion(religion.ReligionUID, resolvedTargetPlayer.PlayerUID);
 
                 // Notify player data changed (triggers HUD update)
-                _playerProgressionDataManager.NotifyPlayerDataChanged(targetPlayer.PlayerUID);
+                _playerProgressionDataManager.NotifyPlayerDataChanged(resolvedTargetPlayer.PlayerUID);
 
                 // Send religion disbanded notification
                 if (_serverChannel != null)
@@ -1419,24 +1420,24 @@ public class ReligionCommands(
                             LocalizationKeys.CMD_RELIGION_NOTIFICATION_ADMIN_DISBANDED, religionName),
                         HasReligion = false
                     };
-                    _serverChannel.SendPacket(statePacket, targetPlayer);
+                    _serverChannel.SendPacket(statePacket, resolvedTargetPlayer);
                 }
 
                 _sapi.Logger.Notification(
-                    $"[DivineAscension] Admin: {player.PlayerName} removed sole founder {targetPlayer.PlayerName} from {religionName}. Religion disbanded");
+                    $"[DivineAscension] Admin: {player.PlayerName} removed sole founder {resolvedTargetPlayer.PlayerName} from {religionName}. Religion disbanded");
 
                 return TextCommandResult.Success(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_ADMIN_LEFT_DISBANDED,
-                        targetPlayer.PlayerName, religionName));
+                        resolvedTargetPlayer.PlayerName, religionName));
             }
         }
         else
         {
             // Regular member - just leave
-            _playerProgressionDataManager.LeaveReligion(targetPlayer.PlayerUID);
+            _playerProgressionDataManager.LeaveReligion(resolvedTargetPlayer.PlayerUID);
 
             // Notify player data changed (triggers HUD update)
-            _playerProgressionDataManager.NotifyPlayerDataChanged(targetPlayer.PlayerUID);
+            _playerProgressionDataManager.NotifyPlayerDataChanged(resolvedTargetPlayer.PlayerUID);
 
             // Send religion state changed packet to target player
             if (_serverChannel != null)
@@ -1447,7 +1448,7 @@ public class ReligionCommands(
                         LocalizationKeys.CMD_RELIGION_NOTIFICATION_ADMIN_REMOVED, religionName),
                     HasReligion = false
                 };
-                _serverChannel.SendPacket(statePacket, targetPlayer);
+                _serverChannel.SendPacket(statePacket, resolvedTargetPlayer);
             }
 
             // Broadcast role updates to remaining religion members (so they see updated member list)
@@ -1474,11 +1475,11 @@ public class ReligionCommands(
             }
 
             _sapi.Logger.Notification(
-                $"[DivineAscension] Admin: {player.PlayerName} removed {targetPlayer.PlayerName} from {religionName}");
+                $"[DivineAscension] Admin: {player.PlayerName} removed {resolvedTargetPlayer.PlayerName} from {religionName}");
 
             return TextCommandResult.Success(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_ADMIN_LEFT,
-                    targetPlayer.PlayerName, religionName));
+                    resolvedTargetPlayer.PlayerName, religionName));
         }
     }
 

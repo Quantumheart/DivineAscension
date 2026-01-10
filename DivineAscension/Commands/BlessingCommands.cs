@@ -237,7 +237,7 @@ public class BlessingCommands(
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
         var sb = new StringBuilder();
         sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_HEADER_RELIGION_WITH_NAME,
-            religion?.ReligionName, religionBlessings.Count));
+            religion?.ReligionName ?? "Unknown", religionBlessings.Count));
         sb.AppendLine();
 
         foreach (var blessing in religionBlessings)
@@ -674,6 +674,10 @@ public class BlessingCommands(
         if (errorResult is { Status: EnumCommandStatus.Error })
             return errorResult;
 
+        // After error check, targetPlayer and targetPlayerData are guaranteed non-null
+        var resolvedPlayer = targetPlayer!;
+        var resolvedPlayerData = targetPlayerData!;
+
         // Validate blessing exists
         var blessing = _blessingRegistry.GetBlessing(blessingId);
         if (blessing == null)
@@ -681,7 +685,7 @@ public class BlessingCommands(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_FOUND, blessingId));
 
         // Get target's religion
-        var targetReligion = _religionManager.GetPlayerReligion(targetPlayer.PlayerUID);
+        var targetReligion = _religionManager.GetPlayerReligion(resolvedPlayer.PlayerUID);
         if (targetReligion == null || string.IsNullOrEmpty(targetReligion.ReligionUID))
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NO_RELIGION));
 
@@ -689,33 +693,33 @@ public class BlessingCommands(
         if (blessing.Kind == BlessingKind.Player)
         {
             // Player blessing - unlock for target player
-            if (targetPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
+            if (resolvedPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
                 return TextCommandResult.Success(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_ALREADY_UNLOCKED));
 
-            targetPlayerData.UnlockedBlessings.Add(blessing.BlessingId);
-            _blessingEffectSystem.RefreshPlayerBlessings(targetPlayer.PlayerUID);
+            resolvedPlayerData.UnlockedBlessings.Add(blessing.BlessingId);
+            _blessingEffectSystem.RefreshPlayerBlessings(resolvedPlayer.PlayerUID);
 
             // Notify player data changed (triggers HUD update)
-            _playerProgressionDataManager.NotifyPlayerDataChanged(targetPlayer.PlayerUID);
+            _playerProgressionDataManager.NotifyPlayerDataChanged(resolvedPlayer.PlayerUID);
 
             // Send blessing unlock notification to target player for GUI update
             var packet =
                 new BlessingUnlockResponsePacket(true,
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_UNLOCKED,
-                        blessing.Name, targetPlayer.PlayerName), blessing.BlessingId);
-            _serverChannel.SendPacket(packet, targetPlayer);
+                        blessing.Name, resolvedPlayer.PlayerName), blessing.BlessingId);
+            _serverChannel.SendPacket(packet, resolvedPlayer);
 
             _sapi.Logger.Notification(
-                $"[DivineAscension] Admin: {player.PlayerName} unlocked player blessing '{blessing.Name}' for {targetPlayer.PlayerName}");
+                $"[DivineAscension] Admin: {player.PlayerName} unlocked player blessing '{blessing.Name}' for {resolvedPlayer.PlayerName}");
 
             return TextCommandResult.Success(LocalizationService.Instance.Get(
-                LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_UNLOCKED, blessing.Name, targetPlayer.PlayerName));
+                LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_UNLOCKED, blessing.Name, resolvedPlayer.PlayerName));
         }
         else
         {
             // Religion blessing - only founder can unlock (admin doesn't bypass this for game balance)
-            if (targetReligion.FounderUID != targetPlayer.PlayerUID)
+            if (targetReligion.FounderUID != resolvedPlayer.PlayerUID)
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_FOUNDER));
 
@@ -770,6 +774,10 @@ public class BlessingCommands(
         if (errorResult is { Status: EnumCommandStatus.Error })
             return errorResult;
 
+        // After error check, targetPlayer and targetPlayerData are guaranteed non-null
+        var resolvedPlayer = targetPlayer!;
+        var resolvedPlayerData = targetPlayerData!;
+
         // Validate blessing exists
         var blessing = _blessingRegistry.GetBlessing(blessingId);
         if (blessing == null)
@@ -777,7 +785,7 @@ public class BlessingCommands(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_FOUND, blessingId));
 
         // Get target's religion
-        var targetReligion = _religionManager.GetPlayerReligion(targetPlayer.PlayerUID);
+        var targetReligion = _religionManager.GetPlayerReligion(resolvedPlayer.PlayerUID);
         if (targetReligion == null || string.IsNullOrEmpty(targetReligion.ReligionUID))
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NO_RELIGION));
 
@@ -785,32 +793,32 @@ public class BlessingCommands(
         if (blessing.Kind == BlessingKind.Player)
         {
             // Player blessing - lock for target player
-            if (!targetPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
+            if (!resolvedPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
                 return TextCommandResult.Success(
-                    $"{targetPlayer.PlayerName} doesn't have blessing '{blessing.Name}' unlocked");
+                    $"{resolvedPlayer.PlayerName} doesn't have blessing '{blessing.Name}' unlocked");
 
-            targetPlayerData.UnlockedBlessings.Remove(blessing.BlessingId);
-            _blessingEffectSystem.RefreshPlayerBlessings(targetPlayer.PlayerUID);
+            resolvedPlayerData.UnlockedBlessings.Remove(blessing.BlessingId);
+            _blessingEffectSystem.RefreshPlayerBlessings(resolvedPlayer.PlayerUID);
 
             // Notify player data changed (triggers HUD update)
-            _playerProgressionDataManager.NotifyPlayerDataChanged(targetPlayer.PlayerUID);
+            _playerProgressionDataManager.NotifyPlayerDataChanged(resolvedPlayer.PlayerUID);
 
             // Send blessing lock notification to target player for GUI update
             var packet = new BlessingUnlockResponsePacket(false,
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_LOCKED, blessing.Name,
-                    targetPlayer.PlayerName), blessing.BlessingId);
-            _serverChannel.SendPacket(packet, targetPlayer);
+                    resolvedPlayer.PlayerName), blessing.BlessingId);
+            _serverChannel.SendPacket(packet, resolvedPlayer);
 
             _sapi.Logger.Notification(
-                $"[DivineAscension] Admin: {player.PlayerName} locked player blessing '{blessing.Name}' for {targetPlayer.PlayerName}");
+                $"[DivineAscension] Admin: {player.PlayerName} locked player blessing '{blessing.Name}' for {resolvedPlayer.PlayerName}");
 
             return TextCommandResult.Success(LocalizationService.Instance.Get(
-                LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_LOCKED, blessing.Name, targetPlayer.PlayerName));
+                LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_LOCKED, blessing.Name, resolvedPlayer.PlayerName));
         }
         else
         {
             // Religion blessing - only founder can lock
-            if (targetReligion.FounderUID != targetPlayer.PlayerUID)
+            if (targetReligion.FounderUID != resolvedPlayer.PlayerUID)
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_FOUNDER));
 
@@ -864,24 +872,28 @@ public class BlessingCommands(
         if (errorResult is { Status: EnumCommandStatus.Error })
             return errorResult;
 
-        var blessingCount = targetPlayerData.UnlockedBlessings.Count;
-        if (blessingCount == 0)
-            return TextCommandResult.Success($"{targetPlayer.PlayerName} has no blessings to reset");
+        // After error check, targetPlayer and targetPlayerData are guaranteed non-null
+        var resolvedPlayer = targetPlayer!;
+        var resolvedPlayerData = targetPlayerData!;
 
-        targetPlayerData.UnlockedBlessings.Clear();
-        _blessingEffectSystem.RefreshPlayerBlessings(targetPlayer.PlayerUID);
+        var blessingCount = resolvedPlayerData.UnlockedBlessings.Count;
+        if (blessingCount == 0)
+            return TextCommandResult.Success($"{resolvedPlayer.PlayerName} has no blessings to reset");
+
+        resolvedPlayerData.UnlockedBlessings.Clear();
+        _blessingEffectSystem.RefreshPlayerBlessings(resolvedPlayer.PlayerUID);
 
         // Notify player data changed (triggers HUD update)
         // Note: For reset, we don't send individual blessing packets since all were removed
         // The NotifyPlayerDataChanged will trigger a full state refresh on the client
-        _playerProgressionDataManager.NotifyPlayerDataChanged(targetPlayer.PlayerUID);
+        _playerProgressionDataManager.NotifyPlayerDataChanged(resolvedPlayer.PlayerUID);
 
         _sapi.Logger.Notification(
-            $"[DivineAscension] Admin: {player.PlayerName} reset all blessings for {targetPlayer.PlayerName}");
+            $"[DivineAscension] Admin: {player.PlayerName} reset all blessings for {resolvedPlayer.PlayerName}");
 
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_RESET,
-                targetPlayer.PlayerName));
+                resolvedPlayer.PlayerName));
     }
 
     /// <summary>
@@ -901,13 +913,17 @@ public class BlessingCommands(
         if (errorResult is { Status: EnumCommandStatus.Error })
             return errorResult;
 
+        // After error check, targetPlayer and targetPlayerData are guaranteed non-null
+        var resolvedPlayer = targetPlayer!;
+        var resolvedPlayerData = targetPlayerData!;
+
         // Get target's deity
-        var targetDeity = _religionManager.GetPlayerActiveDeity(targetPlayer.PlayerUID);
+        var targetDeity = _religionManager.GetPlayerActiveDeity(resolvedPlayer.PlayerUID);
         if (targetDeity == DeityType.None)
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NO_RELIGION));
 
         // Get target's religion
-        var targetReligion = _religionManager.GetPlayerReligion(targetPlayer.PlayerUID);
+        var targetReligion = _religionManager.GetPlayerReligion(resolvedPlayer.PlayerUID);
         if (targetReligion == null || string.IsNullOrEmpty(targetReligion.ReligionUID))
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NO_RELIGION));
 
@@ -921,15 +937,15 @@ public class BlessingCommands(
         // Unlock all player blessings
         foreach (var blessing in playerBlessings)
         {
-            if (!targetPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
+            if (!resolvedPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
             {
-                targetPlayerData.UnlockedBlessings.Add(blessing.BlessingId);
+                resolvedPlayerData.UnlockedBlessings.Add(blessing.BlessingId);
                 playerUnlocked++;
             }
         }
 
         // Unlock all religion blessings (only if founder)
-        if (targetReligion.FounderUID == targetPlayer.PlayerUID)
+        if (targetReligion.FounderUID == resolvedPlayer.PlayerUID)
         {
             foreach (var blessing in religionBlessings)
             {
@@ -973,29 +989,29 @@ public class BlessingCommands(
 
         if (playerUnlocked > 0)
         {
-            _blessingEffectSystem.RefreshPlayerBlessings(targetPlayer.PlayerUID);
+            _blessingEffectSystem.RefreshPlayerBlessings(resolvedPlayer.PlayerUID);
 
             // Notify player data changed (triggers HUD update)
-            _playerProgressionDataManager.NotifyPlayerDataChanged(targetPlayer.PlayerUID);
+            _playerProgressionDataManager.NotifyPlayerDataChanged(resolvedPlayer.PlayerUID);
 
             // Send unlock notifications for all player blessings
             foreach (var blessing in playerBlessings)
             {
-                if (targetPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
+                if (resolvedPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
                 {
                     var packet = new BlessingUnlockResponsePacket(true,
                         LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED, blessing.Name),
                         blessing.BlessingId);
-                    _serverChannel.SendPacket(packet, targetPlayer);
+                    _serverChannel.SendPacket(packet, resolvedPlayer);
                 }
             }
         }
 
         _sapi.Logger.Notification(
-            $"[DivineAscension] Admin: {player.PlayerName} unlocked all blessings for {targetPlayer.PlayerName} ({playerUnlocked} player, {religionUnlocked} religion)");
+            $"[DivineAscension] Admin: {player.PlayerName} unlocked all blessings for {resolvedPlayer.PlayerName} ({playerUnlocked} player, {religionUnlocked} religion)");
 
         return TextCommandResult.Success(LocalizationService.Instance.Get(
-            LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_UNLOCKALL, playerUnlocked, targetPlayer.PlayerName));
+            LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_UNLOCKALL, playerUnlocked, resolvedPlayer.PlayerName));
     }
 
     #endregion

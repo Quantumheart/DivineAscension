@@ -564,7 +564,8 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     public (bool IsConsistent, string Issues) ValidateMembershipConsistency(string playerUID)
     {
         var inIndex = _playerToReligionIndex.TryGetValue(playerUID, out var indexReligionUID);
-        ReligionData? religionInIndex = inIndex ? _religions.GetValueOrDefault(indexReligionUID) : null;
+        ReligionData? religionInIndex =
+            inIndex && indexReligionUID != null ? _religions.GetValueOrDefault(indexReligionUID) : null;
 
         // Find which religion(s) actually have this player as a member
         var actualReligions = _religions.Values.Where(r => r.IsMember(playerUID)).ToList();

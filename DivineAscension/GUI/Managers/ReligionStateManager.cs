@@ -1074,7 +1074,7 @@ public class ReligionStateManager : IReligionStateManager
 
                 case RolesBrowseEvent.CreateRoleConfirm e:
                     State.RolesState.BrowseState.ShowCreateRoleDialog = false;
-                    _uiService.RequestCreateRole(CurrentReligionUID ?? string.Empty, e.RoleName);
+                    _uiService.RequestCreateRole(CurrentReligionUID ?? string.Empty, e.RoleName ?? string.Empty);
                     _soundManager.PlayClick();
                     break;
 

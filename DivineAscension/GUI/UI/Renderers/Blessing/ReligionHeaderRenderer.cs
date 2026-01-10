@@ -224,7 +224,7 @@ internal static class ReligionHeaderRenderer
 
             // Member religions with deity colors (align with religion info position Y+35)
             var civInfoY = viewModel.Y + 35f;
-            var memberCount = viewModel.CivilizationMemberReligions?.Count;
+            var memberCount = viewModel.CivilizationMemberReligions?.Count ?? 0;
             var memberText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_RELIGIONS_COUNT,
                 memberCount);
             var memberPos = new Vector2(civCurrentX, civInfoY);

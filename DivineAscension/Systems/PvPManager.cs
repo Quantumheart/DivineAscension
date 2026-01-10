@@ -106,7 +106,7 @@ public class PvPManager : IPvPManager
         var victimActiveDeityType = _religionManager.GetPlayerActiveDeity(victim.PlayerUID);
         var victimReligion = _religionManager.GetPlayerReligion(victim.PlayerUID);
 
-        // Check if attacker has a religion
+        // Check if attacker has a religion (early return if not)
         if (attackerReligion == null || attackerActiveDeityType == DeityType.None)
         {
             attacker.SendMessage(
@@ -117,9 +117,12 @@ public class PvPManager : IPvPManager
             return;
         }
 
+        // After null check above, attackerReligion is guaranteed non-null
+        var resolvedAttackerReligion = attackerReligion;
+
         // Prevention of "Friendly Fire" farming
-        if (attackerReligion != null && victimReligion != null &&
-            attackerReligion.ReligionUID == victimReligion.ReligionUID)
+        if (victimReligion != null &&
+            resolvedAttackerReligion.ReligionUID == victimReligion.ReligionUID)
         {
             attacker.SendMessage(GlobalConstants.GeneralChatGroup,
                 "[Divine Ascension] You gain no favor for shedding the blood of your own faith.",
@@ -175,7 +178,7 @@ public class PvPManager : IPvPManager
             $"PvP kill against {victim.PlayerName}");
 
         // Award prestige to religion
-        _prestigeManager.AddPrestige(attackerReligion.ReligionUID, prestigeReward,
+        _prestigeManager.AddPrestige(resolvedAttackerReligion.ReligionUID, prestigeReward,
             $"PvP kill by {attacker.PlayerName} against {victim.PlayerName}");
 
         // Get deity for display

@@ -228,7 +228,7 @@ public class CivilizationNetworkHandler(
             switch (packet.Action.ToLower())
             {
                 case "create":
-                    if (string.IsNullOrEmpty(religion.ReligionUID))
+                    if (religion == null || string.IsNullOrEmpty(religion.ReligionUID))
                     {
                         response.Success = false;
                         response.Message =
@@ -320,7 +320,7 @@ public class CivilizationNetworkHandler(
                     break;
 
                 case "leave":
-                    if (string.IsNullOrEmpty(religion.ReligionUID))
+                    if (religion == null || string.IsNullOrEmpty(religion.ReligionUID))
                     {
                         response.Success = false;
                         response.Message = LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_NOT_IN_RELIGION);

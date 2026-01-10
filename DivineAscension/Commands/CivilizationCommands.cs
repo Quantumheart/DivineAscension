@@ -426,6 +426,10 @@ public class CivilizationCommands(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_MUST_BE_IN_RELIGION_SPECIFY_NAME));
 
             var religion = _religionManager.GetPlayerReligion(playerId);
+            if (religion == null)
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_MUST_BE_IN_RELIGION_SPECIFY_NAME));
+
             civ = _civilizationManager.GetCivilizationByReligion(religion.ReligionUID);
             if (civ == null)
                 return TextCommandResult.Error(

@@ -103,9 +103,13 @@ public class LocalizationService
         else if (_serverTranslations != null)
         {
             // Server-side or test mode: look up in loaded translations
-            if (!_serverTranslations.TryGetValue(key, out result))
+            if (!_serverTranslations.TryGetValue(key, out var lookupResult) || lookupResult == null)
             {
                 result = key; // Fallback to key
+            }
+            else
+            {
+                result = lookupResult;
             }
         }
         else
