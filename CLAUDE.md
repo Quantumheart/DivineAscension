@@ -240,9 +240,7 @@ All data stored via Vintage Story's world save system with ProtoBuf serializatio
 - `ReligionWorldData` - All religions
 - `CivilizationWorldData` - All civilizations
 - `PlayerProgressionData` - Per-player progression data (loaded on join, DataVersion=3)
-  - Simplified from v2: removed ReligionUID, ActiveDeity, LastReligionSwitch
   - Player religion membership tracked via ReligionManager's player-to-religion index
-  - Automatic migration from v2 to v3 on first load
 
 Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
 

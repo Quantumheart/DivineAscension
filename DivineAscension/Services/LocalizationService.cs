@@ -66,6 +66,7 @@ public class LocalizationService
     /// <returns>The localized string, or the key itself if not found</returns>
     public string Get(string key)
     {
+        ArgumentNullException.ThrowIfNull(key);
         if (!_isInitialized)
         {
             return key; // Fallback if not initialized
@@ -125,6 +126,7 @@ public class LocalizationService
     /// <returns>The formatted localized string</returns>
     public string Get(string key, params object[] args)
     {
+        ArgumentNullException.ThrowIfNull(key);
         if (!_isInitialized)
         {
             return key;
@@ -165,6 +167,7 @@ public class LocalizationService
     /// <returns>True if the key exists, false otherwise</returns>
     public bool HasKey(string key)
     {
+        ArgumentNullException.ThrowIfNull(key);
         if (!_isInitialized)
         {
             return false;

@@ -663,7 +663,7 @@ public class BlessingCommands(
     {
         var player = args.Caller.Player as IServerPlayer;
         if (player == null)
-            return TextCommandResult.Error("LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY)");
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var blessingId = (string)args[0];
         var targetPlayerName = args.Parsers.Count > 1 ? (string?)args[1] : null;
@@ -759,7 +759,7 @@ public class BlessingCommands(
     {
         var player = args.Caller.Player as IServerPlayer;
         if (player == null)
-            return TextCommandResult.Error("LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY)");
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var blessingId = (string)args[0];
         var targetPlayerName = args.Parsers.Count > 1 ? (string?)args[1] : null;
@@ -854,7 +854,7 @@ public class BlessingCommands(
     {
         var player = args.Caller.Player as IServerPlayer;
         if (player == null)
-            return TextCommandResult.Error("LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY)");
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var targetPlayerName = args.Parsers.Count > 0 ? (string?)args[0] : null;
 
@@ -891,7 +891,7 @@ public class BlessingCommands(
     {
         var player = args.Caller.Player as IServerPlayer;
         if (player == null)
-            return TextCommandResult.Error("LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY)");
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
         var targetPlayerName = args.Parsers.Count > 0 ? (string?)args[0] : null;
 
