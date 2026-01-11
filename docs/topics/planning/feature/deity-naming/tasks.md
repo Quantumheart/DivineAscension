@@ -33,7 +33,7 @@ This document contains the detailed task breakdown for implementing the `DeityTy
 - `DivineAscension/Models/Deity.cs`
 - `DivineAscension/Models/Blessing.cs`
 - `DivineAscension/Network/PlayerDataPacket.cs`
-- `DivineAscension/Data/PlayerProgressionData.cs`
+- `DivineAscension/Systems/PlayerProgressionData.cs`
 
 **Changes:**
 - Replace `DeityType` with `DeityDomain`
@@ -234,29 +234,84 @@ Update constructor to require deity name parameter.
 
 ### Task 2.3: Update Network Packets
 
-**Files:** ~3
-- `DivineAscension/Network/CreateReligionRequestPacket.cs`
-- `DivineAscension/Network/ReligionInfoPacket.cs`
-- `DivineAscension/Network/ReligionListPacket.cs` (if applicable)
+**Files:** ~8
 
-**Changes:**
+- `DivineAscension/Network/CreateReligionRequestPacket.cs` - Client sends deity name
+- `DivineAscension/Network/CreateReligionResponsePacket.cs` - Server confirms creation
+- `DivineAscension/Network/ReligionDetailResponsePacket.cs` - Full religion info for detail view
+- `DivineAscension/Network/ReligionListResponsePacket.cs` - Religion list for browse view
+- `DivineAscension/Network/PlayerReligionDataPacket.cs` - Player's current religion info
+- `DivineAscension/Network/ReligionStateChangedPacket.cs` - Broadcast on state changes
+- `DivineAscension/Network/SetDeityNameRequestPacket.cs` - **(new)** Client requests deity name change
+- `DivineAscension/Network/SetDeityNameResponsePacket.cs` - **(new)** Server confirms/rejects change
+
+**Add DeityName to existing packets:**
 ```csharp
 [ProtoMember(X)]
 public string DeityName { get; set; } = string.Empty;
+```
+
+**New SetDeityName packets:**
+
+```csharp
+// Request packet
+[ProtoContract]
+public class SetDeityNameRequestPacket
+{
+    [ProtoMember(1)]
+    public string ReligionUID { get; set; } = string.Empty;
+
+    [ProtoMember(2)]
+    public string NewDeityName { get; set; } = string.Empty;
+}
+
+// Response packet
+[ProtoContract]
+public class SetDeityNameResponsePacket
+{
+    [ProtoMember(1)]
+    public bool Success { get; set; }
+
+    [ProtoMember(2)]
+    public string? ErrorMessage { get; set; }
+
+    [ProtoMember(3)]
+    public string? NewDeityName { get; set; }  // Confirmed name on success
+}
 ```
 
 ---
 
 ### Task 2.4: Update ReligionNetworkHandler
 
-**Files:** 1
+**Files:** 2
 - `DivineAscension/Systems/Networking/Server/ReligionNetworkHandler.cs`
+- `DivineAscension/Systems/Networking/Client/DivineAscensionNetworkClient.cs`
 
 **Changes:**
 - Extract `DeityName` from `CreateReligionRequestPacket`
 - Validate deity name
 - Pass to `ReligionManager.CreateReligion()`
 - Include `DeityName` in response packets
+
+**Add SetDeityName handler:**
+
+```csharp
+// Server-side handler
+private void HandleSetDeityNameRequest(IServerPlayer player, SetDeityNameRequestPacket packet)
+{
+    // Validate player is founder of the religion
+    // Validate deity name
+    // Call ReligionManager.SetDeityName()
+    // Send response packet
+    // Broadcast ReligionStateChangedPacket to all online members
+}
+```
+
+**Client-side:**
+
+- Register `SetDeityNameResponsePacket` handler
+- Raise event for UI to update (e.g., `OnDeityNameChanged`)
 
 ---
 
@@ -327,17 +382,53 @@ public static string GetDomainDisplayName(DeityDomain domain)
 
 ### Task 2.8: Update Religion Info Displays
 
-**Files:** ~8
+**Files:** ~10
 - `DivineAscension/GUI/UI/Renderers/Religion/ReligionDetailRenderer.cs`
 - `DivineAscension/GUI/UI/Renderers/Religion/ReligionInfoRenderer.cs`
 - `DivineAscension/GUI/UI/Renderers/Religion/ReligionBrowseRenderer.cs`
 - `DivineAscension/GUI/UI/Renderers/Civilization/CivilizationDetailRenderer.cs`
+- `DivineAscension/GUI/State/Religion/InfoState.cs`
+- `DivineAscension/GUI/Managers/ReligionStateManager.cs`
 - `DivineAscension/Commands/ReligionCommands.cs` (info command output)
 
 **Changes:**
 - Display deity name prominently
 - Show domain as secondary information
 - Format: "Deity: [DeityName] (Domain: [Domain])"
+
+**Founder Edit Control (ReligionInfoRenderer):**
+
+- Add inline edit button next to deity name (visible only to founder)
+- On click: Show text input field with current name pre-filled
+- Save button validates and sends `SetDeityNameRequestPacket`
+- Cancel button reverts to display mode
+- Show loading state while request is in flight
+- Display success/error feedback
+
+```
+┌─────────────────────────────────────────────────┐
+│ Religion Info                                   │
+├─────────────────────────────────────────────────┤
+│ Deity: Khoras the Eternal Smith  [✏️ Edit]     │  ← Founder sees edit button
+│ Domain: Craft                                   │
+│ ...                                             │
+└─────────────────────────────────────────────────┘
+
+Edit mode:
+┌─────────────────────────────────────────────────┐
+│ Deity Name                                      │
+│ ┌─────────────────────────────────────────────┐ │
+│ │ Khoras the Eternal Smith                    │ │
+│ └─────────────────────────────────────────────┘ │
+│ [Save] [Cancel]                                 │
+└─────────────────────────────────────────────────┘
+```
+
+**State Management:**
+
+- Add `IsEditingDeityName` flag to `InfoState`
+- Add `EditDeityNameValue` string to `InfoState`
+- Handle edit mode toggle, validation, and submission
 
 ---
 
@@ -357,6 +448,12 @@ public static string GetDomainDisplayName(DeityDomain domain)
   "divineascension:ui-religion-deity-name-required": "Deity Name (required)",
   "divineascension:ui-religion-deity-name-hint": "Name the deity your religion worships",
   "divineascension:ui-religion-deity-name-invalid": "Deity name must be 2-48 characters",
+  "divineascension:ui-religion-deity-name-edit": "Edit",
+  "divineascension:ui-religion-deity-name-save": "Save",
+  "divineascension:ui-religion-deity-name-cancel": "Cancel",
+  "divineascension:ui-religion-deity-name-saving": "Saving...",
+  "divineascension:ui-religion-deity-name-updated": "Deity name updated successfully",
+  "divineascension:ui-religion-deity-name-error": "Failed to update deity name: {0}",
   "divineascension:domain-craft": "Craft",
   "divineascension:domain-wild": "Wild",
   "divineascension:domain-harvest": "Harvest",
@@ -368,13 +465,21 @@ public static string GetDomainDisplayName(DeityDomain domain)
 
 ### Task 2.10: Update Tests for Required Deity Name
 
-**Files:** ~10
+**Files:** ~18
 - `DivineAscension.Tests/Data/ReligionDataTests.cs`
 - `DivineAscension.Tests/Systems/ReligionManagerTests.cs`
 - `DivineAscension.Tests/Commands/Religion/ReligionCommandCreateTests.cs`
-- `DivineAscension.Tests/Systems/Networking/ReligionNetworkHandlerTests.cs`
+- `DivineAscension.Tests/Commands/Religion/ReligionCommandInfoTests.cs`
+- `DivineAscension.Tests/Commands/Religion/ReligionCommandListTests.cs`
+- `DivineAscension.Tests/Commands/Religion/ReligionCommandAdminTests.cs`
+- `DivineAscension.Tests/Commands/Helpers/ReligionCommandsTestHelpers.cs`
+- `DivineAscension.Tests/Commands/Helpers/CivilizationCommandsTestHelpers.cs`
+- `DivineAscension.Tests/Network/CreateReligionRequestPacketTests.cs`
+- `DivineAscension.Tests/Network/CreateReligionResponsePacketTests.cs`
+- `DivineAscension.Tests/Systems/CivilizationManagerTests.cs`
 - `DivineAscension.Tests/GUI/State/Religion/CreateStateTests.cs`
 - `DivineAscension.Tests/Helpers/TestFixtures.cs`
+- Additional test files that use `CreateReligion()` helper methods
 
 **New Tests:**
 - Religion creation requires deity name
@@ -382,32 +487,192 @@ public static string GetDomainDisplayName(DeityDomain domain)
 - Empty deity name rejected
 - Deity name displayed correctly in UI
 - Network packet includes deity name
+- CreateReligion helper methods updated with deity name parameter
 
 ---
 
-### Task 2.11: Build and Test Verification
+### Task 2.11: Implement Migration for Existing Religions
+
+**Files:** ~4
+
+- `DivineAscension/Systems/ReligionManager.cs`
+- `DivineAscension/Systems/Interfaces/IReligionManager.cs`
+- `DivineAscension/GUI/UI/Utilities/DeityHelper.cs`
+
+**Changes:**
+
+Add migration logic to auto-populate `DeityName` for existing religions:
+
+```csharp
+/// <summary>
+/// Migrates existing religions that have empty DeityName fields.
+/// Called on world load after religions are loaded from save data.
+/// </summary>
+public void MigrateEmptyDeityNames()
+{
+    foreach (var religion in GetAllReligions())
+    {
+        if (string.IsNullOrEmpty(religion.DeityName))
+        {
+            religion.DeityName = GetLegacyDeityName(religion.Domain);
+            MarkDirty(); // Flag for save
+        }
+    }
+}
+
+private static string GetLegacyDeityName(DeityDomain domain) => domain switch
+{
+    DeityDomain.Craft => "Khoras",
+    DeityDomain.Wild => "Lysa",
+    DeityDomain.Harvest => "Aethra",
+    DeityDomain.Stone => "Gaia",
+    _ => "Unknown Deity"
+};
+```
+
+**Integration:**
+
+- Call `MigrateEmptyDeityNames()` in `DivineAscensionSystemInitializer` after `ReligionManager` loads data
+- Run before any network handlers are initialized
+
+---
+
+### Task 2.12: Add /religion setdeityname Commands
+
+**Files:** ~3
+
+- `DivineAscension/Commands/ReligionCommands.cs`
+- `DivineAscension/Systems/ReligionManager.cs`
+- `DivineAscension/Systems/Interfaces/IReligionManager.cs`
+
+**Command Syntax:**
+
+```bash
+# Founder command (changes own religion's deity name)
+/religion setdeityname "New Deity Name"
+
+# Admin command (changes any religion's deity name)
+/religion admin setdeityname "Religion Name" "New Deity Name"
+```
+
+**Requirements:**
+
+- Founder command: Founder-only permission for own religion
+- Admin command: Requires server admin privilege
+- Same validation as create (2-48 chars, letters/spaces/apostrophes/hyphens)
+- Broadcasts update to all online members
+- Updates network state
+
+**Changes:**
+
+```csharp
+// In IReligionManager
+bool SetDeityName(string religionUID, string deityName, out string error);
+
+// In ReligionCommands
+RegisterCommand("setdeityname", HandleSetDeityName);
+
+// In admin subcommand group
+RegisterAdminCommand("setdeityname", HandleAdminSetDeityName);
+```
+
+---
+
+### Task 2.13: Add Founder Notification for Migrated Religions
+
+**Files:** ~3
+
+- `DivineAscension/Systems/ReligionManager.cs`
+- `DivineAscension/Systems/Networking/Server/PlayerDataNetworkHandler.cs`
+- `DivineAscension/assets/divineascension/lang/en.json` (and other lang files)
+
+**Changes:**
+
+Track which religions were migrated and notify founders on first login:
+
+```csharp
+// Track migrated religion UIDs (cleared after founder is notified)
+private HashSet<string> _migratedReligionUIDs = new();
+
+// On player join, check if they're a founder of a migrated religion
+public void NotifyFounderOfMigration(string playerUID)
+{
+    var religion = GetPlayerReligion(playerUID);
+    if (religion != null &&
+        religion.IsFounder(playerUID) &&
+        _migratedReligionUIDs.Contains(religion.ReligionUID))
+    {
+        // Send notification message
+        SendMessage(playerUID, Lang.Get("divineascension:migration-deity-name-notice",
+            religion.DeityName));
+        _migratedReligionUIDs.Remove(religion.ReligionUID);
+    }
+}
+```
+
+**Localization Key:**
+
+```json
+{
+  "divineascension:migration-deity-name-notice": "Your religion's deity has been set to '{0}'. You can customize this with /religion setdeityname \"New Name\""
+}
+```
+
+---
+
+### Task 2.14: Update Tests for Migration
+
+**Files:** ~6
+
+- `DivineAscension.Tests/Systems/ReligionManagerTests.cs`
+- `DivineAscension.Tests/Commands/Religion/ReligionCommandSetDeityNameTests.cs` (new)
+- `DivineAscension.Tests/Commands/Religion/ReligionCommandAdminTests.cs`
+- `DivineAscension.Tests/Helpers/TestFixtures.cs`
+
+**New Tests:**
+
+- Migration populates empty DeityName with legacy name
+- Migration preserves existing DeityName values
+- SetDeityName validates input correctly
+- SetDeityName requires founder permission
+- SetDeityName rejects non-founder members
+- Admin SetDeityName works on any religion
+- Admin SetDeityName requires admin privilege
+- Founder notification sent on first login after migration
+- Founder notification only sent once
+
+---
+
+### Task 2.15: Build and Test Verification
 
 **Actions:**
 - Run `dotnet build DivineAscension.sln`
 - Run `dotnet test`
 - Fix any compilation errors
 - Fix any test failures
-- Manual testing of UI flow
+- Manual testing of:
+  - New religion creation with deity name
+  - Migration of existing save data
+  - `/religion setdeityname` command
+  - `/religion admin setdeityname` command
+  - UI edit flow in ReligionInfoRenderer (founder only)
+  - Founder notification on login
 - Commit Phase 2 changes
 
 ---
 
 ## Summary
 
-| Phase | Tasks | Estimated Files |
-|-------|-------|-----------------|
-| Phase 1 | 11 tasks | ~128 files |
-| Phase 2 | 11 tasks | ~25 files |
-| **Total** | **22 tasks** | **~150 files** |
+| Phase     | Tasks        | Estimated Files |
+|-----------|--------------|-----------------|
+| Phase 1   | 11 tasks     | ~117 files      |
+| Phase 2   | 15 tasks     | ~50 files       |
+| **Total** | **26 tasks** | **~165 files**  |
 
 ## Commit Strategy
 
 1. **Phase 1 Commit:** `refactor: rename DeityType to DeityDomain with domain-based values`
 2. **Phase 2 Commit:** `feat: add required deity name field to religions`
+3. **Phase 2 Commit:** `feat: add migration for existing religions and setdeityname command`
 
 Or combine into a single feature branch with multiple commits for reviewability.

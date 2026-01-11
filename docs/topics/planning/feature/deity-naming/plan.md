@@ -166,31 +166,64 @@ Examples:
 
 ### Migration for Existing Religions
 
-Existing religions will have an empty `DeityName` field. Options:
-1. Require founders to set a name on next login
-2. Auto-generate a default name based on domain
+Existing religions will have an empty `DeityName` field after the update.
+
+**Recommended Approach:** Auto-generate default names with founder notification
+
+1. **On world load:** Detect religions with empty `DeityName`
+2. **Auto-generate:** Set `DeityName` to the legacy deity name based on domain:
+   - `Craft` → "Khoras"
+   - `Wild` → "Lysa"
+   - `Harvest` → "Aethra"
+   - `Stone` → "Gaia"
+3. **Notify founders:** Send a one-time message when founder logs in explaining they can customize via
+   `/religion setdeityname "New Name"`
+4. **New command:** Add `/religion setdeityname` for founders to update the deity name
+
+**Alternative Approach (Not Recommended):** Force founders to set name on login
+
+- Blocks religion functionality until name is set
+- Poor UX for returning players
+- Requires additional UI modal implementation
 
 ---
 
 ## Scope Summary
 
-| Phase | Description | Files Affected |
-|-------|-------------|----------------|
-| Phase 1 | Rename `DeityType` → `DeityDomain` with value changes | ~128 files |
-| Phase 2 | Add required `DeityName` field | ~25 files |
-| **Total** | | ~150 files |
+| Phase     | Description                                           | Files Affected |
+|-----------|-------------------------------------------------------|----------------|
+| Phase 1   | Rename `DeityType` → `DeityDomain` with value changes | ~117 files     |
+| Phase 2   | Add required `DeityName` field + migration + UI edit  | ~50 files      |
+| **Total** |                                                       | ~165 files     |
 
 ---
 
 ## Risk Assessment
 
-| Risk | Level | Mitigation |
-|------|-------|------------|
-| Save data compatibility | Low | ProtoMember IDs unchanged; new field defaults to empty |
-| Test suite breakage | Medium | Global find-replace, verify all tests pass |
-| Display inconsistency | Medium | Centralize logic in `DeityHelper.GetDeityDisplayName()` |
-| Network protocol | Low | New fields are optional with graceful fallback |
-| Command breaking change | Medium | Document new syntax, consider transition period |
+| Risk                    | Level  | Mitigation                                              |
+|-------------------------|--------|---------------------------------------------------------|
+| Save data compatibility | Low    | ProtoMember IDs unchanged; new field defaults to empty  |
+| Test suite breakage     | Medium | Global find-replace, verify all tests pass              |
+| Display inconsistency   | Medium | Centralize logic in `DeityHelper.GetDeityDisplayName()` |
+| Network protocol        | Medium | Multiple packets need DeityName (see packet list below) |
+| Command breaking change | Medium | Document new syntax, consider transition period         |
+| Script migration        | Medium | Existing automation using old command syntax will break |
+
+### Network Packets Requiring Updates
+
+The following packets will need `DeityName` field added in Phase 2:
+
+- `CreateReligionRequestPacket.cs` - Client sends deity name when creating
+- `CreateReligionResponsePacket.cs` - Server confirms created religion
+- `ReligionDetailResponsePacket.cs` - Full religion info for detail view
+- `ReligionListResponsePacket.cs` - Religion list for browse view
+- `PlayerReligionDataPacket.cs` - Player's current religion info
+- `ReligionStateChangedPacket.cs` - Broadcast when religion state changes
+
+**New packets for deity name editing:**
+
+- `SetDeityNameRequestPacket.cs` - Client requests deity name change (from UI or command)
+- `SetDeityNameResponsePacket.cs` - Server confirms/rejects the change
 
 ---
 
@@ -210,16 +243,23 @@ Mechanical refactor to rename the enum type and values across the codebase.
 
 ### Phase 2: Add Required DeityName Field
 
-Feature implementation to add custom deity naming with required field validation.
+Feature implementation to add custom deity naming with required field validation and migration support.
 
 **Key Changes:**
 1. Add `DeityName` property to `ReligionData`
 2. Update `ReligionManager.CreateReligion()` signature
-3. Update network packets
+3. Update network packets (6 packet files)
 4. Update command parser
 5. Add UI input field
 6. Update display logic
 7. Add validation
-8. Update tests
+
+**Migration (for existing religions):**
+
+1. Implement `MigrateEmptyDeityNames()` to auto-populate legacy deity names
+2. Add `/religion setdeityname` command for founders
+3. Add `/religion admin setdeityname` command for server admins
+4. Add founder notification on first login after migration
+5. Update tests
 
 See `tasks.md` for detailed task breakdown.
