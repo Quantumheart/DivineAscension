@@ -304,6 +304,10 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             {
                 message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NAME_TOO_LONG);
             }
+            else if (ProfanityFilterService.Instance.ContainsProfanity(packet.ReligionName))
+            {
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NAME_PROFANITY);
+            }
             else if (_religionManager!.GetReligionByName(packet.ReligionName) != null)
             {
                 message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NAME_EXISTS);
@@ -367,6 +371,10 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             else if (packet.Description.Length > 200)
             {
                 message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_DESC_TOO_LONG);
+            }
+            else if (ProfanityFilterService.Instance.ContainsProfanity(packet.Description))
+            {
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_DESC_PROFANITY);
             }
             else
             {

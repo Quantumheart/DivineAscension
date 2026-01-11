@@ -875,6 +875,7 @@ public static class LocalizationKeys
     // Civilization-specific errors
     public const string CMD_CIV_ERROR_ONLY_FOUNDERS_CREATE = "divineascension:cmd.civ.error.only_founders_create";
     public const string CMD_CIV_ERROR_CREATE_FAILED = "divineascension:cmd.civ.error.create_failed";
+    public const string CMD_CIV_ERROR_NAME_PROFANITY = "divineascension:cmd.civ.error.name_profanity";
     public const string CMD_CIV_ERROR_NOT_IN_CIV_USE_CREATE = "divineascension:cmd.civ.error.not_in_civ_use_create";
     public const string CMD_CIV_ERROR_ONLY_FOUNDER_INVITE = "divineascension:cmd.civ.error.only_founder_invite";
     public const string CMD_CIV_ERROR_RELIGION_NOT_FOUND = "divineascension:cmd.civ.error.religion_not_found";
@@ -976,6 +977,8 @@ public static class LocalizationKeys
 
     public const string CMD_RELIGION_ERROR_INVALID_DEITY = "divineascension:cmd.religion.error.invalid_deity";
     public const string CMD_RELIGION_ERROR_NAME_EXISTS = "divineascension:cmd.religion.error.name_exists";
+    public const string CMD_RELIGION_ERROR_NAME_PROFANITY = "divineascension:cmd.religion.error.name_profanity";
+    public const string CMD_RELIGION_ERROR_DESC_PROFANITY = "divineascension:cmd.religion.error.desc_profanity";
     public const string CMD_RELIGION_ERROR_NOT_FOUND = "divineascension:cmd.religion.error.not_found";
     public const string CMD_RELIGION_ERROR_PRIVATE_NO_INVITE = "divineascension:cmd.religion.error.private_no_invite";
 
@@ -1267,6 +1270,8 @@ public static class LocalizationKeys
     public const string NET_RELIGION_NAME_TOO_SHORT = "divineascension:net.religion.name_too_short";
     public const string NET_RELIGION_NAME_TOO_LONG = "divineascension:net.religion.name_too_long";
     public const string NET_RELIGION_NAME_EXISTS = "divineascension:net.religion.name_exists";
+    public const string NET_RELIGION_NAME_PROFANITY = "divineascension:net.religion.name_profanity";
+    public const string NET_RELIGION_DESC_PROFANITY = "divineascension:net.religion.desc_profanity";
     public const string NET_RELIGION_ALREADY_IN_RELIGION = "divineascension:net.religion.already_in_religion";
     public const string NET_RELIGION_INVALID_DEITY = "divineascension:net.religion.invalid_deity";
     public const string NET_RELIGION_CREATED = "divineascension:net.religion.created";
@@ -1324,6 +1329,7 @@ public static class LocalizationKeys
     public const string NET_CIV_MUST_BE_IN_RELIGION = "divineascension:net.civ.must_be_in_religion";
     public const string NET_CIV_CREATED = "divineascension:net.civ.created";
     public const string NET_CIV_CREATE_FAILED = "divineascension:net.civ.create_failed";
+    public const string NET_CIV_NAME_PROFANITY = "divineascension:net.civ.name_profanity";
     public const string NET_CIV_RELIGION_NOT_FOUND = "divineascension:net.civ.religion_not_found";
     public const string NET_CIV_INVITE_SENT = "divineascension:net.civ.invite_sent";
     public const string NET_CIV_INVITE_FAILED = "divineascension:net.civ.invite_failed";

@@ -189,6 +189,11 @@ public class ReligionCommands(
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_ALREADY_IN_RELIGION));
 
+        // Check for profanity in religion name
+        if (ProfanityFilterService.Instance.ContainsProfanity(religionName))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NAME_PROFANITY));
+
         // Parse deity type
         if (!Enum.TryParse(deityName, true, out DeityType deity) || deity == DeityType.None)
         {
@@ -830,6 +835,11 @@ public class ReligionCommands(
         if (!religion.HasPermission(playerId, RolePermissions.EDIT_DESCRIPTION))
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_PERMISSION_EDIT_DESC));
+
+        // Check for profanity in description
+        if (ProfanityFilterService.Instance.ContainsProfanity(description))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_DESC_PROFANITY));
 
         // Set description
         religion.Description = description;

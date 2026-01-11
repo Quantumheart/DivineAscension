@@ -48,6 +48,9 @@ public class DivineAscensionModSystem : ModSystem
         base.Start(api);
         api.Logger.Notification("[DivineAscension] Mod loaded!");
 
+        // Initialize profanity filter service
+        ProfanityFilterService.Instance.Initialize(api);
+
         // Register Harmony Patches
         if (_harmony == null)
         {

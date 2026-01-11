@@ -236,6 +236,14 @@ public class CivilizationNetworkHandler(
                         break;
                     }
 
+                    if (ProfanityFilterService.Instance.ContainsProfanity(packet.Name))
+                    {
+                        response.Success = false;
+                        response.Message =
+                            LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_NAME_PROFANITY);
+                        break;
+                    }
+
                     var iconToUse = string.IsNullOrWhiteSpace(packet.Icon) ? "default" : packet.Icon;
                     var newCiv = civilizationManager.CreateCivilization(packet.Name, fromPlayer.PlayerUID,
                         religion.ReligionUID, iconToUse);
