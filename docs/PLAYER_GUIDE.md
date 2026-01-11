@@ -206,6 +206,8 @@ Prestige is your religion's reputation, earned collectively by all members. It u
 /religion join <name>
 ```
 
+**Example**: `/religion join "Knights of Khoras"` or `/religion join TestReligion`
+
 **Option 2 - Private Religions**:
 Wait for an invitation, then accept via the GUI (`Shift+G`)
 
@@ -410,6 +412,8 @@ Civilizations are alliances of **1-4 religions** with different deities working 
 /civilization create <name>
 ```
 
+**Example**: `/civilization create "Alliance of Light"` or `/civilization create TestCiv`
+
 **Requirements**:
 - You must be the **Founder** of your religion
 - Your religion must not already be in a civilization
@@ -419,6 +423,8 @@ Civilizations are alliances of **1-4 religions** with different deities working 
 ```
 /civilization invite <religion_name>
 ```
+
+**Example**: `/civilization invite "Knights of Khoras"`
 
 **Notes**:
 - Invitations expire after **7 days**
@@ -695,6 +701,13 @@ Killing another player awards:
 ---
 
 ## Commands Reference
+
+> **Tip: Names with Spaces**
+> For religion or civilization names containing spaces, wrap the name in quotes:
+> - `/religion join "Knights of Khoras"`
+> - `/civilization create "Empire of the Sun"`
+>
+> Single-word names work without quotes: `/religion join TestReligion`
 
 ### Religion Commands
 

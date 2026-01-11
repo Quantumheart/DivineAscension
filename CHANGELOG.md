@@ -1,4 +1,9 @@
 
+## [3.2.0] - 2026-01-10
+
+### Added
+- Improve Command text handling
+
 ## [3.1.0] - 2026-01-10
 
 ### Added

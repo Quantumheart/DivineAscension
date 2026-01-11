@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DivineAscension.Commands.Parsers;
 using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
@@ -43,12 +44,12 @@ public class CivilizationCommands(
             .RequiresPrivilege(Privilege.chat)
             .BeginSubCommand("create")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_CREATE_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.Word("name"))
+            .WithArgs(_sapi.ChatCommands.Parsers.QuotedString("name"))
             .HandleWith(OnCreateCivilization)
             .EndSubCommand()
             .BeginSubCommand("invite")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_INVITE_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.Word("religionname"))
+            .WithArgs(_sapi.ChatCommands.Parsers.QuotedString("religionname"))
             .HandleWith(OnInviteReligion)
             .EndSubCommand()
             .BeginSubCommand("accept")
@@ -62,7 +63,7 @@ public class CivilizationCommands(
             .EndSubCommand()
             .BeginSubCommand("kick")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_KICK_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.Word("religionname"))
+            .WithArgs(_sapi.ChatCommands.Parsers.QuotedString("religionname"))
             .HandleWith(OnKickReligion)
             .EndSubCommand()
             .BeginSubCommand("disband")
@@ -76,7 +77,7 @@ public class CivilizationCommands(
             .EndSubCommand()
             .BeginSubCommand("info")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_INFO_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("name"))
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalQuotedString("name"))
             .HandleWith(OnCivilizationInfo)
             .EndSubCommand()
             .BeginSubCommand("invites")
@@ -88,16 +89,16 @@ public class CivilizationCommands(
             .RequiresPrivilege(Privilege.root)
             .BeginSubCommand("create")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ADMIN_CREATE_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.Word("civname"),
-                _sapi.ChatCommands.Parsers.Word("religion1"),
-                _sapi.ChatCommands.Parsers.OptionalWord("religion2"),
-                _sapi.ChatCommands.Parsers.OptionalWord("religion3"),
-                _sapi.ChatCommands.Parsers.OptionalWord("religion4"))
+            .WithArgs(_sapi.ChatCommands.Parsers.QuotedString("civname"),
+                _sapi.ChatCommands.Parsers.QuotedString("religion1"),
+                _sapi.ChatCommands.Parsers.OptionalQuotedString("religion2"),
+                _sapi.ChatCommands.Parsers.OptionalQuotedString("religion3"),
+                _sapi.ChatCommands.Parsers.OptionalQuotedString("religion4"))
             .HandleWith(OnAdminCreate)
             .EndSubCommand()
             .BeginSubCommand("dissolve")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ADMIN_DISSOLVE_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.Word("civname"))
+            .WithArgs(_sapi.ChatCommands.Parsers.QuotedString("civname"))
             .HandleWith(OnAdminDissolve)
             .EndSubCommand()
             .BeginSubCommand("cleanup")

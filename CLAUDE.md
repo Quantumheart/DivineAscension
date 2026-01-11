@@ -178,6 +178,28 @@ Releases/                      # Packaged mod artifacts from Cake build
 - Registry of 4 deities (only Khoras and Lysa fully implemented)
 - Ability ID lookup
 
+### Command System
+
+**Command handlers** (`/Commands/`):
+- `ReligionCommands.cs` - Religion CRUD, membership, bans, prestige
+- `CivilizationCommands.cs` - Civilization management, invites
+- `BlessingCommands.cs` - Blessing unlocks and queries
+- `FavorCommands.cs` - Player favor and admin commands
+- `RoleCommands.cs` - Role assignment and management
+- `CommandHelpers.cs` - Shared validation utilities
+
+**Custom Parsers** (`/Commands/Parsers/`):
+- `QuotedStringParser.cs` - Handles names with spaces via quotes (e.g., `"My Religion"`)
+- `CommandParserExtensions.cs` - Extension methods: `QuotedString()`, `OptionalQuotedString()`
+
+**Usage:** Commands use Vintage Story's fluent API with custom parsers for name arguments:
+```csharp
+.WithArgs(_sapi.ChatCommands.Parsers.QuotedString("name"))  // Required quoted string
+.WithArgs(_sapi.ChatCommands.Parsers.OptionalQuotedString("name"))  // Optional
+```
+
+Users can specify names as `"Name With Spaces"` or `SingleWord` (backward compatible).
+
 ### Networking Architecture
 
 **All packets use channel:** `"divineascension"`
