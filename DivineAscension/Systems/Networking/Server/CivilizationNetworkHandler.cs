@@ -319,6 +319,14 @@ public class CivilizationNetworkHandler(
                         : LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_JOIN_FAILED);
                     break;
 
+                case "decline":
+                    success = civilizationManager.DeclineInvite(packet.TargetId, fromPlayer.PlayerUID);
+                    response.Success = success;
+                    response.Message = success
+                        ? LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_INVITE_DECLINED)
+                        : LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_INVITE_DECLINE_FAILED);
+                    break;
+
                 case "leave":
                     if (religion == null || string.IsNullOrEmpty(religion.ReligionUID))
                     {

@@ -6,5 +6,5 @@ public abstract record InvitesEvent
 
     public sealed record AcceptInviteClicked(string inviteId) : InvitesEvent;
 
-    public sealed record AcceptInviteDeclined(string inviteId) : InvitesEvent;
+    public sealed record DeclineInviteClicked(string inviteId) : InvitesEvent;
 }

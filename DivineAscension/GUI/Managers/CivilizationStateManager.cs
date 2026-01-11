@@ -813,9 +813,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     RequestCivilizationAction("accept", "", aic.inviteId);
                     break;
 
-                case InvitesEvent.AcceptInviteDeclined aid:
-                    // Decline is not implemented yet
-                    _coreClientApi.ShowChatMessage("Decline functionality coming soon!");
+                case InvitesEvent.DeclineInviteClicked dic:
+                    RequestCivilizationAction("decline", "", dic.inviteId);
                     break;
             }
     }

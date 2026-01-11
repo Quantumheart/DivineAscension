@@ -57,6 +57,11 @@ public class CivilizationCommands(
             .WithArgs(_sapi.ChatCommands.Parsers.Word("inviteid"))
             .HandleWith(OnAcceptInvite)
             .EndSubCommand()
+            .BeginSubCommand("decline")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_DECLINE_DESC))
+            .WithArgs(_sapi.ChatCommands.Parsers.Word("inviteid"))
+            .HandleWith(OnDeclineInvite)
+            .EndSubCommand()
             .BeginSubCommand("leave")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_LEAVE_DESC))
             .HandleWith(OnLeaveCivilization)
@@ -224,6 +229,42 @@ public class CivilizationCommands(
 
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_JOINED));
+    }
+
+    /// <summary>
+    ///     Handler for /civ decline <inviteid>
+    /// </summary>
+    internal TextCommandResult OnDeclineInvite(TextCommandCallingArgs args)
+    {
+        var inviteId = (string)args[0];
+
+        var player = args.Caller.Player as IServerPlayer;
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
+
+        if (!_religionManager.HasReligion(player.PlayerUID))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_MUST_BE_IN_RELIGION));
+
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_RELIGION_NOT_FOUND_GENERIC));
+
+        // Check if player is founder
+        if (religion.FounderUID != player.PlayerUID)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ONLY_FOUNDERS_DECLINE));
+
+        // Decline invitation
+        var success = _civilizationManager.DeclineInvite(inviteId, player.PlayerUID);
+        if (!success)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_DECLINE_FAILED));
+
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_DECLINED));
     }
 
     /// <summary>

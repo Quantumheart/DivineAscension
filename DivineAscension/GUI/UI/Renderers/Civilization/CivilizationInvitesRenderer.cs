@@ -103,6 +103,6 @@ internal static class CivilizationInvitesRenderer
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_DECLINE_BUTTON),
                 x + width - 90f, y + height - 32f, 80f, 28f, false, enabled))
-            events.Add(new InvitesEvent.AcceptInviteDeclined(invite.InviteId));
+            events.Add(new InvitesEvent.DeclineInviteClicked(invite.InviteId));
     }
 }
