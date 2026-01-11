@@ -43,6 +43,11 @@ public interface ICivilizationManager
     bool AcceptInvite(string inviteId, string accepterUID);
 
     /// <summary>
+    ///     Declines an invitation to join a civilization
+    /// </summary>
+    bool DeclineInvite(string inviteId, string declinerUID);
+
+    /// <summary>
     ///     A religion leaves a civilization voluntarily
     /// </summary>
     bool LeaveReligion(string religionId, string requesterUID);
