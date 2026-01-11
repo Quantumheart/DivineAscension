@@ -1,0 +1,31 @@
+# Divine Ascension Profanity Filter Word List
+#
+# This is a sample word list for content filtering.
+# Server administrators should replace this with a comprehensive word list.
+#
+# Recommended source: LDNOOBW (List of Dirty, Naughty, Obscene, and Otherwise Bad Words)
+# GitHub: https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words
+#
+# To customize this list:
+# 1. Download the desired language file(s) from the LDNOOBW repository
+# 2. Place the content in this file (one word per line)
+# 3. Or place a custom file at: assets/divineascension/config/profanity-filter.txt
+#
+# Format:
+# - One word per line
+# - Lines starting with # are comments
+# - Blank lines are ignored
+# - Case insensitive matching
+#
+# Sample words for testing (replace with full list):
+
+# Common inappropriate terms (samples only)
+damn
+hell
+crap
+
+# Offensive slurs (samples only)
+slur1
+slur2
+
+# Add more words here or replace with full LDNOOBW list
