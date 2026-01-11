@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using DivineAscension.Config;
 using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Network.Diplomacy;
@@ -41,11 +40,6 @@ public class DivineAscensionModSystem : ModSystem
     // Public network client for UI dialogs
     public DivineAscensionNetworkClient? NetworkClient { get; private set; }
     public IUiService UiService { get; private set; } = null!;
-
-    /// <summary>
-    ///     Configuration service for client-side settings (keybinds, etc.)
-    /// </summary>
-    public ModConfigService? ConfigService { get; private set; }
 
     public string ModName => "divineascension";
 
@@ -137,10 +131,6 @@ public class DivineAscensionModSystem : ModSystem
     {
         base.StartClientSide(api);
         api.Logger.Notification("[DivineAscension] Initializing client-side systems...");
-
-        // Initialize configuration service (load keybinds, etc.)
-        ConfigService = new ModConfigService(api);
-        ConfigService.LoadConfig();
 
         // Initialize localization service
         LocalizationService.Instance.InitializeClient(api);

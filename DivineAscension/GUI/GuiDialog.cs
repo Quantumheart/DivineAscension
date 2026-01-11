@@ -2,14 +2,12 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using DivineAscension.Config;
 using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Managers;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI;
 using DivineAscension.GUI.UI.Components.Overlays;
 using DivineAscension.GUI.UI.Utilities;
-using DivineAscension.Services;
 using ImGuiNET;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -64,27 +62,17 @@ public partial class GuiDialog : ModSystem
         _viewport = ImGui.GetMainViewport();
         _stopwatch = Stopwatch.StartNew();
 
-        // Get configuration from main mod system
-        var mainModSystem = _capi.ModLoader.GetModSystem<DivineAscensionModSystem>();
-        var configService = mainModSystem?.ConfigService;
-        var keybindConfig = configService?.Config.DialogKeybind ?? new KeybindConfig();
-
-        // Parse the configured key
-        var key = configService?.ParseKey(keybindConfig) ?? GlKeys.G;
-        var keybindDescription = $"Show/Hide Divine Ascension Dialog ({keybindConfig.GetDisplayString()})";
-
-        // Register keybind with configured key and modifiers
+        // Register keybind - VS automatically handles persistence when users change it in Controls menu
+        // Default: Shift+G, but users can customize via Settings > Controls > Mod Keys
         _capi.Input.RegisterHotKey(
             "divineascensionblessings",
-            keybindDescription,
-            key,
+            "Divine Ascension: Open Dialog",
+            GlKeys.G,
             HotkeyType.GUIOrOtherControls,
-            shiftPressed: keybindConfig.Shift,
-            ctrlPressed: keybindConfig.Ctrl,
-            altPressed: keybindConfig.Alt);
+            shiftPressed: true);
         _capi.Input.SetHotKeyHandler("divineascensionblessings", OnToggleDialog);
 
-        _capi.Logger.Notification($"[DivineAscension] Registered keybind: {keybindConfig.GetDisplayString()}");
+        _capi.Logger.Notification("[DivineAscension] Registered keybind: Divine Ascension dialog (default: Shift+G)");
 
         // Initialize icon loaders
         DeityIconLoader.Initialize(_capi);
