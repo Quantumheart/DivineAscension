@@ -106,9 +106,9 @@ Releases/                      # Packaged mod artifacts from Cake build
 ### Initialization Flow
 
 **Entry Point:** `DivineAscensionModSystem.cs` (inherits `ModSystem`)
-- **Start (Common):** Registers Harmony patches, registers 20+ network packet types on channel `"divineascension"`
-- **StartServerSide:** Calls `DivineAscensionSystemInitializer.InitializeServerSystems()` to initialize all managers
-- **StartClientSide:** Sets up `DivineAscensionNetworkClient` and `UiService` for UI dialogs
+- **Start (Common):** Initializes ProfanityFilterService, registers Harmony patches, registers 20+ network packet types on channel `"divineascension"`
+- **StartServerSide:** Calls `DivineAscensionSystemInitializer.InitializeServerSystems()` to initialize all managers, initializes LocalizationService
+- **StartClientSide:** Sets up `DivineAscensionNetworkClient` and `UiService` for UI dialogs, initializes LocalizationService
 - **Dispose:** Unpatches Harmony, disposes managers and network handlers
 
 **CRITICAL INITIALIZATION ORDER** (in `DivineAscensionSystemInitializer.cs`):
@@ -265,6 +265,25 @@ All data stored via Vintage Story's world save system with ProtoBuf serializatio
   - Player religion membership tracked via ReligionManager's player-to-religion index
 
 Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
+
+### Services
+
+**LocalizationService** (`/Services/LocalizationService.cs`):
+- Singleton service for multi-language support
+- Loads translations from `assets/divineascension/lang/*.json`
+- Server-side: Loads JSON directly
+- Client-side: Uses Vintage Story's `Lang` API
+- Thread-safe caching for performance
+- Format string support with parameter substitution
+
+**ProfanityFilterService** (`/Services/ProfanityFilterService.cs`):
+- Singleton service for content moderation
+- Filters inappropriate content in religion/civilization names and descriptions
+- Loads word list from embedded resource or mod assets (server-configurable)
+- Case-insensitive whole-word matching with O(1) HashSet lookups
+- Integrated at all creation entry points (commands and network handlers)
+- See `/Resources/PROFANITY_FILTER_README.md` for detailed integration guide
+- Server admins can override word list via `assets/divineascension/config/profanity-filter.txt`
 
 ## Key Architectural Patterns
 
