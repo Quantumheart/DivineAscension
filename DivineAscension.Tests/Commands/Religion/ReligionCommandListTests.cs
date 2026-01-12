@@ -30,8 +30,8 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
 
         var religions = new List<ReligionData>
         {
-            CreateReligion("religion-1", "FirstReligion", DeityType.Khoras, "founder-1"),
-            CreateReligion("religion-2", "SecondReligion", DeityType.Lysa, "founder-2")
+            CreateReligion("religion-1", "FirstReligion", DeityDomain.Craft, "founder-1"),
+            CreateReligion("religion-2", "SecondReligion", DeityDomain.Wild, "founder-2")
         };
 
         _religionManager.Setup(m => m.GetAllReligions()).Returns(religions);
@@ -44,8 +44,8 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("FirstReligion", result.StatusMessage);
         Assert.Contains("SecondReligion", result.StatusMessage);
-        Assert.Contains("Khoras", result.StatusMessage);
-        Assert.Contains("Lysa", result.StatusMessage);
+        Assert.Contains("Craft", result.StatusMessage);
+        Assert.Contains("Wild", result.StatusMessage);
     }
 
     [Fact]
@@ -58,8 +58,8 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
 
         var religions = new List<ReligionData>
         {
-            CreateReligion("religion-1", "PublicReligion", DeityType.Khoras, "founder-1", isPublic: true),
-            CreateReligion("religion-2", "PrivateReligion", DeityType.Lysa, "founder-2", isPublic: false)
+            CreateReligion("religion-1", "PublicReligion", DeityDomain.Craft, "founder-1", isPublic: true),
+            CreateReligion("religion-2", "PrivateReligion", DeityDomain.Wild, "founder-2", isPublic: false)
         };
 
         _religionManager.Setup(m => m.GetAllReligions()).Returns(religions);
@@ -80,7 +80,7 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
         religion.MemberUIDs.Add("member-1");
         religion.MemberUIDs.Add("member-2");
 
@@ -102,7 +102,7 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
         religion.PrestigeRank = PrestigeRank.Renowned;
 
         var religions = new List<ReligionData> { religion };
@@ -123,10 +123,10 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
-        var lowPrestige = CreateReligion("religion-1", "LowPrestige", DeityType.Khoras, "founder-1");
+        var lowPrestige = CreateReligion("religion-1", "LowPrestige", DeityDomain.Craft, "founder-1");
         lowPrestige.TotalPrestige = 100;
 
-        var highPrestige = CreateReligion("religion-2", "HighPrestige", DeityType.Lysa, "founder-2");
+        var highPrestige = CreateReligion("religion-2", "HighPrestige", DeityDomain.Wild, "founder-2");
         highPrestige.TotalPrestige = 1000;
 
         var religions = new List<ReligionData> { lowPrestige, highPrestige };
@@ -151,14 +151,14 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var args = CreateCommandArgs(mockPlayer.Object);
-        SetupParsers(args, "Khoras");
+        SetupParsers(args, nameof(DeityDomain.Craft));
 
         var khorasReligions = new List<ReligionData>
         {
-            CreateReligion("religion-1", "KhorasReligion", DeityType.Khoras, "founder-1")
+            CreateReligion("religion-1", "KhorasReligion", DeityDomain.Craft, "founder-1")
         };
 
-        _religionManager.Setup(m => m.GetReligionsByDeity(DeityType.Khoras)).Returns(khorasReligions);
+        _religionManager.Setup(m => m.GetReligionsByDomain(DeityDomain.Craft)).Returns(khorasReligions);
 
         // Act
         var result = _sut!.OnListReligions(args);
@@ -167,7 +167,7 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("KhorasReligion", result.StatusMessage);
-        _religionManager.Verify(m => m.GetReligionsByDeity(DeityType.Khoras), Times.Once);
+        _religionManager.Verify(m => m.GetReligionsByDomain(DeityDomain.Craft), Times.Once);
     }
 
     [Fact]
@@ -216,9 +216,9 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var args = CreateCommandArgs(mockPlayer.Object);
-        SetupParsers(args, "Lysa");
+        SetupParsers(args, nameof(DeityDomain.Wild));
 
-        _religionManager.Setup(m => m.GetReligionsByDeity(DeityType.Lysa)).Returns(new List<ReligionData>());
+        _religionManager.Setup(m => m.GetReligionsByDomain(DeityDomain.Wild)).Returns(new List<ReligionData>());
 
         // Act
         var result = _sut!.OnListReligions(args);
@@ -235,14 +235,14 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var args = CreateCommandArgs(mockPlayer.Object);
-        SetupParsers(args, "khoras"); // lowercase
+        SetupParsers(args, nameof(DeityDomain.Craft)); // lowercase
 
         var religions = new List<ReligionData>
         {
-            CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1")
+            CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1")
         };
 
-        _religionManager.Setup(m => m.GetReligionsByDeity(DeityType.Khoras)).Returns(religions);
+        _religionManager.Setup(m => m.GetReligionsByDomain(DeityDomain.Craft)).Returns(religions);
 
         // Act
         var result = _sut!.OnListReligions(args);

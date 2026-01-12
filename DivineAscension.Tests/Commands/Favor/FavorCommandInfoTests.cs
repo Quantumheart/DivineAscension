@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Tests.Commands.Helpers;
 using DivineAscension.Tests.Helpers;
@@ -26,7 +25,7 @@ public class FavorCommandInfoTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.None);
+        var playerData = CreatePlayerData("player-1", DeityDomain.None);
         var args = CreateCommandArgs(mockPlayer.Object);
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
@@ -49,17 +48,15 @@ public class FavorCommandInfoTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Khoras, 300, 300);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft, 300, 300);
         var args = CreateCommandArgs(mockPlayer.Object);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
-            .Returns(DeityType.Khoras);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
+            .Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnFavorInfo(args);
@@ -68,7 +65,7 @@ public class FavorCommandInfoTests : FavorCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("Divine Favor", result.StatusMessage);
-        Assert.Contains("Khoras", result.StatusMessage);
+        Assert.Contains("Craft", result.StatusMessage); // Localized domain name
         Assert.Contains("300", result.StatusMessage);
         Assert.Contains("Initiate", result.StatusMessage);
         Assert.Contains("Disciple", result.StatusMessage); // Next rank
@@ -80,18 +77,16 @@ public class FavorCommandInfoTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Lysa, 5000, 15000,
+        var playerData = CreatePlayerData("player-1", DeityDomain.Wild, 5000, 15000,
             FavorRank.Avatar);
         var args = CreateCommandArgs(mockPlayer.Object);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Lysa))
-            .Returns(new Deity(DeityType.Lysa, nameof(DeityType.Lysa), "Hunt"));
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
-            .Returns(DeityType.Lysa);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
+            .Returns(DeityDomain.Wild);
         // Act
         var result = _sut!.OnFavorInfo(args);
 
@@ -107,18 +102,16 @@ public class FavorCommandInfoTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Aethra, 1000, 2000,
+        var playerData = CreatePlayerData("player-1", DeityDomain.Harvest, 1000, 2000,
             FavorRank.Zealot);
         var args = CreateCommandArgs(mockPlayer.Object);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra))
-            .Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Agriculture & Light"));
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
-            .Returns(DeityType.Aethra);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
+            .Returns(DeityDomain.Harvest);
 
         // Act
         var result = _sut!.OnFavorInfo(args);

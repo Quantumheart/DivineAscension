@@ -83,7 +83,7 @@ internal static class ReligionInfoRenderer
         currentY = y - scrollY;
 
         // === HEADER AND INFO GRID ===
-        currentY = ReligionInfoHeaderRenderer.Draw(viewModel, drawList, x, currentY, width);
+        currentY = ReligionInfoHeaderRenderer.Draw(viewModel, drawList, x, currentY, width, events);
 
         // === DESCRIPTION SECTION ===
         currentY = ReligionInfoDescriptionRenderer.Draw(viewModel, drawList, x, currentY, width, events);

@@ -90,9 +90,10 @@ public class CivilizationCommandsTestHelpers
     /// <summary>
     /// Creates test ReligionData
     /// </summary>
-    protected ReligionData CreateReligion(string uid, string name, DeityType deity, string founderUID)
+    protected ReligionData CreateReligion(string uid, string name, DeityDomain deity, string deityName,
+        string founderUID)
     {
-        var religion = new ReligionData(uid, name, deity, founderUID, "TestFounder")
+        var religion = new ReligionData(uid, name, deity, deityName, founderUID, "TestFounder")
         {
             IsPublic = true,
             MemberUIDs = new List<string> { founderUID }

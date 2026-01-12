@@ -145,7 +145,7 @@ internal static class CivilizationBrowseRenderer
         var iconY = y + 52f - deityIconSize / 2f;
         foreach (var deityName in civ.MemberDeities)
         {
-            if (Enum.TryParse<DeityType>(deityName, out var deityType))
+            if (Enum.TryParse<DeityDomain>(deityName, out var deityType))
             {
                 var deityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
                 drawList.AddImage(deityTextureId,

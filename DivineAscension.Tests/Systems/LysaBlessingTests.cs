@@ -18,18 +18,18 @@ namespace DivineAscension.Tests.Systems;
 public class LysaBlessingTests
 {
     private static IEnumerable<Blessing> GetLysa() =>
-        BlessingDefinitions.GetAllBlessings().Where(b => b.Deity == DeityType.Lysa);
+        BlessingDefinitions.GetAllBlessings().Where(b => b.Domain == DeityDomain.Wild);
 
     #region Tier 1 Tests
 
     [Fact]
     public void T1_HuntersInstinct_AppliesCorrectModifiers()
     {
-        var t1 = GetLysa().First(b => b.BlessingId == BlessingIds.LysaHuntersInstinct);
+        var t1 = GetLysa().First(b => b.BlessingId == BlessingIds.WildHuntersInstinct);
 
         Assert.Equal(0, t1.RequiredFavorRank); // Initiate
         Assert.Equal(BlessingKind.Player, t1.Kind);
-        Assert.Equal(DeityType.Lysa, t1.Deity);
+        Assert.Equal(DeityDomain.Wild, t1.Domain);
 
         // Verify stat modifiers
         Assert.Equal(0.15f, t1.StatModifiers[VintageStoryStats.AnimalDrops], 3);
@@ -47,7 +47,7 @@ public class LysaBlessingTests
     [Fact]
     public void T2A_MasterForager_AppliesCorrectModifiers()
     {
-        var t2a = GetLysa().First(b => b.BlessingId == BlessingIds.LysaMasterForager);
+        var t2a = GetLysa().First(b => b.BlessingId == BlessingIds.WildMasterForager);
 
         Assert.Equal(1, t2a.RequiredFavorRank); // Disciple
         Assert.Equal(BlessingKind.Player, t2a.Kind);
@@ -59,7 +59,7 @@ public class LysaBlessingTests
 
         // Verify requires T1
         Assert.NotNull(t2a.PrerequisiteBlessings);
-        Assert.Contains(BlessingIds.LysaHuntersInstinct, t2a.PrerequisiteBlessings);
+        Assert.Contains(BlessingIds.WildHuntersInstinct, t2a.PrerequisiteBlessings);
 
         // Verify special effect
         Assert.Contains(SpecialEffects.FoodSpoilageReduction, t2a.SpecialEffects);
@@ -68,7 +68,7 @@ public class LysaBlessingTests
     [Fact]
     public void T2B_ApexPredator_AppliesCorrectModifiers()
     {
-        var t2b = GetLysa().First(b => b.BlessingId == BlessingIds.LysaApexPredator);
+        var t2b = GetLysa().First(b => b.BlessingId == BlessingIds.WildApexPredator);
 
         Assert.Equal(1, t2b.RequiredFavorRank); // Disciple
         Assert.Equal(BlessingKind.Player, t2b.Kind);
@@ -79,17 +79,17 @@ public class LysaBlessingTests
 
         // Verify requires T1
         Assert.NotNull(t2b.PrerequisiteBlessings);
-        Assert.Contains(BlessingIds.LysaHuntersInstinct, t2b.PrerequisiteBlessings);
+        Assert.Contains(BlessingIds.WildHuntersInstinct, t2b.PrerequisiteBlessings);
     }
 
     [Fact]
     public void T2_BothPaths_RequireT1()
     {
-        var t2a = GetLysa().First(b => b.BlessingId == BlessingIds.LysaMasterForager);
-        var t2b = GetLysa().First(b => b.BlessingId == BlessingIds.LysaApexPredator);
+        var t2a = GetLysa().First(b => b.BlessingId == BlessingIds.WildMasterForager);
+        var t2b = GetLysa().First(b => b.BlessingId == BlessingIds.WildApexPredator);
 
-        Assert.Contains(BlessingIds.LysaHuntersInstinct, t2a.PrerequisiteBlessings!);
-        Assert.Contains(BlessingIds.LysaHuntersInstinct, t2b.PrerequisiteBlessings!);
+        Assert.Contains(BlessingIds.WildHuntersInstinct, t2a.PrerequisiteBlessings!);
+        Assert.Contains(BlessingIds.WildHuntersInstinct, t2b.PrerequisiteBlessings!);
     }
 
     #endregion
@@ -99,7 +99,7 @@ public class LysaBlessingTests
     [Fact]
     public void T3A_AbundanceOfWild_AppliesCorrectModifiers()
     {
-        var t3a = GetLysa().First(b => b.BlessingId == BlessingIds.LysaAbundanceOfWild);
+        var t3a = GetLysa().First(b => b.BlessingId == BlessingIds.WildAbundanceOfWild);
 
         Assert.Equal(2, t3a.RequiredFavorRank); // Zealot
         Assert.Equal(BlessingKind.Player, t3a.Kind);
@@ -110,7 +110,7 @@ public class LysaBlessingTests
 
         // Verify requires T2A
         Assert.NotNull(t3a.PrerequisiteBlessings);
-        Assert.Contains(BlessingIds.LysaMasterForager, t3a.PrerequisiteBlessings);
+        Assert.Contains(BlessingIds.WildMasterForager, t3a.PrerequisiteBlessings);
 
         // Verify special effect
         Assert.Contains(SpecialEffects.FoodSpoilageReduction, t3a.SpecialEffects);
@@ -119,7 +119,7 @@ public class LysaBlessingTests
     [Fact]
     public void T3B_SilentDeath_AppliesCorrectModifiers()
     {
-        var t3b = GetLysa().First(b => b.BlessingId == BlessingIds.LysaSilentDeath);
+        var t3b = GetLysa().First(b => b.BlessingId == BlessingIds.WildSilentDeath);
 
         Assert.Equal(2, t3b.RequiredFavorRank); // Zealot
         Assert.Equal(BlessingKind.Player, t3b.Kind);
@@ -130,20 +130,20 @@ public class LysaBlessingTests
 
         // Verify requires T2B
         Assert.NotNull(t3b.PrerequisiteBlessings);
-        Assert.Contains(BlessingIds.LysaApexPredator, t3b.PrerequisiteBlessings);
+        Assert.Contains(BlessingIds.WildApexPredator, t3b.PrerequisiteBlessings);
     }
 
     [Fact]
     public void T3_BothPaths_FormCorrectChain()
     {
-        var t3a = GetLysa().First(b => b.BlessingId == BlessingIds.LysaAbundanceOfWild);
-        var t3b = GetLysa().First(b => b.BlessingId == BlessingIds.LysaSilentDeath);
+        var t3a = GetLysa().First(b => b.BlessingId == BlessingIds.WildAbundanceOfWild);
+        var t3b = GetLysa().First(b => b.BlessingId == BlessingIds.WildSilentDeath);
 
         // T3A requires T2A (Foraging path)
-        Assert.Contains(BlessingIds.LysaMasterForager, t3a.PrerequisiteBlessings!);
+        Assert.Contains(BlessingIds.WildMasterForager, t3a.PrerequisiteBlessings!);
 
         // T3B requires T2B (Combat path)
-        Assert.Contains(BlessingIds.LysaApexPredator, t3b.PrerequisiteBlessings!);
+        Assert.Contains(BlessingIds.WildApexPredator, t3b.PrerequisiteBlessings!);
     }
 
     #endregion
@@ -153,22 +153,22 @@ public class LysaBlessingTests
     [Fact]
     public void T4_AvatarOfWild_RequiresBothT3Paths()
     {
-        var t4 = GetLysa().First(b => b.BlessingId == BlessingIds.LysaAvatarOfWild);
+        var t4 = GetLysa().First(b => b.BlessingId == BlessingIds.WildAvatarOfWild);
 
         Assert.Equal(3, t4.RequiredFavorRank); // Champion
         Assert.Equal(BlessingKind.Player, t4.Kind);
 
         // Capstone requires BOTH T3 paths
         Assert.NotNull(t4.PrerequisiteBlessings);
-        Assert.Contains(BlessingIds.LysaAbundanceOfWild, t4.PrerequisiteBlessings);
-        Assert.Contains(BlessingIds.LysaSilentDeath, t4.PrerequisiteBlessings);
+        Assert.Contains(BlessingIds.WildAbundanceOfWild, t4.PrerequisiteBlessings);
+        Assert.Contains(BlessingIds.WildSilentDeath, t4.PrerequisiteBlessings);
         Assert.Equal(2, t4.PrerequisiteBlessings.Count);
     }
 
     [Fact]
     public void T4_AvatarOfWild_AppliesCorrectModifiers()
     {
-        var t4 = GetLysa().First(b => b.BlessingId == BlessingIds.LysaAvatarOfWild);
+        var t4 = GetLysa().First(b => b.BlessingId == BlessingIds.WildAvatarOfWild);
 
         // Verify stat modifiers
         Assert.Equal(0.20f, t4.StatModifiers[VintageStoryStats.RangedWeaponsRange], 3);
@@ -184,10 +184,10 @@ public class LysaBlessingTests
     {
         var ids = new[]
         {
-            BlessingIds.LysaHuntingParty,
-            BlessingIds.LysaWildernessTribe,
-            BlessingIds.LysaChildrenOfForest,
-            BlessingIds.LysaPantheonOfHunt
+            BlessingIds.WildHuntingParty,
+            BlessingIds.WildWildernessTribe,
+            BlessingIds.WildChildrenOfForest,
+            BlessingIds.WildPantheonOfHunt
         };
 
         var religionBlessings = GetLysa().Where(b => ids.Contains(b.BlessingId)).ToList();
@@ -199,7 +199,7 @@ public class LysaBlessingTests
     [Fact]
     public void R1_HuntingParty_AppliesCorrectModifiers()
     {
-        var r1 = GetLysa().First(b => b.BlessingId == BlessingIds.LysaHuntingParty);
+        var r1 = GetLysa().First(b => b.BlessingId == BlessingIds.WildHuntingParty);
 
         Assert.Equal(0, r1.RequiredPrestigeRank); // Fledgling
         Assert.Equal(BlessingKind.Religion, r1.Kind);
@@ -215,7 +215,7 @@ public class LysaBlessingTests
     [Fact]
     public void R2_WildernessTribe_AppliesCorrectModifiers()
     {
-        var r2 = GetLysa().First(b => b.BlessingId == BlessingIds.LysaWildernessTribe);
+        var r2 = GetLysa().First(b => b.BlessingId == BlessingIds.WildWildernessTribe);
 
         Assert.Equal(1, r2.RequiredPrestigeRank); // Established
         Assert.Equal(BlessingKind.Religion, r2.Kind);
@@ -227,13 +227,13 @@ public class LysaBlessingTests
 
         // Verify requires R1
         Assert.NotNull(r2.PrerequisiteBlessings);
-        Assert.Contains(BlessingIds.LysaHuntingParty, r2.PrerequisiteBlessings);
+        Assert.Contains(BlessingIds.WildHuntingParty, r2.PrerequisiteBlessings);
     }
 
     [Fact]
     public void R3_ChildrenOfForest_AppliesCorrectModifiers()
     {
-        var r3 = GetLysa().First(b => b.BlessingId == BlessingIds.LysaChildrenOfForest);
+        var r3 = GetLysa().First(b => b.BlessingId == BlessingIds.WildChildrenOfForest);
 
         Assert.Equal(2, r3.RequiredPrestigeRank); // Renowned
         Assert.Equal(BlessingKind.Religion, r3.Kind);
@@ -245,13 +245,13 @@ public class LysaBlessingTests
 
         // Verify requires R2
         Assert.NotNull(r3.PrerequisiteBlessings);
-        Assert.Contains(BlessingIds.LysaWildernessTribe, r3.PrerequisiteBlessings);
+        Assert.Contains(BlessingIds.WildWildernessTribe, r3.PrerequisiteBlessings);
     }
 
     [Fact]
     public void R4_PantheonOfHunt_AppliesCorrectModifiers()
     {
-        var r4 = GetLysa().First(b => b.BlessingId == BlessingIds.LysaPantheonOfHunt);
+        var r4 = GetLysa().First(b => b.BlessingId == BlessingIds.WildPantheonOfHunt);
 
         Assert.Equal(3, r4.RequiredPrestigeRank); // Legendary
         Assert.Equal(BlessingKind.Religion, r4.Kind);
@@ -261,31 +261,31 @@ public class LysaBlessingTests
 
         // Verify requires R3
         Assert.NotNull(r4.PrerequisiteBlessings);
-        Assert.Contains(BlessingIds.LysaChildrenOfForest, r4.PrerequisiteBlessings);
+        Assert.Contains(BlessingIds.WildChildrenOfForest, r4.PrerequisiteBlessings);
     }
 
     [Fact]
     public void ReligionChain_Prerequisites_AreLinear()
     {
-        var r1 = GetLysa().First(b => b.BlessingId == BlessingIds.LysaHuntingParty);
-        var r2 = GetLysa().First(b => b.BlessingId == BlessingIds.LysaWildernessTribe);
-        var r3 = GetLysa().First(b => b.BlessingId == BlessingIds.LysaChildrenOfForest);
-        var r4 = GetLysa().First(b => b.BlessingId == BlessingIds.LysaPantheonOfHunt);
+        var r1 = GetLysa().First(b => b.BlessingId == BlessingIds.WildHuntingParty);
+        var r2 = GetLysa().First(b => b.BlessingId == BlessingIds.WildWildernessTribe);
+        var r3 = GetLysa().First(b => b.BlessingId == BlessingIds.WildChildrenOfForest);
+        var r4 = GetLysa().First(b => b.BlessingId == BlessingIds.WildPantheonOfHunt);
 
         // R1 has no prerequisites
         Assert.True(r1.PrerequisiteBlessings == null || r1.PrerequisiteBlessings.Count == 0);
 
         // R2 requires R1
         Assert.NotNull(r2.PrerequisiteBlessings);
-        Assert.Contains(BlessingIds.LysaHuntingParty, r2.PrerequisiteBlessings);
+        Assert.Contains(BlessingIds.WildHuntingParty, r2.PrerequisiteBlessings);
 
         // R3 requires R2
         Assert.NotNull(r3.PrerequisiteBlessings);
-        Assert.Contains(BlessingIds.LysaWildernessTribe, r3.PrerequisiteBlessings);
+        Assert.Contains(BlessingIds.WildWildernessTribe, r3.PrerequisiteBlessings);
 
         // R4 requires R3
         Assert.NotNull(r4.PrerequisiteBlessings);
-        Assert.Contains(BlessingIds.LysaChildrenOfForest, r4.PrerequisiteBlessings);
+        Assert.Contains(BlessingIds.WildChildrenOfForest, r4.PrerequisiteBlessings);
     }
 
     #endregion
@@ -295,9 +295,9 @@ public class LysaBlessingTests
     [Fact]
     public void ForageDrops_T1ThroughT3A_StackAdditively()
     {
-        var t1 = GetLysa().First(b => b.BlessingId == BlessingIds.LysaHuntersInstinct);
-        var t2a = GetLysa().First(b => b.BlessingId == BlessingIds.LysaMasterForager);
-        var t3a = GetLysa().First(b => b.BlessingId == BlessingIds.LysaAbundanceOfWild);
+        var t1 = GetLysa().First(b => b.BlessingId == BlessingIds.WildHuntersInstinct);
+        var t2a = GetLysa().First(b => b.BlessingId == BlessingIds.WildMasterForager);
+        var t3a = GetLysa().First(b => b.BlessingId == BlessingIds.WildAbundanceOfWild);
 
         // Calculate total forage drop bonus: T1 (15%) + T2A (20%) + T3A (25%) = 60%
         float totalForageDrop = 0f;
@@ -314,8 +314,8 @@ public class LysaBlessingTests
     [Fact]
     public void AnimalDrops_T1ThroughT2B_StackAdditively()
     {
-        var t1 = GetLysa().First(b => b.BlessingId == BlessingIds.LysaHuntersInstinct);
-        var t2b = GetLysa().First(b => b.BlessingId == BlessingIds.LysaApexPredator);
+        var t1 = GetLysa().First(b => b.BlessingId == BlessingIds.WildHuntersInstinct);
+        var t2b = GetLysa().First(b => b.BlessingId == BlessingIds.WildApexPredator);
 
         // Calculate total animal drop bonus: T1 (15%) + T2B (20%) = 35%
         float totalAnimalDrop = 0f;
@@ -330,8 +330,8 @@ public class LysaBlessingTests
     [Fact]
     public void FoodSpoilage_T2AThroughT3A_StackAdditively()
     {
-        var t2a = GetLysa().First(b => b.BlessingId == BlessingIds.LysaMasterForager);
-        var t3a = GetLysa().First(b => b.BlessingId == BlessingIds.LysaAbundanceOfWild);
+        var t2a = GetLysa().First(b => b.BlessingId == BlessingIds.WildMasterForager);
+        var t3a = GetLysa().First(b => b.BlessingId == BlessingIds.WildAbundanceOfWild);
 
         // Calculate total food spoilage reduction: T2A (15%) + T3A (25%) = 40%
         float totalSpoilage = 0f;
@@ -356,7 +356,7 @@ public class LysaBlessingTests
         Assert.Equal(10, lysaBlessings.Count);
 
         // All should be Lysa deity
-        Assert.All(lysaBlessings, b => Assert.Equal(DeityType.Lysa, b.Deity));
+        Assert.All(lysaBlessings, b => Assert.Equal(DeityDomain.Wild, b.Domain));
     }
 
     [Fact]

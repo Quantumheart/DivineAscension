@@ -96,25 +96,6 @@ public static class TestFixtures
     #region Mock System Interfaces
 
     /// <summary>
-    ///     Creates a mock IDeityRegistry with Khoras and Lysa deities
-    /// </summary>
-    public static Mock<IDeityRegistry> CreateMockDeityRegistry()
-    {
-        var mockRegistry = new Mock<IDeityRegistry>();
-
-        var khoras = CreateTestDeity(DeityType.Khoras, "Khoras", "War");
-        var lysa = CreateTestDeity(DeityType.Lysa, "Lysa", "Hunt");
-
-        mockRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
-        mockRegistry.Setup(r => r.GetDeity(DeityType.Lysa)).Returns(lysa);
-        mockRegistry.Setup(r => r.HasDeity(DeityType.Khoras)).Returns(true);
-        mockRegistry.Setup(r => r.HasDeity(DeityType.Lysa)).Returns(true);
-        mockRegistry.Setup(r => r.GetAllDeities()).Returns(new List<Deity> { khoras, lysa });
-
-        return mockRegistry;
-    }
-
-    /// <summary>
     ///     Creates a mock IPlayerReligionDataManager with basic setup
     /// </summary>
     public static Mock<IPlayerProgressionDataManager> CreateMockPlayerProgressionDataManager()
@@ -181,29 +162,10 @@ public static class TestFixtures
     #region Test Data Objects
 
     /// <summary>
-    ///     Creates a test Deity with default values
-    /// </summary>
-    public static Deity CreateTestDeity(
-        DeityType type = DeityType.Khoras,
-        string name = "Khoras",
-        string domain = "War")
-    {
-        return new Deity(type, name, domain)
-        {
-            Description = $"The God/Goddess of {domain}",
-            Alignment = DeityAlignment.Lawful,
-            PrimaryColor = "#8B0000",
-            SecondaryColor = "#FFD700",
-            Playstyle = "Test playstyle",
-            AbilityIds = new List<string> { "test_ability_1", "test_ability_2" }
-        };
-    }
-
-    /// <summary>
     ///     Creates test PlayerReligionData with default values
     /// </summary>
     public static PlayerProgressionData CreateTestPlayerReligionData(string playerUID = "test-player-uid",
-        DeityType deity = DeityType.Khoras,
+        DeityDomain deity = DeityDomain.Craft,
         string? religionUID = "test-religion-uid",
         int favor = 100,
         int totalFavorEarned = 500)
@@ -223,16 +185,18 @@ public static class TestFixtures
     public static ReligionData CreateTestReligion(
         string religionUID = "test-religion-uid",
         string religionName = "Test Religion",
-        DeityType deity = DeityType.Khoras,
+        DeityDomain domain = DeityDomain.Craft,
+        string deityName = "test-deity-name",
         string founderUID = "founder-uid")
     {
         return new ReligionData
         {
             ReligionUID = religionUID,
             ReligionName = religionName,
-            Deity = deity,
+            Domain = domain,
             FounderUID = founderUID,
             Description = "A test religion",
+            DeityName = deityName,
             IsPublic = true,
             MemberUIDs = new List<string> { founderUID },
             Prestige = 0,
@@ -248,7 +212,7 @@ public static class TestFixtures
     public static Blessing CreateTestBlessing(
         string id = "test_blessing",
         string name = "Test Blessing",
-        DeityType deity = DeityType.Khoras,
+        DeityDomain deity = DeityDomain.Craft,
         BlessingKind kind = BlessingKind.Player)
     {
         return new Blessing(id, name, deity)

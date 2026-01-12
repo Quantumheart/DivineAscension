@@ -24,7 +24,7 @@ public static class CommandHelpers
     {
         var playerProgressionData = playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
 
-        if (religionManager.GetPlayerActiveDeity(player.PlayerUID) == DeityType.None)
+        if (religionManager.GetPlayerActiveDeityDomain(player.PlayerUID) == DeityDomain.None)
             return (null, null,
                 TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NO_DEITY)));
 

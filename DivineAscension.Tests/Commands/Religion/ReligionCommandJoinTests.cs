@@ -26,7 +26,7 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1"); // No current religion
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1", isPublic: true);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1", isPublic: true);
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TestReligion");
 
@@ -41,7 +41,7 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("You have joined TestReligion", result.StatusMessage);
-        Assert.Contains("Khoras", result.StatusMessage);
+        Assert.Contains("Craft", result.StatusMessage);
         _playerProgressionDataManager.Verify(m => m.JoinReligion("player-1", "religion-1"), Times.Once);
     }
 
@@ -51,7 +51,7 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1", isPublic: true);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1", isPublic: true);
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TestReligion");
 
@@ -72,7 +72,7 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1"); // Has current religion
-        var religion = CreateReligion("religion-1", "NewReligion", DeityType.Lysa, "founder-1", isPublic: true);
+        var religion = CreateReligion("religion-1", "NewReligion", DeityDomain.Wild, "founder-1", isPublic: true);
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "NewReligion");
 
@@ -94,7 +94,7 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1"); // No current religion
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1", isPublic: true);
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1", isPublic: true);
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TestReligion");
 
@@ -161,7 +161,7 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var religion = CreateReligion("religion-1", "PrivateReligion", DeityType.Khoras, "founder-1", isPublic: false);
+        var religion = CreateReligion("religion-1", "PrivateReligion", DeityDomain.Craft, "founder-1", isPublic: false);
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "PrivateReligion");
 

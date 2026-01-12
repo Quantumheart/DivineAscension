@@ -164,7 +164,7 @@ public class LocalizationServiceTests
             LocalizationKeys.CMD_ERROR_NO_RELIGION,
             LocalizationKeys.UI_TAB_RELIGION,
             LocalizationKeys.UI_TAB_BLESSINGS,
-            LocalizationKeys.DEITY_KHORAS_NAME,
+            LocalizationKeys.DOMAIN_CRAFT_NAME,
             LocalizationKeys.RANK_FAVOR_INITIATE
         };
 
@@ -224,10 +224,10 @@ public class LocalizationServiceTests
     }
 
     [Theory]
-    [InlineData(LocalizationKeys.DEITY_KHORAS_NAME)]
-    [InlineData(LocalizationKeys.DEITY_LYSA_NAME)]
-    [InlineData(LocalizationKeys.DEITY_AETHRA_NAME)]
-    [InlineData(LocalizationKeys.DEITY_GAIA_NAME)]
+    [InlineData(LocalizationKeys.DOMAIN_CRAFT_NAME)]
+    [InlineData(LocalizationKeys.DOMAIN_WILD_NAME)]
+    [InlineData(LocalizationKeys.DOMAIN_HARVEST_NAME)]
+    [InlineData(LocalizationKeys.DOMAIN_STONE_NAME)]
     public void Get_DeityKeys_ReturnValidTranslations(string key)
     {
         // Act

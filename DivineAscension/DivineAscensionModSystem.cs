@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using DivineAscension.Constants;
 using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Network.Diplomacy;
@@ -29,10 +31,12 @@ public class DivineAscensionModSystem : ModSystem
     private FavorSystem? _favorSystem;
 
     private Harmony? _harmony;
+    private HashSet<string> _migratedReligionUIDs = new();
     private PlayerDataNetworkHandler? _playerDataNetworkHandler;
     private PlayerProgressionDataManager? _playerReligionDataManager;
     private ReligionManager? _religionManager;
     private ReligionNetworkHandler? _religionNetworkHandler;
+    private ICoreServerAPI? _sapi;
 
     // Server-side systems
     private IServerNetworkChannel? _serverChannel;
@@ -101,12 +105,15 @@ public class DivineAscensionModSystem : ModSystem
             .RegisterMessageType<DiplomacyActionResponsePacket>()
             .RegisterMessageType<WarDeclarationPacket>()
             .RegisterMessageType<ReligionDetailRequestPacket>()
-            .RegisterMessageType<ReligionDetailResponsePacket>();
+            .RegisterMessageType<ReligionDetailResponsePacket>()
+            .RegisterMessageType<SetDeityNameRequestPacket>()
+            .RegisterMessageType<SetDeityNameResponsePacket>();
     }
 
     public override void StartServerSide(ICoreServerAPI api)
     {
         base.StartServerSide(api);
+        _sapi = api;
 
         // Setup network channel and handlers
         _serverChannel = api.Network.GetChannel(NETWORK_CHANNEL);
@@ -126,6 +133,13 @@ public class DivineAscensionModSystem : ModSystem
         _religionNetworkHandler = result.ReligionNetworkHandler;
         _civilizationNetworkHandler = result.CivilizationNetworkHandler;
         _diplomacyNetworkHandler = result.DiplomacyNetworkHandler;
+        _migratedReligionUIDs = result.MigratedReligionUIDs;
+
+        // Register player join handler for migration notifications
+        if (_migratedReligionUIDs.Count > 0)
+        {
+            api.Event.PlayerJoin += OnPlayerJoinMigrationNotify;
+        }
 
         api.Logger.Notification("[DivineAscension] Server-side initialization complete");
     }
@@ -154,6 +168,12 @@ public class DivineAscensionModSystem : ModSystem
 
         // Unpatch Harmony
         _harmony?.UnpatchAll("com.divineascension.patches");
+
+        // Unsubscribe from events
+        if (_sapi != null)
+        {
+            _sapi.Event.PlayerJoin -= OnPlayerJoinMigrationNotify;
+        }
 
         // Cleanup network handlers
         _playerDataNetworkHandler?.Dispose();
@@ -186,6 +206,37 @@ public class DivineAscensionModSystem : ModSystem
         // Handle any client-to-server messages here
         // Currently not used, but necessary for channel setup
         // Future implementation: Handle deity selection from client dialog
+    }
+
+    /// <summary>
+    ///     Notifies founders of migrated religions that their deity name was auto-generated
+    ///     and can be customized using /religion setdeityname
+    /// </summary>
+    private void OnPlayerJoinMigrationNotify(IServerPlayer player)
+    {
+        if (_religionManager == null || _migratedReligionUIDs.Count == 0)
+            return;
+
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
+        if (religion == null)
+            return;
+
+        // Check if player is founder of a migrated religion
+        if (religion.IsFounder(player.PlayerUID) && _migratedReligionUIDs.Contains(religion.ReligionUID))
+        {
+            // Send notification to founder
+            var message = LocalizationService.Instance.Get(
+                LocalizationKeys.MIGRATION_DEITY_NAME_NOTICE,
+                religion.DeityName);
+
+            player.SendMessage(0, message, EnumChatType.Notification);
+
+            // Remove from migrated set so notification is only sent once
+            _migratedReligionUIDs.Remove(religion.ReligionUID);
+
+            _sapi?.Logger.Debug(
+                $"[DivineAscension] Sent deity name migration notice to founder {player.PlayerName} for {religion.ReligionName}");
+        }
     }
 
     #endregion

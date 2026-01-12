@@ -219,7 +219,7 @@ public class CivilizationStateManagerTests
     public void RequestCivilizationList_CallsUiService()
     {
         // Arrange
-        var deityFilter = "Khoras";
+        var deityFilter = "Craft";
 
         // Act
         _sut.RequestCivilizationList(deityFilter);
@@ -536,14 +536,14 @@ public class CivilizationStateManagerTests
         // Arrange
         var events = new List<BrowseEvent>
         {
-            new BrowseEvent.DeityFilterChanged("Khoras")
+            new BrowseEvent.DeityFilterChanged("Craft")
         };
 
         // Act
         _sut.ProcessBrowseEvents(events);
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationList("Khoras"), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationList("Craft"), Times.Once);
         _mockSoundManager.Verify(s => s.PlayClick(), Times.Once);
     }
 
@@ -619,7 +619,7 @@ public class CivilizationStateManagerTests
         // Arrange - Set a filter first
         var filterEvents = new List<BrowseEvent>
         {
-            new BrowseEvent.DeityFilterChanged("Lysa")
+            new BrowseEvent.DeityFilterChanged("Wild")
         };
         _sut.ProcessBrowseEvents(filterEvents);
         _mockUiService.Invocations.Clear();
@@ -634,7 +634,7 @@ public class CivilizationStateManagerTests
         _sut.ProcessBrowseEvents(refreshEvents);
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationList("Lysa"), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationList("Wild"), Times.Once);
     }
 
     [Fact]
@@ -675,7 +675,7 @@ public class CivilizationStateManagerTests
         // Arrange
         var events = new List<BrowseEvent>
         {
-            new BrowseEvent.DeityFilterChanged("Khoras"),
+            new BrowseEvent.DeityFilterChanged("Craft"),
             new BrowseEvent.ScrollChanged(50.0f),
             new BrowseEvent.RefreshClicked()
         };
@@ -684,7 +684,7 @@ public class CivilizationStateManagerTests
         _sut.ProcessBrowseEvents(events);
 
         // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationList("Khoras"),
+        _mockUiService.Verify(u => u.RequestCivilizationList("Craft"),
             Times.Exactly(2)); // Once for filter change, once for refresh
         _mockSoundManager.Verify(s => s.PlayClick(), Times.Once); // Only for filter change
     }
@@ -767,7 +767,7 @@ public class CivilizationStateManagerTests
             new SubTabEvent.TabChanged(CivilizationSubTab.Create)
         };
         _mockApi.Setup(d => d.Logger.Warning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
-        
+
         // Act
         _sut.ProcessTabEvents(events);
 

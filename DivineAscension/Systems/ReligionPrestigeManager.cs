@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.Constants;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
@@ -24,8 +25,8 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
     private readonly ICoreServerAPI _sapi;
     private IBlessingEffectSystem? _blessingEffectSystem;
     private IBlessingRegistry? _blessingRegistry;
-    private IDiplomacyManager? _diplomacyManager;
     private CivilizationManager? _civilizationManager;
+    private IDiplomacyManager? _diplomacyManager;
 
     public ReligionPrestigeManager(ICoreServerAPI sapi, IReligionManager religionManager)
     {
@@ -40,19 +41,6 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
     {
         _blessingRegistry = blessingRegistry;
         _blessingEffectSystem = blessingEffectSystem;
-    }
-
-    /// <summary>
-    ///     Sets the diplomacy manager and civilization manager (called after they're initialized)
-    /// </summary>
-    public void SetDiplomacyManager(IDiplomacyManager diplomacyManager, CivilizationManager civilizationManager)
-    {
-        _diplomacyManager = diplomacyManager;
-        _civilizationManager = civilizationManager;
-
-        // Subscribe to diplomacy events
-        _diplomacyManager.OnRelationshipEstablished += HandleRelationshipEstablished;
-        _diplomacyManager.OnWarDeclared += HandleWarDeclared;
     }
 
     /// <summary>
@@ -197,6 +185,19 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
     }
 
     /// <summary>
+    ///     Sets the diplomacy manager and civilization manager (called after they're initialized)
+    /// </summary>
+    public void SetDiplomacyManager(IDiplomacyManager diplomacyManager, CivilizationManager civilizationManager)
+    {
+        _diplomacyManager = diplomacyManager;
+        _civilizationManager = civilizationManager;
+
+        // Subscribe to diplomacy events
+        _diplomacyManager.OnRelationshipEstablished += HandleRelationshipEstablished;
+        _diplomacyManager.OnWarDeclared += HandleWarDeclared;
+    }
+
+    /// <summary>
     ///     Calculates prestige rank based on total prestige
     /// </summary>
     private PrestigeRank CalculatePrestigeRank(int totalPrestige)
@@ -224,7 +225,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         if (religion == null) return;
 
         // Get all religion blessings for this deity
-        var allReligionBlessings = _blessingRegistry.GetBlessingsForDeity(religion.Deity, BlessingKind.Religion);
+        var allReligionBlessings = _blessingRegistry.GetBlessingsForDeity(religion.Domain, BlessingKind.Religion);
 
         // Find blessings that are now unlockable at the new rank
         var newlyUnlockableBlessings = new List<Blessing>();
@@ -344,7 +345,8 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         {
             if (_civilizationManager == null)
             {
-                _sapi.Logger.Warning("[DivineAscension:Diplomacy] Civilization manager not set, cannot award Alliance prestige");
+                _sapi.Logger.Warning(
+                    "[DivineAscension:Diplomacy] Civilization manager not set, cannot award Alliance prestige");
                 return;
             }
 
@@ -353,7 +355,8 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
 
             if (civ1 == null || civ2 == null)
             {
-                _sapi.Logger.Warning($"[DivineAscension:Diplomacy] Cannot find civilizations for Alliance prestige: {civId1}, {civId2}");
+                _sapi.Logger.Warning(
+                    $"[DivineAscension:Diplomacy] Cannot find civilizations for Alliance prestige: {civId1}, {civId2}");
                 return;
             }
 
@@ -362,11 +365,12 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
 
             foreach (var religionId in allReligionIds)
             {
-                AddPrestige(religionId, Constants.DiplomacyConstants.AlliancePrestigeBonus,
+                AddPrestige(religionId, DiplomacyConstants.AlliancePrestigeBonus,
                     $"Alliance formed between {civ1.Name} and {civ2.Name}");
             }
 
-            _sapi.Logger.Notification($"[DivineAscension:Diplomacy] Alliance formed: {civ1.Name} and {civ2.Name} - {allReligionIds.Count()} religions gained {Constants.DiplomacyConstants.AlliancePrestigeBonus} prestige");
+            _sapi.Logger.Notification(
+                $"[DivineAscension:Diplomacy] Alliance formed: {civ1.Name} and {civ2.Name} - {allReligionIds.Count()} religions gained {DiplomacyConstants.AlliancePrestigeBonus} prestige");
         }
     }
 
@@ -386,7 +390,8 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
 
         if (declarerCiv == null || targetCiv == null)
         {
-            _sapi.Logger.Warning($"[DivineAscension:Diplomacy] Cannot find civilizations for war announcement: {declarerCivId}, {targetCivId}");
+            _sapi.Logger.Warning(
+                $"[DivineAscension:Diplomacy] Cannot find civilizations for war announcement: {declarerCivId}, {targetCivId}");
             return;
         }
 

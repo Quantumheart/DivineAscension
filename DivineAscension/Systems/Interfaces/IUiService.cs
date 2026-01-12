@@ -13,8 +13,9 @@ public interface IUiService
     void RequestPlayerReligionInfo();
     void RequestReligionDetail(string religionUID);
     void RequestReligionAction(string action, string religionUID = "", string targetPlayerUID = "");
-    void RequestCreateReligion(string religionName, string deity, bool isPublic);
+    void RequestCreateReligion(string religionName, string domain, string deityName, bool isPublic);
     void RequestEditDescription(string religionUID, string description);
+    void RequestSetDeityName(string religionUID, string newDeityName);
 
     // Religion Roles Operations
     void RequestReligionRoles(string religionUID);

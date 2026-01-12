@@ -30,7 +30,7 @@ public class HuntingFavorTracker(
         _lysaFollowers.Clear();
     }
 
-    public DeityType DeityType { get; } = DeityType.Lysa;
+    public DeityDomain DeityDomain { get; } = DeityDomain.Wild;
 
 
     public void Initialize()
@@ -60,7 +60,7 @@ public class HuntingFavorTracker(
     private void UpdateFollower(string playerId)
     {
         var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerId);
-        if (deityType == DeityType)
+        if (deityType == DeityDomain)
             _lysaFollowers.Add(playerId);
         else
             _lysaFollowers.Remove(playerId);

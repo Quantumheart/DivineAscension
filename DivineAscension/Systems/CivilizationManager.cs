@@ -279,9 +279,9 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
 
             // Check deity diversity (no duplicate deities)
             var civDeities = GetCivDeityTypes(civId);
-            if (civDeities.Contains(targetReligion.Deity))
+            if (civDeities.Contains(targetReligion.Domain))
             {
-                _sapi.Logger.Warning($"[DivineAscension] Civilization already has a {targetReligion.Deity} religion");
+                _sapi.Logger.Warning($"[DivineAscension] Civilization already has a {targetReligion.Domain} religion");
                 return false;
             }
 
@@ -678,17 +678,17 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     /// <summary>
     ///     Gets all deity types in a civilization
     /// </summary>
-    public HashSet<DeityType> GetCivDeityTypes(string civId)
+    public HashSet<DeityDomain> GetCivDeityTypes(string civId)
     {
         var civ = _data.Civilizations.GetValueOrDefault(civId);
         if (civ == null)
-            return new HashSet<DeityType>();
+            return new HashSet<DeityDomain>();
 
-        var deities = new HashSet<DeityType>();
+        var deities = new HashSet<DeityDomain>();
         foreach (var religionId in civ.MemberReligionIds)
         {
             var religion = _religionManager.GetReligion(religionId);
-            if (religion != null) deities.Add(religion.Deity);
+            if (religion != null) deities.Add(religion.Domain);
         }
 
         return deities;

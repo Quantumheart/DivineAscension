@@ -41,8 +41,8 @@ internal sealed class FakeCivilizationProvider : ICivilizationProvider
 
     private static readonly string[] Deities =
     {
-        nameof(DeityType.Khoras), nameof(DeityType.Lysa),
-        nameof(DeityType.Aethra), nameof(DeityType.Gaia)
+        nameof(DeityDomain.Craft), nameof(DeityDomain.Wild),
+        nameof(DeityDomain.Harvest), nameof(DeityDomain.Stone)
     };
 
     private static readonly string[] ReligionPrefixes =
@@ -122,8 +122,8 @@ internal sealed class FakeCivilizationProvider : ICivilizationProvider
             GenerateGuid(rnd).ToString("N"),
             GenerateGuid(rnd).ToString("N"),
             1,
-            new List<string> { nameof(DeityType.Khoras) },
-            new List<string> { "Solitary Followers of Khoras" },
+            new List<string> { nameof(DeityDomain.Craft) },
+            new List<string> { "Solitary Followers of Craft" },
             "default"
         ));
 
@@ -136,17 +136,17 @@ internal sealed class FakeCivilizationProvider : ICivilizationProvider
             4,
             new List<string>
             {
-                nameof(DeityType.Khoras),
-                nameof(DeityType.Lysa),
-                nameof(DeityType.Aethra),
-                nameof(DeityType.Gaia)
+                nameof(DeityDomain.Craft),
+                nameof(DeityDomain.Wild),
+                nameof(DeityDomain.Harvest),
+                nameof(DeityDomain.Stone)
             },
             new List<string>
             {
-                "Temple of Khoras",
-                "Church of Lysa",
-                "Order of Aethra",
-                "Disciples of Gaia"
+                "Temple of Craft",
+                "Church of Wild",
+                "Order of Harvest",
+                "Disciples of Stone"
             },
             "peace-dove"
         ));

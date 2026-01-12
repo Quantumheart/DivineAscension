@@ -107,10 +107,10 @@ public class ReligionCommandsTestHelpers
     /// <summary>
     /// Creates test ReligionData
     /// </summary>
-    protected ReligionData CreateReligion(string uid, string name, DeityType deity, string founderUID,
+    protected ReligionData CreateReligion(string uid, string name, DeityDomain deity, string founderUID,
         bool isPublic = true)
     {
-        var religion = new ReligionData(uid, name, deity, founderUID, "TestFounder")
+        var religion = new ReligionData(uid, name, deity, "TestDeity", founderUID, "TestFounder")
         {
             IsPublic = isPublic,
             Roles = RoleDefaults.CreateDefaultRoles(),

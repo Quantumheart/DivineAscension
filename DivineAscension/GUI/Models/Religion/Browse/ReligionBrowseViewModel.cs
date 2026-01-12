@@ -5,8 +5,8 @@ using DivineAscension.Network;
 namespace DivineAscension.GUI.Models.Religion.Browse;
 
 public readonly struct ReligionBrowseViewModel(
-    string[] deityFilters,
-    string currentDeityFilter,
+    string[] domainFilters,
+    string currentDomainFilter,
     IReadOnlyList<ReligionListResponsePacket.ReligionInfo> religions,
     bool isLoading,
     float scrollY,
@@ -17,8 +17,8 @@ public readonly struct ReligionBrowseViewModel(
     float width,
     float height)
 {
-    public string[] DeityFilters { get; } = deityFilters;
-    public string CurrentDeityFilter { get; } = currentDeityFilter;
+    public string[] DomainFilters { get; } = domainFilters;
+    public string CurrentDomainFilter { get; } = currentDomainFilter;
     public IReadOnlyList<ReligionListResponsePacket.ReligionInfo> Religions { get; } = religions;
     public bool IsLoading { get; } = isLoading;
     public float ScrollY { get; } = scrollY;
@@ -32,7 +32,7 @@ public readonly struct ReligionBrowseViewModel(
 
     // Helper methods (no side effects)
     public int GetCurrentFilterIndex() =>
-        Array.IndexOf(DeityFilters, CurrentDeityFilter);
+        Array.IndexOf(DomainFilters, CurrentDomainFilter);
 
     public bool CanJoinReligion =>
         !string.IsNullOrEmpty(SelectedReligionUID);

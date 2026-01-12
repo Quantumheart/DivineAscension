@@ -17,10 +17,10 @@ public class SoundManager(ICoreClientAPI api) : ISoundManager
         { SoundType.Error, "divineascension:sounds/error" },
         { SoundType.Unlock, "divineascension:sounds/unlock" },
         { SoundType.Tick, "divineascension:sounds/tick" },
-        { SoundType.UnlockKhoras, "divineascension:sounds/deities/Khoras" },
-        { SoundType.UnlockLysa, "divineascension:sounds/deities/Lysa" },
-        { SoundType.UnlockAethra, "divineascension:sounds/deities/Aethra" },
-        { SoundType.UnlockGaia, "divineascension:sounds/deities/Gaia" }
+        { SoundType.UnlockCraft, "divineascension:sounds/deities/Craft" },
+        { SoundType.UnlockWild, "divineascension:sounds/deities/Wild" },
+        { SoundType.UnlockHarvest, "divineascension:sounds/deities/Harvest" },
+        { SoundType.UnlockStone, "divineascension:sounds/deities/Stone" }
     };
 
     private static readonly Dictionary<SoundVolume, float> VolumeValues = new()
@@ -63,14 +63,14 @@ public class SoundManager(ICoreClientAPI api) : ISoundManager
         Play(SoundType.Unlock, SoundVolume.Loud);
     }
 
-    public void PlayDeityUnlock(DeityType deity)
+    public void PlayDeityUnlock(DeityDomain deity)
     {
         var sound = deity switch
         {
-            DeityType.Khoras => SoundType.UnlockKhoras,
-            DeityType.Lysa => SoundType.UnlockLysa,
-            DeityType.Aethra => SoundType.UnlockAethra,
-            DeityType.Gaia => SoundType.UnlockGaia,
+            DeityDomain.Craft => SoundType.UnlockCraft,
+            DeityDomain.Wild => SoundType.UnlockWild,
+            DeityDomain.Harvest => SoundType.UnlockHarvest,
+            DeityDomain.Stone => SoundType.UnlockStone,
             _ => SoundType.Unlock
         };
         Play(sound, SoundVolume.Loud);

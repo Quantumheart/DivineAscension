@@ -12,16 +12,27 @@ public class CreateReligionRequestPacket
     {
     }
 
-    public CreateReligionRequestPacket(string religionName, string deity, bool isPublic)
+    public CreateReligionRequestPacket(string religionName, string domain, string deityName, bool isPublic)
     {
         ReligionName = religionName;
-        Deity = deity;
+        Domain = domain;
+        DeityName = deityName;
         IsPublic = isPublic;
     }
 
     [ProtoMember(1)] public string ReligionName { get; set; } = string.Empty;
 
-    [ProtoMember(2)] public string Deity { get; set; } = string.Empty;
+    /// <summary>
+    ///     The domain for the religion (Craft, Wild, Harvest, Stone)
+    /// </summary>
+    [ProtoMember(2)]
+    public string Domain { get; set; } = string.Empty;
 
     [ProtoMember(3)] public bool IsPublic { get; set; }
+
+    /// <summary>
+    ///     The custom name for the deity this religion worships
+    /// </summary>
+    [ProtoMember(4)]
+    public string DeityName { get; set; } = string.Empty;
 }

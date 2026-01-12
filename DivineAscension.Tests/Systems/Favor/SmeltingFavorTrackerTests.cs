@@ -48,10 +48,10 @@ public class SmeltingFavorTrackerTests
         SetupPlayer(mockSapi, mockPlayer.Object);
 
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-smelt-1"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-smelt-1", DeityType.Khoras));
+            .Returns(TestFixtures.CreateTestPlayerReligionData("player-smelt-1", DeityDomain.Craft));
 
         mockPlayerReligion.Setup(m => m.GetPlayerDeityType("player-smelt-1"))
-            .Returns(DeityType.Khoras);
+            .Returns(DeityDomain.Craft);
 
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
         tracker.Initialize();
@@ -81,10 +81,10 @@ public class SmeltingFavorTrackerTests
         SetupPlayer(mockSapi, mockPlayer.Object);
 
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-smelt-2"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-smelt-2", DeityType.Khoras));
+            .Returns(TestFixtures.CreateTestPlayerReligionData("player-smelt-2", DeityDomain.Craft));
 
         mockPlayerReligion.Setup(m => m.GetPlayerDeityType("player-smelt-2"))
-            .Returns(DeityType.Khoras);
+            .Returns(DeityDomain.Craft);
 
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
         tracker.Initialize();
@@ -115,7 +115,7 @@ public class SmeltingFavorTrackerTests
 
         // Player follows Lysa
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-smelt-3"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-smelt-3", DeityType.Lysa));
+            .Returns(TestFixtures.CreateTestPlayerReligionData("player-smelt-3", DeityDomain.Wild));
 
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
         tracker.Initialize();

@@ -6,8 +6,8 @@ public enum SoundType
     Error,
     Unlock,
     Tick,
-    UnlockKhoras,
-    UnlockLysa,
-    UnlockAethra,
-    UnlockGaia
+    UnlockCraft,
+    UnlockWild,
+    UnlockHarvest,
+    UnlockStone
 }

@@ -350,7 +350,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         }
 
         // Build deity filters
-        var deityNames = DeityHelper.DeityNames;
+        var deityNames = DomainHelper.DeityNames;
         var deities = new string[deityNames.Length + 1];
         deities[0] = "All";
         Array.Copy(deityNames, 0, deities, 1, deityNames.Length);

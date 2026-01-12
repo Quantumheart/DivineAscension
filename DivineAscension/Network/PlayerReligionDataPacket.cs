@@ -11,7 +11,8 @@ public class PlayerReligionDataPacket
 
     public PlayerReligionDataPacket(
         string religionName,
-        string deity,
+        string domain,
+        string deityName,
         int favor,
         string favorRank,
         int prestige,
@@ -19,7 +20,8 @@ public class PlayerReligionDataPacket
         int totalFavorEarned = 0)
     {
         ReligionName = religionName;
-        Deity = deity;
+        Domain = domain;
+        DeityName = deityName;
         Favor = favor;
         FavorRank = favorRank;
         Prestige = prestige;
@@ -29,7 +31,11 @@ public class PlayerReligionDataPacket
 
     [ProtoMember(1)] public string ReligionName { get; set; } = string.Empty;
 
-    [ProtoMember(2)] public string Deity { get; set; } = string.Empty;
+    /// <summary>
+    ///     The domain (Craft, Wild, Harvest, Stone)
+    /// </summary>
+    [ProtoMember(2)]
+    public string Domain { get; set; } = string.Empty;
 
     [ProtoMember(3)] public int Favor { get; set; }
 
@@ -40,4 +46,10 @@ public class PlayerReligionDataPacket
     [ProtoMember(6)] public string? PrestigeRank { get; set; }
 
     [ProtoMember(7)] public int TotalFavorEarned { get; set; }
+
+    /// <summary>
+    ///     The custom deity name for this religion
+    /// </summary>
+    [ProtoMember(8)]
+    public string DeityName { get; set; } = string.Empty;
 }

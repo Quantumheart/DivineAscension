@@ -66,9 +66,9 @@ public class BlessingRegistry : IBlessingRegistry
     /// <summary>
     ///     Gets all blessings for a specific deity and type
     /// </summary>
-    public List<Blessing> GetBlessingsForDeity(DeityType deity, BlessingKind? type = null)
+    public List<Blessing> GetBlessingsForDeity(DeityDomain deity, BlessingKind? type = null)
     {
-        var query = _blessings.Values.Where(p => p.Deity == deity);
+        var query = _blessings.Values.Where(p => p.Domain == deity);
 
         if (type.HasValue) query = query.Where(p => p.Kind == type.Value);
 
@@ -111,8 +111,8 @@ public class BlessingRegistry : IBlessingRegistry
             }
 
             // Check deity matches
-            if (religionData!.Deity != blessing.Deity)
-                return (false, $"Requires deity: {blessing.Deity} (Current: {religionData!.Deity})");
+            if (religionData!.Domain != blessing.Domain)
+                return (false, $"Requires deity: {blessing.Domain} (Current: {religionData!.Domain})");
 
             // Check prerequisites
             if (blessing.PrerequisiteBlessings != null)
@@ -143,8 +143,8 @@ public class BlessingRegistry : IBlessingRegistry
         }
 
         // Check deity matches
-        if (religionData.Deity != blessing.Deity)
-            return (false, $"Religion deity mismatch (Blessing: {blessing.Deity}, Religion: {religionData.Deity})");
+        if (religionData.Domain != blessing.Domain)
+            return (false, $"Religion deity mismatch (Blessing: {blessing.Domain}, Religion: {religionData.Domain})");
 
         // Check prerequisites
         if (blessing.PrerequisiteBlessings != null)

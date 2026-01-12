@@ -17,7 +17,6 @@ namespace DivineAscension.Commands;
 /// </summary>
 public class FavorCommands
 {
-    private readonly IDeityRegistry _deityRegistry;
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionManager _religionManager;
     private readonly ICoreServerAPI _sapi;
@@ -25,12 +24,10 @@ public class FavorCommands
     // ReSharper disable once ConvertToPrimaryConstructor
     public FavorCommands(
         ICoreServerAPI sapi,
-        IDeityRegistry deityRegistry,
         IPlayerProgressionDataManager playerReligionDataManager,
         IReligionManager religionManager)
     {
         _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
-        _deityRegistry = deityRegistry ?? throw new ArgumentNullException(nameof(deityRegistry));
         _playerProgressionDataManager = playerReligionDataManager ??
                                         throw new ArgumentNullException(nameof(playerReligionDataManager));
         _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
@@ -157,8 +154,8 @@ public class FavorCommands
             CommandHelpers.ValidatePlayerHasDeity(player, _playerProgressionDataManager, _religionManager);
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
-        var deity = _deityRegistry.GetDeity(_religionManager.GetPlayerActiveDeity(player.PlayerUID));
-        var deityName = deity?.Name ?? "Unknown";
+        var deity = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+        var deityName = deity.ToString();
 
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_CHECK, playerProgressionData!.Favor,
@@ -180,8 +177,8 @@ public class FavorCommands
             CommandHelpers.ValidatePlayerHasDeity(player, _playerProgressionDataManager, _religionManager);
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
-        var deity = _deityRegistry.GetDeity(_religionManager.GetPlayerActiveDeity(player.PlayerUID));
-        var deityName = deity?.Name ?? "Unknown";
+        var deityDomain = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+        var domainLocalized = deityDomain.ToLocalizedString();
 
         // Get current rank based on total favor
         var currentRank = GetCurrentFavorRank(playerProgressionData!.TotalFavorEarned);
@@ -189,7 +186,7 @@ public class FavorCommands
 
         var sb = new StringBuilder();
         sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_HEADER_INFO));
-        sb.AppendLine($"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_DEITY)} {deityName}");
+        sb.AppendLine($"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_DOMAIN)} {domainLocalized}");
         sb.AppendLine(
             $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_CURRENT)} {playerProgressionData.Favor:N0}");
         sb.AppendLine(
@@ -235,8 +232,8 @@ public class FavorCommands
             CommandHelpers.ValidatePlayerHasDeity(player, _playerProgressionDataManager, _religionManager);
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
-        var deity = _deityRegistry.GetDeity(_religionManager.GetPlayerActiveDeity(player.PlayerUID));
-        var deityName = deity?.Name ?? "Unknown";
+        var deity = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+        var deityName = deity.ToLocalizedString();
 
         // Get current rank based on total favor
         var currentRank = GetCurrentFavorRank(playerProgressionData!.TotalFavorEarned);
@@ -244,7 +241,7 @@ public class FavorCommands
 
         var sb = new StringBuilder();
         sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_HEADER_STATS));
-        sb.AppendLine($"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_DEITY)} {deityName}");
+        sb.AppendLine($"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_DOMAIN)} {deityName}");
         sb.AppendLine(
             $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_CURRENT)} {playerProgressionData.Favor:N0}");
         sb.AppendLine(

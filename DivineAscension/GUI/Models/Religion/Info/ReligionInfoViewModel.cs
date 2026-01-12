@@ -15,6 +15,7 @@ public readonly struct ReligionInfoViewModel(
     string religionUID,
     string religionName,
     string deity,
+    string deityName,
     string founderUID,
     string founderName,
     string currentPlayerUID,
@@ -34,6 +35,11 @@ public readonly struct ReligionInfoViewModel(
     string? kickConfirmPlayerName,
     string? banConfirmPlayerUID,
     string? banConfirmPlayerName,
+    // Deity name editing state
+    bool isEditingDeityName,
+    string editDeityNameValue,
+    bool isSavingDeityName,
+    string? deityNameError,
     // Layout & scrolling
     float x,
     float y,
@@ -48,7 +54,17 @@ public readonly struct ReligionInfoViewModel(
     public bool HasReligion { get; } = hasReligion;
     public string ReligionUID { get; } = religionUID;
     public string ReligionName { get; } = religionName;
+
+    /// <summary>
+    ///     The domain (Craft, Wild, Harvest, Stone)
+    /// </summary>
     public string Deity { get; } = deity;
+
+    /// <summary>
+    ///     The custom deity name for this religion
+    /// </summary>
+    public string DeityName { get; } = deityName;
+
     public string FounderUID { get; } = founderUID;
     public string FounderName { get; } = founderName;
 
@@ -74,6 +90,12 @@ public readonly struct ReligionInfoViewModel(
     public string? KickConfirmPlayerName { get; } = kickConfirmPlayerName;
     public string? BanConfirmPlayerUID { get; } = banConfirmPlayerUID;
     public string? BanConfirmPlayerName { get; } = banConfirmPlayerName;
+
+    // Deity name editing state
+    public bool IsEditingDeityName { get; } = isEditingDeityName;
+    public string EditDeityNameValue { get; } = editDeityNameValue;
+    public bool IsSavingDeityName { get; } = isSavingDeityName;
+    public string? DeityNameError { get; } = deityNameError;
 
     // Layout & scrolling
     public float X { get; } = x;
@@ -111,10 +133,12 @@ public readonly struct ReligionInfoViewModel(
     /// Copy with updated overall scroll position for the tab content.
     /// </summary>
     public ReligionInfoViewModel WithScroll(float newScrollY) => new(
-        IsLoading, HasReligion, ReligionUID, ReligionName, Deity, FounderUID, FounderName, CurrentPlayerUID, IsFounder, Description,
+        IsLoading, HasReligion, ReligionUID, ReligionName, Deity, DeityName, FounderUID, FounderName, CurrentPlayerUID,
+        IsFounder, Description,
         Members, BannedPlayers, Prestige, PrestigeRank, IsPublic,
         DescriptionText, InvitePlayerName, ShowDisbandConfirm,
         KickConfirmPlayerUID, KickConfirmPlayerName, BanConfirmPlayerUID, BanConfirmPlayerName,
+        IsEditingDeityName, EditDeityNameValue, IsSavingDeityName, DeityNameError,
         X, Y, Width, Height,
         newScrollY, MemberScrollY, BanListScrollY);
 
@@ -122,10 +146,12 @@ public readonly struct ReligionInfoViewModel(
     /// Copy with updated member list scroll position.
     /// </summary>
     public ReligionInfoViewModel WithMemberScroll(float newMemberScrollY) => new(
-        IsLoading, HasReligion, ReligionUID, ReligionName, Deity, FounderUID, FounderName, CurrentPlayerUID, IsFounder, Description,
+        IsLoading, HasReligion, ReligionUID, ReligionName, Deity, DeityName, FounderUID, FounderName, CurrentPlayerUID,
+        IsFounder, Description,
         Members, BannedPlayers, Prestige, PrestigeRank, IsPublic,
         DescriptionText, InvitePlayerName, ShowDisbandConfirm,
         KickConfirmPlayerUID, KickConfirmPlayerName, BanConfirmPlayerUID, BanConfirmPlayerName,
+        IsEditingDeityName, EditDeityNameValue, IsSavingDeityName, DeityNameError,
         X, Y, Width, Height,
         ScrollY, newMemberScrollY, BanListScrollY);
 
@@ -133,10 +159,12 @@ public readonly struct ReligionInfoViewModel(
     /// Copy with updated banned list scroll position.
     /// </summary>
     public ReligionInfoViewModel WithBanListScroll(float newBanListScrollY) => new(
-        IsLoading, HasReligion, ReligionUID, ReligionName, Deity, FounderUID, FounderName, CurrentPlayerUID, IsFounder, Description,
+        IsLoading, HasReligion, ReligionUID, ReligionName, Deity, DeityName, FounderUID, FounderName, CurrentPlayerUID,
+        IsFounder, Description,
         Members, BannedPlayers, Prestige, PrestigeRank, IsPublic,
         DescriptionText, InvitePlayerName, ShowDisbandConfirm,
         KickConfirmPlayerUID, KickConfirmPlayerName, BanConfirmPlayerUID, BanConfirmPlayerName,
+        IsEditingDeityName, EditDeityNameValue, IsSavingDeityName, DeityNameError,
         X, Y, Width, Height,
         ScrollY, MemberScrollY, newBanListScrollY);
 
@@ -144,11 +172,13 @@ public readonly struct ReligionInfoViewModel(
     /// Convenience factory for empty/loading state when no religion data is available yet.
     /// </summary>
     public static ReligionInfoViewModel Loading(float x = 0, float y = 0, float width = 0, float height = 0) => new(
-        true, false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, false, string.Empty,
+        true, false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty,
+        false, string.Empty,
         Array.Empty<PlayerReligionInfoResponsePacket.MemberInfo>(),
         Array.Empty<PlayerReligionInfoResponsePacket.BanInfo>(),
         0, string.Empty, true,
         string.Empty, string.Empty, false, null, null, null, null,
+        false, string.Empty, false, null,
         x, y, width, height,
         0, 0, 0);
 }

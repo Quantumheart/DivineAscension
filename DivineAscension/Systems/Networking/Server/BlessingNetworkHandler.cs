@@ -158,7 +158,7 @@ public class BlessingNetworkHandler(
 
             var religion = religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
             var deity = playerProgressionDataManager.GetPlayerDeityType(fromPlayer.PlayerUID);
-            if (religion == null || deity == DeityType.None)
+            if (religion == null || deity == DeityDomain.None)
             {
                 response.HasReligion = false;
                 serverChannel!.SendPacket(response, fromPlayer);
@@ -168,7 +168,8 @@ public class BlessingNetworkHandler(
             response.HasReligion = true;
             response.ReligionUID = religion.ReligionUID;
             response.ReligionName = religion.ReligionName;
-            response.Deity = deity.ToString();
+            response.Domain = deity.ToString();
+            response.DeityName = religion.DeityName;
             response.FavorRank = (int)playerData.FavorRank;
             response.PrestigeRank = (int)religion.PrestigeRank;
             response.CurrentFavor = playerData.Favor;

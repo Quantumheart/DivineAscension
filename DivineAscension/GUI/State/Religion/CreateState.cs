@@ -5,13 +5,24 @@ namespace DivineAscension.GUI.State.Religion;
 public class CreateState
 {
     public string Name { get; set; } = string.Empty;
-    public string DeityName { get; set; } = nameof(DeityType.Khoras);
+
+    /// <summary>
+    ///     The domain for the religion (Craft, Wild, Harvest, Stone)
+    /// </summary>
+    public string Domain { get; set; } = nameof(DeityDomain.Craft);
+
+    /// <summary>
+    ///     The custom name for the deity this religion worships
+    /// </summary>
+    public string DeityName { get; set; } = string.Empty;
+
     public bool IsPublic { get; set; } = true;
 
     public void Reset()
     {
         Name = string.Empty;
-        DeityName = nameof(DeityType.Khoras);
+        Domain = nameof(DeityDomain.Craft);
+        DeityName = string.Empty;
         IsPublic = false;
     }
 }

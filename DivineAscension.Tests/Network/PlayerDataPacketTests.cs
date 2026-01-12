@@ -21,8 +21,8 @@ public class PlayerDataPacketTests
     [Fact]
     public void ParameterizedConstructor_SetsProperties()
     {
-        var packet = new PlayerDataPacket(DeityType.Aethra, 100, DevotionRank.Avatar, "Solar Deity");
-        Assert.Equal((int)DeityType.Aethra, packet.DeityTypeId);
+        var packet = new PlayerDataPacket(DeityDomain.Harvest, 100, DevotionRank.Avatar, "Solar Deity");
+        Assert.Equal((int)DeityDomain.Harvest, packet.DeityTypeId);
         Assert.Equal(100, packet.DivineFavor);
         Assert.Equal((int)DevotionRank.Avatar, packet.DevotionRankId);
         Assert.Equal("Solar Deity", packet.DeityName);
@@ -31,21 +31,21 @@ public class PlayerDataPacketTests
     [Fact]
     public void GetDeityType_ReturnsCorrectEnum()
     {
-        var packet = new PlayerDataPacket(DeityType.Aethra, 100, DevotionRank.Avatar, "Solar Deity");
-        Assert.Equal(DeityType.Aethra, packet.GetDeityType());
+        var packet = new PlayerDataPacket(DeityDomain.Harvest, 100, DevotionRank.Avatar, "Solar Deity");
+        Assert.Equal(DeityDomain.Harvest, packet.GetDeityType());
     }
 
     [Fact]
     public void GetDevotionRank_ReturnsCorrectEnum()
     {
-        var packet = new PlayerDataPacket(DeityType.Aethra, 100, DevotionRank.Avatar, "Solar Deity");
+        var packet = new PlayerDataPacket(DeityDomain.Harvest, 100, DevotionRank.Avatar, "Solar Deity");
         Assert.Equal(DevotionRank.Avatar, packet.GetDevotionRank());
     }
 
     [Fact]
     public void Serialize_Deserialize_ValuesArePreserved()
     {
-        var original = new PlayerDataPacket(DeityType.Aethra, 100, DevotionRank.Avatar, "Solar Deity");
+        var original = new PlayerDataPacket(DeityDomain.Harvest, 100, DevotionRank.Avatar, "Solar Deity");
 
         using var ms = new MemoryStream();
         Serializer.Serialize(ms, original);

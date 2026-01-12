@@ -89,7 +89,7 @@ public interface ICivilizationManager
     /// <summary>
     ///     Gets all deity types in a civilization
     /// </summary>
-    HashSet<DeityType> GetCivDeityTypes(string civId);
+    HashSet<DeityDomain> GetCivDeityTypes(string civId);
 
     /// <summary>
     ///     Gets all religions in a civilization

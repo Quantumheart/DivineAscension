@@ -14,8 +14,8 @@ namespace DivineAscension.GUI.UI.Utilities;
 [ExcludeFromCodeCoverage]
 internal static class DeityIconLoader
 {
-    private static readonly Dictionary<DeityType, LoadedTexture?> _deityTextures = new();
-    private static readonly Dictionary<DeityType, IntPtr> _textureIds = new();
+    private static readonly Dictionary<DeityDomain, LoadedTexture?> _deityTextures = new();
+    private static readonly Dictionary<DeityDomain, IntPtr> _textureIds = new();
     private static bool _initialized;
     private static ICoreClientAPI? _api;
 
@@ -32,7 +32,7 @@ internal static class DeityIconLoader
     /// <summary>
     ///     Load deity icon texture from assets
     /// </summary>
-    private static LoadedTexture? LoadDeityTexture(DeityType deity)
+    private static LoadedTexture? LoadDeityTexture(DeityDomain deity)
     {
         if (_api == null) return null;
 
@@ -78,7 +78,7 @@ internal static class DeityIconLoader
     ///     Get the texture ID for a deity icon (for use with ImGui.Image)
     ///     Returns IntPtr.Zero if texture couldn't be loaded
     /// </summary>
-    public static IntPtr GetDeityTextureId(DeityType deity)
+    public static IntPtr GetDeityTextureId(DeityDomain deity)
     {
         if (!_initialized || _api == null) return IntPtr.Zero;
 
@@ -106,7 +106,7 @@ internal static class DeityIconLoader
     /// <summary>
     ///     Check if a deity has a valid texture loaded
     /// </summary>
-    public static bool HasTexture(DeityType deity)
+    public static bool HasTexture(DeityDomain deity)
     {
         return GetDeityTextureId(deity) != IntPtr.Zero;
     }
@@ -118,9 +118,9 @@ internal static class DeityIconLoader
     {
         if (!_initialized) return;
 
-        foreach (DeityType deity in Enum.GetValues(typeof(DeityType)))
+        foreach (DeityDomain deity in Enum.GetValues(typeof(DeityDomain)))
         {
-            if (deity == DeityType.None) continue;
+            if (deity == DeityDomain.None) continue;
             GetDeityTextureId(deity);
         }
     }

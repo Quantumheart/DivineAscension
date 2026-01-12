@@ -71,7 +71,7 @@ internal static class RankUpNotificationOverlay
 
         // Draw deity icon (centered horizontally)
         var iconX = panelX + (PanelWidth - IconSize) / 2f;
-        var textureId = DeityIconLoader.GetDeityTextureId(state.DeityType);
+        var textureId = DeityIconLoader.GetDeityTextureId(state.DeityDomain);
         if (textureId != IntPtr.Zero)
         {
             var iconMin = new Vector2(iconX, currentY);

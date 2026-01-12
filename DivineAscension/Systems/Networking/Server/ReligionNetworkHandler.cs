@@ -52,6 +52,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         _serverChannel.SetMessageHandler<CreateReligionRequestPacket>(OnCreateReligionRequest);
         _serverChannel.SetMessageHandler<EditDescriptionRequestPacket>(OnEditDescriptionRequest);
         _serverChannel.SetMessageHandler<ReligionDetailRequestPacket>(OnReligionDetailRequest);
+        _serverChannel.SetMessageHandler<SetDeityNameRequestPacket>(OnSetDeityNameRequest);
 
         // Register handlers for role management packets
         _serverChannel.SetMessageHandler<ReligionRolesRequest>(OnReligionRolesRequest);
@@ -71,14 +72,15 @@ public class ReligionNetworkHandler : IServerNetworkHandler
     {
         var religions = string.IsNullOrEmpty(packet.FilterDeity)
             ? _religionManager!.GetAllReligions()
-            : _religionManager!.GetReligionsByDeity(
-                Enum.TryParse<DeityType>(packet.FilterDeity, out var deity) ? deity : DeityType.None);
+            : _religionManager!.GetReligionsByDomain(
+                Enum.TryParse<DeityDomain>(packet.FilterDeity, out var deity) ? deity : DeityDomain.None);
 
         var religionInfoList = religions.Select(r => new ReligionListResponsePacket.ReligionInfo
         {
             ReligionUID = r.ReligionUID,
             ReligionName = r.ReligionName,
-            Deity = r.Deity.ToString(),
+            Domain = r.Domain.ToString(),
+            DeityName = r.DeityName,
             MemberCount = r.MemberUIDs.Count,
             Prestige = r.Prestige,
             PrestigeRank = r.PrestigeRank.ToString(),
@@ -101,7 +103,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             response.HasReligion = true;
             response.ReligionUID = religion.ReligionUID;
             response.ReligionName = religion.ReligionName;
-            response.Deity = religion.Deity.ToString();
+            response.Domain = religion.Domain.ToString();
+            response.DeityName = religion.DeityName;
             response.FounderUID = religion.FounderUID;
             response.FounderName = religion.FounderName;
             response.Prestige = religion.Prestige;
@@ -214,7 +217,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         // Build response with religion details
         response.ReligionUID = religion.ReligionUID;
         response.ReligionName = religion.ReligionName;
-        response.Deity = religion.Deity.ToString();
+        response.Domain = religion.Domain.ToString();
+        response.DeityName = religion.DeityName;
         response.Description = religion.Description;
         response.Prestige = religion.Prestige;
         response.PrestigeRank = religion.PrestigeRank.ToString();
@@ -316,16 +320,25 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             {
                 message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ALREADY_IN_RELIGION);
             }
-            else if (!Enum.TryParse<DeityType>(packet.Deity, out var deity) || deity == DeityType.None)
+            else if (!Enum.TryParse<DeityDomain>(packet.Domain, out var domain) || domain == DeityDomain.None)
             {
                 message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVALID_DEITY);
+            }
+            else if (string.IsNullOrWhiteSpace(packet.DeityName))
+            {
+                message = "Deity name is required";
+            }
+            else if (packet.DeityName.Length < 2 || packet.DeityName.Length > 48)
+            {
+                message = "Deity name must be between 2 and 48 characters";
             }
             else
             {
                 // Create the religion
                 var newReligion = _religionManager.CreateReligion(
                     packet.ReligionName,
-                    deity,
+                    domain,
+                    packet.DeityName,
                     fromPlayer.PlayerUID,
                     packet.IsPublic
                 );
@@ -392,6 +405,59 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
         var response = new EditDescriptionResponsePacket(success, message);
         _serverChannel!.SendPacket(response, fromPlayer);
+    }
+
+    private void OnSetDeityNameRequest(IServerPlayer fromPlayer, SetDeityNameRequestPacket packet)
+    {
+        try
+        {
+            var religion = _religionManager!.GetReligion(packet.ReligionUID);
+
+            if (religion == null)
+            {
+                var response = new SetDeityNameResponsePacket(false, "Religion not found");
+                _serverChannel!.SendPacket(response, fromPlayer);
+                return;
+            }
+
+            if (religion.FounderUID != fromPlayer.PlayerUID)
+            {
+                var response = new SetDeityNameResponsePacket(false, "Only the founder can change the deity name");
+                _serverChannel!.SendPacket(response, fromPlayer);
+                return;
+            }
+
+            if (_religionManager.SetDeityName(packet.ReligionUID, packet.NewDeityName, out var error))
+            {
+                var response = new SetDeityNameResponsePacket(true, null, packet.NewDeityName);
+                _serverChannel!.SendPacket(response, fromPlayer);
+
+                // Notify all online members about the change
+                foreach (var memberUID in religion.MemberUIDs)
+                {
+                    var memberPlayer = _sapi!.World.PlayerByUid(memberUID) as IServerPlayer;
+                    if (memberPlayer != null && memberPlayer.PlayerUID != fromPlayer.PlayerUID)
+                    {
+                        _serverChannel.SendPacket(new ReligionStateChangedPacket
+                        {
+                            Reason = $"Deity name changed to {packet.NewDeityName}",
+                            HasReligion = true
+                        }, memberPlayer);
+                    }
+                }
+            }
+            else
+            {
+                var response = new SetDeityNameResponsePacket(false, error);
+                _serverChannel!.SendPacket(response, fromPlayer);
+            }
+        }
+        catch (Exception ex)
+        {
+            _sapi!.Logger.Error($"[DivineAscension] Set deity name error: {ex}");
+            var response = new SetDeityNameResponsePacket(false, "An error occurred while updating the deity name");
+            _serverChannel!.SendPacket(response, fromPlayer);
+        }
     }
 
     #region Role Management Handlers
