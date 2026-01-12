@@ -44,6 +44,7 @@ public static class LocalizationKeys
     public const string UI_RELIGION_NAME_PLACEHOLDER = "divineascension:ui.religion.name.placeholder";
     public const string UI_RELIGION_NAME_ERROR_TOO_SHORT = "divineascension:ui.religion.name.error.too_short";
     public const string UI_RELIGION_NAME_ERROR_TOO_LONG = "divineascension:ui.religion.name.error.too_long";
+    public const string UI_RELIGION_NAME_ERROR_PROFANITY = "divineascension:ui.religion.name.error.profanity";
     public const string UI_RELIGION_DOMAIN_LABEL = "divineascension:ui.religion.domain.label";
     public const string UI_RELIGION_DEITY_NAME_LABEL = "divineascension:ui.religion.deity_name.label";
     public const string UI_RELIGION_DEITY_NAME_PLACEHOLDER = "divineascension:ui.religion.deity_name.placeholder";
@@ -312,6 +313,15 @@ public static class LocalizationKeys
 
     public const string UI_CIVILIZATION_CREATE_NAME_PLACEHOLDER =
         "divineascension:ui.civilization.create.name.placeholder";
+
+    public const string UI_CIVILIZATION_NAME_ERROR_TOO_SHORT =
+        "divineascension:ui.civilization.name.error.too_short";
+
+    public const string UI_CIVILIZATION_NAME_ERROR_TOO_LONG =
+        "divineascension:ui.civilization.name.error.too_long";
+
+    public const string UI_CIVILIZATION_NAME_ERROR_PROFANITY =
+        "divineascension:ui.civilization.name.error.profanity";
 
     public const string UI_CIVILIZATION_CREATE_ICON_LABEL = "divineascension:ui.civilization.create.icon.label";
     public const string UI_CIVILIZATION_CREATE_BUTTON = "divineascension:ui.civilization.create.button";

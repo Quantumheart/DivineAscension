@@ -13,6 +13,8 @@ public readonly struct ReligionCreateViewModel(
     bool isPublic,
     string[] availableDomains,
     string? errorMessage,
+    string? religionNameProfanityWord,
+    string? deityNameProfanityWord,
     float x,
     float y,
     float width,
@@ -34,11 +36,36 @@ public readonly struct ReligionCreateViewModel(
     public string[] AvailableDomains { get; } = availableDomains;
     public string? ErrorMessage { get; } = errorMessage;
 
+    /// <summary>
+    /// Profanity word found in religion name, if any
+    /// </summary>
+    public string? ReligionNameProfanityWord { get; } = religionNameProfanityWord;
+
+    /// <summary>
+    /// Profanity word found in deity name, if any
+    /// </summary>
+    public string? DeityNameProfanityWord { get; } = deityNameProfanityWord;
+
     // Layout
     public float X { get; } = x;
     public float Y { get; } = y;
     public float Width { get; } = width;
     public float Height { get; } = height;
+
+    /// <summary>
+    /// Indicates if the religion name contains profanity
+    /// </summary>
+    public bool ReligionNameHasProfanity => !string.IsNullOrEmpty(ReligionNameProfanityWord);
+
+    /// <summary>
+    /// Indicates if the deity name contains profanity
+    /// </summary>
+    public bool DeityNameHasProfanity => !string.IsNullOrEmpty(DeityNameProfanityWord);
+
+    /// <summary>
+    /// Indicates if any field contains profanity
+    /// </summary>
+    public bool HasProfanity => ReligionNameHasProfanity || DeityNameHasProfanity;
 
     /// <summary>
     /// Gets the index of the currently selected domain in the available domains array
@@ -58,7 +85,8 @@ public readonly struct ReligionCreateViewModel(
         && ReligionName.Length <= 32
         && !string.IsNullOrWhiteSpace(DeityName)
         && DeityName.Length >= 2
-        && DeityName.Length <= 48;
+        && DeityName.Length <= 48
+        && !HasProfanity;
 
     /// <summary>
     /// Gets the info text to display based on public/private selection

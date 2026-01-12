@@ -20,6 +20,7 @@ using DivineAscension.GUI.UI.Renderers.Religion;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using ImGuiNET;
@@ -236,6 +237,20 @@ public class ReligionStateManager : IReligionStateManager
     /// </summary>
     public void DrawReligionCreate(float x, float y, float width, float height)
     {
+        // Check for profanity in religion name
+        string? religionNameProfanityWord = null;
+        if (!string.IsNullOrWhiteSpace(State.CreateState.Name))
+        {
+            ProfanityFilterService.Instance.ContainsProfanity(State.CreateState.Name, out religionNameProfanityWord);
+        }
+
+        // Check for profanity in deity name
+        string? deityNameProfanityWord = null;
+        if (!string.IsNullOrWhiteSpace(State.CreateState.DeityName))
+        {
+            ProfanityFilterService.Instance.ContainsProfanity(State.CreateState.DeityName, out deityNameProfanityWord);
+        }
+
         // Build view model from state
         var viewModel = new ReligionCreateViewModel(
             religionName: State.CreateState.Name,
@@ -244,6 +259,8 @@ public class ReligionStateManager : IReligionStateManager
             isPublic: State.CreateState.IsPublic,
             availableDomains: new[] { "Craft", "Wild", "Harvest", "Stone" },
             errorMessage: State.ErrorState.CreateError,
+            religionNameProfanityWord: religionNameProfanityWord,
+            deityNameProfanityWord: deityNameProfanityWord,
             x: x, y: y, width: width, height: height
         );
 

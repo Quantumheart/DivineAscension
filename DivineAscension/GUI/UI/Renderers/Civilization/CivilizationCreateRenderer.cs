@@ -66,6 +66,32 @@ internal static class CivilizationCreateRenderer
 
         currentY += 40f;
 
+        // Validation feedback
+        if (!string.IsNullOrWhiteSpace(vm.CivilizationName))
+        {
+            if (vm.CivilizationName.Length < 3)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_NAME_ERROR_TOO_SHORT),
+                    vm.X, currentY);
+                currentY += 25f;
+            }
+            else if (vm.CivilizationName.Length > 32)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_NAME_ERROR_TOO_LONG),
+                    vm.X, currentY);
+                currentY += 25f;
+            }
+            else if (vm.HasProfanity)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_NAME_ERROR_PROFANITY,
+                        vm.ProfanityMatchedWord ?? ""), vm.X, currentY);
+                currentY += 25f;
+            }
+        }
+
         // Icon selection
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_ICON_LABEL), vm.X, currentY);
@@ -89,7 +115,7 @@ internal static class CivilizationCreateRenderer
         // Create button
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_BUTTON), vm.X, currentY, 200f,
-                36f, true))
+                36f, isPrimary: true, enabled: vm.CanCreate))
             events.Add(new CreateEvent.SubmitClicked());
 
         // Clear button

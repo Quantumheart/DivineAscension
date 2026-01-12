@@ -17,6 +17,7 @@ using DivineAscension.GUI.UI.Adapters.Civilizations;
 using DivineAscension.GUI.UI.Renderers.Civilization;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network.Civilization;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using ImGuiNET;
 using Vintagestory.API.Client;
@@ -496,6 +497,13 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     [ExcludeFromCodeCoverage]
     private void DrawCivilizationCreate(float x, float y, float width, float height)
     {
+        // Check for profanity in civilization name
+        string? profanityWord = null;
+        if (!string.IsNullOrWhiteSpace(State.CreateState.CreateCivName))
+        {
+            ProfanityFilterService.Instance.ContainsProfanity(State.CreateState.CreateCivName, out profanityWord);
+        }
+
         // Build ViewModel
         var vm = new CivilizationCreateViewModel(
             State.CreateState.CreateCivName,
@@ -503,6 +511,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             State.CreateError,
             UserIsReligionFounder,
             HasCivilization(),
+            profanityWord,
             x,
             y,
             width,

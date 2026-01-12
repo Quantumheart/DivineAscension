@@ -166,6 +166,13 @@ internal static class ReligionCreateRenderer
                     currentY);
                 currentY += 25f;
             }
+            else if (viewModel.DeityNameHasProfanity)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_PROFANITY,
+                        viewModel.DeityNameProfanityWord ?? ""), formX, currentY);
+                currentY += 25f;
+            }
         }
 
         return currentY;
@@ -257,6 +264,13 @@ internal static class ReligionCreateRenderer
                 TextRenderer.DrawErrorText(drawList,
                     LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_TOO_LONG), formX,
                     currentY);
+                currentY += 25f;
+            }
+            else if (viewModel.ReligionNameHasProfanity)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_PROFANITY,
+                        viewModel.ReligionNameProfanityWord ?? ""), formX, currentY);
                 currentY += 25f;
             }
         }
