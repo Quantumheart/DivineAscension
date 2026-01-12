@@ -11,7 +11,7 @@ internal static class DeityInfoHelper
     /// <summary>
     /// Get deity information by name
     /// </summary>
-    public static DeityInfo? GetDeityInfo(string deityName)
+    public static DomainInfo? GetDeityInfo(string deityName)
     {
         var deityType = DeityHelper.ParseDeityType(deityName);
         return GetDeityInfo(deityType);
@@ -20,33 +20,30 @@ internal static class DeityInfoHelper
     /// <summary>
     /// Get deity information by type
     /// </summary>
-    public static DeityInfo? GetDeityInfo(DeityDomain deityDomain)
+    // todo: localize the strings in this text.
+    public static DomainInfo? GetDeityInfo(DeityDomain deityDomain)
     {
         return deityDomain switch
         {
-            DeityDomain.Craft => new DeityInfo(
+            DeityDomain.Craft => new DomainInfo(
                 Name: "Craft",
-                Title: "God of the Forge & Craft",
-                Domain: "Forge & Craft",
-                Description: "The domain of forging and crafting, rewarding those who work the forge."
+                Description:
+                "The domain of the Forge and Craft. Followers are rewarded for their dedication to metalworking, smithing, and the creation of tools and weapons. Those who shape raw materials into works of utility and art earn the favor of this domain."
             ),
-            DeityDomain.Wild => new DeityInfo(
+            DeityDomain.Wild => new DomainInfo(
                 Name: "Wild",
-                Title: "Domain of the Hunt & Wild",
-                Domain: "Hunt & Wild",
-                Description: "The domain of the Hunt, rewarding patience, precision, and tracking."
+                Description:
+                "The domain of the Hunt and Wild. Followers are rewarded for patience, precision, and tracking. Those who master the hunt and live in harmony with the wilderness earn the favor of this domain."
             ),
-            DeityDomain.Harvest => new DeityInfo(
+            DeityDomain.Harvest => new DomainInfo(
                 Name: "Harvest",
-                Title: "Goddess of Agriculture & Light",
-                Domain: "Agriculture & Light",
-                Description: "The domain of cultivation and growth through light and warmth."
+                Description:
+                "The domain of Agriculture and Light. Followers are rewarded for cultivation and nurturing growth through light and warmth. Those who tend the land and bring forth abundance earn the favor of this domain."
             ),
-            DeityDomain.Stone => new DeityInfo(
+            DeityDomain.Stone => new DomainInfo(
                 Name: "Stone",
-                Title: "Goddess of Earth & Stone",
-                Domain: "Earth & Stone",
-                Description: "The domain representing the transformative power of working with clay and earth."
+                Description:
+                "The domain of Earth and Stone. Followers are rewarded for the transformative art of working with clay and earth. Those who shape pottery, form clay, and honor the elements of the ground earn the favor of this domain."
             ),
             _ => null
         };
@@ -56,4 +53,4 @@ internal static class DeityInfoHelper
 /// <summary>
 /// Immutable record containing deity information for tooltips
 /// </summary>
-internal record DeityInfo(string Name, string Title, string Domain, string Description);
+internal record DomainInfo(string Name, string Description);
