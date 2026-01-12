@@ -22,7 +22,8 @@ public class ReligionListResponsePacketTests
         {
             ReligionUID = "religion1",
             ReligionName = "Ancient Faith",
-            Deity = "God of Storms",
+            Domain = "Craft",
+            DeityName = "God of Storms",
             MemberCount = 1234,
             Prestige = 850,
             PrestigeRank = "Epic",
@@ -35,7 +36,8 @@ public class ReligionListResponsePacketTests
         {
             ReligionUID = "religion2",
             ReligionName = "Order of the Sun",
-            Deity = "Solar Deity",
+            Domain = "Harvest",
+            DeityName = "Solar Deity",
             MemberCount = 567,
             Prestige = 420,
             PrestigeRank = "Legendary",
@@ -58,7 +60,8 @@ public class ReligionListResponsePacketTests
         {
             ReligionUID = "religion123",
             ReligionName = "Celestial Order",
-            Deity = "Star God",
+            Domain = "Stone",
+            DeityName = "Star God",
             MemberCount = 9876,
             Prestige = 1500,
             PrestigeRank = "Divine",
@@ -77,7 +80,8 @@ public class ReligionListResponsePacketTests
         Assert.Equal(packet.Religions.Count, deserialized.Religions.Count);
         Assert.Equal(religion.ReligionUID, deserialized.Religions[0].ReligionUID);
         Assert.Equal(religion.ReligionName, deserialized.Religions[0].ReligionName);
-        Assert.Equal(religion.Deity, deserialized.Religions[0].Deity);
+        Assert.Equal(religion.Domain, deserialized.Religions[0].Domain);
+        Assert.Equal(religion.DeityName, deserialized.Religions[0].DeityName);
         Assert.Equal(religion.MemberCount, deserialized.Religions[0].MemberCount);
         Assert.Equal(religion.Prestige, deserialized.Religions[0].Prestige);
         Assert.Equal(religion.PrestigeRank, deserialized.Religions[0].PrestigeRank);

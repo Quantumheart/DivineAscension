@@ -239,9 +239,9 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     public bool HasReligion(string playerUid) => _religionManager.HasReligion(playerUid);
 
 
-    public DeityType GetPlayerDeityType(string playerId)
+    public DeityDomain GetPlayerDeityType(string playerId)
     {
-        return _religionManager.GetPlayerActiveDeity(playerId);
+        return _religionManager.GetPlayerActiveDeityDomain(playerId);
     }
 
     /// <summary>

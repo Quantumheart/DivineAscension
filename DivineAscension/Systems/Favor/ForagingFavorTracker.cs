@@ -31,7 +31,7 @@ public class ForagingFavorTracker(
         _lysaFollowers.Clear();
     }
 
-    public DeityType DeityType { get; } = DeityType.Lysa;
+    public DeityDomain DeityDomain { get; } = DeityDomain.Wild;
 
     public void Initialize()
     {
@@ -61,7 +61,7 @@ public class ForagingFavorTracker(
     private void UpdateFollower(string playerUID)
     {
         var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerUID);
-        if (deityType == DeityType)
+        if (deityType == DeityDomain)
             _lysaFollowers.Add(playerUID);
         else
             _lysaFollowers.Remove(playerUID);

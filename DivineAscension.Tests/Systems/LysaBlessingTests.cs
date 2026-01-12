@@ -18,7 +18,7 @@ namespace DivineAscension.Tests.Systems;
 public class LysaBlessingTests
 {
     private static IEnumerable<Blessing> GetLysa() =>
-        BlessingDefinitions.GetAllBlessings().Where(b => b.Deity == DeityType.Lysa);
+        BlessingDefinitions.GetAllBlessings().Where(b => b.Domain == DeityDomain.Wild);
 
     #region Tier 1 Tests
 
@@ -29,7 +29,7 @@ public class LysaBlessingTests
 
         Assert.Equal(0, t1.RequiredFavorRank); // Initiate
         Assert.Equal(BlessingKind.Player, t1.Kind);
-        Assert.Equal(DeityType.Lysa, t1.Deity);
+        Assert.Equal(DeityDomain.Wild, t1.Domain);
 
         // Verify stat modifiers
         Assert.Equal(0.15f, t1.StatModifiers[VintageStoryStats.AnimalDrops], 3);
@@ -356,7 +356,7 @@ public class LysaBlessingTests
         Assert.Equal(10, lysaBlessings.Count);
 
         // All should be Lysa deity
-        Assert.All(lysaBlessings, b => Assert.Equal(DeityType.Lysa, b.Deity));
+        Assert.All(lysaBlessings, b => Assert.Equal(DeityDomain.Wild, b.Domain));
     }
 
     [Fact]

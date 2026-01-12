@@ -22,7 +22,7 @@ internal sealed class FakeReligionMemberProvider : IReligionMemberProvider
     };
 
     private static readonly string[] Deities =
-        { nameof(DeityType.Khoras), nameof(DeityType.Lysa), nameof(DeityType.Aethra), nameof(DeityType.Gaia) };
+        { nameof(DeityDomain.Craft), nameof(DeityDomain.Wild), nameof(DeityDomain.Harvest), nameof(DeityDomain.Stone) };
 
     private IReadOnlyList<MemberVM> _cache = Array.Empty<MemberVM>();
     private int _count = 250;

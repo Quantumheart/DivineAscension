@@ -96,8 +96,8 @@ public interface IPlayerProgressionDataManager : IDisposable
     /// The unique identifier of the player whose deity type is to be retrieved.
     /// </param>
     /// <returns>
-    /// The <see cref="DeityType"/> representing the player's associated deity.
-    /// Returns <see cref="DeityType.None"/> if the player has no associated deity.
+    /// The <see cref="DeityDomain"/> representing the player's associated deity.
+    /// Returns <see cref="DeityDomain.None"/> if the player has no associated deity.
     /// </returns>
-    public DeityType GetPlayerDeityType(string playerId);
+    public DeityDomain GetPlayerDeityType(string playerId);
 }

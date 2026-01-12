@@ -15,11 +15,10 @@ namespace DivineAscension.Systems.Networking.Server;
 [ExcludeFromCodeCoverage]
 public class PlayerDataNetworkHandler : IServerNetworkHandler
 {
-    private readonly DeityRegistry? _deityRegistry;
     private readonly IPlayerProgressionDataManager? _playerProgressionDataManager;
     private readonly IReligionManager? _religionManager;
     private readonly ICoreServerAPI? _sapi;
-    private IServerNetworkChannel? _serverChannel;
+    private readonly IServerNetworkChannel? _serverChannel;
 
     /// <summary>
     ///     Initialize the handler with all required dependencies.
@@ -28,13 +27,11 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
     public PlayerDataNetworkHandler(ICoreServerAPI sapi,
         IPlayerProgressionDataManager playerProgressionDataManager,
         IReligionManager religionManager,
-        DeityRegistry deityRegistry,
         IServerNetworkChannel serverChannel)
     {
         _sapi = sapi;
         _playerProgressionDataManager = playerProgressionDataManager;
         _religionManager = religionManager;
-        _deityRegistry = deityRegistry;
         _serverChannel = serverChannel;
 
         // Subscribe to events
@@ -77,7 +74,7 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
     /// </summary>
     public void SendPlayerDataToClient(IServerPlayer player)
     {
-        if (_playerProgressionDataManager == null || _religionManager == null || _deityRegistry == null ||
+        if (_playerProgressionDataManager == null || _religionManager == null ||
             _serverChannel == null) return;
 
         var playerReligionData = _playerProgressionDataManager!.GetOrCreatePlayerData(player.PlayerUID);
@@ -88,8 +85,8 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
         {
             var packet = new PlayerReligionDataPacket(
                 religionData.ReligionName,
-                // todo: need to validate this is correct
                 deity.ToString(),
+                religionData.DeityName,
                 playerReligionData.Favor,
                 playerReligionData.FavorRank.ToString(),
                 religionData.Prestige,

@@ -38,7 +38,7 @@ public static class BlessingDefinitions
             // PLAYER BLESSINGS (6 total) - Forge & Craft utility focus
 
             // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.KhorasCraftsmansTouch, "Craftsman's Touch", DeityType.Khoras)
+            new(BlessingIds.KhorasCraftsmansTouch, "Craftsman's Touch", DeityDomain.Craft)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -53,7 +53,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.KhorasMasterworkTools, "Masterwork Tools", DeityType.Khoras)
+            new(BlessingIds.KhorasMasterworkTools, "Masterwork Tools", DeityDomain.Craft)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -68,7 +68,7 @@ public static class BlessingDefinitions
                     { VintageStoryStats.MiningSpeed, 0.10f }
                 }
             },
-            new(BlessingIds.KhorasForgebornEndurance, "Forgeborn Endurance", DeityType.Khoras)
+            new(BlessingIds.KhorasForgebornEndurance, "Forgeborn Endurance", DeityDomain.Craft)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Defense,
@@ -84,7 +84,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.KhorasLegendarySmith, "Legendary Smith", DeityType.Khoras)
+            new(BlessingIds.KhorasLegendarySmith, "Legendary Smith", DeityDomain.Craft)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -100,7 +100,7 @@ public static class BlessingDefinitions
                 },
                 SpecialEffects = new List<string>()
             },
-            new(BlessingIds.KhorasUnyielding, "Unyielding", DeityType.Khoras)
+            new(BlessingIds.KhorasUnyielding, "Unyielding", DeityDomain.Craft)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Defense,
@@ -117,7 +117,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 4 - Champion (5000+ favor) - Capstone (requires both paths)
-            new(BlessingIds.KhorasAvatarOfForge, "Avatar of the Forge", DeityType.Khoras)
+            new(BlessingIds.KhorasAvatarOfForge, "Avatar of the Forge", DeityDomain.Craft)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -137,7 +137,7 @@ public static class BlessingDefinitions
             // RELIGION BLESSINGS (4 total) - Shared workshop bonuses
 
             // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.KhorasSharedWorkshop, "Shared Workshop", DeityType.Khoras)
+            new(BlessingIds.KhorasSharedWorkshop, "Shared Workshop", DeityDomain.Craft)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
@@ -152,7 +152,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 2 - Established (500-1999 prestige) - Coordination
-            new(BlessingIds.KhorasGuildOfSmiths, "Guild of Smiths", DeityType.Khoras)
+            new(BlessingIds.KhorasGuildOfSmiths, "Guild of Smiths", DeityDomain.Craft)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
@@ -169,7 +169,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
-            new(BlessingIds.KhorasMasterCraftsmen, "Master Craftsmen", DeityType.Khoras)
+            new(BlessingIds.KhorasMasterCraftsmen, "Master Craftsmen", DeityDomain.Craft)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
@@ -187,7 +187,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 4 - Legendary (5000+ prestige) - Pantheon of Creation
-            new(BlessingIds.KhorasPantheonOfCreation, "Pantheon of Creation", DeityType.Khoras)
+            new(BlessingIds.KhorasPantheonOfCreation, "Pantheon of Creation", DeityDomain.Craft)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
@@ -215,7 +215,7 @@ public static class BlessingDefinitions
             // PLAYER BLESSINGS (6 total) - Hunt & Wild utility focus (v2.0.0 Utility Redesign)
 
             // Tier 1 - Initiate (0-499 favor)
-            new(BlessingIds.LysaHuntersInstinct, "Hunter's Instinct", DeityType.Lysa)
+            new(BlessingIds.LysaHuntersInstinct, "Hunter's Instinct", DeityDomain.Wild)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -232,7 +232,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 2 - Disciple (500-1999 favor) - Choose Path
-            new(BlessingIds.LysaMasterForager, "Master Forager", DeityType.Lysa)
+            new(BlessingIds.LysaMasterForager, "Master Forager", DeityDomain.Wild)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -249,7 +249,7 @@ public static class BlessingDefinitions
                 },
                 SpecialEffects = new List<string> { SpecialEffects.FoodSpoilageReduction }
             },
-            new(BlessingIds.LysaApexPredator, "Apex Predator", DeityType.Lysa)
+            new(BlessingIds.LysaApexPredator, "Apex Predator", DeityDomain.Wild)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
@@ -267,7 +267,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.LysaAbundanceOfWild, "Abundance of the Wild", DeityType.Lysa)
+            new(BlessingIds.LysaAbundanceOfWild, "Abundance of the Wild", DeityDomain.Wild)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -283,7 +283,7 @@ public static class BlessingDefinitions
                 },
                 SpecialEffects = new List<string> { SpecialEffects.FoodSpoilageReduction }
             },
-            new(BlessingIds.LysaSilentDeath, "Silent Death", DeityType.Lysa)
+            new(BlessingIds.LysaSilentDeath, "Silent Death", DeityDomain.Wild)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
@@ -300,7 +300,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 4 - Champion (5000-9999 favor) - Capstone
-            new(BlessingIds.LysaAvatarOfWild, "Avatar of the Wild", DeityType.Lysa)
+            new(BlessingIds.LysaAvatarOfWild, "Avatar of the Wild", DeityDomain.Wild)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -321,7 +321,7 @@ public static class BlessingDefinitions
             // RELIGION BLESSINGS (4 total)
 
             // Tier 1 - Fledgling
-            new(BlessingIds.LysaHuntingParty, "Hunting Party", DeityType.Lysa)
+            new(BlessingIds.LysaHuntingParty, "Hunting Party", DeityDomain.Wild)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
@@ -336,7 +336,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 2 - Established
-            new(BlessingIds.LysaWildernessTribe, "Wilderness Tribe", DeityType.Lysa)
+            new(BlessingIds.LysaWildernessTribe, "Wilderness Tribe", DeityDomain.Wild)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
@@ -353,7 +353,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 3 - Renowned
-            new(BlessingIds.LysaChildrenOfForest, "Children of the Forest", DeityType.Lysa)
+            new(BlessingIds.LysaChildrenOfForest, "Children of the Forest", DeityDomain.Wild)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
@@ -370,7 +370,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 4 - Legendary
-            new(BlessingIds.LysaPantheonOfHunt, "Pantheon of the Hunt", DeityType.Lysa)
+            new(BlessingIds.LysaPantheonOfHunt, "Pantheon of the Hunt", DeityDomain.Wild)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
@@ -397,7 +397,7 @@ public static class BlessingDefinitions
             // PLAYER BLESSINGS (6 total) - Agriculture & Cooking utility focus
 
             // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.AethraSunsBlessing, "Sun's Blessing", DeityType.Aethra)
+            new(BlessingIds.AethraSunsBlessing, "Sun's Blessing", DeityDomain.Harvest)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -415,7 +415,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.AethraBountifulHarvest, "Bountiful Harvest", DeityType.Aethra)
+            new(BlessingIds.AethraBountifulHarvest, "Bountiful Harvest", DeityDomain.Harvest)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -432,7 +432,7 @@ public static class BlessingDefinitions
                 },
                 SpecialEffects = new List<string> { SpecialEffects.RareCropDiscovery }
             },
-            new(BlessingIds.AethraBakersTouch, "Baker's Touch", DeityType.Aethra)
+            new(BlessingIds.AethraBakersTouch, "Baker's Touch", DeityDomain.Harvest)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -452,7 +452,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.AethraMasterFarmer, "Master Farmer", DeityType.Aethra)
+            new(BlessingIds.AethraMasterFarmer, "Master Farmer", DeityDomain.Harvest)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -470,7 +470,7 @@ public static class BlessingDefinitions
                 },
                 SpecialEffects = new List<string> { SpecialEffects.RareCropDiscovery }
             },
-            new(BlessingIds.AethraDivineKitchen, "Divine Kitchen", DeityType.Aethra)
+            new(BlessingIds.AethraDivineKitchen, "Divine Kitchen", DeityDomain.Harvest)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -491,7 +491,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 4 - Champion (5000+ favor) - Capstone (requires both paths)
-            new(BlessingIds.AethraAvatarOfAbundance, "Avatar of Abundance", DeityType.Aethra)
+            new(BlessingIds.AethraAvatarOfAbundance, "Avatar of Abundance", DeityDomain.Harvest)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -512,7 +512,7 @@ public static class BlessingDefinitions
             // RELIGION BLESSINGS (4 total) - Shared agricultural bonuses
 
             // Tier 1 - Fledgling (0-499 prestige)
-            new(BlessingIds.AethraCommunityFarm, "Community Farm", DeityType.Aethra)
+            new(BlessingIds.AethraCommunityFarm, "Community Farm", DeityDomain.Harvest)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
@@ -528,7 +528,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 2 - Established (500-1999 prestige)
-            new(BlessingIds.AethraHarvestFestival, "Harvest Festival", DeityType.Aethra)
+            new(BlessingIds.AethraHarvestFestival, "Harvest Festival", DeityDomain.Harvest)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
@@ -546,7 +546,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 3 - Renowned (2000-4999 prestige)
-            new(BlessingIds.AethraLandOfPlenty, "Land of Plenty", DeityType.Aethra)
+            new(BlessingIds.AethraLandOfPlenty, "Land of Plenty", DeityDomain.Harvest)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
@@ -565,7 +565,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 4 - Legendary (5000+ prestige) - Pantheon of Light
-            new(BlessingIds.AethraPantheonOfLight, "Pantheon of Light", DeityType.Aethra)
+            new(BlessingIds.AethraPantheonOfLight, "Pantheon of Light", DeityDomain.Harvest)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
@@ -598,7 +598,7 @@ public static class BlessingDefinitions
             // PLAYER BLESSINGS (6 total) - Pottery crafting & clay utility focus
 
             // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.GaiaClayShaper, "Clay Shaper", DeityType.Gaia)
+            new(BlessingIds.GaiaClayShaper, "Clay Shaper", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -613,7 +613,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.GaiaMasterPotter, "Master Potter", DeityType.Gaia)
+            new(BlessingIds.GaiaMasterPotter, "Master Potter", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -629,7 +629,7 @@ public static class BlessingDefinitions
                 },
                 SpecialEffects = new List<string> { SpecialEffects.PotteryBatchCompletionBonus }
             },
-            new(BlessingIds.GaiaEarthenBuilder, "Earthen Builder", DeityType.Gaia)
+            new(BlessingIds.GaiaEarthenBuilder, "Earthen Builder", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -646,7 +646,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.GaiaKilnMaster, "Kiln Master", DeityType.Gaia)
+            new(BlessingIds.GaiaKilnMaster, "Kiln Master", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -662,7 +662,7 @@ public static class BlessingDefinitions
                 },
                 SpecialEffects = new List<string> { SpecialEffects.PotteryBatchCompletionBonus }
             },
-            new(BlessingIds.GaiaClayArchitect, "Clay Architect", DeityType.Gaia)
+            new(BlessingIds.GaiaClayArchitect, "Clay Architect", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -679,7 +679,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 4 - Champion (5000+ favor) - Capstone (requires both paths)
-            new(BlessingIds.GaiaAvatarOfClay, "Avatar of Clay", DeityType.Gaia)
+            new(BlessingIds.GaiaAvatarOfClay, "Avatar of Clay", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
@@ -697,7 +697,7 @@ public static class BlessingDefinitions
             // RELIGION BLESSINGS (4 total) - Shared pottery benefits
 
             // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.GaiaPottersCircle, "Potter's Circle", DeityType.Gaia)
+            new(BlessingIds.GaiaPottersCircle, "Potter's Circle", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
@@ -712,7 +712,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 2 - Established (500-1999 prestige)
-            new(BlessingIds.GaiaClayGuild, "Clay Guild", DeityType.Gaia)
+            new(BlessingIds.GaiaClayGuild, "Clay Guild", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
@@ -729,7 +729,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 3 - Renowned (2000-4999 prestige)
-            new(BlessingIds.GaiaEarthenCommunity, "Earthen Community", DeityType.Gaia)
+            new(BlessingIds.GaiaEarthenCommunity, "Earthen Community", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
@@ -745,7 +745,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 4 - Legendary (5000+ prestige) - Pantheon of Clay
-            new(BlessingIds.GaiaPantheonOfClay, "Pantheon of Clay", DeityType.Gaia)
+            new(BlessingIds.GaiaPantheonOfClay, "Pantheon of Clay", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,

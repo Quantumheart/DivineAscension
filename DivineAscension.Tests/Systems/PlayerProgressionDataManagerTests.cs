@@ -400,7 +400,7 @@ public class PlayerProgressionDataManagerTests
     public void JoinReligion_AddsPlayerToReligion()
     {
         // Arrange
-        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Khoras);
+        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
         _mockReligionManager.Setup(m => m.GetReligion("religion-uid")).Returns(religion);
 
         // Act
@@ -428,7 +428,7 @@ public class PlayerProgressionDataManagerTests
     public void LeaveReligion_ClearsPlayerData()
     {
         // Arrange
-        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Khoras);
+        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
         _mockReligionManager.Setup(m => m.GetReligion("religion-uid")).Returns(religion);
         _mockReligionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _mockReligionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
@@ -455,7 +455,7 @@ public class PlayerProgressionDataManagerTests
     public void LeaveReligion_RemovesPlayerFromReligion()
     {
         // Arrange
-        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Khoras);
+        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
         _mockReligionManager.Setup(m => m.GetReligion("religion-uid")).Returns(religion);
         _mockReligionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _mockReligionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
@@ -515,7 +515,7 @@ public class PlayerProgressionDataManagerTests
     public void LeaveReligion_FiresOnPlayerLeavesReligionEvent()
     {
         // Arrange
-        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Khoras);
+        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
         _mockReligionManager.Setup(m => m.GetReligion("religion-uid")).Returns(religion);
         _mockReligionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _mockReligionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
@@ -549,7 +549,7 @@ public class PlayerProgressionDataManagerTests
     public void JoinReligion_LogsNotificationWithReligionName()
     {
         // Arrange
-        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Khoras);
+        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
         _mockReligionManager.Setup(m => m.GetReligion("religion-uid")).Returns(religion);
 
         // Act
@@ -567,7 +567,7 @@ public class PlayerProgressionDataManagerTests
     public void LeaveReligion_LogsNotification()
     {
         // Arrange
-        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityType.Khoras);
+        var religion = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
         _mockReligionManager.Setup(m => m.GetReligion("religion-uid")).Returns(religion);
         _mockReligionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _mockReligionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);

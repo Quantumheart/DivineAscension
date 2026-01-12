@@ -26,10 +26,11 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "ExistingReligion", "Khoras", "public");
-        SetupParsers(args, "ExistingReligion", "Khoras", "public");
+        var args = CreateCommandArgs(mockPlayer.Object, "ExistingReligion", "Craft", "Khoras", "public");
+        SetupParsers(args, "ExistingReligion", "Craft", "Khoras", "public");
 
-        var existingReligion = CreateReligion("religion-existing", "ExistingReligion", DeityType.Lysa, "other-player");
+        var existingReligion =
+            CreateReligion("religion-existing", "ExistingReligion", DeityDomain.Wild, "other-player");
 
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("ExistingReligion")).Returns(existingReligion);
@@ -44,7 +45,8 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
 
         // Verify we never tried to create the religion
         _religionManager.Verify(
-            m => m.CreateReligion(It.IsAny<string>(), It.IsAny<DeityType>(), It.IsAny<string>(), It.IsAny<bool>()),
+            m => m.CreateReligion(It.IsAny<string>(), It.IsAny<DeityDomain>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<bool>()),
             Times.Never);
     }
 
@@ -58,14 +60,14 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Khoras", "public");
-        SetupParsers(args, "TestReligion", "Khoras", "public");
+        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Craft", "Khoras", "public");
+        SetupParsers(args, "TestReligion", "Craft", "Khoras", "public");
 
-        var createdReligion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1", true);
+        var createdReligion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "player-1", true);
 
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns((ReligionData?)null);
-        _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityType.Khoras, "player-1", true))
+        _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityDomain.Craft, "Khoras", "player-1", true))
             .Returns(createdReligion);
 
         // Act
@@ -77,7 +79,8 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         Assert.Contains("Religion 'TestReligion' created", result.StatusMessage);
         Assert.Contains("Khoras", result.StatusMessage);
 
-        _religionManager.Verify(m => m.CreateReligion("TestReligion", DeityType.Khoras, "player-1", true), Times.Once);
+        _religionManager.Verify(m => m.CreateReligion("TestReligion", DeityDomain.Craft, "Khoras", "player-1", true),
+            Times.Once);
         _playerProgressionDataManager.Verify(m => m.SetPlayerReligionData("player-1", "religion-1"), Times.Once);
     }
 
@@ -87,14 +90,14 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "SecretReligion", "Lysa", "private");
-        SetupParsers(args, "SecretReligion", "Lysa", "private");
+        var args = CreateCommandArgs(mockPlayer.Object, "SecretReligion", "Wild", "Lysa", "private");
+        SetupParsers(args, "SecretReligion", "Wild", "Lysa", "private");
 
-        var createdReligion = CreateReligion("religion-1", "SecretReligion", DeityType.Lysa, "player-1", false);
+        var createdReligion = CreateReligion("religion-1", "SecretReligion", DeityDomain.Wild, "player-1", false);
 
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("SecretReligion")).Returns((ReligionData?)null);
-        _religionManager.Setup(m => m.CreateReligion("SecretReligion", DeityType.Lysa, "player-1", false))
+        _religionManager.Setup(m => m.CreateReligion("SecretReligion", DeityDomain.Wild, "Lysa", "player-1", false))
             .Returns(createdReligion);
 
         // Act
@@ -103,7 +106,8 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        _religionManager.Verify(m => m.CreateReligion("SecretReligion", DeityType.Lysa, "player-1", false), Times.Once);
+        _religionManager.Verify(m => m.CreateReligion("SecretReligion", DeityDomain.Wild, "Lysa", "player-1", false),
+            Times.Once);
     }
 
     [Fact]
@@ -112,14 +116,14 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "DefaultReligion", "Lysa");
-        SetupParsers(args, "DefaultReligion", "Lysa"); // Only 2 parsers, no visibility
+        var args = CreateCommandArgs(mockPlayer.Object, "DefaultReligion", "Wild", "Lysa");
+        SetupParsers(args, "DefaultReligion", "Wild", "Lysa"); // Only 3 parsers, no visibility
 
-        var createdReligion = CreateReligion("religion-1", "DefaultReligion", DeityType.Lysa, "player-1", true);
+        var createdReligion = CreateReligion("religion-1", "DefaultReligion", DeityDomain.Wild, "player-1", true);
 
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("DefaultReligion")).Returns((ReligionData?)null);
-        _religionManager.Setup(m => m.CreateReligion("DefaultReligion", DeityType.Lysa, "player-1", true))
+        _religionManager.Setup(m => m.CreateReligion("DefaultReligion", DeityDomain.Wild, "Lysa", "player-1", true))
             .Returns(createdReligion);
 
         // Act
@@ -128,7 +132,8 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        _religionManager.Verify(m => m.CreateReligion("DefaultReligion", DeityType.Lysa, "player-1", true), Times.Once);
+        _religionManager.Verify(m => m.CreateReligion("DefaultReligion", DeityDomain.Wild, "Lysa", "player-1", true),
+            Times.Once);
     }
 
     [Fact]
@@ -137,14 +142,14 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Khoras", "public");
-        SetupParsers(args, "TestReligion", "Khoras", "public");
+        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Craft", "Khoras", "public");
+        SetupParsers(args, "TestReligion", "Craft", "Khoras", "public");
 
-        var createdReligion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1", true);
+        var createdReligion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "player-1", true);
 
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns((ReligionData?)null);
-        _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityType.Khoras, "player-1", true))
+        _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityDomain.Craft, "Khoras", "player-1", true))
             .Returns(createdReligion);
 
         // Act
@@ -155,24 +160,24 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
     }
 
     [Theory]
-    [InlineData("Khoras")]
-    [InlineData("Lysa")]
-    [InlineData("Aethra")]
-    [InlineData("Gaia")]
-    public void OnCreateReligion_WithValidDeity_CreatesReligion(string deityName)
+    [InlineData("Craft", "Khoras", DeityDomain.Craft)]
+    [InlineData("Wild", "Lysa", DeityDomain.Wild)]
+    [InlineData("Harvest", "Aethra", DeityDomain.Harvest)]
+    [InlineData("Stone", "Gaia", DeityDomain.Stone)]
+    public void OnCreateReligion_WithValidDeity_CreatesReligion(string domainName, string deityName,
+        DeityDomain expectedDomain)
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", deityName, "public");
-        SetupParsers(args, "TestReligion", deityName, "public");
+        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", domainName, deityName, "public");
+        SetupParsers(args, "TestReligion", domainName, deityName, "public");
 
-        var deity = Enum.Parse<DeityType>(deityName);
-        var createdReligion = CreateReligion("religion-1", "TestReligion", deity, "player-1", true);
+        var createdReligion = CreateReligion("religion-1", "TestReligion", expectedDomain, "player-1", true);
 
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns((ReligionData?)null);
-        _religionManager.Setup(m => m.CreateReligion("TestReligion", deity, "player-1", true))
+        _religionManager.Setup(m => m.CreateReligion("TestReligion", expectedDomain, deityName, "player-1", true))
             .Returns(createdReligion);
 
         // Act
@@ -201,7 +206,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
             },
             Parsers = new List<ICommandArgumentParser>()
         };
-        SetupParsers(args, "TestReligion", "Khoras", "public");
+        SetupParsers(args, "TestReligion", "Craft", "Khoras", "public");
 
         // Act
         var result = _sut!.OnCreateReligion(args);
@@ -218,8 +223,8 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "NewReligion", "Lysa", "public");
-        SetupParsers(args, "NewReligion", "Lysa", "public");
+        var args = CreateCommandArgs(mockPlayer.Object, "NewReligion", "Wild", "Lysa", "public");
+        SetupParsers(args, "NewReligion", "Wild", "Lysa", "public");
 
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
@@ -234,7 +239,8 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
 
         // Verify we never tried to create the religion
         _religionManager.Verify(
-            m => m.CreateReligion(It.IsAny<string>(), It.IsAny<DeityType>(), It.IsAny<string>(), It.IsAny<bool>()),
+            m => m.CreateReligion(It.IsAny<string>(), It.IsAny<DeityDomain>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<bool>()),
             Times.Never);
     }
 
@@ -243,13 +249,13 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
     #region Error Cases - Invalid Deity
 
     [Fact]
-    public void OnCreateReligion_WithInvalidDeity_ReturnsError()
+    public void OnCreateReligion_WithInvalidDomain_ReturnsError()
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "InvalidDeity", "public");
-        SetupParsers(args, "TestReligion", "InvalidDeity", "public");
+        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "InvalidDomain", "Khoras", "public");
+        SetupParsers(args, "TestReligion", "InvalidDomain", "Khoras", "public");
 
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
 
@@ -264,18 +270,19 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
 
         // Verify we never tried to create the religion
         _religionManager.Verify(
-            m => m.CreateReligion(It.IsAny<string>(), It.IsAny<DeityType>(), It.IsAny<string>(), It.IsAny<bool>()),
+            m => m.CreateReligion(It.IsAny<string>(), It.IsAny<DeityDomain>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<bool>()),
             Times.Never);
     }
 
     [Fact]
-    public void OnCreateReligion_WithNoneDeity_ReturnsError()
+    public void OnCreateReligion_WithNoneDomain_ReturnsError()
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "None", "public");
-        SetupParsers(args, "TestReligion", "None", "public");
+        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "None", "Khoras", "public");
+        SetupParsers(args, "TestReligion", "None", "Khoras", "public");
 
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
 
@@ -294,8 +301,8 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "", "public");
-        SetupParsers(args, "TestReligion", "", "public");
+        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Craft", "", "public");
+        SetupParsers(args, "TestReligion", "Craft", "", "public");
 
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
 
@@ -305,7 +312,7 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Error, result.Status);
-        Assert.Contains("Invalid deity", result.StatusMessage);
+        Assert.Contains("Deity name is required", result.StatusMessage);
     }
 
     #endregion
@@ -313,22 +320,22 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
     #region Edge Cases - Case Sensitivity
 
     [Theory]
-    [InlineData("khoras")] // lowercase
-    [InlineData("KHORAS")] // uppercase
-    [InlineData("KhOrAs")] // mixed case
-    public void OnCreateReligion_WithDifferentCasingForDeity_AcceptsDeity(string deityName)
+    [InlineData("craft")] // lowercase
+    [InlineData("CRAFT")] // uppercase
+    [InlineData("CrAfT")] // mixed case
+    public void OnCreateReligion_WithDifferentCasingForDomain_AcceptsDomain(string domainName)
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", deityName, "public");
-        SetupParsers(args, "TestReligion", deityName, "public");
+        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", domainName, "Khoras", "public");
+        SetupParsers(args, "TestReligion", domainName, "Khoras", "public");
 
-        var createdReligion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1", true);
+        var createdReligion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "player-1", true);
 
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns((ReligionData?)null);
-        _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityType.Khoras, "player-1", true))
+        _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityDomain.Craft, "Khoras", "player-1", true))
             .Returns(createdReligion);
 
         // Act
@@ -348,14 +355,14 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Khoras", visibility);
-        SetupParsers(args, "TestReligion", "Khoras", visibility);
+        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Craft", "Khoras", visibility);
+        SetupParsers(args, "TestReligion", "Craft", "Khoras", visibility);
 
-        var createdReligion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1", false);
+        var createdReligion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "player-1", false);
 
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns((ReligionData?)null);
-        _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityType.Khoras, "player-1", false))
+        _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityDomain.Craft, "Khoras", "player-1", false))
             .Returns(createdReligion);
 
         // Act
@@ -364,7 +371,8 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        _religionManager.Verify(m => m.CreateReligion("TestReligion", DeityType.Khoras, "player-1", false), Times.Once);
+        _religionManager.Verify(m => m.CreateReligion("TestReligion", DeityDomain.Craft, "Khoras", "player-1", false),
+            Times.Once);
     }
 
     [Theory]
@@ -377,14 +385,14 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData = CreatePlayerData("player-1");
-        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Khoras", visibility);
-        SetupParsers(args, "TestReligion", "Khoras", visibility);
+        var args = CreateCommandArgs(mockPlayer.Object, "TestReligion", "Craft", "Khoras", visibility);
+        SetupParsers(args, "TestReligion", "Craft", "Khoras", visibility);
 
-        var createdReligion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1", true);
+        var createdReligion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "player-1", true);
 
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns((ReligionData?)null);
-        _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityType.Khoras, "player-1", true))
+        _religionManager.Setup(m => m.CreateReligion("TestReligion", DeityDomain.Craft, "Khoras", "player-1", true))
             .Returns(createdReligion);
 
         // Act
@@ -393,7 +401,8 @@ public class ReligionCommandCreateTests : ReligionCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        _religionManager.Verify(m => m.CreateReligion("TestReligion", DeityType.Khoras, "player-1", true), Times.Once);
+        _religionManager.Verify(m => m.CreateReligion("TestReligion", DeityDomain.Craft, "Khoras", "player-1", true),
+            Times.Once);
     }
 
     #endregion

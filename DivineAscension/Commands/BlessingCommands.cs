@@ -123,8 +123,8 @@ public class BlessingCommands(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_PLAYER_NOT_FOUND));
 
         var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        var playerDeity = _religionManager.GetPlayerActiveDeity(player.PlayerUID);
-        if (playerDeity == DeityType.None)
+        var playerDeity = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+        if (playerDeity == DeityDomain.None)
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_IN_RELIGION));
 
@@ -289,7 +289,7 @@ public class BlessingCommands(
         sb.AppendLine(
             $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_ID)} {blessing.BlessingId}");
         sb.AppendLine(
-            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_DEITY)} {blessing.Deity.ToLocalizedString()}");
+            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_DEITY)} {blessing.Domain.ToLocalizedString()}");
         sb.AppendLine($"{LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_TYPE)} {blessing.Kind}");
         sb.AppendLine(
             $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_LABEL_CATEGORY)} {blessing.Category}");
@@ -363,8 +363,8 @@ public class BlessingCommands(
     private TextCommandResult GetTree(string playerUid, string? type)
     {
         var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(playerUid);
-        var playerDeity = _religionManager.GetPlayerActiveDeity(playerUid);
-        if (playerDeity == DeityType.None)
+        var playerDeity = _religionManager.GetPlayerActiveDeityDomain(playerUid);
+        if (playerDeity == DeityDomain.None)
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_MUST_JOIN_FOR_TREE));
 
@@ -918,8 +918,8 @@ public class BlessingCommands(
         var resolvedPlayerData = targetPlayerData!;
 
         // Get target's deity
-        var targetDeity = _religionManager.GetPlayerActiveDeity(resolvedPlayer.PlayerUID);
-        if (targetDeity == DeityType.None)
+        var targetDeity = _religionManager.GetPlayerActiveDeityDomain(resolvedPlayer.PlayerUID);
+        if (targetDeity == DeityDomain.None)
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NO_RELIGION));
 
         // Get target's religion

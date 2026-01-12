@@ -94,11 +94,11 @@ public class SoundManagerTests
     }
 
     [Theory]
-    [InlineData(DeityType.Khoras, "divineascension:sounds/deities/Khoras")]
-    [InlineData(DeityType.Lysa, "divineascension:sounds/deities/Lysa")]
-    [InlineData(DeityType.Aethra, "divineascension:sounds/deities/Aethra")]
-    [InlineData(DeityType.Gaia, "divineascension:sounds/deities/Gaia")]
-    public void PlayDeityUnlock_MapsDeityToSpecificSound_AtLoudVolume(DeityType deity, string expectedPath)
+    [InlineData(DeityDomain.Craft, "divineascension:sounds/deities/Khoras")]
+    [InlineData(DeityDomain.Wild, "divineascension:sounds/deities/Lysa")]
+    [InlineData(DeityDomain.Harvest, "divineascension:sounds/deities/Aethra")]
+    [InlineData(DeityDomain.Stone, "divineascension:sounds/deities/Gaia")]
+    public void PlayDeityUnlock_MapsDeityToSpecificSound_AtLoudVolume(DeityDomain deity, string expectedPath)
     {
         _sut.PlayDeityUnlock(deity);
 

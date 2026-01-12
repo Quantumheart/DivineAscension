@@ -63,14 +63,14 @@ public class SoundManager(ICoreClientAPI api) : ISoundManager
         Play(SoundType.Unlock, SoundVolume.Loud);
     }
 
-    public void PlayDeityUnlock(DeityType deity)
+    public void PlayDeityUnlock(DeityDomain deity)
     {
         var sound = deity switch
         {
-            DeityType.Khoras => SoundType.UnlockKhoras,
-            DeityType.Lysa => SoundType.UnlockLysa,
-            DeityType.Aethra => SoundType.UnlockAethra,
-            DeityType.Gaia => SoundType.UnlockGaia,
+            DeityDomain.Craft => SoundType.UnlockKhoras,
+            DeityDomain.Wild => SoundType.UnlockLysa,
+            DeityDomain.Harvest => SoundType.UnlockAethra,
+            DeityDomain.Stone => SoundType.UnlockGaia,
             _ => SoundType.Unlock
         };
         Play(sound, SoundVolume.Loud);

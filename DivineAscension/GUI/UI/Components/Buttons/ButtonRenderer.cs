@@ -214,4 +214,61 @@ internal static class ButtonRenderer
         var color = isDangerous ? ColorPalette.Red * 0.6f : ColorPalette.Gold * 0.6f;
         return DrawButton(drawList, text, x, y, width, height, true, true, color);
     }
+
+    /// <summary>
+    ///     Draw a small icon button (typically used for inline edit actions)
+    /// </summary>
+    /// <param name="drawList">ImGui draw list</param>
+    /// <param name="icon">Icon character (e.g., "✎" for edit)</param>
+    /// <param name="x">X position</param>
+    /// <param name="y">Y position</param>
+    /// <param name="width">Button width</param>
+    /// <param name="height">Button height</param>
+    /// <param name="enabled">If false, button is grayed out and non-clickable</param>
+    /// <returns>True if button was clicked</returns>
+    public static bool DrawIconButton(
+        ImDrawListPtr drawList,
+        string icon,
+        float x,
+        float y,
+        float width,
+        float height,
+        bool enabled = true)
+    {
+        var buttonStart = new Vector2(x, y);
+        var buttonEnd = new Vector2(x + width, y + height);
+
+        var mousePos = ImGui.GetMousePos();
+        var isHovering = enabled && mousePos.X >= x && mousePos.X <= x + width &&
+                         mousePos.Y >= y && mousePos.Y <= y + height;
+
+        Vector4 bgColor;
+        if (!enabled)
+        {
+            bgColor = ColorPalette.DarkBrown * 0.3f;
+        }
+        else if (isHovering && ImGui.IsMouseDown(ImGuiMouseButton.Left))
+        {
+            bgColor = ColorPalette.Gold * 0.5f;
+        }
+        else if (isHovering)
+        {
+            bgColor = ColorPalette.Gold * 0.3f;
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+        }
+        else
+        {
+            bgColor = ColorPalette.DarkBrown * 0.5f;
+        }
+
+        var bgColorU32 = ImGui.ColorConvertFloat4ToU32(bgColor);
+        drawList.AddRectFilled(buttonStart, buttonEnd, bgColorU32, 3f);
+
+        var textSize = ImGui.CalcTextSize(icon);
+        var textPos = new Vector2(x + (width - textSize.X) / 2, y + (height - textSize.Y) / 2);
+        var textColor = ImGui.ColorConvertFloat4ToU32(enabled ? ColorPalette.White : ColorPalette.Grey * 0.5f);
+        drawList.AddText(textPos, textColor, icon);
+
+        return enabled && isHovering && ImGui.IsMouseReleased(ImGuiMouseButton.Left);
+    }
 }

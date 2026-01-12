@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using DivineAscension.Models.Enum;
 
@@ -10,101 +11,131 @@ namespace DivineAscension.GUI.UI.Utilities;
 internal static class DeityHelper
 {
     /// <summary>
-    ///     All deity names in order (Utility-focused system - 4 deities)
+    ///     All domain names in order (Utility-focused system - 4 domains)
     /// </summary>
-    public static readonly string[] DeityNames =
+    public static readonly string[] DomainNames =
     {
-        "Khoras", "Lysa", "Aethra", "Gaia"
+        "Craft", "Wild", "Harvest", "Stone"
     };
 
     /// <summary>
-    ///     Get the thematic color for a deity (by name)
+    ///     Legacy: All deity names (now domain names) - alias for DomainNames
     /// </summary>
-    public static Vector4 GetDeityColor(string deity)
+    public static string[] DeityNames => DomainNames;
+
+    /// <summary>
+    ///     Get the thematic color for a domain (by name string)
+    /// </summary>
+    public static Vector4 GetDomainColor(string domain)
     {
-        return deity switch
+        return domain switch
         {
-            "Khoras" => new Vector4(0.8f, 0.2f, 0.2f, 1.0f), // Red - Forge & Craft
-            "Lysa" => new Vector4(0.4f, 0.8f, 0.3f, 1.0f), // Green - Hunt & Wild
-            "Aethra" => new Vector4(0.9f, 0.9f, 0.6f, 1.0f), // Light yellow - Agriculture & Light
-            "Gaia" => new Vector4(0.5f, 0.4f, 0.2f, 1.0f), // Brown - Earth & Stone
+            "Craft" => new Vector4(0.8f, 0.2f, 0.2f, 1.0f), // Red - Forge & Craft
+            "Wild" => new Vector4(0.4f, 0.8f, 0.3f, 1.0f), // Green - Hunt & Wild
+            "Harvest" => new Vector4(0.9f, 0.9f, 0.6f, 1.0f), // Light yellow - Agriculture & Light
+            "Stone" => new Vector4(0.5f, 0.4f, 0.2f, 1.0f), // Brown - Earth & Stone
             _ => new Vector4(0.5f, 0.5f, 0.5f, 1.0f) // Grey - Unknown
         };
     }
 
     /// <summary>
-    ///     Get the thematic color for a deity (by enum)
+    ///     Get the thematic color for a domain (by name string) - alias for GetDomainColor
     /// </summary>
-    public static Vector4 GetDeityColor(DeityType deity)
+    public static Vector4 GetDeityColor(string domain) => GetDomainColor(domain);
+
+    /// <summary>
+    ///     Get the domain title (by name string) - alias for GetDomainTitle
+    /// </summary>
+    public static string GetDeityTitle(string domain) => GetDomainTitle(domain);
+
+    /// <summary>
+    ///     Convert domain name string to DeityDomain enum - alias for ParseDomain
+    /// </summary>
+    public static DeityDomain ParseDeityType(string domainName) => ParseDomain(domainName);
+
+    /// <summary>
+    ///     Get the thematic color for a domain (by enum)
+    /// </summary>
+    public static Vector4 GetDeityColor(DeityDomain domain)
     {
-        return deity switch
+        return domain switch
         {
-            DeityType.Khoras => new Vector4(0.8f, 0.2f, 0.2f, 1.0f), // Red - Forge & Craft
-            DeityType.Lysa => new Vector4(0.4f, 0.8f, 0.3f, 1.0f), // Green - Hunt & Wild
-            DeityType.Aethra => new Vector4(0.9f, 0.9f, 0.6f, 1.0f), // Light yellow - Agriculture & Light
-            DeityType.Gaia => new Vector4(0.5f, 0.4f, 0.2f, 1.0f), // Brown - Earth & Stone
+            DeityDomain.Craft => new Vector4(0.8f, 0.2f, 0.2f, 1.0f), // Red - Forge & Craft
+            DeityDomain.Wild => new Vector4(0.4f, 0.8f, 0.3f, 1.0f), // Green - Hunt & Wild
+            DeityDomain.Harvest => new Vector4(0.9f, 0.9f, 0.6f, 1.0f), // Light yellow - Agriculture & Light
+            DeityDomain.Stone => new Vector4(0.5f, 0.4f, 0.2f, 1.0f), // Brown - Earth & Stone
             _ => new Vector4(0.5f, 0.5f, 0.5f, 1.0f) // Grey - Unknown
         };
     }
 
     /// <summary>
-    ///     Get the full title/description for a deity
+    ///     Get the domain title/description (by domain name string)
     /// </summary>
-    public static string GetDeityTitle(string deity)
+    public static string GetDomainTitle(string domain)
     {
-        return deity switch
+        return domain switch
         {
-            "Khoras" => "God of the Forge & Craft",
-            "Lysa" => "Goddess of the Hunt & Wild",
-            "Aethra" => "Goddess of Agriculture & Light",
-            "Gaia" => "Goddess of Earth & Stone",
-            _ => "Unknown Deity"
+            "Craft" => "Domain of the Forge & Craft",
+            "Wild" => "Domain of the Hunt & Wild",
+            "Harvest" => "Domain of Agriculture & Light",
+            "Stone" => "Domain of Earth & Stone",
+            _ => "Unknown Domain"
         };
     }
 
     /// <summary>
-    ///     Get the full title/description for a deity (by enum)
+    ///     Get the domain title/description (by enum)
     /// </summary>
-    public static string GetDeityTitle(DeityType deity)
+    public static string GetDeityTitle(DeityDomain domain)
     {
-        return deity switch
+        return domain switch
         {
-            DeityType.Khoras => "God of the Forge & Craft",
-            DeityType.Lysa => "Goddess of the Hunt & Wild",
-            DeityType.Aethra => "Goddess of Agriculture & Light",
-            DeityType.Gaia => "Goddess of Earth & Stone",
-            _ => "Unknown Deity"
+            DeityDomain.Craft => "Domain of the Forge & Craft",
+            DeityDomain.Wild => "Domain of the Hunt & Wild",
+            DeityDomain.Harvest => "Domain of Agriculture & Light",
+            DeityDomain.Stone => "Domain of Earth & Stone",
+            _ => "Unknown Domain"
         };
     }
 
     /// <summary>
-    ///     Convert deity name string to DeityType enum
+    ///     Convert domain name string to DeityDomain enum
     /// </summary>
-    public static DeityType ParseDeityType(string deityName)
+    public static DeityDomain ParseDomain(string domainName)
     {
-        return deityName switch
-        {
-            "Khoras" => DeityType.Khoras,
-            "Lysa" => DeityType.Lysa,
-            "Aethra" => DeityType.Aethra,
-            "Gaia" => DeityType.Gaia,
-            _ => DeityType.None
-        };
+        if (Enum.TryParse<DeityDomain>(domainName, true, out var domain))
+            return domain;
+        return DeityDomain.None;
     }
 
     /// <summary>
-    ///     Get formatted display text for a deity (e.g., "Khoras - God of War")
+    ///     Get formatted display text for a deity with custom name
+    ///     Format: "DeityName - Domain of X" (e.g., "Khoras - Domain of the Forge & Craft")
     /// </summary>
-    public static string GetDeityDisplayText(string deity)
+    public static string GetDeityDisplayText(string deityName, string domain)
     {
-        return $"{deity} - {GetDeityTitle(deity)}";
+        if (string.IsNullOrWhiteSpace(deityName))
+            return GetDomainTitle(domain);
+        return $"{deityName} - {GetDomainTitle(domain)}";
     }
 
     /// <summary>
-    ///     Get formatted display text for a deity (e.g., "Khoras - God of War")
+    ///     Get formatted display text for a deity with custom name (enum version)
+    ///     Format: "DeityName - Domain of X" (e.g., "Khoras - Domain of the Forge & Craft")
     /// </summary>
-    public static string GetDeityDisplayText(DeityType deity)
+    public static string GetDeityDisplayText(string deityName, DeityDomain domain)
     {
-        return $"{deity} - {GetDeityTitle(deity)}";
+        if (string.IsNullOrWhiteSpace(deityName))
+            return GetDeityTitle(domain);
+        return $"{deityName} - {GetDeityTitle(domain)}";
+    }
+
+    /// <summary>
+    ///     Get formatted display text using just the domain (for backward compatibility)
+    ///     Format: "Domain - Domain of X" (e.g., "Craft - Domain of the Forge & Craft")
+    /// </summary>
+    public static string GetDeityDisplayText(DeityDomain domain)
+    {
+        return $"{domain} - {GetDeityTitle(domain)}";
     }
 }

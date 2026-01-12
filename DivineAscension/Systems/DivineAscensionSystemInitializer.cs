@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Commands;
 using DivineAscension.Services;
@@ -38,11 +39,11 @@ public static class DivineAscensionSystemInitializer
 
         api.RegisterEntityBehaviorClass("DivineAscensionBuffTracker", typeof(EntityBehaviorBuffTracker));
 
-        var deityRegistry = new DeityRegistry(api);
-        deityRegistry.Initialize();
-
         var religionManager = new ReligionManager(api);
         religionManager.Initialize();
+
+        // Migrate existing religions with empty deity names (for backward compatibility)
+        var migratedReligionUIDs = religionManager.MigrateEmptyDeityNames();
 
         var civilizationManager = new CivilizationManager(api, religionManager);
         civilizationManager.Initialize();
@@ -54,7 +55,7 @@ public static class DivineAscensionSystemInitializer
         var religionPrestigeManager = new ReligionPrestigeManager(api, religionManager);
         religionPrestigeManager.Initialize();
 
-        var favorSystem = new FavorSystem(api, playerReligionDataManager, deityRegistry, religionManager,
+        var favorSystem = new FavorSystem(api, playerReligionDataManager, religionManager,
             religionPrestigeManager);
         favorSystem.Initialize();
 
@@ -62,7 +63,7 @@ public static class DivineAscensionSystemInitializer
         diplomacyManager.Initialize();
 
         var pvpManager = new PvPManager(api, playerReligionDataManager, religionManager, religionPrestigeManager,
-            deityRegistry, civilizationManager, diplomacyManager);
+            civilizationManager, diplomacyManager);
         pvpManager.Initialize();
 
         var blessingRegistry = new BlessingRegistry(api);
@@ -78,7 +79,7 @@ public static class DivineAscensionSystemInitializer
         // CRITICAL: Must be called AFTER DiplomacyManager is initialized
         religionPrestigeManager.SetDiplomacyManager(diplomacyManager, civilizationManager);
 
-        var favorCommands = new FavorCommands(api, deityRegistry, playerReligionDataManager, religionManager);
+        var favorCommands = new FavorCommands(api, playerReligionDataManager, religionManager);
         favorCommands.RegisterCommands();
 
         var blessingCommands = new BlessingCommands(api, blessingRegistry, playerReligionDataManager, religionManager,
@@ -99,8 +100,8 @@ public static class DivineAscensionSystemInitializer
         civilizationCommands.RegisterCommands();
 
         // Create and initialize network handlers
-        var playerDataHandler = new PlayerDataNetworkHandler(api, playerReligionDataManager, religionManager,
-            deityRegistry, serverChannel);
+        var playerDataHandler =
+            new PlayerDataNetworkHandler(api, playerReligionDataManager, religionManager, serverChannel);
         playerDataHandler.RegisterHandlers();
 
         var blessingHandler = new BlessingNetworkHandler(
@@ -164,7 +165,6 @@ public static class DivineAscensionSystemInitializer
         // Return all initialized components
         return new InitializationResult
         {
-            DeityRegistry = deityRegistry,
             ReligionManager = religionManager,
             CivilizationManager = civilizationManager,
             PlayerProgressionDataManager = playerReligionDataManager,
@@ -184,7 +184,8 @@ public static class DivineAscensionSystemInitializer
             BlessingNetworkHandler = blessingHandler,
             ReligionNetworkHandler = religionHandler,
             CivilizationNetworkHandler = civilizationHandler,
-            DiplomacyNetworkHandler = diplomacyHandler
+            DiplomacyNetworkHandler = diplomacyHandler,
+            MigratedReligionUIDs = migratedReligionUIDs
         };
     }
 }
@@ -196,7 +197,6 @@ public static class DivineAscensionSystemInitializer
 public class InitializationResult
 {
     // 11 Managers
-    public DeityRegistry DeityRegistry { get; init; } = null!;
     public ReligionManager ReligionManager { get; init; } = null!;
     public CivilizationManager CivilizationManager { get; init; } = null!;
     public PlayerProgressionDataManager PlayerProgressionDataManager { get; init; } = null!;
@@ -221,4 +221,10 @@ public class InitializationResult
     public ReligionNetworkHandler ReligionNetworkHandler { get; init; } = null!;
     public CivilizationNetworkHandler CivilizationNetworkHandler { get; init; } = null!;
     public DiplomacyNetworkHandler DiplomacyNetworkHandler { get; init; } = null!;
+
+    /// <summary>
+    ///     Set of religion UIDs that were migrated with auto-generated deity names.
+    ///     Used to notify founders on first login after migration.
+    /// </summary>
+    public HashSet<string> MigratedReligionUIDs { get; init; } = new();
 }

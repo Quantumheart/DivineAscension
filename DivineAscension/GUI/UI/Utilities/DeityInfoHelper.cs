@@ -20,29 +20,29 @@ internal static class DeityInfoHelper
     /// <summary>
     /// Get deity information by type
     /// </summary>
-    public static DeityInfo? GetDeityInfo(DeityType deityType)
+    public static DeityInfo? GetDeityInfo(DeityDomain deityDomain)
     {
-        return deityType switch
+        return deityDomain switch
         {
-            DeityType.Khoras => new DeityInfo(
+            DeityDomain.Craft => new DeityInfo(
                 Name: "Khoras",
                 Title: "God of the Forge & Craft",
                 Domain: "Forge & Craft",
                 Description: "The God of Forging and crafting, Khoras represents crafting."
             ),
-            DeityType.Lysa => new DeityInfo(
+            DeityDomain.Wild => new DeityInfo(
                 Name: "Lysa",
                 Title: "Goddess of the Hunt & Wild",
                 Domain: "Hunt & Wild",
                 Description: "The Goddess of the Hunt, Lysa rewards patience, precision, and tracking."
             ),
-            DeityType.Aethra => new DeityInfo(
+            DeityDomain.Harvest => new DeityInfo(
                 Name: "Aethra",
                 Title: "Goddess of Agriculture & Light",
                 Domain: "Agriculture & Light",
                 Description: "Aethra represents cultivation and growth through light and warmth."
             ),
-            DeityType.Gaia => new DeityInfo(
+            DeityDomain.Stone => new DeityInfo(
                 Name: "Gaia",
                 Title: "Goddess of Earth & Stone",
                 Domain: "Earth & Stone",

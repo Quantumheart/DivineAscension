@@ -49,4 +49,13 @@ public abstract record InfoEvent
 
     // Unban
     public record UnbanClicked(string PlayerUID) : InfoEvent;
+
+    // Deity name editing
+    public record EditDeityNameOpen : InfoEvent;
+
+    public record EditDeityNameChanged(string Text) : InfoEvent;
+
+    public record EditDeityNameSave(string NewDeityName) : InfoEvent;
+
+    public record EditDeityNameCancel : InfoEvent;
 }

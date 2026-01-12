@@ -35,7 +35,7 @@ public class GaiaFavorTracker(
         _sapi.Logger.Debug($"[DivineAscension] GaiaFavorTracker disposed (ID: {_instanceId})");
     }
 
-    public DeityType DeityType { get; } = DeityType.Gaia;
+    public DeityDomain DeityDomain { get; } = DeityDomain.Stone;
 
     public void Initialize()
     {
@@ -52,7 +52,7 @@ public class GaiaFavorTracker(
     {
         // Verify religion
         var deityType = _playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID);
-        if (deityType != DeityType.Gaia) return;
+        if (deityType != DeityDomain.Stone) return;
 
         if (clayConsumed > 0)
         {
@@ -69,7 +69,7 @@ public class GaiaFavorTracker(
     {
         // Verify religion
         var deityType = _playerProgressionDataManager.GetPlayerDeityType(byPlayer.PlayerUID);
-        if (deityType != DeityType.Gaia) return;
+        if (deityType != DeityDomain.Stone) return;
 
         var placedBlock = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
         if (!IsBrickBlock(placedBlock)) return;
@@ -143,7 +143,7 @@ public class GaiaFavorTracker(
         if (string.IsNullOrEmpty(playerUid)) return;
 
         var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerUid);
-        if (deityType != DeityType.Gaia) return;
+        if (deityType != DeityDomain.Stone) return;
 
         float totalFavor = 0;
         foreach (var stack in firedItems)

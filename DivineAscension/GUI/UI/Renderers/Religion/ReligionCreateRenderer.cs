@@ -92,46 +92,90 @@ internal static class ReligionCreateRenderer
             }
         }
 
-        // Deity Selection (tab-based approach with icons and tooltips)
+        // Domain Selection (tab-based approach with icons and tooltips)
         TextRenderer.DrawLabel(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_LABEL),
             formX, currentY);
         currentY += 25f;
 
-        var currentDeityIndex = viewModel.GetCurrentDeityIndex();
+        var currentDomainIndex = viewModel.GetCurrentDomainIndex();
 
-        // Prepare deity icon names for tabs (lowercase for icon loader)
-        var deityIconNames = viewModel.AvailableDeities
+        // Prepare domain icon names for tabs (lowercase for icon loader)
+        var domainIconNames = viewModel.AvailableDomains
             .Select(d => d.ToLower())
             .ToArray();
 
-        // Draw deity selection as tabs with icons and hover tracking
-        var (newDeityIndex, hoveredIndex) = TabControl.DrawWithHover(
+        // Draw domain selection as tabs with icons and hover tracking
+        var (newDomainIndex, hoveredIndex) = TabControl.DrawWithHover(
             drawList,
             formX,
             currentY,
             fieldWidth,
             32f,
-            viewModel.AvailableDeities,
-            currentDeityIndex,
+            viewModel.AvailableDomains,
+            currentDomainIndex,
             4f,
             "deities", // Icon directory
-            deityIconNames);
+            domainIconNames);
 
-        // Emit event if deity changed
-        if (newDeityIndex != currentDeityIndex)
+        // Emit event if domain changed
+        if (newDomainIndex != currentDomainIndex)
         {
-            var newDeity = viewModel.AvailableDeities[newDeityIndex];
-            events.Add(new CreateEvent.DeityChanged(newDeity));
+            var newDomain = viewModel.AvailableDomains[newDomainIndex];
+            events.Add(new CreateEvent.DeityChanged(newDomain));
         }
 
-        // Track hovered deity for tooltip rendering
-        string? hoveredDeityName = null;
-        if (hoveredIndex >= 0 && hoveredIndex < viewModel.AvailableDeities.Length)
+        // Track hovered domain for tooltip rendering
+        string? hoveredDomainName = null;
+        if (hoveredIndex >= 0 && hoveredIndex < viewModel.AvailableDomains.Length)
         {
-            hoveredDeityName = viewModel.AvailableDeities[hoveredIndex];
+            hoveredDomainName = viewModel.AvailableDomains[hoveredIndex];
         }
 
         currentY += 40f;
+
+        // Deity Name Input
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_LABEL),
+            formX, currentY);
+        currentY += 25f;
+
+        var newDeityName = TextInput.Draw(
+            drawList,
+            "##createDeityName",
+            viewModel.DeityName,
+            formX,
+            currentY,
+            fieldWidth,
+            32f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_PLACEHOLDER),
+            48);
+
+        // Emit event if deity name changed
+        if (newDeityName != viewModel.DeityName)
+        {
+            events.Add(new CreateEvent.DeityNameChanged(newDeityName));
+        }
+
+        currentY += 40f;
+
+        // Deity name validation feedback
+        if (!string.IsNullOrWhiteSpace(viewModel.DeityName))
+        {
+            if (viewModel.DeityName.Length < 2)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_ERROR_TOO_SHORT), formX,
+                    currentY);
+                currentY += 25f;
+            }
+            else if (viewModel.DeityName.Length > 48)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_ERROR_TOO_LONG), formX,
+                    currentY);
+                currentY += 25f;
+            }
+        }
 
         // Public/Private Toggle
         var newIsPublic = CheckboxRenderer.DrawCheckbox(
@@ -181,12 +225,12 @@ internal static class ReligionCreateRenderer
 
         currentY += buttonHeight;
 
-        // Render deity tooltip if hovering over a deity tab
-        if (!string.IsNullOrEmpty(hoveredDeityName))
+        // Render domain tooltip if hovering over a domain tab
+        if (!string.IsNullOrEmpty(hoveredDomainName))
         {
             var mousePos = ImGui.GetMousePos();
             DeityTooltipRenderer.Draw(
-                hoveredDeityName,
+                hoveredDomainName,
                 mousePos.X,
                 mousePos.Y,
                 viewModel.Width,

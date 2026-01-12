@@ -25,7 +25,7 @@ public class CivilizationCommandAdminTests : CivilizationCommandsTestHelpers
     {
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
-        var religion1 = CreateReligion("religion-1", "TestReligion1", DeityType.Khoras, "founder-1");
+        var religion1 = CreateReligion("religion-1", "TestReligion1", DeityDomain.Craft, "test-deity", "founder-1");
         var civilization = CreateCivilization("civ-1", "TestCiv", "founder-1", new List<string> { "religion-1" });
 
         var args = CreateCommandArgs(admin.Object);
@@ -54,9 +54,9 @@ public class CivilizationCommandAdminTests : CivilizationCommandsTestHelpers
     {
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
-        var religion1 = CreateReligion("religion-1", "Religion1", DeityType.Khoras, "founder-1");
-        var religion2 = CreateReligion("religion-2", "Religion2", DeityType.Lysa, "founder-2");
-        var religion3 = CreateReligion("religion-3", "Religion3", DeityType.Aethra, "founder-3");
+        var religion1 = CreateReligion("religion-1", "Religion1", DeityDomain.Craft, "test-deity", "founder-1");
+        var religion2 = CreateReligion("religion-2", "Religion2", DeityDomain.Wild, "test-deity", "founder-2");
+        var religion3 = CreateReligion("religion-3", "Religion3", DeityDomain.Harvest, "test-deity", "founder-3");
         var civilization = CreateCivilization("civ-1", "TestCiv", "founder-1", new List<string> { "religion-1" });
 
         var args = CreateCommandArgs(admin.Object);
@@ -114,8 +114,8 @@ public class CivilizationCommandAdminTests : CivilizationCommandsTestHelpers
     {
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
-        var religion1 = CreateReligion("religion-1", "Religion1", DeityType.Khoras, "founder-1");
-        var religion2 = CreateReligion("religion-2", "Religion2", DeityType.Khoras, "founder-2");
+        var religion1 = CreateReligion("religion-1", "Religion1", DeityDomain.Craft, "test-deity", "founder-1");
+        var religion2 = CreateReligion("religion-2", "Religion2", DeityDomain.Craft, "test-deity", "founder-2");
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "TestCiv", "Religion1", "Religion2");
@@ -129,8 +129,9 @@ public class CivilizationCommandAdminTests : CivilizationCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Error, result.Status);
+        // todo message needs to be updated
         Assert.Contains("Duplicate deity/deities found", result.StatusMessage);
-        Assert.Contains("Khoras", result.StatusMessage);
+        Assert.Contains("Craft", result.StatusMessage);
     }
 
     [Fact]
@@ -138,7 +139,7 @@ public class CivilizationCommandAdminTests : CivilizationCommandsTestHelpers
     {
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
-        var religion1 = CreateReligion("religion-1", "Religion1", DeityType.Khoras, "founder-1");
+        var religion1 = CreateReligion("religion-1", "Religion1", DeityDomain.Craft, "test-deity", "founder-1");
         var existingCiv =
             CreateCivilization("existing-civ", "ExistingCiv", "founder-1", new List<string> { "religion-1" });
 
@@ -162,7 +163,7 @@ public class CivilizationCommandAdminTests : CivilizationCommandsTestHelpers
     {
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
-        var religion1 = CreateReligion("religion-1", "Religion1", DeityType.Khoras, "founder-1");
+        var religion1 = CreateReligion("religion-1", "Religion1", DeityDomain.Craft, "test-deity", "founder-1");
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "TestCiv", "Religion1");

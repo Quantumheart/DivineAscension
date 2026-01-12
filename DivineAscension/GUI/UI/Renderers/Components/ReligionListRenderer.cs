@@ -190,7 +190,7 @@ public static class ReligionListRenderer
 
         // Draw deity icon (with fallback to colored circle)
         const float iconSize = 48f;
-        var deityType = DeityHelper.ParseDeityType(religion.Deity);
+        var deityType = DeityHelper.ParseDeityType(religion.Domain);
         var deityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
 
         if (deityTextureId != IntPtr.Zero)
@@ -205,7 +205,7 @@ public static class ReligionListRenderer
             drawList.AddImage(deityTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
 
             // Add subtle border around icon for visual cohesion
-            var deityColor = DeityHelper.GetDeityColor(religion.Deity);
+            var deityColor = DeityHelper.GetDeityColor(religion.Domain);
             var iconBorderColor = ImGui.ColorConvertFloat4ToU32(deityColor * 0.8f);
             drawList.AddRect(iconMin, iconMax, iconBorderColor, 4f, ImDrawFlags.None, 2f);
         }
@@ -213,7 +213,7 @@ public static class ReligionListRenderer
         {
             // Fallback: Use placeholder colored circle if texture not available
             var iconCenter = new Vector2(x + padding + iconSize / 2, y + height / 2);
-            var deityColor = DeityHelper.GetDeityColor(religion.Deity);
+            var deityColor = DeityHelper.GetDeityColor(religion.Domain);
             var iconColorU32 = ImGui.ColorConvertFloat4ToU32(deityColor);
             drawList.AddCircleFilled(iconCenter, iconSize / 2, iconColorU32, 16);
         }
@@ -223,8 +223,10 @@ public static class ReligionListRenderer
         var nameColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
         drawList.AddText(ImGui.GetFont(), 16f, namePos, nameColor, religion.ReligionName);
 
-        // Draw deity name
-        var deityText = $"{religion.Deity} - {DeityHelper.GetDeityTitle(religion.Deity)}";
+        // Draw deity name - show custom name if available, otherwise domain with title
+        var deityText = !string.IsNullOrWhiteSpace(religion.DeityName)
+            ? $"{religion.DeityName} ({religion.Domain})"
+            : $"{religion.Domain} - {DeityHelper.GetDeityTitle(religion.Domain)}";
         var deityPos = new Vector2(x + padding * 2 + iconSize, y + padding + 22f);
         var deityColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
         drawList.AddText(ImGui.GetFont(), 13f, deityPos, deityColorU32, deityText);
@@ -264,8 +266,11 @@ public static class ReligionListRenderer
         // Religion name (title)
         lines.Add(religion.ReligionName);
 
-        // Deity
-        lines.Add($"{religion.Deity} - {DeityHelper.GetDeityTitle(religion.Deity)}");
+        // Deity - show custom name if available
+        var deityLine = !string.IsNullOrWhiteSpace(religion.DeityName)
+            ? $"{religion.DeityName} - {DeityHelper.GetDeityTitle(religion.Domain)}"
+            : $"{religion.Domain} - {DeityHelper.GetDeityTitle(religion.Domain)}";
+        lines.Add(deityLine);
 
         // Separator
         lines.Add(""); // Empty line for spacing

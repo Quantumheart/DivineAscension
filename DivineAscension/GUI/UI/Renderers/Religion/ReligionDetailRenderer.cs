@@ -108,7 +108,7 @@ internal static class ReligionDetailRenderer
         drawList.AddText(font, 16f, new Vector2(nameCenter - nameHeaderWidth / 2f, currentY), headerColor, nameHeader);
 
         // Deity header
-        var deityHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_DEITY);
+        var deityHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_DOMAIN);
         var deityHeaderWidth = ImGui.CalcTextSize(deityHeader).X;
         drawList.AddText(font, 16f, new Vector2(deityCenter - deityHeaderWidth / 2f, currentY), headerColor,
             deityHeader);
@@ -133,7 +133,7 @@ internal static class ReligionDetailRenderer
         var iconX = vm.X + iconLeftOffset;
         var iconY = currentY;
 
-        if (Enum.TryParse<DeityType>(vm.Deity, out var deityType))
+        if (Enum.TryParse<DeityDomain>(vm.Deity, out var deityType))
         {
             var deityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
             if (deityTextureId != IntPtr.Zero)
@@ -169,7 +169,10 @@ internal static class ReligionDetailRenderer
         var deityValueY = iconY + (iconSize - 16f) / 2f;
 
         // Deity name with full title (multi-line if needed)
-        var deityDisplayName = GetDeityDisplayName(deityType);
+        // Use custom deity name if available, otherwise fall back to domain-based display
+        var deityDisplayName = !string.IsNullOrWhiteSpace(vm.DeityName)
+            ? GetDeityDisplayNameWithCustomName(vm.DeityName, deityType)
+            : GetDeityDisplayName(deityType);
         var deityLines = deityDisplayName.Split('\n');
         var deityStartY = deityValueY - (deityLines.Length > 1 ? 8f : 0f); // Adjust if multi-line
 
@@ -351,19 +354,29 @@ internal static class ReligionDetailRenderer
     /// <summary>
     ///     Get display name for a deity with full title (multi-line format)
     /// </summary>
-    private static string GetDeityDisplayName(DeityType deity)
+    private static string GetDeityDisplayName(DeityDomain deity)
     {
         var name = deity.ToLocalizedString();
         var title = deity switch
         {
-            DeityType.Khoras => LocalizationService.Instance.Get(LocalizationKeys.DEITY_KHORAS_TITLE),
-            DeityType.Lysa => LocalizationService.Instance.Get(LocalizationKeys.DEITY_LYSA_TITLE),
-            DeityType.Aethra => LocalizationService.Instance.Get(LocalizationKeys.DEITY_AETHRA_TITLE),
-            DeityType.Gaia => LocalizationService.Instance.Get(LocalizationKeys.DEITY_GAIA_TITLE),
+            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DEITY_KHORAS_TITLE),
+            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DEITY_LYSA_TITLE),
+            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DEITY_AETHRA_TITLE),
+            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DEITY_GAIA_TITLE),
             _ => ""
         };
 
         return string.IsNullOrEmpty(title) ? name : $"{name}\n{title}";
+    }
+
+    /// <summary>
+    ///     Get display name for a custom-named deity with domain title (multi-line format)
+    ///     Format: "CustomName\nDomain of X" (e.g., "Khoras\nDomain of the Forge & Craft")
+    /// </summary>
+    private static string GetDeityDisplayNameWithCustomName(string customName, DeityDomain deity)
+    {
+        var title = DeityHelper.GetDeityTitle(deity);
+        return $"{customName}\n{title}";
     }
 
     /// <summary>

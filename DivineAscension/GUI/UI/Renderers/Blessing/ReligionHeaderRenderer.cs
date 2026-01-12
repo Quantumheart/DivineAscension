@@ -240,7 +240,7 @@ internal static class ReligionHeaderRenderer
                 const float deityIconSpacing = 6f;
 
                 foreach (var memberReligion in viewModel.CivilizationMemberReligions!)
-                    if (Enum.TryParse<DeityType>(memberReligion.Deity, out var deityType))
+                    if (Enum.TryParse<DeityDomain>(memberReligion.Domain, out var deityType))
                     {
                         var memberDeityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
                         var deityIconPos = new Vector2(deityIconX, deityIconsY);
@@ -271,7 +271,7 @@ internal static class ReligionHeaderRenderer
     /// <summary>
     ///     Get display name for a deity with title
     /// </summary>
-    private static string GetDeityDisplayName(DeityType deity)
+    private static string GetDeityDisplayName(DeityDomain deity)
     {
         return deity.ToLocalizedStringWithTitle();
     }

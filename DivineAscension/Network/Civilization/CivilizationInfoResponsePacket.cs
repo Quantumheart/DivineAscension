@@ -60,7 +60,11 @@ public class CivilizationInfoResponsePacket
 
         [ProtoMember(2)] public string ReligionName { get; set; } = string.Empty;
 
-        [ProtoMember(3)] public string Deity { get; set; } = string.Empty;
+        /// <summary>
+        ///     The domain (Craft, Wild, Harvest, Stone)
+        /// </summary>
+        [ProtoMember(3)]
+        public string Domain { get; set; } = string.Empty;
 
         [ProtoMember(4)] public string FounderUID { get; set; } = string.Empty;
 
@@ -70,6 +74,12 @@ public class CivilizationInfoResponsePacket
 
         [ProtoMember(7)]
         public string FounderName { get; set; } = string.Empty; // Player name who founded this religion
+
+        /// <summary>
+        ///     The custom deity name for this religion
+        /// </summary>
+        [ProtoMember(8)]
+        public string DeityName { get; set; } = string.Empty;
     }
 
     /// <summary>

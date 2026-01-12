@@ -70,6 +70,9 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _clientChannel.SetMessageHandler<DiplomacyActionResponsePacket>(OnDiplomacyActionResponse);
         _clientChannel.SetMessageHandler<WarDeclarationPacket>(OnWarDeclarationBroadcast);
 
+        // Register handler for deity name change response
+        _clientChannel.SetMessageHandler<SetDeityNameResponsePacket>(OnSetDeityNameResponse);
+
         _clientChannel.RegisterMessageType(typeof(PlayerReligionDataPacket));
     }
 
@@ -153,6 +156,12 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
             _capi?.ShowChatMessage(packet.Message);
         else
             _capi?.ShowChatMessage($"Error: {packet.Message}");
+    }
+
+    private void OnSetDeityNameResponse(SetDeityNameResponsePacket packet)
+    {
+        _capi?.Logger.Debug($"[DivineAscension] Received set deity name response: Success={packet.Success}");
+        DeityNameChanged?.Invoke(packet);
     }
 
     private void OnReligionRolesResponse(ReligionRolesResponse packet)
@@ -501,7 +510,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     /// <summary>
     ///     Request to create a new religion
     /// </summary>
-    public void RequestCreateReligion(string religionName, string deity, bool isPublic)
+    public void RequestCreateReligion(string religionName, string domain, string deityName, bool isPublic)
     {
         if (_clientChannel == null)
         {
@@ -509,9 +518,10 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
             return;
         }
 
-        var request = new CreateReligionRequestPacket(religionName, deity, isPublic);
+        var request = new CreateReligionRequestPacket(religionName, domain, deityName, isPublic);
         _clientChannel.SendPacket(request);
-        _capi?.Logger.Debug($"[DivineAscension] Sent create religion request: {religionName}, {deity}");
+        _capi?.Logger.Debug(
+            $"[DivineAscension] Sent create religion request: {religionName}, domain={domain}, deityName={deityName}");
     }
 
     /// <summary>
@@ -544,6 +554,22 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         var request = new EditDescriptionRequestPacket(religionUID, description);
         _clientChannel.SendPacket(request);
         _capi?.Logger.Debug("[DivineAscension] Sent edit description request");
+    }
+
+    /// <summary>
+    ///     Request to change the deity name for a religion
+    /// </summary>
+    public void SendSetDeityNameRequest(string religionUID, string newDeityName)
+    {
+        if (_clientChannel == null)
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot set deity name: client channel not initialized");
+            return;
+        }
+
+        var request = new SetDeityNameRequestPacket(religionUID, newDeityName);
+        _clientChannel.SendPacket(request);
+        _capi?.Logger.Debug($"[DivineAscension] Sent set deity name request for {religionUID}");
     }
 
     /// <summary>
@@ -827,6 +853,11 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     ///     Event fired when a war declaration broadcast is received
     /// </summary>
     public event Action<string, string>? WarDeclared;
+
+    /// <summary>
+    ///     Event fired when a deity name change response is received
+    /// </summary>
+    public event Action<SetDeityNameResponsePacket>? DeityNameChanged;
 
     #endregion
 }

@@ -40,7 +40,7 @@ public class AnvilFavorTracker(
         _sapi.Logger.Debug($"[DivineAscension] AnvilFavorTracker disposed (ID: {_instanceId})");
     }
 
-    public DeityType DeityType { get; } = DeityType.Khoras;
+    public DeityDomain DeityDomain { get; } = DeityDomain.Craft;
 
     public void Initialize()
     {
@@ -57,7 +57,7 @@ public class AnvilFavorTracker(
 
         // Verify religion
         var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerUid);
-        if (deityType != DeityType.Khoras) return;
+        if (deityType != DeityDomain.Craft) return;
 
         // Compute favor from output preview (fallback to mid tier)
         var baseFavor = outputPreview != null ? CalculateBaseFavor(outputPreview) : FavorMidTier;

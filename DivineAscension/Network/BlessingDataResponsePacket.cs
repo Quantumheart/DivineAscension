@@ -15,9 +15,19 @@ public class BlessingDataResponsePacket
 
     [ProtoMember(3)] public string ReligionName { get; set; } = string.Empty;
 
-    [ProtoMember(4)] public string Deity { get; set; } = string.Empty;
+    /// <summary>
+    ///     The domain (Craft, Wild, Harvest, Stone)
+    /// </summary>
+    [ProtoMember(4)]
+    public string Domain { get; set; } = string.Empty;
 
     [ProtoMember(5)] public int FavorRank { get; set; }
+
+    /// <summary>
+    ///     The custom deity name for this religion
+    /// </summary>
+    [ProtoMember(14)]
+    public string DeityName { get; set; } = string.Empty;
 
     [ProtoMember(6)] public int PrestigeRank { get; set; }
 

@@ -54,7 +54,7 @@ public class ReligionCommandInfoTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
         religion.Description = "A great religion";
         religion.PrestigeRank = PrestigeRank.Renowned;
         religion.Prestige = 500;
@@ -90,7 +90,7 @@ public class ReligionCommandInfoTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
-        var religion = CreateReligion("religion-1", "PrivateReligion", DeityType.Khoras, "founder-1", isPublic: false);
+        var religion = CreateReligion("religion-1", "PrivateReligion", DeityDomain.Craft, "founder-1", isPublic: false);
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "PrivateReligion");
 
@@ -134,7 +134,7 @@ public class ReligionCommandInfoTests : ReligionCommandsTestHelpers
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var playerData = CreatePlayerData("player-1");
-        var religion = CreateReligion("religion-1", "MyReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "MyReligion", DeityDomain.Craft, "founder-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 
@@ -203,7 +203,7 @@ public class ReligionCommandInfoTests : ReligionCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TestReligion");
 
@@ -223,7 +223,7 @@ public class ReligionCommandInfoTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
         religion.Description = null;
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TestReligion");

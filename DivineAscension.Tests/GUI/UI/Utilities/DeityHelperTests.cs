@@ -13,14 +13,14 @@ public class DeityHelperTests
     #region DeityNames Tests
 
     [Fact]
-    public void DeityNames_ContainsAllDeities()
+    public void DeityNames_ContainsAllDomains()
     {
-        // Assert
+        // Assert - DeityNames is now an alias for DomainNames
         Assert.Equal(4, DeityHelper.DeityNames.Length);
-        Assert.Contains("Khoras", DeityHelper.DeityNames);
-        Assert.Contains("Lysa", DeityHelper.DeityNames);
-        Assert.Contains("Aethra", DeityHelper.DeityNames);
-        Assert.Contains("Gaia", DeityHelper.DeityNames);
+        Assert.Contains("Craft", DeityHelper.DeityNames);
+        Assert.Contains("Wild", DeityHelper.DeityNames);
+        Assert.Contains("Harvest", DeityHelper.DeityNames);
+        Assert.Contains("Stone", DeityHelper.DeityNames);
     }
 
     #endregion
@@ -28,14 +28,14 @@ public class DeityHelperTests
     #region GetDeityColor (string) Tests
 
     [Theory]
-    [InlineData("Khoras", 0.8f, 0.2f, 0.2f)] // Red - War
-    [InlineData("Lysa", 0.4f, 0.8f, 0.3f)] // Green - Hunt
-    [InlineData("Aethra", 0.9f, 0.9f, 0.6f)] // Light yellow - Light
-    [InlineData("Gaia", 0.5f, 0.4f, 0.2f)] // Brown - Earth
-    public void GetDeityColor_String_ReturnsCorrectColor(string deity, float r, float g, float b)
+    [InlineData("Craft", 0.8f, 0.2f, 0.2f)] // Red - Forge & Craft
+    [InlineData("Wild", 0.4f, 0.8f, 0.3f)] // Green - Hunt & Wild
+    [InlineData("Harvest", 0.9f, 0.9f, 0.6f)] // Light yellow - Agriculture & Light
+    [InlineData("Stone", 0.5f, 0.4f, 0.2f)] // Brown - Earth & Stone
+    public void GetDeityColor_String_ReturnsCorrectColor(string domain, float r, float g, float b)
     {
         // Act
-        var color = DeityHelper.GetDeityColor(deity);
+        var color = DeityHelper.GetDeityColor(domain);
 
         // Assert
         Assert.Equal(r, color.X);
@@ -45,10 +45,10 @@ public class DeityHelperTests
     }
 
     [Fact]
-    public void GetDeityColor_String_UnknownDeity_ReturnsGrey()
+    public void GetDeityColor_String_UnknownDomain_ReturnsGrey()
     {
         // Act
-        var color = DeityHelper.GetDeityColor("UnknownDeity");
+        var color = DeityHelper.GetDeityColor("UnknownDomain");
 
         // Assert
         Assert.Equal(0.5f, color.X);
@@ -62,11 +62,11 @@ public class DeityHelperTests
     #region GetDeityColor (DeityType) Tests
 
     [Theory]
-    [InlineData(DeityType.Khoras, 0.8f, 0.2f, 0.2f)]
-    [InlineData(DeityType.Lysa, 0.4f, 0.8f, 0.3f)]
-    [InlineData(DeityType.Aethra, 0.9f, 0.9f, 0.6f)]
-    [InlineData(DeityType.Gaia, 0.5f, 0.4f, 0.2f)]
-    public void GetDeityColor_Enum_ReturnsCorrectColor(DeityType deity, float r, float g, float b)
+    [InlineData(DeityDomain.Craft, 0.8f, 0.2f, 0.2f)]
+    [InlineData(DeityDomain.Wild, 0.4f, 0.8f, 0.3f)]
+    [InlineData(DeityDomain.Harvest, 0.9f, 0.9f, 0.6f)]
+    [InlineData(DeityDomain.Stone, 0.5f, 0.4f, 0.2f)]
+    public void GetDeityColor_Enum_ReturnsCorrectColor(DeityDomain deity, float r, float g, float b)
     {
         // Act
         var color = DeityHelper.GetDeityColor(deity);
@@ -82,7 +82,7 @@ public class DeityHelperTests
     public void GetDeityColor_Enum_NoneType_ReturnsGrey()
     {
         // Act
-        var color = DeityHelper.GetDeityColor(DeityType.None);
+        var color = DeityHelper.GetDeityColor(DeityDomain.None);
 
         // Assert
         Assert.Equal(0.5f, color.X);
@@ -96,27 +96,27 @@ public class DeityHelperTests
     #region GetDeityTitle (string) Tests
 
     [Theory]
-    [InlineData("Khoras", "God of the Forge & Craft")]
-    [InlineData("Lysa", "Goddess of the Hunt & Wild")]
-    [InlineData("Aethra", "Goddess of Agriculture & Light")]
-    [InlineData("Gaia", "Goddess of Earth & Stone")]
-    public void GetDeityTitle_String_ReturnsCorrectTitle(string deity, string expectedTitle)
+    [InlineData("Craft", "Domain of the Forge & Craft")]
+    [InlineData("Wild", "Domain of the Hunt & Wild")]
+    [InlineData("Harvest", "Domain of Agriculture & Light")]
+    [InlineData("Stone", "Domain of Earth & Stone")]
+    public void GetDeityTitle_String_ReturnsCorrectTitle(string domain, string expectedTitle)
     {
         // Act
-        var title = DeityHelper.GetDeityTitle(deity);
+        var title = DeityHelper.GetDeityTitle(domain);
 
         // Assert
         Assert.Equal(expectedTitle, title);
     }
 
     [Fact]
-    public void GetDeityTitle_String_UnknownDeity_ReturnsUnknown()
+    public void GetDeityTitle_String_UnknownDomain_ReturnsUnknown()
     {
         // Act
-        var title = DeityHelper.GetDeityTitle("UnknownDeity");
+        var title = DeityHelper.GetDeityTitle("UnknownDomain");
 
         // Assert
-        Assert.Equal("Unknown Deity", title);
+        Assert.Equal("Unknown Domain", title);
     }
 
     #endregion
@@ -124,14 +124,14 @@ public class DeityHelperTests
     #region GetDeityTitle (DeityType) Tests
 
     [Theory]
-    [InlineData(DeityType.Khoras, "God of the Forge & Craft")]
-    [InlineData(DeityType.Lysa, "Goddess of the Hunt & Wild")]
-    [InlineData(DeityType.Aethra, "Goddess of Agriculture & Light")]
-    [InlineData(DeityType.Gaia, "Goddess of Earth & Stone")]
-    public void GetDeityTitle_Enum_ReturnsCorrectTitle(DeityType deity, string expectedTitle)
+    [InlineData(DeityDomain.Craft, "Domain of the Forge & Craft")]
+    [InlineData(DeityDomain.Wild, "Domain of the Hunt & Wild")]
+    [InlineData(DeityDomain.Harvest, "Domain of Agriculture & Light")]
+    [InlineData(DeityDomain.Stone, "Domain of Earth & Stone")]
+    public void GetDeityTitle_Enum_ReturnsCorrectTitle(DeityDomain domain, string expectedTitle)
     {
         // Act
-        var title = DeityHelper.GetDeityTitle(deity);
+        var title = DeityHelper.GetDeityTitle(domain);
 
         // Assert
         Assert.Equal(expectedTitle, title);
@@ -141,10 +141,10 @@ public class DeityHelperTests
     public void GetDeityTitle_Enum_NoneType_ReturnsUnknown()
     {
         // Act
-        var title = DeityHelper.GetDeityTitle(DeityType.None);
+        var title = DeityHelper.GetDeityTitle(DeityDomain.None);
 
         // Assert
-        Assert.Equal("Unknown Deity", title);
+        Assert.Equal("Unknown Domain", title);
     }
 
     #endregion
@@ -152,14 +152,14 @@ public class DeityHelperTests
     #region ParseDeityType Tests
 
     [Theory]
-    [InlineData("Khoras", DeityType.Khoras)]
-    [InlineData("Lysa", DeityType.Lysa)]
-    [InlineData("Aethra", DeityType.Aethra)]
-    [InlineData("Gaia", DeityType.Gaia)]
-    public void ParseDeityType_ValidName_ReturnsCorrectEnum(string deityName, DeityType expected)
+    [InlineData("Craft", DeityDomain.Craft)]
+    [InlineData("Wild", DeityDomain.Wild)]
+    [InlineData("Harvest", DeityDomain.Harvest)]
+    [InlineData("Stone", DeityDomain.Stone)]
+    public void ParseDeityType_ValidName_ReturnsCorrectEnum(string domainName, DeityDomain expected)
     {
         // Act
-        var result = DeityHelper.ParseDeityType(deityName);
+        var result = DeityHelper.ParseDeityType(domainName);
 
         // Assert
         Assert.Equal(expected, result);
@@ -169,10 +169,10 @@ public class DeityHelperTests
     public void ParseDeityType_UnknownName_ReturnsNone()
     {
         // Act
-        var result = DeityHelper.ParseDeityType("UnknownDeity");
+        var result = DeityHelper.ParseDeityType("UnknownDomain");
 
         // Assert
-        Assert.Equal(DeityType.None, result);
+        Assert.Equal(DeityDomain.None, result);
     }
 
     [Fact]
@@ -182,7 +182,7 @@ public class DeityHelperTests
         var result = DeityHelper.ParseDeityType("");
 
         // Assert
-        Assert.Equal(DeityType.None, result);
+        Assert.Equal(DeityDomain.None, result);
     }
 
     #endregion
@@ -190,27 +190,27 @@ public class DeityHelperTests
     #region GetDeityDisplayText (string) Tests
 
     [Theory]
-    [InlineData("Khoras", "Khoras - God of the Forge & Craft")]
-    [InlineData("Lysa", "Lysa - Goddess of the Hunt & Wild")]
-    [InlineData("Aethra", "Aethra - Goddess of Agriculture & Light")]
-    [InlineData("Gaia", "Gaia - Goddess of Earth & Stone")]
-    public void GetDeityDisplayText_String_ReturnsFormattedText(string deity, string expected)
+    [InlineData("Khoras", "Craft", "Khoras - Domain of the Forge & Craft")]
+    [InlineData("Lysa", "Wild", "Lysa - Domain of the Hunt & Wild")]
+    [InlineData("Aethra", "Harvest", "Aethra - Domain of Agriculture & Light")]
+    [InlineData("Gaia", "Stone", "Gaia - Domain of Earth & Stone")]
+    public void GetDeityDisplayText_String_ReturnsFormattedText(string deityName, string domain, string expected)
     {
         // Act
-        var displayText = DeityHelper.GetDeityDisplayText(deity);
+        var displayText = DeityHelper.GetDeityDisplayText(deityName, domain);
 
         // Assert
         Assert.Equal(expected, displayText);
     }
 
     [Fact]
-    public void GetDeityDisplayText_String_UnknownDeity_ReturnsFormattedUnknown()
+    public void GetDeityDisplayText_String_EmptyDeityName_ReturnsDomainTitleOnly()
     {
         // Act
-        var displayText = DeityHelper.GetDeityDisplayText("UnknownDeity");
+        var displayText = DeityHelper.GetDeityDisplayText("", "Craft");
 
         // Assert
-        Assert.Equal("UnknownDeity - Unknown Deity", displayText);
+        Assert.Equal("Domain of the Forge & Craft", displayText);
     }
 
     #endregion
@@ -218,14 +218,14 @@ public class DeityHelperTests
     #region GetDeityDisplayText (DeityType) Tests
 
     [Theory]
-    [InlineData(DeityType.Khoras, "Khoras - God of the Forge & Craft")]
-    [InlineData(DeityType.Lysa, "Lysa - Goddess of the Hunt & Wild")]
-    [InlineData(DeityType.Aethra, "Aethra - Goddess of Agriculture & Light")]
-    [InlineData(DeityType.Gaia, "Gaia - Goddess of Earth & Stone")]
-    public void GetDeityDisplayText_Enum_ReturnsFormattedText(DeityType deity, string expected)
+    [InlineData(DeityDomain.Craft, "Craft - Domain of the Forge & Craft")]
+    [InlineData(DeityDomain.Wild, "Wild - Domain of the Hunt & Wild")]
+    [InlineData(DeityDomain.Harvest, "Harvest - Domain of Agriculture & Light")]
+    [InlineData(DeityDomain.Stone, "Stone - Domain of Earth & Stone")]
+    public void GetDeityDisplayText_Enum_ReturnsFormattedText(DeityDomain domain, string expected)
     {
         // Act
-        var displayText = DeityHelper.GetDeityDisplayText(deity);
+        var displayText = DeityHelper.GetDeityDisplayText(domain);
 
         // Assert
         Assert.Equal(expected, displayText);
@@ -235,10 +235,10 @@ public class DeityHelperTests
     public void GetDeityDisplayText_Enum_NoneType_ReturnsFormattedUnknown()
     {
         // Act
-        var displayText = DeityHelper.GetDeityDisplayText(DeityType.None);
+        var displayText = DeityHelper.GetDeityDisplayText(DeityDomain.None);
 
         // Assert
-        Assert.Equal("None - Unknown Deity", displayText);
+        Assert.Equal("None - Unknown Domain", displayText);
     }
 
     #endregion

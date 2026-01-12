@@ -13,9 +13,19 @@ public class ReligionDetailResponsePacket
 
     [ProtoMember(2)] public string ReligionName { get; set; } = string.Empty;
 
-    [ProtoMember(3)] public string Deity { get; set; } = string.Empty;
+    /// <summary>
+    ///     The domain (Craft, Wild, Harvest, Stone)
+    /// </summary>
+    [ProtoMember(3)]
+    public string Domain { get; set; } = string.Empty;
 
     [ProtoMember(4)] public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     The custom deity name for this religion
+    /// </summary>
+    [ProtoMember(11)]
+    public string DeityName { get; set; } = string.Empty;
 
     [ProtoMember(5)] public int Prestige { get; set; }
 

@@ -18,7 +18,6 @@ public class FavorSystemIntegrationTests
 {
     private readonly FavorSystem _favorSystem;
     private readonly Mock<ICoreServerAPI> _mockAPI;
-    private readonly Mock<IDeityRegistry> _mockDeityRegistry;
     private readonly Mock<IPlayerProgressionDataManager> _mockPlayerReligionDataManager;
     private readonly Mock<IReligionPrestigeManager> _mockPrestigeManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
@@ -26,7 +25,6 @@ public class FavorSystemIntegrationTests
     public FavorSystemIntegrationTests()
     {
         _mockAPI = TestFixtures.CreateMockServerAPI();
-        _mockDeityRegistry = TestFixtures.CreateMockDeityRegistry();
         _mockPlayerReligionDataManager = TestFixtures.CreateMockPlayerProgressionDataManager();
         _mockReligionManager = TestFixtures.CreateMockReligionManager();
         _mockPrestigeManager = TestFixtures.CreateMockReligionPrestigeManager();
@@ -34,7 +32,6 @@ public class FavorSystemIntegrationTests
         _favorSystem = new FavorSystem(
             _mockAPI.Object,
             _mockPlayerReligionDataManager.Object,
-            _mockDeityRegistry.Object,
             _mockReligionManager.Object,
             _mockPrestigeManager.Object
         );
@@ -48,12 +45,12 @@ public class FavorSystemIntegrationTests
         // Arrange
         var attackerData = TestFixtures.CreateTestPlayerReligionData(
             "attacker-uid",
-            DeityType.None, // No deity
+            DeityDomain.None, // No deity
             null);
 
         var victimData = TestFixtures.CreateTestPlayerReligionData(
             "victim-uid",
-            DeityType.Khoras,
+            DeityDomain.Craft,
             "religion-1");
 
         var mockAttacker = TestFixtures.CreateMockServerPlayer("attacker-uid", "Attacker");
@@ -85,7 +82,7 @@ public class FavorSystemIntegrationTests
     public void CalculateFavorReward_WithNoVictimDeity_ReturnsBaseFavor()
     {
         // Arrange & Act
-        var reward = _favorSystem.CalculateFavorReward(DeityType.Khoras, DeityType.None);
+        var reward = _favorSystem.CalculateFavorReward(DeityDomain.Craft, DeityDomain.None);
 
         // Assert
         Assert.Equal(10, reward); // BASE_KILL_FAVOR
@@ -136,7 +133,7 @@ public class FavorSystemIntegrationTests
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData(
             "player-uid",
-            DeityType.Khoras,
+            DeityDomain.Craft,
             "religion-1",
             favor: 10);
 
@@ -145,7 +142,7 @@ public class FavorSystemIntegrationTests
         _mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
-        _mockReligionManager.Setup(d => d.GetPlayerActiveDeity("player-uid")).Returns(DeityType.Khoras);
+        _mockReligionManager.Setup(d => d.GetPlayerActiveDeityDomain("player-uid")).Returns(DeityDomain.Craft);
 
         // Act
         _favorSystem.ProcessDeathPenalty(mockPlayer.Object);
@@ -163,7 +160,7 @@ public class FavorSystemIntegrationTests
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData(
             "player-uid",
-            DeityType.Khoras,
+            DeityDomain.Craft,
             "religion-1",
             favor: 0);
 
@@ -189,7 +186,7 @@ public class FavorSystemIntegrationTests
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData(
             "player-uid",
-            DeityType.Khoras,
+            DeityDomain.Craft,
             "religion-1",
             favor: 10);
 
@@ -198,7 +195,7 @@ public class FavorSystemIntegrationTests
         _mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
-        _mockReligionManager.Setup(d => d.GetPlayerActiveDeity("player-uid")).Returns(DeityType.Khoras);
+        _mockReligionManager.Setup(d => d.GetPlayerActiveDeityDomain("player-uid")).Returns(DeityDomain.Craft);
 
         // Act
         _favorSystem.ProcessDeathPenalty(mockPlayer.Object);
@@ -224,7 +221,7 @@ public class FavorSystemIntegrationTests
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData(
             "player-uid",
-            DeityType.Khoras,
+            DeityDomain.Craft,
             "religion-1");
 
         var religion = TestFixtures.CreateTestReligion(
@@ -235,7 +232,7 @@ public class FavorSystemIntegrationTests
         _mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
-        _mockReligionManager.Setup(d => d.GetPlayerActiveDeity("player-uid")).Returns(DeityType.Khoras);
+        _mockReligionManager.Setup(d => d.GetPlayerActiveDeityDomain("player-uid")).Returns(DeityDomain.Craft);
         _mockReligionManager.Setup(d => d.GetPlayerReligion("player-uid")).Returns(religion);
 
         // Act
@@ -254,7 +251,7 @@ public class FavorSystemIntegrationTests
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData(
             "player-uid",
-            DeityType.None,
+            DeityDomain.None,
             null);
 
         var mockPlayer = TestFixtures.CreateMockServerPlayer("player-uid", "TestPlayer");

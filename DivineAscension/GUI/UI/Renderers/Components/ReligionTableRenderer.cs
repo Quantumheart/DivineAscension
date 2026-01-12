@@ -151,7 +151,7 @@ internal static class ReligionTableRenderer
         var columns = new[]
         {
             LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_NAME),
-            LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_DEITY),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_DOMAIN),
             LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_PRESTIGE),
             LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_MEMBERS),
             LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_PUBLIC)
@@ -246,7 +246,7 @@ internal static class ReligionTableRenderer
         // Draw deity icon
         var iconX = colX + padding;
         var iconY = rowY + (RowHeight - IconSize) / 2f;
-        DrawDeityIcon(drawList, religion.Deity, iconX, iconY);
+        DrawDeityIcon(drawList, religion.Domain, iconX, iconY);
 
         // Draw religion name (centered in remaining space)
         var textX = iconX + IconSize + padding;
@@ -274,12 +274,12 @@ internal static class ReligionTableRenderer
         const float lineHeight = 16f;
 
         // Line 1: Deity name (e.g., "Khoras")
-        var deityName = religion.Deity;
+        var deityName = religion.Domain;
         var line1Y = rowY + (RowHeight - lineHeight * 2) / 2f;
         DrawCenteredText(drawList, deityName, colX, line1Y, ColumnWidth, textColor, fontSize);
 
         // Line 2: Deity title (e.g., "God of the Forge & Craft")
-        var deityTitle = DeityHelper.GetDeityTitle(religion.Deity);
+        var deityTitle = DeityHelper.GetDeityTitle(religion.Domain);
         var line2Y = line1Y + lineHeight;
         DrawCenteredText(drawList, deityTitle, colX, line2Y, ColumnWidth, textColor, fontSize);
     }

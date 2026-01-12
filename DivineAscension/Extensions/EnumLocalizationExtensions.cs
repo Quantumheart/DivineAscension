@@ -50,14 +50,14 @@ public static class EnumLocalizationExtensions
     /// </summary>
     /// <param name="deity">The deity type</param>
     /// <returns>Localized deity name</returns>
-    public static string ToLocalizedString(this DeityType deity)
+    public static string ToLocalizedString(this DeityDomain deity)
     {
         return deity switch
         {
-            DeityType.Khoras => LocalizationService.Instance.Get(LocalizationKeys.DEITY_KHORAS_NAME),
-            DeityType.Lysa => LocalizationService.Instance.Get(LocalizationKeys.DEITY_LYSA_NAME),
-            DeityType.Aethra => LocalizationService.Instance.Get(LocalizationKeys.DEITY_AETHRA_NAME),
-            DeityType.Gaia => LocalizationService.Instance.Get(LocalizationKeys.DEITY_GAIA_NAME),
+            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DEITY_KHORAS_NAME),
+            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DEITY_LYSA_NAME),
+            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DEITY_AETHRA_NAME),
+            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DEITY_GAIA_NAME),
             _ => LocalizationService.Instance.Get(LocalizationKeys.DEITY_UNKNOWN_NAME)
         };
     }
@@ -68,15 +68,15 @@ public static class EnumLocalizationExtensions
     /// </summary>
     /// <param name="deity">The deity type</param>
     /// <returns>Localized deity name with title</returns>
-    public static string ToLocalizedStringWithTitle(this DeityType deity)
+    public static string ToLocalizedStringWithTitle(this DeityDomain deity)
     {
         var name = deity.ToLocalizedString();
         var title = deity switch
         {
-            DeityType.Khoras => LocalizationService.Instance.Get(LocalizationKeys.DEITY_KHORAS_TITLE),
-            DeityType.Lysa => LocalizationService.Instance.Get(LocalizationKeys.DEITY_LYSA_TITLE),
-            DeityType.Aethra => LocalizationService.Instance.Get(LocalizationKeys.DEITY_AETHRA_TITLE),
-            DeityType.Gaia => LocalizationService.Instance.Get(LocalizationKeys.DEITY_GAIA_TITLE),
+            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DEITY_KHORAS_TITLE),
+            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DEITY_LYSA_TITLE),
+            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DEITY_AETHRA_TITLE),
+            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DEITY_GAIA_TITLE),
             _ => ""
         };
 
@@ -88,14 +88,14 @@ public static class EnumLocalizationExtensions
     /// </summary>
     /// <param name="deity">The deity type</param>
     /// <returns>Localized deity description</returns>
-    public static string ToLocalizedDescription(this DeityType deity)
+    public static string ToLocalizedDescription(this DeityDomain deity)
     {
         return deity switch
         {
-            DeityType.Khoras => LocalizationService.Instance.Get(LocalizationKeys.DEITY_KHORAS_DESCRIPTION),
-            DeityType.Lysa => LocalizationService.Instance.Get(LocalizationKeys.DEITY_LYSA_DESCRIPTION),
-            DeityType.Aethra => LocalizationService.Instance.Get(LocalizationKeys.DEITY_AETHRA_DESCRIPTION),
-            DeityType.Gaia => LocalizationService.Instance.Get(LocalizationKeys.DEITY_GAIA_DESCRIPTION),
+            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DEITY_KHORAS_DESCRIPTION),
+            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DEITY_LYSA_DESCRIPTION),
+            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DEITY_AETHRA_DESCRIPTION),
+            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DEITY_GAIA_DESCRIPTION),
             _ => LocalizationService.Instance.Get(LocalizationKeys.DEITY_UNKNOWN_NAME)
         };
     }

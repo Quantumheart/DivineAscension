@@ -16,11 +16,13 @@ public class ReligionData
     /// <summary>
     ///     Creates a new religion with the specified parameters
     /// </summary>
-    public ReligionData(string religionUID, string religionName, DeityType deity, string founderUID, string founderName)
+    public ReligionData(string religionUID, string religionName, DeityDomain domain, string deityName,
+        string founderUID, string founderName)
     {
         ReligionUID = religionUID;
         ReligionName = religionName;
-        Deity = deity;
+        Domain = domain;
+        DeityName = deityName;
         FounderUID = founderUID;
         FounderName = founderName;
         MemberUIDs = new List<string> { founderUID }; // Founder is first member
@@ -54,7 +56,7 @@ public class ReligionData
     ///     The deity this religion serves (permanent, cannot be changed)
     /// </summary>
     [ProtoMember(3)]
-    public DeityType Deity { get; set; } = DeityType.None;
+    public DeityDomain Domain { get; set; } = DeityDomain.None;
 
     /// <summary>
     ///     Player UID of the religion founder
@@ -142,6 +144,13 @@ public class ReligionData
     /// </summary>
     [ProtoMember(17)]
     public string FounderName { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     The custom name of the deity this religion worships (required).
+    ///     This allows religions with the same domain to have uniquely named deities.
+    /// </summary>
+    [ProtoMember(18)]
+    public string DeityName { get; set; } = string.Empty;
 
     /// <summary>
     ///     Adds a member to the religion with player name

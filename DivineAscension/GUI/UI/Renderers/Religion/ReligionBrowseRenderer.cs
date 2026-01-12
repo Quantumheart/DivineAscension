@@ -40,12 +40,12 @@ internal static class ReligionBrowseRenderer
             currentY,
             width,
             tabHeight,
-            viewModel.DeityFilters,
+            viewModel.DomainFilters,
             currentSelectedIndex);
 
         if (newSelectedIndex != currentSelectedIndex)
         {
-            var newFilter = viewModel.DeityFilters[newSelectedIndex];
+            var newFilter = viewModel.DomainFilters[newSelectedIndex];
             events.Add(new BrowseEvent.DeityFilterChanged(newFilter));
         }
 

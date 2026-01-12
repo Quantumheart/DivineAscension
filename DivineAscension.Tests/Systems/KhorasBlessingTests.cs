@@ -10,7 +10,7 @@ namespace DivineAscension.Tests.Systems;
 public class KhorasBlessingTests
 {
     private static IQueryable<Blessing> GetKhoras()
-        => BlessingDefinitions.GetAllBlessings().Where(b => b.Deity == DeityType.Khoras).AsQueryable();
+        => BlessingDefinitions.GetAllBlessings().Where(b => b.Domain == DeityDomain.Craft).AsQueryable();
 
     [Fact]
     public void Sanity_Khoras_Has10Blessings_AndUniqueIds()

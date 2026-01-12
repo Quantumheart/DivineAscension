@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
@@ -56,13 +57,18 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     /// <summary>
     ///     Creates a new religion
     /// </summary>
-    public ReligionData CreateReligion(string name, DeityType deity, string founderUID, bool isPublic)
+    public ReligionData CreateReligion(string name, DeityDomain domain, string deityName, string founderUID,
+        bool isPublic)
     {
         // Generate unique UID
         var religionUID = Guid.NewGuid().ToString();
 
-        // Validate deity type
-        if (deity == DeityType.None) throw new ArgumentException("Religion must have a valid deity");
+        // Validate domain
+        if (domain == DeityDomain.None) throw new ArgumentException("Religion must have a valid domain");
+
+        // Validate deity name
+        if (string.IsNullOrWhiteSpace(deityName))
+            throw new ArgumentException("Religion must have a deity name");
 
         // Get founder name (player guaranteed to be online during creation)
         var founderPlayer = _sapi.World.PlayerByUid(founderUID);
@@ -71,7 +77,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             : founderUID;
 
         // Create religion data
-        var religion = new ReligionData(religionUID, name, deity, founderUID, founderName)
+        var religion = new ReligionData(religionUID, name, domain, deityName, founderUID, founderName)
         {
             IsPublic = isPublic,
             Roles = RoleDefaults.CreateDefaultRoles(),
@@ -86,12 +92,62 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         _playerToReligionIndex.Add(founderUID, religionUID);
 
         _sapi.Logger.Notification(
-            $"[DivineAscension] Religion created: {name} (Deity: {deity}, Founder: {founderName}, Public: {isPublic})");
+            $"[DivineAscension] Religion created: {name} (Domain: {domain}, Deity: {deityName}, Founder: {founderName}, Public: {isPublic})");
 
         // Immediately save to prevent data loss if server stops before autosave
         SaveAllReligions();
 
         return religion;
+    }
+
+    /// <summary>
+    ///     Sets the deity name for a religion
+    /// </summary>
+    public bool SetDeityName(string religionUID, string deityName, out string error)
+    {
+        error = string.Empty;
+
+        if (!_religions.TryGetValue(religionUID, out var religion))
+        {
+            error = "Religion not found";
+            return false;
+        }
+
+        // Validate deity name
+        if (string.IsNullOrWhiteSpace(deityName))
+        {
+            error = "Deity name cannot be empty";
+            return false;
+        }
+
+        var trimmedName = deityName.Trim();
+
+        if (trimmedName.Length < 2)
+        {
+            error = "Deity name must be at least 2 characters";
+            return false;
+        }
+
+        if (trimmedName.Length > 48)
+        {
+            error = "Deity name cannot exceed 48 characters";
+            return false;
+        }
+
+        // Validate allowed characters: letters, spaces, apostrophes, hyphens
+        if (!Regex.IsMatch(trimmedName, @"^[\p{L}\s'\-]+$"))
+        {
+            error = "Deity name can only contain letters, spaces, apostrophes, and hyphens";
+            return false;
+        }
+
+        religion.DeityName = trimmedName;
+        SaveAllReligions();
+
+        _sapi.Logger.Notification(
+            $"[DivineAscension] Deity name updated for {religion.ReligionName}: {trimmedName}");
+
+        return true;
     }
 
     /// <summary>
@@ -200,10 +256,10 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     /// <summary>
     ///     Gets the active deity for a player
     /// </summary>
-    public DeityType GetPlayerActiveDeity(string playerId)
+    public DeityDomain GetPlayerActiveDeityDomain(string playerId)
     {
         var religion = GetPlayerReligion(playerId);
-        return religion?.Deity ?? DeityType.None;
+        return religion?.Domain ?? DeityDomain.None;
     }
 
     /// <summary>
@@ -391,9 +447,10 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     /// <summary>
     ///     Gets religions by deity
     /// </summary>
-    public List<ReligionData> GetReligionsByDeity(DeityType deity)
+    // todo: rename method
+    public List<ReligionData> GetReligionsByDeity(DeityDomain deity)
     {
-        return _religions.Values.Where(r => r.Deity == deity).ToList();
+        return _religions.Values.Where(r => r.Domain == deity).ToList();
     }
 
     /// <summary>
@@ -824,6 +881,49 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         SaveInviteData();
     }
 
+    /// <summary>
+    ///     Migrates existing religions that have empty DeityName fields.
+    ///     Called on world load after religions are loaded from save data.
+    ///     Sets DeityName to the legacy deity name based on domain.
+    /// </summary>
+    public HashSet<string> MigrateEmptyDeityNames()
+    {
+        var migratedUIDs = new HashSet<string>();
+
+        foreach (var religion in _religions.Values)
+        {
+            if (string.IsNullOrEmpty(religion.DeityName))
+            {
+                var legacyName = GetLegacyDeityName(religion.Domain);
+                religion.DeityName = legacyName;
+                migratedUIDs.Add(religion.ReligionUID);
+                _sapi.Logger.Notification(
+                    $"[DivineAscension] Migrated deity name for {religion.ReligionName}: '{legacyName}'");
+            }
+        }
+
+        if (migratedUIDs.Count > 0)
+        {
+            SaveAllReligions();
+            _sapi.Logger.Notification(
+                $"[DivineAscension] Migrated {migratedUIDs.Count} religion(s) with empty deity names");
+        }
+
+        return migratedUIDs;
+    }
+
+    /// <summary>
+    ///     Gets the legacy deity name for a domain (used for migration)
+    /// </summary>
+    private static string GetLegacyDeityName(DeityDomain domain) => domain switch
+    {
+        DeityDomain.Craft => "Khoras",
+        DeityDomain.Wild => "Lysa",
+        DeityDomain.Harvest => "Aethra",
+        DeityDomain.Stone => "Gaia",
+        _ => "Unknown Deity"
+    };
+
     public void Save(ReligionData religionData)
     {
         try
@@ -854,6 +954,10 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
                 {
                     _religions.Clear();
                     foreach (var religion in religionsList) _religions[religion.ReligionUID] = religion;
+
+                    // Migrate religions without DeityName (pre-v3.3.0 data)
+                    MigrateReligionsWithoutDeityName();
+
                     _sapi.Logger.Notification($"[DivineAscension] Loaded {_religions.Count} religions");
                 }
             }
@@ -861,6 +965,38 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         catch (Exception ex)
         {
             _sapi.Logger.Error($"[DivineAscension] Failed to load religions: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    ///     Migrates religions that don't have a DeityName (created before deity naming was added)
+    ///     Sets a default deity name based on the domain
+    /// </summary>
+    private void MigrateReligionsWithoutDeityName()
+    {
+        var migratedCount = 0;
+        foreach (var religion in _religions.Values)
+        {
+            if (string.IsNullOrWhiteSpace(religion.DeityName))
+            {
+                // Set default deity name based on domain
+                religion.DeityName = religion.Domain switch
+                {
+                    DeityDomain.Craft => "Khoras",
+                    DeityDomain.Wild => "Lysa",
+                    DeityDomain.Harvest => "Aethra",
+                    DeityDomain.Stone => "Gaia",
+                    _ => religion.Domain.ToString()
+                };
+                migratedCount++;
+            }
+        }
+
+        if (migratedCount > 0)
+        {
+            _sapi.Logger.Notification(
+                $"[DivineAscension] Migrated {migratedCount} religion(s) with default deity names");
+            SaveAllReligions(); // Persist the migration
         }
     }
 

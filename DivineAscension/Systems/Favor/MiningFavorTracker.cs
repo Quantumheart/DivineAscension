@@ -43,7 +43,7 @@ public class MiningFavorTracker(
         _khorasFollowers.Clear();
     }
 
-    public DeityType DeityType { get; } = DeityType.Khoras;
+    public DeityDomain DeityDomain { get; } = DeityDomain.Craft;
 
     public void Initialize()
     {
@@ -70,7 +70,7 @@ public class MiningFavorTracker(
 
         foreach (var player in onlinePlayers)
         {
-            if (_playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID) == DeityType)
+            if (_playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID) == DeityDomain)
                 _khorasFollowers.Add(player.PlayerUID);
         }
     }
@@ -80,7 +80,7 @@ public class MiningFavorTracker(
     /// </summary>
     private void OnPlayerDataChanged(string playerUID)
     {
-        if (_playerProgressionDataManager.GetPlayerDeityType(playerUID) == DeityType)
+        if (_playerProgressionDataManager.GetPlayerDeityType(playerUID) == DeityDomain)
             _khorasFollowers.Add(playerUID);
         else
             _khorasFollowers.Remove(playerUID);

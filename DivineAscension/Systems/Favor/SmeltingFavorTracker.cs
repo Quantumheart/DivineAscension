@@ -34,7 +34,7 @@ public class SmeltingFavorTracker(
         _sapi.Logger.Debug($"[DivineAscension] SmeltingFavorTracker disposed (ID: {_instanceId})");
     }
 
-    public DeityType DeityType { get; } = DeityType.Khoras;
+    public DeityDomain DeityDomain { get; } = DeityDomain.Craft;
 
     public void Initialize()
     {
@@ -87,7 +87,7 @@ public class SmeltingFavorTracker(
             return;
 
         // Check if player follows Khoras
-        if (_playerProgressionDataManager.GetPlayerDeityType(playerId) != DeityType.Khoras)
+        if (_playerProgressionDataManager.GetPlayerDeityType(playerId) != DeityDomain.Craft)
             return;
 
         // Calculate favor

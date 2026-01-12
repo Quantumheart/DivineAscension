@@ -31,7 +31,7 @@ public class KhorasIntegrationTests
             ReligionUID = religionId,
             ReligionName = "Forge Brotherhood",
             FounderUID = playerUID,
-            Deity = DeityType.Khoras,
+            Domain = DeityDomain.Craft,
             Prestige = 0,
             UnlockedBlessings = new Dictionary<string, bool>(),
             MemberUIDs = new List<string> { playerUID }
@@ -58,7 +58,6 @@ public class KhorasIntegrationTests
     #region Test Setup
 
     private readonly Mock<ICoreServerAPI> _mockAPI;
-    private readonly Mock<IDeityRegistry> _mockDeityRegistry;
     private readonly Mock<IPlayerProgressionDataManager> _mockPlayerReligionDataManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
     private readonly Mock<IReligionPrestigeManager> _mockPrestigeManager;
@@ -69,7 +68,6 @@ public class KhorasIntegrationTests
     public KhorasIntegrationTests()
     {
         _mockAPI = TestFixtures.CreateMockServerAPI();
-        _mockDeityRegistry = TestFixtures.CreateMockDeityRegistry();
         _mockPlayerReligionDataManager = TestFixtures.CreateMockPlayerProgressionDataManager();
         _mockReligionManager = TestFixtures.CreateMockReligionManager();
         _mockPrestigeManager = TestFixtures.CreateMockReligionPrestigeManager();
@@ -77,7 +75,7 @@ public class KhorasIntegrationTests
 
         // Setup blessing registry with Khoras blessings
         var khorasBlessings = BlessingDefinitions.GetAllBlessings()
-            .Where(b => b.Deity == DeityType.Khoras)
+            .Where(b => b.Domain == DeityDomain.Craft)
             .ToList();
 
         foreach (var blessing in khorasBlessings)
@@ -92,7 +90,6 @@ public class KhorasIntegrationTests
         _favorSystem = new FavorSystem(
             _mockAPI.Object,
             _mockPlayerReligionDataManager.Object,
-            _mockDeityRegistry.Object,
             _mockReligionManager.Object,
             _mockPrestigeManager.Object
         );
@@ -135,7 +132,7 @@ public class KhorasIntegrationTests
         Assert.Equal(0, t1Blessing.RequiredFavorRank); // Initiate
         Assert.NotNull(t1Blessing.PrerequisiteBlessings);
         Assert.Empty(t1Blessing.PrerequisiteBlessings);
-        Assert.Equal(DeityType.Khoras, t1Blessing.Deity);
+        Assert.Equal(DeityDomain.Craft, t1Blessing.Domain);
         Assert.Equal(BlessingKind.Player, t1Blessing.Kind);
     }
 
@@ -188,7 +185,7 @@ public class KhorasIntegrationTests
     {
         // Arrange
         var blessings = BlessingDefinitions.GetAllBlessings()
-            .Where(b => b.Deity == DeityType.Khoras)
+            .Where(b => b.Domain == DeityDomain.Craft)
             .ToDictionary(b => b.BlessingId);
 
         var t1 = blessings[BlessingIds.KhorasCraftsmansTouch];
@@ -221,7 +218,7 @@ public class KhorasIntegrationTests
             ReligionUID = "test-religion",
             ReligionName = "Test Religion",
             FounderUID = playerUID,
-            Deity = DeityType.Khoras,
+            Domain = DeityDomain.Craft,
             Prestige = 500,
             UnlockedBlessings = new Dictionary<string, bool> { { BlessingIds.KhorasSharedWorkshop, true } },
             MemberUIDs = new List<string> { playerUID }
@@ -260,14 +257,14 @@ public class KhorasIntegrationTests
     {
         // Arrange & Assert - All Khoras blessings should have DeityType.Khoras
         var khorasBlessings = BlessingDefinitions.GetAllBlessings()
-            .Where(b => b.Deity == DeityType.Khoras)
+            .Where(b => b.Domain == DeityDomain.Craft)
             .ToList();
 
         // Should have exactly 10 blessings (6 player + 4 religion)
         Assert.Equal(10, khorasBlessings.Count);
 
         // All should be Khoras deity
-        Assert.All(khorasBlessings, b => Assert.Equal(DeityType.Khoras, b.Deity));
+        Assert.All(khorasBlessings, b => Assert.Equal(DeityDomain.Craft, b.Domain));
     }
 
     [Fact]
@@ -275,7 +272,7 @@ public class KhorasIntegrationTests
     {
         // Arrange
         var khorasBlessings = BlessingDefinitions.GetAllBlessings()
-            .Where(b => b.Deity == DeityType.Khoras)
+            .Where(b => b.Domain == DeityDomain.Craft)
             .ToList();
 
         // Assert - Should have 6 player blessings and 4 religion blessings
@@ -333,7 +330,7 @@ public class KhorasIntegrationTests
     {
         // Arrange
         var blessings = BlessingDefinitions.GetAllBlessings()
-            .Where(b => b.Deity == DeityType.Khoras && b.Kind == BlessingKind.Religion)
+            .Where(b => b.Domain == DeityDomain.Craft && b.Kind == BlessingKind.Religion)
             .OrderBy(b => b.RequiredPrestigeRank)
             .ToList();
 
@@ -363,7 +360,7 @@ public class KhorasIntegrationTests
     {
         // Arrange & Assert - All Khoras blessings should have at least one stat modifier
         var khorasBlessings = BlessingDefinitions.GetAllBlessings()
-            .Where(b => b.Deity == DeityType.Khoras)
+            .Where(b => b.Domain == DeityDomain.Craft)
             .ToList();
 
         Assert.All(khorasBlessings, b => Assert.NotEmpty(b.StatModifiers));
@@ -374,7 +371,7 @@ public class KhorasIntegrationTests
     {
         // Arrange
         var khorasBlessings = BlessingDefinitions.GetAllBlessings()
-            .Where(b => b.Deity == DeityType.Khoras)
+            .Where(b => b.Domain == DeityDomain.Craft)
             .ToList();
 
         // Assert - All blessing IDs should be unique

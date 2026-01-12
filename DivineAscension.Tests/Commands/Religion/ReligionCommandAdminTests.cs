@@ -42,7 +42,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
         var playerData = CreatePlayerData("player-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "player-1");
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "Player");
@@ -81,7 +81,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns((string uid) => CreatePlayerData(uid));
         _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>()))
-            .Returns((string uid) => CreateReligion($"religion-{uid}", "TestReligion", DeityType.Khoras, uid));
+            .Returns((string uid) => CreateReligion($"religion-{uid}", "TestReligion", DeityDomain.Craft, uid));
 
         // Act
         var result = _sut!.OnAdminRepair(args);
@@ -124,7 +124,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
         var playerData = CreatePlayerData("player-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "TestReligion", "Player");
@@ -132,9 +132,10 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { target.Object });
         _mockWorld.Setup(w => w.PlayerByUid("player-1")).Returns(target.Object);
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetPlayerActiveDeity("player-1")).Returns(DeityType.None);
+        _religionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-1")).Returns(DeityDomain.None);
         _religionManager.Setup(m => m.GetPlayerReligion("player-1"))
-            .Returns(new ReligionData("", "", DeityType.None, "", ""));
+            .Returns(new ReligionData(string.Empty, string.Empty, DeityDomain.None, string.Empty, string.Empty,
+                string.Empty));
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns(religion);
         _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion("player-1")).Returns(false);
@@ -159,15 +160,15 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
         var playerData = CreatePlayerData("player-1");
-        var oldReligion = CreateReligion("old-religion", "OldReligion", DeityType.Lysa, "founder-1");
-        var newReligion = CreateReligion("new-religion", "NewReligion", DeityType.Khoras, "founder-2");
+        var oldReligion = CreateReligion("old-religion", "OldReligion", DeityDomain.Wild, "founder-1");
+        var newReligion = CreateReligion("new-religion", "NewReligion", DeityDomain.Craft, "founder-2");
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "NewReligion", "Player");
 
         _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { target.Object });
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetPlayerActiveDeity("player-1")).Returns(DeityType.Lysa);
+        _religionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-1")).Returns(DeityDomain.Wild);
         _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(oldReligion);
         _religionManager.Setup(m => m.GetReligionByName("NewReligion")).Returns(newReligion);
         _religionManager.Setup(m => m.HasReligion("player-1")).Returns(true);
@@ -190,15 +191,16 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
         var playerData = CreatePlayerData("admin-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "TestReligion", null!);
 
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("admin-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetPlayerActiveDeity("admin-1")).Returns(DeityType.None);
+        _religionManager.Setup(m => m.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.None);
         _religionManager.Setup(m => m.GetPlayerReligion("admin-1"))
-            .Returns(new ReligionData("", "", DeityType.None, "", ""));
+            .Returns(new ReligionData(string.Empty, string.Empty, DeityDomain.None, string.Empty, string.Empty,
+                string.Empty));
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion("admin-1")).Returns(false);
 
@@ -241,14 +243,14 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
         var playerData = CreatePlayerData("player-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "TestReligion", "Player");
 
         _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { target.Object });
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _religionManager.Setup(m => m.GetPlayerActiveDeity("player-1")).Returns(DeityType.Khoras);
+        _religionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-1")).Returns(DeityDomain.Craft);
         _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
         _religionManager.Setup(m => m.GetReligionByName("TestReligion")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion("player-1")).Returns(true);
@@ -274,7 +276,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
         var playerData = CreatePlayerData("player-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
         religion.MemberUIDs.Add("player-1");
 
         var args = CreateCommandArgs(admin.Object);
@@ -306,7 +308,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var founder = CreateMockPlayer("founder-1", "Founder");
         var member = CreateMockPlayer("member-1", "Member");
         var playerData = CreatePlayerData("founder-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
         religion.MemberUIDs.Add("member-1");
         religion.MemberRoles["member-1"] = "member";
 
@@ -343,7 +345,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var admin = CreateMockPlayer("admin-1", "Admin");
         var founder = CreateMockPlayer("founder-1", "Founder");
         var playerData = CreatePlayerData("founder-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
         // Sole member (founder)
 
         var args = CreateCommandArgs(admin.Object);
@@ -372,7 +374,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
         var playerData = CreatePlayerData("admin-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
         religion.MemberUIDs.Add("admin-1");
 
         var args = CreateCommandArgs(admin.Object);

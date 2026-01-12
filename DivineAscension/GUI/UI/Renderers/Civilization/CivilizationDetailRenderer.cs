@@ -154,7 +154,7 @@ internal static class CivilizationDetailRenderer
 
         // Deity icon
         const float deityIconSize = 20f;
-        if (Enum.TryParse<DeityType>(member.Deity, out var deityType))
+        if (Enum.TryParse<DeityDomain>(member.Domain, out var deityType))
         {
             var deityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
             var iconX = x + 16f - deityIconSize / 2f;
@@ -171,7 +171,7 @@ internal static class CivilizationDetailRenderer
 
         // Sub info - includes deity, member count, and religion founder name
         var subText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_MEMBER_CARD_INFO,
-            member.Deity, member.MemberCount, member.FounderName);
+            member.Domain, member.MemberCount, member.FounderName);
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(x + 40f, y + 32f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), subText);
 
