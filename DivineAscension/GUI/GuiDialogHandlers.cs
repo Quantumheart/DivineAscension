@@ -65,7 +65,8 @@ public partial class GuiDialog
         _manager!.Initialize(packet.ReligionUID, deityType, packet.ReligionName, packet.FavorRank,
             packet.PrestigeRank);
 
-        // Set current favor and prestige values for progress bars
+        // Set deity name and current favor/prestige values for progress bars
+        _manager.ReligionStateManager.CurrentDeityName = packet.DeityName;
         _manager.ReligionStateManager.CurrentFavor = packet.CurrentFavor;
         _manager.ReligionStateManager.CurrentPrestige = packet.CurrentPrestige;
         _manager.ReligionStateManager.TotalFavorEarned = packet.TotalFavorEarned;
@@ -397,6 +398,8 @@ public partial class GuiDialog
             if (myReligionInfo != null && packet.NewDeityName != null)
             {
                 myReligionInfo.DeityName = packet.NewDeityName;
+                // Also update the header-level deity name
+                _manager.ReligionStateManager.CurrentDeityName = packet.NewDeityName;
             }
 
             // Refresh the religion info to ensure everything is in sync
@@ -460,7 +463,7 @@ public partial class GuiDialog
                     NotificationType.FavorRankUp,
                     packet.FavorRank,
                     description,
-                    _manager.ReligionStateManager.CurrentDeity);
+                    _manager.ReligionStateManager.CurrentReligionDomain);
         }
 
         // Check for prestige rank-up
@@ -476,7 +479,7 @@ public partial class GuiDialog
                     NotificationType.PrestigeRankUp,
                     packet.PrestigeRank,
                     description,
-                    _manager.ReligionStateManager.CurrentDeity);
+                    _manager.ReligionStateManager.CurrentReligionDomain);
         }
 
         // Update previous ranks for next comparison
@@ -510,7 +513,7 @@ public partial class GuiDialog
         // Play unlock success sound
         if (_manager != null)
         {
-            switch (_manager.ReligionStateManager.CurrentDeity)
+            switch (_manager.ReligionStateManager.CurrentReligionDomain)
             {
                 case DeityDomain.None:
                     break;

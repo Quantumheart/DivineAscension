@@ -11,6 +11,7 @@ public readonly struct ReligionHeaderViewModel(
     string? currentCivilizationName,
     IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> memberReligions,
     DeityDomain currentDeity,
+    string? currentDeityName,
     string? currentReligionName,
     int religionMemberCount,
     string? playerRoleInReligion,
@@ -30,6 +31,7 @@ public readonly struct ReligionHeaderViewModel(
         memberReligions;
 
     public DeityDomain CurrentDeity { get; } = currentDeity;
+    public string? CurrentDeityName { get; } = currentDeityName;
     public string? CurrentReligionName { get; } = currentReligionName;
     public int ReligionMemberCount { get; } = religionMemberCount;
     public string? PlayerRoleInReligion { get; } = playerRoleInReligion;

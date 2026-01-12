@@ -44,7 +44,7 @@ public static class LocalizationKeys
     public const string UI_RELIGION_NAME_PLACEHOLDER = "divineascension:ui.religion.name.placeholder";
     public const string UI_RELIGION_NAME_ERROR_TOO_SHORT = "divineascension:ui.religion.name.error.too_short";
     public const string UI_RELIGION_NAME_ERROR_TOO_LONG = "divineascension:ui.religion.name.error.too_long";
-    public const string UI_RELIGION_DEITY_LABEL = "divineascension:ui.religion.deity.label";
+    public const string UI_RELIGION_DOMAIN_LABEL = "divineascension:ui.religion.domain.label";
     public const string UI_RELIGION_DEITY_NAME_LABEL = "divineascension:ui.religion.deity_name.label";
     public const string UI_RELIGION_DEITY_NAME_PLACEHOLDER = "divineascension:ui.religion.deity_name.placeholder";
 
@@ -475,7 +475,7 @@ public static class LocalizationKeys
     #region Table Headers
 
     public const string UI_TABLE_NAME = "divineascension:ui.table.name";
-    public const string UI_TABLE_DOMAIN = "divineascension:ui.table.domain";
+    public const string UI_TABLE_DOMAIN = "divineascension:ui.table.deity_name";
     public const string UI_TABLE_PRESTIGE = "divineascension:ui.table.prestige";
     public const string UI_TABLE_MEMBERS = "divineascension:ui.table.members";
     public const string UI_TABLE_PUBLIC = "divineascension:ui.table.public";

@@ -146,6 +146,7 @@ internal static class ReligionTableRenderer
     {
         var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
         const float fontSize = 16f;
+        const float padding = 12f;
 
         // Column labels
         var columns = new[]
@@ -160,7 +161,18 @@ internal static class ReligionTableRenderer
         for (var i = 0; i < columns.Length; i++)
         {
             var colX = x + i * ColumnWidth;
-            DrawCenteredText(drawList, columns[i], colX, y + 8f, ColumnWidth, headerColor, fontSize);
+
+            if (i == 0)
+            {
+                // Name column: offset header to align with text area after icon
+                var textAreaX = colX + padding + IconSize + padding;
+                var textAreaWidth = ColumnWidth - IconSize - padding * 3;
+                DrawCenteredText(drawList, columns[i], textAreaX, y + 8f, textAreaWidth, headerColor, fontSize);
+            }
+            else
+            {
+                DrawCenteredText(drawList, columns[i], colX, y + 8f, ColumnWidth, headerColor, fontSize);
+            }
         }
     }
 
@@ -261,7 +273,7 @@ internal static class ReligionTableRenderer
     }
 
     /// <summary>
-    ///     Draw Deity column: Deity name and title (2 lines, centered)
+    ///     Draw Deity column: Deity name centered
     /// </summary>
     private static void DrawDeityColumn(
         ImDrawListPtr drawList,
@@ -271,17 +283,9 @@ internal static class ReligionTableRenderer
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         const float fontSize = 13f;
-        const float lineHeight = 16f;
+        var centerY = rowY + (RowHeight - fontSize) / 2f;
 
-        // Line 1: Domain (e.g., "Craft")
-        var deityName = religion.Domain;
-        var line1Y = rowY + (RowHeight - lineHeight * 2) / 2f;
-        DrawCenteredText(drawList, deityName, colX, line1Y, ColumnWidth, textColor, fontSize);
-
-        // Line 2: Deity title (e.g., "God of the Forge & Craft")
-        var deityTitle = DeityHelper.GetDeityTitle(religion.Domain);
-        var line2Y = line1Y + lineHeight;
-        DrawCenteredText(drawList, deityTitle, colX, line2Y, ColumnWidth, textColor, fontSize);
+        DrawCenteredText(drawList, religion.DeityName, colX, centerY, ColumnWidth, textColor, fontSize);
     }
 
     /// <summary>
@@ -379,8 +383,12 @@ internal static class ReligionTableRenderer
         uint color,
         float fontSize)
     {
-        var textSize = ImGui.CalcTextSize(text);
-        var textX = colX + (colWidth - textSize.X) / 2f;
+        // Calculate text size scaled to match the actual render font size
+        var defaultFontSize = ImGui.GetFont().FontSize;
+        var baseTextSize = ImGui.CalcTextSize(text);
+        var scale = fontSize / defaultFontSize;
+        var scaledWidth = baseTextSize.X * scale;
+        var textX = colX + (colWidth - scaledWidth) / 2f;
         drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(textX, colY), color, text);
     }
 

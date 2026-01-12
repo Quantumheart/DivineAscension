@@ -171,8 +171,8 @@ internal static class ReligionDetailRenderer
         // Deity name with full title (multi-line if needed)
         // Use custom deity name if available, otherwise fall back to domain-based display
         var deityDisplayName = !string.IsNullOrWhiteSpace(vm.DeityName)
-            ? GetDeityDisplayNameWithCustomName(vm.DeityName, deityType)
-            : GetDeityDisplayName(deityType);
+            ? vm.DeityName
+            : GetDomainDisplayTitle(deityType);
         var deityLines = deityDisplayName.Split('\n');
         var deityStartY = deityValueY - (deityLines.Length > 1 ? 8f : 0f); // Adjust if multi-line
 
@@ -354,7 +354,7 @@ internal static class ReligionDetailRenderer
     /// <summary>
     ///     Get display name for a deity with full title (multi-line format)
     /// </summary>
-    private static string GetDeityDisplayName(DeityDomain deity)
+    private static string GetDomainDisplayTitle(DeityDomain deity)
     {
         var name = deity.ToLocalizedString();
         var title = deity switch

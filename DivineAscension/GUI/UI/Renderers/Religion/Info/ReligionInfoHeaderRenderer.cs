@@ -64,11 +64,13 @@ internal static class ReligionInfoHeaderRenderer
             if (viewModel.IsFounder)
             {
                 var textWidth = ImGui.CalcTextSize(deityDisplay).X;
-                const float buttonSize = 18f;
+                const float buttonWidth = 40f;
+                const float buttonHeight = 18f;
                 const float buttonPadding = 8f;
                 var buttonX = leftCol + 80f + textWidth + buttonPadding;
 
-                if (ButtonRenderer.DrawIconButton(drawList, "✎", buttonX, currentY - 2f, buttonSize, buttonSize))
+                if (ButtonRenderer.DrawButton(drawList, "Edit", buttonX, currentY - 2f, buttonWidth, buttonHeight,
+                        isPrimary: false, enabled: true))
                 {
                     events.Add(new InfoEvent.EditDeityNameOpen());
                 }

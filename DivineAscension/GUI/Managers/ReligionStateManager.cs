@@ -46,7 +46,8 @@ public class ReligionStateManager : IReligionStateManager
 
     public ReligionTabState State { get; } = new();
     public string? CurrentReligionUID { get; set; }
-    public DeityDomain CurrentDeity { get; set; }
+    public DeityDomain CurrentReligionDomain { get; set; }
+    public string? CurrentDeityName { get; set; }
     public string? CurrentReligionName { get; set; }
     public int ReligionMemberCount { get; set; }
     public string? PlayerRoleInReligion { get; set; }
@@ -56,11 +57,11 @@ public class ReligionStateManager : IReligionStateManager
     public int CurrentPrestige { get; set; }
     public int TotalFavorEarned { get; set; }
 
-    public void Initialize(string? id, DeityDomain deity, string? religionName, int favorRank = 0,
+    public void Initialize(string? id, DeityDomain domain, string? religionName, int favorRank = 0,
         int prestigeRank = 0)
     {
         CurrentReligionUID = id;
-        CurrentDeity = deity;
+        CurrentReligionDomain = domain;
         CurrentReligionName = religionName;
         CurrentFavorRank = favorRank;
         CurrentPrestigeRank = prestigeRank;
@@ -69,7 +70,8 @@ public class ReligionStateManager : IReligionStateManager
     public void Reset()
     {
         CurrentReligionUID = null;
-        CurrentDeity = DeityDomain.None;
+        CurrentReligionDomain = DeityDomain.None;
+        CurrentDeityName = null;
         CurrentReligionName = null;
         ReligionMemberCount = 0;
         PlayerRoleInReligion = null;
@@ -81,7 +83,7 @@ public class ReligionStateManager : IReligionStateManager
 
     public bool HasReligion()
     {
-        return !string.IsNullOrEmpty(CurrentReligionUID) && CurrentDeity != DeityDomain.None;
+        return !string.IsNullOrEmpty(CurrentReligionUID) && CurrentReligionDomain != DeityDomain.None;
     }
 
 

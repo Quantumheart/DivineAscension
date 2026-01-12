@@ -105,7 +105,7 @@ internal static class ReligionHeaderRenderer
         // Religion name and deity
         var religionName = viewModel.CurrentReligionName ??
                            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNKNOWN_RELIGION);
-        var deityName = GetDeityDisplayName(viewModel.CurrentDeity);
+        var deityName = GetDeityDisplayName(viewModel.CurrentDeityName, viewModel.CurrentDeity);
         var headerText = $"{religionName} - {deityName}";
 
         var headerTextPos = new Vector2(currentX, viewModel.Y + 12f);
@@ -269,10 +269,14 @@ internal static class ReligionHeaderRenderer
     // Old below-header civilization section removed in favor of two-column layout
 
     /// <summary>
-    ///     Get display name for a deity with title
+    ///     Get display name for a deity
     /// </summary>
-    private static string GetDeityDisplayName(DeityDomain deity)
+    private static string GetDeityDisplayName(string? deityName, DeityDomain deity)
     {
-        return deity.ToLocalizedStringWithTitle();
+        // Use the custom deity name if available, otherwise fall back to domain name
+        if (!string.IsNullOrEmpty(deityName))
+            return deityName;
+
+        return deity.ToLocalizedString();
     }
 }
