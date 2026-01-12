@@ -506,4 +506,236 @@ public class ProfanityFilterServiceTests
     }
 
     #endregion
+
+    #region L33t Speak Detection Tests
+
+    [Theory]
+    [InlineData("sh1t", "shit")]
+    [InlineData("4ss", "ass")]
+    [InlineData("@ss", "ass")]
+    [InlineData("a$$", "ass")]
+    [InlineData("@$$", "ass")]
+    [InlineData("fu(k", "fuck")]
+    [InlineData("fuc|<", "fuck")]
+    [InlineData("b1tch", "bitch")]
+    [InlineData("c0ck", "cock")]
+    [InlineData("d1ck", "dick")]
+    [InlineData("n1gg3r", "nigger")]
+    [InlineData("f4g", "fag")]
+    public void ContainsProfanity_DetectsLeetSpeak_SingleCharSubstitutions(string input, string profaneWord)
+    {
+        // Arrange
+        ProfanityFilterService.Instance.InitializeForTesting(new[] { profaneWord });
+
+        // Act
+        var result = ProfanityFilterService.Instance.ContainsProfanity(input, out var matchedWord);
+
+        // Assert
+        Assert.True(result, $"Should detect '{input}' as l33t speak for '{profaneWord}'");
+        Assert.Equal(input.ToLowerInvariant(), matchedWord);
+    }
+
+    [Theory]
+    [InlineData("|3itch", "bitch")]
+    [InlineData("phuck", "fuck")]
+    [InlineData("vvhore", "whore")]
+    public void ContainsProfanity_DetectsLeetSpeak_MultiCharSubstitutions(string input, string profaneWord)
+    {
+        // Arrange
+        ProfanityFilterService.Instance.InitializeForTesting(new[] { profaneWord });
+
+        // Act
+        var result = ProfanityFilterService.Instance.ContainsProfanity(input, out var matchedWord);
+
+        // Assert
+        Assert.True(result, $"Should detect '{input}' as l33t speak for '{profaneWord}'");
+        Assert.Equal(input.ToLowerInvariant(), matchedWord);
+    }
+
+    [Theory]
+    [InlineData("SH1T", "shit")]
+    [InlineData("4SS", "ass")]
+    [InlineData("FU(K", "fuck")]
+    public void ContainsProfanity_DetectsLeetSpeak_WithMixedCase(string input, string profaneWord)
+    {
+        // Arrange
+        ProfanityFilterService.Instance.InitializeForTesting(new[] { profaneWord });
+
+        // Act
+        var result = ProfanityFilterService.Instance.ContainsProfanity(input, out var matchedWord);
+
+        // Assert
+        Assert.True(result, $"Should detect '{input}' (mixed case) as l33t speak for '{profaneWord}'");
+    }
+
+    [Theory]
+    [InlineData("hello")]
+    [InlineData("4ever")]
+    [InlineData("1337")]
+    [InlineData("2fast")]
+    [InlineData("gr8")]
+    [InlineData("l8r")]
+    public void ContainsProfanity_DoesNotFlagLegitimateL33t(string input)
+    {
+        // Arrange - Use some common profane words
+        ProfanityFilterService.Instance.InitializeForTesting(new[] { "shit", "fuck", "ass", "bitch" });
+
+        // Act
+        var result = ProfanityFilterService.Instance.ContainsProfanity(input);
+
+        // Assert
+        Assert.False(result, $"Should not flag '{input}' as profanity");
+    }
+
+    #endregion
+
+    #region Repetition Collapse Detection Tests
+
+    [Theory]
+    [InlineData("shiiiit", "shit")]
+    [InlineData("fuuuuck", "fuck")]
+    [InlineData("assss", "ass")]
+    [InlineData("biiiitch", "bitch")]
+    [InlineData("coooock", "cock")]
+    [InlineData("niggggger", "nigger")]
+    public void ContainsProfanity_DetectsRepeatedCharacters(string input, string profaneWord)
+    {
+        // Arrange
+        ProfanityFilterService.Instance.InitializeForTesting(new[] { profaneWord });
+
+        // Act
+        var result = ProfanityFilterService.Instance.ContainsProfanity(input, out var matchedWord);
+
+        // Assert
+        Assert.True(result, $"Should detect '{input}' as stretched version of '{profaneWord}'");
+        Assert.Equal(input.ToLowerInvariant(), matchedWord);
+    }
+
+    [Theory]
+    [InlineData("shiiiiiiiiit", "shit")]
+    [InlineData("fuuuuuuuuuck", "fuck")]
+    public void ContainsProfanity_DetectsManyRepeatedCharacters(string input, string profaneWord)
+    {
+        // Arrange
+        ProfanityFilterService.Instance.InitializeForTesting(new[] { profaneWord });
+
+        // Act
+        var result = ProfanityFilterService.Instance.ContainsProfanity(input);
+
+        // Assert
+        Assert.True(result, $"Should detect '{input}' with many repeated characters");
+    }
+
+    [Theory]
+    [InlineData("book")]
+    [InlineData("flood")]
+    [InlineData("success")]
+    [InlineData("committee")]
+    [InlineData("balloon")]
+    public void ContainsProfanity_DoesNotFlagLegitimateDoubleLetters(string input)
+    {
+        // Arrange
+        ProfanityFilterService.Instance.InitializeForTesting(new[] { "shit", "fuck", "ass", "bitch" });
+
+        // Act
+        var result = ProfanityFilterService.Instance.ContainsProfanity(input);
+
+        // Assert
+        Assert.False(result, $"Should not flag '{input}' as profanity");
+    }
+
+    #endregion
+
+    #region Combined L33t and Repetition Tests
+
+    [Theory]
+    [InlineData("4ssssss", "ass")]
+    [InlineData("$h1111t", "shit")]
+    [InlineData("fuuu(k", "fuck")]
+    [InlineData("b11111tch", "bitch")]
+    [InlineData("@$$$$", "ass")]
+    public void ContainsProfanity_DetectsCombinedLeetAndRepetition(string input, string profaneWord)
+    {
+        // Arrange
+        ProfanityFilterService.Instance.InitializeForTesting(new[] { profaneWord });
+
+        // Act
+        var result = ProfanityFilterService.Instance.ContainsProfanity(input, out var matchedWord);
+
+        // Assert
+        Assert.True(result, $"Should detect '{input}' as combined l33t+repetition of '{profaneWord}'");
+        Assert.Equal(input.ToLowerInvariant(), matchedWord);
+    }
+
+    [Fact]
+    public void ContainsProfanity_LeetInSentence_DetectsProfanity()
+    {
+        // Arrange
+        ProfanityFilterService.Instance.InitializeForTesting(new[] { "shit" });
+
+        // Act
+        var result = ProfanityFilterService.Instance.ContainsProfanity("This is $h1t content", out var matchedWord);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal("$h1t", matchedWord);
+    }
+
+    [Fact]
+    public void ContainsProfanity_RepetitionInSentence_DetectsProfanity()
+    {
+        // Arrange
+        ProfanityFilterService.Instance.InitializeForTesting(new[] { "shit" });
+
+        // Act
+        var result = ProfanityFilterService.Instance.ContainsProfanity("This is shiiiit content", out var matchedWord);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal("shiiiit", matchedWord);
+    }
+
+    #endregion
+
+    #region False Positive Prevention Tests (Extended)
+
+    [Theory]
+    [InlineData("assassin")]
+    [InlineData("classic")]
+    [InlineData("password")]
+    [InlineData("assume")]
+    [InlineData("passionate")]
+    [InlineData("brass")]
+    [InlineData("glass")]
+    [InlineData("mass")]
+    public void ContainsProfanity_DoesNotFlagWordsContainingAss(string input)
+    {
+        // Arrange
+        ProfanityFilterService.Instance.InitializeForTesting(new[] { "ass" });
+
+        // Act
+        var result = ProfanityFilterService.Instance.ContainsProfanity(input);
+
+        // Assert - word boundary detection should prevent these false positives
+        Assert.False(result, $"Should not flag '{input}' even though it contains 'ass'");
+    }
+
+    [Theory]
+    [InlineData("scunthorpe")]
+    [InlineData("cocktail")]
+    [InlineData("peacock")]
+    [InlineData("hancock")]
+    public void ContainsProfanity_DoesNotFlagScunthorpeProblemWords(string input)
+    {
+        // Arrange
+        ProfanityFilterService.Instance.InitializeForTesting(new[] { "cunt", "cock" });
+
+        // Act
+        var result = ProfanityFilterService.Instance.ContainsProfanity(input);
+
+        // Assert - word boundary detection should prevent these false positives
+        Assert.False(result, $"Should not flag '{input}' (Scunthorpe problem)");
+    }
+
+    #endregion
 }

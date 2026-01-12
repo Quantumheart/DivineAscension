@@ -20,6 +20,52 @@ public class ProfanityFilterService
     private static readonly object _initLock = new();
     private static readonly Regex WordSplitter = new(@"[\s\-_.,;:!?]+", RegexOptions.Compiled);
     private static readonly string[] SupportedLanguages = { "en", "de", "es", "fr", "ru" };
+
+    /// <summary>
+    ///     L33t speak single-character substitution map.
+    ///     Maps common l33t characters to their alphabetic equivalents.
+    /// </summary>
+    private static readonly Dictionary<char, char> LeetCharMap = new()
+    {
+        ['0'] = 'o',
+        ['1'] = 'i',
+        ['2'] = 'z',
+        ['3'] = 'e',
+        ['4'] = 'a',
+        ['5'] = 's',
+        ['6'] = 'g',
+        ['7'] = 't',
+        ['8'] = 'b',
+        ['9'] = 'g',
+        ['@'] = 'a',
+        ['$'] = 's',
+        ['!'] = 'i',
+        ['|'] = 'i',
+        ['+'] = 't',
+        ['('] = 'c',
+        ['<'] = 'c',
+        ['{'] = 'c',
+        ['['] = 'c'
+    };
+
+    /// <summary>
+    ///     L33t speak multi-character substitution map.
+    ///     These patterns are checked before single-character substitutions.
+    ///     Ordered by length (longest first) for proper matching.
+    /// </summary>
+    private static readonly (string Pattern, string Replacement)[] LeetMultiCharPatterns =
+    [
+        ("|-|", "h"),
+        ("/\\", "a"),
+        ("\\/", "v"),
+        ("|\\|", "n"),
+        ("|3", "b"),
+        ("|<", "k"),
+        ("()", "o"),
+        ("ph", "f"),
+        ("vv", "w")
+    ];
+
     private readonly HashSet<string> _profanityWords = new(StringComparer.OrdinalIgnoreCase);
     private ICoreAPI? _api;
     private bool _isInitialized;
@@ -106,26 +152,174 @@ public class ProfanityFilterService
             .Where(w => !string.IsNullOrWhiteSpace(w))
             .ToList();
 
-        // Check each word against the profanity list
+        // Check each word against all normalized variants (original, l33t, collapsed, combined)
         foreach (var word in words)
         {
-            if (_profanityWords.Contains(word))
+            foreach (var variant in GenerateNormalizedVariants(word))
             {
-                matchedWord = word;
-                return true;
+                if (_profanityWords.Contains(variant))
+                {
+                    matchedWord = word; // Return the original word, not the variant
+                    return true;
+                }
             }
         }
 
         // Also check if the entire normalized text (no spaces) contains profanity
         // This catches cases like "bad word" vs "badword"
         var noSpaceText = normalizedText.Replace(" ", "").Replace("-", "").Replace("_", "");
-        if (_profanityWords.Contains(noSpaceText))
+        foreach (var variant in GenerateNormalizedVariants(noSpaceText))
         {
-            matchedWord = noSpaceText;
-            return true;
+            if (_profanityWords.Contains(variant))
+            {
+                matchedWord = noSpaceText; // Return the concatenated form
+                return true;
+            }
         }
 
         return false;
+    }
+
+    /// <summary>
+    ///     Normalizes l33t speak substitutions to standard characters.
+    ///     Handles both single-character (4→a) and multi-character (|3→b) substitutions.
+    /// </summary>
+    /// <param name="input">The text to normalize (should already be lowercase)</param>
+    /// <returns>Normalized text with l33t characters replaced</returns>
+    private static string NormalizeLeetSpeak(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return input;
+        }
+
+        // First pass: Replace multi-character patterns (longest first)
+        // This handles patterns like "ph" -> "f", "vv" -> "w", etc.
+        var result = input;
+        foreach (var (pattern, replacement) in LeetMultiCharPatterns)
+        {
+            result = result.Replace(pattern, replacement);
+        }
+
+        // Fast path: if no single-char l33t characters remain, we're done
+        var hasLeetChars = false;
+        foreach (var c in result)
+        {
+            if (LeetCharMap.ContainsKey(c))
+            {
+                hasLeetChars = true;
+                break;
+            }
+        }
+
+        if (!hasLeetChars)
+        {
+            return result;
+        }
+
+        // Second pass: Replace single-character mappings
+        var sb = new StringBuilder(result.Length);
+        foreach (var c in result)
+        {
+            sb.Append(LeetCharMap.TryGetValue(c, out var replacement) ? replacement : c);
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    ///     Collapses repeated characters to detect stretched profanity.
+    ///     Example: "shiiiit" → "shit", "assss" → "as" (with maxRepeats=1)
+    ///     Or: "shiiiit" → "shiit", "assss" → "ass" (with maxRepeats=2)
+    /// </summary>
+    /// <param name="input">The text to collapse</param>
+    /// <param name="maxRepeats">Maximum consecutive repeats to keep (1 or 2)</param>
+    /// <returns>Text with repeated characters collapsed</returns>
+    private static string CollapseRepeatedCharacters(string input, int maxRepeats = 1)
+    {
+        if (string.IsNullOrEmpty(input) || input.Length < 2)
+        {
+            return input;
+        }
+
+        var sb = new StringBuilder(input.Length);
+        var prevChar = input[0];
+        var repeatCount = 1;
+        sb.Append(prevChar);
+
+        for (var i = 1; i < input.Length; i++)
+        {
+            var currentChar = input[i];
+            if (currentChar == prevChar)
+            {
+                repeatCount++;
+                if (repeatCount <= maxRepeats)
+                {
+                    sb.Append(currentChar);
+                }
+            }
+            else
+            {
+                sb.Append(currentChar);
+                prevChar = currentChar;
+                repeatCount = 1;
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    ///     Generates normalized variants of a word for checking against the profanity list.
+    ///     Returns unique variants only to avoid redundant checks.
+    /// </summary>
+    /// <param name="word">The word to generate variants for</param>
+    /// <returns>Enumerable of unique normalized variants to check</returns>
+    private static IEnumerable<string> GenerateNormalizedVariants(string word)
+    {
+        // Use a HashSet to track returned variants and avoid duplicates
+        var returned = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        // Original word (already lowercase)
+        if (returned.Add(word))
+        {
+            yield return word;
+        }
+
+        // L33t normalized version
+        var leetNormalized = NormalizeLeetSpeak(word);
+        if (returned.Add(leetNormalized))
+        {
+            yield return leetNormalized;
+        }
+
+        // Repetition-collapsed versions (try both max 2 and max 1 repeats)
+        // Max 2 handles cases like "assss" → "ass" (double letters preserved)
+        var collapsed2 = CollapseRepeatedCharacters(word, maxRepeats: 2);
+        if (returned.Add(collapsed2))
+        {
+            yield return collapsed2;
+        }
+
+        // Max 1 handles cases like "shiiiit" → "shit" (all doubled removed)
+        var collapsed1 = CollapseRepeatedCharacters(word, maxRepeats: 1);
+        if (returned.Add(collapsed1))
+        {
+            yield return collapsed1;
+        }
+
+        // L33t + collapsed combos (try both max values)
+        var leetCollapsed2 = CollapseRepeatedCharacters(leetNormalized, maxRepeats: 2);
+        if (returned.Add(leetCollapsed2))
+        {
+            yield return leetCollapsed2;
+        }
+
+        var leetCollapsed1 = CollapseRepeatedCharacters(leetNormalized, maxRepeats: 1);
+        if (returned.Add(leetCollapsed1))
+        {
+            yield return leetCollapsed1;
+        }
     }
 
     /// <summary>
