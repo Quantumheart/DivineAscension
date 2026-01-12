@@ -1,4 +1,9 @@
 
+## [4.2.0] - 2026-01-12
+
+### Added
+- implement profanity filter in the religion and civilization create
+
 ## [4.1.0] - 2026-01-12
 
 ### Added
