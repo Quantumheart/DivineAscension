@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Text;
 using Vintagestory.API.Common;
 
 namespace DivineAscension.Commands.Parsers;
@@ -128,10 +130,62 @@ public class QuotedStringParser : ArgumentParserBase
         var afterQuote = input.Substring(endQuoteIndex + 1).TrimStart();
         if (!string.IsNullOrEmpty(afterQuote))
         {
-            // Push remaining text back for subsequent parsers
-            rawArgs.PushSingle(afterQuote);
+            // Push remaining tokens back for subsequent parsers
+            PushRemainingArgs(afterQuote, rawArgs);
         }
 
         return EnumParseResult.Good;
+    }
+
+    /// <summary>
+    /// Tokenizes remaining text and pushes each token back for subsequent parsers.
+    /// Tokens are pushed in reverse order so they're popped in the correct order.
+    /// </summary>
+    private static void PushRemainingArgs(string remaining, CmdArgs rawArgs)
+    {
+        var tokens = TokenizeRemainingArgs(remaining);
+        // Push in reverse order so they're popped in correct order
+        for (var i = tokens.Count - 1; i >= 0; i--)
+        {
+            rawArgs.PushSingle(tokens[i]);
+        }
+    }
+
+    /// <summary>
+    /// Splits input into tokens on whitespace, preserving quoted strings as single tokens.
+    /// </summary>
+    private static List<string> TokenizeRemainingArgs(string input)
+    {
+        var tokens = new List<string>();
+        var current = new StringBuilder();
+        var inQuotes = false;
+
+        foreach (var c in input)
+        {
+            if (c == '"')
+            {
+                inQuotes = !inQuotes;
+                current.Append(c);
+            }
+            else if (char.IsWhiteSpace(c) && !inQuotes)
+            {
+                if (current.Length > 0)
+                {
+                    tokens.Add(current.ToString());
+                    current.Clear();
+                }
+            }
+            else
+            {
+                current.Append(c);
+            }
+        }
+
+        if (current.Length > 0)
+        {
+            tokens.Add(current.ToString());
+        }
+
+        return tokens;
     }
 }
