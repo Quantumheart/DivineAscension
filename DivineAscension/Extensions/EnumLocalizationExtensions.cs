@@ -46,37 +46,37 @@ public static class EnumLocalizationExtensions
     }
 
     /// <summary>
-    ///     Get the localized name for a DeityType.
+    ///     Get the localized name for a DeityDomain.
     /// </summary>
-    /// <param name="deity">The deity type</param>
-    /// <returns>Localized deity name</returns>
+    /// <param name="deity">The deity domain</param>
+    /// <returns>Localized domain name</returns>
     public static string ToLocalizedString(this DeityDomain deity)
     {
         return deity switch
         {
-            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DEITY_KHORAS_NAME),
-            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DEITY_LYSA_NAME),
-            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DEITY_AETHRA_NAME),
-            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DEITY_GAIA_NAME),
-            _ => LocalizationService.Instance.Get(LocalizationKeys.DEITY_UNKNOWN_NAME)
+            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_CRAFT_NAME),
+            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_WILD_NAME),
+            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_HARVEST_NAME),
+            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_STONE_NAME),
+            _ => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_UNKNOWN_NAME)
         };
     }
 
     /// <summary>
-    ///     Get the localized name with title for a DeityType.
-    ///     Example: "Khoras - God of Forge & Craft"
+    ///     Get the localized name with title for a DeityDomain.
+    ///     Example: "Craft - God of Forge & Craft"
     /// </summary>
-    /// <param name="deity">The deity type</param>
-    /// <returns>Localized deity name with title</returns>
+    /// <param name="deity">The deity domain</param>
+    /// <returns>Localized domain name with title</returns>
     public static string ToLocalizedStringWithTitle(this DeityDomain deity)
     {
         var name = deity.ToLocalizedString();
         var title = deity switch
         {
-            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DEITY_KHORAS_TITLE),
-            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DEITY_LYSA_TITLE),
-            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DEITY_AETHRA_TITLE),
-            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DEITY_GAIA_TITLE),
+            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_CRAFT_TITLE),
+            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_WILD_TITLE),
+            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_HARVEST_TITLE),
+            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_STONE_TITLE),
             _ => ""
         };
 
@@ -84,19 +84,19 @@ public static class EnumLocalizationExtensions
     }
 
     /// <summary>
-    ///     Get the localized description for a DeityType.
+    ///     Get the localized description for a DeityDomain.
     /// </summary>
-    /// <param name="deity">The deity type</param>
-    /// <returns>Localized deity description</returns>
+    /// <param name="deity">The deity domain</param>
+    /// <returns>Localized domain description</returns>
     public static string ToLocalizedDescription(this DeityDomain deity)
     {
         return deity switch
         {
-            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DEITY_KHORAS_DESCRIPTION),
-            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DEITY_LYSA_DESCRIPTION),
-            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DEITY_AETHRA_DESCRIPTION),
-            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DEITY_GAIA_DESCRIPTION),
-            _ => LocalizationService.Instance.Get(LocalizationKeys.DEITY_UNKNOWN_NAME)
+            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_CRAFT_DESCRIPTION),
+            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_WILD_DESCRIPTION),
+            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_HARVEST_DESCRIPTION),
+            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_STONE_DESCRIPTION),
+            _ => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_UNKNOWN_NAME)
         };
     }
 }

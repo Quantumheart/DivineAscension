@@ -28,7 +28,7 @@ public static class VintageStoryStats
     // Utility Stats
     public const string HealingEffectiveness = "healingeffectivness";
 
-    // Khoras (Forge & Craft) Stats
+    // Craft (Forge & Craft) Stats
     public const string ToolDurability = "toolDurability";
     public const string OreDropRate = "oreDropRate";
     public const string ColdResistance = "coldResistance";
@@ -41,7 +41,7 @@ public static class VintageStoryStats
     public const string ArmorDurabilityLoss = "armorDurabilityLoss";
     public const string ArmorWalkSpeedAffectedness = "armorWalkSpeedAffectedness";
 
-    // Lysa (Hunt & Wild) Stats
+    // Wild (Hunt & Wild) Stats
     public const string DoubleHarvestChance = "doubleHarvestChance";
     public const string AnimalDamage = "animalDamage";
     public const string AnimalDrops = "animalLootDropRate";
@@ -52,7 +52,7 @@ public static class VintageStoryStats
     public const string AnimalHarvestTime = "animalHarvestingTime";
     public const string ForagingYield = "foragingYield";
 
-    // Aethra (Agriculture & Cooking) Stats
+    // Harvest (Agriculture & Cooking) Stats
     public const string CropYield = "cropYield";
     public const string SeedDropChance = "seedDropChance";
     public const string CookingYield = "cookingYield";
@@ -61,7 +61,7 @@ public static class VintageStoryStats
     public const string WildCropYield = "wildCropYield";
     public const string CookedFoodSatiety = "cookedFoodSatiety";
 
-    // Gaia (Pottery & Clay) Stats
+    // Stone (Pottery & Clay) Stats
     public const string StoneYield = "stoneYield";
     public const string ClayYield = "clayYield";
     public const string ClayFormingVoxelChance = "clayFormingVoxelChance";
@@ -69,7 +69,7 @@ public static class VintageStoryStats
     public const string StorageVesselCapacity = "storageVesselCapacity";
     public const string DiggingSpeed = "diggingSpeed";
 
-    // Legacy Gaia Stats (kept for compatibility)
+    // Legacy Stone Stats (kept for compatibility)
     public const string PickDurability = "pickDurability";
     public const string FallDamageReduction = "fallDamageReduction";
     public const string RareStoneChance = "rareStoneChance";

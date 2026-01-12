@@ -22,13 +22,13 @@ public class FavorSystem : IFavorSystem
     private readonly IReligionPrestigeManager _prestigeManager;
     private readonly IReligionManager _religionManager;
     private readonly ICoreServerAPI _sapi;
-    private AethraFavorTracker? _aethraFavorTracker;
     private AnvilFavorTracker? _anvilFavorTracker;
     private ForagingFavorTracker? _foragingFavorTracker;
-    private GaiaFavorTracker? _gaiaFavorTracker;
+    private AethraFavorTracker? _harvestFavorTracker;
     private HuntingFavorTracker? _huntingFavorTracker;
     private MiningFavorTracker? _miningFavorTracker;
     private SmeltingFavorTracker? _smeltingFavorTracker;
+    private GaiaFavorTracker? _stoneFavorTracker;
 
     public FavorSystem(ICoreServerAPI sapi,
         IPlayerProgressionDataManager playerProgressionDataManager,
@@ -67,11 +67,11 @@ public class FavorSystem : IFavorSystem
         _foragingFavorTracker = new ForagingFavorTracker(_playerProgressionDataManager, _sapi, this);
         _foragingFavorTracker.Initialize();
 
-        _aethraFavorTracker = new AethraFavorTracker(_playerProgressionDataManager, _sapi, this);
-        _aethraFavorTracker.Initialize();
+        _harvestFavorTracker = new AethraFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _harvestFavorTracker.Initialize();
 
-        _gaiaFavorTracker = new GaiaFavorTracker(_playerProgressionDataManager, _sapi, this);
-        _gaiaFavorTracker.Initialize();
+        _stoneFavorTracker = new GaiaFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _stoneFavorTracker.Initialize();
 
         _smeltingFavorTracker = new SmeltingFavorTracker(_playerProgressionDataManager, _sapi, this);
         _smeltingFavorTracker.Initialize();
@@ -98,8 +98,8 @@ public class FavorSystem : IFavorSystem
         _smeltingFavorTracker?.Dispose();
         _huntingFavorTracker?.Dispose();
         _foragingFavorTracker?.Dispose();
-        _aethraFavorTracker?.Dispose();
-        _gaiaFavorTracker?.Dispose();
+        _harvestFavorTracker?.Dispose();
+        _stoneFavorTracker?.Dispose();
     }
 
     public void AwardFavorForAction(IServerPlayer player, string actionType, float amount)
@@ -419,13 +419,12 @@ public class FavorSystem : IFavorSystem
     /// <summary>
     ///     Calculates the total multiplier for passive favor generation
     /// </summary>
-    // todo rename: religionData -> playerProgressionData
-    internal float CalculatePassiveFavorMultiplier(IServerPlayer player, PlayerProgressionData religionData)
+    internal float CalculatePassiveFavorMultiplier(IServerPlayer player, PlayerProgressionData playerProgressionData)
     {
         var multiplier = 1.0f;
 
         // Favor rank bonuses (higher ranks gain passive favor faster)
-        multiplier *= religionData.FavorRank switch
+        multiplier *= playerProgressionData.FavorRank switch
         {
             FavorRank.Initiate => 1.0f,
             FavorRank.Disciple => 1.1f,

@@ -65,7 +65,7 @@ public class FavorCommandInfoTests : FavorCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("Divine Favor", result.StatusMessage);
-        Assert.Contains(nameof(DeityDomain.Craft), result.StatusMessage);
+        Assert.Contains("Craft", result.StatusMessage); // Localized domain name
         Assert.Contains("300", result.StatusMessage);
         Assert.Contains("Initiate", result.StatusMessage);
         Assert.Contains("Disciple", result.StatusMessage); // Next rank

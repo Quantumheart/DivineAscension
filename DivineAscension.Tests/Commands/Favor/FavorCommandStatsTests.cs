@@ -65,7 +65,7 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("Divine Statistics", result.StatusMessage);
-        Assert.Contains(nameof(DeityDomain.Craft), result.StatusMessage);
+        Assert.Contains("Craft", result.StatusMessage); // Localized domain name
         Assert.Contains("1,500", result.StatusMessage); // Current favor
         Assert.Contains("3,000", result.StatusMessage); // Total favor
         Assert.Contains("Zealot", result.StatusMessage);

@@ -445,12 +445,11 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     }
 
     /// <summary>
-    ///     Gets religions by deity
+    ///     Gets religions by domain
     /// </summary>
-    // todo: rename method
-    public List<ReligionData> GetReligionsByDeity(DeityDomain deity)
+    public List<ReligionData> GetReligionsByDomain(DeityDomain domain)
     {
-        return _religions.Values.Where(r => r.Domain == deity).ToList();
+        return _religions.Values.Where(r => r.Domain == domain).ToList();
     }
 
     /// <summary>
@@ -884,7 +883,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     /// <summary>
     ///     Migrates existing religions that have empty DeityName fields.
     ///     Called on world load after religions are loaded from save data.
-    ///     Sets DeityName to the legacy deity name based on domain.
+    ///     Sets DeityName to the domain name (e.g., "Craft", "Wild").
     /// </summary>
     public HashSet<string> MigrateEmptyDeityNames()
     {
@@ -894,11 +893,11 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         {
             if (string.IsNullOrEmpty(religion.DeityName))
             {
-                var legacyName = GetLegacyDeityName(religion.Domain);
-                religion.DeityName = legacyName;
+                var domainName = religion.Domain.ToString();
+                religion.DeityName = domainName;
                 migratedUIDs.Add(religion.ReligionUID);
                 _sapi.Logger.Notification(
-                    $"[DivineAscension] Migrated deity name for {religion.ReligionName}: '{legacyName}'");
+                    $"[DivineAscension] Migrated deity name for {religion.ReligionName}: '{domainName}'");
             }
         }
 
@@ -911,18 +910,6 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 
         return migratedUIDs;
     }
-
-    /// <summary>
-    ///     Gets the legacy deity name for a domain (used for migration)
-    /// </summary>
-    private static string GetLegacyDeityName(DeityDomain domain) => domain switch
-    {
-        DeityDomain.Craft => "Khoras",
-        DeityDomain.Wild => "Lysa",
-        DeityDomain.Harvest => "Aethra",
-        DeityDomain.Stone => "Gaia",
-        _ => "Unknown Deity"
-    };
 
     public void Save(ReligionData religionData)
     {
@@ -970,7 +957,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 
     /// <summary>
     ///     Migrates religions that don't have a DeityName (created before deity naming was added)
-    ///     Sets a default deity name based on the domain
+    ///     Sets a default deity name based on the domain (e.g., "Craft", "Wild")
     /// </summary>
     private void MigrateReligionsWithoutDeityName()
     {
@@ -979,15 +966,8 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         {
             if (string.IsNullOrWhiteSpace(religion.DeityName))
             {
-                // Set default deity name based on domain
-                religion.DeityName = religion.Domain switch
-                {
-                    DeityDomain.Craft => "Khoras",
-                    DeityDomain.Wild => "Lysa",
-                    DeityDomain.Harvest => "Aethra",
-                    DeityDomain.Stone => "Gaia",
-                    _ => religion.Domain.ToString()
-                };
+                // Set default deity name to domain name
+                religion.DeityName = religion.Domain.ToString();
                 migratedCount++;
             }
         }

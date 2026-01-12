@@ -77,14 +77,14 @@ public class EnumLocalizationExtensionsTests
 
     #endregion
 
-    #region DeityType Tests
+    #region DeityDomain Tests
 
     [Theory]
-    [InlineData(DeityDomain.Craft, "Khoras")]
-    [InlineData(DeityDomain.Wild, "Lysa")]
-    [InlineData(DeityDomain.Harvest, "Aethra")]
-    [InlineData(DeityDomain.Stone, "Gaia")]
-    [InlineData(DeityDomain.None, "Unknown Deity")]
+    [InlineData(DeityDomain.Craft, "Craft")]
+    [InlineData(DeityDomain.Wild, "Wild")]
+    [InlineData(DeityDomain.Harvest, "Harvest")]
+    [InlineData(DeityDomain.Stone, "Stone")]
+    [InlineData(DeityDomain.None, "Unknown")]
     public void DeityType_ToLocalizedString_ReturnsExpectedValue(DeityDomain deity, string expected)
     {
         // Act
@@ -130,7 +130,7 @@ public class EnumLocalizationExtensionsTests
         var result = DeityDomain.None.ToLocalizedStringWithTitle();
 
         // Assert
-        Assert.Equal("Unknown Deity", result);
+        Assert.Equal("Unknown", result);
         Assert.DoesNotContain(" - ", result); // No separator for None
     }
 

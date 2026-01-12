@@ -25,28 +25,28 @@ internal static class DeityInfoHelper
         return deityDomain switch
         {
             DeityDomain.Craft => new DeityInfo(
-                Name: "Khoras",
+                Name: "Craft",
                 Title: "God of the Forge & Craft",
                 Domain: "Forge & Craft",
-                Description: "The God of Forging and crafting, Khoras represents crafting."
+                Description: "The domain of forging and crafting, rewarding those who work the forge."
             ),
             DeityDomain.Wild => new DeityInfo(
-                Name: "Lysa",
-                Title: "Goddess of the Hunt & Wild",
+                Name: "Wild",
+                Title: "Domain of the Hunt & Wild",
                 Domain: "Hunt & Wild",
-                Description: "The Goddess of the Hunt, Lysa rewards patience, precision, and tracking."
+                Description: "The domain of the Hunt, rewarding patience, precision, and tracking."
             ),
             DeityDomain.Harvest => new DeityInfo(
-                Name: "Aethra",
+                Name: "Harvest",
                 Title: "Goddess of Agriculture & Light",
                 Domain: "Agriculture & Light",
-                Description: "Aethra represents cultivation and growth through light and warmth."
+                Description: "The domain of cultivation and growth through light and warmth."
             ),
             DeityDomain.Stone => new DeityInfo(
-                Name: "Gaia",
+                Name: "Stone",
                 Title: "Goddess of Earth & Stone",
                 Domain: "Earth & Stone",
-                Description: "Gaia represents the transformative power of working with clay and earth."
+                Description: "The domain representing the transformative power of working with clay and earth."
             ),
             _ => null
         };

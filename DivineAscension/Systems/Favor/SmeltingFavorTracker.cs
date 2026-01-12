@@ -8,7 +8,7 @@ using Vintagestory.API.Server;
 namespace DivineAscension.Systems.Favor;
 
 /// <summary>
-///     Tracks metal pouring into molds and awards favor to Khoras followers
+///     Tracks metal pouring into molds and awards favor to Craft followers
 /// </summary>
 public class SmeltingFavorTracker(
     IPlayerProgressionDataManager playerProgressionDataManager,
@@ -86,7 +86,7 @@ public class SmeltingFavorTracker(
         if (player == null)
             return;
 
-        // Check if player follows Khoras
+        // Check if player follows Craft domain
         if (_playerProgressionDataManager.GetPlayerDeityType(playerId) != DeityDomain.Craft)
             return;
 

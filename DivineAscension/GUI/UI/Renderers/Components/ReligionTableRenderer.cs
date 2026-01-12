@@ -273,7 +273,7 @@ internal static class ReligionTableRenderer
         const float fontSize = 13f;
         const float lineHeight = 16f;
 
-        // Line 1: Deity name (e.g., "Khoras")
+        // Line 1: Domain (e.g., "Craft")
         var deityName = religion.Domain;
         var line1Y = rowY + (RowHeight - lineHeight * 2) / 2f;
         DrawCenteredText(drawList, deityName, colX, line1Y, ColumnWidth, textColor, fontSize);

@@ -72,7 +72,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
     {
         var religions = string.IsNullOrEmpty(packet.FilterDeity)
             ? _religionManager!.GetAllReligions()
-            : _religionManager!.GetReligionsByDeity(
+            : _religionManager!.GetReligionsByDomain(
                 Enum.TryParse<DeityDomain>(packet.FilterDeity, out var deity) ? deity : DeityDomain.None);
 
         var religionInfoList = religions.Select(r => new ReligionListResponsePacket.ReligionInfo

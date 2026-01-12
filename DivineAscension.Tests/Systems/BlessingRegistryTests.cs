@@ -239,7 +239,7 @@ public class BlessingRegistryTests
     public void GetBlessingsForDeity_WithNoMatchingDeity_ReturnsEmptyList()
     {
         // Arrange
-        _registry.RegisterBlessing(TestFixtures.CreateTestBlessing("khoras_1", "Khoras", DeityDomain.Craft));
+        _registry.RegisterBlessing(TestFixtures.CreateTestBlessing("craft_1", "Craft", DeityDomain.Craft));
 
         // Act
         var blessings = _registry.GetBlessingsForDeity(DeityDomain.Harvest);

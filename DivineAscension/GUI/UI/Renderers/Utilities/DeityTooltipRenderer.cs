@@ -85,7 +85,7 @@ internal static class DeityTooltipRenderer
 
         // Domain in grey, 13px
         lines.Add(new TooltipLine(
-            $"{LocalizationService.Instance.Get(LocalizationKeys.DEITY_DOMAIN_LABEL)} {info.Domain}", ColorPalette.Grey,
+            $"{LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_LABEL)} {info.Domain}", ColorPalette.Grey,
             13f, false, SECTION_SPACING));
 
         // Description wrapped, white, 13px (reserve space for icon on right)

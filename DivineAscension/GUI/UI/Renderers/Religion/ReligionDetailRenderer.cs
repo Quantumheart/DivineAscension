@@ -359,10 +359,10 @@ internal static class ReligionDetailRenderer
         var name = deity.ToLocalizedString();
         var title = deity switch
         {
-            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DEITY_KHORAS_TITLE),
-            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DEITY_LYSA_TITLE),
-            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DEITY_AETHRA_TITLE),
-            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DEITY_GAIA_TITLE),
+            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_CRAFT_TITLE),
+            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_WILD_TITLE),
+            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_HARVEST_TITLE),
+            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_STONE_TITLE),
             _ => ""
         };
 
@@ -371,7 +371,7 @@ internal static class ReligionDetailRenderer
 
     /// <summary>
     ///     Get display name for a custom-named deity with domain title (multi-line format)
-    ///     Format: "CustomName\nDomain of X" (e.g., "Khoras\nDomain of the Forge & Craft")
+    ///     Format: "CustomName\nDomain of X" (e.g., "Ironforge\nDomain of the Forge & Craft")
     /// </summary>
     private static string GetDeityDisplayNameWithCustomName(string customName, DeityDomain deity)
     {

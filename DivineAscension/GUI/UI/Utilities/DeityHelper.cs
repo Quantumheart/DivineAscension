@@ -110,7 +110,7 @@ internal static class DeityHelper
 
     /// <summary>
     ///     Get formatted display text for a deity with custom name
-    ///     Format: "DeityName - Domain of X" (e.g., "Khoras - Domain of the Forge & Craft")
+    ///     Format: "DeityName - Domain of X" (e.g., "Domain -  Domain of the Forge & Craft")
     /// </summary>
     public static string GetDeityDisplayText(string deityName, string domain)
     {
@@ -121,7 +121,7 @@ internal static class DeityHelper
 
     /// <summary>
     ///     Get formatted display text for a deity with custom name (enum version)
-    ///     Format: "DeityName - Domain of X" (e.g., "Khoras - Domain of the Forge & Craft")
+    ///     Format: "DeityName - Domain of X" (e.g., "Domain - Domain of the Forge & Craft")
     /// </summary>
     public static string GetDeityDisplayText(string deityName, DeityDomain domain)
     {

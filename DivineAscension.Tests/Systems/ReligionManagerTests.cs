@@ -52,10 +52,10 @@ public class ReligionManagerTests
 
     #endregion
 
-    #region GetReligionsByDeity Tests
+    #region GetReligionsByDomain Tests
 
     [Fact]
-    public void GetReligionsByDeity_ReturnsOnlyMatchingReligions()
+    public void GetReligionsByDomain_ReturnsOnlyMatchingReligions()
     {
         // Arrange
         _religionManager.CreateReligion("Khoras Religion 1", DeityDomain.Craft, "TestDeity", "founder1", true);
@@ -63,7 +63,7 @@ public class ReligionManagerTests
         _religionManager.CreateReligion("Lysa Religion", DeityDomain.Wild, "TestDeity", "founder3", true);
 
         // Act
-        var khorasReligions = _religionManager.GetReligionsByDeity(DeityDomain.Craft);
+        var khorasReligions = _religionManager.GetReligionsByDomain(DeityDomain.Craft);
 
         // Assert
         Assert.Equal(2, khorasReligions.Count);
@@ -1117,13 +1117,13 @@ public class ReligionManagerTests
     }
 
     [Fact]
-    public void GetReligionsByDeity_WithNoMatchingReligions_ReturnsEmptyList()
+    public void GetReligionsByDomain_WithNoMatchingReligions_ReturnsEmptyList()
     {
         // Arrange
         _religionManager.CreateReligion("Khoras Religion", DeityDomain.Craft, "TestDeity", "founder1", true);
 
         // Act
-        var lysaReligions = _religionManager.GetReligionsByDeity(DeityDomain.Wild);
+        var lysaReligions = _religionManager.GetReligionsByDomain(DeityDomain.Wild);
 
         // Assert
         Assert.Empty(lysaReligions);

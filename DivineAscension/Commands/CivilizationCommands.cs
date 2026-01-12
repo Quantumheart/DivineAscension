@@ -5,6 +5,7 @@ using System.Text;
 using DivineAscension.Commands.Parsers;
 using DivineAscension.Constants;
 using DivineAscension.Data;
+using DivineAscension.Extensions;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
@@ -622,7 +623,7 @@ public class CivilizationCommands(
 
         if (duplicateDeities.Count > 0)
         {
-            var deityNames = string.Join(", ", duplicateDeities);
+            var deityNames = string.Join(", ", duplicateDeities.Select(d => d.ToLocalizedString()));
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_DUPLICATE_DEITIES, deityNames));
         }

@@ -20,17 +20,17 @@ public class CreateReligionRequestPacketTests
     [Fact]
     public void ParameterizedConstructor_SetsPropertiesCorrectly()
     {
-        var packet = new CreateReligionRequestPacket("Test Religion", DeityDomain.Craft.ToString(), "Khoras", true);
+        var packet = new CreateReligionRequestPacket("Test Religion", DeityDomain.Craft.ToString(), "Craft", true);
         Assert.Equal("Test Religion", packet.ReligionName);
         Assert.Equal("Craft", packet.Domain);
-        Assert.Equal("Khoras", packet.DeityName);
+        Assert.Equal("Craft", packet.DeityName);
         Assert.True(packet.IsPublic);
     }
 
     [Fact]
     public void SerializeDeserialize_RoundTripCorrectness()
     {
-        var original = new CreateReligionRequestPacket("Test Religion", DeityDomain.Craft.ToString(), "Khoras", true);
+        var original = new CreateReligionRequestPacket("Test Religion", DeityDomain.Craft.ToString(), "Craft", true);
 
         using var ms = new MemoryStream();
         Serializer.Serialize(ms, original);

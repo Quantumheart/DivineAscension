@@ -123,7 +123,7 @@ internal sealed class FakeCivilizationProvider : ICivilizationProvider
             GenerateGuid(rnd).ToString("N"),
             1,
             new List<string> { nameof(DeityDomain.Craft) },
-            new List<string> { "Solitary Followers of Khoras" },
+            new List<string> { "Solitary Followers of Craft" },
             "default"
         ));
 
@@ -143,10 +143,10 @@ internal sealed class FakeCivilizationProvider : ICivilizationProvider
             },
             new List<string>
             {
-                "Temple of Khoras",
-                "Church of Lysa",
-                "Order of Aethra",
-                "Disciples of Gaia"
+                "Temple of Craft",
+                "Church of Wild",
+                "Order of Harvest",
+                "Disciples of Stone"
             },
             "peace-dove"
         ));

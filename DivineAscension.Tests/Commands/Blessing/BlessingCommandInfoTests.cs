@@ -72,7 +72,7 @@ public class BlessingCommandInfoTests : BlessingCommandsTestHelpers
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("Divine Strike", result.StatusMessage);
         Assert.Contains("divine_strike", result.StatusMessage);
-        Assert.Contains("Khoras", result.StatusMessage);
+        Assert.Contains("Craft", result.StatusMessage);
         Assert.Contains("Player", result.StatusMessage);
         Assert.Contains("Combat", result.StatusMessage);
         Assert.Contains("Channel divine power", result.StatusMessage);

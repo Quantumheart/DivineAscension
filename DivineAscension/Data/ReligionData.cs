@@ -47,7 +47,7 @@ public class ReligionData
     public string ReligionUID { get; set; } = string.Empty;
 
     /// <summary>
-    ///     Display name of the religion (e.g., "Knights of Khoras")
+    ///     Display name of the religion (e.g., "Knights of the Forge")
     /// </summary>
     [ProtoMember(2)]
     public string ReligionName { get; set; } = string.Empty;

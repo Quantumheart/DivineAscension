@@ -74,7 +74,7 @@ public class ReligionCommandInfoTests : ReligionCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("TestReligion", result.StatusMessage);
-        Assert.Contains("Khoras", result.StatusMessage);
+        Assert.Contains("Craft", result.StatusMessage);
         Assert.Contains("Public", result.StatusMessage);
         Assert.Contains("2", result.StatusMessage); // member count
         Assert.Contains("Renowned", result.StatusMessage);

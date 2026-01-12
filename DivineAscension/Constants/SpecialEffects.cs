@@ -10,7 +10,7 @@ namespace DivineAscension.Constants;
 [ExcludeFromCodeCoverage]
 public static class SpecialEffects
 {
-    #region Lysa (Hunt & Wild) Effects
+    #region Wild (Hunt & Wild) Effects
 
     /// <summary>
     ///     Rare Forage Chance: Increased chance to find rare items when foraging
@@ -29,7 +29,7 @@ public static class SpecialEffects
 
     #endregion
 
-    #region Khoras (Forge & Craft) Effects
+    #region Craft (Forge & Craft) Effects
 
     /// <summary>
     ///     Material Save: 10% chance to save materials when smithing
@@ -48,7 +48,7 @@ public static class SpecialEffects
 
     #endregion
 
-    #region Aethra (Agriculture & Light) Effects
+    #region Harvest (Agriculture & Light) Effects
 
     /// <summary>
     ///     Light Warmth Bonus: Light sources provide increased warmth radius
@@ -82,7 +82,7 @@ public static class SpecialEffects
 
     #endregion
 
-    #region Gaia (Earth & Stone) Effects
+    #region Stone (Earth & Stone) Effects
 
     /// <summary>
     ///     Overburdened Immunity: Immune to slowness from being overburdened (first tier)

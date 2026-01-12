@@ -378,7 +378,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
 
         var stats = player.Entity.Stats;
 
-        // Khoras (Forge & Craft) - Most are percentage modifiers
+        // Craft (Forge & Craft) - Most are percentage modifiers
         // ToolDurability uses FlatSum (base 0) since we want the raw bonus value in our patch
         RegisterStatIfNeeded(stats, VintageStoryStats.ToolDurability, EnumStatBlendType.FlatSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.OreDropRate, EnumStatBlendType.WeightedSum);
@@ -388,7 +388,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         RegisterStatIfNeeded(stats, VintageStoryStats.SmithingCostReduction, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.MetalArmorBonus, EnumStatBlendType.WeightedSum);
 
-        // Lysa (Hunt & Wild)
+        // Wild (Hunt & Wild)
         RegisterStatIfNeeded(stats, VintageStoryStats.DoubleHarvestChance,
             EnumStatBlendType.FlatSum); // Additive chance
         RegisterStatIfNeeded(stats, VintageStoryStats.AnimalDamage, EnumStatBlendType.WeightedSum);
@@ -401,7 +401,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         RegisterStatIfNeeded(stats, VintageStoryStats.AnimalHarvestTime, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.ForagingYield, EnumStatBlendType.WeightedSum);
 
-        // Aethra (Agriculture & Cooking)
+        // Harvest (Agriculture & Cooking)
         RegisterStatIfNeeded(stats, VintageStoryStats.CropYield, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.SeedDropChance, EnumStatBlendType.FlatSum); // Additive chance
         RegisterStatIfNeeded(stats, VintageStoryStats.CookingYield, EnumStatBlendType.WeightedSum);
@@ -410,10 +410,10 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         RegisterStatIfNeeded(stats, VintageStoryStats.WildCropYield, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.CookedFoodSatiety, EnumStatBlendType.WeightedSum);
 
-        // Gaia (Earth & Stone)
+        // Stone (Earth & Stone)
         RegisterStatIfNeeded(stats, VintageStoryStats.StoneYield, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.ClayYield, EnumStatBlendType.WeightedSum);
-        // New Gaia utility stats
+        // New Stone utility stats
         RegisterStatIfNeeded(stats, VintageStoryStats.ClayFormingVoxelChance,
             EnumStatBlendType.FlatSum); // Legacy additive chance
         RegisterStatIfNeeded(stats, VintageStoryStats.PotteryBatchCompletionChance,
@@ -535,21 +535,21 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     /// </summary>
     private void RegisterSpecialEffectHandlers()
     {
-        // Khoras (Forge & Craft) handlers
+        // Craft (Forge & Craft) handlers
         _specialEffectRegistry.RegisterHandler(new KhorasEffectHandlers.PassiveToolRepairEffect());
 
-        // Lysa (Hunt & Wild) handlers
+        // Wild (Hunt & Wild) handlers
         _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.RareForageChanceEffect());
         _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.FoodSpoilageEffect());
         _specialEffectRegistry.RegisterHandler(new LysaEffectHandlers.TemperatureResistanceEffect());
 
-        // Aethra (Agriculture & Light) handlers
+        // Harvest (Agriculture & Light) handlers
         _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.NeverMalnourishedEffect());
         _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.BlessedMealsEffect());
         _specialEffectRegistry.RegisterHandler(new AethraEffectHandlers.RareCropDiscoveryEffect());
-        // Note: FoodSpoilageReduction is shared with Lysa and already registered above
+        // Note: FoodSpoilageReduction is shared with Wild and already registered above
 
-        // Gaia (Pottery & Clay) handlers
+        // Stone (Pottery & Clay) handlers
         _specialEffectRegistry.RegisterHandler(new GaiaEffectHandlers.PotteryBatchCompletionEffect());
 
         _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered all special effect handlers");

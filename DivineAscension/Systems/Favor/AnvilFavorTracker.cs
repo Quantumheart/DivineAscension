@@ -9,7 +9,7 @@ using Vintagestory.API.Server;
 namespace DivineAscension.Systems.Favor;
 
 /// <summary>
-///     Awards favor to Khoras followers when an anvil recipe is completed (event-driven)
+///     Awards favor to Craft followers when an anvil recipe is completed (event-driven)
 /// </summary>
 public class AnvilFavorTracker(
     IPlayerProgressionDataManager playerProgressionDataManager,

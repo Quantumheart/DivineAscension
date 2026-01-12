@@ -320,7 +320,7 @@ public class ReligionCommands(
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_INVALID_DEITY_FILTER,
                         deityFilter));
-            religions = _religionManager.GetReligionsByDeity(deity);
+            religions = _religionManager.GetReligionsByDomain(deity);
         }
 
         if (religions.Count == 0)

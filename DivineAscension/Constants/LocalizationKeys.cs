@@ -475,33 +475,33 @@ public static class LocalizationKeys
     #region Table Headers
 
     public const string UI_TABLE_NAME = "divineascension:ui.table.name";
-    public const string UI_TABLE_DOMAIN = "divineascension:ui.table.deity";
+    public const string UI_TABLE_DOMAIN = "divineascension:ui.table.domain";
     public const string UI_TABLE_PRESTIGE = "divineascension:ui.table.prestige";
     public const string UI_TABLE_MEMBERS = "divineascension:ui.table.members";
     public const string UI_TABLE_PUBLIC = "divineascension:ui.table.public";
 
     #endregion
 
-    #region Deity Names
+    #region Deity Domain Names
 
-    public const string DEITY_KHORAS_NAME = "divineascension:deity.khoras.name";
-    public const string DEITY_KHORAS_TITLE = "divineascension:deity.khoras.title";
-    public const string DEITY_KHORAS_DESCRIPTION = "divineascension:deity.khoras.description";
+    public const string DOMAIN_CRAFT_NAME = "divineascension:deity.domain.craft.name";
+    public const string DOMAIN_CRAFT_TITLE = "divineascension:deity.domain.craft.title";
+    public const string DOMAIN_CRAFT_DESCRIPTION = "divineascension:deity.domain.craft.description";
 
-    public const string DEITY_LYSA_NAME = "divineascension:deity.lysa.name";
-    public const string DEITY_LYSA_TITLE = "divineascension:deity.lysa.title";
-    public const string DEITY_LYSA_DESCRIPTION = "divineascension:deity.lysa.description";
+    public const string DOMAIN_WILD_NAME = "divineascension:deity.domain.wild.name";
+    public const string DOMAIN_WILD_TITLE = "divineascension:deity.domain.wild.title";
+    public const string DOMAIN_WILD_DESCRIPTION = "divineascension:deity.domain.wild.description";
 
-    public const string DEITY_AETHRA_NAME = "divineascension:deity.aethra.name";
-    public const string DEITY_AETHRA_TITLE = "divineascension:deity.aethra.title";
-    public const string DEITY_AETHRA_DESCRIPTION = "divineascension:deity.aethra.description";
+    public const string DOMAIN_HARVEST_NAME = "divineascension:deity.domain.harvest.name";
+    public const string DOMAIN_HARVEST_TITLE = "divineascension:deity.domain.harvest.title";
+    public const string DOMAIN_HARVEST_DESCRIPTION = "divineascension:deity.domain.harvest.description";
 
-    public const string DEITY_GAIA_NAME = "divineascension:deity.gaia.name";
-    public const string DEITY_GAIA_TITLE = "divineascension:deity.gaia.title";
-    public const string DEITY_GAIA_DESCRIPTION = "divineascension:deity.gaia.description";
+    public const string DOMAIN_STONE_NAME = "divineascension:deity.domain.stone.name";
+    public const string DOMAIN_STONE_TITLE = "divineascension:deity.domain.stone.title";
+    public const string DOMAIN_STONE_DESCRIPTION = "divineascension:deity.domain.stone.description";
 
-    public const string DEITY_UNKNOWN_NAME = "divineascension:deity.unknown.name";
-    public const string DEITY_DOMAIN_LABEL = "divineascension:deity.domain_label";
+    public const string DOMAIN_UNKNOWN_NAME = "divineascension:deity.domain.unknown.name";
+    public const string DOMAIN_LABEL = "divineascension:deity.domain_label";
 
     #endregion
 
@@ -760,7 +760,7 @@ public static class LocalizationKeys
     public const string CMD_FAVOR_HEADER_INFO = "divineascension:cmd.favor.header.info";
     public const string CMD_FAVOR_HEADER_STATS = "divineascension:cmd.favor.header.stats";
     public const string CMD_FAVOR_HEADER_RANKS = "divineascension:cmd.favor.header.ranks";
-    public const string CMD_FAVOR_LABEL_DEITY = "divineascension:cmd.favor.label.deity";
+    public const string CMD_FAVOR_LABEL_DOMAIN = "divineascension:cmd.favor.label.domain";
     public const string CMD_FAVOR_LABEL_CURRENT = "divineascension:cmd.favor.label.current";
     public const string CMD_FAVOR_LABEL_TOTAL_EARNED = "divineascension:cmd.favor.label.total_earned";
     public const string CMD_FAVOR_LABEL_CURRENT_RANK = "divineascension:cmd.favor.label.current_rank";

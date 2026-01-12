@@ -129,7 +129,6 @@ public class CivilizationCommandAdminTests : CivilizationCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Error, result.Status);
-        // todo message needs to be updated
         Assert.Contains("Duplicate deity/deities found", result.StatusMessage);
         Assert.Contains("Craft", result.StatusMessage);
     }

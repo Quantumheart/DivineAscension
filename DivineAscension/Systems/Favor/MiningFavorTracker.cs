@@ -25,10 +25,10 @@ public class MiningFavorTracker(
     private const float QualityRich = 1.5f;
     private const float QualityBountiful = 2.0f;
 
-    private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+    // Cache of active Craft followers for fast lookup (avoids database hit on every block break)
+    private readonly HashSet<string> _craftFollowers = new();
 
-    // Cache of active Khoras followers for fast lookup (avoids database hit on every block break)
-    private readonly HashSet<string> _khorasFollowers = new();
+    private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
@@ -40,7 +40,7 @@ public class MiningFavorTracker(
         _sapi.Event.BreakBlock -= OnBlockBroken;
         _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
         _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
-        _khorasFollowers.Clear();
+        _craftFollowers.Clear();
     }
 
     public DeityDomain DeityDomain { get; } = DeityDomain.Craft;
@@ -49,7 +49,7 @@ public class MiningFavorTracker(
     {
         _sapi.Event.BreakBlock += OnBlockBroken;
 
-        // Build initial cache of Khoras followers
+        // Build initial cache of Craft followers
         RefreshFollowerCache();
 
         // Listen for religion changes to update cache
@@ -58,11 +58,11 @@ public class MiningFavorTracker(
     }
 
     /// <summary>
-    ///     Rebuild cache of active Khoras followers
+    ///     Rebuild cache of active Craft followers
     /// </summary>
     private void RefreshFollowerCache()
     {
-        _khorasFollowers.Clear();
+        _craftFollowers.Clear();
 
         // Check all online players (guard for nulls in test/headless environments)
         var onlinePlayers = _sapi?.World?.AllOnlinePlayers;
@@ -71,7 +71,7 @@ public class MiningFavorTracker(
         foreach (var player in onlinePlayers)
         {
             if (_playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID) == DeityDomain)
-                _khorasFollowers.Add(player.PlayerUID);
+                _craftFollowers.Add(player.PlayerUID);
         }
     }
 
@@ -81,9 +81,9 @@ public class MiningFavorTracker(
     private void OnPlayerDataChanged(string playerUID)
     {
         if (_playerProgressionDataManager.GetPlayerDeityType(playerUID) == DeityDomain)
-            _khorasFollowers.Add(playerUID);
+            _craftFollowers.Add(playerUID);
         else
-            _khorasFollowers.Remove(playerUID);
+            _craftFollowers.Remove(playerUID);
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ public class MiningFavorTracker(
     private void OnPlayerLeavesProgression(IServerPlayer player, string religionUID)
     {
         // Player left religion, remove from cache
-        _khorasFollowers.Remove(player.PlayerUID);
+        _craftFollowers.Remove(player.PlayerUID);
     }
 
     internal void OnBlockBroken(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier,
@@ -101,7 +101,7 @@ public class MiningFavorTracker(
         var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
         if (!IsOreBlock(block)) return;
 
-        if (!_khorasFollowers.Contains(player.PlayerUID)) return;
+        if (!_craftFollowers.Contains(player.PlayerUID)) return;
 
         // Calculate favor based on mineral type and quality
         var baseFavor = GetMineralTierFavor(block);

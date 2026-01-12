@@ -109,9 +109,9 @@ public interface IReligionManager : IDisposable
     List<ReligionData> GetAllReligions();
 
     /// <summary>
-    ///     Gets religions by deity
+    ///     Gets religions by domain
     /// </summary>
-    List<ReligionData> GetReligionsByDeity(DeityDomain deity);
+    List<ReligionData> GetReligionsByDomain(DeityDomain domain);
 
     /// <summary>
     ///     Deletes a religion (founder only)

@@ -59,7 +59,7 @@ public class DeityHelperTests
 
     #endregion
 
-    #region GetDeityColor (DeityType) Tests
+    #region GetDeityColor (DeityDomain) Tests
 
     [Theory]
     [InlineData(DeityDomain.Craft, 0.8f, 0.2f, 0.2f)]
@@ -121,7 +121,7 @@ public class DeityHelperTests
 
     #endregion
 
-    #region GetDeityTitle (DeityType) Tests
+    #region GetDeityTitle (DeityDomain) Tests
 
     [Theory]
     [InlineData(DeityDomain.Craft, "Domain of the Forge & Craft")]
@@ -149,7 +149,7 @@ public class DeityHelperTests
 
     #endregion
 
-    #region ParseDeityType Tests
+    #region ParseDeityDomain Tests
 
     [Theory]
     [InlineData("Craft", DeityDomain.Craft)]
@@ -190,10 +190,10 @@ public class DeityHelperTests
     #region GetDeityDisplayText (string) Tests
 
     [Theory]
-    [InlineData("Khoras", "Craft", "Khoras - Domain of the Forge & Craft")]
-    [InlineData("Lysa", "Wild", "Lysa - Domain of the Hunt & Wild")]
-    [InlineData("Aethra", "Harvest", "Aethra - Domain of Agriculture & Light")]
-    [InlineData("Gaia", "Stone", "Gaia - Domain of Earth & Stone")]
+    [InlineData("Craft", "Craft", "Craft - Domain of the Forge & Craft")]
+    [InlineData("Wild", "Wild", "Wild - Domain of the Hunt & Wild")]
+    [InlineData("Harvest", "Harvest", "Harvest - Domain of Agriculture & Light")]
+    [InlineData("Stone", "Stone", "Stone - Domain of Earth & Stone")]
     public void GetDeityDisplayText_String_ReturnsFormattedText(string deityName, string domain, string expected)
     {
         // Act
@@ -215,7 +215,7 @@ public class DeityHelperTests
 
     #endregion
 
-    #region GetDeityDisplayText (DeityType) Tests
+    #region GetDeityDisplayText (DeityDomain) Tests
 
     [Theory]
     [InlineData(DeityDomain.Craft, "Craft - Domain of the Forge & Craft")]

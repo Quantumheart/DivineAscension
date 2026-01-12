@@ -75,7 +75,7 @@ public class QuotedStringParserTests
     {
         // Arrange
         var parser = new QuotedStringParser("name", isMandatory: true);
-        var args = CreateArgs("TestReligion", "Khoras", "public");
+        var args = CreateArgs("TestReligion", "Craft", "public");
 
         // Act
         var result = parser.TryProcess(args);
@@ -112,7 +112,7 @@ public class QuotedStringParserTests
     {
         // Arrange
         var parser = new QuotedStringParser("name", isMandatory: true);
-        var args = CreateArgs("\"My", "Religion\"", "Khoras", "public");
+        var args = CreateArgs("\"My", "Religion\"", "Craft", "public");
 
         // Act
         var result = parser.TryProcess(args);
@@ -120,7 +120,7 @@ public class QuotedStringParserTests
         // Assert
         Assert.Equal(EnumParseResult.Good, result);
         Assert.Equal("My Religion", parser.GetValue());
-        // Remaining args should be "Khoras public"
+        // Remaining args should be "Craft public"
         Assert.True(args.RawArgs.Length > 0);
     }
 

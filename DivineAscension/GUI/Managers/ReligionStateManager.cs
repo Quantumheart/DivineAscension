@@ -291,7 +291,6 @@ public class ReligionStateManager : IReligionStateManager
         }
 
         // Map State → ViewModel
-        // todo
         var deityFilters = new[] { "All", "Craft", "Wild", "Harvest", "Stone" };
         var effectiveFilter =
             string.IsNullOrEmpty(State.BrowseState.DeityFilter) ? "All" : State.BrowseState.DeityFilter;
