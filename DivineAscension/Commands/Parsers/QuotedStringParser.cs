@@ -9,10 +9,9 @@ namespace DivineAscension.Commands.Parsers;
 /// When quoted, extracts the content between quotes and leaves remaining args for next parser.
 /// When unquoted, behaves like the standard Word parser.
 /// </summary>
-public class QuotedStringParser : ICommandArgumentParser
+public class QuotedStringParser : ArgumentParserBase
 {
-    private readonly string _argName;
-    private readonly bool _isMandatory;
+    private string? _lastErrorMessage;
     private string? _parsedValue;
 
     /// <summary>
@@ -21,66 +20,52 @@ public class QuotedStringParser : ICommandArgumentParser
     /// <param name="argName">The argument name for help/syntax display</param>
     /// <param name="isMandatory">Whether this argument is required</param>
     public QuotedStringParser(string argName, bool isMandatory)
+        : base(argName, isMandatory)
     {
-        _argName = argName;
-        _isMandatory = isMandatory;
+    }
+
+    /// <summary>
+    /// Gets the last error message from parsing, if any.
+    /// </summary>
+    public new string? LastErrorMessage => _lastErrorMessage;
+
+    /// <inheritdoc />
+    public new int ArgCount => IsMissing ? 0 : 1;
+
+    /// <inheritdoc />
+    public new string GetSyntax()
+    {
+        return IsMandatoryArg ? $"<{ArgumentName}>" : $"[{ArgumentName}]";
     }
 
     /// <inheritdoc />
-    public string ArgumentName => _argName;
-
-    /// <inheritdoc />
-    public int ArgCount => IsMissing ? 0 : 1;
-
-    /// <inheritdoc />
-    public bool IsMandatoryArg => _isMandatory;
-
-    /// <inheritdoc />
-    public bool IsMissing { get; set; }
-
-    /// <inheritdoc />
-    public string? LastErrorMessage { get; private set; }
-
-    /// <inheritdoc />
-    public string GetSyntax()
+    public override string GetSyntaxExplanation(string indent)
     {
-        return _isMandatory ? $"<{_argName}>" : $"[{_argName}]";
+        var optionalText = IsMandatoryArg ? "" : " (optional)";
+        return $"{indent}{ArgumentName}: Name or \"quoted name with spaces\"{optionalText}";
     }
 
     /// <inheritdoc />
-    public string GetSyntaxExplanation(string indent)
-    {
-        var optionalText = _isMandatory ? "" : " (optional)";
-        return $"{indent}{_argName}: Name or \"quoted name with spaces\"{optionalText}";
-    }
-
-    /// <inheritdoc />
-    public string[] GetValidRange(CmdArgs args)
+    public override string[] GetValidRange(CmdArgs args)
     {
         return Array.Empty<string>();
     }
 
     /// <inheritdoc />
-    public object? GetValue()
+    public override object? GetValue()
     {
         return _parsedValue;
     }
 
     /// <inheritdoc />
-    public void SetValue(object? data)
+    public override void SetValue(object? data)
     {
         _parsedValue = data as string;
         IsMissing = _parsedValue == null;
     }
 
     /// <inheritdoc />
-    public void PreProcess(TextCommandCallingArgs args)
-    {
-        // No preprocessing needed
-    }
-
-    /// <inheritdoc />
-    public EnumParseResult TryProcess(TextCommandCallingArgs args, Action<AsyncParseResults>? onReady = null)
+    public override EnumParseResult TryProcess(TextCommandCallingArgs args, Action<AsyncParseResults>? onReady = null)
     {
         var rawArgs = args.RawArgs;
 
@@ -89,8 +74,8 @@ public class QuotedStringParser : ICommandArgumentParser
         {
             IsMissing = true;
             _parsedValue = null;
-            LastErrorMessage = _isMandatory ? $"Missing required argument: {_argName}" : null;
-            return _isMandatory ? EnumParseResult.Bad : EnumParseResult.Good;
+            _lastErrorMessage = IsMandatoryArg ? $"Missing required argument: {ArgumentName}" : null;
+            return IsMandatoryArg ? EnumParseResult.Bad : EnumParseResult.Good;
         }
 
         // Peek to check for quotes without consuming
@@ -99,8 +84,8 @@ public class QuotedStringParser : ICommandArgumentParser
         {
             IsMissing = true;
             _parsedValue = null;
-            LastErrorMessage = _isMandatory ? $"Missing required argument: {_argName}" : null;
-            return _isMandatory ? EnumParseResult.Bad : EnumParseResult.Good;
+            _lastErrorMessage = IsMandatoryArg ? $"Missing required argument: {ArgumentName}" : null;
+            return IsMandatoryArg ? EnumParseResult.Bad : EnumParseResult.Good;
         }
 
         // Check if it starts with a quote
@@ -131,7 +116,7 @@ public class QuotedStringParser : ICommandArgumentParser
             // No closing quote found
             IsMissing = true;
             _parsedValue = null;
-            LastErrorMessage = $"Unclosed quote in {_argName}. Use matching quotes: \"name with spaces\"";
+            _lastErrorMessage = $"Unclosed quote in {ArgumentName}. Use matching quotes: \"name with spaces\"";
             return EnumParseResult.Bad;
         }
 
