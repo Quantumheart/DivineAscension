@@ -74,6 +74,14 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     }
 
     /// <summary>
+    ///     Tries to get player data without creating it if it doesn't exist.
+    /// </summary>
+    public bool TryGetPlayerData(string playerUID, out PlayerProgressionData? data)
+    {
+        return _playerData.TryGetValue(playerUID, out data);
+    }
+
+    /// <summary>
     ///     Adds favor to a player
     /// </summary>
     public void AddFavor(string playerUID, int amount, string reason = "")
@@ -217,8 +225,6 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     /// </summary>
     public void LeaveReligion(string playerUID)
     {
-        var data = GetOrCreatePlayerData(playerUID);
-
         if (!HasReligion(playerUID)) return;
 
         HandleReligionSwitch(playerUID);
@@ -229,9 +235,6 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
 
         OnPlayerLeavesReligion.Invoke((_sapi.World.PlayerByUid(playerUID) as IServerPlayer)!,
             playerReligion.ReligionUID);
-        // Clear player data
-        data.Favor = 0;
-        data.TotalFavorEarned = 0;
 
         _sapi.Logger.Notification($"[DivineAscension] Player {playerUID} left religion");
     }

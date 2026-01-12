@@ -21,6 +21,13 @@ public interface IPlayerProgressionDataManager : IDisposable
     PlayerProgressionData GetOrCreatePlayerData(string playerUID);
 
     /// <summary>
+    ///     Tries to get player data without creating it if it doesn't exist.
+    ///     Use this when you need to check if data exists without triggering creation.
+    /// </summary>
+    /// <returns>True if data exists and was retrieved, false otherwise</returns>
+    bool TryGetPlayerData(string playerUID, out PlayerProgressionData? data);
+
+    /// <summary>
     ///     Adds favor to a player
     /// </summary>
     void AddFavor(string playerUID, int amount, string reason = "");

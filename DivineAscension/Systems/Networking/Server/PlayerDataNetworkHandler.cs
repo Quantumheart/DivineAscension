@@ -77,8 +77,10 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
         if (_playerProgressionDataManager == null || _religionManager == null ||
             _serverChannel == null) return;
 
-        var playerReligionData = _playerProgressionDataManager!.GetOrCreatePlayerData(player.PlayerUID);
-        var religionData = _religionManager!.GetPlayerReligion(player.PlayerUID);
+        if (!_playerProgressionDataManager.TryGetPlayerData(player.PlayerUID, out var playerReligionData))
+            return;
+
+        var religionData = _religionManager.GetPlayerReligion(player.PlayerUID);
         var deity = _playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID);
 
         if (religionData != null)
@@ -87,7 +89,7 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
                 religionData.ReligionName,
                 deity.ToString(),
                 religionData.DeityName,
-                playerReligionData.Favor,
+                playerReligionData!.Favor,
                 playerReligionData.FavorRank.ToString(),
                 religionData.Prestige,
                 religionData.PrestigeRank.ToString(),
