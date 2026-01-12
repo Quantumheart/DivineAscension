@@ -75,10 +75,10 @@ internal static class DeityHelper
     {
         return domain switch
         {
-            "Craft" => "Domain of the Forge & Craft",
-            "Wild" => "Domain of the Hunt & Wild",
-            "Harvest" => "Domain of Agriculture & Light",
-            "Stone" => "Domain of Earth & Stone",
+            "Craft" => "of the Craft",
+            "Wild" => "of the Wild",
+            "Harvest" => "of the Harvest",
+            "Stone" => "of the Stone",
             _ => "Unknown Domain"
         };
     }
@@ -90,10 +90,10 @@ internal static class DeityHelper
     {
         return domain switch
         {
-            DeityDomain.Craft => "Domain of the Forge & Craft",
-            DeityDomain.Wild => "Domain of the Hunt & Wild",
-            DeityDomain.Harvest => "Domain of Agriculture & Light",
-            DeityDomain.Stone => "Domain of Earth & Stone",
+            DeityDomain.Craft => "Domain of the Craft",
+            DeityDomain.Wild => "Domain of the Wild",
+            DeityDomain.Harvest => "Domain of the Harvest",
+            DeityDomain.Stone => "Domain of the Stone",
             _ => "Unknown Domain"
         };
     }
@@ -106,36 +106,5 @@ internal static class DeityHelper
         if (Enum.TryParse<DeityDomain>(domainName, true, out var domain))
             return domain;
         return DeityDomain.None;
-    }
-
-    /// <summary>
-    ///     Get formatted display text for a deity with custom name
-    ///     Format: "DeityName - Domain of X" (e.g., "Domain -  Domain of the Forge & Craft")
-    /// </summary>
-    public static string GetDeityDisplayText(string deityName, string domain)
-    {
-        if (string.IsNullOrWhiteSpace(deityName))
-            return GetDomainTitle(domain);
-        return $"{deityName} - {GetDomainTitle(domain)}";
-    }
-
-    /// <summary>
-    ///     Get formatted display text for a deity with custom name (enum version)
-    ///     Format: "DeityName - Domain of X" (e.g., "Domain - Domain of the Forge & Craft")
-    /// </summary>
-    public static string GetDeityDisplayText(string deityName, DeityDomain domain)
-    {
-        if (string.IsNullOrWhiteSpace(deityName))
-            return GetDeityTitle(domain);
-        return $"{deityName} - {GetDeityTitle(domain)}";
-    }
-
-    /// <summary>
-    ///     Get formatted display text using just the domain (for backward compatibility)
-    ///     Format: "Domain - Domain of X" (e.g., "Craft - Domain of the Forge & Craft")
-    /// </summary>
-    public static string GetDeityDisplayText(DeityDomain domain)
-    {
-        return $"{domain} - {GetDeityTitle(domain)}";
     }
 }

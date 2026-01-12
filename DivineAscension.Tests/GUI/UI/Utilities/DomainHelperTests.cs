@@ -96,10 +96,10 @@ public class DeityHelperTests
     #region GetDeityTitle (string) Tests
 
     [Theory]
-    [InlineData("Craft", "Domain of the Forge & Craft")]
-    [InlineData("Wild", "Domain of the Hunt & Wild")]
-    [InlineData("Harvest", "Domain of Agriculture & Light")]
-    [InlineData("Stone", "Domain of Earth & Stone")]
+    [InlineData("Craft", "of the Craft")]
+    [InlineData("Wild", "of the Wild")]
+    [InlineData("Harvest", "of the Harvest")]
+    [InlineData("Stone", "of the Stone")]
     public void GetDeityTitle_String_ReturnsCorrectTitle(string domain, string expectedTitle)
     {
         // Act
@@ -124,10 +124,10 @@ public class DeityHelperTests
     #region GetDeityTitle (DeityDomain) Tests
 
     [Theory]
-    [InlineData(DeityDomain.Craft, "Domain of the Forge & Craft")]
-    [InlineData(DeityDomain.Wild, "Domain of the Hunt & Wild")]
-    [InlineData(DeityDomain.Harvest, "Domain of Agriculture & Light")]
-    [InlineData(DeityDomain.Stone, "Domain of Earth & Stone")]
+    [InlineData(DeityDomain.Craft, "Domain of the Craft")]
+    [InlineData(DeityDomain.Wild, "Domain of the Wild")]
+    [InlineData(DeityDomain.Harvest, "Domain of the Harvest")]
+    [InlineData(DeityDomain.Stone, "Domain of the Stone")]
     public void GetDeityTitle_Enum_ReturnsCorrectTitle(DeityDomain domain, string expectedTitle)
     {
         // Act
@@ -183,62 +183,6 @@ public class DeityHelperTests
 
         // Assert
         Assert.Equal(DeityDomain.None, result);
-    }
-
-    #endregion
-
-    #region GetDeityDisplayText (string) Tests
-
-    [Theory]
-    [InlineData("Craft", "Craft", "Craft - Domain of the Forge & Craft")]
-    [InlineData("Wild", "Wild", "Wild - Domain of the Hunt & Wild")]
-    [InlineData("Harvest", "Harvest", "Harvest - Domain of Agriculture & Light")]
-    [InlineData("Stone", "Stone", "Stone - Domain of Earth & Stone")]
-    public void GetDeityDisplayText_String_ReturnsFormattedText(string deityName, string domain, string expected)
-    {
-        // Act
-        var displayText = DeityHelper.GetDeityDisplayText(deityName, domain);
-
-        // Assert
-        Assert.Equal(expected, displayText);
-    }
-
-    [Fact]
-    public void GetDeityDisplayText_String_EmptyDeityName_ReturnsDomainTitleOnly()
-    {
-        // Act
-        var displayText = DeityHelper.GetDeityDisplayText("", "Craft");
-
-        // Assert
-        Assert.Equal("Domain of the Forge & Craft", displayText);
-    }
-
-    #endregion
-
-    #region GetDeityDisplayText (DeityDomain) Tests
-
-    [Theory]
-    [InlineData(DeityDomain.Craft, "Craft - Domain of the Forge & Craft")]
-    [InlineData(DeityDomain.Wild, "Wild - Domain of the Hunt & Wild")]
-    [InlineData(DeityDomain.Harvest, "Harvest - Domain of Agriculture & Light")]
-    [InlineData(DeityDomain.Stone, "Stone - Domain of Earth & Stone")]
-    public void GetDeityDisplayText_Enum_ReturnsFormattedText(DeityDomain domain, string expected)
-    {
-        // Act
-        var displayText = DeityHelper.GetDeityDisplayText(domain);
-
-        // Assert
-        Assert.Equal(expected, displayText);
-    }
-
-    [Fact]
-    public void GetDeityDisplayText_Enum_NoneType_ReturnsFormattedUnknown()
-    {
-        // Act
-        var displayText = DeityHelper.GetDeityDisplayText(DeityDomain.None);
-
-        // Assert
-        Assert.Equal("None - Unknown Domain", displayText);
     }
 
     #endregion
