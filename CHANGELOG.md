@@ -1,4 +1,9 @@
 
+## [4.1.0] - 2026-01-12
+
+### Added
+- add multi language support to ProfanityFilterService.cs
+
 ## [4.0.3] - 2026-01-12
 
 ### Fixed
