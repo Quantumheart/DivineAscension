@@ -11,7 +11,6 @@ namespace DivineAscension.Systems;
 ///     Utility-focused system: 40 blessings (4 domains × 10 blessings each)
 /// </summary>
 [ExcludeFromCodeCoverage]
-// todo: localize the blessings
 public static class BlessingDefinitions
 {
     /// <summary>
