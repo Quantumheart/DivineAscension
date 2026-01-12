@@ -2,6 +2,7 @@ using DivineAscension.Services;
 
 namespace DivineAscension.Tests.Services;
 
+[Collection("ProfanityFilterTests")]
 public class ProfanityFilterServiceTests
 {
     public ProfanityFilterServiceTests()
