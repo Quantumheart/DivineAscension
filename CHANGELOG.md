@@ -1,4 +1,9 @@
 
+## [4.0.2] - 2026-01-12
+
+### Fixed
+- resolve Critical player progression overwritting
+
 ## [4.0.1] - 2026-01-12
 
 ### Fixed
