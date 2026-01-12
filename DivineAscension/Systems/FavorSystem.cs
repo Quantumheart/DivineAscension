@@ -18,26 +18,24 @@ public class FavorSystem : IFavorSystem
     private const float BASE_FAVOR_PER_HOUR = 0.5f; // Passive favor generation rate
     private const int PASSIVE_TICK_INTERVAL_MS = 1000; // 1 second ticks
 
-    private readonly IDeityRegistry _deityRegistry;
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionPrestigeManager _prestigeManager;
     private readonly IReligionManager _religionManager;
     private readonly ICoreServerAPI _sapi;
-    private AethraFavorTracker? _aethraFavorTracker;
     private AnvilFavorTracker? _anvilFavorTracker;
     private ForagingFavorTracker? _foragingFavorTracker;
-    private GaiaFavorTracker? _gaiaFavorTracker;
+    private AethraFavorTracker? _harvestFavorTracker;
     private HuntingFavorTracker? _huntingFavorTracker;
     private MiningFavorTracker? _miningFavorTracker;
     private SmeltingFavorTracker? _smeltingFavorTracker;
+    private GaiaFavorTracker? _stoneFavorTracker;
 
     public FavorSystem(ICoreServerAPI sapi,
-        IPlayerProgressionDataManager playerProgressionDataManager, IDeityRegistry deityRegistry,
+        IPlayerProgressionDataManager playerProgressionDataManager,
         IReligionManager religionManager, IReligionPrestigeManager prestigeManager)
     {
         _sapi = sapi;
         _playerProgressionDataManager = playerProgressionDataManager;
-        _deityRegistry = deityRegistry;
         _religionManager = religionManager;
         _prestigeManager = prestigeManager;
     }
@@ -69,11 +67,11 @@ public class FavorSystem : IFavorSystem
         _foragingFavorTracker = new ForagingFavorTracker(_playerProgressionDataManager, _sapi, this);
         _foragingFavorTracker.Initialize();
 
-        _aethraFavorTracker = new AethraFavorTracker(_playerProgressionDataManager, _sapi, this);
-        _aethraFavorTracker.Initialize();
+        _harvestFavorTracker = new AethraFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _harvestFavorTracker.Initialize();
 
-        _gaiaFavorTracker = new GaiaFavorTracker(_playerProgressionDataManager, _sapi, this);
-        _gaiaFavorTracker.Initialize();
+        _stoneFavorTracker = new GaiaFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _stoneFavorTracker.Initialize();
 
         _smeltingFavorTracker = new SmeltingFavorTracker(_playerProgressionDataManager, _sapi, this);
         _smeltingFavorTracker.Initialize();
@@ -88,8 +86,8 @@ public class FavorSystem : IFavorSystem
         // If world lookup path couldn't notify (e.g., headless tests), fall back to direct notify
         if (_sapi?.World?.PlayerByUid(player.PlayerUID) == null)
         {
-            var deityType = _religionManager.GetPlayerActiveDeity(player.PlayerUID);
-            if (deityType != DeityType.None) AwardFavorMessage(player, actionType, amount, deityType);
+            var deityType = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+            if (deityType != DeityDomain.None) AwardFavorMessage(player, actionType, amount, deityType);
         }
     }
 
@@ -100,24 +98,24 @@ public class FavorSystem : IFavorSystem
         _smeltingFavorTracker?.Dispose();
         _huntingFavorTracker?.Dispose();
         _foragingFavorTracker?.Dispose();
-        _aethraFavorTracker?.Dispose();
-        _gaiaFavorTracker?.Dispose();
+        _harvestFavorTracker?.Dispose();
+        _stoneFavorTracker?.Dispose();
     }
 
     public void AwardFavorForAction(IServerPlayer player, string actionType, float amount)
     {
-        var deityType = _religionManager.GetPlayerActiveDeity(player.PlayerUID);
+        var deityType = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
         AwardFavorForAction(player.PlayerUID, actionType, amount,
             deityType); // If world lookup path couldn't notify (e.g., headless tests), fall back to direct notify
         if (_sapi?.World?.PlayerByUid(player.PlayerUID) == null)
         {
-            if (deityType != DeityType.None) AwardFavorMessage(player, actionType, amount, deityType);
+            if (deityType != DeityDomain.None) AwardFavorMessage(player, actionType, amount, deityType);
         }
     }
 
-    public void AwardFavorForAction(string playerUid, string actionType, float amount, DeityType deityType)
+    public void AwardFavorForAction(string playerUid, string actionType, float amount, DeityDomain deityDomain)
     {
-        if (deityType == DeityType.None) return;
+        if (deityDomain == DeityDomain.None) return;
 
         // Award favor (existing logic)
         _playerProgressionDataManager.AddFractionalFavor(playerUid, amount, actionType);
@@ -125,7 +123,7 @@ public class FavorSystem : IFavorSystem
         // Award prestige if deity-themed activity and player is in a religion
         var playerReligion = _religionManager.GetPlayerReligion(playerUid);
         if (!string.IsNullOrEmpty(playerReligion!.ReligionUID) &&
-            ShouldAwardPrestigeForActivity(_religionManager.GetPlayerActiveDeity(playerUid), actionType))
+            ShouldAwardPrestigeForActivity(_religionManager.GetPlayerActiveDeityDomain(playerUid), actionType))
         {
             var prestigeAmount = amount / 10f; // 10:1 conversion
             if (prestigeAmount >= 1.0f) // Only award whole prestige points
@@ -147,7 +145,7 @@ public class FavorSystem : IFavorSystem
         }
 
         var player = _sapi?.World?.PlayerByUid(playerUid) as IServerPlayer;
-        if (player != null) AwardFavorMessage(player, actionType, amount, deityType);
+        if (player != null) AwardFavorMessage(player, actionType, amount, deityDomain);
     }
 
     /// <summary>
@@ -170,21 +168,20 @@ public class FavorSystem : IFavorSystem
     /// </summary>
     internal void ProcessPvPKill(IServerPlayer attacker, IServerPlayer victim)
     {
-        var attackerDeity = _religionManager.GetPlayerActiveDeity(attacker.PlayerUID);
-        var victimDeity = _religionManager.GetPlayerActiveDeity(victim.PlayerUID);
+        var attackerReligion = _religionManager.GetPlayerReligion(attacker.PlayerUID);
+        var victimReligion = _religionManager.GetPlayerReligion(victim.PlayerUID);
         // Check if attacker has a deity through religion
-        if (attackerDeity == DeityType.None) return;
+        if (attackerReligion is null || victimReligion is null) return;
 
         // Calculate favor reward
-        var favorReward = CalculateFavorReward(attackerDeity, victimDeity);
+        var favorReward = CalculateFavorReward(attackerReligion.Domain, victimReligion.Domain);
 
         // Award favor
         _playerProgressionDataManager.AddFavor(attacker.PlayerUID, favorReward,
             $"PvP kill against {victim.PlayerName}");
 
         // Get deity for display
-        var deity = _deityRegistry.GetDeity(attackerDeity);
-        var deityName = deity?.Name ?? attackerDeity.ToString();
+        var deityName = attackerReligion.DeityName;
 
         // Notify attacker
         attacker.SendMessage(
@@ -194,9 +191,9 @@ public class FavorSystem : IFavorSystem
         );
 
         // Notify victim
-        if (victimDeity != DeityType.None)
+        if (victimReligion.Domain != DeityDomain.None)
         {
-            var victimDeityName = victimDeity.ToString();
+            var victimDeityName = victimReligion.DeityName;
             victim.SendMessage(
                 GlobalConstants.GeneralChatGroup,
                 $"[Divine Favor] {victimDeityName} is displeased by your defeat.",
@@ -214,8 +211,8 @@ public class FavorSystem : IFavorSystem
     internal void ProcessDeathPenalty(IServerPlayer player)
     {
         var religionData = _playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        var deityType = _religionManager.GetPlayerActiveDeity(player.PlayerUID);
-        if (deityType == DeityType.None) return;
+        var deityType = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+        if (deityType == DeityDomain.None) return;
 
         // Remove favor as penalty (minimum 0)
         var penalty = Math.Min(DEATH_PENALTY_FAVOR, religionData.Favor);
@@ -234,7 +231,7 @@ public class FavorSystem : IFavorSystem
     /// <summary>
     ///     Calculates favor reward
     /// </summary>
-    internal int CalculateFavorReward(DeityType attackerDeity, DeityType victimDeity)
+    internal int CalculateFavorReward(DeityDomain attackerDeity, DeityDomain victimDeity)
     {
         return BASE_KILL_FAVOR;
     }
@@ -242,7 +239,7 @@ public class FavorSystem : IFavorSystem
     /// <summary>
     ///     Determines if an activity is deity-themed and should grant prestige
     /// </summary>
-    private bool ShouldAwardPrestigeForActivity(DeityType deity, string actionType)
+    private bool ShouldAwardPrestigeForActivity(DeityDomain deity, string actionType)
     {
         var actionLower = actionType.ToLowerInvariant();
 
@@ -256,23 +253,23 @@ public class FavorSystem : IFavorSystem
 
         return deity switch
         {
-            DeityType.Khoras =>
+            DeityDomain.Craft =>
                 actionLower.Contains("mining") ||
                 actionLower.Contains("smithing") ||
                 actionLower.Contains("smelting") ||
                 actionLower.Contains("anvil"),
 
-            DeityType.Lysa =>
+            DeityDomain.Wild =>
                 actionLower.Contains("hunting") ||
                 actionLower.Contains("foraging") ||
                 actionLower.Contains("exploration"),
 
-            DeityType.Aethra =>
+            DeityDomain.Harvest =>
                 actionLower.Contains("harvest") ||
                 actionLower.Contains("planting") ||
                 actionLower.Contains("cooking"),
 
-            DeityType.Gaia =>
+            DeityDomain.Stone =>
                 actionLower.Contains("pottery") ||
                 actionLower.Contains("brick") ||
                 actionLower.Contains("clay"),
@@ -286,7 +283,7 @@ public class FavorSystem : IFavorSystem
     /// </summary>
     internal void AwardFavorForAction(string playerUid, string actionType, int amount)
     {
-        if (_religionManager.GetPlayerActiveDeity(playerUid) == DeityType.None) return;
+        if (_religionManager.GetPlayerActiveDeityDomain(playerUid) == DeityDomain.None) return;
 
         // Award favor (existing logic)
         _playerProgressionDataManager.AddFavor(playerUid, amount, actionType);
@@ -294,7 +291,7 @@ public class FavorSystem : IFavorSystem
         // Award prestige if deity-themed activity and player is in a religion
         var playerReligion = _religionManager.GetPlayerReligion(playerUid);
         if (!string.IsNullOrEmpty(playerReligion!.ReligionUID) &&
-            ShouldAwardPrestigeForActivity(_religionManager.GetPlayerActiveDeity(playerUid), actionType))
+            ShouldAwardPrestigeForActivity(_religionManager.GetPlayerActiveDeityDomain(playerUid), actionType))
         {
             var prestigeAmount = amount / 3; // 2:1 conversion
             if (prestigeAmount > 0)
@@ -318,28 +315,28 @@ public class FavorSystem : IFavorSystem
         // Try to notify player if server context is available
         var player = _sapi?.World?.PlayerByUid(playerUid) as IServerPlayer;
         if (player != null)
-            AwardFavorMessage(player, actionType, amount, _religionManager.GetPlayerActiveDeity(playerUid));
+            AwardFavorMessage(player, actionType, amount, _religionManager.GetPlayerActiveDeityDomain(playerUid));
     }
 
     private static void AwardFavorMessage(IServerPlayer player, string actionType, int amount,
-        DeityType deityType)
+        DeityDomain deityDomain)
     {
-        var deityName = nameof(DeityType.None);
-        switch (deityType)
+        var deityName = nameof(DeityDomain.None);
+        switch (deityDomain)
         {
-            case DeityType.None:
+            case DeityDomain.None:
                 break;
-            case DeityType.Khoras:
-                deityName = nameof(DeityType.Khoras);
+            case DeityDomain.Craft:
+                deityName = nameof(DeityDomain.Craft);
                 break;
-            case DeityType.Lysa:
-                deityName = nameof(DeityType.Lysa);
+            case DeityDomain.Wild:
+                deityName = nameof(DeityDomain.Wild);
                 break;
-            case DeityType.Aethra:
-                deityName = nameof(DeityType.Aethra);
+            case DeityDomain.Harvest:
+                deityName = nameof(DeityDomain.Harvest);
                 break;
-            case DeityType.Gaia:
-                deityName = nameof(DeityType.Gaia);
+            case DeityDomain.Stone:
+                deityName = nameof(DeityDomain.Stone);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -352,24 +349,24 @@ public class FavorSystem : IFavorSystem
         );
     }
 
-    private void AwardFavorMessage(IServerPlayer player, string actionType, float amount, DeityType deityType)
+    private void AwardFavorMessage(IServerPlayer player, string actionType, float amount, DeityDomain deityDomain)
     {
-        var deityName = nameof(DeityType.None);
-        switch (deityType)
+        var deityName = nameof(DeityDomain.None);
+        switch (deityDomain)
         {
-            case DeityType.None:
+            case DeityDomain.None:
                 break;
-            case DeityType.Khoras:
-                deityName = nameof(DeityType.Khoras);
+            case DeityDomain.Craft:
+                deityName = nameof(DeityDomain.Craft);
                 break;
-            case DeityType.Lysa:
-                deityName = nameof(DeityType.Lysa);
+            case DeityDomain.Wild:
+                deityName = nameof(DeityDomain.Wild);
                 break;
-            case DeityType.Aethra:
-                deityName = nameof(DeityType.Aethra);
+            case DeityDomain.Harvest:
+                deityName = nameof(DeityDomain.Harvest);
                 break;
-            case DeityType.Gaia:
-                deityName = nameof(DeityType.Gaia);
+            case DeityDomain.Stone:
+                deityName = nameof(DeityDomain.Stone);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -402,7 +399,7 @@ public class FavorSystem : IFavorSystem
     {
         var religionData = _playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
 
-        if (_religionManager.GetPlayerActiveDeity(player.PlayerUID) == DeityType.None) return;
+        if (_religionManager.GetPlayerActiveDeityDomain(player.PlayerUID) == DeityDomain.None) return;
 
         // Calculate in-game hours elapsed this tick
         // dt is in real-time seconds, convert to in-game hours
@@ -422,13 +419,12 @@ public class FavorSystem : IFavorSystem
     /// <summary>
     ///     Calculates the total multiplier for passive favor generation
     /// </summary>
-    // todo rename: religionData -> playerProgressionData
-    internal float CalculatePassiveFavorMultiplier(IServerPlayer player, PlayerProgressionData religionData)
+    internal float CalculatePassiveFavorMultiplier(IServerPlayer player, PlayerProgressionData playerProgressionData)
     {
         var multiplier = 1.0f;
 
         // Favor rank bonuses (higher ranks gain passive favor faster)
-        multiplier *= religionData.FavorRank switch
+        multiplier *= playerProgressionData.FavorRank switch
         {
             FavorRank.Initiate => 1.0f,
             FavorRank.Disciple => 1.1f,

@@ -35,7 +35,7 @@ internal static class BlessingIconLoader
     /// <summary>
     ///     Load blessing icon texture from assets
     /// </summary>
-    private static LoadedTexture? LoadBlessingTexture(DeityType deity, string iconName)
+    private static LoadedTexture? LoadBlessingTexture(DeityDomain deity, string iconName)
     {
         if (_api == null) return null;
 
@@ -94,14 +94,14 @@ internal static class BlessingIconLoader
 
         if (string.IsNullOrWhiteSpace(blessing.IconName)) return IntPtr.Zero;
 
-        return GetBlessingTextureId(blessing.Deity, blessing.IconName);
+        return GetBlessingTextureId(blessing.Domain, blessing.IconName);
     }
 
     /// <summary>
     ///     Get the texture ID for a blessing icon by deity and icon name
     ///     Returns IntPtr.Zero if texture couldn't be loaded
     /// </summary>
-    public static IntPtr GetBlessingTextureId(DeityType deity, string iconName)
+    public static IntPtr GetBlessingTextureId(DeityDomain deity, string iconName)
     {
         if (!_initialized || _api == null) return IntPtr.Zero;
         if (string.IsNullOrWhiteSpace(iconName)) return IntPtr.Zero;
@@ -152,12 +152,12 @@ internal static class BlessingIconLoader
     /// <summary>
     ///     Preload all blessing textures for a specific deity
     /// </summary>
-    public static void PreloadDeityTextures(List<Blessing> blessings, DeityType deity)
+    public static void PreloadDeityTextures(List<Blessing> blessings, DeityDomain deity)
     {
         if (!_initialized || blessings == null) return;
 
         foreach (var blessing in blessings)
-            if (blessing.Deity == deity)
+            if (blessing.Domain == deity)
                 GetBlessingTextureId(blessing);
     }
 

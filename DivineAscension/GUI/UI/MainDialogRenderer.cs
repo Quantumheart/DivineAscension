@@ -56,7 +56,8 @@ internal static class MainDialogRenderer
             manager.CivilizationManager.CurrentCivilizationName,
             manager.CivilizationManager.CivilizationMemberReligions ??
             new List<CivilizationInfoResponsePacket.MemberReligion>(),
-            manager.ReligionStateManager.CurrentDeity, manager.ReligionStateManager.CurrentReligionName,
+            manager.ReligionStateManager.CurrentReligionDomain, manager.ReligionStateManager.CurrentDeityName,
+            manager.ReligionStateManager.CurrentReligionName,
             manager.ReligionStateManager.ReligionMemberCount, manager.ReligionStateManager.PlayerRoleInReligion,
             manager.ReligionStateManager.GetPlayerFavorProgress(),
             manager.ReligionStateManager.GetReligionPrestigeProgress(), manager.IsCivilizationFounder,

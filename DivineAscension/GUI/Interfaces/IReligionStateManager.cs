@@ -10,7 +10,8 @@ public interface IReligionStateManager
 {
     ReligionTabState State { get; }
     string? CurrentReligionUID { get; set; }
-    DeityType CurrentDeity { get; set; }
+    DeityDomain CurrentReligionDomain { get; set; }
+    string? CurrentDeityName { get; set; }
     string? CurrentReligionName { get; set; }
     int ReligionMemberCount { get; set; }
     string? PlayerRoleInReligion { get; set; } // "Leader", "Member", etc.
@@ -23,7 +24,7 @@ public interface IReligionStateManager
     /// <summary>
     ///     Initialize dialog state from player's current religion data
     /// </summary>
-    void Initialize(string? id, DeityType deity, string? religionName, int favorRank = 0,
+    void Initialize(string? id, DeityDomain domain, string? religionName, int favorRank = 0,
         int prestigeRank = 0);
 
     /// <summary>

@@ -75,7 +75,7 @@ public class QuotedStringParserTests
     {
         // Arrange
         var parser = new QuotedStringParser("name", isMandatory: true);
-        var args = CreateArgs("TestReligion", "Khoras", "public");
+        var args = CreateArgs("TestReligion", "Craft", "public");
 
         // Act
         var result = parser.TryProcess(args);
@@ -112,7 +112,7 @@ public class QuotedStringParserTests
     {
         // Arrange
         var parser = new QuotedStringParser("name", isMandatory: true);
-        var args = CreateArgs("\"My", "Religion\"", "Khoras", "public");
+        var args = CreateArgs("\"My", "Religion\"", "Craft", "public");
 
         // Act
         var result = parser.TryProcess(args);
@@ -120,7 +120,7 @@ public class QuotedStringParserTests
         // Assert
         Assert.Equal(EnumParseResult.Good, result);
         Assert.Equal("My Religion", parser.GetValue());
-        // Remaining args should be "Khoras public"
+        // Remaining args should be "Craft public"
         Assert.True(args.RawArgs.Length > 0);
     }
 
@@ -279,6 +279,85 @@ public class QuotedStringParserTests
         parser.TryProcess(args);
 
         Assert.Equal(1, parser.ArgCount);
+    }
+
+    #endregion
+
+    #region Multiple Parser Sequence Tests
+
+    /// <summary>
+    /// Regression test for the bug where multiple QuotedStringParsers in sequence
+    /// with Word parsers between them failed to parse correctly.
+    /// Simulates: /religion create "TEST TEST" craft "TESTY"
+    /// </summary>
+    [Fact]
+    public void TryProcess_MultipleQuotedStringsWithWordBetween_ParsesAllTokensCorrectly()
+    {
+        // Arrange - simulate /religion create "TEST TEST" craft "TESTY"
+        // The shell splits this into: ["\"TEST", "TEST\"", "craft", "\"TESTY\""]
+        var args = CreateArgs("\"TEST", "TEST\"", "craft", "\"TESTY\"");
+
+        var nameParser = new QuotedStringParser("name", isMandatory: true);
+
+        // Act - first parser extracts the quoted religion name
+        var result1 = nameParser.TryProcess(args);
+
+        // Assert - first parser works
+        Assert.Equal(EnumParseResult.Good, result1);
+        Assert.Equal("TEST TEST", nameParser.GetValue());
+
+        // The remaining args should be separate tokens: "craft" and "\"TESTY\""
+        // NOT a single combined string "craft \"TESTY\""
+        Assert.Equal(2, args.RawArgs.Length);
+
+        // Pop the domain word (simulating Word parser)
+        var domain = args.RawArgs.PopWord();
+        Assert.Equal("craft", domain);
+
+        // Now the second QuotedStringParser should be able to parse "TESTY"
+        var deityParser = new QuotedStringParser("deityname", isMandatory: true);
+        var result2 = deityParser.TryProcess(args);
+
+        Assert.Equal(EnumParseResult.Good, result2);
+        Assert.Equal("TESTY", deityParser.GetValue());
+    }
+
+    /// <summary>
+    /// Tests that quoted strings in the remaining args are preserved as single tokens
+    /// after the first QuotedStringParser processes.
+    /// </summary>
+    [Fact]
+    public void TryProcess_QuotedStringInRemainingArgs_PreservedAsSingleToken()
+    {
+        // Arrange - simulate: "First Name" word "Second Name" optional
+        var args = CreateArgs("\"First", "Name\"", "word", "\"Second", "Name\"", "optional");
+
+        var firstParser = new QuotedStringParser("first", isMandatory: true);
+
+        // Act
+        var result = firstParser.TryProcess(args);
+
+        // Assert
+        Assert.Equal(EnumParseResult.Good, result);
+        Assert.Equal("First Name", firstParser.GetValue());
+
+        // Remaining should be 3 tokens: "word", "\"Second Name\"" (preserved as single token), "optional"
+        Assert.Equal(3, args.RawArgs.Length);
+
+        // Pop the single word
+        var word = args.RawArgs.PopWord();
+        Assert.Equal("word", word);
+
+        // Parse the second quoted string
+        var secondParser = new QuotedStringParser("second", isMandatory: true);
+        var result2 = secondParser.TryProcess(args);
+
+        Assert.Equal(EnumParseResult.Good, result2);
+        Assert.Equal("Second Name", secondParser.GetValue());
+
+        // Should still have "optional" remaining
+        Assert.Equal(1, args.RawArgs.Length);
+        Assert.Equal("optional", args.RawArgs.PopWord());
     }
 
     #endregion

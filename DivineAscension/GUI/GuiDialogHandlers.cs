@@ -55,9 +55,9 @@ public partial class GuiDialog
         }
 
         // Parse deity type from string
-        if (!Enum.TryParse<DeityType>(packet.Deity, out var deityType))
+        if (!Enum.TryParse<DeityDomain>(packet.Domain, out var deityType))
         {
-            _capi.Logger.Error($"[DivineAscension] Invalid deity type: {packet.Deity}");
+            _capi.Logger.Error($"[DivineAscension] Invalid deity type: {packet.Domain}");
             return;
         }
 
@@ -65,7 +65,8 @@ public partial class GuiDialog
         _manager!.Initialize(packet.ReligionUID, deityType, packet.ReligionName, packet.FavorRank,
             packet.PrestigeRank);
 
-        // Set current favor and prestige values for progress bars
+        // Set deity name and current favor/prestige values for progress bars
+        _manager.ReligionStateManager.CurrentDeityName = packet.DeityName;
         _manager.ReligionStateManager.CurrentFavor = packet.CurrentFavor;
         _manager.ReligionStateManager.CurrentPrestige = packet.CurrentPrestige;
         _manager.ReligionStateManager.TotalFavorEarned = packet.TotalFavorEarned;
@@ -119,7 +120,7 @@ public partial class GuiDialog
 
         _state.IsReady = true;
         _capi.Logger.Notification(
-            $"[DivineAscension] Loaded {playerBlessings.Count} player blessings and {religionBlessings.Count} religion blessings for {packet.Deity}");
+            $"[DivineAscension] Loaded {playerBlessings.Count} player blessings and {religionBlessings.Count} religion blessings for {packet.Domain}");
     }
 
     /// <summary>
@@ -376,6 +377,43 @@ public partial class GuiDialog
     }
 
     /// <summary>
+    ///     Handle deity name change response
+    /// </summary>
+    private void OnDeityNameChanged(SetDeityNameResponsePacket packet)
+    {
+        _capi!.Logger.Debug($"[DivineAscension] Deity name change response: Success={packet.Success}");
+
+        // Update state - stop saving indicator
+        _manager!.ReligionStateManager.State.InfoState.IsSavingDeityName = false;
+
+        if (packet.Success)
+        {
+            // Exit edit mode
+            _manager.ReligionStateManager.State.InfoState.IsEditingDeityName = false;
+            _manager.ReligionStateManager.State.InfoState.EditDeityNameValue = string.Empty;
+            _manager.ReligionStateManager.State.InfoState.DeityNameError = null;
+
+            // Update the cached religion info with the new deity name
+            var myReligionInfo = _manager.ReligionStateManager.State.InfoState.MyReligionInfo;
+            if (myReligionInfo != null && packet.NewDeityName != null)
+            {
+                myReligionInfo.DeityName = packet.NewDeityName;
+                // Also update the header-level deity name
+                _manager.ReligionStateManager.CurrentDeityName = packet.NewDeityName;
+            }
+
+            // Refresh the religion info to ensure everything is in sync
+            _manager.ReligionStateManager.RequestPlayerReligionInfo();
+        }
+        else
+        {
+            // Show error
+            _manager.ReligionStateManager.State.InfoState.DeityNameError =
+                packet.ErrorMessage ?? "Failed to update deity name";
+        }
+    }
+
+    /// <summary>
     ///     Handle religion detail response
     /// </summary>
     private void OnReligionDetailReceived(ReligionDetailResponsePacket packet)
@@ -425,7 +463,7 @@ public partial class GuiDialog
                     NotificationType.FavorRankUp,
                     packet.FavorRank,
                     description,
-                    _manager.ReligionStateManager.CurrentDeity);
+                    _manager.ReligionStateManager.CurrentReligionDomain);
         }
 
         // Check for prestige rank-up
@@ -441,7 +479,7 @@ public partial class GuiDialog
                     NotificationType.PrestigeRankUp,
                     packet.PrestigeRank,
                     description,
-                    _manager.ReligionStateManager.CurrentDeity);
+                    _manager.ReligionStateManager.CurrentReligionDomain);
         }
 
         // Update previous ranks for next comparison
@@ -475,21 +513,21 @@ public partial class GuiDialog
         // Play unlock success sound
         if (_manager != null)
         {
-            switch (_manager.ReligionStateManager.CurrentDeity)
+            switch (_manager.ReligionStateManager.CurrentReligionDomain)
             {
-                case DeityType.None:
+                case DeityDomain.None:
                     break;
-                case DeityType.Khoras:
-                    _soundManager!.PlayDeityUnlock(DeityType.Khoras);
+                case DeityDomain.Craft:
+                    _soundManager!.PlayDeityUnlock(DeityDomain.Craft);
                     break;
-                case DeityType.Lysa:
-                    _soundManager!.PlayDeityUnlock(DeityType.Lysa);
+                case DeityDomain.Wild:
+                    _soundManager!.PlayDeityUnlock(DeityDomain.Wild);
                     break;
-                case DeityType.Aethra:
-                    _soundManager!.PlayDeityUnlock(DeityType.Aethra);
+                case DeityDomain.Harvest:
+                    _soundManager!.PlayDeityUnlock(DeityDomain.Harvest);
                     break;
-                case DeityType.Gaia:
-                    _soundManager!.PlayDeityUnlock(DeityType.Gaia);
+                case DeityDomain.Stone:
+                    _soundManager!.PlayDeityUnlock(DeityDomain.Stone);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

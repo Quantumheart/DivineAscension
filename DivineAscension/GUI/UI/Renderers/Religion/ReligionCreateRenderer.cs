@@ -50,88 +50,14 @@ internal static class ReligionCreateRenderer
         const float fieldWidth = formWidth;
 
         // Religion Name
-        TextRenderer.DrawLabel(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_LABEL),
-            formX, currentY);
-        currentY += 25f;
+        currentY = DrawReligionNameGroup(viewModel, drawList, formX, currentY, fieldWidth, events);
 
-        var newReligionName = TextInput.Draw(
-            drawList,
-            "##createReligionName",
-            viewModel.ReligionName,
-            formX,
-            currentY,
-            fieldWidth,
-            32f,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_PLACEHOLDER),
-            32);
+        // Deity Name Input
+        currentY = DrawDeityNameGroup(viewModel, drawList, formX, currentY, fieldWidth, events);
 
-        // Emit event if name changed
-        if (newReligionName != viewModel.ReligionName)
-        {
-            events.Add(new CreateEvent.NameChanged(newReligionName));
-        }
+        // Domain Selection (tab-based approach with icons and tooltips)
+        var hoveredDomainName = DrawDomainGroup(viewModel, drawList, formX, fieldWidth, events, ref currentY);
 
-        currentY += 40f;
-
-        // Validation feedback
-        if (!string.IsNullOrWhiteSpace(viewModel.ReligionName))
-        {
-            if (viewModel.ReligionName.Length < 3)
-            {
-                TextRenderer.DrawErrorText(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_TOO_SHORT), formX,
-                    currentY);
-                currentY += 25f;
-            }
-            else if (viewModel.ReligionName.Length > 32)
-            {
-                TextRenderer.DrawErrorText(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_TOO_LONG), formX,
-                    currentY);
-                currentY += 25f;
-            }
-        }
-
-        // Deity Selection (tab-based approach with icons and tooltips)
-        TextRenderer.DrawLabel(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_LABEL),
-            formX, currentY);
-        currentY += 25f;
-
-        var currentDeityIndex = viewModel.GetCurrentDeityIndex();
-
-        // Prepare deity icon names for tabs (lowercase for icon loader)
-        var deityIconNames = viewModel.AvailableDeities
-            .Select(d => d.ToLower())
-            .ToArray();
-
-        // Draw deity selection as tabs with icons and hover tracking
-        var (newDeityIndex, hoveredIndex) = TabControl.DrawWithHover(
-            drawList,
-            formX,
-            currentY,
-            fieldWidth,
-            32f,
-            viewModel.AvailableDeities,
-            currentDeityIndex,
-            4f,
-            "deities", // Icon directory
-            deityIconNames);
-
-        // Emit event if deity changed
-        if (newDeityIndex != currentDeityIndex)
-        {
-            var newDeity = viewModel.AvailableDeities[newDeityIndex];
-            events.Add(new CreateEvent.DeityChanged(newDeity));
-        }
-
-        // Track hovered deity for tooltip rendering
-        string? hoveredDeityName = null;
-        if (hoveredIndex >= 0 && hoveredIndex < viewModel.AvailableDeities.Length)
-        {
-            hoveredDeityName = viewModel.AvailableDeities[hoveredIndex];
-        }
-
-        currentY += 40f;
 
         // Public/Private Toggle
         var newIsPublic = CheckboxRenderer.DrawCheckbox(
@@ -181,12 +107,12 @@ internal static class ReligionCreateRenderer
 
         currentY += buttonHeight;
 
-        // Render deity tooltip if hovering over a deity tab
-        if (!string.IsNullOrEmpty(hoveredDeityName))
+        // Render domain tooltip if hovering over a domain tab
+        if (!string.IsNullOrEmpty(hoveredDomainName))
         {
             var mousePos = ImGui.GetMousePos();
             DeityTooltipRenderer.Draw(
-                hoveredDeityName,
+                hoveredDomainName,
                 mousePos.X,
                 mousePos.Y,
                 viewModel.Width,
@@ -194,5 +120,147 @@ internal static class ReligionCreateRenderer
         }
 
         return new ReligionCreateRenderResult(events, currentY - viewModel.Y);
+    }
+
+    private static float DrawDeityNameGroup(ReligionCreateViewModel viewModel, ImDrawListPtr drawList, float formX,
+        float currentY, float fieldWidth, List<CreateEvent> events)
+    {
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_LABEL),
+            formX, currentY);
+        currentY += 25f;
+
+        var newDeityName = TextInput.Draw(
+            drawList,
+            "##createDeityName",
+            viewModel.DeityName,
+            formX,
+            currentY,
+            fieldWidth,
+            32f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_PLACEHOLDER),
+            48);
+
+        // Emit event if deity name changed
+        if (newDeityName != viewModel.DeityName)
+        {
+            events.Add(new CreateEvent.DeityNameChanged(newDeityName));
+        }
+
+        currentY += 40f;
+
+        // Deity name validation feedback
+        if (!string.IsNullOrWhiteSpace(viewModel.DeityName))
+        {
+            if (viewModel.DeityName.Length < 2)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_ERROR_TOO_SHORT), formX,
+                    currentY);
+                currentY += 25f;
+            }
+            else if (viewModel.DeityName.Length > 48)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_ERROR_TOO_LONG), formX,
+                    currentY);
+                currentY += 25f;
+            }
+        }
+
+        return currentY;
+    }
+
+    private static string? DrawDomainGroup(ReligionCreateViewModel viewModel, ImDrawListPtr drawList, float formX,
+        float fieldWidth, List<CreateEvent> events, ref float currentY)
+    {
+        TextRenderer.DrawLabel(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DOMAIN_LABEL),
+            formX, currentY);
+        currentY += 25f;
+
+        var currentDomainIndex = viewModel.GetCurrentDomainIndex();
+
+        // Prepare domain icon names for tabs (lowercase for icon loader)
+        var domainIconNames = viewModel.AvailableDomains
+            .Select(d => d.ToLower())
+            .ToArray();
+
+        // Draw domain selection as tabs with icons and hover tracking
+        var (newDomainIndex, hoveredIndex) = TabControl.DrawWithHover(
+            drawList,
+            formX,
+            currentY,
+            fieldWidth,
+            32f,
+            viewModel.AvailableDomains,
+            currentDomainIndex,
+            4f,
+            "deities", // Icon directory
+            domainIconNames);
+
+        // Emit event if domain changed
+        if (newDomainIndex != currentDomainIndex)
+        {
+            var newDomain = viewModel.AvailableDomains[newDomainIndex];
+            events.Add(new CreateEvent.DeityChanged(newDomain));
+        }
+
+        // Track hovered domain for tooltip rendering
+        string? hoveredDomainName = null;
+        if (hoveredIndex >= 0 && hoveredIndex < viewModel.AvailableDomains.Length)
+        {
+            hoveredDomainName = viewModel.AvailableDomains[hoveredIndex];
+        }
+
+        currentY += 40f;
+        return hoveredDomainName;
+    }
+
+    private static float DrawReligionNameGroup(ReligionCreateViewModel viewModel, ImDrawListPtr drawList, float formX,
+        float currentY, float fieldWidth, List<CreateEvent> events)
+    {
+        TextRenderer.DrawLabel(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_LABEL),
+            formX, currentY);
+        currentY += 25f;
+
+        var newReligionName = TextInput.Draw(
+            drawList,
+            "##createReligionName",
+            viewModel.ReligionName,
+            formX,
+            currentY,
+            fieldWidth,
+            32f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_PLACEHOLDER),
+            32);
+
+        // Emit event if name changed
+        if (newReligionName != viewModel.ReligionName)
+        {
+            events.Add(new CreateEvent.NameChanged(newReligionName));
+        }
+
+        currentY += 40f;
+
+        // Validation feedback
+        if (!string.IsNullOrWhiteSpace(viewModel.ReligionName))
+        {
+            if (viewModel.ReligionName.Length < 3)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_TOO_SHORT), formX,
+                    currentY);
+                currentY += 25f;
+            }
+            else if (viewModel.ReligionName.Length > 32)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_TOO_LONG), formX,
+                    currentY);
+                currentY += 25f;
+            }
+        }
+
+        return currentY;
     }
 }

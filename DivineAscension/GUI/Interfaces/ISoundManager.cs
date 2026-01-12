@@ -31,5 +31,5 @@ public interface ISoundManager
     ///     Plays a deity-specific unlock sound based on the deity type.
     /// </summary>
     /// <param name="deity">The deity type to play the unlock sound for</param>
-    void PlayDeityUnlock(DeityType deity);
+    void PlayDeityUnlock(DeityDomain deity);
 }

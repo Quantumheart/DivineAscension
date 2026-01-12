@@ -4,6 +4,6 @@ namespace DivineAscension.Systems.Favor;
 
 public interface IFavorTracker
 {
-    DeityType DeityType { get; }
+    DeityDomain DeityDomain { get; }
     void Initialize();
 }

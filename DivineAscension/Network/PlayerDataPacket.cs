@@ -13,9 +13,9 @@ public class PlayerDataPacket
     {
     }
 
-    public PlayerDataPacket(DeityType deityType, int favor, DevotionRank rank, string deityName)
+    public PlayerDataPacket(DeityDomain deityDomain, int favor, DevotionRank rank, string deityName)
     {
-        DeityTypeId = (int)deityType;
+        DeityTypeId = (int)deityDomain;
         DivineFavor = favor;
         DevotionRankId = (int)rank;
         DeityName = deityName;
@@ -29,9 +29,9 @@ public class PlayerDataPacket
 
     [ProtoMember(4)] public string DeityName { get; set; } = string.Empty;
 
-    public DeityType GetDeityType()
+    public DeityDomain GetDeityType()
     {
-        return (DeityType)DeityTypeId;
+        return (DeityDomain)DeityTypeId;
     }
 
     public DevotionRank GetDevotionRank()

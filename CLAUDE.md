@@ -112,18 +112,19 @@ Releases/                      # Packaged mod artifacts from Cake build
 - **Dispose:** Unpatches Harmony, disposes managers and network handlers
 
 **CRITICAL INITIALIZATION ORDER** (in `DivineAscensionSystemInitializer.cs`):
-1. `DeityRegistry` - Register deities (Khoras, Lysa, Aethra, Gaia)
-2. `ReligionManager` - Religion CRUD and membership with O(1) player-to-religion index
+1. `ReligionManager` - Religion CRUD and membership with O(1) player-to-religion index
+2. **Deity name migration** - Migrates existing religions with empty deity names (backward compatibility)
 3. `CivilizationManager` - Civilization management (depends on ReligionManager)
 4. `PlayerProgressionDataManager` - Per-player data
-5. `ReligionPrestigeManager` - Religion-level progression
-6. `FavorSystem` - Divine favor rewards (**depends on PrestigeManager**)
-7. `PvPManager` - PvP favor rewards
-8. `BlessingRegistry` - Blessing definitions
-9. `BlessingEffectSystem` - Stat modifiers and effects (**must register with PrestigeManager after initialization**)
-10. Command handlers (Favor, Blessing, Religion, Role, Civilization)
-11. Network handlers (PlayerData, Blessing, Religion, Civilization)
-12. **Membership validation** - Validates and repairs player-to-religion index consistency
+5. `ReligionPrestigeManager` - Religion-level progression (**MUST be initialized before FavorSystem**)
+6. `FavorSystem` - Divine favor rewards (depends on PrestigeManager)
+7. `DiplomacyManager` - Inter-civilization diplomacy
+8. `PvPManager` - PvP favor rewards
+9. `BlessingRegistry` - Blessing definitions
+10. `BlessingEffectSystem` - Stat modifiers and effects (**must register with PrestigeManager after initialization**)
+11. Command handlers (Favor, Blessing, Religion, Role, Civilization, Diplomacy)
+12. Network handlers (PlayerData, Blessing, Religion, Civilization)
+13. **Membership validation** - Validates and repairs player-to-religion index consistency
 
 **Never reorder these** - dependency chains will break.
 
@@ -141,23 +142,23 @@ Releases/                      # Packaged mod artifacts from Cake build
 - Favor rank (Initiate → Avatar) computed from lifetime favor
 - Unlocked player blessings tracking (HashSet)
 - Events: `OnPlayerLeavesReligion`, `OnPlayerDataChanged`
-- Queries ReligionManager for player's current religion and deity
+- Queries ReligionManager for player's current religion and domain
 
 **CivilizationManager** (`/Systems/CivilizationManager.cs`):
-- Alliances of 1-4 religions with different deities
+- Alliances of 1-4 religions with different domains
 - Invite system (7-day expiry)
 - Handles cascading deletion when religions disband
 
 **FavorSystem** (`/Systems/FavorSystem.cs`):
-- Awards favor for deity-aligned activities
+- Awards favor for domain-aligned activities
 - Passive favor generation (0.5/hour)
 - Manages 7 sub-trackers: `MiningFavorTracker`, `AnvilFavorTracker`, `HuntingFavorTracker`, `ForagingFavorTracker`, `AethraFavorTracker`, `GaiaFavorTracker`, `SmeltingFavorTracker`
-- Each tracker implements `IFavorTracker` with deity-specific logic
+- Each tracker implements `IFavorTracker` with domain-specific logic
 
 **BlessingRegistry** (`/Systems/BlessingRegistry.cs`):
 - Loads all blessings from `BlessingDefinitions.cs` (1000+ lines)
-- Query by deity, type (player/religion)
-- Validates unlock eligibility (rank, prerequisites, deity match)
+- Query by domain, type (player/religion)
+- Validates unlock eligibility (rank, prerequisites, domain match)
 
 **BlessingEffectSystem** (`/Systems/BlessingEffectSystem.cs`):
 - Applies stat modifiers from unlocked blessings
@@ -174,15 +175,18 @@ Releases/                      # Packaged mod artifacts from Cake build
 - PvP favor and prestige rewards on kills
 - Death penalties
 
-**DeityRegistry** (`/Systems/DeityRegistry.cs`):
-- Registry of 4 deities (only Khoras and Lysa fully implemented)
-- Ability ID lookup
+**DiplomacyManager** (`/Systems/DiplomacyManager.cs`):
+- Inter-civilization diplomatic relationships (NAP, Alliance, War, Neutral)
+- Proposal system with 7-day expiry
+- Violation tracking for treaty breaches
+- Peace/War declarations
 
 ### Command System
 
 **Command handlers** (`/Commands/`):
-- `ReligionCommands.cs` - Religion CRUD, membership, bans, prestige
+- `ReligionCommands.cs` - Religion CRUD, membership, bans, prestige, deity name management
 - `CivilizationCommands.cs` - Civilization management, invites
+- `DiplomacyCommands.cs` - Inter-civilization diplomacy (NAP, Alliance, War)
 - `BlessingCommands.cs` - Blessing unlocks and queries
 - `FavorCommands.cs` - Player favor and admin commands
 - `RoleCommands.cs` - Role assignment and management
@@ -238,6 +242,8 @@ Users can specify names as `"Name With Spaces"` or `SingleWord` (backward compat
 
 **Icon Loaders** (`/GUI/UI/Utilities/`): `DeityIconLoader`, `BlessingIconLoader`, `CivilizationIconLoader`, `GuiIconLoader`
 
+**Domain/Deity Helpers** (`/GUI/UI/Utilities/`): `DomainHelper` (domain enum utilities), `DeityInfoHelper` (deity display info)
+
 ### Buff/Stat Modifier System
 
 **BuffManager** (`/Systems/BuffSystem/BuffManager.cs`):
@@ -280,12 +286,13 @@ Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
 
 1. **Initialization order is critical** - See initialization section above
 2. **Single network channel** - All packets share `"divineascension"` channel
-3. **Civilization limits** - 1-4 religions per civilization
+3. **Civilization limits** - 1-4 religions per civilization (each must have different domain)
 4. **Favor rank persistence** - Favor rank tied to lifetime favor earned, persists across religion changes
 5. **Blessing prerequisites** - Can require other blessings unlocked first
-6. **Deity-bound blessings** - Only unlock if player matches deity
+6. **Domain-bound blessings** - Only unlock if player's religion matches the blessing's domain
 7. **Single source of truth** - ReligionManager is authoritative for membership; PlayerProgressionData queries it
 8. **InternalsVisibleTo** - Main project exposes internals to tests via `[assembly: InternalsVisibleTo("DivineAscension.Tests")]`
+9. **Domain vs Deity Name** - `DeityDomain` enum (Craft, Wild, Harvest, Stone) defines mechanics; `DeityName` string is customizable display name
 
 ## Development Practices
 

@@ -27,7 +27,7 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var mockBannedPlayer = CreateMockPlayer("banned-1", "BannedPlayer");
         var founderData = CreatePlayerData("founder-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
 
         var bannedPlayers = new List<BanEntry>
         {
@@ -64,7 +64,7 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var mockBannedPlayer = CreateMockPlayer("banned-1", "BannedPlayer");
         var founderData = CreatePlayerData("founder-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
 
         var bannedPlayers = new List<BanEntry>
         {
@@ -94,7 +94,7 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
         // Arrange
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var founderData = CreatePlayerData("founder-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
 
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args);
@@ -121,7 +121,7 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
         var mockBanned1 = CreateMockPlayer("banned-1", "FirstBanned");
         var mockBanned2 = CreateMockPlayer("banned-2", "SecondBanned");
         var founderData = CreatePlayerData("founder-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
 
         var bannedPlayers = new List<BanEntry>
         {
@@ -156,7 +156,7 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
         // Arrange
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var founderData = CreatePlayerData("founder-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
 
         var bannedPlayers = new List<BanEntry>
         {
@@ -255,7 +255,7 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "MemberName");
         var playerData = CreatePlayerData("player-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args);
 

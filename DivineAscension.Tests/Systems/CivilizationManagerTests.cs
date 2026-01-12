@@ -81,7 +81,8 @@ public class CivilizationManagerTests
         var religionName = "Test Religion";
         var civName = "Grand Alliance";
 
-        var religion = TestFixtures.CreateTestReligion(founderReligionId, religionName, DeityType.Khoras, founderUID);
+        var religion = TestFixtures.CreateTestReligion(founderReligionId, religionName, DeityDomain.Craft, "TestDeity",
+            founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(religion);
 
         // Act
@@ -152,7 +153,8 @@ public class CivilizationManagerTests
         var civName = "Grand Alliance";
 
         var religion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Test Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Test Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(religion);
 
         // Create first civilization
@@ -162,7 +164,8 @@ public class CivilizationManagerTests
         var founderUID2 = "founder-456";
         var founderReligionId2 = "religion-2";
         var religion2 =
-            TestFixtures.CreateTestReligion(founderReligionId2, "Test Religion 2", DeityType.Lysa, founderUID2);
+            TestFixtures.CreateTestReligion(founderReligionId2, "Test Religion 2", DeityDomain.Wild, "TestDeity",
+                founderUID2);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId2)).Returns(religion2);
 
         // Act - try to create with same name
@@ -201,7 +204,8 @@ public class CivilizationManagerTests
         var civName = "Grand Alliance";
 
         var religion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Test Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Test Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(religion);
 
         // Act - try to create with non-founder
@@ -222,7 +226,8 @@ public class CivilizationManagerTests
         var civName2 = "Second Alliance";
 
         var religion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Test Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Test Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(religion);
 
         // Create first civilization
@@ -249,9 +254,11 @@ public class CivilizationManagerTests
         var targetReligionId = "religion-2";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         var targetReligion =
-            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, "target-founder");
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityDomain.Wild, "TestDeity",
+                "target-founder");
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
@@ -294,7 +301,8 @@ public class CivilizationManagerTests
         var targetReligionId = "religion-2";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
@@ -315,7 +323,8 @@ public class CivilizationManagerTests
         var founderUID = "founder-123";
         var founderReligionId = "religion-1";
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
@@ -325,7 +334,8 @@ public class CivilizationManagerTests
         for (var i = 2; i <= 4; i++)
         {
             var religionId = $"religion-{i}";
-            var religion = TestFixtures.CreateTestReligion(religionId, $"Religion {i}", (DeityType)i, $"founder-{i}");
+            var religion = TestFixtures.CreateTestReligion(religionId, $"Religion {i}", (DeityDomain)i, "TestDeity",
+                $"founder-{i}");
             _mockReligionManager.Setup(r => r.GetReligion(religionId)).Returns(religion);
             _civilizationManager.InviteReligion(civ.CivId, religionId, founderUID);
             _civilizationManager.AcceptInvite(_civilizationManager.GetInvitesForReligion(religionId).First().InviteId,
@@ -335,7 +345,8 @@ public class CivilizationManagerTests
         // Try to invite a 5th religion
         var extraReligionId = "religion-5";
         var extraReligion =
-            TestFixtures.CreateTestReligion(extraReligionId, "Extra Religion", DeityType.Aethra, "founder-5");
+            TestFixtures.CreateTestReligion(extraReligionId, "Extra Religion", DeityDomain.Harvest, "TestDeity",
+                "founder-5");
         _mockReligionManager.Setup(r => r.GetReligion(extraReligionId)).Returns(extraReligion);
 
         // Act
@@ -353,7 +364,8 @@ public class CivilizationManagerTests
         var founderUID = "founder-123";
         var founderReligionId = "religion-1";
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
@@ -376,7 +388,8 @@ public class CivilizationManagerTests
         var founderUID = "founder-123";
         var founderReligionId = "religion-1";
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
@@ -397,12 +410,14 @@ public class CivilizationManagerTests
         var founderUID1 = "founder-123";
         var founderReligionId1 = "religion-1";
         var founderReligion1 =
-            TestFixtures.CreateTestReligion(founderReligionId1, "Founder Religion 1", DeityType.Khoras, founderUID1);
+            TestFixtures.CreateTestReligion(founderReligionId1, "Founder Religion 1", DeityDomain.Craft, "TestDeity",
+                founderUID1);
 
         var founderUID2 = "founder-456";
         var founderReligionId2 = "religion-2";
         var founderReligion2 =
-            TestFixtures.CreateTestReligion(founderReligionId2, "Founder Religion 2", DeityType.Lysa, founderUID2);
+            TestFixtures.CreateTestReligion(founderReligionId2, "Founder Religion 2", DeityDomain.Wild, "TestDeity",
+                founderUID2);
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId1)).Returns(founderReligion1);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId2)).Returns(founderReligion2);
@@ -431,9 +446,11 @@ public class CivilizationManagerTests
 
         // Both religions worship Khoras
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         var targetReligion =
-            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Khoras, "target-founder");
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityDomain.Craft, "TestDeity",
+                "target-founder");
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
@@ -458,9 +475,11 @@ public class CivilizationManagerTests
         var targetReligionId = "religion-2";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         var targetReligion =
-            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, "target-founder");
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityDomain.Wild, "TestDeity",
+                "target-founder");
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
@@ -493,9 +512,11 @@ public class CivilizationManagerTests
         var targetReligionId = "religion-2";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         var targetReligion =
-            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, targetUID);
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityDomain.Wild, "TestDeity",
+                targetUID);
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
@@ -538,9 +559,11 @@ public class CivilizationManagerTests
         var targetReligionId = "religion-2";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         var targetReligion =
-            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, targetUID);
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityDomain.Wild, "TestDeity",
+                targetUID);
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
@@ -570,7 +593,8 @@ public class CivilizationManagerTests
         var targetReligionId = "religion-2";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
@@ -598,9 +622,11 @@ public class CivilizationManagerTests
         var notFounderUID = "not-founder";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         var targetReligion =
-            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, targetUID);
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityDomain.Wild, "TestDeity",
+                targetUID);
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
@@ -633,9 +659,11 @@ public class CivilizationManagerTests
         var targetReligionId = "religion-2";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         var targetReligion =
-            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, targetUID);
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityDomain.Wild, "TestDeity",
+                targetUID);
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
@@ -682,7 +710,8 @@ public class CivilizationManagerTests
         var targetReligionId = "religion-2";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns((ReligionData?)null);
 
@@ -711,9 +740,11 @@ public class CivilizationManagerTests
         var notFounderUID = "not-founder";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         var targetReligion =
-            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, targetUID);
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityDomain.Wild, "TestDeity",
+                targetUID);
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
@@ -741,7 +772,8 @@ public class CivilizationManagerTests
         var founderReligionId = "religion-1";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
@@ -765,9 +797,11 @@ public class CivilizationManagerTests
         var targetReligionId = "religion-2";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         var targetReligion =
-            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, targetUID);
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityDomain.Wild, "TestDeity",
+                targetUID);
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
@@ -802,9 +836,11 @@ public class CivilizationManagerTests
         var targetReligionId = "religion-2";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         var targetReligion =
-            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, targetUID);
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityDomain.Wild, "TestDeity",
+                targetUID);
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
@@ -848,7 +884,8 @@ public class CivilizationManagerTests
         var notFounderUID = "not-founder";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
@@ -870,7 +907,8 @@ public class CivilizationManagerTests
         var founderReligionId = "religion-1";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
@@ -892,7 +930,8 @@ public class CivilizationManagerTests
         var founderReligionId = "religion-1";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetPlayerReligion(founderUID)).Returns(founderReligion);
 
@@ -919,7 +958,8 @@ public class CivilizationManagerTests
         var founderReligionId = "religion-1";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
@@ -954,7 +994,8 @@ public class CivilizationManagerTests
         var notFounderUID = "not-founder";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
@@ -978,9 +1019,11 @@ public class CivilizationManagerTests
         var targetReligionId = "religion-2";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         var targetReligion =
-            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, "target-founder");
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityDomain.Wild, "TestDeity",
+                "target-founder");
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
@@ -1011,7 +1054,8 @@ public class CivilizationManagerTests
         var founderReligionId = "religion-1";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
@@ -1043,7 +1087,8 @@ public class CivilizationManagerTests
         var founderReligionId = "religion-1";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
@@ -1065,7 +1110,8 @@ public class CivilizationManagerTests
         var founderReligionId = "religion-1";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetPlayerReligion(founderUID)).Returns(founderReligion);
 
@@ -1103,9 +1149,11 @@ public class CivilizationManagerTests
         var founderReligionId2 = "religion-2";
 
         var founderReligion1 =
-            TestFixtures.CreateTestReligion(founderReligionId1, "Founder Religion 1", DeityType.Khoras, founderUID1);
+            TestFixtures.CreateTestReligion(founderReligionId1, "Founder Religion 1", DeityDomain.Craft, "TestDeity",
+                founderUID1);
         var founderReligion2 =
-            TestFixtures.CreateTestReligion(founderReligionId2, "Founder Religion 2", DeityType.Lysa, founderUID2);
+            TestFixtures.CreateTestReligion(founderReligionId2, "Founder Religion 2", DeityDomain.Wild, "TestDeity",
+                founderUID2);
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId1)).Returns(founderReligion1);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId2)).Returns(founderReligion2);
@@ -1130,9 +1178,11 @@ public class CivilizationManagerTests
         var targetReligionId = "religion-2";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         var targetReligion =
-            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, targetUID);
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityDomain.Wild, "TestDeity",
+                targetUID);
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
@@ -1149,8 +1199,8 @@ public class CivilizationManagerTests
 
         // Assert
         Assert.Equal(2, result.Count);
-        Assert.Contains(DeityType.Khoras, result);
-        Assert.Contains(DeityType.Lysa, result);
+        Assert.Contains(DeityDomain.Craft, result);
+        Assert.Contains(DeityDomain.Wild, result);
     }
 
     [Fact]
@@ -1163,9 +1213,11 @@ public class CivilizationManagerTests
         var targetReligionId = "religion-2";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         var targetReligion =
-            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, targetUID);
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityDomain.Wild, "TestDeity",
+                targetUID);
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
@@ -1194,7 +1246,8 @@ public class CivilizationManagerTests
         var founderReligionId = "religion-1";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         founderReligion.MemberUIDs = new List<string> { founderUID, "member-1", "member-2" };
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
@@ -1223,7 +1276,8 @@ public class CivilizationManagerTests
         var founderReligionId = "religion-1";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
         // Initialize to subscribe to events
@@ -1260,9 +1314,11 @@ public class CivilizationManagerTests
         var targetReligionId = "religion-2";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         var targetReligion =
-            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, targetUID);
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityDomain.Wild, "TestDeity",
+                targetUID);
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);
@@ -1306,7 +1362,8 @@ public class CivilizationManagerTests
         var otherReligionId = "religion-999";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
         var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
@@ -1331,9 +1388,11 @@ public class CivilizationManagerTests
         var targetReligionId = "religion-2";
 
         var founderReligion =
-            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityType.Khoras, founderUID);
+            TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
+                founderUID);
         var targetReligion =
-            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityType.Lysa, targetUID);
+            TestFixtures.CreateTestReligion(targetReligionId, "Target Religion", DeityDomain.Wild, "TestDeity",
+                targetUID);
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
         _mockReligionManager.Setup(r => r.GetReligion(targetReligionId)).Returns(targetReligion);

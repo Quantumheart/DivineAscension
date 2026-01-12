@@ -27,5 +27,5 @@ public interface IFavorSystem : IDisposable
     /// <summary>
     ///     Awards a fractional amount of favor by player UID (for async/delayed events)
     /// </summary>
-    void AwardFavorForAction(string playerUid, string actionType, float amount, DeityType deityType);
+    void AwardFavorForAction(string playerUid, string actionType, float amount, DeityDomain deityDomain);
 }

@@ -94,10 +94,10 @@ public class BlessingCommandAdminTests
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.Khoras);
-        var religion = TestFixtures.CreateTestReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.Craft);
+        var religion = TestFixtures.CreateTestReligion("religion-1", "TestReligion", DeityDomain.Craft, "player-1");
         var blessing =
-            TestFixtures.CreateTestBlessing("khoras_strength", "Strength", DeityType.Khoras, BlessingKind.Player);
+            TestFixtures.CreateTestBlessing("khoras_strength", "Strength", DeityDomain.Craft, BlessingKind.Player);
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "khoras_strength", "Player");
@@ -105,7 +105,7 @@ public class BlessingCommandAdminTests
         // Setup mocks
         _mockSapi.Setup(s => s.World.AllPlayers).Returns(new[] { target.Object });
         _mockPlayerDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _mockReligionManager.Setup(m => m.GetPlayerActiveDeity("player-1")).Returns(DeityType.Khoras);
+        _mockReligionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-1")).Returns(DeityDomain.Craft);
         _mockReligionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
         _mockBlessingRegistry.Setup(r => r.GetBlessing("khoras_strength")).Returns(blessing);
 
@@ -125,16 +125,17 @@ public class BlessingCommandAdminTests
     {
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
-        var playerData = TestFixtures.CreateTestPlayerReligionData("admin-1", DeityType.Lysa);
-        var religion = TestFixtures.CreateTestReligion("religion-1", "TestReligion", DeityType.Lysa, "admin-1");
-        var blessing = TestFixtures.CreateTestBlessing("lysa_healing", "Healing", DeityType.Lysa, BlessingKind.Player);
+        var playerData = TestFixtures.CreateTestPlayerReligionData("admin-1", DeityDomain.Wild);
+        var religion = TestFixtures.CreateTestReligion("religion-1", "TestReligion", DeityDomain.Wild, "admin-1");
+        var blessing =
+            TestFixtures.CreateTestBlessing("lysa_healing", "Healing", DeityDomain.Wild, BlessingKind.Player);
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "lysa_healing", null);
 
         // Setup mocks
         _mockPlayerDataManager.Setup(m => m.GetOrCreatePlayerData("admin-1")).Returns(playerData);
-        _mockReligionManager.Setup(m => m.GetPlayerActiveDeity("admin-1")).Returns(DeityType.Lysa);
+        _mockReligionManager.Setup(m => m.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Wild);
         _mockReligionManager.Setup(m => m.GetPlayerReligion("admin-1")).Returns(religion);
         _mockBlessingRegistry.Setup(r => r.GetBlessing("lysa_healing")).Returns(blessing);
 
@@ -153,14 +154,14 @@ public class BlessingCommandAdminTests
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.Khoras);
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.Craft);
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "invalid_blessing", "Player");
 
         _mockSapi.Setup(s => s.World.AllPlayers).Returns(new[] { target.Object });
         _mockPlayerDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _mockReligionManager.Setup(m => m.GetPlayerActiveDeity("player-1")).Returns(DeityType.Khoras);
+        _mockReligionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-1")).Returns(DeityDomain.Craft);
         _mockBlessingRegistry.Setup(r => r.GetBlessing("invalid_blessing"))
             .Returns((DivineAscension.Models.Blessing)null);
 
@@ -179,18 +180,18 @@ public class BlessingCommandAdminTests
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.Khoras);
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.Craft);
         playerData.UnlockedBlessings.Add("khoras_strength");
-        var religion = TestFixtures.CreateTestReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
+        var religion = TestFixtures.CreateTestReligion("religion-1", "TestReligion", DeityDomain.Craft, "player-1");
         var blessing =
-            TestFixtures.CreateTestBlessing("khoras_strength", "Strength", DeityType.Khoras, BlessingKind.Player);
+            TestFixtures.CreateTestBlessing("khoras_strength", "Strength", DeityDomain.Craft, BlessingKind.Player);
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "khoras_strength", "Player");
 
         _mockSapi.Setup(s => s.World.AllPlayers).Returns(new[] { target.Object });
         _mockPlayerDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _mockReligionManager.Setup(m => m.GetPlayerActiveDeity("player-1")).Returns(DeityType.Khoras);
+        _mockReligionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-1")).Returns(DeityDomain.Craft);
         _mockReligionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
         _mockBlessingRegistry.Setup(r => r.GetBlessing("khoras_strength")).Returns(blessing);
 
@@ -213,18 +214,18 @@ public class BlessingCommandAdminTests
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.Khoras);
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.Craft);
         playerData.UnlockedBlessings.Add("khoras_strength");
-        var religion = TestFixtures.CreateTestReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
+        var religion = TestFixtures.CreateTestReligion("religion-1", "TestReligion", DeityDomain.Craft, "player-1");
         var blessing =
-            TestFixtures.CreateTestBlessing("khoras_strength", "Strength", DeityType.Khoras, BlessingKind.Player);
+            TestFixtures.CreateTestBlessing("khoras_strength", "Strength", DeityDomain.Craft, BlessingKind.Player);
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "khoras_strength", "Player");
 
         _mockSapi.Setup(s => s.World.AllPlayers).Returns(new[] { target.Object });
         _mockPlayerDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _mockReligionManager.Setup(m => m.GetPlayerActiveDeity("player-1")).Returns(DeityType.Khoras);
+        _mockReligionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-1")).Returns(DeityDomain.Craft);
         _mockReligionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
         _mockBlessingRegistry.Setup(r => r.GetBlessing("khoras_strength")).Returns(blessing);
 
@@ -245,17 +246,17 @@ public class BlessingCommandAdminTests
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.Khoras);
-        var religion = TestFixtures.CreateTestReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.Craft);
+        var religion = TestFixtures.CreateTestReligion("religion-1", "TestReligion", DeityDomain.Craft, "player-1");
         var blessing =
-            TestFixtures.CreateTestBlessing("khoras_strength", "Strength", DeityType.Khoras, BlessingKind.Player);
+            TestFixtures.CreateTestBlessing("khoras_strength", "Strength", DeityDomain.Craft, BlessingKind.Player);
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "khoras_strength", "Player");
 
         _mockSapi.Setup(s => s.World.AllPlayers).Returns(new[] { target.Object });
         _mockPlayerDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _mockReligionManager.Setup(m => m.GetPlayerActiveDeity("player-1")).Returns(DeityType.Khoras);
+        _mockReligionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-1")).Returns(DeityDomain.Craft);
         _mockReligionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
         _mockBlessingRegistry.Setup(r => r.GetBlessing("khoras_strength")).Returns(blessing);
 
@@ -278,7 +279,7 @@ public class BlessingCommandAdminTests
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.Khoras);
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.Craft);
         playerData.UnlockedBlessings.Add("khoras_strength");
         playerData.UnlockedBlessings.Add("khoras_defense");
 
@@ -287,7 +288,7 @@ public class BlessingCommandAdminTests
 
         _mockSapi.Setup(s => s.World.AllPlayers).Returns(new[] { target.Object });
         _mockPlayerDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _mockReligionManager.Setup(m => m.GetPlayerActiveDeity("player-1")).Returns(DeityType.Khoras);
+        _mockReligionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-1")).Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut.OnAdminReset(args);
@@ -306,14 +307,14 @@ public class BlessingCommandAdminTests
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.Khoras);
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.Craft);
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "Player");
 
         _mockSapi.Setup(s => s.World.AllPlayers).Returns(new[] { target.Object });
         _mockPlayerDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _mockReligionManager.Setup(m => m.GetPlayerActiveDeity("player-1")).Returns(DeityType.Khoras);
+        _mockReligionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-1")).Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut.OnAdminReset(args);
@@ -334,13 +335,13 @@ public class BlessingCommandAdminTests
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.Khoras);
-        var religion = TestFixtures.CreateTestReligion("religion-1", "TestReligion", DeityType.Khoras, "player-1");
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.Craft);
+        var religion = TestFixtures.CreateTestReligion("religion-1", "TestReligion", DeityDomain.Craft, "player-1");
 
         var playerBlessings = new List<DivineAscension.Models.Blessing>
         {
-            TestFixtures.CreateTestBlessing("khoras_strength", "Strength", DeityType.Khoras, BlessingKind.Player),
-            TestFixtures.CreateTestBlessing("khoras_defense", "Defense", DeityType.Khoras, BlessingKind.Player)
+            TestFixtures.CreateTestBlessing("khoras_strength", "Strength", DeityDomain.Craft, BlessingKind.Player),
+            TestFixtures.CreateTestBlessing("khoras_defense", "Defense", DeityDomain.Craft, BlessingKind.Player)
         };
 
         var args = CreateCommandArgs(admin.Object);
@@ -348,11 +349,11 @@ public class BlessingCommandAdminTests
 
         _mockSapi.Setup(s => s.World.AllPlayers).Returns(new[] { target.Object });
         _mockPlayerDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _mockReligionManager.Setup(m => m.GetPlayerActiveDeity("player-1")).Returns(DeityType.Khoras);
+        _mockReligionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-1")).Returns(DeityDomain.Craft);
         _mockReligionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
-        _mockBlessingRegistry.Setup(r => r.GetBlessingsForDeity(DeityType.Khoras, BlessingKind.Player))
+        _mockBlessingRegistry.Setup(r => r.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Player))
             .Returns(playerBlessings);
-        _mockBlessingRegistry.Setup(r => r.GetBlessingsForDeity(DeityType.Khoras, BlessingKind.Religion))
+        _mockBlessingRegistry.Setup(r => r.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Religion))
             .Returns(new List<DivineAscension.Models.Blessing>());
 
         // Act
@@ -373,14 +374,14 @@ public class BlessingCommandAdminTests
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.None);
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.None);
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "Player");
 
         _mockSapi.Setup(s => s.World.AllPlayers).Returns(new[] { target.Object });
         _mockPlayerDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _mockReligionManager.Setup(m => m.GetPlayerActiveDeity("player-1")).Returns(DeityType.None);
+        _mockReligionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-1")).Returns(DeityDomain.None);
 
         // Act
         var result = _sut.OnAdminUnlockAll(args);

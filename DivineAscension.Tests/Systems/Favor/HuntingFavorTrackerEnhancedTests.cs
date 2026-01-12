@@ -434,7 +434,7 @@ public class HuntingFavorTrackerEnhancedTests
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
         // Act & Assert
-        Assert.Equal(DeityType.Lysa, tracker.DeityType);
+        Assert.Equal(DeityDomain.Wild, tracker.DeityDomain);
 
         tracker.Dispose();
     }

@@ -52,9 +52,9 @@ public class HuntingFavorTrackerTests
 
         // Player 1 and 2 follow Lysa
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-1"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.Lysa));
+            .Returns(TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.Wild));
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-2"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-2", DeityType.Lysa));
+            .Returns(TestFixtures.CreateTestPlayerReligionData("player-2", DeityDomain.Wild));
 
         // Player 3 follows Khoras
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-3"))
@@ -113,7 +113,7 @@ public class HuntingFavorTrackerTests
 
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
-        Assert.Equal(DeityType.Lysa, tracker.DeityType);
+        Assert.Equal(DeityDomain.Wild, tracker.DeityDomain);
 
         tracker.Dispose();
     }
@@ -134,7 +134,7 @@ public class HuntingFavorTrackerTests
 
         // Player follows Lysa
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-1"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.Lysa));
+            .Returns(TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.Wild));
 
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 
@@ -157,7 +157,7 @@ public class HuntingFavorTrackerTests
 
         // Player follows Khoras (not Lysa)
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-1"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.Khoras));
+            .Returns(TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.Craft));
 
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
 

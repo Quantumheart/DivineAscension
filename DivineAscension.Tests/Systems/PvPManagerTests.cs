@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using DivineAscension.Data;
-using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
@@ -22,7 +21,6 @@ public class PvPManagerTests
 {
     private readonly Mock<ICoreServerAPI> _mockAPI;
     private readonly Mock<ICivilizationManager> _mockCivilizationManager;
-    private readonly Mock<IDeityRegistry> _mockDeityRegistry;
     private readonly Mock<IDiplomacyManager> _mockDiplomacyManager;
     private readonly Mock<IPlayerProgressionDataManager> _mockPlayerReligionDataManager;
     private readonly Mock<IReligionPrestigeManager> _mockPrestigeManager;
@@ -35,7 +33,6 @@ public class PvPManagerTests
         _mockPlayerReligionDataManager = TestFixtures.CreateMockPlayerProgressionDataManager();
         _mockReligionManager = new Mock<IReligionManager>();
         _mockPrestigeManager = new Mock<IReligionPrestigeManager>();
-        _mockDeityRegistry = new Mock<IDeityRegistry>();
         _mockCivilizationManager = new Mock<ICivilizationManager>();
         _mockDiplomacyManager = new Mock<IDiplomacyManager>();
 
@@ -44,7 +41,6 @@ public class PvPManagerTests
             _mockPlayerReligionDataManager.Object,
             _mockReligionManager.Object,
             _mockPrestigeManager.Object,
-            _mockDeityRegistry.Object,
             _mockCivilizationManager.Object,
             _mockDiplomacyManager.Object
         );
@@ -85,13 +81,13 @@ public class PvPManagerTests
     public void AwardRewardsForAction_WithValidPlayer_AwardsFavorAndPrestige()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, "religion-uid");
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
 
         _mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
         _mockPlayerReligionDataManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockPlayerReligionDataManager.Setup(m => m.GetPlayerDeityType(It.IsAny<string>())).Returns(DeityType.Khoras);
+        _mockPlayerReligionDataManager.Setup(m => m.GetPlayerDeityType(It.IsAny<string>())).Returns(DeityDomain.Craft);
         _mockReligionManager.Setup(m => m.GetPlayerReligion("player-uid")).Returns(TestFixtures.CreateTestReligion());
 
         var mockPlayer = new Mock<IServerPlayer>();
@@ -129,7 +125,7 @@ public class PvPManagerTests
     public void AwardRewardsForAction_WithoutDeity_DoesNotAwardRewards()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.None, null);
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.None, null);
 
         _mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
@@ -158,7 +154,7 @@ public class PvPManagerTests
     public void AwardRewardsForAction_WithoutReligion_DoesNotAwardRewards()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, null);
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, null);
 
         _mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
@@ -186,13 +182,13 @@ public class PvPManagerTests
     public void AwardRewardsForAction_WithZeroFavor_DoesNotAwardFavor()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, "religion-uid");
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
 
         _mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
         _mockPlayerReligionDataManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockPlayerReligionDataManager.Setup(m => m.GetPlayerDeityType(It.IsAny<string>())).Returns(DeityType.Khoras);
+        _mockPlayerReligionDataManager.Setup(m => m.GetPlayerDeityType(It.IsAny<string>())).Returns(DeityDomain.Craft);
         _mockReligionManager.Setup(m => m.GetPlayerReligion("player-uid")).Returns(TestFixtures.CreateTestReligion());
 
 
@@ -220,13 +216,13 @@ public class PvPManagerTests
     public void AwardRewardsForAction_WithZeroPrestige_DoesNotAwardPrestige()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, "religion-uid");
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
 
         // _mockPlayerReligionDataManager
         // .Setup(m => m.GetOrCreatePlayerData("player-uid"))
         // .Returns(playerData);
         _mockPlayerReligionDataManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockPlayerReligionDataManager.Setup(m => m.GetPlayerDeityType(It.IsAny<string>())).Returns(DeityType.Khoras);
+        _mockPlayerReligionDataManager.Setup(m => m.GetPlayerDeityType(It.IsAny<string>())).Returns(DeityDomain.Craft);
         _mockReligionManager.Setup(m => m.GetPlayerReligion("player-uid")).Returns(TestFixtures.CreateTestReligion());
 
 
@@ -259,8 +255,8 @@ public class PvPManagerTests
     {
         // This tests the private method indirectly through ProcessPvPKill
         // Arrange
-        var attackerData = TestFixtures.CreateTestPlayerReligionData("attacker-uid", DeityType.Khoras, "religion-uid");
-        var victimData = TestFixtures.CreateTestPlayerReligionData("victim-uid", DeityType.None, null);
+        var attackerData = TestFixtures.CreateTestPlayerReligionData("attacker-uid", DeityDomain.Craft, "religion-uid");
+        var victimData = TestFixtures.CreateTestPlayerReligionData("victim-uid", DeityDomain.None, null);
         var religion = TestFixtures.CreateTestReligion("religion-uid");
 
         _mockPlayerReligionDataManager
@@ -276,16 +272,16 @@ public class PvPManagerTests
             .Returns(religion);
 
         _mockReligionManager
-            .Setup(m => m.GetPlayerActiveDeity("attacker-uid"))
-            .Returns(DeityType.Khoras);
+            .Setup(m => m.GetPlayerActiveDeityDomain("attacker-uid"))
+            .Returns(DeityDomain.Craft);
 
         _mockReligionManager
             .Setup(m => m.GetPlayerReligion("attacker-uid"))
             .Returns(religion);
 
         _mockReligionManager
-            .Setup(m => m.GetPlayerActiveDeity("victim-uid"))
-            .Returns(DeityType.None);
+            .Setup(m => m.GetPlayerActiveDeityDomain("victim-uid"))
+            .Returns(DeityDomain.None);
 
         _mockReligionManager
             .Setup(m => m.GetPlayerReligion("victim-uid"))
@@ -298,9 +294,6 @@ public class PvPManagerTests
         var mockVictim = new Mock<IServerPlayer>();
         mockVictim.Setup(p => p.PlayerUID).Returns("victim-uid");
         mockVictim.Setup(p => p.PlayerName).Returns("Victim");
-
-        var khoras = new Deity(DeityType.Khoras, "Khoras", "War");
-        _mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
 
         // Act
         _pvpManager.ProcessPvPKill(mockAttacker.Object, mockVictim.Object);
@@ -321,12 +314,12 @@ public class PvPManagerTests
         var victimReligion = TestFixtures.CreateTestReligion("victim-religion-uid");
 
         _mockReligionManager
-            .Setup(m => m.GetPlayerActiveDeity("attacker-uid"))
-            .Returns(DeityType.Khoras);
+            .Setup(m => m.GetPlayerActiveDeityDomain("attacker-uid"))
+            .Returns(DeityDomain.Craft);
 
         _mockReligionManager
-            .Setup(m => m.GetPlayerActiveDeity("victim-uid"))
-            .Returns(DeityType.Lysa);
+            .Setup(m => m.GetPlayerActiveDeityDomain("victim-uid"))
+            .Returns(DeityDomain.Wild);
 
         _mockReligionManager
             .Setup(m => m.GetPlayerReligion("attacker-uid"))
@@ -341,9 +334,6 @@ public class PvPManagerTests
         var mockVictim = new Mock<IServerPlayer>();
         mockVictim.Setup(p => p.PlayerUID).Returns("victim-uid");
         mockVictim.Setup(p => p.PlayerName).Returns("Victim");
-
-        var khoras = new Deity(DeityType.Khoras, "Khoras", "War");
-        _mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
 
         // Use reflection to call private method
         var method = typeof(PvPManager).GetMethod("ProcessPvPKill",
@@ -372,12 +362,12 @@ public class PvPManagerTests
         var victimReligion = TestFixtures.CreateTestReligion("victim-religion-uid");
 
         _mockReligionManager
-            .Setup(m => m.GetPlayerActiveDeity("attacker-uid"))
-            .Returns(DeityType.Khoras);
+            .Setup(m => m.GetPlayerActiveDeityDomain("attacker-uid"))
+            .Returns(DeityDomain.Craft);
 
         _mockReligionManager
-            .Setup(m => m.GetPlayerActiveDeity("victim-uid"))
-            .Returns(DeityType.Lysa);
+            .Setup(m => m.GetPlayerActiveDeityDomain("victim-uid"))
+            .Returns(DeityDomain.Wild);
 
         _mockReligionManager
             .Setup(m => m.GetPlayerReligion("attacker-uid"))
@@ -393,9 +383,6 @@ public class PvPManagerTests
         var mockVictim = new Mock<IServerPlayer>();
         mockVictim.Setup(p => p.PlayerUID).Returns("victim-uid");
         mockVictim.Setup(p => p.PlayerName).Returns("Victim");
-
-        var khoras = new Deity(DeityType.Khoras, "Khoras", "War");
-        _mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
 
         // Act
         _pvpManager.ProcessPvPKill(mockAttacker.Object, mockVictim.Object);
@@ -415,12 +402,12 @@ public class PvPManagerTests
         var victimReligion = TestFixtures.CreateTestReligion("victim-religion-uid");
 
         _mockReligionManager
-            .Setup(m => m.GetPlayerActiveDeity("attacker-uid"))
-            .Returns(DeityType.Khoras);
+            .Setup(m => m.GetPlayerActiveDeityDomain("attacker-uid"))
+            .Returns(DeityDomain.Craft);
 
         _mockReligionManager
-            .Setup(m => m.GetPlayerActiveDeity("victim-uid"))
-            .Returns(DeityType.Lysa);
+            .Setup(m => m.GetPlayerActiveDeityDomain("victim-uid"))
+            .Returns(DeityDomain.Wild);
 
         _mockReligionManager
             .Setup(m => m.GetPlayerReligion("attacker-uid"))
@@ -436,9 +423,6 @@ public class PvPManagerTests
         var mockVictim = new Mock<IServerPlayer>();
         mockVictim.Setup(p => p.PlayerUID).Returns("victim-uid");
         mockVictim.Setup(p => p.PlayerName).Returns("Victim");
-
-        var khoras = new Deity(DeityType.Khoras, "Khoras", "War");
-        _mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
 
         // Act
         _pvpManager.ProcessPvPKill(mockAttacker.Object, mockVictim.Object);
@@ -458,8 +442,8 @@ public class PvPManagerTests
     public void ProcessPvPKill_WithoutReligion_SendsJoinReligionMessage()
     {
         // Arrange
-        var attackerData = TestFixtures.CreateTestPlayerReligionData("attacker-uid", DeityType.None, null);
-        var victimData = TestFixtures.CreateTestPlayerReligionData("victim-uid", DeityType.Khoras, null);
+        var attackerData = TestFixtures.CreateTestPlayerReligionData("attacker-uid", DeityDomain.None, null);
+        var victimData = TestFixtures.CreateTestPlayerReligionData("victim-uid", DeityDomain.Craft, null);
 
         _mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("attacker-uid"))
@@ -509,12 +493,12 @@ public class PvPManagerTests
         var attackerReligion = TestFixtures.CreateTestReligion("attacker-religion-uid");
 
         _mockReligionManager
-            .Setup(m => m.GetPlayerActiveDeity("attacker-uid"))
-            .Returns(DeityType.Khoras);
+            .Setup(m => m.GetPlayerActiveDeityDomain("attacker-uid"))
+            .Returns(DeityDomain.Craft);
 
         _mockReligionManager
-            .Setup(m => m.GetPlayerActiveDeity("victim-uid"))
-            .Returns(DeityType.Lysa);
+            .Setup(m => m.GetPlayerActiveDeityDomain("victim-uid"))
+            .Returns(DeityDomain.Wild);
 
         _mockReligionManager
             .Setup(m => m.GetPlayerReligion("attacker-uid"))
@@ -530,9 +514,6 @@ public class PvPManagerTests
         var mockVictim = new Mock<IServerPlayer>();
         mockVictim.Setup(p => p.PlayerUID).Returns("victim-uid");
         mockVictim.Setup(p => p.PlayerName).Returns("Victim");
-
-        var khoras = new Deity(DeityType.Khoras, "Khoras", "War");
-        _mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
 
         // Act
         _pvpManager.ProcessPvPKill(mockAttacker.Object, mockVictim.Object);
@@ -553,16 +534,17 @@ public class PvPManagerTests
     public void ProcessPvPKill_SendsNotificationToVictim()
     {
         // Arrange
-        var attackerReligion = TestFixtures.CreateTestReligion("attacker-religion-uid");
-        var victimReligion = TestFixtures.CreateTestReligion("victim-religion-uid");
+        var attackerReligion =
+            TestFixtures.CreateTestReligion("attacker-religion-uid", deityName: "attacker-deity-name");
+        var victimReligion = TestFixtures.CreateTestReligion("victim-religion-uid", deityName: "victim-deity-name");
 
         _mockReligionManager
-            .Setup(m => m.GetPlayerActiveDeity("attacker-uid"))
-            .Returns(DeityType.Khoras);
+            .Setup(m => m.GetPlayerActiveDeityDomain("attacker-uid"))
+            .Returns(DeityDomain.Craft);
 
         _mockReligionManager
-            .Setup(m => m.GetPlayerActiveDeity("victim-uid"))
-            .Returns(DeityType.Lysa);
+            .Setup(m => m.GetPlayerActiveDeityDomain("victim-uid"))
+            .Returns(DeityDomain.Wild);
 
         _mockReligionManager
             .Setup(m => m.GetPlayerReligion("attacker-uid"))
@@ -579,10 +561,6 @@ public class PvPManagerTests
         mockVictim.Setup(p => p.PlayerUID).Returns("victim-uid");
         mockVictim.Setup(p => p.PlayerName).Returns("Victim");
 
-        var khoras = new Deity(DeityType.Khoras, "Khoras", "War");
-        var lysa = new Deity(DeityType.Lysa, "Lysa", "Hunt");
-        _mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Khoras)).Returns(khoras);
-        _mockDeityRegistry.Setup(r => r.GetDeity(DeityType.Lysa)).Returns(lysa);
 
         // Act
         _pvpManager.ProcessPvPKill(mockAttacker.Object, mockVictim.Object);
@@ -591,7 +569,7 @@ public class PvPManagerTests
         mockVictim.Verify(
             p => p.SendMessage(
                 It.Is<int>(g => g == GlobalConstants.GeneralChatGroup),
-                It.Is<string>(s => s.Contains("Lysa") && s.Contains("displeased")),
+                It.Is<string>(s => s.Contains("victim-deity-name") && s.Contains("displeased")),
                 It.Is<EnumChatType>(t => t == EnumChatType.Notification),
                 It.IsAny<string>()
             ),
@@ -607,7 +585,7 @@ public class PvPManagerTests
     public void ProcessDeathPenalty_WithSufficientFavor_RemovesPenalty()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, "religion-uid");
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
         playerData.Favor = 100;
 
         _mockPlayerReligionDataManager
@@ -616,7 +594,7 @@ public class PvPManagerTests
 
         _mockPlayerReligionDataManager
             .Setup(m => m.GetPlayerDeityType("player-uid"))
-            .Returns(DeityType.Khoras);
+            .Returns(DeityDomain.Craft);
 
         _mockReligionManager
             .Setup(m => m.GetPlayerReligion("player-uid"))
@@ -647,7 +625,7 @@ public class PvPManagerTests
     public void ProcessDeathPenalty_WithInsufficientFavor_RemovesOnlyAvailable()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, "religion-uid");
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
         playerData.Favor = 30;
 
         _mockPlayerReligionDataManager
@@ -656,7 +634,7 @@ public class PvPManagerTests
 
         _mockPlayerReligionDataManager
             .Setup(m => m.GetPlayerDeityType("player-uid"))
-            .Returns(DeityType.Khoras);
+            .Returns(DeityDomain.Craft);
 
         _mockReligionManager
             .Setup(m => m.GetPlayerReligion("player-uid"))
@@ -687,7 +665,7 @@ public class PvPManagerTests
     public void ProcessDeathPenalty_WithZeroFavor_DoesNotRemoveOrNotify()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, "religion-uid");
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
         playerData.Favor = 0;
 
         _mockPlayerReligionDataManager
@@ -715,7 +693,7 @@ public class PvPManagerTests
     public void ProcessDeathPenalty_WithoutDeity_DoesNothing()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.None, null);
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.None, null);
         playerData.Favor = 10;
 
         _mockPlayerReligionDataManager
@@ -746,7 +724,7 @@ public class PvPManagerTests
     public void ProcessDeathPenalty_WithoutReligion_DoesNothing()
     {
         // Arrange
-        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityType.Khoras, null);
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, null);
         playerData.Favor = 10;
 
         _mockPlayerReligionDataManager

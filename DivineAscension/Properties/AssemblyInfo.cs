@@ -4,7 +4,7 @@ using Vintagestory.API.Common;
 [assembly: ModInfo("Divine Ascension", "divineascension",
     Description =
         "A religious-themed PvP mod featuring competing deities with unique abilities and favor-based progression system.",
-    Version = "3.2.1",
+    Version = "4.0.2",
     Authors = new[] { "Valinnar" },
     Side = "Universal")]
 

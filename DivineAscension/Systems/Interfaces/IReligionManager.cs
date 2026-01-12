@@ -20,7 +20,13 @@ public interface IReligionManager : IDisposable
     /// <summary>
     ///     Creates a new religion
     /// </summary>
-    ReligionData CreateReligion(string name, DeityType deity, string founderUID, bool isPublic);
+    ReligionData CreateReligion(string name, DeityDomain domain, string deityName, string founderUID, bool isPublic);
+
+    /// <summary>
+    ///     Sets the deity name for a religion (founder only)
+    /// </summary>
+    /// <returns>True if successful, false otherwise with error message</returns>
+    bool SetDeityName(string religionUID, string deityName, out string error);
 
     /// <summary>
     ///     Adds a member to a religion
@@ -55,7 +61,7 @@ public interface IReligionManager : IDisposable
     /// <summary>
     ///     Gets the active deity for a player
     /// </summary>
-    DeityType GetPlayerActiveDeity(string playerId);
+    DeityDomain GetPlayerActiveDeityDomain(string playerId);
 
     /// <summary>
     ///     Checks if a player can join a religion
@@ -103,9 +109,9 @@ public interface IReligionManager : IDisposable
     List<ReligionData> GetAllReligions();
 
     /// <summary>
-    ///     Gets religions by deity
+    ///     Gets religions by domain
     /// </summary>
-    List<ReligionData> GetReligionsByDeity(DeityType deity);
+    List<ReligionData> GetReligionsByDomain(DeityDomain domain);
 
     /// <summary>
     ///     Deletes a religion (founder only)
@@ -145,6 +151,13 @@ public interface IReligionManager : IDisposable
 
     void OnSaveGameLoaded();
     void OnGameWorldSave();
+
+    /// <summary>
+    ///     Migrates existing religions that have empty DeityName fields.
+    ///     Called on world load after religions are loaded from save data.
+    ///     Returns the list of religion UIDs that were migrated.
+    /// </summary>
+    HashSet<string> MigrateEmptyDeityNames();
 
     /// <summary>
     ///     Saves the given religion data.

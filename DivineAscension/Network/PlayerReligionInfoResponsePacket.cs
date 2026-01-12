@@ -16,9 +16,19 @@ public class PlayerReligionInfoResponsePacket
 
     [ProtoMember(3)] public string ReligionName { get; set; } = string.Empty;
 
-    [ProtoMember(4)] public string Deity { get; set; } = string.Empty;
+    /// <summary>
+    ///     The domain (Craft, Wild, Harvest, Stone)
+    /// </summary>
+    [ProtoMember(4)]
+    public string Domain { get; set; } = string.Empty;
 
     [ProtoMember(5)] public string FounderUID { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     The custom deity name for this religion
+    /// </summary>
+    [ProtoMember(15)]
+    public string DeityName { get; set; } = string.Empty;
 
     [ProtoMember(6)] public int Prestige { get; set; }
 

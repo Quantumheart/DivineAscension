@@ -43,9 +43,22 @@
 
 Choose a deity that matches your playstyle. Each deity rewards different activities and offers unique blessings.
 
-### 🔨 Khoras - God of the Forge & Craft
+### Domains vs Deity Names
 
-**Domain**: Forge & Craft, Smithing, Tool-making, Durability
+Divine Ascension uses a **domain-based** system:
+
+- **Domain**: The mechanical archetype (Craft, Wild, Harvest, Stone) that determines game mechanics, blessings, and
+  favor activities
+- **Deity Name**: A customizable name for the deity your religion worships (e.g., "Khoras the Eternal Smith")
+
+When creating a religion, you choose a **domain** and can give your deity any name you like. The default deity names are
+Khoras, Lysa, Aethra, and Gaia, but founders can customize these with `/religion setdeityname`.
+
+---
+
+### 🔨 Craft Domain (Default Deity: Khoras)
+
+**Focus**: Forge & Craft, Smithing, Tool-making, Durability
 **Alignment**: Lawful Neutral
 **Colors**: Forge Orange and Steel Gray
 **Playstyle**: Tool durability and crafting focused with ore efficiency bonuses
@@ -65,9 +78,9 @@ Choose a deity that matches your playstyle. Each deity rewards different activit
 
 ---
 
-### 🏹 Lysa - Goddess of the Hunt
+### 🏹 Wild Domain (Default Deity: Lysa)
 
-**Domain**: Hunt, Wilderness, and Precision
+**Focus**: Hunt, Wilderness, and Precision
 **Alignment**: Neutral
 **Colors**: Forest Green and Earth Brown
 **Playstyle**: Hunting and foraging in the wilderness
@@ -86,9 +99,9 @@ Choose a deity that matches your playstyle. Each deity rewards different activit
 
 ---
 
-### 🌾 Aethra - Goddess of Light & Agriculture
+### 🌾 Harvest Domain (Default Deity: Aethra)
 
-**Domain**: Light, Agriculture, Growth, Warmth
+**Focus**: Light, Agriculture, Growth, Warmth
 **Alignment**: Lawful Good
 **Colors**: Golden Sun and Wheat Gold
 **Playstyle**: Agriculture and cooking focused with crop yield and food bonuses
@@ -108,9 +121,9 @@ Choose a deity that matches your playstyle. Each deity rewards different activit
 
 ---
 
-### 🪨 Gaia - Goddess of Pottery & Clay
+### 🪨 Stone Domain (Default Deity: Gaia)
 
-**Domain**: Pottery, Clay, Craftsmanship
+**Focus**: Pottery, Clay, Craftsmanship
 **Alignment**: Neutral
 **Colors**: Earth Brown and Clay Orange
 **Playstyle**: Pottery crafting and fortification focused with clay gathering bonuses
@@ -181,17 +194,20 @@ Prestige is your religion's reputation, earned collectively by all members. It u
 ### Creating a Religion
 
 ```
-/religion create <name> <deity> [visibility]
+/religion create <name> <domain> <deityname> [visibility]
 ```
 
-**Example**: `/religion create "Knights of Khoras" khoras public`
+**Example**: `/religion create "Knights of the Forge" craft "Khoras the Eternal Smith" public`
 
 **Parameters**:
 - `name`: Your religion's name (use quotes if it contains spaces)
-- `deity`: Choose from `khoras`, `lysa`, `aethra`, or `gaia`
-    - **Tip**: In the GUI creation screen, hover over a deity's icon to see detailed information about their domain,
-      playstyle, and favor sources!
-- `visibility`: `public` (anyone can join) or `private` (invite-only)
+- `domain`: Choose from `craft`, `wild`, `harvest`, or `stone`
+    - **Tip**: In the GUI creation screen, hover over a domain's icon to see detailed information about its
+      playstyle and favor sources!
+- `deityname`: The name of your deity (required, 2-48 characters, use quotes)
+- `visibility`: `public` (anyone can join) or `private` (invite-only, defaults to public)
+
+You can later change the deity name with `/religion setdeityname "New Name"`.
 
 **As Founder, You Can**:
 - Invite and kick members
@@ -296,7 +312,7 @@ Removes a ban, allowing the player to join again (if invited or if religion is p
 
 Favor is earned by performing activities aligned with your deity's domain.
 
-### Khoras (Forge & Craft)
+### Craft Domain (Forge & Craft)
 
 **Primary Activities**:
 - ⛏️ **Mining**: Breaking ore blocks (2 favor per ore)
@@ -309,7 +325,7 @@ Favor is earned by performing activities aligned with your deity's domain.
 - Set up efficient smelting operations
 - Craft complex items at the anvil for higher favor rewards
 
-### Lysa (Hunt & Wilderness)
+### Wild Domain (Hunt & Wilderness)
 
 **Primary Activities**:
 - 🏹 **Hunting**: Killing animals (3-20 favor per kill, varies by animal)
@@ -321,7 +337,7 @@ Favor is earned by performing activities aligned with your deity's domain.
 - Gather from various biomes to find diverse forageable resources
 - Maintain sustainable hunting practices
 
-### Aethra (Agriculture & Light)
+### Harvest Domain (Agriculture & Light)
 
 **Primary Activities**:
 - 🌾 **Harvesting Crops**: Breaking harvestable crops (1 favor per harvest)
@@ -334,7 +350,7 @@ Favor is earned by performing activities aligned with your deity's domain.
 - Cook complex meals (stews, pies, porridge) for maximum favor
 - Automate farming operations with companions
 
-### Gaia (Pottery & Clay)
+### Stone Domain (Pottery & Clay)
 
 **Primary Activities**:
 - 🏺 **Crafting Pottery**: Forming clay items (2-5 favor per craft, varies by complexity)
@@ -397,12 +413,12 @@ Blessings provide permanent stat bonuses and special abilities. There are two ty
 
 ## Civilizations
 
-Civilizations are alliances of **1-4 religions** with different deities working together.
+Civilizations are alliances of **1-4 religions** with different domains working together.
 
 ### Benefits
 
 - Shared identity and coordination
-- Multi-deity cooperation
+- Multi-domain cooperation
 - Potential for larger-scale politics and warfare
 - Prestige bonuses for alliance formation
 
@@ -428,7 +444,7 @@ Civilizations are alliances of **1-4 religions** with different deities working 
 
 **Notes**:
 - Invitations expire after **7 days**
-- Target religion must have a different deity
+- Target religion must have a different domain
 - Maximum of 4 religions per civilization
 - Target religion's founder must accept
 
@@ -517,7 +533,7 @@ Example: `/diplomacy propose "Golden Empire" alliance`
 
 - Only **one pending proposal** allowed per civilization pair
 - **Bidirectional proposals** (both sides proposing to each other) are blocked
-- Target civilization must have a **different deity** than yours
+- Target civilization must have a **different domain** than yours
 - Both civilizations must meet the **prestige rank requirements**
 
 ### Accepting or Declining Proposals
@@ -653,7 +669,7 @@ Access via `Shift+G` → Civilizations → **Diplomacy**
 **Forming Alliances**:
 
 - Focus on reaching **Renowned rank** (2,000 prestige) to unlock alliances
-- Coordinate with complementary deity civilizations
+- Coordinate with complementary domain civilizations
 - Alliance prestige bonus (100 to all religions in both civs) is significant
 - Build trust before proposing - broken treaties damage reputation
 
@@ -711,20 +727,21 @@ Killing another player awards:
 
 ### Religion Commands
 
-| Command                                        | Description                                        |
-|------------------------------------------------|----------------------------------------------------|
-| `/religion create <name> <deity> [visibility]` | Create a new religion                              |
-| `/religion join <name>`                        | Join a public religion                             |
-| `/religion leave`                              | Leave your current religion                        |
-| `/religion list [deity]`                       | List all religions (optionally filter by deity)    |
-| `/religion info <name>`                        | Show detailed religion information                 |
-| `/religion members`                            | View members of your religion                      |
-| `/religion invite <player>`                    | Invite a player to your religion (founder/elder)   |
-| `/religion kick <player>`                      | Remove a player from your religion (founder/elder) |
-| `/religion ban <player> [reason] [days]`       | Ban a player from your religion                    |
-| `/religion unban <player>`                     | Unban a player                                     |
-| `/religion banlist`                            | View banned players                                |
-| `/religion disband`                            | Permanently delete your religion (founder only)    |
+| Command                                                     | Description                                        |
+|-------------------------------------------------------------|----------------------------------------------------|
+| `/religion create <name> <domain> <deityname> [visibility]` | Create a new religion                              |
+| `/religion join <name>`                                     | Join a public religion                             |
+| `/religion leave`                                           | Leave your current religion                        |
+| `/religion list [domain]`                                   | List all religions (optionally filter by domain)   |
+| `/religion setdeityname "name"`                             | Set your religion's deity name (founder only)      |
+| `/religion info <name>`                                     | Show detailed religion information                 |
+| `/religion members`                                         | View members of your religion                      |
+| `/religion invite <player>`                                 | Invite a player to your religion (founder/elder)   |
+| `/religion kick <player>`                                   | Remove a player from your religion (founder/elder) |
+| `/religion ban <player> [reason] [days]`                    | Ban a player from your religion                    |
+| `/religion unban <player>`                                  | Unban a player                                     |
+| `/religion banlist`                                         | View banned players                                |
+| `/religion disband`                                         | Permanently delete your religion (founder only)    |
 
 ### Favor Commands
 
@@ -860,7 +877,7 @@ Admin commands for managing civilizations.
 
 - Accepts **1-4 religion names** (use quotes if names contain spaces)
 - Validates all religions exist
-- **Enforces deity uniqueness**: Cannot create a civilization with duplicate deities (returns error listing conflicts)
+- **Enforces domain uniqueness**: Cannot create a civilization with duplicate domains (returns error listing conflicts)
 - First religion's founder becomes the civilization founder
 - Automatically adds all specified religions to the civilization
 
@@ -960,25 +977,25 @@ Press **`Shift+G`** to open the Divine Ascension interface.
 
 ### Optimal Favor Farming
 
-**Khoras Followers**:
+**Craft Domain Followers**:
 1. Set up automated smelting operations for passive favor
 2. Create a deep mine with multiple ore veins
 3. Combine mining sessions with smithing batches
 4. Focus on complex anvil crafts (10-15 favor each)
 
-**Lysa Followers**:
+**Wild Domain Followers**:
 1. Find areas with high animal spawns (wolves/bears = 12-15 favor)
 2. Create hunting routes through multiple biomes
 3. Forage consistently while traveling (0.5 favor adds up)
 4. Balance hunting with sustainable foraging
 
-**Aethra Followers**:
+**Harvest Domain Followers**:
 1. Build large automated crop farms for mass harvesting
 2. Cook complex meals (stews, pies, porridge) for 5-8 favor each
 3. Plant in bulk during planting season
 4. Set up cooking stations near farms for efficiency
 
-**Gaia Followers**:
+**Stone Domain Followers**:
 1. Mass-produce storage vessels (5 favor each) and planters (4 favor)
 2. Batch fire pottery in pit kilns for efficient favor
 3. Build with clay bricks (2 favor per brick) for dual-purpose construction
@@ -1016,7 +1033,7 @@ Press **`Shift+G`** to open the Divine Ascension interface.
 
 ### Civilization Politics
 
-- Form civilizations with complementary deities
+- Form civilizations with complementary domains
 - Coordinate for mutual defense and resource sharing
 - Plan long-term strategies with allied religions
 
@@ -1035,11 +1052,12 @@ Press **`Shift+G`** to open the Divine Ascension interface.
 A: Make sure the religion you're trying to join is public, or that you have a valid invitation if it's private.
 
 **Q: My favor isn't increasing**
-A: Make sure you're performing activities aligned with your deity:
-- **Khoras**: Mining ore, smithing at anvil, smelting metals
-- **Lysa**: Hunting animals, foraging plants
-- **Aethra**: Harvesting crops, cooking meals, planting
-- **Gaia**: Crafting pottery, firing kilns, placing bricks
+A: Make sure you're performing activities aligned with your domain:
+
+- **Craft**: Mining ore, smithing at anvil, smelting metals
+- **Wild**: Hunting animals, foraging plants
+- **Harvest**: Harvesting crops, cooking meals, planting
+- **Stone**: Crafting pottery, firing kilns, placing bricks
 
 **Q: I can't unlock a blessing**
 A: Check the requirements: Favor Rank, prerequisite blessings, and favor cost. All must be met.
@@ -1047,19 +1065,23 @@ A: Check the requirements: Favor Rank, prerequisite blessings, and favor cost. A
 **Q: The GUI won't open**
 A: Make sure you're pressing `Shift+G` (not just `G`). Check for keybind conflicts with other mods.
 
-**Q: Can I change deities without leaving my religion?**
-A: No, deities are tied to religions. To switch deities, you must leave your religion and join one devoted to a
-different deity.
+**Q: Can I change domains without leaving my religion?**
+A: No, domains are tied to religions. To switch domains, you must leave your religion and join one following a
+different domain.
 
 ---
 
 ## FAQ
 
 **Q: What happens to my favor if I switch religions?**
-A: Your Favor Rank persists (based on lifetime favor earned), but you lose access to your previous deity's blessings. You'll need to unlock blessings for your new deity.
+A: Your Favor Rank persists (based on lifetime favor earned), but you lose access to your previous domain's blessings.
+You'll need to unlock blessings for your new domain.
 
-**Q: Can religions have multiple deities?**
-A: No, each religion is devoted to a single deity. However, civilizations can unite religions of different deities.
+**Q: Can religions have multiple domains?**
+A: No, each religion follows a single domain. However, civilizations can unite religions of different domains.
+
+**Q: Can I customize my deity's name?**
+A: Yes! Religion founders can use `/religion setdeityname "Your Deity Name"` to give their deity a custom name.
 
 **Q: How do I become a religion leader?**
 A: Create your own religion to become its Founder, or be promoted by the current Founder to Elder rank.
@@ -1067,12 +1089,13 @@ A: Create your own religion to become its Founder, or be promoted by the current
 **Q: Is there a maximum religion size?**
 A: No hard cap, but coordination becomes harder with very large groups.
 
-**Q: What's the best deity for beginners?**
+**Q: What's the best domain for beginners?**
 A: It depends on your playstyle:
-- **Khoras**: Easiest for beginners - mining and smithing are core Vintage Story activities
-- **Lysa**: Good for players who enjoy hunting and wilderness survival
-- **Aethra**: Perfect for players who focus on farming and cooking
-- **Gaia**: Great for players who enjoy pottery crafting and building with clay
+
+- **Craft**: Easiest for beginners - mining and smithing are core Vintage Story activities
+- **Wild**: Good for players who enjoy hunting and wilderness survival
+- **Harvest**: Perfect for players who focus on farming and cooking
+- **Stone**: Great for players who enjoy pottery crafting and building with clay
 
 ---
 
@@ -1081,11 +1104,11 @@ A: It depends on your playstyle:
 - Report bugs and issues on the [GitHub repository](https://github.com/Quantumheart/DivineAscension)
 - Share strategies and builds with other players
 - Coordinate with your religion and civilization for better gameplay
-- Experiment with different deity paths and blessing builds
+- Experiment with different domain paths and blessing builds
 
 **Good luck on your divine journey, and may your deity watch over you!**
 
 ---
 
-*Last Updated: January 9, 2026*
-*Divine Ascension v2.4.0*
+*Last Updated: January 12, 2026*
+*Divine Ascension v4.0.2*

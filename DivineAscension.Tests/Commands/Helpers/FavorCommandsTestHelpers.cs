@@ -14,7 +14,6 @@ namespace DivineAscension.Tests.Commands.Helpers;
 [ExcludeFromCodeCoverage]
 public class FavorCommandsTestHelpers
 {
-    protected Mock<IDeityRegistry> _deityRegistry;
     protected Mock<IChatCommandApi> _mockChatCommands;
     protected Mock<ILogger> _mockLogger;
     protected Mock<ICoreServerAPI> _mockSapi;
@@ -37,7 +36,6 @@ public class FavorCommandsTestHelpers
         _mockSapi.Setup(api => api.ChatCommands).Returns(_mockChatCommands.Object);
         _mockSapi.Setup(api => api.World).Returns(_mockWorld.Object);
 
-        _deityRegistry = new Mock<IDeityRegistry>();
         _playerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
         _religionManager = new Mock<IReligionManager>();
     }
@@ -46,7 +44,6 @@ public class FavorCommandsTestHelpers
     {
         return new FavorCommands(
             _mockSapi.Object,
-            _deityRegistry.Object,
             _playerReligionDataManager.Object,
             _religionManager.Object);
     }
@@ -112,7 +109,7 @@ public class FavorCommandsTestHelpers
     /// Creates test PlayerReligionData
     /// </summary>
     protected PlayerProgressionData CreatePlayerData(string playerUID,
-        DeityType deity = DeityType.Khoras,
+        DeityDomain deity = DeityDomain.Craft,
         int favor = 0,
         int totalFavor = 0,
         FavorRank rank = FavorRank.Initiate)

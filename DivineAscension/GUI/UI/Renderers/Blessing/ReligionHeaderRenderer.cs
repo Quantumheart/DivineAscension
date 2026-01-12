@@ -83,7 +83,7 @@ internal static class ReligionHeaderRenderer
             var iconMax = new Vector2(iconPos.X + iconSize, iconPos.Y + iconSize);
 
             // Draw icon with deity color tint for visual cohesion
-            var tintColor = DeityHelper.GetDeityColor(viewModel.CurrentDeity);
+            var tintColor = DomainHelper.GetDeityColor(viewModel.CurrentDeity);
             var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)); // Full white = no tint
 
             drawList.AddImage(deityTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
@@ -96,7 +96,7 @@ internal static class ReligionHeaderRenderer
         {
             // Fallback: Use placeholder colored circle if texture not available
             var iconCenter = new Vector2(currentX + iconSize / 2, centerY);
-            var iconColor = ImGui.ColorConvertFloat4ToU32(DeityHelper.GetDeityColor(viewModel.CurrentDeity));
+            var iconColor = ImGui.ColorConvertFloat4ToU32(DomainHelper.GetDeityColor(viewModel.CurrentDeity));
             drawList.AddCircleFilled(iconCenter, iconSize / 2, iconColor, 16);
         }
 
@@ -105,7 +105,7 @@ internal static class ReligionHeaderRenderer
         // Religion name and deity
         var religionName = viewModel.CurrentReligionName ??
                            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNKNOWN_RELIGION);
-        var deityName = GetDeityDisplayName(viewModel.CurrentDeity);
+        var deityName = GetDeityDisplayName(viewModel.CurrentDeityName, viewModel.CurrentDeity);
         var headerText = $"{religionName} - {deityName}";
 
         var headerTextPos = new Vector2(currentX, viewModel.Y + 12f);
@@ -240,7 +240,7 @@ internal static class ReligionHeaderRenderer
                 const float deityIconSpacing = 6f;
 
                 foreach (var memberReligion in viewModel.CivilizationMemberReligions!)
-                    if (Enum.TryParse<DeityType>(memberReligion.Deity, out var deityType))
+                    if (Enum.TryParse<DeityDomain>(memberReligion.Domain, out var deityType))
                     {
                         var memberDeityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
                         var deityIconPos = new Vector2(deityIconX, deityIconsY);
@@ -269,10 +269,14 @@ internal static class ReligionHeaderRenderer
     // Old below-header civilization section removed in favor of two-column layout
 
     /// <summary>
-    ///     Get display name for a deity with title
+    ///     Get display name for a deity
     /// </summary>
-    private static string GetDeityDisplayName(DeityType deity)
+    private static string GetDeityDisplayName(string? deityName, DeityDomain deity)
     {
-        return deity.ToLocalizedStringWithTitle();
+        // Use the custom deity name if available, otherwise fall back to domain name
+        if (!string.IsNullOrEmpty(deityName))
+            return deityName;
+
+        return deity.ToLocalizedString();
     }
 }

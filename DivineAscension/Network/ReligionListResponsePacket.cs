@@ -27,7 +27,11 @@ public class ReligionListResponsePacket
 
         [ProtoMember(2)] public string ReligionName { get; set; } = string.Empty;
 
-        [ProtoMember(3)] public string Deity { get; set; } = string.Empty;
+        /// <summary>
+        ///     The domain (Craft, Wild, Harvest, Stone)
+        /// </summary>
+        [ProtoMember(3)]
+        public string Domain { get; set; } = string.Empty;
 
         [ProtoMember(4)] public int MemberCount { get; set; }
 
@@ -40,5 +44,11 @@ public class ReligionListResponsePacket
         [ProtoMember(8)] public string FounderUID { get; set; } = string.Empty;
 
         [ProtoMember(9)] public string Description { get; set; } = string.Empty;
+
+        /// <summary>
+        ///     The custom deity name for this religion
+        /// </summary>
+        [ProtoMember(10)]
+        public string DeityName { get; set; } = string.Empty;
     }
 }

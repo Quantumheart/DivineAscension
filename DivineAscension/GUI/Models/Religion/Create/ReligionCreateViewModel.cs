@@ -8,9 +8,10 @@ namespace DivineAscension.GUI.Models.Religion.Create;
 /// </summary>
 public readonly struct ReligionCreateViewModel(
     string religionName,
+    string domain,
     string deityName,
     bool isPublic,
-    string[] availableDeities,
+    string[] availableDomains,
     string? errorMessage,
     float x,
     float y,
@@ -18,9 +19,19 @@ public readonly struct ReligionCreateViewModel(
     float height)
 {
     public string ReligionName { get; } = religionName;
+
+    /// <summary>
+    /// The domain (Craft, Wild, Harvest, Stone)
+    /// </summary>
+    public string Domain { get; } = domain;
+
+    /// <summary>
+    /// The custom name for the deity this religion worships
+    /// </summary>
     public string DeityName { get; } = deityName;
+
     public bool IsPublic { get; } = isPublic;
-    public string[] AvailableDeities { get; } = availableDeities;
+    public string[] AvailableDomains { get; } = availableDomains;
     public string? ErrorMessage { get; } = errorMessage;
 
     // Layout
@@ -30,12 +41,12 @@ public readonly struct ReligionCreateViewModel(
     public float Height { get; } = height;
 
     /// <summary>
-    /// Gets the index of the currently selected deity in the available deities array
+    /// Gets the index of the currently selected domain in the available domains array
     /// </summary>
-    public int GetCurrentDeityIndex()
+    public int GetCurrentDomainIndex()
     {
-        var index = Array.IndexOf(AvailableDeities, DeityName);
-        return index == -1 ? 0 : index; // Default to first deity if not found
+        var index = Array.IndexOf(AvailableDomains, Domain);
+        return index == -1 ? 0 : index; // Default to first domain if not found
     }
 
     /// <summary>
@@ -44,7 +55,10 @@ public readonly struct ReligionCreateViewModel(
     public bool CanCreate =>
         !string.IsNullOrWhiteSpace(ReligionName)
         && ReligionName.Length >= 3
-        && ReligionName.Length <= 32;
+        && ReligionName.Length <= 32
+        && !string.IsNullOrWhiteSpace(DeityName)
+        && DeityName.Length >= 2
+        && DeityName.Length <= 48;
 
     /// <summary>
     /// Gets the info text to display based on public/private selection

@@ -71,7 +71,7 @@ public class GuiDialogManager : IBlessingDialogManager
     /// <summary>
     ///     Initialize dialog state from player's current religion data
     /// </summary>
-    public void Initialize(string? religionUID, DeityType deity, string? religionName, int favorRank = 0,
+    public void Initialize(string? religionUID, DeityDomain deity, string? religionName, int favorRank = 0,
         int prestigeRank = 0)
     {
         ReligionStateManager.Initialize(religionUID, deity, religionName, favorRank, prestigeRank);

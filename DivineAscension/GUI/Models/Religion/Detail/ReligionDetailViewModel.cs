@@ -11,6 +11,7 @@ public readonly struct ReligionDetailViewModel(
     string religionUID,
     string religionName,
     string deity,
+    string deityName,
     string prestigeRank,
     int prestige,
     bool isPublic,
@@ -26,7 +27,17 @@ public readonly struct ReligionDetailViewModel(
     public bool IsLoading { get; } = isLoading;
     public string ReligionUID { get; } = religionUID;
     public string ReligionName { get; } = religionName;
+
+    /// <summary>
+    ///     The domain (Craft, Wild, Harvest, Stone)
+    /// </summary>
     public string Deity { get; } = deity;
+
+    /// <summary>
+    ///     The custom deity name for this religion
+    /// </summary>
+    public string DeityName { get; } = deityName;
+
     public string PrestigeRank { get; } = prestigeRank;
     public int Prestige { get; } = prestige;
     public bool IsPublic { get; } = isPublic;

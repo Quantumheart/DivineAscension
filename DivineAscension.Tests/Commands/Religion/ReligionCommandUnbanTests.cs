@@ -27,7 +27,7 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
         var founderData = CreatePlayerData("founder-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
 
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args, "TargetName");
@@ -57,7 +57,7 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
         var founderData = CreatePlayerData("founder-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
 
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args, "TargetName");
@@ -86,7 +86,7 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
         var founderData = CreatePlayerData("founder-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
 
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args, "targetname"); // lowercase
@@ -182,7 +182,7 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "MemberName");
         var playerData = CreatePlayerData("player-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TargetName");
 
@@ -204,7 +204,7 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
         // Arrange
         var mockFounder = CreateMockPlayer("founder-1", "FounderName");
         var founderData = CreatePlayerData("founder-1");
-        var religion = CreateReligion("religion-1", "TestReligion", DeityType.Khoras, "founder-1");
+        var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args, "NonExistentPlayer");
 

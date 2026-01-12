@@ -36,7 +36,7 @@ public class ReligionPrestigeManagerTests
         _testReligion = TestFixtures.CreateTestReligion(
             "test-religion-uid",
             "Test Religion",
-            DeityType.Khoras,
+            DeityDomain.Craft,
             "founder-uid");
 
         _mockReligionManager
@@ -608,14 +608,14 @@ public class ReligionPrestigeManagerTests
         {
             BlessingId = "test_blessing",
             Name = "Test Blessing",
-            Deity = DeityType.Khoras,
+            Domain = DeityDomain.Craft,
             Kind = BlessingKind.Religion,
             RequiredPrestigeRank = 1, // Established
             PrerequisiteBlessings = new List<string>()
         };
 
         mockBlessingRegistry
-            .Setup(r => r.GetBlessingsForDeity(DeityType.Khoras, BlessingKind.Religion))
+            .Setup(r => r.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Religion))
             .Returns(new List<Blessing> { blessing });
 
         _prestigeManager.SetBlessingSystems(mockBlessingRegistry.Object, mockBlessingEffectSystem.Object);
@@ -670,7 +670,7 @@ public class ReligionPrestigeManagerTests
 
         // Return empty blessing list
         mockBlessingRegistry
-            .Setup(r => r.GetBlessingsForDeity(DeityType.Khoras, BlessingKind.Religion))
+            .Setup(r => r.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Religion))
             .Returns(new List<Blessing>());
 
         _prestigeManager.SetBlessingSystems(mockBlessingRegistry.Object, mockBlessingEffectSystem.Object);
@@ -699,14 +699,14 @@ public class ReligionPrestigeManagerTests
         {
             BlessingId = "test_blessing_2",
             Name = "Test Blessing 2",
-            Deity = DeityType.Khoras,
+            Domain = DeityDomain.Craft,
             Kind = BlessingKind.Religion,
             RequiredPrestigeRank = 1,
             PrerequisiteBlessings = new List<string> { "prerequisite_blessing" } // Has prerequisite
         };
 
         mockBlessingRegistry
-            .Setup(r => r.GetBlessingsForDeity(DeityType.Khoras, BlessingKind.Religion))
+            .Setup(r => r.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Religion))
             .Returns(new List<Blessing> { blessing });
 
         _prestigeManager.SetBlessingSystems(mockBlessingRegistry.Object, mockBlessingEffectSystem.Object);

@@ -57,7 +57,8 @@ public class ReligionCommands(
             .BeginSubCommand("create")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_CREATE_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.QuotedString("name"),
-                _sapi.ChatCommands.Parsers.Word("deity"),
+                _sapi.ChatCommands.Parsers.Word("domain"),
+                _sapi.ChatCommands.Parsers.QuotedString("deityname"),
                 _sapi.ChatCommands.Parsers.OptionalWord("visibility"))
             .HandleWith(OnCreateReligion)
             .EndSubCommand()
@@ -119,6 +120,11 @@ public class ReligionCommands(
             .WithArgs(_sapi.ChatCommands.Parsers.All("text"))
             .HandleWith(OnSetDescription)
             .EndSubCommand()
+            .BeginSubCommand("setdeityname")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SETDEITYNAME_DESC))
+            .WithArgs(_sapi.ChatCommands.Parsers.All("name"))
+            .HandleWith(OnSetDeityName)
+            .EndSubCommand()
             .BeginSubCommand("prestige")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_PRESTIGE_DESC))
             .BeginSubCommand("info")
@@ -161,6 +167,12 @@ public class ReligionCommands(
             .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .HandleWith(OnAdminLeave)
             .EndSubCommand()
+            .BeginSubCommand("setdeityname")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ADMIN_SETDEITYNAME_DESC))
+            .WithArgs(_sapi.ChatCommands.Parsers.QuotedString("religionname"),
+                _sapi.ChatCommands.Parsers.QuotedString("deityname"))
+            .HandleWith(OnAdminSetDeityName)
+            .EndSubCommand()
             .EndSubCommand();
 
         _sapi.Logger.Notification("[DivineAscension] Religion commands registered");
@@ -170,14 +182,14 @@ public class ReligionCommands(
 
     /// <summary>
     ///     Handler for /religion create
-    ///     <name></name>
-    ///     <deity> [public/private]</deity>
+    ///     Syntax: /religion create "Religion Name" domain "Deity Name" [public|private]
     /// </summary>
     internal TextCommandResult OnCreateReligion(TextCommandCallingArgs args)
     {
         var religionName = (string)args[0];
-        var deityName = (string)args[1];
-        var visibility = args.Parsers.Count > 2 ? (string?)args[2] : "public";
+        var domainName = (string)args[1];
+        var deityName = (string)args[2];
+        var visibility = args.Parsers.Count > 3 ? (string?)args[3] : "public";
 
         var player = args.Caller.Player as IServerPlayer;
         if (player == null)
@@ -189,13 +201,20 @@ public class ReligionCommands(
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_ALREADY_IN_RELIGION));
 
-        // Parse deity type
-        if (!Enum.TryParse(deityName, true, out DeityType deity) || deity == DeityType.None)
+        // Parse domain
+        if (!Enum.TryParse(domainName, true, out DeityDomain domain) || domain == DeityDomain.None)
         {
-            var validDeities = string.Join(", ", Enum.GetNames(typeof(DeityType)).Where(d => d != "None"));
+            var validDomains = string.Join(", ", Enum.GetNames(typeof(DeityDomain)).Where(d => d != "None"));
             return TextCommandResult.Error(
-                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_INVALID_DEITY, validDeities));
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_INVALID_DEITY, validDomains));
         }
+
+        // Validate deity name
+        if (string.IsNullOrWhiteSpace(deityName))
+            return TextCommandResult.Error("Deity name is required");
+
+        if (deityName.Length < 2 || deityName.Length > 48)
+            return TextCommandResult.Error("Deity name must be between 2 and 48 characters");
 
         // Parse visibility
         var isPublic = visibility?.ToLower() != "private";
@@ -206,14 +225,14 @@ public class ReligionCommands(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NAME_EXISTS, religionName));
 
         // Create the religion
-        var religion = _religionManager.CreateReligion(religionName, deity, player.PlayerUID, isPublic);
+        var religion = _religionManager.CreateReligion(religionName, domain, deityName, player.PlayerUID, isPublic);
 
         // Set up founder's player religion data (already added to Members via constructor)
         _playerProgressionDataManager.SetPlayerReligionData(player.PlayerUID, religion.ReligionUID);
 
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_CREATED,
-                religionName, deity.ToLocalizedString()));
+                religionName, deityName));
     }
 
     /// <summary>
@@ -250,7 +269,7 @@ public class ReligionCommands(
 
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_JOINED,
-                religion.ReligionName, religion.Deity.ToLocalizedString()));
+                religion.ReligionName, religion.Domain.ToLocalizedString()));
     }
 
     /// <summary>
@@ -297,11 +316,11 @@ public class ReligionCommands(
         // Apply deity filter if specified
         if (!string.IsNullOrEmpty(deityFilter))
         {
-            if (!Enum.TryParse(deityFilter, true, out DeityType deity))
+            if (!Enum.TryParse(deityFilter, true, out DeityDomain deity))
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_INVALID_DEITY_FILTER,
                         deityFilter));
-            religions = _religionManager.GetReligionsByDeity(deity);
+            religions = _religionManager.GetReligionsByDomain(deity);
         }
 
         if (religions.Count == 0)
@@ -318,7 +337,7 @@ public class ReligionCommands(
             sb.AppendLine(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_LIST_ENTRY,
                     religion.ReligionName,
-                    religion.Deity.ToLocalizedString(),
+                    religion.Domain.ToLocalizedString(),
                     visibility,
                     religion.GetMemberCount(),
                     religion.PrestigeRank.ToLocalizedString()));
@@ -364,7 +383,7 @@ public class ReligionCommands(
         sb.AppendLine(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_HEADER_INFO, religion.ReligionName));
         sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_DEITY,
-            religion.Deity.ToLocalizedString()));
+            religion.Domain.ToLocalizedString()));
         var visibility = religion.IsPublic
             ? LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_VISIBILITY_PUBLIC)
             : LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_VISIBILITY_PRIVATE);
@@ -837,6 +856,55 @@ public class ReligionCommands(
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_DESCRIPTION_SET,
                 religion.ReligionName));
+    }
+
+    /// <summary>
+    ///     Handler for /religion setdeityname <name>
+    /// </summary>
+    internal TextCommandResult OnSetDeityName(TextCommandCallingArgs args)
+    {
+        var deityName = (string)args[0];
+
+        var player = args.Caller.Player as IServerPlayer;
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
+
+        // Check if player is in a religion
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NO_RELIGION));
+
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_DATA_NOT_FOUND));
+
+        // Only founder can change deity name
+        if (!religion.IsFounder(playerId))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_FOUNDER));
+
+        // Use ReligionManager.SetDeityName which handles validation
+        if (!_religionManager.SetDeityName(religion.ReligionUID, deityName, out var error))
+        {
+            // Map error to localized message
+            var errorMessage = error switch
+            {
+                "Deity name must be at least 2 characters" =>
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SETDEITYNAME_ERROR_TOO_SHORT),
+                "Deity name cannot exceed 48 characters" =>
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SETDEITYNAME_ERROR_TOO_LONG),
+                "Deity name contains invalid characters" =>
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SETDEITYNAME_ERROR_INVALID_CHARS),
+                _ => error
+            };
+            return TextCommandResult.Error(errorMessage);
+        }
+
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SETDEITYNAME_SUCCESS,
+                religion.ReligionName, deityName.Trim()));
     }
 
     /// <summary>
@@ -1482,6 +1550,49 @@ public class ReligionCommands(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_ADMIN_LEFT,
                     resolvedTargetPlayer.PlayerName, religionName));
         }
+    }
+
+    /// <summary>
+    ///     Handler for /religion admin setdeityname "Religion Name" "Deity Name"
+    ///     Allows admins to change the deity name for any religion
+    /// </summary>
+    internal TextCommandResult OnAdminSetDeityName(TextCommandCallingArgs args)
+    {
+        var player = args.Caller.Player as IServerPlayer;
+        if (player == null)
+            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
+
+        var religionName = (string)args[0];
+        var deityName = (string)args[1];
+
+        // Find the religion by name
+        var religion = _religionManager.GetReligionByName(religionName);
+        if (religion == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_NOT_FOUND, religionName));
+
+        // Use ReligionManager.SetDeityName which handles validation
+        if (!_religionManager.SetDeityName(religion.ReligionUID, deityName, out var error))
+        {
+            var localizedError = error switch
+            {
+                "Deity name must be at least 2 characters" =>
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SETDEITYNAME_ERROR_TOO_SHORT),
+                "Deity name cannot exceed 48 characters" =>
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SETDEITYNAME_ERROR_TOO_LONG),
+                "Deity name can only contain letters, spaces, apostrophes, and hyphens" =>
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SETDEITYNAME_ERROR_INVALID_CHARS),
+                _ => error
+            };
+            return TextCommandResult.Error(localizedError);
+        }
+
+        _sapi.Logger.Notification(
+            $"[DivineAscension] Admin: {player.PlayerName} changed deity name for {religionName} to '{deityName}'");
+
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ADMIN_SETDEITYNAME_SUCCESS,
+                religionName, deityName));
     }
 
     #endregion

@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Tests.Commands.Helpers;
 using DivineAscension.Tests.Helpers;
@@ -26,18 +25,16 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Aethra, 5000, 10000);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Harvest, 5000, 10000);
         var args = CreateAdminCommandArgs(mockPlayer.Object);
         SetupParsers(args, new object[] { null });
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra))
-            .Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Light"));
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
-            .Returns(DeityType.Aethra);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
+            .Returns(DeityDomain.Harvest);
 
         // Act
         var result = _sut!.OnResetFavor(args);
@@ -59,17 +56,15 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Aethra, 100, 500);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Harvest, 100, 500);
         var args = CreateAdminCommandArgs(mockPlayer.Object);
         SetupParsers(args, new object[] { null });
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra))
-            .Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Shadows"));
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
-            .Returns(DeityType.Khoras);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
+            .Returns(DeityDomain.Craft);
         // Act
         var result = _sut!.OnMaxFavor(args);
 
@@ -90,7 +85,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.None);
+        var playerData = CreatePlayerData("player-1", DeityDomain.None);
         var argsReset = CreateAdminCommandArgs(mockPlayer.Object);
         SetupParsers(argsReset, new object[] { null });
         var argsMax = CreateAdminCommandArgs(mockPlayer.Object);
@@ -117,8 +112,8 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var adminPlayer = CreateMockPlayer("admin-1", "Admin");
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
-        var adminData = CreatePlayerData("admin-1", DeityType.Khoras, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityType.Lysa, 100, 500);
+        var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Wild, 100, 500);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "50", "TargetPlayer");
         SetupParsers(args, 50, "TargetPlayer");
@@ -131,18 +126,13 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.AddFavor("player-2", 50, It.IsAny<string>()))
             .Callback(() => targetData.Favor += 50);
 
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Lysa))
-            .Returns(new Deity(DeityType.Lysa, nameof(DeityType.Lysa), "Hunt"));
-
         _religionManager.Setup(pr => pr.GetPlayerReligion("admin-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-2"))
             .Returns(TestFixtures.CreateTestReligion());
 
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("admin-1")).Returns(DeityType.Khoras);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("player-2")).Returns(DeityType.Lysa);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Wild);
 
         // Act
         var result = _sut!.OnAddFavor(args);
@@ -168,8 +158,8 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var adminPlayer = CreateMockPlayer("admin-1", "Admin");
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
-        var adminData = CreatePlayerData("admin-1", DeityType.Khoras, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityType.Gaia, 200, 500);
+        var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Stone, 200, 500);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "50", "TargetPlayer");
         SetupParsers(args, 50, "TargetPlayer");
@@ -183,18 +173,13 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
             .Callback(() => targetData.Favor = Math.Max(0, targetData.Favor - 50))
             .Returns(true);
 
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Gaia))
-            .Returns(new Deity(DeityType.Gaia, nameof(DeityType.Gaia), "Earth"));
-
         _religionManager.Setup(pr => pr.GetPlayerReligion("admin-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-2"))
             .Returns(TestFixtures.CreateTestReligion());
 
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("admin-1")).Returns(DeityType.Khoras);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("player-2")).Returns(DeityType.Gaia);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Stone);
 
         // Act
         var result = _sut!.OnRemoveFavor(args);
@@ -220,8 +205,8 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var adminPlayer = CreateMockPlayer("admin-1", "Admin");
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
-        var adminData = CreatePlayerData("admin-1", DeityType.Khoras, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityType.Aethra, 5000, 10000);
+        var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Harvest, 5000, 10000);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "TargetPlayer");
         SetupParsers(args, "TargetPlayer");
@@ -232,18 +217,13 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("admin-1")).Returns(adminData);
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-2")).Returns(targetData);
 
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra))
-            .Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Storms"));
-
         _religionManager.Setup(pr => pr.GetPlayerReligion("admin-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-2"))
             .Returns(TestFixtures.CreateTestReligion());
 
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("admin-1")).Returns(DeityType.Khoras);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("player-2")).Returns(DeityType.Aethra);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Harvest);
 
         // Act
         var result = _sut!.OnResetFavor(args);
@@ -268,8 +248,8 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var adminPlayer = CreateMockPlayer("admin-1", "Admin");
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
-        var adminData = CreatePlayerData("admin-1", DeityType.Khoras, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityType.Lysa, 100, 500);
+        var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Wild, 100, 500);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "TargetPlayer");
         SetupParsers(args, "TargetPlayer");
@@ -280,18 +260,13 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("admin-1")).Returns(adminData);
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-2")).Returns(targetData);
 
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Lysa))
-            .Returns(new Deity(DeityType.Lysa, nameof(DeityType.Lysa), "Hunt"));
-
         _religionManager.Setup(pr => pr.GetPlayerReligion("admin-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-2"))
             .Returns(TestFixtures.CreateTestReligion());
 
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("admin-1")).Returns(DeityType.Khoras);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("player-2")).Returns(DeityType.Lysa);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Wild);
 
         // Act
         var result = _sut!.OnMaxFavor(args);
@@ -314,20 +289,18 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Khoras, favor: 100, totalFavor: 500);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft, favor: 100, totalFavor: 500);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "50");
         SetupParsers(args, 50, (string)null);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
         _playerReligionDataManager.Setup(m => m.AddFavor("player-1", 50, It.IsAny<string>()))
             .Callback(() => playerData.Favor += 50);
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
-            .Returns(DeityType.Khoras);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
+            .Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnAddFavor(args);
@@ -345,18 +318,16 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "0");
         SetupParsers(args, 0, (string)null);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
-            .Returns(DeityType.Khoras);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
+            .Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnAddFavor(args);
@@ -376,21 +347,19 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Lysa, favor: 200, totalFavor: 500);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Wild, favor: 200, totalFavor: 500);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "50");
         SetupParsers(args, 50, (string)null);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Lysa))
-            .Returns(new Deity(DeityType.Lysa, nameof(DeityType.Lysa), "Hunt"));
         _playerReligionDataManager.Setup(m => m.RemoveFavor("player-1", 50, It.IsAny<string>()))
             .Callback(() => playerData.Favor = Math.Max(0, playerData.Favor - 50))
             .Returns(true);
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
-            .Returns(DeityType.Khoras);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
+            .Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnRemoveFavor(args);
@@ -408,20 +377,18 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Aethra, favor: 50, totalFavor: 500);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Harvest, favor: 50, totalFavor: 500);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "100");
         SetupParsers(args, 100, (string)null);
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra))
-            .Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Death"));
         _playerReligionDataManager.Setup(m => m.RemoveFavor("player-1", 100, It.IsAny<string>()))
             .Callback(() => playerData.Favor = 0)
             .Returns(true);
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
-            .Returns(DeityType.Khoras);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
+            .Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnRemoveFavor(args);
@@ -438,17 +405,15 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "-10");
         SetupParsers(args, -10, (string)null);
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
-            .Returns(DeityType.Khoras);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
+            .Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnRemoveFavor(args);
@@ -468,19 +433,17 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Aethra, 100, 100,
+        var playerData = CreatePlayerData("player-1", DeityDomain.Harvest, 100, 100,
             FavorRank.Initiate);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "5000");
         SetupParsers(args, 5000, (string)null);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra))
-            .Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Storms"));
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
-            .Returns(DeityType.Aethra);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
+            .Returns(DeityDomain.Harvest);
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
@@ -500,19 +463,17 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Gaia, 100, 600,
+        var playerData = CreatePlayerData("player-1", DeityDomain.Stone, 100, 600,
             FavorRank.Disciple);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "700");
         SetupParsers(args, 700, (string)null);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Gaia))
-            .Returns(new Deity(DeityType.Gaia, nameof(DeityType.Gaia), "Earth"));
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
-            .Returns(DeityType.Gaia);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
+            .Returns(DeityDomain.Stone);
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
@@ -530,17 +491,15 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "-100");
         SetupParsers(args, -100, (string)null);
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
-            .Returns(DeityType.Khoras);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
+            .Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
@@ -556,18 +515,16 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityType.Khoras);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "1000000");
         SetupParsers(args, 1000000, (string)null);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity(It.IsAny<string>()))
-            .Returns(DeityType.Khoras);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
+            .Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
@@ -585,8 +542,8 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var adminPlayer = CreateMockPlayer("admin-1", "Admin");
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
-        var adminData = CreatePlayerData("admin-1", DeityType.Khoras, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityType.Aethra, 100, 100, FavorRank.Initiate);
+        var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Harvest, 100, 100, FavorRank.Initiate);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "5000", "TargetPlayer");
         SetupParsers(args, 5000, "TargetPlayer");
@@ -597,18 +554,13 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("admin-1")).Returns(adminData);
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-2")).Returns(targetData);
 
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra))
-            .Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Storms"));
-
         _religionManager.Setup(pr => pr.GetPlayerReligion("admin-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-2"))
             .Returns(TestFixtures.CreateTestReligion());
 
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("admin-1")).Returns(DeityType.Khoras);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("player-2")).Returns(DeityType.Aethra);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Harvest);
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
@@ -630,8 +582,8 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var adminPlayer = CreateMockPlayer("admin-1", "Admin");
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
-        var adminData = CreatePlayerData("admin-1", DeityType.Khoras, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityType.Lysa, 100, 600, FavorRank.Disciple);
+        var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Wild, 100, 600, FavorRank.Disciple);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "700", "TargetPlayer");
         SetupParsers(args, 700, "TargetPlayer");
@@ -642,18 +594,13 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("admin-1")).Returns(adminData);
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-2")).Returns(targetData);
 
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Lysa))
-            .Returns(new Deity(DeityType.Lysa, nameof(DeityType.Lysa), "Hunt"));
-
         _religionManager.Setup(pr => pr.GetPlayerReligion("admin-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-2"))
             .Returns(TestFixtures.CreateTestReligion());
 
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("admin-1")).Returns(DeityType.Khoras);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("player-2")).Returns(DeityType.Lysa);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Wild);
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
@@ -674,7 +621,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var adminPlayer = CreateMockPlayer("admin-1", "Admin");
-        var adminData = CreatePlayerData("admin-1", DeityType.Khoras, 1000, 2000);
+        var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "5000", "NonExistentPlayer");
         SetupParsers(args, 5000, "NonExistentPlayer");
@@ -682,11 +629,9 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { adminPlayer.Object });
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("admin-1")).Returns(adminData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
         _religionManager.Setup(pr => pr.GetPlayerReligion("admin-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("admin-1")).Returns(DeityType.Khoras);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
@@ -705,8 +650,8 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var adminPlayer = CreateMockPlayer("admin-1", "Admin");
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
-        var adminData = CreatePlayerData("admin-1", DeityType.Khoras, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityType.None, 0, 0);
+        var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
+        var targetData = CreatePlayerData("player-2", DeityDomain.None, 0, 0);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "5000", "TargetPlayer");
         SetupParsers(args, 5000, "TargetPlayer");
@@ -717,16 +662,13 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("admin-1")).Returns(adminData);
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-2")).Returns(targetData);
 
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
-
         _religionManager.Setup(pr => pr.GetPlayerReligion("admin-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-2"))
             .Returns(TestFixtures.CreateTestReligion());
 
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("admin-1")).Returns(DeityType.Khoras);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("player-2")).Returns(DeityType.None);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.None);
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
@@ -744,8 +686,8 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var adminPlayer = CreateMockPlayer("admin-1", "Admin");
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
-        var adminData = CreatePlayerData("admin-1", DeityType.Khoras, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityType.Gaia, 100, 100);
+        var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Stone, 100, 100);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "1000", "targetplayer"); // lowercase
         SetupParsers(args, 1000, "targetplayer");
@@ -756,18 +698,13 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("admin-1")).Returns(adminData);
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-2")).Returns(targetData);
 
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Gaia))
-            .Returns(new Deity(DeityType.Gaia, nameof(DeityType.Gaia), "Earth"));
-
         _religionManager.Setup(pr => pr.GetPlayerReligion("admin-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-2"))
             .Returns(TestFixtures.CreateTestReligion());
 
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("admin-1")).Returns(DeityType.Khoras);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("player-2")).Returns(DeityType.Gaia);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Stone);
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
@@ -790,8 +727,8 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var adminPlayer = CreateMockPlayer("admin-1", "Admin");
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
-        var adminData = CreatePlayerData("admin-1", DeityType.Khoras, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityType.Aethra, 100, 500);
+        var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Harvest, 100, 500);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "5000", "TargetPlayer");
         SetupParsers(args, 5000, "TargetPlayer");
@@ -802,18 +739,14 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("admin-1")).Returns(adminData);
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-2")).Returns(targetData);
 
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Aethra))
-            .Returns(new Deity(DeityType.Aethra, nameof(DeityType.Aethra), "Storms"));
 
         _religionManager.Setup(pr => pr.GetPlayerReligion("admin-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-2"))
             .Returns(TestFixtures.CreateTestReligion());
 
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("admin-1")).Returns(DeityType.Khoras);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("player-2")).Returns(DeityType.Aethra);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Harvest);
 
         // Act
         var result = _sut!.OnSetFavor(args);
@@ -831,7 +764,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var adminPlayer = CreateMockPlayer("admin-1", "Admin");
-        var adminData = CreatePlayerData("admin-1", DeityType.Khoras, 1000, 2000);
+        var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "5000", "NonExistent");
         SetupParsers(args, 5000, "NonExistent");
@@ -839,11 +772,9 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { adminPlayer.Object });
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("admin-1")).Returns(adminData);
-        _deityRegistry.Setup(d => d.GetDeity(DeityType.Khoras))
-            .Returns(new Deity(DeityType.Khoras, nameof(DeityType.Khoras), "War"));
         _religionManager.Setup(pr => pr.GetPlayerReligion("admin-1"))
             .Returns(TestFixtures.CreateTestReligion());
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeity("admin-1")).Returns(DeityType.Khoras);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnSetFavor(args);

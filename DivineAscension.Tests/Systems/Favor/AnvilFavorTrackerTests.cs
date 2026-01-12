@@ -79,9 +79,9 @@ public class AnvilFavorTrackerTests
 
         // Player follows Khoras
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-anvil-1"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-anvil-1", DeityType.Khoras));
-        mockReligionManager.Setup(d => d.GetPlayerActiveDeity(It.IsAny<string>())).Returns(DeityType.Khoras);
-        mockPlayerReligion.Setup(d => d.GetPlayerDeityType(It.IsAny<string>())).Returns(DeityType.Khoras);
+            .Returns(TestFixtures.CreateTestPlayerReligionData("player-anvil-1", DeityDomain.Craft));
+        mockReligionManager.Setup(d => d.GetPlayerActiveDeityDomain(It.IsAny<string>())).Returns(DeityDomain.Craft);
+        mockPlayerReligion.Setup(d => d.GetPlayerDeityType(It.IsAny<string>())).Returns(DeityDomain.Craft);
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
         tracker.Initialize();
         var method = GetHandleMethod();
@@ -112,9 +112,9 @@ public class AnvilFavorTrackerTests
         SetupPlayer(mockWorld, player.Object);
 
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-anvil-2"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-anvil-2", DeityType.Khoras));
-        mockReligionManager.Setup(d => d.GetPlayerActiveDeity(It.IsAny<string>())).Returns(DeityType.Khoras);
-        mockPlayerReligion.Setup(d => d.GetPlayerDeityType(It.IsAny<string>())).Returns(DeityType.Khoras);
+            .Returns(TestFixtures.CreateTestPlayerReligionData("player-anvil-2", DeityDomain.Craft));
+        mockReligionManager.Setup(d => d.GetPlayerActiveDeityDomain(It.IsAny<string>())).Returns(DeityDomain.Craft);
+        mockPlayerReligion.Setup(d => d.GetPlayerDeityType(It.IsAny<string>())).Returns(DeityDomain.Craft);
 
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
         tracker.Initialize();
@@ -146,7 +146,7 @@ public class AnvilFavorTrackerTests
 
         // Player follows Lysa
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-anvil-3"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-anvil-3", DeityType.Lysa));
+            .Returns(TestFixtures.CreateTestPlayerReligionData("player-anvil-3", DeityDomain.Wild));
 
         var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
         tracker.Initialize();

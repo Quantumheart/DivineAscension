@@ -37,7 +37,7 @@ public class MiningFavorTrackerTests
 
         // Player follows Lysa (not Khoras)
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-4"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-4", DeityType.Lysa));
+            .Returns(TestFixtures.CreateTestPlayerReligionData("player-4", DeityDomain.Wild));
 
         // Ore block would normally grant favor, but since player doesn't follow Khoras, expect none
         SetupBlockAt(mockAccessor, "ore-medium-tin");
@@ -92,7 +92,7 @@ public class MiningFavorTrackerTests
 
         // Ensure player follows Khoras
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData(player.PlayerUID))
-            .Returns(TestFixtures.CreateTestPlayerReligionData(player.PlayerUID, DeityType.Khoras));
+            .Returns(TestFixtures.CreateTestPlayerReligionData(player.PlayerUID, DeityDomain.Craft));
 
         tracker2.Initialize();
 
@@ -124,9 +124,9 @@ public class MiningFavorTrackerTests
 
         // Player follows Khoras
         mockPlayerProgression.Setup(m => m.GetOrCreatePlayerData("player-1"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-1", DeityType.Khoras));
+            .Returns(TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.Craft));
         mockPlayerProgression.Setup(d => d.GetPlayerDeityType("player-1"))
-            .Returns(DeityType.Khoras);
+            .Returns(DeityDomain.Craft);
 
         // Copper ore block (low tier = 1, poor quality = 1.0x, total = 1)
         SetupBlockAt(mockAccessor, "ore-poor-copper");
@@ -162,7 +162,7 @@ public class MiningFavorTrackerTests
         SetupOnlinePlayer(mockWorld, mockPlayer.Object);
 
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-2"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-2", DeityType.Khoras));
+            .Returns(TestFixtures.CreateTestPlayerReligionData("player-2", DeityDomain.Craft));
 
         // Non-ore block path
         SetupBlockAt(mockAccessor, "stone-granite");

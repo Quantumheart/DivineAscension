@@ -8,7 +8,7 @@ using Vintagestory.API.MathTools;
 namespace DivineAscension.Systems.Patches;
 
 [HarmonyPatch]
-public static class KhorasPatches
+public static class CraftPatches
 {
     // Patch for Tool Durability
     // Target: CollectibleObject.DamageItem

@@ -17,6 +17,12 @@ public class InfoState
     public string? KickConfirmPlayerName { get; set; }
     public string? BanConfirmPlayerName { get; set; }
 
+    // Deity name editing state
+    public bool IsEditingDeityName { get; set; }
+    public string EditDeityNameValue { get; set; } = string.Empty;
+    public bool IsSavingDeityName { get; set; }
+    public string? DeityNameError { get; set; }
+
     public void Reset()
     {
         MyReligionInfo = null;
@@ -31,5 +37,9 @@ public class InfoState
         BanConfirmPlayerUID = null;
         KickConfirmPlayerName = null;
         BanConfirmPlayerName = null;
+        IsEditingDeityName = false;
+        EditDeityNameValue = string.Empty;
+        IsSavingDeityName = false;
+        DeityNameError = null;
     }
 }

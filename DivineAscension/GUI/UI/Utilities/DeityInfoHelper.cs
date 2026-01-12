@@ -11,42 +11,39 @@ internal static class DeityInfoHelper
     /// <summary>
     /// Get deity information by name
     /// </summary>
-    public static DeityInfo? GetDeityInfo(string deityName)
+    public static DomainInfo? GetDeityInfo(string deityName)
     {
-        var deityType = DeityHelper.ParseDeityType(deityName);
+        var deityType = DomainHelper.ParseDeityType(deityName);
         return GetDeityInfo(deityType);
     }
 
     /// <summary>
     /// Get deity information by type
     /// </summary>
-    public static DeityInfo? GetDeityInfo(DeityType deityType)
+    // todo: localize the strings in this text.
+    public static DomainInfo? GetDeityInfo(DeityDomain deityDomain)
     {
-        return deityType switch
+        return deityDomain switch
         {
-            DeityType.Khoras => new DeityInfo(
-                Name: "Khoras",
-                Title: "God of the Forge & Craft",
-                Domain: "Forge & Craft",
-                Description: "The God of Forging and crafting, Khoras represents crafting."
+            DeityDomain.Craft => new DomainInfo(
+                Name: "Craft",
+                Description:
+                "The domain of the Forge and Craft. Followers are rewarded for their dedication to metalworking, smithing, and the creation of tools and weapons. Those who shape raw materials into works of utility and art earn the favor of this domain."
             ),
-            DeityType.Lysa => new DeityInfo(
-                Name: "Lysa",
-                Title: "Goddess of the Hunt & Wild",
-                Domain: "Hunt & Wild",
-                Description: "The Goddess of the Hunt, Lysa rewards patience, precision, and tracking."
+            DeityDomain.Wild => new DomainInfo(
+                Name: "Wild",
+                Description:
+                "The domain of the Hunt and Wild. Followers are rewarded for patience, precision, and tracking. Those who master the hunt and live in harmony with the wilderness earn the favor of this domain."
             ),
-            DeityType.Aethra => new DeityInfo(
-                Name: "Aethra",
-                Title: "Goddess of Agriculture & Light",
-                Domain: "Agriculture & Light",
-                Description: "Aethra represents cultivation and growth through light and warmth."
+            DeityDomain.Harvest => new DomainInfo(
+                Name: "Harvest",
+                Description:
+                "The domain of Agriculture and Light. Followers are rewarded for cultivation and nurturing growth through light and warmth. Those who tend the land and bring forth abundance earn the favor of this domain."
             ),
-            DeityType.Gaia => new DeityInfo(
-                Name: "Gaia",
-                Title: "Goddess of Earth & Stone",
-                Domain: "Earth & Stone",
-                Description: "Gaia represents the transformative power of working with clay and earth."
+            DeityDomain.Stone => new DomainInfo(
+                Name: "Stone",
+                Description:
+                "The domain of Earth and Stone. Followers are rewarded for the transformative art of working with clay and earth. Those who shape pottery, form clay, and honor the elements of the ground earn the favor of this domain."
             ),
             _ => null
         };
@@ -56,4 +53,4 @@ internal static class DeityInfoHelper
 /// <summary>
 /// Immutable record containing deity information for tooltips
 /// </summary>
-internal record DeityInfo(string Name, string Title, string Domain, string Description);
+internal record DomainInfo(string Name, string Description);

@@ -46,7 +46,8 @@ public class ReligionStateManager : IReligionStateManager
 
     public ReligionTabState State { get; } = new();
     public string? CurrentReligionUID { get; set; }
-    public DeityType CurrentDeity { get; set; }
+    public DeityDomain CurrentReligionDomain { get; set; }
+    public string? CurrentDeityName { get; set; }
     public string? CurrentReligionName { get; set; }
     public int ReligionMemberCount { get; set; }
     public string? PlayerRoleInReligion { get; set; }
@@ -56,11 +57,11 @@ public class ReligionStateManager : IReligionStateManager
     public int CurrentPrestige { get; set; }
     public int TotalFavorEarned { get; set; }
 
-    public void Initialize(string? id, DeityType deity, string? religionName, int favorRank = 0,
+    public void Initialize(string? id, DeityDomain domain, string? religionName, int favorRank = 0,
         int prestigeRank = 0)
     {
         CurrentReligionUID = id;
-        CurrentDeity = deity;
+        CurrentReligionDomain = domain;
         CurrentReligionName = religionName;
         CurrentFavorRank = favorRank;
         CurrentPrestigeRank = prestigeRank;
@@ -69,7 +70,8 @@ public class ReligionStateManager : IReligionStateManager
     public void Reset()
     {
         CurrentReligionUID = null;
-        CurrentDeity = DeityType.None;
+        CurrentReligionDomain = DeityDomain.None;
+        CurrentDeityName = null;
         CurrentReligionName = null;
         ReligionMemberCount = 0;
         PlayerRoleInReligion = null;
@@ -81,7 +83,7 @@ public class ReligionStateManager : IReligionStateManager
 
     public bool HasReligion()
     {
-        return !string.IsNullOrEmpty(CurrentReligionUID) && CurrentDeity != DeityType.None;
+        return !string.IsNullOrEmpty(CurrentReligionUID) && CurrentReligionDomain != DeityDomain.None;
     }
 
 
@@ -135,7 +137,7 @@ public class ReligionStateManager : IReligionStateManager
                 {
                     ReligionUID = r.religionUID,
                     ReligionName = r.religionName,
-                    Deity = r.deity,
+                    Domain = r.deity,
                     MemberCount = r.memberCount,
                     Prestige = r.prestige,
                     PrestigeRank = r.prestigeRank,
@@ -237,9 +239,10 @@ public class ReligionStateManager : IReligionStateManager
         // Build view model from state
         var viewModel = new ReligionCreateViewModel(
             religionName: State.CreateState.Name,
+            domain: State.CreateState.Domain,
             deityName: State.CreateState.DeityName,
             isPublic: State.CreateState.IsPublic,
-            availableDeities: new[] { "Khoras", "Lysa", "Aethra", "Gaia" },
+            availableDomains: new[] { "Craft", "Wild", "Harvest", "Stone" },
             errorMessage: State.ErrorState.CreateError,
             x: x, y: y, width: width, height: height
         );
@@ -290,7 +293,7 @@ public class ReligionStateManager : IReligionStateManager
         }
 
         // Map State → ViewModel
-        var deityFilters = new[] { "All", "Khoras", "Lysa", "Aethra", "Gaia" };
+        var deityFilters = new[] { "All", "Craft", "Wild", "Harvest", "Stone" };
         var effectiveFilter =
             string.IsNullOrEmpty(State.BrowseState.DeityFilter) ? "All" : State.BrowseState.DeityFilter;
 
@@ -333,7 +336,8 @@ public class ReligionStateManager : IReligionStateManager
             State.BrowseState.DetailState.IsLoading,
             State.BrowseState.DetailState.ViewingReligionUID ?? string.Empty,
             details?.ReligionName ?? string.Empty,
-            details?.Deity ?? string.Empty,
+            details?.Domain ?? string.Empty,
+            details?.DeityName ?? string.Empty,
             details?.PrestigeRank ?? string.Empty,
             details?.Prestige ?? 0,
             details?.IsPublic ?? true,
@@ -413,7 +417,8 @@ public class ReligionStateManager : IReligionStateManager
             hasReligion: religion != null && religion.HasReligion,
             religionUID: religion?.ReligionUID ?? string.Empty,
             religionName: religion?.ReligionName ?? string.Empty,
-            deity: religion?.Deity ?? string.Empty,
+            deity: religion?.Domain ?? string.Empty,
+            deityName: religion?.DeityName ?? string.Empty,
             founderUID: religion?.FounderUID ?? string.Empty,
             founderName: religion?.FounderName ?? string.Empty,
             // todo: just send the player id
@@ -432,6 +437,10 @@ public class ReligionStateManager : IReligionStateManager
             kickConfirmPlayerName: State.InfoState.KickConfirmPlayerName,
             banConfirmPlayerUID: State.InfoState.BanConfirmPlayerUID,
             banConfirmPlayerName: State.InfoState.BanConfirmPlayerName,
+            isEditingDeityName: State.InfoState.IsEditingDeityName,
+            editDeityNameValue: State.InfoState.EditDeityNameValue,
+            isSavingDeityName: State.InfoState.IsSavingDeityName,
+            deityNameError: State.InfoState.DeityNameError,
             x: x, y: y, width: width, height: height,
             scrollY: State.InfoState.MyReligionScrollY,
             memberScrollY: State.InfoState.MemberScrollY,
@@ -769,6 +778,34 @@ public class ReligionStateManager : IReligionStateManager
                     }
 
                     break;
+
+                // Deity name editing
+                case InfoEvent.EditDeityNameOpen:
+                    State.InfoState.IsEditingDeityName = true;
+                    State.InfoState.EditDeityNameValue = State.InfoState.MyReligionInfo?.DeityName ?? string.Empty;
+                    State.InfoState.DeityNameError = null;
+                    break;
+
+                case InfoEvent.EditDeityNameChanged edc:
+                    State.InfoState.EditDeityNameValue = edc.Text;
+                    State.InfoState.DeityNameError = null;
+                    break;
+
+                case InfoEvent.EditDeityNameCancel:
+                    State.InfoState.IsEditingDeityName = false;
+                    State.InfoState.EditDeityNameValue = string.Empty;
+                    State.InfoState.DeityNameError = null;
+                    break;
+
+                case InfoEvent.EditDeityNameSave eds:
+                    if (!string.IsNullOrWhiteSpace(religionId))
+                    {
+                        State.InfoState.IsSavingDeityName = true;
+                        State.InfoState.DeityNameError = null;
+                        _uiService.RequestSetDeityName(religionId, eds.NewDeityName);
+                    }
+
+                    break;
             }
         }
     }
@@ -825,8 +862,11 @@ public class ReligionStateManager : IReligionStateManager
                     break;
 
                 case CreateEvent.DeityChanged e:
-                    State.CreateState.DeityName = e.NewDeity;
+                    State.CreateState.Domain = e.NewDeity;
+                    break;
 
+                case CreateEvent.DeityNameChanged e:
+                    State.CreateState.DeityName = e.NewDeityName;
                     break;
 
                 case CreateEvent.IsPublicChanged e:
@@ -860,11 +900,13 @@ public class ReligionStateManager : IReligionStateManager
         _soundManager.PlayClick();
 
         // Request creation
-        RequestReligionCreate(State.CreateState.Name, State.CreateState.DeityName, State.CreateState.IsPublic);
+        RequestReligionCreate(State.CreateState.Name, State.CreateState.Domain, State.CreateState.DeityName,
+            State.CreateState.IsPublic);
 
         // Clear form
         State.CreateState.Name = string.Empty;
-        State.CreateState.DeityName = "Khoras";
+        State.CreateState.Domain = nameof(DeityDomain.Craft);
+        State.CreateState.DeityName = string.Empty;
         State.CreateState.IsPublic = true;
         State.ErrorState.CreateError = null;
 
@@ -873,9 +915,9 @@ public class ReligionStateManager : IReligionStateManager
         RequestPlayerReligionInfo();
     }
 
-    private void RequestReligionCreate(string religionName, string deity, bool isPublic)
+    private void RequestReligionCreate(string religionName, string domain, string deityName, bool isPublic)
     {
-        _uiService.RequestCreateReligion(religionName, deity, isPublic);
+        _uiService.RequestCreateReligion(religionName, domain, deityName, isPublic);
     }
 
     /// <summary>

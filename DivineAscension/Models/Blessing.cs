@@ -11,11 +11,11 @@ public class Blessing
     /// <summary>
     ///     Creates a new blessing with the specified ID, name, and deity
     /// </summary>
-    public Blessing(string blessingId, string name, DeityType deity)
+    public Blessing(string blessingId, string name, DeityDomain domain)
     {
         BlessingId = blessingId;
         Name = name;
-        Deity = deity;
+        Domain = domain;
     }
 
     /// <summary>
@@ -43,7 +43,7 @@ public class Blessing
     /// <summary>
     ///     Which deity this blessing belongs to
     /// </summary>
-    public DeityType Deity { get; set; }
+    public DeityDomain Domain { get; set; }
 
     /// <summary>
     ///     Icon name for this blessing (e.g., "bear-head", "strawberry")

@@ -44,7 +44,14 @@ public static class LocalizationKeys
     public const string UI_RELIGION_NAME_PLACEHOLDER = "divineascension:ui.religion.name.placeholder";
     public const string UI_RELIGION_NAME_ERROR_TOO_SHORT = "divineascension:ui.religion.name.error.too_short";
     public const string UI_RELIGION_NAME_ERROR_TOO_LONG = "divineascension:ui.religion.name.error.too_long";
-    public const string UI_RELIGION_DEITY_LABEL = "divineascension:ui.religion.deity.label";
+    public const string UI_RELIGION_DOMAIN_LABEL = "divineascension:ui.religion.domain.label";
+    public const string UI_RELIGION_DEITY_NAME_LABEL = "divineascension:ui.religion.deity_name.label";
+    public const string UI_RELIGION_DEITY_NAME_PLACEHOLDER = "divineascension:ui.religion.deity_name.placeholder";
+
+    public const string UI_RELIGION_DEITY_NAME_ERROR_TOO_SHORT =
+        "divineascension:ui.religion.deity_name.error.too_short";
+
+    public const string UI_RELIGION_DEITY_NAME_ERROR_TOO_LONG = "divineascension:ui.religion.deity_name.error.too_long";
     public const string UI_RELIGION_PUBLIC_CHECKBOX = "divineascension:ui.religion.public.checkbox";
     public const string UI_RELIGION_CREATE_BUTTON = "divineascension:ui.religion.create.button";
 
@@ -180,6 +187,9 @@ public static class LocalizationKeys
     public const string UI_RELIGION_INFO_DESCRIPTION_EMPTY = "divineascension:ui.religion.info.description.empty";
     public const string UI_RELIGION_INFO_SAVE_DESCRIPTION = "divineascension:ui.religion.info.save_description";
     public const string UI_RELIGION_INFO_DEITY_LABEL = "divineascension:ui.religion.info.deity";
+    public const string UI_RELIGION_DEITY_NAME_SAVE = "divineascension:ui.religion.deity_name.save";
+    public const string UI_RELIGION_DEITY_NAME_SAVING = "divineascension:ui.religion.deity_name.saving";
+    public const string UI_RELIGION_DEITY_NAME_CANCEL = "divineascension:ui.religion.deity_name.cancel";
     public const string UI_RELIGION_INFO_MEMBERS_COUNT = "divineascension:ui.religion.info.members_count";
     public const string UI_RELIGION_INFO_FOUNDER_LABEL = "divineascension:ui.religion.info.founder";
     public const string UI_RELIGION_INFO_PRESTIGE_LABEL = "divineascension:ui.religion.info.prestige";
@@ -465,33 +475,33 @@ public static class LocalizationKeys
     #region Table Headers
 
     public const string UI_TABLE_NAME = "divineascension:ui.table.name";
-    public const string UI_TABLE_DEITY = "divineascension:ui.table.deity";
+    public const string UI_TABLE_DOMAIN = "divineascension:ui.table.deity_name";
     public const string UI_TABLE_PRESTIGE = "divineascension:ui.table.prestige";
     public const string UI_TABLE_MEMBERS = "divineascension:ui.table.members";
     public const string UI_TABLE_PUBLIC = "divineascension:ui.table.public";
 
     #endregion
 
-    #region Deity Names
+    #region Deity Domain Names
 
-    public const string DEITY_KHORAS_NAME = "divineascension:deity.khoras.name";
-    public const string DEITY_KHORAS_TITLE = "divineascension:deity.khoras.title";
-    public const string DEITY_KHORAS_DESCRIPTION = "divineascension:deity.khoras.description";
+    public const string DOMAIN_CRAFT_NAME = "divineascension:deity.domain.craft.name";
+    public const string DOMAIN_CRAFT_TITLE = "divineascension:deity.domain.craft.title";
+    public const string DOMAIN_CRAFT_DESCRIPTION = "divineascension:deity.domain.craft.description";
 
-    public const string DEITY_LYSA_NAME = "divineascension:deity.lysa.name";
-    public const string DEITY_LYSA_TITLE = "divineascension:deity.lysa.title";
-    public const string DEITY_LYSA_DESCRIPTION = "divineascension:deity.lysa.description";
+    public const string DOMAIN_WILD_NAME = "divineascension:deity.domain.wild.name";
+    public const string DOMAIN_WILD_TITLE = "divineascension:deity.domain.wild.title";
+    public const string DOMAIN_WILD_DESCRIPTION = "divineascension:deity.domain.wild.description";
 
-    public const string DEITY_AETHRA_NAME = "divineascension:deity.aethra.name";
-    public const string DEITY_AETHRA_TITLE = "divineascension:deity.aethra.title";
-    public const string DEITY_AETHRA_DESCRIPTION = "divineascension:deity.aethra.description";
+    public const string DOMAIN_HARVEST_NAME = "divineascension:deity.domain.harvest.name";
+    public const string DOMAIN_HARVEST_TITLE = "divineascension:deity.domain.harvest.title";
+    public const string DOMAIN_HARVEST_DESCRIPTION = "divineascension:deity.domain.harvest.description";
 
-    public const string DEITY_GAIA_NAME = "divineascension:deity.gaia.name";
-    public const string DEITY_GAIA_TITLE = "divineascension:deity.gaia.title";
-    public const string DEITY_GAIA_DESCRIPTION = "divineascension:deity.gaia.description";
+    public const string DOMAIN_STONE_NAME = "divineascension:deity.domain.stone.name";
+    public const string DOMAIN_STONE_TITLE = "divineascension:deity.domain.stone.title";
+    public const string DOMAIN_STONE_DESCRIPTION = "divineascension:deity.domain.stone.description";
 
-    public const string DEITY_UNKNOWN_NAME = "divineascension:deity.unknown.name";
-    public const string DEITY_DOMAIN_LABEL = "divineascension:deity.domain_label";
+    public const string DOMAIN_UNKNOWN_NAME = "divineascension:deity.domain.unknown.name";
+    public const string DOMAIN_LABEL = "divineascension:deity.domain_label";
 
     #endregion
 
@@ -750,7 +760,7 @@ public static class LocalizationKeys
     public const string CMD_FAVOR_HEADER_INFO = "divineascension:cmd.favor.header.info";
     public const string CMD_FAVOR_HEADER_STATS = "divineascension:cmd.favor.header.stats";
     public const string CMD_FAVOR_HEADER_RANKS = "divineascension:cmd.favor.header.ranks";
-    public const string CMD_FAVOR_LABEL_DEITY = "divineascension:cmd.favor.label.deity";
+    public const string CMD_FAVOR_LABEL_DOMAIN = "divineascension:cmd.favor.label.domain";
     public const string CMD_FAVOR_LABEL_CURRENT = "divineascension:cmd.favor.label.current";
     public const string CMD_FAVOR_LABEL_TOTAL_EARNED = "divineascension:cmd.favor.label.total_earned";
     public const string CMD_FAVOR_LABEL_CURRENT_RANK = "divineascension:cmd.favor.label.current_rank";
@@ -1054,10 +1064,32 @@ public static class LocalizationKeys
 
     // Additional missing keys
     public const string CMD_RELIGION_DESCRIPTION_DESC = "divineascension:cmd.religion.description.desc";
+    public const string CMD_RELIGION_SETDEITYNAME_DESC = "divineascension:cmd.religion.setdeityname.desc";
+    public const string CMD_RELIGION_SETDEITYNAME_SUCCESS = "divineascension:cmd.religion.setdeityname.success";
+
+    public const string CMD_RELIGION_SETDEITYNAME_ERROR_TOO_SHORT =
+        "divineascension:cmd.religion.setdeityname.error.too_short";
+
+    public const string CMD_RELIGION_SETDEITYNAME_ERROR_TOO_LONG =
+        "divineascension:cmd.religion.setdeityname.error.too_long";
+
+    public const string CMD_RELIGION_SETDEITYNAME_ERROR_INVALID_CHARS =
+        "divineascension:cmd.religion.setdeityname.error.invalid_chars";
+
     public const string CMD_RELIGION_PRESTIGE_ADD_DESC = "divineascension:cmd.religion.prestige.add.desc";
     public const string CMD_RELIGION_PRESTIGE_SET_DESC = "divineascension:cmd.religion.prestige.set.desc";
     public const string CMD_RELIGION_ADMIN_JOIN_DESC = "divineascension:cmd.religion.admin.join.desc";
     public const string CMD_RELIGION_ADMIN_LEAVE_DESC = "divineascension:cmd.religion.admin.leave.desc";
+    public const string CMD_RELIGION_ADMIN_SETDEITYNAME_DESC = "divineascension:cmd.religion.admin.setdeityname.desc";
+
+    public const string CMD_RELIGION_ADMIN_SETDEITYNAME_SUCCESS =
+        "divineascension:cmd.religion.admin.setdeityname.success";
+
+    /// <summary>
+    ///     Migration notification sent to founders when deity name is auto-generated
+    /// </summary>
+    public const string MIGRATION_DEITY_NAME_NOTICE = "divineascension:migration.deity_name_notice";
+
     public const string CMD_RELIGION_ERROR_NO_RELIGION = "divineascension:cmd.religion.error.no_religion";
 
     public const string CMD_RELIGION_ERROR_FOUNDER_CANNOT_LEAVE =

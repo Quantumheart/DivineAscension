@@ -77,15 +77,15 @@ public class EnumLocalizationExtensionsTests
 
     #endregion
 
-    #region DeityType Tests
+    #region DeityDomain Tests
 
     [Theory]
-    [InlineData(DeityType.Khoras, "Khoras")]
-    [InlineData(DeityType.Lysa, "Lysa")]
-    [InlineData(DeityType.Aethra, "Aethra")]
-    [InlineData(DeityType.Gaia, "Gaia")]
-    [InlineData(DeityType.None, "Unknown Deity")]
-    public void DeityType_ToLocalizedString_ReturnsExpectedValue(DeityType deity, string expected)
+    [InlineData(DeityDomain.Craft, "Craft")]
+    [InlineData(DeityDomain.Wild, "Wild")]
+    [InlineData(DeityDomain.Harvest, "Harvest")]
+    [InlineData(DeityDomain.Stone, "Stone")]
+    [InlineData(DeityDomain.None, "Unknown")]
+    public void DeityType_ToLocalizedString_ReturnsExpectedValue(DeityDomain deity, string expected)
     {
         // Act
         var result = deity.ToLocalizedString();
@@ -98,7 +98,7 @@ public class EnumLocalizationExtensionsTests
     public void DeityType_ToLocalizedString_AllValuesReturnNonEmpty()
     {
         // Arrange
-        var allDeities = Enum.GetValues<DeityType>();
+        var allDeities = Enum.GetValues<DeityDomain>();
 
         // Act & Assert
         foreach (var deity in allDeities)
@@ -109,11 +109,11 @@ public class EnumLocalizationExtensionsTests
     }
 
     [Theory]
-    [InlineData(DeityType.Khoras)]
-    [InlineData(DeityType.Lysa)]
-    [InlineData(DeityType.Aethra)]
-    [InlineData(DeityType.Gaia)]
-    public void DeityType_ToLocalizedStringWithTitle_ContainsNameAndTitle(DeityType deity)
+    [InlineData(DeityDomain.Craft)]
+    [InlineData(DeityDomain.Wild)]
+    [InlineData(DeityDomain.Harvest)]
+    [InlineData(DeityDomain.Stone)]
+    public void DeityType_ToLocalizedStringWithTitle_ContainsNameAndTitle(DeityDomain deity)
     {
         // Act
         var result = deity.ToLocalizedStringWithTitle();
@@ -127,19 +127,19 @@ public class EnumLocalizationExtensionsTests
     public void DeityType_None_ToLocalizedStringWithTitle_ReturnsJustName()
     {
         // Act
-        var result = DeityType.None.ToLocalizedStringWithTitle();
+        var result = DeityDomain.None.ToLocalizedStringWithTitle();
 
         // Assert
-        Assert.Equal("Unknown Deity", result);
+        Assert.Equal("Unknown", result);
         Assert.DoesNotContain(" - ", result); // No separator for None
     }
 
     [Theory]
-    [InlineData(DeityType.Khoras)]
-    [InlineData(DeityType.Lysa)]
-    [InlineData(DeityType.Aethra)]
-    [InlineData(DeityType.Gaia)]
-    public void DeityType_ToLocalizedDescription_ReturnsNonEmpty(DeityType deity)
+    [InlineData(DeityDomain.Craft)]
+    [InlineData(DeityDomain.Wild)]
+    [InlineData(DeityDomain.Harvest)]
+    [InlineData(DeityDomain.Stone)]
+    public void DeityType_ToLocalizedDescription_ReturnsNonEmpty(DeityDomain deity)
     {
         // Act
         var result = deity.ToLocalizedDescription();

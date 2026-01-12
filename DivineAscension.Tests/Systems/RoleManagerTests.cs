@@ -32,7 +32,7 @@ public class RoleManagerTests
         {
             ReligionUID = religionId,
             ReligionName = "Test Religion",
-            Deity = DeityType.Khoras,
+            Domain = DeityDomain.Craft,
             FounderUID = founderId,
             IsPublic = true,
             MemberUIDs = new List<string> { founderId, "member-1", "member-2" },

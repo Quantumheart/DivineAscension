@@ -26,7 +26,8 @@ public class NotificationManager(ISoundManager soundManager) : INotificationMana
     /// <summary>
     /// Queues a rank-up notification. If no notification is currently visible, shows it immediately.
     /// </summary>
-    public void QueueRankUpNotification(NotificationType type, string rankName, string rankDescription, DeityType deity)
+    public void QueueRankUpNotification(NotificationType type, string rankName, string rankDescription,
+        DeityDomain deity)
     {
         var notification = new PendingNotification(type, rankName, rankDescription, deity);
 
@@ -61,7 +62,7 @@ public class NotificationManager(ISoundManager soundManager) : INotificationMana
         State.Type = notification.Type;
         State.RankName = notification.RankName;
         State.RankDescription = notification.RankDescription;
-        State.DeityType = notification.Deity;
+        State.DeityDomain = notification.Deity;
         State.ElapsedTime = 0f;
         State.IsVisible = true;
 
@@ -170,7 +171,7 @@ public interface INotificationManager
 {
     NotificationState State { get; }
     void SetShowImGuiCallback(Action showCallback);
-    void QueueRankUpNotification(NotificationType type, string rankName, string rankDescription, DeityType deity);
+    void QueueRankUpNotification(NotificationType type, string rankName, string rankDescription, DeityDomain deity);
     void ShowNextNotification();
     void Update(float deltaTime);
     void DismissCurrentNotification();

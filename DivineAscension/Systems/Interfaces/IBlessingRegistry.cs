@@ -25,7 +25,7 @@ public interface IBlessingRegistry
     /// <summary>
     ///     Gets all blessings for a specific deity and type
     /// </summary>
-    List<Blessing> GetBlessingsForDeity(DeityType deity, BlessingKind? type = null);
+    List<Blessing> GetBlessingsForDeity(DeityDomain deity, BlessingKind? type = null);
 
     /// <summary>
     ///     Gets all blessings in the registry

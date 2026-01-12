@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using DivineAscension.Constants;
 using DivineAscension.GUI.UI.Utilities;
-using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Utilities;
@@ -39,8 +37,8 @@ internal static class DeityTooltipRenderer
         var deityInfo = DeityInfoHelper.GetDeityInfo(deityName);
         if (deityInfo == null) return;
 
-        var deityType = DeityHelper.ParseDeityType(deityName);
-        var deityColor = DeityHelper.GetDeityColor(deityType);
+        var deityType = DomainHelper.ParseDeityType(deityName);
+        var deityColor = DomainHelper.GetDeityColor(deityType);
         var iconTextureId = DeityIconLoader.GetDeityTextureId(deityType);
 
         var drawList = ImGui.GetForegroundDrawList();
@@ -73,20 +71,12 @@ internal static class DeityTooltipRenderer
     /// <summary>
     /// Build formatted lines for tooltip content
     /// </summary>
-    private static List<TooltipLine> BuildTooltipLines(DeityInfo info, Vector4 deityColor)
+    private static List<TooltipLine> BuildTooltipLines(DomainInfo info, Vector4 deityColor)
     {
         var lines = new List<TooltipLine>();
 
         // Deity name in deity color, bold, 18px
         lines.Add(new TooltipLine(info.Name, deityColor, 18f, true, SECTION_SPACING));
-
-        // Title in gold, 14px
-        lines.Add(new TooltipLine(info.Title, ColorPalette.Gold, 14f, false, SECTION_SPACING));
-
-        // Domain in grey, 13px
-        lines.Add(new TooltipLine(
-            $"{LocalizationService.Instance.Get(LocalizationKeys.DEITY_DOMAIN_LABEL)} {info.Domain}", ColorPalette.Grey,
-            13f, false, SECTION_SPACING));
 
         // Description wrapped, white, 13px (reserve space for icon on right)
         var wrappedDesc = WrapText(info.Description, TOOLTIP_MAX_WIDTH - TOOLTIP_PADDING * 2 - 40f, 13f);

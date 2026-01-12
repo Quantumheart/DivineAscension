@@ -52,7 +52,7 @@ public class AethraFavorTracker(
         _aethraFollowers.Clear();
     }
 
-    public DeityType DeityType { get; } = DeityType.Aethra;
+    public DeityDomain DeityDomain { get; } = DeityDomain.Harvest;
 
     public void Initialize()
     {
@@ -99,14 +99,14 @@ public class AethraFavorTracker(
 
         foreach (var player in onlinePlayers)
         {
-            if (_playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID) == DeityType)
+            if (_playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID) == DeityDomain)
                 _aethraFollowers.Add(player.PlayerUID);
         }
     }
 
     private void OnPlayerDataChanged(string playerUID)
     {
-        if (_playerProgressionDataManager.GetPlayerDeityType(playerUID) == DeityType)
+        if (_playerProgressionDataManager.GetPlayerDeityType(playerUID) == DeityDomain)
             _aethraFollowers.Add(playerUID);
         else
             _aethraFollowers.Remove(playerUID);
