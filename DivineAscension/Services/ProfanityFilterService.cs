@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Vintagestory.API.Common;
-using Vintagestory.API.Server;
 
 namespace DivineAscension.Services;
 
@@ -15,13 +12,17 @@ namespace DivineAscension.Services;
 ///     Validates user-provided names (religions, civilizations) against a word list
 ///     to prevent inappropriate content.
 ///     Thread-safe singleton pattern.
+///     Supports multiple languages with merged word lists.
 /// </summary>
 public class ProfanityFilterService
 {
     private static readonly Lazy<ProfanityFilterService> _instance = new(() => new ProfanityFilterService());
+    private static readonly object _initLock = new();
+    private static readonly Regex WordSplitter = new(@"[\s\-_.,;:!?]+", RegexOptions.Compiled);
+    private static readonly string[] SupportedLanguages = { "en", "de", "es", "fr", "ru" };
     private readonly HashSet<string> _profanityWords = new(StringComparer.OrdinalIgnoreCase);
-    private bool _isInitialized;
     private ICoreAPI? _api;
+    private bool _isInitialized;
 
     private ProfanityFilterService()
     {
@@ -31,6 +32,11 @@ public class ProfanityFilterService
     ///     Gets the singleton instance of the ProfanityFilterService.
     /// </summary>
     public static ProfanityFilterService Instance => _instance.Value;
+
+    /// <summary>
+    ///     Get the count of loaded words for diagnostics.
+    /// </summary>
+    internal int WordCount => _profanityWords.Count;
 
     /// <summary>
     ///     Initialize the profanity filter service.
@@ -44,11 +50,20 @@ public class ProfanityFilterService
             return;
         }
 
-        _api = api ?? throw new ArgumentNullException(nameof(api));
-        LoadWordList();
-        _isInitialized = true;
+        lock (_initLock)
+        {
+            if (_isInitialized) // Double-check after acquiring lock
+            {
+                return;
+            }
 
-        api.Logger.Notification($"[DivineAscension ProfanityFilter] Initialized with {_profanityWords.Count} filtered words");
+            _api = api ?? throw new ArgumentNullException(nameof(api));
+            LoadWordList();
+            _isInitialized = true;
+
+            api.Logger.Notification(
+                $"[DivineAscension ProfanityFilter] Initialized with {_profanityWords.Count} filtered words");
+        }
     }
 
     /// <summary>
@@ -87,7 +102,7 @@ public class ProfanityFilterService
 
         // Split on common word boundaries and punctuation
         // This helps catch words separated by spaces, underscores, hyphens, etc.
-        var words = Regex.Split(normalizedText, @"[\s\-_.,;:!?]+")
+        var words = WordSplitter.Split(normalizedText)
             .Where(w => !string.IsNullOrWhiteSpace(w))
             .ToList();
 
@@ -115,27 +130,37 @@ public class ProfanityFilterService
 
     /// <summary>
     ///     Load the profanity word list from mod assets.
-    ///     Attempts to load from mod assets first, then falls back to embedded resources.
+    ///     Priority: 1) Custom override file, 2) Multi-language files, 3) Default word list.
     /// </summary>
     private void LoadWordList()
     {
         _profanityWords.Clear();
 
-        // Try loading from mod assets first (allows server admins to customize the list)
-        if (_api != null && TryLoadFromAssets())
+        // Priority 1: Server admin custom override (single file, all languages combined)
+        if (_api != null && TryLoadCustomOverride())
         {
             return;
         }
 
-        // Fall back to loading from embedded resources
-        LoadFromEmbeddedResource();
+        // Priority 2: Load all language-specific files from assets and merge
+        if (_api != null)
+        {
+            LoadAllLanguageFiles();
+        }
+
+        // Priority 3: Fall back to default word list if nothing was loaded
+        if (_profanityWords.Count == 0)
+        {
+            LoadDefaultWordList();
+        }
     }
 
     /// <summary>
-    ///     Try to load word list from mod assets (allows customization by server admins).
+    ///     Try to load custom override word list from mod assets.
+    ///     This allows server admins to provide a single comprehensive file.
     /// </summary>
-    /// <returns>True if successfully loaded from assets, false otherwise</returns>
-    private bool TryLoadFromAssets()
+    /// <returns>True if successfully loaded from custom override, false otherwise</returns>
+    private bool TryLoadCustomOverride()
     {
         try
         {
@@ -148,44 +173,69 @@ public class ProfanityFilterService
             var content = Encoding.UTF8.GetString(asset.Data);
             ParseWordList(content);
 
-            _api.Logger.Notification("[DivineAscension ProfanityFilter] Loaded custom word list from mod assets");
+            _api.Logger.Notification(
+                $"[DivineAscension ProfanityFilter] Loaded custom override word list ({_profanityWords.Count} words)");
             return true;
         }
         catch (Exception ex)
         {
-            _api?.Logger.Warning($"[DivineAscension ProfanityFilter] Could not load from assets: {ex.Message}");
+            _api?.Logger.Warning($"[DivineAscension ProfanityFilter] Could not load custom override: {ex.Message}");
             return false;
         }
     }
 
     /// <summary>
-    ///     Load word list from embedded resources.
+    ///     Load and merge word lists from all supported languages.
     /// </summary>
-    private void LoadFromEmbeddedResource()
+    private void LoadAllLanguageFiles()
+    {
+        var loadedCount = 0;
+
+        foreach (var lang in SupportedLanguages)
+        {
+            if (LoadLanguageFile(lang))
+            {
+                loadedCount++;
+            }
+        }
+
+        if (loadedCount > 0)
+        {
+            _api?.Logger.Notification(
+                $"[DivineAscension ProfanityFilter] Loaded {_profanityWords.Count} words from {loadedCount} language(s)");
+        }
+    }
+
+    /// <summary>
+    ///     Load a word list for a specific language.
+    /// </summary>
+    /// <param name="languageCode">The language code (e.g., "en", "de")</param>
+    /// <returns>True if the language file was loaded successfully</returns>
+    private bool LoadLanguageFile(string languageCode)
     {
         try
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = "DivineAscension.Resources.profanity-filter.txt";
+            var asset = _api!.Assets.TryGet(
+                new AssetLocation("divineascension", $"config/profanity/{languageCode}.txt"));
 
-            using var stream = assembly.GetManifestResourceStream(resourceName);
-            if (stream == null)
+            if (asset == null)
             {
-                _api?.Logger.Warning($"[DivineAscension ProfanityFilter] Could not find embedded resource: {resourceName}");
-                LoadDefaultWordList();
-                return;
+                _api.Logger.Debug($"[DivineAscension ProfanityFilter] No word list for {languageCode}");
+                return false;
             }
 
-            using var reader = new StreamReader(stream);
-            var content = reader.ReadToEnd();
+            var content = Encoding.UTF8.GetString(asset.Data);
+            var countBefore = _profanityWords.Count;
             ParseWordList(content);
+            var added = _profanityWords.Count - countBefore;
 
-            _api?.Logger.Notification("[DivineAscension ProfanityFilter] Loaded word list from embedded resources");
+            _api.Logger.Debug($"[DivineAscension ProfanityFilter] Loaded {added} words for {languageCode}");
+            return true;
         }
         catch (Exception ex)
         {
-            _api?.Logger.Error($"[DivineAscension ProfanityFilter] Failed to load embedded resource: {ex.Message}");
-            LoadDefaultWordList();
+            _api?.Logger.Warning($"[DivineAscension ProfanityFilter] Failed to load {languageCode}: {ex.Message}");
+            return false;
         }
     }
 
@@ -227,7 +277,7 @@ public class ProfanityFilterService
     private void LoadDefaultWordList()
     {
         // Minimal sample list for demonstration
-        // Server admins should add the full LDNOOBW list to assets/divineascension/config/profanity-filter.txt
+        // Server admins should add comprehensive lists to assets/divineascension/config/profanity/{lang}.txt
         var defaultWords = new[]
         {
             "badword1",
@@ -241,7 +291,7 @@ public class ProfanityFilterService
         }
 
         _api?.Logger.Warning("[DivineAscension ProfanityFilter] Using minimal default word list. " +
-                            "For comprehensive filtering, add profanity-filter.txt to mod assets.");
+                             "For comprehensive filtering, add word lists to config/profanity/ folder.");
     }
 
     /// <summary>
@@ -254,6 +304,7 @@ public class ProfanityFilterService
         {
             _profanityWords.Add(word.ToLowerInvariant());
         }
+
         _isInitialized = true;
     }
 
@@ -266,9 +317,4 @@ public class ProfanityFilterService
         _isInitialized = false;
         _api = null;
     }
-
-    /// <summary>
-    ///     Get the count of loaded words for diagnostics.
-    /// </summary>
-    internal int WordCount => _profanityWords.Count;
 }
