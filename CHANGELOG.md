@@ -1,4 +1,9 @@
 
+## [4.0.0] - 2026-01-11
+
+### Added
+- Implement Deity Naming
+
 ## [3.2.0] - 2026-01-10
 
 ### Added
