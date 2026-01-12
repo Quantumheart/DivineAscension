@@ -1,4 +1,24 @@
 
+## [4.0.3] - 2026-01-12
+
+### Fixed
+- improve QuotedStringParser
+
+## [4.0.2] - 2026-01-12
+
+### Fixed
+- resolve Critical player progression overwritting
+
+## [4.0.1] - 2026-01-12
+
+### Fixed
+- resolve runtime cast exception
+
+## [4.0.0] - 2026-01-11
+
+### Added
+- Implement Deity Naming
+
 ## [3.2.0] - 2026-01-10
 
 ### Added
