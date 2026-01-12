@@ -8,7 +8,7 @@ namespace DivineAscension.GUI.UI.Utilities;
 ///     Centralized helper for deity-related UI operations
 ///     Provides deity colors, titles, and lists for consistent UI presentation
 /// </summary>
-internal static class DeityHelper
+internal static class DomainHelper
 {
     /// <summary>
     ///     All domain names in order (Utility-focused system - 4 domains)

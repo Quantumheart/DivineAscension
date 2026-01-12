@@ -83,7 +83,7 @@ internal static class ReligionHeaderRenderer
             var iconMax = new Vector2(iconPos.X + iconSize, iconPos.Y + iconSize);
 
             // Draw icon with deity color tint for visual cohesion
-            var tintColor = DeityHelper.GetDeityColor(viewModel.CurrentDeity);
+            var tintColor = DomainHelper.GetDeityColor(viewModel.CurrentDeity);
             var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)); // Full white = no tint
 
             drawList.AddImage(deityTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
@@ -96,7 +96,7 @@ internal static class ReligionHeaderRenderer
         {
             // Fallback: Use placeholder colored circle if texture not available
             var iconCenter = new Vector2(currentX + iconSize / 2, centerY);
-            var iconColor = ImGui.ColorConvertFloat4ToU32(DeityHelper.GetDeityColor(viewModel.CurrentDeity));
+            var iconColor = ImGui.ColorConvertFloat4ToU32(DomainHelper.GetDeityColor(viewModel.CurrentDeity));
             drawList.AddCircleFilled(iconCenter, iconSize / 2, iconColor, 16);
         }
 

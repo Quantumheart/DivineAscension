@@ -375,7 +375,7 @@ internal static class ReligionDetailRenderer
     /// </summary>
     private static string GetDeityDisplayNameWithCustomName(string customName, DeityDomain deity)
     {
-        var title = DeityHelper.GetDeityTitle(deity);
+        var title = DomainHelper.GetDeityTitle(deity);
         return $"{customName}\n{title}";
     }
 

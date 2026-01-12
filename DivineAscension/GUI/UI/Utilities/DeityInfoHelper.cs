@@ -13,7 +13,7 @@ internal static class DeityInfoHelper
     /// </summary>
     public static DomainInfo? GetDeityInfo(string deityName)
     {
-        var deityType = DeityHelper.ParseDeityType(deityName);
+        var deityType = DomainHelper.ParseDeityType(deityName);
         return GetDeityInfo(deityType);
     }
 

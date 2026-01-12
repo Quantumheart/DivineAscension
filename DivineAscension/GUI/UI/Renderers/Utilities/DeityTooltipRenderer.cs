@@ -37,8 +37,8 @@ internal static class DeityTooltipRenderer
         var deityInfo = DeityInfoHelper.GetDeityInfo(deityName);
         if (deityInfo == null) return;
 
-        var deityType = DeityHelper.ParseDeityType(deityName);
-        var deityColor = DeityHelper.GetDeityColor(deityType);
+        var deityType = DomainHelper.ParseDeityType(deityName);
+        var deityColor = DomainHelper.GetDeityColor(deityType);
         var iconTextureId = DeityIconLoader.GetDeityTextureId(deityType);
 
         var drawList = ImGui.GetForegroundDrawList();

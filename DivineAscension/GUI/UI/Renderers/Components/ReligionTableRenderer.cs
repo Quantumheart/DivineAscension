@@ -345,7 +345,7 @@ internal static class ReligionTableRenderer
     /// </summary>
     private static void DrawDeityIcon(ImDrawListPtr drawList, string deityName, float x, float y)
     {
-        var deityType = DeityHelper.ParseDeityType(deityName);
+        var deityType = DomainHelper.ParseDeityType(deityName);
         var deityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
 
         var iconMin = new Vector2(x, y);
@@ -360,7 +360,7 @@ internal static class ReligionTableRenderer
         else
         {
             // Fallback: Colored circle
-            var deityColor = DeityHelper.GetDeityColor(deityName);
+            var deityColor = DomainHelper.GetDeityColor(deityName);
             var iconCenter = new Vector2(x + IconSize / 2f, y + IconSize / 2f);
             var iconColorU32 = ImGui.ColorConvertFloat4ToU32(deityColor);
             drawList.AddCircleFilled(iconCenter, IconSize / 2f, iconColorU32, 16);

@@ -8,7 +8,7 @@ namespace DivineAscension.Tests.GUI.UI.Utilities;
 ///     Unit tests for DeityHelper
 /// </summary>
 [ExcludeFromCodeCoverage]
-public class DeityHelperTests
+public class DomainHelperTests
 {
     #region DeityNames Tests
 
@@ -16,11 +16,11 @@ public class DeityHelperTests
     public void DeityNames_ContainsAllDomains()
     {
         // Assert - DeityNames is now an alias for DomainNames
-        Assert.Equal(4, DeityHelper.DeityNames.Length);
-        Assert.Contains("Craft", DeityHelper.DeityNames);
-        Assert.Contains("Wild", DeityHelper.DeityNames);
-        Assert.Contains("Harvest", DeityHelper.DeityNames);
-        Assert.Contains("Stone", DeityHelper.DeityNames);
+        Assert.Equal(4, DomainHelper.DeityNames.Length);
+        Assert.Contains("Craft", DomainHelper.DeityNames);
+        Assert.Contains("Wild", DomainHelper.DeityNames);
+        Assert.Contains("Harvest", DomainHelper.DeityNames);
+        Assert.Contains("Stone", DomainHelper.DeityNames);
     }
 
     #endregion
@@ -35,7 +35,7 @@ public class DeityHelperTests
     public void GetDeityColor_String_ReturnsCorrectColor(string domain, float r, float g, float b)
     {
         // Act
-        var color = DeityHelper.GetDeityColor(domain);
+        var color = DomainHelper.GetDeityColor(domain);
 
         // Assert
         Assert.Equal(r, color.X);
@@ -48,7 +48,7 @@ public class DeityHelperTests
     public void GetDeityColor_String_UnknownDomain_ReturnsGrey()
     {
         // Act
-        var color = DeityHelper.GetDeityColor("UnknownDomain");
+        var color = DomainHelper.GetDeityColor("UnknownDomain");
 
         // Assert
         Assert.Equal(0.5f, color.X);
@@ -69,7 +69,7 @@ public class DeityHelperTests
     public void GetDeityColor_Enum_ReturnsCorrectColor(DeityDomain deity, float r, float g, float b)
     {
         // Act
-        var color = DeityHelper.GetDeityColor(deity);
+        var color = DomainHelper.GetDeityColor(deity);
 
         // Assert
         Assert.Equal(r, color.X);
@@ -82,7 +82,7 @@ public class DeityHelperTests
     public void GetDeityColor_Enum_NoneType_ReturnsGrey()
     {
         // Act
-        var color = DeityHelper.GetDeityColor(DeityDomain.None);
+        var color = DomainHelper.GetDeityColor(DeityDomain.None);
 
         // Assert
         Assert.Equal(0.5f, color.X);
@@ -103,7 +103,7 @@ public class DeityHelperTests
     public void GetDeityTitle_String_ReturnsCorrectTitle(string domain, string expectedTitle)
     {
         // Act
-        var title = DeityHelper.GetDeityTitle(domain);
+        var title = DomainHelper.GetDeityTitle(domain);
 
         // Assert
         Assert.Equal(expectedTitle, title);
@@ -113,7 +113,7 @@ public class DeityHelperTests
     public void GetDeityTitle_String_UnknownDomain_ReturnsUnknown()
     {
         // Act
-        var title = DeityHelper.GetDeityTitle("UnknownDomain");
+        var title = DomainHelper.GetDeityTitle("UnknownDomain");
 
         // Assert
         Assert.Equal("Unknown Domain", title);
@@ -131,7 +131,7 @@ public class DeityHelperTests
     public void GetDeityTitle_Enum_ReturnsCorrectTitle(DeityDomain domain, string expectedTitle)
     {
         // Act
-        var title = DeityHelper.GetDeityTitle(domain);
+        var title = DomainHelper.GetDeityTitle(domain);
 
         // Assert
         Assert.Equal(expectedTitle, title);
@@ -141,7 +141,7 @@ public class DeityHelperTests
     public void GetDeityTitle_Enum_NoneType_ReturnsUnknown()
     {
         // Act
-        var title = DeityHelper.GetDeityTitle(DeityDomain.None);
+        var title = DomainHelper.GetDeityTitle(DeityDomain.None);
 
         // Assert
         Assert.Equal("Unknown Domain", title);
@@ -159,7 +159,7 @@ public class DeityHelperTests
     public void ParseDeityType_ValidName_ReturnsCorrectEnum(string domainName, DeityDomain expected)
     {
         // Act
-        var result = DeityHelper.ParseDeityType(domainName);
+        var result = DomainHelper.ParseDeityType(domainName);
 
         // Assert
         Assert.Equal(expected, result);
@@ -169,7 +169,7 @@ public class DeityHelperTests
     public void ParseDeityType_UnknownName_ReturnsNone()
     {
         // Act
-        var result = DeityHelper.ParseDeityType("UnknownDomain");
+        var result = DomainHelper.ParseDeityType("UnknownDomain");
 
         // Assert
         Assert.Equal(DeityDomain.None, result);
@@ -179,7 +179,7 @@ public class DeityHelperTests
     public void ParseDeityType_EmptyString_ReturnsNone()
     {
         // Act
-        var result = DeityHelper.ParseDeityType("");
+        var result = DomainHelper.ParseDeityType("");
 
         // Assert
         Assert.Equal(DeityDomain.None, result);
