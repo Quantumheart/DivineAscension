@@ -121,8 +121,7 @@ internal static class CivilizationInfoRenderer
             // Editable description for founder
             var newDescription = TextInput.DrawMultiline(drawList, "##civDescription", vm.DescriptionText,
                 vm.X, currentY,
-                vm.Width * 0.7f, 80f,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_DESCRIPTION_PLACEHOLDER), 200);
+                vm.Width * 0.7f, 80f, 200);
 
             if (newDescription != vm.DescriptionText)
                 events.Add(new InfoEvent.DescriptionChanged(newDescription));

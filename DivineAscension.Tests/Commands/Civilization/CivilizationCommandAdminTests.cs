@@ -34,7 +34,7 @@ public class CivilizationCommandAdminTests : CivilizationCommandsTestHelpers
         _religionManager.Setup(m => m.GetReligionByName("TestReligion1")).Returns(religion1);
         _civilizationManager.Setup(m => m.GetCivilizationByReligion("religion-1"))
             .Returns((DivineAscension.Data.Civilization?)null);
-        _civilizationManager.Setup(m => m.CreateCivilization("TestCiv", "founder-1", "religion-1", It.IsAny<string>()))
+        _civilizationManager.Setup(m => m.CreateCivilization("TestCiv", "founder-1", "religion-1", "default", ""))
             .Returns(civilization);
         _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion1);
 
@@ -45,7 +45,7 @@ public class CivilizationCommandAdminTests : CivilizationCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("Created civilization 'TestCiv' with 1 religion(s)", result.StatusMessage);
-        _civilizationManager.Verify(m => m.CreateCivilization("TestCiv", "founder-1", "religion-1", It.IsAny<string>()),
+        _civilizationManager.Verify(m => m.CreateCivilization("TestCiv", "founder-1", "religion-1", "default", ""),
             Times.Once);
     }
 
@@ -67,7 +67,7 @@ public class CivilizationCommandAdminTests : CivilizationCommandsTestHelpers
         _religionManager.Setup(m => m.GetReligionByName("Religion3")).Returns(religion3);
         _civilizationManager.Setup(m => m.GetCivilizationByReligion(It.IsAny<string>()))
             .Returns((DivineAscension.Data.Civilization?)null);
-        _civilizationManager.Setup(m => m.CreateCivilization("TestCiv", "founder-1", "religion-1", It.IsAny<string>()))
+        _civilizationManager.Setup(m => m.CreateCivilization("TestCiv", "founder-1", "religion-1", "default", ""))
             .Returns(civilization);
         _religionManager.Setup(m => m.GetReligion(It.IsAny<string>()))
             .Returns((string id) =>
@@ -170,7 +170,7 @@ public class CivilizationCommandAdminTests : CivilizationCommandsTestHelpers
         _religionManager.Setup(m => m.GetReligionByName("Religion1")).Returns(religion1);
         _civilizationManager.Setup(m => m.GetCivilizationByReligion("religion-1"))
             .Returns((DivineAscension.Data.Civilization?)null);
-        _civilizationManager.Setup(m => m.CreateCivilization("TestCiv", "founder-1", "religion-1", It.IsAny<string>()))
+        _civilizationManager.Setup(m => m.CreateCivilization("TestCiv", "founder-1", "religion-1", "default", ""))
             .Returns((DivineAscension.Data.Civilization?)null);
 
         // Act

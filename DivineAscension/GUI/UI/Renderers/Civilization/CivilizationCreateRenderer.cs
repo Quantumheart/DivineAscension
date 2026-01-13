@@ -114,13 +114,13 @@ internal static class CivilizationCreateRenderer
 
         // Description input (optional)
         TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_DESCRIPTION_LABEL), vm.X, currentY);
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_DESCRIPTION_LABEL), vm.X,
+            currentY);
         currentY += 20f;
 
         var newDescription = TextInput.DrawMultiline(drawList, "##createCivDescription", vm.Description,
             vm.X, currentY,
-            vm.Width * 0.7f, 80f,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_DESCRIPTION_PLACEHOLDER), 200);
+            vm.Width * 0.7f, 80f, 200);
 
         if (newDescription != vm.Description)
             events.Add(new CreateEvent.DescriptionChanged(newDescription));
