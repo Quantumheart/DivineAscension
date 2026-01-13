@@ -1471,19 +1471,19 @@ public class CivilizationStateManagerTests
     }
 
     [Fact]
-    public void ProcessInvitesEvents_AcceptInviteDeclined_ShowsComingSoonMessage()
+    public void ProcessInvitesEvents_DeclineInviteClicked_RequestsDeclineAction()
     {
         // Arrange
         var events = new List<InvitesEvent>
         {
-            new InvitesEvent.AcceptInviteDeclined("invite-456")
+            new InvitesEvent.DeclineInviteClicked("invite-456")
         };
 
         // Act
         _sut.ProcessInvitesEvents(events);
 
         // Assert
-        _mockApi.Verify(a => a.ShowChatMessage("Decline functionality coming soon!"), Times.Once);
+        _mockUiService.Verify(u => u.RequestCivilizationAction("decline", "", "invite-456", "", ""), Times.Once);
     }
 
     [Fact]
