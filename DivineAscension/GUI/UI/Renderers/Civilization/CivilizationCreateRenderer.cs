@@ -112,6 +112,40 @@ internal static class CivilizationCreateRenderer
 
         currentY += pickerHeight + 20f;
 
+        // Description input (optional)
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_DESCRIPTION_LABEL), vm.X, currentY);
+        currentY += 20f;
+
+        var newDescription = TextInput.DrawMultiline(drawList, "##createCivDescription", vm.Description,
+            vm.X, currentY,
+            vm.Width * 0.7f, 80f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_DESCRIPTION_PLACEHOLDER), 200);
+
+        if (newDescription != vm.Description)
+            events.Add(new CreateEvent.DescriptionChanged(newDescription));
+
+        currentY += 90f;
+
+        // Description validation feedback
+        if (!string.IsNullOrEmpty(vm.Description))
+        {
+            if (vm.Description.Length > 200)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DESCRIPTION_ERROR_TOO_LONG),
+                    vm.X, currentY);
+                currentY += 25f;
+            }
+            else if (vm.HasProfanityInDescription)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DESCRIPTION_ERROR_PROFANITY,
+                        vm.ProfanityMatchedWordInDescription ?? ""), vm.X, currentY);
+                currentY += 25f;
+            }
+        }
+
         // Create button
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_BUTTON), vm.X, currentY, 200f,

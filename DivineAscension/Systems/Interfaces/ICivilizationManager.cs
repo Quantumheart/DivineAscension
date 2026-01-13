@@ -29,8 +29,10 @@ public interface ICivilizationManager
     /// <param name="founderUID">Player UID of the founder</param>
     /// <param name="founderReligionId">Religion ID of the founder</param>
     /// <param name="icon">Optional icon name for the civilization (defaults to "default")</param>
+    /// <param name="description">Optional description for the civilization</param>
     /// <returns>The created civilization, or null if creation failed</returns>
-    Civilization? CreateCivilization(string name, string founderUID, string founderReligionId, string icon = "default");
+    Civilization? CreateCivilization(string name, string founderUID, string founderReligionId, string icon = "default",
+        string description = "");
 
     /// <summary>
     ///     Invites a religion to join a civilization
@@ -70,6 +72,15 @@ public interface ICivilizationManager
     /// <param name="icon">New icon name</param>
     /// <returns>True if successful, false otherwise</returns>
     bool UpdateCivilizationIcon(string civId, string requestorUID, string icon);
+
+    /// <summary>
+    ///     Updates a civilization's description
+    /// </summary>
+    /// <param name="civId">ID of the civilization</param>
+    /// <param name="requestorUID">Player UID requesting the update</param>
+    /// <param name="description">New description text</param>
+    /// <returns>True if successful, false otherwise</returns>
+    bool UpdateCivilizationDescription(string civId, string requestorUID, string description);
 
     /// <summary>
     ///     Gets a civilization by ID

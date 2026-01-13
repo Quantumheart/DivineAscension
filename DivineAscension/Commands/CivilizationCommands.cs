@@ -76,6 +76,11 @@ public class CivilizationCommands(
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_DISBAND_DESC))
             .HandleWith(OnDisbandCivilization)
             .EndSubCommand()
+            .BeginSubCommand("description")
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_DESCRIPTION_DESC))
+            .WithArgs(_sapi.ChatCommands.Parsers.All("text"))
+            .HandleWith(OnSetDescription)
+            .EndSubCommand()
             .BeginSubCommand("list")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_LIST_DESC))
             .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("deity"))
@@ -404,6 +409,57 @@ public class CivilizationCommands(
 
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_DISBANDED));
+    }
+
+    /// <summary>
+    ///     Handler for /civ description <text>
+    /// </summary>
+    internal TextCommandResult OnSetDescription(TextCommandCallingArgs args)
+    {
+        var description = (string)args[0];
+
+        var player = args.Caller.Player as IServerPlayer;
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
+
+        // Get player's religion
+        var playerId = player.PlayerUID;
+        if (!_religionManager.HasReligion(playerId))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_MUST_BE_IN_RELIGION));
+
+        var religion = _religionManager.GetPlayerReligion(playerId);
+
+        // Get civilization
+        var civ = _civilizationManager.GetCivilizationByReligion(religion!.ReligionUID);
+        if (civ == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_NOT_IN_CIV));
+
+        // Check if player is founder
+        if (civ.FounderUID != playerId)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ONLY_FOUNDER_DESCRIPTION));
+
+        // Validate description length
+        if (description.Length > 200)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_DESCRIPTION_TOO_LONG));
+
+        // Check for profanity
+        if (ProfanityFilterService.Instance.ContainsProfanity(description))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_DESCRIPTION_PROFANITY));
+
+        // Update description
+        var success = _civilizationManager.UpdateCivilizationDescription(civ.CivId, playerId, description);
+        if (!success)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_DESCRIPTION_UPDATE_FAILED));
+
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_DESCRIPTION_UPDATED));
     }
 
     /// <summary>

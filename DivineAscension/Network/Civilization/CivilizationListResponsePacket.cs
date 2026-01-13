@@ -41,5 +41,7 @@ public class CivilizationListResponsePacket
         [ProtoMember(7)] public List<string> MemberReligionNames { get; set; } = new(); // Religion names
 
         [ProtoMember(8)] public string Icon { get; set; } = "default"; // Icon identifier for the civilization
+
+        [ProtoMember(9)] public string Description { get; set; } = string.Empty; // Civilization description
     }
 }

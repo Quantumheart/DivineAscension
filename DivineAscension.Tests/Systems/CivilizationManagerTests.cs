@@ -1435,4 +1435,184 @@ public class CivilizationManagerTests
     }
 
     #endregion
+
+    #region UpdateCivilizationDescription Tests
+
+    [Fact]
+    public void UpdateCivilizationDescription_ValidInput_UpdatesDescription()
+    {
+        // Arrange
+        var founderUID = "founder-123";
+        var founderReligionId = "religion-1";
+        var description = "A grand civilization of warriors.";
+
+        var founderReligion = TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft,
+            "TestDeity", founderUID);
+        _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
+
+        var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
+        Assert.NotNull(civ);
+
+        // Act
+        var result = _civilizationManager.UpdateCivilizationDescription(civ.CivId, founderUID, description);
+
+        // Assert
+        Assert.True(result);
+        var updatedCiv = _civilizationManager.GetCivilization(civ.CivId);
+        Assert.NotNull(updatedCiv);
+        Assert.Equal(description, updatedCiv.Description);
+    }
+
+    [Fact]
+    public void UpdateCivilizationDescription_CivilizationNotFound_ReturnsFalse()
+    {
+        // Act
+        var result = _civilizationManager.UpdateCivilizationDescription("non-existent-civ", "founder", "description");
+
+        // Assert
+        Assert.False(result);
+        _mockLogger.Verify(l => l.Warning(It.Is<string>(s => s.Contains("not found"))), Times.Once);
+    }
+
+    [Fact]
+    public void UpdateCivilizationDescription_NotCivilizationFounder_ReturnsFalse()
+    {
+        // Arrange
+        var founderUID = "founder-123";
+        var founderReligionId = "religion-1";
+        var notFounderUID = "not-founder";
+
+        var founderReligion = TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft,
+            "TestDeity", founderUID);
+        _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
+
+        var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
+        Assert.NotNull(civ);
+
+        // Act
+        var result = _civilizationManager.UpdateCivilizationDescription(civ.CivId, notFounderUID, "description");
+
+        // Assert
+        Assert.False(result);
+        _mockLogger.Verify(l => l.Warning(It.Is<string>(s => s.Contains("Only civilization founder"))), Times.Once);
+    }
+
+    [Fact]
+    public void UpdateCivilizationDescription_DescriptionTooLong_ReturnsFalse()
+    {
+        // Arrange
+        var founderUID = "founder-123";
+        var founderReligionId = "religion-1";
+        var longDescription = new string('A', 201); // More than 200 characters
+
+        var founderReligion = TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft,
+            "TestDeity", founderUID);
+        _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
+
+        var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId);
+        Assert.NotNull(civ);
+
+        // Act
+        var result = _civilizationManager.UpdateCivilizationDescription(civ.CivId, founderUID, longDescription);
+
+        // Assert
+        Assert.False(result);
+        _mockLogger.Verify(l => l.Warning(It.Is<string>(s => s.Contains("200 characters"))), Times.Once);
+    }
+
+    [Fact]
+    public void UpdateCivilizationDescription_EmptyDescription_Succeeds()
+    {
+        // Arrange
+        var founderUID = "founder-123";
+        var founderReligionId = "religion-1";
+
+        var founderReligion = TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft,
+            "TestDeity", founderUID);
+        _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
+
+        var civ = _civilizationManager.CreateCivilization("Test Civ", founderUID, founderReligionId, "default",
+            "Initial description");
+        Assert.NotNull(civ);
+
+        // Act
+        var result = _civilizationManager.UpdateCivilizationDescription(civ.CivId, founderUID, "");
+
+        // Assert
+        Assert.True(result);
+        var updatedCiv = _civilizationManager.GetCivilization(civ.CivId);
+        Assert.NotNull(updatedCiv);
+        Assert.Equal("", updatedCiv.Description);
+    }
+
+    #endregion
+
+    #region CreateCivilization with Description Tests
+
+    [Fact]
+    public void CreateCivilization_WithDescription_SetsDescription()
+    {
+        // Arrange
+        var founderUID = "founder-123";
+        var founderReligionId = "religion-1";
+        var civName = "Grand Alliance";
+        var description = "A powerful alliance of warriors.";
+
+        var religion = TestFixtures.CreateTestReligion(founderReligionId, "Test Religion", DeityDomain.Craft,
+            "TestDeity", founderUID);
+        _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(religion);
+
+        // Act
+        var result =
+            _civilizationManager.CreateCivilization(civName, founderUID, founderReligionId, "default", description);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(civName, result.Name);
+        Assert.Equal(description, result.Description);
+    }
+
+    [Fact]
+    public void CreateCivilization_WithEmptyDescription_SetsEmptyDescription()
+    {
+        // Arrange
+        var founderUID = "founder-123";
+        var founderReligionId = "religion-1";
+        var civName = "Grand Alliance";
+
+        var religion = TestFixtures.CreateTestReligion(founderReligionId, "Test Religion", DeityDomain.Craft,
+            "TestDeity", founderUID);
+        _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(religion);
+
+        // Act
+        var result = _civilizationManager.CreateCivilization(civName, founderUID, founderReligionId);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("", result.Description);
+    }
+
+    [Fact]
+    public void CreateCivilization_DescriptionTooLong_ReturnsNull()
+    {
+        // Arrange
+        var founderUID = "founder-123";
+        var founderReligionId = "religion-1";
+        var civName = "Grand Alliance";
+        var longDescription = new string('A', 201);
+
+        var religion = TestFixtures.CreateTestReligion(founderReligionId, "Test Religion", DeityDomain.Craft,
+            "TestDeity", founderUID);
+        _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(religion);
+
+        // Act
+        var result =
+            _civilizationManager.CreateCivilization(civName, founderUID, founderReligionId, "default", longDescription);
+
+        // Assert
+        Assert.Null(result);
+        _mockLogger.Verify(l => l.Warning(It.Is<string>(s => s.Contains("200 characters"))), Times.Once);
+    }
+
+    #endregion
 }

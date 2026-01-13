@@ -31,7 +31,7 @@ public interface IUiService
     void RequestCivilizationInfo(string civId);
 
     void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "",
-        string icon = "");
+        string icon = "", string description = "");
 
     // Diplomacy Operations
     void RequestDiplomacyInfo(string civId);

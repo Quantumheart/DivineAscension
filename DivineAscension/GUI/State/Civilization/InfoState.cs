@@ -9,6 +9,7 @@ public class InfoState : IState
     public float ScrollY { get; set; }
     public float MemberScrollY { get; set; }
     public string InviteReligionName { get; set; } = string.Empty;
+    public string DescriptionText { get; set; } = string.Empty;
     public bool IsLoading { get; set; }
     public string? ErrorMsg { get; set; }
 
@@ -18,6 +19,7 @@ public class InfoState : IState
         ScrollY = 0f;
         MemberScrollY = 0;
         InviteReligionName = string.Empty;
+        DescriptionText = string.Empty;
         IsLoading = false;
         ErrorMsg = null;
     }

@@ -152,9 +152,10 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     /// <param name="founderUID">Player UID of the founder</param>
     /// <param name="founderReligionId">Religion ID of the founder</param>
     /// <param name="icon">Optional icon name for the civilization (defaults to "default")</param>
+    /// <param name="description">Optional description for the civilization</param>
     /// <returns>The created civilization, or null if creation failed</returns>
     public Civilization? CreateCivilization(string name, string founderUID, string founderReligionId,
-        string icon = "default")
+        string icon = "default", string description = "")
     {
         try
         {
@@ -206,7 +207,8 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
             var civ = new Civilization(civId, name, founderUID, founderReligionId)
             {
                 MemberCount = founderReligion.MemberUIDs.Count,
-                Icon = icon
+                Icon = icon,
+                Description = description
             };
 
             _data.AddCivilization(civ);
@@ -704,6 +706,51 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
         catch (Exception ex)
         {
             _sapi.Logger.Error($"[DivineAscension] Error updating civilization icon: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    ///     Updates a civilization's description
+    /// </summary>
+    /// <param name="civId">ID of the civilization</param>
+    /// <param name="requestorUID">Player UID requesting the update</param>
+    /// <param name="description">New description text</param>
+    /// <returns>True if successful, false otherwise</returns>
+    public bool UpdateCivilizationDescription(string civId, string requestorUID, string description)
+    {
+        try
+        {
+            var civ = _data.Civilizations.GetValueOrDefault(civId);
+            if (civ == null)
+            {
+                _sapi.Logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
+                return false;
+            }
+
+            // Check if requestor is the civilization founder
+            if (civ.FounderUID != requestorUID)
+            {
+                _sapi.Logger.Warning("[DivineAscension] Only civilization founder can update description");
+                return false;
+            }
+
+            // Validate description length (max 200 characters, matching religion pattern)
+            if (description.Length > 200)
+            {
+                _sapi.Logger.Warning("[DivineAscension] Description must be 200 characters or less");
+                return false;
+            }
+
+            // Update description (profanity check is done at command/network handler level)
+            civ.UpdateDescription(description);
+
+            _sapi.Logger.Notification($"[DivineAscension] Civilization '{civ.Name}' description updated");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _sapi.Logger.Error($"[DivineAscension] Error updating civilization description: {ex.Message}");
             return false;
         }
     }
