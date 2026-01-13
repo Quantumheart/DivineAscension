@@ -112,6 +112,7 @@ Releases/                      # Packaged mod artifacts from Cake build
 - **Dispose:** Unpatches Harmony, disposes managers and network handlers
 
 **CRITICAL INITIALIZATION ORDER** (in `DivineAscensionSystemInitializer.cs`):
+0. `LocalizationService` - Multi-language support (must initialize before managers that use localized messages)
 1. `ReligionManager` - Religion CRUD and membership with O(1) player-to-religion index
 2. **Deity name migration** - Migrates existing religions with empty deity names (backward compatibility)
 3. `CivilizationManager` - Civilization management (depends on ReligionManager)
@@ -186,10 +187,10 @@ Releases/                      # Packaged mod artifacts from Cake build
 **Command handlers** (`/Commands/`):
 - `ReligionCommands.cs` - Religion CRUD, membership, bans, prestige, deity name management
 - `CivilizationCommands.cs` - Civilization management, invites
-- `DiplomacyCommands.cs` - Inter-civilization diplomacy (NAP, Alliance, War)
 - `BlessingCommands.cs` - Blessing unlocks and queries
 - `FavorCommands.cs` - Player favor and admin commands
 - `RoleCommands.cs` - Role assignment and management
+- `ConfigCommands.cs` - Admin-only mod configuration (profanity filter toggle)
 - `CommandHelpers.cs` - Shared validation utilities
 
 **Custom Parsers** (`/Commands/Parsers/`):
@@ -291,7 +292,7 @@ Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
 - Integrated at all creation entry points (commands and network handlers)
 - Can be enabled/disabled per-world via `/da config profanityfilter [on|off]` (admin only)
 - See `docs/topics/configuration/profanity-filter.md` for detailed documentation
-- Server admins can override word list via `assets/divineascension/config/profanity-filter.txt`
+- Default word lists in `assets/divineascension/config/profanity/` (en.txt, de.txt, es.txt, fr.txt, ru.txt)
 
 ## Key Architectural Patterns
 
