@@ -1,3 +1,7 @@
+## [4.5.0] - 2026-01-13
+
+### Added 
+- improved HuntingFavorTracker
 
 ## [4.4.0] - 2026-01-12
 
