@@ -71,4 +71,11 @@
     <ItemGroup>
         <ProjectReference Include="..\DivineAscension\DivineAscension.csproj"/>
     </ItemGroup>
+
+    <!-- Link profanity filter language files for integration testing -->
+    <ItemGroup>
+        <Content Include="..\DivineAscension\assets\divineascension\config\profanity\*.txt" Link="TestAssets\profanity\%(Filename)%(Extension)">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
 </Project>

@@ -136,6 +136,11 @@ public class CivilizationCommands(
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ONLY_FOUNDERS_CREATE));
 
+        // Check for profanity in civilization name
+        if (ProfanityFilterService.Instance.ContainsProfanity(civName))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_NAME_PROFANITY));
+
         // Create civilization
         var civ = _civilizationManager.CreateCivilization(civName, player.PlayerUID, religion.ReligionUID);
         if (civ == null)

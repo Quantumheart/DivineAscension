@@ -1,4 +1,29 @@
 
+## [4.4.0] - 2026-01-12
+
+### Added
+- improve ProfanityFilter
+
+## [4.3.0] - 2026-01-12
+
+### Added
+- add support for l337 speak
+
+## [4.2.0] - 2026-01-12
+
+### Added
+- implement profanity filter in the religion and civilization create
+
+## [4.1.0] - 2026-01-12
+
+### Added
+- add multi language support to ProfanityFilterService.cs
+
+## [4.0.3] - 2026-01-12
+
+### Fixed
+- improve QuotedStringParser
+
 ## [4.0.2] - 2026-01-12
 
 ### Fixed

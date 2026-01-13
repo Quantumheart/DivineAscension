@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
@@ -138,6 +139,13 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         if (!Regex.IsMatch(trimmedName, @"^[\p{L}\s'\-]+$"))
         {
             error = "Deity name can only contain letters, spaces, apostrophes, and hyphens";
+            return false;
+        }
+
+        // Check for profanity
+        if (ProfanityFilterService.Instance.ContainsProfanity(trimmedName))
+        {
+            error = "Deity name contains inappropriate language";
             return false;
         }
 
