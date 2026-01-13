@@ -66,8 +66,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="VSImGui" Version="0.0.6"/>
-        <PackageReference Include="VSImGui_DebugTools" Version="0.0.6"/>
+        <PackageReference Include="VSImGui" Version="0.0.6">
+            <ExcludeAssets>runtime</ExcludeAssets>
+        </PackageReference>
+        <PackageReference Include="VSImGui_DebugTools" Version="0.0.6">
+            <ExcludeAssets>runtime</ExcludeAssets>
+        </PackageReference>
     </ItemGroup>
 
 </Project>
