@@ -17,10 +17,11 @@ namespace DivineAscension.GUI.UI.Renderers.Blessing;
 [ExcludeFromCodeCoverage]
 internal static class TooltipRenderer
 {
-    private const float TOOLTIP_MAX_WIDTH = 320f;
-    private const float TOOLTIP_PADDING = 12f;
-    private const float LINE_SPACING = 4f;
-    private const float SECTION_SPACING = 8f;
+    private const float TOOLTIP_MAX_WIDTH = 450f;
+    private const float TOOLTIP_PADDING = 16f;
+    private const float LINE_SPACING = 6f;
+    private const float SECTION_SPACING = 20f;
+    private const float TITLE_TO_SUBTEXT = 10f;
 
     /// <summary>
     ///     Draw a tooltip for a blessing node when hovering
@@ -86,6 +87,32 @@ internal static class TooltipRenderer
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
         drawList.AddRect(bgStart, bgEnd, borderColor, 4f, ImDrawFlags.None, 2f);
 
+        // Draw status badge in top-right corner
+        if (!tooltipData.IsUnlocked && !tooltipData.CanUnlock)
+        {
+            // LOCKED badge (red)
+            var lockText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_LOCKED);
+            var lockTextSize = ImGui.CalcTextSize(lockText);
+            var lockPos = new Vector2(
+                tooltipX + tooltipWidth - TOOLTIP_PADDING - lockTextSize.X,
+                tooltipY + TOOLTIP_PADDING
+            );
+            var lockColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Red);
+            drawList.AddText(ImGui.GetFont(), 14f, lockPos, lockColor, lockText);
+        }
+        else if (tooltipData.IsUnlocked)
+        {
+            // UNLOCKED badge (green)
+            var unlockText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNLOCKED);
+            var unlockTextSize = ImGui.CalcTextSize(unlockText);
+            var unlockPos = new Vector2(
+                tooltipX + tooltipWidth - TOOLTIP_PADDING - unlockTextSize.X,
+                tooltipY + TOOLTIP_PADDING
+            );
+            var unlockColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Green);
+            drawList.AddText(ImGui.GetFont(), 14f, unlockPos, unlockColor, unlockText);
+        }
+
         // Render content
         var currentY = tooltipY + TOOLTIP_PADDING;
         foreach (var line in lines)
@@ -116,7 +143,7 @@ internal static class TooltipRenderer
             Color = ColorPalette.Gold,
             FontSize = 18f,
             IsBold = true,
-            SpacingAfter = SECTION_SPACING
+            SpacingAfter = TITLE_TO_SUBTEXT
         });
 
         // Category and Tier
@@ -132,6 +159,62 @@ internal static class TooltipRenderer
             FontSize = 12f,
             SpacingAfter = SECTION_SPACING
         });
+
+        // Requirements section
+        var hasRequirements = false;
+
+        // Rank requirement
+        if (!string.IsNullOrEmpty(data.RequiredFavorRank))
+        {
+            // Green if requirements met (unlocked or can unlock), red if not met
+            var rankColor = (data.IsUnlocked || data.CanUnlock) ? ColorPalette.Green : ColorPalette.Red;
+            lines.Add(new TooltipLine
+            {
+                Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_FAVOR_RANK,
+                    data.RequiredFavorRank),
+                Color = rankColor,
+                FontSize = 13f,
+                SpacingAfter = LINE_SPACING
+            });
+            hasRequirements = true;
+        }
+        else if (!string.IsNullOrEmpty(data.RequiredPrestigeRank))
+        {
+            // Green if requirements met (unlocked or can unlock), red if not met
+            var rankColor = (data.IsUnlocked || data.CanUnlock) ? ColorPalette.Green : ColorPalette.Red;
+            lines.Add(new TooltipLine
+            {
+                Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_PRESTIGE_RANK,
+                    data.RequiredPrestigeRank),
+                Color = rankColor,
+                FontSize = 13f,
+                SpacingAfter = LINE_SPACING
+            });
+            hasRequirements = true;
+        }
+
+        // Prerequisites
+        if (data.PrerequisiteNames.Count > 0)
+        {
+            foreach (var prereq in data.PrerequisiteNames)
+            {
+                // Green if requirements met (unlocked or can unlock), red if not met
+                var prereqColor = (data.IsUnlocked || data.CanUnlock) ? ColorPalette.Green : ColorPalette.Red;
+                lines.Add(new TooltipLine
+                {
+                    Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_BLESSING, prereq),
+                    Color = prereqColor,
+                    FontSize = 13f,
+                    SpacingAfter = LINE_SPACING
+                });
+            }
+
+            hasRequirements = true;
+        }
+
+        // Add spacing after requirements
+        if (hasRequirements && lines.Count > 0)
+            lines[lines.Count - 1].SpacingAfter = SECTION_SPACING;
 
         // Description (wrap if too long)
         if (!string.IsNullOrEmpty(data.Description))
@@ -151,7 +234,6 @@ internal static class TooltipRenderer
                 lines[^1].SpacingAfter = SECTION_SPACING;
         }
 
-
         // Special effects (wrap if too long)
         if (data.SpecialEffectDescriptions.Count > 0)
         {
@@ -170,101 +252,16 @@ internal static class TooltipRenderer
 
             // Add spacing after effects section
             if (lines.Count > 0)
-                lines[lines.Count - 1].SpacingAfter = SECTION_SPACING;
+                lines[^1].SpacingAfter = SECTION_SPACING;
         }
 
-        // Requirements section
-        var hasRequirements = false;
-
-        // Rank requirement
-        if (!string.IsNullOrEmpty(data.RequiredFavorRank))
-        {
-            // Green if unlocked, white if can unlock, red if locked
-            var rankColor = data.IsUnlocked ? ColorPalette.Green :
-                data.CanUnlock ? ColorPalette.White : ColorPalette.Red;
-            lines.Add(new TooltipLine
-            {
-                Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_FAVOR_RANK,
-                    data.RequiredFavorRank),
-                Color = rankColor,
-                FontSize = 13f,
-                SpacingAfter = LINE_SPACING
-            });
-            hasRequirements = true;
-        }
-        else if (!string.IsNullOrEmpty(data.RequiredPrestigeRank))
-        {
-            // Green if unlocked, white if can unlock, red if locked
-            var rankColor = data.IsUnlocked ? ColorPalette.Green :
-                data.CanUnlock ? ColorPalette.White : ColorPalette.Red;
-            lines.Add(new TooltipLine
-            {
-                Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_PRESTIGE_RANK,
-                    data.RequiredPrestigeRank),
-                Color = rankColor,
-                FontSize = 13f,
-                SpacingAfter = LINE_SPACING
-            });
-            hasRequirements = true;
-        }
-
-        // Prerequisites
-        if (data.PrerequisiteNames.Count > 0)
-        {
-            foreach (var prereq in data.PrerequisiteNames)
-            {
-                // Green if unlocked, white if can unlock, red if locked
-                var prereqColor = data.IsUnlocked ? ColorPalette.Green :
-                    data.CanUnlock ? ColorPalette.White : ColorPalette.Red;
-                lines.Add(new TooltipLine
-                {
-                    Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_BLESSING, prereq),
-                    Color = prereqColor,
-                    FontSize = 13f,
-                    SpacingAfter = LINE_SPACING
-                });
-            }
-
-            hasRequirements = true;
-        }
-
-        // Add spacing after requirements
-        if (hasRequirements && lines.Count > 0)
-            lines[lines.Count - 1].SpacingAfter = SECTION_SPACING;
-
-        // Unlock status
-        if (data.IsUnlocked)
-        {
-            lines.Add(new TooltipLine
-            {
-                Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNLOCKED),
-                Color = ColorPalette.Green,
-                FontSize = 14f,
-                IsBold = true,
-                SpacingAfter = 0
-            });
-        }
-        else if (data.CanUnlock)
+        // "Click to unlock" instruction (only shown when can unlock but not yet unlocked)
+        if (data.CanUnlock && !data.IsUnlocked)
         {
             lines.Add(new TooltipLine
             {
                 Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_CLICK_TO_UNLOCK),
                 Color = ColorPalette.Green,
-                FontSize = 13f,
-                SpacingAfter = 0
-            });
-        }
-        else
-        {
-            // Show lock reason if available, otherwise show generic locked message
-            var lockMessage = !string.IsNullOrEmpty(data.UnlockBlockReason)
-                ? data.UnlockBlockReason
-                : LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_LOCKED);
-
-            lines.Add(new TooltipLine
-            {
-                Text = lockMessage,
-                Color = ColorPalette.Red,
                 FontSize = 13f,
                 SpacingAfter = 0
             });
