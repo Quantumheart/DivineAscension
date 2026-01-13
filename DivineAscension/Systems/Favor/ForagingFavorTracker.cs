@@ -15,20 +15,23 @@ public class ForagingFavorTracker(
 {
     private readonly FavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
-    private readonly HashSet<string> _lysaFollowers = new();
-
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
 
+    private readonly HashSet<string> _wildFollowers = new();
+
     public void Dispose()
     {
         _sapi.Event.BreakBlock -= OnBlockBroken;
-        _sapi.Event.DidUseBlock -= OnBlockUsed;
+        ForagingPatches.Picked -= OnBlockUsed;
+        ScythePatches.OnScytheHarvest -= OnScytheHarvest;
+        MushroomPatches.OnMushroomHarvested -= OnMushroomHarvested;
+        FlowerPatches.OnFlowerHarvested -= OnFlowerHarvested;
         _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
         _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
-        _lysaFollowers.Clear();
+        _wildFollowers.Clear();
     }
 
     public DeityDomain DeityDomain { get; } = DeityDomain.Wild;
@@ -37,6 +40,9 @@ public class ForagingFavorTracker(
     {
         _sapi.Event.BreakBlock += OnBlockBroken;
         ForagingPatches.Picked += OnBlockUsed;
+        ScythePatches.OnScytheHarvest += OnScytheHarvest;
+        MushroomPatches.OnMushroomHarvested += OnMushroomHarvested;
+        FlowerPatches.OnFlowerHarvested += OnFlowerHarvested;
 
         // Cache followers
         RefreshFollowerCache();
@@ -62,20 +68,20 @@ public class ForagingFavorTracker(
     {
         var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerUID);
         if (deityType == DeityDomain)
-            _lysaFollowers.Add(playerUID);
+            _wildFollowers.Add(playerUID);
         else
-            _lysaFollowers.Remove(playerUID);
+            _wildFollowers.Remove(playerUID);
     }
 
     private void OnPlayerLeavesProgression(IServerPlayer player, string religionUID)
     {
-        _lysaFollowers.Remove(player.PlayerUID);
+        _wildFollowers.Remove(player.PlayerUID);
     }
 
     private void OnBlockBroken(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier,
         ref EnumHandling handling)
     {
-        if (!_lysaFollowers.Contains(player.PlayerUID)) return;
+        if (!_wildFollowers.Contains(player.PlayerUID)) return;
 
         var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
         if (IsForageBlock(block))
@@ -84,56 +90,89 @@ public class ForagingFavorTracker(
     }
 
     /// <summary>
-    ///     Handles block usage (right-click) to detect berry harvesting
+    ///     Handles scythe/shears harvesting to detect flower cutting.
+    ///     Only awards favor for flowers, not grass.
     /// </summary>
-    private void OnBlockUsed(IServerPlayer? player, BlockSelection? blockSel)
+    private void OnScytheHarvest(IServerPlayer player, Block block)
     {
-        // Defensive check: If the player or block selection is null, 
-        // we cannot process favor, so we exit early to prevent a crash.
-        if (player == null || blockSel == null)
-        {
-            return;
-        }
+        if (!_wildFollowers.Contains(player.PlayerUID)) return;
+        if (block?.Code == null) return;
 
-        if (!_lysaFollowers.Contains(player.PlayerUID)) return;
-        // Ensure the block at the selection still exists or is valid
-        var block = player.Entity.World.BlockAccessor.GetBlock(blockSel.Position);
-        if (block == null) return;
-        if (IsBerryBush(block))
-            // Award 0.5 favor for harvesting berries
-            _favorSystem.AwardFavorForAction(player, "harvesting " + GetBerryName(block), 0.5f);
+        // Only award for flowers (not grass, mushrooms, or seaweed)
+        // Use FirstCodePart() for reliable block type detection
+        if (block.FirstCodePart() != "flower") return;
+
+        _favorSystem.AwardFavorForAction(player, "foraging flowers", 0.5f);
+    }
+
+    /// <summary>
+    ///     Handles mushroom harvesting via dedicated patch.
+    /// </summary>
+    private void OnMushroomHarvested(IServerPlayer player, Block block, string? mushroomType)
+    {
+        if (!_wildFollowers.Contains(player.PlayerUID)) return;
+
+        _favorSystem.AwardFavorForAction(player, "foraging", 0.5f);
+    }
+
+    /// <summary>
+    ///     Handles flower harvesting via dedicated patch.
+    /// </summary>
+    private void OnFlowerHarvested(IServerPlayer player, Block block, string? flowerType)
+    {
+        if (!_wildFollowers.Contains(player.PlayerUID)) return;
+
+        _favorSystem.AwardFavorForAction(player, "foraging", 0.5f);
+    }
+
+    /// <summary>
+    ///     Handles block usage (right-click) to detect berry harvesting.
+    ///     The block parameter is captured before harvest, so we can verify it was ripe.
+    /// </summary>
+    private void OnBlockUsed(IServerPlayer? player, BlockSelection? blockSel, Block? block)
+    {
+        if (player == null || blockSel == null || block == null) return;
+        if (!_wildFollowers.Contains(player.PlayerUID)) return;
+
+        if (IsBerryBush(block) && HasRipeBerries(block))
+            _favorSystem.AwardFavorForAction(player, "foraging", 0.5f);
     }
 
     private bool IsBerryBush(Block block)
     {
         if (block?.Code == null) return false;
-        var path = block.Code.Path;
-
 
         // Berry bushes: blackberry, blueberry, cranberry, redcurrant, whitecurrant
-        return path.Contains("berrybush");
+        // Use FirstCodePart() for reliable block type detection
+        var firstPart = block.FirstCodePart();
+        return firstPart == "bigberrybush" || firstPart == "smallberrybush";
     }
 
     private bool HasRipeBerries(Block block)
     {
         if (block?.Code == null) return false;
-        var path = block.Code.Path;
 
         // Berry bushes have growth stages: empty, flowering, ripe
         // Only ripe bushes can be harvested
-        return path.Contains("ripe");
+        // Use Variant for reliable state detection
+        return block.Variant.TryGetValue("state", out var state) && state == "ripe";
     }
 
     private string GetBerryName(Block block)
     {
         if (block?.Code == null) return "berries";
-        var path = block.Code.Path;
 
-        if (path.Contains("blackberry")) return "blackberries";
-        if (path.Contains("blueberry")) return "blueberries";
-        if (path.Contains("cranberry")) return "cranberries";
-        if (path.Contains("redcurrant")) return "redcurrants";
-        if (path.Contains("whitecurrant")) return "whitecurrants";
+        // Use Variant for reliable type detection
+        if (block.Variant.TryGetValue("type", out var berryType))
+            return berryType switch
+            {
+                "blackcurrant" => "blackcurrants",
+                "blueberry" => "blueberries",
+                "cranberry" => "cranberries",
+                "redcurrant" => "redcurrants",
+                "whitecurrant" => "whitecurrants",
+                _ => "berries"
+            };
 
         return "berries";
     }
@@ -141,24 +180,28 @@ public class ForagingFavorTracker(
     private bool IsForageBlock(Block block)
     {
         if (block?.Code == null) return false;
-        var path = block.Code.Path;
 
-        // Forageable blocks that are broken (mushrooms, flowers, seaweed)
+        // Forageable blocks that are broken (seaweed)
         // Note: Berry bushes are NOT broken, they're interacted with
-        return path.StartsWith("mushroom") ||
-               path.StartsWith("flower") ||
-               path.StartsWith("seaweed");
+        // Note: Mushrooms are handled by MushroomPatches
+        // Note: Flowers are handled by FlowerPatches
+        // Use FirstCodePart() for reliable block type detection
+        var firstPart = block.FirstCodePart();
+        return firstPart == "seaweed";
     }
 
     private string GetForageName(Block block)
     {
         if (block?.Code == null) return "plants";
-        var path = block.Code.Path;
 
-        if (path.Contains("mushroom")) return "mushrooms";
-        if (path.Contains("flower")) return "flowers";
-        if (path.Contains("seaweed")) return "seaweed";
-
-        return "plants";
+        // Use FirstCodePart() for reliable block type detection
+        // Note: Mushrooms are handled by MushroomPatches
+        // Note: Flowers are handled by FlowerPatches
+        var firstPart = block.FirstCodePart();
+        return firstPart switch
+        {
+            "seaweed" => "seaweed",
+            _ => "plants"
+        };
     }
 }
