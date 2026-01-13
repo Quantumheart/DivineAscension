@@ -327,6 +327,19 @@ public static class LocalizationKeys
         "divineascension:ui.civilization.name.error.profanity";
 
     public const string UI_CIVILIZATION_CREATE_ICON_LABEL = "divineascension:ui.civilization.create.icon.label";
+
+    public const string UI_CIVILIZATION_CREATE_DESCRIPTION_LABEL =
+        "divineascension:ui.civilization.create.description.label";
+
+    public const string UI_CIVILIZATION_CREATE_DESCRIPTION_PLACEHOLDER =
+        "divineascension:ui.civilization.create.description.placeholder";
+
+    public const string UI_CIVILIZATION_DESCRIPTION_ERROR_TOO_LONG =
+        "divineascension:ui.civilization.description.error.too_long";
+
+    public const string UI_CIVILIZATION_DESCRIPTION_ERROR_PROFANITY =
+        "divineascension:ui.civilization.description.error.profanity";
+
     public const string UI_CIVILIZATION_CREATE_BUTTON = "divineascension:ui.civilization.create.button";
     public const string UI_CIVILIZATION_CREATE_CLEAR_BUTTON = "divineascension:ui.civilization.create.clear";
     public const string UI_CIVILIZATION_CREATE_INFO_TEXT = "divineascension:ui.civilization.create.info_text";
@@ -343,6 +356,15 @@ public static class LocalizationKeys
 
     public const string UI_CIVILIZATION_INFO_FOUNDING_RELIGION =
         "divineascension:ui.civilization.info.founding_religion";
+
+    public const string UI_CIVILIZATION_INFO_DESCRIPTION_LABEL =
+        "divineascension:ui.civilization.info.description.label";
+
+    public const string UI_CIVILIZATION_INFO_DESCRIPTION_PLACEHOLDER =
+        "divineascension:ui.civilization.info.description.placeholder";
+
+    public const string UI_CIVILIZATION_INFO_SAVE_DESCRIPTION_BUTTON =
+        "divineascension:ui.civilization.info.save_description";
 
     public const string UI_CIVILIZATION_INFO_MEMBER_RELIGIONS = "divineascension:ui.civilization.info.member_religions";
     public const string UI_CIVILIZATION_INFO_INVITE_LABEL = "divineascension:ui.civilization.info.invite.label";
@@ -877,6 +899,7 @@ public static class LocalizationKeys
     public const string CMD_CIV_LEAVE_DESC = "divineascension:cmd.civ.leave.desc";
     public const string CMD_CIV_KICK_DESC = "divineascension:cmd.civ.kick.desc";
     public const string CMD_CIV_DISBAND_DESC = "divineascension:cmd.civ.disband.desc";
+    public const string CMD_CIV_DESCRIPTION_DESC = "divineascension:cmd.civ.description.desc";
     public const string CMD_CIV_LIST_DESC = "divineascension:cmd.civ.list.desc";
     public const string CMD_CIV_INFO_DESC = "divineascension:cmd.civ.info.desc";
     public const string CMD_CIV_INVITES_DESC = "divineascension:cmd.civ.invites.desc";
@@ -916,6 +939,7 @@ public static class LocalizationKeys
     public const string CMD_CIV_ERROR_KICK_FAILED = "divineascension:cmd.civ.error.kick_failed";
     public const string CMD_CIV_ERROR_ONLY_FOUNDER_DISBAND = "divineascension:cmd.civ.error.only_founder_disband";
     public const string CMD_CIV_ERROR_DISBAND_FAILED = "divineascension:cmd.civ.error.disband_failed";
+    public const string CMD_CIV_ERROR_ONLY_FOUNDER_DESCRIPTION = "divineascension:cmd.civ.error.only_founder_description";
     public const string CMD_CIV_ERROR_CIV_NOT_FOUND = "divineascension:cmd.civ.error.civ_not_found";
     public const string CMD_CIV_ERROR_NOT_IN_CIV_SPECIFY_NAME = "divineascension:cmd.civ.error.not_in_civ_specify_name";
 
@@ -1404,6 +1428,10 @@ public static class LocalizationKeys
     public const string NET_CIV_DISBAND_FAILED = "divineascension:net.civ.disband_failed";
     public const string NET_CIV_ICON_UPDATED = "divineascension:net.civ.icon_updated";
     public const string NET_CIV_ICON_UPDATE_FAILED = "divineascension:net.civ.icon_update_failed";
+    public const string NET_CIV_DESCRIPTION_UPDATED = "divineascension:net.civ.description_updated";
+    public const string NET_CIV_DESCRIPTION_UPDATE_FAILED = "divineascension:net.civ.description_update_failed";
+    public const string NET_CIV_DESCRIPTION_TOO_LONG = "divineascension:net.civ.description_too_long";
+    public const string NET_CIV_DESCRIPTION_PROFANITY = "divineascension:net.civ.description_profanity";
     public const string NET_CIV_UNKNOWN_ACTION = "divineascension:net.civ.unknown_action";
     public const string NET_CIV_ERROR = "divineascension:net.civ.error";
 

@@ -110,6 +110,45 @@ internal static class CivilizationInfoRenderer
 
         currentY += 28f;
 
+        // Description section
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_DESCRIPTION_LABEL),
+            vm.X, currentY, 14f, ColorPalette.Grey);
+        currentY += 22f;
+
+        if (vm.IsFounder)
+        {
+            // Editable description for founder
+            var newDescription = TextInput.DrawMultiline(drawList, "##civDescription", vm.DescriptionText,
+                vm.X, currentY,
+                vm.Width * 0.7f, 80f,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_DESCRIPTION_PLACEHOLDER), 200);
+
+            if (newDescription != vm.DescriptionText)
+                events.Add(new InfoEvent.DescriptionChanged(newDescription));
+
+            currentY += 90f;
+
+            // Save description button (only visible when there are changes)
+            if (vm.HasDescriptionChanges)
+            {
+                if (ButtonRenderer.DrawButton(drawList,
+                        LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_SAVE_DESCRIPTION_BUTTON),
+                        vm.X, currentY, 160f, 30f, true, !overlayOpen))
+                    events.Add(new InfoEvent.SaveDescriptionClicked());
+
+                currentY += 40f;
+            }
+        }
+        else if (!string.IsNullOrEmpty(vm.Description))
+        {
+            // Read-only description for non-founders
+            TextRenderer.DrawInfoText(drawList, vm.Description, vm.X, currentY, vm.Width * 0.9f);
+            currentY += 60f;
+        }
+
+        currentY += 10f;
+
         // Members section title
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_MEMBER_RELIGIONS),

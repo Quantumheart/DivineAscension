@@ -706,10 +706,10 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     }
 
     /// <summary>
-    ///     Request a civilization action (create, invite, accept, leave, kick, disband)
+    ///     Request a civilization action (create, invite, accept, leave, kick, disband, setdescription)
     /// </summary>
     public void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "",
-        string icon = "")
+        string icon = "", string description = "")
     {
         if (_clientChannel == null)
         {
@@ -717,7 +717,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
             return;
         }
 
-        var request = new CivilizationActionRequestPacket(action, civId, targetId, name, icon);
+        var request = new CivilizationActionRequestPacket(action, civId, targetId, name, icon, description);
         _clientChannel.SendPacket(request);
         _capi?.Logger.Debug($"[DivineAscension] Sent civilization action request: {action}");
     }

@@ -10,6 +10,10 @@ public abstract record InfoEvent
 
     public sealed record InviteReligionClicked(string religionName) : InfoEvent;
 
+    public sealed record DescriptionChanged(string newDescription) : InfoEvent;
+
+    public sealed record SaveDescriptionClicked : InfoEvent;
+
     public sealed record LeaveClicked : InfoEvent;
 
     public sealed record EditIconClicked : InfoEvent;

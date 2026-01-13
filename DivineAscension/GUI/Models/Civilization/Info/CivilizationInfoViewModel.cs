@@ -9,6 +9,8 @@ public readonly struct CivilizationInfoViewModel(
     string civId,
     string civName,
     string icon,
+    string description,
+    string descriptionText,
     string founderName,
     bool isFounder,
     IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> memberReligions,
@@ -27,6 +29,8 @@ public readonly struct CivilizationInfoViewModel(
     public string CivId { get; } = civId;
     public string CivName { get; } = civName;
     public string Icon { get; } = icon;
+    public string Description { get; } = description;
+    public string DescriptionText { get; } = descriptionText;
     public string FounderName { get; } = founderName;
     public bool IsFounder { get; } = isFounder;
     public IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> MemberReligions { get; } = memberReligions;
@@ -45,4 +49,5 @@ public readonly struct CivilizationInfoViewModel(
     public bool CanDisband => IsFounder && HasCivilization;
     public bool CanLeave => !IsFounder && HasCivilization;
     public bool IsKickConfirmOpen => !string.IsNullOrEmpty(KickConfirmReligionId);
+    public bool HasDescriptionChanges => Description != DescriptionText;
 }

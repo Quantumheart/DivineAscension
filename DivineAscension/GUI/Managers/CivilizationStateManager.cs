@@ -133,6 +133,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 CivilizationMemberReligions =
                     new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions ?? []);
                 State.InfoState.Info = details;
+                // Sync DescriptionText with server description when receiving new info
+                State.InfoState.DescriptionText = details.Description ?? string.Empty;
                 State.InviteState.MyInvites =
                     new List<CivilizationInfoResponsePacket.PendingInvite>(details.PendingInvites ?? []);
             }
@@ -207,14 +209,14 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     }
 
     /// <summary>
-    ///     Request a civilization action (create, invite, accept, leave, kick, disband, updateicon)
+    ///     Request a civilization action (create, invite, accept, leave, kick, disband, updateicon, setdescription)
     /// </summary>
     public void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "",
-        string icon = "")
+        string icon = "", string description = "")
     {
         // Clear transient action error; some actions will trigger refreshes
         State.LastActionError = null;
-        _uiService.RequestCivilizationAction(action, civId, targetId, name, icon);
+        _uiService.RequestCivilizationAction(action, civId, targetId, name, icon, description);
     }
 
     /// <summary>
@@ -424,6 +426,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             civ?.CivId ?? string.Empty,
             civ?.Name ?? string.Empty,
             civ?.Icon ?? "default",
+            civ?.Description ?? string.Empty,
+            State.InfoState.DescriptionText,
             civ?.FounderName ?? string.Empty,
             UserIsCivilizationFounder,
             civ?.MemberReligions ?? new List<CivilizationInfoResponsePacket.MemberReligion>(),
@@ -504,14 +508,23 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             ProfanityFilterService.Instance.ContainsProfanity(State.CreateState.CreateCivName, out profanityWord);
         }
 
+        // Check for profanity in description
+        string? profanityWordInDescription = null;
+        if (!string.IsNullOrWhiteSpace(State.CreateState.CreateDescription))
+        {
+            ProfanityFilterService.Instance.ContainsProfanity(State.CreateState.CreateDescription, out profanityWordInDescription);
+        }
+
         // Build ViewModel
         var vm = new CivilizationCreateViewModel(
             State.CreateState.CreateCivName,
             State.CreateState.SelectedIcon,
+            State.CreateState.CreateDescription,
             State.CreateError,
             UserIsReligionFounder,
             HasCivilization(),
             profanityWord,
+            profanityWordInDescription,
             x,
             y,
             width,
@@ -761,6 +774,18 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
                     break;
 
+                case InfoEvent.DescriptionChanged dc:
+                    State.InfoState.DescriptionText = dc.newDescription;
+                    break;
+
+                case InfoEvent.SaveDescriptionClicked:
+                    if (!string.IsNullOrWhiteSpace(civId))
+                    {
+                        RequestCivilizationAction("setdescription", civId, "", "", "", State.InfoState.DescriptionText);
+                    }
+
+                    break;
+
                 case InfoEvent.LeaveClicked:
                     if (!string.IsNullOrWhiteSpace(civId))
                         RequestCivilizationAction("leave");
@@ -837,6 +862,10 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     State.CreateState.CreateCivName = nc.newName;
                     break;
 
+                case CreateEvent.DescriptionChanged dc:
+                    State.CreateState.CreateDescription = dc.newDescription;
+                    break;
+
                 case CreateEvent.IconSelected iconSelected:
                     State.CreateState.SelectedIcon = iconSelected.icon;
                     _soundManager.PlayClick();
@@ -848,9 +877,10 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                         State.CreateState.CreateCivName.Length <= 32)
                     {
                         RequestCivilizationAction("create", "", "", State.CreateState.CreateCivName,
-                            State.CreateState.SelectedIcon);
+                            State.CreateState.SelectedIcon, State.CreateState.CreateDescription);
                         State.CreateState.CreateCivName = string.Empty;
                         State.CreateState.SelectedIcon = "default";
+                        State.CreateState.CreateDescription = string.Empty;
                     }
                     else
                     {
@@ -863,6 +893,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 case CreateEvent.ClearClicked:
                     State.CreateState.CreateCivName = string.Empty;
                     State.CreateState.SelectedIcon = "default";
+                    State.CreateState.CreateDescription = string.Empty;
                     break;
             }
     }

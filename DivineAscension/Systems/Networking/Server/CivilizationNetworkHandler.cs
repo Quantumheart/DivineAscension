@@ -74,7 +74,8 @@ public class CivilizationNetworkHandler(
                 MemberCount = civ.MemberReligionIds.Count,
                 MemberDeities = deities,
                 MemberReligionNames = religionNames,
-                Icon = civ.Icon
+                Icon = civ.Icon,
+                Description = civ.Description
             });
         }
 
@@ -166,6 +167,7 @@ public class CivilizationNetworkHandler(
             FounderReligionName = founderReligionName,
             CreatedDate = civ.CreatedDate,
             Icon = civ.Icon,
+            Description = civ.Description,
             MemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(),
             PendingInvites = new List<CivilizationInfoResponsePacket.PendingInvite>()
         };
@@ -245,9 +247,28 @@ public class CivilizationNetworkHandler(
                         break;
                     }
 
+                    // Check for profanity in description
+                    if (!string.IsNullOrEmpty(packet.Description) &&
+                        ProfanityFilterService.Instance.ContainsProfanity(packet.Description))
+                    {
+                        response.Success = false;
+                        response.Message =
+                            LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_DESCRIPTION_PROFANITY);
+                        break;
+                    }
+
+                    // Validate description length
+                    if (packet.Description.Length > 200)
+                    {
+                        response.Success = false;
+                        response.Message =
+                            LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_DESCRIPTION_TOO_LONG);
+                        break;
+                    }
+
                     var iconToUse = string.IsNullOrWhiteSpace(packet.Icon) ? "default" : packet.Icon;
                     var newCiv = civilizationManager.CreateCivilization(packet.Name, fromPlayer.PlayerUID,
-                        religion.ReligionUID, iconToUse);
+                        religion.ReligionUID, iconToUse, packet.Description);
                     if (newCiv != null)
                     {
                         response.Success = true;
@@ -405,6 +426,34 @@ public class CivilizationNetworkHandler(
                     response.Message = success
                         ? LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_ICON_UPDATED)
                         : LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_ICON_UPDATE_FAILED);
+                    response.CivId = packet.CivId;
+                    break;
+
+                case "setdescription":
+                    // Validate description length
+                    if (packet.Description.Length > 200)
+                    {
+                        response.Success = false;
+                        response.Message =
+                            LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_DESCRIPTION_TOO_LONG);
+                        break;
+                    }
+
+                    // Check for profanity
+                    if (ProfanityFilterService.Instance.ContainsProfanity(packet.Description))
+                    {
+                        response.Success = false;
+                        response.Message =
+                            LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_DESCRIPTION_PROFANITY);
+                        break;
+                    }
+
+                    success = civilizationManager.UpdateCivilizationDescription(packet.CivId, fromPlayer.PlayerUID,
+                        packet.Description);
+                    response.Success = success;
+                    response.Message = success
+                        ? LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_DESCRIPTION_UPDATED)
+                        : LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_DESCRIPTION_UPDATE_FAILED);
                     response.CivId = packet.CivId;
                     break;
 

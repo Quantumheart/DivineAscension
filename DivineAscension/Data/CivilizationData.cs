@@ -87,6 +87,12 @@ public class Civilization
     public string Icon { get; set; } = "default";
 
     /// <summary>
+    ///     Description or manifesto of the civilization set by the founder
+    /// </summary>
+    [ProtoMember(10)]
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
     ///     Checks if the civilization has a valid number of member religions (1-4)
     /// </summary>
     public bool IsValid => MemberReligionIds.Count >= 1 && MemberReligionIds.Count <= 4;
@@ -125,6 +131,14 @@ public class Civilization
     public void UpdateIcon(string icon)
     {
         Icon = icon;
+    }
+
+    /// <summary>
+    ///     Updates the civilization's description
+    /// </summary>
+    public void UpdateDescription(string description)
+    {
+        Description = description;
     }
 }
 
