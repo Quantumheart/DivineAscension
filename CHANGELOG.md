@@ -1,3 +1,8 @@
+## [4.5.1] - 2026-01-13
+
+### Fixed
+- add _initializedPlayers
+
 ## [4.5.0] - 2026-01-13
 
 ### Added 
