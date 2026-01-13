@@ -180,6 +180,9 @@ public class DivineAscensionModSystem : ModSystem
         // Initialize localization service
         LocalizationService.Instance.InitializeClient(api);
 
+        // Initialize clipboard service (before ImGui initialization)
+        ClipboardService.Instance.Initialize(api);
+
         // Setup network client
         var clientChannel = api.Network.GetChannel(NETWORK_CHANNEL);
         NetworkClient = new DivineAscensionNetworkClient();

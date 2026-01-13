@@ -18,6 +18,7 @@
         <PlatformTarget>AnyCPU</PlatformTarget>
         <GenerateDocumentationFile>false</GenerateDocumentationFile>
         <NoWarn>1701;1702;1591</NoWarn>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <!-- Local development: use real Vintage Story DLLs -->
@@ -68,12 +69,18 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="VSImGui" Version="0.0.6">
-            <ExcludeAssets>runtime</ExcludeAssets>
-        </PackageReference>
-        <PackageReference Include="VSImGui_DebugTools" Version="0.0.6">
-            <ExcludeAssets>runtime</ExcludeAssets>
-        </PackageReference>
+        <PackageReference Include="TextCopy" Version="6.2.1"/>
+        <PackageReference Include="VSImGui" Version="0.0.6"/>
+        <PackageReference Include="VSImGui_DebugTools" Version="0.0.6"/>
     </ItemGroup>
+
+    <!-- Copy NuGet package dependencies to custom output path -->
+    <Target Name="CopyNuGetDependencies" AfterTargets="Build">
+        <ItemGroup>
+            <NuGetDependencies Include="$(NuGetPackageRoot)textcopy/6.2.1/lib/net6.0/TextCopy.dll"/>
+        </ItemGroup>
+        <Copy SourceFiles="@(NuGetDependencies)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true"/>
+        <Message Text="Copied NuGet dependencies to $(OutputPath)" Importance="high"/>
+    </Target>
 
 </Project>

@@ -62,6 +62,11 @@ public partial class GuiDialog : ModSystem
         _viewport = ImGui.GetMainViewport();
         _stopwatch = Stopwatch.StartNew();
 
+        // Note: ImGui clipboard callbacks disabled - using manual clipboard handling
+        // in TextInput.ClipboardCallback instead. The native callbacks conflict with
+        // wl-paste on Wayland, causing focus issues when both systems access clipboard.
+        // ImGuiClipboardHelper.SetupClipboardCallbacks(api);
+
         // Register keybind (P key to open)
         _capi.Input.RegisterHotKey("divineascensionblessings", "Show/Hide Blessing Dialog", GlKeys.G,
             HotkeyType.GUIOrOtherControls, shiftPressed: true);
