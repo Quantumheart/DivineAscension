@@ -371,6 +371,77 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     }
 
     /// <summary>
+    ///     Declines an invitation to join a civilization
+    /// </summary>
+    public bool DeclineInvite(string inviteId, string declinerUID)
+    {
+        try
+        {
+            var invite = _data.GetInvite(inviteId);
+            if (invite == null || !invite.IsValid)
+            {
+                _sapi.Logger.Warning("[DivineAscension] Invite not found or expired");
+                return false;
+            }
+
+            var civ = _data.Civilizations.GetValueOrDefault(invite.CivId);
+            if (civ == null)
+            {
+                _sapi.Logger.Warning($"[DivineAscension] Civilization '{invite.CivId}' not found");
+                _data.RemoveInvite(inviteId);
+                return false;
+            }
+
+            var religion = _religionManager.GetReligion(invite.ReligionId);
+            if (religion == null)
+            {
+                _sapi.Logger.Warning($"[DivineAscension] Religion '{invite.ReligionId}' not found");
+                _data.RemoveInvite(inviteId);
+                return false;
+            }
+
+            // Check if decliner is the religion founder
+            if (religion.FounderUID != declinerUID)
+            {
+                _sapi.Logger.Warning("[DivineAscension] Only religion founder can decline civilization invites");
+                return false;
+            }
+
+            // Remove invite
+            _data.RemoveInvite(inviteId);
+
+            // Notify online players in the inviting civilization
+            var civReligions = GetCivReligions(civ.CivId);
+            var message = $"[Civilization] {religion.ReligionName} has declined the invitation to join {civ.Name}.";
+
+            foreach (var civReligion in civReligions)
+            {
+                foreach (var memberUID in civReligion.MemberUIDs)
+                {
+                    var player = _sapi.World.PlayerByUid(memberUID);
+                    if (player is IServerPlayer serverPlayer && player.ConnectionState == EnumEntityState.Active)
+                    {
+                        serverPlayer.SendMessage(
+                            GlobalConstants.GeneralChatGroup,
+                            message,
+                            EnumChatType.Notification
+                        );
+                    }
+                }
+            }
+
+            _sapi.Logger.Notification(
+                $"[DivineAscension] Religion '{religion.ReligionName}' declined invitation to civilization '{civ.Name}'");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _sapi.Logger.Error($"[DivineAscension] Error declining invite: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     ///     A religion leaves a civilization voluntarily
     /// </summary>
     public bool LeaveReligion(string religionId, string requesterUID)

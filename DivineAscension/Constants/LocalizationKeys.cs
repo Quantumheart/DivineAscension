@@ -870,6 +870,7 @@ public static class LocalizationKeys
     public const string CMD_CIV_CREATE_DESC = "divineascension:cmd.civ.create.desc";
     public const string CMD_CIV_INVITE_DESC = "divineascension:cmd.civ.invite.desc";
     public const string CMD_CIV_ACCEPT_DESC = "divineascension:cmd.civ.accept.desc";
+    public const string CMD_CIV_DECLINE_DESC = "divineascension:cmd.civ.decline.desc";
     public const string CMD_CIV_LEAVE_DESC = "divineascension:cmd.civ.leave.desc";
     public const string CMD_CIV_KICK_DESC = "divineascension:cmd.civ.kick.desc";
     public const string CMD_CIV_DISBAND_DESC = "divineascension:cmd.civ.disband.desc";
@@ -902,6 +903,8 @@ public static class LocalizationKeys
     public const string CMD_CIV_ERROR_INVITE_FAILED = "divineascension:cmd.civ.error.invite_failed";
     public const string CMD_CIV_ERROR_ONLY_FOUNDERS_ACCEPT = "divineascension:cmd.civ.error.only_founders_accept";
     public const string CMD_CIV_ERROR_ACCEPT_FAILED = "divineascension:cmd.civ.error.accept_failed";
+    public const string CMD_CIV_ERROR_ONLY_FOUNDERS_DECLINE = "divineascension:cmd.civ.error.only_founders_decline";
+    public const string CMD_CIV_ERROR_DECLINE_FAILED = "divineascension:cmd.civ.error.decline_failed";
     public const string CMD_CIV_ERROR_ONLY_FOUNDERS_LEAVE = "divineascension:cmd.civ.error.only_founders_leave";
     public const string CMD_CIV_ERROR_NOT_IN_CIV = "divineascension:cmd.civ.error.not_in_civ";
     public const string CMD_CIV_ERROR_FOUNDER_CANNOT_LEAVE = "divineascension:cmd.civ.error.founder_cannot_leave";
@@ -928,6 +931,7 @@ public static class LocalizationKeys
     public const string CMD_CIV_SUCCESS_CREATED = "divineascension:cmd.civ.success.created";
     public const string CMD_CIV_SUCCESS_INVITE_SENT = "divineascension:cmd.civ.success.invite_sent";
     public const string CMD_CIV_SUCCESS_JOINED = "divineascension:cmd.civ.success.joined";
+    public const string CMD_CIV_SUCCESS_DECLINED = "divineascension:cmd.civ.success.declined";
     public const string CMD_CIV_SUCCESS_LEFT = "divineascension:cmd.civ.success.left";
     public const string CMD_CIV_SUCCESS_KICKED = "divineascension:cmd.civ.success.kicked";
     public const string CMD_CIV_SUCCESS_DISBANDED = "divineascension:cmd.civ.success.disbanded";
@@ -1383,6 +1387,8 @@ public static class LocalizationKeys
     public const string NET_CIV_INVITED_NOTIFICATION = "divineascension:net.civ.invited_notification";
     public const string NET_CIV_JOINED = "divineascension:net.civ.joined";
     public const string NET_CIV_JOIN_FAILED = "divineascension:net.civ.join_failed";
+    public const string NET_CIV_INVITE_DECLINED = "divineascension:net.civ.invite_declined";
+    public const string NET_CIV_INVITE_DECLINE_FAILED = "divineascension:net.civ.invite_decline_failed";
     public const string NET_CIV_NOT_IN_RELIGION = "divineascension:net.civ.not_in_religion";
     public const string NET_CIV_RELIGION_NOT_FOUND_PLAYER = "divineascension:net.civ.religion_not_found_player";
     public const string NET_CIV_ONLY_FOUNDER_LEAVE = "divineascension:net.civ.only_founder_leave";
