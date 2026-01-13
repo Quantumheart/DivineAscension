@@ -1,4 +1,9 @@
 
+## [4.4.0] - 2026-01-12
+
+### Added
+- improve ProfanityFilter
+
 ## [4.3.0] - 2026-01-12
 
 ### Added

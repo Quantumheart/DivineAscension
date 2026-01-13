@@ -284,11 +284,13 @@ Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
 
 **ProfanityFilterService** (`/Services/ProfanityFilterService.cs`):
 - Singleton service for content moderation
-- Filters inappropriate content in religion/civilization names and descriptions
+- Filters inappropriate content in religion/civilization names, deity names, and descriptions
 - Loads word list from embedded resource or mod assets (server-configurable)
 - Case-insensitive whole-word matching with O(1) HashSet lookups
+- L33t speak detection (e.g., `$h1t`, `4ss`) and repetition collapse (e.g., `shiiiit`)
 - Integrated at all creation entry points (commands and network handlers)
-- See `/Resources/PROFANITY_FILTER_README.md` for detailed integration guide
+- Can be enabled/disabled per-world via `/da config profanityfilter [on|off]` (admin only)
+- See `docs/topics/configuration/profanity-filter.md` for detailed documentation
 - Server admins can override word list via `assets/divineascension/config/profanity-filter.txt`
 
 ## Key Architectural Patterns
