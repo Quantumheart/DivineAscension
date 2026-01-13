@@ -58,14 +58,14 @@ Since we can't modify Vintage Story's core land claim data, we'll create an **ov
 
 ### Data Structure
 
-**File:** `PantheonWars/Data/HolySiteData.cs`
+**File:** `DivineAscension/Data/HolySiteData.cs`
 
 ```csharp
 using System;
 using ProtoBuf;
 using Vintagestory.API.MathTools;
 
-namespace PantheonWars.Data;
+namespace DivineAscension.Data;
 
 [ProtoContract]
 public class HolySiteData
@@ -197,27 +197,27 @@ public class HolySiteData
 
 ### Holy Site Manager
 
-**File:** `PantheonWars/Systems/HolySiteManager.cs`
+**File:** `DivineAscension/Systems/HolySiteManager.cs`
 
 ```csharp
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using PantheonWars.Data;
+using DivineAscension.Data;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
-namespace PantheonWars.Systems;
+namespace DivineAscension.Systems;
 
 public class HolySiteManager
 {
-    private const string DATA_KEY = "pantheonwars_holysites";
+    private const string DATA_KEY = "divineascension_holysites";
     private readonly ICoreServerAPI _sapi;
     private readonly ReligionManager _religionManager;
-    private readonly PlayerDataManager _playerDataManager;
+    private readonly PlayerProgressionDataManager _playerDataManager;
 
     // Map chunk coordinates to holy site data
     private readonly Dictionary<Vec2i, HolySiteData> _holySitesByChunk = new();
@@ -225,7 +225,7 @@ public class HolySiteManager
     // Map holy site UID to data
     private readonly Dictionary<string, HolySiteData> _holySitesById = new();
 
-    public HolySiteManager(ICoreServerAPI sapi, ReligionManager religionManager, PlayerDataManager playerDataManager)
+    public HolySiteManager(ICoreServerAPI sapi, ReligionManager religionManager, PlayerProgressionDataManager playerDataManager)
     {
         _sapi = sapi;
         _religionManager = religionManager;
@@ -234,13 +234,13 @@ public class HolySiteManager
 
     public void Initialize()
     {
-        _sapi.Logger.Notification("[PantheonWars] Initializing Holy Site Manager...");
+        _sapi.Logger.Notification("[DivineAscension] Initializing Holy Site Manager...");
 
         // Register persistence handlers
         _sapi.Event.SaveGameLoaded += OnSaveGameLoaded;
         _sapi.Event.GameWorldSave += OnGameWorldSave;
 
-        _sapi.Logger.Notification("[PantheonWars] Holy Site Manager initialized");
+        _sapi.Logger.Notification("[DivineAscension] Holy Site Manager initialized");
     }
 
     #region Holy Site Creation
@@ -312,7 +312,7 @@ public class HolySiteManager
 
         message = $"You have consecrated {siteName} as a holy site for {religion.ReligionName}!";
 
-        _sapi.Logger.Notification($"[PantheonWars] Holy site '{siteName}' created by {player.PlayerName}");
+        _sapi.Logger.Notification($"[DivineAscension] Holy site '{siteName}' created by {player.PlayerName}");
 
         return true;
     }
@@ -531,13 +531,13 @@ public class HolySiteManager
                         }
                     }
 
-                    _sapi.Logger.Notification($"[PantheonWars] Loaded {_holySitesById.Count} holy sites");
+                    _sapi.Logger.Notification($"[DivineAscension] Loaded {_holySitesById.Count} holy sites");
                 }
             }
         }
         catch (Exception ex)
         {
-            _sapi.Logger.Error($"[PantheonWars] Failed to load holy sites: {ex.Message}");
+            _sapi.Logger.Error($"[DivineAscension] Failed to load holy sites: {ex.Message}");
         }
     }
 
@@ -548,11 +548,11 @@ public class HolySiteManager
             var holySitesList = _holySitesById.Values.ToList();
             var data = SerializerUtil.Serialize(holySitesList);
             _sapi.WorldManager.SaveGame.StoreData(DATA_KEY, data);
-            _sapi.Logger.Debug($"[PantheonWars] Saved {holySitesList.Count} holy sites");
+            _sapi.Logger.Debug($"[DivineAscension] Saved {holySitesList.Count} holy sites");
         }
         catch (Exception ex)
         {
-            _sapi.Logger.Error($"[PantheonWars] Failed to save holy sites: {ex.Message}");
+            _sapi.Logger.Error($"[DivineAscension] Failed to save holy sites: {ex.Message}");
         }
     }
 
@@ -562,13 +562,13 @@ public class HolySiteManager
 
 ## Command Integration
 
-**File:** `PantheonWars/Commands/HolySiteCommands.cs`
+**File:** `DivineAscension/Commands/HolySiteCommands.cs`
 
 ```csharp
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Commands;
+namespace DivineAscension.Commands;
 
 public class HolySiteCommands
 {
@@ -838,7 +838,7 @@ public void ApplyPrayerBonus(IServerPlayer player)
 # Consecrated: 2025-11-11
 ```
 
-## Initialization in PantheonWarsSystem
+## Initialization in DivineAscensionModSystem
 
 ```csharp
 // Initialize holy site manager (Phase 3)

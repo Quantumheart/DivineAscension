@@ -12,7 +12,7 @@ Physical altar/shrine blocks that players can interact with. Each deity has uniq
 ### Implementation
 
 #### Create Shrine Blocks
-**File:** `PantheonWars/assets/pantheonwars/blocktypes/shrine/*.json`
+**File:** `DivineAscension/assets/divineascension/blocktypes/shrine/*.json`
 
 ```json
 {
@@ -38,7 +38,7 @@ Physical altar/shrine blocks that players can interact with. Each deity has uniq
 ```
 
 #### Shrine Block Entity
-**File:** `PantheonWars/BlockEntities/BlockEntityShrine.cs`
+**File:** `DivineAscension/BlockEntities/BlockEntityShrine.cs`
 
 ```csharp
 public class BlockEntityShrine : BlockEntity
@@ -87,7 +87,7 @@ public class BlockEntityShrine : BlockEntity
 ```
 
 #### Shrine Block Behavior
-**File:** `PantheonWars/Blocks/BlockShrine.cs`
+**File:** `DivineAscension/Blocks/BlockShrine.cs`
 
 ```csharp
 public class BlockShrine : Block
@@ -102,13 +102,13 @@ public class BlockShrine : Block
                 if (be.CanPray(byPlayer, out string reason))
                 {
                     // Trigger prayer through mod system
-                    var modSystem = world.Api.ModLoader.GetModSystem<PantheonWarsSystem>();
+                    var modSystem = world.Api.ModLoader.GetModSystem<DivineAscensionModSystem>();
                     modSystem.OnPlayerPrayAtShrine(byPlayer as IServerPlayer, be.GetDeityType());
 
                     be.OnPrayer(byPlayer as IServerPlayer);
 
                     // Play prayer animation/sound
-                    world.PlaySoundAt(new AssetLocation("pantheonwars:sounds/prayer"),
+                    world.PlaySoundAt(new AssetLocation("divineascension:sounds/prayer"),
                         blockSel.Position.X, blockSel.Position.Y, blockSel.Position.Z);
 
                     return true;
@@ -130,7 +130,7 @@ public class BlockShrine : Block
 ```
 
 #### Integration with ActivityBonusSystem
-**File:** `PantheonWars/PantheonWarsSystem.cs`
+**File:** `DivineAscension/DivineAscensionModSystem.cs`
 
 ```csharp
 public void OnPlayerPrayAtShrine(IServerPlayer player, DeityType shrineDeity)
@@ -185,7 +185,7 @@ Players designate a land claim as a "holy site" for their religion. Praying with
 ### Implementation
 
 #### Religion Land Claim Integration
-**File:** `PantheonWars/Systems/HolySiteManager.cs`
+**File:** `DivineAscension/Systems/HolySiteManager.cs`
 
 ```csharp
 public class HolySiteManager
