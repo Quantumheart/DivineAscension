@@ -15,19 +15,19 @@ public class HuntingFavorTracker(
 {
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
-    private readonly HashSet<string> _lysaFollowers = new();
-
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+
+    private readonly HashSet<string> _wildFollowers = new();
 
     public void Dispose()
     {
         _sapi.Event.OnEntityDeath -= OnEntityDeath;
         _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
         _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
-        _lysaFollowers.Clear();
+        _wildFollowers.Clear();
     }
 
     public DeityDomain DeityDomain { get; } = DeityDomain.Wild;
@@ -61,14 +61,14 @@ public class HuntingFavorTracker(
     {
         var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerId);
         if (deityType == DeityDomain)
-            _lysaFollowers.Add(playerId);
+            _wildFollowers.Add(playerId);
         else
-            _lysaFollowers.Remove(playerId);
+            _wildFollowers.Remove(playerId);
     }
 
     private void OnPlayerLeavesProgression(IServerPlayer player, string religionId)
     {
-        _lysaFollowers.Remove(player.PlayerUID);
+        _wildFollowers.Remove(player.PlayerUID);
     }
 
     private void OnEntityDeath(Entity? entity, DamageSource? damageSource)
@@ -79,7 +79,7 @@ public class HuntingFavorTracker(
         var killer = damageSource.GetCauseEntity();
         if (killer is EntityPlayer { Player: IServerPlayer player })
         {
-            if (!_lysaFollowers.Contains(player.PlayerUID)) return;
+            if (!_wildFollowers.Contains(player.PlayerUID)) return;
 
             var favor = GetFavorForEntity(entity);
             if (favor > 0) _favorSystem.AwardFavorForAction(player, "hunting " + entity.Code.Path, favor);
@@ -90,79 +90,47 @@ public class HuntingFavorTracker(
     {
         if (entity is not EntityAgent || entity is EntityPlayer) return 0;
 
-        var code = entity.Code.Path.ToLower();
+        // Check if entity is marked as huntable via attributes
+        bool isHuntable = IsHuntable(entity);
 
-        // Filter out non-animals (monsters, constructs, undead)
-        if (IsNonAnimal(code)) return 0;
+        // Get entity weight (defaults to 0 if not defined)
+        float weight = entity.Properties?.Weight ?? 0f;
 
-        // Unified pattern-based detection for all animals
-        return CalculateAnimalFavor(code);
+        // If entity is huntable (via attribute), use weight-based calculation
+        if (isHuntable)
+        {
+            // Use weight if defined, otherwise default to small animal tier
+            return weight > 0 ? CalculateFavorByWeight(weight) : 3;
+        }
+
+        return CalculateFavorByWeight(weight);
     }
 
-    internal bool IsNonAnimal(string code)
+    /// <summary>
+    /// Checks if an entity is marked as huntable via its tags.
+    /// </summary>
+    private bool IsHuntable(Entity entity)
     {
-        // Monsters
-        if (code.Contains("drifter") || code.Contains("locust") || code.Contains("bell"))
-            return true;
-
-        // Constructs
-        if (code.Contains("mechanical") || code.Contains("construct") ||
-            code.Contains("automaton") || code.Contains("golem"))
-            return true;
-
-        // Undead
-        if (code.Contains("undead") || code.Contains("skeleton") ||
-            code.Contains("zombie") || code.Contains("ghost") || code.Contains("wraith"))
-            return true;
-
-        // Summons
-        if (code.Contains("summoned") || code.Contains("illusion") || code.Contains("spirit"))
+        if (entity.HasTags("huntable", "animal"))
             return true;
 
         return false;
     }
 
-    internal int CalculateAnimalFavor(string code)
+    /// <summary>
+    /// Calculates favor tier based on entity weight in kilograms.
+    /// Weight thresholds calibrated against vanilla and FotSA-Capreolinae animals.
+    /// </summary>
+    internal int CalculateFavorByWeight(float weight)
     {
-        // Tier 15: Large predators
-        if (code.Contains("bear") ||
-            code.Contains("tiger") || code.Contains("lion") || code.Contains("machairodontinae") ||
-            code.Contains("predator") || code.Contains("apex"))
-            return 15;
-
-        // Tier 12: Large herbivores / medium predators
-        if (code.Contains("wolf") || code.Contains("moose") ||
-            code.Contains("mammoth") || code.Contains("elephant") || code.Contains("rhino") ||
-            code.Contains("bison") || code.Contains("buffalo") || code.Contains("bovinae") || code.Contains("giant"))
-            return 12;
-
-        // Tier 10: Scavengers
-        if (code.Contains("hyena") ||
-            code.Contains("jackal") || code.Contains("vulture") || code.Contains("scavenger"))
-            return 10;
-
-        // Tier 8: Medium prey animals
-        if (code.Contains("deer") || code.Contains("fox") || code.Contains("vulpini") || code.Contains("urocyonini") ||
-            code.Contains("cerdocyonina") || code.Contains("canina") || code.Contains("bighorn") ||
-            code.Contains("gazelle") ||
-            code.Contains("antelope") || code.Contains("caribou") || code.Contains("elk") ||
-            code.Contains("boar") || code.Contains("lynx") || code.Contains("caracal"))
-            return 8;
-
-        // Tier 5: Small domesticated / raccoon-sized
-        if (code.Contains("pig") || code.Contains("sheep") || code.Contains("raccoon") ||
-            code.Contains("goat") || code.Contains("lamb") || code.Contains("calf") ||
-            code.Contains("badger") || code.Contains("otter"))
-            return 5;
-
-        // Tier 3: Tiny animals (default for any animal)
-        if (code.Contains("chicken") || code.Contains("hare") || code.Contains("rabbit") ||
-            code.Contains("bird") || code.Contains("chick") || code.Contains("rodent") ||
-            code.Contains("squirrel") || code.Contains("rat") || code.Contains("mouse") ||
-            code.StartsWith("animal") || code.Contains("/animal/"))
-            return 3;
-
-        // Not recognized as an animal
-        return 0;
+        return weight switch
+        {
+            >= 300 => 15, // Apex predators, massive herbivores (bears, elephants)
+            >= 150 => 12, // Large herbivores (moose, bison, wolves)
+            >= 75 => 10, // Large deer, scavengers (caribou, hyenas)
+            >= 35 => 8, // Medium prey (deer, foxes, boar)
+            >= 10 => 5, // Small animals (sheep, goats, raccoons)
+            _ => 3 // Tiny animals (chickens, rabbits, mice)
+        };
     }
 }

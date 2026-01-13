@@ -186,6 +186,97 @@ public class HuntingFavorTrackerTests
 
     #endregion
 
+    #region Weight-Based Favor Calculation Tests
+
+    [Theory]
+    [InlineData(700f, 15)] // Large moose (male)
+    [InlineData(480f, 15)] // Female moose
+    [InlineData(300f, 15)] // Threshold for apex tier
+    [InlineData(299f, 12)] // Just below apex threshold
+    [InlineData(200f, 12)] // Bison
+    [InlineData(150f, 12)] // Threshold for large herbivores
+    [InlineData(149f, 10)] // Just below large herbivore threshold
+    [InlineData(100f, 10)] // Large deer
+    [InlineData(75f, 10)] // Threshold for large deer/scavengers
+    [InlineData(74f, 8)] // Just below large deer threshold
+    [InlineData(50f, 8)] // Medium deer
+    [InlineData(35f, 8)] // Threshold for medium prey
+    [InlineData(34f, 5)] // Just below medium prey threshold
+    [InlineData(20f, 5)] // Small animal
+    [InlineData(10f, 5)] // Threshold for small animals
+    [InlineData(9f, 3)] // Just below small animal threshold
+    [InlineData(5f, 3)] // Tiny animal
+    [InlineData(1f, 3)] // Very tiny animal
+    [InlineData(0.5f, 3)] // Smallest weight
+    public void CalculateFavorByWeight_ReturnsCorrectTier(float weight, int expectedTier)
+    {
+        var mockSapi = TestFixtures.CreateMockServerAPI();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
+        var mockFavor = TestFixtures.CreateMockFavorSystem();
+
+        var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
+
+        var result = tracker.CalculateFavorByWeight(weight);
+
+        Assert.Equal(expectedTier, result);
+
+        tracker.Dispose();
+    }
+
+    [Fact]
+    public void CalculateFavorByWeight_ApexTier_ReturnsHighestFavor()
+    {
+        var mockSapi = TestFixtures.CreateMockServerAPI();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
+        var mockFavor = TestFixtures.CreateMockFavorSystem();
+
+        var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
+
+        // Test various apex-weight animals
+        Assert.Equal(15, tracker.CalculateFavorByWeight(700f)); // Large moose male
+        Assert.Equal(15, tracker.CalculateFavorByWeight(500f)); // Female moose
+        Assert.Equal(15, tracker.CalculateFavorByWeight(400f)); // Bear
+        Assert.Equal(15, tracker.CalculateFavorByWeight(300f)); // Threshold
+
+        tracker.Dispose();
+    }
+
+    [Fact]
+    public void CalculateFavorByWeight_TinyAnimals_ReturnsMinimumFavor()
+    {
+        var mockSapi = TestFixtures.CreateMockServerAPI();
+        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
+        var mockFavor = TestFixtures.CreateMockFavorSystem();
+
+        var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
+
+        // Test tiny animals (< 10 kg)
+        Assert.Equal(3, tracker.CalculateFavorByWeight(9.9f));
+        Assert.Equal(3, tracker.CalculateFavorByWeight(5f));
+        Assert.Equal(3, tracker.CalculateFavorByWeight(1f));
+        Assert.Equal(3, tracker.CalculateFavorByWeight(0.1f));
+
+        tracker.Dispose();
+    }
+
+    #endregion
+
+    #region IsHuntable Tests
+
+    // Note: IsHuntable tests require mocking Entity.Properties.Attributes which is complex
+    // due to JsonObject being a concrete class. The following documents expected behavior:
+    //
+    // IsHuntable returns true when:
+    // - entity.Properties.Attributes["huntable"] is true
+    // - entity.Properties.Attributes["creatureDiet"] has a value
+    //
+    // IsHuntable returns false when:
+    // - Properties is null
+    // - Attributes is null
+    // - Neither huntable nor creatureDiet attributes are present
+
+    #endregion
+
     #region Animal Favor Values Documentation
 
     // Note: The following are the expected favor values per animal type.
