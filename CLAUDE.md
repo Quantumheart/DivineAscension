@@ -78,6 +78,16 @@ docs/                          # Documentation (see docs/README.md)
 Releases/                      # Packaged mod artifacts from Cake build
 ```
 
+### Documentation
+
+See `docs/README.md` for complete documentation structure and guidelines. Key locations:
+- `docs/topics/planning/` - Planning notes and phase breakdowns
+- `docs/topics/planning/features/` - Feature implementation plans (create subdirectory per feature)
+- `docs/topics/implementation/` - Implementation guides and technical deep-dives
+- `docs/topics/reference/` - Reference material for game systems
+
+When creating feature plans, place them in `docs/topics/planning/features/<feature-name>/`.
+
 ## Architecture Overview
 
 ### Initialization Flow
