@@ -332,6 +332,10 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             {
                 message = "Deity name must be between 2 and 48 characters";
             }
+            else if (ProfanityFilterService.Instance.ContainsProfanity(packet.DeityName))
+            {
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_DEITY_NAME_PROFANITY);
+            }
             else
             {
                 // Create the religion

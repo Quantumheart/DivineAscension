@@ -68,6 +68,7 @@ public class ProfanityFilterService
 
     private readonly HashSet<string> _profanityWords = new(StringComparer.OrdinalIgnoreCase);
     private ICoreAPI? _api;
+    private bool _isEnabled = true;
     private bool _isInitialized;
 
     private ProfanityFilterService()
@@ -83,6 +84,22 @@ public class ProfanityFilterService
     ///     Get the count of loaded words for diagnostics.
     /// </summary>
     internal int WordCount => _profanityWords.Count;
+
+    /// <summary>
+    ///     Gets whether the profanity filter is currently enabled.
+    /// </summary>
+    public bool IsEnabled => _isEnabled;
+
+    /// <summary>
+    ///     Enables or disables the profanity filter at runtime.
+    ///     When disabled, ContainsProfanity always returns false.
+    /// </summary>
+    /// <param name="enabled">True to enable, false to disable</param>
+    public void SetEnabled(bool enabled)
+    {
+        _isEnabled = enabled;
+        _api?.Logger.Notification($"[DivineAscension ProfanityFilter] Filter {(enabled ? "enabled" : "disabled")}");
+    }
 
     /// <summary>
     ///     Initialize the profanity filter service.
@@ -131,6 +148,12 @@ public class ProfanityFilterService
     public bool ContainsProfanity(string text, out string matchedWord)
     {
         matchedWord = string.Empty;
+
+        // If filter is disabled, allow all content
+        if (!_isEnabled)
+        {
+            return false;
+        }
 
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -509,6 +532,15 @@ public class ProfanityFilterService
     {
         _profanityWords.Clear();
         _isInitialized = false;
+        _isEnabled = true;
         _api = null;
+    }
+
+    /// <summary>
+    ///     Set the enabled state for testing purposes. Only use in unit tests.
+    /// </summary>
+    internal void SetEnabledForTesting(bool enabled)
+    {
+        _isEnabled = enabled;
     }
 }

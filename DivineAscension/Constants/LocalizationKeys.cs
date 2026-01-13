@@ -998,6 +998,10 @@ public static class LocalizationKeys
     public const string CMD_RELIGION_ERROR_INVALID_DEITY = "divineascension:cmd.religion.error.invalid_deity";
     public const string CMD_RELIGION_ERROR_NAME_EXISTS = "divineascension:cmd.religion.error.name_exists";
     public const string CMD_RELIGION_ERROR_NAME_PROFANITY = "divineascension:cmd.religion.error.name_profanity";
+
+    public const string CMD_RELIGION_ERROR_DEITY_NAME_PROFANITY =
+        "divineascension:cmd.religion.error.deity_name_profanity";
+
     public const string CMD_RELIGION_ERROR_DESC_PROFANITY = "divineascension:cmd.religion.error.desc_profanity";
     public const string CMD_RELIGION_ERROR_NOT_FOUND = "divineascension:cmd.religion.error.not_found";
     public const string CMD_RELIGION_ERROR_PRIVATE_NO_INVITE = "divineascension:cmd.religion.error.private_no_invite";
@@ -1313,6 +1317,7 @@ public static class LocalizationKeys
     public const string NET_RELIGION_NAME_TOO_LONG = "divineascension:net.religion.name_too_long";
     public const string NET_RELIGION_NAME_EXISTS = "divineascension:net.religion.name_exists";
     public const string NET_RELIGION_NAME_PROFANITY = "divineascension:net.religion.name_profanity";
+    public const string NET_RELIGION_DEITY_NAME_PROFANITY = "divineascension:net.religion.deity_name_profanity";
     public const string NET_RELIGION_DESC_PROFANITY = "divineascension:net.religion.desc_profanity";
     public const string NET_RELIGION_ALREADY_IN_RELIGION = "divineascension:net.religion.already_in_religion";
     public const string NET_RELIGION_INVALID_DEITY = "divineascension:net.religion.invalid_deity";

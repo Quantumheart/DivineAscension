@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using DivineAscension.Commands;
 using DivineAscension.Constants;
+using DivineAscension.Data;
 using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Network.Diplomacy;
@@ -15,6 +18,7 @@ using HarmonyLib;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
+using Vintagestory.API.Util;
 
 namespace DivineAscension;
 
@@ -22,9 +26,12 @@ namespace DivineAscension;
 public class DivineAscensionModSystem : ModSystem
 {
     public const string NETWORK_CHANNEL = "divineascension";
+    private const string CONFIG_DATA_KEY = "DivineAscension.ModConfig";
+
     private BlessingNetworkHandler? _blessingNetworkHandler;
     private CivilizationManager? _civilizationManager;
     private CivilizationNetworkHandler? _civilizationNetworkHandler;
+    private ModConfigData _configData = new();
     private DiplomacyNetworkHandler? _diplomacyNetworkHandler;
 
     // Client-side systems
@@ -44,6 +51,11 @@ public class DivineAscensionModSystem : ModSystem
     // Public network client for UI dialogs
     public DivineAscensionNetworkClient? NetworkClient { get; private set; }
     public IUiService UiService { get; private set; } = null!;
+
+    /// <summary>
+    ///     Gets the mod configuration data (server-side only).
+    /// </summary>
+    public ModConfigData Config => _configData;
 
     public string ModName => "divineascension";
 
@@ -115,6 +127,13 @@ public class DivineAscensionModSystem : ModSystem
         base.StartServerSide(api);
         _sapi = api;
 
+        // Subscribe to world save/load events for config persistence
+        api.Event.SaveGameLoaded += OnSaveGameLoaded;
+        api.Event.GameWorldSave += OnGameWorldSave;
+
+        // Load config immediately (in case SaveGameLoaded already fired)
+        LoadModConfig();
+
         // Setup network channel and handlers
         _serverChannel = api.Network.GetChannel(NETWORK_CHANNEL);
         _serverChannel.SetMessageHandler<PlayerReligionDataPacket>(OnServerMessageReceived);
@@ -140,6 +159,13 @@ public class DivineAscensionModSystem : ModSystem
         {
             api.Event.PlayerJoin += OnPlayerJoinMigrationNotify;
         }
+
+        // Register config commands (outside initializer since it needs mod system callbacks)
+        var configCommands = new ConfigCommands(
+            api,
+            SetProfanityFilterEnabled,
+            () => _configData.ProfanityFilterEnabled);
+        configCommands.RegisterCommands();
 
         api.Logger.Notification("[DivineAscension] Server-side initialization complete");
     }
@@ -173,6 +199,8 @@ public class DivineAscensionModSystem : ModSystem
         if (_sapi != null)
         {
             _sapi.Event.PlayerJoin -= OnPlayerJoinMigrationNotify;
+            _sapi.Event.SaveGameLoaded -= OnSaveGameLoaded;
+            _sapi.Event.GameWorldSave -= OnGameWorldSave;
         }
 
         // Cleanup network handlers
@@ -237,6 +265,71 @@ public class DivineAscensionModSystem : ModSystem
             _sapi?.Logger.Debug(
                 $"[DivineAscension] Sent deity name migration notice to founder {player.PlayerName} for {religion.ReligionName}");
         }
+    }
+
+    #endregion
+
+    #region Configuration Persistence
+
+    private void OnSaveGameLoaded()
+    {
+        LoadModConfig();
+    }
+
+    private void OnGameWorldSave()
+    {
+        SaveModConfig();
+    }
+
+    private void LoadModConfig()
+    {
+        try
+        {
+            var data = _sapi?.WorldManager.SaveGame.GetData(CONFIG_DATA_KEY);
+            if (data != null)
+            {
+                _configData = SerializerUtil.Deserialize<ModConfigData>(data) ?? new ModConfigData();
+            }
+            else
+            {
+                _configData = new ModConfigData();
+            }
+
+            // Apply config to services
+            ProfanityFilterService.Instance.SetEnabled(_configData.ProfanityFilterEnabled);
+
+            _sapi?.Logger.Debug(
+                $"[DivineAscension] Loaded mod config (ProfanityFilter: {_configData.ProfanityFilterEnabled})");
+        }
+        catch (Exception ex)
+        {
+            _sapi?.Logger.Error($"[DivineAscension] Error loading mod config: {ex.Message}");
+            _configData = new ModConfigData();
+        }
+    }
+
+    private void SaveModConfig()
+    {
+        try
+        {
+            var data = SerializerUtil.Serialize(_configData);
+            _sapi?.WorldManager.SaveGame.StoreData(CONFIG_DATA_KEY, data);
+            _sapi?.Logger.Debug("[DivineAscension] Saved mod config");
+        }
+        catch (Exception ex)
+        {
+            _sapi?.Logger.Error($"[DivineAscension] Error saving mod config: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    ///     Sets the profanity filter enabled state and saves the config.
+    /// </summary>
+    public void SetProfanityFilterEnabled(bool enabled)
+    {
+        _configData.ProfanityFilterEnabled = enabled;
+        ProfanityFilterService.Instance.SetEnabled(enabled);
+        SaveModConfig();
     }
 
     #endregion

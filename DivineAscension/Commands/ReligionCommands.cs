@@ -221,6 +221,11 @@ public class ReligionCommands(
         if (deityName.Length < 2 || deityName.Length > 48)
             return TextCommandResult.Error("Deity name must be between 2 and 48 characters");
 
+        // Check for profanity in deity name
+        if (ProfanityFilterService.Instance.ContainsProfanity(deityName))
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_DEITY_NAME_PROFANITY));
+
         // Parse visibility
         var isPublic = visibility?.ToLower() != "private";
 
