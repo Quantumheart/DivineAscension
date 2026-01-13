@@ -107,21 +107,11 @@ public class HuntingFavorTracker(
     }
 
     /// <summary>
-    /// Checks if an entity is marked as huntable via its attributes.
-    /// Supports multiple attribute formats used by various mods.
+    /// Checks if an entity is marked as huntable via its tags.
     /// </summary>
     private bool IsHuntable(Entity entity)
     {
-        var attributes = entity.Properties?.Attributes;
-        if (attributes == null) return false;
-
-        // Check for "huntable" attribute (used by many mods)
-        if (attributes["huntable"]?.AsBool(false) == true)
-            return true;
-
-        // Check for creature diet attribute (indicates it's an animal)
-        var diet = attributes["creatureDiet"]?.AsString();
-        if (!string.IsNullOrEmpty(diet))
+        if (entity.HasTags("huntable", "animal"))
             return true;
 
         return false;
