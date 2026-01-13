@@ -18,10 +18,12 @@ public class CivilizationCreateViewModelTests
         var vm = new CivilizationCreateViewModel(
             civilizationName: "TestCiv",
             selectedIcon: "custom_icon",
+            description: "Test description",
             errorMessage: "Error!",
             userIsReligionFounder: true,
             userInCivilization: false,
             profanityMatchedWord: "test",
+            profanityMatchedWordInDescription: null,
             x: 100, y: 200, width: 600, height: 500);
 
         // Assert
@@ -48,10 +50,12 @@ public class CivilizationCreateViewModelTests
         var vm = new CivilizationCreateViewModel(
             civilizationName: "TestCiv",
             selectedIcon: "default",
+            description: "",
             errorMessage: null,
             userIsReligionFounder: true,
             userInCivilization: false,
             profanityMatchedWord: null,
+            profanityMatchedWordInDescription: null,
             x: 0, y: 0, width: 500, height: 400);
 
         // Assert
@@ -65,10 +69,12 @@ public class CivilizationCreateViewModelTests
         var vm = new CivilizationCreateViewModel(
             civilizationName: "TestCiv",
             selectedIcon: "default",
+            description: "",
             errorMessage: null,
             userIsReligionFounder: false,
             userInCivilization: false,
             profanityMatchedWord: null,
+            profanityMatchedWordInDescription: null,
             x: 0, y: 0, width: 500, height: 400);
 
         // Assert
@@ -82,10 +88,12 @@ public class CivilizationCreateViewModelTests
         var vm = new CivilizationCreateViewModel(
             civilizationName: "TestCiv",
             selectedIcon: "default",
+            description: "",
             errorMessage: null,
             userIsReligionFounder: true,
             userInCivilization: true,
             profanityMatchedWord: null,
+            profanityMatchedWordInDescription: null,
             x: 0, y: 0, width: 500, height: 400);
 
         // Assert
@@ -102,10 +110,12 @@ public class CivilizationCreateViewModelTests
         var vm = new CivilizationCreateViewModel(
             civilizationName: name ?? "",
             selectedIcon: "default",
+            description: "",
             errorMessage: null,
             userIsReligionFounder: true,
             userInCivilization: false,
             profanityMatchedWord: null,
+            profanityMatchedWordInDescription: null,
             x: 0, y: 0, width: 500, height: 400);
 
         // Assert
@@ -121,10 +131,12 @@ public class CivilizationCreateViewModelTests
         var vm = new CivilizationCreateViewModel(
             civilizationName: name,
             selectedIcon: "default",
+            description: "",
             errorMessage: null,
             userIsReligionFounder: true,
             userInCivilization: false,
             profanityMatchedWord: null,
+            profanityMatchedWordInDescription: null,
             x: 0, y: 0, width: 500, height: 400);
 
         // Assert
@@ -139,10 +151,12 @@ public class CivilizationCreateViewModelTests
         var vm = new CivilizationCreateViewModel(
             civilizationName: longName,
             selectedIcon: "default",
+            description: "",
             errorMessage: null,
             userIsReligionFounder: true,
             userInCivilization: false,
             profanityMatchedWord: null,
+            profanityMatchedWordInDescription: null,
             x: 0, y: 0, width: 500, height: 400);
 
         // Assert
@@ -157,10 +171,12 @@ public class CivilizationCreateViewModelTests
         var vm = new CivilizationCreateViewModel(
             civilizationName: exactName,
             selectedIcon: "default",
+            description: "",
             errorMessage: null,
             userIsReligionFounder: true,
             userInCivilization: false,
             profanityMatchedWord: null,
+            profanityMatchedWordInDescription: null,
             x: 0, y: 0, width: 500, height: 400);
 
         // Assert
@@ -174,10 +190,12 @@ public class CivilizationCreateViewModelTests
         var vm = new CivilizationCreateViewModel(
             civilizationName: "Abc",
             selectedIcon: "default",
+            description: "",
             errorMessage: null,
             userIsReligionFounder: true,
             userInCivilization: false,
             profanityMatchedWord: null,
+            profanityMatchedWordInDescription: null,
             x: 0, y: 0, width: 500, height: 400);
 
         // Assert
@@ -191,10 +209,12 @@ public class CivilizationCreateViewModelTests
         var vm = new CivilizationCreateViewModel(
             civilizationName: "ValidName",
             selectedIcon: "default",
+            description: "",
             errorMessage: null,
             userIsReligionFounder: true,
             userInCivilization: false,
             profanityMatchedWord: "badword",
+            profanityMatchedWordInDescription: null,
             x: 0, y: 0, width: 500, height: 400);
 
         // Assert
@@ -208,10 +228,12 @@ public class CivilizationCreateViewModelTests
         var vm = new CivilizationCreateViewModel(
             civilizationName: "ValidName",
             selectedIcon: "default",
+            description: "",
             errorMessage: "Some server error",
             userIsReligionFounder: true,
             userInCivilization: false,
             profanityMatchedWord: null,
+            profanityMatchedWordInDescription: null,
             x: 0, y: 0, width: 500, height: 400);
 
         // Assert
@@ -229,10 +251,12 @@ public class CivilizationCreateViewModelTests
         var vm = new CivilizationCreateViewModel(
             civilizationName: "SomeName",
             selectedIcon: "default",
+            description: "",
             errorMessage: null,
             userIsReligionFounder: true,
             userInCivilization: false,
             profanityMatchedWord: "offensive",
+            profanityMatchedWordInDescription: null,
             x: 0, y: 0, width: 500, height: 400);
 
         // Assert
@@ -247,10 +271,12 @@ public class CivilizationCreateViewModelTests
         var vm = new CivilizationCreateViewModel(
             civilizationName: "ValidName",
             selectedIcon: "default",
+            description: "",
             errorMessage: null,
             userIsReligionFounder: true,
             userInCivilization: false,
             profanityMatchedWord: null,
+            profanityMatchedWordInDescription: null,
             x: 0, y: 0, width: 500, height: 400);
 
         // Assert
@@ -264,10 +290,12 @@ public class CivilizationCreateViewModelTests
         var vm = new CivilizationCreateViewModel(
             civilizationName: "ValidName",
             selectedIcon: "default",
+            description: "",
             errorMessage: null,
             userIsReligionFounder: true,
             userInCivilization: false,
             profanityMatchedWord: "",
+            profanityMatchedWordInDescription: null,
             x: 0, y: 0, width: 500, height: 400);
 
         // Assert

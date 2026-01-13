@@ -172,6 +172,13 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
                 return null;
             }
 
+            // Validate description length (max 200 characters)
+            if (description.Length > 200)
+            {
+                _sapi.Logger.Warning("[DivineAscension] Description must be 200 characters or less");
+                return null;
+            }
+
             // Check if name already exists
             if (_data.Civilizations.Values.Any(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
             {
@@ -422,10 +429,10 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
             {
                 foreach (var memberUID in civReligion.MemberUIDs)
                 {
-                    var serverPlayer = _sapi.World.PlayerByUid(memberUID) as IServerPlayer;
-                    if (serverPlayer != null)
+                    var player = _sapi.World.PlayerByUid(memberUID) as IServerPlayer;
+                    if (player != null)
                     {
-                        serverPlayer.SendMessage(
+                        player.SendMessage(
                             GlobalConstants.GeneralChatGroup,
                             message,
                             EnumChatType.Notification
