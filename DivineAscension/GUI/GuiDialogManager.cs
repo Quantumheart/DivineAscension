@@ -34,8 +34,10 @@ public class GuiDialogManager : IBlessingDialogManager
 #if DEBUG
         ReligionStateManager.MembersProvider = new FakeReligionMemberProvider();
         ReligionStateManager.MembersProvider.ConfigureDevSeed(500, 20251204);
-        ReligionStateManager.UseReligionProvider(new FakeReligionProvider());
+        var fakeReligionProvider = new FakeReligionProvider();
+        ReligionStateManager.UseReligionProvider(fakeReligionProvider);
         ReligionStateManager.ReligionsProvider!.ConfigureDevSeed(500, 20251204);
+        ReligionStateManager.UseReligionDetailProvider(new FakeReligionDetailProvider(fakeReligionProvider));
         ReligionStateManager.RefreshReligionsFromProvider();
 
         // Initialize civilization fake provider
