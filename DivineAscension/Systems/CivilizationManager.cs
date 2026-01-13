@@ -4,6 +4,8 @@ using System.Linq;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
+using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
@@ -418,8 +420,8 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
             {
                 foreach (var memberUID in civReligion.MemberUIDs)
                 {
-                    var player = _sapi.World.PlayerByUid(memberUID);
-                    if (player is IServerPlayer serverPlayer && player.ConnectionState == EnumEntityState.Active)
+                    var serverPlayer = _sapi.World.PlayerByUid(memberUID) as IServerPlayer;
+                    if (serverPlayer != null)
                     {
                         serverPlayer.SendMessage(
                             GlobalConstants.GeneralChatGroup,
