@@ -80,7 +80,9 @@ public class HuntingFavorTracker(
         if (killer is EntityPlayer { Player: IServerPlayer player })
         {
             if (!_wildFollowers.Contains(player.PlayerUID)) return;
+            if (entity is not EntityAgent || entity is EntityPlayer) return;
 
+            if (!IsHuntable(entity)) return;
             var favor = GetFavorForEntity(entity);
             if (favor > 0) _favorSystem.AwardFavorForAction(player, "hunting " + entity.Code.Path, favor);
         }
@@ -90,18 +92,9 @@ public class HuntingFavorTracker(
     {
         if (entity is not EntityAgent || entity is EntityPlayer) return 0;
 
-        // Check if entity is marked as huntable via attributes
-        bool isHuntable = IsHuntable(entity);
-
         // Get entity weight (defaults to 0 if not defined)
         float weight = entity.Properties?.Weight ?? 0f;
 
-        // If entity is huntable (via attribute), use weight-based calculation
-        if (isHuntable)
-        {
-            // Use weight if defined, otherwise default to small animal tier
-            return weight > 0 ? CalculateFavorByWeight(weight) : 3;
-        }
 
         return CalculateFavorByWeight(weight);
     }
