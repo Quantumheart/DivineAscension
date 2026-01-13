@@ -25,6 +25,13 @@ internal sealed class FakeReligionProvider : IReligionProvider
     private static readonly string[] Deities =
         { nameof(DeityDomain.Craft), nameof(DeityDomain.Wild), nameof(DeityDomain.Harvest), nameof(DeityDomain.Stone) };
 
+    private static readonly string[] DeityNames =
+    {
+        "Aurelia", "Valdris", "Khorvax", "Lysara", "Theron", "Zephyra", "Mordecai", "Seraphine",
+        "Gorthak", "Celestine", "Orinthal", "Nyx", "Solaris", "Bramwell", "Yvaine", "Kaldros",
+        "Mireth", "Veyron", "Ashara", "Grimwald"
+    };
+
     private IReadOnlyList<ReligionVM> _cache = Array.Empty<ReligionVM>();
     private int _count = 250;
     private int _seed = 1337;
@@ -56,14 +63,15 @@ internal sealed class FakeReligionProvider : IReligionProvider
             var uid = GenerateGuid(rnd).ToString("N");
             var name = $"{First[rnd.Next(First.Length)]} {Last[rnd.Next(Last.Length)]}";
             var deity = Deities[rnd.Next(Deities.Length)];
+            var deityName = DeityNames[rnd.Next(DeityNames.Length)];
             var memberCount = rnd.Next(0, 500);
             var prestige = rnd.Next(0, 20000);
             var prestigeRank = GetPrestigeRank(prestige);
             var isPublic = rnd.NextDouble() < 0.7; // majority public for browse
             var founderUid = GenerateGuid(rnd).ToString("N");
-            var description = GenerateDescription(rnd, name, deity, memberCount);
-            list.Add(new ReligionVM(uid, name, deity, memberCount, prestige, prestigeRank, isPublic, founderUid,
-                description));
+            var description = GenerateDescription(rnd, name, deity, deityName, memberCount);
+            list.Add(new ReligionVM(uid, name, deity, deityName, memberCount, prestige, prestigeRank, isPublic,
+                founderUid, description));
         }
 
         // A couple of edge cases
@@ -71,6 +79,7 @@ internal sealed class FakeReligionProvider : IReligionProvider
             GenerateGuid(rnd).ToString("N"),
             new string('X', 36), // very long name
             "Zephra",
+            "The Unnamed One", // edge case deity name
             0, // no members
             0, // no prestige
             "Unranked",
@@ -95,7 +104,7 @@ internal sealed class FakeReligionProvider : IReligionProvider
         };
     }
 
-    private static string GenerateDescription(Random rnd, string name, string deity, int members)
+    private static string GenerateDescription(Random rnd, string name, string deity, string deityName, int members)
     {
         var phrases = new[]
         {
@@ -115,7 +124,8 @@ internal sealed class FakeReligionProvider : IReligionProvider
         var p2 = phrases[rnd.Next(phrases.Length)];
         while (p2 == p1) p2 = phrases[rnd.Next(phrases.Length)];
 
-        return $"{name} venerates {deity} through {p1} and {p2}. Currently {members} faithful walk its way.";
+        return
+            $"{name} venerates {deityName}, deity of {deity}, through {p1} and {p2}. Currently {members} faithful walk its way.";
     }
 
     private static Guid GenerateGuid(Random rnd)

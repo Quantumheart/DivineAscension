@@ -44,6 +44,7 @@ public class ReligionStateManager : IReligionStateManager
     // UI-only adapters (fake or real). Null when not used.
     internal IReligionMemberProvider? MembersProvider { get; set; }
     internal IReligionProvider? ReligionsProvider { get; private set; }
+    internal IReligionDetailProvider? ReligionDetailProvider { get; private set; }
 
     public ReligionTabState State { get; } = new();
     public string? CurrentReligionUID { get; set; }
@@ -139,6 +140,7 @@ public class ReligionStateManager : IReligionStateManager
                     ReligionUID = r.religionUID,
                     ReligionName = r.religionName,
                     Domain = r.deity,
+                    DeityName = r.deityName,
                     MemberCount = r.memberCount,
                     Prestige = r.prestige,
                     PrestigeRank = r.prestigeRank,
@@ -289,6 +291,15 @@ public class ReligionStateManager : IReligionStateManager
     }
 
     /// <summary>
+    ///     Configure a UI-only religion detail provider (fake or real). When set, RequestReligionDetail()
+    ///     uses it instead of performing a network call.
+    /// </summary>
+    internal void UseReligionDetailProvider(IReligionDetailProvider provider)
+    {
+        ReligionDetailProvider = provider;
+    }
+
+    /// <summary>
     ///     Refresh the current religion list from the configured provider (if any).
     /// </summary>
     public void RefreshReligionsFromProvider()
@@ -407,6 +418,40 @@ public class ReligionStateManager : IReligionStateManager
     {
         State.BrowseState.DetailState.IsLoading = true;
         State.BrowseState.DetailState.ViewingReligionUID = religionUID;
+
+        // Adapter short-circuit: if a UI-only provider is configured, use it
+        if (ReligionDetailProvider != null)
+        {
+            var detail = ReligionDetailProvider.GetReligionDetail(religionUID);
+            if (detail != null)
+            {
+                // Map ReligionDetailVM → ReligionDetailResponsePacket
+                var packet = new ReligionDetailResponsePacket
+                {
+                    ReligionUID = detail.ReligionUID,
+                    ReligionName = detail.ReligionName,
+                    Domain = detail.Deity,
+                    DeityName = detail.DeityName,
+                    Description = detail.Description,
+                    Prestige = detail.Prestige,
+                    PrestigeRank = detail.PrestigeRank,
+                    IsPublic = detail.IsPublic,
+                    FounderUID = detail.FounderUID,
+                    FounderName = detail.FounderName,
+                    Members = detail.Members.Select(m => new ReligionDetailResponsePacket.MemberInfo
+                    {
+                        PlayerUID = m.PlayerUID,
+                        PlayerName = m.PlayerName,
+                        FavorRank = m.FavorRank,
+                        Favor = m.Favor
+                    }).ToList()
+                };
+                UpdateReligionDetail(packet);
+                return;
+            }
+        }
+
+        // Default: request from server
         _uiService.RequestReligionDetail(religionUID);
     }
 

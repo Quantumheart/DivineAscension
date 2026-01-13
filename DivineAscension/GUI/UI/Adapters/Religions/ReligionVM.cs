@@ -4,6 +4,7 @@ internal sealed record ReligionVM(
     string religionUID,
     string religionName,
     string deity,
+    string deityName,
     int memberCount,
     int prestige,
     string prestigeRank,
