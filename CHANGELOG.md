@@ -1,3 +1,8 @@
+## [4.5.2] - 2026-01-13
+
+### Fixed
+- resolve monsters giving wild favor
+
 ## [4.5.1] - 2026-01-13
 
 ### Fixed
