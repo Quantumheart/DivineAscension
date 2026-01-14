@@ -378,7 +378,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             State.BrowseState.AllCivilizations,
             State.BrowseState.IsLoading,
             State.BrowseState.BrowseScrollY,
-            State.BrowseState.IsDeityFilterOpen,
+            State.BrowseState.SelectedCivId,
             UserHasReligion,
             HasCivilization(),
             x,
@@ -388,7 +388,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
         // Render
         var drawList = ImGui.GetWindowDrawList();
-        var result = CivilizationBrowseRenderer.Draw(vm, drawList);
+        var result = CivilizationBrowseRenderer.Draw(vm, State.BrowseState.IsDeityFilterOpen, drawList);
 
         // Process events
         ProcessBrowseEvents(result.Events);
@@ -722,6 +722,17 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     State.DetailState.ViewingCivilizationId = vdc.civId;
                     State.DetailState.MemberScrollY = 0f;
                     RequestCivilizationInfo(vdc.civId);
+                    break;
+
+                case BrowseEvent.Selected selected:
+                    // Update selection state
+                    State.BrowseState.SelectedCivId = selected.CivId;
+                    State.BrowseState.BrowseScrollY = selected.ScrollY;
+
+                    // Auto-navigate to detail view
+                    State.DetailState.ViewingCivilizationId = selected.CivId;
+                    State.DetailState.MemberScrollY = 0f;
+                    RequestCivilizationInfo(selected.CivId);
                     break;
 
                 case BrowseEvent.RefreshClicked:
