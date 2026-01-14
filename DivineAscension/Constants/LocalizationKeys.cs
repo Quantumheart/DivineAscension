@@ -272,6 +272,13 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_BROWSE_LOADING = "divineascension:ui.civilization.browse.loading";
     public const string UI_CIVILIZATION_BROWSE_MEMBERS_LABEL = "divineascension:ui.civilization.browse.members";
     public const string UI_CIVILIZATION_BROWSE_VIEW_DETAILS = "divineascension:ui.civilization.browse.view_details";
+    public const string UI_CIVILIZATION_BROWSE_HEADER_NAME = "divineascension:ui.civilization.browse.header.name";
+
+    public const string UI_CIVILIZATION_BROWSE_HEADER_RELIGIONS =
+        "divineascension:ui.civilization.browse.header.religions";
+
+    public const string UI_CIVILIZATION_BROWSE_HEADER_DESCRIPTION =
+        "divineascension:ui.civilization.browse.header.description";
 
     #endregion
 
@@ -939,7 +946,10 @@ public static class LocalizationKeys
     public const string CMD_CIV_ERROR_KICK_FAILED = "divineascension:cmd.civ.error.kick_failed";
     public const string CMD_CIV_ERROR_ONLY_FOUNDER_DISBAND = "divineascension:cmd.civ.error.only_founder_disband";
     public const string CMD_CIV_ERROR_DISBAND_FAILED = "divineascension:cmd.civ.error.disband_failed";
-    public const string CMD_CIV_ERROR_ONLY_FOUNDER_DESCRIPTION = "divineascension:cmd.civ.error.only_founder_description";
+
+    public const string CMD_CIV_ERROR_ONLY_FOUNDER_DESCRIPTION =
+        "divineascension:cmd.civ.error.only_founder_description";
+
     public const string CMD_CIV_ERROR_CIV_NOT_FOUND = "divineascension:cmd.civ.error.civ_not_found";
     public const string CMD_CIV_ERROR_NOT_IN_CIV_SPECIFY_NAME = "divineascension:cmd.civ.error.not_in_civ_specify_name";
 
