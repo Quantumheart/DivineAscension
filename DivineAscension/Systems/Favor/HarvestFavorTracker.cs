@@ -14,10 +14,10 @@ namespace DivineAscension.Systems.Favor;
 ///     Tracks agricultural activities and awards favor to Aethra followers
 ///     Activities: crop harvesting, planting, and cooking meals
 /// </summary>
-public class AethraFavorTracker(
+public class HarvestFavorTracker(
     IPlayerProgressionDataManager playerProgressionDataManager,
     ICoreServerAPI sapi,
-    FavorSystem favorSystem)
+    IFavorSystem favorSystem)
     : IFavorTracker, IDisposable
 {
     // Favor values
@@ -27,10 +27,9 @@ public class AethraFavorTracker(
     private const float FavorComplexMeal = 5f;
     private const float FavorGourmetMeal = 10f;
     private static readonly TimeSpan CookingAwardCooldown = TimeSpan.FromSeconds(5);
+    private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
-    // Cache of active Aethra followers for fast lookup
-    private readonly HashSet<string> _aethraFollowers = new();
-    private readonly FavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+    private readonly HashSet<string> _harvestFollowers = new();
 
     // Event-based: no polling or container tracking needed
 
@@ -44,20 +43,22 @@ public class AethraFavorTracker(
 
     public void Dispose()
     {
-        _sapi.Event.BreakBlock -= OnBlockBroken;
+        BlockCropPatches.OnCropHarvested -= OnCropHarvested;
         CropPlantingPatches.OnCropPlanted -= HandleCropPlanted;
         CookingPatches.OnMealCooked -= HandleMealCooked;
         _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
         _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
-        _aethraFollowers.Clear();
+        _sapi.Event.PlayerDisconnect -= OnPlayerDisconnect;
+        _harvestFollowers.Clear();
+        _lastCookingAwardUtc.Clear();
     }
 
     public DeityDomain DeityDomain { get; } = DeityDomain.Harvest;
 
     public void Initialize()
     {
-        // Hook into block break event for crop harvesting
-        _sapi.Event.BreakBlock += OnBlockBroken;
+        // Subscribe to crop harvesting via typed BlockCrop patch
+        BlockCropPatches.OnCropHarvested += OnCropHarvested;
 
         // Subscribe to crop planting patch events (uses Harmony patch on BlockEntityFarmland.TryPlant)
         CropPlantingPatches.OnCropPlanted += HandleCropPlanted;
@@ -73,6 +74,9 @@ public class AethraFavorTracker(
         _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
         _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
 
+        // Clean up cooking cooldown cache on player disconnect
+        _sapi.Event.PlayerDisconnect += OnPlayerDisconnect;
+
         _sapi.Logger.Notification("[DivineAscension] AethraFavorTracker initialized");
     }
 
@@ -80,7 +84,7 @@ public class AethraFavorTracker(
 
     private void HandleCropPlanted(IServerPlayer player, Block cropBlock)
     {
-        if (!_aethraFollowers.Contains(player.PlayerUID)) return;
+        if (!_harvestFollowers.Contains(player.PlayerUID)) return;
 
         // Award favor for planting crops
         _favorSystem.AwardFavorForAction(player, "planting " + GetCropName(cropBlock), FavorPerPlanting);
@@ -92,7 +96,7 @@ public class AethraFavorTracker(
 
     private void RefreshFollowerCache()
     {
-        _aethraFollowers.Clear();
+        _harvestFollowers.Clear();
 
         var onlinePlayers = _sapi?.World?.AllOnlinePlayers;
         if (onlinePlayers == null) return;
@@ -100,102 +104,85 @@ public class AethraFavorTracker(
         foreach (var player in onlinePlayers)
         {
             if (_playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID) == DeityDomain)
-                _aethraFollowers.Add(player.PlayerUID);
+                _harvestFollowers.Add(player.PlayerUID);
         }
     }
 
     private void OnPlayerDataChanged(string playerUID)
     {
         if (_playerProgressionDataManager.GetPlayerDeityType(playerUID) == DeityDomain)
-            _aethraFollowers.Add(playerUID);
+            _harvestFollowers.Add(playerUID);
         else
-            _aethraFollowers.Remove(playerUID);
+            _harvestFollowers.Remove(playerUID);
     }
 
     private void OnPlayerLeavesProgression(IServerPlayer player, string religionUID)
     {
-        _aethraFollowers.Remove(player.PlayerUID);
+        _harvestFollowers.Remove(player.PlayerUID);
+    }
+
+    private void OnPlayerDisconnect(IServerPlayer player)
+    {
+        _lastCookingAwardUtc.Remove(player.PlayerUID);
     }
 
     #endregion
 
     #region Crop Harvesting Detection
 
-    private void OnBlockBroken(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier,
-        ref EnumHandling handling)
+    /// <summary>
+    ///     Handles crop harvesting via BlockCropPatches (typed BlockCrop).
+    ///     Uses batching for scythe harvests, immediate for manual harvests.
+    /// </summary>
+    private void OnCropHarvested(IServerPlayer player, BlockCrop crop, BlockPos pos, bool isScytheHarvest)
     {
-        if (!_aethraFollowers.Contains(player.PlayerUID)) return;
+        if (!_harvestFollowers.Contains(player.PlayerUID)) return;
+        if (!IsMatureCrop(crop)) return;
 
-        var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
-        if (IsCropBlock(block))
-            // Award favor for harvesting crops
-            _favorSystem.AwardFavorForAction(player, "harvesting " + GetCropName(block), FavorPerCropHarvest);
+        var actionName = "harvesting " + GetCropName(crop);
+
+        if (isScytheHarvest)
+        {
+            // Use batched favor for scythe harvesting (avoid performance issues on large fields)
+            _favorSystem.QueueFavorForAction(player, actionName, FavorPerCropHarvest, DeityDomain);
+        }
+        else
+        {
+            // Use immediate favor for manual harvesting (better player feedback)
+            _favorSystem.AwardFavorForAction(player, actionName, FavorPerCropHarvest);
+        }
     }
 
     /// <summary>
-    ///     Checks if a block is a harvestable crop (fully grown only)
+    ///     Checks if a crop is mature (fully grown).
     /// </summary>
-    private bool IsCropBlock(Block block)
+    private bool IsMatureCrop(BlockCrop crop)
     {
-        if (block is not BlockCrop cropBlock) return false;
-        if (block?.Code == null) return false;
+        if (crop.Code == null) return false;
 
-        var path = block.Code.Path;
-
-        // Check if it's harvested
-        if (path.Contains("harvested")) return false;
-
-        // Extract current growth stage from block code (e.g., "crop-carrot-7" → 7)
-        var parts = path.Split('-');
-        if (parts.Length < 3 || !int.TryParse(parts[^1], out int currentStage))
-        {
-            _sapi.Logger.Debug($"[AethraFavorTracker] Could not parse growth stage from: {path}");
+        // Check if it's already harvested
+        if (crop.Variant.TryGetValue("state", out var state) && state == "harvested")
             return false;
-        }
 
-        // Try to get max growth stages from CropProps
-        if (cropBlock.CropProps != null)
+        var currentStage = crop.CurrentCropStage;
+
+        if (crop.CropProps != null)
         {
-            int maxStages = cropBlock.CropProps.GrowthStages;
-            _sapi.Logger.Debug($"[AethraFavorTracker] Crop: {path}, Current: {currentStage}, Max: {maxStages}");
+            var maxStages = crop.CropProps.GrowthStages;
             return currentStage >= maxStages;
         }
 
-        // Fallback: Check block attributes
-        var cropProps = block.Attributes?["cropProps"];
-        if (cropProps != null)
-        {
-            int maxStages = cropProps["growthStages"]?.AsInt() ?? 0;
-            if (maxStages > 0)
-            {
-                _sapi.Logger.Debug(
-                    $"[AethraFavorTracker] Crop (attrs): {path}, Current: {currentStage}, Max: {maxStages}");
-                return currentStage >= maxStages;
-            }
-        }
-
-        _sapi.Logger.Warning($"[AethraFavorTracker] Could not determine max stages for crop: {path}");
+        _sapi.Logger.Warning($"[HarvestFavorTracker] Could not determine max stages for crop: {crop.Code.Path}");
         return false;
     }
 
-    private string GetCropName(Block block)
+    /// <summary>
+    ///     Gets a display name for the crop from its variant type.
+    /// </summary>
+    private static string GetCropName(Block block)
     {
-        if (block?.Code == null) return "crops";
-
-        var path = block.Code.Path;
-
-        // Extract crop type from path
-        if (path.Contains("wheat")) return "wheat";
-        if (path.Contains("flax")) return "flax";
-        if (path.Contains("onion")) return "onions";
-        if (path.Contains("carrot")) return "carrots";
-        if (path.Contains("parsnip")) return "parsnips";
-        if (path.Contains("turnip")) return "turnips";
-        if (path.Contains("cabbage")) return "cabbage";
-        if (path.Contains("pumpkin")) return "pumpkins";
-        if (path.Contains("rice")) return "rice";
-        if (path.Contains("rye")) return "rye";
-        if (path.Contains("spelt")) return "spelt";
+        if (block.Variant.TryGetValue("type", out var cropType))
+            return cropType;
 
         return "crops";
     }
@@ -204,22 +191,20 @@ public class AethraFavorTracker(
 
     #region Cooking (Event-Driven)
 
-    private void HandleMealCooked(string playerUid, ItemStack cookedStack, BlockPos pos)
+    private void HandleMealCooked(IServerPlayer player, ItemStack cookedStack, BlockPos pos)
     {
-        // Ensure valid player and follower of Aethra
-        var player = _sapi.World.PlayerByUid(playerUid) as IServerPlayer;
-        if (player == null) return;
-        if (!_aethraFollowers.Contains(player.PlayerUID)) return;
+        if (!_harvestFollowers.Contains(player.PlayerUID)) return;
 
         // Rate limit per player
         var now = DateTime.UtcNow;
-        if (_lastCookingAwardUtc.TryGetValue(playerUid, out var last) && now - last < CookingAwardCooldown) return;
+        if (_lastCookingAwardUtc.TryGetValue(player.PlayerUID, out var last) &&
+            now - last < CookingAwardCooldown) return;
 
         var favor = CalculateMealFavor(cookedStack);
         if (favor <= 0) return;
 
         _favorSystem.AwardFavorForAction(player, "cooking " + GetMealName(cookedStack), favor);
-        _lastCookingAwardUtc[playerUid] = now;
+        _lastCookingAwardUtc[player.PlayerUID] = now;
 
         _sapi.Logger.Debug(
             $"[AethraFavorTracker] Awarded {favor} favor to {player.PlayerName} for cooking {GetMealName(cookedStack)} at {pos}");

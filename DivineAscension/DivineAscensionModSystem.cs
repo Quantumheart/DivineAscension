@@ -220,6 +220,14 @@ public class DivineAscensionModSystem : ModSystem
 
         // Clear static events
         PitKilnPatches.ClearSubscribers();
+        AnvilPatches.ClearSubscribers();
+        CookingPatches.ClearSubscribers();
+        EatingPatches.ClearSubscribers();
+        CropPlantingPatches.ClearSubscribers();
+        ForagingPatches.ClearSubscribers();
+        BlockCropPatches.ClearSubscribers();
+        FlowerPatches.ClearSubscribers();
+        MushroomPatches.ClearSubscribers();
     }
 
     #region Server Networking

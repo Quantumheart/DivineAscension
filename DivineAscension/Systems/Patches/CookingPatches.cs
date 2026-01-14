@@ -5,6 +5,7 @@ using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 using Vintagestory.GameContent;
 
 namespace DivineAscension.Systems.Patches;
@@ -24,7 +25,7 @@ public static class CookingPatches
 
     // --- Crock owner tracking & meal creation -----------------------------------
     private static readonly ConditionalWeakTable<BlockEntityCrock, string> _crockOwners = new();
-    public static event Action<string, ItemStack, BlockPos>? OnMealCooked;
+    public static event Action<IServerPlayer, ItemStack, BlockPos>? OnMealCooked;
 
     public static void ClearSubscribers()
     {
@@ -32,11 +33,11 @@ public static class CookingPatches
     }
 
     // Internal helper for future patches to safely invoke the event
-    internal static void RaiseMealCooked(string playerUid, ItemStack stack, BlockPos pos)
+    internal static void RaiseMealCooked(IServerPlayer player, ItemStack stack, BlockPos pos)
     {
         try
         {
-            OnMealCooked?.Invoke(playerUid, stack, pos);
+            OnMealCooked?.Invoke(player, stack, pos);
         }
         catch
         {
@@ -112,6 +113,9 @@ public static class CookingPatches
             // No attribution allowed per requirements
             return;
 
+        var player = __instance.Api.World.PlayerByUid(uid) as IServerPlayer;
+        if (player == null) return;
+
         var inv = __instance.Inventory;
         if (inv == null) return;
 
@@ -125,7 +129,7 @@ public static class CookingPatches
 
             // Consider it cooked if collectible code changed
             if (before == null || before.Collectible?.Code != after.Collectible?.Code)
-                RaiseMealCooked(uid, after.Clone(), __instance.Pos);
+                RaiseMealCooked(player, after.Clone(), __instance.Pos);
         }
     }
 
@@ -191,6 +195,9 @@ public static class CookingPatches
             // If we have an owner, check for content changes and raise event
             if (_crockOwners.TryGetValue(be, out var uid) && !string.IsNullOrEmpty(uid))
             {
+                var player = world.PlayerByUid(uid) as IServerPlayer;
+                if (player == null) return;
+
                 var inv = be.Inventory;
                 var count = Math.Min(__state.beforeInv?.Count ?? 0, inv?.Count ?? 0);
                 for (var i = 0; i < count; i++)
@@ -200,7 +207,7 @@ public static class CookingPatches
                     if (afterSlot == null || afterSlot.Empty) continue;
                     var after = afterSlot.Itemstack;
                     if (before == null || before.Collectible?.Code != after.Collectible?.Code)
-                        RaiseMealCooked(uid, after.Clone(), be.Pos);
+                        RaiseMealCooked(player, after.Clone(), be.Pos);
                 }
             }
         }
