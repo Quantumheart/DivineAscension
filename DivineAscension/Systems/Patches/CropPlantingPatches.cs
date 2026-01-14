@@ -11,6 +11,11 @@ public static class CropPlantingPatches
 {
     public static event Action<IServerPlayer, Block>? OnCropPlanted;
 
+    public static void ClearSubscribers()
+    {
+        OnCropPlanted = null;
+    }
+
     /// <summary>
     /// Patch BlockEntityFarmland.TryPlant - this is called when player plants crops on farmland
     /// </summary>

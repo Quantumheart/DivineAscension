@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.Interfaces;
@@ -17,6 +18,11 @@ public class FavorSystem : IFavorSystem
     private const int DEATH_PENALTY_FAVOR = 50;
     private const float BASE_FAVOR_PER_HOUR = 0.5f; // Passive favor generation rate
     private const int PASSIVE_TICK_INTERVAL_MS = 1000; // 1 second ticks
+    private const int MESSAGE_THROTTLE_MS = 2000; // Throttle favor messages to max 1 per 2 seconds
+    private readonly Dictionary<string, DateTime> _lastMessageTime = new();
+
+    // Batching support for high-frequency favor events (e.g., scythe harvesting)
+    private readonly Dictionary<string, PendingFavorData> _pendingFavor = new();
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionPrestigeManager _prestigeManager;
@@ -24,7 +30,7 @@ public class FavorSystem : IFavorSystem
     private readonly ICoreServerAPI _sapi;
     private AnvilFavorTracker? _anvilFavorTracker;
     private ForagingFavorTracker? _foragingFavorTracker;
-    private AethraFavorTracker? _harvestFavorTracker;
+    private HarvestFavorTracker? _harvestFavorTracker;
     private HuntingFavorTracker? _huntingFavorTracker;
     private MiningFavorTracker? _miningFavorTracker;
     private SmeltingFavorTracker? _smeltingFavorTracker;
@@ -67,7 +73,7 @@ public class FavorSystem : IFavorSystem
         _foragingFavorTracker = new ForagingFavorTracker(_playerProgressionDataManager, _sapi, this);
         _foragingFavorTracker.Initialize();
 
-        _harvestFavorTracker = new AethraFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _harvestFavorTracker = new HarvestFavorTracker(_playerProgressionDataManager, _sapi, this);
         _harvestFavorTracker.Initialize();
 
         _stoneFavorTracker = new GaiaFavorTracker(_playerProgressionDataManager, _sapi, this);
@@ -387,6 +393,9 @@ public class FavorSystem : IFavorSystem
     /// </summary>
     internal void OnGameTick(float dt)
     {
+        // Flush any pending batched favor awards (from scythe harvesting, etc.)
+        FlushPendingFavor();
+
         // Award passive favor to all online players with deities
         foreach (var player in _sapi.World.AllOnlinePlayers)
             if (player is IServerPlayer serverPlayer)
@@ -453,6 +462,108 @@ public class FavorSystem : IFavorSystem
 
         return multiplier;
     }
+
+    #endregion
+
+    #region Favor Batching
+
+    /// <summary>
+    ///     Queues favor for batched processing. Use this for high-frequency events like scythe harvesting.
+    ///     Favor is accumulated and applied on the next game tick to avoid per-block overhead.
+    /// </summary>
+    public void QueueFavorForAction(IServerPlayer player, string actionType, float amount, DeityDomain deityDomain)
+    {
+        if (deityDomain == DeityDomain.None) return;
+
+        var uid = player.PlayerUID;
+        if (_pendingFavor.TryGetValue(uid, out var pending))
+        {
+            _pendingFavor[uid] = pending with { Amount = pending.Amount + amount };
+        }
+        else
+        {
+            _pendingFavor[uid] = new PendingFavorData(amount, actionType, deityDomain);
+        }
+    }
+
+    /// <summary>
+    ///     Flushes all pending favor awards. Called once per game tick.
+    /// </summary>
+    private void FlushPendingFavor()
+    {
+        if (_pendingFavor.Count == 0) return;
+
+        foreach (var (uid, pending) in _pendingFavor)
+        {
+            // Award favor in one batch
+            _playerProgressionDataManager.AddFractionalFavor(uid, pending.Amount, pending.ActionType);
+
+            // Award prestige if deity-themed activity
+            var playerReligion = _religionManager.GetPlayerReligion(uid);
+            if (!string.IsNullOrEmpty(playerReligion?.ReligionUID) &&
+                ShouldAwardPrestigeForActivity(pending.Domain, pending.ActionType))
+            {
+                var prestigeAmount = pending.Amount / 10f;
+                if (prestigeAmount >= 1.0f)
+                {
+                    try
+                    {
+                        var playerForName = _sapi.World.PlayerByUid(uid);
+                        var playerName = playerForName?.PlayerName ?? uid;
+                        _prestigeManager.AddPrestige(
+                            playerReligion.ReligionUID,
+                            (int)prestigeAmount,
+                            $"{pending.ActionType} by {playerName}"
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        _sapi.Logger.Error($"[FavorSystem] Failed to award prestige: {ex.Message}");
+                    }
+                }
+            }
+
+            // Send throttled message
+            SendThrottledFavorMessage(uid, pending.Amount, pending.ActionType, pending.Domain);
+        }
+
+        _pendingFavor.Clear();
+    }
+
+    /// <summary>
+    ///     Sends a favor message to the player, throttled to avoid chat spam during high-frequency events.
+    /// </summary>
+    private void SendThrottledFavorMessage(string playerUid, float amount, string actionType, DeityDomain domain)
+    {
+        var now = DateTime.UtcNow;
+        if (_lastMessageTime.TryGetValue(playerUid, out var last) &&
+            (now - last).TotalMilliseconds < MESSAGE_THROTTLE_MS)
+            return;
+
+        var player = _sapi.World.PlayerByUid(playerUid) as IServerPlayer;
+        if (player == null) return;
+
+        var deityName = domain switch
+        {
+            DeityDomain.Craft => nameof(DeityDomain.Craft),
+            DeityDomain.Wild => nameof(DeityDomain.Wild),
+            DeityDomain.Harvest => nameof(DeityDomain.Harvest),
+            DeityDomain.Stone => nameof(DeityDomain.Stone),
+            _ => nameof(DeityDomain.None)
+        };
+
+        player.SendMessage(
+            GlobalConstants.GeneralChatGroup,
+            $"[Divine Favor] {deityName}: You gained {amount:F1} favor from {actionType}",
+            EnumChatType.Notification
+        );
+        _lastMessageTime[playerUid] = now;
+    }
+
+    /// <summary>
+    ///     Holds pending favor data for batching
+    /// </summary>
+    private record PendingFavorData(float Amount, string ActionType, DeityDomain Domain);
 
     #endregion
 }
