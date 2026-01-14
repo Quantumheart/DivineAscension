@@ -11,9 +11,9 @@ namespace DivineAscension.Systems.Favor;
 public class ForagingFavorTracker(
     IPlayerProgressionDataManager playerProgressionDataManager,
     ICoreServerAPI sapi,
-    FavorSystem favorSystem) : IFavorTracker, IDisposable
+    IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
-    private readonly FavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+    private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
@@ -24,7 +24,6 @@ public class ForagingFavorTracker(
 
     public void Dispose()
     {
-        _sapi.Event.BreakBlock -= OnBlockBroken;
         ForagingPatches.Picked -= OnBlockUsed;
         ScythePatches.OnScytheHarvest -= OnScytheHarvest;
         MushroomPatches.OnMushroomHarvested -= OnMushroomHarvested;
@@ -38,7 +37,6 @@ public class ForagingFavorTracker(
 
     public void Initialize()
     {
-        _sapi.Event.BreakBlock += OnBlockBroken;
         ForagingPatches.Picked += OnBlockUsed;
         ScythePatches.OnScytheHarvest += OnScytheHarvest;
         MushroomPatches.OnMushroomHarvested += OnMushroomHarvested;
@@ -76,17 +74,6 @@ public class ForagingFavorTracker(
     private void OnPlayerLeavesProgression(IServerPlayer player, string religionUID)
     {
         _wildFollowers.Remove(player.PlayerUID);
-    }
-
-    private void OnBlockBroken(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier,
-        ref EnumHandling handling)
-    {
-        if (!_wildFollowers.Contains(player.PlayerUID)) return;
-
-        var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
-        if (IsForageBlock(block))
-            // Award 0.5 favor per forage (breaking mushrooms, flowers, etc.)
-            _favorSystem.AwardFavorForAction(player, "foraging " + GetForageName(block), 0.5f);
     }
 
     /// <summary>
@@ -156,38 +143,6 @@ public class ForagingFavorTracker(
         // Only ripe bushes can be harvested
         // Use Variant for reliable state detection
         return block.Variant.TryGetValue("state", out var state) && state == "ripe";
-    }
-
-    private string GetBerryName(Block block)
-    {
-        if (block?.Code == null) return "berries";
-
-        // Use Variant for reliable type detection
-        if (block.Variant.TryGetValue("type", out var berryType))
-            return berryType switch
-            {
-                "blackcurrant" => "blackcurrants",
-                "blueberry" => "blueberries",
-                "cranberry" => "cranberries",
-                "redcurrant" => "redcurrants",
-                "whitecurrant" => "whitecurrants",
-                _ => "berries"
-            };
-
-        return "berries";
-    }
-
-    private bool IsForageBlock(Block block)
-    {
-        if (block?.Code == null) return false;
-
-        // Forageable blocks that are broken (seaweed)
-        // Note: Berry bushes are NOT broken, they're interacted with
-        // Note: Mushrooms are handled by MushroomPatches
-        // Note: Flowers are handled by FlowerPatches
-        // Use FirstCodePart() for reliable block type detection
-        var firstPart = block.FirstCodePart();
-        return firstPart == "seaweed";
     }
 
     private string GetForageName(Block block)
