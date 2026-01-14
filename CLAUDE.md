@@ -298,6 +298,29 @@ Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
 5. **Caching** - `BlessingEffectSystem` caches stat modifiers per player
 6. **Data Models (Immutable Records)** - Clean separation of data from logic, ProtoBuf serializable
 7. **ViewModel/Renderer Pattern (UI)** - ViewModels compute state, renderers handle ImGui drawing
+8. **Permission Systems** - Religion and Civilization use different permission models:
+   - **Religion Permissions:**
+     - **Role-Based System:** Most operations use `RoleManager` with configurable roles
+     - Members can be assigned roles with different permission sets
+     - **Founder-Only Actions:** Critical operations (disband, transfer founder) require founder status
+     - Founder validation: `religion.FounderUID == playerUID`
+   - **Civilization Permissions:**
+     - **Founder-Only System:** No role system - all admin actions require founder status
+     - Actions include: edit description, edit icon, invite religions, kick religions, disband
+     - Founder validation: `civilization.FounderUID == playerUID`
+   - **Founder Validation Pattern (Both):**
+     - **Server-Side:** Always validates using `entity.FounderUID == playerUID`
+       - Single source of truth: `FounderUID` property on data model
+       - Checked in managers, commands, and network handlers
+       - Never trust client for permission checks
+     - **Client-Side (GUI):** Mirrors server validation
+       - Compares current player's UID with entity's FounderUID
+       - Used to show/hide UI elements (edit buttons, admin panels)
+       - Cached in state managers for performance
+   - **Anti-Pattern:** Never compare religion UIDs to determine founder status
+     - Religion UIDs are shared by all members
+     - Only player UIDs uniquely identify the founder
+     - Example: `player.ReligionUID == civ.FounderReligionUID` is WRONG
 
 ## Important Constraints
 

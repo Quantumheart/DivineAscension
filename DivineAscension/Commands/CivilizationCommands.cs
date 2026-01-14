@@ -185,7 +185,7 @@ public class CivilizationCommands(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_NOT_IN_CIV_USE_CREATE));
 
         // Check if player is founder
-        if (civ.FounderUID != player.PlayerUID)
+        if (!civ.IsFounder(player.PlayerUID))
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ONLY_FOUNDER_INVITE));
 
@@ -311,7 +311,7 @@ public class CivilizationCommands(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_NOT_IN_CIV));
 
         // Check if player is civilization founder
-        if (civ.FounderUID == player.PlayerUID)
+        if (civ.IsFounder(player.PlayerUID))
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_FOUNDER_CANNOT_LEAVE));
 
@@ -352,7 +352,7 @@ public class CivilizationCommands(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_NOT_IN_CIV));
 
         // Check if player is founder
-        if (civ.FounderUID != player.PlayerUID)
+        if (!civ.IsFounder(player.PlayerUID))
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ONLY_FOUNDER_KICK));
 
@@ -397,7 +397,7 @@ public class CivilizationCommands(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_NOT_IN_CIV));
 
         // Check if player is founder
-        if (civ.FounderUID != playerId)
+        if (!civ.IsFounder(playerId))
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ONLY_FOUNDER_DISBAND));
 
@@ -438,7 +438,7 @@ public class CivilizationCommands(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_NOT_IN_CIV));
 
         // Check if player is founder
-        if (civ.FounderUID != playerId)
+        if (!civ.IsFounder(playerId))
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_ONLY_FOUNDER_DESCRIPTION));
 
@@ -561,7 +561,7 @@ public class CivilizationCommands(
         }
 
         // Show pending invites only to founder
-        if (civ.FounderUID == player.PlayerUID)
+        if (civ.IsFounder(player.PlayerUID))
         {
             sb.AppendLine();
             var invites = _civilizationManager.GetInvitesForCiv(civ.CivId);

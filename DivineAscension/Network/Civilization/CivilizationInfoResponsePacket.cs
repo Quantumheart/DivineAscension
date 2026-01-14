@@ -50,6 +50,12 @@ public class CivilizationInfoResponsePacket
         [ProtoMember(10)] public string Icon { get; set; } = "default"; // Icon identifier for the civilization
 
         [ProtoMember(11)] public string Description { get; set; } = string.Empty; // Civilization description
+
+        /// <summary>
+        ///     Whether the requesting player is the civilization founder
+        /// </summary>
+        [ProtoMember(12)]
+        public bool IsFounder { get; set; }
     }
 
     /// <summary>

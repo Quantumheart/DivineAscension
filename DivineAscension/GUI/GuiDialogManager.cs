@@ -61,10 +61,13 @@ public class GuiDialogManager : IBlessingDialogManager
 
     public List<CivilizationInfoResponsePacket.MemberReligion> CivilizationMemberReligions { get; set; } = new();
 
-    public bool IsCivilizationFounder => !string.IsNullOrEmpty(ReligionStateManager.CurrentReligionUID) &&
-                                         !string.IsNullOrEmpty(CivilizationManager.CivilizationFounderReligionUID) &&
-                                         ReligionStateManager.CurrentReligionUID ==
-                                         CivilizationManager.CivilizationFounderReligionUID;
+    public string CurrentPlayerUID => _capi?.World?.Player?.PlayerUID ?? string.Empty;
+
+    /// <summary>
+    ///     Whether the current player is the civilization founder.
+    ///     This value is computed by the server and cached in the state manager.
+    /// </summary>
+    public bool IsCivilizationFounder => CivilizationManager.UserIsCivilizationFounder;
 
 
     // Data loaded flags

@@ -168,6 +168,7 @@ public class CivilizationNetworkHandler(
             CreatedDate = civ.CreatedDate,
             Icon = civ.Icon,
             Description = civ.Description,
+            IsFounder = civ.IsFounder(fromPlayer.PlayerUID),
             MemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(),
             PendingInvites = new List<CivilizationInfoResponsePacket.PendingInvite>()
         };
@@ -193,7 +194,7 @@ public class CivilizationNetworkHandler(
         }
 
         // Get pending invites (only show to founder)
-        if (civ.FounderUID == fromPlayer.PlayerUID)
+        if (civ.IsFounder(fromPlayer.PlayerUID))
         {
             var invites = civilizationManager.GetInvitesForCiv(civ.CivId);
             foreach (var invite in invites)
