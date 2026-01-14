@@ -28,4 +28,10 @@ public interface IFavorSystem : IDisposable
     ///     Awards a fractional amount of favor by player UID (for async/delayed events)
     /// </summary>
     void AwardFavorForAction(string playerUid, string actionType, float amount, DeityDomain deityDomain);
+
+    /// <summary>
+    ///     Queues favor for batched processing. Use this for high-frequency events like scythe harvesting
+    ///     to avoid per-block overhead. Favor is accumulated and applied on the next game tick.
+    /// </summary>
+    void QueueFavorForAction(IServerPlayer player, string actionType, float amount, DeityDomain deityDomain);
 }
