@@ -174,17 +174,19 @@ Prestige is your religion's reputation, earned collectively by all members. It u
 
 **Prestige Ranks**:
 
-| Rank | Prestige Required | Unlocks |
-|------|------------------|---------|
-| **Fledgling** | 0 - 499 | Basic religion blessings |
-| **Established** | 500 - 1,999 | Improved religion blessings |
-| **Renowned** | 2,000 - 4,999 | Advanced religion blessings |
-| **Legendary** | 5,000 - 9,999 | Elite religion blessings |
-| **Mythic** | 10,000+ | Ultimate religion blessings |
+| Rank            | Prestige Required | Unlocks                     |
+|-----------------|-------------------|-----------------------------|
+| **Fledgling**   | 0 - 2,499         | Basic religion blessings    |
+| **Established** | 2,500 - 9,999     | Improved religion blessings |
+| **Renowned**    | 10,000 - 24,999   | Advanced religion blessings |
+| **Legendary**   | 25,000 - 49,999   | Elite religion blessings    |
+| **Mythic**      | 50,000+           | Ultimate religion blessings |
 
 **How Prestige is Earned**:
-- Members performing deity-aligned activities
-- PvP victories (15 prestige per kill)
+
+- Members performing deity-aligned activities (1:1 favor-to-prestige conversion)
+- PvP victories (75 prestige per kill)
+- Diplomatic alliances (500 prestige bonus)
 - Contributions from all active members
 
 ---
@@ -472,13 +474,13 @@ There are **four types** of diplomatic relationships between civilizations:
 - **Description**: No formal relationship exists
 - **Requirements**: None
 - **Duration**: Permanent until changed
-- **Effects**: Standard PvP rules apply (10 favor, 15 prestige per kill)
+- **Effects**: Standard PvP rules apply (10 favor, 75 prestige per kill)
 
 #### 2. Non-Aggression Pact (NAP)
 
 - **Description**: Formal agreement not to attack each other
 - **Requirements**:
-    - Both civilizations must be at least **Established** rank (500+ prestige)
+    - Both civilizations must be at least **Established** rank (2,500+ prestige)
     - Must be proposed and accepted by both civilization founders
 - **Duration**: **3 days** (real-time), then automatically reverts to Neutral
 - **Effects**:
@@ -490,11 +492,11 @@ There are **four types** of diplomatic relationships between civilizations:
 
 - **Description**: Strong alliance between civilizations
 - **Requirements**:
-    - Both civilizations must be at least **Renowned** rank (2,000+ prestige)
+    - Both civilizations must be at least **Renowned** rank (10,000+ prestige)
     - Must be proposed and accepted by both civilization founders
 - **Duration**: **Permanent** until broken or war is declared
 - **Effects**:
-    - **100 prestige** awarded to ALL religions in BOTH civilizations upon formation
+    - **500 prestige** awarded to ALL religions in BOTH civilizations upon formation
     - Attacking allied civilization members results in **violations**
     - No favor/prestige rewards for attacking Alliance members
     - Can be broken with 24-hour notice
@@ -507,7 +509,7 @@ There are **four types** of diplomatic relationships between civilizations:
     - No prestige rank requirements
 - **Duration**: Until **peace is declared** by one side
 - **Effects**:
-    - **1.5x multiplier** on favor and prestige for PvP kills (15 favor, 22.5 prestige per kill)
+    - **1.5x multiplier** on favor and prestige for PvP kills (15 favor, 112 prestige per kill)
     - Server-wide announcement when war is declared
     - Automatically cancels any pending NAP or Alliance proposals
 
@@ -614,7 +616,7 @@ War can be declared **unilaterally** (no proposal required):
 - **Both civilizations** automatically enter War status
 - Server-wide announcement: "[Diplomacy] {Your Civ} has declared war on {Target Civ}!"
 - Any pending NAP or Alliance proposals between the civilizations are **cancelled**
-- PvP kills reward **1.5x favor and prestige** (15 favor, 22.5 prestige)
+- PvP kills reward **1.5x favor and prestige** (15 favor, 112 prestige)
 
 ### Declaring Peace
 
@@ -626,7 +628,7 @@ To end a war, either side can declare peace:
 **Effects**:
 
 - Both civilizations return to **Neutral** status
-- Normal PvP rewards resume (10 favor, 15 prestige)
+- Normal PvP rewards resume (10 favor, 75 prestige)
 
 ### Diplomacy Tab (GUI)
 
@@ -668,20 +670,20 @@ Access via `Shift+G` → Civilizations → **Diplomacy**
 
 **Forming Alliances**:
 
-- Focus on reaching **Renowned rank** (2,000 prestige) to unlock alliances
+- Focus on reaching **Renowned rank** (10,000 prestige) to unlock alliances
 - Coordinate with complementary domain civilizations
-- Alliance prestige bonus (100 to all religions in both civs) is significant
+- Alliance prestige bonus (500 to all religions in both civs) is significant
 - Build trust before proposing - broken treaties damage reputation
 
 **Using NAPs**:
 
 - Great for temporary peace during resource gathering
 - Remember they expire in **3 days** - coordinate renewal if needed
-- Lower prestige requirement (Established/500) makes them accessible early
+- Lower prestige requirement (Established/2,500) makes them accessible early
 
 **Declaring War**:
 
-- Use strategically for **1.5x PvP rewards** (15 favor, 22.5 prestige per kill)
+- Use strategically for **1.5x PvP rewards** (15 favor, 112 prestige per kill)
 - Server announcement can rally your allies and intimidate opponents
 - Can be declared unilaterally - no waiting for acceptance
 
@@ -699,7 +701,7 @@ Access via `Shift+G` → Civilizations → **Diplomacy**
 
 Killing another player awards:
 - **10 Favor** to the attacker
-- **15 Prestige** to the attacker's religion
+- **75 Prestige** to the attacker's religion (112 prestige during war)
 
 **Important**: All kills award the same favor regardless of deity matchups (deity relationships were removed in recent updates).
 
@@ -1110,5 +1112,5 @@ A: It depends on your playstyle:
 
 ---
 
-*Last Updated: January 12, 2026*
-*Divine Ascension v4.0.2*
+*Last Updated: January 14, 2026*
+*Divine Ascension v4.6.0 - Prestige System Rebalance*

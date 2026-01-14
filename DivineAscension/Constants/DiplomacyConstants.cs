@@ -29,9 +29,9 @@ public static class DiplomacyConstants
     #region Prestige Bonuses
 
     /// <summary>
-    /// Prestige bonus awarded to all religions in both civilizations when Alliance is formed (100)
+    /// Prestige bonus awarded to all religions in both civilizations when Alliance is formed (500)
     /// </summary>
-    public const int AlliancePrestigeBonus = 100;
+    public const int AlliancePrestigeBonus = 500;
 
     #endregion
 

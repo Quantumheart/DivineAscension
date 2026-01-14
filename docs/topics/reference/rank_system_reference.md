@@ -1,7 +1,7 @@
 # Rank System Reference
 
-**Last Updated:** 2025-01-11
-**Version:** Phase 3.2
+**Last Updated:** 2026-01-14
+**Version:** v4.6.0 (Prestige System Rebalance)
 
 ## Overview
 
@@ -50,20 +50,22 @@ Religion prestige ranks represent a religion's collective strength and influence
 
 ### Rank Thresholds
 
-| Rank | Enum Value | Display Name | Total Prestige Required | Rank Number |
-|------|------------|--------------|------------------------|-------------|
-| Fledgling | `PrestigeRank.Fledgling` | Fledgling | **0 - 499** | 0 |
-| Established | `PrestigeRank.Established` | Established | **500 - 1,499** | 1 |
-| Renowned | `PrestigeRank.Renowned` | Renowned | **1,500 - 3,499** | 2 |
-| Legendary | `PrestigeRank.Legendary` | Legendary | **3,500 - 7,499** | 3 |
-| Mythic | `PrestigeRank.Mythic` | Mythic | **7,500+** | 4 |
+| Rank        | Enum Value                 | Display Name | Total Prestige Required | Rank Number |
+|-------------|----------------------------|--------------|-------------------------|-------------|
+| Fledgling   | `PrestigeRank.Fledgling`   | Fledgling    | **0 - 2,499**           | 0           |
+| Established | `PrestigeRank.Established` | Established  | **2,500 - 9,999**       | 1           |
+| Renowned    | `PrestigeRank.Renowned`    | Renowned     | **10,000 - 24,999**     | 2           |
+| Legendary   | `PrestigeRank.Legendary`   | Legendary    | **25,000 - 49,999**     | 3           |
+| Mythic      | `PrestigeRank.Mythic`      | Mythic       | **50,000+**             | 4           |
 
 ### Prestige Acquisition
 
 Prestige is earned through:
-- Member contributions (converting favor to prestige)
+
+- Member contributions (1:1 favor-to-prestige conversion for domain-aligned activities)
+- PvP victories (75 prestige per kill, 112 prestige during war)
+- Diplomatic alliances (500 prestige bonus upon formation)
 - Religion-wide achievements
-- Collective activities
 
 ## Rank Requirements in Code
 
@@ -112,9 +114,10 @@ RequiredFavorRank = 4  // Exalted/Avatar tier
 - Spend 100 favor on blessing → Still Rank 1 (total earned: 500)
 
 ### Example 2: Religion Growth
-- New religion starts → Prestige Rank 0 (Fledgling 0/500)
-- Members contribute → Prestige Rank 0 (Fledgling 250/500)
-- More contributions → Prestige Rank 1 (Established 500/1500)
+
+- New religion starts → Prestige Rank 0 (Fledgling 0/2500)
+- Members contribute → Prestige Rank 0 (Fledgling 1200/2500)
+- More contributions → Prestige Rank 1 (Established 2500/10000)
 - Can now unlock Established-tier religion blessings
 
 ## UI Display Conventions
@@ -122,7 +125,7 @@ RequiredFavorRank = 4  // Exalted/Avatar tier
 ### Header Display Format
 ```
 Player Progress:  [Progress Bar] Disciple (1200/2000)
-Religion Progress: [Progress Bar] Fledgling (250/500)
+Religion Progress: [Progress Bar] Fledgling (1200/2500)
 ```
 
 ### Progress Bar Colors
@@ -186,6 +189,14 @@ The system uses event-driven updates to ensure UI stays synchronized:
 - [UI Implementation Plan](../ui-design/BLESSING_UI_IMPLEMENTATION_PLAN.md)
 
 ## Version History
+
+### v2.0 (2026-01-14)
+
+- Updated for prestige system rebalancing (5x threshold scaling)
+- New prestige thresholds: 2,500/10,000/25,000/50,000
+- Added 1:1 favor-to-prestige conversion documentation
+- Updated PvP rewards: 75 prestige (112 during war)
+- Updated alliance bonus: 500 prestige
 
 ### v1.1 (2025-01-11)
 - Corrected documentation to match planning documents

@@ -1,8 +1,13 @@
 # Favor-Based Prestige Progression Implementation Plan
 
+> **⚠️ SUPERSEDED**: This document describes the original implementation (10:1 conversion, 15 PvP prestige).
+> **Current System** (v4.6.0): **1:1 conversion**, **75 PvP prestige** (112 during war), **5x threshold scaling**
+> See [Prestige System Rebalance (v4.6.0)](#v460-rebalance) for current values.
+
 ## Problem Statement
 
-**Current State**: Religion prestige only progresses through PvP kills (15 prestige per kill), creating a PvP-only progression path that excludes peaceful players.
+**Current State**: Religion prestige only progresses through PvP kills (75 prestige per kill), creating a PvP-heavy
+progression path that excludes peaceful players.
 
 **Goal**: Add deity-specific prestige progression through favor-earning activities, making peaceful playstyles equally viable to PvP.
 
@@ -10,7 +15,7 @@
 
 1. **Equal Viability**: Both PvP and peaceful activities should contribute equally to prestige
 2. **Deity-Specific**: Only activities matching a deity's theme grant prestige (Khoras: crafting, Lysa: hunting, Aethra: farming, Gaia: building)
-3. **Direct Conversion**: 10 favor earned = 1 prestige awarded (simple, understandable ratio)
+3. **Direct Conversion**: 1 favor earned = 1 prestige awarded (simple, understandable ratio)
 4. **No Artificial Limits**: Trust the conversion rate for balance (no caps or diminishing returns)
 
 ## Architecture Decision: Centralized Conversion in FavorSystem
@@ -322,3 +327,35 @@ serviceCollection.AddSingleton<IFavorSystem>(provider =>
 **Estimated Implementation Time**: 1-2 hours
 **Lines of Code Changed**: ~100-120 lines across 2 files
 **Risk Level**: Low (well-understood changes to existing system)
+
+---
+
+## v4.6.0 Rebalance
+
+**Date**: 2026-01-14
+**Status**: ✅ Implemented
+
+### Changes From Original Plan
+
+1. **Conversion Ratio**: Changed from 10:1 to **1:1** (1 favor = 1 prestige)
+2. **PvP Rewards**: Increased from 15 to **75 prestige** per kill (112 during war)
+3. **Alliance Bonus**: Increased from 100 to **500 prestige**
+4. **Prestige Thresholds**: Scaled by 5x to maintain progression balance
+   - Fledgling: 0 (unchanged)
+   - Established: 500 → **2,500**
+   - Renowned: 2,000 → **10,000**
+   - Legendary: 5,000 → **25,000**
+   - Mythic: 10,000 → **50,000**
+
+### Rationale
+
+The 10:1 conversion resulted in most small activities awarding **0 prestige** due to truncation (e.g., 1 favor = 0.1
+prestige → 0). The 1:1 conversion ensures **all activities award whole prestige numbers**, providing immediate, tangible
+feedback to players.
+
+### Impact
+
+- **Before**: Mining 1 copper ore → 1 favor, 0 prestige ✗
+- **After**: Mining 1 copper ore → 1 favor, 1 prestige ✓
+
+Players now see progress on **every activity**, maintaining engagement and reward feedback loops.

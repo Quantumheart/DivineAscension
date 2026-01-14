@@ -95,7 +95,7 @@ public class PvPManagerTests
         mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
 
         // Act
-        _pvpManager.AwardRewardsForAction(mockPlayer.Object, "test action", 10, 15);
+        _pvpManager.AwardRewardsForAction(mockPlayer.Object, "test action", 10, 75);
 
         // Assert - Should award favor
         _mockPlayerReligionDataManager.Verify(
@@ -105,7 +105,7 @@ public class PvPManagerTests
 
         // Assert - Should award prestige
         _mockPrestigeManager.Verify(
-            m => m.AddPrestige("test-religion-uid", 15, It.Is<string>(s => s.Contains("test action"))),
+            m => m.AddPrestige("test-religion-uid", 75, It.Is<string>(s => s.Contains("test action"))),
             Times.Once()
         );
 
@@ -113,7 +113,7 @@ public class PvPManagerTests
         mockPlayer.Verify(
             p => p.SendMessage(
                 It.Is<int>(g => g == GlobalConstants.GeneralChatGroup),
-                It.Is<string>(s => s.Contains("10 favor") && s.Contains("15 prestige")),
+                It.Is<string>(s => s.Contains("10 favor") && s.Contains("75 prestige")),
                 It.Is<EnumChatType>(t => t == EnumChatType.Notification),
                 It.IsAny<string>()
             ),
@@ -135,7 +135,7 @@ public class PvPManagerTests
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
 
         // Act
-        _pvpManager.AwardRewardsForAction(mockPlayer.Object, "test action", 10, 15);
+        _pvpManager.AwardRewardsForAction(mockPlayer.Object, "test action", 10, 75);
 
         // Assert - Should not award favor
         _mockPlayerReligionDataManager.Verify(
@@ -164,7 +164,7 @@ public class PvPManagerTests
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
 
         // Act
-        _pvpManager.AwardRewardsForAction(mockPlayer.Object, "test action", 10, 15);
+        _pvpManager.AwardRewardsForAction(mockPlayer.Object, "test action", 10, 75);
 
         // Assert - Should not award anything
         _mockPlayerReligionDataManager.Verify(
@@ -196,8 +196,8 @@ public class PvPManagerTests
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
         mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
 
-        // Act - Zero favor, but 15 prestige
-        _pvpManager.AwardRewardsForAction(mockPlayer.Object, "test action", 0, 15);
+        // Act - Zero favor, but 75 prestige
+        _pvpManager.AwardRewardsForAction(mockPlayer.Object, "test action", 0, 75);
 
         // Assert - Should not award favor
         _mockPlayerReligionDataManager.Verify(
@@ -207,7 +207,7 @@ public class PvPManagerTests
 
         // Assert - Should still award prestige
         _mockPrestigeManager.Verify(
-            m => m.AddPrestige("test-religion-uid", 15, It.IsAny<string>()),
+            m => m.AddPrestige("test-religion-uid", 75, It.IsAny<string>()),
             Times.Once()
         );
     }
@@ -387,9 +387,9 @@ public class PvPManagerTests
         // Act
         _pvpManager.ProcessPvPKill(mockAttacker.Object, mockVictim.Object);
 
-        // Assert - Base prestige should be 15
+        // Assert - Base prestige should be 75
         _mockPrestigeManager.Verify(
-            m => m.AddPrestige("attacker-religion-uid", 15, It.IsAny<string>()),
+            m => m.AddPrestige("attacker-religion-uid", 75, It.IsAny<string>()),
             Times.Once()
         );
     }
@@ -429,7 +429,7 @@ public class PvPManagerTests
 
         // Assert - Full prestige (no same-deity penalty)
         _mockPrestigeManager.Verify(
-            m => m.AddPrestige("attacker-religion-uid", 15, It.IsAny<string>()),
+            m => m.AddPrestige("attacker-religion-uid", 75, It.IsAny<string>()),
             Times.Once()
         );
     }
@@ -525,7 +525,7 @@ public class PvPManagerTests
         );
 
         _mockPrestigeManager.Verify(
-            m => m.AddPrestige("attacker-religion-uid", 15, It.IsAny<string>()),
+            m => m.AddPrestige("attacker-religion-uid", 75, It.IsAny<string>()),
             Times.Once()
         );
     }

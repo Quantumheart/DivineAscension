@@ -242,10 +242,10 @@ public class ReligionData
     {
         PrestigeRank = TotalPrestige switch
         {
-            >= 10000 => PrestigeRank.Mythic,
-            >= 5000 => PrestigeRank.Legendary,
-            >= 2000 => PrestigeRank.Renowned,
-            >= 500 => PrestigeRank.Established,
+            >= 50000 => PrestigeRank.Mythic,
+            >= 25000 => PrestigeRank.Legendary,
+            >= 10000 => PrestigeRank.Renowned,
+            >= 2500 => PrestigeRank.Established,
             _ => PrestigeRank.Fledgling
         };
     }

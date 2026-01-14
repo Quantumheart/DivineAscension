@@ -14,7 +14,7 @@ namespace DivineAscension.Systems;
 public class PvPManager : IPvPManager
 {
     private const int BASE_FAVOR_REWARD = 10;
-    private const int BASE_PRESTIGE_REWARD = 15;
+    private const int BASE_PRESTIGE_REWARD = 75; // 5x multiplier for 1:1 favor-to-prestige conversion
     private const int DEATH_PENALTY_FAVOR = 50;
     private readonly ICivilizationManager _civilizationManager;
     private readonly IDiplomacyManager _diplomacyManager;

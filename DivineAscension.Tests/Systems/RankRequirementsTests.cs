@@ -22,10 +22,10 @@ public class RankRequirementsTests
     }
 
     [Theory]
-    [InlineData(0, 500)] // Fledgling → Established
-    [InlineData(1, 1500)] // Established → Renowned
-    [InlineData(2, 3500)] // Renowned → Legendary
-    [InlineData(3, 7500)] // Legendary → Mythic
+    [InlineData(0, 2500)] // Fledgling → Established (5x scaling)
+    [InlineData(1, 10000)] // Established → Renowned (5x scaling)
+    [InlineData(2, 25000)] // Renowned → Legendary (5x scaling)
+    [InlineData(3, 50000)] // Legendary → Mythic (5x scaling)
     [InlineData(4, 0)] // Max rank
     public void GetRequiredPrestigeForNextRank_ReturnsCorrectValue(int currentRank, int expectedPrestige)
     {

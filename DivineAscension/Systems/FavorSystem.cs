@@ -125,15 +125,16 @@ public class FavorSystem : IFavorSystem
         if (!string.IsNullOrEmpty(playerReligion!.ReligionUID) &&
             ShouldAwardPrestigeForActivity(_religionManager.GetPlayerActiveDeityDomain(playerUid), actionType))
         {
-            var prestigeAmount = amount / 10f; // 10:1 conversion
-            if (prestigeAmount >= 1.0f) // Only award whole prestige points
+            // 1:1 favor-to-prestige conversion (truncate fractional favor)
+            var prestigeAmount = (int)Math.Floor(amount);
+            if (prestigeAmount > 0) // Only award whole prestige points
                 try
                 {
                     var playerForName = _sapi.World.PlayerByUid(playerUid);
                     var playerName = playerForName?.PlayerName ?? playerUid;
                     _prestigeManager.AddPrestige(
                         playerReligion.ReligionUID,
-                        (int)prestigeAmount,
+                        prestigeAmount,
                         $"{actionType} by {playerName}"
                     );
                 }
@@ -293,15 +294,15 @@ public class FavorSystem : IFavorSystem
         if (!string.IsNullOrEmpty(playerReligion!.ReligionUID) &&
             ShouldAwardPrestigeForActivity(_religionManager.GetPlayerActiveDeityDomain(playerUid), actionType))
         {
-            var prestigeAmount = amount / 3; // 2:1 conversion
-            if (prestigeAmount > 0)
+            // 1:1 favor-to-prestige conversion (already whole number)
+            if (amount > 0)
                 try
                 {
                     var playerForName = _sapi.World.PlayerByUid(playerUid);
                     var playerName = playerForName?.PlayerName ?? playerUid;
                     _prestigeManager.AddPrestige(
                         playerReligion.ReligionUID,
-                        prestigeAmount,
+                        amount,
                         $"{actionType} by {playerName}"
                     );
                 }

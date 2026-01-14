@@ -35,10 +35,10 @@ public static class RankRequirements
     {
         return currentRank switch
         {
-            0 => 500, // Fledgling → Established
-            1 => 1500, // Established → Renowned
-            2 => 3500, // Renowned → Legendary
-            3 => 7500, // Legendary → Mythic
+            0 => 2500, // Fledgling → Established (5x scaling)
+            1 => 10000, // Established → Renowned (5x scaling)
+            2 => 25000, // Renowned → Legendary (5x scaling)
+            3 => 50000, // Legendary → Mythic (5x scaling)
             4 => 0, // Max rank
             _ => 0 // Invalid rank
         };
