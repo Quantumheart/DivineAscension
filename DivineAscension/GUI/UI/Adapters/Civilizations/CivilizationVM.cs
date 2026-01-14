@@ -14,5 +14,6 @@ internal sealed record CivilizationVM(
     int memberCount,
     List<string> memberDeities,
     List<string> memberReligionNames,
-    string icon
+    string icon,
+    string description
 );
