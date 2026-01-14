@@ -37,6 +37,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     // UI-only adapter (fake or real). Null when not used.
     internal ICivilizationProvider? CivilizationProvider { get; private set; }
 
+    // UI-only detail adapter (fake or real). Null when not used.
+    internal ICivilizationDetailProvider? CivilizationDetailProvider { get; set; }
+
     private CivilizationTabState State { get; } = new();
 
     /// <summary>
@@ -84,6 +87,15 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     public bool HasCivilization()
     {
         return !string.IsNullOrEmpty(CurrentCivilizationId);
+    }
+
+    /// <summary>
+    ///     Configure a UI-only civilization detail provider (fake or real). When set, RequestCivilizationInfo()
+    ///     uses it instead of performing a network call for detail views.
+    /// </summary>
+    internal void UseCivilizationDetailProvider(ICivilizationDetailProvider provider)
+    {
+        CivilizationDetailProvider = provider;
     }
 
     /// <summary>
@@ -180,7 +192,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 MemberCount = c.memberCount,
                 MemberDeities = c.memberDeities,
                 MemberReligionNames = c.memberReligionNames,
-                Icon = c.icon
+                Icon = c.icon,
+                Description = c.description
             }).ToList();
 
             State.BrowseState.AllCivilizations = mapped;
@@ -214,6 +227,47 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             State.DetailState.ErrorMsg = null;
         }
 
+        // Adapter short-circuit: if detail provider is configured and we have a specific civId, use it
+        if (CivilizationDetailProvider != null && !string.IsNullOrEmpty(civIdOrEmpty))
+        {
+            var detail = CivilizationDetailProvider.GetCivilizationDetail(civIdOrEmpty);
+            if (detail != null)
+            {
+                // Map CivilizationDetailVM → CivilizationInfoResponsePacket
+                var packet = new CivilizationInfoResponsePacket
+                {
+                    Details = new CivilizationInfoResponsePacket.CivilizationDetails
+                    {
+                        CivId = detail.CivId,
+                        Name = detail.Name,
+                        FounderUID = detail.FounderUID,
+                        FounderName = detail.FounderName,
+                        FounderReligionUID = detail.FounderReligionUID,
+                        FounderReligionName = detail.FounderReligionName,
+                        MemberReligions = detail.MemberReligions.Select(m =>
+                            new CivilizationInfoResponsePacket.MemberReligion
+                            {
+                                ReligionId = m.ReligionId,
+                                ReligionName = m.ReligionName,
+                                Domain = m.Domain,
+                                FounderUID = m.FounderUID,
+                                FounderName = m.FounderName,
+                                MemberCount = m.MemberCount,
+                                DeityName = m.DeityName
+                            }).ToList(),
+                        CreatedDate = detail.CreatedDate,
+                        Icon = detail.Icon,
+                        Description = detail.Description,
+                        IsFounder = false // Adapter doesn't track current player
+                    }
+                };
+                UpdateCivilizationState(packet.Details);
+                State.DetailState.IsLoading = false;
+                return;
+            }
+        }
+
+        // Default: request from server
         _uiService.RequestCivilizationInfo(civIdOrEmpty);
     }
 

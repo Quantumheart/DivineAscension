@@ -31,7 +31,7 @@ internal static class CivilizationTableRenderer
     private const float RowPaddingVertical = 12f;
     private const float RowSpacing = 8f;
     private const float ScrollbarWidth = 16f;
-    private const float CivIconSize = 28f;
+    private const float CivIconSize = 40f;
     private const float DeityIconSize = 12f;
     private const float DeityIconSpacing = 4f;
     private const float DescriptionFontSize = 12f;

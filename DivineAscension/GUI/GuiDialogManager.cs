@@ -40,9 +40,11 @@ public class GuiDialogManager : IBlessingDialogManager
         ReligionStateManager.UseReligionDetailProvider(new FakeReligionDetailProvider(fakeReligionProvider));
         ReligionStateManager.RefreshReligionsFromProvider();
 
-        // Initialize civilization fake provider
-        CivilizationManager.UseCivilizationProvider(new FakeCivilizationProvider());
+        // Initialize civilization fake providers
+        var fakeCivProvider = new FakeCivilizationProvider();
+        CivilizationManager.UseCivilizationProvider(fakeCivProvider);
         CivilizationManager.CivilizationProvider!.ConfigureDevSeed(25, 20251217);
+        CivilizationManager.UseCivilizationDetailProvider(new FakeCivilizationDetailProvider(fakeCivProvider));
         CivilizationManager.RefreshCivilizationsFromProvider();
 #endif
     }

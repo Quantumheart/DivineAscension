@@ -51,6 +51,20 @@ internal sealed class FakeCivilizationProvider : ICivilizationProvider
         "Disciples of", "Sect of", "Faithful of", "Brotherhood of"
     };
 
+    private static readonly string[] DescriptionTemplates =
+    {
+        "A prosperous alliance forged through shared faith and mutual respect.",
+        "United in purpose, diverse in practice - strength through cooperation.",
+        "Where different beliefs converge to build a greater tomorrow.",
+        "Bound by treaty, strengthened by diversity, united in vision.",
+        "A confederation of faiths seeking harmony in a fractured world.",
+        "United we stand, divided we fall - many religions, one civilization.",
+        "Peace through understanding, power through unity.",
+        "A grand coalition where all faiths find common ground.",
+        "Forged in the fires of cooperation, tempered by mutual respect.",
+        "Different paths, shared destiny - together we thrive."
+    };
+
     private IReadOnlyList<CivilizationVM> _cache = Array.Empty<CivilizationVM>();
     private int _count = 25;
     private int _seed = 1337;
@@ -103,6 +117,9 @@ internal sealed class FakeCivilizationProvider : ICivilizationProvider
                 memberReligionNames.Add(religionName);
             }
 
+            // Generate description
+            var description = DescriptionTemplates[rnd.Next(DescriptionTemplates.Length)];
+
             list.Add(new CivilizationVM(
                 civId,
                 name,
@@ -111,7 +128,8 @@ internal sealed class FakeCivilizationProvider : ICivilizationProvider
                 memberCount,
                 memberDeities,
                 memberReligionNames,
-                icon
+                icon,
+                description
             ));
         }
 
@@ -124,7 +142,8 @@ internal sealed class FakeCivilizationProvider : ICivilizationProvider
             1,
             new List<string> { nameof(DeityDomain.Craft) },
             new List<string> { "Solitary Followers of Craft" },
-            "default"
+            "default",
+            "A solitary path walked alone, yet steadfast in purpose and faith."
         ));
 
         // Edge case 2: Max members civilization (4 religions)
@@ -148,7 +167,8 @@ internal sealed class FakeCivilizationProvider : ICivilizationProvider
                 "Order of Harvest",
                 "Disciples of Stone"
             },
-            "peace-dove"
+            "peace-dove",
+            "The pinnacle of cooperation - all four great domains united as one."
         ));
 
         _cache = list;

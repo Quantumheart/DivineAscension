@@ -121,6 +121,9 @@ internal static class MainDialogRenderer
             {
                 manager.CivilizationManager.RequestCivilizationList(manager.CivTabState.BrowseState.DeityFilter);
                 manager.CivilizationManager.RequestCivilizationInfo();
+
+                // Request player religion info to update UserIsReligionFounder state
+                manager.ReligionStateManager.RequestPlayerReligionInfo();
             }
         }
 
