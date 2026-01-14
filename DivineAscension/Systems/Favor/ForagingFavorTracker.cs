@@ -79,6 +79,7 @@ public class ForagingFavorTracker(
     /// <summary>
     ///     Handles scythe/shears harvesting to detect flower cutting.
     ///     Only awards favor for flowers, not grass.
+    ///     Uses batched favor awarding to avoid per-block overhead on large harvests.
     /// </summary>
     private void OnScytheHarvest(IServerPlayer player, Block block)
     {
@@ -89,7 +90,8 @@ public class ForagingFavorTracker(
         // Use FirstCodePart() for reliable block type detection
         if (block.FirstCodePart() != "flower") return;
 
-        _favorSystem.AwardFavorForAction(player, "foraging flowers", 0.5f);
+        // Use batched favor for scythe harvesting to avoid performance issues on large fields
+        _favorSystem.QueueFavorForAction(player, "foraging flowers", 0.5f, DeityDomain);
     }
 
     /// <summary>

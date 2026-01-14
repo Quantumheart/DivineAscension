@@ -137,7 +137,7 @@ public class HarvestFavorTracker(
     /// <summary>
     ///     Handles crop harvesting via BlockCropPatches (typed BlockCrop).
     /// </summary>
-    private void OnCropHarvested(IServerPlayer player, BlockCrop crop)
+    private void OnCropHarvested(IServerPlayer player, BlockCrop crop, BlockPos pos)
     {
         if (!_harvestFollowers.Contains(player.PlayerUID)) return;
         if (!IsMatureCrop(crop)) return;
@@ -148,6 +148,7 @@ public class HarvestFavorTracker(
     /// <summary>
     ///     Handles scythe/shears harvesting to detect crop cutting.
     ///     Awards favor for mature crops cut with scythe.
+    ///     Uses batched favor awarding to avoid per-block overhead on large harvests.
     /// </summary>
     private void OnScytheHarvest(IServerPlayer player, Block block)
     {
@@ -155,7 +156,8 @@ public class HarvestFavorTracker(
         if (block is not BlockCrop crop) return;
         if (!IsMatureCrop(crop)) return;
 
-        _favorSystem.AwardFavorForAction(player, "harvesting " + GetCropName(crop), FavorPerCropHarvest);
+        // Use batched favor for scythe harvesting to avoid performance issues on large fields
+        _favorSystem.QueueFavorForAction(player, "harvesting crops", FavorPerCropHarvest, DeityDomain);
     }
 
     /// <summary>
@@ -174,12 +176,10 @@ public class HarvestFavorTracker(
         if (crop.CropProps != null)
         {
             var maxStages = crop.CropProps.GrowthStages;
-            _sapi.Logger.Debug(
-                $"[AethraFavorTracker] Crop: {crop.Code.Path}, Current: {currentStage}, Max: {maxStages}");
             return currentStage >= maxStages;
         }
 
-        _sapi.Logger.Warning($"[AethraFavorTracker] Could not determine max stages for crop: {crop.Code.Path}");
+        _sapi.Logger.Warning($"[HarvestFavorTracker] Could not determine max stages for crop: {crop.Code.Path}");
         return false;
     }
 
