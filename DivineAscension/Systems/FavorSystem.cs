@@ -24,7 +24,7 @@ public class FavorSystem : IFavorSystem
     private readonly ICoreServerAPI _sapi;
     private AnvilFavorTracker? _anvilFavorTracker;
     private ForagingFavorTracker? _foragingFavorTracker;
-    private AethraFavorTracker? _harvestFavorTracker;
+    private HarvestFavorTracker? _harvestFavorTracker;
     private HuntingFavorTracker? _huntingFavorTracker;
     private MiningFavorTracker? _miningFavorTracker;
     private SmeltingFavorTracker? _smeltingFavorTracker;
@@ -67,7 +67,7 @@ public class FavorSystem : IFavorSystem
         _foragingFavorTracker = new ForagingFavorTracker(_playerProgressionDataManager, _sapi, this);
         _foragingFavorTracker.Initialize();
 
-        _harvestFavorTracker = new AethraFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _harvestFavorTracker = new HarvestFavorTracker(_playerProgressionDataManager, _sapi, this);
         _harvestFavorTracker.Initialize();
 
         _stoneFavorTracker = new GaiaFavorTracker(_playerProgressionDataManager, _sapi, this);

@@ -14,10 +14,10 @@ namespace DivineAscension.Systems.Favor;
 ///     Tracks agricultural activities and awards favor to Aethra followers
 ///     Activities: crop harvesting, planting, and cooking meals
 /// </summary>
-public class AethraFavorTracker(
+public class HarvestFavorTracker(
     IPlayerProgressionDataManager playerProgressionDataManager,
     ICoreServerAPI sapi,
-    FavorSystem favorSystem)
+    IFavorSystem favorSystem)
     : IFavorTracker, IDisposable
 {
     // Favor values
@@ -27,10 +27,9 @@ public class AethraFavorTracker(
     private const float FavorComplexMeal = 5f;
     private const float FavorGourmetMeal = 10f;
     private static readonly TimeSpan CookingAwardCooldown = TimeSpan.FromSeconds(5);
+    private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
-    // Cache of active Aethra followers for fast lookup
-    private readonly HashSet<string> _aethraFollowers = new();
-    private readonly FavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+    private readonly HashSet<string> _harvestFollowers = new();
 
     // Event-based: no polling or container tracking needed
 
@@ -51,7 +50,7 @@ public class AethraFavorTracker(
         _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
         _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
         _sapi.Event.PlayerDisconnect -= OnPlayerDisconnect;
-        _aethraFollowers.Clear();
+        _harvestFollowers.Clear();
         _lastCookingAwardUtc.Clear();
     }
 
@@ -89,7 +88,7 @@ public class AethraFavorTracker(
 
     private void HandleCropPlanted(IServerPlayer player, Block cropBlock)
     {
-        if (!_aethraFollowers.Contains(player.PlayerUID)) return;
+        if (!_harvestFollowers.Contains(player.PlayerUID)) return;
 
         // Award favor for planting crops
         _favorSystem.AwardFavorForAction(player, "planting " + GetCropName(cropBlock), FavorPerPlanting);
@@ -101,7 +100,7 @@ public class AethraFavorTracker(
 
     private void RefreshFollowerCache()
     {
-        _aethraFollowers.Clear();
+        _harvestFollowers.Clear();
 
         var onlinePlayers = _sapi?.World?.AllOnlinePlayers;
         if (onlinePlayers == null) return;
@@ -109,21 +108,21 @@ public class AethraFavorTracker(
         foreach (var player in onlinePlayers)
         {
             if (_playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID) == DeityDomain)
-                _aethraFollowers.Add(player.PlayerUID);
+                _harvestFollowers.Add(player.PlayerUID);
         }
     }
 
     private void OnPlayerDataChanged(string playerUID)
     {
         if (_playerProgressionDataManager.GetPlayerDeityType(playerUID) == DeityDomain)
-            _aethraFollowers.Add(playerUID);
+            _harvestFollowers.Add(playerUID);
         else
-            _aethraFollowers.Remove(playerUID);
+            _harvestFollowers.Remove(playerUID);
     }
 
     private void OnPlayerLeavesProgression(IServerPlayer player, string religionUID)
     {
-        _aethraFollowers.Remove(player.PlayerUID);
+        _harvestFollowers.Remove(player.PlayerUID);
     }
 
     private void OnPlayerDisconnect(IServerPlayer player)
@@ -140,7 +139,7 @@ public class AethraFavorTracker(
     /// </summary>
     private void OnCropHarvested(IServerPlayer player, BlockCrop crop)
     {
-        if (!_aethraFollowers.Contains(player.PlayerUID)) return;
+        if (!_harvestFollowers.Contains(player.PlayerUID)) return;
         if (!IsMatureCrop(crop)) return;
 
         _favorSystem.AwardFavorForAction(player, "harvesting " + GetCropName(crop), FavorPerCropHarvest);
@@ -152,7 +151,7 @@ public class AethraFavorTracker(
     /// </summary>
     private void OnScytheHarvest(IServerPlayer player, Block block)
     {
-        if (!_aethraFollowers.Contains(player.PlayerUID)) return;
+        if (!_harvestFollowers.Contains(player.PlayerUID)) return;
         if (block is not BlockCrop crop) return;
         if (!IsMatureCrop(crop)) return;
 
@@ -201,7 +200,7 @@ public class AethraFavorTracker(
 
     private void HandleMealCooked(IServerPlayer player, ItemStack cookedStack, BlockPos pos)
     {
-        if (!_aethraFollowers.Contains(player.PlayerUID)) return;
+        if (!_harvestFollowers.Contains(player.PlayerUID)) return;
 
         // Rate limit per player
         var now = DateTime.UtcNow;
