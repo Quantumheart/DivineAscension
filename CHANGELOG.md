@@ -1,3 +1,13 @@
+## [4.6.0] - 2026-01-14
+
+### Added
+- Favor batching
+
+## [4.5.3] - 2026-01-14
+
+### Fixed
+- Unsubscribe from patches
+
 ## [4.5.2] - 2026-01-13
 
 ### Fixed
