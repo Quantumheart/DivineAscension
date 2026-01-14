@@ -303,18 +303,18 @@ public class ReligionDataTests
     [Theory]
     [InlineData(0, PrestigeRank.Fledgling)]
     [InlineData(100, PrestigeRank.Fledgling)]
-    [InlineData(499, PrestigeRank.Fledgling)]
-    [InlineData(500, PrestigeRank.Established)]
-    [InlineData(1000, PrestigeRank.Established)]
-    [InlineData(1999, PrestigeRank.Established)]
-    [InlineData(2000, PrestigeRank.Renowned)]
-    [InlineData(3000, PrestigeRank.Renowned)]
-    [InlineData(4999, PrestigeRank.Renowned)]
-    [InlineData(5000, PrestigeRank.Legendary)]
-    [InlineData(7500, PrestigeRank.Legendary)]
-    [InlineData(9999, PrestigeRank.Legendary)]
-    [InlineData(10000, PrestigeRank.Mythic)]
-    [InlineData(15000, PrestigeRank.Mythic)]
+    [InlineData(2499, PrestigeRank.Fledgling)]
+    [InlineData(2500, PrestigeRank.Established)]
+    [InlineData(5000, PrestigeRank.Established)]
+    [InlineData(9999, PrestigeRank.Established)]
+    [InlineData(10000, PrestigeRank.Renowned)]
+    [InlineData(15000, PrestigeRank.Renowned)]
+    [InlineData(24999, PrestigeRank.Renowned)]
+    [InlineData(25000, PrestigeRank.Legendary)]
+    [InlineData(35000, PrestigeRank.Legendary)]
+    [InlineData(49999, PrestigeRank.Legendary)]
+    [InlineData(50000, PrestigeRank.Mythic)]
+    [InlineData(75000, PrestigeRank.Mythic)]
     [InlineData(99999, PrestigeRank.Mythic)]
     public void UpdatePrestigeRank_ShouldSetCorrectRankBasedOnTotalPrestige(int totalPrestige,
         PrestigeRank expectedRank)
@@ -337,7 +337,7 @@ public class ReligionDataTests
         var religion = new ReligionData("uid", "name", DeityDomain.Craft, "TestDeity", "founder", "TestFounder");
 
         // Act
-        religion.AddPrestige(2500);
+        religion.AddPrestige(12500);
 
         // Assert
         Assert.Equal(PrestigeRank.Renowned, religion.PrestigeRank);
@@ -457,7 +457,7 @@ public class ReligionDataTests
         religion.AddMember("member-3", "Member 3");
 
         // Act - Gain prestige
-        religion.AddPrestige(600); // Should reach Established rank
+        religion.AddPrestige(3000); // Should reach Established rank
 
         // Act - Unlock blessings
         religion.UnlockBlessing("blessing-1");
@@ -481,19 +481,19 @@ public class ReligionDataTests
         // Act & Assert - Progress through all ranks
         Assert.Equal(PrestigeRank.Fledgling, religion.PrestigeRank);
 
-        religion.AddPrestige(500);
+        religion.AddPrestige(2500);
         Assert.Equal(PrestigeRank.Established, religion.PrestigeRank);
 
-        religion.AddPrestige(1500); // Total: 2000
+        religion.AddPrestige(7500); // Total: 10000
         Assert.Equal(PrestigeRank.Renowned, religion.PrestigeRank);
 
-        religion.AddPrestige(3000); // Total: 5000
+        religion.AddPrestige(15000); // Total: 25000
         Assert.Equal(PrestigeRank.Legendary, religion.PrestigeRank);
 
-        religion.AddPrestige(5000); // Total: 10000
+        religion.AddPrestige(25000); // Total: 50000
         Assert.Equal(PrestigeRank.Mythic, religion.PrestigeRank);
 
-        Assert.Equal(10000, religion.TotalPrestige);
+        Assert.Equal(50000, religion.TotalPrestige);
     }
 
     [Fact]

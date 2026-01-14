@@ -15,12 +15,12 @@ namespace DivineAscension.Systems;
 /// </summary>
 public class ReligionPrestigeManager : IReligionPrestigeManager
 {
-    // Prestige rank thresholds
+    // Prestige rank thresholds (5x multiplier for 1:1 favor-to-prestige conversion)
     private const int FLEDGLING_THRESHOLD = 0;
-    private const int ESTABLISHED_THRESHOLD = 500;
-    private const int RENOWNED_THRESHOLD = 2000;
-    private const int LEGENDARY_THRESHOLD = 5000;
-    private const int MYTHIC_THRESHOLD = 10000;
+    private const int ESTABLISHED_THRESHOLD = 2500;
+    private const int RENOWNED_THRESHOLD = 10000;
+    private const int LEGENDARY_THRESHOLD = 25000;
+    private const int MYTHIC_THRESHOLD = 50000;
     private readonly IReligionManager _religionManager;
     private readonly ICoreServerAPI _sapi;
     private IBlessingEffectSystem? _blessingEffectSystem;

@@ -56,19 +56,19 @@ public class ReligionPrestigeManagerTests
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
 
         // Act & Assert - Progress through all ranks
-        _prestigeManager.AddPrestige("test-religion-uid", 500); // -> Established
+        _prestigeManager.AddPrestige("test-religion-uid", 2500); // -> Established
         Assert.Equal(PrestigeRank.Established, _testReligion.PrestigeRank);
 
-        _prestigeManager.AddPrestige("test-religion-uid", 1500); // -> Renowned
+        _prestigeManager.AddPrestige("test-religion-uid", 7500); // -> Renowned
         Assert.Equal(PrestigeRank.Renowned, _testReligion.PrestigeRank);
 
-        _prestigeManager.AddPrestige("test-religion-uid", 3000); // -> Legendary
+        _prestigeManager.AddPrestige("test-religion-uid", 15000); // -> Legendary
         Assert.Equal(PrestigeRank.Legendary, _testReligion.PrestigeRank);
 
-        _prestigeManager.AddPrestige("test-religion-uid", 5000); // -> Mythic
+        _prestigeManager.AddPrestige("test-religion-uid", 25000); // -> Mythic
         Assert.Equal(PrestigeRank.Mythic, _testReligion.PrestigeRank);
 
-        Assert.Equal(10000, _testReligion.TotalPrestige);
+        Assert.Equal(50000, _testReligion.TotalPrestige);
     }
 
     #endregion
@@ -172,8 +172,8 @@ public class ReligionPrestigeManagerTests
         var mockWorld = new Mock<IServerWorldAccessor>();
         _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
 
-        // Act - Add 100 prestige to reach 550 (Established threshold is 500)
-        _prestigeManager.AddPrestige("test-religion-uid", 100);
+        // Act - Add 2100 prestige to reach 2550 (Established threshold is 2500)
+        _prestigeManager.AddPrestige("test-religion-uid", 2100);
 
         // Assert
         Assert.Equal(PrestigeRank.Established, _testReligion.PrestigeRank);
@@ -187,7 +187,7 @@ public class ReligionPrestigeManagerTests
     public void UpdatePrestigeRank_At500TotalPrestige_RanksToEstablished()
     {
         // Arrange
-        _testReligion.TotalPrestige = 500;
+        _testReligion.TotalPrestige = 2500;
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
 
         // Act
@@ -201,7 +201,7 @@ public class ReligionPrestigeManagerTests
     public void UpdatePrestigeRank_At2000TotalPrestige_RanksToRenowned()
     {
         // Arrange
-        _testReligion.TotalPrestige = 2000;
+        _testReligion.TotalPrestige = 10000;
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
 
         // Act
@@ -215,7 +215,7 @@ public class ReligionPrestigeManagerTests
     public void UpdatePrestigeRank_At5000TotalPrestige_RanksToLegendary()
     {
         // Arrange
-        _testReligion.TotalPrestige = 5000;
+        _testReligion.TotalPrestige = 25000;
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
 
         // Act
@@ -229,7 +229,7 @@ public class ReligionPrestigeManagerTests
     public void UpdatePrestigeRank_At10000TotalPrestige_RanksToMythic()
     {
         // Arrange
-        _testReligion.TotalPrestige = 10000;
+        _testReligion.TotalPrestige = 50000;
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
 
         // Act
@@ -261,7 +261,7 @@ public class ReligionPrestigeManagerTests
     public void UpdatePrestigeRank_WithRankChange_LogsNotification()
     {
         // Arrange
-        _testReligion.TotalPrestige = 600;
+        _testReligion.TotalPrestige = 3000;
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
 
         // Act
@@ -423,7 +423,7 @@ public class ReligionPrestigeManagerTests
 
         // Assert
         Assert.Equal(250, current);
-        Assert.Equal(500, nextThreshold); // ESTABLISHED_THRESHOLD
+        Assert.Equal(2500, nextThreshold); // ESTABLISHED_THRESHOLD
         Assert.Equal(PrestigeRank.Established, nextRank);
     }
 
@@ -431,15 +431,15 @@ public class ReligionPrestigeManagerTests
     public void GetPrestigeProgress_AtEstablishedRank_ReturnsCorrectProgress()
     {
         // Arrange
-        _testReligion.TotalPrestige = 1000;
+        _testReligion.TotalPrestige = 5000;
         _testReligion.PrestigeRank = PrestigeRank.Established;
 
         // Act
         var (current, nextThreshold, nextRank) = _prestigeManager.GetPrestigeProgress("test-religion-uid");
 
         // Assert
-        Assert.Equal(1000, current);
-        Assert.Equal(2000, nextThreshold); // RENOWNED_THRESHOLD
+        Assert.Equal(5000, current);
+        Assert.Equal(10000, nextThreshold); // RENOWNED_THRESHOLD
         Assert.Equal(PrestigeRank.Renowned, nextRank);
     }
 
@@ -447,15 +447,15 @@ public class ReligionPrestigeManagerTests
     public void GetPrestigeProgress_AtRenownedRank_ReturnsCorrectProgress()
     {
         // Arrange
-        _testReligion.TotalPrestige = 3000;
+        _testReligion.TotalPrestige = 15000;
         _testReligion.PrestigeRank = PrestigeRank.Renowned;
 
         // Act
         var (current, nextThreshold, nextRank) = _prestigeManager.GetPrestigeProgress("test-religion-uid");
 
         // Assert
-        Assert.Equal(3000, current);
-        Assert.Equal(5000, nextThreshold); // LEGENDARY_THRESHOLD
+        Assert.Equal(15000, current);
+        Assert.Equal(25000, nextThreshold); // LEGENDARY_THRESHOLD
         Assert.Equal(PrestigeRank.Legendary, nextRank);
     }
 
@@ -463,15 +463,15 @@ public class ReligionPrestigeManagerTests
     public void GetPrestigeProgress_AtLegendaryRank_ReturnsCorrectProgress()
     {
         // Arrange
-        _testReligion.TotalPrestige = 7000;
+        _testReligion.TotalPrestige = 35000;
         _testReligion.PrestigeRank = PrestigeRank.Legendary;
 
         // Act
         var (current, nextThreshold, nextRank) = _prestigeManager.GetPrestigeProgress("test-religion-uid");
 
         // Assert
-        Assert.Equal(7000, current);
-        Assert.Equal(10000, nextThreshold); // MYTHIC_THRESHOLD
+        Assert.Equal(35000, current);
+        Assert.Equal(50000, nextThreshold); // MYTHIC_THRESHOLD
         Assert.Equal(PrestigeRank.Mythic, nextRank);
     }
 
@@ -479,15 +479,15 @@ public class ReligionPrestigeManagerTests
     public void GetPrestigeProgress_AtMythicRank_ReturnsMaxRank()
     {
         // Arrange
-        _testReligion.TotalPrestige = 15000;
+        _testReligion.TotalPrestige = 75000;
         _testReligion.PrestigeRank = PrestigeRank.Mythic;
 
         // Act
         var (current, nextThreshold, nextRank) = _prestigeManager.GetPrestigeProgress("test-religion-uid");
 
         // Assert
-        Assert.Equal(15000, current);
-        Assert.Equal(10000, nextThreshold); // Max rank, no higher threshold
+        Assert.Equal(75000, current);
+        Assert.Equal(50000, nextThreshold); // Max rank, no higher threshold
         Assert.Equal(PrestigeRank.Mythic, nextRank); // Still Mythic
     }
 
@@ -528,7 +528,7 @@ public class ReligionPrestigeManagerTests
         _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
 
         // Act - Add prestige to trigger rank-up
-        _prestigeManager.AddPrestige("test-religion-uid", 100);
+        _prestigeManager.AddPrestige("test-religion-uid", 2100);
 
         // Assert - Both members should receive notifications
         mockPlayer1.Verify(
@@ -589,7 +589,7 @@ public class ReligionPrestigeManagerTests
         _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
 
         // Act & Assert - Should not throw
-        _prestigeManager.AddPrestige("test-religion-uid", 100);
+        _prestigeManager.AddPrestige("test-religion-uid", 2500);
         Assert.Equal(PrestigeRank.Established, _testReligion.PrestigeRank);
     }
 
@@ -620,7 +620,7 @@ public class ReligionPrestigeManagerTests
 
         _prestigeManager.SetBlessingSystems(mockBlessingRegistry.Object, mockBlessingEffectSystem.Object);
 
-        _testReligion.TotalPrestige = 500;
+        _testReligion.TotalPrestige = 2500;
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
         _testReligion.AddMember("member-1", "Member 1");
 
@@ -648,7 +648,7 @@ public class ReligionPrestigeManagerTests
     public void UpdatePrestigeRank_WithoutBlessingRegistry_SkipsUnlockCheck()
     {
         // Arrange - Don't set blessing systems
-        _testReligion.TotalPrestige = 500;
+        _testReligion.TotalPrestige = 2500;
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
 
         // Act
@@ -675,7 +675,7 @@ public class ReligionPrestigeManagerTests
 
         _prestigeManager.SetBlessingSystems(mockBlessingRegistry.Object, mockBlessingEffectSystem.Object);
 
-        _testReligion.TotalPrestige = 500;
+        _testReligion.TotalPrestige = 2500;
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
 
         // Act
@@ -711,7 +711,7 @@ public class ReligionPrestigeManagerTests
 
         _prestigeManager.SetBlessingSystems(mockBlessingRegistry.Object, mockBlessingEffectSystem.Object);
 
-        _testReligion.TotalPrestige = 500;
+        _testReligion.TotalPrestige = 2500;
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
 
         // Act
