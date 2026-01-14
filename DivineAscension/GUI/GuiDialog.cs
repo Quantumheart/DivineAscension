@@ -147,6 +147,11 @@ public partial class GuiDialog : ModSystem
         }
 
         _divineAscensionModSystem!.UiService.RequestReligionList();
+
+        // Request civilization data to populate header immediately
+        _divineAscensionModSystem!.UiService.RequestCivilizationList(string.Empty);
+        _divineAscensionModSystem!.UiService.RequestCivilizationInfo(string.Empty);
+
         _state.IsOpen = true;
         _imguiModSystem?.Show();
     }
