@@ -10,7 +10,7 @@ public readonly struct CivilizationBrowseViewModel(
     IReadOnlyList<CivilizationListResponsePacket.CivilizationInfo> civilizations,
     bool isLoading,
     float scrollY,
-    bool isDeityDropDownOpen,
+    string? selectedCivId,
     bool userHasReligion,
     bool userInCivilization,
     float x,
@@ -23,7 +23,7 @@ public readonly struct CivilizationBrowseViewModel(
     public IReadOnlyList<CivilizationListResponsePacket.CivilizationInfo> Civilizations { get; } = civilizations;
     public bool IsLoading { get; } = isLoading;
     public float ScrollY { get; } = scrollY;
-    public bool IsDeityDropDownOpen { get; } = isDeityDropDownOpen;
+    public string? SelectedCivId { get; } = selectedCivId;
     public bool UserHasReligion { get; } = userHasReligion;
     public bool UserInCivilization { get; } = userInCivilization;
     public float X { get; } = x;

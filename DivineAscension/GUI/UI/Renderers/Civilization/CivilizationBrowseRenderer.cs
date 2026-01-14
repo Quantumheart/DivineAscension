@@ -1,167 +1,156 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.Browse;
+using DivineAscension.GUI.Models.Civilization.Table;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
-using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Renderers.Components;
 using DivineAscension.GUI.UI.Utilities;
-using DivineAscension.Models.Enum;
-using DivineAscension.Network.Civilization;
 using DivineAscension.Services;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
+/// <summary>
+///     Renderer for browsing and viewing civilizations.
+///     Follows separation of concerns pattern from ReligionBrowseRenderer.
+/// </summary>
 internal static class CivilizationBrowseRenderer
 {
+    // Layout dimensions
+    private const float TopPadding = 8f;
+    private const float FilterLabelWidth = 120f;
+    private const float DropdownWidth = 200f;
+    private const float DropdownHeight = 30f;
+    private const float DropdownYOffset = -6f;
+    private const float RefreshButtonWidth = 100f;
+    private const float RefreshButtonMargin = 12f;
+    private const float ComponentSpacing = 40f;
+    private const float MenuItemHeight = 34f;
+
+    /// <summary>
+    ///     Pure renderer: builds visuals from view model and emits UI events.
+    ///     No state or side effects.
+    /// </summary>
+    /// <param name="vm">View model containing civilization data and layout info</param>
+    /// <param name="isDeityDropdownOpen">Whether deity filter dropdown is currently open</param>
+    /// <param name="drawList">ImGui draw list for rendering</param>
+    /// <returns>Render result with events and final height</returns>
     public static CivilizationBrowseRenderResult Draw(
         CivilizationBrowseViewModel vm,
+        bool isDeityDropdownOpen,
         ImDrawListPtr drawList)
     {
         var events = new List<BrowseEvent>();
-        var currentY = vm.Y + 8f;
+        var currentY = vm.Y + TopPadding;
 
-        // Filter label
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_FILTER), vm.X, currentY);
+        // === FILTER CONTROLS ===
+        DrawFilterControls(vm, isDeityDropdownOpen, currentY, drawList, events);
+        currentY += ComponentSpacing;
 
-        var selectedIndex = vm.GetCurrentFilterIndex();
-
-        var dropdownX = vm.X + 120f;
-        var dropdownY = currentY - 6f;
-        var dropdownW = 200f;
-        var dropdownH = 30f;
-
-        // Draw dropdown button
-        if (Dropdown.DrawButton(drawList, dropdownX, dropdownY, dropdownW, dropdownH,
-                vm.DeityFilters[selectedIndex], vm.IsDeityDropDownOpen))
-            events.Add(new BrowseEvent.DeityDropDownToggled(!vm.IsDeityDropDownOpen));
-
-        // Refresh button
-        if (ButtonRenderer.DrawButton(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_REFRESH),
-                dropdownX + dropdownW + 12f, dropdownY, 100f, dropdownH,
-                false, !vm.IsLoading))
-            events.Add(new BrowseEvent.RefreshClicked());
-
-        currentY += 40f;
-
-        // Scrollable list of civilizations
-        var civilizationsList = vm.Civilizations.ToList();
-        var listHeight = vm.Height - (currentY - vm.Y);
-
-        var newScrollY = ScrollableList.Draw(
-            drawList,
+        // === CIVILIZATION TABLE ===
+        var tableHeight = vm.Height - (currentY - vm.Y);
+        var tableVm = new CivilizationTableViewModel(
+            vm.Civilizations,
+            vm.IsLoading,
+            vm.ScrollY,
+            vm.SelectedCivId,
             vm.X,
             currentY,
             vm.Width,
-            listHeight,
-            civilizationsList,
-            90f,
-            8f,
-            vm.ScrollY,
-            (civ, cx, cy, cw, ch) => DrawCivilizationCard(civ, cx, cy, cw, ch, drawList, events),
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_NO_CIVS),
-            vm.IsLoading ? LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_LOADING) : null
-        );
+            tableHeight);
 
-        // Emit scroll event if changed
-        if (newScrollY != vm.ScrollY)
-            events.Add(new BrowseEvent.ScrollChanged(newScrollY));
+        var tableResult = CivilizationTableRenderer.Draw(tableVm, drawList);
 
-        // Draw dropdown menu AFTER the list so it appears on top (z-ordering)
-        if (vm.IsDeityDropDownOpen)
+        // Translate table events to browse events
+        foreach (var evt in tableResult.Events)
         {
-            // Draw menu visual
-            Dropdown.DrawMenuVisual(drawList, dropdownX, dropdownY, dropdownW, dropdownH,
-                vm.DeityFilters, selectedIndex, 34f);
-
-            // Handle menu interaction
-            var (newIndex, shouldClose, clickConsumed) = Dropdown.DrawMenuAndHandleInteraction(dropdownX, dropdownY,
-                dropdownW, dropdownH,
-                vm.DeityFilters, selectedIndex, 34f);
-
-            if (shouldClose)
+            switch (evt)
             {
-                events.Add(new BrowseEvent.DeityDropDownToggled(false));
-
-                // Update filter if selection changed
-                if (newIndex != selectedIndex)
-                {
-                    var newFilter = newIndex == 0 ? string.Empty : vm.DeityFilters[newIndex];
-                    events.Add(new BrowseEvent.DeityFilterChanged(newFilter));
-                }
+                case ListEvent.ItemClicked ic:
+                    // Row clicked → select and auto-navigate to detail view
+                    events.Add(new BrowseEvent.Selected(ic.CivId, ic.NewScrollY));
+                    break;
+                case ListEvent.ScrollChanged sc:
+                    events.Add(new BrowseEvent.ScrollChanged(sc.NewScrollY));
+                    break;
             }
+        }
+
+        // === DROPDOWN MENU (z-ordered on top) ===
+        if (isDeityDropdownOpen)
+        {
+            DrawDropdownMenu(vm, currentY, drawList, events);
         }
 
         return new CivilizationBrowseRenderResult(events, vm.Height);
     }
 
-    private static void DrawCivilizationCard(
-        CivilizationListResponsePacket.CivilizationInfo civ,
-        float x,
+    /// <summary>
+    ///     Draw filter dropdown and refresh button
+    /// </summary>
+    private static void DrawFilterControls(
+        CivilizationBrowseViewModel vm,
+        bool isDropdownOpen,
         float y,
-        float width,
-        float height,
         ImDrawListPtr drawList,
         List<BrowseEvent> events)
     {
-        // Card background
-        drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width, y + height),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown), 4f);
+        // Filter label
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_FILTER), vm.X, y);
 
-        // Civilization icon
-        const float iconSize = 28f;
-        var iconTextureId = CivilizationIconLoader.GetIconTextureId(civ.Icon);
+        var selectedIndex = vm.GetCurrentFilterIndex();
 
-        if (iconTextureId != IntPtr.Zero)
-        {
-            var iconMin = new Vector2(x + 12f, y + 8f);
-            var iconMax = new Vector2(x + 12f + iconSize, y + 8f + iconSize);
-            var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
-            drawList.AddImage(iconTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
+        var dropdownX = vm.X + FilterLabelWidth;
+        var dropdownY = y + DropdownYOffset;
 
-            // Icon border
-            var iconBorderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.5f);
-            drawList.AddRect(iconMin, iconMax, iconBorderColor, 3f, ImDrawFlags.None, 1f);
-        }
+        // Dropdown button
+        if (Dropdown.DrawButton(drawList, dropdownX, dropdownY, DropdownWidth, DropdownHeight,
+                vm.DeityFilters[selectedIndex], isDropdownOpen))
+            events.Add(new BrowseEvent.DeityDropDownToggled(!isDropdownOpen));
 
-        // Civ name (positioned next to icon)
-        TextRenderer.DrawLabel(drawList, civ.Name, x + 12f + iconSize + 8f, y + 10f, 16f, ColorPalette.White);
-
-        // Members and diversity line
-        var membersText =
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_MEMBERS_LABEL, civ.MemberCount);
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 12f, y + 32f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), membersText);
-
-        // Deity icons for member deities
-        const float deityIconSize = 12f;
-        var iconX = x + 12f;
-        var iconY = y + 52f - deityIconSize / 2f;
-        foreach (var deityName in civ.MemberDeities)
-        {
-            if (Enum.TryParse<DeityDomain>(deityName, out var deityType))
-            {
-                var deityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
-                drawList.AddImage(deityTextureId,
-                    new Vector2(iconX, iconY),
-                    new Vector2(iconX + deityIconSize, iconY + deityIconSize),
-                    Vector2.Zero, Vector2.One,
-                    ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)));
-            }
-
-            iconX += 16f;
-        }
-
-        // View details button
+        // Refresh button
         if (ButtonRenderer.DrawButton(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_VIEW_DETAILS),
-                x + width - 130f, y + height - 36f, 120f, 28f, true))
-            events.Add(new BrowseEvent.ViewDetailedsClicked(civ.CivId));
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_REFRESH),
+                dropdownX + DropdownWidth + RefreshButtonMargin, dropdownY, RefreshButtonWidth, DropdownHeight,
+                false, !vm.IsLoading))
+            events.Add(new BrowseEvent.RefreshClicked());
+    }
+
+    /// <summary>
+    ///     Draw dropdown menu overlay when open
+    /// </summary>
+    private static void DrawDropdownMenu(
+        CivilizationBrowseViewModel vm,
+        float controlsY,
+        ImDrawListPtr drawList,
+        List<BrowseEvent> events)
+    {
+        var selectedIndex = vm.GetCurrentFilterIndex();
+        var dropdownX = vm.X + FilterLabelWidth;
+        var dropdownY = controlsY + DropdownYOffset;
+
+        // Draw menu visual
+        Dropdown.DrawMenuVisual(drawList, dropdownX, dropdownY, DropdownWidth, DropdownHeight,
+            vm.DeityFilters, selectedIndex, MenuItemHeight);
+
+        // Handle menu interaction
+        var (newIndex, shouldClose, _) = Dropdown.DrawMenuAndHandleInteraction(dropdownX, dropdownY,
+            DropdownWidth, DropdownHeight,
+            vm.DeityFilters, selectedIndex, MenuItemHeight);
+
+        if (shouldClose)
+        {
+            events.Add(new BrowseEvent.DeityDropDownToggled(false));
+
+            // Update filter if selection changed
+            if (newIndex != selectedIndex)
+            {
+                var newFilter = newIndex == 0 ? string.Empty : vm.DeityFilters[newIndex];
+                events.Add(new BrowseEvent.DeityFilterChanged(newFilter));
+            }
+        }
     }
 }

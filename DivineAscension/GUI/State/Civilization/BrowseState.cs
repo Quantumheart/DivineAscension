@@ -13,6 +13,7 @@ public class BrowseState : IState
     public bool IsDeityFilterOpen { get; set; }
     public bool IsLoading { get; set; }
     public string? ErrorMsg { get; set; }
+    public string? SelectedCivId { get; set; } // Row selection state for table
 
     public void Reset()
     {

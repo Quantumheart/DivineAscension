@@ -8,6 +8,8 @@ public abstract record BrowseEvent
 
     public sealed record ViewDetailedsClicked(string civId) : BrowseEvent;
 
+    public sealed record Selected(string CivId, float ScrollY) : BrowseEvent;
+
     public sealed record RefreshClicked : BrowseEvent;
 
     public sealed record DeityDropDownToggled(bool isOpen) : BrowseEvent;
