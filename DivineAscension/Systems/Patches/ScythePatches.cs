@@ -16,6 +16,11 @@ public static class ScythePatches
     /// </summary>
     public static event Action<IServerPlayer, Block>? OnScytheHarvest;
 
+    public static void ClearSubscribers()
+    {
+        OnScytheHarvest = null;
+    }
+
     /// <summary>
     /// Patch ItemShears.breakMultiBlock - this is called for each block broken by scythe/shears.
     /// Using Prefix to capture block data before it's destroyed.

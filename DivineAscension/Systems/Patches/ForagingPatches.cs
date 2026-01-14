@@ -23,6 +23,11 @@ public static class ForagingPatches
     /// </summary>
     public static event Action<IServerPlayer?, BlockSelection?, Block?>? Picked;
 
+    public static void ClearSubscribers()
+    {
+        Picked = null;
+    }
+
     /// <summary>
     /// Prefix: Capture the block BEFORE harvest changes its state.
     /// </summary>

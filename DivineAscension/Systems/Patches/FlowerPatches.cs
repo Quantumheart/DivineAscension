@@ -16,6 +16,11 @@ public static class FlowerPatches
     /// </summary>
     public static event Action<IServerPlayer, Block, string?>? OnFlowerHarvested;
 
+    public static void ClearSubscribers()
+    {
+        OnFlowerHarvested = null;
+    }
+
     /// <summary>
     /// Patch BlockPlant.GetDrops - fires for all plants, we filter for flowers.
     /// </summary>

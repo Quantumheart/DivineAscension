@@ -36,6 +36,14 @@ public static class DivineAscensionSystemInitializer
         // Step 1: Clear any static event subscribers from previous loads
         PitKilnPatches.ClearSubscribers();
         AnvilPatches.ClearSubscribers();
+        CookingPatches.ClearSubscribers();
+        EatingPatches.ClearSubscribers();
+        CropPlantingPatches.ClearSubscribers();
+        ForagingPatches.ClearSubscribers();
+        BlockCropPatches.ClearSubscribers();
+        FlowerPatches.ClearSubscribers();
+        MushroomPatches.ClearSubscribers();
+        ScythePatches.ClearSubscribers();
 
         api.RegisterEntityBehaviorClass("DivineAscensionBuffTracker", typeof(EntityBehaviorBuffTracker));
 

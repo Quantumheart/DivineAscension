@@ -16,6 +16,11 @@ public static class BlockCropPatches
     /// </summary>
     public static event Action<IServerPlayer, BlockCrop>? OnCropHarvested;
 
+    public static void ClearSubscribers()
+    {
+        OnCropHarvested = null;
+    }
+
     /// <summary>
     /// Patch BlockCrop.GetDrops - called when a crop is broken and drops are calculated.
     /// </summary>

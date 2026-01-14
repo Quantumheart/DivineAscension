@@ -16,6 +16,11 @@ public static class MushroomPatches
     /// </summary>
     public static event Action<IServerPlayer, Block, string?>? OnMushroomHarvested;
 
+    public static void ClearSubscribers()
+    {
+        OnMushroomHarvested = null;
+    }
+
     /// <summary>
     /// Patch BlockMushroom.GetDrops - called when a mushroom is broken and drops are calculated.
     /// </summary>
