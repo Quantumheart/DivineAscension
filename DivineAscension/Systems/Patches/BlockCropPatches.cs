@@ -18,9 +18,9 @@ public static class BlockCropPatches
 
     /// <summary>
     /// Event fired when a crop block is harvested (drops are calculated).
-    /// Provides the player, typed BlockCrop reference, and position.
+    /// Provides the player, typed BlockCrop reference, position, and whether harvested with scythe.
     /// </summary>
-    public static event Action<IServerPlayer, BlockCrop, BlockPos>? OnCropHarvested;
+    public static event Action<IServerPlayer, BlockCrop, BlockPos, bool>? OnCropHarvested;
 
     public static void ClearSubscribers()
     {
@@ -58,6 +58,11 @@ public static class BlockCropPatches
         if (!_recentHarvests.Add(key))
             return;
 
-        OnCropHarvested?.Invoke(serverPlayer, __instance, pos);
+        // Detect if harvested with scythe/shears for batching optimization
+        var activeSlot = byPlayer.InventoryManager?.ActiveHotbarSlot;
+        var activeItem = activeSlot?.Itemstack?.Collectible;
+        bool isScytheHarvest = activeItem is ItemShears;
+
+        OnCropHarvested?.Invoke(serverPlayer, __instance, pos, isScytheHarvest);
     }
 }

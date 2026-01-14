@@ -12,9 +12,9 @@ public static class FlowerPatches
 {
     /// <summary>
     /// Event fired when a flower block is broken.
-    /// Provides the player, block, and flower type from Variant["type"].
+    /// Provides the player, block, flower type from Variant["type"], and whether harvested with scythe.
     /// </summary>
-    public static event Action<IServerPlayer, Block, string?>? OnFlowerHarvested;
+    public static event Action<IServerPlayer, Block, string?, bool>? OnFlowerHarvested;
 
     public static void ClearSubscribers()
     {
@@ -39,9 +39,14 @@ public static class FlowerPatches
         // Only fire for flower blocks
         if (__instance.FirstCodePart() != "flower") return;
 
+        // Detect if harvested with scythe/shears for batching optimization
+        var activeSlot = byPlayer.InventoryManager?.ActiveHotbarSlot;
+        var activeItem = activeSlot?.Itemstack?.Collectible;
+        bool isScytheHarvest = activeItem is ItemShears;
+
         // Get flower type from Variant
         __instance.Variant.TryGetValue("type", out var flowerType);
 
-        OnFlowerHarvested?.Invoke(serverPlayer, __instance, flowerType);
+        OnFlowerHarvested?.Invoke(serverPlayer, __instance, flowerType, isScytheHarvest);
     }
 }

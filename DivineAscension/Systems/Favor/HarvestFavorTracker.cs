@@ -44,7 +44,6 @@ public class HarvestFavorTracker(
     public void Dispose()
     {
         BlockCropPatches.OnCropHarvested -= OnCropHarvested;
-        ScythePatches.OnScytheHarvest -= OnScytheHarvest;
         CropPlantingPatches.OnCropPlanted -= HandleCropPlanted;
         CookingPatches.OnMealCooked -= HandleMealCooked;
         _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
@@ -60,9 +59,6 @@ public class HarvestFavorTracker(
     {
         // Subscribe to crop harvesting via typed BlockCrop patch
         BlockCropPatches.OnCropHarvested += OnCropHarvested;
-
-        // Subscribe to scythe harvesting events for crops cut with scythe
-        ScythePatches.OnScytheHarvest += OnScytheHarvest;
 
         // Subscribe to crop planting patch events (uses Harmony patch on BlockEntityFarmland.TryPlant)
         CropPlantingPatches.OnCropPlanted += HandleCropPlanted;
@@ -136,28 +132,25 @@ public class HarvestFavorTracker(
 
     /// <summary>
     ///     Handles crop harvesting via BlockCropPatches (typed BlockCrop).
+    ///     Uses batching for scythe harvests, immediate for manual harvests.
     /// </summary>
-    private void OnCropHarvested(IServerPlayer player, BlockCrop crop, BlockPos pos)
+    private void OnCropHarvested(IServerPlayer player, BlockCrop crop, BlockPos pos, bool isScytheHarvest)
     {
         if (!_harvestFollowers.Contains(player.PlayerUID)) return;
         if (!IsMatureCrop(crop)) return;
 
-        _favorSystem.AwardFavorForAction(player, "harvesting " + GetCropName(crop), FavorPerCropHarvest);
-    }
+        var actionName = "harvesting " + GetCropName(crop);
 
-    /// <summary>
-    ///     Handles scythe/shears harvesting to detect crop cutting.
-    ///     Awards favor for mature crops cut with scythe.
-    ///     Uses batched favor awarding to avoid per-block overhead on large harvests.
-    /// </summary>
-    private void OnScytheHarvest(IServerPlayer player, Block block)
-    {
-        if (!_harvestFollowers.Contains(player.PlayerUID)) return;
-        if (block is not BlockCrop crop) return;
-        if (!IsMatureCrop(crop)) return;
-
-        // Use batched favor for scythe harvesting to avoid performance issues on large fields
-        _favorSystem.QueueFavorForAction(player, "harvesting crops", FavorPerCropHarvest, DeityDomain);
+        if (isScytheHarvest)
+        {
+            // Use batched favor for scythe harvesting (avoid performance issues on large fields)
+            _favorSystem.QueueFavorForAction(player, actionName, FavorPerCropHarvest, DeityDomain);
+        }
+        else
+        {
+            // Use immediate favor for manual harvesting (better player feedback)
+            _favorSystem.AwardFavorForAction(player, actionName, FavorPerCropHarvest);
+        }
     }
 
     /// <summary>

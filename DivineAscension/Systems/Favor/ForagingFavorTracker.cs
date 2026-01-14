@@ -25,7 +25,6 @@ public class ForagingFavorTracker(
     public void Dispose()
     {
         ForagingPatches.Picked -= OnBlockUsed;
-        ScythePatches.OnScytheHarvest -= OnScytheHarvest;
         MushroomPatches.OnMushroomHarvested -= OnMushroomHarvested;
         FlowerPatches.OnFlowerHarvested -= OnFlowerHarvested;
         _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
@@ -38,7 +37,6 @@ public class ForagingFavorTracker(
     public void Initialize()
     {
         ForagingPatches.Picked += OnBlockUsed;
-        ScythePatches.OnScytheHarvest += OnScytheHarvest;
         MushroomPatches.OnMushroomHarvested += OnMushroomHarvested;
         FlowerPatches.OnFlowerHarvested += OnFlowerHarvested;
 
@@ -77,24 +75,6 @@ public class ForagingFavorTracker(
     }
 
     /// <summary>
-    ///     Handles scythe/shears harvesting to detect flower cutting.
-    ///     Only awards favor for flowers, not grass.
-    ///     Uses batched favor awarding to avoid per-block overhead on large harvests.
-    /// </summary>
-    private void OnScytheHarvest(IServerPlayer player, Block block)
-    {
-        if (!_wildFollowers.Contains(player.PlayerUID)) return;
-        if (block?.Code == null) return;
-
-        // Only award for flowers (not grass, mushrooms, or seaweed)
-        // Use FirstCodePart() for reliable block type detection
-        if (block.FirstCodePart() != "flower") return;
-
-        // Use batched favor for scythe harvesting to avoid performance issues on large fields
-        _favorSystem.QueueFavorForAction(player, "foraging flowers", 0.5f, DeityDomain);
-    }
-
-    /// <summary>
     ///     Handles mushroom harvesting via dedicated patch.
     /// </summary>
     private void OnMushroomHarvested(IServerPlayer player, Block block, string? mushroomType)
@@ -105,13 +85,23 @@ public class ForagingFavorTracker(
     }
 
     /// <summary>
-    ///     Handles flower harvesting via dedicated patch.
+    ///     Handles flower harvesting via FlowerPatches.
+    ///     Uses batching for scythe harvests, immediate for manual harvests.
     /// </summary>
-    private void OnFlowerHarvested(IServerPlayer player, Block block, string? flowerType)
+    private void OnFlowerHarvested(IServerPlayer player, Block block, string? flowerType, bool isScytheHarvest)
     {
         if (!_wildFollowers.Contains(player.PlayerUID)) return;
 
-        _favorSystem.AwardFavorForAction(player, "foraging", 0.5f);
+        if (isScytheHarvest)
+        {
+            // Use batched favor for scythe harvesting (avoid performance issues on large fields)
+            _favorSystem.QueueFavorForAction(player, "foraging flowers", 0.5f, DeityDomain);
+        }
+        else
+        {
+            // Use immediate favor for manual harvesting (better player feedback)
+            _favorSystem.AwardFavorForAction(player, "foraging", 0.5f);
+        }
     }
 
     /// <summary>

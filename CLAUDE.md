@@ -153,7 +153,7 @@ Releases/                      # Packaged mod artifacts from Cake build
 **FavorSystem** (`/Systems/FavorSystem.cs`):
 - Awards favor for domain-aligned activities
 - Passive favor generation (0.5/hour)
-- Manages 7 sub-trackers: `MiningFavorTracker`, `AnvilFavorTracker`, `HuntingFavorTracker`, `ForagingFavorTracker`, `AethraFavorTracker`, `GaiaFavorTracker`, `SmeltingFavorTracker`
+- Manages 7 sub-trackers: `MiningFavorTracker`, `AnvilFavorTracker`, `HuntingFavorTracker`, `ForagingFavorTracker`, `HarvestFavorTracker`, `GaiaFavorTracker`, `SmeltingFavorTracker`
 - Each tracker implements `IFavorTracker` with domain-specific logic
 
 **BlessingRegistry** (`/Systems/BlessingRegistry.cs`):
