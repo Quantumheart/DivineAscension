@@ -271,7 +271,7 @@ public class DiplomacyManager : IDiplomacyManager
             return (false, "No diplomatic relationship exists");
 
         var civ = _civilizationManager.GetCivilization(civId);
-        if (civ == null || civ.FounderUID != founderUID)
+        if (civ == null || !civ.IsFounder(founderUID))
             return (false, "Only the civilization founder can schedule treaty breaks");
 
         if (relationship.Status == DiplomaticStatus.War || relationship.Status == DiplomaticStatus.Neutral)
@@ -295,7 +295,7 @@ public class DiplomacyManager : IDiplomacyManager
             return (false, "No diplomatic relationship exists");
 
         var civ = _civilizationManager.GetCivilization(civId);
-        if (civ == null || civ.FounderUID != founderUID)
+        if (civ == null || !civ.IsFounder(founderUID))
             return (false, "Only the civilization founder can cancel scheduled treaty breaks");
 
         if (relationship.BreakScheduledDate == null)
@@ -383,7 +383,7 @@ public class DiplomacyManager : IDiplomacyManager
             return (false, "Can only declare peace from war status");
 
         var civ = _civilizationManager.GetCivilization(civId);
-        if (civ == null || civ.FounderUID != founderUID)
+        if (civ == null || !civ.IsFounder(founderUID))
             return (false, "Only the civilization founder can declare peace");
 
         // Remove war relationship

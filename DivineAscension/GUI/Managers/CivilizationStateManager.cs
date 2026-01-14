@@ -55,6 +55,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
     public string CivilizationFounderReligionUID { get; set; } = string.Empty;
 
+    public string CivilizationFounderUID { get; set; } = string.Empty;
+
     public string CurrentCivilizationName { get; set; } = string.Empty;
 
     public string CivilizationIcon { get; set; } = string.Empty;
@@ -71,6 +73,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         CurrentCivilizationId = string.Empty;
         CurrentCivilizationName = string.Empty;
         CivilizationFounderReligionUID = string.Empty;
+        CivilizationFounderUID = string.Empty;
         if (CivilizationMemberReligions != null) CivilizationMemberReligions.Clear();
     }
 
@@ -95,6 +98,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             CurrentCivilizationName = string.Empty;
             CivilizationIcon = string.Empty;
             CivilizationFounderReligionUID = string.Empty;
+            CivilizationFounderUID = string.Empty;
+            UserIsCivilizationFounder = false;
             CivilizationMemberReligions?.Clear();
             State.InfoState.Info = null;
             State.InviteState.MyInvites.Clear();
@@ -118,6 +123,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 CurrentCivilizationName = string.Empty;
                 CivilizationIcon = string.Empty;
                 CivilizationFounderReligionUID = string.Empty;
+                CivilizationFounderUID = string.Empty;
+                UserIsCivilizationFounder = false;
                 CivilizationMemberReligions?.Clear();
                 State.InfoState.Info = null;
                 State.InviteState.MyInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(
@@ -130,6 +137,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 CurrentCivilizationName = details.Name;
                 CivilizationIcon = details.Icon ?? "default";
                 CivilizationFounderReligionUID = details.FounderReligionUID;
+                CivilizationFounderUID = details.FounderUID;
+                UserIsCivilizationFounder = details.IsFounder;
                 CivilizationMemberReligions =
                     new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions ?? []);
                 State.InfoState.Info = details;
@@ -512,7 +521,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         string? profanityWordInDescription = null;
         if (!string.IsNullOrWhiteSpace(State.CreateState.CreateDescription))
         {
-            ProfanityFilterService.Instance.ContainsProfanity(State.CreateState.CreateDescription, out profanityWordInDescription);
+            ProfanityFilterService.Instance.ContainsProfanity(State.CreateState.CreateDescription,
+                out profanityWordInDescription);
         }
 
         // Build ViewModel

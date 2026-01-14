@@ -140,6 +140,14 @@ public class Civilization
     {
         Description = description;
     }
+
+    /// <summary>
+    ///     Checks if the specified player is the civilization founder
+    /// </summary>
+    public bool IsFounder(string playerUID)
+    {
+        return !string.IsNullOrEmpty(FounderUID) && FounderUID == playerUID;
+    }
 }
 
 /// <summary>

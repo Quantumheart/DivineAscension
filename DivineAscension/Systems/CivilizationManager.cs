@@ -245,7 +245,7 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
             }
 
             // Check if inviter is the civilization founder
-            if (civ.FounderUID != inviterUID)
+            if (!civ.IsFounder(inviterUID))
             {
                 _sapi.Logger.Warning("[DivineAscension] Only civilization founder can invite religions");
                 return false;
@@ -489,7 +489,7 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
             }
 
             // If this is the civilization founder's religion, disband instead
-            if (civ.FounderUID == requesterUID)
+            if (civ.IsFounder(requesterUID))
             {
                 _sapi.Logger.Warning("[DivineAscension] Civilization founder must disband, not leave");
                 return false;
@@ -537,7 +537,7 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
             }
 
             // Check if kicker is the civilization founder
-            if (civ.FounderUID != kickerUID)
+            if (!civ.IsFounder(kickerUID))
             {
                 _sapi.Logger.Warning("[DivineAscension] Only civilization founder can kick religions");
                 return false;
@@ -606,7 +606,7 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
             }
 
             // Check if requester is the civilization founder
-            if (civ.FounderUID != requesterUID)
+            if (!civ.IsFounder(requesterUID))
             {
                 _sapi.Logger.Warning("[DivineAscension] Only civilization founder can disband");
                 return false;
@@ -691,7 +691,7 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
             }
 
             // Check if requestor is the civilization founder
-            if (civ.FounderUID != requestorUID)
+            if (!civ.IsFounder(requestorUID))
             {
                 _sapi.Logger.Warning("[DivineAscension] Only civilization founder can update icon");
                 return false;
@@ -736,7 +736,7 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
             }
 
             // Check if requestor is the civilization founder
-            if (civ.FounderUID != requestorUID)
+            if (!civ.IsFounder(requestorUID))
             {
                 _sapi.Logger.Warning("[DivineAscension] Only civilization founder can update description");
                 return false;
