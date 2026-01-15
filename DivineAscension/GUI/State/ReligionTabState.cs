@@ -8,8 +8,6 @@ namespace DivineAscension.GUI.State;
 /// </summary>
 public class ReligionTabState
 {
-    private readonly ActivityState _activityState = new ActivityState();
-
     // Tab navigation
     public SubTab CurrentSubTab { get; set; } // 0=Browse, 1=Religion Info, 2=Activity, 3=Create, 4=Activity, 5=Roles
 
@@ -20,6 +18,8 @@ public class ReligionTabState
     public BrowseState BrowseState { get; } = new();
 
     public InfoState InfoState { get; } = new InfoState();
+
+    public ActivityState ActivityState { get; } = new ActivityState();
 
     public InvitesState InvitesState { get; } = new InvitesState();
 
@@ -40,7 +40,7 @@ public class ReligionTabState
         CreateState.Reset();
 
         // _activityState.ActivityLog.Clear();
-        _activityState.Reset();
+        ActivityState.Reset();
         ErrorState.Reset();
     }
 }

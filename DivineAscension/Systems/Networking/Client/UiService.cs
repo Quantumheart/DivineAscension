@@ -55,6 +55,11 @@ public class UiService(DivineAscensionNetworkClient networkClient)
         _networkClient.RequestReligionDetail(religionUID);
     }
 
+    public void RequestActivityLog(string religionUID, int limit = 50)
+    {
+        _networkClient.RequestActivityLog(religionUID, limit);
+    }
+
     public void RequestReligionRoles(string religionUID)
     {
         _networkClient.RequestReligionRoles(religionUID);

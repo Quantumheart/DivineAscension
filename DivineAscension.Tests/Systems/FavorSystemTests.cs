@@ -164,6 +164,11 @@ public class FavorSystemTests
         var mockPlayer = new Mock<IServerPlayer>();
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
 
+        // Mock World.PlayerByUid to return the player
+        var mockWorld = new Mock<IServerWorldAccessor>();
+        mockWorld.Setup(w => w.PlayerByUid("player-uid")).Returns(mockPlayer.Object);
+        mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
+
         mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
@@ -213,11 +218,13 @@ public class FavorSystemTests
         IReligionManager religionManager)
     {
         var mockPrestige = new Mock<IReligionPrestigeManager>();
+        var mockActivityLogManager = new Mock<IActivityLogManager>();
         return new FavorSystem(
             api,
             playerProgressionDataManager,
             religionManager,
-            mockPrestige.Object);
+            mockPrestige.Object,
+            mockActivityLogManager.Object);
     }
 
     #endregion
@@ -484,7 +491,7 @@ public class FavorSystemTests
 
         // Assert
         mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor("player-uid", 15, "test action"),
+            m => m.AddFractionalFavor("player-uid", 15, "test action"),
             Times.Once
         );
     }

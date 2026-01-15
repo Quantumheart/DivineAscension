@@ -87,11 +87,13 @@ public class KhorasIntegrationTests
         // Note: GetBlessingsForDeity has optional parameters, so we can't use it in expression trees
         // Instead, we setup GetBlessing for each individual blessing
 
+        var mockActivityLogManager = new Mock<IActivityLogManager>();
         _favorSystem = new FavorSystem(
             _mockAPI.Object,
             _mockPlayerReligionDataManager.Object,
             _mockReligionManager.Object,
-            _mockPrestigeManager.Object
+            _mockPrestigeManager.Object,
+            mockActivityLogManager.Object
         );
 
         _blessingEffectSystem = new BlessingEffectSystem(

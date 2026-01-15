@@ -18,12 +18,11 @@ public class FavorSystem : IFavorSystem
     private const int DEATH_PENALTY_FAVOR = 50;
     private const float BASE_FAVOR_PER_HOUR = 0.5f; // Passive favor generation rate
     private const int PASSIVE_TICK_INTERVAL_MS = 1000; // 1 second ticks
-    private const int MESSAGE_THROTTLE_MS = 2000; // Throttle favor messages to max 1 per 2 seconds
-    private readonly Dictionary<string, DateTime> _lastMessageTime = new();
+
+    private readonly IActivityLogManager _activityLogManager;
 
     // Batching support for high-frequency favor events (e.g., scythe harvesting)
     private readonly Dictionary<string, PendingFavorData> _pendingFavor = new();
-
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionPrestigeManager _prestigeManager;
     private readonly IReligionManager _religionManager;
@@ -39,12 +38,14 @@ public class FavorSystem : IFavorSystem
 
     public FavorSystem(ICoreServerAPI sapi,
         IPlayerProgressionDataManager playerProgressionDataManager,
-        IReligionManager religionManager, IReligionPrestigeManager prestigeManager)
+        IReligionManager religionManager, IReligionPrestigeManager prestigeManager,
+        IActivityLogManager activityLogManager)
     {
         _sapi = sapi;
         _playerProgressionDataManager = playerProgressionDataManager;
         _religionManager = religionManager;
         _prestigeManager = prestigeManager;
+        _activityLogManager = activityLogManager;
     }
 
     /// <summary>
@@ -92,13 +93,8 @@ public class FavorSystem : IFavorSystem
     /// </summary>
     public void AwardFavorForAction(IServerPlayer player, string actionType, int amount)
     {
-        AwardFavorForAction(player.PlayerUID, actionType, amount);
-        // If world lookup path couldn't notify (e.g., headless tests), fall back to direct notify
-        if (_sapi?.World?.PlayerByUid(player.PlayerUID) == null)
-        {
-            var deityType = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
-            if (deityType != DeityDomain.None) AwardFavorMessage(player, actionType, amount, deityType);
-        }
+        var domain = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+        AwardFavorCore(player.PlayerUID, actionType, amount, domain);
     }
 
     public void Dispose()
@@ -115,49 +111,13 @@ public class FavorSystem : IFavorSystem
 
     public void AwardFavorForAction(IServerPlayer player, string actionType, float amount)
     {
-        var deityType = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
-        AwardFavorForAction(player.PlayerUID, actionType, amount,
-            deityType); // If world lookup path couldn't notify (e.g., headless tests), fall back to direct notify
-        if (_sapi?.World?.PlayerByUid(player.PlayerUID) == null)
-        {
-            if (deityType != DeityDomain.None) AwardFavorMessage(player, actionType, amount, deityType);
-        }
+        var domain = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+        AwardFavorCore(player.PlayerUID, actionType, amount, domain);
     }
 
     public void AwardFavorForAction(string playerUid, string actionType, float amount, DeityDomain deityDomain)
     {
-        if (deityDomain == DeityDomain.None) return;
-
-        // Award favor (existing logic)
-        _playerProgressionDataManager.AddFractionalFavor(playerUid, amount, actionType);
-
-        // Award prestige if deity-themed activity and player is in a religion
-        var playerReligion = _religionManager.GetPlayerReligion(playerUid);
-        if (!string.IsNullOrEmpty(playerReligion!.ReligionUID) &&
-            ShouldAwardPrestigeForActivity(_religionManager.GetPlayerActiveDeityDomain(playerUid), actionType))
-        {
-            // 1:1 favor-to-prestige conversion (truncate fractional favor)
-            var prestigeAmount = (int)Math.Floor(amount);
-            if (prestigeAmount > 0) // Only award whole prestige points
-                try
-                {
-                    var playerForName = _sapi.World.PlayerByUid(playerUid);
-                    var playerName = playerForName?.PlayerName ?? playerUid;
-                    _prestigeManager.AddPrestige(
-                        playerReligion.ReligionUID,
-                        prestigeAmount,
-                        $"{actionType} by {playerName}"
-                    );
-                }
-                catch (Exception ex)
-                {
-                    _sapi.Logger.Error($"[FavorSystem] Failed to award prestige: {ex.Message}");
-                    // Don't fail favor award if prestige fails
-                }
-        }
-
-        var player = _sapi?.World?.PlayerByUid(playerUid) as IServerPlayer;
-        if (player != null) AwardFavorMessage(player, actionType, amount, deityDomain);
+        AwardFavorCore(playerUid, actionType, amount, deityDomain);
     }
 
     /// <summary>
@@ -296,100 +256,103 @@ public class FavorSystem : IFavorSystem
     /// </summary>
     internal void AwardFavorForAction(string playerUid, string actionType, int amount)
     {
-        if (_religionManager.GetPlayerActiveDeityDomain(playerUid) == DeityDomain.None) return;
+        var domain = _religionManager.GetPlayerActiveDeityDomain(playerUid);
+        AwardFavorCore(playerUid, actionType, amount, domain);
+    }
 
-        // Award favor (existing logic)
-        _playerProgressionDataManager.AddFavor(playerUid, amount, actionType);
-
-        // Award prestige if deity-themed activity and player is in a religion
-        var playerReligion = _religionManager.GetPlayerReligion(playerUid);
-        if (!string.IsNullOrEmpty(playerReligion!.ReligionUID) &&
-            ShouldAwardPrestigeForActivity(_religionManager.GetPlayerActiveDeityDomain(playerUid), actionType))
+    /// <summary>
+    ///     Sends favor notification to player (generic to handle int/float)
+    /// </summary>
+    private void AwardFavorMessage<T>(IServerPlayer player, string actionType, T amount, DeityDomain deityDomain)
+        where T : struct
+    {
+        var deityName = deityDomain switch
         {
-            // 1:1 favor-to-prestige conversion (already whole number)
-            if (amount > 0)
-                try
-                {
-                    var playerForName = _sapi.World.PlayerByUid(playerUid);
-                    var playerName = playerForName?.PlayerName ?? playerUid;
-                    _prestigeManager.AddPrestige(
-                        playerReligion.ReligionUID,
-                        amount,
-                        $"{actionType} by {playerName}"
-                    );
-                }
-                catch (Exception ex)
-                {
-                    _sapi.Logger.Error($"[FavorSystem] Failed to award prestige: {ex.Message}");
-                    // Don't fail favor award if prestige fails
-                }
+            DeityDomain.Craft => nameof(DeityDomain.Craft),
+            DeityDomain.Wild => nameof(DeityDomain.Wild),
+            DeityDomain.Harvest => nameof(DeityDomain.Harvest),
+            DeityDomain.Stone => nameof(DeityDomain.Stone),
+            _ => nameof(DeityDomain.None)
+        };
+
+        player.SendMessage(
+            GlobalConstants.GeneralChatGroup,
+            $"[Divine Favor] {deityName}: You gained {amount} favor for {actionType}",
+            EnumChatType.Notification
+        );
+    }
+
+    /// <summary>
+    ///     Core favor award implementation with activity logging.
+    ///     All public overloads delegate to this method.
+    /// </summary>
+    private void AwardFavorCore(string playerUid, string actionType, float amount, DeityDomain deityDomain)
+    {
+        if (deityDomain == DeityDomain.None) return;
+
+        // 1. Award favor
+        _playerProgressionDataManager.AddFractionalFavor(playerUid, amount, actionType);
+
+        // 2. Check if player is in religion and should receive prestige
+        var playerReligion = _religionManager.GetPlayerReligion(playerUid);
+        if (string.IsNullOrEmpty(playerReligion?.ReligionUID))
+        {
+            // Not in religion - send player message and return
+            NotifyPlayer(playerUid, actionType, amount, deityDomain);
+            return;
         }
 
-        // Try to notify player if server context is available
+        // 3. Check if activity is deity-themed (determines both prestige and logging)
+        var isDeityThemed = ShouldAwardPrestigeForActivity(deityDomain, actionType);
+        if (!isDeityThemed)
+        {
+            // Not deity-themed - send player message and return (no prestige, no logging)
+            NotifyPlayer(playerUid, actionType, amount, deityDomain);
+            return;
+        }
+
+        try
+        {
+            var playerForName = _sapi.World.PlayerByUid(playerUid);
+            var playerName = playerForName?.PlayerName ?? playerUid;
+
+            // 4. Award fractional prestige (1:1 favor-to-prestige conversion)
+            _prestigeManager.AddFractionalPrestige(
+                playerReligion.ReligionUID,
+                amount,
+                $"{actionType} by {playerName}"
+            );
+
+            // 5. Log activity for ALL deity-themed activities
+            // Note: prestigeAmount in log shows the fractional amount truncated for display
+            _activityLogManager.LogActivity(
+                playerReligion.ReligionUID,
+                playerUid,
+                actionType,
+                (int)Math.Floor(amount),
+                (int)Math.Floor(amount), // Show favor amount as prestige (1:1 ratio)
+                deityDomain
+            );
+        }
+        catch (Exception ex)
+        {
+            _sapi.Logger.Error($"[FavorSystem] Failed to award prestige/log activity: {ex.Message}");
+        }
+
+        // 7. Notify player
+        NotifyPlayer(playerUid, actionType, amount, deityDomain);
+    }
+
+    /// <summary>
+    ///     Sends favor notification to player if online
+    /// </summary>
+    private void NotifyPlayer(string playerUid, string actionType, float amount, DeityDomain deityDomain)
+    {
         var player = _sapi?.World?.PlayerByUid(playerUid) as IServerPlayer;
         if (player != null)
-            AwardFavorMessage(player, actionType, amount, _religionManager.GetPlayerActiveDeityDomain(playerUid));
-    }
-
-    private static void AwardFavorMessage(IServerPlayer player, string actionType, int amount,
-        DeityDomain deityDomain)
-    {
-        var deityName = nameof(DeityDomain.None);
-        switch (deityDomain)
         {
-            case DeityDomain.None:
-                break;
-            case DeityDomain.Craft:
-                deityName = nameof(DeityDomain.Craft);
-                break;
-            case DeityDomain.Wild:
-                deityName = nameof(DeityDomain.Wild);
-                break;
-            case DeityDomain.Harvest:
-                deityName = nameof(DeityDomain.Harvest);
-                break;
-            case DeityDomain.Stone:
-                deityName = nameof(DeityDomain.Stone);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
+            AwardFavorMessage(player, actionType, amount, deityDomain);
         }
-
-        player.SendMessage(
-            GlobalConstants.GeneralChatGroup,
-            $"[Divine Favor] {deityName}: You gained {amount} favor for {actionType}",
-            EnumChatType.Notification
-        );
-    }
-
-    private void AwardFavorMessage(IServerPlayer player, string actionType, float amount, DeityDomain deityDomain)
-    {
-        var deityName = nameof(DeityDomain.None);
-        switch (deityDomain)
-        {
-            case DeityDomain.None:
-                break;
-            case DeityDomain.Craft:
-                deityName = nameof(DeityDomain.Craft);
-                break;
-            case DeityDomain.Wild:
-                deityName = nameof(DeityDomain.Wild);
-                break;
-            case DeityDomain.Harvest:
-                deityName = nameof(DeityDomain.Harvest);
-                break;
-            case DeityDomain.Stone:
-                deityName = nameof(DeityDomain.Stone);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-
-        player.SendMessage(
-            GlobalConstants.GeneralChatGroup,
-            $"[Divine Favor] {deityName}: You gained {amount} favor for {actionType}",
-            EnumChatType.Notification
-        );
     }
 
     #region Passive Favor Generation
@@ -501,69 +464,11 @@ public class FavorSystem : IFavorSystem
 
         foreach (var (uid, pending) in _pendingFavor)
         {
-            // Award favor in one batch
-            _playerProgressionDataManager.AddFractionalFavor(uid, pending.Amount, pending.ActionType);
-
-            // Award prestige if deity-themed activity
-            var playerReligion = _religionManager.GetPlayerReligion(uid);
-            if (!string.IsNullOrEmpty(playerReligion?.ReligionUID) &&
-                ShouldAwardPrestigeForActivity(pending.Domain, pending.ActionType))
-            {
-                var prestigeAmount = pending.Amount / 10f;
-                if (prestigeAmount >= 1.0f)
-                {
-                    try
-                    {
-                        var playerForName = _sapi.World.PlayerByUid(uid);
-                        var playerName = playerForName?.PlayerName ?? uid;
-                        _prestigeManager.AddPrestige(
-                            playerReligion.ReligionUID,
-                            (int)prestigeAmount,
-                            $"{pending.ActionType} by {playerName}"
-                        );
-                    }
-                    catch (Exception ex)
-                    {
-                        _sapi.Logger.Error($"[FavorSystem] Failed to award prestige: {ex.Message}");
-                    }
-                }
-            }
-
-            // Send throttled message
-            SendThrottledFavorMessage(uid, pending.Amount, pending.ActionType, pending.Domain);
+            // Use core method instead of direct calls
+            AwardFavorCore(uid, pending.ActionType, pending.Amount, pending.Domain);
         }
 
         _pendingFavor.Clear();
-    }
-
-    /// <summary>
-    ///     Sends a favor message to the player, throttled to avoid chat spam during high-frequency events.
-    /// </summary>
-    private void SendThrottledFavorMessage(string playerUid, float amount, string actionType, DeityDomain domain)
-    {
-        var now = DateTime.UtcNow;
-        if (_lastMessageTime.TryGetValue(playerUid, out var last) &&
-            (now - last).TotalMilliseconds < MESSAGE_THROTTLE_MS)
-            return;
-
-        var player = _sapi.World.PlayerByUid(playerUid) as IServerPlayer;
-        if (player == null) return;
-
-        var deityName = domain switch
-        {
-            DeityDomain.Craft => nameof(DeityDomain.Craft),
-            DeityDomain.Wild => nameof(DeityDomain.Wild),
-            DeityDomain.Harvest => nameof(DeityDomain.Harvest),
-            DeityDomain.Stone => nameof(DeityDomain.Stone),
-            _ => nameof(DeityDomain.None)
-        };
-
-        player.SendMessage(
-            GlobalConstants.GeneralChatGroup,
-            $"[Divine Favor] {deityName}: You gained {amount:F1} favor from {actionType}",
-            EnumChatType.Notification
-        );
-        _lastMessageTime[playerUid] = now;
     }
 
     /// <summary>

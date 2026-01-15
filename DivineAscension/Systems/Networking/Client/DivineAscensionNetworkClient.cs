@@ -73,6 +73,9 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         // Register handler for deity name change response
         _clientChannel.SetMessageHandler<SetDeityNameResponsePacket>(OnSetDeityNameResponse);
 
+        // Register handler for activity log response
+        _clientChannel.SetMessageHandler<ActivityLogResponsePacket>(OnActivityLogResponse);
+
         _clientChannel.RegisterMessageType(typeof(PlayerReligionDataPacket));
     }
 
@@ -98,6 +101,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         DiplomacyInfoReceived = null;
         DiplomacyActionCompleted = null;
         WarDeclared = null;
+        ActivityLogReceived = null;
     }
 
     #endregion
@@ -439,6 +443,15 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         }
     }
 
+    private void OnActivityLogResponse(ActivityLogResponsePacket packet)
+    {
+        _capi?.Logger.Debug(
+            $"[DivineAscension] Received activity log response with {packet.Entries.Count} entries");
+
+        // Fire event for subscribers (e.g., ReligionStateManager)
+        ActivityLogReceived?.Invoke(packet);
+    }
+
     #endregion
 
     #region Request Methods
@@ -749,6 +762,27 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
             $"[DivineAscension:Diplomacy] Sent diplomacy action request: {action}, target: {targetCivId}, id: {proposalOrRelationshipId}, status: {proposedStatus}");
     }
 
+    /// <summary>
+    ///     Request activity log for a religion
+    /// </summary>
+    public void RequestActivityLog(string religionUID, int limit = 50)
+    {
+        if (!IsNetworkAvailable())
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot request activity log: client channel not initialized");
+            return;
+        }
+
+        var request = new ActivityLogRequestPacket
+        {
+            ReligionUID = religionUID,
+            Limit = limit
+        };
+
+        _clientChannel?.SendPacket(request);
+        _capi?.Logger.Debug($"[DivineAscension] Sent activity log request for religion {religionUID}, limit: {limit}");
+    }
+
     #endregion
 
     #region Events
@@ -858,6 +892,11 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     ///     Event fired when a deity name change response is received
     /// </summary>
     public event Action<SetDeityNameResponsePacket>? DeityNameChanged;
+
+    /// <summary>
+    ///     Event fired when activity log data is received from the server
+    /// </summary>
+    public event Action<ActivityLogResponsePacket>? ActivityLogReceived;
 
     #endregion
 }
