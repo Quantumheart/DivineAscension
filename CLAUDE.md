@@ -153,7 +153,7 @@ Releases/                      # Packaged mod artifacts from Cake build
 **FavorSystem** (`/Systems/FavorSystem.cs`):
 - Awards favor for domain-aligned activities
 - Passive favor generation (0.5/hour)
-- Manages 7 sub-trackers: `MiningFavorTracker`, `AnvilFavorTracker`, `HuntingFavorTracker`, `ForagingFavorTracker`, `HarvestFavorTracker`, `GaiaFavorTracker`, `SmeltingFavorTracker`
+- Manages 8 sub-trackers: `MiningFavorTracker`, `AnvilFavorTracker`, `HuntingFavorTracker`, `SkinningFavorTracker`, `ForagingFavorTracker`, `HarvestFavorTracker`, `GaiaFavorTracker`, `SmeltingFavorTracker`
 - Each tracker implements `IFavorTracker` with domain-specific logic
 
 **BlessingRegistry** (`/Systems/BlessingRegistry.cs`):
@@ -260,7 +260,7 @@ Users can specify names as `"Name With Spaces"` or `SingleWord` (backward compat
 ### Harmony Patches
 
 **Patch classes** (`/Systems/Patches/`):
-- `AnvilPatches`, `PitKilnPatches`, `MoldPourPatches`, `ClayFormingPatches`, `CookingPatches`, `EatingPatches`, `KhorasPatches`
+- `AnvilPatches`, `BlockCropPatches`, `ClayFormingPatches`, `CookingPatches`, `CraftPatches`, `CropPlantingPatches`, `EatingPatches`, `FlowerPatches`, `ForagingPatches`, `MoldPourPatches`, `MushroomPatches`, `PitKilnPatches`, `SkinningPatches`
 - **Pattern:** Intercept game methods with Harmony, raise events that favor trackers subscribe to
 
 ### Data Persistence

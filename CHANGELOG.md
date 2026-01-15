@@ -1,3 +1,8 @@
+## [4.8.0] - 2026-01-14
+
+### Added
+- Implement skinning Favor tracking
+
 ## [4.7.0] - 2026-01-14
 
 ### Added 
