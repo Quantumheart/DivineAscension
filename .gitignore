@@ -17,6 +17,7 @@
 # Cake
 tools/*
 !tools/hooks/
+!tools/generate-stubs.sh
 .dotnet/
 
 # Server data
@@ -26,6 +27,9 @@ tools/*
 *.dll
 *.exe
 *.pdb
+
+# Exception: CI stub assemblies must be committed
+!lib/ci-stubs/*.dll
 
 # Release packages
 Release/*.zip
