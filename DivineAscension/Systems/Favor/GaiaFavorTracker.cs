@@ -13,12 +13,18 @@ public class GaiaFavorTracker(
     ICoreServerAPI sapi,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
-    // --- Brick Placement Tracking (Part B requirement) ---
-    private const int FavorPerBrickPlacement = 2;
-    private const long BrickPlacementCooldownMs = 5000; // 5 seconds between brick placement favor awards
+    // --- Stone Gathering Tracking ---
+    private const int FavorPerStoneBlock = 1; // Base stone blocks (granite, andesite, etc.)
+    private const int FavorPerValuableStone = 2; // Valuable stones (marble, obsidian)
+
+    // --- Construction Tracking ---
+    private const int FavorPerBrickPlacement = 5; // Increased from 2 to 5
+    private const int FavorPerConstructionBlock = 1; // Stone bricks, slabs, stairs
+    private const long ConstructionCooldownMs = 1000; // 1 second cooldown (reduced from 5s)
+
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
     private readonly Guid _instanceId = Guid.NewGuid();
-    private readonly Dictionary<string, long> _lastBrickPlacementTime = new();
+    private readonly Dictionary<string, long> _lastConstructionTime = new(); // Renamed for clarity
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
@@ -29,9 +35,10 @@ public class GaiaFavorTracker(
     {
         ClayFormingPatches.OnClayFormingFinished -= HandleClayFormingFinished;
         PitKilnPatches.OnPitKilnFired -= HandlePitKilnFired;
+        _sapi.Event.BreakBlock -= OnBlockBroken;
         _sapi.Event.DidPlaceBlock -= OnBlockPlaced;
         _sapi.Event.PlayerDisconnect -= OnPlayerDisconnect;
-        _lastBrickPlacementTime.Clear();
+        _lastConstructionTime.Clear();
         _sapi.Logger.Debug($"[DivineAscension] GaiaFavorTracker disposed (ID: {_instanceId})");
     }
 
@@ -41,7 +48,9 @@ public class GaiaFavorTracker(
     {
         ClayFormingPatches.OnClayFormingFinished += HandleClayFormingFinished;
         PitKilnPatches.OnPitKilnFired += HandlePitKilnFired;
-        // Track clay brick placements
+        // Track stone gathering
+        _sapi.Event.BreakBlock += OnBlockBroken;
+        // Track construction (brick/stone placement)
         _sapi.Event.DidPlaceBlock += OnBlockPlaced;
         // Clean up cooldown data on player disconnect
         _sapi.Event.PlayerDisconnect += OnPlayerDisconnect;
@@ -57,11 +66,13 @@ public class GaiaFavorTracker(
         if (clayConsumed > 0)
         {
             // Clay consumed already accounts for the total batch (don't multiply by stack size)
-            _favorSystem.AwardFavorForAction(player, "Pottery Crafting", clayConsumed);
+            // Phase 1 improvement: Double pottery favor rewards
+            var favorAmount = clayConsumed * 2;
+            _favorSystem.AwardFavorForAction(player, "Pottery Crafting", favorAmount);
 
             _sapi.Logger.Debug(
-                $"[GaiaFavorTracker] Awarded {clayConsumed} favor for clay forming " +
-                $"(stack size: {stack?.StackSize ?? 1}, item: {stack?.Collectible?.Code?.Path ?? "unknown"})");
+                $"[GaiaFavorTracker] Awarded {favorAmount} favor for clay forming " +
+                $"(clay consumed: {clayConsumed}, stack size: {stack?.StackSize ?? 1}, item: {stack?.Collectible?.Code?.Path ?? "unknown"})");
         }
     }
 
@@ -72,27 +83,82 @@ public class GaiaFavorTracker(
         if (deityType != DeityDomain.Stone) return;
 
         var placedBlock = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
-        if (!IsBrickBlock(placedBlock)) return;
+        if (!IsConstructionBlock(placedBlock, out var favor)) return;
 
         // Debounce check - limit favor awards to one per cooldown period
         var currentTime = _sapi.World.ElapsedMilliseconds;
-        if (_lastBrickPlacementTime.TryGetValue(byPlayer.PlayerUID, out var lastTime))
+        if (_lastConstructionTime.TryGetValue(byPlayer.PlayerUID, out var lastTime))
         {
-            if (currentTime - lastTime < BrickPlacementCooldownMs)
+            if (currentTime - lastTime < ConstructionCooldownMs)
                 return; // Still in cooldown
         }
 
-        _favorSystem.AwardFavorForAction(byPlayer, "placing clay bricks", FavorPerBrickPlacement);
-        _lastBrickPlacementTime[byPlayer.PlayerUID] = currentTime;
+        _favorSystem.AwardFavorForAction(byPlayer, "construction", favor);
+        _lastConstructionTime[byPlayer.PlayerUID] = currentTime;
+
+        _sapi.Logger.Debug(
+            $"[GaiaFavorTracker] Awarded {favor} favor to {byPlayer.PlayerName} for placing {placedBlock.Code.Path}");
     }
 
-    private static bool IsBrickBlock(Block block)
+    /// <summary>
+    /// Checks if a block is a construction block and returns the favor amount
+    /// </summary>
+    private static bool IsConstructionBlock(Block block, out float favor)
     {
+        favor = 0;
         if (block?.Code == null) return false;
+
         var path = block.Code.Path.ToLowerInvariant();
 
-        // Fired and raw brick blocks typically contain "brick" in the code path
-        return path.Contains("brick");
+        // Bricks (raw and fired) - highest priority for Stone domain
+        if (path.Contains("brick"))
+        {
+            favor = FavorPerBrickPlacement;
+            return true;
+        }
+
+        // Stone construction blocks (slabs, stairs, walls, etc.)
+        if (IsStoneConstructionBlock(path))
+        {
+            favor = FavorPerConstructionBlock;
+            return true;
+        }
+
+        // Clay/ceramic construction blocks
+        if (path.Contains("clay") || path.Contains("ceramic"))
+        {
+            favor = FavorPerConstructionBlock;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if a block is a stone-based construction block
+    /// </summary>
+    private static bool IsStoneConstructionBlock(string path)
+    {
+        // Common stone materials
+        var stoneTypes = new[]
+        {
+            "granite", "andesite", "basalt", "peridotite", "limestone",
+            "sandstone", "claystone", "chalk", "chert", "marble"
+        };
+
+        foreach (var stoneType in stoneTypes)
+        {
+            if (!path.Contains(stoneType)) continue;
+
+            // Construction block types (stairs, slabs, walls, etc.)
+            if (path.Contains("stairs") || path.Contains("slab") || path.Contains("wall") ||
+                path.Contains("pillar") || path.Contains("column") || path.Contains("hewn"))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private int EstimateClayFromFiredItem(ItemStack stack)
@@ -129,10 +195,93 @@ public class GaiaFavorTracker(
         return path.Contains("clay") || path.Contains("ceramic") ? 3 : 0;
     }
 
+    private void OnBlockBroken(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier,
+        ref EnumHandling handling)
+    {
+        // Verify religion
+        var deityType = _playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID);
+        if (deityType != DeityDomain.Stone) return;
+
+        var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
+        if (!IsStoneBlock(block, out var favor)) return;
+
+        _favorSystem.AwardFavorForAction(player, "gathering stone", favor);
+
+        _sapi.Logger.Debug(
+            $"[GaiaFavorTracker] Awarded {favor} favor to {player.PlayerName} for mining {block.Code.Path}");
+    }
+
+    /// <summary>
+    /// Checks if a block is a stone block and returns the favor amount
+    /// </summary>
+    private static bool IsStoneBlock(Block block, out float favor)
+    {
+        favor = 0;
+        if (block?.Code == null) return false;
+
+        var path = block.Code.Path.ToLowerInvariant();
+
+        // Valuable stones - higher favor
+        if (IsValuableStone(path))
+        {
+            favor = FavorPerValuableStone;
+            return true;
+        }
+
+        // Regular stone blocks
+        if (IsRegularStone(path))
+        {
+            favor = FavorPerStoneBlock;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if a block is valuable stone (marble, obsidian, etc.)
+    /// </summary>
+    private static bool IsValuableStone(string path)
+    {
+        // Valuable decorative/rare stones
+        return path.Contains("marble") || path.Contains("obsidian");
+    }
+
+    /// <summary>
+    /// Checks if a block is regular stone
+    /// </summary>
+    private static bool IsRegularStone(string path)
+    {
+        // Check if it's a rock/stone block but NOT ore
+        if (path.StartsWith("ore-", StringComparison.Ordinal))
+            return false; // Ore blocks are handled by MiningFavorTracker (Craft domain)
+
+        // Common stone types
+        var stoneTypes = new[]
+        {
+            "granite", "andesite", "basalt", "peridotite", "limestone",
+            "sandstone", "claystone", "chalk", "chert", "suevite",
+            "phyllite", "slate", "conglomerate", "shale"
+        };
+
+        foreach (var stoneType in stoneTypes)
+        {
+            if (path.Contains(stoneType))
+                return true;
+        }
+
+        // Generic "rock" or "stone" blocks
+        if (path.StartsWith("rock-") || path.StartsWith("stone-") || path.Contains("-rock-") ||
+            path.Contains("-stone-"))
+            return true;
+
+        return false;
+    }
+
     private void OnPlayerDisconnect(IServerPlayer player)
     {
         // Clean up cooldown tracking data to prevent memory leaks
-        _lastBrickPlacementTime.Remove(player.PlayerUID);
+        _lastConstructionTime.Remove(player.PlayerUID);
     }
 
     private void HandlePitKilnFired(string playerUid, List<ItemStack> firedItems)
@@ -152,11 +301,12 @@ public class GaiaFavorTracker(
             // (unlike clay forming where the recipe gives us the total)
             int clayEstimate = EstimateClayFromFiredItem(stack);
             int stackSize = stack?.StackSize ?? 1;
-            totalFavor += clayEstimate * stackSize;
+            // Phase 1 improvement: Double pottery favor rewards
+            totalFavor += (clayEstimate * stackSize * 2);
 
             _sapi.Logger.Debug(
                 $"[GaiaFavorTracker] Pit kiln item: {stack?.Collectible?.Code?.Path ?? "unknown"}, " +
-                $"clay estimate: {clayEstimate}, stack: {stackSize}, favor: {clayEstimate * stackSize}");
+                $"clay estimate: {clayEstimate}, stack: {stackSize}, favor: {clayEstimate * stackSize * 2}");
         }
 
         if (totalFavor > 0)
