@@ -45,21 +45,21 @@ public static class BlessingIds
 
     #endregion
 
-    #region War (Blood & Battle) - 10 Blessings
+    #region Conquest (Domination & Victory) - 10 Blessings
 
     // Player Blessings (6)
-    public const string WarBloodthirst = "ares_bloodthirst";
-    public const string WarBerserkerRage = "ares_berserker_rage";
-    public const string WarIronWill = "ares_iron_will";
-    public const string WarWarlordsStrike = "ares_warlords_strike";
-    public const string WarUnyieldingFortitude = "ares_unyielding_fortitude";
-    public const string WarAvatarOfWar = "ares_avatar_of_war";
+    public const string ConquestBloodthirst = "conquest_bloodthirst";
+    public const string ConquestBerserkerRage = "conquest_berserker_rage";
+    public const string ConquestIronWill = "conquest_iron_will";
+    public const string ConquestWarlordsStrike = "conquest_warlords_strike";
+    public const string ConquestUnyieldingFortitude = "conquest_unyielding_fortitude";
+    public const string ConquestAvatarOfConquest = "conquest_avatar_of_conquest";
 
     // Religion Blessings (4)
-    public const string WarWarband = "ares_warband";
-    public const string WarLegionOfBlood = "ares_legion_of_blood";
-    public const string WarConquerorsBanner = "ares_conquerors_banner";
-    public const string WarPantheonOfWar = "ares_pantheon_of_war";
+    public const string ConquestWarband = "conquest_warband";
+    public const string ConquestConqueringLegion = "conquest_conquering_legion";
+    public const string ConquestConquerorsBanner = "conquest_conquerors_banner";
+    public const string ConquestPantheonOfConquest = "conquest_pantheon_of_conquest";
 
     #endregion
 

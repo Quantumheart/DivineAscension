@@ -23,7 +23,7 @@ public static class BlessingDefinitions
 
         blessings.AddRange(GetCraftBlessings());
         blessings.AddRange(GetWildBlessings());
-        blessings.AddRange(GetWarBlessings());
+        blessings.AddRange(GetConquestBlessings());
         blessings.AddRange(GetHarvestBlessings());
         blessings.AddRange(GetStoneBlessings());
 
@@ -389,16 +389,16 @@ public static class BlessingDefinitions
 
     #endregion
 
-    #region War (Blood & Battle)
+    #region Conquest (Domination & Victory)
 
-    private static List<Blessing> GetWarBlessings()
+    private static List<Blessing> GetConquestBlessings()
     {
         return new List<Blessing>
         {
-            // PLAYER BLESSINGS (6 total) - Combat & PvP utility focus
+            // PLAYER BLESSINGS (6 total) - Combat & conquest utility focus
 
             // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.WarBloodthirst, "Bloodthirst", DeityDomain.War)
+            new(BlessingIds.ConquestBloodthirst, "Bloodthirst", DeityDomain.Conquest)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
@@ -413,7 +413,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.WarBerserkerRage, "Berserker Rage", DeityDomain.War)
+            new(BlessingIds.ConquestBerserkerRage, "Berserker Rage", DeityDomain.Conquest)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
@@ -421,14 +421,14 @@ public static class BlessingDefinitions
                     "+15% melee weapon damage (total: 25%), +5% critical hit chance. Offensive path. Requires Bloodthirst.",
                 IconName = "axe-swing",
                 RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.WarBloodthirst },
+                PrerequisiteBlessings = new List<string> { BlessingIds.ConquestBloodthirst },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
                     { VintageStoryStats.CriticalHitChance, 0.05f }
                 }
             },
-            new(BlessingIds.WarIronWill, "Iron Will", DeityDomain.War)
+            new(BlessingIds.ConquestIronWill, "Iron Will", DeityDomain.Conquest)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Defense,
@@ -436,7 +436,7 @@ public static class BlessingDefinitions
                     "+15% max health, +10% damage reduction. Defensive path. Requires Bloodthirst.",
                 IconName = "shield",
                 RequiredFavorRank = (int)FavorRank.Disciple,
-                PrerequisiteBlessings = new List<string> { BlessingIds.WarBloodthirst },
+                PrerequisiteBlessings = new List<string> { BlessingIds.ConquestBloodthirst },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
@@ -445,7 +445,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 3 - Zealot (2000-4999 favor) - Specialization
-            new(BlessingIds.WarWarlordsStrike, "Warlord's Strike", DeityDomain.War)
+            new(BlessingIds.ConquestWarlordsStrike, "Warlord's Strike", DeityDomain.Conquest)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
@@ -453,7 +453,7 @@ public static class BlessingDefinitions
                     "+20% melee weapon damage (total: 45%), +10% critical hit chance (total: 15%), +15% critical hit damage. Requires Berserker Rage.",
                 IconName = "broadsword",
                 RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.WarBerserkerRage },
+                PrerequisiteBlessings = new List<string> { BlessingIds.ConquestBerserkerRage },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.MeleeWeaponsDamage, 0.20f },
@@ -462,7 +462,7 @@ public static class BlessingDefinitions
                 },
                 SpecialEffects = new List<string> { SpecialEffects.BattleFury }
             },
-            new(BlessingIds.WarUnyieldingFortitude, "Unyielding Fortitude", DeityDomain.War)
+            new(BlessingIds.ConquestUnyieldingFortitude, "Unyielding Fortitude", DeityDomain.Conquest)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Defense,
@@ -470,7 +470,7 @@ public static class BlessingDefinitions
                     "+20% max health (total: 35%), +15% damage reduction (total: 25%), gain temporary damage reduction when health drops below 25%. Requires Iron Will.",
                 IconName = "spartan-helmet",
                 RequiredFavorRank = (int)FavorRank.Zealot,
-                PrerequisiteBlessings = new List<string> { BlessingIds.WarIronWill },
+                PrerequisiteBlessings = new List<string> { BlessingIds.ConquestIronWill },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
@@ -480,16 +480,16 @@ public static class BlessingDefinitions
             },
 
             // Tier 4 - Champion (5000+ favor) - Capstone (requires both paths)
-            new(BlessingIds.WarAvatarOfWar, "Avatar of War", DeityDomain.War)
+            new(BlessingIds.ConquestAvatarOfConquest, "Avatar of Conquest", DeityDomain.Conquest)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description =
-                    "Heal 5% of max health on each kill, +10% movement speed in combat. The ultimate warrior. Requires both Warlord's Strike and Unyielding Fortitude.",
+                    "Heal 5% of max health on each kill, +10% movement speed in combat. The ultimate conqueror. Requires both Warlord's Strike and Unyielding Fortitude.",
                 IconName = "warlord-helmet",
                 RequiredFavorRank = (int)FavorRank.Champion,
                 PrerequisiteBlessings = new List<string>
-                    { BlessingIds.WarWarlordsStrike, BlessingIds.WarUnyieldingFortitude },
+                    { BlessingIds.ConquestWarlordsStrike, BlessingIds.ConquestUnyieldingFortitude },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.KillHealthRestore, 0.05f },
@@ -501,7 +501,7 @@ public static class BlessingDefinitions
             // RELIGION BLESSINGS (4 total) - Shared combat bonuses
 
             // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.WarWarband, "Warband", DeityDomain.War)
+            new(BlessingIds.ConquestWarband, "Warband", DeityDomain.Conquest)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
@@ -516,7 +516,7 @@ public static class BlessingDefinitions
             },
 
             // Tier 2 - Established (500-1999 prestige) - Coordination
-            new(BlessingIds.WarLegionOfBlood, "Legion of Blood", DeityDomain.War)
+            new(BlessingIds.ConquestConqueringLegion, "Conquering Legion", DeityDomain.Conquest)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
@@ -524,7 +524,7 @@ public static class BlessingDefinitions
                     "+15% melee weapon damage, +10% max health for all. Requires Warband.",
                 IconName = "roman-shield",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
-                PrerequisiteBlessings = new List<string> { BlessingIds.WarWarband },
+                PrerequisiteBlessings = new List<string> { BlessingIds.ConquestWarband },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
@@ -533,15 +533,15 @@ public static class BlessingDefinitions
             },
 
             // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
-            new(BlessingIds.WarConquerorsBanner, "Conqueror's Banner", DeityDomain.War)
+            new(BlessingIds.ConquestConquerorsBanner, "Conqueror's Banner", DeityDomain.Conquest)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
                 Description =
-                    "+20% melee weapon damage, +15% max health, +10% damage reduction for all. Requires Legion of Blood.",
+                    "+20% melee weapon damage, +15% max health, +10% damage reduction for all. Requires Conquering Legion.",
                 IconName = "flag",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
-                PrerequisiteBlessings = new List<string> { BlessingIds.WarLegionOfBlood },
+                PrerequisiteBlessings = new List<string> { BlessingIds.ConquestConqueringLegion },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.MeleeWeaponsDamage, 0.20f },
@@ -550,15 +550,15 @@ public static class BlessingDefinitions
                 }
             },
 
-            // Tier 4 - Legendary (5000+ prestige) - Pantheon of War
-            new(BlessingIds.WarPantheonOfWar, "Pantheon of War", DeityDomain.War)
+            // Tier 4 - Legendary (5000+ prestige) - Pantheon of Conquest
+            new(BlessingIds.ConquestPantheonOfConquest, "Pantheon of Conquest", DeityDomain.Conquest)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
                 Description = "+5% critical hit chance, +10% movement speed for all. Requires Conqueror's Banner.",
                 IconName = "throne-king",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
-                PrerequisiteBlessings = new List<string> { BlessingIds.WarConquerorsBanner },
+                PrerequisiteBlessings = new List<string> { BlessingIds.ConquestConquerorsBanner },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.CriticalHitChance, 0.05f },
