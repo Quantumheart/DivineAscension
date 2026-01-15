@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using DivineAscension.Constants;
 using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
+using Vintagestory.GameContent;
 
 namespace DivineAscension.Systems.BlessingEffects.Handlers;
 
@@ -48,6 +50,7 @@ public static class AresEffectHandlers
                 // Remove any active fury bonuses
                 RemoveFuryBonus(player, state.Stacks);
             }
+
             _playerFuryStates.Remove(player.PlayerUID);
             _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
         }
@@ -75,6 +78,7 @@ public static class AresEffectHandlers
                         player.SendMessage(GlobalConstants.GeneralChatGroup,
                             "Your battle fury fades.", EnumChatType.Notification);
                     }
+
                     state.Stacks = 0;
                     state.LastKillTime = 0;
                 }
@@ -249,6 +253,7 @@ public static class AresEffectHandlers
             {
                 player.Entity?.Stats.Remove("damageReduction", "laststand");
             }
+
             _lastStandActive.Remove(player.PlayerUID);
             _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
         }
