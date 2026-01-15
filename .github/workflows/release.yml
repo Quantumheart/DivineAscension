@@ -140,8 +140,8 @@ jobs:
           ASSEMBLY_FILE="DivineAscension/Properties/AssemblyInfo.cs"
           if [ -f "$ASSEMBLY_FILE" ]; then
             echo "Updating $ASSEMBLY_FILE"
-            sed -i "s/AssemblyVersion(\"[^\"]*\")/AssemblyVersion(\"$NEW_VERSION.0\")/" "$ASSEMBLY_FILE"
-            sed -i "s/AssemblyFileVersion(\"[^\"]*\")/AssemblyFileVersion(\"$NEW_VERSION.0\")/" "$ASSEMBLY_FILE"
+            # Update ModInfo Version attribute (Vintage Story format)
+            sed -i "s/Version = \"[^\"]*\"/Version = \"$NEW_VERSION\"/" "$ASSEMBLY_FILE"
           fi
 
           echo "Version files updated"
