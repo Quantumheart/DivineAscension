@@ -227,33 +227,27 @@ jobs:
             echo "Will create release $TAG"
           fi
 
-      - name: Restore dependencies
+      - name: Build and Package with Cake
         if: steps.release_check.outputs.exists == 'false'
-        run: dotnet restore DivineAscension.sln
+        run: ./build.sh
 
-      - name: Build Release
+      - name: Set package paths
         if: steps.release_check.outputs.exists == 'false'
-        run: dotnet build DivineAscension.sln -c Release --no-restore
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          PACKAGE_NAME="divineascension_${VERSION}.zip"
+          PACKAGE_PATH="Releases/${PACKAGE_NAME}"
+
+          echo "Package created: $PACKAGE_PATH"
+          ls -lh "$PACKAGE_PATH"
+
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_ENV
+          echo "package_path=$PACKAGE_PATH" >> $GITHUB_ENV
 
       - name: Run tests
         if: steps.release_check.outputs.exists == 'false'
         run: dotnet test DivineAscension.sln -c Release --no-build --verbosity normal
         continue-on-error: true  # Don't block release on test issues with stubs
-
-      - name: Package mod
-        if: steps.release_check.outputs.exists == 'false'
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          MOD_DIR="DivineAscension/bin/Release/Mods/mod"
-          PACKAGE_NAME="DivineAscension-${VERSION}.zip"
-
-          echo "Creating package: $PACKAGE_NAME"
-
-          cd "$MOD_DIR"
-          zip -r "../../../../$PACKAGE_NAME" .
-
-          echo "package_name=$PACKAGE_NAME" >> $GITHUB_ENV
-          echo "package_path=$PACKAGE_NAME" >> $GITHUB_ENV
 
       - name: Generate release notes
         if: steps.release_check.outputs.exists == 'false'
