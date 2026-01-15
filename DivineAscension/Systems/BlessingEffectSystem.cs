@@ -558,11 +558,11 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         // Stone (Pottery & Clay) handlers
         _specialEffectRegistry.RegisterHandler(new GaiaEffectHandlers.PotteryBatchCompletionEffect());
 
-        // War (Blood & Battle) handlers
-        _specialEffectRegistry.RegisterHandler(new AresEffectHandlers.BattleFuryEffect());
-        _specialEffectRegistry.RegisterHandler(new AresEffectHandlers.BloodlustEffect());
-        _specialEffectRegistry.RegisterHandler(new AresEffectHandlers.WarcryEffect());
-        _specialEffectRegistry.RegisterHandler(new AresEffectHandlers.LastStandEffect());
+        // Conquest (Domination & Victory) handlers
+        _specialEffectRegistry.RegisterHandler(new ConquestEffectHandlers.BattleFuryEffect());
+        _specialEffectRegistry.RegisterHandler(new ConquestEffectHandlers.BloodlustEffect());
+        _specialEffectRegistry.RegisterHandler(new ConquestEffectHandlers.WarcryEffect());
+        _specialEffectRegistry.RegisterHandler(new ConquestEffectHandlers.LastStandEffect());
 
         _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered all special effect handlers");
     }

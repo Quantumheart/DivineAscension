@@ -82,7 +82,7 @@ public static class SpecialEffects
 
     #endregion
 
-    #region War (Blood & Battle) Effects
+    #region Conquest (Domination & Victory) Effects
 
     /// <summary>
     ///     Battle Fury: Damage increases temporarily after each kill

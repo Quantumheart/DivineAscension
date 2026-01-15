@@ -10,14 +10,15 @@ using Vintagestory.GameContent;
 namespace DivineAscension.Systems.Favor;
 
 /// <summary>
-///     Tracks combat kills and awards favor to War domain followers.
+///     Tracks combat kills and awards favor to Conquest domain followers.
 ///     Awards favor for killing hostile creatures and monsters.
 /// </summary>
-public class CombatFavorTracker(
+public class ConquestFavorTracker(
     IPlayerProgressionDataManager playerProgressionDataManager,
     ICoreServerAPI sapi,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
+    private readonly HashSet<string> _conquestFollowers = new();
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
@@ -25,17 +26,15 @@ public class CombatFavorTracker(
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
 
-    private readonly HashSet<string> _warFollowers = new();
-
     public void Dispose()
     {
         _sapi.Event.OnEntityDeath -= OnEntityDeath;
         _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
         _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
-        _warFollowers.Clear();
+        _conquestFollowers.Clear();
     }
 
-    public DeityDomain DeityDomain { get; } = DeityDomain.War;
+    public DeityDomain DeityDomain { get; } = DeityDomain.Conquest;
 
     public void Initialize()
     {
@@ -65,14 +64,14 @@ public class CombatFavorTracker(
     {
         var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerId);
         if (deityType == DeityDomain)
-            _warFollowers.Add(playerId);
+            _conquestFollowers.Add(playerId);
         else
-            _warFollowers.Remove(playerId);
+            _conquestFollowers.Remove(playerId);
     }
 
     private void OnPlayerLeavesProgression(IServerPlayer player, string religionId)
     {
-        _warFollowers.Remove(player.PlayerUID);
+        _conquestFollowers.Remove(player.PlayerUID);
     }
 
     private void OnEntityDeath(Entity? entity, DamageSource? damageSource)
@@ -83,7 +82,7 @@ public class CombatFavorTracker(
         var killer = damageSource.GetCauseEntity();
         if (killer is EntityPlayer { Player: IServerPlayer player })
         {
-            if (!_warFollowers.Contains(player.PlayerUID)) return;
+            if (!_conquestFollowers.Contains(player.PlayerUID)) return;
 
             // Skip if target is a player (PvP is handled separately)
             if (entity is EntityPlayer) return;

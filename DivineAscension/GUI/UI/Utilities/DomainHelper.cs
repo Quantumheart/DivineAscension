@@ -15,7 +15,7 @@ internal static class DomainHelper
     /// </summary>
     public static readonly string[] DomainNames =
     {
-        "Craft", "Wild", "War", "Harvest", "Stone"
+        "Craft", "Wild", "Conquest", "Harvest", "Stone"
     };
 
     /// <summary>
@@ -32,7 +32,7 @@ internal static class DomainHelper
         {
             "Craft" => new Vector4(0.8f, 0.2f, 0.2f, 1.0f), // Red - Forge & Craft
             "Wild" => new Vector4(0.4f, 0.8f, 0.3f, 1.0f), // Green - Hunt & Wild
-            "War" => new Vector4(0.6f, 0.1f, 0.3f, 1.0f), // Crimson - Blood & Battle
+            "Conquest" => new Vector4(0.6f, 0.1f, 0.3f, 1.0f), // Crimson - Domination & Victory
             "Harvest" => new Vector4(0.9f, 0.9f, 0.6f, 1.0f), // Light yellow - Agriculture & Light
             "Stone" => new Vector4(0.5f, 0.4f, 0.2f, 1.0f), // Brown - Earth & Stone
             _ => new Vector4(0.5f, 0.5f, 0.5f, 1.0f) // Grey - Unknown
@@ -63,7 +63,7 @@ internal static class DomainHelper
         {
             DeityDomain.Craft => new Vector4(0.8f, 0.2f, 0.2f, 1.0f), // Red - Forge & Craft
             DeityDomain.Wild => new Vector4(0.4f, 0.8f, 0.3f, 1.0f), // Green - Hunt & Wild
-            DeityDomain.War => new Vector4(0.6f, 0.1f, 0.3f, 1.0f), // Crimson - Blood & Battle
+            DeityDomain.Conquest => new Vector4(0.6f, 0.1f, 0.3f, 1.0f), // Crimson - Domination & Victory
             DeityDomain.Harvest => new Vector4(0.9f, 0.9f, 0.6f, 1.0f), // Light yellow - Agriculture & Light
             DeityDomain.Stone => new Vector4(0.5f, 0.4f, 0.2f, 1.0f), // Brown - Earth & Stone
             _ => new Vector4(0.5f, 0.5f, 0.5f, 1.0f) // Grey - Unknown
@@ -79,7 +79,7 @@ internal static class DomainHelper
         {
             "Craft" => "of the Craft",
             "Wild" => "of the Wild",
-            "War" => "of War",
+            "Conquest" => "of Conquest",
             "Harvest" => "of the Harvest",
             "Stone" => "of the Stone",
             _ => "Unknown Domain"
@@ -95,7 +95,7 @@ internal static class DomainHelper
         {
             DeityDomain.Craft => "Domain of the Craft",
             DeityDomain.Wild => "Domain of the Wild",
-            DeityDomain.War => "Domain of War",
+            DeityDomain.Conquest => "Domain of Conquest",
             DeityDomain.Harvest => "Domain of the Harvest",
             DeityDomain.Stone => "Domain of the Stone",
             _ => "Unknown Domain"

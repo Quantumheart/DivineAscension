@@ -35,10 +35,10 @@ internal static class DeityInfoHelper
                 Description:
                 "The domain of the Hunt and Wild. Followers are rewarded for patience, precision, and tracking. Those who master the hunt and live in harmony with the wilderness earn the favor of this domain."
             ),
-            DeityDomain.War => new DomainInfo(
-                Name: "War",
+            DeityDomain.Conquest => new DomainInfo(
+                Name: "Conquest",
                 Description:
-                "The domain of Blood and Battle. Followers are rewarded for courage in combat, defeating enemies, and proving their strength. Those who embrace the chaos of war and emerge victorious earn the favor of this domain."
+                "The domain of Domination and Victory. Followers are rewarded for martial prowess, defeating enemies, and expanding their dominance through strength. Those who prove their superiority in combat and claim victory earn the favor of this domain."
             ),
             DeityDomain.Harvest => new DomainInfo(
                 Name: "Harvest",

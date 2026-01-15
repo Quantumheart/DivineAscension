@@ -11,9 +11,9 @@ using Vintagestory.GameContent;
 namespace DivineAscension.Systems.BlessingEffects.Handlers;
 
 /// <summary>
-///     Special effect handlers for Ares (War) deity
+///     Special effect handlers for Conquest domain
 /// </summary>
-public static class AresEffectHandlers
+public static class ConquestEffectHandlers
 {
     /// <summary>
     ///     Battle Fury effect - damage increases temporarily after each kill
