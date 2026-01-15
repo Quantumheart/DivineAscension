@@ -1,0 +1,31 @@
+extends:
+  - '@commitlint/config-conventional'
+
+rules:
+  # Limit header to 100 characters
+  header-max-length: [2, 'always', 100]
+
+  # Allowed commit types
+  type-enum:
+    - 2
+    - always
+    - - feat      # New feature
+      - fix       # Bug fix
+      - docs      # Documentation changes
+      - style     # Code style changes (formatting, etc.)
+      - refactor  # Code refactoring
+      - perf      # Performance improvements
+      - test      # Adding or updating tests
+      - build     # Build system changes
+      - ci        # CI configuration changes
+      - chore     # Other changes (dependencies, etc.)
+      - revert    # Revert previous commit
+
+  # Require lowercase type
+  type-case: [2, 'always', 'lower-case']
+
+  # Subject must not be empty
+  subject-empty: [2, 'never']
+
+  # Subject must not end with period
+  subject-full-stop: [2, 'never', '.']
