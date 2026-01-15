@@ -589,63 +589,59 @@ public static class BlessingDefinitions
     #endregion
 
 
-    #region Stone (Stone, Clay & Construction)
+    #region Stone (Pottery & Clay)
 
     private static List<Blessing> GetStoneBlessings()
     {
         return new List<Blessing>
         {
-            // PLAYER BLESSINGS (6 total) - Stone gathering, construction & pottery focus
+            // PLAYER BLESSINGS (6 total) - Pottery crafting & clay utility focus
 
             // Tier 1 - Initiate (0-499 favor) - Foundation
-            new(BlessingIds.StoneClayShaper, "Master Builder", DeityDomain.Stone)
+            new(BlessingIds.StoneClayShaper, "Clay Shaper", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
-                Description =
-                    "Foundation for stonework and construction. +20% stone yield, +15% digging speed, +5% movement speed.",
+                Description = "Foundation for pottery crafting. +20% clay yield when digging, +10% max health.",
                 IconName = "dig-hole",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StoneYield, 0.20f },
-                    { VintageStoryStats.DiggingSpeed, 0.15f },
-                    { VintageStoryStats.WalkSpeed, 0.05f }
+                    { VintageStoryStats.ClayYield, 0.20f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
                 }
             },
 
             // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
-            new(BlessingIds.StoneMasterPotter, "Artisan Potter", DeityDomain.Stone)
+            new(BlessingIds.StoneMasterPotter, "Master Potter", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Specialize in clay crafting. +25% clay yield, +15% pottery batch completion, +10% digging speed. Pottery path. Requires Master Builder.",
+                    "Specialize in pottery crafting. +10% chance to craft duplicate pottery items on completion, +10% digging speed. Crafting path. Requires Clay Shaper.",
                 IconName = "painted-pottery",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.StoneClayShaper },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ClayYield, 0.25f },
-                    { VintageStoryStats.PotteryBatchCompletionChance, 0.15f },
+                    { VintageStoryStats.PotteryBatchCompletionChance, 0.25f },
                     { VintageStoryStats.DiggingSpeed, 0.10f }
                 },
                 SpecialEffects = new List<string> { SpecialEffects.PotteryBatchCompletionBonus }
             },
-            new(BlessingIds.StoneEarthenBuilder, "Stonemason", DeityDomain.Stone)
+            new(BlessingIds.StoneEarthenBuilder, "Earthen Builder", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Master stonework and fortification. +25% stone yield, +15% armor effectiveness, +10% digging speed. Construction path. Requires Master Builder.",
+                    "Focus on resilience and stonework. +15% armor effectiveness, +15% stone yield. Utility path. Requires Clay Shaper.",
                 IconName = "clay-brick",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.StoneClayShaper },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StoneYield, 0.25f },
                     { VintageStoryStats.ArmorEffectiveness, 0.15f },
-                    { VintageStoryStats.DiggingSpeed, 0.10f }
+                    { VintageStoryStats.StoneYield, 0.15f }
                 }
             },
 
@@ -655,123 +651,113 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Master of ceramics and fire. +35% clay yield (total: 60%), +25% pottery batch completion (total: 40%), +15% digging speed (total: 40%). Requires Artisan Potter.",
+                    "Achieve legendary pottery crafting. +15% chance to craft duplicate pottery items (total: 45%), +15% digging speed (total: 25%). Requires Master Potter.",
                 IconName = "fire-bowl",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.StoneMasterPotter },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.ClayYield, 0.35f },
-                    { VintageStoryStats.PotteryBatchCompletionChance, 0.25f },
+                    { VintageStoryStats.PotteryBatchCompletionChance, 0.35f },
                     { VintageStoryStats.DiggingSpeed, 0.15f }
                 },
                 SpecialEffects = new List<string> { SpecialEffects.PotteryBatchCompletionBonus }
             },
-            new(BlessingIds.StoneClayArchitect, "Fortress Architect", DeityDomain.Stone)
+            new(BlessingIds.StoneClayArchitect, "Clay Architect", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Legendary builder and defender. +30% stone yield (total: 75%), +20% armor effectiveness (total: 35%), +15% digging speed (total: 40%), +10% reduced armor durability loss. Requires Stonemason.",
+                    "Master fortification and stone gathering. +20% armor effectiveness (total: 35%), +20% stone yield (total: 35%). Requires Earthen Builder.",
                 IconName = "concrete-bag",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.StoneEarthenBuilder },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StoneYield, 0.30f },
                     { VintageStoryStats.ArmorEffectiveness, 0.20f },
-                    { VintageStoryStats.DiggingSpeed, 0.15f },
-                    { VintageStoryStats.ArmorDurabilityLoss, -0.10f }
+                    { VintageStoryStats.StoneYield, 0.20f }
                 }
             },
 
             // Tier 4 - Champion (5000+ favor) - Capstone (requires both paths)
-            new(BlessingIds.StoneAvatarOfClay, "Avatar of Earth", DeityDomain.Stone)
+            new(BlessingIds.StoneAvatarOfClay, "Avatar of Clay", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Embody the strength and permanence of stone. +15% max health, +10% melee damage, +10% reduced armor walk speed penalty. Requires both Kiln Master and Fortress Architect.",
+                    "Embody the mastery of clay. +10% max health. Requires both Kiln Master and Clay Architect.",
                 IconName = "clay-golem",
                 RequiredFavorRank = (int)FavorRank.Champion,
                 PrerequisiteBlessings =
                     new List<string> { BlessingIds.StoneKilnMaster, BlessingIds.StoneClayArchitect },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
-                    { VintageStoryStats.ArmorWalkSpeedAffectedness, -0.10f }
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
                 }
             },
 
-            // RELIGION BLESSINGS (4 total) - Shared stonework and construction benefits
+            // RELIGION BLESSINGS (4 total) - Shared pottery benefits
 
             // Tier 1 - Fledgling (0-499 prestige) - Foundation
-            new(BlessingIds.StonePottersCircle, "Builder's Community", DeityDomain.Stone)
+            new(BlessingIds.StonePottersCircle, "Potter's Circle", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Your congregation shares stonework knowledge. +15% stone yield, +10% digging speed for all members.",
+                    "Your congregation shares pottery knowledge. +15% clay yield for all members.",
                 IconName = "cycle",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StoneYield, 0.15f },
-                    { VintageStoryStats.DiggingSpeed, 0.10f }
+                    { VintageStoryStats.ClayYield, 0.15f }
                 }
             },
 
             // Tier 2 - Established (500-1999 prestige)
-            new(BlessingIds.StoneClayGuild, "Mason's Guild", DeityDomain.Stone)
+            new(BlessingIds.StoneClayGuild, "Clay Guild", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "A united guild of skilled builders. +20% stone yield, +15% digging speed, +10% armor effectiveness for all. Requires Builder's Community.",
+                    "A united guild of skilled potters. +5% batch completion chance (craft duplicate pottery) for all. Requires Potter's Circle.",
                 IconName = "team-upgrade",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
                 PrerequisiteBlessings = new List<string> { BlessingIds.StonePottersCircle },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StoneYield, 0.20f },
-                    { VintageStoryStats.DiggingSpeed, 0.15f },
-                    { VintageStoryStats.ArmorEffectiveness, 0.10f }
-                }
+                    { VintageStoryStats.PotteryBatchCompletionChance, 0.20f }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.PotteryBatchCompletionBonus }
             },
 
             // Tier 3 - Renowned (2000-4999 prestige)
-            new(BlessingIds.StoneEarthenCommunity, "Fortified Civilization", DeityDomain.Stone)
+            new(BlessingIds.StoneEarthenCommunity, "Earthen Community", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "A legendary fortified civilization. +25% stone yield, +20% digging speed, +15% armor effectiveness for all. Requires Mason's Guild.",
+                    "A thriving fortified community. +15% armor effectiveness for all. Requires Clay Guild.",
                 IconName = "armor-upgrade",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
                 PrerequisiteBlessings = new List<string> { BlessingIds.StoneClayGuild },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.StoneYield, 0.25f },
-                    { VintageStoryStats.DiggingSpeed, 0.20f },
                     { VintageStoryStats.ArmorEffectiveness, 0.15f }
                 }
             },
 
-            // Tier 4 - Legendary (5000+ prestige) - Pantheon of Earth
-            new(BlessingIds.StonePantheonOfClay, "Pantheon of Earth", DeityDomain.Stone)
+            // Tier 4 - Legendary (5000+ prestige) - Pantheon of Clay
+            new(BlessingIds.StonePantheonOfClay, "Pantheon of Clay", DeityDomain.Stone)
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Your religion becomes the foundation of an eternal empire. +15% max health, +10% armor effectiveness for all. Requires Fortified Civilization.",
+                    "Your religion becomes legendary potters. +10% max health for all. Requires Earthen Community.",
                 IconName = "mineral-heart",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
                 PrerequisiteBlessings = new List<string> { BlessingIds.StoneEarthenCommunity },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.ArmorEffectiveness, 0.10f }
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
                 }
             }
         };
