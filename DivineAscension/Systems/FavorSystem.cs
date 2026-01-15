@@ -34,7 +34,7 @@ public class FavorSystem : IFavorSystem
     private MiningFavorTracker? _miningFavorTracker;
     private SkinningFavorTracker? _skinningFavorTracker;
     private SmeltingFavorTracker? _smeltingFavorTracker;
-    private GaiaFavorTracker? _stoneFavorTracker;
+    private StoneFavorTracker? _stoneFavorTracker;
 
     public FavorSystem(ICoreServerAPI sapi,
         IPlayerProgressionDataManager playerProgressionDataManager,
@@ -78,7 +78,7 @@ public class FavorSystem : IFavorSystem
         _harvestFavorTracker = new HarvestFavorTracker(_playerProgressionDataManager, _sapi, this);
         _harvestFavorTracker.Initialize();
 
-        _stoneFavorTracker = new GaiaFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _stoneFavorTracker = new StoneFavorTracker(_playerProgressionDataManager, _sapi, this);
         _stoneFavorTracker.Initialize();
 
         _smeltingFavorTracker = new SmeltingFavorTracker(_playerProgressionDataManager, _sapi, this);
