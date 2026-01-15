@@ -12,6 +12,7 @@ public readonly struct CivilizationDetailViewModel(
     string founderReligionName,
     IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> memberReligions,
     DateTime createdDate,
+    string description,
     float memberScrollY,
     bool canRequestToJoin,
     float x,
@@ -26,6 +27,7 @@ public readonly struct CivilizationDetailViewModel(
     public string FounderReligionName { get; } = founderReligionName;
     public IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> MemberReligions { get; } = memberReligions;
     public DateTime CreatedDate { get; } = createdDate;
+    public string Description { get; } = description;
     public float MemberScrollY { get; } = memberScrollY;
     public bool CanRequestToJoin { get; } = canRequestToJoin;
     public float X { get; } = x;

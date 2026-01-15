@@ -182,6 +182,7 @@
   "divineascension:ui.civilization.detail.full": "This civilization is full (4/4 members).",
   "divineascension:ui.civilization.detail.already_member": "You are already a member of a civilization.",
   "divineascension:ui.civilization.detail.member_card.info": "Deity: {0}  |  Members: {1}  |  Founded by: {2}",
+  "divineascension:ui.civilization.detail.description": "Beschreibung:",
   "divineascension:ui.civilization.create.title": "Create a New Civilization",
   "divineascension:ui.civilization.create.requirements": "Requirements:",
   "divineascension:ui.civilization.create.req.founder": "You must be a religion founder",
