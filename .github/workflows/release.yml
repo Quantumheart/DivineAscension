@@ -46,10 +46,10 @@ jobs:
 
           if [ -z "$LAST_TAG" ]; then
             echo "No previous tags found, analyzing all commits"
-            COMMITS=$(git log --pretty=format:"%s" HEAD)
+            COMMITS=$(git log --pretty=format:"%B" HEAD)
           else
             echo "Analyzing commits since $LAST_TAG"
-            COMMITS=$(git log --pretty=format:"%s" ${LAST_TAG}..HEAD)
+            COMMITS=$(git log --pretty=format:"%B" ${LAST_TAG}..HEAD)
           fi
 
           echo "Commits to analyze:"
