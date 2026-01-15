@@ -60,22 +60,29 @@ internal static class DiplomacyTabRenderer
             }
         }
 
+        // Collect events from panels
+        var panelEvents = new List<DiplomacyEvent>();
+
         // Panel 1: Current Relationships
-        currentY = DrawRelationshipsPanel(vm, drawList, currentY, events);
+        currentY = DrawRelationshipsPanel(vm, drawList, currentY, panelEvents);
         currentY += SectionSpacing;
 
         // Panel 2: Pending Proposals
-        currentY = DrawProposalsPanel(vm, drawList, currentY, events);
+        currentY = DrawProposalsPanel(vm, drawList, currentY, panelEvents);
         currentY += SectionSpacing;
 
         // Panel 3: Propose Relationship
-        currentY = DrawProposePanel(vm, drawList, currentY, events);
+        var (finalY, civButtonY, typeButtonY) = DrawProposePanel(vm, drawList, currentY, panelEvents);
+        currentY = finalY;
+
+        // Track whether either dropdown consumed a click
+        var dropdownConsumedClick = false;
 
         // Draw dropdown menus AFTER everything else (z-ordering)
         if (vm.IsCivDropdownOpen)
         {
             var civDropdownX = vm.X + 10f;
-            var civDropdownY = 18f + vm.Y + 18f; // Match the dropdown button position
+            var civDropdownY = civButtonY; // Use actual button position
             var civDropdownW = 500f;
             var civDropdownH = 30f;
             var civItems = vm.AvailableCivilizations.Select(c => c.Name).ToArray();
@@ -85,6 +92,9 @@ internal static class DiplomacyTabRenderer
                 selectedCivIndex);
             var (newCivIndex, shouldCloseCiv, clickConsumedCiv) = Dropdown.DrawMenuAndHandleInteraction(
                 civDropdownX, civDropdownY, civDropdownW, civDropdownH, civItems, selectedCivIndex);
+
+            // Track if this dropdown consumed a click
+            dropdownConsumedClick = dropdownConsumedClick || clickConsumedCiv;
 
             if (newCivIndex != selectedCivIndex && newCivIndex >= 0 && newCivIndex < vm.AvailableCivilizations.Count)
             {
@@ -97,7 +107,7 @@ internal static class DiplomacyTabRenderer
         if (vm.IsTypeDropdownOpen)
         {
             var typeDropdownX = vm.X + 10f;
-            var typeDropdownY = 18f + vm.Y + 18f + 36f + 18f; // Match the type dropdown button position
+            var typeDropdownY = typeButtonY; // Use actual button position
             var typeDropdownW = 500f;
             var typeDropdownH = 30f;
             var typeItems = new[]
@@ -112,6 +122,9 @@ internal static class DiplomacyTabRenderer
             var (newTypeIndex, shouldCloseType, clickConsumedType) = Dropdown.DrawMenuAndHandleInteraction(
                 typeDropdownX, typeDropdownY, typeDropdownW, typeDropdownH, typeItems, typeIndex);
 
+            // Track if this dropdown consumed a click
+            dropdownConsumedClick = dropdownConsumedClick || clickConsumedType;
+
             if (newTypeIndex != typeIndex)
             {
                 var newType = newTypeIndex == 0 ? DiplomaticStatus.NonAggressionPact : DiplomaticStatus.Alliance;
@@ -119,6 +132,12 @@ internal static class DiplomacyTabRenderer
             }
 
             if (shouldCloseType) events.Add(new DiplomacyEvent.ToggleTypeDropdown(false));
+        }
+
+        // Add panel events ONLY if no dropdown consumed the click
+        if (!dropdownConsumedClick)
+        {
+            events.AddRange(panelEvents);
         }
 
         return new DiplomacyTabRendererResult(events, currentY - vm.Y);
@@ -401,13 +420,15 @@ internal static class DiplomacyTabRenderer
         return currentY;
     }
 
-    private static float DrawProposePanel(
+    private static (float currentY, float civButtonY, float typeButtonY) DrawProposePanel(
         DiplomacyTabViewModel vm,
         ImDrawListPtr drawList,
         float startY,
         List<DiplomacyEvent> events)
     {
         var currentY = startY;
+        var civDropdownButtonY = 0f;  // Track civilization dropdown button Y position
+        var typeDropdownButtonY = 0f; // Track type dropdown button Y position
 
         // Section header
         TextRenderer.DrawLabel(drawList,
@@ -420,7 +441,7 @@ internal static class DiplomacyTabRenderer
             TextRenderer.DrawInfoText(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_NO_CIVS_AVAILABLE),
                 vm.X + 10f, currentY, vm.Width - 20f);
-            return currentY + 20f;
+            return (currentY + 20f, 0f, 0f); // No dropdowns available, return zeros
         }
 
         // Civilization selection
@@ -433,6 +454,7 @@ internal static class DiplomacyTabRenderer
         var civDropdownY = currentY;
         var civDropdownW = 500f;
         var civDropdownH = 30f;
+        civDropdownButtonY = civDropdownY; // Store button position for dropdown rendering
 
         var selectedCivIndex = vm.AvailableCivilizations.FindIndex(c => c.CivId == vm.SelectedCivId);
         var selectedCivName = selectedCivIndex >= 0 && selectedCivIndex < vm.AvailableCivilizations.Count
@@ -457,6 +479,7 @@ internal static class DiplomacyTabRenderer
         var typeDropdownY = currentY;
         var typeDropdownW = 500f;
         var typeDropdownH = 30f;
+        typeDropdownButtonY = typeDropdownY; // Store button position for dropdown rendering
 
         var typeItems = new[]
         {
@@ -550,7 +573,7 @@ internal static class DiplomacyTabRenderer
             currentY += 30f;
         }
 
-        return currentY;
+        return (currentY, civDropdownButtonY, typeDropdownButtonY);
     }
 
     private static Vector4 GetStatusColor(DiplomaticStatus status)
