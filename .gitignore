@@ -16,7 +16,6 @@
 
 # Cake
 tools/*
-!tools/hooks/
 !tools/generate-stubs.sh
 .dotnet/
 

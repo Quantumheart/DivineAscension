@@ -17,7 +17,7 @@ Divine Ascension is a Vintage Story mod implementing deity-driven religion and c
 
 ## Environment Setup
 
-### 1. Vintage Story API
+### Vintage Story API
 
 **Required:** Set `VINTAGE_STORY` environment variable pointing to a Vintage Story installation containing:
 - `VintagestoryAPI.dll`
@@ -32,29 +32,6 @@ export VINTAGE_STORY="$HOME/.local/share/Vintagestory"
 # Windows PowerShell
 $env:VINTAGE_STORY = "C:\Games\Vintagestory"
 ```
-
-### 2. Git Hooks (Optional but Recommended)
-
-**Automatic Version Bumping:** Install Git hooks to automatically bump versions and update changelog on commit:
-
-```bash
-./tools/hooks/install-hooks.sh
-```
-
-This installs a `commit-msg` hook that:
-- Detects conventional commit messages (`feat:`, `fix:`, etc.)
-- Bumps version semantically in `modinfo.json` and `AssemblyInfo.cs`
-- Updates `CHANGELOG.md` with categorized entries
-- Stages the changes automatically
-
-**Usage:**
-```bash
-git commit -m "fix: resolve bug"         # → patch bump (1.23.0 → 1.23.1)
-git commit -m "feat: add feature"        # → minor bump (1.23.0 → 1.24.0)
-git commit -m "feat!: breaking change"   # → major bump (1.23.0 → 2.0.0)
-```
-
-See `tools/hooks/README.md` for details.
 
 ## Common Commands
 
