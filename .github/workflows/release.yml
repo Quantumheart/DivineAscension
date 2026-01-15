@@ -1,0 +1,293 @@
+name: Release
+
+on:
+  push:
+    branches: [main, master]
+
+# Prevent concurrent releases
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    # Skip if this is a version bump commit (prevents infinite loop)
+    if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, 'chore(release):')"
+
+    permissions:
+      contents: write  # Required to push commits and create releases
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for version analysis
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Get current version
+        id: current
+        run: |
+          VERSION=$(jq -r '.version' DivineAscension/modinfo.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Determine version bump from commits
+        id: bump
+        run: |
+          # Get the last tag, or use initial commit if no tags exist
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+          if [ -z "$LAST_TAG" ]; then
+            echo "No previous tags found, analyzing all commits"
+            COMMITS=$(git log --pretty=format:"%s" HEAD)
+          else
+            echo "Analyzing commits since $LAST_TAG"
+            COMMITS=$(git log --pretty=format:"%s" ${LAST_TAG}..HEAD)
+          fi
+
+          echo "Commits to analyze:"
+          echo "$COMMITS"
+          echo ""
+
+          # Determine bump type from conventional commits
+          # Priority: major > minor > patch
+          BUMP_TYPE="none"
+
+          # Check for breaking changes (major)
+          if echo "$COMMITS" | grep -qE "^[a-z]+(\([^)]+\))?!:|BREAKING CHANGE"; then
+            BUMP_TYPE="major"
+            echo "Found breaking change commits"
+          # Check for features (minor)
+          elif echo "$COMMITS" | grep -qE "^feat(\([^)]+\))?:"; then
+            BUMP_TYPE="minor"
+            echo "Found feature commits"
+          # Check for fixes (patch)
+          elif echo "$COMMITS" | grep -qE "^fix(\([^)]+\))?:"; then
+            BUMP_TYPE="patch"
+            echo "Found fix commits"
+          else
+            echo "No conventional commits requiring version bump"
+          fi
+
+          echo "type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "Bump type: $BUMP_TYPE"
+
+      - name: Calculate new version
+        id: version
+        run: |
+          BUMP_TYPE="${{ steps.bump.outputs.type }}"
+          CURRENT="${{ steps.current.outputs.version }}"
+
+          if [ "$BUMP_TYPE" == "none" ]; then
+            echo "new_version=$CURRENT" >> $GITHUB_OUTPUT
+            echo "bumped=false" >> $GITHUB_OUTPUT
+            echo "No version bump needed"
+            exit 0
+          fi
+
+          # Parse current version
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+
+          # Calculate new version
+          case "$BUMP_TYPE" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "bumped=true" >> $GITHUB_OUTPUT
+          echo "Version bump: $CURRENT → $NEW_VERSION ($BUMP_TYPE)"
+
+      - name: Update version files
+        if: steps.version.outputs.bumped == 'true'
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+
+          echo "Updating modinfo.json to $NEW_VERSION"
+          jq ".version = \"$NEW_VERSION\"" DivineAscension/modinfo.json > tmp.json
+          mv tmp.json DivineAscension/modinfo.json
+
+          # Update AssemblyInfo.cs if it exists
+          ASSEMBLY_FILE="DivineAscension/Properties/AssemblyInfo.cs"
+          if [ -f "$ASSEMBLY_FILE" ]; then
+            echo "Updating $ASSEMBLY_FILE"
+            sed -i "s/AssemblyVersion(\"[^\"]*\")/AssemblyVersion(\"$NEW_VERSION.0\")/" "$ASSEMBLY_FILE"
+            sed -i "s/AssemblyFileVersion(\"[^\"]*\")/AssemblyFileVersion(\"$NEW_VERSION.0\")/" "$ASSEMBLY_FILE"
+          fi
+
+          echo "Version files updated"
+
+      - name: Commit version bump
+        if: steps.version.outputs.bumped == 'true'
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add DivineAscension/modinfo.json
+          git add DivineAscension/Properties/AssemblyInfo.cs 2>/dev/null || true
+
+          git commit -m "chore(release): bump version to $NEW_VERSION [skip ci]"
+          git push
+
+          echo "Version bump committed"
+
+      - name: Check if release needed
+        id: release_check
+        run: |
+          VERSION="${{ steps.version.outputs.new_version }}"
+          TAG="v$VERSION"
+
+          # Re-fetch tags after potential push
+          git fetch --tags
+
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "needed=false" >> $GITHUB_OUTPUT
+            echo "Tag $TAG already exists, skipping release"
+          else
+            echo "needed=true" >> $GITHUB_OUTPUT
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "Will create release $TAG"
+          fi
+
+      - name: Restore dependencies
+        if: steps.release_check.outputs.needed == 'true'
+        run: dotnet restore DivineAscension.sln
+
+      - name: Build Release
+        if: steps.release_check.outputs.needed == 'true'
+        run: dotnet build DivineAscension.sln -c Release --no-restore
+
+      - name: Run tests
+        if: steps.release_check.outputs.needed == 'true'
+        run: dotnet test DivineAscension.sln -c Release --no-build --verbosity normal
+
+      - name: Package mod
+        if: steps.release_check.outputs.needed == 'true'
+        run: |
+          VERSION="${{ steps.version.outputs.new_version }}"
+          MOD_DIR="DivineAscension/bin/Release/Mods/mod"
+          PACKAGE_NAME="DivineAscension-${VERSION}.zip"
+
+          echo "Creating package: $PACKAGE_NAME"
+
+          cd "$MOD_DIR"
+          zip -r "../../../../$PACKAGE_NAME" .
+
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_ENV
+          echo "package_path=$PACKAGE_NAME" >> $GITHUB_ENV
+
+      - name: Generate release notes
+        if: steps.release_check.outputs.needed == 'true'
+        run: |
+          VERSION="${{ steps.version.outputs.new_version }}"
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          # Categorize commits by type
+          if [ -n "$PREV_TAG" ]; then
+            RANGE="${PREV_TAG}..HEAD"
+          else
+            RANGE="HEAD"
+          fi
+
+          # Get commits excluding the version bump commit
+          FEATURES=$(git log $RANGE --pretty=format:"- %s (%h)" --no-merges | grep -E "^- feat" || true)
+          FIXES=$(git log $RANGE --pretty=format:"- %s (%h)" --no-merges | grep -E "^- fix" || true)
+          OTHERS=$(git log $RANGE --pretty=format:"- %s (%h)" --no-merges | grep -vE "^- (feat|fix|chore\(release\))" || true)
+
+          cat << 'HEREDOC' > release_notes.md
+          ## What's Changed
+          HEREDOC
+
+          if [ -n "$FEATURES" ]; then
+            echo "" >> release_notes.md
+            echo "### Features" >> release_notes.md
+            echo "$FEATURES" >> release_notes.md
+          fi
+
+          if [ -n "$FIXES" ]; then
+            echo "" >> release_notes.md
+            echo "### Bug Fixes" >> release_notes.md
+            echo "$FIXES" >> release_notes.md
+          fi
+
+          if [ -n "$OTHERS" ]; then
+            echo "" >> release_notes.md
+            echo "### Other Changes" >> release_notes.md
+            echo "$OTHERS" >> release_notes.md
+          fi
+
+          if [ -n "$PREV_TAG" ]; then
+            echo "" >> release_notes.md
+            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...v${VERSION}" >> release_notes.md
+          fi
+
+          echo "Release notes:"
+          cat release_notes.md
+
+      - name: Create GitHub Release
+        if: steps.release_check.outputs.needed == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.new_version }}
+          name: Divine Ascension v${{ steps.version.outputs.new_version }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          files: ${{ env.package_path }}
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          VERSION="${{ steps.version.outputs.new_version }}"
+          BUMPED="${{ steps.version.outputs.bumped }}"
+          RELEASED="${{ steps.release_check.outputs.needed }}"
+
+          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$BUMPED" == "true" ]; then
+            echo "**Version Bump:** ${{ steps.current.outputs.version }} → $VERSION (${{ steps.bump.outputs.type }})" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Version:** $VERSION (no bump needed)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$RELEASED" == "true" ]; then
+            echo "**Release:** [v$VERSION](https://github.com/${{ github.repository }}/releases/tag/v$VERSION)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Package:** ${{ env.package_name }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Release:** Skipped (tag already exists or no changes)" >> $GITHUB_STEP_SUMMARY
+          fi

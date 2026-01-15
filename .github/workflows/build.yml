@@ -1,0 +1,118 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch: # Allow manual trigger
+
+# Cancel in-progress runs when a new commit is pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Verify stub assemblies exist
+        run: |
+          STUBS_DIR="lib/ci-stubs"
+          REQUIRED_STUBS=("VintagestoryAPI.dll" "VSEssentials.dll" "VSSurvivalMod.dll" "cairo-sharp.dll")
+
+          echo "Checking for required stub assemblies..."
+          MISSING=0
+
+          for stub in "${REQUIRED_STUBS[@]}"; do
+            if [ -f "$STUBS_DIR/$stub" ]; then
+              echo "  [OK] $stub"
+            else
+              echo "  [MISSING] $stub"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+
+          if [ $MISSING -gt 0 ]; then
+            echo ""
+            echo "ERROR: $MISSING stub assembly(ies) missing!"
+            echo ""
+            echo "To generate stubs locally:"
+            echo "  1. Ensure VINTAGE_STORY env var points to your Vintage Story installation"
+            echo "  2. Run: ./tools/generate-stubs.sh"
+            echo "  3. Commit the generated DLLs in lib/ci-stubs/"
+            exit 1
+          fi
+
+          echo ""
+          echo "All stub assemblies present."
+
+      - name: Restore dependencies
+        run: dotnet restore DivineAscension.sln
+
+      - name: Build
+        run: dotnet build DivineAscension.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test DivineAscension.sln -c Release --no-build --verbosity normal
+
+  # Optional: Build release artifacts on tags
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore DivineAscension.sln
+
+      - name: Build Release
+        run: dotnet build DivineAscension.sln -c Release --no-restore
+
+      - name: Package mod
+        run: |
+          MOD_OUTPUT="DivineAscension/bin/Release/Mods/mod"
+          VERSION="${GITHUB_REF#refs/tags/v}"
+
+          # Create zip package
+          cd "$MOD_OUTPUT"
+          zip -r "../../../DivineAscension-$VERSION.zip" .
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DivineAscension-${{ github.ref_name }}
+          path: DivineAscension/bin/Release/DivineAscension-*.zip

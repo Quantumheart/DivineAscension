@@ -36,7 +36,9 @@
     </ItemGroup>
 
 
-    <ItemGroup>
+    <!-- Local development: use real Vintage Story DLLs -->
+    <!-- CI builds use stub assemblies defined in Directory.Build.props -->
+    <ItemGroup Condition="'$(UseStubDependencies)' != 'true'">
         <Reference Include="0Harmony">
             <HintPath>$(VINTAGE_STORY)/Lib/0Harmony.dll</HintPath>
             <Private>true</Private>

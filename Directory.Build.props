@@ -1,0 +1,49 @@
+<Project>
+  <!--
+    Shared build properties for DivineAscension projects.
+
+    CI builds use stub reference assemblies instead of real Vintage Story DLLs.
+    Set UseStubDependencies=true or run in CI environment to use stubs.
+  -->
+
+  <PropertyGroup>
+    <!-- Detect CI environment (GitHub Actions sets CI=true) -->
+    <UseStubDependencies Condition="'$(UseStubDependencies)' == '' And '$(CI)' == 'true'">true</UseStubDependencies>
+    <UseStubDependencies Condition="'$(UseStubDependencies)' == ''">false</UseStubDependencies>
+
+    <!-- Path to stub assemblies for CI builds -->
+    <CiStubsPath>$(MSBuildThisFileDirectory)lib/ci-stubs/</CiStubsPath>
+  </PropertyGroup>
+
+  <!--
+    Open-source dependencies available on NuGet.
+    These are used for CI builds to avoid needing Vintage Story installation.
+    For local builds with VINTAGE_STORY set, we use the game's bundled versions
+    to ensure compatibility.
+  -->
+  <ItemGroup Condition="'$(UseStubDependencies)' == 'true'">
+    <PackageReference Include="Lib.Harmony" Version="2.3.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="protobuf-net" Version="3.2.30" />
+  </ItemGroup>
+
+  <!-- Proprietary Vintage Story DLLs - use stubs in CI -->
+  <ItemGroup Condition="'$(UseStubDependencies)' == 'true'">
+    <Reference Include="VintagestoryAPI">
+      <HintPath>$(CiStubsPath)VintagestoryAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VSEssentials">
+      <HintPath>$(CiStubsPath)VSEssentials.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VSSurvivalMod">
+      <HintPath>$(CiStubsPath)VSSurvivalMod.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="cairo-sharp">
+      <HintPath>$(CiStubsPath)cairo-sharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project>
