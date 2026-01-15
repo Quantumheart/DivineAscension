@@ -27,7 +27,7 @@ internal static class CivilizationBrowseRenderer
     private const float RefreshButtonWidth = 100f;
     private const float RefreshButtonMargin = 12f;
     private const float ComponentSpacing = 40f;
-    private const float MenuItemHeight = 34f;
+    private const float MenuItemHeight = 30f;
 
     /// <summary>
     ///     Pure renderer: builds visuals from view model and emits UI events.
@@ -44,9 +44,10 @@ internal static class CivilizationBrowseRenderer
     {
         var events = new List<BrowseEvent>();
         var currentY = vm.Y + TopPadding;
+        var filterControlsY = currentY;  // Store filter controls Y position for dropdown menu
 
         // === FILTER CONTROLS ===
-        DrawFilterControls(vm, isDeityDropdownOpen, currentY, drawList, events);
+        DrawFilterControls(vm, isDeityDropdownOpen, filterControlsY, drawList, events);
         currentY += ComponentSpacing;
 
         // === CIVILIZATION TABLE ===
@@ -63,25 +64,31 @@ internal static class CivilizationBrowseRenderer
 
         var tableResult = CivilizationTableRenderer.Draw(tableVm, drawList);
 
-        // Translate table events to browse events
-        foreach (var evt in tableResult.Events)
-        {
-            switch (evt)
-            {
-                case ListEvent.ItemClicked ic:
-                    // Row clicked → select and auto-navigate to detail view
-                    events.Add(new BrowseEvent.Selected(ic.CivId, ic.NewScrollY));
-                    break;
-                case ListEvent.ScrollChanged sc:
-                    events.Add(new BrowseEvent.ScrollChanged(sc.NewScrollY));
-                    break;
-            }
-        }
+        // Track whether dropdown consumed a click
+        var dropdownConsumedClick = false;
 
         // === DROPDOWN MENU (z-ordered on top) ===
         if (isDeityDropdownOpen)
         {
-            DrawDropdownMenu(vm, currentY, drawList, events);
+            dropdownConsumedClick = DrawDropdownMenu(vm, filterControlsY, drawList, events);
+        }
+
+        // Translate table events to browse events - ONLY if dropdown didn't consume the click
+        if (!dropdownConsumedClick)
+        {
+            foreach (var evt in tableResult.Events)
+            {
+                switch (evt)
+                {
+                    case ListEvent.ItemClicked ic:
+                        // Row clicked → select and auto-navigate to detail view
+                        events.Add(new BrowseEvent.Selected(ic.CivId, ic.NewScrollY));
+                        break;
+                    case ListEvent.ScrollChanged sc:
+                        events.Add(new BrowseEvent.ScrollChanged(sc.NewScrollY));
+                        break;
+                }
+            }
         }
 
         return new CivilizationBrowseRenderResult(events, vm.Height);
@@ -122,7 +129,8 @@ internal static class CivilizationBrowseRenderer
     /// <summary>
     ///     Draw dropdown menu overlay when open
     /// </summary>
-    private static void DrawDropdownMenu(
+    /// <returns>True if the dropdown consumed a mouse click</returns>
+    private static bool DrawDropdownMenu(
         CivilizationBrowseViewModel vm,
         float controlsY,
         ImDrawListPtr drawList,
@@ -137,7 +145,7 @@ internal static class CivilizationBrowseRenderer
             vm.DeityFilters, selectedIndex, MenuItemHeight);
 
         // Handle menu interaction
-        var (newIndex, shouldClose, _) = Dropdown.DrawMenuAndHandleInteraction(dropdownX, dropdownY,
+        var (newIndex, shouldClose, clickConsumed) = Dropdown.DrawMenuAndHandleInteraction(dropdownX, dropdownY,
             DropdownWidth, DropdownHeight,
             vm.DeityFilters, selectedIndex, MenuItemHeight);
 
@@ -152,5 +160,7 @@ internal static class CivilizationBrowseRenderer
                 events.Add(new BrowseEvent.DeityFilterChanged(newFilter));
             }
         }
+
+        return clickConsumed;
     }
 }
