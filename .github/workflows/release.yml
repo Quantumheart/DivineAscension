@@ -1,0 +1,149 @@
+name: Release
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    # Only run if the commit message doesn't indicate a skip
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    permissions:
+      contents: write  # Required to create releases and tags
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for tag detection
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Extract version from modinfo.json
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' DivineAscension/modinfo.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
+
+      - name: Check if tag already exists
+        id: tag_check
+        run: |
+          if git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag v${{ steps.version.outputs.version }} already exists, skipping release"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Tag v${{ steps.version.outputs.version }} does not exist, will create release"
+          fi
+
+      - name: Restore dependencies
+        if: steps.tag_check.outputs.exists == 'false'
+        run: dotnet restore DivineAscension.sln
+
+      - name: Build Release
+        if: steps.tag_check.outputs.exists == 'false'
+        run: dotnet build DivineAscension.sln -c Release --no-restore
+
+      - name: Run tests
+        if: steps.tag_check.outputs.exists == 'false'
+        run: dotnet test DivineAscension.sln -c Release --no-build --verbosity normal
+
+      - name: Package mod
+        if: steps.tag_check.outputs.exists == 'false'
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          MOD_DIR="DivineAscension/bin/Release/Mods/mod"
+          PACKAGE_NAME="DivineAscension-${VERSION}.zip"
+
+          echo "Creating package: $PACKAGE_NAME"
+
+          cd "$MOD_DIR"
+          zip -r "../../../../$PACKAGE_NAME" .
+
+          echo "package_name=$PACKAGE_NAME" >> $GITHUB_ENV
+          echo "package_path=$PACKAGE_NAME" >> $GITHUB_ENV
+
+      - name: Generate release notes
+        if: steps.tag_check.outputs.exists == 'false'
+        id: release_notes
+        run: |
+          # Get the previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+          if [ -n "$PREV_TAG" ]; then
+            echo "Generating changelog from $PREV_TAG to HEAD"
+
+            # Generate commit list
+            COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+
+            # Create release notes
+            cat << EOF > release_notes.md
+          ## What's Changed
+
+          $COMMITS
+
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...v${{ steps.version.outputs.version }}
+          EOF
+          else
+            echo "No previous tag found, creating initial release notes"
+            cat << EOF > release_notes.md
+          ## Initial Release
+
+          Divine Ascension v${{ steps.version.outputs.version }}
+
+          See the [README](https://github.com/${{ github.repository }}#readme) for installation and usage instructions.
+          EOF
+          fi
+
+          echo "Release notes:"
+          cat release_notes.md
+
+      - name: Create GitHub Release
+        if: steps.tag_check.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Divine Ascension ${{ steps.version.outputs.tag }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          files: ${{ env.package_path }}
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release summary
+        if: steps.tag_check.outputs.exists == 'false'
+        run: |
+          echo "## Release Created! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** ${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Package:** ${{ env.package_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[View Release](https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.tag }})" >> $GITHUB_STEP_SUMMARY
+
+      - name: Skip summary
+        if: steps.tag_check.outputs.exists == 'true'
+        run: |
+          echo "## Release Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Tag **${{ steps.version.outputs.tag }}** already exists." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "To create a new release, bump the version in \`modinfo.json\` before merging." >> $GITHUB_STEP_SUMMARY
