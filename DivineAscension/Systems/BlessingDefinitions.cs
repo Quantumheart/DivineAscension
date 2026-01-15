@@ -655,7 +655,7 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Master of ceramics and fire. +35% clay yield (total: 60%), +25% pottery batch completion (total: 40%), +15% digging speed (total: 25%). Requires Artisan Potter.",
+                    "Master of ceramics and fire. +35% clay yield (total: 60%), +25% pottery batch completion (total: 40%), +15% digging speed (total: 40%). Requires Artisan Potter.",
                 IconName = "fire-bowl",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.StoneMasterPotter },
@@ -672,7 +672,7 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Utility,
                 Description =
-                    "Legendary builder and defender. +30% stone yield (total: 75%), +20% armor effectiveness (total: 35%), +15% digging speed (total: 25%), +10% reduced armor durability loss. Requires Stonemason.",
+                    "Legendary builder and defender. +30% stone yield (total: 75%), +20% armor effectiveness (total: 35%), +15% digging speed (total: 40%), +10% reduced armor durability loss. Requires Stonemason.",
                 IconName = "concrete-bag",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.StoneEarthenBuilder },
