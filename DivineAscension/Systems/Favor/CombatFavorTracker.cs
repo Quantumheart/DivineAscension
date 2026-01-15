@@ -5,6 +5,7 @@ using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Server;
+using Vintagestory.GameContent;
 
 namespace DivineAscension.Systems.Favor;
 
