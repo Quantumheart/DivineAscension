@@ -43,6 +43,7 @@ public static class DivineAscensionSystemInitializer
         BlockCropPatches.ClearSubscribers();
         FlowerPatches.ClearSubscribers();
         MushroomPatches.ClearSubscribers();
+        SkinningPatches.ClearSubscribers();
 
         api.RegisterEntityBehaviorClass("DivineAscensionBuffTracker", typeof(EntityBehaviorBuffTracker));
 

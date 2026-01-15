@@ -33,6 +33,7 @@ public class FavorSystem : IFavorSystem
     private HarvestFavorTracker? _harvestFavorTracker;
     private HuntingFavorTracker? _huntingFavorTracker;
     private MiningFavorTracker? _miningFavorTracker;
+    private SkinningFavorTracker? _skinningFavorTracker;
     private SmeltingFavorTracker? _smeltingFavorTracker;
     private GaiaFavorTracker? _stoneFavorTracker;
 
@@ -81,6 +82,9 @@ public class FavorSystem : IFavorSystem
 
         _smeltingFavorTracker = new SmeltingFavorTracker(_playerProgressionDataManager, _sapi, this);
         _smeltingFavorTracker.Initialize();
+
+        _skinningFavorTracker = new SkinningFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _skinningFavorTracker.Initialize();
     }
 
     /// <summary>
@@ -105,6 +109,7 @@ public class FavorSystem : IFavorSystem
         _huntingFavorTracker?.Dispose();
         _foragingFavorTracker?.Dispose();
         _harvestFavorTracker?.Dispose();
+        _skinningFavorTracker?.Dispose();
         _stoneFavorTracker?.Dispose();
     }
 
@@ -269,6 +274,7 @@ public class FavorSystem : IFavorSystem
             DeityDomain.Wild =>
                 actionLower.Contains("hunting") ||
                 actionLower.Contains("foraging") ||
+                actionLower.Contains("skinning") ||
                 actionLower.Contains("exploration"),
 
             DeityDomain.Harvest =>
