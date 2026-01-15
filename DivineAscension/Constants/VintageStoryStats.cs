@@ -17,6 +17,12 @@ public static class VintageStoryStats
     public const string RangedWeaponsAccuracy = "rangedWeaponsAccuracy";
     public const string RangedWeaponsRange = "rangedWeaponsRange";
 
+    // War (Blood & Battle) Stats
+    public const string KillHealthRestore = "killHealthRestore";
+    public const string DamageReduction = "damageReduction";
+    public const string CriticalHitChance = "criticalHitChance";
+    public const string CriticalHitDamage = "criticalHitDamage";
+
     // Defense Stats
     public const string MeleeWeaponArmor = "meleeWeaponArmor";
     public const string MaxHealthExtraPoints = "maxhealthExtraPoints";
