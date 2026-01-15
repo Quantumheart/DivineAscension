@@ -85,13 +85,13 @@ for dll_name in "${!DLLS[@]}"; do
         continue
     fi
 
-    if refasmer -v -O "$OUTPUT_DIR/" "$source_path" > /dev/null 2>&1; then
+    if refasmer -v --omit-non-api-members true -O "$OUTPUT_DIR/" "$source_path" > /dev/null 2>&1; then
         echo -e "${GREEN}OK${NC}"
         SUCCEEDED=$((SUCCEEDED + 1))
     else
         echo -e "${RED}FAILED${NC}"
         echo "  Running with verbose output:"
-        refasmer -v -O "$OUTPUT_DIR/" "$source_path" || true
+        refasmer -v --omit-non-api-members true -O "$OUTPUT_DIR/" "$source_path" || true
         FAILED=$((FAILED + 1))
     fi
 done

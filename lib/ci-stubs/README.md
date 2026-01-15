@@ -38,10 +38,10 @@ If you prefer to generate stubs manually:
 export VINTAGE_STORY="$HOME/.local/share/Vintagestory"
 
 # Generate each stub
-refasmer -v -O ./lib/ci-stubs/ "$VINTAGE_STORY/VintagestoryAPI.dll"
-refasmer -v -O ./lib/ci-stubs/ "$VINTAGE_STORY/Mods/VSEssentials.dll"
-refasmer -v -O ./lib/ci-stubs/ "$VINTAGE_STORY/Mods/VSSurvivalMod.dll"
-refasmer -v -O ./lib/ci-stubs/ "$VINTAGE_STORY/Lib/cairo-sharp.dll"
+refasmer -v --omit-non-api-members true -O ./lib/ci-stubs/ "$VINTAGE_STORY/VintagestoryAPI.dll"
+refasmer -v --omit-non-api-members true -O ./lib/ci-stubs/ "$VINTAGE_STORY/Mods/VSEssentials.dll"
+refasmer -v --omit-non-api-members true -O ./lib/ci-stubs/ "$VINTAGE_STORY/Mods/VSSurvivalMod.dll"
+refasmer -v --omit-non-api-members true -O ./lib/ci-stubs/ "$VINTAGE_STORY/Lib/cairo-sharp.dll"
 ```
 
 ## Updating Stubs
