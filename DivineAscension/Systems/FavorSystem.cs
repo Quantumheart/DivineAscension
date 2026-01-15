@@ -27,6 +27,7 @@ public class FavorSystem : IFavorSystem
     private readonly IReligionManager _religionManager;
     private readonly ICoreServerAPI _sapi;
     private AnvilFavorTracker? _anvilFavorTracker;
+    private CombatFavorTracker? _combatFavorTracker;
     private ForagingFavorTracker? _foragingFavorTracker;
     private HarvestFavorTracker? _harvestFavorTracker;
     private HuntingFavorTracker? _huntingFavorTracker;
@@ -87,6 +88,9 @@ public class FavorSystem : IFavorSystem
 
         _skinningFavorTracker = new SkinningFavorTracker(_playerProgressionDataManager, _sapi, this);
         _skinningFavorTracker.Initialize();
+
+        _combatFavorTracker = new CombatFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _combatFavorTracker.Initialize();
     }
 
     /// <summary>
@@ -108,6 +112,7 @@ public class FavorSystem : IFavorSystem
         _harvestFavorTracker?.Dispose();
         _skinningFavorTracker?.Dispose();
         _stoneFavorTracker?.Dispose();
+        _combatFavorTracker?.Dispose();
     }
 
     public void AwardFavorForAction(IServerPlayer player, string actionType, float amount)
@@ -238,6 +243,11 @@ public class FavorSystem : IFavorSystem
                 actionLower.Contains("skinning") ||
                 actionLower.Contains("exploration"),
 
+            DeityDomain.War =>
+                actionLower.Contains("combat") ||
+                actionLower.Contains("battle") ||
+                actionLower.Contains("fight"),
+
             DeityDomain.Harvest =>
                 actionLower.Contains("harvest") ||
                 actionLower.Contains("planting") ||
@@ -271,6 +281,7 @@ public class FavorSystem : IFavorSystem
         {
             DeityDomain.Craft => nameof(DeityDomain.Craft),
             DeityDomain.Wild => nameof(DeityDomain.Wild),
+            DeityDomain.War => nameof(DeityDomain.War),
             DeityDomain.Harvest => nameof(DeityDomain.Harvest),
             DeityDomain.Stone => nameof(DeityDomain.Stone),
             _ => nameof(DeityDomain.None)

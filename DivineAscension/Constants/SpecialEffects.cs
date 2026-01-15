@@ -82,6 +82,30 @@ public static class SpecialEffects
 
     #endregion
 
+    #region War (Blood & Battle) Effects
+
+    /// <summary>
+    ///     Battle Fury: Damage increases temporarily after each kill
+    /// </summary>
+    public const string BattleFury = "battle_fury";
+
+    /// <summary>
+    ///     Bloodlust: Heal a small amount when defeating enemies
+    /// </summary>
+    public const string Bloodlust = "bloodlust";
+
+    /// <summary>
+    ///     Warcry: Intimidate nearby hostile creatures, reducing their attack damage
+    /// </summary>
+    public const string Warcry = "warcry";
+
+    /// <summary>
+    ///     Last Stand: When health drops below 25%, gain temporary damage reduction
+    /// </summary>
+    public const string LastStand = "last_stand";
+
+    #endregion
+
     #region Stone (Earth & Stone) Effects
 
     /// <summary>

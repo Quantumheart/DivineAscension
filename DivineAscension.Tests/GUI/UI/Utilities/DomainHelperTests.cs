@@ -16,9 +16,10 @@ public class DomainHelperTests
     public void DeityNames_ContainsAllDomains()
     {
         // Assert - DeityNames is now an alias for DomainNames
-        Assert.Equal(4, DomainHelper.DeityNames.Length);
+        Assert.Equal(5, DomainHelper.DeityNames.Length);
         Assert.Contains("Craft", DomainHelper.DeityNames);
         Assert.Contains("Wild", DomainHelper.DeityNames);
+        Assert.Contains("War", DomainHelper.DeityNames);
         Assert.Contains("Harvest", DomainHelper.DeityNames);
         Assert.Contains("Stone", DomainHelper.DeityNames);
     }
@@ -30,6 +31,7 @@ public class DomainHelperTests
     [Theory]
     [InlineData("Craft", 0.8f, 0.2f, 0.2f)] // Red - Forge & Craft
     [InlineData("Wild", 0.4f, 0.8f, 0.3f)] // Green - Hunt & Wild
+    [InlineData("War", 0.6f, 0.1f, 0.3f)] // Crimson - Blood & Battle
     [InlineData("Harvest", 0.9f, 0.9f, 0.6f)] // Light yellow - Agriculture & Light
     [InlineData("Stone", 0.5f, 0.4f, 0.2f)] // Brown - Earth & Stone
     public void GetDeityColor_String_ReturnsCorrectColor(string domain, float r, float g, float b)
@@ -64,6 +66,7 @@ public class DomainHelperTests
     [Theory]
     [InlineData(DeityDomain.Craft, 0.8f, 0.2f, 0.2f)]
     [InlineData(DeityDomain.Wild, 0.4f, 0.8f, 0.3f)]
+    [InlineData(DeityDomain.War, 0.6f, 0.1f, 0.3f)]
     [InlineData(DeityDomain.Harvest, 0.9f, 0.9f, 0.6f)]
     [InlineData(DeityDomain.Stone, 0.5f, 0.4f, 0.2f)]
     public void GetDeityColor_Enum_ReturnsCorrectColor(DeityDomain deity, float r, float g, float b)
@@ -98,6 +101,7 @@ public class DomainHelperTests
     [Theory]
     [InlineData("Craft", "of the Craft")]
     [InlineData("Wild", "of the Wild")]
+    [InlineData("War", "of War")]
     [InlineData("Harvest", "of the Harvest")]
     [InlineData("Stone", "of the Stone")]
     public void GetDeityTitle_String_ReturnsCorrectTitle(string domain, string expectedTitle)
@@ -126,6 +130,7 @@ public class DomainHelperTests
     [Theory]
     [InlineData(DeityDomain.Craft, "Domain of the Craft")]
     [InlineData(DeityDomain.Wild, "Domain of the Wild")]
+    [InlineData(DeityDomain.War, "Domain of War")]
     [InlineData(DeityDomain.Harvest, "Domain of the Harvest")]
     [InlineData(DeityDomain.Stone, "Domain of the Stone")]
     public void GetDeityTitle_Enum_ReturnsCorrectTitle(DeityDomain domain, string expectedTitle)
@@ -154,6 +159,7 @@ public class DomainHelperTests
     [Theory]
     [InlineData("Craft", DeityDomain.Craft)]
     [InlineData("Wild", DeityDomain.Wild)]
+    [InlineData("War", DeityDomain.War)]
     [InlineData("Harvest", DeityDomain.Harvest)]
     [InlineData("Stone", DeityDomain.Stone)]
     public void ParseDeityType_ValidName_ReturnsCorrectEnum(string domainName, DeityDomain expected)

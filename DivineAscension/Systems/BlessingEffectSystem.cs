@@ -410,6 +410,12 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         RegisterStatIfNeeded(stats, VintageStoryStats.WildCropYield, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.CookedFoodSatiety, EnumStatBlendType.WeightedSum);
 
+        // War (Blood & Battle)
+        RegisterStatIfNeeded(stats, VintageStoryStats.KillHealthRestore, EnumStatBlendType.FlatSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.DamageReduction, EnumStatBlendType.WeightedSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.CriticalHitChance, EnumStatBlendType.FlatSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.CriticalHitDamage, EnumStatBlendType.WeightedSum);
+
         // Stone (Earth & Stone)
         RegisterStatIfNeeded(stats, VintageStoryStats.StoneYield, EnumStatBlendType.WeightedSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.ClayYield, EnumStatBlendType.WeightedSum);
@@ -551,6 +557,12 @@ public class BlessingEffectSystem : IBlessingEffectSystem
 
         // Stone (Pottery & Clay) handlers
         _specialEffectRegistry.RegisterHandler(new GaiaEffectHandlers.PotteryBatchCompletionEffect());
+
+        // War (Blood & Battle) handlers
+        _specialEffectRegistry.RegisterHandler(new AresEffectHandlers.BattleFuryEffect());
+        _specialEffectRegistry.RegisterHandler(new AresEffectHandlers.BloodlustEffect());
+        _specialEffectRegistry.RegisterHandler(new AresEffectHandlers.WarcryEffect());
+        _specialEffectRegistry.RegisterHandler(new AresEffectHandlers.LastStandEffect());
 
         _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered all special effect handlers");
     }

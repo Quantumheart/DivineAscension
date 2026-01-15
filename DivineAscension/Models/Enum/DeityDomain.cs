@@ -8,6 +8,7 @@ public enum DeityDomain
     None = 0,
     Craft = 1,
     Wild = 2,
+    War = 3,
     Harvest = 4,
     Stone = 7
 }

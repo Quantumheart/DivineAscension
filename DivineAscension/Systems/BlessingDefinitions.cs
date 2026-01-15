@@ -8,14 +8,14 @@ namespace DivineAscension.Systems;
 
 /// <summary>
 ///     Contains all blessing definitions for all domains
-///     Utility-focused system: 40 blessings (4 domains × 10 blessings each)
+///     50 blessings (5 domains × 10 blessings each)
 /// </summary>
 [ExcludeFromCodeCoverage]
 public static class BlessingDefinitions
 {
     /// <summary>
     ///     Gets all blessing definitions for registration
-    ///     Updated for utility-focused system (4 domains, 40 total blessings)
+    ///     5 domains, 50 total blessings
     /// </summary>
     public static List<Blessing> GetAllBlessings()
     {
@@ -23,6 +23,7 @@ public static class BlessingDefinitions
 
         blessings.AddRange(GetCraftBlessings());
         blessings.AddRange(GetWildBlessings());
+        blessings.AddRange(GetWarBlessings());
         blessings.AddRange(GetHarvestBlessings());
         blessings.AddRange(GetStoneBlessings());
 
@@ -382,6 +383,188 @@ public static class BlessingDefinitions
                 {
                     { VintageStoryStats.TemperatureResistance, 5.0f }
                 }
+            }
+        };
+    }
+
+    #endregion
+
+    #region War (Blood & Battle)
+
+    private static List<Blessing> GetWarBlessings()
+    {
+        return new List<Blessing>
+        {
+            // PLAYER BLESSINGS (6 total) - Combat & PvP utility focus
+
+            // Tier 1 - Initiate (0-499 favor) - Foundation
+            new(BlessingIds.WarBloodthirst, "Bloodthirst", DeityDomain.War)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Combat,
+                Description = "+10% melee weapon damage, +10% melee weapon speed.",
+                IconName = "crossed-swords",
+                RequiredFavorRank = (int)FavorRank.Initiate,
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
+                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
+                }
+            },
+
+            // Tier 2 - Disciple (500-1999 favor) - Choose Your Path
+            new(BlessingIds.WarBerserkerRage, "Berserker Rage", DeityDomain.War)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Combat,
+                Description =
+                    "+15% melee weapon damage (total: 25%), +5% critical hit chance. Offensive path. Requires Bloodthirst.",
+                IconName = "axe-swing",
+                RequiredFavorRank = (int)FavorRank.Disciple,
+                PrerequisiteBlessings = new List<string> { BlessingIds.WarBloodthirst },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
+                    { VintageStoryStats.CriticalHitChance, 0.05f }
+                }
+            },
+            new(BlessingIds.WarIronWill, "Iron Will", DeityDomain.War)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Defense,
+                Description =
+                    "+15% max health, +10% damage reduction. Defensive path. Requires Bloodthirst.",
+                IconName = "shield",
+                RequiredFavorRank = (int)FavorRank.Disciple,
+                PrerequisiteBlessings = new List<string> { BlessingIds.WarBloodthirst },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
+                    { VintageStoryStats.DamageReduction, 0.10f }
+                }
+            },
+
+            // Tier 3 - Zealot (2000-4999 favor) - Specialization
+            new(BlessingIds.WarWarlordsStrike, "Warlord's Strike", DeityDomain.War)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Combat,
+                Description =
+                    "+20% melee weapon damage (total: 45%), +10% critical hit chance (total: 15%), +15% critical hit damage. Requires Berserker Rage.",
+                IconName = "broadsword",
+                RequiredFavorRank = (int)FavorRank.Zealot,
+                PrerequisiteBlessings = new List<string> { BlessingIds.WarBerserkerRage },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.MeleeWeaponsDamage, 0.20f },
+                    { VintageStoryStats.CriticalHitChance, 0.10f },
+                    { VintageStoryStats.CriticalHitDamage, 0.15f }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.BattleFury }
+            },
+            new(BlessingIds.WarUnyieldingFortitude, "Unyielding Fortitude", DeityDomain.War)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Defense,
+                Description =
+                    "+20% max health (total: 35%), +15% damage reduction (total: 25%), gain temporary damage reduction when health drops below 25%. Requires Iron Will.",
+                IconName = "spartan-helmet",
+                RequiredFavorRank = (int)FavorRank.Zealot,
+                PrerequisiteBlessings = new List<string> { BlessingIds.WarIronWill },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
+                    { VintageStoryStats.DamageReduction, 0.15f }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.LastStand }
+            },
+
+            // Tier 4 - Champion (5000+ favor) - Capstone (requires both paths)
+            new(BlessingIds.WarAvatarOfWar, "Avatar of War", DeityDomain.War)
+            {
+                Kind = BlessingKind.Player,
+                Category = BlessingCategory.Combat,
+                Description =
+                    "Heal 5% of max health on each kill, +10% movement speed in combat. The ultimate warrior. Requires both Warlord's Strike and Unyielding Fortitude.",
+                IconName = "warlord-helmet",
+                RequiredFavorRank = (int)FavorRank.Champion,
+                PrerequisiteBlessings = new List<string>
+                    { BlessingIds.WarWarlordsStrike, BlessingIds.WarUnyieldingFortitude },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.KillHealthRestore, 0.05f },
+                    { VintageStoryStats.WalkSpeed, 0.10f }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.Bloodlust }
+            },
+
+            // RELIGION BLESSINGS (4 total) - Shared combat bonuses
+
+            // Tier 1 - Fledgling (0-499 prestige) - Foundation
+            new(BlessingIds.WarWarband, "Warband", DeityDomain.War)
+            {
+                Kind = BlessingKind.Religion,
+                Category = BlessingCategory.Combat,
+                Description = "+10% melee weapon damage, +10% melee weapon speed for all members.",
+                IconName = "rally-the-troops",
+                RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
+                    { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
+                }
+            },
+
+            // Tier 2 - Established (500-1999 prestige) - Coordination
+            new(BlessingIds.WarLegionOfBlood, "Legion of Blood", DeityDomain.War)
+            {
+                Kind = BlessingKind.Religion,
+                Category = BlessingCategory.Combat,
+                Description =
+                    "+15% melee weapon damage, +10% max health for all. Requires Warband.",
+                IconName = "roman-shield",
+                RequiredPrestigeRank = (int)PrestigeRank.Established,
+                PrerequisiteBlessings = new List<string> { BlessingIds.WarWarband },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
+                }
+            },
+
+            // Tier 3 - Renowned (2000-4999 prestige) - Elite Force
+            new(BlessingIds.WarConquerorsBanner, "Conqueror's Banner", DeityDomain.War)
+            {
+                Kind = BlessingKind.Religion,
+                Category = BlessingCategory.Combat,
+                Description =
+                    "+20% melee weapon damage, +15% max health, +10% damage reduction for all. Requires Legion of Blood.",
+                IconName = "flag",
+                RequiredPrestigeRank = (int)PrestigeRank.Renowned,
+                PrerequisiteBlessings = new List<string> { BlessingIds.WarLegionOfBlood },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.MeleeWeaponsDamage, 0.20f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
+                    { VintageStoryStats.DamageReduction, 0.10f }
+                }
+            },
+
+            // Tier 4 - Legendary (5000+ prestige) - Pantheon of War
+            new(BlessingIds.WarPantheonOfWar, "Pantheon of War", DeityDomain.War)
+            {
+                Kind = BlessingKind.Religion,
+                Category = BlessingCategory.Combat,
+                Description = "+5% critical hit chance, +10% movement speed for all. Requires Conqueror's Banner.",
+                IconName = "throne-king",
+                RequiredPrestigeRank = (int)PrestigeRank.Legendary,
+                PrerequisiteBlessings = new List<string> { BlessingIds.WarConquerorsBanner },
+                StatModifiers = new Dictionary<string, float>
+                {
+                    { VintageStoryStats.CriticalHitChance, 0.05f },
+                    { VintageStoryStats.WalkSpeed, 0.10f }
+                },
+                SpecialEffects = new List<string> { SpecialEffects.Warcry }
             }
         };
     }
