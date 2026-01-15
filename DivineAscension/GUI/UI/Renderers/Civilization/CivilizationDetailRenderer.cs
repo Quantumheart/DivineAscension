@@ -86,6 +86,19 @@ internal static class CivilizationDetailRenderer
 
         currentY += 32f;
 
+        // Description section (if present)
+        if (!string.IsNullOrEmpty(vm.Description))
+        {
+            currentY += 8f;
+            TextRenderer.DrawLabel(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_DESCRIPTION),
+                vm.X, currentY, 14f, ColorPalette.Grey);
+            currentY += 22f;
+
+            TextRenderer.DrawInfoText(drawList, vm.Description, vm.X, currentY, vm.Width * 0.9f);
+            currentY += 60f;
+        }
+
         // Divider line
         drawList.AddLine(new Vector2(vm.X, currentY), new Vector2(vm.X + vm.Width, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey * 0.5f), 1f);

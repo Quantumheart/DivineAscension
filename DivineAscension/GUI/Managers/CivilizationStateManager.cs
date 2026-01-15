@@ -462,6 +462,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             details?.FounderReligionName ?? string.Empty,
             details?.MemberReligions ?? new List<CivilizationInfoResponsePacket.MemberReligion>(),
             details?.CreatedDate ?? DateTime.MinValue,
+            details?.Description ?? string.Empty,
             State.DetailState.MemberScrollY,
             !HasCivilization() && (details?.MemberReligions?.Count ?? 0) < 4,
             x,

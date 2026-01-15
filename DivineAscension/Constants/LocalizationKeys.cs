@@ -307,6 +307,8 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_DETAIL_MEMBER_CARD_INFO =
         "divineascension:ui.civilization.detail.member_card.info";
 
+    public const string UI_CIVILIZATION_DETAIL_DESCRIPTION = "divineascension:ui.civilization.detail.description";
+
     #endregion
 
     #region Civilization - Create
