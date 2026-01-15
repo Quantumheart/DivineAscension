@@ -8,7 +8,7 @@ using Vintagestory.API.Server;
 
 namespace DivineAscension.Systems.Favor;
 
-public class GaiaFavorTracker(
+public class StoneFavorTracker(
     IPlayerProgressionDataManager playerProgressionDataManager,
     ICoreServerAPI sapi,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
