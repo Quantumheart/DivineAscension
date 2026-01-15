@@ -146,19 +146,13 @@ jobs:
 
       - name: Commit version bump
         if: steps.version.outputs.bumped == 'true'
-        run: |
-          NEW_VERSION="${{ steps.version.outputs.new_version }}"
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add DivineAscension/modinfo.json
-          git add DivineAscension/Properties/AssemblyInfo.cs 2>/dev/null || true
-
-          git commit -m "chore(release): bump version to $NEW_VERSION [skip ci]"
-          git push
-
-          echo "Version bump committed"
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(release): bump version to ${{ steps.version.outputs.new_version }} [skip ci]"
+          file_pattern: "DivineAscension/modinfo.json DivineAscension/Properties/AssemblyInfo.cs"
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
 
       - name: Check if release needed
         id: release_check
