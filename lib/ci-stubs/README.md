@@ -1,19 +1,32 @@
-# CI Stub Assemblies
+# CI Build Dependencies
 
-This directory contains reference assemblies (stubs) for Vintage Story's proprietary DLLs. These stubs allow the project to build in CI environments without requiring a full Vintage Story installation.
+This directory contains assemblies needed for CI builds without requiring a full Vintage Story installation.
 
-## What are Reference Assemblies?
+## File Types
 
-Reference assemblies contain only the public API surface (types, methods, properties) without any implementation code. They're legally safe to distribute because they contain no proprietary code—just interface definitions that allow compilation.
+### Reference Assemblies (Stubs)
+These contain only API signatures, no implementation code. Safe to distribute for proprietary assemblies.
 
-## Required Stub Files
+### Full Assemblies
+Open-source libraries copied from VS installation to guarantee exact version match.
 
-The following stub assemblies are needed for CI builds:
+## Required Files
 
+**Stubs (generated with Refasmer):**
 - `VintagestoryAPI.dll` - Main Vintage Story modding API
 - `VSEssentials.dll` - Essential game systems
 - `VSSurvivalMod.dll` - Survival mode systems
 - `cairo-sharp.dll` - Cairo graphics bindings
+
+**Full assemblies (copied from VS):**
+- `protobuf-net.dll` - Protobuf serialization v2.4.9.1 (MIT license)
+
+## Why Copy protobuf-net?
+
+Instead of using a NuGet package, we copy the exact DLL from Vintage Story to:
+- Guarantee version match (VS 1.21.6 uses 2.4.9.1)
+- Avoid assembly version mismatches
+- Ensure same behavior as runtime environment
 
 ## Generating Stubs
 
@@ -37,11 +50,14 @@ If you prefer to generate stubs manually:
 # Set your Vintage Story path
 export VINTAGE_STORY="$HOME/.local/share/Vintagestory"
 
-# Generate each stub
+# Generate proprietary API stubs
 refasmer -v --omit-non-api-members true -O ./lib/ci-stubs/ "$VINTAGE_STORY/VintagestoryAPI.dll"
 refasmer -v --omit-non-api-members true -O ./lib/ci-stubs/ "$VINTAGE_STORY/Mods/VSEssentials.dll"
 refasmer -v --omit-non-api-members true -O ./lib/ci-stubs/ "$VINTAGE_STORY/Mods/VSSurvivalMod.dll"
 refasmer -v --omit-non-api-members true -O ./lib/ci-stubs/ "$VINTAGE_STORY/Lib/cairo-sharp.dll"
+
+# Copy open-source dependencies (full DLLs)
+cp "$VINTAGE_STORY/Lib/protobuf-net.dll" ./lib/ci-stubs/
 ```
 
 ## Updating Stubs

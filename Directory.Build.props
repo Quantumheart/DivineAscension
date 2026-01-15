@@ -24,10 +24,9 @@
   <ItemGroup Condition="'$(UseStubDependencies)' == 'true'">
     <PackageReference Include="Lib.Harmony" Version="2.3.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="protobuf-net" Version="3.2.30" />
   </ItemGroup>
 
-  <!-- Proprietary Vintage Story DLLs - use stubs in CI -->
+  <!-- Vintage Story bundled dependencies - use copies from VS installation in CI -->
   <ItemGroup Condition="'$(UseStubDependencies)' == 'true'">
     <Reference Include="VintagestoryAPI">
       <HintPath>$(CiStubsPath)VintagestoryAPI.dll</HintPath>
@@ -43,6 +42,10 @@
     </Reference>
     <Reference Include="cairo-sharp">
       <HintPath>$(CiStubsPath)cairo-sharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="protobuf-net">
+      <HintPath>$(CiStubsPath)protobuf-net.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
