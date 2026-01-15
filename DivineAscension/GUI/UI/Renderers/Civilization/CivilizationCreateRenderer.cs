@@ -92,26 +92,6 @@ internal static class CivilizationCreateRenderer
             }
         }
 
-        // Icon selection
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_ICON_LABEL), vm.X, currentY);
-        currentY += 20f;
-
-        var availableIcons = CivilizationIconLoader.GetAvailableIcons();
-        var (clickedIcon, pickerHeight) = IconPicker.Draw(
-            drawList,
-            availableIcons,
-            vm.SelectedIcon,
-            vm.X,
-            currentY,
-            vm.Width * 0.7f // spacing
-        );
-
-        if (clickedIcon != null)
-            events.Add(new CreateEvent.IconSelected(clickedIcon));
-
-        currentY += pickerHeight + 20f;
-
         // Description input (optional)
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_DESCRIPTION_LABEL), vm.X,
@@ -145,6 +125,26 @@ internal static class CivilizationCreateRenderer
                 currentY += 25f;
             }
         }
+
+        // Icon selection
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_ICON_LABEL), vm.X, currentY);
+        currentY += 20f;
+
+        var availableIcons = CivilizationIconLoader.GetAvailableIcons();
+        var (clickedIcon, pickerHeight) = IconPicker.Draw(
+            drawList,
+            availableIcons,
+            vm.SelectedIcon,
+            vm.X,
+            currentY,
+            vm.Width * 0.7f // spacing
+        );
+
+        if (clickedIcon != null)
+            events.Add(new CreateEvent.IconSelected(clickedIcon));
+
+        currentY += pickerHeight + 20f;
 
         // Create button
         if (ButtonRenderer.DrawButton(drawList,
