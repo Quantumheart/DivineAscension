@@ -65,6 +65,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         }
 
         var oldRank = religion.PrestigeRank;
+        var oldPrestige = religion.Prestige;
 
         // Add prestige
         religion.Prestige += amount;
@@ -80,8 +81,52 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         // Check if rank changed
         if (religion.PrestigeRank > oldRank) SendReligionRankUpNotification(religionUID, religion.PrestigeRank);
 
-        // Save immediately to prevent data loss
-        _religionManager.TriggerSave();
+        // Save immediately to prevent data loss (only if prestige actually changed)
+        if (religion.Prestige != oldPrestige)
+        {
+            _religionManager.TriggerSave();
+        }
+    }
+
+    /// <summary>
+    ///     Adds fractional prestige to a religion and updates rank if needed.
+    ///     Enables true 1:1 favor-to-prestige conversion for fractional favor amounts.
+    /// </summary>
+    public void AddFractionalPrestige(string religionUID, float amount, string reason = "")
+    {
+        var religion = _religionManager.GetReligion(religionUID);
+        if (religion == null)
+        {
+            _sapi.Logger.Error(
+                $"[DivineAscension] Cannot add fractional prestige to non-existent religion: {religionUID}");
+            return;
+        }
+
+        var oldRank = religion.PrestigeRank;
+        var oldPrestige = religion.Prestige;
+
+        // Add fractional prestige
+        religion.AddFractionalPrestige(amount);
+
+        // Only log when prestige is actually awarded (when accumulated >= 1)
+        if (religion.Prestige != oldPrestige && !string.IsNullOrEmpty(reason))
+        {
+            var prestigeGained = religion.Prestige - oldPrestige;
+            _sapi.Logger.Debug(
+                $"[DivineAscension] Religion {religion.ReligionName} gained {prestigeGained} prestige: {reason}");
+        }
+
+        // Update rank
+        UpdatePrestigeRank(religionUID);
+
+        // Check if rank changed
+        if (religion.PrestigeRank > oldRank) SendReligionRankUpNotification(religionUID, religion.PrestigeRank);
+
+        // Save immediately to prevent data loss (only if prestige actually changed)
+        if (religion.Prestige != oldPrestige)
+        {
+            _religionManager.TriggerSave();
+        }
     }
 
     /// <summary>

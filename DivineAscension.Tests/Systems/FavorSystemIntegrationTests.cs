@@ -29,11 +29,13 @@ public class FavorSystemIntegrationTests
         _mockReligionManager = TestFixtures.CreateMockReligionManager();
         _mockPrestigeManager = TestFixtures.CreateMockReligionPrestigeManager();
 
+        var mockActivityLogManager = new Mock<IActivityLogManager>();
         _favorSystem = new FavorSystem(
             _mockAPI.Object,
             _mockPlayerReligionDataManager.Object,
             _mockReligionManager.Object,
-            _mockPrestigeManager.Object
+            _mockPrestigeManager.Object,
+            mockActivityLogManager.Object
         );
     }
 
@@ -240,7 +242,7 @@ public class FavorSystemIntegrationTests
 
         // Assert
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor("player-uid", 15, "test action"),
+            m => m.AddFractionalFavor("player-uid", 15, "test action"),
             Times.Once()
         );
     }

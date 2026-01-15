@@ -685,7 +685,25 @@ public class ReligionStateManager : IReligionStateManager
     /// </summary>
     private void DrawReligionActivity(float x, float contentY, float width, float contentHeight)
     {
-        var vm = new ReligionActivityViewModel(x, contentY, width, contentHeight);
+        // Request activity log on first load
+        if (State.ActivityState.LastRefresh == DateTime.MinValue && !State.ActivityState.IsLoading)
+        {
+            _coreClientApi.Logger.Debug(
+                $"[ReligionStateManager] First load detected for Activity tab, requesting activity log");
+            RequestActivityLog();
+        }
+
+        var vm = new ReligionActivityViewModel(
+            x,
+            contentY,
+            width,
+            contentHeight,
+            State.ActivityState.ActivityEntries,
+            State.ActivityState.ActivityScrollY,
+            State.ActivityState.IsLoading,
+            State.ActivityState.ErrorMessage
+        );
+
         var result = ReligionActivityRenderer.Draw(vm);
         ProcessActivityEvents(result.Events);
     }
@@ -693,14 +711,41 @@ public class ReligionStateManager : IReligionStateManager
     private void ProcessActivityEvents(IReadOnlyList<ActivityEvent>? resultEvents)
     {
         if (resultEvents == null || resultEvents.Count == 0) return;
+
         foreach (var ev in resultEvents)
         {
             switch (ev)
             {
+                case ActivityEvent.ScrollChanged e:
+                    State.ActivityState.ActivityScrollY = e.NewScrollY;
+                    break;
+
+                case ActivityEvent.RefreshRequested:
+                    RequestActivityLog();
+                    break;
+
                 default:
                     break;
             }
         }
+    }
+
+    private void RequestActivityLog()
+    {
+        _coreClientApi.Logger.Debug(
+            $"[ReligionStateManager] RequestActivityLog called, CurrentReligionUID: {CurrentReligionUID ?? "null"}");
+
+        if (string.IsNullOrEmpty(CurrentReligionUID))
+        {
+            _coreClientApi.Logger.Warning(
+                "[ReligionStateManager] Cannot request activity log: CurrentReligionUID is null or empty");
+            return;
+        }
+
+        _coreClientApi.Logger.Debug(
+            $"[ReligionStateManager] Requesting activity log for religion: {CurrentReligionUID}");
+        State.ActivityState.IsLoading = true;
+        _uiService.RequestActivityLog(CurrentReligionUID, 50);
     }
 
     /// <summary>

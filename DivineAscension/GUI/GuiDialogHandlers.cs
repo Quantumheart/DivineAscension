@@ -364,6 +364,12 @@ public partial class GuiDialog
             _manager.ReligionStateManager.CurrentReligionUID = packet.ReligionUID;
             _capi!.Logger.Debug(
                 $"[DivineAscension] Set PlayerRoleInReligion to: {_manager.ReligionStateManager.PlayerRoleInReligion}, MemberCount: {_manager.ReligionStateManager.ReligionMemberCount}");
+
+            // CRITICAL: Reset ActivityState so it will request activity log on next draw
+            // This handles the case where Activity tab was opened before religion info arrived
+            _manager.ReligionStateManager.State.ActivityState.LastRefresh = DateTime.MinValue;
+            _manager.ReligionStateManager.State.ActivityState.IsLoading = false;
+            _capi!.Logger.Debug("[DivineAscension] Reset ActivityState to trigger activity log request");
         }
         else
         {
@@ -579,5 +585,16 @@ public partial class GuiDialog
 
         // Delegate to StateManager for state updates and side effects
         _manager!.CivilizationManager.OnCivilizationActionCompleted(packet);
+    }
+
+    /// <summary>
+    ///     Handle activity log received from server
+    /// </summary>
+    private void OnActivityLogReceived(ActivityLogResponsePacket packet)
+    {
+        _capi!.Logger.Debug($"[DivineAscension] Received activity log with {packet.Entries.Count} entries");
+
+        // Update activity state
+        _manager!.ReligionStateManager.State.ActivityState.UpdateEntries(packet.Entries);
     }
 }

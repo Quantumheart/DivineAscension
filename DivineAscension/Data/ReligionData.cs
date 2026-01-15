@@ -153,6 +153,20 @@ public class ReligionData
     public string DeityName { get; set; } = string.Empty;
 
     /// <summary>
+    ///     Recent activity log entries (last 100 entries, FIFO).
+    ///     Stores favor/prestige awards from member actions.
+    /// </summary>
+    [ProtoMember(19)]
+    public List<ActivityLogEntry> ActivityLog { get; set; } = new();
+
+    /// <summary>
+    ///     Accumulated fractional prestige (not yet awarded).
+    ///     Enables true 1:1 favor-to-prestige conversion for fractional favor amounts.
+    /// </summary>
+    [ProtoMember(20)]
+    public float AccumulatedFractionalPrestige { get; set; }
+
+    /// <summary>
     ///     Adds a member to the religion with player name
     /// </summary>
     public void AddMember(string playerUID, string playerName)
@@ -196,6 +210,28 @@ public class ReligionData
     public int GetMemberCount()
     {
         return MemberUIDs.Count;
+    }
+
+    /// <summary>
+    ///     Adds fractional prestige and updates statistics when accumulated amount >= 1.
+    ///     Enables true 1:1 favor-to-prestige conversion for fractional favor amounts.
+    /// </summary>
+    public void AddFractionalPrestige(float amount)
+    {
+        if (amount > 0)
+        {
+            AccumulatedFractionalPrestige += amount;
+
+            // Award integer prestige when we have accumulated >= 1.0
+            if (AccumulatedFractionalPrestige >= 1.0f)
+            {
+                var prestigeToAward = (int)AccumulatedFractionalPrestige;
+                AccumulatedFractionalPrestige -= prestigeToAward; // Keep the fractional remainder
+
+                Prestige += prestigeToAward;
+                TotalPrestige += prestigeToAward;
+            }
+        }
     }
 
     /// <summary>

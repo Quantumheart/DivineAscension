@@ -97,6 +97,7 @@ public partial class GuiDialog : ModSystem
             _divineAscensionModSystem.NetworkClient.CivilizationListReceived += OnCivilizationListReceived;
             _divineAscensionModSystem.NetworkClient.CivilizationInfoReceived += OnCivilizationInfoReceived;
             _divineAscensionModSystem.NetworkClient.CivilizationActionCompleted += OnCivilizationActionCompleted;
+            _divineAscensionModSystem.NetworkClient.ActivityLogReceived += OnActivityLogReceived;
         }
         else
         {
@@ -385,6 +386,7 @@ public partial class GuiDialog : ModSystem
             _divineAscensionModSystem.NetworkClient.CivilizationListReceived -= OnCivilizationListReceived;
             _divineAscensionModSystem.NetworkClient.CivilizationInfoReceived -= OnCivilizationInfoReceived;
             _divineAscensionModSystem.NetworkClient.CivilizationActionCompleted -= OnCivilizationActionCompleted;
+            _divineAscensionModSystem.NetworkClient.ActivityLogReceived -= OnActivityLogReceived;
         }
 
         // Dispose icon loaders

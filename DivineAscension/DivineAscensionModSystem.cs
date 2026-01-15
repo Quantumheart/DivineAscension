@@ -119,7 +119,9 @@ public class DivineAscensionModSystem : ModSystem
             .RegisterMessageType<ReligionDetailRequestPacket>()
             .RegisterMessageType<ReligionDetailResponsePacket>()
             .RegisterMessageType<SetDeityNameRequestPacket>()
-            .RegisterMessageType<SetDeityNameResponsePacket>();
+            .RegisterMessageType<SetDeityNameResponsePacket>()
+            .RegisterMessageType<ActivityLogRequestPacket>()
+            .RegisterMessageType<ActivityLogResponsePacket>();
     }
 
     public override void StartServerSide(ICoreServerAPI api)

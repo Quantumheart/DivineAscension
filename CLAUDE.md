@@ -92,17 +92,18 @@ Releases/                      # Packaged mod artifacts from Cake build
 0. `LocalizationService` - Multi-language support (must initialize before managers that use localized messages)
 1. `ReligionManager` - Religion CRUD and membership with O(1) player-to-religion index
 2. **Deity name migration** - Migrates existing religions with empty deity names (backward compatibility)
-3. `CivilizationManager` - Civilization management (depends on ReligionManager)
-4. `PlayerProgressionDataManager` - Per-player data
-5. `ReligionPrestigeManager` - Religion-level progression (**MUST be initialized before FavorSystem**)
-6. `FavorSystem` - Divine favor rewards (depends on PrestigeManager)
-7. `DiplomacyManager` - Inter-civilization diplomacy
-8. `PvPManager` - PvP favor rewards
-9. `BlessingRegistry` - Blessing definitions
-10. `BlessingEffectSystem` - Stat modifiers and effects (**must register with PrestigeManager after initialization**)
-11. Command handlers (Favor, Blessing, Religion, Role, Civilization, Diplomacy)
-12. Network handlers (PlayerData, Blessing, Religion, Civilization)
-13. **Membership validation** - Validates and repairs player-to-religion index consistency
+3. `ActivityLogManager` - Activity log tracking (depends on ReligionManager)
+4. `CivilizationManager` - Civilization management (depends on ReligionManager)
+5. `PlayerProgressionDataManager` - Per-player data
+6. `ReligionPrestigeManager` - Religion-level progression (**MUST be initialized before FavorSystem**)
+7. `FavorSystem` - Divine favor rewards (depends on PrestigeManager and ActivityLogManager)
+8. `DiplomacyManager` - Inter-civilization diplomacy
+9. `PvPManager` - PvP favor rewards
+10. `BlessingRegistry` - Blessing definitions
+11. `BlessingEffectSystem` - Stat modifiers and effects (**must register with PrestigeManager after initialization**)
+12. Command handlers (Favor, Blessing, Religion, Role, Civilization, Diplomacy)
+13. Network handlers (PlayerData, Blessing, Religion, Civilization, Activity)
+14. **Membership validation** - Validates and repairs player-to-religion index consistency
 
 **Never reorder these** - dependency chains will break.
 
@@ -148,6 +149,13 @@ Releases/                      # Packaged mod artifacts from Cake build
 - Religion-level progression (Fledgling → Divine)
 - Awards prestige for member actions
 - Unlocks religion-level blessings
+
+**ActivityLogManager** (`/Systems/ActivityLogManager.cs`):
+- Tracks religion activity feed with favor/prestige awards
+- Bounded storage (100 entries per religion, FIFO eviction)
+- Logs player actions with timestamps, amounts, and deity domains
+- Auto-cleanup on religion deletion via event subscription
+- Persisted with `ReligionData.ActivityLog`
 
 **PvPManager** (`/Systems/PvPManager.cs`):
 - PvP favor and prestige rewards on kills

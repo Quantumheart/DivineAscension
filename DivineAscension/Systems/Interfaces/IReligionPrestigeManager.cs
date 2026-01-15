@@ -24,6 +24,12 @@ public interface IReligionPrestigeManager
     void AddPrestige(string religionUID, int amount, string reason = "");
 
     /// <summary>
+    ///     Adds fractional prestige to a religion and updates rank if needed.
+    ///     Enables true 1:1 favor-to-prestige conversion for fractional favor amounts.
+    /// </summary>
+    void AddFractionalPrestige(string religionUID, float amount, string reason = "");
+
+    /// <summary>
     ///     Updates prestige rank based on total prestige earned
     /// </summary>
     void UpdatePrestigeRank(string religionUID);
