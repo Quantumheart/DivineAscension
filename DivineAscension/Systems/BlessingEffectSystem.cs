@@ -561,7 +561,6 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         // Conquest (Domination & Victory) handlers
         _specialEffectRegistry.RegisterHandler(new ConquestEffectHandlers.BattleFuryEffect());
         _specialEffectRegistry.RegisterHandler(new ConquestEffectHandlers.BloodlustEffect());
-        _specialEffectRegistry.RegisterHandler(new ConquestEffectHandlers.WarcryEffect());
         _specialEffectRegistry.RegisterHandler(new ConquestEffectHandlers.LastStandEffect());
 
         _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered all special effect handlers");

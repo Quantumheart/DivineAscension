@@ -402,12 +402,12 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
-                Description = "+10% melee weapon damage, +10% melee weapon speed.",
+                Description = "+8% melee weapon damage, +10% melee weapon speed.",
                 IconName = "crossed-swords",
                 RequiredFavorRank = (int)FavorRank.Initiate,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
+                    { VintageStoryStats.MeleeWeaponsDamage, 0.08f },
                     { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
                 }
             },
@@ -418,13 +418,13 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description =
-                    "+15% melee weapon damage (total: 25%), +5% critical hit chance. Offensive path. Requires Bloodthirst.",
+                    "+10% melee weapon damage (total: 18%), +5% critical hit chance. Offensive path. Requires Bloodthirst.",
                 IconName = "axe-swing",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.ConquestBloodthirst },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
+                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
                     { VintageStoryStats.CriticalHitChance, 0.05f }
                 }
             },
@@ -433,13 +433,13 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Defense,
                 Description =
-                    "+15% max health, +10% damage reduction. Defensive path. Requires Bloodthirst.",
+                    "+10% max health, +10% damage reduction. Defensive path. Requires Bloodthirst.",
                 IconName = "shield",
                 RequiredFavorRank = (int)FavorRank.Disciple,
                 PrerequisiteBlessings = new List<string> { BlessingIds.ConquestBloodthirst },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f },
                     { VintageStoryStats.DamageReduction, 0.10f }
                 }
             },
@@ -450,14 +450,14 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Combat,
                 Description =
-                    "+20% melee weapon damage (total: 45%), +10% critical hit chance (total: 15%), +15% critical hit damage. Requires Berserker Rage.",
+                    "+12% melee weapon damage (total: 30%), +8% critical hit chance (total: 13%), +15% critical hit damage. Requires Berserker Rage.",
                 IconName = "broadsword",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.ConquestBerserkerRage },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.20f },
-                    { VintageStoryStats.CriticalHitChance, 0.10f },
+                    { VintageStoryStats.MeleeWeaponsDamage, 0.12f },
+                    { VintageStoryStats.CriticalHitChance, 0.08f },
                     { VintageStoryStats.CriticalHitDamage, 0.15f }
                 },
                 SpecialEffects = new List<string> { SpecialEffects.BattleFury }
@@ -467,14 +467,14 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Player,
                 Category = BlessingCategory.Defense,
                 Description =
-                    "+20% max health (total: 35%), +15% damage reduction (total: 25%), gain temporary damage reduction when health drops below 25%. Requires Iron Will.",
+                    "+12% max health (total: 22%), +12% damage reduction (total: 22%), gain temporary damage reduction when health drops below 25%. Requires Iron Will.",
                 IconName = "spartan-helmet",
                 RequiredFavorRank = (int)FavorRank.Zealot,
                 PrerequisiteBlessings = new List<string> { BlessingIds.ConquestIronWill },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.20f },
-                    { VintageStoryStats.DamageReduction, 0.15f }
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.12f },
+                    { VintageStoryStats.DamageReduction, 0.12f }
                 },
                 SpecialEffects = new List<string> { SpecialEffects.LastStand }
             },
@@ -505,12 +505,12 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
-                Description = "+10% melee weapon damage, +10% melee weapon speed for all members.",
+                Description = "+8% melee weapon damage, +10% melee weapon speed for all members.",
                 IconName = "rally-the-troops",
                 RequiredPrestigeRank = (int)PrestigeRank.Fledgling,
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
+                    { VintageStoryStats.MeleeWeaponsDamage, 0.08f },
                     { VintageStoryStats.MeleeWeaponsSpeed, 0.10f }
                 }
             },
@@ -521,14 +521,14 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
                 Description =
-                    "+15% melee weapon damage, +10% max health for all. Requires Warband.",
+                    "+10% melee weapon damage, +8% max health for all. Requires Warband.",
                 IconName = "roman-shield",
                 RequiredPrestigeRank = (int)PrestigeRank.Established,
                 PrerequisiteBlessings = new List<string> { BlessingIds.ConquestWarband },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.15f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
+                    { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.08f }
                 }
             },
 
@@ -538,15 +538,15 @@ public static class BlessingDefinitions
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
                 Description =
-                    "+20% melee weapon damage, +15% max health, +10% damage reduction for all. Requires Conquering Legion.",
+                    "+12% melee weapon damage, +10% max health, +8% damage reduction for all. Requires Conquering Legion.",
                 IconName = "flag",
                 RequiredPrestigeRank = (int)PrestigeRank.Renowned,
                 PrerequisiteBlessings = new List<string> { BlessingIds.ConquestConqueringLegion },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MeleeWeaponsDamage, 0.20f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
-                    { VintageStoryStats.DamageReduction, 0.10f }
+                    { VintageStoryStats.MeleeWeaponsDamage, 0.12f },
+                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f },
+                    { VintageStoryStats.DamageReduction, 0.08f }
                 }
             },
 
@@ -555,16 +555,16 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
-                Description = "+5% critical hit chance, +10% movement speed for all. Requires Conqueror's Banner.",
+                Description = "+5% critical hit chance, +10% movement speed, +5% damage reduction for all. Requires Conqueror's Banner.",
                 IconName = "throne-king",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
                 PrerequisiteBlessings = new List<string> { BlessingIds.ConquestConquerorsBanner },
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.CriticalHitChance, 0.05f },
-                    { VintageStoryStats.WalkSpeed, 0.10f }
-                },
-                SpecialEffects = new List<string> { SpecialEffects.Warcry }
+                    { VintageStoryStats.WalkSpeed, 0.10f },
+                    { VintageStoryStats.DamageReduction, 0.05f }
+                }
             }
         };
     }
