@@ -10,7 +10,6 @@
   "side": "Universal",
   "dependencies": {
     "game": "1.21.5",
-    "vsimgui": "0.0.6",
-    "configlib": ""
+    "vsimgui": "0.0.6"
   }
 }
