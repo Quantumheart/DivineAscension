@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Commands;
+using DivineAscension.Configuration;
 using DivineAscension.Services;
 using DivineAscension.Systems.BuffSystem;
 using DivineAscension.Systems.Networking.Server;
@@ -23,10 +24,12 @@ public static class DivineAscensionSystemInitializer
     /// </summary>
     /// <param name="api">The server API</param>
     /// <param name="serverChannel">The network channel for server communications</param>
+    /// <param name="gameBalanceConfig">The game balance configuration</param>
     /// <returns>InitializationResult containing all initialized managers, commands, and handlers</returns>
     public static InitializationResult InitializeServerSystems(
         ICoreServerAPI api,
-        IServerNetworkChannel serverChannel)
+        IServerNetworkChannel serverChannel,
+        GameBalanceConfig gameBalanceConfig)
     {
         api.Logger.Notification("[DivineAscension] Starting server-side system initialization...");
 
@@ -67,7 +70,7 @@ public static class DivineAscensionSystemInitializer
         religionPrestigeManager.Initialize();
 
         var favorSystem = new FavorSystem(api, playerReligionDataManager, religionManager,
-            religionPrestigeManager, activityLogManager);
+            religionPrestigeManager, activityLogManager, gameBalanceConfig);
         favorSystem.Initialize();
 
         var diplomacyManager = new DiplomacyManager(api, civilizationManager, religionPrestigeManager, religionManager);

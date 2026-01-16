@@ -164,7 +164,7 @@ public class DivineAscensionModSystem : ModSystem
         SetupServerNetworking(api);
 
         // Initialize all server systems using the initializer
-        var result = DivineAscensionSystemInitializer.InitializeServerSystems(api, _serverChannel);
+        var result = DivineAscensionSystemInitializer.InitializeServerSystems(api, _serverChannel, _gameBalanceConfig);
 
         // Store references to managers for disposal and event subscriptions
         _religionManager = result.ReligionManager;

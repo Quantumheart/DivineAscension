@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
@@ -30,12 +31,14 @@ public class FavorSystemIntegrationTests
         _mockPrestigeManager = TestFixtures.CreateMockReligionPrestigeManager();
 
         var mockActivityLogManager = new Mock<IActivityLogManager>();
+        var testConfig = new GameBalanceConfig(); // Uses default values
         _favorSystem = new FavorSystem(
             _mockAPI.Object,
             _mockPlayerReligionDataManager.Object,
             _mockReligionManager.Object,
             _mockPrestigeManager.Object,
-            mockActivityLogManager.Object
+            mockActivityLogManager.Object,
+            testConfig
         );
     }
 
