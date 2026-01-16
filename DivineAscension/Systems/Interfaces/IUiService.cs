@@ -9,6 +9,7 @@ public interface IUiService
     void RequestBlessingUnlock(string blessingId);
 
     // Religion Operations
+    void RequestAvailableDomains();
     void RequestReligionList(string deityFilter = "");
     void RequestPlayerReligionInfo();
     void RequestReligionDetail(string religionUID);

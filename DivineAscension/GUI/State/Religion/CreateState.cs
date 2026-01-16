@@ -7,7 +7,7 @@ public class CreateState
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    ///     The domain for the religion (Craft, Wild, Harvest, Stone)
+    ///     The domain for the religion (retrieved from server)
     /// </summary>
     public string Domain { get; set; } = nameof(DeityDomain.Craft);
 

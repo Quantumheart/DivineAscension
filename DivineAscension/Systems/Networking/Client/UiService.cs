@@ -20,6 +20,11 @@ public class UiService(DivineAscensionNetworkClient networkClient)
         _networkClient.RequestBlessingUnlock(blessingId);
     }
 
+    public void RequestAvailableDomains()
+    {
+        _networkClient.RequestAvailableDomains();
+    }
+
     public void RequestReligionList(string deityFilter = "")
     {
         _networkClient.RequestReligionList(deityFilter);

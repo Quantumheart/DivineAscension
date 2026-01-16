@@ -54,6 +54,9 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         _serverChannel.SetMessageHandler<ReligionDetailRequestPacket>(OnReligionDetailRequest);
         _serverChannel.SetMessageHandler<SetDeityNameRequestPacket>(OnSetDeityNameRequest);
 
+        // Register handler for available domains
+        _serverChannel.SetMessageHandler<AvailableDomainsRequestPacket>(OnAvailableDomainsRequest);
+
         // Register handlers for role management packets
         _serverChannel.SetMessageHandler<ReligionRolesRequest>(OnReligionRolesRequest);
         _serverChannel.SetMessageHandler<CreateRoleRequest>(OnCreateRoleRequest);
@@ -91,6 +94,16 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
         var response = new ReligionListResponsePacket(religionInfoList);
         _serverChannel!.SendPacket(response, fromPlayer);
+    }
+
+    private void OnAvailableDomainsRequest(IServerPlayer fromPlayer, AvailableDomainsRequestPacket packet)
+    {
+        var domains = Enum.GetValues<DeityDomain>()
+            .Where(d => d != DeityDomain.None)
+            .Select(d => d.ToString())
+            .ToList();
+
+        _serverChannel!.SendPacket(new AvailableDomainsResponsePacket(domains), fromPlayer);
     }
 
     private void OnPlayerReligionInfoRequest(IServerPlayer fromPlayer, PlayerReligionInfoRequestPacket packet)

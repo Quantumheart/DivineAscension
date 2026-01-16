@@ -59,6 +59,9 @@ public class ReligionStateManager : IReligionStateManager
     public int CurrentPrestige { get; set; }
     public int TotalFavorEarned { get; set; }
 
+    // Available domains (synced from server)
+    private string[] _availableDomains = { "Craft", "Wild", "Conquest", "Harvest", "Stone" };
+
     // Config thresholds (synced from server)
     public int DiscipleThreshold { get; set; } = 500;
     public int ZealotThreshold { get; set; } = 2000;
@@ -77,6 +80,18 @@ public class ReligionStateManager : IReligionStateManager
         CurrentReligionName = religionName;
         CurrentFavorRank = favorRank;
         CurrentPrestigeRank = prestigeRank;
+    }
+
+    /// <summary>
+    ///     Set available domains from server
+    /// </summary>
+    public void SetAvailableDomains(List<string> domains)
+    {
+        if (domains.Count > 0)
+        {
+            _availableDomains = domains.ToArray();
+            _coreClientApi.Logger.Debug($"[DivineAscension] Updated available domains: {string.Join(", ", _availableDomains)}");
+        }
     }
 
     public void Reset()
@@ -279,7 +294,7 @@ public class ReligionStateManager : IReligionStateManager
             domain: State.CreateState.Domain,
             deityName: State.CreateState.DeityName,
             isPublic: State.CreateState.IsPublic,
-            availableDomains: new[] { "Craft", "Wild", "Harvest", "Stone" },
+            availableDomains: _availableDomains,
             errorMessage: State.ErrorState.CreateError,
             religionNameProfanityWord: religionNameProfanityWord,
             deityNameProfanityWord: deityNameProfanityWord,
@@ -341,7 +356,7 @@ public class ReligionStateManager : IReligionStateManager
         }
 
         // Map State → ViewModel
-        var deityFilters = new[] { "All", "Craft", "Wild", "Harvest", "Stone" };
+        var deityFilters = new[] { "All" }.Concat(_availableDomains).ToArray();
         var effectiveFilter =
             string.IsNullOrEmpty(State.BrowseState.DeityFilter) ? "All" : State.BrowseState.DeityFilter;
 

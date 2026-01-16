@@ -76,6 +76,9 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         // Register handler for activity log response
         _clientChannel.SetMessageHandler<ActivityLogResponsePacket>(OnActivityLogResponse);
 
+        // Register handler for available domains response
+        _clientChannel.SetMessageHandler<AvailableDomainsResponsePacket>(OnAvailableDomainsResponse);
+
         _clientChannel.RegisterMessageType(typeof(PlayerReligionDataPacket));
     }
 
@@ -102,6 +105,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         DiplomacyActionCompleted = null;
         WarDeclared = null;
         ActivityLogReceived = null;
+        AvailableDomainsReceived = null;
     }
 
     #endregion
@@ -452,6 +456,15 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         ActivityLogReceived?.Invoke(packet);
     }
 
+    private void OnAvailableDomainsResponse(AvailableDomainsResponsePacket packet)
+    {
+        _capi?.Logger.Debug(
+            $"[DivineAscension] Received available domains response with {packet.Domains.Count} domains");
+
+        // Fire event for subscribers (e.g., ReligionStateManager)
+        AvailableDomainsReceived?.Invoke(packet);
+    }
+
     #endregion
 
     #region Request Methods
@@ -783,6 +796,21 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _capi?.Logger.Debug($"[DivineAscension] Sent activity log request for religion {religionUID}, limit: {limit}");
     }
 
+    /// <summary>
+    ///     Request available deity domains from the server
+    /// </summary>
+    public void RequestAvailableDomains()
+    {
+        if (!IsNetworkAvailable())
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot request available domains: client channel not initialized");
+            return;
+        }
+
+        _clientChannel?.SendPacket(new AvailableDomainsRequestPacket());
+        _capi?.Logger.Debug("[DivineAscension] Sent available domains request to server");
+    }
+
     #endregion
 
     #region Events
@@ -897,6 +925,11 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     ///     Event fired when activity log data is received from the server
     /// </summary>
     public event Action<ActivityLogResponsePacket>? ActivityLogReceived;
+
+    /// <summary>
+    ///     Event fired when available domains list is received from the server
+    /// </summary>
+    public event Action<AvailableDomainsResponsePacket>? AvailableDomainsReceived;
 
     #endregion
 }
