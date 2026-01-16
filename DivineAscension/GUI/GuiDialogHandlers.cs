@@ -27,6 +27,7 @@ public partial class GuiDialog
         if (_divineAscensionModSystem != null)
         {
             _divineAscensionModSystem.NetworkClient?.RequestBlessingData();
+            _divineAscensionModSystem.NetworkClient?.RequestAvailableDomains();
             // Don't set _state.IsReady yet - wait for server response in OnBlessingDataReceived
             _capi!.Event.UnregisterGameTickListener(_checkDataId);
         }
@@ -606,5 +607,16 @@ public partial class GuiDialog
 
         // Update activity state
         _manager!.ReligionStateManager.State.ActivityState.UpdateEntries(packet.Entries);
+    }
+
+    /// <summary>
+    ///     Handle available domains received from server
+    /// </summary>
+    private void OnAvailableDomainsReceived(AvailableDomainsResponsePacket packet)
+    {
+        _capi!.Logger.Debug($"[DivineAscension] Received {packet.Domains.Count} available domains from server");
+
+        // Update religion state manager with available domains
+        _manager!.ReligionStateManager.SetAvailableDomains(packet.Domains);
     }
 }
