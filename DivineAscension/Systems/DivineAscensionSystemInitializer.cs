@@ -115,7 +115,7 @@ public static class DivineAscensionSystemInitializer
 
         // Create and initialize network handlers
         var playerDataHandler =
-            new PlayerDataNetworkHandler(api, playerReligionDataManager, religionManager, serverChannel);
+            new PlayerDataNetworkHandler(api, playerReligionDataManager, religionManager, serverChannel, gameBalanceConfig);
         playerDataHandler.RegisterHandlers();
 
         var blessingHandler = new BlessingNetworkHandler(
