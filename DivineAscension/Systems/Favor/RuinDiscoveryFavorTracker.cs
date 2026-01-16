@@ -95,9 +95,15 @@ public class RuinDiscoveryFavorTracker(
                     {
                         // Check if already discovered
                         var posKey = $"{checkPos.X}_{checkPos.Y}_{checkPos.Z}";
-                        var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
 
-                        if (playerData.DiscoveredRuins.Contains(posKey))
+                        // Use TryGetPlayerData - player should already have data if they're in follower cache
+                        if (!_playerProgressionDataManager.TryGetPlayerData(player.PlayerUID, out var playerData))
+                        {
+                            _sapi.Logger.Warning($"{SystemConstants.LogPrefix} Player {player.PlayerName} in follower cache but has no data - skipping discovery");
+                            continue;
+                        }
+
+                        if (playerData!.DiscoveredRuins.Contains(posKey))
                             continue; // Already discovered
 
                         // New discovery!
@@ -172,10 +178,16 @@ public class RuinDiscoveryFavorTracker(
     private void RecordDiscovery(IServerPlayer player, BlockPos pos, RuinType type, int favor)
     {
         var posKey = $"{pos.X}_{pos.Y}_{pos.Z}";
-        var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
+
+        // Use TryGetPlayerData for safety - should exist since we checked in ScanForRuins
+        if (!_playerProgressionDataManager.TryGetPlayerData(player.PlayerUID, out var playerData))
+        {
+            _sapi.Logger.Error($"{SystemConstants.LogPrefix} Failed to get player data for {player.PlayerName} during discovery recording");
+            return;
+        }
 
         // Add to discovered set (data is automatically marked dirty)
-        playerData.DiscoveredRuins.Add(posKey);
+        playerData!.DiscoveredRuins.Add(posKey);
 
         // Award favor
         _favorSystem.AwardFavorForAction(player, $"discovered {type} ruin", favor);
