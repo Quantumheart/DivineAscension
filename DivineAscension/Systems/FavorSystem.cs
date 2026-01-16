@@ -35,6 +35,7 @@ public class FavorSystem : IFavorSystem
     private SkinningFavorTracker? _skinningFavorTracker;
     private SmeltingFavorTracker? _smeltingFavorTracker;
     private StoneFavorTracker? _stoneFavorTracker;
+    private RuinDiscoveryFavorTracker? _ruinDiscoveryFavorTracker;
 
     public FavorSystem(ICoreServerAPI sapi,
         IPlayerProgressionDataManager playerProgressionDataManager,
@@ -91,6 +92,11 @@ public class FavorSystem : IFavorSystem
 
         _conquestFavorTracker = new ConquestFavorTracker(_playerProgressionDataManager, _sapi, this);
         _conquestFavorTracker.Initialize();
+
+        _ruinDiscoveryFavorTracker = new RuinDiscoveryFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _ruinDiscoveryFavorTracker.Initialize();
+
+        _sapi.Logger.Notification("[DivineAscension] Initialized 10 favor trackers");
     }
 
     /// <summary>
@@ -113,6 +119,7 @@ public class FavorSystem : IFavorSystem
         _skinningFavorTracker?.Dispose();
         _stoneFavorTracker?.Dispose();
         _conquestFavorTracker?.Dispose();
+        _ruinDiscoveryFavorTracker?.Dispose();
     }
 
     public void AwardFavorForAction(IServerPlayer player, string actionType, float amount)
@@ -246,7 +253,9 @@ public class FavorSystem : IFavorSystem
             DeityDomain.Conquest =>
                 actionLower.Contains("combat") ||
                 actionLower.Contains("battle") ||
-                actionLower.Contains("fight"),
+                actionLower.Contains("fight") ||
+                actionLower.Contains("discovered") ||
+                actionLower.Contains("ruin"),
 
             DeityDomain.Harvest =>
                 actionLower.Contains("harvest") ||
