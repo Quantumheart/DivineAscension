@@ -141,7 +141,7 @@ When creating feature plans, place them in `docs/topics/planning/features/<featu
 **FavorSystem** (`/Systems/FavorSystem.cs`):
 - Awards favor for domain-aligned activities
 - Passive favor generation (0.5/hour)
-- Manages 9 sub-trackers: `MiningFavorTracker`, `AnvilFavorTracker`, `HuntingFavorTracker`, `SkinningFavorTracker`, `ForagingFavorTracker`, `HarvestFavorTracker`, `StoneFavorTracker`, `SmeltingFavorTracker`, `ConquestFavorTracker`
+- Manages 10 sub-trackers: `MiningFavorTracker`, `AnvilFavorTracker`, `HuntingFavorTracker`, `SkinningFavorTracker`, `ForagingFavorTracker`, `HarvestFavorTracker`, `StoneFavorTracker`, `SmeltingFavorTracker`, `ConquestFavorTracker`, `RuinDiscoveryFavorTracker`
 - Each tracker implements `IFavorTracker` with domain-specific logic
 
 **BlessingRegistry** (`/Systems/BlessingRegistry.cs`):
@@ -321,6 +321,11 @@ Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
      - Religion UIDs are shared by all members
      - Only player UIDs uniquely identify the founder
      - Example: `player.ReligionUID == civ.FounderReligionUID` is WRONG
+9. **Periodic Callbacks** - Systems can register time-based callbacks for periodic scanning/processing
+   - Use `_sapi.Event.RegisterCallback(callback, intervalMs)` to register
+   - Returns callback ID for later unregistration
+   - Use `_sapi.Event.UnregisterCallback(callbackId)` in Dispose()
+   - Example: `RuinDiscoveryFavorTracker` scans for ruins every 500ms
 
 ## Important Constraints
 

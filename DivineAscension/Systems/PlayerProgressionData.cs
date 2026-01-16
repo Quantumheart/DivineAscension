@@ -99,6 +99,23 @@ public class PlayerProgressionData
     public float AccumulatedFractionalFavor { get; set; }
 
     /// <summary>
+    ///     Set of discovered ruin locations (format: "x_y_z")
+    ///     Tracks which ruins the player has already discovered to prevent duplicate favor awards
+    /// </summary>
+    [ProtoMember(106)]
+    public HashSet<string> DiscoveredRuins { get; set; } = new();
+
+    /// <summary>
+    ///     Serialization helper for ProtoBuf (HashSet support)
+    /// </summary>
+    [ProtoMember(107)]
+    private List<string> DiscoveredRuinsSerializable
+    {
+        get => DiscoveredRuins.ToList();
+        set => DiscoveredRuins = value?.ToHashSet() ?? new();
+    }
+
+    /// <summary>
     ///     Adds favor and updates statistics.
     ///     Thread-safe.
     /// </summary>
