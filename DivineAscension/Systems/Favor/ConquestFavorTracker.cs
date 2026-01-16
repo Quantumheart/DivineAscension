@@ -99,11 +99,10 @@ public class ConquestFavorTracker(
     {
         if (entity is not EntityAgent || entity is EntityPlayer) return 0;
 
-        // Get entity weight and health for favor calculation
-        float weight = entity.Properties?.Weight ?? 0f;
+        // Get entity health for favor calculation
         float maxHealth = (entity as EntityAgent)?.GetBehavior<EntityBehaviorHealth>()?.MaxHealth ?? 10f;
 
-        return CalculateFavorByCombat(weight, maxHealth);
+        return CalculateFavorByCombat(maxHealth);
     }
 
     /// <summary>
@@ -126,7 +125,7 @@ public class ConquestFavorTracker(
     ///     Calculates favor based on entity combat difficulty.
     ///     Uses max health as proxy for difficulty (3-15 favor range).
     /// </summary>
-    internal int CalculateFavorByCombat(float weight, float maxHealth)
+    internal int CalculateFavorByCombat(float maxHealth)
     {
         // Base favor on health (reduced from previous 4-25 range to 3-15)
         var healthTier = maxHealth switch

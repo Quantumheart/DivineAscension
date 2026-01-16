@@ -19,7 +19,7 @@ public static class ConquestEffectHandlers
     ///     Battle Fury effect - damage increases temporarily after each kill
     ///     Effect ID: battle_fury
     /// </summary>
-    public class BattleFuryEffect : ISpecialEffectHandler
+    public class BattleFuryEffect : ISpecialEffectHandler, IDisposable
     {
         private const int FURY_DURATION_MS = 30000; // 30 seconds
         private const float FURY_DAMAGE_BONUS = 0.05f; // 5% per stack
@@ -35,6 +35,16 @@ public static class ConquestEffectHandlers
             _sapi = sapi;
             _sapi.Event.OnEntityDeath += OnEntityDeath;
             _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
+        }
+
+        public void Dispose()
+        {
+            if (_sapi != null)
+            {
+                _sapi.Event.OnEntityDeath -= OnEntityDeath;
+            }
+
+            _playerFuryStates.Clear();
         }
 
         public void ActivateForPlayer(IServerPlayer player)
@@ -129,7 +139,7 @@ public static class ConquestEffectHandlers
     ///     Bloodlust effect - heal a small amount when defeating enemies
     ///     Effect ID: bloodlust
     /// </summary>
-    public class BloodlustEffect : ISpecialEffectHandler
+    public class BloodlustEffect : ISpecialEffectHandler, IDisposable
     {
         private const float HEAL_PERCENT = 0.05f; // 5% of max health
 
@@ -143,6 +153,16 @@ public static class ConquestEffectHandlers
             _sapi = sapi;
             _sapi.Event.OnEntityDeath += OnEntityDeath;
             _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
+        }
+
+        public void Dispose()
+        {
+            if (_sapi != null)
+            {
+                _sapi.Event.OnEntityDeath -= OnEntityDeath;
+            }
+
+            _activePlayers.Clear();
         }
 
         public void ActivateForPlayer(IServerPlayer player)

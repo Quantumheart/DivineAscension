@@ -167,6 +167,23 @@ public class SpecialEffectRegistry
     {
         if (_tickListenerId.HasValue) _sapi.Event.UnregisterGameTickListener(_tickListenerId.Value);
 
+        // Dispose any handlers that implement IDisposable
+        foreach (var handler in _handlers.Values)
+        {
+            if (handler is IDisposable disposable)
+            {
+                try
+                {
+                    disposable.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    _sapi.Logger.Error(
+                        $"{SystemConstants.LogPrefix} Error disposing special effect handler '{handler.EffectId}': {ex}");
+                }
+            }
+        }
+
         _handlers.Clear();
         _playerActiveEffects.Clear();
     }
