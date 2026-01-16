@@ -108,22 +108,15 @@ public class ConquestFavorTracker(
 
     /// <summary>
     ///     Checks if an entity is worth fighting for favor.
-    ///     Includes hostile creatures, monsters, and aggressive animals.
+    ///     Only includes hostile creatures and monsters - excludes domesticated animals and wildlife.
     /// </summary>
     private bool IsCombatWorthy(Entity entity)
     {
         if (entity is not EntityAgent) return false;
 
-        // Check for hostile tags
+        // ONLY reward killing hostile creatures and monsters
+        // Excludes: domesticated animals, wildlife, predators (those belong to Wild domain)
         if (entity.HasTags("hostile", "monster", "drifter", "locust"))
-            return true;
-
-        // Check for aggressive creatures that attack players
-        if (entity.HasTags("aggressive"))
-            return true;
-
-        // Also award favor for dangerous animals (predators)
-        if (entity.HasTags("predator"))
             return true;
 
         return false;
@@ -131,29 +124,20 @@ public class ConquestFavorTracker(
 
     /// <summary>
     ///     Calculates favor based on entity combat difficulty.
-    ///     Uses weight and max health as proxies for difficulty.
+    ///     Uses max health as proxy for difficulty (3-15 favor range).
     /// </summary>
     internal int CalculateFavorByCombat(float weight, float maxHealth)
     {
-        // Base favor on health primarily (more dangerous = more favor)
+        // Base favor on health (reduced from previous 4-25 range to 3-15)
         var healthTier = maxHealth switch
         {
-            >= 100 => 20, // Boss-tier entities
-            >= 50 => 15, // Strong monsters
-            >= 25 => 10, // Medium threats
-            >= 10 => 7, // Minor threats
-            _ => 4 // Weak creatures
+            >= 100 => 15, // Boss-tier entities (drifter kings, etc.)
+            >= 50 => 10, // Strong monsters
+            >= 25 => 7, // Medium threats
+            >= 10 => 5, // Minor threats
+            _ => 3 // Weak creatures
         };
 
-        // Bonus for heavier creatures
-        var weightBonus = weight switch
-        {
-            >= 200 => 5,
-            >= 100 => 3,
-            >= 50 => 1,
-            _ => 0
-        };
-
-        return healthTier + weightBonus;
+        return healthTier;
     }
 }

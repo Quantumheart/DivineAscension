@@ -184,44 +184,6 @@ public static class ConquestEffectHandlers
     }
 
     /// <summary>
-    ///     Warcry effect - intimidate nearby hostile creatures
-    ///     Effect ID: warcry
-    /// </summary>
-    public class WarcryEffect : ISpecialEffectHandler
-    {
-        private readonly HashSet<string> _activePlayers = new();
-        private ICoreServerAPI? _sapi;
-
-        public string EffectId => SpecialEffects.Warcry;
-
-        public void Initialize(ICoreServerAPI sapi)
-        {
-            _sapi = sapi;
-            _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
-        }
-
-        public void ActivateForPlayer(IServerPlayer player)
-        {
-            _activePlayers.Add(player.PlayerUID);
-            // Warcry provides a passive intimidation aura - enemies deal less damage
-            player.Entity?.Stats.Set("animalSeekingRange", "warcry", -0.15f, false);
-            _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
-        }
-
-        public void DeactivateForPlayer(IServerPlayer player)
-        {
-            _activePlayers.Remove(player.PlayerUID);
-            player.Entity?.Stats.Remove("animalSeekingRange", "warcry");
-            _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
-        }
-
-        public void OnTick(float deltaTime)
-        {
-            // No tick processing needed - passive effect
-        }
-    }
-
-    /// <summary>
     ///     Last Stand effect - gain damage reduction when health drops below 25%
     ///     Effect ID: last_stand
     /// </summary>
