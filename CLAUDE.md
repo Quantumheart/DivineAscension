@@ -141,7 +141,7 @@ When creating feature plans, place them in `docs/topics/planning/features/<featu
 **FavorSystem** (`/Systems/FavorSystem.cs`):
 - Awards favor for domain-aligned activities
 - Passive favor generation (0.5/hour)
-- Manages 8 sub-trackers: `MiningFavorTracker`, `AnvilFavorTracker`, `HuntingFavorTracker`, `SkinningFavorTracker`, `ForagingFavorTracker`, `HarvestFavorTracker`, `StoneFavorTracker`, `SmeltingFavorTracker`
+- Manages 9 sub-trackers: `MiningFavorTracker`, `AnvilFavorTracker`, `HuntingFavorTracker`, `SkinningFavorTracker`, `ForagingFavorTracker`, `HarvestFavorTracker`, `StoneFavorTracker`, `SmeltingFavorTracker`, `ConquestFavorTracker`
 - Each tracker implements `IFavorTracker` with domain-specific logic
 
 **BlessingRegistry** (`/Systems/BlessingRegistry.cs`):
@@ -153,7 +153,7 @@ When creating feature plans, place them in `docs/topics/planning/features/<featu
 - Applies stat modifiers from unlocked blessings
 - Manages special effects via handlers in `/Systems/BlessingEffects/Handlers/`
 - Caches stat modifiers per player for performance
-- Special effect handlers: `AethraEffectHandlers`, `GaiaEffectHandlers`, `KhorasEffectHandlers`, `LysaEffectHandlers`
+- Special effect handlers: `AethraEffectHandlers`, `GaiaEffectHandlers`, `KhorasEffectHandlers`, `LysaEffectHandlers`, `ConquestEffectHandlers`
 
 **ReligionPrestigeManager** (`/Systems/ReligionPrestigeManager.cs`):
 - Religion-level progression (Fledgling → Divine)
@@ -332,7 +332,7 @@ Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
 6. **Domain-bound blessings** - Only unlock if player's religion matches the blessing's domain
 7. **Single source of truth** - ReligionManager is authoritative for membership; PlayerProgressionData queries it
 8. **InternalsVisibleTo** - Main project exposes internals to tests via `[assembly: InternalsVisibleTo("DivineAscension.Tests")]`
-9. **Domain vs Deity Name** - `DeityDomain` enum (Craft, Wild, Harvest, Stone) defines mechanics; `DeityName` string is customizable display name
+9. **Domain vs Deity Name** - `DeityDomain` enum (Craft, Wild, Conquest, Harvest, Stone) defines mechanics; `DeityName` string is customizable display name
 
 ## Development Practices
 

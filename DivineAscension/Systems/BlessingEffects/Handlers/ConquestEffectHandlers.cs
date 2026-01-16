@@ -101,15 +101,15 @@ public static class ConquestEffectHandlers
 
             if (state.Stacks > previousStacks)
             {
-                ApplyFuryBonus(player, state.Stacks - previousStacks);
+                ApplyFuryBonus(player, state.Stacks);
                 player.SendMessage(GlobalConstants.GeneralChatGroup,
                     $"Battle Fury! ({state.Stacks}/{MAX_FURY_STACKS} stacks)", EnumChatType.Notification);
             }
         }
 
-        private void ApplyFuryBonus(IServerPlayer player, int stacksToAdd)
+        private void ApplyFuryBonus(IServerPlayer player, int totalStacks)
         {
-            var bonus = FURY_DAMAGE_BONUS * stacksToAdd;
+            var bonus = FURY_DAMAGE_BONUS * totalStacks;
             player.Entity?.Stats.Set("meleeWeaponsDamage", "battlefury", bonus, false);
         }
 
