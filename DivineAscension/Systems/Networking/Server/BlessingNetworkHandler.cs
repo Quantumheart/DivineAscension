@@ -56,9 +56,9 @@ public class BlessingNetworkHandler(
             {
                 var playerData = playerProgressionDataManager!.GetOrCreatePlayerData(fromPlayer.PlayerUID);
                 var religion = religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+                var playerFavorRank = playerProgressionDataManager.GetPlayerFavorRank(fromPlayer.PlayerUID);
 
-
-                var (canUnlock, reason) = blessingRegistry.CanUnlockBlessing(playerData, religion, blessing);
+                var (canUnlock, reason) = blessingRegistry.CanUnlockBlessing(fromPlayer.PlayerUID, playerFavorRank, playerData, religion, blessing);
                 if (!canUnlock)
                 {
                     message = reason;
@@ -170,7 +170,7 @@ public class BlessingNetworkHandler(
             response.ReligionName = religion.ReligionName;
             response.Domain = deity.ToString();
             response.DeityName = religion.DeityName;
-            response.FavorRank = (int)playerData.FavorRank;
+            response.FavorRank = (int)playerProgressionDataManager!.GetPlayerFavorRank(fromPlayer.PlayerUID);
             response.PrestigeRank = (int)religion.PrestigeRank;
             response.CurrentFavor = playerData.Favor;
             response.CurrentPrestige = religion.Prestige;

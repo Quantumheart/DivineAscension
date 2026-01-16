@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -24,12 +25,14 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     private readonly IReligionManager _religionManager;
 
     private readonly ICoreServerAPI _sapi;
+    private readonly GameBalanceConfig _config;
 
     // ReSharper disable once ConvertToPrimaryConstructor
-    public PlayerProgressionDataManager(ICoreServerAPI sapi, IReligionManager religionManager)
+    public PlayerProgressionDataManager(ICoreServerAPI sapi, IReligionManager religionManager, GameBalanceConfig config)
     {
         _sapi = sapi;
         _religionManager = religionManager;
+        _config = config;
     }
 
     public event PlayerReligionDataChangedDelegate OnPlayerLeavesReligion = null!;
@@ -105,7 +108,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     public void AddFavor(string playerUID, int amount, string reason = "")
     {
         var data = GetOrCreatePlayerData(playerUID);
-        var oldRank = data.FavorRank;
+        var oldRank = CalculateFavorRank(data.TotalFavorEarned);
 
         data.AddFavor(amount);
 
@@ -113,7 +116,8 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
             _sapi.Logger.Debug($"[DivineAscension] Player {playerUID} gained {amount} favor: {reason}");
 
         // Check for rank up
-        if (data.FavorRank > oldRank) SendRankUpNotification(playerUID, data.FavorRank);
+        var newRank = CalculateFavorRank(data.TotalFavorEarned);
+        if (newRank > oldRank) SendRankUpNotification(playerUID, newRank);
 
         // Notify listeners that player data changed (for UI updates)
         OnPlayerDataChanged?.Invoke(playerUID);
@@ -125,7 +129,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     public void AddFractionalFavor(string playerUID, float amount, string reason = "")
     {
         var data = GetOrCreatePlayerData(playerUID);
-        var oldRank = data.FavorRank;
+        var oldRank = CalculateFavorRank(data.TotalFavorEarned);
         var oldFavor = data.Favor;
 
         data.AddFractionalFavor(amount);
@@ -135,7 +139,8 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
             _sapi.Logger.Debug($"[DivineAscension] Player {playerUID} gained favor: {reason}");
 
         // Check for rank up
-        if (data.FavorRank > oldRank) SendRankUpNotification(playerUID, data.FavorRank);
+        var newRank = CalculateFavorRank(data.TotalFavorEarned);
+        if (newRank > oldRank) SendRankUpNotification(playerUID, newRank);
 
         // Notify listeners if favor actually changed (UI updates)
         if (data.Favor != oldFavor) OnPlayerDataChanged?.Invoke(playerUID);
@@ -263,6 +268,24 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     public DeityDomain GetPlayerDeityType(string playerId)
     {
         return _religionManager.GetPlayerActiveDeityDomain(playerId);
+    }
+
+    /// <summary>
+    ///     Calculates favor rank based on total favor earned using configured thresholds
+    /// </summary>
+    public FavorRank GetPlayerFavorRank(string playerUID)
+    {
+        var data = GetOrCreatePlayerData(playerUID);
+        return CalculateFavorRank(data.TotalFavorEarned);
+    }
+
+    private FavorRank CalculateFavorRank(int totalFavor)
+    {
+        if (totalFavor >= _config.AvatarThreshold) return FavorRank.Avatar;
+        if (totalFavor >= _config.ChampionThreshold) return FavorRank.Champion;
+        if (totalFavor >= _config.ZealotThreshold) return FavorRank.Zealot;
+        if (totalFavor >= _config.DiscipleThreshold) return FavorRank.Disciple;
+        return FavorRank.Initiate;
     }
 
     /// <summary>

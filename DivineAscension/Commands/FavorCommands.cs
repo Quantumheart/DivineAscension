@@ -118,14 +118,14 @@ public class FavorCommands
     /// <summary>
     ///     Formats the result message for total favor changes
     /// </summary>
-    private static string FormatTotalFavorResult(PlayerProgressionData playerData, int newAmount, int oldTotal,
+    private string FormatTotalFavorResult(string playerUID, PlayerProgressionData playerData, int newAmount, int oldTotal,
         FavorRank oldRank)
     {
         var sb = new StringBuilder();
         sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_TOTAL_SET,
             newAmount.ToString("N0"), oldTotal.ToString("N0")));
 
-        var newRank = playerData.FavorRank;
+        var newRank = _playerProgressionDataManager.GetPlayerFavorRank(playerUID);
         if (oldRank != newRank)
             sb.Append(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_RANK_UPDATE,
                 oldRank.ToLocalizedString(), newRank.ToLocalizedString()));
@@ -159,7 +159,7 @@ public class FavorCommands
 
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_CHECK, playerProgressionData!.Favor,
-                deityName, playerProgressionData.FavorRank.ToLocalizedString())
+                deityName, _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID).ToLocalizedString())
         );
     }
 
@@ -523,11 +523,11 @@ public class FavorCommands
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_TARGET_NO_RELIGION));
 
             var oldTotal = targetProgressionData.TotalFavorEarned;
-            var oldRank = targetProgressionData.FavorRank;
+            var oldRank = _playerProgressionDataManager.GetPlayerFavorRank(serverPlayer.PlayerUID);
 
             targetProgressionData.TotalFavorEarned = amount;
 
-            return TextCommandResult.Success(FormatTotalFavorResult(targetProgressionData, amount, oldTotal, oldRank));
+            return TextCommandResult.Success(FormatTotalFavorResult(serverPlayer.PlayerUID, targetProgressionData, amount, oldTotal, oldRank));
         }
 
         // Handle setting own favor
@@ -541,11 +541,11 @@ public class FavorCommands
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
         var callerOldTotal = religionData.TotalFavorEarned;
-        var callerOldRank = religionData.FavorRank;
+        var callerOldRank = _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID);
 
         religionData.TotalFavorEarned = amount;
 
-        return TextCommandResult.Success(FormatTotalFavorResult(religionData, amount, callerOldTotal, callerOldRank));
+        return TextCommandResult.Success(FormatTotalFavorResult(player.PlayerUID, religionData, amount, callerOldTotal, callerOldRank));
     }
 
     #endregion

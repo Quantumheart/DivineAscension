@@ -139,7 +139,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 {
                     PlayerUID = member.Key,
                     PlayerName = memberName,
-                    FavorRank = memberPlayerData.FavorRank.ToString(),
+                    FavorRank = _playerProgressionDataManager!.GetPlayerFavorRank(member.Key).ToString(),
                     Favor = memberPlayerData.Favor,
                     IsFounder = roleId == RoleDefaults.FOUNDER_ROLE_ID,
                     RoleName = roleName,
@@ -238,7 +238,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             {
                 PlayerUID = member.Key,
                 PlayerName = memberName,
-                FavorRank = memberPlayerData.FavorRank.ToString(),
+                FavorRank = _playerProgressionDataManager!.GetPlayerFavorRank(member.Key).ToString(),
                 Favor = memberPlayerData.Favor
             });
         }

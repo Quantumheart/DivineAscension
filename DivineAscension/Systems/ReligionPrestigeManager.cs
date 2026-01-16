@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.Configuration;
 using DivineAscension.Constants;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
@@ -15,23 +16,19 @@ namespace DivineAscension.Systems;
 /// </summary>
 public class ReligionPrestigeManager : IReligionPrestigeManager
 {
-    // Prestige rank thresholds (5x multiplier for 1:1 favor-to-prestige conversion)
-    private const int FLEDGLING_THRESHOLD = 0;
-    private const int ESTABLISHED_THRESHOLD = 2500;
-    private const int RENOWNED_THRESHOLD = 10000;
-    private const int LEGENDARY_THRESHOLD = 25000;
-    private const int MYTHIC_THRESHOLD = 50000;
     private readonly IReligionManager _religionManager;
     private readonly ICoreServerAPI _sapi;
+    private readonly GameBalanceConfig _config;
     private IBlessingEffectSystem? _blessingEffectSystem;
     private IBlessingRegistry? _blessingRegistry;
     private CivilizationManager? _civilizationManager;
     private IDiplomacyManager? _diplomacyManager;
 
-    public ReligionPrestigeManager(ICoreServerAPI sapi, IReligionManager religionManager)
+    public ReligionPrestigeManager(ICoreServerAPI sapi, IReligionManager religionManager, GameBalanceConfig config)
     {
         _sapi = sapi;
         _religionManager = religionManager;
+        _config = config;
     }
 
     /// <summary>
@@ -208,12 +205,12 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
 
         var nextThreshold = religion.PrestigeRank switch
         {
-            PrestigeRank.Fledgling => ESTABLISHED_THRESHOLD,
-            PrestigeRank.Established => RENOWNED_THRESHOLD,
-            PrestigeRank.Renowned => LEGENDARY_THRESHOLD,
-            PrestigeRank.Legendary => MYTHIC_THRESHOLD,
-            PrestigeRank.Mythic => MYTHIC_THRESHOLD, // Max rank
-            _ => ESTABLISHED_THRESHOLD
+            PrestigeRank.Fledgling => _config.EstablishedThreshold,
+            PrestigeRank.Established => _config.RenownedThreshold,
+            PrestigeRank.Renowned => _config.LegendaryThreshold,
+            PrestigeRank.Legendary => _config.MythicThreshold,
+            PrestigeRank.Mythic => _config.MythicThreshold, // Max rank
+            _ => _config.EstablishedThreshold
         };
 
         var nextRank = religion.PrestigeRank switch
@@ -247,10 +244,10 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
     /// </summary>
     private PrestigeRank CalculatePrestigeRank(int totalPrestige)
     {
-        if (totalPrestige >= MYTHIC_THRESHOLD) return PrestigeRank.Mythic;
-        if (totalPrestige >= LEGENDARY_THRESHOLD) return PrestigeRank.Legendary;
-        if (totalPrestige >= RENOWNED_THRESHOLD) return PrestigeRank.Renowned;
-        if (totalPrestige >= ESTABLISHED_THRESHOLD) return PrestigeRank.Established;
+        if (totalPrestige >= _config.MythicThreshold) return PrestigeRank.Mythic;
+        if (totalPrestige >= _config.LegendaryThreshold) return PrestigeRank.Legendary;
+        if (totalPrestige >= _config.RenownedThreshold) return PrestigeRank.Renowned;
+        if (totalPrestige >= _config.EstablishedThreshold) return PrestigeRank.Established;
         return PrestigeRank.Fledgling;
     }
 

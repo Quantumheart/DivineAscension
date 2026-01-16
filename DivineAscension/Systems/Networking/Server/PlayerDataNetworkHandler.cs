@@ -90,7 +90,7 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
                 deity.ToString(),
                 religionData.DeityName,
                 playerReligionData!.Favor,
-                playerReligionData.FavorRank.ToString(),
+                _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID).ToString(),
                 religionData.Prestige,
                 religionData.PrestigeRank.ToString(),
                 playerReligionData.TotalFavorEarned

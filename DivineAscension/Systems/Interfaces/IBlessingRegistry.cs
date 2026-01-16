@@ -35,7 +35,9 @@ public interface IBlessingRegistry
     /// <summary>
     ///     Checks if a blessing can be unlocked by a player/religion
     /// </summary>
-    (bool canUnlock, string reason) CanUnlockBlessing(PlayerProgressionData playerData,
+    (bool canUnlock, string reason) CanUnlockBlessing(string playerUID,
+        FavorRank playerFavorRank,
+        PlayerProgressionData playerData,
         ReligionData? religionData,
         Blessing? blessing);
 }

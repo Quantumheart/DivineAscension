@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using DivineAscension.Configuration;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
@@ -36,13 +37,15 @@ public class PvPManagerTests
         _mockCivilizationManager = new Mock<ICivilizationManager>();
         _mockDiplomacyManager = new Mock<IDiplomacyManager>();
 
+        var config = new GameBalanceConfig();
         _pvpManager = new PvPManager(
             _mockAPI.Object,
             _mockPlayerReligionDataManager.Object,
             _mockReligionManager.Object,
             _mockPrestigeManager.Object,
             _mockCivilizationManager.Object,
-            _mockDiplomacyManager.Object
+            _mockDiplomacyManager.Object,
+            config
         );
     }
 

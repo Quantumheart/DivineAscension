@@ -62,11 +62,11 @@ public static class DivineAscensionSystemInitializer
         var civilizationManager = new CivilizationManager(api, religionManager);
         civilizationManager.Initialize();
 
-        var playerReligionDataManager = new PlayerProgressionDataManager(api, religionManager);
+        var playerReligionDataManager = new PlayerProgressionDataManager(api, religionManager, gameBalanceConfig);
         playerReligionDataManager.Initialize();
 
         // CRITICAL: MUST be initialized before FavorSystem
-        var religionPrestigeManager = new ReligionPrestigeManager(api, religionManager);
+        var religionPrestigeManager = new ReligionPrestigeManager(api, religionManager, gameBalanceConfig);
         religionPrestigeManager.Initialize();
 
         var favorSystem = new FavorSystem(api, playerReligionDataManager, religionManager,
@@ -77,7 +77,7 @@ public static class DivineAscensionSystemInitializer
         diplomacyManager.Initialize();
 
         var pvpManager = new PvPManager(api, playerReligionDataManager, religionManager, religionPrestigeManager,
-            civilizationManager, diplomacyManager);
+            civilizationManager, diplomacyManager, gameBalanceConfig);
         pvpManager.Initialize();
 
         var blessingRegistry = new BlessingRegistry(api);

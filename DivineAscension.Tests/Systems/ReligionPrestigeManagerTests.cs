@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Configuration;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
@@ -43,7 +44,8 @@ public class ReligionPrestigeManagerTests
             .Setup(m => m.GetReligion("test-religion-uid"))
             .Returns(_testReligion);
 
-        _prestigeManager = new ReligionPrestigeManager(_mockAPI.Object, _mockReligionManager.Object);
+        var config = new GameBalanceConfig();
+        _prestigeManager = new ReligionPrestigeManager(_mockAPI.Object, _mockReligionManager.Object, config);
     }
 
     #region Integration Tests

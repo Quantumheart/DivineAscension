@@ -445,6 +445,18 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
             .Returns(DeityDomain.Harvest);
 
+        _playerReligionDataManager
+            .Setup(m => m.GetPlayerFavorRank("player-1"))
+            .Returns(() =>
+            {
+                // Calculate rank based on current TotalFavorEarned
+                if (playerData.TotalFavorEarned >= 10000) return FavorRank.Avatar;
+                if (playerData.TotalFavorEarned >= 5000) return FavorRank.Champion;
+                if (playerData.TotalFavorEarned >= 2000) return FavorRank.Zealot;
+                if (playerData.TotalFavorEarned >= 500) return FavorRank.Disciple;
+                return FavorRank.Initiate;
+            });
+
         // Act
         var result = _sut!.OnSetTotalFavor(args);
 
@@ -455,7 +467,6 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         Assert.Contains("100", result.StatusMessage); // Old total
         Assert.Contains("Rank updated", result.StatusMessage);
         Assert.Equal(5000, playerData.TotalFavorEarned);
-        Assert.Equal(FavorRank.Champion, playerData.FavorRank);
     }
 
     [Fact]
@@ -474,6 +485,18 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
             .Returns(DeityDomain.Stone);
+
+        _playerReligionDataManager
+            .Setup(m => m.GetPlayerFavorRank("player-1"))
+            .Returns(() =>
+            {
+                // Calculate rank based on current TotalFavorEarned
+                if (playerData.TotalFavorEarned >= 10000) return FavorRank.Avatar;
+                if (playerData.TotalFavorEarned >= 5000) return FavorRank.Champion;
+                if (playerData.TotalFavorEarned >= 2000) return FavorRank.Zealot;
+                if (playerData.TotalFavorEarned >= 500) return FavorRank.Disciple;
+                return FavorRank.Initiate;
+            });
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
@@ -562,6 +585,18 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Harvest);
 
+        _playerReligionDataManager
+            .Setup(m => m.GetPlayerFavorRank("player-2"))
+            .Returns(() =>
+            {
+                // Calculate rank based on current TotalFavorEarned
+                if (targetData.TotalFavorEarned >= 10000) return FavorRank.Avatar;
+                if (targetData.TotalFavorEarned >= 5000) return FavorRank.Champion;
+                if (targetData.TotalFavorEarned >= 2000) return FavorRank.Zealot;
+                if (targetData.TotalFavorEarned >= 500) return FavorRank.Disciple;
+                return FavorRank.Initiate;
+            });
+
         // Act
         var result = _sut!.OnSetTotalFavor(args);
 
@@ -572,7 +607,6 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         Assert.Contains("100", result.StatusMessage); // Old total
         Assert.Contains("Rank updated", result.StatusMessage);
         Assert.Equal(5000, targetData.TotalFavorEarned);
-        Assert.Equal(FavorRank.Champion, targetData.FavorRank);
     }
 
     [Fact]
@@ -602,6 +636,18 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Wild);
 
+        _playerReligionDataManager
+            .Setup(m => m.GetPlayerFavorRank("player-2"))
+            .Returns(() =>
+            {
+                // Calculate rank based on current TotalFavorEarned
+                if (targetData.TotalFavorEarned >= 10000) return FavorRank.Avatar;
+                if (targetData.TotalFavorEarned >= 5000) return FavorRank.Champion;
+                if (targetData.TotalFavorEarned >= 2000) return FavorRank.Zealot;
+                if (targetData.TotalFavorEarned >= 500) return FavorRank.Disciple;
+                return FavorRank.Initiate;
+            });
+
         // Act
         var result = _sut!.OnSetTotalFavor(args);
 
@@ -613,7 +659,6 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         Assert.Contains("Rank unchanged", result.StatusMessage);
         Assert.Contains("Disciple", result.StatusMessage);
         Assert.Equal(700, targetData.TotalFavorEarned);
-        Assert.Equal(FavorRank.Disciple, targetData.FavorRank);
     }
 
     [Fact]

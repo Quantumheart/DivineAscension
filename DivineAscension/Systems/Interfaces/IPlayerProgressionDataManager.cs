@@ -107,4 +107,15 @@ public interface IPlayerProgressionDataManager : IDisposable
     /// Returns <see cref="DeityDomain.None"/> if the player has no associated deity.
     /// </returns>
     public DeityDomain GetPlayerDeityType(string playerId);
+
+    /// <summary>
+    /// Retrieves the favor rank for the specified player based on their total favor earned.
+    /// </summary>
+    /// <param name="playerUID">
+    /// The unique identifier of the player whose favor rank is to be retrieved.
+    /// </param>
+    /// <returns>
+    /// The <see cref="FavorRank"/> representing the player's current favor rank.
+    /// </returns>
+    public FavorRank GetPlayerFavorRank(string playerUID);
 }
