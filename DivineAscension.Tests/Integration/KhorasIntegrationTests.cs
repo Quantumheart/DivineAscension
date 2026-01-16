@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Configuration;
 using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
@@ -88,12 +89,14 @@ public class KhorasIntegrationTests
         // Instead, we setup GetBlessing for each individual blessing
 
         var mockActivityLogManager = new Mock<IActivityLogManager>();
+        var testConfig = new GameBalanceConfig(); // Uses default values
         _favorSystem = new FavorSystem(
             _mockAPI.Object,
             _mockPlayerReligionDataManager.Object,
             _mockReligionManager.Object,
             _mockPrestigeManager.Object,
-            mockActivityLogManager.Object
+            mockActivityLogManager.Object,
+            testConfig
         );
 
         _blessingEffectSystem = new BlessingEffectSystem(

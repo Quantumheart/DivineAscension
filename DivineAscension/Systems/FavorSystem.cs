@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.Interfaces;
@@ -14,12 +15,10 @@ namespace DivineAscension.Systems;
 /// </summary>
 public class FavorSystem : IFavorSystem
 {
-    private const int BASE_KILL_FAVOR = 10;
-    private const int DEATH_PENALTY_FAVOR = 50;
-    private const float BASE_FAVOR_PER_HOUR = 0.5f; // Passive favor generation rate
     private const int PASSIVE_TICK_INTERVAL_MS = 1000; // 1 second ticks
 
     private readonly IActivityLogManager _activityLogManager;
+    private readonly GameBalanceConfig _config;
 
     // Batching support for high-frequency favor events (e.g., scythe harvesting)
     private readonly Dictionary<string, PendingFavorData> _pendingFavor = new();
@@ -39,13 +38,15 @@ public class FavorSystem : IFavorSystem
     public FavorSystem(ICoreServerAPI sapi,
         IPlayerProgressionDataManager playerProgressionDataManager,
         IReligionManager religionManager, IReligionPrestigeManager prestigeManager,
-        IActivityLogManager activityLogManager)
+        IActivityLogManager activityLogManager,
+        GameBalanceConfig config)
     {
         _sapi = sapi;
         _playerProgressionDataManager = playerProgressionDataManager;
         _religionManager = religionManager;
         _prestigeManager = prestigeManager;
         _activityLogManager = activityLogManager;
+        _config = config;
     }
 
     /// <summary>
@@ -187,7 +188,7 @@ public class FavorSystem : IFavorSystem
         if (deityType == DeityDomain.None) return;
 
         // Remove favor as penalty (minimum 0)
-        var penalty = Math.Min(DEATH_PENALTY_FAVOR, religionData.Favor);
+        var penalty = Math.Min(_config.DeathPenalty, religionData.Favor);
         if (penalty > 0)
         {
             _playerProgressionDataManager.RemoveFavor(player.PlayerUID, penalty, "Death penalty");
@@ -205,7 +206,7 @@ public class FavorSystem : IFavorSystem
     /// </summary>
     internal int CalculateFavorReward(DeityDomain attackerDeity, DeityDomain victimDeity)
     {
-        return BASE_KILL_FAVOR;
+        return _config.KillFavorReward;
     }
 
     /// <summary>
@@ -385,7 +386,7 @@ public class FavorSystem : IFavorSystem
         var inGameHoursElapsed = dt / _sapi.World.Calendar.HoursPerDay;
 
         // Calculate base favor for this tick
-        var baseFavor = BASE_FAVOR_PER_HOUR * inGameHoursElapsed;
+        var baseFavor = _config.PassiveFavorRate * inGameHoursElapsed;
 
         // Apply multipliers
         var finalFavor = baseFavor * CalculatePassiveFavorMultiplier(player, religionData);
@@ -405,11 +406,11 @@ public class FavorSystem : IFavorSystem
         // Favor rank bonuses (higher ranks gain passive favor faster)
         multiplier *= playerProgressionData.FavorRank switch
         {
-            FavorRank.Initiate => 1.0f,
-            FavorRank.Disciple => 1.1f,
-            FavorRank.Zealot => 1.2f,
-            FavorRank.Champion => 1.3f,
-            FavorRank.Avatar => 1.5f,
+            FavorRank.Initiate => _config.InitiateMultiplier,
+            FavorRank.Disciple => _config.DiscipleMultiplier,
+            FavorRank.Zealot => _config.ZealotMultiplier,
+            FavorRank.Champion => _config.ChampionMultiplier,
+            FavorRank.Avatar => _config.AvatarMultiplier,
             _ => 1.0f
         };
 
@@ -418,11 +419,11 @@ public class FavorSystem : IFavorSystem
         if (religion != null)
             multiplier *= religion.PrestigeRank switch
             {
-                PrestigeRank.Fledgling => 1.0f,
-                PrestigeRank.Established => 1.1f,
-                PrestigeRank.Renowned => 1.2f,
-                PrestigeRank.Legendary => 1.3f,
-                PrestigeRank.Mythic => 1.5f,
+                PrestigeRank.Fledgling => _config.FledglingMultiplier,
+                PrestigeRank.Established => _config.EstablishedMultiplier,
+                PrestigeRank.Renowned => _config.RenownedMultiplier,
+                PrestigeRank.Legendary => _config.LegendaryMultiplier,
+                PrestigeRank.Mythic => _config.MythicMultiplier,
                 _ => 1.0f
             };
 

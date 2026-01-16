@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using DivineAscension.Configuration;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
@@ -212,10 +213,31 @@ public class FavorSystemTests
         return mockAPI;
     }
 
+    private GameBalanceConfig CreateTestConfig()
+    {
+        return new GameBalanceConfig
+        {
+            PassiveFavorRate = 0.5f,
+            DeathPenalty = 50,
+            KillFavorReward = 10,
+            InitiateMultiplier = 1.0f,
+            DiscipleMultiplier = 1.1f,
+            ZealotMultiplier = 1.2f,
+            ChampionMultiplier = 1.3f,
+            AvatarMultiplier = 1.5f,
+            FledglingMultiplier = 1.0f,
+            EstablishedMultiplier = 1.1f,
+            RenownedMultiplier = 1.2f,
+            LegendaryMultiplier = 1.3f,
+            MythicMultiplier = 1.5f
+        };
+    }
+
     private FavorSystem CreateFavorSystem(
         ICoreServerAPI api,
         IPlayerProgressionDataManager playerProgressionDataManager,
-        IReligionManager religionManager)
+        IReligionManager religionManager,
+        GameBalanceConfig? config = null)
     {
         var mockPrestige = new Mock<IReligionPrestigeManager>();
         var mockActivityLogManager = new Mock<IActivityLogManager>();
@@ -224,7 +246,8 @@ public class FavorSystemTests
             playerProgressionDataManager,
             religionManager,
             mockPrestige.Object,
-            mockActivityLogManager.Object);
+            mockActivityLogManager.Object,
+            config ?? CreateTestConfig());
     }
 
     #endregion
