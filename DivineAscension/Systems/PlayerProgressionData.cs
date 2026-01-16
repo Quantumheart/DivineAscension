@@ -62,9 +62,6 @@ public class PlayerProgressionData
     [ProtoMember(105)]
     public float AccumulatedFractionalFavor { get; set; }
 
-    // === COMPUTED PROPERTIES (not serialized) ===
-    public FavorRank FavorRank => CalculateRank(TotalFavorEarned);
-
     /// <summary>
     ///     Adds favor and updates statistics
     /// </summary>
@@ -143,17 +140,5 @@ public class PlayerProgressionData
     {
         Favor = 0;
         ClearUnlockedBlessings();
-    }
-
-    private static FavorRank CalculateRank(int totalFavor)
-    {
-        return totalFavor switch
-        {
-            >= 10000 => FavorRank.Avatar,
-            >= 5000 => FavorRank.Champion,
-            >= 2000 => FavorRank.Zealot,
-            >= 500 => FavorRank.Disciple,
-            _ => FavorRank.Initiate
-        };
     }
 }

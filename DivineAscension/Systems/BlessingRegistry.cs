@@ -88,7 +88,9 @@ public class BlessingRegistry : IBlessingRegistry
     /// <summary>
     ///     Checks if a blessing can be unlocked by a player/religion
     /// </summary>
-    public (bool canUnlock, string reason) CanUnlockBlessing(PlayerProgressionData playerData,
+    public (bool canUnlock, string reason) CanUnlockBlessing(string playerUID,
+        FavorRank playerFavorRank,
+        PlayerProgressionData playerData,
         ReligionData? religionData,
         Blessing? blessing)
     {
@@ -104,10 +106,10 @@ public class BlessingRegistry : IBlessingRegistry
             if (playerData.IsBlessingUnlocked(blessing.BlessingId)) return (false, "Blessing already unlocked");
 
             // Check favor rank requirement
-            if (playerData.FavorRank < (FavorRank)blessing.RequiredFavorRank)
+            if (playerFavorRank < (FavorRank)blessing.RequiredFavorRank)
             {
                 var requiredRank = (FavorRank)blessing.RequiredFavorRank;
-                return (false, $"Requires {requiredRank} favor rank (Current: {playerData.FavorRank})");
+                return (false, $"Requires {requiredRank} favor rank (Current: {playerFavorRank})");
             }
 
             // Check deity matches

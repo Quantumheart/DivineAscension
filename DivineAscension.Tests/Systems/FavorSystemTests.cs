@@ -653,6 +653,11 @@ public class FavorSystemTests
             .Setup(m => m.GetPlayerReligion("player-uid"))
             .Returns((ReligionData?)null);
 
+        mockPlayerReligionDataManager
+            .SetupSequence(m => m.GetPlayerFavorRank("player-uid"))
+            .Returns(FavorRank.Initiate)  // First call with 0 favor
+            .Returns(FavorRank.Avatar);   // Second call with 10000 favor
+
         var favorSystem = CreateFavorSystem(
             mockAPI.Object,
             mockPlayerReligionDataManager.Object,

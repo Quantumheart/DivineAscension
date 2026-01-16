@@ -404,7 +404,8 @@ public class FavorSystem : IFavorSystem
         var multiplier = 1.0f;
 
         // Favor rank bonuses (higher ranks gain passive favor faster)
-        multiplier *= playerProgressionData.FavorRank switch
+        var playerFavorRank = _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID);
+        multiplier *= playerFavorRank switch
         {
             FavorRank.Initiate => _config.InitiateMultiplier,
             FavorRank.Disciple => _config.DiscipleMultiplier,

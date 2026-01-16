@@ -490,8 +490,9 @@ public class BlessingCommands(
 
         var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(playerUid);
         var religion = _religionManager.GetPlayerReligion(playerUid);
+        var playerFavorRank = _playerProgressionDataManager.GetPlayerFavorRank(playerUid);
 
-        var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(playerData, religion, blessing);
+        var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(playerUid, playerFavorRank, playerData, religion, blessing);
         if (!canUnlock)
             return TextCommandResult.Error(reason);
 

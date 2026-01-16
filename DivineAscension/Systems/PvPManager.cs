@@ -1,4 +1,5 @@
 using System;
+using DivineAscension.Configuration;
 using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
@@ -13,9 +14,6 @@ namespace DivineAscension.Systems;
 /// </summary>
 public class PvPManager : IPvPManager
 {
-    private const int BASE_FAVOR_REWARD = 10;
-    private const int BASE_PRESTIGE_REWARD = 75; // 5x multiplier for 1:1 favor-to-prestige conversion
-    private const int DEATH_PENALTY_FAVOR = 50;
     private readonly ICivilizationManager _civilizationManager;
     private readonly IDiplomacyManager _diplomacyManager;
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
@@ -23,6 +21,7 @@ public class PvPManager : IPvPManager
     private readonly IReligionManager _religionManager;
 
     private readonly ICoreServerAPI _sapi;
+    private readonly GameBalanceConfig _config;
 
     public PvPManager(
         ICoreServerAPI sapi,
@@ -30,7 +29,8 @@ public class PvPManager : IPvPManager
         IReligionManager religionManager,
         IReligionPrestigeManager prestigeManager,
         ICivilizationManager civilizationManager,
-        IDiplomacyManager diplomacyManager)
+        IDiplomacyManager diplomacyManager,
+        GameBalanceConfig config)
     {
         _sapi = sapi;
         _playerProgressionDataManager = playerProgressionDataManager;
@@ -38,6 +38,7 @@ public class PvPManager : IPvPManager
         _prestigeManager = prestigeManager;
         _civilizationManager = civilizationManager;
         _diplomacyManager = diplomacyManager;
+        _config = config;
     }
 
     /// <summary>
@@ -158,7 +159,7 @@ public class PvPManager : IPvPManager
             // Apply War multiplier
             if (diplomaticStatus == DiplomaticStatus.War)
             {
-                diplomacyMultiplier = DiplomacyConstants.WarFavorMultiplier;
+                diplomacyMultiplier = _config.WarFavorMultiplier;
             }
         }
 
@@ -182,7 +183,9 @@ public class PvPManager : IPvPManager
         var deityName = attackerReligion.DeityName;
 
         // Notify attacker with combined rewards
-        var warBonus = diplomacyMultiplier > 1.0 ? " [WAR BONUS +50%]" : "";
+        var warBonus = diplomacyMultiplier > 1.0
+            ? $" [WAR BONUS +{(diplomacyMultiplier - 1.0) * 100:F0}%]"
+            : "";
         attacker.SendMessage(
             GlobalConstants.GeneralChatGroup,
             $"[Divine Victory] {deityName} rewards you with {favorReward} favor! Your religion gains {prestigeReward} prestige!{warBonus}",
@@ -217,7 +220,7 @@ public class PvPManager : IPvPManager
         if (activeDeityType == DeityDomain.None || religionId == null) return;
 
         // Remove favor as penalty (minimum 0)
-        var penalty = Math.Min(DEATH_PENALTY_FAVOR, playerData.Favor);
+        var penalty = Math.Min(_config.DeathPenalty, playerData.Favor);
         if (penalty > 0)
         {
             playerData.Favor -= penalty;
@@ -235,7 +238,7 @@ public class PvPManager : IPvPManager
     /// </summary>
     private int CalculateFavorReward(DeityDomain attackerDeity, DeityDomain victimDeity)
     {
-        return BASE_FAVOR_REWARD;
+        return _config.KillFavorReward;
     }
 
     /// <summary>
@@ -243,6 +246,6 @@ public class PvPManager : IPvPManager
     /// </summary>
     private int CalculatePrestigeReward(DeityDomain attackerDeity, DeityDomain victimDeity)
     {
-        return BASE_PRESTIGE_REWARD;
+        return _config.KillPrestigeReward;
     }
 }

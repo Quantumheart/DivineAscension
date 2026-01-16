@@ -452,7 +452,7 @@ public class ReligionCommands(
                 : LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_ROLE_MEMBER);
 
             sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_MEMBER,
-                memberName, role, memberData.FavorRank.ToLocalizedString(), memberData.Favor));
+                memberName, role, _playerProgressionDataManager.GetPlayerFavorRank(memberUID).ToLocalizedString(), memberData.Favor));
         }
 
         return TextCommandResult.Success(sb.ToString());

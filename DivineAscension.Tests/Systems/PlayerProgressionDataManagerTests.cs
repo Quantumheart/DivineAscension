@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
@@ -30,7 +31,8 @@ public class PlayerProgressionDataManagerTests
 
         _mockReligionManager = new Mock<IReligionManager>();
 
-        _sut = new PlayerProgressionDataManager(_mockAPI.Object, _mockReligionManager.Object);
+        var config = new GameBalanceConfig();
+        _sut = new PlayerProgressionDataManager(_mockAPI.Object, _mockReligionManager.Object, config);
     }
 
     #region UpdateFavorRank Tests
@@ -43,9 +45,10 @@ public class PlayerProgressionDataManagerTests
         data.TotalFavorEarned = 500; // Should be Disciple rank
 
         // Act
+        var rank = _sut.GetPlayerFavorRank("player-uid");
 
         // Assert
-        Assert.Equal(FavorRank.Disciple, data.FavorRank);
+        Assert.Equal(FavorRank.Disciple, rank);
     }
 
     #endregion
@@ -180,7 +183,7 @@ public class PlayerProgressionDataManagerTests
         _sut.AddFavor("player-uid", 20); // Should rank up
 
         // Assert
-        Assert.Equal(FavorRank.Disciple, data.FavorRank);
+        Assert.Equal(FavorRank.Disciple, _sut.GetPlayerFavorRank("player-uid"));
         Assert.True(eventFired);
     }
 
@@ -448,7 +451,7 @@ public class PlayerProgressionDataManagerTests
         // AsserT
         Assert.Equal(0, data.Favor);
         Assert.Equal(0, data.TotalFavorEarned);
-        Assert.Equal(FavorRank.Initiate, data.FavorRank);
+        Assert.Equal(FavorRank.Initiate, _sut.GetPlayerFavorRank("player-uid"));
     }
 
     [Fact]
@@ -612,7 +615,7 @@ public class PlayerProgressionDataManagerTests
         _sut.AddFavor("player-uid", 20);
 
         // Verify rank changed
-        Assert.Equal(FavorRank.Disciple, data.FavorRank);
+        Assert.Equal(FavorRank.Disciple, _sut.GetPlayerFavorRank("player-uid"));
     }
 
     [Fact]
@@ -629,7 +632,7 @@ public class PlayerProgressionDataManagerTests
         _sut.AddFractionalFavor("player-uid", 10.5f); // Should award 10 favor and rank up
 
         // Assert
-        Assert.Equal(FavorRank.Disciple, data.FavorRank);
+        Assert.Equal(FavorRank.Disciple, _sut.GetPlayerFavorRank("player-uid"));
     }
 
     #endregion
