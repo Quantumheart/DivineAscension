@@ -10,6 +10,7 @@ public class BrowseState
     public float BrowseScrollY { get; set; }
     public bool IsBrowseLoading { get; set; }
     public string? SelectedReligionUID { get; set; }
+    public bool IsDeityDropdownOpen { get; set; }
     public DetailState DetailState { get; set; } = new();
 
     public void Reset()
@@ -19,6 +20,7 @@ public class BrowseState
         BrowseScrollY = 0f;
         IsBrowseLoading = false;
         SelectedReligionUID = null;
+        IsDeityDropdownOpen = false;
         DetailState.Reset();
     }
 }

@@ -22,4 +22,10 @@ public abstract record BrowseEvent
 
     // User hovered over a religion (for tooltip)
     public record Hovered(ReligionListResponsePacket.ReligionInfo? Religion) : BrowseEvent;
+
+    // User toggled the deity filter dropdown
+    public record DeityDropDownToggled(bool IsOpen) : BrowseEvent;
+
+    // User clicked the refresh button
+    public record RefreshClicked : BrowseEvent;
 }

@@ -368,6 +368,7 @@ public class ReligionStateManager : IReligionStateManager
             State.BrowseState.BrowseScrollY,
             State.BrowseState.SelectedReligionUID,
             HasReligion(),
+            State.BrowseState.IsDeityDropdownOpen,
             x,
             y,
             width,
@@ -1109,6 +1110,15 @@ public class ReligionStateManager : IReligionStateManager
                         RequestReligionAction("join", e.ReligionUID);
                     }
 
+                    break;
+
+                case BrowseEvent.DeityDropDownToggled e:
+                    State.BrowseState.IsDeityDropdownOpen = e.IsOpen;
+                    break;
+
+                case BrowseEvent.RefreshClicked:
+                    RequestReligionList(State.BrowseState.DeityFilter);
+                    _soundManager.PlayClick();
                     break;
             }
         }
