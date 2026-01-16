@@ -448,6 +448,16 @@ public partial class GuiDialog
         _manager.ReligionStateManager.CurrentPrestige = packet.Prestige;
         _manager.ReligionStateManager.TotalFavorEarned = packet.TotalFavorEarned;
 
+        // Update config thresholds (synced from server so UI displays correct progression caps)
+        _manager.ReligionStateManager.DiscipleThreshold = packet.DiscipleThreshold;
+        _manager.ReligionStateManager.ZealotThreshold = packet.ZealotThreshold;
+        _manager.ReligionStateManager.ChampionThreshold = packet.ChampionThreshold;
+        _manager.ReligionStateManager.AvatarThreshold = packet.AvatarThreshold;
+        _manager.ReligionStateManager.EstablishedThreshold = packet.EstablishedThreshold;
+        _manager.ReligionStateManager.RenownedThreshold = packet.RenownedThreshold;
+        _manager.ReligionStateManager.LegendaryThreshold = packet.LegendaryThreshold;
+        _manager.ReligionStateManager.MythicThreshold = packet.MythicThreshold;
+
         // Update rank if it changed (this affects which blessings can be unlocked)
         // FavorRank comes as enum name (e.g., "Initiate", "Disciple"), parse to get numeric value
         if (Enum.TryParse<FavorRank>(packet.FavorRank, out var favorRankEnum))

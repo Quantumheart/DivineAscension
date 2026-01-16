@@ -52,4 +52,14 @@ public class PlayerReligionDataPacket
     /// </summary>
     [ProtoMember(8)]
     public string DeityName { get; set; } = string.Empty;
+
+    // Config thresholds (sent from server so client UI displays correct values)
+    [ProtoMember(9)] public int DiscipleThreshold { get; set; } = 500;
+    [ProtoMember(10)] public int ZealotThreshold { get; set; } = 2000;
+    [ProtoMember(11)] public int ChampionThreshold { get; set; } = 5000;
+    [ProtoMember(12)] public int AvatarThreshold { get; set; } = 10000;
+    [ProtoMember(13)] public int EstablishedThreshold { get; set; } = 2500;
+    [ProtoMember(14)] public int RenownedThreshold { get; set; } = 10000;
+    [ProtoMember(15)] public int LegendaryThreshold { get; set; } = 25000;
+    [ProtoMember(16)] public int MythicThreshold { get; set; } = 50000;
 }

@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Configuration;
 using DivineAscension.Network;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Interfaces;
@@ -19,6 +20,7 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
     private readonly IReligionManager? _religionManager;
     private readonly ICoreServerAPI? _sapi;
     private readonly IServerNetworkChannel? _serverChannel;
+    private readonly GameBalanceConfig _config;
 
     /// <summary>
     ///     Initialize the handler with all required dependencies.
@@ -27,12 +29,14 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
     public PlayerDataNetworkHandler(ICoreServerAPI sapi,
         IPlayerProgressionDataManager playerProgressionDataManager,
         IReligionManager religionManager,
-        IServerNetworkChannel serverChannel)
+        IServerNetworkChannel serverChannel,
+        GameBalanceConfig config)
     {
         _sapi = sapi;
         _playerProgressionDataManager = playerProgressionDataManager;
         _religionManager = religionManager;
         _serverChannel = serverChannel;
+        _config = config;
 
         // Subscribe to events
         _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
@@ -94,7 +98,18 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
                 religionData.Prestige,
                 religionData.PrestigeRank.ToString(),
                 playerReligionData.TotalFavorEarned
-            );
+            )
+            {
+                // Send config thresholds so client UI displays correct values
+                DiscipleThreshold = _config.DiscipleThreshold,
+                ZealotThreshold = _config.ZealotThreshold,
+                ChampionThreshold = _config.ChampionThreshold,
+                AvatarThreshold = _config.AvatarThreshold,
+                EstablishedThreshold = _config.EstablishedThreshold,
+                RenownedThreshold = _config.RenownedThreshold,
+                LegendaryThreshold = _config.LegendaryThreshold,
+                MythicThreshold = _config.MythicThreshold
+            };
 
             _serverChannel.SendPacket(packet, player);
         }

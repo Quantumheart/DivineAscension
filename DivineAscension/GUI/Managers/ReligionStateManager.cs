@@ -59,6 +59,16 @@ public class ReligionStateManager : IReligionStateManager
     public int CurrentPrestige { get; set; }
     public int TotalFavorEarned { get; set; }
 
+    // Config thresholds (synced from server)
+    public int DiscipleThreshold { get; set; } = 500;
+    public int ZealotThreshold { get; set; } = 2000;
+    public int ChampionThreshold { get; set; } = 5000;
+    public int AvatarThreshold { get; set; } = 10000;
+    public int EstablishedThreshold { get; set; } = 2500;
+    public int RenownedThreshold { get; set; } = 10000;
+    public int LegendaryThreshold { get; set; } = 25000;
+    public int MythicThreshold { get; set; } = 50000;
+
     public void Initialize(string? id, DeityDomain domain, string? religionName, int favorRank = 0,
         int prestigeRank = 0)
     {
@@ -94,7 +104,12 @@ public class ReligionStateManager : IReligionStateManager
         return new PlayerFavorProgress
         {
             CurrentFavor = TotalFavorEarned,
-            RequiredFavor = RankRequirements.GetRequiredFavorForNextRank(CurrentFavorRank),
+            RequiredFavor = RankRequirements.GetRequiredFavorForNextRank(
+                CurrentFavorRank,
+                DiscipleThreshold,
+                ZealotThreshold,
+                ChampionThreshold,
+                AvatarThreshold),
             CurrentRank = CurrentFavorRank,
             NextRank = CurrentFavorRank + 1,
             IsMaxRank = CurrentFavorRank >= 4
@@ -106,7 +121,12 @@ public class ReligionStateManager : IReligionStateManager
         return new ReligionPrestigeProgress
         {
             CurrentPrestige = CurrentPrestige,
-            RequiredPrestige = RankRequirements.GetRequiredPrestigeForNextRank(CurrentPrestigeRank),
+            RequiredPrestige = RankRequirements.GetRequiredPrestigeForNextRank(
+                CurrentPrestigeRank,
+                EstablishedThreshold,
+                RenownedThreshold,
+                LegendaryThreshold,
+                MythicThreshold),
             CurrentRank = CurrentPrestigeRank,
             NextRank = CurrentPrestigeRank + 1,
             IsMaxRank = CurrentPrestigeRank >= 4
