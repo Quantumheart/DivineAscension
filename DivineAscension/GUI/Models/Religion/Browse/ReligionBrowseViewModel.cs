@@ -12,6 +12,7 @@ public readonly struct ReligionBrowseViewModel(
     float scrollY,
     string? selectedReligionUID,
     bool userHasReligion,
+    bool isDeityDropdownOpen,
     float x,
     float y,
     float width,
@@ -24,6 +25,7 @@ public readonly struct ReligionBrowseViewModel(
     public float ScrollY { get; } = scrollY;
     public string? SelectedReligionUID { get; } = selectedReligionUID;
     public bool UserHasReligion { get; } = userHasReligion;
+    public bool IsDeityDropdownOpen { get; } = isDeityDropdownOpen;
 
     public float X { get; } = x;
     public float Y { get; } = y;
