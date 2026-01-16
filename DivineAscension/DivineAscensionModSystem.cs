@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection;
 using DivineAscension.Commands;
+using DivineAscension.Configuration;
 using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Network;
@@ -36,6 +38,7 @@ public class DivineAscensionModSystem : ModSystem
 
     // Client-side systems
     private FavorSystem? _favorSystem;
+    private GameBalanceConfig _gameBalanceConfig = new();
 
     private Harmony? _harmony;
     private HashSet<string> _migratedReligionUIDs = new();
@@ -57,6 +60,11 @@ public class DivineAscensionModSystem : ModSystem
     /// </summary>
     public ModConfigData Config => _configData;
 
+    /// <summary>
+    ///     Gets the game balance configuration (Tier 1 settings).
+    /// </summary>
+    public GameBalanceConfig GameBalanceConfig => _gameBalanceConfig;
+
     public string ModName => "divineascension";
 
     public override void Start(ICoreAPI api)
@@ -73,6 +81,20 @@ public class DivineAscensionModSystem : ModSystem
             _harmony = new Harmony("com.divineascension.patches");
             _harmony.PatchAll(Assembly.GetExecutingAssembly());
             api.Logger.Notification("[DivineAscension] Harmony patches registered.");
+        }
+
+        // Register with ConfigLib if available
+        TryRegisterWithConfigLib(api);
+
+        // Validate config regardless of ConfigLib presence
+        try
+        {
+            _gameBalanceConfig.Validate();
+        }
+        catch (Exception ex)
+        {
+            api.Logger.Error($"[DivineAscension] Config validation failed: {ex.Message}. Using defaults.");
+            _gameBalanceConfig = new GameBalanceConfig(); // Reset to defaults
         }
 
         // Register network channel and message types
@@ -279,7 +301,118 @@ public class DivineAscensionModSystem : ModSystem
 
     #endregion
 
-    #region Configuration Persistence
+    #region ConfigLib Integration
+
+    /// <summary>
+    /// Attempts to register the game balance configuration with ConfigLib if it's available.
+    /// Uses reflection to avoid compile-time dependency on ConfigLib.
+    /// Falls back gracefully to hardcoded defaults if ConfigLib is not installed or incompatible.
+    /// </summary>
+    private void TryRegisterWithConfigLib(ICoreAPI api)
+    {
+        if (!api.ModLoader.IsModEnabled("configlib"))
+        {
+            api.Logger.Notification(
+                "[DivineAscension] ConfigLib not installed. Using hardcoded default configuration. Install ConfigLib for in-game configuration GUI.");
+            return;
+        }
+
+        api.Logger.Notification("[DivineAscension] ConfigLib is enabled. Config file: ModConfig/divineascension.yaml");
+
+        try
+        {
+            // Get ConfigLib mod system using reflection (ConfigLib may not be available at compile time)
+            // We need to iterate through all mod systems since GetModSystem<T>() requires a type reference
+            ModSystem? configLibModSystem = null;
+
+            foreach (var modSystem in api.ModLoader.Systems)
+            {
+                if (modSystem.GetType().Name == "ConfigLibModSystem")
+                {
+                    configLibModSystem = modSystem;
+                    break;
+                }
+            }
+
+            if (configLibModSystem == null)
+            {
+                api.Logger.Warning("[DivineAscension] ConfigLib mod system not found");
+                return;
+            }
+
+            // Register our config using reflection
+            var registerMethod = configLibModSystem.GetType().GetMethod("RegisterCustomManagedConfig");
+
+            if (registerMethod == null)
+            {
+                api.Logger.Warning(
+                    "[DivineAscension] ConfigLib found but RegisterCustomManagedConfig method not available");
+                return;
+            }
+
+            // Validate method signature to ensure compatibility
+            var parameters = registerMethod.GetParameters();
+
+            // Expected signature:
+            // RegisterCustomManagedConfig(string domain, object configObject,
+            //     string? path = null, Action? onSyncedFromServer = null,
+            //     Action<string>? onSettingChanged = null, Action? onConfigSaved = null)
+            bool isValidSignature = parameters.Length == 6 &&
+                                    parameters[0].ParameterType == typeof(string) &&
+                                    parameters[1].ParameterType == typeof(object) &&
+                                    parameters[2].ParameterType == typeof(string) &&
+                                    parameters[3].ParameterType == typeof(Action) &&
+                                    parameters[4].ParameterType == typeof(Action<string>) &&
+                                    parameters[5].ParameterType == typeof(Action);
+
+            if (!isValidSignature)
+            {
+                api.Logger.Warning(
+                    "[DivineAscension] ConfigLib API has changed - incompatible RegisterCustomManagedConfig signature");
+                api.Logger.Warning(
+                    $"[DivineAscension] Expected: (string, object, string, Action, Action<string>, Action), Got: ({string.Join(", ", parameters.Select(p => p.ParameterType.Name))})");
+                return;
+            }
+
+            // Parameters: domain, configObject, path, onSyncedFromServer, onSettingChanged, onConfigSaved
+            registerMethod.Invoke(configLibModSystem, new object?[]
+            {
+                "divineascension", // domain (string)
+                _gameBalanceConfig, // configObject (object)
+                null, // path (string?) - optional, use default
+                null, // onSyncedFromServer (Action?) - optional
+                (Action<string>)OnConfigChanged, // onSettingChanged (Action<string>?) - our callback
+                null // onConfigSaved (Action?) - optional
+            });
+
+            api.Logger.Notification(
+                "[DivineAscension] ConfigLib integration enabled. Config file: ModConfig/divineascension.yaml");
+        }
+        catch (Exception ex)
+        {
+            api.Logger.Error($"[DivineAscension] Failed to register with ConfigLib: {ex.Message}");
+            api.Logger.Notification("[DivineAscension] Using hardcoded default configuration");
+        }
+    }
+
+    /// <summary>
+    /// Called by ConfigLib when configuration settings change at runtime.
+    /// </summary>
+    private void OnConfigChanged(string settingCode)
+    {
+        try
+        {
+            _gameBalanceConfig.Validate();
+            _sapi?.Logger.Notification($"[DivineAscension] Configuration updated: {settingCode}");
+
+            // Future: Notify systems to reload their cached values
+            // For now, most systems will read config values on-the-fly
+        }
+        catch (Exception ex)
+        {
+            _sapi?.Logger.Error($"[DivineAscension] Config validation failed after update: {ex.Message}");
+        }
+    }
 
     private void OnSaveGameLoaded()
     {
