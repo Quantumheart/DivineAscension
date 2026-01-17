@@ -19,6 +19,7 @@ public class DiplomacyManager : IDiplomacyManager
     private readonly IReligionPrestigeManager _prestigeManager;
     private readonly IReligionManager _religionManager;
     private readonly ICoreServerAPI _sapi;
+    private readonly ICooldownManager _cooldownManager;
     private DiplomacyWorldData _data = new();
 
     /// <summary>
@@ -41,12 +42,14 @@ public class DiplomacyManager : IDiplomacyManager
         ICoreServerAPI sapi,
         CivilizationManager civilizationManager,
         IReligionPrestigeManager prestigeManager,
-        IReligionManager religionManager)
+        IReligionManager religionManager,
+        ICooldownManager cooldownManager)
     {
         _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
         _civilizationManager = civilizationManager ?? throw new ArgumentNullException(nameof(civilizationManager));
         _prestigeManager = prestigeManager ?? throw new ArgumentNullException(nameof(prestigeManager));
         _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
+        _cooldownManager = cooldownManager ?? throw new ArgumentNullException(nameof(cooldownManager));
     }
 
     public event Action<string, string, DiplomaticStatus>? OnRelationshipEstablished;
@@ -166,6 +169,10 @@ public class DiplomacyManager : IDiplomacyManager
         if (proposedStatus == DiplomaticStatus.War)
             return (false, "Use DeclareWar to enter war status", null);
 
+        // Check cooldown (30 seconds)
+        if (!_cooldownManager.CanPerformOperation(proposerFounderUID, CooldownType.Proposal, out var cooldownError))
+            return (false, cooldownError!, null);
+
         lock (Lock)
         {
             // Check if relationship already exists
@@ -194,6 +201,9 @@ public class DiplomacyManager : IDiplomacyManager
             );
 
             _data.AddProposal(proposal);
+
+            // Record cooldown after successful proposal
+            _cooldownManager.RecordOperation(proposerFounderUID, CooldownType.Proposal);
 
             _sapi.Logger.Notification(
                 $"{DiplomacyConstants.LogPrefix} {proposerCiv.Name} proposed {proposedStatus} to {targetCiv.Name}");
@@ -372,6 +382,10 @@ public class DiplomacyManager : IDiplomacyManager
         if (!targetCiv.IsValid)
             return (false, "Target civilization is invalid");
 
+        // Check cooldown (60 seconds)
+        if (!_cooldownManager.CanPerformOperation(founderUID, CooldownType.WarDeclaration, out var cooldownError))
+            return (false, cooldownError!);
+
         lock (Lock)
         {
             // Remove existing relationship if any
@@ -409,6 +423,9 @@ public class DiplomacyManager : IDiplomacyManager
             // Fire events
             OnWarDeclared?.Invoke(declarerCivId, targetCivId);
             OnRelationshipEstablished?.Invoke(declarerCivId, targetCivId, DiplomaticStatus.War);
+
+            // Record cooldown after successful war declaration
+            _cooldownManager.RecordOperation(founderUID, CooldownType.WarDeclaration);
 
             _sapi.Logger.Notification(
                 $"{DiplomacyConstants.LogPrefix} {declarerCiv.Name} declared WAR on {targetCiv.Name}!");

@@ -14,7 +14,7 @@ public static class VintageStoryStats
     public const string MeleeWeaponsDamage = "meleeWeaponsDamage";
     public const string RangedWeaponsDamage = "rangedWeaponsDamage";
     public const string MeleeWeaponsSpeed = "meleeWeaponsSpeed";
-    public const string RangedWeaponsAccuracy = "rangedWeaponsAccuracy";
+    public const string RangedWeaponsAccuracy = "rangedWeaponsAcc";
     public const string RangedWeaponsRange = "rangedWeaponsRange";
 
     // War (Blood & Battle) Stats
@@ -65,7 +65,7 @@ public static class VintageStoryStats
     public const string CookingYield = "cookingYield";
     public const string HeatResistance = "heatResistance";
     public const string RareCropChance = "rareCropChance";
-    public const string WildCropYield = "wildCropYield";
+    public const string WildCropYield = "wildCropDropRate";
     public const string CookedFoodSatiety = "cookedFoodSatiety";
 
     // Stone (Pottery & Clay) Stats
