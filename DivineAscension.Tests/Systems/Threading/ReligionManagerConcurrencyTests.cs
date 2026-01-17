@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -278,7 +279,7 @@ public class ReligionManagerConcurrencyTests
         var manager = new ReligionManager(_mockSapi.Object);
         const int duration = 5; // 5 seconds
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(duration));
-        var createdReligions = new System.Collections.Concurrent.ConcurrentBag<string>();
+        var createdReligions = new ConcurrentBag<string>();
         var operationCounts = new int[4]; // create, delete, addMember, removeMember
 
         // Act - Mixed concurrent operations
