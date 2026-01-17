@@ -16,6 +16,7 @@ using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Client;
 using DivineAscension.Systems.Networking.Server;
 using DivineAscension.Systems.Patches;
+using DivineAscension.Utilities;
 using HarmonyLib;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -151,6 +152,9 @@ public class DivineAscensionModSystem : ModSystem
         base.StartServerSide(api);
         _sapi = api;
 
+        // Initialize thread safety utilities for telemetry
+        ThreadSafetyUtils.Initialize(api);
+
         // Subscribe to world save/load events for config persistence
         api.Event.SaveGameLoaded += OnSaveGameLoaded;
         api.Event.GameWorldSave += OnGameWorldSave;
@@ -198,6 +202,9 @@ public class DivineAscensionModSystem : ModSystem
     {
         base.StartClientSide(api);
         api.Logger.Notification("[DivineAscension] Initializing client-side systems...");
+
+        // Initialize thread safety utilities for telemetry
+        ThreadSafetyUtils.Initialize(api);
 
         // Initialize localization service
         LocalizationService.Instance.InitializeClient(api);
