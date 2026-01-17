@@ -181,7 +181,7 @@ public class BlessingCommandAdminTests
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.Craft);
-        playerData.UnlockedBlessings.Add("khoras_strength");
+        playerData.UnlockBlessing("khoras_strength");
         var religion = TestFixtures.CreateTestReligion("religion-1", "TestReligion", DeityDomain.Craft, "player-1");
         var blessing =
             TestFixtures.CreateTestBlessing("khoras_strength", "Strength", DeityDomain.Craft, BlessingKind.Player);
@@ -215,7 +215,7 @@ public class BlessingCommandAdminTests
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.Craft);
-        playerData.UnlockedBlessings.Add("khoras_strength");
+        playerData.UnlockBlessing("khoras_strength");
         var religion = TestFixtures.CreateTestReligion("religion-1", "TestReligion", DeityDomain.Craft, "player-1");
         var blessing =
             TestFixtures.CreateTestBlessing("khoras_strength", "Strength", DeityDomain.Craft, BlessingKind.Player);
@@ -280,8 +280,8 @@ public class BlessingCommandAdminTests
         var admin = CreateMockPlayer("admin-1", "Admin");
         var target = CreateMockPlayer("player-1", "Player");
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-1", DeityDomain.Craft);
-        playerData.UnlockedBlessings.Add("khoras_strength");
-        playerData.UnlockedBlessings.Add("khoras_defense");
+        playerData.UnlockBlessing("khoras_strength");
+        playerData.UnlockBlessing("khoras_defense");
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "Player");

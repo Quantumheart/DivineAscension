@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
@@ -20,8 +22,8 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     public delegate void PlayerReligionDataChangedDelegate(IServerPlayer player, string religionUID);
 
     private const string DATA_KEY = "divineascension_playerprogressiondata";
-    private readonly HashSet<string> _initializedPlayers = new();
-    private readonly Dictionary<string, PlayerProgressionData> _playerData = new();
+    private readonly ConcurrentDictionary<string, byte> _initializedPlayers = new();
+    private readonly ConcurrentDictionary<string, PlayerProgressionData> _playerData = new();
     private readonly IReligionManager _religionManager;
 
     private readonly ICoreServerAPI _sapi;
@@ -74,7 +76,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
             // Ensure we've attempted to load saved data before creating new data.
             // This fixes a race condition where other systems call GetOrCreatePlayerData()
             // before OnPlayerJoin fires, creating empty data that overwrites saved data.
-            if (!_initializedPlayers.Contains(playerUID))
+            if (!_initializedPlayers.ContainsKey(playerUID))
             {
                 LoadPlayerData(playerUID);
 
@@ -85,10 +87,12 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
                 }
             }
 
-            // No saved data exists - create new data
-            data = new PlayerProgressionData(playerUID);
-            _playerData[playerUID] = data;
-            _sapi.Logger.Debug($"[DivineAscension] Created new player progression data for {playerUID}");
+            // No saved data exists - create new data using GetOrAdd for thread safety
+            data = _playerData.GetOrAdd(playerUID, uid =>
+            {
+                _sapi.Logger.Debug($"[DivineAscension] Created new player progression data for {uid}");
+                return new PlayerProgressionData(uid);
+            });
         }
 
         return data;
@@ -327,7 +331,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
         SavePlayerData(player.PlayerUID);
         // Clean up initialization tracking for memory efficiency
         // Data will be re-loaded from persistence when they rejoin
-        _initializedPlayers.Remove(player.PlayerUID);
+        _initializedPlayers.TryRemove(player.PlayerUID, out _);
     }
 
     internal void OnSaveGameLoaded()
@@ -352,7 +356,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     internal void LoadPlayerData(string playerUID)
     {
         // Skip if already initialized (prevents double-loading)
-        if (_initializedPlayers.Contains(playerUID))
+        if (_initializedPlayers.ContainsKey(playerUID))
         {
             return;
         }
@@ -389,13 +393,13 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
 
             // Mark player as initialized regardless of whether data existed
             // This prevents GetOrCreatePlayerData() from creating empty data before load completes
-            _initializedPlayers.Add(playerUID);
+            _initializedPlayers.TryAdd(playerUID, 0);
         }
         catch (Exception ex)
         {
             _sapi.Logger.Error($"[DivineAscension] Failed to load data for player {playerUID}: {ex.Message}");
             // Still mark as initialized so we don't block forever on repeated failures
-            _initializedPlayers.Add(playerUID);
+            _initializedPlayers.TryAdd(playerUID, 0);
         }
     }
 
@@ -435,7 +439,8 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     internal void SaveAllPlayerData()
     {
         _sapi.Logger.Notification("[DivineAscension] Saving all player religion data...");
-        foreach (var playerUID in _playerData.Keys) SavePlayerData(playerUID);
+        // Take a snapshot of keys for thread-safe iteration
+        foreach (var playerUID in _playerData.Keys.ToList()) SavePlayerData(playerUID);
         _sapi.Logger.Notification($"[DivineAscension] Saved religion data for {_playerData.Count} players");
     }
 

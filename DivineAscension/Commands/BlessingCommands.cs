@@ -694,11 +694,11 @@ public class BlessingCommands(
         if (blessing.Kind == BlessingKind.Player)
         {
             // Player blessing - unlock for target player
-            if (resolvedPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
+            if (resolvedPlayerData.IsBlessingUnlocked(blessing.BlessingId))
                 return TextCommandResult.Success(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_ALREADY_UNLOCKED));
 
-            resolvedPlayerData.UnlockedBlessings.Add(blessing.BlessingId);
+            resolvedPlayerData.UnlockBlessing(blessing.BlessingId);
             _blessingEffectSystem.RefreshPlayerBlessings(resolvedPlayer.PlayerUID);
 
             // Notify player data changed (triggers HUD update)
@@ -794,11 +794,11 @@ public class BlessingCommands(
         if (blessing.Kind == BlessingKind.Player)
         {
             // Player blessing - lock for target player
-            if (!resolvedPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
+            if (!resolvedPlayerData.IsBlessingUnlocked(blessing.BlessingId))
                 return TextCommandResult.Success(
                     $"{resolvedPlayer.PlayerName} doesn't have blessing '{blessing.Name}' unlocked");
 
-            resolvedPlayerData.UnlockedBlessings.Remove(blessing.BlessingId);
+            resolvedPlayerData.LockBlessing(blessing.BlessingId);
             _blessingEffectSystem.RefreshPlayerBlessings(resolvedPlayer.PlayerUID);
 
             // Notify player data changed (triggers HUD update)
@@ -881,7 +881,7 @@ public class BlessingCommands(
         if (blessingCount == 0)
             return TextCommandResult.Success($"{resolvedPlayer.PlayerName} has no blessings to reset");
 
-        resolvedPlayerData.UnlockedBlessings.Clear();
+        resolvedPlayerData.ClearUnlockedBlessings();
         _blessingEffectSystem.RefreshPlayerBlessings(resolvedPlayer.PlayerUID);
 
         // Notify player data changed (triggers HUD update)
@@ -938,9 +938,9 @@ public class BlessingCommands(
         // Unlock all player blessings
         foreach (var blessing in playerBlessings)
         {
-            if (!resolvedPlayerData.UnlockedBlessings.Contains(blessing.BlessingId))
+            if (!resolvedPlayerData.IsBlessingUnlocked(blessing.BlessingId))
             {
-                resolvedPlayerData.UnlockedBlessings.Add(blessing.BlessingId);
+                resolvedPlayerData.UnlockBlessing(blessing.BlessingId);
                 playerUnlocked++;
             }
         }

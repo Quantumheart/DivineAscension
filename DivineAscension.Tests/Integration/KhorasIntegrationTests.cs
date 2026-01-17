@@ -101,11 +101,9 @@ public class KhorasIntegrationTests
 
     private PlayerProgressionData SetupKhorasFollower(string playerUID)
     {
-        var playerData = new PlayerProgressionData
+        var playerData = new PlayerProgressionData(playerUID)
         {
-            Id = playerUID,
-            Favor = 0,
-            UnlockedBlessings = new()
+            Favor = 0
         };
 
         _mockPlayerReligionDataManager.Setup(m => m.GetOrCreatePlayerData(playerUID))

@@ -9,6 +9,16 @@ namespace DivineAscension.Systems;
 public class PlayerProgressionData
 {
     /// <summary>
+    ///     Lazy-initialized lock object for thread safety.
+    ///     Uses lazy initialization to work with ProtoBuf deserialization.
+    /// </summary>
+    [ProtoIgnore]
+    private object? _lock;
+
+    [ProtoIgnore]
+    private object Lock => _lock ??= new object();
+
+    /// <summary>
     ///     Creates new player religion data
     /// </summary>
     public PlayerProgressionData(string id)
@@ -43,11 +53,26 @@ public class PlayerProgressionData
     public int TotalFavorEarned { get; set; }
 
     /// <summary>
-    ///     Dictionary of unlocked player blessings
-    ///     Key: blessing ID, Value: unlock status (true if unlocked)
+    ///     Backing field for unlocked player blessings.
     /// </summary>
     [ProtoMember(103)]
-    public HashSet<string> UnlockedBlessings { get; set; } = new();
+    private HashSet<string> _unlockedBlessings = new();
+
+    /// <summary>
+    ///     Read-only view of unlocked player blessings.
+    ///     Returns a snapshot for thread-safe enumeration.
+    /// </summary>
+    [ProtoIgnore]
+    public IReadOnlyCollection<string> UnlockedBlessings
+    {
+        get
+        {
+            lock (Lock)
+            {
+                return _unlockedBlessings.ToList();
+            }
+        }
+    }
 
 
     /// <summary>
@@ -63,82 +88,122 @@ public class PlayerProgressionData
     public float AccumulatedFractionalFavor { get; set; }
 
     /// <summary>
-    ///     Adds favor and updates statistics
+    ///     Adds favor and updates statistics.
+    ///     Thread-safe.
     /// </summary>
     public void AddFavor(int amount)
     {
         if (amount > 0)
         {
-            Favor += amount;
-            TotalFavorEarned += amount;
-        }
-    }
-
-    /// <summary>
-    ///     Adds fractional favor and updates statistics when accumulated amount >= 1
-    /// </summary>
-    public void AddFractionalFavor(float amount)
-    {
-        if (amount > 0)
-        {
-            AccumulatedFractionalFavor += amount;
-
-            // Award integer favor when we have accumulated >= 1.0
-            if (AccumulatedFractionalFavor >= 1.0f)
+            lock (Lock)
             {
-                var favorToAward = (int)AccumulatedFractionalFavor;
-                AccumulatedFractionalFavor -= favorToAward; // Keep the fractional remainder
-
-                Favor += favorToAward;
-                TotalFavorEarned += favorToAward;
+                Favor += amount;
+                TotalFavorEarned += amount;
             }
         }
     }
 
     /// <summary>
-    ///     Removes favor (for costs or penalties)
+    ///     Adds fractional favor and updates statistics when accumulated amount >= 1.
+    ///     Thread-safe.
+    /// </summary>
+    public void AddFractionalFavor(float amount)
+    {
+        if (amount > 0)
+        {
+            lock (Lock)
+            {
+                AccumulatedFractionalFavor += amount;
+
+                // Award integer favor when we have accumulated >= 1.0
+                if (AccumulatedFractionalFavor >= 1.0f)
+                {
+                    var favorToAward = (int)AccumulatedFractionalFavor;
+                    AccumulatedFractionalFavor -= favorToAward; // Keep the fractional remainder
+
+                    Favor += favorToAward;
+                    TotalFavorEarned += favorToAward;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Removes favor (for costs or penalties).
+    ///     Thread-safe.
     /// </summary>
     public bool RemoveFavor(int amount)
     {
-        if (Favor >= amount)
+        lock (Lock)
         {
-            Favor -= amount;
-            return true;
-        }
+            if (Favor >= amount)
+            {
+                Favor -= amount;
+                return true;
+            }
 
-        return false;
+            return false;
+        }
     }
 
     /// <summary>
-    ///     Unlocks a player blessing
+    ///     Unlocks a player blessing.
+    ///     Thread-safe.
     /// </summary>
     public void UnlockBlessing(string blessingId)
     {
-        UnlockedBlessings.Add(blessingId);
+        lock (Lock)
+        {
+            _unlockedBlessings.Add(blessingId);
+        }
     }
 
     /// <summary>
-    ///     Checks if a blessing is unlocked
+    ///     Locks (removes) a player blessing.
+    ///     Thread-safe.
+    /// </summary>
+    public bool LockBlessing(string blessingId)
+    {
+        lock (Lock)
+        {
+            return _unlockedBlessings.Remove(blessingId);
+        }
+    }
+
+    /// <summary>
+    ///     Checks if a blessing is unlocked.
+    ///     Thread-safe.
     /// </summary>
     public bool IsBlessingUnlocked(string blessingId)
     {
-        return UnlockedBlessings.Any(id => id == blessingId);
+        lock (Lock)
+        {
+            return _unlockedBlessings.Contains(blessingId);
+        }
     }
 
     /// <summary>
-    ///     Clears all unlocked blessings (used when switching religions)
+    ///     Clears all unlocked blessings (used when switching religions).
+    ///     Thread-safe.
     /// </summary>
     public void ClearUnlockedBlessings()
     {
-        UnlockedBlessings.Clear();
+        lock (Lock)
+        {
+            _unlockedBlessings.Clear();
+        }
     }
 
     /// <summary>
-    ///     Resets favor and blessings (penalty for switching religions)
+    ///     Resets favor and blessings (penalty for switching religions).
+    ///     Thread-safe.
     /// </summary>
     public void ApplySwitchPenalty()
     {
-        Favor = 0;
-        ClearUnlockedBlessings();
+        lock (Lock)
+        {
+            Favor = 0;
+            _unlockedBlessings.Clear();
+        }
     }
 }
