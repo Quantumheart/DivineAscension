@@ -141,14 +141,16 @@ public static class DivineAscensionSystemInitializer
             religionManager,
             playerReligionDataManager,
             roleManager,
-            serverChannel);
+            serverChannel,
+            cooldownManager);
         religionHandler.RegisterHandlers();
 
         var civilizationHandler = new CivilizationNetworkHandler(
             api,
             civilizationManager,
             religionManager,
-            serverChannel);
+            serverChannel,
+            cooldownManager);
         civilizationHandler.RegisterHandlers();
 
         var diplomacyHandler = new DiplomacyNetworkHandler(
