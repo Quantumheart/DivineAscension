@@ -414,6 +414,107 @@ Based on .NET 9 benchmarks, `System.Threading.Lock` shows:
 **Service approach**: Optimizes manager locks (the bottleneck) → significant multiplayer improvement
 **Domain-only approach**: Optimizes data locks (less critical) → modest improvement
 
+## CI/CD Impact
+
+### Current Setup
+
+- **build.yml**: Uses `dotnet-version: '8.0.x'`
+- **release.yml**: Uses `dotnet-version: '8.0.x'`
+- **Stub assemblies**: `lib/ci-stubs/` contains VS API stubs for CI builds
+
+### Required Changes
+
+#### 1. Add .NET 9 SDK to Workflows
+
+```yaml
+# .github/workflows/build.yml (and release.yml)
+- name: Setup .NET
+  uses: actions/setup-dotnet@v4
+  with:
+    dotnet-version: |
+      8.0.x
+      9.0.x
+```
+
+#### 2. Verify Services DLL Packaging
+
+The Services project output must be copied to `bin/Release/Mods/mod/` alongside the main DLL. This should happen automatically via `<ProjectReference>`, but verify during Phase 1.
+
+If needed, add to main project's `.csproj`:
+
+```xml
+<Target Name="CopyServicesDll" AfterTargets="Build">
+  <Copy SourceFiles="$(OutputPath)DivineAscension.Services.dll"
+        DestinationFolder="$(OutputPath)Mods/mod/" />
+</Target>
+```
+
+#### 3. No Stub Changes Required
+
+The Services project won't need VS API stubs since it only depends on abstractions. This is a **benefit** - the Services project can build and test without any VS dependencies.
+
+### Impact Summary
+
+| Aspect | Impact | Effort |
+|--------|--------|--------|
+| SDK version | Add `9.0.x` to setup-dotnet | 2 lines per workflow |
+| Build command | No change (`dotnet build` handles multi-target) | None |
+| Test command | No change | None |
+| Package step | Verify DLL included (likely automatic) | Verify only |
+| Stub assemblies | No change needed for Services project | None |
+| Cache key | Update to include new `.csproj` (automatic via glob) | None |
+
+### Updated Workflow Example
+
+```yaml
+# .github/workflows/build.yml
+name: Build and Test
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Verify stub assemblies exist
+        run: |
+          # ... existing stub verification (unchanged)
+
+      - name: Restore dependencies
+        run: dotnet restore DivineAscension.sln
+
+      - name: Build
+        run: dotnet build DivineAscension.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test DivineAscension.sln -c Release --no-build --verbosity normal
+```
+
+---
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -423,6 +524,7 @@ Based on .NET 9 benchmarks, `System.Threading.Lock` shows:
 | **Build complexity** | Developer friction | Clear documentation; CI/CD validation |
 | **Abstraction leakage** | Tight coupling returns | Code review; interface segregation |
 | **.NET 9 availability** | Blocks implementation | Wait for .NET 9 GA (Nov 2024) |
+| **CI/CD SDK mismatch** | Build failures | Add .NET 9 SDK to workflows before merging Services project |
 
 ## Decision Points
 
