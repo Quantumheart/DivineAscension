@@ -71,46 +71,70 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     {
         try
         {
-            var civ = _data.GetCivilizationByReligion(religionId);
-            if (civ == null)
-                // Religion wasn't in a civilization, nothing to do
-                return;
+            Civilization? civ;
+            bool isFounderReligion;
+            bool shouldDisband;
+            string civName;
+            List<string> memberReligionIds;
 
-            _sapi.Logger.Debug(
-                $"[DivineAscension] Handling deletion of religion {religionId} from civilization {civ.Name}");
+            lock (_dataLock)
+            {
+                civ = _data.GetCivilizationByReligion(religionId);
+                if (civ == null)
+                    // Religion wasn't in a civilization, nothing to do
+                    return;
 
-            // Check if the deleted religion was the founder's religion
-            var isFounderReligion = civ.FounderReligionUID == religionId;
+                civName = civ.Name;
+                _sapi.Logger.Debug(
+                    $"[DivineAscension] Handling deletion of religion {religionId} from civilization {civName}");
 
-            // Remove religion from civilization
-            _data.RemoveReligionFromCivilization(religionId);
+                // Check if the deleted religion was the founder's religion
+                isFounderReligion = civ.FounderReligionUID == religionId;
 
-            // Update member count (recalculate from remaining religions)
+                // Remove religion from civilization
+                _data.RemoveReligionFromCivilization(religionId);
+
+                // Get snapshot of member religion IDs for external calls
+                memberReligionIds = new List<string>(civ.MemberReligionIds);
+            }
+
+            // Update member count (recalculate from remaining religions) - external calls OUTSIDE lock
             var totalMembers = 0;
-            foreach (var relId in civ.MemberReligionIds)
+            foreach (var relId in memberReligionIds)
             {
                 var religion = _religionManager.GetReligion(relId);
                 if (religion != null) totalMembers += religion.MemberUIDs.Count;
             }
 
-            civ.MemberCount = totalMembers;
+            lock (_dataLock)
+            {
+                if (civ != null)
+                {
+                    civ.MemberCount = totalMembers;
+                    shouldDisband = isFounderReligion || civ.MemberReligionIds.Count < MIN_RELIGIONS;
+                }
+                else
+                {
+                    shouldDisband = false;
+                }
+            }
 
             // Disband if founder's religion was deleted OR if below minimum religions
-            if (isFounderReligion || civ.MemberReligionIds.Count < MIN_RELIGIONS)
+            if (shouldDisband && civ != null)
             {
                 // Use ForceDisband to bypass permission checks (system cleanup)
                 ForceDisband(civ.CivId);
                 if (isFounderReligion)
                     _sapi.Logger.Notification(
-                        $"[DivineAscension] Civilization '{civ.Name}' disbanded (founder's religion was deleted)");
+                        $"[DivineAscension] Civilization '{civName}' disbanded (founder's religion was deleted)");
                 else
                     _sapi.Logger.Notification(
-                        $"[DivineAscension] Civilization '{civ.Name}' disbanded (religion {religionId} was deleted, below minimum)");
+                        $"[DivineAscension] Civilization '{civName}' disbanded (religion {religionId} was deleted, below minimum)");
             }
-            else
+            else if (civ != null)
             {
                 _sapi.Logger.Notification(
-                    $"[DivineAscension] Removed deleted religion {religionId} from civilization '{civ.Name}'");
+                    $"[DivineAscension] Removed deleted religion {religionId} from civilization '{civName}'");
             }
         }
         catch (Exception ex)
@@ -118,9 +142,13 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
             _sapi.Logger.Error($"[DivineAscension] Error handling religion deletion: {ex.Message}");
 
             // If disband failed but religion was removed, manually clean up any orphaned civilizations
-            var orphanedCivs = _data.Civilizations.Values
-                .Where(c => c.MemberReligionIds.Count == 0)
-                .ToList();
+            List<Civilization> orphanedCivs;
+            lock (_dataLock)
+            {
+                orphanedCivs = _data.Civilizations.Values
+                    .Where(c => c.MemberReligionIds.Count == 0)
+                    .ToList();
+            }
 
             if (orphanedCivs.Any())
             {
@@ -160,7 +188,7 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     {
         try
         {
-            // Validate inputs
+            // Validate inputs BEFORE lock
             if (string.IsNullOrWhiteSpace(name))
             {
                 _sapi.Logger.Warning("[DivineAscension] Cannot create civilization with empty name");
@@ -180,14 +208,7 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
                 return null;
             }
 
-            // Check if name already exists
-            if (_data.Civilizations.Values.Any(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
-            {
-                _sapi.Logger.Warning($"[DivineAscension] Civilization name '{name}' already exists");
-                return null;
-            }
-
-            // Validate founder's religion exists
+            // Validate founder's religion exists (external call, OUTSIDE lock)
             var founderReligion = _religionManager.GetReligion(founderReligionId);
             if (founderReligion == null)
             {
@@ -195,32 +216,44 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
                 return null;
             }
 
-            // Check if founder is the religion founder
+            // Check if founder is the religion founder (OUTSIDE lock)
             if (founderReligion.FounderUID != founderUID)
             {
                 _sapi.Logger.Warning("[DivineAscension] Only religion founders can create civilizations");
                 return null;
             }
 
-            // Check if religion is already in a civilization
-            if (_data.GetCivilizationByReligion(founderReligionId) != null)
+            Civilization civ;
+            lock (_dataLock)
             {
-                _sapi.Logger.Warning(
-                    $"[DivineAscension] Religion '{founderReligion.ReligionName}' is already in a civilization");
-                return null;
+                // Check if name already exists
+                if (_data.Civilizations.Values.Any(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                {
+                    _sapi.Logger.Warning($"[DivineAscension] Civilization name '{name}' already exists");
+                    return null;
+                }
+
+                // Check if religion is already in a civilization
+                if (_data.GetCivilizationByReligion(founderReligionId) != null)
+                {
+                    _sapi.Logger.Warning(
+                        $"[DivineAscension] Religion '{founderReligion.ReligionName}' is already in a civilization");
+                    return null;
+                }
+
+                // Create civilization
+                var civId = Guid.NewGuid().ToString();
+                civ = new Civilization(civId, name, founderUID, founderReligionId)
+                {
+                    MemberCount = founderReligion.MemberUIDs.Count,
+                    Icon = icon,
+                    Description = description
+                };
+
+                _data.AddCivilization(civ);
             }
 
-            // Create civilization
-            var civId = Guid.NewGuid().ToString();
-            var civ = new Civilization(civId, name, founderUID, founderReligionId)
-            {
-                MemberCount = founderReligion.MemberUIDs.Count,
-                Icon = icon,
-                Description = description
-            };
-
-            _data.AddCivilization(civ);
-
+            // Logging OUTSIDE lock
             _sapi.Logger.Notification($"[DivineAscension] Civilization '{name}' created by {founderUID}");
             return civ;
         }
@@ -238,28 +271,7 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     {
         try
         {
-            var civ = _data.Civilizations.GetValueOrDefault(civId);
-            if (civ == null)
-            {
-                _sapi.Logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
-                return false;
-            }
-
-            // Check if inviter is the civilization founder
-            if (!civ.IsFounder(inviterUID))
-            {
-                _sapi.Logger.Warning("[DivineAscension] Only civilization founder can invite religions");
-                return false;
-            }
-
-            // Check if civilization is full
-            if (civ.MemberReligionIds.Count >= MAX_RELIGIONS)
-            {
-                _sapi.Logger.Warning("[DivineAscension] Civilization is full (max 4 religions)");
-                return false;
-            }
-
-            // Validate target religion exists
+            // Validate target religion exists (external call, OUTSIDE lock)
             var targetReligion = _religionManager.GetReligion(religionId);
             if (targetReligion == null)
             {
@@ -267,43 +279,78 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
                 return false;
             }
 
-            // Check if religion is already a member
-            if (civ.HasReligion(religionId))
+            string civName;
+            lock (_dataLock)
             {
-                _sapi.Logger.Warning($"[DivineAscension] Religion '{targetReligion.ReligionName}' is already a member");
-                return false;
+                var civ = _data.Civilizations.GetValueOrDefault(civId);
+                if (civ == null)
+                {
+                    _sapi.Logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
+                    return false;
+                }
+
+                // Check if inviter is the civilization founder
+                if (!civ.IsFounder(inviterUID))
+                {
+                    _sapi.Logger.Warning("[DivineAscension] Only civilization founder can invite religions");
+                    return false;
+                }
+
+                // Check if civilization is full
+                if (civ.MemberReligionIds.Count >= MAX_RELIGIONS)
+                {
+                    _sapi.Logger.Warning("[DivineAscension] Civilization is full (max 4 religions)");
+                    return false;
+                }
+
+                // Check if religion is already a member
+                if (civ.HasReligion(religionId))
+                {
+                    _sapi.Logger.Warning($"[DivineAscension] Religion '{targetReligion.ReligionName}' is already a member");
+                    return false;
+                }
+
+                // Check if religion is already in another civilization
+                if (_data.GetCivilizationByReligion(religionId) != null)
+                {
+                    _sapi.Logger.Warning(
+                        $"[DivineAscension] Religion '{targetReligion.ReligionName}' is already in a civilization");
+                    return false;
+                }
+
+                // Check if invite already exists
+                if (_data.HasPendingInvite(civId, religionId))
+                {
+                    _sapi.Logger.Warning("[DivineAscension] Invite already sent to this religion");
+                    return false;
+                }
+
+                // Check deity diversity (no duplicate deities) - need to call GetCivDeityTypes which locks
+                // So we need to get member religion IDs here and check domains
+                var civDeities = new HashSet<DeityDomain>();
+                foreach (var relId in civ.MemberReligionIds)
+                {
+                    var rel = _religionManager.GetReligion(relId);
+                    if (rel != null) civDeities.Add(rel.Domain);
+                }
+
+                if (civDeities.Contains(targetReligion.Domain))
+                {
+                    _sapi.Logger.Warning($"[DivineAscension] Civilization already has a {targetReligion.Domain} religion");
+                    return false;
+                }
+
+                // Create invite
+                var inviteId = Guid.NewGuid().ToString();
+                var invite = new CivilizationInvite(inviteId, civId, religionId, DateTime.UtcNow);
+                _data.AddInvite(invite);
+
+                civName = civ.Name;
             }
 
-            // Check if religion is already in another civilization
-            if (_data.GetCivilizationByReligion(religionId) != null)
-            {
-                _sapi.Logger.Warning(
-                    $"[DivineAscension] Religion '{targetReligion.ReligionName}' is already in a civilization");
-                return false;
-            }
-
-            // Check if invite already exists
-            if (_data.HasPendingInvite(civId, religionId))
-            {
-                _sapi.Logger.Warning("[DivineAscension] Invite already sent to this religion");
-                return false;
-            }
-
-            // Check deity diversity (no duplicate deities)
-            var civDeities = GetCivDeityTypes(civId);
-            if (civDeities.Contains(targetReligion.Domain))
-            {
-                _sapi.Logger.Warning($"[DivineAscension] Civilization already has a {targetReligion.Domain} religion");
-                return false;
-            }
-
-            // Create invite
-            var inviteId = Guid.NewGuid().ToString();
-            var invite = new CivilizationInvite(inviteId, civId, religionId, DateTime.UtcNow);
-            _data.AddInvite(invite);
-
+            // Logging OUTSIDE lock
             _sapi.Logger.Notification(
-                $"[DivineAscension] Invited religion '{targetReligion.ReligionName}' to civilization '{civ.Name}'");
+                $"[DivineAscension] Invited religion '{targetReligion.ReligionName}' to civilization '{civName}'");
             return true;
         }
         catch (Exception ex)
@@ -320,59 +367,89 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     {
         try
         {
-            var invite = _data.GetInvite(inviteId);
-            if (invite == null || !invite.IsValid)
+            string? civId;
+            string? religionId;
+
+            lock (_dataLock)
             {
-                _sapi.Logger.Warning("[DivineAscension] Invite not found or expired");
-                return false;
+                var invite = _data.GetInvite(inviteId);
+                if (invite == null || !invite.IsValid)
+                {
+                    _sapi.Logger.Warning("[DivineAscension] Invite not found or expired");
+                    return false;
+                }
+
+                civId = invite.CivId;
+                religionId = invite.ReligionId;
+
+                var civ = _data.Civilizations.GetValueOrDefault(civId);
+                if (civ == null)
+                {
+                    _sapi.Logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
+                    _data.RemoveInvite(inviteId);
+                    return false;
+                }
             }
 
-            var civ = _data.Civilizations.GetValueOrDefault(invite.CivId);
-            if (civ == null)
-            {
-                _sapi.Logger.Warning($"[DivineAscension] Civilization '{invite.CivId}' not found");
-                _data.RemoveInvite(inviteId);
-                return false;
-            }
-
-            var religion = _religionManager.GetReligion(invite.ReligionId);
+            // External call OUTSIDE lock
+            var religion = _religionManager.GetReligion(religionId);
             if (religion == null)
             {
-                _sapi.Logger.Warning($"[DivineAscension] Religion '{invite.ReligionId}' not found");
-                _data.RemoveInvite(inviteId);
+                lock (_dataLock)
+                {
+                    _sapi.Logger.Warning($"[DivineAscension] Religion '{religionId}' not found");
+                    _data.RemoveInvite(inviteId);
+                }
                 return false;
             }
 
-            // Check if accepter is the religion founder
+            // Check if accepter is the religion founder (OUTSIDE lock)
             if (religion.FounderUID != accepterUID)
             {
                 _sapi.Logger.Warning("[DivineAscension] Only religion founder can accept civilization invites");
                 return false;
             }
 
-            // Check if civilization still has space
-            if (civ.MemberReligionIds.Count >= MAX_RELIGIONS)
+            string civName;
+            string religionName = religion.ReligionName;
+            int memberCount = religion.MemberUIDs.Count;
+
+            lock (_dataLock)
             {
-                _sapi.Logger.Warning("[DivineAscension] Civilization is now full");
+                var civ = _data.Civilizations.GetValueOrDefault(civId);
+                if (civ == null)
+                {
+                    _sapi.Logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
+                    return false;
+                }
+
+                // Check if civilization still has space
+                if (civ.MemberReligionIds.Count >= MAX_RELIGIONS)
+                {
+                    _sapi.Logger.Warning("[DivineAscension] Civilization is now full");
+                    _data.RemoveInvite(inviteId);
+                    return false;
+                }
+
+                // Add religion to civilization
+                if (!_data.AddReligionToCivilization(civId, religionId))
+                {
+                    _sapi.Logger.Error("[DivineAscension] Failed to add religion to civilization");
+                    return false;
+                }
+
+                // Update member count
+                civ.MemberCount += memberCount;
+
+                // Remove invite
                 _data.RemoveInvite(inviteId);
-                return false;
+
+                civName = civ.Name;
             }
 
-            // Add religion to civilization
-            if (!_data.AddReligionToCivilization(invite.CivId, invite.ReligionId))
-            {
-                _sapi.Logger.Error("[DivineAscension] Failed to add religion to civilization");
-                return false;
-            }
-
-            // Update member count
-            civ.MemberCount += religion.MemberUIDs.Count;
-
-            // Remove invite
-            _data.RemoveInvite(inviteId);
-
+            // Logging OUTSIDE lock
             _sapi.Logger.Notification(
-                $"[DivineAscension] Religion '{religion.ReligionName}' joined civilization '{civ.Name}'");
+                $"[DivineAscension] Religion '{religionName}' joined civilization '{civName}'");
             return true;
         }
         catch (Exception ex)
@@ -389,42 +466,61 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     {
         try
         {
-            var invite = _data.GetInvite(inviteId);
-            if (invite == null || !invite.IsValid)
+            string? civId;
+            string? religionId;
+            string civName;
+
+            lock (_dataLock)
             {
-                _sapi.Logger.Warning("[DivineAscension] Invite not found or expired");
-                return false;
+                var invite = _data.GetInvite(inviteId);
+                if (invite == null || !invite.IsValid)
+                {
+                    _sapi.Logger.Warning("[DivineAscension] Invite not found or expired");
+                    return false;
+                }
+
+                civId = invite.CivId;
+                religionId = invite.ReligionId;
+
+                var civ = _data.Civilizations.GetValueOrDefault(civId);
+                if (civ == null)
+                {
+                    _sapi.Logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
+                    _data.RemoveInvite(inviteId);
+                    return false;
+                }
+
+                civName = civ.Name;
             }
 
-            var civ = _data.Civilizations.GetValueOrDefault(invite.CivId);
-            if (civ == null)
-            {
-                _sapi.Logger.Warning($"[DivineAscension] Civilization '{invite.CivId}' not found");
-                _data.RemoveInvite(inviteId);
-                return false;
-            }
-
-            var religion = _religionManager.GetReligion(invite.ReligionId);
+            // External call OUTSIDE lock
+            var religion = _religionManager.GetReligion(religionId);
             if (religion == null)
             {
-                _sapi.Logger.Warning($"[DivineAscension] Religion '{invite.ReligionId}' not found");
-                _data.RemoveInvite(inviteId);
+                lock (_dataLock)
+                {
+                    _sapi.Logger.Warning($"[DivineAscension] Religion '{religionId}' not found");
+                    _data.RemoveInvite(inviteId);
+                }
                 return false;
             }
 
-            // Check if decliner is the religion founder
+            // Check if decliner is the religion founder (OUTSIDE lock)
             if (religion.FounderUID != declinerUID)
             {
                 _sapi.Logger.Warning("[DivineAscension] Only religion founder can decline civilization invites");
                 return false;
             }
 
-            // Remove invite
-            _data.RemoveInvite(inviteId);
+            lock (_dataLock)
+            {
+                // Remove invite
+                _data.RemoveInvite(inviteId);
+            }
 
-            // Notify online players in the inviting civilization
-            var civReligions = GetCivReligions(civ.CivId);
-            var message = $"[Civilization] {religion.ReligionName} has declined the invitation to join {civ.Name}.";
+            // Notify online players in the inviting civilization (OUTSIDE lock - player messaging is expensive)
+            var civReligions = GetCivReligions(civId);
+            var message = $"[Civilization] {religion.ReligionName} has declined the invitation to join {civName}.";
 
             foreach (var civReligion in civReligions)
             {
@@ -442,8 +538,9 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
                 }
             }
 
+            // Logging OUTSIDE lock
             _sapi.Logger.Notification(
-                $"[DivineAscension] Religion '{religion.ReligionName}' declined invitation to civilization '{civ.Name}'");
+                $"[DivineAscension] Religion '{religion.ReligionName}' declined invitation to civilization '{civName}'");
             return true;
         }
         catch (Exception ex)
@@ -460,21 +557,32 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     {
         try
         {
-            // First, determine if the religion is part of any civilization.
-            // Prefer the fast lookup map, but also fall back to scanning in case
-            // the map is out of sync with in-memory test manipulations.
-            var civ = _data.GetCivilizationByReligion(religionId);
-            if (civ == null)
-                // Fallback scan for robustness in tests or edge cases
-                civ = _data.Civilizations.Values.FirstOrDefault(c => c.MemberReligionIds.Contains(religionId));
+            Civilization? civ;
+            string civId;
+            string founderUID;
+            bool shouldDisband;
 
-            if (civ == null)
+            lock (_dataLock)
             {
-                _sapi.Logger.Warning("[DivineAscension] Religion is not in a civilization");
-                return false;
+                // First, determine if the religion is part of any civilization.
+                // Prefer the fast lookup map, but also fall back to scanning in case
+                // the map is out of sync with in-memory test manipulations.
+                civ = _data.GetCivilizationByReligion(religionId);
+                if (civ == null)
+                    // Fallback scan for robustness in tests or edge cases
+                    civ = _data.Civilizations.Values.FirstOrDefault(c => c.MemberReligionIds.Contains(religionId));
+
+                if (civ == null)
+                {
+                    _sapi.Logger.Warning("[DivineAscension] Religion is not in a civilization");
+                    return false;
+                }
+
+                civId = civ.CivId;
+                founderUID = civ.FounderUID;
             }
 
-            // Now ensure the religion itself exists
+            // External call OUTSIDE lock
             var religion = _religionManager.GetReligion(religionId);
             if (religion == null)
             {
@@ -482,36 +590,45 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
                 return false;
             }
 
-            // Check if requester is the religion founder
+            // Check if requester is the religion founder (OUTSIDE lock)
             if (religion.FounderUID != requesterUID)
             {
                 _sapi.Logger.Warning("[DivineAscension] Only religion founder can leave civilization");
                 return false;
             }
 
-            // If this is the civilization founder's religion, disband instead
+            // If this is the civilization founder's religion, disband instead (OUTSIDE lock check)
             if (civ.IsFounder(requesterUID))
             {
                 _sapi.Logger.Warning("[DivineAscension] Civilization founder must disband, not leave");
                 return false;
             }
 
-            // Remove religion from civilization
-            _data.RemoveReligionFromCivilization(religionId);
-            civ.MemberCount -= religion.MemberUIDs.Count;
+            string civName;
+            string religionName = religion.ReligionName;
+            int memberCount = religion.MemberUIDs.Count;
 
-
-            // Check if civilization falls below minimum
-            if (civ.MemberReligionIds.Count < MIN_RELIGIONS)
+            lock (_dataLock)
             {
-                DisbandCivilization(civ.CivId, civ.FounderUID);
+                // Remove religion from civilization
+                _data.RemoveReligionFromCivilization(religionId);
+                civ.MemberCount -= memberCount;
+
+                civName = civ.Name;
+                shouldDisband = civ.MemberReligionIds.Count < MIN_RELIGIONS;
+            }
+
+            // Check if civilization falls below minimum (disband OUTSIDE lock)
+            if (shouldDisband)
+            {
+                DisbandCivilization(civId, founderUID);
                 _sapi.Logger.Notification(
-                    $"[DivineAscension] Civilization '{civ.Name}' disbanded (below minimum religions)");
+                    $"[DivineAscension] Civilization '{civName}' disbanded (below minimum religions)");
             }
             else
             {
                 _sapi.Logger.Notification(
-                    $"[DivineAscension] Religion '{religion.ReligionName}' left civilization '{civ.Name}'");
+                    $"[DivineAscension] Religion '{religionName}' left civilization '{civName}'");
             }
 
             return true;
@@ -530,27 +647,36 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     {
         try
         {
-            var civ = _data.Civilizations.GetValueOrDefault(civId);
-            if (civ == null)
+            string founderUID;
+            bool shouldDisband;
+
+            lock (_dataLock)
             {
-                _sapi.Logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
-                return false;
+                var civ = _data.Civilizations.GetValueOrDefault(civId);
+                if (civ == null)
+                {
+                    _sapi.Logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
+                    return false;
+                }
+
+                // Check if kicker is the civilization founder
+                if (!civ.IsFounder(kickerUID))
+                {
+                    _sapi.Logger.Warning("[DivineAscension] Only civilization founder can kick religions");
+                    return false;
+                }
+
+                // Check if religion is a member
+                if (!civ.HasReligion(religionId))
+                {
+                    _sapi.Logger.Warning("[DivineAscension] Religion is not a member of this civilization");
+                    return false;
+                }
+
+                founderUID = civ.FounderUID;
             }
 
-            // Check if kicker is the civilization founder
-            if (!civ.IsFounder(kickerUID))
-            {
-                _sapi.Logger.Warning("[DivineAscension] Only civilization founder can kick religions");
-                return false;
-            }
-
-            // Check if religion is a member
-            if (!civ.HasReligion(religionId))
-            {
-                _sapi.Logger.Warning("[DivineAscension] Religion is not a member of this civilization");
-                return false;
-            }
-
+            // External calls OUTSIDE lock
             var religion = _religionManager.GetReligion(religionId);
             if (religion == null)
             {
@@ -566,21 +692,38 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
                 return false;
             }
 
-            // Remove religion from civilization
-            _data.RemoveReligionFromCivilization(religionId);
-            civ.MemberCount -= religion.MemberUIDs.Count;
+            string civName;
+            string religionName = religion.ReligionName;
+            int memberCount = religion.MemberUIDs.Count;
 
-            // Check if civilization falls below minimum
-            if (civ.MemberReligionIds.Count < MIN_RELIGIONS)
+            lock (_dataLock)
             {
-                DisbandCivilization(civ.CivId, civ.FounderUID);
+                var civ = _data.Civilizations.GetValueOrDefault(civId);
+                if (civ == null)
+                {
+                    _sapi.Logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
+                    return false;
+                }
+
+                // Remove religion from civilization
+                _data.RemoveReligionFromCivilization(religionId);
+                civ.MemberCount -= memberCount;
+
+                civName = civ.Name;
+                shouldDisband = civ.MemberReligionIds.Count < MIN_RELIGIONS;
+            }
+
+            // Check if civilization falls below minimum (disband OUTSIDE lock)
+            if (shouldDisband)
+            {
+                DisbandCivilization(civId, founderUID);
                 _sapi.Logger.Notification(
-                    $"[DivineAscension] Civilization '{civ.Name}' disbanded (below minimum religions)");
+                    $"[DivineAscension] Civilization '{civName}' disbanded (below minimum religions)");
             }
             else
             {
                 _sapi.Logger.Notification(
-                    $"[DivineAscension] Religion '{religion.ReligionName}' kicked from civilization '{civ.Name}'");
+                    $"[DivineAscension] Religion '{religionName}' kicked from civilization '{civName}'");
             }
 
             return true;
@@ -599,33 +742,41 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     {
         try
         {
-            var civ = _data.Civilizations.GetValueOrDefault(civId);
-            if (civ == null)
+            string civName;
+
+            lock (_dataLock)
             {
-                _sapi.Logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
-                return false;
+                var civ = _data.Civilizations.GetValueOrDefault(civId);
+                if (civ == null)
+                {
+                    _sapi.Logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
+                    return false;
+                }
+
+                // Check if requester is the civilization founder
+                if (!civ.IsFounder(requesterUID))
+                {
+                    _sapi.Logger.Warning("[DivineAscension] Only civilization founder can disband");
+                    return false;
+                }
+
+                // Mark as disbanded
+                civ.DisbandedDate = DateTime.UtcNow;
+
+                // Remove all pending invites for this civilization
+                _data.PendingInvites.RemoveAll(i => i.CivId == civId);
+
+                // Remove civilization
+                _data.RemoveCivilization(civId);
+
+                civName = civ.Name;
             }
 
-            // Check if requester is the civilization founder
-            if (!civ.IsFounder(requesterUID))
-            {
-                _sapi.Logger.Warning("[DivineAscension] Only civilization founder can disband");
-                return false;
-            }
-
-            // Mark as disbanded
-            civ.DisbandedDate = DateTime.UtcNow;
-
-            // Remove all pending invites for this civilization
-            _data.PendingInvites.RemoveAll(i => i.CivId == civId);
-
-            // Remove civilization
-            _data.RemoveCivilization(civId);
-
-            // Fire event to notify other systems
+            // Fire event to notify other systems (OUTSIDE lock - event handlers may do expensive work)
             OnCivilizationDisbanded?.Invoke(civId);
 
-            _sapi.Logger.Notification($"[DivineAscension] Civilization '{civ.Name}' disbanded by founder");
+            // Logging OUTSIDE lock
+            _sapi.Logger.Notification($"[DivineAscension] Civilization '{civName}' disbanded by founder");
             return true;
         }
         catch (Exception ex)
@@ -643,27 +794,35 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     {
         try
         {
-            var civ = _data.Civilizations.GetValueOrDefault(civId);
-            if (civ == null)
+            string civName;
+
+            lock (_dataLock)
             {
-                _sapi.Logger.Debug($"[DivineAscension] Civilization '{civId}' not found for forced disband");
-                return;
+                var civ = _data.Civilizations.GetValueOrDefault(civId);
+                if (civ == null)
+                {
+                    _sapi.Logger.Debug($"[DivineAscension] Civilization '{civId}' not found for forced disband");
+                    return;
+                }
+
+                // Mark as disbanded
+                civ.DisbandedDate = DateTime.UtcNow;
+
+                // Remove all pending invites for this civilization
+                _data.PendingInvites.RemoveAll(i => i.CivId == civId);
+
+                // Remove civilization
+                _data.RemoveCivilization(civId);
+
+                civName = civ.Name;
             }
 
-            // Mark as disbanded
-            civ.DisbandedDate = DateTime.UtcNow;
-
-            // Remove all pending invites for this civilization
-            _data.PendingInvites.RemoveAll(i => i.CivId == civId);
-
-            // Remove civilization
-            _data.RemoveCivilization(civId);
-
-            // Fire event to notify other systems (diplomacy cleanup)
+            // Fire event to notify other systems (OUTSIDE lock - diplomacy cleanup may do expensive work)
             OnCivilizationDisbanded?.Invoke(civId);
 
+            // Logging OUTSIDE lock
             _sapi.Logger.Notification(
-                $"[DivineAscension] Civilization '{civ.Name}' forcibly disbanded (invalid state)");
+                $"[DivineAscension] Civilization '{civName}' forcibly disbanded (invalid state)");
         }
         catch (Exception ex)
         {
@@ -684,31 +843,38 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     {
         try
         {
-            var civ = _data.Civilizations.GetValueOrDefault(civId);
-            if (civ == null)
-            {
-                _sapi.Logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
-                return false;
-            }
-
-            // Check if requestor is the civilization founder
-            if (!civ.IsFounder(requestorUID))
-            {
-                _sapi.Logger.Warning("[DivineAscension] Only civilization founder can update icon");
-                return false;
-            }
-
-            // Validate icon name (basic validation)
+            // Validate icon name BEFORE lock
             if (string.IsNullOrWhiteSpace(icon))
             {
                 _sapi.Logger.Warning("[DivineAscension] Icon name cannot be empty");
                 return false;
             }
 
-            // Update icon
-            civ.UpdateIcon(icon);
+            string civName;
+            lock (_dataLock)
+            {
+                var civ = _data.Civilizations.GetValueOrDefault(civId);
+                if (civ == null)
+                {
+                    _sapi.Logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
+                    return false;
+                }
 
-            _sapi.Logger.Notification($"[DivineAscension] Civilization '{civ.Name}' icon updated to '{icon}'");
+                // Check if requestor is the civilization founder
+                if (!civ.IsFounder(requestorUID))
+                {
+                    _sapi.Logger.Warning("[DivineAscension] Only civilization founder can update icon");
+                    return false;
+                }
+
+                // Update icon
+                civ.UpdateIcon(icon);
+
+                civName = civ.Name;
+            }
+
+            // Logging OUTSIDE lock
+            _sapi.Logger.Notification($"[DivineAscension] Civilization '{civName}' icon updated to '{icon}'");
             return true;
         }
         catch (Exception ex)
@@ -729,31 +895,38 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     {
         try
         {
-            var civ = _data.Civilizations.GetValueOrDefault(civId);
-            if (civ == null)
-            {
-                _sapi.Logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
-                return false;
-            }
-
-            // Check if requestor is the civilization founder
-            if (!civ.IsFounder(requestorUID))
-            {
-                _sapi.Logger.Warning("[DivineAscension] Only civilization founder can update description");
-                return false;
-            }
-
-            // Validate description length (max 200 characters, matching religion pattern)
+            // Validate description length BEFORE lock
             if (description.Length > 200)
             {
                 _sapi.Logger.Warning("[DivineAscension] Description must be 200 characters or less");
                 return false;
             }
 
-            // Update description (profanity check is done at command/network handler level)
-            civ.UpdateDescription(description);
+            string civName;
+            lock (_dataLock)
+            {
+                var civ = _data.Civilizations.GetValueOrDefault(civId);
+                if (civ == null)
+                {
+                    _sapi.Logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
+                    return false;
+                }
 
-            _sapi.Logger.Notification($"[DivineAscension] Civilization '{civ.Name}' description updated");
+                // Check if requestor is the civilization founder
+                if (!civ.IsFounder(requestorUID))
+                {
+                    _sapi.Logger.Warning("[DivineAscension] Only civilization founder can update description");
+                    return false;
+                }
+
+                // Update description (profanity check is done at command/network handler level)
+                civ.UpdateDescription(description);
+
+                civName = civ.Name;
+            }
+
+            // Logging OUTSIDE lock
+            _sapi.Logger.Notification($"[DivineAscension] Civilization '{civName}' description updated");
             return true;
         }
         catch (Exception ex)
@@ -772,7 +945,10 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     /// </summary>
     public Civilization? GetCivilization(string civId)
     {
-        return _data.Civilizations.GetValueOrDefault(civId);
+        lock (_dataLock)
+        {
+            return _data.Civilizations.GetValueOrDefault(civId);
+        }
     }
 
     /// <summary>
@@ -780,7 +956,10 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     /// </summary>
     public Civilization? GetCivilizationByReligion(string religionId)
     {
-        return _data.GetCivilizationByReligion(religionId);
+        lock (_dataLock)
+        {
+            return _data.GetCivilizationByReligion(religionId);
+        }
     }
 
     /// <summary>
@@ -788,11 +967,15 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     /// </summary>
     public Civilization? GetCivilizationByPlayer(string playerUID)
     {
+        // External call OUTSIDE lock
         var religion = _religionManager.GetPlayerReligion(playerUID);
         if (religion == null)
             return null;
 
-        return _data.GetCivilizationByReligion(religion.ReligionUID);
+        lock (_dataLock)
+        {
+            return _data.GetCivilizationByReligion(religion.ReligionUID);
+        }
     }
 
     /// <summary>
@@ -800,7 +983,11 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     /// </summary>
     public IEnumerable<Civilization> GetAllCivilizations()
     {
-        return _data.Civilizations.Values;
+        lock (_dataLock)
+        {
+            // Return snapshot to avoid concurrent modification
+            return _data.Civilizations.Values.ToList();
+        }
     }
 
     /// <summary>
@@ -808,12 +995,21 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     /// </summary>
     public HashSet<DeityDomain> GetCivDeityTypes(string civId)
     {
-        var civ = _data.Civilizations.GetValueOrDefault(civId);
-        if (civ == null)
-            return new HashSet<DeityDomain>();
+        List<string> memberReligionIds;
 
+        lock (_dataLock)
+        {
+            var civ = _data.Civilizations.GetValueOrDefault(civId);
+            if (civ == null)
+                return new HashSet<DeityDomain>();
+
+            // Get snapshot of member religion IDs for external calls
+            memberReligionIds = new List<string>(civ.MemberReligionIds);
+        }
+
+        // External calls OUTSIDE lock
         var deities = new HashSet<DeityDomain>();
-        foreach (var religionId in civ.MemberReligionIds)
+        foreach (var religionId in memberReligionIds)
         {
             var religion = _religionManager.GetReligion(religionId);
             if (religion != null) deities.Add(religion.Domain);
@@ -827,12 +1023,21 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     /// </summary>
     public List<ReligionData> GetCivReligions(string civId)
     {
-        var civ = _data.Civilizations.GetValueOrDefault(civId);
-        if (civ == null)
-            return new List<ReligionData>();
+        List<string> memberReligionIds;
 
+        lock (_dataLock)
+        {
+            var civ = _data.Civilizations.GetValueOrDefault(civId);
+            if (civ == null)
+                return new List<ReligionData>();
+
+            // Get snapshot of member religion IDs for external calls
+            memberReligionIds = new List<string>(civ.MemberReligionIds);
+        }
+
+        // External calls OUTSIDE lock
         var religions = new List<ReligionData>();
-        foreach (var religionId in civ.MemberReligionIds)
+        foreach (var religionId in memberReligionIds)
         {
             var religion = _religionManager.GetReligion(religionId);
             if (religion != null) religions.Add(religion);
@@ -846,7 +1051,10 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     /// </summary>
     public List<CivilizationInvite> GetInvitesForReligion(string religionId)
     {
-        return _data.GetInvitesForReligion(religionId);
+        lock (_dataLock)
+        {
+            return _data.GetInvitesForReligion(religionId);
+        }
     }
 
     /// <summary>
@@ -854,7 +1062,10 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     /// </summary>
     public List<CivilizationInvite> GetInvitesForCiv(string civId)
     {
-        return _data.GetInvitesForCivilization(civId);
+        lock (_dataLock)
+        {
+            return _data.GetInvitesForCivilization(civId);
+        }
     }
 
     /// <summary>
@@ -862,7 +1073,16 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     /// </summary>
     public void UpdateMemberCounts()
     {
-        foreach (var civ in _data.Civilizations.Values)
+        List<Civilization> civs;
+
+        lock (_dataLock)
+        {
+            // Get snapshot of civilizations for external calls
+            civs = _data.Civilizations.Values.ToList();
+        }
+
+        // External calls OUTSIDE lock
+        foreach (var civ in civs)
         {
             var totalMembers = 0;
             foreach (var religionId in civ.MemberReligionIds)
@@ -871,7 +1091,10 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
                 if (religion != null) totalMembers += religion.MemberUIDs.Count;
             }
 
-            civ.MemberCount = totalMembers;
+            lock (_dataLock)
+            {
+                civ.MemberCount = totalMembers;
+            }
         }
     }
 
@@ -899,25 +1122,37 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
                 var loadedData = SerializerUtil.Deserialize<CivilizationWorldData>(data);
                 if (loadedData != null)
                 {
-                    _data = loadedData;
-                    _sapi.Logger.Notification($"[DivineAscension] Loaded {_data.Civilizations.Count} civilizations");
+                    lock (_dataLock)
+                    {
+                        _data = loadedData;
+                    }
+                    _sapi.Logger.Notification($"[DivineAscension] Loaded {loadedData.Civilizations.Count} civilizations");
                 }
                 else
                 {
                     _sapi.Logger.Warning("[DivineAscension] Failed to deserialize civilization data");
-                    _data = new CivilizationWorldData();
+                    lock (_dataLock)
+                    {
+                        _data = new CivilizationWorldData();
+                    }
                 }
             }
             else
             {
                 _sapi.Logger.Debug("[DivineAscension] No civilization data found, starting fresh");
-                _data = new CivilizationWorldData();
+                lock (_dataLock)
+                {
+                    _data = new CivilizationWorldData();
+                }
             }
         }
         catch (Exception ex)
         {
             _sapi.Logger.Error($"[DivineAscension] Failed to load civilizations: {ex.Message}");
-            _data = new CivilizationWorldData();
+            lock (_dataLock)
+            {
+                _data = new CivilizationWorldData();
+            }
         }
     }
 
@@ -925,9 +1160,18 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
     {
         try
         {
-            var serializedData = SerializerUtil.Serialize(_data);
+            byte[] serializedData;
+            int count;
+
+            lock (_dataLock)
+            {
+                serializedData = SerializerUtil.Serialize(_data);
+                count = _data.Civilizations.Count;
+            }
+
+            // Expensive I/O operation OUTSIDE lock
             _sapi.WorldManager.SaveGame.StoreData(DATA_KEY, serializedData);
-            _sapi.Logger.Debug($"[DivineAscension] Saved {_data.Civilizations.Count} civilizations");
+            _sapi.Logger.Debug($"[DivineAscension] Saved {count} civilizations");
         }
         catch (Exception ex)
         {

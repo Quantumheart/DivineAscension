@@ -19,6 +19,7 @@ public class DiplomacyManager : IDiplomacyManager
     private readonly IReligionManager _religionManager;
     private readonly ICoreServerAPI _sapi;
     private DiplomacyWorldData _data = new();
+    private readonly object _dataLock = new(); // Thread-safety lock for all _data access
 
     public DiplomacyManager(
         ICoreServerAPI sapi,
@@ -64,39 +65,50 @@ public class DiplomacyManager : IDiplomacyManager
 
     private void OnSaveGameLoaded()
     {
-        _data = _sapi.WorldManager.SaveGame.GetData<DiplomacyWorldData>(DiplomacyConstants.DataKey);
-        if (_data == null)
+        lock (_dataLock)
         {
-            _data = new DiplomacyWorldData();
-            _sapi.Logger.Notification($"{DiplomacyConstants.LogPrefix} No existing diplomacy data found, creating new");
-        }
-        else
-        {
-            _sapi.Logger.Notification(
-                $"{DiplomacyConstants.LogPrefix} Loaded diplomacy data: {_data.Relationships.Count} relationships");
+            _data = _sapi.WorldManager.SaveGame.GetData<DiplomacyWorldData>(DiplomacyConstants.DataKey);
+            if (_data == null)
+            {
+                _data = new DiplomacyWorldData();
+                _sapi.Logger.Notification($"{DiplomacyConstants.LogPrefix} No existing diplomacy data found, creating new");
+            }
+            else
+            {
+                _sapi.Logger.Notification(
+                    $"{DiplomacyConstants.LogPrefix} Loaded diplomacy data: {_data.Relationships.Count} relationships");
+            }
         }
 
-        // Run cleanup on load
+        // Run cleanup on load (outside lock - calls methods that acquire their own locks)
         CleanupExpiredData();
     }
 
     private void OnGameWorldSave()
     {
+        // Cleanup first (acquires its own locks)
         CleanupExpiredData();
-        _sapi.WorldManager.SaveGame.StoreData(DiplomacyConstants.DataKey, _data);
-        _sapi.Logger.Debug(
-            $"{DiplomacyConstants.LogPrefix} Saved diplomacy data: {_data.Relationships.Count} relationships");
+
+        lock (_dataLock)
+        {
+            _sapi.WorldManager.SaveGame.StoreData(DiplomacyConstants.DataKey, _data);
+            _sapi.Logger.Debug(
+                $"{DiplomacyConstants.LogPrefix} Saved diplomacy data: {_data.Relationships.Count} relationships");
+        }
     }
 
     private void HandleCivilizationDisbanded(string civId)
     {
         _sapi.Logger.Debug($"{DiplomacyConstants.LogPrefix} Handling civilization disbanded: {civId}");
 
-        // Remove all relationships involving this civilization
-        _data.RemoveRelationshipsForCiv(civId);
+        lock (_dataLock)
+        {
+            // Remove all relationships involving this civilization
+            _data.RemoveRelationshipsForCiv(civId);
 
-        // Remove all proposals involving this civilization
-        _data.RemoveProposalsForCiv(civId);
+            // Remove all proposals involving this civilization
+            _data.RemoveProposalsForCiv(civId);
+        }
 
         _sapi.Logger.Debug(
             $"{DiplomacyConstants.LogPrefix} Cleaned up diplomacy data for disbanded civilization: {civId}");
@@ -140,15 +152,6 @@ public class DiplomacyManager : IDiplomacyManager
         if (proposedStatus == DiplomaticStatus.War)
             return (false, "Use DeclareWar to enter war status", null);
 
-        // Check if relationship already exists
-        var existingRelationship = _data.GetRelationship(proposerCivId, targetCivId);
-        if (existingRelationship != null)
-            return (false, $"A diplomatic relationship already exists: {existingRelationship.Status}", null);
-
-        // Check if there's already a pending proposal
-        if (_data.HasPendingProposal(proposerCivId, targetCivId))
-            return (false, "You already have a pending proposal to this civilization", null);
-
         // Check rank requirements
         var (hasRank, rankMessage) = ValidateRankRequirement(proposerCivId, proposedStatus);
         if (!hasRank)
@@ -165,7 +168,19 @@ public class DiplomacyManager : IDiplomacyManager
             duration
         );
 
-        _data.AddProposal(proposal);
+        lock (_dataLock)
+        {
+            // Check if relationship already exists
+            var existingRelationship = _data.GetRelationship(proposerCivId, targetCivId);
+            if (existingRelationship != null)
+                return (false, $"A diplomatic relationship already exists: {existingRelationship.Status}", null);
+
+            // Check if there's already a pending proposal
+            if (_data.HasPendingProposal(proposerCivId, targetCivId))
+                return (false, "You already have a pending proposal to this civilization", null);
+
+            _data.AddProposal(proposal);
+        }
 
         _sapi.Logger.Notification(
             $"{DiplomacyConstants.LogPrefix} {proposerCiv.Name} proposed {proposedStatus} to {targetCiv.Name}");
@@ -176,14 +191,18 @@ public class DiplomacyManager : IDiplomacyManager
     public (bool success, string message, string? relationshipId) AcceptProposal(string proposalId,
         string acceptorFounderUID)
     {
-        var proposal = _data.GetProposal(proposalId);
-        if (proposal == null)
-            return (false, "Proposal not found", null);
-
-        if (!proposal.IsValid)
+        DiplomaticProposal? proposal;
+        lock (_dataLock)
         {
-            _data.RemoveProposal(proposalId);
-            return (false, "Proposal has expired", null);
+            proposal = _data.GetProposal(proposalId);
+            if (proposal == null)
+                return (false, "Proposal not found", null);
+
+            if (!proposal.IsValid)
+            {
+                _data.RemoveProposal(proposalId);
+                return (false, "Proposal has expired", null);
+            }
         }
 
         var targetCiv = _civilizationManager.GetCivilization(proposal.TargetCivId);
@@ -199,7 +218,10 @@ public class DiplomacyManager : IDiplomacyManager
             ValidateRankRequirement(proposal.ProposerCivId, proposal.ProposedStatus);
         if (!proposerHasRank)
         {
-            _data.RemoveProposal(proposalId);
+            lock (_dataLock)
+            {
+                _data.RemoveProposal(proposalId);
+            }
             return (false, $"Proposer no longer meets requirements: {proposerMessage}", null);
         }
 
@@ -225,8 +247,11 @@ public class DiplomacyManager : IDiplomacyManager
             expiresDate
         );
 
-        _data.AddRelationship(relationship);
-        _data.RemoveProposal(proposalId);
+        lock (_dataLock)
+        {
+            _data.AddRelationship(relationship);
+            _data.RemoveProposal(proposalId);
+        }
 
         // Fire event
         OnRelationshipEstablished?.Invoke(proposal.ProposerCivId, proposal.TargetCivId, proposal.ProposedStatus);
@@ -240,9 +265,13 @@ public class DiplomacyManager : IDiplomacyManager
 
     public (bool success, string message) DeclineProposal(string proposalId, string declinerFounderUID)
     {
-        var proposal = _data.GetProposal(proposalId);
-        if (proposal == null)
-            return (false, "Proposal not found");
+        DiplomaticProposal? proposal;
+        lock (_dataLock)
+        {
+            proposal = _data.GetProposal(proposalId);
+            if (proposal == null)
+                return (false, "Proposal not found");
+        }
 
         var targetCiv = _civilizationManager.GetCivilization(proposal.TargetCivId);
         if (targetCiv == null)
@@ -252,7 +281,10 @@ public class DiplomacyManager : IDiplomacyManager
         if (targetCiv.FounderUID != declinerFounderUID)
             return (false, "Only the civilization founder can decline diplomatic proposals");
 
-        _data.RemoveProposal(proposalId);
+        lock (_dataLock)
+        {
+            _data.RemoveProposal(proposalId);
+        }
 
         _sapi.Logger.Debug(
             $"{DiplomacyConstants.LogPrefix} {targetCiv.Name} declined proposal from {proposal.ProposerCivId}");
@@ -266,21 +298,28 @@ public class DiplomacyManager : IDiplomacyManager
 
     public (bool success, string message) ScheduleBreak(string civId, string otherCivId, string founderUID)
     {
-        var relationship = _data.GetRelationship(civId, otherCivId);
-        if (relationship == null)
-            return (false, "No diplomatic relationship exists");
+        DiplomaticRelationship? relationship;
+        lock (_dataLock)
+        {
+            relationship = _data.GetRelationship(civId, otherCivId);
+            if (relationship == null)
+                return (false, "No diplomatic relationship exists");
+        }
 
         var civ = _civilizationManager.GetCivilization(civId);
         if (civ == null || !civ.IsFounder(founderUID))
             return (false, "Only the civilization founder can schedule treaty breaks");
 
-        if (relationship.Status == DiplomaticStatus.War || relationship.Status == DiplomaticStatus.Neutral)
-            return (false, "Cannot schedule break for this relationship type");
+        lock (_dataLock)
+        {
+            if (relationship.Status == DiplomaticStatus.War || relationship.Status == DiplomaticStatus.Neutral)
+                return (false, "Cannot schedule break for this relationship type");
 
-        if (relationship.BreakScheduledDate != null)
-            return (false, "Treaty break is already scheduled");
+            if (relationship.BreakScheduledDate != null)
+                return (false, "Treaty break is already scheduled");
 
-        relationship.BreakScheduledDate = DateTime.UtcNow.AddHours(DiplomacyConstants.TreatyBreakWarningHours);
+            relationship.BreakScheduledDate = DateTime.UtcNow.AddHours(DiplomacyConstants.TreatyBreakWarningHours);
+        }
 
         _sapi.Logger.Notification(
             $"{DiplomacyConstants.LogPrefix} {civ.Name} scheduled treaty break with {otherCivId} (24 hours)");
@@ -290,18 +329,25 @@ public class DiplomacyManager : IDiplomacyManager
 
     public (bool success, string message) CancelScheduledBreak(string civId, string otherCivId, string founderUID)
     {
-        var relationship = _data.GetRelationship(civId, otherCivId);
-        if (relationship == null)
-            return (false, "No diplomatic relationship exists");
+        DiplomaticRelationship? relationship;
+        lock (_dataLock)
+        {
+            relationship = _data.GetRelationship(civId, otherCivId);
+            if (relationship == null)
+                return (false, "No diplomatic relationship exists");
+        }
 
         var civ = _civilizationManager.GetCivilization(civId);
         if (civ == null || !civ.IsFounder(founderUID))
             return (false, "Only the civilization founder can cancel scheduled treaty breaks");
 
-        if (relationship.BreakScheduledDate == null)
-            return (false, "No treaty break is scheduled");
+        lock (_dataLock)
+        {
+            if (relationship.BreakScheduledDate == null)
+                return (false, "No treaty break is scheduled");
 
-        relationship.BreakScheduledDate = null;
+            relationship.BreakScheduledDate = null;
+        }
 
         _sapi.Logger.Debug(
             $"{DiplomacyConstants.LogPrefix} {civ.Name} canceled scheduled treaty break with {otherCivId}");
@@ -331,25 +377,6 @@ public class DiplomacyManager : IDiplomacyManager
         if (!targetCiv.IsValid)
             return (false, "Target civilization is invalid");
 
-        // Remove existing relationship if any
-        var existingRelationship = _data.GetRelationship(declarerCivId, targetCivId);
-        if (existingRelationship != null)
-        {
-            OnRelationshipEnded?.Invoke(declarerCivId, targetCivId, existingRelationship.Status);
-            _data.RemoveRelationship(existingRelationship.RelationshipId);
-        }
-
-        // Cancel any pending proposals
-        var pendingProposals = _data.PendingProposals
-            .Where(p => (p.ProposerCivId == declarerCivId && p.TargetCivId == targetCivId) ||
-                        (p.ProposerCivId == targetCivId && p.TargetCivId == declarerCivId))
-            .ToList();
-
-        foreach (var proposal in pendingProposals)
-        {
-            _data.RemoveProposal(proposal.ProposalId);
-        }
-
         // Create war relationship
         var relationshipId = Guid.NewGuid().ToString();
         var relationship = new DiplomaticRelationship(
@@ -361,9 +388,35 @@ public class DiplomacyManager : IDiplomacyManager
             null // War doesn't expire
         );
 
-        _data.AddRelationship(relationship);
+        DiplomaticRelationship? existingRelationship = null;
+        lock (_dataLock)
+        {
+            // Remove existing relationship if any
+            existingRelationship = _data.GetRelationship(declarerCivId, targetCivId);
+            if (existingRelationship != null)
+            {
+                _data.RemoveRelationship(existingRelationship.RelationshipId);
+            }
+
+            // Cancel any pending proposals
+            var pendingProposals = _data.PendingProposals
+                .Where(p => (p.ProposerCivId == declarerCivId && p.TargetCivId == targetCivId) ||
+                            (p.ProposerCivId == targetCivId && p.TargetCivId == declarerCivId))
+                .ToList();
+
+            foreach (var proposal in pendingProposals)
+            {
+                _data.RemoveProposal(proposal.ProposalId);
+            }
+
+            _data.AddRelationship(relationship);
+        }
 
         // Fire events
+        if (existingRelationship != null)
+        {
+            OnRelationshipEnded?.Invoke(declarerCivId, targetCivId, existingRelationship.Status);
+        }
         OnWarDeclared?.Invoke(declarerCivId, targetCivId);
         OnRelationshipEstablished?.Invoke(declarerCivId, targetCivId, DiplomaticStatus.War);
 
@@ -375,20 +428,29 @@ public class DiplomacyManager : IDiplomacyManager
 
     public (bool success, string message) DeclarePeace(string civId, string otherCivId, string founderUID)
     {
-        var relationship = _data.GetRelationship(civId, otherCivId);
-        if (relationship == null)
-            return (false, "No diplomatic relationship exists");
+        DiplomaticRelationship? relationship;
+        lock (_dataLock)
+        {
+            relationship = _data.GetRelationship(civId, otherCivId);
+            if (relationship == null)
+                return (false, "No diplomatic relationship exists");
 
-        if (relationship.Status != DiplomaticStatus.War)
-            return (false, "Can only declare peace from war status");
+            if (relationship.Status != DiplomaticStatus.War)
+                return (false, "Can only declare peace from war status");
+        }
 
         var civ = _civilizationManager.GetCivilization(civId);
         if (civ == null || !civ.IsFounder(founderUID))
             return (false, "Only the civilization founder can declare peace");
 
-        // Remove war relationship
+        lock (_dataLock)
+        {
+            // Remove war relationship
+            _data.RemoveRelationship(relationship.RelationshipId);
+        }
+
+        // Fire event
         OnRelationshipEnded?.Invoke(civId, otherCivId, DiplomaticStatus.War);
-        _data.RemoveRelationship(relationship.RelationshipId);
 
         var otherCiv = _civilizationManager.GetCivilization(otherCivId);
         _sapi.Logger.Notification($"{DiplomacyConstants.LogPrefix} {civ.Name} declared peace with {otherCiv?.Name}");
@@ -402,35 +464,52 @@ public class DiplomacyManager : IDiplomacyManager
 
     public int RecordPvPViolation(string attackerCivId, string victimCivId)
     {
-        var relationship = _data.GetRelationship(attackerCivId, victimCivId);
-        if (relationship == null)
-            return 0;
+        DiplomaticRelationship? relationship;
+        int violationCount;
+        DiplomaticStatus? statusToEnd = null;
 
-        if (relationship.Status != DiplomaticStatus.Alliance &&
-            relationship.Status != DiplomaticStatus.NonAggressionPact)
-            return 0;
+        lock (_dataLock)
+        {
+            relationship = _data.GetRelationship(attackerCivId, victimCivId);
+            if (relationship == null)
+                return 0;
 
-        relationship.RecordViolation();
+            if (relationship.Status != DiplomaticStatus.Alliance &&
+                relationship.Status != DiplomaticStatus.NonAggressionPact)
+                return 0;
+
+            relationship.RecordViolation();
+            violationCount = relationship.ViolationCount;
+
+            // Auto-break on 3rd violation
+            if (violationCount >= DiplomacyConstants.MaxViolations)
+            {
+                statusToEnd = relationship.Status;
+                _data.RemoveRelationship(relationship.RelationshipId);
+            }
+        }
 
         _sapi.Logger.Warning(
-            $"{DiplomacyConstants.LogPrefix} PvP violation recorded: {attackerCivId} attacked {victimCivId} (count: {relationship.ViolationCount}/{DiplomacyConstants.MaxViolations})");
+            $"{DiplomacyConstants.LogPrefix} PvP violation recorded: {attackerCivId} attacked {victimCivId} (count: {violationCount}/{DiplomacyConstants.MaxViolations})");
 
-        // Auto-break on 3rd violation
-        if (relationship.ViolationCount >= DiplomacyConstants.MaxViolations)
+        if (statusToEnd.HasValue)
         {
             _sapi.Logger.Notification(
                 $"{DiplomacyConstants.LogPrefix} Treaty auto-broken due to {DiplomacyConstants.MaxViolations} violations");
-            OnRelationshipEnded?.Invoke(attackerCivId, victimCivId, relationship.Status);
-            _data.RemoveRelationship(relationship.RelationshipId);
+            OnRelationshipEnded?.Invoke(attackerCivId, victimCivId, statusToEnd.Value);
             return 0; // Relationship no longer exists
         }
 
-        return relationship.ViolationCount;
+        return violationCount;
     }
 
     public double GetFavorMultiplier(string attackerCivId, string victimCivId)
     {
-        var status = GetDiplomaticStatus(attackerCivId, victimCivId);
+        DiplomaticStatus status;
+        lock (_dataLock)
+        {
+            status = _data.GetDiplomaticStatus(attackerCivId, victimCivId);
+        }
 
         return status switch
         {
@@ -446,22 +525,34 @@ public class DiplomacyManager : IDiplomacyManager
 
     public DiplomaticStatus GetDiplomaticStatus(string civId1, string civId2)
     {
-        return _data.GetDiplomaticStatus(civId1, civId2);
+        lock (_dataLock)
+        {
+            return _data.GetDiplomaticStatus(civId1, civId2);
+        }
     }
 
     public List<DiplomaticRelationship> GetRelationshipsForCiv(string civId)
     {
-        return _data.GetRelationshipsForCiv(civId);
+        lock (_dataLock)
+        {
+            return _data.GetRelationshipsForCiv(civId);
+        }
     }
 
     public List<DiplomaticProposal> GetProposalsForCiv(string civId)
     {
-        return _data.GetProposalsForCiv(civId);
+        lock (_dataLock)
+        {
+            return _data.GetProposalsForCiv(civId);
+        }
     }
 
     public DiplomaticRelationship? GetRelationship(string relationshipId)
     {
-        return _data.Relationships.TryGetValue(relationshipId, out var relationship) ? relationship : null;
+        lock (_dataLock)
+        {
+            return _data.Relationships.TryGetValue(relationshipId, out var relationship) ? relationship : null;
+        }
     }
 
     #endregion
@@ -522,28 +613,41 @@ public class DiplomacyManager : IDiplomacyManager
 
     private void CleanupExpiredData()
     {
-        // Cleanup expired proposals
-        var expiredProposals = _data.CleanupExpiredProposals();
+        int expiredProposals;
+        int expiredRelationships;
+        List<DiplomaticRelationship> relationshipsToBreak;
+
+        lock (_dataLock)
+        {
+            // Cleanup expired proposals
+            expiredProposals = _data.CleanupExpiredProposals();
+
+            // Cleanup expired relationships (NAP)
+            expiredRelationships = _data.CleanupExpiredRelationships();
+
+            // Process scheduled breaks
+            relationshipsToBreak = _data.Relationships.Values
+                .Where(r => r.BreakScheduledDate.HasValue && DateTime.UtcNow >= r.BreakScheduledDate.Value)
+                .ToList();
+
+            foreach (var relationship in relationshipsToBreak)
+            {
+                _data.RemoveRelationship(relationship.RelationshipId);
+            }
+        }
+
         if (expiredProposals > 0)
             _sapi.Logger.Debug($"{DiplomacyConstants.LogPrefix} Cleaned up {expiredProposals} expired proposals");
 
-        // Cleanup expired relationships (NAP)
-        var expiredRelationships = _data.CleanupExpiredRelationships();
         if (expiredRelationships > 0)
             _sapi.Logger.Debug(
                 $"{DiplomacyConstants.LogPrefix} Cleaned up {expiredRelationships} expired relationships");
-
-        // Process scheduled breaks
-        var relationshipsToBreak = _data.Relationships.Values
-            .Where(r => r.BreakScheduledDate.HasValue && DateTime.UtcNow >= r.BreakScheduledDate.Value)
-            .ToList();
 
         foreach (var relationship in relationshipsToBreak)
         {
             _sapi.Logger.Notification(
                 $"{DiplomacyConstants.LogPrefix} Executing scheduled treaty break for relationship {relationship.RelationshipId}");
             OnRelationshipEnded?.Invoke(relationship.CivId1, relationship.CivId2, relationship.Status);
-            _data.RemoveRelationship(relationship.RelationshipId);
         }
     }
 
