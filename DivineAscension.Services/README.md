@@ -12,19 +12,29 @@ This project **multi-targets** both .NET 8 and .NET 9:
 
 ## Architecture
 
-### Current State (Phase 1)
+### Current State (Phases 1-2 Complete)
 
-The project is currently empty - this is the infrastructure setup phase.
+The project infrastructure is set up with abstraction interfaces defined:
 
-### Future State (Phases 2-7)
+- **Abstractions/**: ✅ Interfaces for VS API dependencies
+  - `ILogger`: Logging abstraction
+  - `IWorldPersistence`: Save game data storage abstraction
+  - `IPlayerProvider`: Player information lookup abstraction
 
-Will contain:
+Corresponding adapters are implemented in the main mod (`DivineAscension/Adapters/`):
 
-- **Abstractions/**: Interfaces for VS API dependencies (ILogger, IWorldPersistence, IPlayerProvider)
-- **Managers/**: Core business logic managers with optimized locking
-- **Data/**: Data classes (ReligionData, CivilizationData, etc.)
-- **Models/**: Domain models (Blessing, RolePermissions, etc.)
-- **Enums/**: Enumerations (DeityDomain, FavorRank, etc.)
+- `VintageStoryLogger`: Adapts VS logger to ILogger
+- `VintageStoryPersistence`: Adapts VS save game API to IWorldPersistence
+- `VintageStoryPlayerProvider`: Adapts VS player API to IPlayerProvider
+
+### Future State (Phases 3-7)
+
+Will also contain:
+
+- **Managers/**: Core business logic managers with optimized locking (Phase 5)
+- **Data/**: Data classes (ReligionData, CivilizationData, etc.) (Phase 4)
+- **Models/**: Domain models (Blessing, RolePermissions, etc.) (Phase 3)
+- **Enums/**: Enumerations (DeityDomain, FavorRank, etc.) (Phase 3)
 
 ## Performance Optimizations
 
