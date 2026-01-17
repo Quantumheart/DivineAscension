@@ -170,12 +170,10 @@ public static class TestFixtures
         int favor = 100,
         int totalFavorEarned = 500)
     {
-        return new PlayerProgressionData()
+        return new PlayerProgressionData(playerUID)
         {
-            Id = playerUID,
             Favor = favor,
-            TotalFavorEarned = totalFavorEarned,
-            UnlockedBlessings = new()
+            TotalFavorEarned = totalFavorEarned
         };
     }
 
