@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
-using DivineAscension.Services;
 using DivineAscension.Systems;
 using Moq;
 using Vintagestory.API.Common;
@@ -20,18 +19,20 @@ namespace DivineAscension.Tests.Systems.Threading;
 public class ReligionManagerConcurrencyTests
 {
     private readonly Mock<ICoreServerAPI> _mockSapi;
+    private readonly Mock<ILogger> _mockLogger;
 
     public ReligionManagerConcurrencyTests()
     {
         _mockSapi = new Mock<ICoreServerAPI>();
-        _mockSapi.Setup(x => x.Logger).Returns(Mock.Of<ILogger>());
+        _mockLogger = new Mock<ILogger>();
+        _mockSapi.Setup(x => x.Logger).Returns(_mockLogger.Object);
     }
 
     [Fact]
     public void ConcurrentReligionCreation_ShouldNotCorruptState()
     {
         // Arrange
-        var manager = new ReligionManager(_mockSapi.Object, LocalizationService.Instance);
+        var manager = new ReligionManager(_mockSapi.Object);
         const int concurrentCreations = 50;
         var tasks = new Task<(bool success, string religionUID, string error)>[concurrentCreations];
 
@@ -66,7 +67,7 @@ public class ReligionManagerConcurrencyTests
     public void ConcurrentMembershipOperations_ShouldMaintainConsistency()
     {
         // Arrange
-        var manager = new ReligionManager(_mockSapi.Object, LocalizationService.Instance);
+        var manager = new ReligionManager(_mockSapi.Object);
         var (success, religionUID, _) = manager.CreateReligion(
             "founder",
             "Test Religion",
@@ -108,7 +109,7 @@ public class ReligionManagerConcurrencyTests
     public void ConcurrentAddAndRemoveMembers_ShouldNotDeadlock()
     {
         // Arrange
-        var manager = new ReligionManager(_mockSapi.Object, LocalizationService.Instance);
+        var manager = new ReligionManager(_mockSapi.Object);
         var (success, religionUID, _) = manager.CreateReligion(
             "founder",
             "Test Religion",
@@ -165,7 +166,7 @@ public class ReligionManagerConcurrencyTests
     public void ConcurrentReadsAndWrites_ShouldProduceConsistentResults()
     {
         // Arrange
-        var manager = new ReligionManager(_mockSapi.Object, LocalizationService.Instance);
+        var manager = new ReligionManager(_mockSapi.Object);
         var (success, religionUID, _) = manager.CreateReligion(
             "founder",
             "Test Religion",
@@ -221,7 +222,7 @@ public class ReligionManagerConcurrencyTests
     public void ConcurrentReligionDeletion_ShouldNotCauseRaceConditions()
     {
         // Arrange
-        var manager = new ReligionManager(_mockSapi.Object, LocalizationService.Instance);
+        var manager = new ReligionManager(_mockSapi.Object);
         const int religionCount = 20;
         var religionUids = new List<string>();
 
@@ -274,7 +275,7 @@ public class ReligionManagerConcurrencyTests
     public void StressTest_MixedOperations_ShouldMaintainConsistency()
     {
         // Arrange
-        var manager = new ReligionManager(_mockSapi.Object, LocalizationService.Instance);
+        var manager = new ReligionManager(_mockSapi.Object);
         const int duration = 5; // 5 seconds
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(duration));
         var createdReligions = new System.Collections.Concurrent.ConcurrentBag<string>();

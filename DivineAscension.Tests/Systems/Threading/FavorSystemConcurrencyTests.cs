@@ -18,6 +18,7 @@ namespace DivineAscension.Tests.Systems.Threading;
 public class FavorSystemConcurrencyTests
 {
     private readonly Mock<ICoreServerAPI> _mockSapi;
+    private readonly Mock<ILogger> _mockLogger;
     private readonly Mock<IPlayerProgressionDataManager> _mockPlayerDataManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
     private readonly Mock<IReligionPrestigeManager> _mockPrestigeManager;
@@ -27,7 +28,8 @@ public class FavorSystemConcurrencyTests
     public FavorSystemConcurrencyTests()
     {
         _mockSapi = new Mock<ICoreServerAPI>();
-        _mockSapi.Setup(x => x.Logger).Returns(Mock.Of<ILogger>());
+        _mockLogger = new Mock<ILogger>();
+        _mockSapi.Setup(x => x.Logger).Returns(_mockLogger.Object);
 
         _mockPlayerDataManager = new Mock<IPlayerProgressionDataManager>();
         _mockReligionManager = new Mock<IReligionManager>();
