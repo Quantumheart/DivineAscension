@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using ProtoBuf;
@@ -14,9 +15,20 @@ namespace DivineAscension.Data;
 [ProtoContract]
 public class ReligionData
 {
-    // Thread-safety: Lazy lock initialization (handles ProtoBuf deserialization)
+    // Thread-safety: Lazy lock initialization using Interlocked.CompareExchange
+    // This is safe for ProtoBuf deserialization and avoids race conditions
     [ProtoIgnore] private object? _lock;
-    [ProtoIgnore] private object Lock => _lock ??= new object();
+    [ProtoIgnore] private object Lock
+    {
+        get
+        {
+            if (_lock == null)
+            {
+                Interlocked.CompareExchange(ref _lock, new object(), null);
+            }
+            return _lock;
+        }
+    }
     /// <summary>
     ///     Creates a new religion with the specified parameters
     /// </summary>
@@ -472,18 +484,21 @@ public class ReligionData
     /// </summary>
     public void AddFractionalPrestige(float amount)
     {
-        if (amount > 0)
+        lock (Lock)
         {
-            AccumulatedFractionalPrestige += amount;
-
-            // Award integer prestige when we have accumulated >= 1.0
-            if (AccumulatedFractionalPrestige >= 1.0f)
+            if (amount > 0)
             {
-                var prestigeToAward = (int)AccumulatedFractionalPrestige;
-                AccumulatedFractionalPrestige -= prestigeToAward; // Keep the fractional remainder
+                AccumulatedFractionalPrestige += amount;
 
-                Prestige += prestigeToAward;
-                TotalPrestige += prestigeToAward;
+                // Award integer prestige when we have accumulated >= 1.0
+                if (AccumulatedFractionalPrestige >= 1.0f)
+                {
+                    var prestigeToAward = (int)AccumulatedFractionalPrestige;
+                    AccumulatedFractionalPrestige -= prestigeToAward; // Keep the fractional remainder
+
+                    Prestige += prestigeToAward;
+                    TotalPrestige += prestigeToAward;
+                }
             }
         }
     }
@@ -554,11 +569,14 @@ public class ReligionData
     /// </summary>
     public void AddPrestige(int amount)
     {
-        if (amount > 0)
+        lock (Lock)
         {
-            Prestige += amount;
-            TotalPrestige += amount;
-            UpdatePrestigeRank();
+            if (amount > 0)
+            {
+                Prestige += amount;
+                TotalPrestige += amount;
+                UpdatePrestigeRank();
+            }
         }
     }
 

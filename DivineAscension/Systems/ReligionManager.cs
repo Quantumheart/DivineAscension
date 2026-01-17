@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
@@ -26,8 +27,20 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     private ReligionWorldData _inviteData = new();
 
     // Lock for atomic operations that span multiple collections
+    // TODO: This lock is currently unused - implement locking for multi-collection operations
+    // or remove if ConcurrentDictionary atomicity is sufficient
     private object? _lock;
-    private object Lock => _lock ??= new object();
+    private object Lock
+    {
+        get
+        {
+            if (_lock == null)
+            {
+                Interlocked.CompareExchange(ref _lock, new object(), null);
+            }
+            return _lock;
+        }
+    }
 
     internal IReadOnlyDictionary<string, string> PlayerToReligionIndex => _playerToReligionIndex;
 
