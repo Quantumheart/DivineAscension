@@ -78,7 +78,7 @@ public class ReligionManagerConcurrencyTests
         Assert.True(success);
 
         const int concurrentPlayers = 100;
-        var tasks = new Task<(bool success, string error)>[concurrentPlayers];
+        var tasks = new Task[concurrentPlayers];
 
         // Act - Add 100 players concurrently
         for (int i = 0; i < concurrentPlayers; i++)
@@ -245,7 +245,7 @@ public class ReligionManagerConcurrencyTests
             }
         }
 
-        var tasks = new Task<(bool success, string error)>[religionCount];
+        var tasks = new Task<bool>[religionCount];
 
         // Act - Delete all religions concurrently
         for (int i = 0; i < religionCount; i++)
