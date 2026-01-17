@@ -196,7 +196,10 @@ public class DivineAscensionModSystem : ModSystem
         var configCommands = new ConfigCommands(
             api,
             SetProfanityFilterEnabled,
-            () => _configData.ProfanityFilterEnabled);
+            () => _configData.ProfanityFilterEnabled,
+            _cooldownManager!,
+            _configData,
+            SaveModConfig);
         configCommands.RegisterCommands();
 
         api.Logger.Notification("[DivineAscension] Server-side initialization complete");

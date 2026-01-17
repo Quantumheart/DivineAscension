@@ -69,6 +69,13 @@ public class CooldownManager : ICooldownManager
         if (string.IsNullOrWhiteSpace(playerUID))
             throw new ArgumentException("PlayerUID cannot be null or empty", nameof(playerUID));
 
+        // Check if cooldowns are disabled globally
+        if (!_config.CooldownsEnabled)
+        {
+            errorMessage = null;
+            return true;
+        }
+
         // Check if player is admin (bypass cooldowns)
         var player = _sapi.World.PlayerByUid(playerUID);
         if (player != null && Array.IndexOf(player.Privileges, Privilege.root) >= 0)
