@@ -3,7 +3,6 @@ using System.Linq;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
-using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
@@ -17,7 +16,6 @@ public class ConfigCommands
     private readonly Func<bool> _getProfanityFilterEnabled;
     private readonly ICoreServerAPI _sapi;
     private readonly Action<bool> _setProfanityFilterEnabled;
-    private readonly ICooldownManager _cooldownManager;
     private readonly ModConfigData _modConfig;
     private readonly Action _saveConfig;
 
@@ -27,14 +25,12 @@ public class ConfigCommands
     /// <param name="sapi">Server API</param>
     /// <param name="setProfanityFilterEnabled">Callback to set profanity filter state and persist</param>
     /// <param name="getProfanityFilterEnabled">Callback to get current profanity filter state</param>
-    /// <param name="cooldownManager">Cooldown manager instance</param>
     /// <param name="modConfig">Mod configuration data</param>
     /// <param name="saveConfig">Callback to save configuration</param>
     public ConfigCommands(
         ICoreServerAPI sapi,
         Action<bool> setProfanityFilterEnabled,
         Func<bool> getProfanityFilterEnabled,
-        ICooldownManager cooldownManager,
         ModConfigData modConfig,
         Action saveConfig)
     {
@@ -43,7 +39,6 @@ public class ConfigCommands
                                      throw new ArgumentNullException(nameof(setProfanityFilterEnabled));
         _getProfanityFilterEnabled = getProfanityFilterEnabled ??
                                      throw new ArgumentNullException(nameof(getProfanityFilterEnabled));
-        _cooldownManager = cooldownManager ?? throw new ArgumentNullException(nameof(cooldownManager));
         _modConfig = modConfig ?? throw new ArgumentNullException(nameof(modConfig));
         _saveConfig = saveConfig ?? throw new ArgumentNullException(nameof(saveConfig));
     }
