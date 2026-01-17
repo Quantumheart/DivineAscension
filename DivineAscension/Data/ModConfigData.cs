@@ -23,6 +23,13 @@ public class ModConfigData
     public bool ProfanityFilterEnabled { get; set; } = true;
 
     /// <summary>
+    ///     Whether the cooldown system is enabled globally for this world.
+    ///     Default is true (CRITICAL: disabling removes anti-griefing protection).
+    /// </summary>
+    [ProtoMember(10)]
+    public bool CooldownsEnabled { get; set; } = true;
+
+    /// <summary>
     ///     Cooldown duration in seconds for religion deletion operations.
     ///     Default: 60 seconds (CRITICAL security mitigation)
     /// </summary>
