@@ -197,7 +197,6 @@ public class DivineAscensionModSystem : ModSystem
             api,
             SetProfanityFilterEnabled,
             () => _configData.ProfanityFilterEnabled,
-            _cooldownManager!,
             _configData,
             SaveModConfig);
         configCommands.RegisterCommands();
