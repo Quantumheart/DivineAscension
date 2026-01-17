@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using DivineAscension.Constants;
+using DivineAscension.Models.Enum;
 using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Services;
@@ -22,7 +23,8 @@ public class CivilizationNetworkHandler(
     ICoreServerAPI sapi,
     CivilizationManager civilizationManager,
     IReligionManager religionManager,
-    IServerNetworkChannel serverChannel)
+    IServerNetworkChannel serverChannel,
+    ICooldownManager cooldownManager)
     : IServerNetworkHandler
 {
     public void RegisterHandlers()
@@ -286,6 +288,14 @@ public class CivilizationNetworkHandler(
                     break;
 
                 case "invite":
+                    // Check cooldown (2 seconds)
+                    if (!cooldownManager.CanPerformOperation(fromPlayer.PlayerUID, CooldownType.Invite, out var inviteCooldownError))
+                    {
+                        response.Success = false;
+                        response.Message = inviteCooldownError!;
+                        break;
+                    }
+
                     // Look up religion by name (packet.TargetId contains religion name from UI)
                     var targetReligion = religionManager.GetReligionByName(packet.TargetId);
                     if (targetReligion == null)
@@ -307,6 +317,9 @@ public class CivilizationNetworkHandler(
                     // Notify all members of invited religion if invitation succeeded
                     if (success)
                     {
+                        // Record cooldown after successful invite
+                        cooldownManager.RecordOperation(fromPlayer.PlayerUID, CooldownType.Invite);
+
                         var civ = civilizationManager.GetCivilization(packet.CivId);
                         if (civ != null)
                         {

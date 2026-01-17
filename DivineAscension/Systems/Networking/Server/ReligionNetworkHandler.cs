@@ -25,6 +25,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
     private readonly IRoleManager _roleManager;
     private readonly ICoreServerAPI _sapi;
     private readonly IServerNetworkChannel _serverChannel;
+    private readonly ICooldownManager _cooldownManager;
 
     /// <summary>
     ///     Constructor for dependency injection
@@ -34,13 +35,15 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         IReligionManager religionManager,
         IPlayerProgressionDataManager playerProgressionDataManager,
         IRoleManager roleManager,
-        IServerNetworkChannel channel)
+        IServerNetworkChannel channel,
+        ICooldownManager cooldownManager)
     {
         _sapi = sapi;
         _religionManager = religionManager;
         _playerProgressionDataManager = playerProgressionDataManager;
         _roleManager = roleManager;
         _serverChannel = channel;
+        _cooldownManager = cooldownManager ?? throw new ArgumentNullException(nameof(cooldownManager));
     }
 
     public void RegisterHandlers()
@@ -1035,6 +1038,14 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
     private ReligionActionResult HandleKickAction(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
     {
+        // Check cooldown (5 seconds)
+        if (!_cooldownManager.CanPerformOperation(fromPlayer.PlayerUID, CooldownType.MemberKick, out var cooldownError))
+            return new ReligionActionResult
+            {
+                Success = false,
+                Message = cooldownError!
+            };
+
         var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
 
         if (religion == null || !religion.HasPermission(fromPlayer.PlayerUID, RolePermissions.KICK_MEMBERS))
@@ -1070,6 +1081,9 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         // Broadcast updated roles/members data to all religion members
         BroadcastRolesUpdateToReligion(religion);
 
+        // Record cooldown after successful kick
+        _cooldownManager.RecordOperation(fromPlayer.PlayerUID, CooldownType.MemberKick);
+
         return new ReligionActionResult
         {
             Success = true,
@@ -1079,6 +1093,14 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
     private ReligionActionResult HandleBanAction(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
     {
+        // Check cooldown (10 seconds)
+        if (!_cooldownManager.CanPerformOperation(fromPlayer.PlayerUID, CooldownType.MemberBan, out var cooldownError))
+            return new ReligionActionResult
+            {
+                Success = false,
+                Message = cooldownError!
+            };
+
         var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
 
         if (religion == null || !religion.HasPermission(fromPlayer.PlayerUID, RolePermissions.BAN_PLAYERS))
@@ -1143,6 +1165,9 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         // Broadcast updated roles/members data to all religion members
         BroadcastRolesUpdateToReligion(religion);
 
+        // Record cooldown after successful ban
+        _cooldownManager.RecordOperation(fromPlayer.PlayerUID, CooldownType.MemberBan);
+
         return new ReligionActionResult
         {
             Success = true,
@@ -1175,6 +1200,14 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
     private ReligionActionResult HandleInviteAction(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
     {
+        // Check cooldown (2 seconds)
+        if (!_cooldownManager.CanPerformOperation(fromPlayer.PlayerUID, CooldownType.Invite, out var cooldownError))
+            return new ReligionActionResult
+            {
+                Success = false,
+                Message = cooldownError!
+            };
+
         var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
 
         if (religion == null)
@@ -1208,6 +1241,9 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     religion.ReligionName), false);
             _sapi.Logger.Debug(
                 $"[DivineAscension] Sent invitation notification to {targetPlayer.PlayerName} ({targetPlayer.PlayerUID})");
+
+            // Record cooldown after successful invite
+            _cooldownManager.RecordOperation(fromPlayer.PlayerUID, CooldownType.Invite);
         }
 
         return new ReligionActionResult
@@ -1221,6 +1257,14 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
     private ReligionActionResult HandleDisbandAction(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
     {
+        // Check cooldown (60 seconds)
+        if (!_cooldownManager.CanPerformOperation(fromPlayer.PlayerUID, CooldownType.ReligionDeletion, out var cooldownError))
+            return new ReligionActionResult
+            {
+                Success = false,
+                Message = cooldownError!
+            };
+
         var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
 
         if (religion == null || religion.FounderUID != fromPlayer.PlayerUID)
@@ -1253,6 +1297,9 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         }
 
         _religionManager.DeleteReligion(religion.ReligionUID, fromPlayer.PlayerUID);
+
+        // Record cooldown after successful disband
+        _cooldownManager.RecordOperation(fromPlayer.PlayerUID, CooldownType.ReligionDeletion);
 
         return new ReligionActionResult
         {
