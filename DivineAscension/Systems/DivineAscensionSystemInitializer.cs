@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Commands;
 using DivineAscension.Configuration;
+using DivineAscension.Data;
 using DivineAscension.Services;
 using DivineAscension.Systems.BuffSystem;
+using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Server;
 using DivineAscension.Systems.Patches;
 using Vintagestory.API.Server;
@@ -25,16 +27,22 @@ public static class DivineAscensionSystemInitializer
     /// <param name="api">The server API</param>
     /// <param name="serverChannel">The network channel for server communications</param>
     /// <param name="gameBalanceConfig">The game balance configuration</param>
+    /// <param name="modConfig">The mod configuration data</param>
     /// <returns>InitializationResult containing all initialized managers, commands, and handlers</returns>
     public static InitializationResult InitializeServerSystems(
         ICoreServerAPI api,
         IServerNetworkChannel serverChannel,
-        GameBalanceConfig gameBalanceConfig)
+        GameBalanceConfig gameBalanceConfig,
+        ModConfigData modConfig)
     {
         api.Logger.Notification("[DivineAscension] Starting server-side system initialization...");
 
         // Initialize localization service for server
         LocalizationService.Instance.InitializeServer(api);
+
+        // Initialize cooldown manager (early to prevent griefing attacks)
+        var cooldownManager = new CooldownManager(api, modConfig);
+        cooldownManager.Initialize();
 
         // Step 1: Clear any static event subscribers from previous loads
         PitKilnPatches.ClearSubscribers();
@@ -186,6 +194,7 @@ public static class DivineAscensionSystemInitializer
         // Return all initialized components
         return new InitializationResult
         {
+            CooldownManager = cooldownManager,
             ReligionManager = religionManager,
             CivilizationManager = civilizationManager,
             PlayerProgressionDataManager = playerReligionDataManager,
@@ -219,7 +228,8 @@ public static class DivineAscensionSystemInitializer
 [ExcludeFromCodeCoverage]
 public class InitializationResult
 {
-    // 12 Managers
+    // 13 Managers
+    public ICooldownManager CooldownManager { get; init; } = null!;
     public ReligionManager ReligionManager { get; init; } = null!;
     public CivilizationManager CivilizationManager { get; init; } = null!;
     public PlayerProgressionDataManager PlayerProgressionDataManager { get; init; } = null!;

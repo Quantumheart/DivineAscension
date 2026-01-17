@@ -157,6 +157,14 @@ public static class TestFixtures
         return new Mock<IFavorSystem>();
     }
 
+    /// <summary>
+    ///     Creates a mock ICooldownManager
+    /// </summary>
+    public static Mock<ICooldownManager> CreateMockCooldownManager()
+    {
+        return new Mock<ICooldownManager>();
+    }
+
     #endregion
 
     #region Test Data Objects
