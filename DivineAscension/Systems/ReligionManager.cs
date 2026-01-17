@@ -544,8 +544,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         };
 
         religion.AddBannedPlayer(playerUID, banEntry);
-        religion.Members.Remove(playerUID);
-        religion.MemberUIDs.Remove(playerUID);
+        religion.RemoveMember(playerUID); // Thread-safe removal from both Members and MemberUIDs
 
         // Remove from player-to-religion index since they're no longer a member
         _playerToReligionIndex.TryRemove(playerUID, out _);

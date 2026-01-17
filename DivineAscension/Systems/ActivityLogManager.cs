@@ -62,17 +62,8 @@ public class ActivityLogManager : IActivityLogManager
             domain.ToString()
         );
 
-        // Add to front (newest first)
-        religion.ActivityLog.Insert(0, entry);
-
-        // Enforce size limit (FIFO eviction)
-        if (religion.ActivityLog.Count > MAX_ENTRIES_PER_RELIGION)
-        {
-            religion.ActivityLog.RemoveRange(
-                MAX_ENTRIES_PER_RELIGION,
-                religion.ActivityLog.Count - MAX_ENTRIES_PER_RELIGION
-            );
-        }
+        // Add to front (newest first) with atomic FIFO eviction
+        religion.AddActivityEntry(entry, MAX_ENTRIES_PER_RELIGION);
 
         // Trigger save (batched by existing autosave system)
         _religionManager.TriggerSave();

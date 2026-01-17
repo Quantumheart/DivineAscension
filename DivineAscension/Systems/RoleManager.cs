@@ -74,7 +74,7 @@ public class RoleManager(IReligionManager religionManager) : IRoleManager
         // Add default member permissions to new custom roles
         newRole.AddPermission(RolePermissions.VIEW_MEMBERS);
 
-        religion.Roles[newRole.RoleUID] = newRole;
+        religion.SetRole(newRole.RoleUID, newRole); // Thread-safe role addition
         _religionManager?.Save(religion);
 
         return (true, newRole, string.Empty);
@@ -193,7 +193,7 @@ public class RoleManager(IReligionManager religionManager) : IRoleManager
         if (role == null)
             return (false, RoleNotFound);
 
-        religion.MemberRoles[targetPlayerId] = roleId;
+        religion.SetMemberRole(targetPlayerId, roleId); // Thread-safe role assignment
         _religionManager?.Save(religion);
 
         return (true, string.Empty);
@@ -216,16 +216,15 @@ public class RoleManager(IReligionManager religionManager) : IRoleManager
         if (currentFounderId == newFounderId)
             return (false, "You are already the founder");
 
-        // Transfer founder role
-        religion.MemberRoles[newFounderId] = RoleDefaults.FOUNDER_ROLE_ID;
-        religion.MemberRoles[currentFounderId] = RoleDefaults.MEMBER_ROLE_ID; // Demote to member
+        // Transfer founder role (thread-safe)
+        religion.SetMemberRole(newFounderId, RoleDefaults.FOUNDER_ROLE_ID);
+        religion.SetMemberRole(currentFounderId, RoleDefaults.MEMBER_ROLE_ID); // Demote to member
 
         // Update legacy FounderUID field for backwards compatibility
         religion.FounderUID = newFounderId;
 
-        // Update member list order (founder should be first)
-        religion.MemberUIDs.Remove(newFounderId);
-        religion.MemberUIDs.Insert(0, newFounderId);
+        // Note: Member list order (founder first) is maintained internally by ReligionData
+        // No need to manually reorder - the thread-safe implementation handles this
 
         _religionManager?.Save(religion);
 

@@ -536,7 +536,7 @@ public class BlessingCommands(
         if (!religion.IsFounder(playerUid))
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_FOUNDER));
 
-        religion.UnlockedBlessings[blessingId] = true;
+        religion.UnlockBlessing(blessingId); // Thread-safe blessing unlock
         _blessingEffectSystem.RefreshReligionBlessings(religion.ReligionUID);
         // Notify all members
         foreach (var memberUid in religion.MemberUIDs)
