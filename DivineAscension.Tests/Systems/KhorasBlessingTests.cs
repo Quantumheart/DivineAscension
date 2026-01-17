@@ -65,10 +65,10 @@ public class KhorasBlessingTests
             "Forgeborn Endurance must define MeleeWeaponsDamage modifier");
         Assert.Equal(0.10f, melee, 3);
 
-        // MaxHealth is represented as an extra points multiplier (1.10f means +10%) in current implementation
-        Assert.True(t2b.StatModifiers.TryGetValue(VintageStoryStats.MaxHealthExtraPoints, out var hp),
-            "Forgeborn Endurance must define MaxHealthExtraPoints modifier");
-        Assert.Equal(1.10f, hp, 3);
+        // MaxHealth uses percentage-based multiplier stat (0.10f means +10%)
+        Assert.True(t2b.StatModifiers.TryGetValue(VintageStoryStats.MaxHealthExtraMultiplier, out var hp),
+            "Forgeborn Endurance must define MaxHealthExtraMultiplier modifier");
+        Assert.Equal(0.10f, hp, 3);
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class KhorasBlessingTests
 
         var unyielding = blessings.First(b => b.BlessingId == BlessingIds.CraftUnyielding);
         Assert.Equal(-0.10f, unyielding.StatModifiers[VintageStoryStats.ArmorDurabilityLoss], 3);
-        Assert.Equal(1.15f, unyielding.StatModifiers[VintageStoryStats.MaxHealthExtraPoints], 3);
+        Assert.Equal(0.15f, unyielding.StatModifiers[VintageStoryStats.MaxHealthExtraMultiplier], 3);
 
         var avatar = blessings.First(b => b.BlessingId == BlessingIds.CraftAvatarOfForge);
         Assert.Equal(-0.10f, avatar.StatModifiers[VintageStoryStats.ArmorWalkSpeedAffectedness], 3);

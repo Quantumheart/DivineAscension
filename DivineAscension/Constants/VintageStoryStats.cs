@@ -26,6 +26,7 @@ public static class VintageStoryStats
     // Defense Stats
     public const string MeleeWeaponArmor = "meleeWeaponArmor";
     public const string MaxHealthExtraPoints = "maxhealthExtraPoints";
+    public const string MaxHealthExtraMultiplier = "maxhealthExtraMultiplier";
     public const string ArmorEffectiveness = "armorEffectiveness";
 
     // Movement Stats
