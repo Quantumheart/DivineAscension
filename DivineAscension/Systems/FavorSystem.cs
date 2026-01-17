@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
@@ -20,8 +21,8 @@ public class FavorSystem : IFavorSystem
     private readonly IActivityLogManager _activityLogManager;
     private readonly GameBalanceConfig _config;
 
-    // Batching support for high-frequency favor events (e.g., scythe harvesting)
-    private readonly Dictionary<string, PendingFavorData> _pendingFavor = new();
+    // Batching support for high-frequency favor events (e.g., scythe harvesting) - thread-safe
+    private readonly ConcurrentDictionary<string, PendingFavorData> _pendingFavor = new();
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionPrestigeManager _prestigeManager;
     private readonly IReligionManager _religionManager;
@@ -447,14 +448,13 @@ public class FavorSystem : IFavorSystem
         if (deityDomain == DeityDomain.None) return;
 
         var uid = player.PlayerUID;
-        if (_pendingFavor.TryGetValue(uid, out var pending))
-        {
-            _pendingFavor[uid] = pending with { Amount = pending.Amount + amount };
-        }
-        else
-        {
-            _pendingFavor[uid] = new PendingFavorData(amount, actionType, deityDomain);
-        }
+
+        // Atomic add-or-update for thread safety
+        _pendingFavor.AddOrUpdate(
+            uid,
+            new PendingFavorData(amount, actionType, deityDomain), // Add if missing
+            (key, existing) => existing with { Amount = existing.Amount + amount } // Update if exists
+        );
     }
 
     /// <summary>

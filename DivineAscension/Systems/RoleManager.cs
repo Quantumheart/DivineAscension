@@ -101,7 +101,7 @@ public class RoleManager(IReligionManager religionManager) : IRoleManager
         if (membersWithRole.Count > 0)
             return (false, $"Cannot delete role with {membersWithRole.Count} member(s). Reassign them first.");
 
-        religion.Roles.Remove(roleId);
+        religion.RemoveRole(roleId); // Thread-safe role removal
         _religionManager?.Save(religion);
 
         return (true, string.Empty);

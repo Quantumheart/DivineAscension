@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using DivineAscension.Constants;
@@ -19,15 +20,15 @@ namespace DivineAscension.Systems;
 /// </summary>
 public class BlessingEffectSystem : IBlessingEffectSystem
 {
-    // Track applied modifiers per player for cleanup
-    private readonly Dictionary<string, HashSet<string>> _appliedModifiers = new();
+    // Track applied modifiers per player for cleanup (thread-safe)
+    private readonly ConcurrentDictionary<string, HashSet<string>> _appliedModifiers = new();
     private readonly IBlessingRegistry _blessingRegistry;
 
-    // Cache for stat modifiers to reduce computation
-    private readonly Dictionary<string, Dictionary<string, float>> _playerModifierCache = new();
+    // Cache for stat modifiers to reduce computation (thread-safe)
+    private readonly ConcurrentDictionary<string, Dictionary<string, float>> _playerModifierCache = new();
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionManager _religionManager;
-    private readonly Dictionary<string, Dictionary<string, float>> _religionModifierCache = new();
+    private readonly ConcurrentDictionary<string, Dictionary<string, float>> _religionModifierCache = new();
     private readonly ICoreServerAPI _sapi;
     private readonly SpecialEffectRegistry _specialEffectRegistry;
 
@@ -242,11 +243,11 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     /// </summary>
     public void RefreshPlayerBlessings(string playerUID)
     {
-        // Clear cached modifiers
-        _playerModifierCache.Remove(playerUID);
+        // Clear cached modifiers (thread-safe)
+        _playerModifierCache.TryRemove(playerUID, out _);
 
         var playerReligion = _religionManager.GetPlayerReligion(playerUID);
-        if (playerReligion != null) _religionModifierCache.Remove(playerReligion.ReligionUID);
+        if (playerReligion != null) _religionModifierCache.TryRemove(playerReligion.ReligionUID, out _);
 
         // Recalculate and apply
         var player = _sapi.World.PlayerByUid(playerUID) as IServerPlayer;
@@ -265,8 +266,8 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     /// </summary>
     public void RefreshReligionBlessings(string religionUID)
     {
-        // Clear religion modifier cache
-        _religionModifierCache.Remove(religionUID);
+        // Clear religion modifier cache (thread-safe)
+        _religionModifierCache.TryRemove(religionUID, out _);
 
         var religion = _religionManager.GetReligion(religionUID);
         if (religion == null) return;
