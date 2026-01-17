@@ -27,7 +27,8 @@ public class ReligionCommands(
     IPlayerProgressionDataManager playerReligionDataManager,
     IReligionPrestigeManager religionPrestigeManager,
     IServerNetworkChannel serverChannel,
-    IRoleManager roleManager)
+    IRoleManager roleManager,
+    ICooldownManager cooldownManager)
 {
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
@@ -45,6 +46,9 @@ public class ReligionCommands(
 
     private readonly IServerNetworkChannel? _serverChannel =
         serverChannel ?? throw new ArgumentNullException(nameof(serverChannel));
+
+    private readonly ICooldownManager _cooldownManager =
+        cooldownManager ?? throw new ArgumentNullException(nameof(cooldownManager));
 
     /// <summary>
     ///     Registers all religion commands
@@ -195,8 +199,12 @@ public class ReligionCommands(
         if (player == null)
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
-        // Check if player already has a religion
+        // Check cooldown (300s for religion creation)
         var playerId = player.PlayerUID;
+        if (!_cooldownManager.CanPerformOperation(playerId, CooldownType.ReligionCreation, out var cooldownError))
+            return TextCommandResult.Error(cooldownError!);
+
+        // Check if player already has a religion
         if (_religionManager.HasReligion(playerId))
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_ERROR_ALREADY_IN_RELIGION));
@@ -239,6 +247,9 @@ public class ReligionCommands(
 
         // Set up founder's player religion data (already added to Members via constructor)
         _playerProgressionDataManager.SetPlayerReligionData(player.PlayerUID, religion.ReligionUID);
+
+        // Record cooldown after successful creation
+        _cooldownManager.RecordOperation(playerId, CooldownType.ReligionCreation);
 
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_CREATED,
@@ -469,6 +480,10 @@ public class ReligionCommands(
         if (player == null)
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
+        // Check cooldown (2s for invites)
+        if (!_cooldownManager.CanPerformOperation(player.PlayerUID, CooldownType.Invite, out var cooldownError))
+            return TextCommandResult.Error(cooldownError!);
+
         // Check if player is in a religion
         if (!_religionManager.HasReligion(player.PlayerUID))
             return TextCommandResult.Error(
@@ -517,6 +532,9 @@ public class ReligionCommands(
             EnumChatType.Notification
         );
 
+        // Record cooldown after successful invite
+        _cooldownManager.RecordOperation(player.PlayerUID, CooldownType.Invite);
+
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_INVITE_SENT, targetPlayerName));
     }
@@ -531,6 +549,10 @@ public class ReligionCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null)
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
+
+        // Check cooldown (5s for kicks)
+        if (!_cooldownManager.CanPerformOperation(player.PlayerUID, CooldownType.MemberKick, out var cooldownError))
+            return TextCommandResult.Error(cooldownError!);
 
         // Check if player is in a religion
         if (!_religionManager.HasReligion(player.PlayerUID))
@@ -580,6 +602,9 @@ public class ReligionCommands(
                 EnumChatType.Notification
             );
 
+        // Record cooldown after successful kick
+        _cooldownManager.RecordOperation(player.PlayerUID, CooldownType.MemberKick);
+
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_KICKED,
                 targetPlayerName, religion.ReligionName));
@@ -597,6 +622,10 @@ public class ReligionCommands(
         var player = args.Caller.Player as IServerPlayer;
         if (player == null)
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
+
+        // Check cooldown (10s for bans)
+        if (!_cooldownManager.CanPerformOperation(player.PlayerUID, CooldownType.MemberBan, out var cooldownError))
+            return TextCommandResult.Error(cooldownError!);
 
         // Check if player is in a religion
         if (!_religionManager.HasReligion(player.PlayerUID))
@@ -655,6 +684,10 @@ public class ReligionCommands(
         var expiryText = expiryDays.HasValue
             ? LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_BAN_TEMPORARY, expiryDays.Value)
             : LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_BAN_PERMANENT);
+
+        // Record cooldown after successful ban
+        _cooldownManager.RecordOperation(player.PlayerUID, CooldownType.MemberBan);
+
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_BANNED,
                 targetPlayerName, religion.ReligionName, expiryText));
@@ -774,6 +807,10 @@ public class ReligionCommands(
         if (player == null)
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
+        // Check cooldown (60s for religion deletion)
+        if (!_cooldownManager.CanPerformOperation(player.PlayerUID, CooldownType.ReligionDeletion, out var cooldownError))
+            return TextCommandResult.Error(cooldownError!);
+
         // Check if player is in a religion
         var playerId = player.PlayerUID;
         if (!_religionManager.HasReligion(playerId))
@@ -828,6 +865,9 @@ public class ReligionCommands(
 
         // Delete the religion
         _religionManager.DeleteReligion(religion.ReligionUID, player.PlayerUID);
+
+        // Record cooldown after successful disband
+        _cooldownManager.RecordOperation(player.PlayerUID, CooldownType.ReligionDeletion);
 
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_DISBANDED, religionName));

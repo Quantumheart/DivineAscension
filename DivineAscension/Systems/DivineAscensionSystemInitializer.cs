@@ -111,14 +111,15 @@ public static class DivineAscensionSystemInitializer
         var roleManager = new RoleManager(religionManager);
 
         var religionCommands = new ReligionCommands(api, religionManager, playerReligionDataManager,
-            religionPrestigeManager, serverChannel, roleManager);
+            religionPrestigeManager, serverChannel, roleManager, cooldownManager);
         religionCommands.RegisterCommands();
 
         var roleCommands = new RoleCommands(api, roleManager, religionManager, playerReligionDataManager);
         roleCommands.RegisterCommands();
 
         var civilizationCommands =
-            new CivilizationCommands(api, civilizationManager, religionManager, playerReligionDataManager);
+            new CivilizationCommands(api, civilizationManager, religionManager, playerReligionDataManager,
+                cooldownManager);
         civilizationCommands.RegisterCommands();
 
         // Create and initialize network handlers

@@ -4,6 +4,7 @@ using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Commands.Helpers;
+using DivineAscension.Tests.Helpers;
 using Moq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -18,11 +19,18 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
 {
     private readonly Mock<IReligionPrestigeManager> _mockPrestigeManager;
     private readonly Mock<IRoleManager> _mockRoleManager;
+    private readonly Mock<ICooldownManager> _mockCooldownManager;
 
     public ReligionCommandAdminTests()
     {
         _mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         _mockRoleManager = new Mock<IRoleManager>();
+        _mockCooldownManager = TestFixtures.CreateMockCooldownManager();
+
+        // Default behavior: allow all operations (no cooldown active)
+        _mockCooldownManager
+            .Setup(m => m.CanPerformOperation(It.IsAny<string>(), It.IsAny<DivineAscension.Models.Enum.CooldownType>(), out It.Ref<string?>.IsAny))
+            .Returns(true);
 
         _sut = new ReligionCommands(
             _mockSapi.Object,
@@ -30,7 +38,8 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
             _playerProgressionDataManager.Object,
             _mockPrestigeManager.Object,
             _serverChannel.Object,
-            _mockRoleManager.Object);
+            _mockRoleManager.Object,
+            _mockCooldownManager.Object);
     }
 
     #region /religion admin repair tests

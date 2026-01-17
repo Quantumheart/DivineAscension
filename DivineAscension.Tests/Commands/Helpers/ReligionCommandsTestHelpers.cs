@@ -49,13 +49,21 @@ public class ReligionCommandsTestHelpers
     {
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         var mockRoleManager = new Mock<IRoleManager>();
+        var mockCooldownManager = TestFixtures.CreateMockCooldownManager();
+
+        // Default behavior: allow all operations (no cooldown active)
+        mockCooldownManager
+            .Setup(m => m.CanPerformOperation(It.IsAny<string>(), It.IsAny<DivineAscension.Models.Enum.CooldownType>(), out It.Ref<string?>.IsAny))
+            .Returns(true);
+
         return new ReligionCommands(
             _mockSapi.Object,
             _religionManager.Object,
             _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
             _serverChannel.Object,
-            mockRoleManager.Object);
+            mockRoleManager.Object,
+            mockCooldownManager.Object);
     }
 
     /// <summary>
