@@ -80,7 +80,7 @@ public static class BlessingDefinitions
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
+                    { VintageStoryStats.MaxHealthExtraMultiplier, 0.10f }
                 }
             },
 
@@ -113,7 +113,7 @@ public static class BlessingDefinitions
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.ArmorDurabilityLoss, -0.10f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f }
+                    { VintageStoryStats.MaxHealthExtraMultiplier, 0.15f }
                 }
             },
 
@@ -198,7 +198,7 @@ public static class BlessingDefinitions
                 PrerequisiteBlessings = new List<string> { BlessingIds.CraftMasterCraftsmen },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
+                    { VintageStoryStats.MaxHealthExtraMultiplier, 0.10f }
                 },
                 SpecialEffects = new List<string>()
             }
@@ -439,7 +439,7 @@ public static class BlessingDefinitions
                 PrerequisiteBlessings = new List<string> { BlessingIds.ConquestBloodthirst },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f },
+                    { VintageStoryStats.MaxHealthExtraMultiplier, 0.10f },
                     { VintageStoryStats.DamageReduction, 0.10f }
                 }
             },
@@ -473,7 +473,7 @@ public static class BlessingDefinitions
                 PrerequisiteBlessings = new List<string> { BlessingIds.ConquestIronWill },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.12f },
+                    { VintageStoryStats.MaxHealthExtraMultiplier, 0.12f },
                     { VintageStoryStats.DamageReduction, 0.12f }
                 },
                 SpecialEffects = new List<string> { SpecialEffects.LastStand }
@@ -528,7 +528,7 @@ public static class BlessingDefinitions
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.08f }
+                    { VintageStoryStats.MaxHealthExtraMultiplier, 0.08f }
                 }
             },
 
@@ -545,7 +545,7 @@ public static class BlessingDefinitions
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.MeleeWeaponsDamage, 0.12f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f },
+                    { VintageStoryStats.MaxHealthExtraMultiplier, 0.10f },
                     { VintageStoryStats.DamageReduction, 0.08f }
                 }
             },
@@ -687,7 +687,7 @@ public static class BlessingDefinitions
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.WalkSpeed, 0.08f },
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.10f }
+                    { VintageStoryStats.MaxHealthExtraMultiplier, 0.10f }
                 },
                 SpecialEffects = new List<string> { SpecialEffects.NeverMalnourished, SpecialEffects.BlessedMeals }
             },
@@ -881,7 +881,7 @@ public static class BlessingDefinitions
                     new List<string> { BlessingIds.StoneKilnMaster, BlessingIds.StoneClayArchitect },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
+                    { VintageStoryStats.MaxHealthExtraMultiplier, 0.15f },
                     { VintageStoryStats.MeleeWeaponsDamage, 0.10f },
                     { VintageStoryStats.ArmorWalkSpeedAffectedness, -0.10f }
                 }
@@ -953,7 +953,7 @@ public static class BlessingDefinitions
                 PrerequisiteBlessings = new List<string> { BlessingIds.StoneEarthenCommunity },
                 StatModifiers = new Dictionary<string, float>
                 {
-                    { VintageStoryStats.MaxHealthExtraPoints, 1.15f },
+                    { VintageStoryStats.MaxHealthExtraMultiplier, 0.15f },
                     { VintageStoryStats.ArmorEffectiveness, 0.10f }
                 }
             }

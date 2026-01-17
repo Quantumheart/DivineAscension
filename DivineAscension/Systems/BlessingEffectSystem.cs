@@ -516,6 +516,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             VintageStoryStats.MeleeWeaponArmor => LocalizationKeys.STAT_ARMOR,
             VintageStoryStats.ArmorEffectiveness => LocalizationKeys.STAT_ARMOR_EFFECTIVENESS,
             VintageStoryStats.MaxHealthExtraPoints => LocalizationKeys.STAT_MAX_HEALTH,
+            VintageStoryStats.MaxHealthExtraMultiplier => LocalizationKeys.STAT_MAX_HEALTH,
             VintageStoryStats.WalkSpeed => LocalizationKeys.STAT_WALK_SPEED,
             VintageStoryStats.HealingEffectiveness => LocalizationKeys.STAT_HEALTH_REGEN,
             VintageStoryStats.ToolDurability => LocalizationKeys.STAT_TOOL_DURABILITY,
