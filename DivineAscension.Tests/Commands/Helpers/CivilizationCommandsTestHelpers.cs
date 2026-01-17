@@ -108,15 +108,18 @@ public class CivilizationCommandsTestHelpers
     protected DivineAscension.Data.Civilization CreateCivilization(string civId, string name, string founderUID,
         List<string> religionIds)
     {
-        return new DivineAscension.Data.Civilization
+        var founderReligionId = religionIds.Count > 0 ? religionIds[0] : "founder-religion";
+        var civ = new DivineAscension.Data.Civilization(civId, name, founderUID, founderReligionId)
         {
-            CivId = civId,
-            Name = name,
-            FounderUID = founderUID,
-            MemberReligionIds = religionIds,
             MemberCount = 0,
             Icon = "default"
         };
+        // Add additional religions (first one is already added by constructor)
+        for (int i = 1; i < religionIds.Count; i++)
+        {
+            civ.AddReligion(religionIds[i]);
+        }
+        return civ;
     }
 
     /// <summary>

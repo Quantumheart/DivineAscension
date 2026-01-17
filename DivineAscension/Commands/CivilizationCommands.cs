@@ -753,7 +753,7 @@ public class CivilizationCommands(
         for (int i = 1; i < religions.Count; i++)
         {
             var religion = religions[i];
-            civilization.MemberReligionIds.Add(religion.ReligionUID);
+            civilization.AddReligion(religion.ReligionUID);
         }
 
         // Update member count

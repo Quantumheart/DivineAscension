@@ -285,9 +285,11 @@ public class CivilizationCommandAdminTests : CivilizationCommandsTestHelpers
     {
         // Arrange
         var admin = CreateMockPlayer("admin-1", "Admin");
-        var orphanedCiv1 = CreateCivilization("civ-1", "OrphanedCiv1", "founder-1", new List<string>());
-        var orphanedCiv2 = CreateCivilization("civ-2", "OrphanedCiv2", "founder-2", new List<string> { "religion-1" });
-        orphanedCiv2.MemberReligionIds.Clear();
+        // Create orphaned civs by removing their only religion after creation
+        var orphanedCiv1 = CreateCivilization("civ-1", "OrphanedCiv1", "founder-1", new List<string> { "religion-orphan-1" });
+        orphanedCiv1.RemoveReligion("religion-orphan-1");
+        var orphanedCiv2 = CreateCivilization("civ-2", "OrphanedCiv2", "founder-2", new List<string> { "religion-orphan-2" });
+        orphanedCiv2.RemoveReligion("religion-orphan-2");
         var validCiv = CreateCivilization("civ-3", "ValidCiv", "founder-3", new List<string> { "religion-2" });
 
         var args = CreateCommandArgs(admin.Object);

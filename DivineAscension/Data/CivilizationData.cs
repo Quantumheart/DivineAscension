@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ProtoBuf;
 
 namespace DivineAscension.Data;
@@ -10,6 +11,15 @@ namespace DivineAscension.Data;
 [ProtoContract]
 public class Civilization
 {
+    /// <summary>
+    ///     Lazy-initialized lock object for thread safety
+    /// </summary>
+    [ProtoIgnore]
+    private object? _lock;
+
+    [ProtoIgnore]
+    private object Lock => _lock ??= new object();
+
     /// <summary>
     ///     Parameterless constructor for serialization
     /// </summary>
@@ -26,7 +36,7 @@ public class Civilization
         Name = name;
         FounderUID = founderUID;
         FounderReligionUID = founderReligionId;
-        MemberReligionIds = [founderReligionId];
+        _memberReligionIds = [founderReligionId];
         CreatedDate = DateTime.UtcNow;
     }
 
@@ -57,10 +67,28 @@ public class Civilization
 
 
     /// <summary>
-    ///     List of religion UIDs that are members (1-4 religions)
+    ///     Backing field for MemberReligionIds
     /// </summary>
     [ProtoMember(5)]
-    public List<string> MemberReligionIds { get; set; } = new();
+    private List<string> _memberReligionIds = new();
+
+    /// <summary>
+    ///     List of religion UIDs that are members (1-4 religions).
+    ///     Thread-safe read-only snapshot.
+    /// </summary>
+    [ProtoIgnore]
+    public IReadOnlyList<string> MemberReligionIds
+    {
+        get { lock (Lock) { return _memberReligionIds.ToList(); } }
+    }
+
+    /// <summary>
+    ///     Gets a snapshot of member religion IDs for safe iteration
+    /// </summary>
+    public List<string> GetMemberReligionIdsSnapshot()
+    {
+        lock (Lock) { return _memberReligionIds.ToList(); }
+    }
 
     /// <summary>
     ///     When the civilization was created
@@ -95,14 +123,17 @@ public class Civilization
     /// <summary>
     ///     Checks if the civilization has a valid number of member religions (1-4)
     /// </summary>
-    public bool IsValid => MemberReligionIds.Count >= 1 && MemberReligionIds.Count <= 4;
+    public bool IsValid
+    {
+        get { lock (Lock) { return _memberReligionIds.Count >= 1 && _memberReligionIds.Count <= 4; } }
+    }
 
     /// <summary>
     ///     Checks if a religion is a member of this civilization
     /// </summary>
     public bool HasReligion(string religionId)
     {
-        return MemberReligionIds.Contains(religionId);
+        lock (Lock) { return _memberReligionIds.Contains(religionId); }
     }
 
     /// <summary>
@@ -110,11 +141,14 @@ public class Civilization
     /// </summary>
     public bool AddReligion(string religionId)
     {
-        if (MemberReligionIds.Count >= 4 || MemberReligionIds.Contains(religionId))
-            return false;
+        lock (Lock)
+        {
+            if (_memberReligionIds.Count >= 4 || _memberReligionIds.Contains(religionId))
+                return false;
 
-        MemberReligionIds.Add(religionId);
-        return true;
+            _memberReligionIds.Add(religionId);
+            return true;
+        }
     }
 
     /// <summary>
@@ -122,7 +156,7 @@ public class Civilization
     /// </summary>
     public bool RemoveReligion(string religionId)
     {
-        return MemberReligionIds.Remove(religionId);
+        lock (Lock) { return _memberReligionIds.Remove(religionId); }
     }
 
     /// <summary>
