@@ -74,6 +74,10 @@
         <PackageReference Include="VSImGui_DebugTools" Version="0.0.6"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\DivineAscension.Services\DivineAscension.Services.csproj"/>
+    </ItemGroup>
+
     <!-- Copy NuGet package dependencies to custom output path -->
     <Target Name="CopyNuGetDependencies" AfterTargets="Build">
         <ItemGroup>
@@ -81,6 +85,12 @@
         </ItemGroup>
         <Copy SourceFiles="@(NuGetDependencies)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true"/>
         <Message Text="Copied NuGet dependencies to $(OutputPath)" Importance="high"/>
+    </Target>
+
+    <!-- Copy Services DLL to mod output (note: ProjectReference should copy automatically, this is a safety net) -->
+    <Target Name="CopyServicesDll" AfterTargets="Build" Condition="Exists('$(OutDir)DivineAscension.Services.dll')">
+        <Copy SourceFiles="$(OutDir)DivineAscension.Services.dll" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="'$(OutDir)' != '$(OutputPath)'"/>
+        <Message Text="Copied Services DLL to $(OutputPath)" Importance="high" Condition="'$(OutDir)' != '$(OutputPath)'"/>
     </Target>
 
 </Project>
