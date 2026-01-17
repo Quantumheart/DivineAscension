@@ -8,6 +8,7 @@ using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using DivineAscension.Systems;
 using Moq;
+using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using Xunit;
 

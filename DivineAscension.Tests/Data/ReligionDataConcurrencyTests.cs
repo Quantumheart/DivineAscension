@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using Vintagestory.API.Common;
 using Xunit;
 
 namespace DivineAscension.Tests.Data;
