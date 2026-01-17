@@ -189,21 +189,14 @@ public static class TestFixtures
         string deityName = "test-deity-name",
         string founderUID = "founder-uid")
     {
-        return new ReligionData
-        {
-            ReligionUID = religionUID,
-            ReligionName = religionName,
-            Domain = domain,
-            FounderUID = founderUID,
-            Description = "A test religion",
-            DeityName = deityName,
-            IsPublic = true,
-            MemberUIDs = new List<string> { founderUID },
-            Prestige = 0,
-            TotalPrestige = 0,
-            PrestigeRank = PrestigeRank.Fledgling,
-            UnlockedBlessings = new Dictionary<string, bool>()
-        };
+        // Use the proper constructor which initializes thread-safe collections
+        var religion = new ReligionData(religionUID, religionName, domain, deityName, founderUID, "Founder");
+        religion.Description = "A test religion";
+        religion.IsPublic = true;
+        religion.Prestige = 0;
+        religion.TotalPrestige = 0;
+        religion.PrestigeRank = PrestigeRank.Fledgling;
+        return religion;
     }
 
     /// <summary>

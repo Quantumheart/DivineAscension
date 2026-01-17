@@ -59,8 +59,8 @@ public class ReligionCommandDisbandTests : ReligionCommandsTestHelpers
 
         var founderData = CreatePlayerData("founder-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
-        religion.MemberUIDs.Add("member-1");
-        religion.MemberUIDs.Add("member-2");
+        religion.AddMember("member-1", "Test Member");
+        religion.AddMember("member-2", "Test Member");
 
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args);
@@ -91,7 +91,7 @@ public class ReligionCommandDisbandTests : ReligionCommandsTestHelpers
 
         var founderData = CreatePlayerData("founder-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
-        religion.MemberUIDs.Add("member-1");
+        religion.AddMember("member-1", "Test Member");
 
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args);
@@ -121,7 +121,7 @@ public class ReligionCommandDisbandTests : ReligionCommandsTestHelpers
 
         var founderData = CreatePlayerData("founder-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
-        religion.MemberUIDs.Add("member-1");
+        religion.AddMember("member-1", "Test Member");
 
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args);
@@ -150,7 +150,7 @@ public class ReligionCommandDisbandTests : ReligionCommandsTestHelpers
 
         var founderData = CreatePlayerData("founder-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
-        religion.MemberUIDs.Add("member-1");
+        religion.AddMember("member-1", "Test Member");
 
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args);
@@ -184,7 +184,7 @@ public class ReligionCommandDisbandTests : ReligionCommandsTestHelpers
 
         var founderData = CreatePlayerData("founder-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
-        religion.MemberUIDs.Add("offline-member");
+        religion.AddMember("offline-member", "Test Member");
 
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args);

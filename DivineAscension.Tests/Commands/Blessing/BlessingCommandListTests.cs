@@ -78,14 +78,8 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Religion))
             .Returns(religionBlessings);
 
-        var religion = new ReligionData
-        {
-            ReligionUID = "religion-uid",
-            UnlockedBlessings = new Dictionary<string, bool>
-            {
-                { "religionblessing1", true }
-            }
-        };
+        var religion = new ReligionData("religion-uid", "Test Religion", DeityDomain.Harvest, "Test Deity", "founder-uid", "Founder");
+        religion.UnlockBlessing("religionblessing1");
 
         _religionManager.Setup(rm => rm.GetPlayerReligion(It.IsAny<string>()))
             .Returns(religion);
@@ -257,14 +251,8 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Player))
             .Returns(new List<DivineAscension.Models.Blessing>());
 
-        var religion = new ReligionData
-        {
-            ReligionUID = "religion-uid",
-            UnlockedBlessings = new Dictionary<string, bool>
-            {
-                { "religionblessing1", true }
-            }
-        };
+        var religion = new ReligionData("religion-uid", "Test Religion", DeityDomain.Harvest, "Test Deity", "founder-uid", "Founder");
+        religion.UnlockBlessing("religionblessing1");
 
         _religionManager.Setup(rm => rm.GetPlayerReligion(It.IsAny<string>()))
             .Returns(religion);
@@ -363,11 +351,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Religion))
             .Returns(religionBlessings);
 
-        var religion = new ReligionData
-        {
-            ReligionUID = "religion-uid",
-            UnlockedBlessings = new Dictionary<string, bool>()
-        };
+        var religion = new ReligionData("religion-uid", "Test Religion", DeityDomain.Harvest, "Test Deity", "founder-uid", "Founder");
 
         _religionManager.Setup(rm => rm.GetReligion("religion-uid"))
             .Returns(religion);
@@ -478,11 +462,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Religion))
             .Returns(religionBlessings);
 
-        var religion = new ReligionData
-        {
-            ReligionUID = "religion-uid",
-            UnlockedBlessings = new Dictionary<string, bool>()
-        };
+        var religion = new ReligionData("religion-uid", "Test Religion", DeityDomain.Harvest, "Test Deity", "founder-uid", "Founder");
 
         _religionManager.Setup(rm => rm.GetReligion("religion-uid"))
             .Returns(religion);

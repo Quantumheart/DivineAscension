@@ -28,22 +28,21 @@ public class RoleManagerTests
 
     private ReligionData CreateTestReligion(string religionId = "religion-1", string founderId = "founder-1")
     {
-        var religion = new ReligionData
-        {
-            ReligionUID = religionId,
-            ReligionName = "Test Religion",
-            Domain = DeityDomain.Craft,
-            FounderUID = founderId,
-            IsPublic = true,
-            MemberUIDs = new List<string> { founderId, "member-1", "member-2" },
-            Roles = RoleDefaults.CreateDefaultRoles(),
-            MemberRoles = new Dictionary<string, string>
-            {
-                [founderId] = RoleDefaults.FOUNDER_ROLE_ID,
-                ["member-1"] = RoleDefaults.MEMBER_ROLE_ID,
-                ["member-2"] = RoleDefaults.MEMBER_ROLE_ID
-            }
-        };
+        // Use proper constructor for thread-safe initialization
+        var religion = new ReligionData(religionId, "Test Religion", DeityDomain.Craft, "Test Deity", founderId, "Founder");
+        religion.IsPublic = true;
+
+        // Add members using thread-safe methods
+        religion.AddMember("member-1", "Member One");
+        religion.AddMember("member-2", "Member Two");
+
+        // Initialize roles
+        religion.InitializeRoles(RoleDefaults.CreateDefaultRoles());
+
+        // Assign member roles using thread-safe methods
+        religion.AssignMemberRole(founderId, RoleDefaults.FOUNDER_ROLE_ID);
+        religion.AssignMemberRole("member-1", RoleDefaults.MEMBER_ROLE_ID);
+        religion.AssignMemberRole("member-2", RoleDefaults.MEMBER_ROLE_ID);
 
         return religion;
     }
@@ -163,7 +162,7 @@ public class RoleManagerTests
         // Arrange
         var religion = CreateTestReligion();
         var existingRole = new RoleData("custom-1", "Moderator", false, false, 10);
-        religion.Roles["custom-1"] = existingRole;
+        religion.SetRole("custom-1", existingRole);
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         // Act
@@ -185,7 +184,7 @@ public class RoleManagerTests
         for (var i = 1; i <= 5; i++)
         {
             var role = new RoleData($"custom-{i}", $"Role{i}", false, false, 10 + i);
-            religion.Roles[$"custom-{i}"] = role;
+            religion.SetRole($"custom-{i}", role);
         }
 
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
@@ -209,7 +208,7 @@ public class RoleManagerTests
         // Arrange
         var religion = CreateTestReligion();
         var customRole = new RoleData("custom-1", "Moderator", false, false, 10);
-        religion.Roles["custom-1"] = customRole;
+        religion.SetRole("custom-1", customRole);
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         // Act
@@ -289,8 +288,8 @@ public class RoleManagerTests
         // Arrange
         var religion = CreateTestReligion();
         var customRole = new RoleData("custom-1", "Moderator", false, false, 10);
-        religion.Roles["custom-1"] = customRole;
-        religion.MemberRoles["member-1"] = "custom-1"; // Assign member to custom role
+        religion.SetRole("custom-1", customRole);
+        religion.AssignMemberRole("member-1", "custom-1"); // Assign member to custom role
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         // Act
@@ -311,7 +310,7 @@ public class RoleManagerTests
         // Arrange
         var religion = CreateTestReligion();
         var customRole = new RoleData("custom-1", "Moderator", false, false, 10);
-        religion.Roles["custom-1"] = customRole;
+        religion.SetRole("custom-1", customRole);
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         // Act
@@ -378,7 +377,7 @@ public class RoleManagerTests
         // Arrange
         var religion = CreateTestReligion();
         var customRole = new RoleData("custom-1", "Moderator", false, false, 10);
-        religion.Roles["custom-1"] = customRole;
+        religion.SetRole("custom-1", customRole);
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         // Act
@@ -396,7 +395,7 @@ public class RoleManagerTests
         // Arrange
         var religion = CreateTestReligion();
         var customRole = new RoleData("custom-1", "Moderator", false, false, 10);
-        religion.Roles["custom-1"] = customRole;
+        religion.SetRole("custom-1", customRole);
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         // Act
@@ -415,8 +414,8 @@ public class RoleManagerTests
         var religion = CreateTestReligion();
         var customRole1 = new RoleData("custom-1", "Moderator", false, false, 10);
         var customRole2 = new RoleData("custom-2", "Admin", false, false, 11);
-        religion.Roles["custom-1"] = customRole1;
-        religion.Roles["custom-2"] = customRole2;
+        religion.SetRole("custom-1", customRole1);
+        religion.SetRole("custom-2", customRole2);
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         // Act
@@ -438,7 +437,7 @@ public class RoleManagerTests
         // Arrange
         var religion = CreateTestReligion();
         var customRole = new RoleData("custom-1", "Moderator", false, false, 10);
-        religion.Roles["custom-1"] = customRole;
+        religion.SetRole("custom-1", customRole);
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         var newPermissions = new HashSet<string>
@@ -517,7 +516,7 @@ public class RoleManagerTests
         // Arrange
         var religion = CreateTestReligion();
         var customRole = new RoleData("custom-1", "Moderator", false, false, 10);
-        religion.Roles["custom-1"] = customRole;
+        religion.SetRole("custom-1", customRole);
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         var invalidPermissions = new HashSet<string>
@@ -542,7 +541,7 @@ public class RoleManagerTests
         var religion = CreateTestReligion();
         var customRole = new RoleData("custom-1", "Moderator", false, false, 10);
         customRole.AddPermission(RolePermissions.INVITE_PLAYERS);
-        religion.Roles["custom-1"] = customRole;
+        religion.SetRole("custom-1", customRole);
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         var emptyPermissions = new HashSet<string>();
@@ -566,7 +565,7 @@ public class RoleManagerTests
         // Arrange
         var religion = CreateTestReligion();
         var customRole = new RoleData("custom-1", "Moderator", false, false, 10);
-        religion.Roles["custom-1"] = customRole;
+        religion.SetRole("custom-1", customRole);
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         // Act
@@ -614,7 +613,7 @@ public class RoleManagerTests
         // Arrange
         var religion = CreateTestReligion();
         var customRole = new RoleData("custom-1", "Moderator", false, false, 10);
-        religion.Roles["custom-1"] = customRole;
+        religion.SetRole("custom-1", customRole);
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         // Act - member-1 doesn't have MANAGE_ROLES permission
@@ -631,7 +630,7 @@ public class RoleManagerTests
         // Arrange
         var religion = CreateTestReligion();
         var customRole = new RoleData("custom-1", "Moderator", false, false, 10);
-        religion.Roles["custom-1"] = customRole;
+        religion.SetRole("custom-1", customRole);
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         // Act - Try to assign a different role to the founder
@@ -767,8 +766,8 @@ public class RoleManagerTests
         var religion = CreateTestReligion();
         var customRole1 = new RoleData("custom-1", "Moderator", false, false, 10);
         var customRole2 = new RoleData("custom-2", "Admin", false, false, 5);
-        religion.Roles["custom-1"] = customRole1;
-        religion.Roles["custom-2"] = customRole2;
+        religion.SetRole("custom-1", customRole1);
+        religion.SetRole("custom-2", customRole2);
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         // Act
@@ -858,8 +857,8 @@ public class RoleManagerTests
         // Arrange
         var religion = CreateTestReligion();
         var customRole = new RoleData("custom-1", "Moderator", false, false, 10);
-        religion.Roles["custom-1"] = customRole;
-        religion.MemberRoles["member-2"] = "custom-1"; // Change member-2 to custom role
+        religion.SetRole("custom-1", customRole);
+        religion.AssignMemberRole("member-2", "custom-1"); // Change member-2 to custom role
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         // Act
@@ -925,7 +924,7 @@ public class RoleManagerTests
         // Arrange
         var religion = CreateTestReligion();
         var customRole = new RoleData("custom-1", "Moderator", false, false, 10);
-        religion.Roles["custom-1"] = customRole;
+        religion.SetRole("custom-1", customRole);
         _mockReligionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
 
         // Act

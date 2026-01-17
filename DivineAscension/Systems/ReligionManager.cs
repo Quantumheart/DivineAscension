@@ -86,13 +86,14 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         // Create religion data
         var religion = new ReligionData(religionUID, name, domain, deityName, founderUID, founderName)
         {
-            IsPublic = isPublic,
-            Roles = RoleDefaults.CreateDefaultRoles(),
-            MemberRoles = new Dictionary<string, string>
-            {
-                [founderUID] = RoleDefaults.FOUNDER_ROLE_ID
-            }
+            IsPublic = isPublic
         };
+        // Initialize roles using thread-safe methods
+        religion.InitializeRoles(RoleDefaults.CreateDefaultRoles());
+        religion.InitializeMemberRoles(new Dictionary<string, string>
+        {
+            [founderUID] = RoleDefaults.FOUNDER_ROLE_ID
+        });
 
         // Store in dictionary (thread-safe)
         _religions[religionUID] = religion;
@@ -549,8 +550,8 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         };
 
         religion.AddBannedPlayer(playerUID, banEntry);
-        religion.Members.Remove(playerUID);
-        religion.MemberUIDs.Remove(playerUID);
+        // Use RemoveMember which handles all collections (Members, MemberUIDs, MemberRoles) thread-safely
+        religion.RemoveMember(playerUID);
 
         // Remove from player-to-religion index since they're no longer a member (thread-safe)
         _playerToReligionIndex.TryRemove(playerUID, out _);
@@ -753,7 +754,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             // Update founder name and role
             var newFounderName = religion.GetMemberName(newFounderUID);
             religion.UpdateFounderName(newFounderName);
-            religion.MemberRoles[newFounderUID] = RoleDefaults.FOUNDER_ROLE_ID;
+            religion.AssignMemberRole(newFounderUID, RoleDefaults.FOUNDER_ROLE_ID);
 
             _sapi.Logger.Notification(
                 $"[DivineAscension] Religion {religion.ReligionName} founder transferred to {newFounderName}");

@@ -499,7 +499,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             {
                 Success = true,
                 Roles = _roleManager.GetReligionRoles(packet.ReligionUID),
-                MemberRoles = religion.MemberRoles,
+                MemberRoles = new Dictionary<string, string>(religion.MemberRoles),
                 MemberNames = new Dictionary<string, string>(),
                 ErrorMessage = null
             };
@@ -824,7 +824,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         {
             Success = true,
             Roles = _roleManager.GetReligionRoles(religion.ReligionUID),
-            MemberRoles = religion.MemberRoles,
+            MemberRoles = new Dictionary<string, string>(religion.MemberRoles),
             MemberNames = new Dictionary<string, string>()
         };
 
@@ -840,7 +840,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         {
             Success = true,
             Roles = _roleManager.GetReligionRoles(religion.ReligionUID),
-            MemberRoles = religion.MemberRoles,
+            MemberRoles = new Dictionary<string, string>(religion.MemberRoles),
             MemberNames = new Dictionary<string, string>()
         };
 

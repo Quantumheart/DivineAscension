@@ -536,7 +536,7 @@ public class BlessingCommands(
         if (!religion.IsFounder(playerUid))
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_FOUNDER));
 
-        religion.UnlockedBlessings[blessingId] = true;
+        religion.UnlockBlessing(blessingId);
         _blessingEffectSystem.RefreshReligionBlessings(religion.ReligionUID);
         // Notify all members
         foreach (var memberUid in religion.MemberUIDs)
@@ -724,11 +724,11 @@ public class BlessingCommands(
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_FOUNDER));
 
-            if (targetReligion.UnlockedBlessings.ContainsKey(blessing.BlessingId))
+            if (targetReligion.IsBlessingUnlocked(blessing.BlessingId))
                 return TextCommandResult.Success(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_ALREADY_UNLOCKED));
 
-            targetReligion.UnlockedBlessings.Add(blessing.BlessingId, true);
+            targetReligion.UnlockBlessing(blessing.BlessingId);
             _blessingEffectSystem.RefreshReligionBlessings(targetReligion.ReligionUID);
             _religionManager.Save(targetReligion);
 
@@ -823,11 +823,11 @@ public class BlessingCommands(
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_FOUNDER));
 
-            if (!targetReligion.UnlockedBlessings.ContainsKey(blessing.BlessingId))
+            if (!targetReligion.IsBlessingUnlocked(blessing.BlessingId))
                 return TextCommandResult.Success(
                     $"{targetReligion.ReligionName} doesn't have blessing '{blessing.Name}' unlocked");
 
-            targetReligion.UnlockedBlessings.Remove(blessing.BlessingId);
+            targetReligion.LockBlessing(blessing.BlessingId);
             _blessingEffectSystem.RefreshReligionBlessings(targetReligion.ReligionUID);
             _religionManager.Save(targetReligion);
 
@@ -950,9 +950,9 @@ public class BlessingCommands(
         {
             foreach (var blessing in religionBlessings)
             {
-                if (!targetReligion.UnlockedBlessings.ContainsKey(blessing.BlessingId))
+                if (!targetReligion.IsBlessingUnlocked(blessing.BlessingId))
                 {
-                    targetReligion.UnlockedBlessings.Add(blessing.BlessingId, true);
+                    targetReligion.UnlockBlessing(blessing.BlessingId);
                     religionUnlocked++;
                 }
             }

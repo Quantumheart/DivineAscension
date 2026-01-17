@@ -107,7 +107,7 @@ public class BlessingNetworkHandler(
                         }
                         else
                         {
-                            religion.UnlockedBlessings[packet.BlessingId] = true;
+                            religion.UnlockBlessing(packet.BlessingId);
                             blessingEffectSystem!.RefreshReligionBlessings(religion.ReligionUID);
                             message = LocalizationService.Instance.Get(
                                 LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED_FOR_RELIGION, blessing.Name);

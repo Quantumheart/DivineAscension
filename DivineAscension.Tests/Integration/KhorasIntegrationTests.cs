@@ -27,16 +27,8 @@ public class KhorasIntegrationTests
         var playerUID = "player-1";
         var religionId = "test-religion";
 
-        var religionData = new ReligionData
-        {
-            ReligionUID = religionId,
-            ReligionName = "Forge Brotherhood",
-            FounderUID = playerUID,
-            Domain = DeityDomain.Craft,
-            Prestige = 0,
-            UnlockedBlessings = new Dictionary<string, bool>(),
-            MemberUIDs = new List<string> { playerUID }
-        };
+        var religionData = new ReligionData(religionId, "Forge Brotherhood", DeityDomain.Craft, "Khoras", playerUID, "Player One");
+        religionData.Prestige = 0;
 
         _mockReligionManager.Setup(m => m.GetPlayerReligion(playerUID))
             .Returns(religionData);
@@ -218,22 +210,15 @@ public class KhorasIntegrationTests
         var mockPlayer = TestFixtures.CreateMockServerPlayer(playerUID, "TestPlayer");
         var playerData = SetupKhorasFollower(playerUID);
 
-        var religionData = new ReligionData
-        {
-            ReligionUID = "test-religion",
-            ReligionName = "Test Religion",
-            FounderUID = playerUID,
-            Domain = DeityDomain.Craft,
-            Prestige = 500,
-            UnlockedBlessings = new Dictionary<string, bool> { { BlessingIds.CraftSharedWorkshop, true } },
-            MemberUIDs = new List<string> { playerUID }
-        };
+        var religionData = new ReligionData("test-religion", "Test Religion", DeityDomain.Craft, "Khoras", playerUID, "TestPlayer");
+        religionData.Prestige = 500;
+        religionData.UnlockBlessing(BlessingIds.CraftSharedWorkshop);
 
         _mockReligionManager.Setup(m => m.GetPlayerReligion(playerUID))
             .Returns(religionData);
 
         // Player has T1 blessing (Craftsman's Touch: +10% tool durability)
-        playerData.UnlockedBlessings.Add(BlessingIds.CraftCraftsmansTouch);
+        playerData.UnlockBlessing(BlessingIds.CraftCraftsmansTouch);
 
         // Religion has R1 blessing (Shared Workshop: +10% tool durability)
         // This is validated in the blessing definitions

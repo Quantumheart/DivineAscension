@@ -8,11 +8,15 @@ using ProtoBuf;
 namespace DivineAscension.Data;
 
 /// <summary>
-///     Stores religion-specific data for persistence
+///     Stores religion-specific data for persistence.
+///     This class is thread-safe for concurrent access.
 /// </summary>
 [ProtoContract]
 public class ReligionData
 {
+    // Thread-safety: Lazy lock initialization (handles ProtoBuf deserialization)
+    [ProtoIgnore] private object? _lock;
+    [ProtoIgnore] private object Lock => _lock ??= new object();
     /// <summary>
     ///     Creates a new religion with the specified parameters
     /// </summary>
@@ -25,8 +29,8 @@ public class ReligionData
         DeityName = deityName;
         FounderUID = founderUID;
         FounderName = founderName;
-        MemberUIDs = new List<string> { founderUID }; // Founder is first member
-        Members = new Dictionary<string, MemberEntry>
+        _memberUIDs = new List<string> { founderUID }; // Founder is first member
+        _members = new Dictionary<string, MemberEntry>
         {
             [founderUID] = new(founderUID, founderName)
         };
@@ -65,10 +69,26 @@ public class ReligionData
     public string FounderUID { get; set; } = string.Empty;
 
     /// <summary>
-    ///     Ordered list of member player UIDs (founder is always first)
+    ///     Backing field for member UIDs (serialized)
     /// </summary>
     [ProtoMember(5)]
-    public List<string> MemberUIDs { get; set; } = new();
+    private List<string> _memberUIDs = new();
+
+    /// <summary>
+    ///     Ordered list of member player UIDs (founder is always first).
+    ///     Returns a thread-safe snapshot copy.
+    /// </summary>
+    [ProtoIgnore]
+    public IReadOnlyList<string> MemberUIDs
+    {
+        get
+        {
+            lock (Lock)
+            {
+                return _memberUIDs.ToList();
+            }
+        }
+    }
 
     /// <summary>
     ///     Current prestige rank of the religion
@@ -95,11 +115,26 @@ public class ReligionData
     public DateTime CreationDate { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    ///     Dictionary of unlocked religion blessings
-    ///     Key: blessing ID, Value: unlock status (true if unlocked)
+    ///     Backing field for unlocked blessings (serialized)
     /// </summary>
     [ProtoMember(10)]
-    public Dictionary<string, bool> UnlockedBlessings { get; set; } = new();
+    private Dictionary<string, bool> _unlockedBlessings = new();
+
+    /// <summary>
+    ///     Dictionary of unlocked religion blessings.
+    ///     Returns a thread-safe snapshot copy.
+    /// </summary>
+    [ProtoIgnore]
+    public IReadOnlyDictionary<string, bool> UnlockedBlessings
+    {
+        get
+        {
+            lock (Lock)
+            {
+                return new Dictionary<string, bool>(_unlockedBlessings);
+            }
+        }
+    }
 
     /// <summary>
     ///     Whether this is a public religion (anyone can join) or private (invite-only)
@@ -114,30 +149,164 @@ public class ReligionData
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
-    ///     Dictionary of banned players
-    ///     Key: player UID, Value: ban entry with details
+    ///     Backing field for banned players (serialized)
     /// </summary>
     [ProtoMember(13)]
-    public Dictionary<string, BanEntry> BannedPlayers { get; set; } = new();
+    private Dictionary<string, BanEntry> _bannedPlayers = new();
 
     /// <summary>
-    ///     Dictionary of roles in the religion
+    ///     Dictionary of banned players.
+    ///     Returns a thread-safe snapshot copy.
+    /// </summary>
+    [ProtoIgnore]
+    public IReadOnlyDictionary<string, BanEntry> BannedPlayers
+    {
+        get
+        {
+            lock (Lock)
+            {
+                return new Dictionary<string, BanEntry>(_bannedPlayers);
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Backing field for roles (serialized)
     /// </summary>
     [ProtoMember(14)]
-    public Dictionary<string, RoleData> Roles { get; set; } = new();
+    private Dictionary<string, RoleData> _roles = new();
+
+    /// <summary>
+    ///     Dictionary of roles in the religion.
+    ///     Returns a thread-safe snapshot copy.
+    /// </summary>
+    [ProtoIgnore]
+    public IReadOnlyDictionary<string, RoleData> Roles
+    {
+        get
+        {
+            lock (Lock)
+            {
+                return new Dictionary<string, RoleData>(_roles);
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Sets or updates a role in the religion.
+    ///     Thread-safe.
+    /// </summary>
+    public void SetRole(string roleId, RoleData role)
+    {
+        lock (Lock)
+        {
+            _roles[roleId] = role;
+        }
+    }
+
+    /// <summary>
+    ///     Removes a role from the religion.
+    ///     Thread-safe.
+    /// </summary>
+    public bool RemoveRole(string roleId)
+    {
+        lock (Lock)
+        {
+            return _roles.Remove(roleId);
+        }
+    }
+
+    /// <summary>
+    ///     Backing field for member roles (serialized)
+    /// </summary>
+    [ProtoMember(15)]
+    private Dictionary<string, string> _memberRoles = new();
 
     /// <summary>
     ///     A dictionary of roles for the religion. Keys are player UIDs, values are the role IDs.
+    ///     Returns a thread-safe snapshot copy.
     /// </summary>
-    [ProtoMember(15)]
-    public Dictionary<string, string> MemberRoles { get; set; } = new();
+    [ProtoIgnore]
+    public IReadOnlyDictionary<string, string> MemberRoles
+    {
+        get
+        {
+            lock (Lock)
+            {
+                return new Dictionary<string, string>(_memberRoles);
+            }
+        }
+    }
 
     /// <summary>
-    ///     Dictionary of member entries with cached player names
-    ///     Key: player UID, Value: member entry with name and join date
+    ///     Assigns a role to a member.
+    ///     Thread-safe.
+    /// </summary>
+    public void AssignMemberRole(string playerUID, string roleId)
+    {
+        lock (Lock)
+        {
+            _memberRoles[playerUID] = roleId;
+        }
+    }
+
+    /// <summary>
+    ///     Removes a member's role assignment.
+    ///     Thread-safe.
+    /// </summary>
+    public bool RemoveMemberRole(string playerUID)
+    {
+        lock (Lock)
+        {
+            return _memberRoles.Remove(playerUID);
+        }
+    }
+
+    /// <summary>
+    ///     Initializes the roles dictionary (for use during construction only).
+    ///     Thread-safe.
+    /// </summary>
+    internal void InitializeRoles(Dictionary<string, RoleData> roles)
+    {
+        lock (Lock)
+        {
+            _roles = roles ?? new Dictionary<string, RoleData>();
+        }
+    }
+
+    /// <summary>
+    ///     Initializes the member roles dictionary (for use during construction only).
+    ///     Thread-safe.
+    /// </summary>
+    internal void InitializeMemberRoles(Dictionary<string, string> memberRoles)
+    {
+        lock (Lock)
+        {
+            _memberRoles = memberRoles ?? new Dictionary<string, string>();
+        }
+    }
+
+    /// <summary>
+    ///     Backing field for member entries (serialized)
     /// </summary>
     [ProtoMember(16)]
-    public Dictionary<string, MemberEntry> Members { get; set; } = new();
+    private Dictionary<string, MemberEntry> _members = new();
+
+    /// <summary>
+    ///     Dictionary of member entries with cached player names.
+    ///     Returns a thread-safe snapshot copy.
+    /// </summary>
+    [ProtoIgnore]
+    public IReadOnlyDictionary<string, MemberEntry> Members
+    {
+        get
+        {
+            lock (Lock)
+            {
+                return new Dictionary<string, MemberEntry>(_members);
+            }
+        }
+    }
 
     /// <summary>
     ///     Cached founder name for quick access
@@ -153,11 +322,65 @@ public class ReligionData
     public string DeityName { get; set; } = string.Empty;
 
     /// <summary>
-    ///     Recent activity log entries (last 100 entries, FIFO).
-    ///     Stores favor/prestige awards from member actions.
+    ///     Backing field for activity log (serialized)
     /// </summary>
     [ProtoMember(19)]
-    public List<ActivityLogEntry> ActivityLog { get; set; } = new();
+    private List<ActivityLogEntry> _activityLog = new();
+
+    /// <summary>
+    ///     Recent activity log entries (last 100 entries, FIFO).
+    ///     Returns a thread-safe snapshot copy.
+    /// </summary>
+    [ProtoIgnore]
+    public IReadOnlyList<ActivityLogEntry> ActivityLog
+    {
+        get
+        {
+            lock (Lock)
+            {
+                return _activityLog.ToList();
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Adds an activity log entry (thread-safe).
+    ///     Maintains FIFO with max entries limit.
+    /// </summary>
+    public void AddActivityEntry(ActivityLogEntry entry, int maxEntries = 100)
+    {
+        lock (Lock)
+        {
+            _activityLog.Insert(0, entry);
+            if (_activityLog.Count > maxEntries)
+            {
+                _activityLog.RemoveRange(maxEntries, _activityLog.Count - maxEntries);
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Gets recent activity entries (thread-safe).
+    /// </summary>
+    public List<ActivityLogEntry> GetRecentActivity(int limit)
+    {
+        lock (Lock)
+        {
+            return _activityLog.Take(limit).ToList();
+        }
+    }
+
+    /// <summary>
+    ///     Clears the activity log.
+    ///     Thread-safe.
+    /// </summary>
+    public void ClearActivityLog()
+    {
+        lock (Lock)
+        {
+            _activityLog.Clear();
+        }
+    }
 
     /// <summary>
     ///     Accumulated fractional prestige (not yet awarded).
@@ -167,33 +390,60 @@ public class ReligionData
     public float AccumulatedFractionalPrestige { get; set; }
 
     /// <summary>
-    ///     Adds a member to the religion with player name
+    ///     Adds a member to the religion with player name.
+    ///     Thread-safe.
     /// </summary>
     public void AddMember(string playerUID, string playerName)
     {
-        if (!MemberUIDs.Contains(playerUID))
-            MemberUIDs.Add(playerUID);
+        lock (Lock)
+        {
+            if (!_memberUIDs.Contains(playerUID))
+                _memberUIDs.Add(playerUID);
 
-        if (!Members.ContainsKey(playerUID))
-            Members[playerUID] = new MemberEntry(playerUID, playerName);
+            if (!_members.ContainsKey(playerUID))
+                _members[playerUID] = new MemberEntry(playerUID, playerName);
+        }
     }
 
     /// <summary>
-    ///     Removes a member from the religion
+    ///     Removes a member from the religion.
+    ///     Thread-safe.
     /// </summary>
     public bool RemoveMember(string playerUID)
     {
-        MemberRoles.Remove(playerUID);
-        Members.Remove(playerUID);
-        return MemberUIDs.Remove(playerUID);
+        lock (Lock)
+        {
+            _memberRoles.Remove(playerUID);
+            _members.Remove(playerUID);
+            return _memberUIDs.Remove(playerUID);
+        }
     }
 
     /// <summary>
-    ///     Checks if a player is a member of this religion
+    ///     Moves a member to the first position in the member list (used for founder transfer).
+    ///     Thread-safe.
+    /// </summary>
+    public void MoveToFirstMember(string playerUID)
+    {
+        lock (Lock)
+        {
+            if (_memberUIDs.Remove(playerUID))
+            {
+                _memberUIDs.Insert(0, playerUID);
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Checks if a player is a member of this religion.
+    ///     Thread-safe.
     /// </summary>
     public bool IsMember(string playerUID)
     {
-        return MemberUIDs.Contains(playerUID);
+        lock (Lock)
+        {
+            return _memberUIDs.Contains(playerUID);
+        }
     }
 
     /// <summary>
@@ -205,11 +455,15 @@ public class ReligionData
     }
 
     /// <summary>
-    ///     Gets the member count
+    ///     Gets the member count.
+    ///     Thread-safe.
     /// </summary>
     public int GetMemberCount()
     {
-        return MemberUIDs.Count;
+        lock (Lock)
+        {
+            return _memberUIDs.Count;
+        }
     }
 
     /// <summary>
@@ -235,31 +489,40 @@ public class ReligionData
     }
 
     /// <summary>
-    ///     Gets the cached player name for a member (fallback to UID if not found)
+    ///     Gets the cached player name for a member (fallback to UID if not found).
+    ///     Thread-safe.
     /// </summary>
     public string GetMemberName(string playerUID)
     {
-        // Special case for founder - use FounderName as fallback
-        if (playerUID == FounderUID && !string.IsNullOrEmpty(FounderName))
+        lock (Lock)
         {
-            if (Members.TryGetValue(playerUID, out var founderEntry) && !string.IsNullOrEmpty(founderEntry.PlayerName))
-                return founderEntry.PlayerName;
-            return FounderName;
-        }
+            // Special case for founder - use FounderName as fallback
+            if (playerUID == FounderUID && !string.IsNullOrEmpty(FounderName))
+            {
+                if (_members.TryGetValue(playerUID, out var founderEntry) &&
+                    !string.IsNullOrEmpty(founderEntry.PlayerName))
+                    return founderEntry.PlayerName;
+                return FounderName;
+            }
 
-        // For non-founders
-        return Members.TryGetValue(playerUID, out var entry) && !string.IsNullOrEmpty(entry.PlayerName)
-            ? entry.PlayerName
-            : playerUID;
+            // For non-founders
+            return _members.TryGetValue(playerUID, out var entry) && !string.IsNullOrEmpty(entry.PlayerName)
+                ? entry.PlayerName
+                : playerUID;
+        }
     }
 
     /// <summary>
-    ///     Updates the cached player name if the member exists
+    ///     Updates the cached player name if the member exists.
+    ///     Thread-safe.
     /// </summary>
     public void UpdateMemberName(string playerUID, string playerName)
     {
-        if (Members.TryGetValue(playerUID, out var entry))
-            entry.UpdateName(playerName);
+        lock (Lock)
+        {
+            if (_members.TryGetValue(playerUID, out var entry))
+                entry.UpdateName(playerName);
+        }
     }
 
     /// <summary>
@@ -300,90 +563,142 @@ public class ReligionData
     }
 
     /// <summary>
-    ///     Unlocks a blessing for this religion
+    ///     Unlocks a blessing for this religion.
+    ///     Thread-safe.
     /// </summary>
     public void UnlockBlessing(string blessingId)
     {
-        UnlockedBlessings[blessingId] = true;
+        lock (Lock)
+        {
+            _unlockedBlessings[blessingId] = true;
+        }
     }
 
     /// <summary>
-    ///     Checks if a blessing is unlocked
+    ///     Locks (removes) a blessing for this religion.
+    ///     Thread-safe.
+    /// </summary>
+    public bool LockBlessing(string blessingId)
+    {
+        lock (Lock)
+        {
+            return _unlockedBlessings.Remove(blessingId);
+        }
+    }
+
+    /// <summary>
+    ///     Checks if a blessing is unlocked.
+    ///     Thread-safe.
     /// </summary>
     public bool IsBlessingUnlocked(string blessingId)
     {
-        return UnlockedBlessings.TryGetValue(blessingId, out var unlocked) && unlocked;
+        lock (Lock)
+        {
+            return _unlockedBlessings.TryGetValue(blessingId, out var unlocked) && unlocked;
+        }
     }
 
     /// <summary>
-    ///     Adds a banned player to the religion's ban list
+    ///     Adds a banned player to the religion's ban list.
+    ///     Thread-safe.
     /// </summary>
     public void AddBannedPlayer(string playerUID, BanEntry entry)
     {
-        BannedPlayers[playerUID] = entry;
+        lock (Lock)
+        {
+            _bannedPlayers[playerUID] = entry;
+        }
     }
 
     /// <summary>
-    ///     Removes a banned player from the religion's ban list
+    ///     Removes a banned player from the religion's ban list.
+    ///     Thread-safe.
     /// </summary>
     public bool RemoveBannedPlayer(string playerUID)
     {
-        return BannedPlayers.Remove(playerUID);
+        lock (Lock)
+        {
+            return _bannedPlayers.Remove(playerUID);
+        }
     }
 
     /// <summary>
-    ///     Checks if a player is banned from this religion (including expired bans)
+    ///     Checks if a player is banned from this religion (including expired bans).
+    ///     Thread-safe.
     /// </summary>
     public bool IsBanned(string playerUID)
     {
-        if (!BannedPlayers.TryGetValue(playerUID, out var banEntry))
-            return false;
+        lock (Lock)
+        {
+            if (!_bannedPlayers.TryGetValue(playerUID, out var banEntry))
+                return false;
 
-        // Check if ban has expired
-        if (banEntry.ExpiresAt.HasValue && banEntry.ExpiresAt.Value <= DateTime.UtcNow)
-            return false;
+            // Check if ban has expired
+            if (banEntry.ExpiresAt.HasValue && banEntry.ExpiresAt.Value <= DateTime.UtcNow)
+                return false;
 
-        return true;
+            return true;
+        }
     }
 
     /// <summary>
-    ///     Gets the ban entry for a specific player
+    ///     Gets the ban entry for a specific player.
+    ///     Thread-safe.
     /// </summary>
     public BanEntry? GetBannedPlayer(string playerUID)
     {
-        if (BannedPlayers.TryGetValue(playerUID, out var banEntry))
+        lock (Lock)
         {
-            // Check if expired
-            if (banEntry.ExpiresAt.HasValue && banEntry.ExpiresAt.Value <= DateTime.UtcNow)
-                return null;
+            if (_bannedPlayers.TryGetValue(playerUID, out var banEntry))
+            {
+                // Check if expired
+                if (banEntry.ExpiresAt.HasValue && banEntry.ExpiresAt.Value <= DateTime.UtcNow)
+                    return null;
 
-            return banEntry;
+                return banEntry;
+            }
+
+            return null;
         }
-
-        return null;
     }
 
     /// <summary>
-    ///     Gets all active (non-expired) bans
+    ///     Gets all active (non-expired) bans.
+    ///     Thread-safe.
     /// </summary>
     public List<BanEntry> GetActiveBans()
     {
-        CleanupExpiredBans();
-        return BannedPlayers.Values.ToList();
+        lock (Lock)
+        {
+            CleanupExpiredBansInternal();
+            return _bannedPlayers.Values.ToList();
+        }
     }
 
     /// <summary>
-    ///     Removes expired bans from the ban list
+    ///     Removes expired bans from the ban list.
+    ///     Thread-safe.
     /// </summary>
     public void CleanupExpiredBans()
     {
+        lock (Lock)
+        {
+            CleanupExpiredBansInternal();
+        }
+    }
+
+    /// <summary>
+    ///     Internal implementation for cleanup (call within lock).
+    /// </summary>
+    private void CleanupExpiredBansInternal()
+    {
         var now = DateTime.UtcNow;
-        var expiredBans = BannedPlayers
+        var expiredBans = _bannedPlayers
             .Where(kvp => kvp.Value.ExpiresAt.HasValue && kvp.Value.ExpiresAt.Value <= now)
             .Select(kvp => kvp.Key)
             .ToList();
 
-        foreach (var playerUID in expiredBans) BannedPlayers.Remove(playerUID);
+        foreach (var playerUID in expiredBans) _bannedPlayers.Remove(playerUID);
     }
 
     // Get player's role

@@ -1354,7 +1354,7 @@ public class ReligionCommands(
             {
                 Success = true,
                 Roles = _roleManager.GetReligionRoles(targetReligion.ReligionUID),
-                MemberRoles = targetReligion.MemberRoles,
+                MemberRoles = new Dictionary<string, string>(targetReligion.MemberRoles),
                 MemberNames = new Dictionary<string, string>()
             };
 
@@ -1464,7 +1464,7 @@ public class ReligionCommands(
                     {
                         Success = true,
                         Roles = _roleManager.GetReligionRoles(updatedReligion.ReligionUID),
-                        MemberRoles = updatedReligion.MemberRoles,
+                        MemberRoles = new Dictionary<string, string>(updatedReligion.MemberRoles),
                         MemberNames = new Dictionary<string, string>()
                     };
 
@@ -1543,7 +1543,7 @@ public class ReligionCommands(
                 {
                     Success = true,
                     Roles = _roleManager.GetReligionRoles(updatedReligion.ReligionUID),
-                    MemberRoles = updatedReligion.MemberRoles,
+                    MemberRoles = new Dictionary<string, string>(updatedReligion.MemberRoles),
                     MemberNames = new Dictionary<string, string>()
                 };
 

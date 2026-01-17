@@ -1394,8 +1394,8 @@ public class ReligionManagerTests
 
         // Remove members directly from the religion (bypassing index update)
         // to simulate a desync between index and actual membership
-        religion.MemberUIDs.Remove("member1");
-        religion.MemberUIDs.Remove("member2");
+        religion.RemoveMember("member1");
+        religion.RemoveMember("member2");
 
         // Act - Rebuild the index
         var rebuildMethod = _religionManager.GetType().GetMethod("RebuildPlayerIndex",
@@ -1512,11 +1512,9 @@ public class ReligionManagerTests
         var religion1Data = _religionManager.GetReligion(religion1.ReligionUID);
         var religion2Data = _religionManager.GetReligion(religion2.ReligionUID);
 
-        religion1Data!.MemberUIDs.Add("corrupted-player");
-        religion1Data.Members.Add("corrupted-player", new MemberEntry("corrupted-player", "Corrupted Player"));
-
-        religion2Data!.MemberUIDs.Add("corrupted-player");
-        religion2Data.Members.Add("corrupted-player", new MemberEntry("corrupted-player", "Corrupted Player"));
+        // Use AddMember which handles both MemberUIDs and Members atomically
+        religion1Data!.AddMember("corrupted-player", "Corrupted Player");
+        religion2Data!.AddMember("corrupted-player", "Corrupted Player");
 
         // Act - Rebuild the index (should not throw, should handle gracefully)
         var rebuildMethod = _religionManager.GetType().GetMethod("RebuildPlayerIndex",

@@ -112,13 +112,10 @@ public class ReligionCommandsTestHelpers
     {
         var religion = new ReligionData(uid, name, deity, "TestDeity", founderUID, "TestFounder")
         {
-            IsPublic = isPublic,
-            Roles = RoleDefaults.CreateDefaultRoles(),
-            MemberRoles = new Dictionary<string, string>
-            {
-                [founderUID] = RoleDefaults.FOUNDER_ROLE_ID
-            }
+            IsPublic = isPublic
         };
+        religion.InitializeRoles(RoleDefaults.CreateDefaultRoles());
+        religion.AssignMemberRole(founderUID, RoleDefaults.FOUNDER_ROLE_ID);
 
         return religion;
     }

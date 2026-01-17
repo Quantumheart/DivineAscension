@@ -1248,7 +1248,9 @@ public class CivilizationManagerTests
         var founderReligion =
             TestFixtures.CreateTestReligion(founderReligionId, "Founder Religion", DeityDomain.Craft, "TestDeity",
                 founderUID);
-        founderReligion.MemberUIDs = new List<string> { founderUID, "member-1", "member-2" };
+        // Add additional members (founder is already added by CreateTestReligion)
+        founderReligion.AddMember("member-1", "Member 1");
+        founderReligion.AddMember("member-2", "Member 2");
 
         _mockReligionManager.Setup(r => r.GetReligion(founderReligionId)).Returns(founderReligion);
 
