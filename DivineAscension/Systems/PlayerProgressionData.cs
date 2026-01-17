@@ -8,6 +8,9 @@ namespace DivineAscension.Systems;
 [ProtoContract]
 public class PlayerProgressionData
 {
+    // Thread-safety lock for UnlockedBlessings collection
+    [ProtoIgnore] private readonly object _blessingLock = new();
+
     /// <summary>
     ///     Creates new player religion data
     /// </summary>
@@ -43,11 +46,26 @@ public class PlayerProgressionData
     public int TotalFavorEarned { get; set; }
 
     /// <summary>
-    ///     Dictionary of unlocked player blessings
-    ///     Key: blessing ID, Value: unlock status (true if unlocked)
+    ///     Internal storage for unlocked player blessings
     /// </summary>
     [ProtoMember(103)]
-    public HashSet<string> UnlockedBlessings { get; set; } = new();
+    private HashSet<string> _unlockedBlessings = new();
+
+    /// <summary>
+    ///     Thread-safe read-only access to unlocked player blessings
+    ///     Returns a snapshot to prevent concurrent modification
+    /// </summary>
+    [ProtoIgnore]
+    public IReadOnlyCollection<string> UnlockedBlessings
+    {
+        get
+        {
+            lock (_blessingLock)
+            {
+                return _unlockedBlessings.ToHashSet(); // Return snapshot
+            }
+        }
+    }
 
 
     /// <summary>
@@ -110,27 +128,47 @@ public class PlayerProgressionData
     }
 
     /// <summary>
-    ///     Unlocks a player blessing
+    ///     Unlocks a player blessing (thread-safe)
     /// </summary>
     public void UnlockBlessing(string blessingId)
     {
-        UnlockedBlessings.Add(blessingId);
+        lock (_blessingLock)
+        {
+            _unlockedBlessings.Add(blessingId);
+        }
     }
 
     /// <summary>
-    ///     Checks if a blessing is unlocked
+    ///     Checks if a blessing is unlocked (thread-safe)
     /// </summary>
     public bool IsBlessingUnlocked(string blessingId)
     {
-        return UnlockedBlessings.Any(id => id == blessingId);
+        lock (_blessingLock)
+        {
+            return _unlockedBlessings.Contains(blessingId);
+        }
     }
 
     /// <summary>
-    ///     Clears all unlocked blessings (used when switching religions)
+    ///     Clears all unlocked blessings (used when switching religions) (thread-safe)
     /// </summary>
     public void ClearUnlockedBlessings()
     {
-        UnlockedBlessings.Clear();
+        lock (_blessingLock)
+        {
+            _unlockedBlessings.Clear();
+        }
+    }
+
+    /// <summary>
+    ///     Gets count of unlocked blessings (thread-safe)
+    /// </summary>
+    public int GetUnlockedBlessingCount()
+    {
+        lock (_blessingLock)
+        {
+            return _unlockedBlessings.Count;
+        }
     }
 
     /// <summary>
