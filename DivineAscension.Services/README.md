@@ -12,14 +12,25 @@ This project **multi-targets** both .NET 8 and .NET 9:
 
 ## Architecture
 
-### Current State (Phases 1-2 Complete)
+### Current State (Phases 1-3 Complete)
 
-The project infrastructure is set up with abstraction interfaces defined:
+The project infrastructure is set up with abstractions, enums, and models extracted:
 
 - **Abstractions/**: ✅ Interfaces for VS API dependencies
   - `ILogger`: Logging abstraction
   - `IWorldPersistence`: Save game data storage abstraction
   - `IPlayerProvider`: Player information lookup abstraction
+
+- **Models/Enum/**: ✅ All enum definitions
+  - `DeityDomain`, `FavorRank`, `PrestigeRank`: Core progression enums
+  - `BlessingCategory`, `BlessingKind`, `AbilityType`: Blessing system enums
+  - `DiplomaticStatus`, `NotificationType`, `DeityAlignment`, `DevotionRank`
+
+- **Models/**: ✅ Core business logic models
+  - `Blessing`: Blessing definition with stats and effects
+  - `PlayerFavorProgress`: Player progression data
+  - `ReligionPrestigeProgress`: Religion progression data
+  - `RolePermissions`: Permission constants and helpers
 
 Corresponding adapters are implemented in the main mod (`DivineAscension/Adapters/`):
 
@@ -27,14 +38,18 @@ Corresponding adapters are implemented in the main mod (`DivineAscension/Adapter
 - `VintageStoryPersistence`: Adapts VS save game API to IWorldPersistence
 - `VintageStoryPlayerProvider`: Adapts VS player API to IPlayerProvider
 
-### Future State (Phases 3-7)
+Remaining in main mod (`DivineAscension/Models/`):
+
+- `BlessingTooltipData`: GUI tooltip formatting
+- `BlessingNodeState`: UI state for blessing tree nodes
+- `RoleDefaults`: Default role creation (moves with RoleData in Phase 4)
+
+### Future State (Phases 4-7)
 
 Will also contain:
 
+- **Data/**: Data classes (ReligionData, CivilizationData, RoleData, etc.) (Phase 4)
 - **Managers/**: Core business logic managers with optimized locking (Phase 5)
-- **Data/**: Data classes (ReligionData, CivilizationData, etc.) (Phase 4)
-- **Models/**: Domain models (Blessing, RolePermissions, etc.) (Phase 3)
-- **Enums/**: Enumerations (DeityDomain, FavorRank, etc.) (Phase 3)
 
 ## Performance Optimizations
 

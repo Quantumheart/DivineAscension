@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace DivineAscension.Models;
 
 public static class RolePermissions

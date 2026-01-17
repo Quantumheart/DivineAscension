@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using DivineAscension.Models.Enum;
 
 namespace DivineAscension.Models;
