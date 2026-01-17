@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
@@ -21,10 +22,20 @@ public class DiplomacyManager : IDiplomacyManager
     private DiplomacyWorldData _data = new();
 
     /// <summary>
-    ///     Lazy-initialized lock object for thread safety
+    ///     Lazy-initialized lock object for thread safety using Interlocked.CompareExchange
     /// </summary>
     private object? _lock;
-    private object Lock => _lock ??= new object();
+    private object Lock
+    {
+        get
+        {
+            if (_lock == null)
+            {
+                Interlocked.CompareExchange(ref _lock, new object(), null);
+            }
+            return _lock;
+        }
+    }
 
     public DiplomacyManager(
         ICoreServerAPI sapi,

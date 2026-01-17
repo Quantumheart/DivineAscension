@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using DivineAscension.Models.Enum;
 using ProtoBuf;
 
@@ -10,13 +11,23 @@ public class PlayerProgressionData
 {
     /// <summary>
     ///     Lazy-initialized lock object for thread safety.
-    ///     Uses lazy initialization to work with ProtoBuf deserialization.
+    ///     Uses Interlocked.CompareExchange to work safely with ProtoBuf deserialization.
     /// </summary>
     [ProtoIgnore]
     private object? _lock;
 
     [ProtoIgnore]
-    private object Lock => _lock ??= new object();
+    private object Lock
+    {
+        get
+        {
+            if (_lock == null)
+            {
+                Interlocked.CompareExchange(ref _lock, new object(), null);
+            }
+            return _lock;
+        }
+    }
 
     /// <summary>
     ///     Creates new player religion data
