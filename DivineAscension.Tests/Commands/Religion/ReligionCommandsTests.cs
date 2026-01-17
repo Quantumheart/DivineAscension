@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Commands;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Commands.Helpers;
+using DivineAscension.Tests.Helpers;
 using Moq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -26,6 +27,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
     {
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         var mockRoleManager = new Mock<IRoleManager>();
+        var mockCooldownManager = TestFixtures.CreateMockCooldownManager();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             null!,
@@ -33,7 +35,8 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
             _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
             _serverChannel.Object,
-            mockRoleManager.Object));
+            mockRoleManager.Object,
+            mockCooldownManager.Object));
     }
 
     [Fact]
@@ -41,6 +44,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
     {
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         var mockRoleManager = new Mock<IRoleManager>();
+        var mockCooldownManager = TestFixtures.CreateMockCooldownManager();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
@@ -48,7 +52,8 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
             _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
             _serverChannel.Object,
-            mockRoleManager.Object));
+            mockRoleManager.Object,
+            mockCooldownManager.Object));
     }
 
     [Fact]
@@ -56,6 +61,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
     {
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         var mockRoleManager = new Mock<IRoleManager>();
+        var mockCooldownManager = TestFixtures.CreateMockCooldownManager();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
@@ -63,7 +69,8 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
             null!,
             mockPrestigeManager.Object,
             _serverChannel.Object,
-            mockRoleManager.Object));
+            mockRoleManager.Object,
+            mockCooldownManager.Object));
     }
 
     [Fact]
@@ -71,6 +78,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
     {
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         var mockRoleManager = new Mock<IRoleManager>();
+        var mockCooldownManager = TestFixtures.CreateMockCooldownManager();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
@@ -78,7 +86,8 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
             _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
             null!,
-            mockRoleManager.Object));
+            mockRoleManager.Object,
+            mockCooldownManager.Object));
     }
 
     [Fact]
@@ -86,6 +95,7 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
     {
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         var mockRoleManager = new Mock<IRoleManager>();
+        var mockCooldownManager = TestFixtures.CreateMockCooldownManager();
         // Act
         var commands = new ReligionCommands(
             _mockSapi.Object,
@@ -93,7 +103,8 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
             _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
             _serverChannel.Object,
-            mockRoleManager.Object);
+            mockRoleManager.Object,
+            mockCooldownManager.Object);
 
         // Assert
         Assert.NotNull(commands);

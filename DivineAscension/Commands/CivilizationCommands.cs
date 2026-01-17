@@ -22,7 +22,8 @@ public class CivilizationCommands(
     ICoreServerAPI sapi,
     ICivilizationManager civilizationManager,
     IReligionManager religionManager,
-    IPlayerProgressionDataManager playerProgressionDataManager)
+    IPlayerProgressionDataManager playerProgressionDataManager,
+    ICooldownManager cooldownManager)
 {
     private readonly ICivilizationManager _civilizationManager =
         civilizationManager ?? throw new ArgumentNullException(nameof(civilizationManager));
@@ -34,6 +35,9 @@ public class CivilizationCommands(
         religionManager ?? throw new ArgumentNullException(nameof(religionManager));
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+
+    private readonly ICooldownManager _cooldownManager =
+        cooldownManager ?? throw new ArgumentNullException(nameof(cooldownManager));
 
     /// <summary>
     ///     Registers all civilization commands
@@ -173,6 +177,10 @@ public class CivilizationCommands(
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_PLAYERS_ONLY));
 
+        // Check cooldown (2s for civilization invites)
+        if (!_cooldownManager.CanPerformOperation(player.PlayerUID, CooldownType.Invite, out var cooldownError))
+            return TextCommandResult.Error(cooldownError!);
+
         if (!_religionManager.HasReligion(player.PlayerUID))
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_MUST_BE_IN_RELIGION));
@@ -200,6 +208,9 @@ public class CivilizationCommands(
         if (!success)
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_ERROR_INVITE_FAILED));
+
+        // Record cooldown after successful invite
+        _cooldownManager.RecordOperation(player.PlayerUID, CooldownType.Invite);
 
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_INVITE_SENT, religionName));

@@ -44,11 +44,19 @@ public class CivilizationCommandsTestHelpers
 
     protected CivilizationCommands InitializeMocksAndSut()
     {
+        var mockCooldownManager = TestFixtures.CreateMockCooldownManager();
+
+        // Default behavior: allow all operations (no cooldown active)
+        mockCooldownManager
+            .Setup(m => m.CanPerformOperation(It.IsAny<string>(), It.IsAny<DivineAscension.Models.Enum.CooldownType>(), out It.Ref<string?>.IsAny))
+            .Returns(true);
+
         return new CivilizationCommands(
             _mockSapi.Object,
             _civilizationManager.Object,
             _religionManager.Object,
-            _playerProgressionDataManager.Object);
+            _playerProgressionDataManager.Object,
+            mockCooldownManager.Object);
     }
 
     /// <summary>
