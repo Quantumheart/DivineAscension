@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using DivineAscension.Models.Enum;
-using DivineAscension.Systems;
+using DivineAscension.Data;
 
 namespace DivineAscension.Tests.Systems;
 

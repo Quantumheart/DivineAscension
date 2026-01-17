@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DivineAscension.Configuration;
+using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.Interfaces;
@@ -32,10 +33,10 @@ public class FavorSystem : IFavorSystem
     private HarvestFavorTracker? _harvestFavorTracker;
     private HuntingFavorTracker? _huntingFavorTracker;
     private MiningFavorTracker? _miningFavorTracker;
+    private RuinDiscoveryFavorTracker? _ruinDiscoveryFavorTracker;
     private SkinningFavorTracker? _skinningFavorTracker;
     private SmeltingFavorTracker? _smeltingFavorTracker;
     private StoneFavorTracker? _stoneFavorTracker;
-    private RuinDiscoveryFavorTracker? _ruinDiscoveryFavorTracker;
 
     public FavorSystem(ICoreServerAPI sapi,
         IPlayerProgressionDataManager playerProgressionDataManager,

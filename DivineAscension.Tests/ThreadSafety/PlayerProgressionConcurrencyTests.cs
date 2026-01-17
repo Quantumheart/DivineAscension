@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using DivineAscension.Systems;
+using DivineAscension.Data;
 
 namespace DivineAscension.Tests.ThreadSafety;
 
@@ -37,6 +37,7 @@ public class PlayerProgressionConcurrencyTests
                         {
                             data.RemoveFavor(5);
                         }
+
                         // Read during modifications
                         _ = data.Favor;
                         _ = data.TotalFavorEarned;
@@ -89,6 +90,7 @@ public class PlayerProgressionConcurrencyTests
                         {
                             data.LockBlessing($"blessing-{threadIndex - 1}-{i}");
                         }
+
                         // Check during modifications
                         _ = data.IsBlessingUnlocked(blessingId);
                         // Iterate during modifications
@@ -273,7 +275,8 @@ public class PlayerProgressionConcurrencyTests
                             {
                                 lock (inconsistencies)
                                 {
-                                    inconsistencies.Add($"Found duplicates in snapshot: {snapshot.Count} vs {distinctCount}");
+                                    inconsistencies.Add(
+                                        $"Found duplicates in snapshot: {snapshot.Count} vs {distinctCount}");
                                 }
                             }
                         }

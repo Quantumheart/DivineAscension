@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using DivineAscension.Configuration;
+using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -22,12 +23,12 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     public delegate void PlayerReligionDataChangedDelegate(IServerPlayer player, string religionUID);
 
     private const string DATA_KEY = "divineascension_playerprogressiondata";
+    private readonly GameBalanceConfig _config;
     private readonly ConcurrentDictionary<string, byte> _initializedPlayers = new();
     private readonly ConcurrentDictionary<string, PlayerProgressionData> _playerData = new();
     private readonly IReligionManager _religionManager;
 
     private readonly ICoreServerAPI _sapi;
-    private readonly GameBalanceConfig _config;
 
     // ReSharper disable once ConvertToPrimaryConstructor
     public PlayerProgressionDataManager(ICoreServerAPI sapi, IReligionManager religionManager, GameBalanceConfig config)
@@ -283,15 +284,6 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
         return CalculateFavorRank(data.TotalFavorEarned);
     }
 
-    private FavorRank CalculateFavorRank(int totalFavor)
-    {
-        if (totalFavor >= _config.AvatarThreshold) return FavorRank.Avatar;
-        if (totalFavor >= _config.ChampionThreshold) return FavorRank.Champion;
-        if (totalFavor >= _config.ZealotThreshold) return FavorRank.Zealot;
-        if (totalFavor >= _config.DiscipleThreshold) return FavorRank.Disciple;
-        return FavorRank.Initiate;
-    }
-
     /// <summary>
     ///     Applies switching penalty when changing religions
     /// </summary>
@@ -303,6 +295,15 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
 
         // Apply penalty (reset favor and blessings)
         data.ApplySwitchPenalty();
+    }
+
+    private FavorRank CalculateFavorRank(int totalFavor)
+    {
+        if (totalFavor >= _config.AvatarThreshold) return FavorRank.Avatar;
+        if (totalFavor >= _config.ChampionThreshold) return FavorRank.Champion;
+        if (totalFavor >= _config.ZealotThreshold) return FavorRank.Zealot;
+        if (totalFavor >= _config.DiscipleThreshold) return FavorRank.Disciple;
+        return FavorRank.Initiate;
     }
 
     /// <summary>

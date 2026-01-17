@@ -1,10 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using DivineAscension.Models.Enum;
 using ProtoBuf;
 
-namespace DivineAscension.Systems;
+namespace DivineAscension.Data;
 
 [ProtoContract]
 public class PlayerProgressionData
@@ -13,21 +9,12 @@ public class PlayerProgressionData
     ///     Lazy-initialized lock object for thread safety.
     ///     Uses Interlocked.CompareExchange to work safely with ProtoBuf deserialization.
     /// </summary>
-    [ProtoIgnore]
-    private object? _lock;
+    [ProtoIgnore] private object? _lock;
 
-    [ProtoIgnore]
-    private object Lock
-    {
-        get
-        {
-            if (_lock == null)
-            {
-                Interlocked.CompareExchange(ref _lock, new object(), null);
-            }
-            return _lock;
-        }
-    }
+    /// <summary>
+    ///     Backing field for unlocked player blessings.
+    /// </summary>
+    [ProtoMember(103)] private HashSet<string> _unlockedBlessings = new();
 
     /// <summary>
     ///     Creates new player religion data
@@ -42,6 +29,20 @@ public class PlayerProgressionData
     /// </summary>
     public PlayerProgressionData()
     {
+    }
+
+    [ProtoIgnore]
+    private object Lock
+    {
+        get
+        {
+            if (_lock == null)
+            {
+                Interlocked.CompareExchange(ref _lock, new object(), null);
+            }
+
+            return _lock;
+        }
     }
 
     /// <summary>
@@ -62,12 +63,6 @@ public class PlayerProgressionData
     /// </summary>
     [ProtoMember(102)]
     public int TotalFavorEarned { get; set; }
-
-    /// <summary>
-    ///     Backing field for unlocked player blessings.
-    /// </summary>
-    [ProtoMember(103)]
-    private HashSet<string> _unlockedBlessings = new();
 
     /// <summary>
     ///     Read-only view of unlocked player blessings.

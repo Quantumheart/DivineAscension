@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using ProtoBuf;
 
 namespace DivineAscension.Data;

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Text;
 using DivineAscension.Constants;
+using DivineAscension.Data;
 using DivineAscension.Extensions;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
@@ -118,7 +119,8 @@ public class FavorCommands
     /// <summary>
     ///     Formats the result message for total favor changes
     /// </summary>
-    private string FormatTotalFavorResult(string playerUID, PlayerProgressionData playerData, int newAmount, int oldTotal,
+    private string FormatTotalFavorResult(string playerUID, PlayerProgressionData playerData, int newAmount,
+        int oldTotal,
         FavorRank oldRank)
     {
         var sb = new StringBuilder();
@@ -527,7 +529,8 @@ public class FavorCommands
 
             targetProgressionData.TotalFavorEarned = amount;
 
-            return TextCommandResult.Success(FormatTotalFavorResult(serverPlayer.PlayerUID, targetProgressionData, amount, oldTotal, oldRank));
+            return TextCommandResult.Success(FormatTotalFavorResult(serverPlayer.PlayerUID, targetProgressionData,
+                amount, oldTotal, oldRank));
         }
 
         // Handle setting own favor
@@ -545,7 +548,8 @@ public class FavorCommands
 
         religionData.TotalFavorEarned = amount;
 
-        return TextCommandResult.Success(FormatTotalFavorResult(player.PlayerUID, religionData, amount, callerOldTotal, callerOldRank));
+        return TextCommandResult.Success(FormatTotalFavorResult(player.PlayerUID, religionData, amount, callerOldTotal,
+            callerOldRank));
     }
 
     #endregion

@@ -12,9 +12,9 @@ This project **multi-targets** both .NET 8 and .NET 9:
 
 ## Architecture
 
-### Current State (Phases 1-3 Complete)
+### Current State (Phases 1-4 Complete)
 
-The project infrastructure is set up with abstractions, enums, and models extracted:
+The project infrastructure is set up with abstractions, enums, models, and data classes extracted:
 
 - **Abstractions/**: ✅ Interfaces for VS API dependencies
   - `ILogger`: Logging abstraction
@@ -31,6 +31,17 @@ The project infrastructure is set up with abstractions, enums, and models extrac
   - `PlayerFavorProgress`: Player progression data
   - `ReligionPrestigeProgress`: Religion progression data
   - `RolePermissions`: Permission constants and helpers
+  - `RoleDefaults`: Default role creation and validation
+
+- **Data/**: ✅ Data classes with thread-safe locking
+  - `ReligionData`: Religion state and membership
+  - `CivilizationData`: Civilization alliances
+  - `PlayerProgressionData`: Per-player progression and blessings
+  - `RoleData`: Role definitions with permissions
+  - `ActivityLogEntry`, `BanEntry`, `MemberEntry`: Supporting data structures
+  - `DiplomaticProposal`, `DiplomaticRelationship`: Diplomacy data
+  - `*WorldData` classes: World-level persistence containers
+  - `ModConfigData`: Mod configuration storage
 
 Corresponding adapters are implemented in the main mod (`DivineAscension/Adapters/`):
 
@@ -42,13 +53,20 @@ Remaining in main mod (`DivineAscension/Models/`):
 
 - `BlessingTooltipData`: GUI tooltip formatting
 - `BlessingNodeState`: UI state for blessing tree nodes
-- `RoleDefaults`: Default role creation (moves with RoleData in Phase 4)
 
-### Future State (Phases 4-7)
+**Assembly Visibility:**
+
+The Services project exposes internal members to:
+
+- `DivineAscension` (main mod)
+- `DivineAscension.Tests` (test project)
+
+This allows tight integration while maintaining encapsulation from external consumers.
+
+### Future State (Phases 5-7)
 
 Will also contain:
 
-- **Data/**: Data classes (ReligionData, CivilizationData, RoleData, etc.) (Phase 4)
 - **Managers/**: Core business logic managers with optimized locking (Phase 5)
 
 ## Performance Optimizations

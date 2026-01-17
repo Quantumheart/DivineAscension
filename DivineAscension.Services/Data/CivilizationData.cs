@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using ProtoBuf;
 
 namespace DivineAscension.Data;
@@ -15,21 +11,13 @@ public class Civilization
     /// <summary>
     ///     Lazy-initialized lock object for thread safety using Interlocked.CompareExchange
     /// </summary>
-    [ProtoIgnore]
-    private object? _lock;
+    [ProtoIgnore] private object? _lock;
 
-    [ProtoIgnore]
-    private object Lock
-    {
-        get
-        {
-            if (_lock == null)
-            {
-                Interlocked.CompareExchange(ref _lock, new object(), null);
-            }
-            return _lock;
-        }
-    }
+
+    /// <summary>
+    ///     Backing field for MemberReligionIds
+    /// </summary>
+    [ProtoMember(5)] private List<string> _memberReligionIds = new();
 
     /// <summary>
     ///     Parameterless constructor for serialization
@@ -49,6 +37,20 @@ public class Civilization
         FounderReligionUID = founderReligionId;
         _memberReligionIds = [founderReligionId];
         CreatedDate = DateTime.UtcNow;
+    }
+
+    [ProtoIgnore]
+    private object Lock
+    {
+        get
+        {
+            if (_lock == null)
+            {
+                Interlocked.CompareExchange(ref _lock, new object(), null);
+            }
+
+            return _lock;
+        }
     }
 
     /// <summary>
@@ -76,13 +78,6 @@ public class Civilization
     [ProtoMember(4)]
     public string FounderReligionUID { get; set; } = string.Empty;
 
-
-    /// <summary>
-    ///     Backing field for MemberReligionIds
-    /// </summary>
-    [ProtoMember(5)]
-    private List<string> _memberReligionIds = new();
-
     /// <summary>
     ///     List of religion UIDs that are members (1-4 religions).
     ///     Thread-safe read-only snapshot.
@@ -90,15 +85,13 @@ public class Civilization
     [ProtoIgnore]
     public IReadOnlyList<string> MemberReligionIds
     {
-        get { lock (Lock) { return _memberReligionIds.ToList(); } }
-    }
-
-    /// <summary>
-    ///     Gets a snapshot of member religion IDs for safe iteration
-    /// </summary>
-    public List<string> GetMemberReligionIdsSnapshot()
-    {
-        lock (Lock) { return _memberReligionIds.ToList(); }
+        get
+        {
+            lock (Lock)
+            {
+                return _memberReligionIds.ToList();
+            }
+        }
     }
 
     /// <summary>
@@ -136,7 +129,24 @@ public class Civilization
     /// </summary>
     public bool IsValid
     {
-        get { lock (Lock) { return _memberReligionIds.Count >= 1 && _memberReligionIds.Count <= 4; } }
+        get
+        {
+            lock (Lock)
+            {
+                return _memberReligionIds.Count >= 1 && _memberReligionIds.Count <= 4;
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Gets a snapshot of member religion IDs for safe iteration
+    /// </summary>
+    public List<string> GetMemberReligionIdsSnapshot()
+    {
+        lock (Lock)
+        {
+            return _memberReligionIds.ToList();
+        }
     }
 
     /// <summary>
@@ -144,7 +154,10 @@ public class Civilization
     /// </summary>
     public bool HasReligion(string religionId)
     {
-        lock (Lock) { return _memberReligionIds.Contains(religionId); }
+        lock (Lock)
+        {
+            return _memberReligionIds.Contains(religionId);
+        }
     }
 
     /// <summary>
@@ -167,7 +180,10 @@ public class Civilization
     /// </summary>
     public bool RemoveReligion(string religionId)
     {
-        lock (Lock) { return _memberReligionIds.Remove(religionId); }
+        lock (Lock)
+        {
+            return _memberReligionIds.Remove(religionId);
+        }
     }
 
     /// <summary>

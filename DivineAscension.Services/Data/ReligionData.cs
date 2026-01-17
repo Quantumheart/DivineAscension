@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using ProtoBuf;
@@ -15,20 +11,45 @@ namespace DivineAscension.Data;
 [ProtoContract]
 public class ReligionData
 {
+    /// <summary>
+    ///     Backing field for activity log (serialized)
+    /// </summary>
+    [ProtoMember(19)] private List<ActivityLogEntry> _activityLog = new();
+
+    /// <summary>
+    ///     Backing field for banned players (serialized)
+    /// </summary>
+    [ProtoMember(13)] private Dictionary<string, BanEntry> _bannedPlayers = new();
+
     // Thread-safety: Lazy lock initialization using Interlocked.CompareExchange
     // This is safe for ProtoBuf deserialization and avoids race conditions
     [ProtoIgnore] private object? _lock;
-    [ProtoIgnore] private object Lock
-    {
-        get
-        {
-            if (_lock == null)
-            {
-                Interlocked.CompareExchange(ref _lock, new object(), null);
-            }
-            return _lock;
-        }
-    }
+
+    /// <summary>
+    ///     Backing field for member roles (serialized)
+    /// </summary>
+    [ProtoMember(15)] private Dictionary<string, string> _memberRoles = new();
+
+    /// <summary>
+    ///     Backing field for member entries (serialized)
+    /// </summary>
+    [ProtoMember(16)] private Dictionary<string, MemberEntry> _members = new();
+
+    /// <summary>
+    ///     Backing field for member UIDs (serialized)
+    /// </summary>
+    [ProtoMember(5)] private List<string> _memberUIDs = new();
+
+    /// <summary>
+    ///     Backing field for roles (serialized)
+    /// </summary>
+    [ProtoMember(14)] private Dictionary<string, RoleData> _roles = new();
+
+    /// <summary>
+    ///     Backing field for unlocked blessings (serialized)
+    /// </summary>
+    [ProtoMember(10)] private Dictionary<string, bool> _unlockedBlessings = new();
+
     /// <summary>
     ///     Creates a new religion with the specified parameters
     /// </summary>
@@ -56,6 +77,20 @@ public class ReligionData
     {
     }
 
+    [ProtoIgnore]
+    private object Lock
+    {
+        get
+        {
+            if (_lock == null)
+            {
+                Interlocked.CompareExchange(ref _lock, new object(), null);
+            }
+
+            return _lock;
+        }
+    }
+
     /// <summary>
     ///     Unique identifier for this religion
     /// </summary>
@@ -79,12 +114,6 @@ public class ReligionData
     /// </summary>
     [ProtoMember(4)]
     public string FounderUID { get; set; } = string.Empty;
-
-    /// <summary>
-    ///     Backing field for member UIDs (serialized)
-    /// </summary>
-    [ProtoMember(5)]
-    private List<string> _memberUIDs = new();
 
     /// <summary>
     ///     Ordered list of member player UIDs (founder is always first).
@@ -127,12 +156,6 @@ public class ReligionData
     public DateTime CreationDate { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    ///     Backing field for unlocked blessings (serialized)
-    /// </summary>
-    [ProtoMember(10)]
-    private Dictionary<string, bool> _unlockedBlessings = new();
-
-    /// <summary>
     ///     Dictionary of unlocked religion blessings.
     ///     Returns a thread-safe snapshot copy.
     /// </summary>
@@ -161,12 +184,6 @@ public class ReligionData
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
-    ///     Backing field for banned players (serialized)
-    /// </summary>
-    [ProtoMember(13)]
-    private Dictionary<string, BanEntry> _bannedPlayers = new();
-
-    /// <summary>
     ///     Dictionary of banned players.
     ///     Returns a thread-safe snapshot copy.
     /// </summary>
@@ -183,12 +200,6 @@ public class ReligionData
     }
 
     /// <summary>
-    ///     Backing field for roles (serialized)
-    /// </summary>
-    [ProtoMember(14)]
-    private Dictionary<string, RoleData> _roles = new();
-
-    /// <summary>
     ///     Dictionary of roles in the religion.
     ///     Returns a thread-safe snapshot copy.
     /// </summary>
@@ -203,6 +214,74 @@ public class ReligionData
             }
         }
     }
+
+    /// <summary>
+    ///     A dictionary of roles for the religion. Keys are player UIDs, values are the role IDs.
+    ///     Returns a thread-safe snapshot copy.
+    /// </summary>
+    [ProtoIgnore]
+    public IReadOnlyDictionary<string, string> MemberRoles
+    {
+        get
+        {
+            lock (Lock)
+            {
+                return new Dictionary<string, string>(_memberRoles);
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Dictionary of member entries with cached player names.
+    ///     Returns a thread-safe snapshot copy.
+    /// </summary>
+    [ProtoIgnore]
+    public IReadOnlyDictionary<string, MemberEntry> Members
+    {
+        get
+        {
+            lock (Lock)
+            {
+                return new Dictionary<string, MemberEntry>(_members);
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Cached founder name for quick access
+    /// </summary>
+    [ProtoMember(17)]
+    public string FounderName { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     The custom name of the deity this religion worships (required).
+    ///     This allows religions with the same domain to have uniquely named deities.
+    /// </summary>
+    [ProtoMember(18)]
+    public string DeityName { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Recent activity log entries (last 100 entries, FIFO).
+    ///     Returns a thread-safe snapshot copy.
+    /// </summary>
+    [ProtoIgnore]
+    public IReadOnlyList<ActivityLogEntry> ActivityLog
+    {
+        get
+        {
+            lock (Lock)
+            {
+                return _activityLog.ToList();
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Accumulated fractional prestige (not yet awarded).
+    ///     Enables true 1:1 favor-to-prestige conversion for fractional favor amounts.
+    /// </summary>
+    [ProtoMember(20)]
+    public float AccumulatedFractionalPrestige { get; set; }
 
     /// <summary>
     ///     Sets or updates a role in the religion.
@@ -225,28 +304,6 @@ public class ReligionData
         lock (Lock)
         {
             return _roles.Remove(roleId);
-        }
-    }
-
-    /// <summary>
-    ///     Backing field for member roles (serialized)
-    /// </summary>
-    [ProtoMember(15)]
-    private Dictionary<string, string> _memberRoles = new();
-
-    /// <summary>
-    ///     A dictionary of roles for the religion. Keys are player UIDs, values are the role IDs.
-    ///     Returns a thread-safe snapshot copy.
-    /// </summary>
-    [ProtoIgnore]
-    public IReadOnlyDictionary<string, string> MemberRoles
-    {
-        get
-        {
-            lock (Lock)
-            {
-                return new Dictionary<string, string>(_memberRoles);
-            }
         }
     }
 
@@ -299,63 +356,6 @@ public class ReligionData
     }
 
     /// <summary>
-    ///     Backing field for member entries (serialized)
-    /// </summary>
-    [ProtoMember(16)]
-    private Dictionary<string, MemberEntry> _members = new();
-
-    /// <summary>
-    ///     Dictionary of member entries with cached player names.
-    ///     Returns a thread-safe snapshot copy.
-    /// </summary>
-    [ProtoIgnore]
-    public IReadOnlyDictionary<string, MemberEntry> Members
-    {
-        get
-        {
-            lock (Lock)
-            {
-                return new Dictionary<string, MemberEntry>(_members);
-            }
-        }
-    }
-
-    /// <summary>
-    ///     Cached founder name for quick access
-    /// </summary>
-    [ProtoMember(17)]
-    public string FounderName { get; set; } = string.Empty;
-
-    /// <summary>
-    ///     The custom name of the deity this religion worships (required).
-    ///     This allows religions with the same domain to have uniquely named deities.
-    /// </summary>
-    [ProtoMember(18)]
-    public string DeityName { get; set; } = string.Empty;
-
-    /// <summary>
-    ///     Backing field for activity log (serialized)
-    /// </summary>
-    [ProtoMember(19)]
-    private List<ActivityLogEntry> _activityLog = new();
-
-    /// <summary>
-    ///     Recent activity log entries (last 100 entries, FIFO).
-    ///     Returns a thread-safe snapshot copy.
-    /// </summary>
-    [ProtoIgnore]
-    public IReadOnlyList<ActivityLogEntry> ActivityLog
-    {
-        get
-        {
-            lock (Lock)
-            {
-                return _activityLog.ToList();
-            }
-        }
-    }
-
-    /// <summary>
     ///     Adds an activity log entry (thread-safe).
     ///     Maintains FIFO with max entries limit.
     /// </summary>
@@ -393,13 +393,6 @@ public class ReligionData
             _activityLog.Clear();
         }
     }
-
-    /// <summary>
-    ///     Accumulated fractional prestige (not yet awarded).
-    ///     Enables true 1:1 favor-to-prestige conversion for fractional favor amounts.
-    /// </summary>
-    [ProtoMember(20)]
-    public float AccumulatedFractionalPrestige { get; set; }
 
     /// <summary>
     ///     Adds a member to the religion with player name.
