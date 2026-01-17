@@ -9,5 +9,6 @@ public enum SoundType
     UnlockCraft,
     UnlockWild,
     UnlockHarvest,
-    UnlockStone
+    UnlockStone,
+    UnlockConquest
 }

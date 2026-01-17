@@ -20,7 +20,8 @@ public class SoundManager(ICoreClientAPI api) : ISoundManager
         { SoundType.UnlockCraft, "divineascension:sounds/deities/Craft" },
         { SoundType.UnlockWild, "divineascension:sounds/deities/Wild" },
         { SoundType.UnlockHarvest, "divineascension:sounds/deities/Harvest" },
-        { SoundType.UnlockStone, "divineascension:sounds/deities/Stone" }
+        { SoundType.UnlockStone, "divineascension:sounds/deities/Stone" },
+        { SoundType.UnlockConquest, "divineascension:sounds/deities/Conquest" }
     };
 
     private static readonly Dictionary<SoundVolume, float> VolumeValues = new()
@@ -71,6 +72,7 @@ public class SoundManager(ICoreClientAPI api) : ISoundManager
             DeityDomain.Wild => SoundType.UnlockWild,
             DeityDomain.Harvest => SoundType.UnlockHarvest,
             DeityDomain.Stone => SoundType.UnlockStone,
+            DeityDomain.Conquest => SoundType.UnlockConquest,
             _ => SoundType.Unlock
         };
         Play(sound, SoundVolume.Loud);
