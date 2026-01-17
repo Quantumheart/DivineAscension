@@ -26,6 +26,7 @@ public class CivilizationManager(ICoreServerAPI sapi, IReligionManager religionM
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
     private CivilizationWorldData _data = new();
+    private readonly object _dataLock = new(); // Thread-safety lock for all _data access
 
     /// <summary>
     ///     Event fired when a civilization is disbanded

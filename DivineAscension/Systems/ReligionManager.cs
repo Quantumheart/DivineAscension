@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -19,8 +20,8 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 {
     private const string DATA_KEY = "divineascension_religions";
     private const string INVITE_DATA_KEY = "divineascension_religion_invites";
-    private readonly Dictionary<string, string> _playerToReligionIndex = new();
-    private readonly Dictionary<string, ReligionData> _religions = new();
+    private readonly ConcurrentDictionary<string, string> _playerToReligionIndex = new();
+    private readonly ConcurrentDictionary<string, ReligionData> _religions = new();
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
     private ReligionWorldData _inviteData = new();
     internal IReadOnlyDictionary<string, string> PlayerToReligionIndex => _playerToReligionIndex;
@@ -90,7 +91,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 
         // Store in dictionary
         _religions[religionUID] = religion;
-        _playerToReligionIndex.Add(founderUID, religionUID);
+        _playerToReligionIndex.TryAdd(founderUID, religionUID);
 
         _sapi.Logger.Notification(
             $"[DivineAscension] Religion created: {name} (Domain: {domain}, Deity: {deityName}, Founder: {founderName}, Public: {isPublic})");
@@ -205,7 +206,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 
         if (removed)
         {
-            _playerToReligionIndex.Remove(playerUID);
+            _playerToReligionIndex.TryRemove(playerUID, out _);
             _sapi.Logger.Debug($"[DivineAscension] Removed player {playerUID} from religion {religion.ReligionName}");
 
             // Handle founder leaving
@@ -214,7 +215,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             // Delete religion if no members remain
             if (religion.GetMemberCount() == 0)
             {
-                _religions.Remove(religionUID);
+                _religions.TryRemove(religionUID, out _);
                 _sapi.Logger.Notification(
                     $"[DivineAscension] Religion {religion.ReligionName} disbanded (no members remaining)");
 
@@ -488,7 +489,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         var removedCount = 0;
         foreach (var memberUID in religion.MemberUIDs.ToList())
         {
-            if (_playerToReligionIndex.Remove(memberUID))
+            if (_playerToReligionIndex.TryRemove(memberUID, out _))
             {
                 removedCount++;
                 _sapi.Logger.Debug($"[DivineAscension] Removed player {memberUID} from index during religion deletion");
@@ -506,7 +507,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         }
 
         // Delete the religion
-        _religions.Remove(religionUID);
+        _religions.TryRemove(religionUID, out _);
         SaveAllReligions();
 
         _sapi.Logger.Notification($"[DivineAscension] Religion {religion.ReligionName} disbanded by founder");
@@ -547,7 +548,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         religion.MemberUIDs.Remove(playerUID);
 
         // Remove from player-to-religion index since they're no longer a member
-        _playerToReligionIndex.Remove(playerUID);
+        _playerToReligionIndex.TryRemove(playerUID, out _);
 
         Save(religion);
 
@@ -697,7 +698,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             var actualReligions = _religions.Values.Where(r => r.IsMember(playerUID)).ToList();
 
             // Remove player from index first
-            _playerToReligionIndex.Remove(playerUID);
+            _playerToReligionIndex.TryRemove(playerUID, out _);
 
             // If player is in exactly one religion, add them to index
             if (actualReligions.Count == 1)
@@ -767,10 +768,13 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 
         foreach (var religion in _religions)
         {
-            foreach (var userId in religion.Value.MemberUIDs)
+            // Create defensive snapshot to prevent concurrent modification during iteration
+            var memberSnapshot = religion.Value.MemberUIDs.ToList();
+            foreach (var userId in memberSnapshot)
             {
                 // Check if player already exists in index (data corruption scenario)
-                if (_playerToReligionIndex.ContainsKey(userId))
+                // Use TryAdd instead of ContainsKey + indexer for atomicity
+                if (!_playerToReligionIndex.TryAdd(userId, religion.Key))
                 {
                     corruptionDetected = true;
                     var existingReligionId = _playerToReligionIndex[userId];
@@ -782,11 +786,8 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
                         $"'{religion.Value.ReligionName}' ({religion.Key}). " +
                         $"Using first religion as authority. Run '/religion admin repair {userId}' to fix.");
 
-                    // Use first religion found as authority, skip duplicate
-                    continue;
+                    // TryAdd failed, so first religion already in index - skip duplicate
                 }
-
-                _playerToReligionIndex[userId] = religion.Key;
             }
         }
 
@@ -828,7 +829,9 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         // Add players from all religion member lists
         foreach (var religion in _religions.Values)
         {
-            foreach (var memberUID in religion.MemberUIDs)
+            // Create defensive snapshot to prevent concurrent modification during iteration
+            var memberSnapshot = religion.MemberUIDs.ToList();
+            foreach (var memberUID in memberSnapshot)
             {
                 allPlayerUIDs.Add(memberUID);
             }
