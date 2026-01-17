@@ -81,8 +81,8 @@ public class ReligionCommandListTests : ReligionCommandsTestHelpers
         SetupParsers(args);
 
         var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
-        religion.MemberUIDs.Add("member-1");
-        religion.MemberUIDs.Add("member-2");
+        religion.AddMember("member-1", "Test Member");
+        religion.AddMember("member-2", "Test Member");
 
         var religions = new List<ReligionData> { religion };
         _religionManager.Setup(m => m.GetAllReligions()).Returns(religions);

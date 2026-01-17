@@ -95,9 +95,9 @@ public class CivilizationCommandsTestHelpers
     {
         var religion = new ReligionData(uid, name, deity, deityName, founderUID, "TestFounder")
         {
-            IsPublic = true,
-            MemberUIDs = new List<string> { founderUID }
+            IsPublic = true
         };
+        // MemberUIDs is populated by the constructor
 
         return religion;
     }

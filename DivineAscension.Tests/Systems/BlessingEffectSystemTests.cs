@@ -333,8 +333,8 @@ public class BlessingEffectSystemTests
     {
         // Arrange
         var religion = TestFixtures.CreateTestReligion("religion-uid");
-        religion.UnlockedBlessings["blessing1"] = true;
-        religion.UnlockedBlessings["blessing2"] = true;
+        religion.UnlockBlessing("blessing1");
+        religion.UnlockBlessing("blessing2");
 
         var blessing1 =
             TestFixtures.CreateTestBlessing("blessing1", "Blessing 1", DeityDomain.Craft, BlessingKind.Religion);
@@ -388,7 +388,7 @@ public class BlessingEffectSystemTests
         playerData.UnlockBlessing("player_blessing");
 
         var religion = TestFixtures.CreateTestReligion("religion-uid");
-        religion.UnlockedBlessings["religion_blessing"] = true;
+        religion.UnlockBlessing("religion_blessing");
 
         var playerBlessing = TestFixtures.CreateTestBlessing("player_blessing", "Player Blessing");
         playerBlessing.StatModifiers["walkspeed"] = 0.1f;
@@ -461,8 +461,8 @@ public class BlessingEffectSystemTests
     {
         // Arrange
         var religion = TestFixtures.CreateTestReligion("religion-uid");
-        religion.MemberUIDs.Add("member1");
-        religion.MemberUIDs.Add("member2");
+        religion.AddMember("member1", "Test Member");
+        religion.AddMember("member2", "Test Member");
 
         var member1Data = TestFixtures.CreateTestPlayerReligionData("member1", DeityDomain.Craft, "religion-uid");
         var member2Data = TestFixtures.CreateTestPlayerReligionData("member2", DeityDomain.Craft, "religion-uid");
@@ -509,7 +509,7 @@ public class BlessingEffectSystemTests
         playerData.UnlockBlessing("player_blessing");
 
         var religion = TestFixtures.CreateTestReligion("religion-uid");
-        religion.UnlockedBlessings["religion_blessing"] = true;
+        religion.UnlockBlessing("religion_blessing");
 
         var playerBlessing = TestFixtures.CreateTestBlessing("player_blessing", "Player Blessing");
         var religionBlessing = TestFixtures.CreateTestBlessing("religion_blessing", "Religion Blessing");

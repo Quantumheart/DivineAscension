@@ -277,7 +277,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var target = CreateMockPlayer("player-1", "Player");
         var playerData = CreatePlayerData("player-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
-        religion.MemberUIDs.Add("player-1");
+        religion.AddMember("player-1", "Test Member");
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "Player");
@@ -309,8 +309,8 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var member = CreateMockPlayer("member-1", "Member");
         var playerData = CreatePlayerData("founder-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
-        religion.MemberUIDs.Add("member-1");
-        religion.MemberRoles["member-1"] = "member";
+        religion.AddMember("member-1", "Test Member");
+        religion.AssignMemberRole("member-1", "member");
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "Founder");
@@ -375,7 +375,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var admin = CreateMockPlayer("admin-1", "Admin");
         var playerData = CreatePlayerData("admin-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
-        religion.MemberUIDs.Add("admin-1");
+        religion.AddMember("admin-1", "Test Member");
 
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, (string)null!);

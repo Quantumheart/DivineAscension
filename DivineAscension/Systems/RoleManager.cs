@@ -74,7 +74,7 @@ public class RoleManager(IReligionManager religionManager) : IRoleManager
         // Add default member permissions to new custom roles
         newRole.AddPermission(RolePermissions.VIEW_MEMBERS);
 
-        religion.Roles[newRole.RoleUID] = newRole;
+        religion.SetRole(newRole.RoleUID, newRole);
         _religionManager?.Save(religion);
 
         return (true, newRole, string.Empty);
@@ -101,7 +101,7 @@ public class RoleManager(IReligionManager religionManager) : IRoleManager
         if (membersWithRole.Count > 0)
             return (false, $"Cannot delete role with {membersWithRole.Count} member(s). Reassign them first.");
 
-        religion.Roles.Remove(roleId);
+        religion.RemoveRole(roleId);
         _religionManager?.Save(religion);
 
         return (true, string.Empty);
@@ -193,7 +193,7 @@ public class RoleManager(IReligionManager religionManager) : IRoleManager
         if (role == null)
             return (false, RoleNotFound);
 
-        religion.MemberRoles[targetPlayerId] = roleId;
+        religion.AssignMemberRole(targetPlayerId, roleId);
         _religionManager?.Save(religion);
 
         return (true, string.Empty);
@@ -217,15 +217,14 @@ public class RoleManager(IReligionManager religionManager) : IRoleManager
             return (false, "You are already the founder");
 
         // Transfer founder role
-        religion.MemberRoles[newFounderId] = RoleDefaults.FOUNDER_ROLE_ID;
-        religion.MemberRoles[currentFounderId] = RoleDefaults.MEMBER_ROLE_ID; // Demote to member
+        religion.AssignMemberRole(newFounderId, RoleDefaults.FOUNDER_ROLE_ID);
+        religion.AssignMemberRole(currentFounderId, RoleDefaults.MEMBER_ROLE_ID); // Demote to member
 
         // Update legacy FounderUID field for backwards compatibility
         religion.FounderUID = newFounderId;
 
         // Update member list order (founder should be first)
-        religion.MemberUIDs.Remove(newFounderId);
-        religion.MemberUIDs.Insert(0, newFounderId);
+        religion.MoveToFirstMember(newFounderId);
 
         _religionManager?.Save(religion);
 

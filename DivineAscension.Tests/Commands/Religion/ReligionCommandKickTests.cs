@@ -29,7 +29,7 @@ public class ReligionCommandKickTests : ReligionCommandsTestHelpers
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
         var founderData = CreatePlayerData("founder-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
-        religion.MemberUIDs.Add("target-1");
+        religion.AddMember("target-1", "Test Member");
 
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args, "TargetName");
@@ -59,7 +59,7 @@ public class ReligionCommandKickTests : ReligionCommandsTestHelpers
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
         var founderData = CreatePlayerData("founder-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
-        religion.MemberUIDs.Add("target-1");
+        religion.AddMember("target-1", "Test Member");
 
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args, "TargetName");
@@ -92,7 +92,7 @@ public class ReligionCommandKickTests : ReligionCommandsTestHelpers
 
         var founderData = CreatePlayerData("founder-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
-        religion.MemberUIDs.Add("target-1");
+        religion.AddMember("target-1", "Test Member");
 
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args, "OfflineTarget");
@@ -120,7 +120,7 @@ public class ReligionCommandKickTests : ReligionCommandsTestHelpers
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
         var founderData = CreatePlayerData("founder-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
-        religion.MemberUIDs.Add("target-1");
+        religion.AddMember("target-1", "Test Member");
 
         var args = CreateCommandArgs(mockFounder.Object);
         SetupParsers(args, "targetname"); // lowercase

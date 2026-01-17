@@ -429,7 +429,7 @@ public class BlessingRegistryTests
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
         var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
-        religionData.UnlockedBlessings["test_blessing"] = true;
+        religionData.UnlockBlessing("test_blessing");
 
         var blessing =
             TestFixtures.CreateTestBlessing("test_blessing", "Test", DeityDomain.Craft, BlessingKind.Religion);

@@ -208,7 +208,7 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         var mockTarget = CreateMockPlayer("target-1", "TargetName");
         var playerData = CreatePlayerData("player-1");
         var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "player-1");
-        religion.MemberUIDs.Add("target-1"); // Target is already a member
+        religion.AddMember("target-1", "Test Member"); // Target is already a member
 
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TargetName");

@@ -59,7 +59,7 @@ public class ReligionCommandInfoTests : ReligionCommandsTestHelpers
         religion.PrestigeRank = PrestigeRank.Renowned;
         religion.Prestige = 500;
         religion.TotalPrestige = 1000;
-        religion.MemberUIDs.Add("member-1");
+        religion.AddMember("member-1", "Test Member");
 
         var args = CreateCommandArgs(mockPlayer.Object);
         SetupParsers(args, "TestReligion");

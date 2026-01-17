@@ -319,7 +319,7 @@ public class ReligionPrestigeManagerTests
     {
         // Arrange
         var blessingId = "khoras_blessing_1";
-        _testReligion.UnlockedBlessings[blessingId] = true;
+        _testReligion.UnlockBlessing(blessingId);
 
         // Act
         var result = _prestigeManager.UnlockReligionBlessing("test-religion-uid", blessingId);
@@ -382,9 +382,9 @@ public class ReligionPrestigeManagerTests
     public void GetActiveReligionBlessings_WithUnlockedBlessings_ReturnsCorrectList()
     {
         // Arrange
-        _testReligion.UnlockedBlessings["blessing1"] = true;
-        _testReligion.UnlockedBlessings["blessing2"] = true;
-        _testReligion.UnlockedBlessings["blessing3"] = false; // Not unlocked
+        _testReligion.UnlockBlessing("blessing1");
+        _testReligion.UnlockBlessing("blessing2");
+        // blessing3 is not unlocked - it shouldn't appear in the result
 
         // Act
         var blessings = _prestigeManager.GetActiveReligionBlessings("test-religion-uid");

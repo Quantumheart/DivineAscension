@@ -425,12 +425,12 @@ public class ReligionDataTests
     }
 
     [Fact]
-    public void IsBlessingUnlocked_BlessingSetToFalse_ShouldReturnFalse()
+    public void IsBlessingUnlocked_BlessingNotUnlocked_ShouldReturnFalse()
     {
         // Arrange
         var religion = new ReligionData("uid", "name", DeityDomain.Craft, "TestDeity", "founder", "TestFounder");
         var blessingId = "test-blessing";
-        religion.UnlockedBlessings[blessingId] = false;
+        // Don't unlock the blessing - it should return false by default
 
         // Act
         var result = religion.IsBlessingUnlocked(blessingId);

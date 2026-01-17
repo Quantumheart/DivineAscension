@@ -166,10 +166,10 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         }
 
         // Check if already unlocked
-        if (religion.UnlockedBlessings.TryGetValue(blessingId, out var unlocked) && unlocked) return false;
+        if (religion.IsBlessingUnlocked(blessingId)) return false;
 
         // Unlock the blessing
-        religion.UnlockedBlessings[blessingId] = true;
+        religion.UnlockBlessing(blessingId);
         _sapi.Logger.Notification(
             $"[DivineAscension] Religion {religion.ReligionName} unlocked blessing: {blessingId}");
 
