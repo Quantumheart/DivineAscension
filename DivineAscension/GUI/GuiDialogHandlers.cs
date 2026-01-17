@@ -546,6 +546,9 @@ public partial class GuiDialog
                 case DeityDomain.Stone:
                     _soundManager!.PlayDeityUnlock(DeityDomain.Stone);
                     break;
+                case DeityDomain.Conquest:
+                    _soundManager!.PlayDeityUnlock(DeityDomain.Conquest);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
