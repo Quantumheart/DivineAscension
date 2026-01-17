@@ -35,6 +35,7 @@ public class DivineAscensionModSystem : ModSystem
     private CivilizationManager? _civilizationManager;
     private CivilizationNetworkHandler? _civilizationNetworkHandler;
     private ModConfigData _configData = new();
+    private ICooldownManager? _cooldownManager;
     private DiplomacyNetworkHandler? _diplomacyNetworkHandler;
 
     // Client-side systems
@@ -170,9 +171,10 @@ public class DivineAscensionModSystem : ModSystem
         SetupServerNetworking(api);
 
         // Initialize all server systems using the initializer
-        var result = DivineAscensionSystemInitializer.InitializeServerSystems(api, _serverChannel, _gameBalanceConfig);
+        var result = DivineAscensionSystemInitializer.InitializeServerSystems(api, _serverChannel, _gameBalanceConfig, _configData);
 
         // Store references to managers for disposal and event subscriptions
+        _cooldownManager = result.CooldownManager;
         _religionManager = result.ReligionManager;
         _playerReligionDataManager = result.PlayerProgressionDataManager;
         _favorSystem = result.FavorSystem;
@@ -249,6 +251,7 @@ public class DivineAscensionModSystem : ModSystem
         NetworkClient?.Dispose();
 
         // Cleanup systems
+        _cooldownManager?.Dispose();
         _favorSystem?.Dispose();
         _playerReligionDataManager?.Dispose();
         _religionManager?.Dispose();
