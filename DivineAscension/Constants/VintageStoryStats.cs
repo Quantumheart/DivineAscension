@@ -86,6 +86,8 @@ public static class VintageStoryStats
     // Other
     public const string AnimalSeekingRange = "animalSeekingRange";
 
+    #region CombatOverhaul Compatible Stats
+
     // CombatOverhaul-compatible tier bonus stats
     // These stats are read by CombatOverhaul's projectile system for damage calculations
     public const string MeleeDamageTierBonusSlashing = "meleeDamageTierBonusSlashingAttack";
@@ -94,4 +96,50 @@ public static class VintageStoryStats
     public const string RangedDamageTierBonusSlashing = "rangedDamageTierBonusSlashingAttack";
     public const string RangedDamageTierBonusPiercing = "rangedDamageTierBonusPiercingAttack";
     public const string RangedDamageTierBonusBlunt = "rangedDamageTierBonusBluntAttack";
+
+    // CombatOverhaul armor penalty reduction stats
+    // These reduce the penalties applied by wearing armor
+    public const string ArmorManipulationSpeedAffectedness = "armorManipulationSpeedAffectedness";
+    public const string ArmorHungerRateAffectedness = "armorHungerRateAffectedness";
+
+    // CombatOverhaul movement/utility stats
+    public const string ManipulationSpeed = "manipulationSpeed";
+    public const string SteadyAim = "steadyAim";
+
+    // CombatOverhaul combat stats
+    public const string MechanicalsDamage = "mechanicalsDamage";
+
+    // CombatOverhaul body zone damage factors
+    // These modify damage taken to specific body parts (default values in comments)
+    public const string PlayerHeadDamageFactor = "playerHeadDamageFactor"; // Default: 2.0x
+    public const string PlayerFaceDamageFactor = "playerFaceDamageFactor"; // Default: 1.5x
+    public const string PlayerNeckDamageFactor = "playerNeckDamageFactor"; // Default: 2.0x
+    public const string PlayerTorsoDamageFactor = "playerTorsoDamageFactor"; // Default: 1.0x
+    public const string PlayerArmsDamageFactor = "playerArmsDamageFactor"; // Default: 0.5x
+    public const string PlayerLegsDamageFactor = "playerLegsDamageFactor"; // Default: 0.5x
+    public const string PlayerHandsDamageFactor = "playerHandsDamageFactor"; // Default: 0.5x
+    public const string PlayerFeetDamageFactor = "playerFeetDamageFactor"; // Default: 0.5x
+
+    // CombatOverhaul weapon proficiencies
+    // These affect attack speed (melee) or reload/draw speed (ranged)
+    // Typical values: 0.3 = +30% speed, 0.5 = +50% speed, -0.3 = -30% speed
+    public const string BowsProficiency = "bowsProficiency";
+    public const string CrossbowsProficiency = "crossbowsProficiency";
+    public const string FirearmsProficiency = "firearmsProficiency";
+    public const string OneHandedSwordsProficiency = "oneHandedSwordsProficiency";
+    public const string TwoHandedSwordsProficiency = "twoHandedSwordsProficiency";
+    public const string SpearsProficiency = "spearsProficiency";
+    public const string JavelinsProficiency = "javelinsProficiency";
+    public const string MacesProficiency = "macesProficiency";
+    public const string ClubsProficiency = "clubsProficiency";
+    public const string HalberdsProficiency = "halberdsProficiency";
+    public const string AxesProficiency = "axesProficiency";
+    public const string QuarterstaffProficiency = "quarterstaffProficiency";
+    public const string SlingsProficiency = "slingsProficiency";
+
+    // CombatOverhaul second chance mechanic
+    public const string SecondChanceCooldown = "secondChanceCooldown";
+    public const string SecondChanceGracePeriod = "secondChanceGracePeriod";
+
+    #endregion
 }
