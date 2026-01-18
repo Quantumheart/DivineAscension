@@ -295,7 +295,9 @@ public static class BlessingDefinitions
                 StatModifiers = new Dictionary<string, float>
                 {
                     { VintageStoryStats.RangedWeaponsAccuracy, 0.15f },
-                    { VintageStoryStats.RangedWeaponsDamage, 0.15f }
+                    { VintageStoryStats.RangedWeaponsDamage, 0.15f },
+                    // CombatOverhaul compatibility: +1 tier bonus for piercing attacks (arrows)
+                    { VintageStoryStats.RangedDamageTierBonusPiercing, 1.0f }
                 },
                 SpecialEffects = new List<string>()
             },
@@ -555,7 +557,8 @@ public static class BlessingDefinitions
             {
                 Kind = BlessingKind.Religion,
                 Category = BlessingCategory.Combat,
-                Description = "+5% critical hit chance, +10% movement speed, +5% damage reduction for all. Requires Conqueror's Banner.",
+                Description =
+                    "+5% critical hit chance, +10% movement speed, +5% damage reduction for all. Requires Conqueror's Banner.",
                 IconName = "throne-king",
                 RequiredPrestigeRank = (int)PrestigeRank.Legendary,
                 PrerequisiteBlessings = new List<string> { BlessingIds.ConquestConquerorsBanner },

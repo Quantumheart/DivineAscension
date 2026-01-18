@@ -432,6 +432,15 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         RegisterStatIfNeeded(stats, VintageStoryStats.OreInStoneChance, EnumStatBlendType.FlatSum); // Additive chance
         RegisterStatIfNeeded(stats, VintageStoryStats.GravelYield, EnumStatBlendType.WeightedSum);
 
+        // CombatOverhaul compatibility - tier bonus stats
+        // These are read by CombatOverhaul's projectile/melee system for damage calculations
+        RegisterStatIfNeeded(stats, VintageStoryStats.MeleeDamageTierBonusSlashing, EnumStatBlendType.FlatSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.MeleeDamageTierBonusPiercing, EnumStatBlendType.FlatSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.MeleeDamageTierBonusBlunt, EnumStatBlendType.FlatSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.RangedDamageTierBonusSlashing, EnumStatBlendType.FlatSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.RangedDamageTierBonusPiercing, EnumStatBlendType.FlatSum);
+        RegisterStatIfNeeded(stats, VintageStoryStats.RangedDamageTierBonusBlunt, EnumStatBlendType.FlatSum);
+
         _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered custom stats for {player.PlayerName}");
     }
 
@@ -531,6 +540,13 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             VintageStoryStats.ArmorDurabilityLoss => LocalizationKeys.STAT_ARMOR_DURABILITY_LOSS,
             VintageStoryStats.ArmorWalkSpeedAffectedness => LocalizationKeys.STAT_ARMOR_WALK_SPEED,
             VintageStoryStats.PotteryBatchCompletionChance => LocalizationKeys.STAT_POTTERY_BATCH_COMPLETION,
+            // CombatOverhaul tier bonus stats (no localization needed - internal/debug display)
+            VintageStoryStats.MeleeDamageTierBonusSlashing => "Melee Slashing Tier",
+            VintageStoryStats.MeleeDamageTierBonusPiercing => "Melee Piercing Tier",
+            VintageStoryStats.MeleeDamageTierBonusBlunt => "Melee Blunt Tier",
+            VintageStoryStats.RangedDamageTierBonusSlashing => "Ranged Slashing Tier",
+            VintageStoryStats.RangedDamageTierBonusPiercing => "Ranged Piercing Tier",
+            VintageStoryStats.RangedDamageTierBonusBlunt => "Ranged Blunt Tier",
             _ => null
         };
 
