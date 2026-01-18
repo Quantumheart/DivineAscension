@@ -56,6 +56,18 @@ public class LandClaim
 
 Since we can't modify Vintage Story's core land claim data, we'll create an **overlay system** that maps land claims to holy site data.
 
+### Tier System and Scale
+
+Holy sites are tied to the land claim chunk system. Each chunk is **32×32 blocks** (1,024 blocks²), which is the minimum granularity. The tier names reflect this scale:
+
+| Tier | Name | Chunks | Block Area | Description |
+|------|------|--------|------------|-------------|
+| 1 | **Sacred Ground** | 1 | 32×32 | Consecrated land surrounding a religious structure |
+| 2 | **Temple** | 2-8 | Up to 256×256 | A significant religious complex |
+| 3 | **Cathedral** | 9+ | 288×288+ | A major seat of religious power |
+
+**Note:** "Sacred Ground" (rather than "Shrine") emphasizes that Tier 1 represents consecrated territory, not a small physical structure. Players may build a small shrine within their sacred ground, but the holy site itself encompasses the entire claimed area.
+
 ### Data Structure
 
 **File:** `DivineAscension/Data/HolySiteData.cs`
@@ -188,9 +200,9 @@ public class HolySiteData
         int chunkCount = GetTotalChunks();
         Tier = chunkCount switch
         {
-            1 => 1,                    // Shrine (1 chunk)
-            >= 2 and <= 8 => 2,        // Temple (2-8 chunks)
-            >= 9 => 3                  // Cathedral (9+ chunks)
+            1 => 1,                    // Sacred Ground (1 chunk, 32×32 blocks)
+            >= 2 and <= 8 => 2,        // Temple (2-8 chunks, up to 256×256 blocks)
+            >= 9 => 3                  // Cathedral (9+ chunks, 288×288+ blocks)
         };
     }
 
@@ -201,7 +213,7 @@ public class HolySiteData
     {
         return Tier switch
         {
-            1 => 1.5f,  // Shrine
+            1 => 1.5f,  // Sacred Ground
             2 => 2.0f,  // Temple
             3 => 2.5f,  // Cathedral
             _ => 1.0f
@@ -215,7 +227,7 @@ public class HolySiteData
     {
         return Tier switch
         {
-            1 => 2.0f,  // Shrine
+            1 => 2.0f,  // Sacred Ground
             2 => 2.5f,  // Temple
             3 => 3.0f,  // Cathedral
             _ => 1.5f
@@ -850,7 +862,7 @@ public class HolySiteCommands
     {
         return tier switch
         {
-            1 => _localizationService.Get("holysite-tier-shrine", "Shrine"),
+            1 => _localizationService.Get("holysite-tier-sacred-ground", "Sacred Ground"),
             2 => _localizationService.Get("holysite-tier-temple", "Temple"),
             3 => _localizationService.Get("holysite-tier-cathedral", "Cathedral"),
             _ => _localizationService.Get("holysite-tier-unknown", "Unknown")
@@ -962,7 +974,7 @@ public partial class ActivityBonusSystem
 # Stand in your claimed land
 /holysite consecrate "Temple of Khoras"
 
-# Result: Creates Tier 1 Shrine (1 chunk)
+# Result: Creates Tier 1 Sacred Ground (1 chunk, 32×32 blocks)
 # - 1.5x sacred territory bonus while inside
 # - 2.0x prayer bonus when praying inside
 ```
@@ -975,6 +987,7 @@ public partial class ActivityBonusSystem
 /holysite expand
 
 # Result: Adds adjacent owned chunks
+# - 1 chunk = Tier 1 Sacred Ground (1.5x territory, 2.0x prayer)
 # - 2-8 chunks = Tier 2 Temple (2.0x territory, 2.5x prayer)
 # - 9+ chunks = Tier 3 Cathedral (2.5x territory, 3.0x prayer)
 ```
@@ -1055,7 +1068,7 @@ _holySiteManager?.Dispose();
 ✅ **No Core Modification**: Overlay pattern doesn't touch VS internals
 ✅ **Persistent**: Saves/loads with world data
 ✅ **Scalable**: Supports multi-chunk temples
-✅ **Tiered Progression**: Shrine → Temple → Cathedral
+✅ **Tiered Progression**: Sacred Ground → Temple → Cathedral
 ✅ **Religion Ownership**: Tied to religion, not individual player
 ✅ **Territory Control**: Creates meaningful PvP zones
 ✅ **Visual Feedback**: Players can see their claimed land is special
@@ -1760,7 +1773,7 @@ Add to `DivineAscension/assets/divineascension/lang/en.json`:
   "divineascension:ui.holysite.detail.consecrated_on": "Consecrated On",
   "divineascension:ui.holysite.detail.territory_bonus": "Sacred Territory Bonus: {0}x",
   "divineascension:ui.holysite.detail.prayer_bonus": "Prayer Bonus: {0}x",
-  "divineascension:ui.holysite.tier.shrine": "Shrine",
+  "divineascension:ui.holysite.tier.sacred-ground": "Sacred Ground",
   "divineascension:ui.holysite.tier.temple": "Temple",
   "divineascension:ui.holysite.tier.cathedral": "Cathedral",
   "divineascension:ui.holysite.no_sites": "No holy sites found.",
