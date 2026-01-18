@@ -3,7 +3,6 @@ using DivineAscension.Constants;
 using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
-using Vintagestory.API.MathTools;
 
 namespace DivineAscension.Systems.Patches;
 
@@ -24,9 +23,8 @@ public static class CraftPatches
         if (item.Tool == null) return; // Not a tool
 
         // Get tool durability bonus (e.g. 0.10 for 10%)
-        // Handle both FlatSum (base 0) and legacy WeightedSum (base 1.0) registrations
-        double durabilityBonus = byEntity.Stats.GetBlended(VintageStoryStats.ToolDurability);
-        if (durabilityBonus > 1.0) durabilityBonus -= 1.0; // Legacy WeightedSum: subtract base
+        // VS returns 1.0 as base; blessings add to it (1.10 = 10% bonus)
+        double durabilityBonus = byEntity.Stats.GetBlended(VintageStoryStats.ToolDurability) - 1.0;
         if (durabilityBonus <= 0) return;
 
         // Calculate reduction
