@@ -94,7 +94,7 @@ public class ReligionPrestigeManagerTests
     public void SetBlessingSystems_SetsReferences()
     {
         // Arrange
-        var mockBlessingRegistry = new Mock<BlessingRegistry>(_mockAPI.Object);
+        var mockBlessingRegistry = new Mock<BlessingRegistry>(_mockAPI.Object, null);
         var mockBlessingEffectSystem = new Mock<BlessingEffectSystem>(
             _mockAPI.Object,
             mockBlessingRegistry.Object,

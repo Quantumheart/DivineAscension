@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems;
 using DivineAscension.Tests.Helpers;
 using Moq;
@@ -25,26 +26,71 @@ public class BlessingRegistryTests
         _mockLogger = new Mock<ILogger>();
         _mockAPI.Setup(a => a.Logger).Returns(_mockLogger.Object);
 
-        _registry = new BlessingRegistry(_mockAPI.Object);
+        // Use TestBlessingLoader with sample blessings for most tests
+        _registry = new BlessingRegistry(_mockAPI.Object, TestBlessingLoader.CreateWithSampleBlessings());
     }
 
     #region Initialization Tests
 
     [Fact]
-    public void Initialize_RegistersAllBlessings()
+    public void Initialize_WithLoader_RegistersAllBlessings()
     {
         // Act
         _registry.Initialize();
 
         // Assert
         var allBlessings = _registry.GetAllBlessings();
-        Assert.NotEmpty(allBlessings);
+        Assert.Equal(3, allBlessings.Count); // TestBlessingLoader.CreateWithSampleBlessings() creates 3
         _mockLogger.Verify(
             l => l.Notification(It.Is<string>(s =>
                 s.Contains("Blessing Registry initialized") &&
-                s.Contains($"{allBlessings.Count}"))),
+                s.Contains("3"))),
             Times.Once()
         );
+    }
+
+    [Fact]
+    public void Initialize_WithLoader_LogsLoadedFromJson()
+    {
+        // Act
+        _registry.Initialize();
+
+        // Assert
+        _mockLogger.Verify(
+            l => l.Notification(It.Is<string>(s => s.Contains("Loaded") && s.Contains("from JSON"))),
+            Times.Once()
+        );
+    }
+
+    [Fact]
+    public void Initialize_WithFailedLoader_FallsBackToHardcoded()
+    {
+        // Arrange
+        var failedLoader = TestBlessingLoader.CreateFailedLoader();
+        var registry = new BlessingRegistry(_mockAPI.Object, failedLoader);
+
+        // Act
+        registry.Initialize();
+
+        // Assert - should log warning about falling back
+        _mockLogger.Verify(
+            l => l.Warning(It.Is<string>(s => s.Contains("falling back"))),
+            Times.Once()
+        );
+    }
+
+    [Fact]
+    public void Initialize_WithoutLoader_FallsBackToHardcoded()
+    {
+        // Arrange
+        var registry = new BlessingRegistry(_mockAPI.Object, null);
+
+        // Act
+        registry.Initialize();
+
+        // Assert - should still load blessings
+        var allBlessings = registry.GetAllBlessings();
+        Assert.NotEmpty(allBlessings);
     }
 
     [Fact]
