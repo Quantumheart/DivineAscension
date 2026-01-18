@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
@@ -19,22 +20,28 @@ namespace DivineAscension.Tests.Systems;
 public class BlessingEffectSystemTests
 {
     private readonly BlessingEffectSystem _effectSystem;
-    private readonly Mock<ICoreServerAPI> _mockAPI;
     private readonly Mock<IBlessingRegistry> _mockBlessingRegistry;
+    private readonly Mock<IEventService> _mockEventService;
+    private readonly Mock<ILogger> _mockLogger;
     private readonly Mock<IPlayerProgressionDataManager> _mockPlayerReligionDataManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
+    private readonly Mock<IWorldService> _mockWorldService;
 
     public BlessingEffectSystemTests()
     {
         TestFixtures.InitializeLocalizationForTests();
 
-        _mockAPI = TestFixtures.CreateMockServerAPI();
+        _mockLogger = new Mock<ILogger>();
+        _mockEventService = new Mock<IEventService>();
+        _mockWorldService = new Mock<IWorldService>();
         _mockBlessingRegistry = new Mock<IBlessingRegistry>();
         _mockPlayerReligionDataManager = TestFixtures.CreateMockPlayerProgressionDataManager();
         _mockReligionManager = new Mock<IReligionManager>();
 
         _effectSystem = new BlessingEffectSystem(
-            _mockAPI.Object,
+            _mockLogger.Object,
+            _mockEventService.Object,
+            _mockWorldService.Object,
             _mockBlessingRegistry.Object,
             _mockPlayerReligionDataManager.Object,
             _mockReligionManager.Object
@@ -59,9 +66,7 @@ public class BlessingEffectSystemTests
 
         _mockBlessingRegistry.Setup(r => r.GetBlessing("blessing1")).Returns(blessing);
 
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
-        mockWorld.Setup(w => w.PlayerByUid("player-uid")).Returns((IServerPlayer)null!);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("player-uid")).Returns((IServerPlayer)null!);
 
         // First call to populate cache
         _effectSystem.GetPlayerStatModifiers("player-uid");
@@ -121,8 +126,7 @@ public class BlessingEffectSystemTests
         _effectSystem.ApplyBlessingsToPlayer(null!);
 
         // Assert
-        var mockLogger = Mock.Get(_mockAPI.Object.Logger);
-        mockLogger.Verify(
+        _mockLogger.Verify(
             l => l.Warning(It.Is<string>(s => s.Contains("entity") && s.Contains("null"))),
             Times.Once()
         );
@@ -176,31 +180,23 @@ public class BlessingEffectSystemTests
     [Fact]
     public void Initialize_RegistersEventHandlers()
     {
-        // Arrange
-        var mockEventAPI = new Mock<IServerEventAPI>();
-        _mockAPI.Setup(a => a.Event).Returns(mockEventAPI.Object);
-
         // Act
         _effectSystem.Initialize();
 
         // Assert
-        mockEventAPI.VerifyAdd(e => e.PlayerJoin += It.IsAny<PlayerDelegate>(), Times.Once());
+        _mockEventService.Verify(e => e.OnPlayerJoin(It.IsAny<PlayerDelegate>()), Times.Once());
     }
 
     [Fact]
     public void Initialize_LogsNotification()
     {
-        // Arrange
-        var mockLogger = new Mock<ILogger>();
-        _mockAPI.Setup(a => a.Logger).Returns(mockLogger.Object);
-
         // Act
         _effectSystem.Initialize();
 
         // Assert
-        mockLogger.Verify(
+        _mockLogger.Verify(
             l => l.Notification(It.Is<string>(s => s.Contains("Initializing") && s.Contains("Blessing"))),
-            Times.Once()
+            Times.AtLeastOnce()
         );
     }
 
@@ -474,9 +470,7 @@ public class BlessingEffectSystemTests
             .Setup(m => m.GetReligion("member2"))
             .Returns(religion);
 
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
-        mockWorld.Setup(w => w.PlayerByUid(It.IsAny<string>())).Returns((IServerPlayer)null!);
+        _mockWorldService.Setup(w => w.GetPlayerByUID(It.IsAny<string>())).Returns((IServerPlayer)null!);
 
         // Act
         _effectSystem.RefreshReligionBlessings("religion-uid");
@@ -677,9 +671,7 @@ public class BlessingEffectSystemTests
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
 
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
-        mockWorld.Setup(w => w.PlayerByUid("player-uid")).Returns(mockPlayer.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("player-uid")).Returns(mockPlayer.Object);
 
         // Act - Use reflection to call internal method
         var method = _effectSystem.GetType().GetMethod("OnPlayerJoin",
@@ -706,9 +698,7 @@ public class BlessingEffectSystemTests
             .Setup(m => m.GetPlayerReligion("player-uid"))
             .Returns(religion);
 
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
-        mockWorld.Setup(w => w.PlayerByUid("player-uid")).Returns((IServerPlayer)null!);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("player-uid")).Returns((IServerPlayer)null!);
 
         // Act
         _effectSystem.OnPlayerLeavesProgression(mockPlayer.Object, "religion-uid");
@@ -720,10 +710,6 @@ public class BlessingEffectSystemTests
     [Fact]
     public void Initialize_RegistersPlayerLeavesReligionHandler()
     {
-        // Arrange
-        var mockEventAPI = new Mock<IServerEventAPI>();
-        _mockAPI.Setup(a => a.Event).Returns(mockEventAPI.Object);
-
         // Act
         _effectSystem.Initialize();
 

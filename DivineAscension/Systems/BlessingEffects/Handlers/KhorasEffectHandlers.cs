@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -23,35 +24,39 @@ public static class KhorasEffectHandlers
         private const int REPAIR_AMOUNT = 1;
 
         private readonly Dictionary<string, long> _lastRepairTime = new();
-        private ICoreServerAPI? _sapi;
+        private IEventService? _eventService;
+        private ILogger? _logger;
+        private IWorldService? _worldService;
 
         public string EffectId => "passive_tool_repair_1per5min";
 
-        public void Initialize(ICoreServerAPI sapi)
+        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
         {
-            _sapi = sapi;
-            _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
+            _logger = logger;
+            _eventService = eventService;
+            _worldService = worldService;
+            _logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
         }
 
         public void ActivateForPlayer(IServerPlayer player)
         {
             // Initialize last repair time
-            _lastRepairTime[player.PlayerUID] = _sapi!.World.ElapsedMilliseconds;
-            _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
+            _lastRepairTime[player.PlayerUID] = _worldService!.ElapsedMilliseconds;
+            _logger!.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
         }
 
         public void DeactivateForPlayer(IServerPlayer player)
         {
             // Remove tracking
             _lastRepairTime.Remove(player.PlayerUID);
-            _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
+            _logger!.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
         }
 
         public void OnTick(float deltaTime)
         {
-            if (_sapi == null) return;
+            if (_worldService == null) return;
 
-            var currentTime = _sapi.World.ElapsedMilliseconds;
+            var currentTime = _worldService.ElapsedMilliseconds;
 
             // Process each player with active effect
             foreach (var kvp in _lastRepairTime.ToList())
@@ -63,7 +68,7 @@ public static class KhorasEffectHandlers
                 if (currentTime - lastRepair < REPAIR_INTERVAL_MS) continue;
 
                 // Get player
-                var player = _sapi.World.PlayerByUid(playerUID) as IServerPlayer;
+                var player = _worldService.GetPlayerByUID(playerUID);
                 if (player?.Entity == null) continue;
 
                 // Repair tools in inventory
@@ -88,7 +93,7 @@ public static class KhorasEffectHandlers
 
             if (repairedCount > 0)
             {
-                _sapi!.Logger.Debug(
+                _logger!.Debug(
                     $"{SystemConstants.LogPrefix} Passively repaired {repairedCount} tools for {player.PlayerName}");
 
                 // Send notification to player

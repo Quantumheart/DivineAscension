@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Systems.BlessingEffects.Handlers;
 using DivineAscension.Tests.Helpers;
 using Moq;
@@ -17,13 +18,24 @@ public class KhorasEffectHandlerTests
 {
     #region Test Setup
 
-    private Mock<ICoreServerAPI> CreateMockServerAPI(long elapsedMilliseconds = 0)
+    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<IEventService> _mockEventService;
+    private readonly Mock<IWorldService> _mockWorldService;
+
+    public KhorasEffectHandlerTests()
     {
-        var mockAPI = TestFixtures.CreateMockServerAPI();
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        mockAPI.Setup(api => api.World).Returns(mockWorld.Object);
-        mockWorld.Setup(w => w.ElapsedMilliseconds).Returns(elapsedMilliseconds);
-        return mockAPI;
+        _mockLogger = new Mock<ILogger>();
+        _mockEventService = new Mock<IEventService>();
+        _mockWorldService = new Mock<IWorldService>();
+    }
+
+    private void SetupWorldService(long elapsedMilliseconds = 0, IServerPlayer? player = null, string? playerUID = null)
+    {
+        _mockWorldService.Setup(w => w.ElapsedMilliseconds).Returns(elapsedMilliseconds);
+        if (player != null && playerUID != null)
+        {
+            _mockWorldService.Setup(w => w.GetPlayerByUID(playerUID)).Returns(player);
+        }
     }
 
     private Mock<IServerPlayer> CreateMockPlayer(string uid, string name)
@@ -31,6 +43,12 @@ public class KhorasEffectHandlerTests
         var mockPlayer = TestFixtures.CreateMockServerPlayer(uid, name);
         var mockEntity = new Mock<EntityPlayer>();
         mockPlayer.Setup(p => p.Entity).Returns(mockEntity.Object);
+
+        // Set up InventoryManager to return null inventories (player has no items)
+        var mockInventoryManager = new Mock<IPlayerInventoryManager>();
+        mockInventoryManager.Setup(m => m.GetOwnInventory(It.IsAny<string>())).Returns((IInventory?)null);
+        mockPlayer.Setup(p => p.InventoryManager).Returns(mockInventoryManager.Object);
+
         return mockPlayer;
     }
 
@@ -42,11 +60,10 @@ public class KhorasEffectHandlerTests
     public void Initialize_WithValidAPI_SetsEffectId()
     {
         // Arrange
-        var mockAPI = CreateMockServerAPI();
         var handler = new KhorasEffectHandlers.PassiveToolRepairEffect();
 
         // Act
-        handler.Initialize(mockAPI.Object);
+        handler.Initialize(_mockLogger.Object, _mockEventService.Object, _mockWorldService.Object);
 
         // Assert
         Assert.Equal("passive_tool_repair_1per5min", handler.EffectId);
@@ -70,10 +87,10 @@ public class KhorasEffectHandlerTests
     public void ActivateForPlayer_InitializesPlayerTracking()
     {
         // Arrange
-        var mockAPI = CreateMockServerAPI(elapsedMilliseconds: 10000);
+        SetupWorldService(elapsedMilliseconds: 10000);
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var handler = new KhorasEffectHandlers.PassiveToolRepairEffect();
-        handler.Initialize(mockAPI.Object);
+        handler.Initialize(_mockLogger.Object, _mockEventService.Object, _mockWorldService.Object);
 
         // Act & Assert - Should not throw
         var exception = Record.Exception(() => handler.ActivateForPlayer(mockPlayer.Object));
@@ -84,10 +101,10 @@ public class KhorasEffectHandlerTests
     public void DeactivateForPlayer_RemovesPlayerTracking()
     {
         // Arrange
-        var mockAPI = CreateMockServerAPI(elapsedMilliseconds: 10000);
+        SetupWorldService(elapsedMilliseconds: 10000);
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var handler = new KhorasEffectHandlers.PassiveToolRepairEffect();
-        handler.Initialize(mockAPI.Object);
+        handler.Initialize(_mockLogger.Object, _mockEventService.Object, _mockWorldService.Object);
         handler.ActivateForPlayer(mockPlayer.Object);
 
         // Act & Assert - Should not throw
@@ -99,11 +116,11 @@ public class KhorasEffectHandlerTests
     public void ActivateForPlayer_MultiplePlayers_TracksAll()
     {
         // Arrange
-        var mockAPI = CreateMockServerAPI(elapsedMilliseconds: 10000);
+        SetupWorldService(elapsedMilliseconds: 10000);
         var mockPlayer1 = CreateMockPlayer("player-1", "Player1");
         var mockPlayer2 = CreateMockPlayer("player-2", "Player2");
         var handler = new KhorasEffectHandlers.PassiveToolRepairEffect();
-        handler.Initialize(mockAPI.Object);
+        handler.Initialize(_mockLogger.Object, _mockEventService.Object, _mockWorldService.Object);
 
         // Act & Assert - Should not throw for multiple players
         var exception1 = Record.Exception(() => handler.ActivateForPlayer(mockPlayer1.Object));
@@ -117,10 +134,9 @@ public class KhorasEffectHandlerTests
     public void DeactivateForPlayer_NonExistentPlayer_DoesNotThrow()
     {
         // Arrange
-        var mockAPI = CreateMockServerAPI();
-        var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var handler = new KhorasEffectHandlers.PassiveToolRepairEffect();
-        handler.Initialize(mockAPI.Object);
+        handler.Initialize(_mockLogger.Object, _mockEventService.Object, _mockWorldService.Object);
+        var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         // Note: Player is NOT activated
 
         // Act & Assert - Should handle gracefully
@@ -147,9 +163,8 @@ public class KhorasEffectHandlerTests
     public void OnTick_NoActivePlayers_DoesNotThrow()
     {
         // Arrange
-        var mockAPI = CreateMockServerAPI();
         var handler = new KhorasEffectHandlers.PassiveToolRepairEffect();
-        handler.Initialize(mockAPI.Object);
+        handler.Initialize(_mockLogger.Object, _mockEventService.Object, _mockWorldService.Object);
 
         // Act & Assert - Should handle gracefully
         var exception = Record.Exception(() => handler.OnTick(0.1f));
@@ -161,17 +176,17 @@ public class KhorasEffectHandlerTests
     {
         // Arrange
         var startTime = 10000L;
-        var mockAPI = CreateMockServerAPI(elapsedMilliseconds: startTime);
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
 
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        mockWorld.Setup(w => w.PlayerByUid("player-1")).Returns((IServerPlayer?)null); // Player offline
-        mockWorld.Setup(w => w.ElapsedMilliseconds).Returns(startTime + 300000);
-        mockAPI.Setup(api => api.World).Returns(mockWorld.Object);
+        SetupWorldService(elapsedMilliseconds: startTime);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("player-1")).Returns((IServerPlayer?)null); // Player offline
 
         var handler = new KhorasEffectHandlers.PassiveToolRepairEffect();
-        handler.Initialize(mockAPI.Object);
+        handler.Initialize(_mockLogger.Object, _mockEventService.Object, _mockWorldService.Object);
         handler.ActivateForPlayer(mockPlayer.Object);
+
+        // Update elapsed time to trigger repair interval
+        _mockWorldService.Setup(w => w.ElapsedMilliseconds).Returns(startTime + 300000);
 
         // Act & Assert - Should handle gracefully
         var exception = Record.Exception(() => handler.OnTick(0.1f));
@@ -183,18 +198,17 @@ public class KhorasEffectHandlerTests
     {
         // Arrange
         var startTime = 10000L;
-        var mockAPI = CreateMockServerAPI(elapsedMilliseconds: startTime);
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         mockPlayer.Setup(p => p.Entity).Returns((EntityPlayer?)null); // No entity
 
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        mockWorld.Setup(w => w.PlayerByUid("player-1")).Returns(mockPlayer.Object);
-        mockWorld.Setup(w => w.ElapsedMilliseconds).Returns(startTime + 300000);
-        mockAPI.Setup(api => api.World).Returns(mockWorld.Object);
+        SetupWorldService(elapsedMilliseconds: startTime, player: mockPlayer.Object, playerUID: "player-1");
 
         var handler = new KhorasEffectHandlers.PassiveToolRepairEffect();
-        handler.Initialize(mockAPI.Object);
+        handler.Initialize(_mockLogger.Object, _mockEventService.Object, _mockWorldService.Object);
         handler.ActivateForPlayer(mockPlayer.Object);
+
+        // Update elapsed time to trigger repair interval
+        _mockWorldService.Setup(w => w.ElapsedMilliseconds).Returns(startTime + 300000);
 
         // Act & Assert - Should handle gracefully
         var exception = Record.Exception(() => handler.OnTick(0.1f));
@@ -206,20 +220,19 @@ public class KhorasEffectHandlerTests
     {
         // Arrange
         var startTime = 10000L;
-        var mockAPI = CreateMockServerAPI(elapsedMilliseconds: startTime);
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
 
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        mockWorld.Setup(w => w.PlayerByUid("player-1")).Returns(mockPlayer.Object);
-        mockWorld.Setup(w => w.ElapsedMilliseconds).Returns(startTime + 300000);
-        mockAPI.Setup(api => api.World).Returns(mockWorld.Object);
+        SetupWorldService(elapsedMilliseconds: startTime, player: mockPlayer.Object, playerUID: "player-1");
 
         var handler = new KhorasEffectHandlers.PassiveToolRepairEffect();
-        handler.Initialize(mockAPI.Object);
+        handler.Initialize(_mockLogger.Object, _mockEventService.Object, _mockWorldService.Object);
         handler.ActivateForPlayer(mockPlayer.Object);
 
         // Deactivate player
         handler.DeactivateForPlayer(mockPlayer.Object);
+
+        // Update elapsed time to trigger repair interval
+        _mockWorldService.Setup(w => w.ElapsedMilliseconds).Returns(startTime + 300000);
 
         // Act & Assert - Should not process deactivated player
         var exception = Record.Exception(() => handler.OnTick(0.1f));
@@ -235,24 +248,24 @@ public class KhorasEffectHandlerTests
     {
         // Arrange
         var startTime = 10000L;
-        var mockAPI = CreateMockServerAPI(elapsedMilliseconds: startTime);
 
         var mockPlayer1 = CreateMockPlayer("player-1", "Player1");
         var mockPlayer2 = CreateMockPlayer("player-2", "Player2");
         var mockPlayer3 = CreateMockPlayer("player-3", "Player3");
 
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        mockWorld.Setup(w => w.PlayerByUid("player-1")).Returns(mockPlayer1.Object);
-        mockWorld.Setup(w => w.PlayerByUid("player-2")).Returns(mockPlayer2.Object);
-        mockWorld.Setup(w => w.PlayerByUid("player-3")).Returns(mockPlayer3.Object);
-        mockWorld.Setup(w => w.ElapsedMilliseconds).Returns(startTime + 300000);
-        mockAPI.Setup(api => api.World).Returns(mockWorld.Object);
+        SetupWorldService(elapsedMilliseconds: startTime);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("player-1")).Returns(mockPlayer1.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("player-2")).Returns(mockPlayer2.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("player-3")).Returns(mockPlayer3.Object);
 
         var handler = new KhorasEffectHandlers.PassiveToolRepairEffect();
-        handler.Initialize(mockAPI.Object);
+        handler.Initialize(_mockLogger.Object, _mockEventService.Object, _mockWorldService.Object);
         handler.ActivateForPlayer(mockPlayer1.Object);
         handler.ActivateForPlayer(mockPlayer2.Object);
         handler.ActivateForPlayer(mockPlayer3.Object);
+
+        // Update elapsed time to trigger repair interval
+        _mockWorldService.Setup(w => w.ElapsedMilliseconds).Returns(startTime + 300000);
 
         // Act & Assert - Should process all players without throwing
         var exception = Record.Exception(() => handler.OnTick(0.1f));
@@ -263,10 +276,9 @@ public class KhorasEffectHandlerTests
     public void ActivateDeactivate_SamePlayerMultipleTimes_HandlesSafely()
     {
         // Arrange
-        var mockAPI = CreateMockServerAPI();
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var handler = new KhorasEffectHandlers.PassiveToolRepairEffect();
-        handler.Initialize(mockAPI.Object);
+        handler.Initialize(_mockLogger.Object, _mockEventService.Object, _mockWorldService.Object);
 
         // Act & Assert - Activate, deactivate, activate again
         handler.ActivateForPlayer(mockPlayer.Object);

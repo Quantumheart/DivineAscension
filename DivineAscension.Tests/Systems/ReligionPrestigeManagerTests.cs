@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Data;
 using DivineAscension.Models;
@@ -96,7 +97,9 @@ public class ReligionPrestigeManagerTests
         // Arrange
         var mockBlessingRegistry = new Mock<BlessingRegistry>(_mockAPI.Object, null);
         var mockBlessingEffectSystem = new Mock<BlessingEffectSystem>(
-            _mockAPI.Object,
+            new Mock<ILogger>().Object,
+            new Mock<IEventService>().Object,
+            new Mock<IWorldService>().Object,
             mockBlessingRegistry.Object,
             new Mock<IPlayerProgressionDataManager>().Object,
             _mockReligionManager.Object);

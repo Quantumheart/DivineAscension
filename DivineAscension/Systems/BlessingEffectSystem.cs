@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
@@ -22,26 +23,34 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     // Track applied modifiers per player for cleanup
     private readonly Dictionary<string, HashSet<string>> _appliedModifiers = new();
     private readonly IBlessingRegistry _blessingRegistry;
+    private readonly IEventService _eventService;
+    private readonly ILogger _logger;
 
     // Cache for stat modifiers to reduce computation
     private readonly Dictionary<string, Dictionary<string, float>> _playerModifierCache = new();
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionManager _religionManager;
     private readonly Dictionary<string, Dictionary<string, float>> _religionModifierCache = new();
-    private readonly ICoreServerAPI _sapi;
     private readonly SpecialEffectRegistry _specialEffectRegistry;
+    private readonly IWorldService _worldService;
 
     public BlessingEffectSystem(
-        ICoreServerAPI sapi,
+        ILogger logger,
+        IEventService eventService,
+        IWorldService worldService,
         IBlessingRegistry blessingRegistry,
         IPlayerProgressionDataManager playerProgressionDataManager,
         IReligionManager religionManager)
     {
-        _sapi = sapi;
-        _blessingRegistry = blessingRegistry;
-        _playerProgressionDataManager = playerProgressionDataManager;
-        _religionManager = religionManager;
-        _specialEffectRegistry = new SpecialEffectRegistry(sapi);
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
+        _blessingRegistry = blessingRegistry ?? throw new ArgumentNullException(nameof(blessingRegistry));
+        _playerProgressionDataManager = playerProgressionDataManager ??
+                                        throw new ArgumentNullException(nameof(playerProgressionDataManager));
+        _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
+
+        _specialEffectRegistry = new SpecialEffectRegistry(logger, eventService, worldService);
     }
 
     /// <summary>
@@ -49,7 +58,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     /// </summary>
     public void Initialize()
     {
-        _sapi.Logger.Notification($"{SystemConstants.LogPrefix} {SystemConstants.InfoInitializingBlessingSystem}");
+        _logger.Notification($"{SystemConstants.LogPrefix} {SystemConstants.InfoInitializingBlessingSystem}");
 
         // Register special effect handlers
         RegisterSpecialEffectHandlers();
@@ -58,10 +67,10 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         _specialEffectRegistry.Initialize();
 
         // Register event handlers
-        _sapi.Event.PlayerJoin += OnPlayerJoin;
+        _eventService.OnPlayerJoin(OnPlayerJoin);
         _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
 
-        _sapi.Logger.Notification($"{SystemConstants.LogPrefix} {SystemConstants.InfoBlessingSystemInitialized}");
+        _logger.Notification($"{SystemConstants.LogPrefix} {SystemConstants.InfoBlessingSystemInitialized}");
     }
 
     /// <summary>
@@ -161,14 +170,14 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     {
         if (player?.Entity == null)
         {
-            _sapi.Logger.Warning($"{SystemConstants.LogPrefix} {SystemConstants.ErrorPlayerEntityNull}");
+            _logger.Warning($"{SystemConstants.LogPrefix} {SystemConstants.ErrorPlayerEntityNull}");
             return;
         }
 
         EntityAgent agent = player.Entity;
         if (agent?.Stats == null)
         {
-            _sapi.Logger.Warning($"{SystemConstants.LogPrefix} {SystemConstants.ErrorPlayerStatsNull}");
+            _logger.Warning($"{SystemConstants.LogPrefix} {SystemConstants.ErrorPlayerStatsNull}");
             return;
         }
 
@@ -197,17 +206,17 @@ public class BlessingEffectSystem : IBlessingEffectSystem
                 appliedSet.Add(statName);
                 appliedCount++;
 
-                _sapi.Logger.Debug(
+                _logger.Debug(
                     $"{SystemConstants.LogPrefix} {string.Format(SystemConstants.DebugAppliedStatFormat, statName, modifierId, value)}");
             }
             catch (KeyNotFoundException ex)
             {
-                _sapi.Logger.Warning(
+                _logger.Warning(
                     $"{SystemConstants.LogPrefix} {string.Format(SystemConstants.ErrorStatNotFoundFormat, statName, player.PlayerName)}: {ex.Message}");
             }
             catch (Exception ex)
             {
-                _sapi.Logger.Error(
+                _logger.Error(
                     $"{SystemConstants.LogPrefix} {string.Format(SystemConstants.ErrorApplyingStatFormat, statName, player.PlayerName)}: {ex}");
             }
         }
@@ -226,14 +235,14 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             if (Math.Abs(beforeHealth - afterHealth) > 0.01f)
             {
                 var statValue = agent.Stats.GetBlended("maxhealthExtraPoints");
-                _sapi.Logger.Notification(
+                _logger.Notification(
                     $"{SystemConstants.LogPrefix} {string.Format(SystemConstants.SuccessHealthUpdateFormat, player.PlayerName, beforeHealth, afterHealth, healthBehavior.BaseMaxHealth, statValue)}"
                 );
             }
         }
 
         if (appliedCount > 0)
-            _sapi.Logger.Notification(
+            _logger.Notification(
                 $"{SystemConstants.LogPrefix} {string.Format(SystemConstants.SuccessAppliedModifiersFormat, appliedCount, player.PlayerName)}");
     }
 
@@ -249,14 +258,14 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         if (playerReligion != null) _religionModifierCache.Remove(playerReligion.ReligionUID);
 
         // Recalculate and apply
-        var player = _sapi.World.PlayerByUid(playerUID) as IServerPlayer;
+        var player = _worldService.GetPlayerByUID(playerUID);
         if (player != null)
         {
             ApplyBlessingsToPlayer(player);
             RefreshSpecialEffects(player);
         }
 
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"{SystemConstants.LogPrefix} {string.Format(SystemConstants.SuccessRefreshedBlessingsFormat, playerUID)}");
     }
 
@@ -274,7 +283,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         // Refresh all members
         foreach (var memberUID in religion.MemberUIDs) RefreshPlayerBlessings(memberUID);
 
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"{SystemConstants.LogPrefix} {string.Format(SystemConstants.SuccessRefreshedReligionBlessingsFormat, religion.ReligionName, religion.MemberUIDs.Count)}");
     }
 
@@ -324,7 +333,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     {
         _playerModifierCache.Clear();
         _religionModifierCache.Clear();
-        _sapi.Logger.Notification($"{SystemConstants.LogPrefix} {SystemConstants.InfoClearedCaches}");
+        _logger.Notification($"{SystemConstants.LogPrefix} {SystemConstants.InfoClearedCaches}");
     }
 
     /// <summary>
@@ -441,7 +450,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         RegisterStatIfNeeded(stats, VintageStoryStats.RangedDamageTierBonusPiercing, EnumStatBlendType.FlatSum);
         RegisterStatIfNeeded(stats, VintageStoryStats.RangedDamageTierBonusBlunt, EnumStatBlendType.FlatSum);
 
-        _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered custom stats for {player.PlayerName}");
+        _logger.Debug($"{SystemConstants.LogPrefix} Registered custom stats for {player.PlayerName}");
     }
 
     /// <summary>
@@ -485,12 +494,12 @@ public class BlessingEffectSystem : IBlessingEffectSystem
             }
             catch (Exception ex)
             {
-                _sapi.Logger.Debug(
+                _logger.Debug(
                     $"{SystemConstants.LogPrefix} {string.Format(SystemConstants.ErrorRemovingModifierFormat, statName, player.PlayerName)}: {ex.Message}");
             }
 
         if (removedCount > 0)
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"{SystemConstants.LogPrefix} {string.Format(SystemConstants.SuccessRemovedModifiersFormat, removedCount, player.PlayerName)}");
 
         appliedSet.Clear();
@@ -580,7 +589,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         _specialEffectRegistry.RegisterHandler(new ConquestEffectHandlers.BloodlustEffect());
         _specialEffectRegistry.RegisterHandler(new ConquestEffectHandlers.LastStandEffect());
 
-        _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered all special effect handlers");
+        _logger.Debug($"{SystemConstants.LogPrefix} Registered all special effect handlers");
     }
 
     /// <summary>
@@ -604,7 +613,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
         // Refresh effects via registry
         _specialEffectRegistry.RefreshPlayerEffects(player, activeEffectIds);
 
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"{SystemConstants.LogPrefix} Refreshed {activeEffectIds.Count} special effects for {player.PlayerName}");
     }
 }

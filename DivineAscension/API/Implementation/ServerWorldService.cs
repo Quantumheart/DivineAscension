@@ -85,9 +85,23 @@ internal sealed class ServerWorldService(IServerWorldAccessor worldAccessor) : I
         _worldAccessor.SpawnParticles(particles, sourcePlayer);
     }
 
+    public void SpawnItemEntity(ItemStack itemstack, Vec3d position, Vec3d? velocity = null)
+    {
+        if (itemstack == null) throw new ArgumentNullException(nameof(itemstack));
+        if (position == null) throw new ArgumentNullException(nameof(position));
+
+        _worldAccessor.SpawnItemEntity(itemstack, position, velocity);
+    }
+
     public long ElapsedMilliseconds => _worldAccessor.ElapsedMilliseconds;
 
     public float HoursPerDay => _worldAccessor.Calendar.HoursPerDay;
+
+    public IGameCalendar Calendar => _worldAccessor.Calendar;
+
+    public IBlockAccessor BlockAccessor => _worldAccessor.BlockAccessor;
+
+    public IServerWorldAccessor World => _worldAccessor;
 
     public IBlockAccessor GetBlockAccessor(bool isWriteAccess, bool isRevertable)
     {

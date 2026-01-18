@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -15,18 +16,22 @@ public static class LysaEffectHandlers
     {
         private const long UpdateIntervalMs = 60000; // 1 minute
         private readonly HashSet<string> _activePlayers = new();
+        private IEventService? _eventService;
         private double _lastGameTotalHours;
         private long _lastUpdateTick;
-        private ICoreServerAPI? _sapi;
+        private ILogger? _logger;
+        private IWorldService? _worldService;
         public string EffectId => SpecialEffects.FoodSpoilageReduction;
 
-        public void Initialize(ICoreServerAPI sapi)
+        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
         {
-            _sapi = sapi;
-            _lastUpdateTick = _sapi.World.ElapsedMilliseconds;
+            _logger = logger;
+            _eventService = eventService;
+            _worldService = worldService;
+            _lastUpdateTick = _worldService.ElapsedMilliseconds;
 
             // Calendar might be null during early initialization
-            if (_sapi.World.Calendar != null) _lastGameTotalHours = _sapi.World.Calendar.TotalHours;
+            if (_worldService.Calendar != null) _lastGameTotalHours = _worldService.Calendar.TotalHours;
         }
 
         public void ActivateForPlayer(IServerPlayer player)
@@ -41,20 +46,20 @@ public static class LysaEffectHandlers
 
         public void OnTick(float deltaTime)
         {
-            if (_sapi?.World?.Calendar == null) return;
+            if (_worldService?.Calendar == null) return;
 
             // Initialize baseline if missing (e.g. Calendar was null during init)
             if (_lastGameTotalHours <= 0)
             {
-                _lastGameTotalHours = _sapi.World.Calendar.TotalHours;
-                _lastUpdateTick = _sapi.World.ElapsedMilliseconds;
+                _lastGameTotalHours = _worldService.Calendar.TotalHours;
+                _lastUpdateTick = _worldService.ElapsedMilliseconds;
                 return;
             }
 
-            var currentTick = _sapi.World.ElapsedMilliseconds;
+            var currentTick = _worldService.ElapsedMilliseconds;
             if (currentTick - _lastUpdateTick < UpdateIntervalMs) return;
 
-            var currentTotalHours = _sapi.World.Calendar.TotalHours;
+            var currentTotalHours = _worldService.Calendar.TotalHours;
             var deltaHours = currentTotalHours - _lastGameTotalHours;
 
             _lastUpdateTick = currentTick;
@@ -64,7 +69,7 @@ public static class LysaEffectHandlers
 
             foreach (var uid in _activePlayers.ToList())
             {
-                var player = _sapi.World.PlayerByUid(uid) as IServerPlayer;
+                var player = _worldService.GetPlayerByUID(uid);
                 if (player?.Entity == null) continue;
 
                 // Handle both FlatSum (base 0) and legacy WeightedSum (base 1.0) registrations
@@ -91,7 +96,8 @@ public static class LysaEffectHandlers
             {
                 if (slot?.Itemstack?.Collectible == null) continue;
 
-                var props = slot.Itemstack.Collectible.GetTransitionableProperties(_sapi!.World, slot.Itemstack, null);
+                var props = slot.Itemstack.Collectible.GetTransitionableProperties(_worldService!.World, slot.Itemstack,
+                    null);
                 if (props == null || props.Length == 0) continue;
 
                 var hasPerish = false;
@@ -121,14 +127,18 @@ public static class LysaEffectHandlers
     {
         private const long UpdateIntervalMs = 5000; // 5 seconds
         private readonly HashSet<string> _activePlayers = new();
+        private IEventService? _eventService;
         private long _lastUpdateTick;
-        private ICoreServerAPI? _sapi;
+        private ILogger? _logger;
+        private IWorldService? _worldService;
         public string EffectId => SpecialEffects.TemperatureResistance;
 
-        public void Initialize(ICoreServerAPI sapi)
+        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
         {
-            _sapi = sapi;
-            _lastUpdateTick = _sapi.World.ElapsedMilliseconds;
+            _logger = logger;
+            _eventService = eventService;
+            _worldService = worldService;
+            _lastUpdateTick = _worldService.ElapsedMilliseconds;
         }
 
         public void ActivateForPlayer(IServerPlayer player)
@@ -143,15 +153,15 @@ public static class LysaEffectHandlers
 
         public void OnTick(float deltaTime)
         {
-            if (_sapi == null) return;
+            if (_worldService == null) return;
 
-            var currentTick = _sapi.World.ElapsedMilliseconds;
+            var currentTick = _worldService.ElapsedMilliseconds;
             if (currentTick - _lastUpdateTick < UpdateIntervalMs) return;
             _lastUpdateTick = currentTick;
 
             foreach (var uid in _activePlayers.ToList())
             {
-                var player = _sapi.World.PlayerByUid(uid) as IServerPlayer;
+                var player = _worldService.GetPlayerByUID(uid);
                 if (player?.Entity == null) continue;
 
                 // TemperatureResistance is an absolute value (degrees), not a percentage
@@ -185,13 +195,17 @@ public static class LysaEffectHandlers
     public class RareForageChanceEffect : ISpecialEffectHandler
     {
         private readonly HashSet<string> _activePlayers = new();
-        private ICoreServerAPI? _sapi;
+        private IEventService? _eventService;
+        private ILogger? _logger;
+        private IWorldService? _worldService;
         public string EffectId => SpecialEffects.RareForageChance;
 
-        public void Initialize(ICoreServerAPI sapi)
+        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
         {
-            _sapi = sapi;
-            _sapi.Event.BreakBlock += OnBreakBlock;
+            _logger = logger;
+            _eventService = eventService;
+            _worldService = worldService;
+            _eventService.OnBreakBlock(OnBreakBlock);
         }
 
         public void ActivateForPlayer(IServerPlayer player)
@@ -213,10 +227,10 @@ public static class LysaEffectHandlers
         {
             if (!_activePlayers.Contains(player.PlayerUID)) return;
 
-            var block = _sapi?.World.BlockAccessor.GetBlock(blockSel.Position);
+            var block = _worldService?.World.BlockAccessor.GetBlock(blockSel.Position);
             if (block != null && (block.Code.Path.StartsWith("mushroom") || block.Code.Path.StartsWith("flower")))
                 // Proxy for finding rare items: chance to double quantity
-                if (_sapi!.World.Rand.NextDouble() < 0.5)
+                if (_worldService!.World.Rand.NextDouble() < 0.5)
                     dropQuantityMultiplier *= 2.0f;
         }
     }

@@ -22,6 +22,21 @@ public interface IWorldService
     float HoursPerDay { get; }
 
     /// <summary>
+    /// Get the game calendar for accessing in-game time.
+    /// </summary>
+    IGameCalendar Calendar { get; }
+
+    /// <summary>
+    /// Get direct access to the block accessor for reading blocks.
+    /// </summary>
+    IBlockAccessor BlockAccessor { get; }
+
+    /// <summary>
+    /// Get direct access to the world accessor (for low-level operations that don't have wrappers yet).
+    /// </summary>
+    IServerWorldAccessor World { get; }
+
+    /// <summary>
     /// Get a player by their unique identifier.
     /// </summary>
     /// <param name="uid">The player's unique ID.</param>
@@ -97,6 +112,14 @@ public interface IWorldService
     /// <param name="pos">The position to spawn particles.</param>
     /// <param name="sourcePlayer">Optional source player.</param>
     void SpawnParticles(SimpleParticleProperties particles, Vec3d pos, IPlayer? sourcePlayer = null);
+
+    /// <summary>
+    /// Spawn an item entity in the world at the specified position.
+    /// </summary>
+    /// <param name="itemstack">The item stack to spawn.</param>
+    /// <param name="position">The world position to spawn the item.</param>
+    /// <param name="velocity">Optional initial velocity for the item entity.</param>
+    void SpawnItemEntity(ItemStack itemstack, Vec3d position, Vec3d? velocity = null);
 
     /// <summary>
     /// Get a block accessor for reading or writing blocks.

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
+using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Systems.BlessingEffects;
@@ -12,14 +14,21 @@ namespace DivineAscension.Systems.BlessingEffects;
 /// </summary>
 public class SpecialEffectRegistry
 {
+    private readonly IEventService _eventService;
     private readonly Dictionary<string, ISpecialEffectHandler> _handlers = new();
+    private readonly ILogger _logger;
     private readonly Dictionary<string, HashSet<string>> _playerActiveEffects = new();
-    private readonly ICoreServerAPI _sapi;
+    private readonly IWorldService _worldService;
     private long? _tickListenerId;
 
-    public SpecialEffectRegistry(ICoreServerAPI sapi)
+    public SpecialEffectRegistry(
+        ILogger logger,
+        IEventService eventService,
+        IWorldService worldService)
     {
-        _sapi = sapi;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
     }
 
     /// <summary>
@@ -27,15 +36,16 @@ public class SpecialEffectRegistry
     /// </summary>
     public void Initialize()
     {
-        _sapi.Logger.Notification($"{SystemConstants.LogPrefix} Initializing Special Effect Registry...");
+        _logger.Notification($"{SystemConstants.LogPrefix} Initializing Special Effect Registry...");
 
-        // Initialize all registered handlers
-        foreach (var handler in _handlers.Values) handler.Initialize(_sapi);
+        // Initialize all handlers with API wrappers
+        foreach (var handler in _handlers.Values)
+            handler.Initialize(_logger, _eventService, _worldService);
 
         // Register game tick for time-based effects
-        _tickListenerId = _sapi.Event.RegisterGameTickListener(OnGameTick, 5000); // Every 5 seconds
+        _tickListenerId = _eventService.RegisterGameTickListener(OnGameTick, 5000); // Every 5 seconds
 
-        _sapi.Logger.Notification(
+        _logger.Notification(
             $"{SystemConstants.LogPrefix} Special Effect Registry initialized with {_handlers.Count} handlers");
     }
 
@@ -46,13 +56,13 @@ public class SpecialEffectRegistry
     {
         if (_handlers.ContainsKey(handler.EffectId))
         {
-            _sapi.Logger.Warning(
+            _logger.Warning(
                 $"{SystemConstants.LogPrefix} Handler for effect '{handler.EffectId}' already registered, skipping");
             return;
         }
 
         _handlers[handler.EffectId] = handler;
-        _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Registered special effect handler: {handler.EffectId}");
+        _logger.Debug($"{SystemConstants.LogPrefix} Registered special effect handler: {handler.EffectId}");
     }
 
     /// <summary>
@@ -62,7 +72,7 @@ public class SpecialEffectRegistry
     {
         if (!_handlers.TryGetValue(effectId, out var handler))
         {
-            _sapi.Logger.Warning(
+            _logger.Warning(
                 $"{SystemConstants.LogPrefix} No handler found for effect '{effectId}', skipping activation");
             return;
         }
@@ -74,7 +84,7 @@ public class SpecialEffectRegistry
         if (_playerActiveEffects[player.PlayerUID].Add(effectId))
         {
             handler.ActivateForPlayer(player);
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"{SystemConstants.LogPrefix} Activated effect '{effectId}' for player {player.PlayerName}");
         }
     }
@@ -86,7 +96,7 @@ public class SpecialEffectRegistry
     {
         if (!_handlers.TryGetValue(effectId, out var handler))
         {
-            _sapi.Logger.Warning(
+            _logger.Warning(
                 $"{SystemConstants.LogPrefix} No handler found for effect '{effectId}', skipping deactivation");
             return;
         }
@@ -95,7 +105,7 @@ public class SpecialEffectRegistry
         if (_playerActiveEffects.TryGetValue(player.PlayerUID, out var effects) && effects.Remove(effectId))
         {
             handler.DeactivateForPlayer(player);
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"{SystemConstants.LogPrefix} Deactivated effect '{effectId}' for player {player.PlayerName}");
         }
     }
@@ -155,7 +165,7 @@ public class SpecialEffectRegistry
             }
             catch (Exception ex)
             {
-                _sapi.Logger.Error(
+                _logger.Error(
                     $"{SystemConstants.LogPrefix} Error in special effect handler '{handler.EffectId}' OnTick: {ex}");
             }
     }
@@ -165,7 +175,7 @@ public class SpecialEffectRegistry
     /// </summary>
     public void Dispose()
     {
-        if (_tickListenerId.HasValue) _sapi.Event.UnregisterGameTickListener(_tickListenerId.Value);
+        if (_tickListenerId.HasValue) _eventService.UnregisterCallback(_tickListenerId.Value);
 
         // Dispose any handlers that implement IDisposable
         foreach (var handler in _handlers.Values)
@@ -178,7 +188,7 @@ public class SpecialEffectRegistry
                 }
                 catch (Exception ex)
                 {
-                    _sapi.Logger.Error(
+                    _logger.Error(
                         $"{SystemConstants.LogPrefix} Error disposing special effect handler '{handler.EffectId}': {ex}");
                 }
             }

@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
+using Moq;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
@@ -21,12 +22,18 @@ public sealed class FakeWorldService : IWorldService
     private readonly Dictionary<string, IServerPlayer> _playersByName = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, IServerPlayer> _playersByUID = new();
     private readonly List<SoundEvent> _soundsPlayed = new();
+    private readonly List<ItemStack> _spawnedItems = new();
     private IBlockAccessor? _blockAccessor;
+    private IGameCalendar? _calendar;
+    private IServerWorldAccessor? _worldAccessor;
     private long _elapsedMs = 0;
     private float _hoursPerDay = 24f; // Default to 24 hours
 
     public long ElapsedMilliseconds => _elapsedMs;
     public float HoursPerDay => _hoursPerDay;
+    public IGameCalendar Calendar => _calendar ?? throw new InvalidOperationException("Calendar not set. Call SetCalendar() first.");
+    public IBlockAccessor BlockAccessor => _blockAccessor ?? throw new InvalidOperationException("BlockAccessor not set. Call SetBlockAccessor() first.");
+    public IServerWorldAccessor World => _worldAccessor ?? throw new InvalidOperationException("World accessor not set. Call SetWorldAccessor() first.");
 
     // Player access
     public IServerPlayer? GetPlayerByUID(string uid)
@@ -83,6 +90,11 @@ public sealed class FakeWorldService : IWorldService
     public void SpawnParticles(SimpleParticleProperties particles, Vec3d pos, IPlayer? sourcePlayer = null)
     {
         _particlesSpawned.Add(new ParticleEvent(particles, pos, sourcePlayer));
+    }
+
+    public void SpawnItemEntity(ItemStack itemstack, Vec3d position, Vec3d? velocity = null)
+    {
+        _spawnedItems.Add(itemstack);
     }
 
     // Block accessor - configurable for tests
@@ -143,6 +155,16 @@ public sealed class FakeWorldService : IWorldService
         _blockAccessor = blockAccessor;
     }
 
+    public void SetCalendar(IGameCalendar calendar)
+    {
+        _calendar = calendar;
+    }
+
+    public void SetWorldAccessor(IServerWorldAccessor worldAccessor)
+    {
+        _worldAccessor = worldAccessor;
+    }
+
     public void Clear()
     {
         _playersByUID.Clear();
@@ -153,14 +175,18 @@ public sealed class FakeWorldService : IWorldService
         _chunks.Clear();
         _soundsPlayed.Clear();
         _particlesSpawned.Clear();
+        _spawnedItems.Clear();
         _elapsedMs = 0;
         _hoursPerDay = 24f;
         _blockAccessor = null;
+        _calendar = null;
+        _worldAccessor = null;
     }
 
     // Test inspection helpers
     public IReadOnlyList<SoundEvent> GetSoundsPlayed() => _soundsPlayed.AsReadOnly();
     public IReadOnlyList<ParticleEvent> GetParticlesSpawned() => _particlesSpawned.AsReadOnly();
+    public IReadOnlyList<ItemStack> GetSpawnedItems() => _spawnedItems.AsReadOnly();
 
     public sealed record SoundEvent(
         AssetLocation Sound,
