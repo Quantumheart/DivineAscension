@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using DivineAscension.API.Interfaces;
 using Vintagestory.API.Common;
@@ -11,19 +12,15 @@ namespace DivineAscension.API.Implementation;
 /// Server-side implementation of IWorldService that wraps IServerWorldAccessor.
 /// Provides a thin abstraction layer over Vintage Story's world access for improved testability.
 /// </summary>
-internal sealed class ServerWorldService : IWorldService
+internal sealed class ServerWorldService(IServerWorldAccessor worldAccessor) : IWorldService
 {
-    private readonly IServerWorldAccessor _worldAccessor;
-
-    public ServerWorldService(IServerWorldAccessor worldAccessor)
-    {
-        _worldAccessor = worldAccessor ?? throw new ArgumentNullException(nameof(worldAccessor));
-    }
+    private readonly IServerWorldAccessor _worldAccessor =
+        worldAccessor ?? throw new ArgumentNullException(nameof(worldAccessor));
 
     public IServerPlayer? GetPlayerByUID(string uid)
     {
         if (string.IsNullOrEmpty(uid)) throw new ArgumentNullException(nameof(uid));
-        return _worldAccessor.PlayerByUid(uid);
+        return _worldAccessor.PlayerByUid(uid) as IServerPlayer;
     }
 
     public IPlayer? GetPlayerByName(string name)
@@ -35,7 +32,7 @@ internal sealed class ServerWorldService : IWorldService
             .FirstOrDefault(p => p.PlayerName.Equals(name, StringComparison.OrdinalIgnoreCase));
     }
 
-    public IEnumerable<IServerPlayer> GetAllOnlinePlayers()
+    public IEnumerable<IPlayer> GetAllOnlinePlayers()
     {
         return _worldAccessor.AllOnlinePlayers;
     }
@@ -72,7 +69,8 @@ internal sealed class ServerWorldService : IWorldService
         return _worldAccessor.BlockAccessor.GetChunk(chunkPos.X, chunkPos.Y, chunkPos.Z);
     }
 
-    public void PlaySoundAt(AssetLocation sound, double x, double y, double z, IPlayer? sourcePlayer = null, bool randomizePitch = true, float range = 32f, float volume = 1f)
+    public void PlaySoundAt(AssetLocation sound, double x, double y, double z, IPlayer? sourcePlayer = null,
+        bool randomizePitch = true, float range = 32f, float volume = 1f)
     {
         if (sound == null) throw new ArgumentNullException(nameof(sound));
         _worldAccessor.PlaySoundAt(sound, x, y, z, sourcePlayer, randomizePitch, range, volume);
@@ -91,6 +89,9 @@ internal sealed class ServerWorldService : IWorldService
 
     public IBlockAccessor GetBlockAccessor(bool isWriteAccess, bool isRevertable)
     {
-        return _worldAccessor.GetBlockAccessor(isWriteAccess, isRevertable);
+        // VS API requires 4 booleans: lockCheck, revertable, strict, debug
+        // We map isWriteAccess -> lockCheck (false = read-only), isRevertable -> revertable
+        // strict and debug default to false for standard usage
+        return _worldAccessor.GetBlockAccessor(isWriteAccess, isRevertable, false, false);
     }
 }
