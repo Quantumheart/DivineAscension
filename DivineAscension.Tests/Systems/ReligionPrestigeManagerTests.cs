@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Data;
 using DivineAscension.Models;
@@ -21,7 +20,7 @@ namespace DivineAscension.Tests.Systems;
 [ExcludeFromCodeCoverage]
 public class ReligionPrestigeManagerTests
 {
-    private readonly Mock<ICoreServerAPI> _mockAPI;
+    private readonly FakeWorldService _fakeWorldService;
     private readonly Mock<ILogger> _mockLogger;
     private readonly Mock<IReligionManager> _mockReligionManager;
     private readonly ReligionPrestigeManager _prestigeManager;
@@ -29,9 +28,8 @@ public class ReligionPrestigeManagerTests
 
     public ReligionPrestigeManagerTests()
     {
-        _mockAPI = TestFixtures.CreateMockServerAPI();
         _mockLogger = new Mock<ILogger>();
-        _mockAPI.Setup(a => a.Logger).Returns(_mockLogger.Object);
+        _fakeWorldService = new FakeWorldService();
 
         _mockReligionManager = new Mock<IReligionManager>();
 
@@ -46,7 +44,8 @@ public class ReligionPrestigeManagerTests
             .Returns(_testReligion);
 
         var config = new GameBalanceConfig();
-        _prestigeManager = new ReligionPrestigeManager(_mockAPI.Object, _mockReligionManager.Object, config);
+        _prestigeManager =
+            new ReligionPrestigeManager(_mockLogger.Object, _fakeWorldService, _mockReligionManager.Object, config);
     }
 
     #region Integration Tests
@@ -95,14 +94,8 @@ public class ReligionPrestigeManagerTests
     public void SetBlessingSystems_SetsReferences()
     {
         // Arrange
-        var mockBlessingRegistry = new Mock<BlessingRegistry>(_mockAPI.Object, null);
-        var mockBlessingEffectSystem = new Mock<BlessingEffectSystem>(
-            new Mock<ILogger>().Object,
-            new Mock<IEventService>().Object,
-            new Mock<IWorldService>().Object,
-            mockBlessingRegistry.Object,
-            new Mock<IPlayerProgressionDataManager>().Object,
-            _mockReligionManager.Object);
+        var mockBlessingRegistry = new Mock<IBlessingRegistry>();
+        var mockBlessingEffectSystem = new Mock<IBlessingEffectSystem>();
 
         // Act
         _prestigeManager.SetBlessingSystems(mockBlessingRegistry.Object, mockBlessingEffectSystem.Object);
@@ -173,9 +166,6 @@ public class ReligionPrestigeManagerTests
         // Arrange
         _testReligion.TotalPrestige = 450;
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
-
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
 
         // Act - Add 2100 prestige to reach 2550 (Established threshold is 2500)
         _prestigeManager.AddPrestige("test-religion-uid", 2100);
@@ -524,13 +514,15 @@ public class ReligionPrestigeManagerTests
         _testReligion.AddMember("member-1", "Member 1");
         _testReligion.AddMember("member-2", "Member 2");
 
-        var mockWorld = new Mock<IServerWorldAccessor>();
         var mockPlayer1 = new Mock<IServerPlayer>();
         var mockPlayer2 = new Mock<IServerPlayer>();
+        mockPlayer1.Setup(p => p.PlayerUID).Returns("member-1");
+        mockPlayer1.Setup(p => p.PlayerName).Returns("Member 1");
+        mockPlayer2.Setup(p => p.PlayerUID).Returns("member-2");
+        mockPlayer2.Setup(p => p.PlayerName).Returns("Member 2");
 
-        mockWorld.Setup(w => w.PlayerByUid("member-1")).Returns(mockPlayer1.Object);
-        mockWorld.Setup(w => w.PlayerByUid("member-2")).Returns(mockPlayer2.Object);
-        _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
+        _fakeWorldService.AddPlayer(mockPlayer1.Object);
+        _fakeWorldService.AddPlayer(mockPlayer2.Object);
 
         // Act - Add prestige to trigger rank-up
         _prestigeManager.AddPrestige("test-religion-uid", 2100);
@@ -565,11 +557,11 @@ public class ReligionPrestigeManagerTests
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
         _testReligion.AddMember("member-1", "Member 1");
 
-        var mockWorld = new Mock<IServerWorldAccessor>();
         var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("member-1");
+        mockPlayer.Setup(p => p.PlayerName).Returns("Member 1");
 
-        mockWorld.Setup(w => w.PlayerByUid("member-1")).Returns(mockPlayer.Object);
-        _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
+        _fakeWorldService.AddPlayer(mockPlayer.Object);
 
         // Act - Add prestige but don't rank up
         _prestigeManager.AddPrestige("test-religion-uid", 50);
@@ -589,9 +581,7 @@ public class ReligionPrestigeManagerTests
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
         _testReligion.AddMember("offline-player", "Offline Player");
 
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        mockWorld.Setup(w => w.PlayerByUid("offline-player")).Returns((IServerPlayer)null!);
-        _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
+        // FakeWorldService returns null for players not added, simulating offline player
 
         // Act & Assert - Should not throw
         _prestigeManager.AddPrestige("test-religion-uid", 2500);
@@ -629,10 +619,10 @@ public class ReligionPrestigeManagerTests
         _testReligion.PrestigeRank = PrestigeRank.Fledgling;
         _testReligion.AddMember("member-1", "Member 1");
 
-        var mockWorld = new Mock<IServerWorldAccessor>();
         var mockPlayer = new Mock<IServerPlayer>();
-        mockWorld.Setup(w => w.PlayerByUid("member-1")).Returns(mockPlayer.Object);
-        _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
+        mockPlayer.Setup(p => p.PlayerUID).Returns("member-1");
+        mockPlayer.Setup(p => p.PlayerName).Returns("Member 1");
+        _fakeWorldService.AddPlayer(mockPlayer.Object);
 
         // Act
         _prestigeManager.UpdatePrestigeRank("test-religion-uid");

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Constants;
 using DivineAscension.Models;
@@ -16,17 +17,20 @@ namespace DivineAscension.Systems;
 /// </summary>
 public class ReligionPrestigeManager : IReligionPrestigeManager
 {
-    private readonly IReligionManager _religionManager;
-    private readonly ICoreServerAPI _sapi;
     private readonly GameBalanceConfig _config;
+    private readonly ILogger _logger;
+    private readonly IReligionManager _religionManager;
+    private readonly IWorldService _worldService;
     private IBlessingEffectSystem? _blessingEffectSystem;
     private IBlessingRegistry? _blessingRegistry;
     private CivilizationManager? _civilizationManager;
     private IDiplomacyManager? _diplomacyManager;
 
-    public ReligionPrestigeManager(ICoreServerAPI sapi, IReligionManager religionManager, GameBalanceConfig config)
+    public ReligionPrestigeManager(ILogger logger, IWorldService worldService, IReligionManager religionManager,
+        GameBalanceConfig config)
     {
-        _sapi = sapi;
+        _logger = logger;
+        _worldService = worldService;
         _religionManager = religionManager;
         _config = config;
     }
@@ -45,8 +49,8 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
     /// </summary>
     public void Initialize()
     {
-        _sapi.Logger.Notification("[DivineAscension] Initializing Religion Prestige Manager...");
-        _sapi.Logger.Notification("[DivineAscension] Religion Prestige Manager initialized");
+        _logger.Notification("[DivineAscension] Initializing Religion Prestige Manager...");
+        _logger.Notification("[DivineAscension] Religion Prestige Manager initialized");
     }
 
     /// <summary>
@@ -57,7 +61,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         var religion = _religionManager.GetReligion(religionUID);
         if (religion == null)
         {
-            _sapi.Logger.Error($"[DivineAscension] Cannot add prestige to non-existent religion: {religionUID}");
+            _logger.Error($"[DivineAscension] Cannot add prestige to non-existent religion: {religionUID}");
             return;
         }
 
@@ -69,7 +73,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         religion.TotalPrestige += amount;
 
         if (!string.IsNullOrEmpty(reason))
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"[DivineAscension] Religion {religion.ReligionName} gained {amount} prestige: {reason}");
 
         // Update rank
@@ -94,7 +98,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         var religion = _religionManager.GetReligion(religionUID);
         if (religion == null)
         {
-            _sapi.Logger.Error(
+            _logger.Error(
                 $"[DivineAscension] Cannot add fractional prestige to non-existent religion: {religionUID}");
             return;
         }
@@ -109,7 +113,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         if (religion.Prestige != oldPrestige && !string.IsNullOrEmpty(reason))
         {
             var prestigeGained = religion.Prestige - oldPrestige;
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"[DivineAscension] Religion {religion.ReligionName} gained {prestigeGained} prestige: {reason}");
         }
 
@@ -134,7 +138,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         var religion = _religionManager.GetReligion(religionUID);
         if (religion == null)
         {
-            _sapi.Logger.Error(
+            _logger.Error(
                 $"[DivineAscension] Cannot update prestige rank for non-existent religion: {religionUID}");
             return;
         }
@@ -145,7 +149,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         if (newRank != oldRank)
         {
             religion.PrestigeRank = newRank;
-            _sapi.Logger.Notification(
+            _logger.Notification(
                 $"[DivineAscension] Religion {religion.ReligionName} rank changed: {oldRank} -> {newRank}");
 
             // Check for new blessing unlocks
@@ -161,7 +165,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         var religion = _religionManager.GetReligion(religionUID);
         if (religion == null)
         {
-            _sapi.Logger.Error($"[DivineAscension] Cannot unlock blessing for non-existent religion: {religionUID}");
+            _logger.Error($"[DivineAscension] Cannot unlock blessing for non-existent religion: {religionUID}");
             return false;
         }
 
@@ -170,7 +174,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
 
         // Unlock the blessing
         religion.UnlockBlessing(blessingId);
-        _sapi.Logger.Notification(
+        _logger.Notification(
             $"[DivineAscension] Religion {religion.ReligionName} unlocked blessing: {blessingId}");
 
         // Trigger blessing effect refresh for all members
@@ -258,7 +262,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
     {
         if (_blessingRegistry == null)
         {
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 "[DivineAscension] Blessing registry not yet initialized, skipping blessing unlock check");
             return;
         }
@@ -298,7 +302,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         if (newlyUnlockableBlessings.Count > 0)
             NotifyNewBlessingsAvailable(religionUID, newlyUnlockableBlessings);
         else
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"[DivineAscension] No new blessings available for religion {religion.ReligionName} at rank {newRank}");
     }
 
@@ -317,7 +321,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         // Notify all members
         foreach (var memberUID in religion.MemberUIDs)
         {
-            var player = _sapi.World.PlayerByUid(memberUID) as IServerPlayer;
+            var player = _worldService.GetPlayerByUID(memberUID) as IServerPlayer;
             if (player != null)
                 player.SendMessage(
                     GlobalConstants.GeneralChatGroup,
@@ -326,7 +330,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
                 );
         }
 
-        _sapi.Logger.Notification(
+        _logger.Notification(
             $"[DivineAscension] Religion {religion.ReligionName} has {newBlessings.Count} new blessings available: {blessingNames}");
     }
 
@@ -343,7 +347,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         // Notify all members
         foreach (var memberUID in religion.MemberUIDs)
         {
-            var player = _sapi.World.PlayerByUid(memberUID) as IServerPlayer;
+            var player = _worldService.GetPlayerByUID(memberUID) as IServerPlayer;
             if (player != null)
                 player.SendMessage(
                     GlobalConstants.GeneralChatGroup,
@@ -352,7 +356,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
                 );
         }
 
-        _sapi.Logger.Notification($"[DivineAscension] Religion {religion.ReligionName} reached {newRank} rank!");
+        _logger.Notification($"[DivineAscension] Religion {religion.ReligionName} reached {newRank} rank!");
     }
 
     /// <summary>
@@ -362,7 +366,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
     {
         if (_blessingEffectSystem == null)
         {
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 "[DivineAscension] Blessing effect system not yet initialized, skipping blessing refresh");
             return;
         }
@@ -370,7 +374,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         var religion = _religionManager.GetReligion(religionUID);
         if (religion == null) return;
 
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[DivineAscension] Triggering blessing effect refresh for religion {religion.ReligionName}");
 
         // Refresh blessing effects for all members
@@ -387,7 +391,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         {
             if (_civilizationManager == null)
             {
-                _sapi.Logger.Warning(
+                _logger.Warning(
                     "[DivineAscension:Diplomacy] Civilization manager not set, cannot award Alliance prestige");
                 return;
             }
@@ -397,7 +401,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
 
             if (civ1 == null || civ2 == null)
             {
-                _sapi.Logger.Warning(
+                _logger.Warning(
                     $"[DivineAscension:Diplomacy] Cannot find civilizations for Alliance prestige: {civId1}, {civId2}");
                 return;
             }
@@ -411,7 +415,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
                     $"Alliance formed between {civ1.Name} and {civ2.Name}");
             }
 
-            _sapi.Logger.Notification(
+            _logger.Notification(
                 $"[DivineAscension:Diplomacy] Alliance formed: {civ1.Name} and {civ2.Name} - {allReligionIds.Count()} religions gained {DiplomacyConstants.AlliancePrestigeBonus} prestige");
         }
     }
@@ -423,7 +427,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
     {
         if (_civilizationManager == null)
         {
-            _sapi.Logger.Warning("[DivineAscension:Diplomacy] Civilization manager not set, cannot announce war");
+            _logger.Warning("[DivineAscension:Diplomacy] Civilization manager not set, cannot announce war");
             return;
         }
 
@@ -432,7 +436,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
 
         if (declarerCiv == null || targetCiv == null)
         {
-            _sapi.Logger.Warning(
+            _logger.Warning(
                 $"[DivineAscension:Diplomacy] Cannot find civilizations for war announcement: {declarerCivId}, {targetCivId}");
             return;
         }
@@ -440,7 +444,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         // Broadcast war declaration to all online players
         var message = $"[Diplomacy] {declarerCiv.Name} has declared WAR on {targetCiv.Name}!";
 
-        foreach (var player in _sapi.World.AllOnlinePlayers)
+        foreach (var player in _worldService.GetAllOnlinePlayers())
         {
             if (player is IServerPlayer serverPlayer)
             {
@@ -452,6 +456,6 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
             }
         }
 
-        _sapi.Logger.Notification($"[DivineAscension:Diplomacy] WAR declared: {declarerCiv.Name} vs {targetCiv.Name}");
+        _logger.Notification($"[DivineAscension:Diplomacy] WAR declared: {declarerCiv.Name} vs {targetCiv.Name}");
     }
 }
