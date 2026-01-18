@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Constants;
@@ -10,7 +11,14 @@ namespace DivineAscension.Systems;
 ///     Contains all blessing definitions for all domains
 ///     50 blessings (5 domains × 10 blessings each)
 /// </summary>
+/// <remarks>
+///     DEPRECATED: Blessing definitions should now be loaded from JSON assets
+///     in assets/divineascension/config/blessings/*.json.
+///     This class is kept as a fallback for backward compatibility.
+///     See BlessingLoader for the JSON-based loading mechanism.
+/// </remarks>
 [ExcludeFromCodeCoverage]
+[Obsolete("Use JSON blessing files in assets/divineascension/config/blessings/. This class is kept as fallback only.")]
 public static class BlessingDefinitions
 {
     /// <summary>

@@ -3,6 +3,7 @@ using System.Linq;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 
@@ -14,26 +15,71 @@ namespace DivineAscension.Systems;
 public class BlessingRegistry : IBlessingRegistry
 {
     private readonly ICoreAPI _api;
+    private readonly IBlessingLoader? _blessingLoader;
     private readonly Dictionary<string, Blessing> _blessings = new();
 
-    // ReSharper disable once ConvertToPrimaryConstructor
-    public BlessingRegistry(ICoreAPI api)
+    /// <summary>
+    ///     Creates a BlessingRegistry with JSON-based blessing loading.
+    /// </summary>
+    /// <param name="api">The Vintage Story API</param>
+    /// <param name="blessingLoader">The blessing loader for JSON assets</param>
+    public BlessingRegistry(ICoreAPI api, IBlessingLoader? blessingLoader = null)
     {
         _api = api;
+        _blessingLoader = blessingLoader;
     }
 
     /// <summary>
-    ///     Initializes the blessing registry and registers all blessings
+    ///     Initializes the blessing registry and registers all blessings.
+    ///     Attempts to load from JSON first, falls back to hardcoded definitions.
     /// </summary>
     public void Initialize()
     {
         _api.Logger.Notification("[DivineAscension] Initializing Blessing Registry...");
 
-        // Register all blessings from BlessingDefinitions
-        var allBlessings = BlessingDefinitions.GetAllBlessings();
-        foreach (var blessing in allBlessings) RegisterBlessing(blessing);
+        List<Blessing> allBlessings;
+
+        // Try to load from JSON first
+        if (_blessingLoader != null)
+        {
+            allBlessings = _blessingLoader.LoadBlessings();
+
+            if (_blessingLoader.LoadedSuccessfully && allBlessings.Count > 0)
+            {
+                _api.Logger.Notification(
+                    $"[DivineAscension] Loaded {allBlessings.Count} blessings from JSON assets");
+            }
+            else
+            {
+                _api.Logger.Warning(
+                    "[DivineAscension] Failed to load blessings from JSON, falling back to hardcoded definitions");
+                allBlessings = LoadFallbackBlessings();
+            }
+        }
+        else
+        {
+            // No loader provided, use fallback
+            allBlessings = LoadFallbackBlessings();
+        }
+
+        foreach (var blessing in allBlessings)
+        {
+            RegisterBlessing(blessing);
+        }
 
         _api.Logger.Notification($"[DivineAscension] Blessing Registry initialized with {_blessings.Count} blessings");
+    }
+
+    /// <summary>
+    ///     Loads blessings from hardcoded definitions as a fallback.
+    /// </summary>
+    [System.Obsolete("Use JSON-based loading via IBlessingLoader. Fallback only.")]
+    private List<Blessing> LoadFallbackBlessings()
+    {
+        _api.Logger.Debug("[DivineAscension] Using fallback hardcoded blessing definitions");
+#pragma warning disable CS0618 // Type or member is obsolete
+        return BlessingDefinitions.GetAllBlessings();
+#pragma warning restore CS0618
     }
 
     /// <summary>

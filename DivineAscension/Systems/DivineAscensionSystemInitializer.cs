@@ -4,6 +4,7 @@ using DivineAscension.Commands;
 using DivineAscension.Configuration;
 using DivineAscension.Data;
 using DivineAscension.Services;
+using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems.BuffSystem;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Server;
@@ -88,7 +89,9 @@ public static class DivineAscensionSystemInitializer
             civilizationManager, diplomacyManager, gameBalanceConfig);
         pvpManager.Initialize();
 
-        var blessingRegistry = new BlessingRegistry(api);
+        // Create blessing loader for JSON-based blessing definitions
+        IBlessingLoader blessingLoader = new BlessingLoader(api);
+        var blessingRegistry = new BlessingRegistry(api, blessingLoader);
         blessingRegistry.Initialize();
 
         var blessingEffectSystem =
