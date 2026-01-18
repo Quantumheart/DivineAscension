@@ -1060,6 +1060,734 @@ _holySiteManager?.Dispose();
 ✅ **Territory Control**: Creates meaningful PvP zones
 ✅ **Visual Feedback**: Players can see their claimed land is special
 
+## Network Packets
+
+Holy sites need client-server synchronization for the GUI. Following the existing packet patterns:
+
+### Request Packet
+
+**File:** `DivineAscension/Network/HolySite/HolySiteRequestPacket.cs`
+
+```csharp
+using ProtoBuf;
+
+namespace DivineAscension.Network.HolySite;
+
+/// <summary>
+///     Client requests holy site information or actions
+/// </summary>
+[ProtoContract]
+public class HolySiteRequestPacket
+{
+    public HolySiteRequestPacket()
+    {
+    }
+
+    public HolySiteRequestPacket(string action, string siteId = "", string religionUID = "")
+    {
+        Action = action;
+        SiteId = siteId;
+        ReligionUID = religionUID;
+    }
+
+    /// <summary>
+    ///     Action: "list", "detail", "religion_sites"
+    /// </summary>
+    [ProtoMember(1)]
+    public string Action { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Holy site ID (required for "detail" action)
+    /// </summary>
+    [ProtoMember(2)]
+    public string SiteId { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Religion UID (optional filter for "list", required for "religion_sites")
+    /// </summary>
+    [ProtoMember(3)]
+    public string ReligionUID { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Domain filter (optional for "list")
+    /// </summary>
+    [ProtoMember(4)]
+    public string DomainFilter { get; set; } = string.Empty;
+}
+```
+
+### Response Packet
+
+**File:** `DivineAscension/Network/HolySite/HolySiteResponsePacket.cs`
+
+```csharp
+using System.Collections.Generic;
+using ProtoBuf;
+
+namespace DivineAscension.Network.HolySite;
+
+/// <summary>
+///     Server responds with holy site information
+/// </summary>
+[ProtoContract]
+public class HolySiteResponsePacket
+{
+    public HolySiteResponsePacket()
+    {
+    }
+
+    public HolySiteResponsePacket(bool success, string message = "")
+    {
+        Success = success;
+        Message = message;
+    }
+
+    [ProtoMember(1)] public bool Success { get; set; }
+    [ProtoMember(2)] public string Message { get; set; } = string.Empty;
+    [ProtoMember(3)] public string Action { get; set; } = string.Empty;
+    [ProtoMember(4)] public List<HolySiteInfo> Sites { get; set; } = new();
+    [ProtoMember(5)] public HolySiteDetailInfo? DetailedSite { get; set; }
+
+    [ProtoContract]
+    public class HolySiteInfo
+    {
+        [ProtoMember(1)] public string HolySiteUID { get; set; } = string.Empty;
+        [ProtoMember(2)] public string SiteName { get; set; } = string.Empty;
+        [ProtoMember(3)] public string ReligionUID { get; set; } = string.Empty;
+        [ProtoMember(4)] public string ReligionName { get; set; } = string.Empty;
+        [ProtoMember(5)] public string DeityDomain { get; set; } = string.Empty;
+        [ProtoMember(6)] public int Tier { get; set; }
+        [ProtoMember(7)] public int ChunkCount { get; set; }
+        [ProtoMember(8)] public int ChunkX { get; set; }
+        [ProtoMember(9)] public int ChunkZ { get; set; }
+    }
+
+    [ProtoContract]
+    public class HolySiteDetailInfo
+    {
+        [ProtoMember(1)] public string HolySiteUID { get; set; } = string.Empty;
+        [ProtoMember(2)] public string SiteName { get; set; } = string.Empty;
+        [ProtoMember(3)] public string ReligionUID { get; set; } = string.Empty;
+        [ProtoMember(4)] public string ReligionName { get; set; } = string.Empty;
+        [ProtoMember(5)] public string DeityDomain { get; set; } = string.Empty;
+        [ProtoMember(6)] public string DesignatedByUID { get; set; } = string.Empty;
+        [ProtoMember(7)] public string DesignatedByName { get; set; } = string.Empty;
+        [ProtoMember(8)] public int Tier { get; set; }
+        [ProtoMember(9)] public int ChunkCount { get; set; }
+        [ProtoMember(10)] public float SacredTerritoryMultiplier { get; set; }
+        [ProtoMember(11)] public float PrayerMultiplier { get; set; }
+        [ProtoMember(12)] public long ConsecrationDateTicks { get; set; }
+        [ProtoMember(13)] public bool IsActive { get; set; }
+        [ProtoMember(14)] public List<ChunkInfo> ConnectedChunks { get; set; } = new();
+    }
+
+    [ProtoContract]
+    public class ChunkInfo
+    {
+        [ProtoMember(1)] public int X { get; set; }
+        [ProtoMember(2)] public int Z { get; set; }
+    }
+}
+```
+
+### Packet Registration
+
+**In `DivineAscensionModSystem.Start()`:**
+
+```csharp
+api.Network.RegisterChannel(NETWORK_CHANNEL)
+    // ... existing packets ...
+    .RegisterMessageType<HolySiteRequestPacket>()
+    .RegisterMessageType<HolySiteResponsePacket>();
+```
+
+### Server-Side Handler
+
+**File:** `DivineAscension/Systems/Networking/Server/HolySiteNetworkHandler.cs`
+
+```csharp
+using System;
+using System.Linq;
+using DivineAscension.Network.HolySite;
+using DivineAscension.Systems;
+using Vintagestory.API.Server;
+
+namespace DivineAscension.Systems.Networking.Server;
+
+public class HolySiteNetworkHandler : IServerNetworkHandler
+{
+    private readonly ICoreServerAPI _sapi;
+    private readonly IServerNetworkChannel _serverChannel;
+    private readonly HolySiteManager _holySiteManager;
+    private readonly ReligionManager _religionManager;
+
+    public HolySiteNetworkHandler(
+        ICoreServerAPI sapi,
+        IServerNetworkChannel channel,
+        HolySiteManager holySiteManager,
+        ReligionManager religionManager)
+    {
+        _sapi = sapi;
+        _serverChannel = channel;
+        _holySiteManager = holySiteManager;
+        _religionManager = religionManager;
+    }
+
+    public void RegisterHandlers()
+    {
+        _serverChannel.SetMessageHandler<HolySiteRequestPacket>(OnHolySiteRequest);
+    }
+
+    public void Dispose()
+    {
+    }
+
+    private void OnHolySiteRequest(IServerPlayer fromPlayer, HolySiteRequestPacket packet)
+    {
+        _sapi.Logger.Debug($"[HolySiteNetworkHandler] Received '{packet.Action}' from {fromPlayer.PlayerName}");
+
+        var response = new HolySiteResponsePacket { Action = packet.Action };
+
+        try
+        {
+            switch (packet.Action.ToLower())
+            {
+                case "list":
+                    var allSites = _holySiteManager.GetAllHolySites();
+
+                    // Apply domain filter if provided
+                    if (!string.IsNullOrEmpty(packet.DomainFilter) && packet.DomainFilter != "All")
+                    {
+                        allSites = allSites
+                            .Where(s => {
+                                var religion = _religionManager.GetReligion(s.ReligionUID);
+                                return religion?.Domain.ToString() == packet.DomainFilter;
+                            })
+                            .ToList();
+                    }
+
+                    response.Success = true;
+                    response.Sites = allSites.Select(s => {
+                        var religion = _religionManager.GetReligion(s.ReligionUID);
+                        return new HolySiteResponsePacket.HolySiteInfo
+                        {
+                            HolySiteUID = s.HolySiteUID,
+                            SiteName = s.SiteName,
+                            ReligionUID = s.ReligionUID,
+                            ReligionName = religion?.ReligionName ?? "Unknown",
+                            DeityDomain = religion?.Domain.ToString() ?? "Unknown",
+                            Tier = s.Tier,
+                            ChunkCount = s.GetTotalChunks(),
+                            ChunkX = s.ChunkPos.X,
+                            ChunkZ = s.ChunkPos.Z
+                        };
+                    }).ToList();
+                    break;
+
+                case "religion_sites":
+                    var religionSites = _holySiteManager.GetReligionHolySites(packet.ReligionUID);
+                    var religionData = _religionManager.GetReligion(packet.ReligionUID);
+
+                    response.Success = true;
+                    response.Sites = religionSites.Select(s => new HolySiteResponsePacket.HolySiteInfo
+                    {
+                        HolySiteUID = s.HolySiteUID,
+                        SiteName = s.SiteName,
+                        ReligionUID = s.ReligionUID,
+                        ReligionName = religionData?.ReligionName ?? "Unknown",
+                        DeityDomain = religionData?.Domain.ToString() ?? "Unknown",
+                        Tier = s.Tier,
+                        ChunkCount = s.GetTotalChunks(),
+                        ChunkX = s.ChunkPos.X,
+                        ChunkZ = s.ChunkPos.Z
+                    }).ToList();
+                    break;
+
+                case "detail":
+                    var site = _holySiteManager.GetAllHolySites()
+                        .FirstOrDefault(s => s.HolySiteUID == packet.SiteId);
+
+                    if (site == null)
+                    {
+                        response.Success = false;
+                        response.Message = "Holy site not found.";
+                        break;
+                    }
+
+                    var siteReligion = _religionManager.GetReligion(site.ReligionUID);
+                    var designator = _sapi.World.PlayerByUid(site.DesignatedBy);
+
+                    response.Success = true;
+                    response.DetailedSite = new HolySiteResponsePacket.HolySiteDetailInfo
+                    {
+                        HolySiteUID = site.HolySiteUID,
+                        SiteName = site.SiteName,
+                        ReligionUID = site.ReligionUID,
+                        ReligionName = siteReligion?.ReligionName ?? "Unknown",
+                        DeityDomain = siteReligion?.Domain.ToString() ?? "Unknown",
+                        DesignatedByUID = site.DesignatedBy,
+                        DesignatedByName = designator?.PlayerName ?? "Unknown",
+                        Tier = site.Tier,
+                        ChunkCount = site.GetTotalChunks(),
+                        SacredTerritoryMultiplier = site.GetSacredTerritoryMultiplier(),
+                        PrayerMultiplier = site.GetPrayerMultiplier(),
+                        ConsecrationDateTicks = site.ConsecrationDateTicks,
+                        IsActive = site.IsActive,
+                        ConnectedChunks = site.ConnectedChunks.Select(c =>
+                            new HolySiteResponsePacket.ChunkInfo { X = c.X, Z = c.Z }).ToList()
+                    };
+                    break;
+
+                default:
+                    response.Success = false;
+                    response.Message = $"Unknown action: {packet.Action}";
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            response.Success = false;
+            response.Message = "An error occurred processing your request.";
+            _sapi.Logger.Error($"[HolySiteNetworkHandler] Error: {ex.Message}");
+        }
+
+        _serverChannel.SendPacket(response, fromPlayer);
+    }
+}
+```
+
+### Client-Side Handler
+
+**Add to `DivineAscensionNetworkClient.cs`:**
+
+```csharp
+// Event delegate
+public event Action<HolySiteResponsePacket>? HolySiteDataReceived;
+
+// In RegisterHandlers():
+_clientChannel.SetMessageHandler<HolySiteResponsePacket>(OnHolySiteResponse);
+
+// Handler method:
+private void OnHolySiteResponse(HolySiteResponsePacket packet)
+{
+    HolySiteDataReceived?.Invoke(packet);
+}
+
+// In Dispose():
+HolySiteDataReceived = null;
+```
+
+## GUI Integration
+
+The holy site GUI follows the existing tab pattern with state managers and pure renderers.
+
+### File Structure
+
+```
+DivineAscension/GUI/
+├── State/
+│   └── HolySite/
+│       ├── HolySiteTabState.cs          # Main container
+│       ├── HolySiteBrowseState.cs       # Browse sub-state
+│       └── HolySiteDetailState.cs       # Detail sub-state
+├── Events/
+│   └── HolySite/
+│       ├── HolySiteSubTabEvent.cs       # Tab navigation events
+│       └── HolySiteBrowseEvent.cs       # Browse events
+├── Models/
+│   └── HolySite/
+│       ├── HolySiteTabViewModel.cs
+│       ├── HolySiteBrowseViewModel.cs
+│       └── HolySiteBrowseRenderResult.cs
+├── UI/Renderers/
+│   └── HolySite/
+│       ├── HolySiteTabRenderer.cs       # Tab buttons
+│       └── HolySiteBrowseRenderer.cs    # List + filters
+└── Managers/
+    └── HolySiteStateManager.cs          # Orchestrator
+```
+
+### State Container
+
+**File:** `DivineAscension/GUI/State/HolySite/HolySiteTabState.cs`
+
+```csharp
+namespace DivineAscension.GUI.State.HolySite;
+
+public class HolySiteTabState
+{
+    public HolySiteSubTab CurrentSubTab { get; set; } = HolySiteSubTab.Browse;
+
+    public HolySiteBrowseState BrowseState { get; } = new();
+    public HolySiteDetailState DetailState { get; } = new();
+
+    public string? LastActionError { get; set; }
+
+    public void Reset()
+    {
+        CurrentSubTab = HolySiteSubTab.Browse;
+        BrowseState.Reset();
+        DetailState.Reset();
+        LastActionError = null;
+    }
+}
+
+public enum HolySiteSubTab
+{
+    Browse,
+    Detail
+}
+```
+
+**File:** `DivineAscension/GUI/State/HolySite/HolySiteBrowseState.cs`
+
+```csharp
+using System.Collections.Generic;
+using DivineAscension.Network.HolySite;
+
+namespace DivineAscension.GUI.State.HolySite;
+
+public class HolySiteBrowseState
+{
+    public List<HolySiteResponsePacket.HolySiteInfo> AllHolySites { get; set; } = new();
+    public string DomainFilter { get; set; } = "All";
+    public float ScrollY { get; set; }
+    public bool IsLoading { get; set; }
+    public string? SelectedHolySiteId { get; set; }
+    public bool IsDropdownOpen { get; set; }
+
+    public void Reset()
+    {
+        AllHolySites.Clear();
+        DomainFilter = "All";
+        ScrollY = 0f;
+        IsLoading = false;
+        SelectedHolySiteId = null;
+        IsDropdownOpen = false;
+    }
+}
+```
+
+### Events
+
+**File:** `DivineAscension/GUI/Events/HolySite/HolySiteSubTabEvent.cs`
+
+```csharp
+namespace DivineAscension.GUI.Events.HolySite;
+
+public abstract record HolySiteSubTabEvent
+{
+    public record TabChanged(HolySiteSubTab SubTab) : HolySiteSubTabEvent;
+    public record DismissActionError : HolySiteSubTabEvent;
+}
+```
+
+**File:** `DivineAscension/GUI/Events/HolySite/HolySiteBrowseEvent.cs`
+
+```csharp
+namespace DivineAscension.GUI.Events.HolySite;
+
+public abstract record HolySiteBrowseEvent
+{
+    public record DomainFilterChanged(string NewFilter) : HolySiteBrowseEvent;
+    public record Selected(string HolySiteId, float NewScrollY) : HolySiteBrowseEvent;
+    public record ScrollChanged(float NewScrollY) : HolySiteBrowseEvent;
+    public record ViewDetailsClicked(string HolySiteId) : HolySiteBrowseEvent;
+    public record RefreshClicked : HolySiteBrowseEvent;
+    public record FilterDropdownToggled(bool IsOpen) : HolySiteBrowseEvent;
+}
+```
+
+### State Manager
+
+**File:** `DivineAscension/GUI/Managers/HolySiteStateManager.cs`
+
+```csharp
+using System;
+using DivineAscension.GUI.Events.HolySite;
+using DivineAscension.GUI.State.HolySite;
+using DivineAscension.GUI.UI.Renderers.HolySite;
+using DivineAscension.Network.HolySite;
+using DivineAscension.Services;
+using ImGuiNET;
+using Vintagestory.API.Client;
+
+namespace DivineAscension.GUI.Managers;
+
+public class HolySiteStateManager
+{
+    private readonly ICoreClientAPI _coreClientApi;
+    private readonly IUiService _uiService;
+
+    public HolySiteStateManager(ICoreClientAPI coreClientApi, IUiService uiService)
+    {
+        _coreClientApi = coreClientApi ?? throw new ArgumentNullException(nameof(coreClientApi));
+        _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
+    }
+
+    public HolySiteTabState State { get; } = new();
+
+    public void Reset() => State.Reset();
+
+    public void OnHolySiteDataReceived(HolySiteResponsePacket packet)
+    {
+        State.BrowseState.IsLoading = false;
+
+        if (!packet.Success)
+        {
+            State.LastActionError = packet.Message;
+            return;
+        }
+
+        switch (packet.Action.ToLower())
+        {
+            case "list":
+            case "religion_sites":
+                State.BrowseState.AllHolySites = packet.Sites;
+                break;
+            case "detail":
+                if (packet.DetailedSite != null)
+                {
+                    State.DetailState.ViewingHolySiteId = packet.DetailedSite.HolySiteUID;
+                    State.DetailState.ViewingHolySiteDetails = packet.DetailedSite;
+                    State.CurrentSubTab = HolySiteSubTab.Detail;
+                }
+                break;
+        }
+    }
+
+    public void DrawHolySiteTab(float x, float y, float width, float height)
+    {
+        var drawList = ImGui.GetWindowDrawList();
+
+        // Draw tab buttons
+        var tabVm = new HolySiteTabViewModel(
+            State.CurrentSubTab,
+            State.LastActionError,
+            x, y, width, height);
+
+        var tabResult = HolySiteTabRenderer.Draw(tabVm, drawList);
+
+        // Process tab events
+        foreach (var ev in tabResult.Events)
+        {
+            switch (ev)
+            {
+                case HolySiteSubTabEvent.TabChanged tc:
+                    State.CurrentSubTab = tc.SubTab;
+                    State.LastActionError = null;
+                    if (tc.SubTab == HolySiteSubTab.Browse)
+                        RequestHolySiteList();
+                    break;
+                case HolySiteSubTabEvent.DismissActionError:
+                    State.LastActionError = null;
+                    break;
+            }
+        }
+
+        // Route to sub-renderer
+        var contentY = y + tabResult.RenderedHeight;
+        var contentHeight = height - tabResult.RenderedHeight;
+
+        switch (State.CurrentSubTab)
+        {
+            case HolySiteSubTab.Browse:
+                DrawBrowse(x, contentY, width, contentHeight);
+                break;
+            case HolySiteSubTab.Detail:
+                DrawDetail(x, contentY, width, contentHeight);
+                break;
+        }
+    }
+
+    private void DrawBrowse(float x, float y, float width, float height)
+    {
+        var vm = new HolySiteBrowseViewModel(
+            domainFilters: new[] { "All", "Craft", "Wild", "Conquest", "Harvest", "Stone" },
+            currentDomainFilter: State.BrowseState.DomainFilter,
+            holySites: State.BrowseState.AllHolySites,
+            isLoading: State.BrowseState.IsLoading,
+            scrollY: State.BrowseState.ScrollY,
+            selectedHolySiteId: State.BrowseState.SelectedHolySiteId,
+            isDomainDropdownOpen: State.BrowseState.IsDropdownOpen,
+            x: x, y: y, width: width, height: height);
+
+        var result = HolySiteBrowseRenderer.Draw(vm, ImGui.GetWindowDrawList());
+
+        foreach (var ev in result.Events)
+        {
+            switch (ev)
+            {
+                case HolySiteBrowseEvent.DomainFilterChanged df:
+                    State.BrowseState.DomainFilter = df.NewFilter;
+                    State.BrowseState.IsDropdownOpen = false;
+                    RequestHolySiteList();
+                    break;
+                case HolySiteBrowseEvent.Selected sel:
+                    State.BrowseState.SelectedHolySiteId = sel.HolySiteId;
+                    State.BrowseState.ScrollY = sel.NewScrollY;
+                    break;
+                case HolySiteBrowseEvent.ViewDetailsClicked vd:
+                    State.DetailState.IsLoading = true;
+                    RequestHolySiteDetail(vd.HolySiteId);
+                    break;
+                case HolySiteBrowseEvent.RefreshClicked:
+                    RequestHolySiteList();
+                    break;
+                case HolySiteBrowseEvent.FilterDropdownToggled ft:
+                    State.BrowseState.IsDropdownOpen = ft.IsOpen;
+                    break;
+            }
+        }
+    }
+
+    private void DrawDetail(float x, float y, float width, float height)
+    {
+        // Similar pattern - build ViewModel, call renderer, process events
+    }
+
+    private void RequestHolySiteList()
+    {
+        State.BrowseState.IsLoading = true;
+        _uiService.RequestHolySiteList(State.BrowseState.DomainFilter);
+    }
+
+    private void RequestHolySiteDetail(string holySiteId)
+    {
+        _uiService.RequestHolySiteDetail(holySiteId);
+    }
+}
+```
+
+### Main Tab Integration
+
+**Add to `GuiDialogState.cs`:**
+
+```csharp
+public enum MainDialogTab
+{
+    Religion = 0,
+    Blessings = 1,
+    Civilization = 2,
+    HolySite = 3  // New tab
+}
+```
+
+**Add to `GuiDialogManager.cs`:**
+
+```csharp
+public HolySiteStateManager HolySiteManager { get; }
+
+// In constructor:
+HolySiteManager = new HolySiteStateManager(capi, uiService);
+
+// In Reset():
+HolySiteManager.Reset();
+```
+
+**Add to `MainDialogRenderer.Draw()`:**
+
+```csharp
+case MainDialogTab.HolySite:
+    manager.HolySiteManager.DrawHolySiteTab(windowPos.X + x, windowPos.Y + y, width, contentHeight);
+    break;
+```
+
+## Localization Keys
+
+Add these keys to `DivineAscension/Constants/LocalizationKeys.cs`:
+
+```csharp
+#region Holy Site UI
+public const string UI_TAB_HOLYSITE = "divineascension:ui.tab.holysite";
+public const string UI_HOLYSITE_BROWSE_TITLE = "divineascension:ui.holysite.browse.title";
+public const string UI_HOLYSITE_DETAIL_TITLE = "divineascension:ui.holysite.detail.title";
+public const string UI_HOLYSITE_FILTER_DOMAIN = "divineascension:ui.holysite.filter.domain";
+public const string UI_HOLYSITE_TABLE_NAME = "divineascension:ui.holysite.table.name";
+public const string UI_HOLYSITE_TABLE_RELIGION = "divineascension:ui.holysite.table.religion";
+public const string UI_HOLYSITE_TABLE_TIER = "divineascension:ui.holysite.table.tier";
+public const string UI_HOLYSITE_TABLE_CHUNKS = "divineascension:ui.holysite.table.chunks";
+public const string UI_HOLYSITE_DETAIL_CONSECRATED_BY = "divineascension:ui.holysite.detail.consecrated_by";
+public const string UI_HOLYSITE_DETAIL_CONSECRATED_ON = "divineascension:ui.holysite.detail.consecrated_on";
+public const string UI_HOLYSITE_DETAIL_TERRITORY_BONUS = "divineascension:ui.holysite.detail.territory_bonus";
+public const string UI_HOLYSITE_DETAIL_PRAYER_BONUS = "divineascension:ui.holysite.detail.prayer_bonus";
+public const string UI_HOLYSITE_TIER_SHRINE = "divineascension:ui.holysite.tier.shrine";
+public const string UI_HOLYSITE_TIER_TEMPLE = "divineascension:ui.holysite.tier.temple";
+public const string UI_HOLYSITE_TIER_CATHEDRAL = "divineascension:ui.holysite.tier.cathedral";
+public const string UI_HOLYSITE_NO_SITES = "divineascension:ui.holysite.no_sites";
+public const string UI_HOLYSITE_LOADING = "divineascension:ui.holysite.loading";
+#endregion
+
+#region Holy Site Commands
+public const string CMD_HOLYSITE_CONSECRATE_SUCCESS = "divineascension:cmd.holysite.consecrate.success";
+public const string CMD_HOLYSITE_EXPAND_SUCCESS = "divineascension:cmd.holysite.expand.success";
+public const string CMD_HOLYSITE_DECONSECRATE_SUCCESS = "divineascension:cmd.holysite.deconsecrate.success";
+public const string CMD_HOLYSITE_ERROR_NO_RELIGION = "divineascension:cmd.holysite.error.no_religion";
+public const string CMD_HOLYSITE_ERROR_NOT_FOUNDER = "divineascension:cmd.holysite.error.not_founder";
+public const string CMD_HOLYSITE_ERROR_NAME_TOO_SHORT = "divineascension:cmd.holysite.error.name_too_short";
+public const string CMD_HOLYSITE_ERROR_NAME_TOO_LONG = "divineascension:cmd.holysite.error.name_too_long";
+public const string CMD_HOLYSITE_ERROR_PROFANITY = "divineascension:cmd.holysite.error.profanity";
+public const string CMD_HOLYSITE_ERROR_NO_CLAIM = "divineascension:cmd.holysite.error.no_claim";
+public const string CMD_HOLYSITE_ERROR_NOT_OWNER = "divineascension:cmd.holysite.error.not_owner";
+public const string CMD_HOLYSITE_ERROR_ALREADY_CONSECRATED = "divineascension:cmd.holysite.error.already_consecrated";
+public const string CMD_HOLYSITE_ERROR_NOT_IN_SITE = "divineascension:cmd.holysite.error.not_in_site";
+public const string CMD_HOLYSITE_ERROR_NO_ADJACENT = "divineascension:cmd.holysite.error.no_adjacent";
+#endregion
+
+#region Holy Site Network
+public const string NET_HOLYSITE_NOT_FOUND = "divineascension:net.holysite.not_found";
+public const string NET_HOLYSITE_PRAYER_BONUS = "divineascension:net.holysite.prayer_bonus";
+public const string NET_HOLYSITE_TERRITORY_BONUS = "divineascension:net.holysite.territory_bonus";
+#endregion
+```
+
+### English Translations
+
+Add to `DivineAscension/assets/divineascension/lang/en.json`:
+
+```json
+{
+  "_comment": "Holy Site UI",
+  "divineascension:ui.tab.holysite": "Holy Sites",
+  "divineascension:ui.holysite.browse.title": "Browse Holy Sites",
+  "divineascension:ui.holysite.detail.title": "Holy Site Details",
+  "divineascension:ui.holysite.filter.domain": "Filter by Domain",
+  "divineascension:ui.holysite.table.name": "Name",
+  "divineascension:ui.holysite.table.religion": "Religion",
+  "divineascension:ui.holysite.table.tier": "Tier",
+  "divineascension:ui.holysite.table.chunks": "Chunks",
+  "divineascension:ui.holysite.detail.consecrated_by": "Consecrated By",
+  "divineascension:ui.holysite.detail.consecrated_on": "Consecrated On",
+  "divineascension:ui.holysite.detail.territory_bonus": "Sacred Territory Bonus: {0}x",
+  "divineascension:ui.holysite.detail.prayer_bonus": "Prayer Bonus: {0}x",
+  "divineascension:ui.holysite.tier.shrine": "Shrine",
+  "divineascension:ui.holysite.tier.temple": "Temple",
+  "divineascension:ui.holysite.tier.cathedral": "Cathedral",
+  "divineascension:ui.holysite.no_sites": "No holy sites found.",
+  "divineascension:ui.holysite.loading": "Loading holy sites...",
+
+  "_comment": "Holy Site Commands",
+  "divineascension:cmd.holysite.consecrate.success": "You have consecrated {0} as a holy site for {1}!",
+  "divineascension:cmd.holysite.expand.success": "{0} expanded! Now {1} chunks (Tier {2}).",
+  "divineascension:cmd.holysite.deconsecrate.success": "{0} has been deconsecrated.",
+  "divineascension:cmd.holysite.error.no_religion": "You must be in a religion to consecrate holy sites.",
+  "divineascension:cmd.holysite.error.not_founder": "Only the religion founder can consecrate holy sites.",
+  "divineascension:cmd.holysite.error.name_too_short": "Holy site name must be at least 3 characters.",
+  "divineascension:cmd.holysite.error.name_too_long": "Holy site name must be 50 characters or less.",
+  "divineascension:cmd.holysite.error.profanity": "Holy site name contains inappropriate content.",
+  "divineascension:cmd.holysite.error.no_claim": "You must be standing in a claimed area.",
+  "divineascension:cmd.holysite.error.not_owner": "You must own this land claim to consecrate it.",
+  "divineascension:cmd.holysite.error.already_consecrated": "This land is already consecrated.",
+  "divineascension:cmd.holysite.error.not_in_site": "You must be standing in a holy site.",
+  "divineascension:cmd.holysite.error.no_adjacent": "No adjacent unconsecrated claims found.",
+
+  "_comment": "Holy Site Network",
+  "divineascension:net.holysite.not_found": "Holy site not found.",
+  "divineascension:net.holysite.prayer_bonus": "The sacred ground of {0} amplifies your prayers! {1}x favor for {2} minutes!",
+  "divineascension:net.holysite.territory_bonus": "Your devotion is rewarded! {0}x favor for {1} minutes."
+}
+```
+
 ## Future Enhancements
 
 1. **Visual Markers**: Place special blocks/particles at holy site boundaries
