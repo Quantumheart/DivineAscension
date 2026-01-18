@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
@@ -16,8 +17,10 @@ namespace DivineAscension.Systems.Favor;
 ///     Awards favor for discovering ancient ruins, temporal machinery, and other structures.
 /// </summary>
 public class RuinDiscoveryFavorTracker(
+    ILogger logger,
+    IEventService eventService,
+    IWorldService worldService,
     IPlayerProgressionDataManager playerProgressionDataManager,
-    ICoreServerAPI sapi,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
     private const int SCAN_INTERVAL_MS = 500; // Scan every 500ms
@@ -25,18 +28,24 @@ public class RuinDiscoveryFavorTracker(
     private const int SCAN_STEP = 5; // Check every 5 blocks (sparse scanning)
 
     private readonly HashSet<string> _conquestFollowers = new();
+
+    private readonly IEventService
+        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
-    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+    private readonly IWorldService
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
 
     private long _callbackId;
 
     public void Dispose()
     {
-        _sapi.Event.UnregisterCallback(_callbackId);
+        _eventService.UnregisterCallback(_callbackId);
         _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
         _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
         _conquestFollowers.Clear();
@@ -47,7 +56,7 @@ public class RuinDiscoveryFavorTracker(
     public void Initialize()
     {
         // Register periodic callback for ruin scanning
-        _callbackId = _sapi.Event.RegisterCallback(OnTick, SCAN_INTERVAL_MS);
+        _callbackId = _eventService.RegisterCallback(OnTick, SCAN_INTERVAL_MS);
 
         // Build initial cache of Conquest followers
         RefreshFollowerCache();
@@ -56,7 +65,7 @@ public class RuinDiscoveryFavorTracker(
         _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
         _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
 
-        _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Initialized RuinDiscoveryFavorTracker");
+        _logger.Debug($"{SystemConstants.LogPrefix} Initialized RuinDiscoveryFavorTracker");
     }
 
     /// <summary>
@@ -66,7 +75,7 @@ public class RuinDiscoveryFavorTracker(
     {
         foreach (var playerUID in _conquestFollowers.ToList())
         {
-            var player = _sapi.World.PlayerByUid(playerUID) as IServerPlayer;
+            var player = _worldService.GetPlayerByUID(playerUID) as IServerPlayer;
             if (player?.Entity == null) continue;
 
             ScanForRuins(player);
@@ -79,7 +88,7 @@ public class RuinDiscoveryFavorTracker(
     private void ScanForRuins(IServerPlayer player)
     {
         var playerPos = player.Entity.Pos.AsBlockPos;
-        var blockAccessor = _sapi.World.BlockAccessor;
+        var blockAccessor = _worldService.GetBlockAccessor(false, false);
 
         // Sparse scan to reduce performance impact (check every 5 blocks)
         for (int dx = -SCAN_RADIUS; dx <= SCAN_RADIUS; dx += SCAN_STEP)
@@ -99,7 +108,8 @@ public class RuinDiscoveryFavorTracker(
                         // Use TryGetPlayerData - player should already have data if they're in follower cache
                         if (!_playerProgressionDataManager.TryGetPlayerData(player.PlayerUID, out var playerData))
                         {
-                            _sapi.Logger.Warning($"{SystemConstants.LogPrefix} Player {player.PlayerName} in follower cache but has no data - skipping discovery");
+                            _logger.Warning(
+                                $"{SystemConstants.LogPrefix} Player {player.PlayerName} in follower cache but has no data - skipping discovery");
                             continue;
                         }
 
@@ -182,7 +192,8 @@ public class RuinDiscoveryFavorTracker(
         // Use TryGetPlayerData for safety - should exist since we checked in ScanForRuins
         if (!_playerProgressionDataManager.TryGetPlayerData(player.PlayerUID, out var playerData))
         {
-            _sapi.Logger.Error($"{SystemConstants.LogPrefix} Failed to get player data for {player.PlayerName} during discovery recording");
+            _logger.Error(
+                $"{SystemConstants.LogPrefix} Failed to get player data for {player.PlayerName} during discovery recording");
             return;
         }
 
@@ -197,7 +208,7 @@ public class RuinDiscoveryFavorTracker(
             $"Discovered {type} ruins! (+{favor} favor)",
             EnumChatType.Notification);
 
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"{SystemConstants.LogPrefix} Player {player.PlayerName} discovered {type} ruin at {posKey} (+{favor} favor)");
     }
 
@@ -208,7 +219,7 @@ public class RuinDiscoveryFavorTracker(
     {
         _conquestFollowers.Clear();
 
-        var onlinePlayers = _sapi?.World?.AllOnlinePlayers;
+        var onlinePlayers = _worldService.GetAllOnlinePlayers();
         if (onlinePlayers == null) return;
 
         foreach (var player in onlinePlayers)

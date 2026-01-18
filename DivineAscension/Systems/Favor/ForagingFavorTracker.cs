@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Patches;
@@ -9,18 +10,21 @@ using Vintagestory.API.Server;
 namespace DivineAscension.Systems.Favor;
 
 public class ForagingFavorTracker(
+    ILogger logger,
+    IWorldService worldService,
     IPlayerProgressionDataManager playerProgressionDataManager,
-    ICoreServerAPI sapi,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
-    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
-
     private readonly HashSet<string> _wildFollowers = new();
+
+    private readonly IWorldService
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
 
     public void Dispose()
     {
@@ -49,8 +53,7 @@ public class ForagingFavorTracker(
 
     private void RefreshFollowerCache()
     {
-        var onlinePlayers = _sapi?.World?.AllOnlinePlayers;
-        if (onlinePlayers == null) return;
+        var onlinePlayers = _worldService.GetAllOnlinePlayers();
 
         foreach (var player in onlinePlayers) UpdateFollower(player.PlayerUID);
     }

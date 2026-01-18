@@ -1,13 +1,11 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
-using DivineAscension.Systems;
 using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
 using Moq;
 using Vintagestory.API.Common;
-using Vintagestory.API.Server;
 
 namespace DivineAscension.Tests.Systems.Favor;
 
@@ -15,36 +13,31 @@ namespace DivineAscension.Tests.Systems.Favor;
 public class RuinDiscoveryFavorTrackerTests
 {
     private static RuinDiscoveryFavorTracker CreateTracker(
-        Mock<ICoreServerAPI> mockSapi,
+        Mock<IEventService> mockEventService,
+        IWorldService worldService,
         Mock<IPlayerProgressionDataManager> mockPlayerProgression,
         Mock<IFavorSystem> mockFavor)
     {
-        return new RuinDiscoveryFavorTracker(mockPlayerProgression.Object, mockSapi.Object, mockFavor.Object);
-    }
-
-    private static void SetupOnlinePlayer(Mock<IServerWorldAccessor> mockWorld, IServerPlayer player)
-    {
-        mockWorld.Setup(w => w.AllOnlinePlayers).Returns(new[] { player });
+        var mockLogger = new Mock<ILogger>();
+        return new RuinDiscoveryFavorTracker(mockLogger.Object, mockEventService.Object, worldService,
+            mockPlayerProgression.Object, mockFavor.Object);
     }
 
     [Fact]
     public void Initialize_RegistersCallbackAndSubscribesToEvents()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        var mockEvent = new Mock<IServerEventAPI>();
+        var mockEventService = new Mock<IEventService>();
+        var mockWorldService = new Mock<IWorldService>();
         var mockPlayerProgression = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
 
-        mockSapi.Setup(s => s.World).Returns(mockWorld.Object);
-        mockSapi.Setup(s => s.Event).Returns(mockEvent.Object);
-        mockWorld.Setup(w => w.AllOnlinePlayers).Returns(Array.Empty<IPlayer>());
+        mockEventService.Setup(e => e.RegisterCallback(It.IsAny<Action<float>>(), It.IsAny<int>())).Returns(12345L);
 
-        var tracker = CreateTracker(mockSapi, mockPlayerProgression, mockFavor);
+        var tracker = CreateTracker(mockEventService, mockWorldService.Object, mockPlayerProgression, mockFavor);
         tracker.Initialize();
 
         // Verify callback was registered
-        mockEvent.Verify(e => e.RegisterCallback(It.IsAny<Action<float>>(), 500), Times.Once);
+        mockEventService.Verify(e => e.RegisterCallback(It.IsAny<Action<float>>(), 500), Times.Once);
 
         tracker.Dispose();
     }
@@ -52,11 +45,12 @@ public class RuinDiscoveryFavorTrackerTests
     [Fact]
     public void IsRuinBlock_DevastationBlocks_ReturnsCorrectFavorAndType()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
+        var mockEventService = new Mock<IEventService>();
+        var mockWorldService = new Mock<IWorldService>();
         var mockPlayerProgression = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
 
-        var tracker = CreateTracker(mockSapi, mockPlayerProgression, mockFavor);
+        var tracker = CreateTracker(mockEventService, mockWorldService.Object, mockPlayerProgression, mockFavor);
 
         // Test devastation blocks
         var devastationBlock = new Block { Code = new AssetLocation("game", "devastation-wall") };
@@ -80,11 +74,12 @@ public class RuinDiscoveryFavorTrackerTests
     [Fact]
     public void IsRuinBlock_TemporalBlocks_ReturnsCorrectFavorAndType()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
+        var mockEventService = new Mock<IEventService>();
+        var mockWorldService = new Mock<IWorldService>();
         var mockPlayerProgression = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
 
-        var tracker = CreateTracker(mockSapi, mockPlayerProgression, mockFavor);
+        var tracker = CreateTracker(mockEventService, mockWorldService.Object, mockPlayerProgression, mockFavor);
 
         // Test static translocator
         var translocatorBlock = new Block { Code = new AssetLocation("game", "statictranslocator-normal-north") };
@@ -108,11 +103,12 @@ public class RuinDiscoveryFavorTrackerTests
     [Fact]
     public void IsRuinBlock_LocustBlocks_ReturnsCorrectFavorAndType()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
+        var mockEventService = new Mock<IEventService>();
+        var mockWorldService = new Mock<IWorldService>();
         var mockPlayerProgression = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
 
-        var tracker = CreateTracker(mockSapi, mockPlayerProgression, mockFavor);
+        var tracker = CreateTracker(mockEventService, mockWorldService.Object, mockPlayerProgression, mockFavor);
 
         // Test locust nest cage
         var cageBlock = new Block { Code = new AssetLocation("game", "locustnest-cage") };
@@ -130,11 +126,12 @@ public class RuinDiscoveryFavorTrackerTests
     [Fact]
     public void IsRuinBlock_BrickBlocks_ReturnsCorrectFavorAndType()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
+        var mockEventService = new Mock<IEventService>();
+        var mockWorldService = new Mock<IWorldService>();
         var mockPlayerProgression = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
 
-        var tracker = CreateTracker(mockSapi, mockPlayerProgression, mockFavor);
+        var tracker = CreateTracker(mockEventService, mockWorldService.Object, mockPlayerProgression, mockFavor);
 
         // Test brick ruin
         var brickBlock = new Block { Code = new AssetLocation("game", "brickruin-irregular-gray") };
@@ -146,11 +143,12 @@ public class RuinDiscoveryFavorTrackerTests
     [Fact]
     public void IsRuinBlock_NonRuinBlock_ReturnsFalse()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
+        var mockEventService = new Mock<IEventService>();
+        var mockWorldService = new Mock<IWorldService>();
         var mockPlayerProgression = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
 
-        var tracker = CreateTracker(mockSapi, mockPlayerProgression, mockFavor);
+        var tracker = CreateTracker(mockEventService, mockWorldService.Object, mockPlayerProgression, mockFavor);
 
         // Test normal stone
         var stoneBlock = new Block { Code = new AssetLocation("game", "stone-granite") };
@@ -167,20 +165,19 @@ public class RuinDiscoveryFavorTrackerTests
     [Fact]
     public void UpdateFollower_ConquestFollower_AddsToCache()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockWorld = new Mock<IServerWorldAccessor>();
+        var fakeWorldService = new FakeWorldService();
+        var mockEventService = new Mock<IEventService>();
         var mockPlayerProgression = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var mockPlayer = TestFixtures.CreateMockServerPlayer("player-1", "TestPlayer");
 
-        mockSapi.Setup(s => s.World).Returns(mockWorld.Object);
-        SetupOnlinePlayer(mockWorld, mockPlayer.Object);
+        fakeWorldService.AddPlayer(mockPlayer.Object);
 
         // Player follows Conquest
         mockPlayerProgression.Setup(m => m.GetPlayerDeityType("player-1"))
             .Returns(DeityDomain.Conquest);
 
-        var tracker = CreateTracker(mockSapi, mockPlayerProgression, mockFavor);
+        var tracker = CreateTracker(mockEventService, fakeWorldService, mockPlayerProgression, mockFavor);
         tracker.Initialize();
 
         // Verify player is in follower cache by checking if they would be scanned
@@ -193,20 +190,19 @@ public class RuinDiscoveryFavorTrackerTests
     [Fact]
     public void UpdateFollower_NonConquestFollower_RemovesFromCache()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockWorld = new Mock<IServerWorldAccessor>();
+        var fakeWorldService = new FakeWorldService();
+        var mockEventService = new Mock<IEventService>();
         var mockPlayerProgression = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var mockPlayer = TestFixtures.CreateMockServerPlayer("player-1", "TestPlayer");
 
-        mockSapi.Setup(s => s.World).Returns(mockWorld.Object);
-        SetupOnlinePlayer(mockWorld, mockPlayer.Object);
+        fakeWorldService.AddPlayer(mockPlayer.Object);
 
         // Player follows Harvest (not Conquest)
         mockPlayerProgression.Setup(m => m.GetPlayerDeityType("player-1"))
             .Returns(DeityDomain.Harvest);
 
-        var tracker = CreateTracker(mockSapi, mockPlayerProgression, mockFavor);
+        var tracker = CreateTracker(mockEventService, fakeWorldService, mockPlayerProgression, mockFavor);
         tracker.Initialize();
 
         // Player should not be in cache (verified by deity type check)
@@ -218,36 +214,32 @@ public class RuinDiscoveryFavorTrackerTests
     [Fact]
     public void Dispose_UnregistersCallbackAndClearsCache()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        var mockEvent = new Mock<IServerEventAPI>();
+        var mockEventService = new Mock<IEventService>();
+        var mockWorldService = new Mock<IWorldService>();
         var mockPlayerProgression = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
 
-        mockSapi.Setup(s => s.World).Returns(mockWorld.Object);
-        mockSapi.Setup(s => s.Event).Returns(mockEvent.Object);
-        mockWorld.Setup(w => w.AllOnlinePlayers).Returns(Array.Empty<IPlayer>());
-
         var callbackId = 12345L;
-        mockEvent.Setup(e => e.RegisterCallback(It.IsAny<Action<float>>(), It.IsAny<int>()))
+        mockEventService.Setup(e => e.RegisterCallback(It.IsAny<Action<float>>(), It.IsAny<int>()))
             .Returns(callbackId);
 
-        var tracker = CreateTracker(mockSapi, mockPlayerProgression, mockFavor);
+        var tracker = CreateTracker(mockEventService, mockWorldService.Object, mockPlayerProgression, mockFavor);
         tracker.Initialize();
         tracker.Dispose();
 
         // Verify callback was unregistered
-        mockEvent.Verify(e => e.UnregisterCallback(callbackId), Times.Once);
+        mockEventService.Verify(e => e.UnregisterCallback(callbackId), Times.Once);
     }
 
     [Fact]
     public void DeityDomain_ReturnsConquest()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
+        var mockEventService = new Mock<IEventService>();
+        var mockWorldService = new Mock<IWorldService>();
         var mockPlayerProgression = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
 
-        var tracker = CreateTracker(mockSapi, mockPlayerProgression, mockFavor);
+        var tracker = CreateTracker(mockEventService, mockWorldService.Object, mockPlayerProgression, mockFavor);
 
         Assert.Equal(DeityDomain.Conquest, tracker.DeityDomain);
     }

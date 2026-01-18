@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
 using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Tests.Helpers;
@@ -16,6 +17,7 @@ public sealed class FakeEventService : IEventService
     private readonly Dictionary<long, PeriodicCallback> _callbacks = new();
     private readonly List<BlockPlacedDelegate> _didPlaceBlockCallbacks = new();
     private readonly List<BlockUsedDelegate> _didUseBlockCallbacks = new();
+    private readonly List<EntityDeathDelegate> _entityDeathCallbacks = new();
     private readonly List<Action> _gameWorldSaveCallbacks = new();
     private readonly List<PlayerDeathDelegate> _playerDeathCallbacks = new();
     private readonly List<PlayerDelegate> _playerDisconnectCallbacks = new();
@@ -32,6 +34,7 @@ public sealed class FakeEventService : IEventService
     public int BreakBlockCallbackCount => _breakBlockCallbacks.Count;
     public int DidUseBlockCallbackCount => _didUseBlockCallbacks.Count;
     public int DidPlaceBlockCallbackCount => _didPlaceBlockCallbacks.Count;
+    public int EntityDeathCallbackCount => _entityDeathCallbacks.Count;
 
     // Subscription methods
     public void OnSaveGameLoaded(Action callback)
@@ -72,6 +75,11 @@ public sealed class FakeEventService : IEventService
     public void OnDidPlaceBlock(BlockPlacedDelegate callback)
     {
         _didPlaceBlockCallbacks.Add(callback);
+    }
+
+    public void OnEntityDeath(EntityDeathDelegate callback)
+    {
+        _entityDeathCallbacks.Add(callback);
     }
 
     public long RegisterGameTickListener(Action<float> callback, int intervalMs)
@@ -122,6 +130,16 @@ public sealed class FakeEventService : IEventService
     public void UnsubscribeBreakBlock(BlockBreakDelegate callback)
     {
         _breakBlockCallbacks.Remove(callback);
+    }
+
+    public void UnsubscribeDidPlaceBlock(BlockPlacedDelegate callback)
+    {
+        _didPlaceBlockCallbacks.Remove(callback);
+    }
+
+    public void UnsubscribeEntityDeath(EntityDeathDelegate callback)
+    {
+        _entityDeathCallbacks.Remove(callback);
     }
 
     // Test helper methods to trigger events
@@ -188,6 +206,14 @@ public sealed class FakeEventService : IEventService
         foreach (var callback in _didPlaceBlockCallbacks)
         {
             callback(player, oldBlockId, selection, itemStack);
+        }
+    }
+
+    public void TriggerEntityDeath(Entity entity, DamageSource damageSource)
+    {
+        foreach (var callback in _entityDeathCallbacks)
+        {
+            callback(entity, damageSource);
         }
     }
 

@@ -5,6 +5,7 @@ using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
 using Moq;
+using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
@@ -14,11 +15,13 @@ namespace DivineAscension.Tests.Systems.Favor;
 public class SmeltingFavorTrackerTests
 {
     private static SmeltingFavorTracker CreateTracker(
-        Mock<ICoreServerAPI> mockSapi,
+        FakeWorldService fakeWorldService,
         Mock<IPlayerProgressionDataManager> mockPlayerReligion,
         Mock<IFavorSystem> mockFavor)
     {
-        return new SmeltingFavorTracker(mockPlayerReligion.Object, mockSapi.Object, mockFavor.Object);
+        var mockLogger = new Mock<ILogger>();
+        return new SmeltingFavorTracker(mockLogger.Object, fakeWorldService, mockPlayerReligion.Object,
+            mockFavor.Object);
     }
 
     private static MethodInfo GetHandleMethod()
@@ -29,23 +32,15 @@ public class SmeltingFavorTrackerTests
         return mi!;
     }
 
-    private static void SetupPlayer(Mock<ICoreServerAPI> mockSapi, IServerPlayer player)
-    {
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        mockSapi.Setup(s => s.World).Returns(mockWorld.Object);
-        mockWorld.Setup(w => w.PlayerByUid(player.PlayerUID)).Returns(player);
-        mockWorld.Setup(w => w.AllOnlinePlayers).Returns(new[] { player });
-    }
-
     [Fact]
     public void HandleMoldPoured_ToolMold_FullFavorAwarded()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
+        var fakeWorldService = new FakeWorldService();
         var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var mockPlayer = TestFixtures.CreateMockServerPlayer("player-smelt-1", "Smelter");
 
-        SetupPlayer(mockSapi, mockPlayer.Object);
+        fakeWorldService.AddPlayer(mockPlayer.Object);
 
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-smelt-1"))
             .Returns(TestFixtures.CreateTestPlayerReligionData("player-smelt-1", DeityDomain.Craft));
@@ -53,7 +48,7 @@ public class SmeltingFavorTrackerTests
         mockPlayerReligion.Setup(m => m.GetPlayerDeityType("player-smelt-1"))
             .Returns(DeityDomain.Craft);
 
-        var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
+        var tracker = CreateTracker(fakeWorldService, mockPlayerReligion, mockFavor);
         tracker.Initialize();
 
         var method = GetHandleMethod();
@@ -73,12 +68,12 @@ public class SmeltingFavorTrackerTests
     [Fact]
     public void HandleMoldPoured_IngotMold_ReducedFavorAwarded()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
+        var fakeWorldService = new FakeWorldService();
         var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var mockPlayer = TestFixtures.CreateMockServerPlayer("player-smelt-2", "Ingotter");
 
-        SetupPlayer(mockSapi, mockPlayer.Object);
+        fakeWorldService.AddPlayer(mockPlayer.Object);
 
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-smelt-2"))
             .Returns(TestFixtures.CreateTestPlayerReligionData("player-smelt-2", DeityDomain.Craft));
@@ -86,7 +81,7 @@ public class SmeltingFavorTrackerTests
         mockPlayerReligion.Setup(m => m.GetPlayerDeityType("player-smelt-2"))
             .Returns(DeityDomain.Craft);
 
-        var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
+        var tracker = CreateTracker(fakeWorldService, mockPlayerReligion, mockFavor);
         tracker.Initialize();
 
         var method = GetHandleMethod();
@@ -106,18 +101,18 @@ public class SmeltingFavorTrackerTests
     [Fact]
     public void HandleMoldPoured_NonKhorasFollower_NoFavor()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
+        var fakeWorldService = new FakeWorldService();
         var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
         var mockPlayer = TestFixtures.CreateMockServerPlayer("player-smelt-3", "OtherDeity");
 
-        SetupPlayer(mockSapi, mockPlayer.Object);
+        fakeWorldService.AddPlayer(mockPlayer.Object);
 
         // Player follows Lysa
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-smelt-3"))
             .Returns(TestFixtures.CreateTestPlayerReligionData("player-smelt-3", DeityDomain.Wild));
 
-        var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
+        var tracker = CreateTracker(fakeWorldService, mockPlayerReligion, mockFavor);
         tracker.Initialize();
 
         var method = GetHandleMethod();

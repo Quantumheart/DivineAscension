@@ -87,8 +87,15 @@ public static class DivineAscensionSystemInitializer
         var religionPrestigeManager = new ReligionPrestigeManager(api, religionManager, gameBalanceConfig);
         religionPrestigeManager.Initialize();
 
-        var favorSystem = new FavorSystem(api, playerReligionDataManager, religionManager,
-            religionPrestigeManager, activityLogManager, gameBalanceConfig);
+        var favorSystem = new FavorSystem(
+            logger,
+            eventService,
+            worldService,
+            playerReligionDataManager,
+            religionManager,
+            religionPrestigeManager,
+            activityLogManager,
+            gameBalanceConfig);
         favorSystem.Initialize();
 
         var diplomacyManager = new DiplomacyManager(logger, eventService, persistenceService, civilizationManager,

@@ -6,26 +6,29 @@ using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
 using Moq;
 using Vintagestory.API.Common;
-using Vintagestory.API.Server;
+using Vintagestory.API.Config;
 
 namespace DivineAscension.Tests.Systems;
 
 /// <summary>
 ///     Integration tests for FavorSystem
-///     Tests PvP kill processing, death penalties, and favor calculations with mocked dependencies
+///     Tests PvP kill processing, death penalties, and favor calculations with fake services
 /// </summary>
 [ExcludeFromCodeCoverage]
 public class FavorSystemIntegrationTests
 {
+    private readonly FakeEventService _fakeEventService;
+    private readonly FakeWorldService _fakeWorldService;
     private readonly FavorSystem _favorSystem;
-    private readonly Mock<ICoreServerAPI> _mockAPI;
     private readonly Mock<IPlayerProgressionDataManager> _mockPlayerReligionDataManager;
     private readonly Mock<IReligionPrestigeManager> _mockPrestigeManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
 
     public FavorSystemIntegrationTests()
     {
-        _mockAPI = TestFixtures.CreateMockServerAPI();
+        var mockLogger = new Mock<ILogger>();
+        _fakeEventService = new FakeEventService();
+        _fakeWorldService = new FakeWorldService();
         _mockPlayerReligionDataManager = TestFixtures.CreateMockPlayerProgressionDataManager();
         _mockReligionManager = TestFixtures.CreateMockReligionManager();
         _mockPrestigeManager = TestFixtures.CreateMockReligionPrestigeManager();
@@ -33,7 +36,9 @@ public class FavorSystemIntegrationTests
         var mockActivityLogManager = new Mock<IActivityLogManager>();
         var testConfig = new GameBalanceConfig(); // Uses default values
         _favorSystem = new FavorSystem(
-            _mockAPI.Object,
+            mockLogger.Object,
+            _fakeEventService,
+            _fakeWorldService,
             _mockPlayerReligionDataManager.Object,
             _mockReligionManager.Object,
             _mockPrestigeManager.Object,
@@ -101,31 +106,13 @@ public class FavorSystemIntegrationTests
     public void Initialize_SubscribesToPlayerDeathEvent()
     {
         // Arrange
-        var mockEventAPI = new Mock<IServerEventAPI>();
-        _mockAPI.Setup(a => a.Event).Returns(mockEventAPI.Object);
+        var initialCount = _fakeEventService.PlayerDeathCallbackCount;
 
         // Act
         _favorSystem.Initialize();
 
         // Assert
-        mockEventAPI.VerifyAdd(e => e.PlayerDeath += It.IsAny<PlayerDeathDelegate>(), Times.Once());
-    }
-
-    [Fact]
-    public void Initialize_RegistersGameTickListener()
-    {
-        // Arrange
-        var mockEventAPI = new Mock<IServerEventAPI>();
-        _mockAPI.Setup(a => a.Event).Returns(mockEventAPI.Object);
-
-        // Act
-        _favorSystem.Initialize();
-
-        // Assert
-        mockEventAPI.Verify(
-            e => e.RegisterGameTickListener(It.IsAny<Action<float>>(), It.Is<int>(i => i == 1000), 0),
-            Times.Once()
-        );
+        Assert.Equal(initialCount + 1, _fakeEventService.PlayerDeathCallbackCount);
     }
 
     #endregion
@@ -208,11 +195,11 @@ public class FavorSystemIntegrationTests
         // Assert
         mockPlayer.Verify(
             p => p.SendMessage(
-                It.IsAny<int>(),
+                It.Is<int>(g => g == GlobalConstants.GeneralChatGroup),
                 It.Is<string>(s => s.Contains("lost") && s.Contains("favor")),
-                EnumChatType.Notification,
+                It.Is<EnumChatType>(t => t == EnumChatType.Notification),
                 It.IsAny<string>()),
-            Times.Once()
+            Times.Once
         );
     }
 

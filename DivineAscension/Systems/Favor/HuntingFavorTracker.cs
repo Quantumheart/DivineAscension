@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -10,21 +11,29 @@ namespace DivineAscension.Systems.Favor;
 
 public class HuntingFavorTracker(
     IPlayerProgressionDataManager playerProgressionDataManager,
-    ICoreServerAPI sapi,
+    ILogger logger,
+    IEventService eventService,
+    IWorldService worldService,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
+    private readonly IEventService
+        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+
+    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
-    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
-
     private readonly HashSet<string> _wildFollowers = new();
+
+    private readonly IWorldService
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
 
     public void Dispose()
     {
-        _sapi.Event.OnEntityDeath -= OnEntityDeath;
+        _eventService.UnsubscribeEntityDeath(OnEntityDeath);
         _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
         _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
         _wildFollowers.Clear();
@@ -35,7 +44,7 @@ public class HuntingFavorTracker(
 
     public void Initialize()
     {
-        _sapi.Event.OnEntityDeath += OnEntityDeath;
+        _eventService.OnEntityDeath(OnEntityDeath);
 
         // Cache followers
         RefreshFollowerCache();
@@ -46,7 +55,7 @@ public class HuntingFavorTracker(
 
     private void RefreshFollowerCache()
     {
-        var onlinePlayers = _sapi?.World?.AllOnlinePlayers;
+        var onlinePlayers = _worldService.GetAllOnlinePlayers();
         if (onlinePlayers == null) return;
 
         foreach (var player in onlinePlayers) UpdateFollower(player.PlayerUID);

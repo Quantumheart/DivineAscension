@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Patches;
@@ -10,7 +11,9 @@ namespace DivineAscension.Systems.Favor;
 
 public class StoneFavorTracker(
     IPlayerProgressionDataManager playerProgressionDataManager,
-    ICoreServerAPI sapi,
+    ILogger logger,
+    IEventService eventService,
+    IWorldService worldService,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
     // --- Stone Gathering Tracking ---
@@ -22,24 +25,30 @@ public class StoneFavorTracker(
     private const int FavorPerConstructionBlock = 1; // Stone bricks, slabs, stairs
     private const long ConstructionCooldownMs = 1000; // 1 second cooldown (reduced from 5s)
 
+    private readonly IEventService
+        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
     private readonly Guid _instanceId = Guid.NewGuid();
     private readonly Dictionary<string, long> _lastConstructionTime = new(); // Renamed for clarity
 
+    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
-    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+    private readonly IWorldService
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
 
     public void Dispose()
     {
         ClayFormingPatches.OnClayFormingFinished -= HandleClayFormingFinished;
         PitKilnPatches.OnPitKilnFired -= HandlePitKilnFired;
-        _sapi.Event.BreakBlock -= OnBlockBroken;
-        _sapi.Event.DidPlaceBlock -= OnBlockPlaced;
-        _sapi.Event.PlayerDisconnect -= OnPlayerDisconnect;
+        _eventService.UnsubscribeBreakBlock(OnBlockBroken);
+        _eventService.UnsubscribeDidPlaceBlock(OnBlockPlaced);
+        _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
         _lastConstructionTime.Clear();
-        _sapi.Logger.Debug($"[DivineAscension] StoneFavorTracker disposed (ID: {_instanceId})");
+        _logger.Debug($"[DivineAscension] StoneFavorTracker disposed (ID: {_instanceId})");
     }
 
     public DeityDomain DeityDomain { get; } = DeityDomain.Stone;
@@ -49,12 +58,12 @@ public class StoneFavorTracker(
         ClayFormingPatches.OnClayFormingFinished += HandleClayFormingFinished;
         PitKilnPatches.OnPitKilnFired += HandlePitKilnFired;
         // Track stone gathering
-        _sapi.Event.BreakBlock += OnBlockBroken;
+        _eventService.OnBreakBlock(OnBlockBroken);
         // Track construction (brick/stone placement)
-        _sapi.Event.DidPlaceBlock += OnBlockPlaced;
+        _eventService.OnDidPlaceBlock(OnBlockPlaced);
         // Clean up cooldown data on player disconnect
-        _sapi.Event.PlayerDisconnect += OnPlayerDisconnect;
-        _sapi.Logger.Notification($"[DivineAscension] StoneFavorTracker initialized (ID: {_instanceId})");
+        _eventService.OnPlayerDisconnect(OnPlayerDisconnect);
+        _logger.Notification($"[DivineAscension] StoneFavorTracker initialized (ID: {_instanceId})");
     }
 
     private void HandleClayFormingFinished(IServerPlayer player, ItemStack stack, int clayConsumed)
@@ -70,7 +79,7 @@ public class StoneFavorTracker(
             var favorAmount = clayConsumed * 2;
             _favorSystem.AwardFavorForAction(player, "Pottery Crafting", favorAmount);
 
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"[StoneFavorTracker] Awarded {favorAmount} favor for clay forming " +
                 $"(clay consumed: {clayConsumed}, stack size: {stack?.StackSize ?? 1}, item: {stack?.Collectible?.Code?.Path ?? "unknown"})");
         }
@@ -82,11 +91,11 @@ public class StoneFavorTracker(
         var deityType = _playerProgressionDataManager.GetPlayerDeityType(byPlayer.PlayerUID);
         if (deityType != DeityDomain.Stone) return;
 
-        var placedBlock = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
+        var placedBlock = _worldService.GetBlock(blockSel.Position);
         if (!IsConstructionBlock(placedBlock, out var favor)) return;
 
         // Debounce check - limit favor awards to one per cooldown period
-        var currentTime = _sapi.World.ElapsedMilliseconds;
+        var currentTime = _worldService.ElapsedMilliseconds;
         if (_lastConstructionTime.TryGetValue(byPlayer.PlayerUID, out var lastTime))
         {
             if (currentTime - lastTime < ConstructionCooldownMs)
@@ -96,7 +105,7 @@ public class StoneFavorTracker(
         _favorSystem.AwardFavorForAction(byPlayer, "construction", favor);
         _lastConstructionTime[byPlayer.PlayerUID] = currentTime;
 
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[StoneFavorTracker] Awarded {favor} favor to {byPlayer.PlayerName} for placing {placedBlock.Code.Path}");
     }
 
@@ -202,12 +211,12 @@ public class StoneFavorTracker(
         var deityType = _playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID);
         if (deityType != DeityDomain.Stone) return;
 
-        var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
+        var block = _worldService.GetBlock(blockSel.Position);
         if (!IsStoneBlock(block, out var favor)) return;
 
         _favorSystem.AwardFavorForAction(player, "gathering stone", favor);
 
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[StoneFavorTracker] Awarded {favor} favor to {player.PlayerName} for mining {block.Code.Path}");
     }
 
@@ -286,7 +295,7 @@ public class StoneFavorTracker(
 
     private void HandlePitKilnFired(string playerUid, List<ItemStack> firedItems)
     {
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[DivineAscension] StoneFavorTracker ({_instanceId}): Handling PitKilnFired for {playerUid}");
 
         if (string.IsNullOrEmpty(playerUid)) return;
@@ -304,7 +313,7 @@ public class StoneFavorTracker(
             // Phase 1 improvement: Double pottery favor rewards
             totalFavor += (clayEstimate * stackSize * 2);
 
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"[StoneFavorTracker] Pit kiln item: {stack?.Collectible?.Code?.Path ?? "unknown"}, " +
                 $"clay estimate: {clayEstimate}, stack: {stackSize}, favor: {clayEstimate * stackSize * 2}");
         }
@@ -312,7 +321,7 @@ public class StoneFavorTracker(
         if (totalFavor > 0)
         {
             _favorSystem.AwardFavorForAction(playerUid, "Pottery firing", totalFavor, deityType);
-            _sapi.Logger.Debug($"[StoneFavorTracker] Total pit kiln favor awarded: {totalFavor}");
+            _logger.Debug($"[StoneFavorTracker] Total pit kiln favor awarded: {totalFavor}");
         }
     }
 }

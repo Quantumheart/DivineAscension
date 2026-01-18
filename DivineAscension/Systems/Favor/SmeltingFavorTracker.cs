@@ -1,7 +1,9 @@
 using System;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Patches;
+using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
@@ -11,8 +13,9 @@ namespace DivineAscension.Systems.Favor;
 ///     Tracks metal pouring into molds and awards favor to Craft followers
 /// </summary>
 public class SmeltingFavorTracker(
+    ILogger logger,
+    IWorldService worldService,
     IPlayerProgressionDataManager playerProgressionDataManager,
-    ICoreServerAPI sapi,
     IFavorSystem favorSystem)
     : IFavorTracker, IDisposable
 {
@@ -22,16 +25,18 @@ public class SmeltingFavorTracker(
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
     private readonly Guid _instanceId = Guid.NewGuid();
+    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
-    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+    private readonly IWorldService
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
 
     public void Dispose()
     {
         MoldPourPatches.OnMoldPoured -= HandleMoldPoured;
-        _sapi.Logger.Debug($"[DivineAscension] SmeltingFavorTracker disposed (ID: {_instanceId})");
+        _logger.Debug($"[DivineAscension] SmeltingFavorTracker disposed (ID: {_instanceId})");
     }
 
     public DeityDomain DeityDomain { get; } = DeityDomain.Craft;
@@ -39,7 +44,7 @@ public class SmeltingFavorTracker(
     public void Initialize()
     {
         MoldPourPatches.OnMoldPoured += HandleMoldPoured;
-        _sapi.Logger.Notification($"[DivineAscension] SmeltingFavorTracker initialized (ID: {_instanceId})");
+        _logger.Notification($"[DivineAscension] SmeltingFavorTracker initialized (ID: {_instanceId})");
     }
 
     private void HandleMoldPoured(string? playerUid, BlockPos pos, int deltaUnits, bool isToolMold)
@@ -48,7 +53,7 @@ public class SmeltingFavorTracker(
         var effectiveUid = playerUid ?? FindNearestPlayerUid(pos, 8);
         if (effectiveUid == null) return;
         AwardFavorForPouring(effectiveUid, deltaUnits, isToolMold);
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[SmeltingFavorTracker:{_instanceId}] Mold pour detected at {pos}, +{deltaUnits} into {(isToolMold ? "tool" : "ingot")} mold. Player: {effectiveUid ?? "unknown"}");
     }
 
@@ -57,7 +62,7 @@ public class SmeltingFavorTracker(
         var bestDistSq = (radius + 0.5) * (radius + 0.5);
         string? bestUid = null;
 
-        foreach (var p in _sapi.World.AllOnlinePlayers)
+        foreach (var p in _worldService.GetAllOnlinePlayers())
         {
             if (p is not IServerPlayer sp) continue;
             var epos = sp.Entity?.Pos?.AsBlockPos;
@@ -82,7 +87,7 @@ public class SmeltingFavorTracker(
         if (string.IsNullOrEmpty(playerId))
             return;
 
-        var player = _sapi.World.PlayerByUid(playerId) as IServerPlayer;
+        var player = _worldService.GetPlayerByUID(playerId) as IServerPlayer;
         if (player == null)
             return;
 
@@ -98,7 +103,7 @@ public class SmeltingFavorTracker(
             // Use fractional favor accumulation
             _favorSystem.AwardFavorForAction(player, "smelting", favor);
 
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"[SmeltingFavorTracker] Awarded {favor:F2} favor to {player.PlayerName} for pouring {unitsPoured} units into {(isToolMold ? "tool" : "ingot")} mold");
         }
     }

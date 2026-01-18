@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Patches;
@@ -16,7 +17,9 @@ namespace DivineAscension.Systems.Favor;
 /// </summary>
 public class HarvestFavorTracker(
     IPlayerProgressionDataManager playerProgressionDataManager,
-    ICoreServerAPI sapi,
+    ILogger logger,
+    IEventService eventService,
+    IWorldService worldService,
     IFavorSystem favorSystem)
     : IFavorTracker, IDisposable
 {
@@ -27,6 +30,10 @@ public class HarvestFavorTracker(
     private const float FavorComplexMeal = 5f;
     private const float FavorGourmetMeal = 10f;
     private static readonly TimeSpan CookingAwardCooldown = TimeSpan.FromSeconds(5);
+
+    private readonly IEventService
+        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
     private readonly HashSet<string> _harvestFollowers = new();
@@ -36,10 +43,13 @@ public class HarvestFavorTracker(
     // Simple per-player cooking award rate limit (to prevent rapid repeats)
     private readonly Dictionary<string, DateTime> _lastCookingAwardUtc = new();
 
+    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
-    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+    private readonly IWorldService
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
 
     public void Dispose()
     {
@@ -48,7 +58,7 @@ public class HarvestFavorTracker(
         CookingPatches.OnMealCooked -= HandleMealCooked;
         _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
         _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
-        _sapi.Event.PlayerDisconnect -= OnPlayerDisconnect;
+        _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
         _harvestFollowers.Clear();
         _lastCookingAwardUtc.Clear();
     }
@@ -75,9 +85,9 @@ public class HarvestFavorTracker(
         _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
 
         // Clean up cooking cooldown cache on player disconnect
-        _sapi.Event.PlayerDisconnect += OnPlayerDisconnect;
+        _eventService.OnPlayerDisconnect(OnPlayerDisconnect);
 
-        _sapi.Logger.Notification("[DivineAscension] AethraFavorTracker initialized");
+        _logger.Notification("[DivineAscension] AethraFavorTracker initialized");
     }
 
     #region Planting Detection
@@ -98,7 +108,7 @@ public class HarvestFavorTracker(
     {
         _harvestFollowers.Clear();
 
-        var onlinePlayers = _sapi?.World?.AllOnlinePlayers;
+        var onlinePlayers = _worldService.GetAllOnlinePlayers();
         if (onlinePlayers == null) return;
 
         foreach (var player in onlinePlayers)
@@ -172,7 +182,7 @@ public class HarvestFavorTracker(
             return currentStage >= maxStages;
         }
 
-        _sapi.Logger.Warning($"[HarvestFavorTracker] Could not determine max stages for crop: {crop.Code.Path}");
+        _logger.Warning($"[HarvestFavorTracker] Could not determine max stages for crop: {crop.Code.Path}");
         return false;
     }
 
@@ -206,7 +216,7 @@ public class HarvestFavorTracker(
         _favorSystem.AwardFavorForAction(player, "cooking " + GetMealName(cookedStack), favor);
         _lastCookingAwardUtc[player.PlayerUID] = now;
 
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[AethraFavorTracker] Awarded {favor} favor to {player.PlayerName} for cooking {GetMealName(cookedStack)} at {pos}");
     }
 

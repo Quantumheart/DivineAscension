@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -8,8 +9,9 @@ using Vintagestory.API.Server;
 namespace DivineAscension.Systems.Favor;
 
 public class MiningFavorTracker(
+    ILogger logger,
+    IWorldService worldService,
     IPlayerProgressionDataManager playerProgressionDataManager,
-    ICoreServerAPI sapi,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
     // Base favor values per mineral tier
@@ -27,17 +29,18 @@ public class MiningFavorTracker(
 
     // Cache of active Craft followers for fast lookup (avoids database hit on every block break)
     private readonly HashSet<string> _craftFollowers = new();
-
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+
+    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
-    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+    private readonly IWorldService
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
 
     public void Dispose()
     {
-        _sapi.Event.BreakBlock -= OnBlockBroken;
         _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
         _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
         _craftFollowers.Clear();
@@ -47,8 +50,6 @@ public class MiningFavorTracker(
 
     public void Initialize()
     {
-        _sapi.Event.BreakBlock += OnBlockBroken;
-
         // Build initial cache of Craft followers
         RefreshFollowerCache();
 
@@ -64,9 +65,7 @@ public class MiningFavorTracker(
     {
         _craftFollowers.Clear();
 
-        // Check all online players (guard for nulls in test/headless environments)
-        var onlinePlayers = _sapi?.World?.AllOnlinePlayers;
-        if (onlinePlayers == null) return;
+        var onlinePlayers = _worldService.GetAllOnlinePlayers();
 
         foreach (var player in onlinePlayers)
         {
@@ -98,7 +97,7 @@ public class MiningFavorTracker(
     internal void OnBlockBroken(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier,
         ref EnumHandling handling)
     {
-        var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
+        var block = _worldService.GetBlock(blockSel.Position);
         if (!IsOreBlock(block)) return;
 
         if (!_craftFollowers.Contains(player.PlayerUID)) return;
@@ -110,7 +109,7 @@ public class MiningFavorTracker(
 
         _favorSystem.AwardFavorForAction(player, "mining ore", finalFavor);
 
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[MiningFavorTracker] Awarded {finalFavor} favor to {player.PlayerName} " +
             $"for mining {block.Code.Path} (base: {baseFavor}, quality: {qualityMultiplier}x)");
     }

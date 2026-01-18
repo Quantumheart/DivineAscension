@@ -50,6 +50,11 @@ public interface IEventService
     void OnDidPlaceBlock(BlockPlacedDelegate callback);
 
     /// <summary>
+    /// Subscribe to the OnEntityDeath event, fired when an entity dies.
+    /// </summary>
+    void OnEntityDeath(EntityDeathDelegate callback);
+
+    /// <summary>
     /// Register a game tick listener that is called periodically.
     /// </summary>
     /// <param name="callback">The callback to execute. Receives delta time in seconds.</param>
@@ -100,4 +105,14 @@ public interface IEventService
     /// Unsubscribe from the BreakBlock event.
     /// </summary>
     void UnsubscribeBreakBlock(BlockBreakDelegate callback);
+
+    /// <summary>
+    /// Unsubscribe from the DidPlaceBlock event.
+    /// </summary>
+    void UnsubscribeDidPlaceBlock(BlockPlacedDelegate callback);
+
+    /// <summary>
+    /// Unsubscribe from the OnEntityDeath event.
+    /// </summary>
+    void UnsubscribeEntityDeath(EntityDeathDelegate callback);
 }
