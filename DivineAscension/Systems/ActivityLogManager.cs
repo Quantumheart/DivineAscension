@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
-using Vintagestory.API.Server;
+using Vintagestory.API.Common;
 
 namespace DivineAscension.Systems;
 
@@ -14,12 +15,14 @@ namespace DivineAscension.Systems;
 public class ActivityLogManager : IActivityLogManager
 {
     private const int MAX_ENTRIES_PER_RELIGION = 100;
+    private readonly ILogger _logger;
     private readonly IReligionManager _religionManager;
-    private readonly ICoreServerAPI _sapi;
+    private readonly IWorldService _worldService;
 
-    public ActivityLogManager(ICoreServerAPI sapi, IReligionManager religionManager)
+    public ActivityLogManager(ILogger logger, IWorldService worldService, IReligionManager religionManager)
     {
-        _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
         _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
     }
 
@@ -31,7 +34,7 @@ public class ActivityLogManager : IActivityLogManager
         // Subscribe to religion deletion for cleanup
         _religionManager.OnReligionDeleted += OnReligionDeleted;
 
-        _sapi.Logger.Notification("[DivineAscension] ActivityLogManager initialized");
+        _logger.Notification("[DivineAscension] ActivityLogManager initialized");
     }
 
     /// <summary>
@@ -44,13 +47,13 @@ public class ActivityLogManager : IActivityLogManager
         var religion = _religionManager.GetReligion(religionUID);
         if (religion == null)
         {
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"[ActivityLogManager] Cannot log activity - religion {religionUID} not found");
             return;
         }
 
         // Get player name (cache for display)
-        var player = _sapi.World.PlayerByUid(playerUID);
+        var player = _worldService.GetPlayerByUID(playerUID);
         var playerName = player?.PlayerName ?? playerUID;
 
         var entry = new ActivityLogEntry(
@@ -68,7 +71,7 @@ public class ActivityLogManager : IActivityLogManager
         // Trigger save (batched by existing autosave system)
         _religionManager.TriggerSave();
 
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[ActivityLogManager] Logged activity: {playerName} - {actionType} (+{favorAmount} favor, +{prestigeAmount} prestige) for religion {religion.ReligionName}");
     }
 
@@ -80,7 +83,7 @@ public class ActivityLogManager : IActivityLogManager
         var religion = _religionManager.GetReligion(religionUID);
         if (religion == null)
         {
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"[ActivityLogManager] Cannot get activity log - religion {religionUID} not found");
             return new List<ActivityLogEntry>();
         }
@@ -99,7 +102,7 @@ public class ActivityLogManager : IActivityLogManager
         religion.ClearActivityLog();
         _religionManager.TriggerSave();
 
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[ActivityLogManager] Cleared activity log for religion {religion.ReligionName}");
     }
 

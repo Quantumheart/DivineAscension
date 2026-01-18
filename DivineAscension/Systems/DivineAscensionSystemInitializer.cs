@@ -72,7 +72,7 @@ public static class DivineAscensionSystemInitializer
         // Migrate existing religions with empty deity names (for backward compatibility)
         var migratedReligionUIDs = religionManager.MigrateEmptyDeityNames();
 
-        var activityLogManager = new ActivityLogManager(api, religionManager);
+        var activityLogManager = new ActivityLogManager(logger, worldService, religionManager);
         activityLogManager.Initialize();
 
         var civilizationManager =
@@ -84,7 +84,8 @@ public static class DivineAscensionSystemInitializer
         playerReligionDataManager.Initialize();
 
         // CRITICAL: MUST be initialized before FavorSystem
-        var religionPrestigeManager = new ReligionPrestigeManager(api, religionManager, gameBalanceConfig);
+        var religionPrestigeManager =
+            new ReligionPrestigeManager(logger, worldService, religionManager, gameBalanceConfig);
         religionPrestigeManager.Initialize();
 
         var favorSystem = new FavorSystem(
