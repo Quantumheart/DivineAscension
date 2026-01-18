@@ -5,7 +5,7 @@
     {
       "blessingId": "khoras_craftsmans_touch",
       "name": "Craftsman's Touch",
-      "description": "+10% chance for tools to take no damage, +10% ore yield.",
+      "description": "+5% chance for tools to take no damage, +5% ore yield.",
       "kind": "Player",
       "category": "Utility",
       "iconName": "hammer-drop",
@@ -13,15 +13,15 @@
       "requiredPrestigeRank": 0,
       "prerequisiteBlessings": [],
       "statModifiers": {
-        "toolDurability": 0.10,
-        "oreDropRate": 0.10
+        "toolDurability": 0.05,
+        "oreDropRate": 0.05
       },
       "specialEffects": []
     },
     {
       "blessingId": "khoras_masterwork_tools",
       "name": "Masterwork Tools",
-      "description": "+15% chance for tools to take no damage (total: 25%), +10% mining speed. Requires Craftsman's Touch.",
+      "description": "+7.5% chance for tools to take no damage (total: 12.5%), +10% mining speed. Requires Craftsman's Touch.",
       "kind": "Player",
       "category": "Utility",
       "iconName": "miner",
@@ -29,7 +29,7 @@
       "requiredPrestigeRank": 0,
       "prerequisiteBlessings": ["khoras_craftsmans_touch"],
       "statModifiers": {
-        "toolDurability": 0.15,
+        "toolDurability": 0.075,
         "miningSpeedMul": 0.10
       },
       "specialEffects": []
@@ -53,7 +53,7 @@
     {
       "blessingId": "khoras_legendary_smith",
       "name": "Legendary Smith",
-      "description": "+20% chance for tools to take no damage (total: 45%), +15% ore yield (total: 25%). Requires Masterwork Tools.",
+      "description": "+10% chance for tools to take no damage (total: 22.5%), +7.5% ore yield (total: 12.5%). Requires Masterwork Tools.",
       "kind": "Player",
       "category": "Utility",
       "iconName": "sword-smithing",
@@ -61,8 +61,8 @@
       "requiredPrestigeRank": 0,
       "prerequisiteBlessings": ["khoras_masterwork_tools"],
       "statModifiers": {
-        "toolDurability": 0.20,
-        "oreDropRate": 0.15
+        "toolDurability": 0.10,
+        "oreDropRate": 0.075
       },
       "specialEffects": []
     },
@@ -100,7 +100,7 @@
     {
       "blessingId": "khoras_shared_workshop",
       "name": "Shared Workshop",
-      "description": "+10% chance for tools to take no damage, +10% ore yield for all members.",
+      "description": "+5% chance for tools to take no damage, +5% ore yield for all members.",
       "kind": "Religion",
       "category": "Utility",
       "iconName": "warehouse",
@@ -108,15 +108,15 @@
       "requiredPrestigeRank": 0,
       "prerequisiteBlessings": [],
       "statModifiers": {
-        "toolDurability": 0.10,
-        "oreDropRate": 0.10
+        "toolDurability": 0.05,
+        "oreDropRate": 0.05
       },
       "specialEffects": []
     },
     {
       "blessingId": "khoras_guild_of_smiths",
       "name": "Guild of Smiths",
-      "description": "+15% chance for tools to take no damage, +15% ore yield for all. Requires Shared Workshop.",
+      "description": "+7.5% chance for tools to take no damage, +7.5% ore yield for all. Requires Shared Workshop.",
       "kind": "Religion",
       "category": "Utility",
       "iconName": "blacksmith",
@@ -124,15 +124,15 @@
       "requiredPrestigeRank": 1,
       "prerequisiteBlessings": ["khoras_shared_workshop"],
       "statModifiers": {
-        "toolDurability": 0.15,
-        "oreDropRate": 0.15
+        "toolDurability": 0.075,
+        "oreDropRate": 0.075
       },
       "specialEffects": []
     },
     {
       "blessingId": "khoras_master_craftsmen",
       "name": "Master Craftsmen",
-      "description": "+20% chance for tools to take no damage, +20% ore yield, +10% armor walk speed for all. Requires Guild of Smiths.",
+      "description": "+10% chance for tools to take no damage, +10% ore yield, +10% armor walk speed for all. Requires Guild of Smiths.",
       "kind": "Religion",
       "category": "Utility",
       "iconName": "team-upgrade",
@@ -140,8 +140,8 @@
       "requiredPrestigeRank": 2,
       "prerequisiteBlessings": ["khoras_guild_of_smiths"],
       "statModifiers": {
-        "toolDurability": 0.20,
-        "oreDropRate": 0.20,
+        "toolDurability": 0.10,
+        "oreDropRate": 0.10,
         "armorWalkSpeedAffectedness": -0.10
       },
       "specialEffects": []
