@@ -1532,163 +1532,169 @@ HolySiteDataReceived = null;
 
 ## GUI Integration
 
-The holy site GUI follows the existing tab pattern with state managers and pure renderers.
+Holy sites are displayed as a **subtab under the Religion tab**, alongside existing subtabs (Browse, Info, Activity, Invites, Create, Roles).
 
 ### File Structure
 
 ```
 DivineAscension/GUI/
 ├── State/
-│   └── HolySite/
-│       ├── HolySiteTabState.cs          # Main container
-│       ├── HolySiteBrowseState.cs       # Browse sub-state
-│       └── HolySiteDetailState.cs       # Detail sub-state
+│   └── Religion/
+│       ├── SubTab.cs                     # Add HolySites = 6
+│       ├── HolySitesState.cs             # Holy sites subtab state (NEW)
+│       └── HolySiteDetailState.cs        # Detail view state (NEW)
 ├── Events/
-│   └── HolySite/
-│       ├── HolySiteSubTabEvent.cs       # Tab navigation events
-│       └── HolySiteBrowseEvent.cs       # Browse events
+│   └── Religion/
+│       └── HolySitesEvent.cs             # Holy sites events (NEW)
 ├── Models/
-│   └── HolySite/
-│       ├── HolySiteTabViewModel.cs
-│       ├── HolySiteBrowseViewModel.cs
-│       └── HolySiteBrowseRenderResult.cs
+│   └── Religion/
+│       └── HolySites/
+│           ├── HolySitesViewModel.cs     # List view model (NEW)
+│           └── HolySiteDetailViewModel.cs # Detail view model (NEW)
 ├── UI/Renderers/
-│   └── HolySite/
-│       ├── HolySiteTabRenderer.cs       # Tab buttons
-│       └── HolySiteBrowseRenderer.cs    # List + filters
+│   └── Religion/
+│       └── HolySites/
+│           ├── HolySitesRenderer.cs      # List renderer (NEW)
+│           └── HolySiteDetailRenderer.cs # Detail renderer (NEW)
 └── Managers/
-    └── HolySiteStateManager.cs          # Orchestrator
+    └── ReligionStateManager.cs           # Add holy sites handling
+```
+
+### Update Religion SubTab Enum
+
+**File:** `DivineAscension/GUI/State/Religion/SubTab.cs`
+
+```csharp
+namespace DivineAscension.GUI.State.Religion;
+
+public enum SubTab
+{
+    Browse = 0,
+    Info = 1,
+    Activity = 2,
+    Invites = 3,
+    Create = 4,
+    Roles = 5,
+    HolySites = 6  // NEW
+}
 ```
 
 ### State Container
 
-**File:** `DivineAscension/GUI/State/HolySite/HolySiteTabState.cs`
-
-```csharp
-namespace DivineAscension.GUI.State.HolySite;
-
-public class HolySiteTabState
-{
-    public HolySiteSubTab CurrentSubTab { get; set; } = HolySiteSubTab.Browse;
-
-    public HolySiteBrowseState BrowseState { get; } = new();
-    public HolySiteDetailState DetailState { get; } = new();
-
-    public string? LastActionError { get; set; }
-
-    public void Reset()
-    {
-        CurrentSubTab = HolySiteSubTab.Browse;
-        BrowseState.Reset();
-        DetailState.Reset();
-        LastActionError = null;
-    }
-}
-
-public enum HolySiteSubTab
-{
-    Browse,
-    Detail
-}
-```
-
-**File:** `DivineAscension/GUI/State/HolySite/HolySiteBrowseState.cs`
+**File:** `DivineAscension/GUI/State/Religion/HolySitesState.cs`
 
 ```csharp
 using System.Collections.Generic;
 using DivineAscension.Network.HolySite;
 
-namespace DivineAscension.GUI.State.HolySite;
+namespace DivineAscension.GUI.State.Religion;
 
-public class HolySiteBrowseState
+/// <summary>
+/// State for the Holy Sites subtab within the Religion tab
+/// </summary>
+public class HolySitesState
 {
-    public List<HolySiteResponsePacket.HolySiteInfo> AllHolySites { get; set; } = new();
-    public string DomainFilter { get; set; } = "All";
-    public float ScrollY { get; set; }
+    public List<HolySiteResponsePacket.HolySiteInfo> Sites { get; set; } = new();
+    public string? SelectedSiteId { get; set; }
     public bool IsLoading { get; set; }
-    public string? SelectedHolySiteId { get; set; }
-    public bool IsDropdownOpen { get; set; }
+    public bool ShowingDetail { get; set; }
+    public float ScrollY { get; set; }
+    public string? LastError { get; set; }
+
+    // Site counts for display
+    public int CurrentSiteCount { get; set; }
+    public int MaxSiteCount { get; set; }
 
     public void Reset()
     {
-        AllHolySites.Clear();
-        DomainFilter = "All";
-        ScrollY = 0f;
+        Sites.Clear();
+        SelectedSiteId = null;
         IsLoading = false;
-        SelectedHolySiteId = null;
-        IsDropdownOpen = false;
+        ShowingDetail = false;
+        ScrollY = 0f;
+        LastError = null;
+    }
+}
+```
+
+**File:** `DivineAscension/GUI/State/Religion/HolySiteDetailState.cs`
+
+```csharp
+using DivineAscension.Network.HolySite;
+
+namespace DivineAscension.GUI.State.Religion;
+
+/// <summary>
+/// State for viewing a specific holy site's details
+/// </summary>
+public class HolySiteDetailState
+{
+    public HolySiteResponsePacket.HolySiteInfo? Site { get; set; }
+    public bool IsLoading { get; set; }
+    public string? LastError { get; set; }
+
+    public void Reset()
+    {
+        Site = null;
+        IsLoading = false;
+        LastError = null;
     }
 }
 ```
 
 ### Events
 
-**File:** `DivineAscension/GUI/Events/HolySite/HolySiteSubTabEvent.cs`
+**File:** `DivineAscension/GUI/Events/Religion/HolySitesEvent.cs`
 
 ```csharp
-namespace DivineAscension.GUI.Events.HolySite;
+namespace DivineAscension.GUI.Events.Religion;
 
-public abstract record HolySiteSubTabEvent
+/// <summary>
+/// Events for the Holy Sites subtab
+/// </summary>
+public abstract record HolySitesEvent
 {
-    public record TabChanged(HolySiteSubTab SubTab) : HolySiteSubTabEvent;
-    public record DismissActionError : HolySiteSubTabEvent;
+    public record SiteSelected(string SiteId) : HolySitesEvent;
+    public record ViewDetailClicked(string SiteId) : HolySitesEvent;
+    public record BackToListClicked : HolySitesEvent;
+    public record RefreshClicked : HolySitesEvent;
+    public record ScrollChanged(float NewScrollY) : HolySitesEvent;
+    public record DismissError : HolySitesEvent;
 }
 ```
 
-**File:** `DivineAscension/GUI/Events/HolySite/HolySiteBrowseEvent.cs`
+### Integration with ReligionStateManager
+
+The holy sites functionality integrates into the existing `ReligionStateManager` rather than having a separate manager.
+
+**Updates to:** `DivineAscension/GUI/Managers/ReligionStateManager.cs`
 
 ```csharp
-namespace DivineAscension.GUI.Events.HolySite;
-
-public abstract record HolySiteBrowseEvent
-{
-    public record DomainFilterChanged(string NewFilter) : HolySiteBrowseEvent;
-    public record Selected(string HolySiteId, float NewScrollY) : HolySiteBrowseEvent;
-    public record ScrollChanged(float NewScrollY) : HolySiteBrowseEvent;
-    public record ViewDetailsClicked(string HolySiteId) : HolySiteBrowseEvent;
-    public record RefreshClicked : HolySiteBrowseEvent;
-    public record FilterDropdownToggled(bool IsOpen) : HolySiteBrowseEvent;
-}
-```
-
-### State Manager
-
-**File:** `DivineAscension/GUI/Managers/HolySiteStateManager.cs`
-
-```csharp
-using System;
-using DivineAscension.GUI.Events.HolySite;
-using DivineAscension.GUI.State.HolySite;
-using DivineAscension.GUI.UI.Renderers.HolySite;
+using DivineAscension.GUI.Events.Religion;
+using DivineAscension.GUI.State.Religion;
 using DivineAscension.Network.HolySite;
 using DivineAscension.Services;
 using ImGuiNET;
 using Vintagestory.API.Client;
 
-namespace DivineAscension.GUI.Managers;
+// Add to existing ReligionStateManager class:
 
-public class HolySiteStateManager
+public partial class ReligionStateManager
 {
-    private readonly ICoreClientAPI _coreClientApi;
-    private readonly IUiService _uiService;
+    // Add holy sites state to ReligionTabState
+    public HolySitesState HolySitesState { get; } = new();
+    public HolySiteDetailState HolySiteDetailState { get; } = new();
 
-    public HolySiteStateManager(ICoreClientAPI coreClientApi, IUiService uiService)
-    {
-        _coreClientApi = coreClientApi ?? throw new ArgumentNullException(nameof(coreClientApi));
-        _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
-    }
-
-    public HolySiteTabState State { get; } = new();
-
-    public void Reset() => State.Reset();
-
+    /// <summary>
+    /// Called when holy site data is received from the server
+    /// </summary>
     public void OnHolySiteDataReceived(HolySiteResponsePacket packet)
     {
-        State.BrowseState.IsLoading = false;
+        HolySitesState.IsLoading = false;
 
         if (!packet.Success)
         {
-            State.LastActionError = packet.Message;
+            HolySitesState.LastError = packet.Message;
             return;
         }
 
@@ -1696,154 +1702,144 @@ public class HolySiteStateManager
         {
             case "list":
             case "religion_sites":
-                State.BrowseState.AllHolySites = packet.Sites;
+                HolySitesState.Sites = packet.Sites;
+                HolySitesState.CurrentSiteCount = packet.CurrentSiteCount;
+                HolySitesState.MaxSiteCount = packet.MaxSiteCount;
                 break;
             case "detail":
                 if (packet.DetailedSite != null)
                 {
-                    State.DetailState.ViewingHolySiteId = packet.DetailedSite.HolySiteUID;
-                    State.DetailState.ViewingHolySiteDetails = packet.DetailedSite;
-                    State.CurrentSubTab = HolySiteSubTab.Detail;
+                    HolySiteDetailState.Site = packet.DetailedSite;
+                    HolySitesState.ShowingDetail = true;
                 }
                 break;
         }
     }
 
-    public void DrawHolySiteTab(float x, float y, float width, float height)
+    /// <summary>
+    /// Handles events from the holy sites subtab
+    /// </summary>
+    public void HandleHolySitesEvent(HolySitesEvent ev)
     {
-        var drawList = ImGui.GetWindowDrawList();
-
-        // Draw tab buttons
-        var tabVm = new HolySiteTabViewModel(
-            State.CurrentSubTab,
-            State.LastActionError,
-            x, y, width, height);
-
-        var tabResult = HolySiteTabRenderer.Draw(tabVm, drawList);
-
-        // Process tab events
-        foreach (var ev in tabResult.Events)
+        switch (ev)
         {
-            switch (ev)
-            {
-                case HolySiteSubTabEvent.TabChanged tc:
-                    State.CurrentSubTab = tc.SubTab;
-                    State.LastActionError = null;
-                    if (tc.SubTab == HolySiteSubTab.Browse)
-                        RequestHolySiteList();
-                    break;
-                case HolySiteSubTabEvent.DismissActionError:
-                    State.LastActionError = null;
-                    break;
-            }
-        }
-
-        // Route to sub-renderer
-        var contentY = y + tabResult.RenderedHeight;
-        var contentHeight = height - tabResult.RenderedHeight;
-
-        switch (State.CurrentSubTab)
-        {
-            case HolySiteSubTab.Browse:
-                DrawBrowse(x, contentY, width, contentHeight);
+            case HolySitesEvent.SiteSelected sel:
+                HolySitesState.SelectedSiteId = sel.SiteId;
                 break;
-            case HolySiteSubTab.Detail:
-                DrawDetail(x, contentY, width, contentHeight);
+            case HolySitesEvent.ViewDetailClicked vd:
+                HolySiteDetailState.IsLoading = true;
+                _uiService.RequestHolySiteDetail(vd.SiteId);
+                break;
+            case HolySitesEvent.BackToListClicked:
+                HolySitesState.ShowingDetail = false;
+                HolySiteDetailState.Reset();
+                break;
+            case HolySitesEvent.RefreshClicked:
+                RequestReligionHolySites();
+                break;
+            case HolySitesEvent.ScrollChanged sc:
+                HolySitesState.ScrollY = sc.NewScrollY;
+                break;
+            case HolySitesEvent.DismissError:
+                HolySitesState.LastError = null;
                 break;
         }
     }
 
-    private void DrawBrowse(float x, float y, float width, float height)
+    /// <summary>
+    /// Requests holy sites for the player's current religion
+    /// </summary>
+    private void RequestReligionHolySites()
     {
-        var vm = new HolySiteBrowseViewModel(
-            domainFilters: new[] { "All", "Craft", "Wild", "Conquest", "Harvest", "Stone" },
-            currentDomainFilter: State.BrowseState.DomainFilter,
-            holySites: State.BrowseState.AllHolySites,
-            isLoading: State.BrowseState.IsLoading,
-            scrollY: State.BrowseState.ScrollY,
-            selectedHolySiteId: State.BrowseState.SelectedHolySiteId,
-            isDomainDropdownOpen: State.BrowseState.IsDropdownOpen,
-            x: x, y: y, width: width, height: height);
-
-        var result = HolySiteBrowseRenderer.Draw(vm, ImGui.GetWindowDrawList());
-
-        foreach (var ev in result.Events)
-        {
-            switch (ev)
-            {
-                case HolySiteBrowseEvent.DomainFilterChanged df:
-                    State.BrowseState.DomainFilter = df.NewFilter;
-                    State.BrowseState.IsDropdownOpen = false;
-                    RequestHolySiteList();
-                    break;
-                case HolySiteBrowseEvent.Selected sel:
-                    State.BrowseState.SelectedHolySiteId = sel.HolySiteId;
-                    State.BrowseState.ScrollY = sel.NewScrollY;
-                    break;
-                case HolySiteBrowseEvent.ViewDetailsClicked vd:
-                    State.DetailState.IsLoading = true;
-                    RequestHolySiteDetail(vd.HolySiteId);
-                    break;
-                case HolySiteBrowseEvent.RefreshClicked:
-                    RequestHolySiteList();
-                    break;
-                case HolySiteBrowseEvent.FilterDropdownToggled ft:
-                    State.BrowseState.IsDropdownOpen = ft.IsOpen;
-                    break;
-            }
-        }
+        if (_currentReligionUID == null) return;
+        HolySitesState.IsLoading = true;
+        _uiService.RequestReligionHolySites(_currentReligionUID);
     }
 
-    private void DrawDetail(float x, float y, float width, float height)
-    {
-        // Similar pattern - build ViewModel, call renderer, process events
-    }
+    // Add to OnSubTabChanged handler:
+    // case SubTab.HolySites:
+    //     RequestReligionHolySites();
+    //     break;
 
-    private void RequestHolySiteList()
-    {
-        State.BrowseState.IsLoading = true;
-        _uiService.RequestHolySiteList(State.BrowseState.DomainFilter);
-    }
-
-    private void RequestHolySiteDetail(string holySiteId)
-    {
-        _uiService.RequestHolySiteDetail(holySiteId);
-    }
+    // Add to Reset():
+    // HolySitesState.Reset();
+    // HolySiteDetailState.Reset();
 }
 ```
 
-### Main Tab Integration
+### Subtab Rendering
 
-**Add to `GuiDialogState.cs`:**
+The holy sites subtab is rendered within the Religion tab's content area when `SubTab.HolySites` is selected.
 
-```csharp
-public enum MainDialogTab
-{
-    Religion = 0,
-    Blessings = 1,
-    Civilization = 2,
-    HolySite = 3  // New tab
-}
-```
-
-**Add to `GuiDialogManager.cs`:**
+**Add case to religion subtab routing in `ReligionStateManager`:**
 
 ```csharp
-public HolySiteStateManager HolySiteManager { get; }
-
-// In constructor:
-HolySiteManager = new HolySiteStateManager(capi, uiService);
-
-// In Reset():
-HolySiteManager.Reset();
-```
-
-**Add to `MainDialogRenderer.Draw()`:**
-
-```csharp
-case MainDialogTab.HolySite:
-    manager.HolySiteManager.DrawHolySiteTab(windowPos.X + x, windowPos.Y + y, width, contentHeight);
+case SubTab.HolySites:
+    DrawHolySitesSubtab(x, y, width, height);
     break;
+```
+
+**Holy sites subtab drawing method:**
+
+```csharp
+private void DrawHolySitesSubtab(float x, float y, float width, float height)
+{
+    if (HolySitesState.ShowingDetail)
+    {
+        DrawHolySiteDetail(x, y, width, height);
+        return;
+    }
+
+    var vm = new HolySitesViewModel(
+        sites: HolySitesState.Sites,
+        isLoading: HolySitesState.IsLoading,
+        selectedSiteId: HolySitesState.SelectedSiteId,
+        scrollY: HolySitesState.ScrollY,
+        currentSiteCount: HolySitesState.CurrentSiteCount,
+        maxSiteCount: HolySitesState.MaxSiteCount,
+        lastError: HolySitesState.LastError,
+        x: x, y: y, width: width, height: height);
+
+    var result = HolySitesRenderer.Draw(vm, ImGui.GetWindowDrawList());
+
+    foreach (var ev in result.Events)
+    {
+        HandleHolySitesEvent(ev);
+    }
+}
+
+private void DrawHolySiteDetail(float x, float y, float width, float height)
+{
+    var vm = new HolySiteDetailViewModel(
+        site: HolySiteDetailState.Site,
+        isLoading: HolySiteDetailState.IsLoading,
+        lastError: HolySiteDetailState.LastError,
+        x: x, y: y, width: width, height: height);
+
+    var result = HolySiteDetailRenderer.Draw(vm, ImGui.GetWindowDrawList());
+
+    foreach (var ev in result.Events)
+    {
+        HandleHolySitesEvent(ev);
+    }
+}
+```
+
+### Subtab Button
+
+Add the "Holy Sites" button to the religion tab's subtab bar. The button should only be visible when the player is in a religion.
+
+**In religion subtab renderer:**
+
+```csharp
+// Add to subtab buttons (only show if player is in a religion)
+if (isInReligion)
+{
+    if (RenderSubTabButton("Holy Sites", currentSubTab == SubTab.HolySites, ref buttonX, y))
+    {
+        events.Add(new SubTabChangedEvent(SubTab.HolySites));
+    }
+}
 ```
 
 ## Localization Keys
@@ -1851,22 +1847,21 @@ case MainDialogTab.HolySite:
 Add these keys to `DivineAscension/Constants/LocalizationKeys.cs`:
 
 ```csharp
-#region Holy Site UI
-public const string UI_TAB_HOLYSITE = "divineascension:ui.tab.holysite";
-public const string UI_HOLYSITE_BROWSE_TITLE = "divineascension:ui.holysite.browse.title";
+#region Holy Site UI (Religion Subtab)
+public const string UI_RELIGION_SUBTAB_HOLYSITES = "divineascension:ui.religion.subtab.holysites";
+public const string UI_HOLYSITE_LIST_TITLE = "divineascension:ui.holysite.list.title";
 public const string UI_HOLYSITE_DETAIL_TITLE = "divineascension:ui.holysite.detail.title";
-public const string UI_HOLYSITE_FILTER_DOMAIN = "divineascension:ui.holysite.filter.domain";
+public const string UI_HOLYSITE_SITE_COUNT = "divineascension:ui.holysite.site_count";
 public const string UI_HOLYSITE_TABLE_NAME = "divineascension:ui.holysite.table.name";
-public const string UI_HOLYSITE_TABLE_RELIGION = "divineascension:ui.holysite.table.religion";
 public const string UI_HOLYSITE_TABLE_TIER = "divineascension:ui.holysite.table.tier";
 public const string UI_HOLYSITE_TABLE_CHUNKS = "divineascension:ui.holysite.table.chunks";
 public const string UI_HOLYSITE_DETAIL_CONSECRATED_BY = "divineascension:ui.holysite.detail.consecrated_by";
 public const string UI_HOLYSITE_DETAIL_CONSECRATED_ON = "divineascension:ui.holysite.detail.consecrated_on";
 public const string UI_HOLYSITE_DETAIL_TERRITORY_BONUS = "divineascension:ui.holysite.detail.territory_bonus";
 public const string UI_HOLYSITE_DETAIL_PRAYER_BONUS = "divineascension:ui.holysite.detail.prayer_bonus";
+public const string UI_HOLYSITE_TIER_SACRED_GROUND = "divineascension:ui.holysite.tier.sacred-ground";
 public const string UI_HOLYSITE_TIER_SHRINE = "divineascension:ui.holysite.tier.shrine";
 public const string UI_HOLYSITE_TIER_TEMPLE = "divineascension:ui.holysite.tier.temple";
-public const string UI_HOLYSITE_TIER_CATHEDRAL = "divineascension:ui.holysite.tier.cathedral";
 public const string UI_HOLYSITE_NO_SITES = "divineascension:ui.holysite.no_sites";
 public const string UI_HOLYSITE_LOADING = "divineascension:ui.holysite.loading";
 #endregion
@@ -1900,15 +1895,14 @@ Add to `DivineAscension/assets/divineascension/lang/en.json`:
 
 ```json
 {
-  "_comment": "Holy Site UI",
-  "divineascension:ui.tab.holysite": "Holy Sites",
-  "divineascension:ui.holysite.browse.title": "Browse Holy Sites",
+  "_comment": "Holy Site UI (Religion Subtab)",
+  "divineascension:ui.religion.subtab.holysites": "Holy Sites",
+  "divineascension:ui.holysite.list.title": "Holy Sites",
   "divineascension:ui.holysite.detail.title": "Holy Site Details",
-  "divineascension:ui.holysite.filter.domain": "Filter by Domain",
+  "divineascension:ui.holysite.site_count": "Sites: {0}/{1}",
   "divineascension:ui.holysite.table.name": "Name",
-  "divineascension:ui.holysite.table.religion": "Religion",
   "divineascension:ui.holysite.table.tier": "Tier",
-  "divineascension:ui.holysite.table.chunks": "Chunks",
+  "divineascension:ui.holysite.table.chunks": "Size",
   "divineascension:ui.holysite.detail.consecrated_by": "Consecrated By",
   "divineascension:ui.holysite.detail.consecrated_on": "Consecrated On",
   "divineascension:ui.holysite.detail.territory_bonus": "Sacred Territory Bonus: {0}x",
@@ -1916,7 +1910,7 @@ Add to `DivineAscension/assets/divineascension/lang/en.json`:
   "divineascension:ui.holysite.tier.sacred-ground": "Sacred Ground",
   "divineascension:ui.holysite.tier.shrine": "Shrine",
   "divineascension:ui.holysite.tier.temple": "Temple",
-  "divineascension:ui.holysite.no_sites": "No holy sites found.",
+  "divineascension:ui.holysite.no_sites": "Your religion has no holy sites yet.",
   "divineascension:ui.holysite.loading": "Loading holy sites...",
 
   "_comment": "Holy Site Commands",
