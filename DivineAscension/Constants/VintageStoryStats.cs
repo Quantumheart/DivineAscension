@@ -85,4 +85,13 @@ public static class VintageStoryStats
 
     // Other
     public const string AnimalSeekingRange = "animalSeekingRange";
+
+    // CombatOverhaul-compatible tier bonus stats
+    // These stats are read by CombatOverhaul's projectile system for damage calculations
+    public const string MeleeDamageTierBonusSlashing = "meleeDamageTierBonusSlashingAttack";
+    public const string MeleeDamageTierBonusPiercing = "meleeDamageTierBonusPiercingAttack";
+    public const string MeleeDamageTierBonusBlunt = "meleeDamageTierBonusBluntAttack";
+    public const string RangedDamageTierBonusSlashing = "rangedDamageTierBonusSlashingAttack";
+    public const string RangedDamageTierBonusPiercing = "rangedDamageTierBonusPiercingAttack";
+    public const string RangedDamageTierBonusBlunt = "rangedDamageTierBonusBluntAttack";
 }
