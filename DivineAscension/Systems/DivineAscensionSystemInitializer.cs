@@ -112,7 +112,13 @@ public static class DivineAscensionSystemInitializer
         blessingRegistry.Initialize();
 
         var blessingEffectSystem =
-            new BlessingEffectSystem(api, blessingRegistry, playerReligionDataManager, religionManager);
+            new BlessingEffectSystem(
+                logger,
+                eventService,
+                worldService,
+                blessingRegistry,
+                playerReligionDataManager,
+                religionManager);
         blessingEffectSystem.Initialize();
 
         // CRITICAL: Must be called AFTER BlessingEffectSystem is initialized

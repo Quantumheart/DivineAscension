@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
@@ -20,15 +21,19 @@ public static class AethraEffectHandlers
     public class RareCropDiscoveryEffect : ISpecialEffectHandler
     {
         private readonly HashSet<string> _activePlayers = new();
-        private ICoreServerAPI? _sapi;
+        private IEventService? _eventService;
+        private ILogger? _logger;
+        private IWorldService? _worldService;
 
         public string EffectId => SpecialEffects.RareCropDiscovery;
 
-        public void Initialize(ICoreServerAPI sapi)
+        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
         {
-            _sapi = sapi;
-            _sapi.Event.BreakBlock += OnBreakBlock;
-            _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
+            _logger = logger;
+            _eventService = eventService;
+            _worldService = worldService;
+            _eventService.OnBreakBlock(OnBreakBlock);
+            _logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
         }
 
         public void ActivateForPlayer(IServerPlayer player)
@@ -48,9 +53,9 @@ public static class AethraEffectHandlers
         private void OnBreakBlock(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier,
             ref EnumHandling handling)
         {
-            if (_sapi == null || !_activePlayers.Contains(player.PlayerUID)) return;
+            if (_worldService == null || !_activePlayers.Contains(player.PlayerUID)) return;
 
-            var block = _sapi.World.BlockAccessor.GetBlock(blockSel.Position);
+            var block = _worldService.BlockAccessor.GetBlock(blockSel.Position);
             if (block?.Code == null) return;
 
             var path = block.Code.Path;
@@ -61,7 +66,7 @@ public static class AethraEffectHandlers
             var chance = player.Entity?.Stats?.GetBlended(VintageStoryStats.RareCropChance) ?? 0f;
             if (chance <= 0) return;
 
-            if (_sapi.World.Rand.NextDouble() < chance)
+            if (_worldService.World.Rand.NextDouble() < chance)
             {
                 // As a lightweight proxy for rare variant discovery, increase drop quantity modestly
                 dropQuantityMultiplier *= 1.25f;
@@ -69,7 +74,7 @@ public static class AethraEffectHandlers
                 // Tag the event for potential downstream integrations via a player attribute flag
                 var tree = player.Entity!.WatchedAttributes.GetOrAddTreeAttribute("divineascension");
                 tree.SetString("lastRareCropPath", path);
-                tree.SetLong("lastRareCropGameTimeMs", _sapi.World.ElapsedMilliseconds);
+                tree.SetLong("lastRareCropGameTimeMs", _worldService.ElapsedMilliseconds);
 
                 player.SendMessage(GlobalConstants.GeneralChatGroup,
                     Lang.Get("Aethra guides your harvest – you discover a rare crop variant!"),
@@ -85,20 +90,24 @@ public static class AethraEffectHandlers
     public class NeverMalnourishedEffect : ISpecialEffectHandler
     {
         private readonly HashSet<string> _activePlayers = new();
-        private ICoreServerAPI? _sapi;
+        private IEventService? _eventService;
+        private ILogger? _logger;
+        private IWorldService? _worldService;
 
         public string EffectId => SpecialEffects.NeverMalnourished;
 
-        public void Initialize(ICoreServerAPI sapi)
+        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
         {
-            _sapi = sapi;
-            _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
+            _logger = logger;
+            _eventService = eventService;
+            _worldService = worldService;
+            _logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
         }
 
         public void ActivateForPlayer(IServerPlayer player)
         {
             _activePlayers.Add(player.PlayerUID);
-            _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
+            _logger!.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
 
             // Apply immediate malnutrition immunity
             ApplyMalnutritionImmunity(player);
@@ -107,7 +116,7 @@ public static class AethraEffectHandlers
         public void DeactivateForPlayer(IServerPlayer player)
         {
             _activePlayers.Remove(player.PlayerUID);
-            _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
+            _logger!.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
 
             // Remove malnutrition immunity
             RemoveMalnutritionImmunity(player);
@@ -115,12 +124,12 @@ public static class AethraEffectHandlers
 
         public void OnTick(float deltaTime)
         {
-            if (_sapi == null) return;
+            if (_worldService == null) return;
 
             // Periodically ensure malnutrition immunity is active
             foreach (var playerUID in _activePlayers.ToList())
             {
-                var player = _sapi.World.PlayerByUid(playerUID) as IServerPlayer;
+                var player = _worldService.GetPlayerByUID(playerUID);
                 if (player?.Entity == null) continue;
 
                 // Reapply immunity to ensure it stays active
@@ -165,14 +174,18 @@ public static class AethraEffectHandlers
         private readonly Dictionary<string, HashSet<string>> _activeAppliedStats = new();
         private readonly Dictionary<string, double> _activeBuffExpiry = new();
         private readonly HashSet<string> _activePlayers = new();
-        private ICoreServerAPI? _sapi;
+        private IEventService? _eventService;
+        private ILogger? _logger;
+        private IWorldService? _worldService;
 
         public string EffectId => SpecialEffects.BlessedMeals;
 
-        public void Initialize(ICoreServerAPI sapi)
+        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
         {
-            _sapi = sapi;
-            _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
+            _logger = logger;
+            _eventService = eventService;
+            _worldService = worldService;
+            _logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
 
             // Subscribe to global eating event raised by Harmony patch
             EatingPatches.OnFoodEaten += OnFoodEaten;
@@ -181,7 +194,7 @@ public static class AethraEffectHandlers
         public void ActivateForPlayer(IServerPlayer player)
         {
             _activePlayers.Add(player.PlayerUID);
-            _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
+            _logger!.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
 
             // Mark player as eligible for blessed meals for other systems to query
             var tree = player.Entity?.WatchedAttributes.GetOrAddTreeAttribute("divineascension");
@@ -191,7 +204,7 @@ public static class AethraEffectHandlers
         public void DeactivateForPlayer(IServerPlayer player)
         {
             _activePlayers.Remove(player.PlayerUID);
-            _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
+            _logger!.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
 
             var tree = player.Entity?.WatchedAttributes.GetOrAddTreeAttribute("divineascension");
             tree?.SetBool("blessedMealsEligible", false);
@@ -200,13 +213,13 @@ public static class AethraEffectHandlers
         public void OnTick(float deltaTime)
         {
             // Expiry is handled per-player via tracked times
-            if (_sapi == null) return;
+            if (_worldService == null) return;
 
             // Remove expired buffs
-            foreach (var uid in _activeBuffExpiry.Where(kv => kv.Value <= _sapi.World.Calendar.TotalHours)
+            foreach (var uid in _activeBuffExpiry.Where(kv => kv.Value <= _worldService.Calendar.TotalHours)
                          .Select(kv => kv.Key).ToList())
             {
-                var sp = _sapi.World.PlayerByUid(uid) as IServerPlayer;
+                var sp = _worldService.GetPlayerByUID(uid);
                 if (sp != null) RemoveBlessedMealBuff(sp);
             }
         }
@@ -224,7 +237,7 @@ public static class AethraEffectHandlers
         /// </summary>
         public void ApplyBlessedMealBuff(IServerPlayer player, ItemStack foodItem)
         {
-            if (_sapi == null) return;
+            if (_worldService == null) return;
             if (!_activePlayers.Contains(player.PlayerUID)) return;
 
             // Calculate buff tier based on meal complexity
@@ -263,7 +276,7 @@ public static class AethraEffectHandlers
 
             // Duration by tier (minutes)
             var minutes = tier switch { 1 => 10f, 2 => 15f, _ => 20f };
-            var expiryHours = _sapi.World.Calendar.TotalHours + minutes / 60f;
+            var expiryHours = _worldService.Calendar.TotalHours + minutes / 60f;
 
             var modifierId = string.Format(SystemConstants.ModifierIdFormat, player.PlayerUID) + "-meal";
 

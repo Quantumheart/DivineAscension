@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
@@ -26,31 +27,35 @@ public static class ConquestEffectHandlers
         private const int MAX_FURY_STACKS = 5;
 
         private readonly Dictionary<string, FuryState> _playerFuryStates = new();
-        private ICoreServerAPI? _sapi;
-
-        public string EffectId => SpecialEffects.BattleFury;
-
-        public void Initialize(ICoreServerAPI sapi)
-        {
-            _sapi = sapi;
-            _sapi.Event.OnEntityDeath += OnEntityDeath;
-            _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
-        }
+        private IEventService? _eventService;
+        private ILogger? _logger;
+        private IWorldService? _worldService;
 
         public void Dispose()
         {
-            if (_sapi != null)
+            if (_eventService != null)
             {
-                _sapi.Event.OnEntityDeath -= OnEntityDeath;
+                _eventService.UnsubscribeEntityDeath(OnEntityDeath);
             }
 
             _playerFuryStates.Clear();
         }
 
+        public string EffectId => SpecialEffects.BattleFury;
+
+        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
+        {
+            _logger = logger;
+            _eventService = eventService;
+            _worldService = worldService;
+            _eventService.OnEntityDeath(OnEntityDeath);
+            _logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
+        }
+
         public void ActivateForPlayer(IServerPlayer player)
         {
             _playerFuryStates[player.PlayerUID] = new FuryState();
-            _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
+            _logger!.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
         }
 
         public void DeactivateForPlayer(IServerPlayer player)
@@ -62,14 +67,14 @@ public static class ConquestEffectHandlers
             }
 
             _playerFuryStates.Remove(player.PlayerUID);
-            _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
+            _logger!.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
         }
 
         public void OnTick(float deltaTime)
         {
-            if (_sapi == null) return;
+            if (_worldService == null) return;
 
-            var currentTime = _sapi.World.ElapsedMilliseconds;
+            var currentTime = _worldService.ElapsedMilliseconds;
 
             foreach (var kvp in _playerFuryStates.ToList())
             {
@@ -81,7 +86,7 @@ public static class ConquestEffectHandlers
                 // Check if fury has expired
                 if (currentTime - state.LastKillTime >= FURY_DURATION_MS)
                 {
-                    var player = _sapi.World.PlayerByUid(playerUID) as IServerPlayer;
+                    var player = _worldService.GetPlayerByUID(playerUID);
                     if (player?.Entity != null)
                     {
                         RemoveFuryBonus(player, state.Stacks);
@@ -97,7 +102,7 @@ public static class ConquestEffectHandlers
 
         private void OnEntityDeath(Entity? entity, DamageSource? damageSource)
         {
-            if (_sapi == null || entity == null || damageSource == null) return;
+            if (_worldService == null || entity == null || damageSource == null) return;
             if (entity is EntityPlayer) return; // Don't trigger on player deaths
 
             var killer = damageSource.GetCauseEntity();
@@ -107,7 +112,7 @@ public static class ConquestEffectHandlers
 
             var previousStacks = state.Stacks;
             state.Stacks = Math.Min(state.Stacks + 1, MAX_FURY_STACKS);
-            state.LastKillTime = _sapi.World.ElapsedMilliseconds;
+            state.LastKillTime = _worldService.ElapsedMilliseconds;
 
             if (state.Stacks > previousStacks)
             {
@@ -144,37 +149,41 @@ public static class ConquestEffectHandlers
         private const float HEAL_PERCENT = 0.05f; // 5% of max health
 
         private readonly HashSet<string> _activePlayers = new();
-        private ICoreServerAPI? _sapi;
-
-        public string EffectId => SpecialEffects.Bloodlust;
-
-        public void Initialize(ICoreServerAPI sapi)
-        {
-            _sapi = sapi;
-            _sapi.Event.OnEntityDeath += OnEntityDeath;
-            _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
-        }
+        private IEventService? _eventService;
+        private ILogger? _logger;
+        private IWorldService? _worldService;
 
         public void Dispose()
         {
-            if (_sapi != null)
+            if (_eventService != null)
             {
-                _sapi.Event.OnEntityDeath -= OnEntityDeath;
+                _eventService.UnsubscribeEntityDeath(OnEntityDeath);
             }
 
             _activePlayers.Clear();
         }
 
+        public string EffectId => SpecialEffects.Bloodlust;
+
+        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
+        {
+            _logger = logger;
+            _eventService = eventService;
+            _worldService = worldService;
+            _eventService.OnEntityDeath(OnEntityDeath);
+            _logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
+        }
+
         public void ActivateForPlayer(IServerPlayer player)
         {
             _activePlayers.Add(player.PlayerUID);
-            _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
+            _logger!.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
         }
 
         public void DeactivateForPlayer(IServerPlayer player)
         {
             _activePlayers.Remove(player.PlayerUID);
-            _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
+            _logger!.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
         }
 
         public void OnTick(float deltaTime)
@@ -184,7 +193,7 @@ public static class ConquestEffectHandlers
 
         private void OnEntityDeath(Entity? entity, DamageSource? damageSource)
         {
-            if (_sapi == null || entity == null || damageSource == null) return;
+            if (_worldService == null || entity == null || damageSource == null) return;
             if (entity is EntityPlayer) return;
 
             var killer = damageSource.GetCauseEntity();
@@ -213,20 +222,24 @@ public static class ConquestEffectHandlers
         private const float DAMAGE_REDUCTION_BONUS = 0.20f; // 20% damage reduction
 
         private readonly Dictionary<string, bool> _lastStandActive = new();
-        private ICoreServerAPI? _sapi;
+        private IEventService? _eventService;
+        private ILogger? _logger;
+        private IWorldService? _worldService;
 
         public string EffectId => SpecialEffects.LastStand;
 
-        public void Initialize(ICoreServerAPI sapi)
+        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
         {
-            _sapi = sapi;
-            _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
+            _logger = logger;
+            _eventService = eventService;
+            _worldService = worldService;
+            _logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
         }
 
         public void ActivateForPlayer(IServerPlayer player)
         {
             _lastStandActive[player.PlayerUID] = false;
-            _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
+            _logger!.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
         }
 
         public void DeactivateForPlayer(IServerPlayer player)
@@ -237,19 +250,19 @@ public static class ConquestEffectHandlers
             }
 
             _lastStandActive.Remove(player.PlayerUID);
-            _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
+            _logger!.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
         }
 
         public void OnTick(float deltaTime)
         {
-            if (_sapi == null) return;
+            if (_worldService == null) return;
 
             foreach (var kvp in _lastStandActive.ToList())
             {
                 var playerUID = kvp.Key;
                 var isActive = kvp.Value;
 
-                var player = _sapi.World.PlayerByUid(playerUID) as IServerPlayer;
+                var player = _worldService.GetPlayerByUID(playerUID);
                 if (player?.Entity == null) continue;
 
                 var healthBehavior = player.Entity.GetBehavior<EntityBehaviorHealth>();

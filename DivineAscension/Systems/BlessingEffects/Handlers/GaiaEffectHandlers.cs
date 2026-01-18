@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
@@ -20,27 +21,31 @@ public static class GaiaEffectHandlers
     public class PotteryBatchCompletionEffect : ISpecialEffectHandler
     {
         private readonly HashSet<string> _activePlayers = new();
-        private ICoreServerAPI? _sapi;
+        private IEventService? _eventService;
+        private ILogger? _logger;
+        private IWorldService? _worldService;
 
         public string EffectId => SpecialEffects.PotteryBatchCompletionBonus;
 
-        public void Initialize(ICoreServerAPI sapi)
+        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
         {
-            _sapi = sapi;
+            _logger = logger;
+            _eventService = eventService;
+            _worldService = worldService;
             ClayFormingPatches.OnClayFormingFinished += HandleClayFormingFinished;
-            _sapi.Logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
+            _logger.Debug($"{SystemConstants.LogPrefix} Initialized {EffectId} handler");
         }
 
         public void ActivateForPlayer(IServerPlayer player)
         {
             _activePlayers.Add(player.PlayerUID);
-            _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
+            _logger!.Debug($"{SystemConstants.LogPrefix} Activated {EffectId} for {player.PlayerName}");
         }
 
         public void DeactivateForPlayer(IServerPlayer player)
         {
             _activePlayers.Remove(player.PlayerUID);
-            _sapi!.Logger.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
+            _logger!.Debug($"{SystemConstants.LogPrefix} Deactivated {EffectId} for {player.PlayerName}");
         }
 
         public void OnTick(float deltaTime)
@@ -49,13 +54,13 @@ public static class GaiaEffectHandlers
 
         private void HandleClayFormingFinished(IServerPlayer player, ItemStack resultStack, int clayConsumed)
         {
-            if (_sapi == null) return;
+            if (_worldService == null) return;
             if (!_activePlayers.Contains(player.PlayerUID)) return;
 
             var chance = player.Entity?.Stats?.GetBlended(VintageStoryStats.PotteryBatchCompletionChance) ?? 0f;
             if (chance <= 0) return;
 
-            if (_sapi.World.Rand.NextDouble() < chance)
+            if (_worldService.World.Rand.NextDouble() < chance)
             {
                 // Duplicate the resulting stack
                 var duplicate = resultStack.Clone();
@@ -67,7 +72,7 @@ public static class GaiaEffectHandlers
                 {
                     // Drop at player's position as a fallback
                     var pos = player.Entity?.ServerPos.XYZ ?? player.Entity?.Pos.XYZ;
-                    _sapi.World.SpawnItemEntity(duplicate, pos);
+                    _worldService.SpawnItemEntity(duplicate, pos);
                 }
 
                 // Feedback
