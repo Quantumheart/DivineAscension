@@ -71,6 +71,10 @@ public static class StonePatches
         if (path.StartsWith("ore-", StringComparison.Ordinal))
             return false; // Ore blocks use OreDropRate stat
 
+        // Exclude polished stone blocks (crafted items, not raw stone)
+        if (path.Contains("polished"))
+            return false;
+
         // Common stone types
         var stoneTypes = new[]
         {
