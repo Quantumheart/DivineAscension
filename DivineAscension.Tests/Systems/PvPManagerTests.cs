@@ -20,9 +20,11 @@ namespace DivineAscension.Tests.Systems;
 [ExcludeFromCodeCoverage]
 public class PvPManagerTests
 {
-    private readonly Mock<ICoreServerAPI> _mockAPI;
+    private readonly FakeEventService _fakeEventService;
+    private readonly FakeWorldService _fakeWorldService;
     private readonly Mock<ICivilizationManager> _mockCivilizationManager;
     private readonly Mock<IDiplomacyManager> _mockDiplomacyManager;
+    private readonly Mock<ILogger> _mockLogger;
     private readonly Mock<IPlayerProgressionDataManager> _mockPlayerReligionDataManager;
     private readonly Mock<IReligionPrestigeManager> _mockPrestigeManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
@@ -30,7 +32,9 @@ public class PvPManagerTests
 
     public PvPManagerTests()
     {
-        _mockAPI = TestFixtures.CreateMockServerAPI();
+        _mockLogger = new Mock<ILogger>();
+        _fakeEventService = new FakeEventService();
+        _fakeWorldService = new FakeWorldService();
         _mockPlayerReligionDataManager = TestFixtures.CreateMockPlayerProgressionDataManager();
         _mockReligionManager = new Mock<IReligionManager>();
         _mockPrestigeManager = new Mock<IReligionPrestigeManager>();
@@ -39,7 +43,9 @@ public class PvPManagerTests
 
         var config = new GameBalanceConfig();
         _pvpManager = new PvPManager(
-            _mockAPI.Object,
+            _mockLogger.Object,
+            _fakeEventService,
+            _fakeWorldService,
             _mockPlayerReligionDataManager.Object,
             _mockReligionManager.Object,
             _mockPrestigeManager.Object,
@@ -62,15 +68,11 @@ public class PvPManagerTests
     [Fact]
     public void Initialize_LogsNotification()
     {
-        // Arrange
-        var mockLogger = new Mock<ILogger>();
-        _mockAPI.Setup(a => a.Logger).Returns(mockLogger.Object);
-
         // Act
         _pvpManager.Initialize();
 
         // Assert
-        mockLogger.Verify(
+        _mockLogger.Verify(
             l => l.Notification(It.Is<string>(s => s.Contains("Initializing") && s.Contains("PvP"))),
             Times.Once()
         );

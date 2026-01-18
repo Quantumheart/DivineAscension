@@ -49,7 +49,7 @@ public static class DivineAscensionSystemInitializer
         LocalizationService.Instance.InitializeServer(api);
 
         // Initialize cooldown manager (early to prevent griefing attacks)
-        var cooldownManager = new CooldownManager(api, modConfig);
+        var cooldownManager = new CooldownManager(logger, eventService, worldService, modConfig);
         cooldownManager.Initialize();
 
         // Step 1: Clear any static event subscribers from previous loads
@@ -103,7 +103,8 @@ public static class DivineAscensionSystemInitializer
             religionPrestigeManager, religionManager, cooldownManager);
         diplomacyManager.Initialize();
 
-        var pvpManager = new PvPManager(api, playerReligionDataManager, religionManager, religionPrestigeManager,
+        var pvpManager = new PvPManager(logger, eventService, worldService, playerReligionDataManager, religionManager,
+            religionPrestigeManager,
             civilizationManager, diplomacyManager, gameBalanceConfig);
         pvpManager.Initialize();
 

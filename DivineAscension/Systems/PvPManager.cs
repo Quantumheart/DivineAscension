@@ -1,6 +1,6 @@
 using System;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
-using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -15,16 +15,20 @@ namespace DivineAscension.Systems;
 public class PvPManager : IPvPManager
 {
     private readonly ICivilizationManager _civilizationManager;
+    private readonly GameBalanceConfig _config;
     private readonly IDiplomacyManager _diplomacyManager;
+    private readonly IEventService _eventService;
+
+    private readonly ILogger _logger;
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionPrestigeManager _prestigeManager;
     private readonly IReligionManager _religionManager;
-
-    private readonly ICoreServerAPI _sapi;
-    private readonly GameBalanceConfig _config;
+    private readonly IWorldService _worldService;
 
     public PvPManager(
-        ICoreServerAPI sapi,
+        ILogger logger,
+        IEventService eventService,
+        IWorldService worldService,
         IPlayerProgressionDataManager playerProgressionDataManager,
         IReligionManager religionManager,
         IReligionPrestigeManager prestigeManager,
@@ -32,7 +36,9 @@ public class PvPManager : IPvPManager
         IDiplomacyManager diplomacyManager,
         GameBalanceConfig config)
     {
-        _sapi = sapi;
+        _logger = logger;
+        _eventService = eventService;
+        _worldService = worldService;
         _playerProgressionDataManager = playerProgressionDataManager;
         _religionManager = religionManager;
         _prestigeManager = prestigeManager;
@@ -46,12 +52,12 @@ public class PvPManager : IPvPManager
     /// </summary>
     public void Initialize()
     {
-        _sapi.Logger.Notification("[DivineAscension] Initializing PvP Manager...");
+        _logger.Notification("[DivineAscension] Initializing PvP Manager...");
 
         // Hook into player death event for PvP favor/prestige rewards
-        _sapi.Event.PlayerDeath += OnPlayerDeath;
+        _eventService.OnPlayerDeath(OnPlayerDeath);
 
-        _sapi.Logger.Notification("[DivineAscension] PvP Manager initialized");
+        _logger.Notification("[DivineAscension] PvP Manager initialized");
     }
 
     /// <summary>
@@ -85,7 +91,7 @@ public class PvPManager : IPvPManager
     {
         // Check if death was caused by another player (PvP)
         if (damageSource?.SourceEntity is EntityPlayer attackerEntity)
-            if (_sapi.World.PlayerByUid(attackerEntity.PlayerUID) is IServerPlayer attackerPlayer &&
+            if (_worldService.GetPlayerByUID(attackerEntity.PlayerUID) is IServerPlayer attackerPlayer &&
                 attackerPlayer != deadPlayer)
                 ProcessPvPKill(attackerPlayer, deadPlayer);
 
@@ -149,7 +155,7 @@ public class PvPManager : IPvPManager
                     EnumChatType.CommandError
                 );
 
-                _sapi.Logger.Warning(
+                _logger.Warning(
                     $"[DivineAscension:Diplomacy] PvP violation: {attacker.PlayerName} ({attackerCiv.Name}) attacked {victim.PlayerName} ({victimCiv.Name}) - Status: {diplomaticStatus}, Violations: {violationCount}");
 
                 // No rewards for attacking allies
@@ -204,7 +210,7 @@ public class PvPManager : IPvPManager
             );
         }
 
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[DivineAscension] {attacker.PlayerName} earned {favorReward} favor and their religion earned {prestigeReward} prestige for killing {victim.PlayerName}");
     }
 

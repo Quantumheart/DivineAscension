@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Systems.BuffSystem.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -12,11 +13,13 @@ namespace DivineAscension.Systems.BuffSystem;
 /// </summary>
 public class BuffManager : IBuffManager
 {
-    private readonly ICoreServerAPI sapi;
+    private readonly ILogger _logger;
+    private readonly IWorldService _worldService;
 
-    public BuffManager(ICoreServerAPI sapi)
+    public BuffManager(ILogger logger, IWorldService worldService)
     {
-        this.sapi = sapi;
+        _logger = logger;
+        _worldService = worldService;
     }
 
     /// <summary>
@@ -58,7 +61,7 @@ public class BuffManager : IBuffManager
         // Apply the effect
         buffTracker.AddEffect(effect);
 
-        sapi.Logger.Debug($"[DivineAscension] Applied effect {effectId} to {target.GetName()} for {duration}s");
+        _logger.Debug($"[DivineAscension] Applied effect {effectId} to {target.GetName()} for {duration}s");
 
         return true;
     }
@@ -137,7 +140,7 @@ public class BuffManager : IBuffManager
         var affectedCount = 0;
 
         // Find all entities in radius
-        sapi.World.GetNearestEntity(caster.ServerPos.XYZ, radius, radius, entity =>
+        _worldService.World.GetNearestEntity(caster.ServerPos.XYZ, radius, radius, entity =>
         {
             // Check if it's a player entity
             if (entity is EntityPlayer player)
@@ -214,7 +217,7 @@ public class BuffManager : IBuffManager
             }
             catch (Exception ex)
             {
-                sapi.Logger.Error($"[DivineAscension] Failed to initialize BuffTracker: {ex.Message}");
+                _logger.Error($"[DivineAscension] Failed to initialize BuffTracker: {ex.Message}");
                 return null!;
             }
         }
