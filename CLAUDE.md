@@ -145,7 +145,8 @@ When creating feature plans, place them in `docs/topics/planning/features/<featu
 - Each tracker implements `IFavorTracker` with domain-specific logic
 
 **BlessingRegistry** (`/Systems/BlessingRegistry.cs`):
-- Loads all blessings from `BlessingDefinitions.cs` (1000+ lines)
+- Loads all blessings from JSON assets via `BlessingLoader` service
+- Blessing definitions stored in `assets/divineascension/config/blessings/*.json` (5 files: craft.json, wild.json, conquest.json, harvest.json, stone.json)
 - Query by domain, type (player/religion)
 - Validates unlock eligibility (rank, prerequisites, domain match)
 
@@ -288,6 +289,14 @@ Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
 - Can be enabled/disabled per-world via `/da config profanityfilter [on|off]` (admin only)
 - See `docs/topics/configuration/profanity-filter.md` for detailed documentation
 - Default word lists in `assets/divineascension/config/profanity/` (en.txt, de.txt, es.txt, fr.txt, ru.txt)
+
+**BlessingLoader** (`/Services/BlessingLoader.cs`):
+- Loads blessing definitions from JSON assets following `LocalizationService` pattern
+- Implements `IBlessingLoader` interface for dependency injection and testing
+- Reads from `assets/divineascension/config/blessings/{domain}.json` (craft, wild, conquest, harvest, stone)
+- Validates domain, kind, and category enums during deserialization
+- Logs warnings for unknown stat keys but still includes blessings
+- DTOs: `BlessingJsonDto` (individual blessing), `BlessingFileDto` (file structure with domain and version)
 
 ## Key Architectural Patterns
 
