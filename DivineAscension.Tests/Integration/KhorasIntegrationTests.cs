@@ -39,7 +39,7 @@ public class KhorasIntegrationTests
         religionData.Prestige = 500;
 
         // Assert - R1 blessing (Shared Workshop) should be available
-        var r1Blessing = BlessingDefinitions.GetAllBlessings()
+        var r1Blessing = JsonBlessingTestHelper.GetAllBlessings()
             .First(b => b.BlessingId == BlessingIds.CraftSharedWorkshop);
 
         Assert.Equal(0, r1Blessing.RequiredPrestigeRank); // Fledgling
@@ -67,7 +67,7 @@ public class KhorasIntegrationTests
         _mockBlessingRegistry = TestFixtures.CreateMockBlessingRegistry();
 
         // Setup blessing registry with Khoras blessings
-        var khorasBlessings = BlessingDefinitions.GetAllBlessings()
+        var khorasBlessings = JsonBlessingTestHelper.GetAllBlessings()
             .Where(b => b.Domain == DeityDomain.Craft)
             .ToList();
 
@@ -120,7 +120,7 @@ public class KhorasIntegrationTests
     public void FullProgression_FollowerToInitiate_T1BlessingAvailable()
     {
         // Arrange & Assert - Verify T1 blessing (Craftsman's Touch) requirements
-        var t1Blessing = BlessingDefinitions.GetAllBlessings()
+        var t1Blessing = JsonBlessingTestHelper.GetAllBlessings()
             .First(b => b.BlessingId == BlessingIds.CraftCraftsmansTouch);
 
         // T1 blessing should require Initiate rank (rank 0) and have no prerequisites
@@ -135,10 +135,10 @@ public class KhorasIntegrationTests
     public void FullProgression_InitiateToAdherent_T2BlessingsAvailable()
     {
         // Arrange & Assert - Verify both T2 blessings require Disciple rank
-        var t2a = BlessingDefinitions.GetAllBlessings()
+        var t2a = JsonBlessingTestHelper.GetAllBlessings()
             .First(b => b.BlessingId == BlessingIds.CraftMasterworkTools);
 
-        var t2b = BlessingDefinitions.GetAllBlessings()
+        var t2b = JsonBlessingTestHelper.GetAllBlessings()
             .First(b => b.BlessingId == BlessingIds.CraftForgebornEndurance);
 
         // Both T2 blessings should require Disciple rank (rank 1)
@@ -158,7 +158,7 @@ public class KhorasIntegrationTests
     public void FullProgression_AdherentToChampion_CapstoneRequiresBothPaths()
     {
         // Arrange & Assert - Verify capstone (Avatar of the Forge) requirements
-        var capstone = BlessingDefinitions.GetAllBlessings()
+        var capstone = JsonBlessingTestHelper.GetAllBlessings()
             .First(b => b.BlessingId == BlessingIds.CraftAvatarOfForge);
 
         // Capstone should require Champion rank (rank 3)
@@ -179,7 +179,7 @@ public class KhorasIntegrationTests
     public void BlessingStatModifiers_T1ThroughT3A_StackAdditively()
     {
         // Arrange
-        var blessings = BlessingDefinitions.GetAllBlessings()
+        var blessings = JsonBlessingTestHelper.GetAllBlessings()
             .Where(b => b.Domain == DeityDomain.Craft)
             .ToDictionary(b => b.BlessingId);
 
@@ -222,9 +222,9 @@ public class KhorasIntegrationTests
         // This is validated in the blessing definitions
 
         // Act - Get stat modifiers
-        var playerBlessing = BlessingDefinitions.GetAllBlessings()
+        var playerBlessing = JsonBlessingTestHelper.GetAllBlessings()
             .First(b => b.BlessingId == BlessingIds.CraftCraftsmansTouch);
-        var religionBlessing = BlessingDefinitions.GetAllBlessings()
+        var religionBlessing = JsonBlessingTestHelper.GetAllBlessings()
             .First(b => b.BlessingId == BlessingIds.CraftSharedWorkshop);
 
         playerBlessing.StatModifiers.TryGetValue(VintageStoryStats.ToolDurability, out var playerBonus);
@@ -244,7 +244,7 @@ public class KhorasIntegrationTests
     public void AllKhorasBlessings_HaveCorrectDeity()
     {
         // Arrange & Assert - All Craft domain blessings should have DeityDomain.Craft
-        var khorasBlessings = BlessingDefinitions.GetAllBlessings()
+        var khorasBlessings = JsonBlessingTestHelper.GetAllBlessings()
             .Where(b => b.Domain == DeityDomain.Craft)
             .ToList();
 
@@ -259,7 +259,7 @@ public class KhorasIntegrationTests
     public void KhorasBlessings_PlayerVsReligion_CorrectCounts()
     {
         // Arrange
-        var khorasBlessings = BlessingDefinitions.GetAllBlessings()
+        var khorasBlessings = JsonBlessingTestHelper.GetAllBlessings()
             .Where(b => b.Domain == DeityDomain.Craft)
             .ToList();
 
@@ -279,7 +279,7 @@ public class KhorasIntegrationTests
     public void BlessingPrerequisites_T3A_RequiresT2A()
     {
         // Arrange
-        var t3a = BlessingDefinitions.GetAllBlessings()
+        var t3a = JsonBlessingTestHelper.GetAllBlessings()
             .First(b => b.BlessingId == BlessingIds.CraftLegendarySmith);
 
         // Assert
@@ -291,7 +291,7 @@ public class KhorasIntegrationTests
     public void BlessingPrerequisites_T3B_RequiresT2B()
     {
         // Arrange
-        var t3b = BlessingDefinitions.GetAllBlessings()
+        var t3b = JsonBlessingTestHelper.GetAllBlessings()
             .First(b => b.BlessingId == BlessingIds.CraftUnyielding);
 
         // Assert
@@ -303,7 +303,7 @@ public class KhorasIntegrationTests
     public void BlessingPrerequisites_Capstone_RequiresBothT3Paths()
     {
         // Arrange
-        var capstone = BlessingDefinitions.GetAllBlessings()
+        var capstone = JsonBlessingTestHelper.GetAllBlessings()
             .First(b => b.BlessingId == BlessingIds.CraftAvatarOfForge);
 
         // Assert - Capstone requires BOTH T3A and T3B
@@ -317,7 +317,7 @@ public class KhorasIntegrationTests
     public void BlessingPrerequisites_ReligionBlessings_FormLinearChain()
     {
         // Arrange
-        var blessings = BlessingDefinitions.GetAllBlessings()
+        var blessings = JsonBlessingTestHelper.GetAllBlessings()
             .Where(b => b.Domain == DeityDomain.Craft && b.Kind == BlessingKind.Religion)
             .OrderBy(b => b.RequiredPrestigeRank)
             .ToList();
@@ -347,7 +347,7 @@ public class KhorasIntegrationTests
     public void AllKhorasBlessings_HaveStatModifiers()
     {
         // Arrange & Assert - All Khoras blessings should have at least one stat modifier
-        var khorasBlessings = BlessingDefinitions.GetAllBlessings()
+        var khorasBlessings = JsonBlessingTestHelper.GetAllBlessings()
             .Where(b => b.Domain == DeityDomain.Craft)
             .ToList();
 
@@ -358,7 +358,7 @@ public class KhorasIntegrationTests
     public void AllKhorasBlessings_HaveUniqueIds()
     {
         // Arrange
-        var khorasBlessings = BlessingDefinitions.GetAllBlessings()
+        var khorasBlessings = JsonBlessingTestHelper.GetAllBlessings()
             .Where(b => b.Domain == DeityDomain.Craft)
             .ToList();
 

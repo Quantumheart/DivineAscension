@@ -63,7 +63,7 @@ public class BlessingRegistryTests
     }
 
     [Fact]
-    public void Initialize_WithFailedLoader_FallsBackToHardcoded()
+    public void Initialize_WithFailedLoader_LogsError()
     {
         // Arrange
         var failedLoader = TestBlessingLoader.CreateFailedLoader();
@@ -72,15 +72,15 @@ public class BlessingRegistryTests
         // Act
         registry.Initialize();
 
-        // Assert - should log warning about falling back
+        // Assert - should log error about failed load
         _mockLogger.Verify(
-            l => l.Warning(It.Is<string>(s => s.Contains("falling back"))),
+            l => l.Error(It.Is<string>(s => s.Contains("Failed to load blessings"))),
             Times.Once()
         );
     }
 
     [Fact]
-    public void Initialize_WithoutLoader_FallsBackToHardcoded()
+    public void Initialize_WithoutLoader_LogsError()
     {
         // Arrange
         var registry = new BlessingRegistry(_mockAPI.Object, null);
@@ -88,9 +88,15 @@ public class BlessingRegistryTests
         // Act
         registry.Initialize();
 
-        // Assert - should still load blessings
+        // Assert - should log error about no loader
+        _mockLogger.Verify(
+            l => l.Error(It.Is<string>(s => s.Contains("No blessing loader provided"))),
+            Times.Once()
+        );
+
+        // Should have no blessings
         var allBlessings = registry.GetAllBlessings();
-        Assert.NotEmpty(allBlessings);
+        Assert.Empty(allBlessings);
     }
 
     [Fact]
