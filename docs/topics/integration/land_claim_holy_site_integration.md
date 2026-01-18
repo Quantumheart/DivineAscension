@@ -58,14 +58,38 @@ Since we can't modify Vintage Story's core land claim data, we'll create an **ov
 
 ### Data Structure
 
-**File:** `PantheonWars/Data/HolySiteData.cs`
+**File:** `DivineAscension/Data/HolySiteData.cs`
 
 ```csharp
 using System;
+using System.Collections.Generic;
 using ProtoBuf;
-using Vintagestory.API.MathTools;
 
-namespace PantheonWars.Data;
+namespace DivineAscension.Data;
+
+/// <summary>
+/// Serializable chunk position for ProtoBuf compatibility.
+/// Vec2i from Vintage Story may not serialize correctly.
+/// </summary>
+[ProtoContract]
+public record SerializableChunkPos
+{
+    [ProtoMember(1)]
+    public int X { get; set; }
+
+    [ProtoMember(2)]
+    public int Z { get; set; }
+
+    public SerializableChunkPos() { }
+
+    public SerializableChunkPos(int x, int z)
+    {
+        X = x;
+        Z = z;
+    }
+
+    public override int GetHashCode() => HashCode.Combine(X, Z);
+}
 
 [ProtoContract]
 public class HolySiteData
@@ -77,10 +101,10 @@ public class HolySiteData
     public string HolySiteUID { get; set; } = string.Empty;
 
     /// <summary>
-    /// Chunk coordinates of the claimed land
+    /// Chunk coordinates of the claimed land (primary chunk)
     /// </summary>
     [ProtoMember(2)]
-    public Vec2i ChunkPos { get; set; }
+    public SerializableChunkPos ChunkPos { get; set; } = new();
 
     /// <summary>
     /// Religion that owns this holy site
@@ -101,10 +125,10 @@ public class HolySiteData
     public string DesignatedBy { get; set; } = string.Empty;
 
     /// <summary>
-    /// When the site was consecrated
+    /// When the site was consecrated (stored as UTC ticks for reliable serialization)
     /// </summary>
     [ProtoMember(6)]
-    public DateTime ConsecrationDate { get; set; }
+    public long ConsecrationDateTicks { get; set; }
 
     /// <summary>
     /// Tier of the holy site (1-3)
@@ -128,19 +152,24 @@ public class HolySiteData
     /// Connected land claim chunks (for multi-chunk temples)
     /// </summary>
     [ProtoMember(10)]
-    public List<Vec2i> ConnectedChunks { get; set; } = new();
+    public List<SerializableChunkPos> ConnectedChunks { get; set; } = new();
+
+    /// <summary>
+    /// Gets the consecration date as DateTime (UTC)
+    /// </summary>
+    public DateTime ConsecrationDate => new DateTime(ConsecrationDateTicks, DateTimeKind.Utc);
 
     public HolySiteData() { }
 
-    public HolySiteData(string holySiteUID, Vec2i chunkPos, string religionUID, string siteName, string designatedBy)
+    public HolySiteData(string holySiteUID, SerializableChunkPos chunkPos, string religionUID, string siteName, string designatedBy)
     {
         HolySiteUID = holySiteUID;
         ChunkPos = chunkPos;
         ReligionUID = religionUID;
         SiteName = siteName;
         DesignatedBy = designatedBy;
-        ConsecrationDate = DateTime.UtcNow;
-        ConnectedChunks = new List<Vec2i> { chunkPos };
+        ConsecrationDateTicks = DateTime.UtcNow.Ticks;
+        ConnectedChunks = new List<SerializableChunkPos> { chunkPos };
     }
 
     /// <summary>
@@ -197,51 +226,101 @@ public class HolySiteData
 
 ### Holy Site Manager
 
-**File:** `PantheonWars/Systems/HolySiteManager.cs`
+**File:** `DivineAscension/Systems/HolySiteManager.cs`
+
+**Initialization Order:** This manager should be initialized after `PlayerProgressionDataManager` (step 5) in `DivineAscensionSystemInitializer.cs`. Suggested position: step 6.5 (after `ReligionPrestigeManager`, before `FavorSystem`), or as a new step 14.
 
 ```csharp
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using PantheonWars.Data;
+using DivineAscension.Data;
+using DivineAscension.Services;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
-namespace PantheonWars.Systems;
+namespace DivineAscension.Systems;
 
 public class HolySiteManager
 {
-    private const string DATA_KEY = "pantheonwars_holysites";
+    private const string DATA_KEY = "divineascension_holysites";
     private readonly ICoreServerAPI _sapi;
     private readonly ReligionManager _religionManager;
-    private readonly PlayerDataManager _playerDataManager;
+    private readonly PlayerProgressionDataManager _playerProgressionDataManager;
+    private readonly ProfanityFilterService _profanityFilterService;
+    private readonly LocalizationService _localizationService;
 
     // Map chunk coordinates to holy site data
-    private readonly Dictionary<Vec2i, HolySiteData> _holySitesByChunk = new();
+    private readonly Dictionary<SerializableChunkPos, HolySiteData> _holySitesByChunk = new();
 
     // Map holy site UID to data
     private readonly Dictionary<string, HolySiteData> _holySitesById = new();
 
-    public HolySiteManager(ICoreServerAPI sapi, ReligionManager religionManager, PlayerDataManager playerDataManager)
+    public HolySiteManager(
+        ICoreServerAPI sapi,
+        ReligionManager religionManager,
+        PlayerProgressionDataManager playerProgressionDataManager,
+        ProfanityFilterService profanityFilterService,
+        LocalizationService localizationService)
     {
         _sapi = sapi;
         _religionManager = religionManager;
-        _playerDataManager = playerDataManager;
+        _playerProgressionDataManager = playerProgressionDataManager;
+        _profanityFilterService = profanityFilterService;
+        _localizationService = localizationService;
     }
 
     public void Initialize()
     {
-        _sapi.Logger.Notification("[PantheonWars] Initializing Holy Site Manager...");
+        _sapi.Logger.Notification("[DivineAscension] Initializing Holy Site Manager...");
 
         // Register persistence handlers
         _sapi.Event.SaveGameLoaded += OnSaveGameLoaded;
         _sapi.Event.GameWorldSave += OnGameWorldSave;
 
-        _sapi.Logger.Notification("[PantheonWars] Holy Site Manager initialized");
+        // Subscribe to religion deletion for cascade cleanup
+        _religionManager.OnReligionDeleted += HandleReligionDeleted;
+
+        _sapi.Logger.Notification("[DivineAscension] Holy Site Manager initialized");
     }
+
+    public void Dispose()
+    {
+        _sapi.Event.SaveGameLoaded -= OnSaveGameLoaded;
+        _sapi.Event.GameWorldSave -= OnGameWorldSave;
+        _religionManager.OnReligionDeleted -= HandleReligionDeleted;
+    }
+
+    #region Religion Deletion Cascade
+
+    /// <summary>
+    /// Handles cleanup when a religion is deleted - removes all associated holy sites
+    /// </summary>
+    private void HandleReligionDeleted(string religionUID)
+    {
+        var sitesToRemove = _holySitesById.Values
+            .Where(hs => hs.ReligionUID == religionUID)
+            .ToList();
+
+        foreach (var site in sitesToRemove)
+        {
+            foreach (var chunk in site.ConnectedChunks)
+            {
+                _holySitesByChunk.Remove(chunk);
+            }
+            _holySitesById.Remove(site.HolySiteUID);
+        }
+
+        if (sitesToRemove.Count > 0)
+        {
+            _sapi.Logger.Notification($"[DivineAscension] Removed {sitesToRemove.Count} holy sites for deleted religion {religionUID}");
+        }
+    }
+
+    #endregion
 
     #region Holy Site Creation
 
@@ -250,50 +329,72 @@ public class HolySiteManager
     /// </summary>
     public bool ConsecrateHolySite(IServerPlayer player, string siteName, out string message)
     {
-        var playerData = _playerDataManager.GetOrCreatePlayerData(player);
+        var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(player);
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
 
         // Validation
         if (religion == null)
         {
-            message = "You must be in a religion to consecrate holy sites.";
+            message = _localizationService.Get("holysite-error-no-religion",
+                "You must be in a religion to consecrate holy sites.");
             return false;
         }
 
         if (!religion.IsFounder(player.PlayerUID))
         {
-            message = "Only the religion founder can consecrate holy sites.";
+            message = _localizationService.Get("holysite-error-not-founder",
+                "Only the religion founder can consecrate holy sites.");
             return false;
         }
 
         if (string.IsNullOrWhiteSpace(siteName) || siteName.Length < 3)
         {
-            message = "Holy site name must be at least 3 characters.";
+            message = _localizationService.Get("holysite-error-name-too-short",
+                "Holy site name must be at least 3 characters.");
+            return false;
+        }
+
+        if (siteName.Length > 50)
+        {
+            message = _localizationService.Get("holysite-error-name-too-long",
+                "Holy site name must be 50 characters or less.");
+            return false;
+        }
+
+        // Profanity filter check
+        if (_profanityFilterService.IsEnabled && _profanityFilterService.ContainsProfanity(siteName))
+        {
+            message = _localizationService.Get("holysite-error-profanity",
+                "Holy site name contains inappropriate content.");
             return false;
         }
 
         // Get land claim at player's position
         var pos = player.Entity.ServerPos.AsBlockPos;
-        var chunkPos = pos.ToChunkPos();
-        var claim = _sapi.World.Claims.Get(chunkPos);
+        var chunkX = pos.X / GlobalConstants.ChunkSize;
+        var chunkZ = pos.Z / GlobalConstants.ChunkSize;
+        var claim = _sapi.World.Claims.Get(pos);
 
         if (claim == null)
         {
-            message = "You must be standing in a claimed area.";
+            message = _localizationService.Get("holysite-error-no-claim",
+                "You must be standing in a claimed area.");
             return false;
         }
 
         if (!claim.OwnedByPlayerUid.Contains(player.PlayerUID))
         {
-            message = "You must own this land claim to consecrate it.";
+            message = _localizationService.Get("holysite-error-not-owner",
+                "You must own this land claim to consecrate it.");
             return false;
         }
 
         // Check if already consecrated
-        var chunkCoord = new Vec2i(chunkPos.X, chunkPos.Y);
+        var chunkCoord = new SerializableChunkPos(chunkX, chunkZ);
         if (_holySitesByChunk.ContainsKey(chunkCoord))
         {
-            message = "This land is already consecrated.";
+            message = _localizationService.Get("holysite-error-already-consecrated",
+                "This land is already consecrated.");
             return false;
         }
 
@@ -310,9 +411,11 @@ public class HolySiteManager
         _holySitesById[holySiteUID] = holySite;
         _holySitesByChunk[chunkCoord] = holySite;
 
-        message = $"You have consecrated {siteName} as a holy site for {religion.ReligionName}!";
+        message = _localizationService.Get("holysite-consecrated",
+            "You have consecrated {0} as a holy site for {1}!",
+            siteName, religion.ReligionName);
 
-        _sapi.Logger.Notification($"[PantheonWars] Holy site '{siteName}' created by {player.PlayerName}");
+        _sapi.Logger.Notification($"[DivineAscension] Holy site '{siteName}' created by {player.PlayerName}");
 
         return true;
     }
@@ -323,31 +426,39 @@ public class HolySiteManager
     public bool ExpandHolySite(IServerPlayer player, out string message)
     {
         var pos = player.Entity.ServerPos.AsBlockPos;
-        var chunkPos = pos.ToChunkPos();
-        var chunkCoord = new Vec2i(chunkPos.X, chunkPos.Y);
+        var chunkX = pos.X / GlobalConstants.ChunkSize;
+        var chunkZ = pos.Z / GlobalConstants.ChunkSize;
+        var chunkCoord = new SerializableChunkPos(chunkX, chunkZ);
 
         // Check if standing in a holy site
         if (!_holySitesByChunk.TryGetValue(chunkCoord, out var adjacentSite))
         {
-            message = "You must be standing in a holy site to expand it.";
+            message = _localizationService.Get("holysite-error-not-in-site",
+                "You must be standing in a holy site to expand it.");
             return false;
         }
 
         var religion = _religionManager.GetReligion(adjacentSite.ReligionUID);
         if (religion == null || !religion.IsFounder(player.PlayerUID))
         {
-            message = "Only the religion founder can expand holy sites.";
+            message = _localizationService.Get("holysite-error-expand-not-founder",
+                "Only the religion founder can expand holy sites.");
             return false;
         }
 
         // Get adjacent chunks
         var adjacentChunks = GetAdjacentChunks(chunkCoord);
-        var expandableChunks = new List<Vec2i>();
+        var expandableChunks = new List<SerializableChunkPos>();
 
         foreach (var adjChunk in adjacentChunks)
         {
-            // Check if chunk is claimed by player
-            var claim = _sapi.World.Claims.Get(new ChunkPos2D(adjChunk.X, adjChunk.Y));
+            // Check if chunk is claimed by player using block position
+            var blockPos = new BlockPos(
+                adjChunk.X * GlobalConstants.ChunkSize,
+                pos.Y,
+                adjChunk.Z * GlobalConstants.ChunkSize
+            );
+            var claim = _sapi.World.Claims.Get(blockPos);
             if (claim != null && claim.OwnedByPlayerUid.Contains(player.PlayerUID))
             {
                 // Check if not already part of a holy site
@@ -360,7 +471,8 @@ public class HolySiteManager
 
         if (expandableChunks.Count == 0)
         {
-            message = "No adjacent unconsecrated claims found.";
+            message = _localizationService.Get("holysite-error-no-adjacent",
+                "No adjacent unconsecrated claims found.");
             return false;
         }
 
@@ -376,30 +488,35 @@ public class HolySiteManager
 
         mainHolySite.UpdateTier();
 
-        message = $"{mainHolySite.SiteName} expanded! Now {mainHolySite.GetTotalChunks()} chunks (Tier {mainHolySite.Tier}).";
+        message = _localizationService.Get("holysite-expanded",
+            "{0} expanded! Now {1} chunks (Tier {2}).",
+            mainHolySite.SiteName, mainHolySite.GetTotalChunks(), mainHolySite.Tier);
 
         return true;
     }
 
     /// <summary>
-    /// Deconsecrates a holy site
+    /// Deconsecrates a holy site (removes consecration)
     /// </summary>
-    public bool DeconsectrateHolySite(IServerPlayer player, out string message)
+    public bool DeconsecateHolySite(IServerPlayer player, out string message)
     {
         var pos = player.Entity.ServerPos.AsBlockPos;
-        var chunkPos = pos.ToChunkPos();
-        var chunkCoord = new Vec2i(chunkPos.X, chunkPos.Y);
+        var chunkX = pos.X / GlobalConstants.ChunkSize;
+        var chunkZ = pos.Z / GlobalConstants.ChunkSize;
+        var chunkCoord = new SerializableChunkPos(chunkX, chunkZ);
 
         if (!_holySitesByChunk.TryGetValue(chunkCoord, out var holySite))
         {
-            message = "You are not standing in a holy site.";
+            message = _localizationService.Get("holysite-error-not-standing-in",
+                "You are not standing in a holy site.");
             return false;
         }
 
         var religion = _religionManager.GetReligion(holySite.ReligionUID);
         if (religion == null || !religion.IsFounder(player.PlayerUID))
         {
-            message = "Only the religion founder can deconsecrate holy sites.";
+            message = _localizationService.Get("holysite-error-deconsecrate-not-founder",
+                "Only the religion founder can deconsecrate holy sites.");
             return false;
         }
 
@@ -410,7 +527,10 @@ public class HolySiteManager
         }
         _holySitesById.Remove(holySite.HolySiteUID);
 
-        message = $"{holySite.SiteName} has been deconsecrated.";
+        message = _localizationService.Get("holysite-deconsecrated",
+            "{0} has been deconsecrated.", holySite.SiteName);
+
+        _sapi.Logger.Notification($"[DivineAscension] Holy site '{holySite.SiteName}' deconsecrated by {player.PlayerName}");
 
         return true;
     }
@@ -422,11 +542,12 @@ public class HolySiteManager
     /// <summary>
     /// Checks if a player is currently in a holy site
     /// </summary>
-    public bool IsPlayerInHolySite(IServerPlayer player, out HolySiteData holySite)
+    public bool IsPlayerInHolySite(IServerPlayer player, out HolySiteData? holySite)
     {
         var pos = player.Entity.ServerPos.AsBlockPos;
-        var chunkPos = pos.ToChunkPos();
-        var chunkCoord = new Vec2i(chunkPos.X, chunkPos.Y);
+        var chunkX = pos.X / GlobalConstants.ChunkSize;
+        var chunkZ = pos.Z / GlobalConstants.ChunkSize;
+        var chunkCoord = new SerializableChunkPos(chunkX, chunkZ);
 
         return _holySitesByChunk.TryGetValue(chunkCoord, out holySite);
     }
@@ -434,14 +555,15 @@ public class HolySiteManager
     /// <summary>
     /// Checks if a player is in their own religion's holy site
     /// </summary>
-    public bool IsPlayerInOwnHolySite(IServerPlayer player, out HolySiteData holySite)
+    public bool IsPlayerInOwnHolySite(IServerPlayer player, out HolySiteData? holySite)
     {
-        if (IsPlayerInHolySite(player, out holySite))
+        if (IsPlayerInHolySite(player, out holySite) && holySite != null)
         {
             var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
             return religion != null && religion.ReligionUID == holySite.ReligionUID;
         }
 
+        holySite = null;
         return false;
     }
 
@@ -458,10 +580,11 @@ public class HolySiteManager
     /// <summary>
     /// Gets the holy site at a specific position
     /// </summary>
-    public HolySiteData GetHolySiteAtPosition(BlockPos pos)
+    public HolySiteData? GetHolySiteAtPosition(BlockPos pos)
     {
-        var chunkPos = pos.ToChunkPos();
-        var chunkCoord = new Vec2i(chunkPos.X, chunkPos.Y);
+        var chunkX = pos.X / GlobalConstants.ChunkSize;
+        var chunkZ = pos.Z / GlobalConstants.ChunkSize;
+        var chunkCoord = new SerializableChunkPos(chunkX, chunkZ);
         _holySitesByChunk.TryGetValue(chunkCoord, out var holySite);
         return holySite;
     }
@@ -478,18 +601,18 @@ public class HolySiteManager
 
     #region Helper Methods
 
-    private List<Vec2i> GetAdjacentChunks(Vec2i center)
+    private List<SerializableChunkPos> GetAdjacentChunks(SerializableChunkPos center)
     {
-        return new List<Vec2i>
+        return new List<SerializableChunkPos>
         {
-            new Vec2i(center.X + 1, center.Y),     // East
-            new Vec2i(center.X - 1, center.Y),     // West
-            new Vec2i(center.X, center.Y + 1),     // South
-            new Vec2i(center.X, center.Y - 1),     // North
-            new Vec2i(center.X + 1, center.Y + 1), // Southeast
-            new Vec2i(center.X + 1, center.Y - 1), // Northeast
-            new Vec2i(center.X - 1, center.Y + 1), // Southwest
-            new Vec2i(center.X - 1, center.Y - 1)  // Northwest
+            new SerializableChunkPos(center.X + 1, center.Z),     // East
+            new SerializableChunkPos(center.X - 1, center.Z),     // West
+            new SerializableChunkPos(center.X, center.Z + 1),     // South
+            new SerializableChunkPos(center.X, center.Z - 1),     // North
+            new SerializableChunkPos(center.X + 1, center.Z + 1), // Southeast
+            new SerializableChunkPos(center.X + 1, center.Z - 1), // Northeast
+            new SerializableChunkPos(center.X - 1, center.Z + 1), // Southwest
+            new SerializableChunkPos(center.X - 1, center.Z - 1)  // Northwest
         };
     }
 
@@ -531,13 +654,13 @@ public class HolySiteManager
                         }
                     }
 
-                    _sapi.Logger.Notification($"[PantheonWars] Loaded {_holySitesById.Count} holy sites");
+                    _sapi.Logger.Notification($"[DivineAscension] Loaded {_holySitesById.Count} holy sites");
                 }
             }
         }
         catch (Exception ex)
         {
-            _sapi.Logger.Error($"[PantheonWars] Failed to load holy sites: {ex.Message}");
+            _sapi.Logger.Error($"[DivineAscension] Failed to load holy sites: {ex.Message}");
         }
     }
 
@@ -548,11 +671,11 @@ public class HolySiteManager
             var holySitesList = _holySitesById.Values.ToList();
             var data = SerializerUtil.Serialize(holySitesList);
             _sapi.WorldManager.SaveGame.StoreData(DATA_KEY, data);
-            _sapi.Logger.Debug($"[PantheonWars] Saved {holySitesList.Count} holy sites");
+            _sapi.Logger.Debug($"[DivineAscension] Saved {holySitesList.Count} holy sites");
         }
         catch (Exception ex)
         {
-            _sapi.Logger.Error($"[PantheonWars] Failed to save holy sites: {ex.Message}");
+            _sapi.Logger.Error($"[DivineAscension] Failed to save holy sites: {ex.Message}");
         }
     }
 
@@ -562,25 +685,34 @@ public class HolySiteManager
 
 ## Command Integration
 
-**File:** `PantheonWars/Commands/HolySiteCommands.cs`
+**File:** `DivineAscension/Commands/HolySiteCommands.cs`
 
 ```csharp
+using DivineAscension.Commands.Parsers;
+using DivineAscension.Services;
+using DivineAscension.Systems;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
-namespace PantheonWars.Commands;
+namespace DivineAscension.Commands;
 
 public class HolySiteCommands
 {
     private readonly ICoreServerAPI _sapi;
     private readonly HolySiteManager _holySiteManager;
     private readonly ReligionManager _religionManager;
+    private readonly LocalizationService _localizationService;
 
-    public HolySiteCommands(ICoreServerAPI sapi, HolySiteManager holySiteManager, ReligionManager religionManager)
+    public HolySiteCommands(
+        ICoreServerAPI sapi,
+        HolySiteManager holySiteManager,
+        ReligionManager religionManager,
+        LocalizationService localizationService)
     {
         _sapi = sapi;
         _holySiteManager = holySiteManager;
         _religionManager = religionManager;
+        _localizationService = localizationService;
     }
 
     public void RegisterCommands()
@@ -591,7 +723,7 @@ public class HolySiteCommands
             .RequiresPrivilege(Privilege.chat)
             .BeginSubCommand("consecrate")
                 .WithDescription("Consecrate a land claim as a holy site")
-                .WithArgs(_sapi.ChatCommands.Parsers.Word("siteName"))
+                .WithArgs(_sapi.ChatCommands.Parsers.QuotedString("siteName"))  // Use QuotedString for names with spaces
                 .HandleWith(OnConsecrateCommand)
             .EndSubCommand()
             .BeginSubCommand("expand")
@@ -600,7 +732,7 @@ public class HolySiteCommands
             .EndSubCommand()
             .BeginSubCommand("deconsecrate")
                 .WithDescription("Remove holy site consecration")
-                .HandleWith(OnDeconsectrateCommand)
+                .HandleWith(OnDeconsecateCommand)
             .EndSubCommand()
             .BeginSubCommand("info")
                 .WithDescription("Get information about current holy site")
@@ -615,7 +747,14 @@ public class HolySiteCommands
     private TextCommandResult OnConsecrateCommand(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
+        if (player == null) return TextCommandResult.Error("Player not found.");
+
         var siteName = args[0] as string;
+        if (string.IsNullOrWhiteSpace(siteName))
+        {
+            return TextCommandResult.Error(_localizationService.Get("holysite-error-name-required",
+                "Please provide a name for the holy site."));
+        }
 
         if (_holySiteManager.ConsecrateHolySite(player, siteName, out string message))
         {
@@ -628,6 +767,7 @@ public class HolySiteCommands
     private TextCommandResult OnExpandCommand(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
+        if (player == null) return TextCommandResult.Error("Player not found.");
 
         if (_holySiteManager.ExpandHolySite(player, out string message))
         {
@@ -637,11 +777,12 @@ public class HolySiteCommands
         return TextCommandResult.Error(message);
     }
 
-    private TextCommandResult OnDeconsectrateCommand(TextCommandCallingArgs args)
+    private TextCommandResult OnDeconsecateCommand(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
+        if (player == null) return TextCommandResult.Error("Player not found.");
 
-        if (_holySiteManager.DeconsectrateHolySite(player, out string message))
+        if (_holySiteManager.DeconsecateHolySite(player, out string message))
         {
             return TextCommandResult.Success(message);
         }
@@ -652,39 +793,48 @@ public class HolySiteCommands
     private TextCommandResult OnInfoCommand(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
+        if (player == null) return TextCommandResult.Error("Player not found.");
 
-        if (_holySiteManager.IsPlayerInHolySite(player, out var holySite))
+        if (_holySiteManager.IsPlayerInHolySite(player, out var holySite) && holySite != null)
         {
             var religion = _religionManager.GetReligion(holySite.ReligionUID);
-            var info = $"Holy Site: {holySite.SiteName}\n" +
-                      $"Religion: {religion?.ReligionName ?? "Unknown"}\n" +
-                      $"Tier: {holySite.Tier} ({GetTierName(holySite.Tier)})\n" +
-                      $"Size: {holySite.GetTotalChunks()} chunks\n" +
-                      $"Sacred Territory Bonus: {holySite.GetSacredTerritoryMultiplier()}x\n" +
-                      $"Prayer Bonus: {holySite.GetPrayerMultiplier()}x\n" +
-                      $"Consecrated: {holySite.ConsecrationDate:yyyy-MM-dd}";
+            var info = _localizationService.Get("holysite-info-template",
+                "Holy Site: {0}\nReligion: {1}\nTier: {2} ({3})\nSize: {4} chunks\nSacred Territory Bonus: {5}x\nPrayer Bonus: {6}x\nConsecrated: {7}",
+                holySite.SiteName,
+                religion?.ReligionName ?? "Unknown",
+                holySite.Tier,
+                GetTierName(holySite.Tier),
+                holySite.GetTotalChunks(),
+                holySite.GetSacredTerritoryMultiplier(),
+                holySite.GetPrayerMultiplier(),
+                holySite.ConsecrationDate.ToString("yyyy-MM-dd"));
 
             return TextCommandResult.Success(info);
         }
 
-        return TextCommandResult.Error("You are not in a holy site.");
+        return TextCommandResult.Error(_localizationService.Get("holysite-error-not-in-site",
+            "You are not in a holy site."));
     }
 
     private TextCommandResult OnListCommand(TextCommandCallingArgs args)
     {
         var player = args.Caller.Player as IServerPlayer;
+        if (player == null) return TextCommandResult.Error("Player not found.");
+
         var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
 
         if (religion == null)
         {
-            return TextCommandResult.Error("You are not in a religion.");
+            return TextCommandResult.Error(_localizationService.Get("holysite-error-no-religion",
+                "You are not in a religion."));
         }
 
         var holySites = _holySiteManager.GetReligionHolySites(religion.ReligionUID);
 
         if (holySites.Count == 0)
         {
-            return TextCommandResult.Success("Your religion has no holy sites.");
+            return TextCommandResult.Success(_localizationService.Get("holysite-list-empty",
+                "Your religion has no holy sites."));
         }
 
         var list = $"{religion.ReligionName} Holy Sites:\n";
@@ -700,10 +850,10 @@ public class HolySiteCommands
     {
         return tier switch
         {
-            1 => "Shrine",
-            2 => "Temple",
-            3 => "Cathedral",
-            _ => "Unknown"
+            1 => _localizationService.Get("holysite-tier-shrine", "Shrine"),
+            2 => _localizationService.Get("holysite-tier-temple", "Temple"),
+            3 => _localizationService.Get("holysite-tier-cathedral", "Cathedral"),
+            _ => _localizationService.Get("holysite-tier-unknown", "Unknown")
         };
     }
 }
@@ -713,75 +863,93 @@ public class HolySiteCommands
 
 Update `ActivityBonusSystem.cs` to use land claim holy sites:
 
+**File:** `DivineAscension/Systems/ActivityBonusSystem.cs`
+
 ```csharp
-public void UpdateSacredTerritoryBonus(IServerPlayer player)
+using DivineAscension.Services;
+using Vintagestory.API.Config;
+using Vintagestory.API.Server;
+
+namespace DivineAscension.Systems;
+
+public partial class ActivityBonusSystem
 {
-    var playerData = _playerDataManager.GetOrCreatePlayerData(player);
-    if (!playerData.HasDeity()) return;
+    private readonly HolySiteManager _holySiteManager;
+    private readonly LocalizationService _localizationService;
 
-    // Check if player is in their own religion's holy site
-    bool inHolySite = _holySiteManager.IsPlayerInOwnHolySite(player, out var holySite);
-
-    if (inHolySite)
+    public void UpdateSacredTerritoryBonus(IServerPlayer player)
     {
-        // Apply bonus based on holy site tier
-        float multiplier = holySite.GetSacredTerritoryMultiplier();
+        var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(player);
+        if (!playerData.HasDeity()) return;
+
+        // Check if player is in their own religion's holy site
+        bool inHolySite = _holySiteManager.IsPlayerInOwnHolySite(player, out var holySite);
+
+        if (inHolySite && holySite != null)
+        {
+            // Apply bonus based on holy site tier
+            float multiplier = holySite.GetSacredTerritoryMultiplier();
+
+            player.Entity.Stats.Set(
+                "passiveFavorMultiplier",
+                "sacred_territory",
+                multiplier
+            );
+        }
+        else
+        {
+            // Remove bonus when leaving
+            player.Entity.Stats.Remove("passiveFavorMultiplier", "sacred_territory");
+        }
+    }
+
+    public void ApplyPrayerBonus(IServerPlayer player)
+    {
+        var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(player);
+        if (!playerData.HasDeity()) return;
+
+        // Check if in holy site for bonus
+        bool inHolySite = _holySiteManager.IsPlayerInOwnHolySite(player, out var holySiteData);
+
+        float multiplier;
+        double durationMinutes;
+
+        if (inHolySite && holySiteData != null)
+        {
+            // Enhanced bonus in holy site
+            multiplier = holySiteData.GetPrayerMultiplier();
+            durationMinutes = 15.0;
+        }
+        else
+        {
+            // Base prayer bonus
+            multiplier = 2.0f;
+            durationMinutes = 10.0;
+        }
+
+        double expiryTime = _sapi.World.Calendar.TotalHours + (durationMinutes / 60.0);
 
         player.Entity.Stats.Set(
             "passiveFavorMultiplier",
-            "sacred_territory",
-            multiplier
+            "prayer_bonus",
+            multiplier,
+            expiryTime
+        );
+
+        string message = inHolySite && holySiteData != null
+            ? _localizationService.Get("prayer-bonus-holy-site",
+                "The sacred ground of {0} amplifies your prayers! {1}x favor for {2} minutes!",
+                holySiteData.SiteName, multiplier, durationMinutes)
+            : _localizationService.Get("prayer-bonus-standard",
+                "Your devotion is rewarded! {0}x favor for {1} minutes.",
+                multiplier, durationMinutes);
+
+        player.SendMessage(
+            GlobalConstants.GeneralChatGroup,
+            message,
+            EnumChatType.Notification
         );
     }
-    else
-    {
-        // Remove bonus when leaving
-        player.Entity.Stats.Remove("passiveFavorMultiplier", "sacred_territory");
-    }
-}
-
-public void ApplyPrayerBonus(IServerPlayer player)
-{
-    var playerData = _playerDataManager.GetOrCreatePlayerData(player);
-    if (!playerData.HasDeity()) return;
-
-    // Check if in holy site for bonus
-    bool inHolySite = _holySiteManager.IsPlayerInOwnHolySite(player, out var holySiteData);
-
-    float multiplier;
-    double durationMinutes;
-
-    if (inHolySite)
-    {
-        // Enhanced bonus in holy site
-        multiplier = holySiteData.GetPrayerMultiplier();
-        durationMinutes = 15.0;
-    }
-    else
-    {
-        // Base prayer bonus
-        multiplier = 2.0f;
-        durationMinutes = 10.0;
-    }
-
-    double expiryTime = _sapi.World.Calendar.TotalHours + (durationMinutes / 60.0);
-
-    player.Entity.Stats.Set(
-        "passiveFavorMultiplier",
-        "prayer_bonus",
-        multiplier,
-        expiryTime
-    );
-
-    string message = inHolySite
-        ? $"The sacred ground of {holySiteData.SiteName} amplifies your prayers! {multiplier}x favor for {durationMinutes} minutes!"
-        : $"Your devotion is rewarded! {multiplier}x favor for {durationMinutes} minutes.";
-
-    player.SendMessage(
-        GlobalConstants.GeneralChatGroup,
-        message,
-        EnumChatType.Notification
-    );
 }
 ```
 
@@ -838,20 +1006,47 @@ public void ApplyPrayerBonus(IServerPlayer player)
 # Consecrated: 2025-11-11
 ```
 
-## Initialization in PantheonWarsSystem
+## Initialization in DivineAscensionSystemInitializer
+
+**Location:** Add after step 13 (Network handlers) in `DivineAscensionSystemInitializer.cs`
+
+**Step 14: Holy Site Manager**
 
 ```csharp
-// Initialize holy site manager (Phase 3)
-_holySiteManager = new HolySiteManager(api, _religionManager, _playerDataManager);
+// Initialize holy site manager
+// Dependencies: ReligionManager, PlayerProgressionDataManager, ProfanityFilterService, LocalizationService
+_holySiteManager = new HolySiteManager(
+    api,
+    _religionManager,
+    _playerProgressionDataManager,
+    _profanityFilterService,
+    _localizationService
+);
 _holySiteManager.Initialize();
 
 // Initialize activity bonus system with holy site support
-_activityBonusSystem = new ActivityBonusSystem(api, _playerDataManager, _holySiteManager);
+_activityBonusSystem = new ActivityBonusSystem(
+    api,
+    _playerProgressionDataManager,
+    _holySiteManager,
+    _localizationService
+);
 _activityBonusSystem.Initialize();
 
 // Register holy site commands
-_holySiteCommands = new HolySiteCommands(api, _holySiteManager, _religionManager);
+_holySiteCommands = new HolySiteCommands(
+    api,
+    _holySiteManager,
+    _religionManager,
+    _localizationService
+);
 _holySiteCommands.RegisterCommands();
+```
+
+**Dispose Order:** Add to `DivineAscensionModSystem.Dispose()`:
+
+```csharp
+_holySiteManager?.Dispose();
 ```
 
 ## Advantages of This Approach

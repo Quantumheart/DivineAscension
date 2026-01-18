@@ -12,7 +12,7 @@ Physical altar/shrine blocks that players can interact with. Each deity has uniq
 ### Implementation
 
 #### Create Shrine Blocks
-**File:** `PantheonWars/assets/pantheonwars/blocktypes/shrine/*.json`
+**File:** `DivineAscension/assets/divineascension/blocktypes/shrine/*.json`
 
 ```json
 {
@@ -38,7 +38,7 @@ Physical altar/shrine blocks that players can interact with. Each deity has uniq
 ```
 
 #### Shrine Block Entity
-**File:** `PantheonWars/BlockEntities/BlockEntityShrine.cs`
+**File:** `DivineAscension/BlockEntities/BlockEntityShrine.cs`
 
 ```csharp
 public class BlockEntityShrine : BlockEntity
@@ -87,7 +87,7 @@ public class BlockEntityShrine : BlockEntity
 ```
 
 #### Shrine Block Behavior
-**File:** `PantheonWars/Blocks/BlockShrine.cs`
+**File:** `DivineAscension/Blocks/BlockShrine.cs`
 
 ```csharp
 public class BlockShrine : Block
@@ -102,13 +102,13 @@ public class BlockShrine : Block
                 if (be.CanPray(byPlayer, out string reason))
                 {
                     // Trigger prayer through mod system
-                    var modSystem = world.Api.ModLoader.GetModSystem<PantheonWarsSystem>();
+                    var modSystem = world.Api.ModLoader.GetModSystem<DivineAscensionModSystem>();
                     modSystem.OnPlayerPrayAtShrine(byPlayer as IServerPlayer, be.GetDeityType());
 
                     be.OnPrayer(byPlayer as IServerPlayer);
 
                     // Play prayer animation/sound
-                    world.PlaySoundAt(new AssetLocation("pantheonwars:sounds/prayer"),
+                    world.PlaySoundAt(new AssetLocation("divineascension:sounds/prayer"),
                         blockSel.Position.X, blockSel.Position.Y, blockSel.Position.Z);
 
                     return true;
@@ -130,12 +130,12 @@ public class BlockShrine : Block
 ```
 
 #### Integration with ActivityBonusSystem
-**File:** `PantheonWars/PantheonWarsSystem.cs`
+**File:** `DivineAscension/DivineAscensionModSystem.cs`
 
 ```csharp
 public void OnPlayerPrayAtShrine(IServerPlayer player, DeityType shrineDeity)
 {
-    var playerData = _playerDataManager.GetOrCreatePlayerData(player);
+    var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(player);
 
     // Check if player has correct deity
     if (!playerData.HasDeity())
@@ -185,22 +185,25 @@ Players designate a land claim as a "holy site" for their religion. Praying with
 ### Implementation
 
 #### Religion Land Claim Integration
-**File:** `PantheonWars/Systems/HolySiteManager.cs`
+**File:** `DivineAscension/Systems/HolySiteManager.cs`
+
+> **Note:** This is a simplified example. See `land_claim_holy_site_integration.md` for the complete implementation with proper serialization, profanity filtering, localization, and religion deletion cascade.
 
 ```csharp
+using DivineAscension.Data;
+using Vintagestory.API.Config;
+using Vintagestory.API.Server;
+
+namespace DivineAscension.Systems;
+
 public class HolySiteManager
 {
     private readonly ICoreServerAPI _sapi;
     private readonly ReligionManager _religionManager;
-    private readonly Dictionary<Vec2i, HolySiteData> _holySites = new();
+    private readonly Dictionary<SerializableChunkPos, HolySiteData> _holySites = new();
 
-    public class HolySiteData
-    {
-        public string ReligionUID { get; set; }
-        public Vec2i ChunkCoord { get; set; }
-        public string DesignatedBy { get; set; }
-        public DateTime DesignationDate { get; set; }
-    }
+    // See HolySiteData in land_claim_holy_site_integration.md for full data model
+    // with SerializableChunkPos and proper ProtoBuf serialization
 
     public bool DesignateHolySite(IServerPlayer player, BlockPos pos)
     {
@@ -221,7 +224,7 @@ public class HolySiteManager
         }
 
         // Check land claim
-        var landClaim = _sapi.World.Claims.Get(pos.ToChunkPos());
+        var landClaim = _sapi.World.Claims.Get(pos);
         if (landClaim == null || !landClaim.OwnedByPlayerUid.Contains(player.PlayerUID))
         {
             player.SendMessage(0, "You must own this land claim to designate it as holy.",
@@ -229,24 +232,30 @@ public class HolySiteManager
             return false;
         }
 
-        var chunkCoord = new Vec2i(pos.X / 32, pos.Z / 32);
-        _holySites[chunkCoord] = new HolySiteData
-        {
-            ReligionUID = religion.ReligionUID,
-            ChunkCoord = chunkCoord,
-            DesignatedBy = player.PlayerUID,
-            DesignationDate = DateTime.UtcNow
-        };
+        var chunkX = pos.X / GlobalConstants.ChunkSize;
+        var chunkZ = pos.Z / GlobalConstants.ChunkSize;
+        var chunkCoord = new SerializableChunkPos(chunkX, chunkZ);
+
+        // Create holy site (simplified - see full implementation for complete code)
+        _holySites[chunkCoord] = new HolySiteData(
+            Guid.NewGuid().ToString(),
+            chunkCoord,
+            religion.ReligionUID,
+            "Holy Site",  // Name would come from command argument
+            player.PlayerUID
+        );
 
         player.SendMessage(0, $"This land is now consecrated to {religion.ReligionName}!",
             EnumChatType.Notification);
         return true;
     }
 
-    public bool IsPlayerInHolySite(IServerPlayer player, out ReligionData religion)
+    public bool IsPlayerInHolySite(IServerPlayer player, out ReligionData? religion)
     {
         var pos = player.Entity.ServerPos.AsBlockPos;
-        var chunkCoord = new Vec2i(pos.X / 32, pos.Z / 32);
+        var chunkX = pos.X / GlobalConstants.ChunkSize;
+        var chunkZ = pos.Z / GlobalConstants.ChunkSize;
+        var chunkCoord = new SerializableChunkPos(chunkX, chunkZ);
 
         if (_holySites.TryGetValue(chunkCoord, out var holySite))
         {
@@ -267,9 +276,9 @@ public class HolySiteManager
         }
 
         var playerReligion = _religionManager.GetPlayerReligion(player.PlayerUID);
-        if (playerReligion == null || playerReligion.ReligionUID != siteReligion.ReligionUID)
+        if (playerReligion == null || playerReligion.ReligionUID != siteReligion?.ReligionUID)
         {
-            reason = $"This holy site belongs to {siteReligion.ReligionName}.";
+            reason = $"This holy site belongs to {siteReligion?.ReligionName ?? "another religion"}.";
             return false;
         }
 
@@ -391,7 +400,7 @@ Temporary `/deity pray` command for initial testing, replace later with proper s
 [Command("deity pray", "Pray to your deity for favor")]
 private void OnPrayCommand(IServerPlayer player, int groupId, CmdArgs args)
 {
-    var playerData = _playerDataManager.GetOrCreatePlayerData(player);
+    var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(player);
 
     if (!playerData.HasDeity())
     {
