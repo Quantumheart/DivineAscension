@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Constants;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
-using DivineAscension.Systems;
+using DivineAscension.Tests.Helpers;
 
 namespace DivineAscension.Tests.Systems;
 
@@ -10,7 +10,7 @@ namespace DivineAscension.Tests.Systems;
 public class KhorasBlessingTests
 {
     private static IQueryable<Blessing> GetKhoras()
-        => BlessingDefinitions.GetAllBlessings().Where(b => b.Domain == DeityDomain.Craft).AsQueryable();
+        => JsonBlessingTestHelper.GetAllBlessings().Where(b => b.Domain == DeityDomain.Craft).AsQueryable();
 
     [Fact]
     public void Sanity_Khoras_Has10Blessings_AndUniqueIds()

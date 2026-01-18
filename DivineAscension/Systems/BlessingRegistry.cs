@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DivineAscension.Data;
@@ -30,8 +31,7 @@ public class BlessingRegistry : IBlessingRegistry
     }
 
     /// <summary>
-    ///     Initializes the blessing registry and registers all blessings.
-    ///     Attempts to load from JSON first, falls back to hardcoded definitions.
+    ///     Initializes the blessing registry and registers all blessings from JSON assets.
     /// </summary>
     public void Initialize()
     {
@@ -39,7 +39,6 @@ public class BlessingRegistry : IBlessingRegistry
 
         List<Blessing> allBlessings;
 
-        // Try to load from JSON first
         if (_blessingLoader != null)
         {
             allBlessings = _blessingLoader.LoadBlessings();
@@ -51,15 +50,16 @@ public class BlessingRegistry : IBlessingRegistry
             }
             else
             {
-                _api.Logger.Warning(
-                    "[DivineAscension] Failed to load blessings from JSON, falling back to hardcoded definitions");
-                allBlessings = LoadFallbackBlessings();
+                _api.Logger.Error(
+                    "[DivineAscension] Failed to load blessings from JSON assets. Check that blessing files exist in assets/divineascension/config/blessings/");
+                allBlessings = new List<Blessing>();
             }
         }
         else
         {
-            // No loader provided, use fallback
-            allBlessings = LoadFallbackBlessings();
+            _api.Logger.Error(
+                "[DivineAscension] No blessing loader provided. Blessing system will not function.");
+            allBlessings = new List<Blessing>();
         }
 
         foreach (var blessing in allBlessings)
@@ -68,18 +68,6 @@ public class BlessingRegistry : IBlessingRegistry
         }
 
         _api.Logger.Notification($"[DivineAscension] Blessing Registry initialized with {_blessings.Count} blessings");
-    }
-
-    /// <summary>
-    ///     Loads blessings from hardcoded definitions as a fallback.
-    /// </summary>
-    [System.Obsolete("Use JSON-based loading via IBlessingLoader. Fallback only.")]
-    private List<Blessing> LoadFallbackBlessings()
-    {
-        _api.Logger.Debug("[DivineAscension] Using fallback hardcoded blessing definitions");
-#pragma warning disable CS0618 // Type or member is obsolete
-        return BlessingDefinitions.GetAllBlessings();
-#pragma warning restore CS0618
     }
 
     /// <summary>
