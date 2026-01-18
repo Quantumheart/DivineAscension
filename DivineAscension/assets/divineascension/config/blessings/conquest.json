@@ -1,0 +1,169 @@
+{
+  "domain": "Conquest",
+  "version": 1,
+  "blessings": [
+    {
+      "blessingId": "conquest_bloodthirst",
+      "name": "Bloodthirst",
+      "description": "+8% melee weapon damage, +10% melee weapon speed.",
+      "kind": "Player",
+      "category": "Combat",
+      "iconName": "crossed-swords",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": [],
+      "statModifiers": {
+        "meleeWeaponsDamage": 0.08,
+        "meleeWeaponsSpeed": 0.10
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "conquest_berserker_rage",
+      "name": "Berserker Rage",
+      "description": "+10% melee weapon damage (total: 18%), +5% critical hit chance. Offensive path. Requires Bloodthirst.",
+      "kind": "Player",
+      "category": "Combat",
+      "iconName": "axe-swing",
+      "requiredFavorRank": 1,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["conquest_bloodthirst"],
+      "statModifiers": {
+        "meleeWeaponsDamage": 0.10,
+        "criticalHitChance": 0.05
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "conquest_iron_will",
+      "name": "Iron Will",
+      "description": "+10% max health, +10% damage reduction. Defensive path. Requires Bloodthirst.",
+      "kind": "Player",
+      "category": "Defense",
+      "iconName": "shield",
+      "requiredFavorRank": 1,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["conquest_bloodthirst"],
+      "statModifiers": {
+        "maxhealthExtraMultiplier": 0.10,
+        "damageReduction": 0.10
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "conquest_warlords_strike",
+      "name": "Warlord's Strike",
+      "description": "+12% melee weapon damage (total: 30%), +8% critical hit chance (total: 13%), +15% critical hit damage. Requires Berserker Rage.",
+      "kind": "Player",
+      "category": "Combat",
+      "iconName": "broadsword",
+      "requiredFavorRank": 2,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["conquest_berserker_rage"],
+      "statModifiers": {
+        "meleeWeaponsDamage": 0.12,
+        "criticalHitChance": 0.08,
+        "criticalHitDamage": 0.15
+      },
+      "specialEffects": ["battle_fury"]
+    },
+    {
+      "blessingId": "conquest_unyielding_fortitude",
+      "name": "Unyielding Fortitude",
+      "description": "+12% max health (total: 22%), +12% damage reduction (total: 22%), gain temporary damage reduction when health drops below 25%. Requires Iron Will.",
+      "kind": "Player",
+      "category": "Defense",
+      "iconName": "spartan-helmet",
+      "requiredFavorRank": 2,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["conquest_iron_will"],
+      "statModifiers": {
+        "maxhealthExtraMultiplier": 0.12,
+        "damageReduction": 0.12
+      },
+      "specialEffects": ["last_stand"]
+    },
+    {
+      "blessingId": "conquest_avatar_of_conquest",
+      "name": "Avatar of Conquest",
+      "description": "Heal 5% of max health on each kill, +10% movement speed in combat. The ultimate conqueror. Requires both Warlord's Strike and Unyielding Fortitude.",
+      "kind": "Player",
+      "category": "Combat",
+      "iconName": "warlord-helmet",
+      "requiredFavorRank": 3,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["conquest_warlords_strike", "conquest_unyielding_fortitude"],
+      "statModifiers": {
+        "killHealthRestore": 0.05,
+        "walkspeed": 0.10
+      },
+      "specialEffects": ["bloodlust"]
+    },
+    {
+      "blessingId": "conquest_warband",
+      "name": "Warband",
+      "description": "+8% melee weapon damage, +10% melee weapon speed for all members.",
+      "kind": "Religion",
+      "category": "Combat",
+      "iconName": "rally-the-troops",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": [],
+      "statModifiers": {
+        "meleeWeaponsDamage": 0.08,
+        "meleeWeaponsSpeed": 0.10
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "conquest_conquering_legion",
+      "name": "Conquering Legion",
+      "description": "+10% melee weapon damage, +8% max health for all. Requires Warband.",
+      "kind": "Religion",
+      "category": "Combat",
+      "iconName": "roman-shield",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 1,
+      "prerequisiteBlessings": ["conquest_warband"],
+      "statModifiers": {
+        "meleeWeaponsDamage": 0.10,
+        "maxhealthExtraMultiplier": 0.08
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "conquest_conquerors_banner",
+      "name": "Conqueror's Banner",
+      "description": "+12% melee weapon damage, +10% max health, +8% damage reduction for all. Requires Conquering Legion.",
+      "kind": "Religion",
+      "category": "Combat",
+      "iconName": "flag",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 2,
+      "prerequisiteBlessings": ["conquest_conquering_legion"],
+      "statModifiers": {
+        "meleeWeaponsDamage": 0.12,
+        "maxhealthExtraMultiplier": 0.10,
+        "damageReduction": 0.08
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "conquest_pantheon_of_conquest",
+      "name": "Pantheon of Conquest",
+      "description": "+5% critical hit chance, +10% movement speed, +5% damage reduction for all. Requires Conqueror's Banner.",
+      "kind": "Religion",
+      "category": "Combat",
+      "iconName": "throne-king",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 3,
+      "prerequisiteBlessings": ["conquest_conquerors_banner"],
+      "statModifiers": {
+        "criticalHitChance": 0.05,
+        "walkspeed": 0.10,
+        "damageReduction": 0.05
+      },
+      "specialEffects": []
+    }
+  ]
+}

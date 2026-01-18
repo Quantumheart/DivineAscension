@@ -1,0 +1,165 @@
+{
+  "domain": "Craft",
+  "version": 1,
+  "blessings": [
+    {
+      "blessingId": "khoras_craftsmans_touch",
+      "name": "Craftsman's Touch",
+      "description": "+10% chance for tools to take no damage, +10% ore yield.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "hammer-drop",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": [],
+      "statModifiers": {
+        "toolDurability": 0.10,
+        "oreDropRate": 0.10
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "khoras_masterwork_tools",
+      "name": "Masterwork Tools",
+      "description": "+15% chance for tools to take no damage (total: 25%), +10% mining speed. Requires Craftsman's Touch.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "miner",
+      "requiredFavorRank": 1,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["khoras_craftsmans_touch"],
+      "statModifiers": {
+        "toolDurability": 0.15,
+        "miningSpeedMul": 0.10
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "khoras_forgeborn_endurance",
+      "name": "Forgeborn Endurance",
+      "description": "+10% melee weapon damage, +10% max health. Requires Craftsman's Touch.",
+      "kind": "Player",
+      "category": "Defense",
+      "iconName": "anvil",
+      "requiredFavorRank": 1,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["khoras_craftsmans_touch"],
+      "statModifiers": {
+        "meleeWeaponsDamage": 0.10,
+        "maxhealthExtraMultiplier": 0.10
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "khoras_legendary_smith",
+      "name": "Legendary Smith",
+      "description": "+20% chance for tools to take no damage (total: 45%), +15% ore yield (total: 25%). Requires Masterwork Tools.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "sword-smithing",
+      "requiredFavorRank": 2,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["khoras_masterwork_tools"],
+      "statModifiers": {
+        "toolDurability": 0.20,
+        "oreDropRate": 0.15
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "khoras_unyielding",
+      "name": "Unyielding",
+      "description": "+10% reduced armor durability loss, +15% max health (total: 25%). Requires Forgeborn Endurance.",
+      "kind": "Player",
+      "category": "Defense",
+      "iconName": "shield",
+      "requiredFavorRank": 2,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["khoras_forgeborn_endurance"],
+      "statModifiers": {
+        "armorDurabilityLoss": -0.10,
+        "maxhealthExtraMultiplier": 0.15
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "khoras_avatar_of_forge",
+      "name": "Avatar of the Forge",
+      "description": "Tools repair 1 durability per 5 minutes. +10% armor walk speed. Requires both Legendary Smith and Unyielding.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "sword-mold",
+      "requiredFavorRank": 3,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["khoras_legendary_smith", "khoras_unyielding"],
+      "statModifiers": {
+        "armorWalkSpeedAffectedness": -0.10
+      },
+      "specialEffects": ["passive_tool_repair_1per5min"]
+    },
+    {
+      "blessingId": "khoras_shared_workshop",
+      "name": "Shared Workshop",
+      "description": "+10% chance for tools to take no damage, +10% ore yield for all members.",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "warehouse",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": [],
+      "statModifiers": {
+        "toolDurability": 0.10,
+        "oreDropRate": 0.10
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "khoras_guild_of_smiths",
+      "name": "Guild of Smiths",
+      "description": "+15% chance for tools to take no damage, +15% ore yield for all. Requires Shared Workshop.",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "blacksmith",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 1,
+      "prerequisiteBlessings": ["khoras_shared_workshop"],
+      "statModifiers": {
+        "toolDurability": 0.15,
+        "oreDropRate": 0.15
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "khoras_master_craftsmen",
+      "name": "Master Craftsmen",
+      "description": "+20% chance for tools to take no damage, +20% ore yield, +10% armor walk speed for all. Requires Guild of Smiths.",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "team-upgrade",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 2,
+      "prerequisiteBlessings": ["khoras_guild_of_smiths"],
+      "statModifiers": {
+        "toolDurability": 0.20,
+        "oreDropRate": 0.20,
+        "armorWalkSpeedAffectedness": -0.10
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "khoras_pantheon_of_creation",
+      "name": "Pantheon of Creation",
+      "description": "+10% max health for all. Requires Master Craftsmen.",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "freemasonry",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 3,
+      "prerequisiteBlessings": ["khoras_master_craftsmen"],
+      "statModifiers": {
+        "maxhealthExtraMultiplier": 0.10
+      },
+      "specialEffects": []
+    }
+  ]
+}

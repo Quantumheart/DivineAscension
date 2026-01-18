@@ -1,0 +1,170 @@
+{
+  "domain": "Wild",
+  "version": 1,
+  "blessings": [
+    {
+      "blessingId": "lysa_hunters_instinct",
+      "name": "Hunter's Instinct",
+      "description": "+15% animal and forage drops, +5% movement speed.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "paw",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": [],
+      "statModifiers": {
+        "animalLootDropRate": 0.15,
+        "forageDropRate": 0.15,
+        "walkspeed": 0.05
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "lysa_master_forager",
+      "name": "Master Forager",
+      "description": "+20% forage drops (total: 35%), +20% wild crop drop rate, food spoils 15% slower. Requires Hunter's Instinct.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "fruit-bowl",
+      "requiredFavorRank": 1,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["lysa_hunters_instinct"],
+      "statModifiers": {
+        "forageDropRate": 0.20,
+        "wildCropDropRate": 0.20,
+        "foodSpoilage": 0.15
+      },
+      "specialEffects": ["food_spoilage_reduction"]
+    },
+    {
+      "blessingId": "lysa_apex_predator",
+      "name": "Apex Predator",
+      "description": "+20% animal drops (total: 35%), +10% animal harvesting speed. Requires Hunter's Instinct.",
+      "kind": "Player",
+      "category": "Combat",
+      "iconName": "tiger-head",
+      "requiredFavorRank": 1,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["lysa_hunters_instinct"],
+      "statModifiers": {
+        "animalLootDropRate": 0.20,
+        "animalHarvestingTime": 0.10
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "lysa_abundance_of_wild",
+      "name": "Abundance of the Wild",
+      "description": "+25% forage drops (total: 60%), food spoils 25% slower (total: 40%). Requires Master Forager.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "strawberry",
+      "requiredFavorRank": 2,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["lysa_master_forager"],
+      "statModifiers": {
+        "forageDropRate": 0.25,
+        "foodSpoilage": 0.25
+      },
+      "specialEffects": ["food_spoilage_reduction"]
+    },
+    {
+      "blessingId": "lysa_silent_death",
+      "name": "Silent Death",
+      "description": "+15% ranged accuracy, +15% ranged damage. Requires Apex Predator.",
+      "kind": "Player",
+      "category": "Combat",
+      "iconName": "bow-arrow",
+      "requiredFavorRank": 2,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["lysa_apex_predator"],
+      "statModifiers": {
+        "rangedWeaponsAcc": 0.15,
+        "rangedWeaponsDamage": 0.15,
+        "rangedDamageTierBonusPiercingAttack": 1.0
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "lysa_avatar_of_wild",
+      "name": "Avatar of the Wild",
+      "description": "+20% ranged distance, +20% reduced animal seeking range. Requires both Abundance of the Wild and Silent Death.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "bear-head",
+      "requiredFavorRank": 3,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["lysa_abundance_of_wild", "lysa_silent_death"],
+      "statModifiers": {
+        "rangedWeaponsRange": 0.20,
+        "animalSeekingRange": 0.20
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "lysa_hunting_party",
+      "name": "Hunting Party",
+      "description": "All members: +15% animal and forage drops.",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "hunting-horn",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": [],
+      "statModifiers": {
+        "animalLootDropRate": 0.15,
+        "forageDropRate": 0.15
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "lysa_wilderness_tribe",
+      "name": "Wilderness Tribe",
+      "description": "All members: +20% animal and forage drops; Food spoils 15% slower.",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "campfire",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 1,
+      "prerequisiteBlessings": ["lysa_hunting_party"],
+      "statModifiers": {
+        "animalLootDropRate": 0.20,
+        "forageDropRate": 0.20,
+        "foodSpoilage": 0.15
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "lysa_children_of_forest",
+      "name": "Children of the Forest",
+      "description": "All members: +25% animal and forage drops; +5% movement speed.",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "tree",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 2,
+      "prerequisiteBlessings": ["lysa_wilderness_tribe"],
+      "statModifiers": {
+        "animalLootDropRate": 0.25,
+        "forageDropRate": 0.25,
+        "walkspeed": 0.05
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "lysa_pantheon_of_hunt",
+      "name": "Pantheon of the Hunt",
+      "description": "All members: +5C temperature resistance (hot and cold).",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "pierced-heart",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 3,
+      "prerequisiteBlessings": ["lysa_children_of_forest"],
+      "statModifiers": {
+        "temperatureResistance": 5.0
+      },
+      "specialEffects": []
+    }
+  ]
+}
