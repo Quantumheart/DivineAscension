@@ -1,3 +1,4 @@
+using System.Linq;
 using DivineAscension.Tests.Helpers;
 using Moq;
 using Vintagestory.API.Server;
