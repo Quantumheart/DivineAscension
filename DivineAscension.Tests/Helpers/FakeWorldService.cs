@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -9,6 +10,7 @@ namespace DivineAscension.Tests.Helpers;
 /// Fake implementation of IWorldService for testing.
 /// Provides in-memory storage for players, blocks, and entities.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class FakeWorldService : IWorldService
 {
     private readonly Dictionary<BlockPos, BlockEntity> _blockEntities = new();

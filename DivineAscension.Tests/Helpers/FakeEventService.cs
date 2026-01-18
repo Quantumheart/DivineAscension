@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -8,6 +9,7 @@ namespace DivineAscension.Tests.Helpers;
 /// Fake implementation of IEventService for testing.
 /// Stores callbacks internally and provides test helpers to trigger events manually.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class FakeEventService : IEventService
 {
     private readonly List<BlockBreakDelegate> _breakBlockCallbacks = new();

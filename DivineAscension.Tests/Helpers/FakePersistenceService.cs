@@ -1,5 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
 
 namespace DivineAscension.Tests.Helpers;
@@ -8,10 +7,13 @@ namespace DivineAscension.Tests.Helpers;
 /// Fake implementation of IPersistenceService for testing.
 /// Provides in-memory storage with no actual serialization.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class FakePersistenceService : IPersistenceService
 {
-    private readonly Dictionary<string, object> _store = new();
     private readonly Dictionary<string, byte[]> _rawStore = new();
+    private readonly Dictionary<string, object> _store = new();
+
+    public int Count => _store.Count + _rawStore.Count;
 
     public T? Load<T>(string key) where T : class
     {
@@ -19,6 +21,7 @@ public sealed class FakePersistenceService : IPersistenceService
         {
             return (T)data;
         }
+
         return null;
     }
 
@@ -54,8 +57,6 @@ public sealed class FakePersistenceService : IPersistenceService
         _store.Clear();
         _rawStore.Clear();
     }
-
-    public int Count => _store.Count + _rawStore.Count;
 
     public IEnumerable<string> GetAllKeys()
     {

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
 using Vintagestory.API.Client;
 using Vintagestory.API.Server;
@@ -8,6 +9,7 @@ namespace DivineAscension.Tests.Helpers;
 /// Spy implementation of INetworkService for testing.
 /// Records all sent messages and allows manual triggering of handlers.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class SpyNetworkService : INetworkService
 {
     public enum SendType
