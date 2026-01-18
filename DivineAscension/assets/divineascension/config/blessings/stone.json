@@ -1,0 +1,175 @@
+{
+  "domain": "Stone",
+  "version": 1,
+  "blessings": [
+    {
+      "blessingId": "gaia_clay_shaper",
+      "name": "Master Builder",
+      "description": "Foundation for stonework and construction. +20% stone yield, +15% digging speed, +5% movement speed.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "dig-hole",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": [],
+      "statModifiers": {
+        "stoneYield": 0.20,
+        "diggingSpeed": 0.15,
+        "walkspeed": 0.05
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "gaia_master_potter",
+      "name": "Artisan Potter",
+      "description": "Specialize in clay crafting. +25% clay yield, +15% pottery batch completion, +10% digging speed. Pottery path. Requires Master Builder.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "painted-pottery",
+      "requiredFavorRank": 1,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["gaia_clay_shaper"],
+      "statModifiers": {
+        "clayYield": 0.25,
+        "potteryBatchCompletionChance": 0.15,
+        "diggingSpeed": 0.10
+      },
+      "specialEffects": ["pottery_batch_completion_bonus"]
+    },
+    {
+      "blessingId": "gaia_earthen_builder",
+      "name": "Stonemason",
+      "description": "Master stonework and fortification. +25% stone yield, +15% armor effectiveness, +10% digging speed. Construction path. Requires Master Builder.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "clay-brick",
+      "requiredFavorRank": 1,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["gaia_clay_shaper"],
+      "statModifiers": {
+        "stoneYield": 0.25,
+        "armorEffectiveness": 0.15,
+        "diggingSpeed": 0.10
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "gaia_kiln_master",
+      "name": "Kiln Master",
+      "description": "Master of ceramics and fire. +35% clay yield (total: 60%), +25% pottery batch completion (total: 40%), +15% digging speed (total: 40%). Requires Artisan Potter.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "fire-bowl",
+      "requiredFavorRank": 2,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["gaia_master_potter"],
+      "statModifiers": {
+        "clayYield": 0.35,
+        "potteryBatchCompletionChance": 0.25,
+        "diggingSpeed": 0.15
+      },
+      "specialEffects": ["pottery_batch_completion_bonus"]
+    },
+    {
+      "blessingId": "gaia_clay_architect",
+      "name": "Fortress Architect",
+      "description": "Legendary builder and defender. +30% stone yield (total: 75%), +20% armor effectiveness (total: 35%), +15% digging speed (total: 40%), +10% reduced armor durability loss. Requires Stonemason.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "concrete-bag",
+      "requiredFavorRank": 2,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["gaia_earthen_builder"],
+      "statModifiers": {
+        "stoneYield": 0.30,
+        "armorEffectiveness": 0.20,
+        "diggingSpeed": 0.15,
+        "armorDurabilityLoss": -0.10
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "gaia_avatar_of_clay",
+      "name": "Avatar of Earth",
+      "description": "Embody the strength and permanence of stone. +15% max health, +10% melee damage, +10% reduced armor walk speed penalty. Requires both Kiln Master and Fortress Architect.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "clay-golem",
+      "requiredFavorRank": 3,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["gaia_kiln_master", "gaia_clay_architect"],
+      "statModifiers": {
+        "maxhealthExtraMultiplier": 0.15,
+        "meleeWeaponsDamage": 0.10,
+        "armorWalkSpeedAffectedness": -0.10
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "gaia_potters_circle",
+      "name": "Builder's Community",
+      "description": "Your congregation shares stonework knowledge. +15% stone yield, +10% digging speed for all members.",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "cycle",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": [],
+      "statModifiers": {
+        "stoneYield": 0.15,
+        "diggingSpeed": 0.10
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "gaia_clay_guild",
+      "name": "Mason's Guild",
+      "description": "A united guild of skilled builders. +20% stone yield, +15% digging speed, +10% armor effectiveness for all. Requires Builder's Community.",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "team-upgrade",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 1,
+      "prerequisiteBlessings": ["gaia_potters_circle"],
+      "statModifiers": {
+        "stoneYield": 0.20,
+        "diggingSpeed": 0.15,
+        "armorEffectiveness": 0.10
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "gaia_earthen_community",
+      "name": "Fortified Civilization",
+      "description": "A legendary fortified civilization. +25% stone yield, +20% digging speed, +15% armor effectiveness for all. Requires Mason's Guild.",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "armor-upgrade",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 2,
+      "prerequisiteBlessings": ["gaia_clay_guild"],
+      "statModifiers": {
+        "stoneYield": 0.25,
+        "diggingSpeed": 0.20,
+        "armorEffectiveness": 0.15
+      },
+      "specialEffects": []
+    },
+    {
+      "blessingId": "gaia_pantheon_of_clay",
+      "name": "Pantheon of Earth",
+      "description": "Your religion becomes the foundation of an eternal empire. +15% max health, +10% armor effectiveness for all. Requires Fortified Civilization.",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "mineral-heart",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 3,
+      "prerequisiteBlessings": ["gaia_earthen_community"],
+      "statModifiers": {
+        "maxhealthExtraMultiplier": 0.15,
+        "armorEffectiveness": 0.10
+      },
+      "specialEffects": []
+    }
+  ]
+}
