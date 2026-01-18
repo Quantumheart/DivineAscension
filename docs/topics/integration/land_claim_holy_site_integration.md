@@ -58,15 +58,33 @@ Since we can't modify Vintage Story's core land claim data, we'll create an **ov
 
 ### Tier System and Scale
 
-Holy sites are tied to the land claim chunk system. Each chunk is **32×32 blocks** (1,024 blocks²), which is the minimum granularity. The tier names reflect this scale:
+Holy sites are tied to the land claim chunk system. Each chunk is **32×32 blocks** (1,024 blocks²), which is the minimum granularity. Individual holy sites are capped at **6 chunks** to encourage religions to establish multiple sites across the world.
 
 | Tier | Name | Chunks | Block Area | Description |
 |------|------|--------|------------|-------------|
 | 1 | **Sacred Ground** | 1 | 32×32 | Consecrated land surrounding a religious structure |
-| 2 | **Temple** | 2-8 | Up to 256×256 | A significant religious complex |
-| 3 | **Cathedral** | 9+ | 288×288+ | A major seat of religious power |
+| 2 | **Shrine** | 2-3 | Up to 96×96 | A modest worship site with surrounding grounds |
+| 3 | **Temple** | 4-6 | Up to 192×192 | A significant religious complex (max size per site) |
 
-**Note:** "Sacred Ground" (rather than "Shrine") emphasizes that Tier 1 represents consecrated territory, not a small physical structure. Players may build a small shrine within their sacred ground, but the holy site itself encompasses the entire claimed area.
+**Note:** "Sacred Ground" emphasizes that Tier 1 represents consecrated territory, not a small physical structure. Players may build a small altar within their sacred ground, but the holy site itself encompasses the entire claimed area.
+
+### Prestige-Based Site Slots
+
+Religions unlock additional holy site slots as they gain prestige. This encourages spreading influence across the world rather than concentrating in one location.
+
+| Prestige Rank | Prestige Required | Holy Site Slots | Max Total Chunks |
+|---------------|-------------------|-----------------|------------------|
+| Fledgling | 0 | 1 | 6 |
+| Established | 500 | 2 | 12 |
+| Renowned | 2,000 | 3 | 18 |
+| Legendary | 5,000 | 4 | 24 |
+| Mythic | 10,000 | 5 | 30 |
+
+**Design rationale:**
+- Encourages territorial spread rather than one mega-site
+- Creates strategic decisions: upgrade existing sites or claim new locations
+- Multiple sites create more points of interest for PvP/diplomacy
+- Aligns holy site progression with existing prestige system
 
 ### Data Structure
 
@@ -185,6 +203,11 @@ public class HolySiteData
     }
 
     /// <summary>
+    /// Maximum chunks allowed per individual holy site
+    /// </summary>
+    public const int MaxChunksPerSite = 6;
+
+    /// <summary>
     /// Gets the total number of chunks in this holy site
     /// </summary>
     public int GetTotalChunks()
@@ -193,18 +216,23 @@ public class HolySiteData
     }
 
     /// <summary>
-    /// Calculates the tier based on chunk count
+    /// Calculates the tier based on chunk count (capped at 6 chunks per site)
     /// </summary>
     public void UpdateTier()
     {
         int chunkCount = GetTotalChunks();
         Tier = chunkCount switch
         {
-            1 => 1,                    // Sacred Ground (1 chunk, 32×32 blocks)
-            >= 2 and <= 8 => 2,        // Temple (2-8 chunks, up to 256×256 blocks)
-            >= 9 => 3                  // Cathedral (9+ chunks, 288×288+ blocks)
+            1 => 1,              // Sacred Ground (1 chunk, 32×32 blocks)
+            >= 2 and <= 3 => 2,  // Shrine (2-3 chunks, up to 96×96 blocks)
+            >= 4 => 3            // Temple (4-6 chunks, up to 192×192 blocks)
         };
     }
+
+    /// <summary>
+    /// Checks if this site can accept more chunks
+    /// </summary>
+    public bool CanExpand() => GetTotalChunks() < MaxChunksPerSite;
 
     /// <summary>
     /// Gets the sacred territory multiplier for this holy site
@@ -214,8 +242,8 @@ public class HolySiteData
         return Tier switch
         {
             1 => 1.5f,  // Sacred Ground
-            2 => 2.0f,  // Temple
-            3 => 2.5f,  // Cathedral
+            2 => 2.0f,  // Shrine
+            3 => 2.5f,  // Temple
             _ => 1.0f
         };
     }
@@ -228,8 +256,8 @@ public class HolySiteData
         return Tier switch
         {
             1 => 2.0f,  // Sacred Ground
-            2 => 2.5f,  // Temple
-            3 => 3.0f,  // Cathedral
+            2 => 2.5f,  // Shrine
+            3 => 3.0f,  // Temple
             _ => 1.5f
         };
     }
@@ -261,6 +289,7 @@ public class HolySiteManager
     private const string DATA_KEY = "divineascension_holysites";
     private readonly ICoreServerAPI _sapi;
     private readonly ReligionManager _religionManager;
+    private readonly ReligionPrestigeManager _prestigeManager;
     private readonly PlayerProgressionDataManager _playerProgressionDataManager;
     private readonly ProfanityFilterService _profanityFilterService;
     private readonly LocalizationService _localizationService;
@@ -271,19 +300,61 @@ public class HolySiteManager
     // Map holy site UID to data
     private readonly Dictionary<string, HolySiteData> _holySitesById = new();
 
+    // Index for quick lookup of sites by religion
+    private readonly Dictionary<string, HashSet<string>> _sitesByReligion = new();
+
     public HolySiteManager(
         ICoreServerAPI sapi,
         ReligionManager religionManager,
+        ReligionPrestigeManager prestigeManager,
         PlayerProgressionDataManager playerProgressionDataManager,
         ProfanityFilterService profanityFilterService,
         LocalizationService localizationService)
     {
         _sapi = sapi;
         _religionManager = religionManager;
+        _prestigeManager = prestigeManager;
         _playerProgressionDataManager = playerProgressionDataManager;
         _profanityFilterService = profanityFilterService;
         _localizationService = localizationService;
     }
+
+    #region Prestige-Based Site Limits
+
+    /// <summary>
+    /// Gets the maximum number of holy sites allowed for a religion based on prestige rank
+    /// </summary>
+    public int GetMaxSitesForReligion(string religionUID)
+    {
+        var rank = _prestigeManager.GetPrestigeRank(religionUID);
+        return rank switch
+        {
+            PrestigeRank.Fledgling => 1,
+            PrestigeRank.Established => 2,
+            PrestigeRank.Renowned => 3,
+            PrestigeRank.Legendary => 4,
+            PrestigeRank.Mythic => 5,
+            _ => 1
+        };
+    }
+
+    /// <summary>
+    /// Gets the current number of holy sites for a religion
+    /// </summary>
+    public int GetSiteCountForReligion(string religionUID)
+    {
+        return _sitesByReligion.TryGetValue(religionUID, out var sites) ? sites.Count : 0;
+    }
+
+    /// <summary>
+    /// Checks if a religion can create a new holy site
+    /// </summary>
+    public bool CanCreateNewSite(string religionUID)
+    {
+        return GetSiteCountForReligion(religionUID) < GetMaxSitesForReligion(religionUID);
+    }
+
+    #endregion
 
     public void Initialize()
     {
@@ -325,6 +396,9 @@ public class HolySiteManager
             }
             _holySitesById.Remove(site.HolySiteUID);
         }
+
+        // Clean up religion index
+        _sitesByReligion.Remove(religionUID);
 
         if (sitesToRemove.Count > 0)
         {
@@ -381,6 +455,17 @@ public class HolySiteManager
             return false;
         }
 
+        // Check prestige-based site limit
+        if (!CanCreateNewSite(religion.ReligionUID))
+        {
+            var max = GetMaxSitesForReligion(religion.ReligionUID);
+            var rank = _prestigeManager.GetPrestigeRank(religion.ReligionUID);
+            message = _localizationService.Get("holysite-error-site-limit",
+                "Your religion has reached its holy site limit ({0} sites at {1} rank). Gain more prestige to unlock additional sites.",
+                max, rank);
+            return false;
+        }
+
         // Get land claim at player's position
         var pos = player.Entity.ServerPos.AsBlockPos;
         var chunkX = pos.X / GlobalConstants.ChunkSize;
@@ -423,9 +508,19 @@ public class HolySiteManager
         _holySitesById[holySiteUID] = holySite;
         _holySitesByChunk[chunkCoord] = holySite;
 
+        // Add to religion index
+        if (!_sitesByReligion.ContainsKey(religion.ReligionUID))
+        {
+            _sitesByReligion[religion.ReligionUID] = new HashSet<string>();
+        }
+        _sitesByReligion[religion.ReligionUID].Add(holySiteUID);
+
+        var siteCount = GetSiteCountForReligion(religion.ReligionUID);
+        var maxSites = GetMaxSitesForReligion(religion.ReligionUID);
+
         message = _localizationService.Get("holysite-consecrated",
-            "You have consecrated {0} as a holy site for {1}!",
-            siteName, religion.ReligionName);
+            "You have consecrated {0} as a holy site for {1}! ({2}/{3} sites)",
+            siteName, religion.ReligionName, siteCount, maxSites);
 
         _sapi.Logger.Notification($"[DivineAscension] Holy site '{siteName}' created by {player.PlayerName}");
 
@@ -455,6 +550,16 @@ public class HolySiteManager
         {
             message = _localizationService.Get("holysite-error-expand-not-founder",
                 "Only the religion founder can expand holy sites.");
+            return false;
+        }
+
+        // Check max chunks per site limit
+        var mainSite = _holySitesById[adjacentSite.HolySiteUID];
+        if (!mainSite.CanExpand())
+        {
+            message = _localizationService.Get("holysite-error-max-chunks",
+                "This holy site has reached its maximum size ({0} chunks). Consider creating a new holy site in another location.",
+                HolySiteData.MaxChunksPerSite);
             return false;
         }
 
@@ -488,23 +593,52 @@ public class HolySiteManager
             return false;
         }
 
-        // Find the main holy site to expand
-        var mainHolySite = _holySitesById[adjacentSite.HolySiteUID];
+        // Limit expansion to max chunks per site
+        var chunksToAdd = Math.Min(
+            expandableChunks.Count,
+            HolySiteData.MaxChunksPerSite - mainSite.GetTotalChunks()
+        );
 
-        // Add chunks to the holy site
-        foreach (var chunk in expandableChunks)
+        if (chunksToAdd == 0)
         {
-            mainHolySite.ConnectedChunks.Add(chunk);
-            _holySitesByChunk[chunk] = mainHolySite;
+            message = _localizationService.Get("holysite-error-max-chunks",
+                "This holy site has reached its maximum size ({0} chunks).",
+                HolySiteData.MaxChunksPerSite);
+            return false;
         }
 
-        mainHolySite.UpdateTier();
+        // Add chunks to the holy site (limited by max)
+        var chunksAdded = 0;
+        foreach (var chunk in expandableChunks.Take(chunksToAdd))
+        {
+            mainSite.ConnectedChunks.Add(chunk);
+            _holySitesByChunk[chunk] = mainSite;
+            chunksAdded++;
+        }
 
+        mainSite.UpdateTier();
+
+        var remaining = HolySiteData.MaxChunksPerSite - mainSite.GetTotalChunks();
         message = _localizationService.Get("holysite-expanded",
-            "{0} expanded! Now {1} chunks (Tier {2}).",
-            mainHolySite.SiteName, mainHolySite.GetTotalChunks(), mainHolySite.Tier);
+            "{0} expanded by {1} chunk(s)! Now {2}/{3} chunks (Tier {4}: {5}).",
+            mainSite.SiteName, chunksAdded, mainSite.GetTotalChunks(),
+            HolySiteData.MaxChunksPerSite, mainSite.Tier, GetTierName(mainSite.Tier));
 
         return true;
+    }
+
+    /// <summary>
+    /// Gets the display name for a tier
+    /// </summary>
+    private string GetTierName(int tier)
+    {
+        return tier switch
+        {
+            1 => _localizationService.Get("holysite-tier-sacred-ground", "Sacred Ground"),
+            2 => _localizationService.Get("holysite-tier-shrine", "Shrine"),
+            3 => _localizationService.Get("holysite-tier-temple", "Temple"),
+            _ => _localizationService.Get("holysite-tier-unknown", "Unknown")
+        };
     }
 
     /// <summary>
@@ -538,6 +672,12 @@ public class HolySiteManager
             _holySitesByChunk.Remove(chunk);
         }
         _holySitesById.Remove(holySite.HolySiteUID);
+
+        // Remove from religion index
+        if (_sitesByReligion.TryGetValue(holySite.ReligionUID, out var religionSites))
+        {
+            religionSites.Remove(holySite.HolySiteUID);
+        }
 
         message = _localizationService.Get("holysite-deconsecrated",
             "{0} has been deconsecrated.", holySite.SiteName);
@@ -863,8 +1003,8 @@ public class HolySiteCommands
         return tier switch
         {
             1 => _localizationService.Get("holysite-tier-sacred-ground", "Sacred Ground"),
-            2 => _localizationService.Get("holysite-tier-temple", "Temple"),
-            3 => _localizationService.Get("holysite-tier-cathedral", "Cathedral"),
+            2 => _localizationService.Get("holysite-tier-shrine", "Shrine"),
+            3 => _localizationService.Get("holysite-tier-temple", "Temple"),
             _ => _localizationService.Get("holysite-tier-unknown", "Unknown")
         };
     }
@@ -986,10 +1126,10 @@ public partial class ActivityBonusSystem
 # Claim adjacent chunks
 /holysite expand
 
-# Result: Adds adjacent owned chunks
+# Result: Adds adjacent owned chunks (max 6 per site)
 # - 1 chunk = Tier 1 Sacred Ground (1.5x territory, 2.0x prayer)
-# - 2-8 chunks = Tier 2 Temple (2.0x territory, 2.5x prayer)
-# - 9+ chunks = Tier 3 Cathedral (2.5x territory, 3.0x prayer)
+# - 2-3 chunks = Tier 2 Shrine (2.0x territory, 2.5x prayer)
+# - 4-6 chunks = Tier 3 Temple (2.5x territory, 3.0x prayer)
 ```
 
 ### Praying at Holy Site
@@ -999,9 +1139,9 @@ public partial class ActivityBonusSystem
 /deity pray
 
 # Result: Enhanced prayer bonus based on tier
-# - Tier 1: 2.0x for 15 min
-# - Tier 2: 2.5x for 15 min
-# - Tier 3: 3.0x for 15 min
+# - Tier 1 (Sacred Ground): 2.0x for 15 min
+# - Tier 2 (Shrine): 2.5x for 15 min
+# - Tier 3 (Temple): 3.0x for 15 min
 ```
 
 ### Getting Info
@@ -1012,10 +1152,10 @@ public partial class ActivityBonusSystem
 # Output:
 # Holy Site: Temple of Khoras
 # Religion: Warriors of Khoras
-# Tier: 2 (Temple)
-# Size: 5 chunks
-# Sacred Territory Bonus: 2.0x
-# Prayer Bonus: 2.5x
+# Tier: 3 (Temple)
+# Size: 5/6 chunks
+# Sacred Territory Bonus: 2.5x
+# Prayer Bonus: 3.0x
 # Consecrated: 2025-11-11
 ```
 
@@ -1068,7 +1208,7 @@ _holySiteManager?.Dispose();
 ✅ **No Core Modification**: Overlay pattern doesn't touch VS internals
 ✅ **Persistent**: Saves/loads with world data
 ✅ **Scalable**: Supports multi-chunk temples
-✅ **Tiered Progression**: Sacred Ground → Temple → Cathedral
+✅ **Tiered Progression**: Sacred Ground → Shrine → Temple (max 6 chunks per site)
 ✅ **Religion Ownership**: Tied to religion, not individual player
 ✅ **Territory Control**: Creates meaningful PvP zones
 ✅ **Visual Feedback**: Players can see their claimed land is special
@@ -1774,14 +1914,14 @@ Add to `DivineAscension/assets/divineascension/lang/en.json`:
   "divineascension:ui.holysite.detail.territory_bonus": "Sacred Territory Bonus: {0}x",
   "divineascension:ui.holysite.detail.prayer_bonus": "Prayer Bonus: {0}x",
   "divineascension:ui.holysite.tier.sacred-ground": "Sacred Ground",
+  "divineascension:ui.holysite.tier.shrine": "Shrine",
   "divineascension:ui.holysite.tier.temple": "Temple",
-  "divineascension:ui.holysite.tier.cathedral": "Cathedral",
   "divineascension:ui.holysite.no_sites": "No holy sites found.",
   "divineascension:ui.holysite.loading": "Loading holy sites...",
 
   "_comment": "Holy Site Commands",
-  "divineascension:cmd.holysite.consecrate.success": "You have consecrated {0} as a holy site for {1}!",
-  "divineascension:cmd.holysite.expand.success": "{0} expanded! Now {1} chunks (Tier {2}).",
+  "divineascension:cmd.holysite.consecrate.success": "You have consecrated {0} as a holy site for {1}! ({2}/{3} sites)",
+  "divineascension:cmd.holysite.expand.success": "{0} expanded by {1} chunk(s)! Now {2}/{3} chunks (Tier {4}: {5}).",
   "divineascension:cmd.holysite.deconsecrate.success": "{0} has been deconsecrated.",
   "divineascension:cmd.holysite.error.no_religion": "You must be in a religion to consecrate holy sites.",
   "divineascension:cmd.holysite.error.not_founder": "Only the religion founder can consecrate holy sites.",
@@ -1791,6 +1931,8 @@ Add to `DivineAscension/assets/divineascension/lang/en.json`:
   "divineascension:cmd.holysite.error.no_claim": "You must be standing in a claimed area.",
   "divineascension:cmd.holysite.error.not_owner": "You must own this land claim to consecrate it.",
   "divineascension:cmd.holysite.error.already_consecrated": "This land is already consecrated.",
+  "divineascension:cmd.holysite.error.site_limit": "Your religion has reached its holy site limit ({0} sites at {1} rank). Gain more prestige to unlock additional sites.",
+  "divineascension:cmd.holysite.error.max_chunks": "This holy site has reached its maximum size ({0} chunks). Consider creating a new holy site in another location.",
   "divineascension:cmd.holysite.error.not_in_site": "You must be standing in a holy site.",
   "divineascension:cmd.holysite.error.no_adjacent": "No adjacent unconsecrated claims found.",
 
