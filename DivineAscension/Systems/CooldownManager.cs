@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
@@ -15,20 +17,26 @@ namespace DivineAscension.Systems;
 /// </summary>
 public class CooldownManager : ICooldownManager
 {
-    private readonly ICoreServerAPI _sapi;
+    private readonly object _cleanupLock = new();
     private readonly ModConfigData _config;
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<CooldownType, long>> _cooldowns = new();
-    private readonly object _cleanupLock = new();
+    private readonly IEventService _eventService;
+    private readonly ILogger _logger;
+    private readonly IWorldService _worldService;
     private long _cleanupCallbackId;
 
     /// <summary>
     ///     Initializes a new instance of the CooldownManager.
     /// </summary>
-    /// <param name="sapi">Server API reference</param>
+    /// <param name="logger">Logger for debugging and notifications</param>
+    /// <param name="eventService">Event service for periodic callbacks</param>
+    /// <param name="worldService">World service for player and time access</param>
     /// <param name="config">Mod configuration containing cooldown durations</param>
-    public CooldownManager(ICoreServerAPI sapi, ModConfigData config)
+    public CooldownManager(ILogger logger, IEventService eventService, IWorldService worldService, ModConfigData config)
     {
-        _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
         _config = config ?? throw new ArgumentNullException(nameof(config));
     }
 
@@ -37,12 +45,12 @@ public class CooldownManager : ICooldownManager
     /// </summary>
     public void Initialize()
     {
-        _sapi.Logger.Notification("[DivineAscension] Initializing Cooldown Manager...");
+        _logger.Notification("[DivineAscension] Initializing Cooldown Manager...");
 
         // Register cleanup callback every 5 minutes (300000 ms)
-        _cleanupCallbackId = _sapi.Event.RegisterCallback(CleanupExpiredCooldowns, 300000);
+        _cleanupCallbackId = _eventService.RegisterCallback(CleanupExpiredCooldowns, 300000);
 
-        _sapi.Logger.Notification("[DivineAscension] Cooldown Manager initialized");
+        _logger.Notification("[DivineAscension] Cooldown Manager initialized");
     }
 
     /// <summary>
@@ -52,7 +60,7 @@ public class CooldownManager : ICooldownManager
     {
         if (_cleanupCallbackId != 0)
         {
-            _sapi.Event.UnregisterCallback(_cleanupCallbackId);
+            _eventService.UnregisterCallback(_cleanupCallbackId);
             _cleanupCallbackId = 0;
         }
     }
@@ -77,7 +85,7 @@ public class CooldownManager : ICooldownManager
         }
 
         // Check if player is admin (bypass cooldowns)
-        var player = _sapi.World.PlayerByUid(playerUID);
+        var player = _worldService.GetPlayerByUID(playerUID);
         if (player != null && Array.IndexOf(player.Privileges, Privilege.root) >= 0)
         {
             errorMessage = null;
@@ -88,7 +96,7 @@ public class CooldownManager : ICooldownManager
 
         if (playerCooldowns.TryGetValue(cooldownType, out var expiryTimeMs))
         {
-            var nowMs = _sapi.World.ElapsedMilliseconds;
+            var nowMs = _worldService.ElapsedMilliseconds;
             if (nowMs < expiryTimeMs)
             {
                 var remainingSeconds = (expiryTimeMs - nowMs) / 1000.0;
@@ -113,12 +121,12 @@ public class CooldownManager : ICooldownManager
             throw new ArgumentException("PlayerUID cannot be null or empty", nameof(playerUID));
 
         // Skip recording for admins (bypass cooldowns)
-        var player = _sapi.World.PlayerByUid(playerUID);
+        var player = _worldService.GetPlayerByUID(playerUID);
         if (player != null && Array.IndexOf(player.Privileges, Privilege.root) >= 0)
             return;
 
         var cooldownDurationMs = GetCooldownDuration(cooldownType) * 1000;
-        var expiryTimeMs = _sapi.World.ElapsedMilliseconds + cooldownDurationMs;
+        var expiryTimeMs = _worldService.ElapsedMilliseconds + cooldownDurationMs;
 
         var playerCooldowns = _cooldowns.GetOrAdd(playerUID, _ => new ConcurrentDictionary<CooldownType, long>());
         playerCooldowns[cooldownType] = expiryTimeMs;
@@ -157,7 +165,7 @@ public class CooldownManager : ICooldownManager
         if (!playerCooldowns.TryGetValue(cooldownType, out var expiryTimeMs))
             return 0.0;
 
-        var nowMs = _sapi.World.ElapsedMilliseconds;
+        var nowMs = _worldService.ElapsedMilliseconds;
         if (nowMs >= expiryTimeMs)
             return 0.0;
 
@@ -221,13 +229,13 @@ public class CooldownManager : ICooldownManager
     {
         ThreadSafetyUtils.WithLock(_cleanupLock, () =>
         {
-            var nowMs = _sapi.World.ElapsedMilliseconds;
-            var playersToRemove = new System.Collections.Generic.List<string>();
+            var nowMs = _worldService.ElapsedMilliseconds;
+            var playersToRemove = new List<string>();
             var totalCleaned = 0;
 
             foreach (var (playerUID, playerCooldowns) in _cooldowns)
             {
-                var cooldownsToRemove = new System.Collections.Generic.List<CooldownType>();
+                var cooldownsToRemove = new List<CooldownType>();
 
                 foreach (var (cooldownType, expiryTimeMs) in playerCooldowns)
                 {
@@ -251,7 +259,7 @@ public class CooldownManager : ICooldownManager
 
             if (totalCleaned > 0 || playersToRemove.Count > 0)
             {
-                _sapi.Logger.Debug(
+                _logger.Debug(
                     $"[DivineAscension] Cooldown cleanup: removed {totalCleaned} expired cooldown(s) and {playersToRemove.Count} empty player record(s)");
             }
         }, "CooldownCleanup");

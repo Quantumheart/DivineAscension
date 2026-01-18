@@ -24,7 +24,8 @@ public class BuffManagerTests
         _mockLogger = new Mock<ILogger>();
         _mockAPI.Setup(a => a.Logger).Returns(_mockLogger.Object);
 
-        _buffManager = new BuffManager(_mockAPI.Object);
+        var fakeWorldService = new FakeWorldService();
+        _buffManager = new BuffManager(_mockLogger.Object, fakeWorldService);
     }
 
     // NOTE: ApplyAoEBuff tests omitted - this method requires complex world interaction mocking
