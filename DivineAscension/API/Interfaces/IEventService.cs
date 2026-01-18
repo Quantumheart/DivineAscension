@@ -1,7 +1,5 @@
 using System;
 using Vintagestory.API.Common;
-using Vintagestory.API.Common.Entities;
-using Vintagestory.API.Server;
 
 namespace DivineAscension.API.Interfaces;
 
@@ -24,32 +22,32 @@ public interface IEventService
     /// <summary>
     /// Subscribe to the PlayerJoin event, fired when a player joins the server.
     /// </summary>
-    void OnPlayerJoin(Action<IServerPlayer> callback);
+    void OnPlayerJoin(PlayerDelegate callback);
 
     /// <summary>
     /// Subscribe to the PlayerDisconnect event, fired when a player disconnects from the server.
     /// </summary>
-    void OnPlayerDisconnect(Action<IServerPlayer> callback);
+    void OnPlayerDisconnect(PlayerDelegate callback);
 
     /// <summary>
     /// Subscribe to the PlayerDeath event, fired when a player dies.
     /// </summary>
-    void OnPlayerDeath(Action<IServerPlayer, DamageSource> callback);
+    void OnPlayerDeath(PlayerDeathDelegate callback);
 
     /// <summary>
     /// Subscribe to the BreakBlock event, fired when a player breaks a block.
     /// </summary>
-    void OnBreakBlock(Action<IServerPlayer, BlockSelection, ref float, ref EnumHandling> callback);
+    void OnBreakBlock(BlockBreakDelegate callback);
 
     /// <summary>
     /// Subscribe to the DidUseBlock event, fired after a player uses a block.
     /// </summary>
-    void OnDidUseBlock(Action<IServerPlayer, BlockSelection> callback);
+    void OnDidUseBlock(BlockUsedDelegate callback);
 
     /// <summary>
     /// Subscribe to the DidPlaceBlock event, fired after a player places a block.
     /// </summary>
-    void OnDidPlaceBlock(Action<IServerPlayer, BlockSelection, ItemStack> callback);
+    void OnDidPlaceBlock(BlockPlacedDelegate callback);
 
     /// <summary>
     /// Register a game tick listener that is called periodically.
@@ -86,20 +84,20 @@ public interface IEventService
     /// <summary>
     /// Unsubscribe from the PlayerJoin event.
     /// </summary>
-    void UnsubscribePlayerJoin(Action<IServerPlayer> callback);
+    void UnsubscribePlayerJoin(PlayerDelegate callback);
 
     /// <summary>
     /// Unsubscribe from the PlayerDisconnect event.
     /// </summary>
-    void UnsubscribePlayerDisconnect(Action<IServerPlayer> callback);
+    void UnsubscribePlayerDisconnect(PlayerDelegate callback);
 
     /// <summary>
     /// Unsubscribe from the PlayerDeath event.
     /// </summary>
-    void UnsubscribePlayerDeath(Action<IServerPlayer, DamageSource> callback);
+    void UnsubscribePlayerDeath(PlayerDeathDelegate callback);
 
     /// <summary>
     /// Unsubscribe from the BreakBlock event.
     /// </summary>
-    void UnsubscribeBreakBlock(Action<IServerPlayer, BlockSelection, ref float, ref EnumHandling> callback);
+    void UnsubscribeBreakBlock(BlockBreakDelegate callback);
 }

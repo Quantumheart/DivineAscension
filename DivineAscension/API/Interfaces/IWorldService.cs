@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
@@ -10,6 +11,11 @@ namespace DivineAscension.API.Interfaces;
 /// </summary>
 public interface IWorldService
 {
+    /// <summary>
+    /// Get the elapsed time in milliseconds since the world was loaded.
+    /// </summary>
+    long ElapsedMilliseconds { get; }
+
     /// <summary>
     /// Get a player by their unique identifier.
     /// </summary>
@@ -28,7 +34,7 @@ public interface IWorldService
     /// Get all currently online players.
     /// </summary>
     /// <returns>An enumerable of all online players.</returns>
-    IEnumerable<IServerPlayer> GetAllOnlinePlayers();
+    IEnumerable<IPlayer> GetAllOnlinePlayers();
 
     /// <summary>
     /// Get a block at the specified position.
@@ -76,7 +82,8 @@ public interface IWorldService
     /// <param name="randomizePitch">Whether to randomize pitch.</param>
     /// <param name="range">Sound audible range in blocks.</param>
     /// <param name="volume">Sound volume multiplier.</param>
-    void PlaySoundAt(AssetLocation sound, double x, double y, double z, IPlayer? sourcePlayer = null, bool randomizePitch = true, float range = 32f, float volume = 1f);
+    void PlaySoundAt(AssetLocation sound, double x, double y, double z, IPlayer? sourcePlayer = null,
+        bool randomizePitch = true, float range = 32f, float volume = 1f);
 
     /// <summary>
     /// Spawn particles at a specific position.
@@ -85,11 +92,6 @@ public interface IWorldService
     /// <param name="pos">The position to spawn particles.</param>
     /// <param name="sourcePlayer">Optional source player.</param>
     void SpawnParticles(SimpleParticleProperties particles, Vec3d pos, IPlayer? sourcePlayer = null);
-
-    /// <summary>
-    /// Get the elapsed time in milliseconds since the world was loaded.
-    /// </summary>
-    long ElapsedMilliseconds { get; }
 
     /// <summary>
     /// Get a block accessor for reading or writing blocks.

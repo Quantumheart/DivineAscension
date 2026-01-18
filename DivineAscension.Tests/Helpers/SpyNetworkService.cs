@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using DivineAscension.API.Interfaces;
-using Vintagestory.API.MathTools;
+using Vintagestory.API.Client;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Tests.Helpers;
@@ -13,17 +10,21 @@ namespace DivineAscension.Tests.Helpers;
 /// </summary>
 public sealed class SpyNetworkService : INetworkService
 {
+    public enum SendType
+    {
+        ToPlayer,
+        ToAll,
+        ToOthers,
+        Broadcast
+    }
+
     private readonly Dictionary<Type, Delegate> _handlers = new();
     private readonly List<SentMessage> _sentMessages = new();
 
-    public void RegisterMessageHandler<T>(Action<IServerPlayer, T> handler) where T : class
-    {
-        _handlers[typeof(T)] = handler;
-    }
+    public int MessageCount => _sentMessages.Count;
 
-    public void RegisterMessageHandler<T>(string messageId, Action<IServerPlayer, T> handler) where T : class
+    public void RegisterMessageHandler<T>(NetworkClientMessageHandler<T> handler) where T : class
     {
-        // For simplicity, we ignore the messageId in the spy
         _handlers[typeof(T)] = handler;
     }
 
@@ -35,11 +36,6 @@ public sealed class SpyNetworkService : INetworkService
     public void SendToAllPlayers<T>(T message) where T : class
     {
         _sentMessages.Add(new SentMessage(null, message, SendType.ToAll));
-    }
-
-    public void SendToPlayersInRange<T>(Vec3d position, float range, T message) where T : class
-    {
-        _sentMessages.Add(new SentMessage(null, message, SendType.InRange, position, range));
     }
 
     public void SendToOthers<T>(IServerPlayer excludePlayer, T message) where T : class
@@ -57,7 +53,7 @@ public sealed class SpyNetworkService : INetworkService
     {
         if (_handlers.TryGetValue(typeof(T), out var handler))
         {
-            ((Action<IServerPlayer, T>)handler)(player, message);
+            ((NetworkClientMessageHandler<T>)handler)(player, message);
         }
     }
 
@@ -86,23 +82,10 @@ public sealed class SpyNetworkService : INetworkService
         _handlers.Clear();
     }
 
-    public int MessageCount => _sentMessages.Count;
-
     public sealed record SentMessage(
         IServerPlayer? Player,
         object Message,
-        SendType Type,
-        Vec3d? Position = null,
-        float Range = 0f);
-
-    public enum SendType
-    {
-        ToPlayer,
-        ToAll,
-        InRange,
-        ToOthers,
-        Broadcast
-    }
+        SendType Type);
 }
 
 /// <summary>
@@ -114,7 +97,9 @@ public sealed class SpyClientNetworkService : IClientNetworkService
     private readonly Dictionary<Type, Delegate> _handlers = new();
     private readonly List<object> _sentMessages = new();
 
-    public void RegisterMessageHandler<T>(Action<T> handler) where T : class
+    public int MessageCount => _sentMessages.Count;
+
+    public void RegisterMessageHandler<T>(NetworkServerMessageHandler<T> handler) where T : class
     {
         _handlers[typeof(T)] = handler;
     }
@@ -129,7 +114,7 @@ public sealed class SpyClientNetworkService : IClientNetworkService
     {
         if (_handlers.TryGetValue(typeof(T), out var handler))
         {
-            ((Action<T>)handler)(message);
+            ((NetworkServerMessageHandler<T>)handler)(message);
         }
     }
 
@@ -150,6 +135,4 @@ public sealed class SpyClientNetworkService : IClientNetworkService
         _sentMessages.Clear();
         _handlers.Clear();
     }
-
-    public int MessageCount => _sentMessages.Count;
 }

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -13,14 +11,15 @@ namespace DivineAscension.Tests.Helpers;
 /// </summary>
 public sealed class FakeWorldService : IWorldService
 {
-    private readonly Dictionary<string, IServerPlayer> _playersByUID = new();
-    private readonly Dictionary<string, IServerPlayer> _playersByName = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<BlockPos, BlockEntity> _blockEntities = new();
     private readonly Dictionary<BlockPos, Block> _blocks = new();
     private readonly Dictionary<int, Block> _blocksById = new();
-    private readonly Dictionary<BlockPos, BlockEntity> _blockEntities = new();
     private readonly Dictionary<Vec3i, IWorldChunk> _chunks = new();
-    private readonly List<SoundEvent> _soundsPlayed = new();
     private readonly List<ParticleEvent> _particlesSpawned = new();
+    private readonly Dictionary<string, IServerPlayer> _playersByName = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, IServerPlayer> _playersByUID = new();
+    private readonly List<SoundEvent> _soundsPlayed = new();
+    private IBlockAccessor? _blockAccessor;
     private long _elapsedMs = 0;
 
     public long ElapsedMilliseconds => _elapsedMs;
@@ -36,7 +35,7 @@ public sealed class FakeWorldService : IWorldService
         return _playersByName.TryGetValue(name, out var player) ? player : null;
     }
 
-    public IEnumerable<IServerPlayer> GetAllOnlinePlayers()
+    public IEnumerable<IPlayer> GetAllOnlinePlayers()
     {
         return _playersByUID.Values;
     }
@@ -44,12 +43,14 @@ public sealed class FakeWorldService : IWorldService
     // Block access
     public Block GetBlock(BlockPos pos)
     {
-        return _blocks.TryGetValue(pos, out var block) ? block : Block.FromId(0); // Return air block if not found
+        return _blocks.TryGetValue(pos, out var block)
+            ? block
+            : null!; // Return null if not found (tests should set up blocks)
     }
 
     public Block GetBlock(int blockId)
     {
-        return _blocksById.TryGetValue(blockId, out var block) ? block : Block.FromId(0);
+        return _blocksById.TryGetValue(blockId, out var block) ? block : null!;
     }
 
     public BlockEntity? GetBlockEntity(BlockPos pos)
@@ -69,7 +70,8 @@ public sealed class FakeWorldService : IWorldService
     }
 
     // Sound and particles
-    public void PlaySoundAt(AssetLocation sound, double x, double y, double z, IPlayer? sourcePlayer = null, bool randomizePitch = true, float range = 32f, float volume = 1f)
+    public void PlaySoundAt(AssetLocation sound, double x, double y, double z, IPlayer? sourcePlayer = null,
+        bool randomizePitch = true, float range = 32f, float volume = 1f)
     {
         _soundsPlayed.Add(new SoundEvent(sound, new Vec3d(x, y, z), sourcePlayer, randomizePitch, range, volume));
     }
@@ -79,12 +81,12 @@ public sealed class FakeWorldService : IWorldService
         _particlesSpawned.Add(new ParticleEvent(particles, pos, sourcePlayer));
     }
 
-    // Block accessor (simplified - returns null for now)
+    // Block accessor - configurable for tests
     public IBlockAccessor GetBlockAccessor(bool isWriteAccess, bool isRevertable)
     {
-        // For testing, we can return null or a mock
-        // Most tests won't need this method
-        throw new NotImplementedException("GetBlockAccessor is not implemented in FakeWorldService. Mock IBlockAccessor separately if needed.");
+        // Return the configured block accessor, or null if not set
+        // Tests that need a block accessor should call SetBlockAccessor() first
+        return _blockAccessor!;
     }
 
     // Test helper methods
@@ -127,6 +129,11 @@ public sealed class FakeWorldService : IWorldService
         _elapsedMs = ms;
     }
 
+    public void SetBlockAccessor(IBlockAccessor blockAccessor)
+    {
+        _blockAccessor = blockAccessor;
+    }
+
     public void Clear()
     {
         _playersByUID.Clear();
@@ -138,12 +145,20 @@ public sealed class FakeWorldService : IWorldService
         _soundsPlayed.Clear();
         _particlesSpawned.Clear();
         _elapsedMs = 0;
+        _blockAccessor = null;
     }
 
     // Test inspection helpers
     public IReadOnlyList<SoundEvent> GetSoundsPlayed() => _soundsPlayed.AsReadOnly();
     public IReadOnlyList<ParticleEvent> GetParticlesSpawned() => _particlesSpawned.AsReadOnly();
 
-    public sealed record SoundEvent(AssetLocation Sound, Vec3d Position, IPlayer? SourcePlayer, bool RandomizePitch, float Range, float Volume);
+    public sealed record SoundEvent(
+        AssetLocation Sound,
+        Vec3d Position,
+        IPlayer? SourcePlayer,
+        bool RandomizePitch,
+        float Range,
+        float Volume);
+
     public sealed record ParticleEvent(SimpleParticleProperties Particles, Vec3d Position, IPlayer? SourcePlayer);
 }

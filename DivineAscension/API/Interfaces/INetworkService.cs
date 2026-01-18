@@ -1,5 +1,4 @@
-using System;
-using Vintagestory.API.MathTools;
+using Vintagestory.API.Client;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.API.Interfaces;
@@ -15,15 +14,7 @@ public interface INetworkService
     /// </summary>
     /// <typeparam name="T">The message type.</typeparam>
     /// <param name="handler">The handler callback that receives the sender player and message.</param>
-    void RegisterMessageHandler<T>(Action<IServerPlayer, T> handler) where T : class;
-
-    /// <summary>
-    /// Register a message handler with a specific message ID.
-    /// </summary>
-    /// <typeparam name="T">The message type.</typeparam>
-    /// <param name="messageId">The message identifier.</param>
-    /// <param name="handler">The handler callback that receives the sender player and message.</param>
-    void RegisterMessageHandler<T>(string messageId, Action<IServerPlayer, T> handler) where T : class;
+    void RegisterMessageHandler<T>(NetworkClientMessageHandler<T> handler) where T : class;
 
     /// <summary>
     /// Send a message to a specific player.
@@ -39,15 +30,6 @@ public interface INetworkService
     /// <typeparam name="T">The message type.</typeparam>
     /// <param name="message">The message to send.</param>
     void SendToAllPlayers<T>(T message) where T : class;
-
-    /// <summary>
-    /// Send a message to all players within range of a position.
-    /// </summary>
-    /// <typeparam name="T">The message type.</typeparam>
-    /// <param name="position">The center position.</param>
-    /// <param name="range">The range in blocks.</param>
-    /// <param name="message">The message to send.</param>
-    void SendToPlayersInRange<T>(Vec3d position, float range, T message) where T : class;
 
     /// <summary>
     /// Send a message to all players except the specified one.
@@ -76,7 +58,7 @@ public interface IClientNetworkService
     /// </summary>
     /// <typeparam name="T">The message type.</typeparam>
     /// <param name="handler">The handler callback that receives the message.</param>
-    void RegisterMessageHandler<T>(Action<T> handler) where T : class;
+    void RegisterMessageHandler<T>(NetworkServerMessageHandler<T> handler) where T : class;
 
     /// <summary>
     /// Send a message to the server.
