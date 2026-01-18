@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.Interfaces;
@@ -14,152 +13,508 @@ namespace DivineAscension.Tests.Systems.Favor;
 [ExcludeFromCodeCoverage]
 public class AnvilFavorTrackerTests
 {
-    private static AnvilFavorTracker CreateTracker(
-        Mock<ICoreServerAPI> mockSapi,
-        Mock<IPlayerProgressionDataManager> mockPlayerReligion,
-        Mock<IFavorSystem> mockFavor)
+    private readonly FakeWorldService _fakeWorldService;
+    private readonly Mock<IFavorSystem> _mockFavorSystem;
+    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<IPlayerProgressionDataManager> _mockPlayerProgressionDataManager;
+
+    public AnvilFavorTrackerTests()
     {
-        return new AnvilFavorTracker(mockPlayerReligion.Object, mockSapi.Object, mockFavor.Object);
+        _mockLogger = new Mock<ILogger>();
+        _fakeWorldService = new FakeWorldService();
+        _mockPlayerProgressionDataManager = new Mock<IPlayerProgressionDataManager>();
+        _mockFavorSystem = new Mock<IFavorSystem>();
     }
 
-    private static MethodInfo GetHandleMethod()
+    private AnvilFavorTracker CreateTracker()
     {
-        var mi = typeof(AnvilFavorTracker).GetMethod("HandleAnvilRecipeCompleted",
-            BindingFlags.Instance | BindingFlags.NonPublic);
-        Assert.NotNull(mi);
-        return mi!;
+        return new AnvilFavorTracker(
+            _mockLogger.Object,
+            _fakeWorldService,
+            _mockPlayerProgressionDataManager.Object,
+            _mockFavorSystem.Object
+        );
     }
 
-    private static (Mock<IServerWorldAccessor> world, Mock<IBlockAccessor> accessor) SetupWorld(
-        Mock<ICoreServerAPI> mockSapi)
-    {
-        var mockWorld = new Mock<IServerWorldAccessor>();
-        var mockAccessor = new Mock<IBlockAccessor>();
-        mockSapi.Setup(s => s.World).Returns(mockWorld.Object);
-        mockWorld.Setup(w => w.BlockAccessor).Returns(mockAccessor.Object);
-        return (mockWorld, mockAccessor);
-    }
+    #region Initialize and Dispose Tests
 
-    private static void SetupPlayer(Mock<IServerWorldAccessor> mockWorld, IServerPlayer player)
+    [Fact]
+    public void Initialize_DoesNotThrow()
     {
-        mockWorld.Setup(w => w.PlayerByUid(player.PlayerUID)).Returns(player);
-        mockWorld.Setup(w => w.AllOnlinePlayers).Returns(new[] { player });
-    }
+        // Arrange
+        var tracker = CreateTracker();
 
-    private static void SetupHelveAdjacent(Mock<IBlockAccessor> mockAccessor, BlockPos anvilPos, bool present)
-    {
-        // For simplicity, set helvehammer to the +X face only
-        var helveBlock = new Block { Code = new AssetLocation("game", "helvehammer") };
-        var airBlock = new Block { Code = new AssetLocation("game", "air") };
+        // Act & Assert
+        var exception = Record.Exception(() => tracker.Initialize());
+        Assert.Null(exception);
 
-        foreach (var face in BlockFacing.ALLFACES)
-        {
-            var adj = anvilPos.AddCopy(face);
-            if (present && face == BlockFacing.EAST)
-            {
-                mockAccessor.Setup(a => a.GetBlock(adj)).Returns(helveBlock);
-            }
-            else
-            {
-                mockAccessor.Setup(a => a.GetBlock(adj)).Returns(airBlock);
-            }
-        }
+        // Cleanup
+        tracker.Dispose();
     }
 
     [Fact]
-    public void HandleAnvilRecipeCompleted_NullOutput_AwardsMidTierFavor()
+    public void Dispose_DoesNotThrow()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
-        var (mockWorld, mockAccessor) = SetupWorld(mockSapi);
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
-        var mockReligionManager = TestFixtures.CreateMockReligionManager();
-        var mockFavor = TestFixtures.CreateMockFavorSystem();
-        var player = TestFixtures.CreateMockServerPlayer("player-anvil-1", "Smith");
-        SetupPlayer(mockWorld, player.Object);
-
-        // Player follows Khoras
-        mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-anvil-1"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-anvil-1", DeityDomain.Craft));
-        mockReligionManager.Setup(d => d.GetPlayerActiveDeityDomain(It.IsAny<string>())).Returns(DeityDomain.Craft);
-        mockPlayerReligion.Setup(d => d.GetPlayerDeityType(It.IsAny<string>())).Returns(DeityDomain.Craft);
-        var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
+        // Arrange
+        var tracker = CreateTracker();
         tracker.Initialize();
-        var method = GetHandleMethod();
 
-        var pos = new BlockPos(10, 64, 10);
-        SetupHelveAdjacent(mockAccessor, pos, present: false);
+        // Act & Assert
+        var exception = Record.Exception(() => tracker.Dispose());
+        Assert.Null(exception);
+    }
 
-        // Null outputPreview → defaults to FavorMidTier (10)
-        method.Invoke(tracker, new object?[] { "player-anvil-1", pos, null });
+    [Fact]
+    public void Dispose_CanBeCalledMultipleTimes()
+    {
+        // Arrange
+        var tracker = CreateTracker();
+        tracker.Initialize();
 
-        mockFavor.Verify(m => m.AwardFavorForAction(
-            It.Is<IServerPlayer>(p => p.PlayerUID == "player-anvil-1"),
-            "smithing",
-            10), Times.Once);
+        // Act & Assert - Should not throw on multiple disposes
+        tracker.Dispose();
+        var exception = Record.Exception(() => tracker.Dispose());
+        Assert.Null(exception);
+    }
 
+    [Fact]
+    public void DeityDomain_ReturnsCraft()
+    {
+        // Arrange
+        var tracker = CreateTracker();
+
+        // Act & Assert
+        Assert.Equal(DeityDomain.Craft, tracker.DeityDomain);
+    }
+
+    #endregion
+
+    #region HandleAnvilRecipeCompleted Tests
+
+    [Fact]
+    public void HandleAnvilRecipeCompleted_WithNullPlayerUid_DoesNotAwardFavor()
+    {
+        // Arrange
+        var tracker = CreateTracker();
+        tracker.Initialize();
+        var pos = new BlockPos(0, 0, 0);
+
+        // Act
+        tracker.HandleAnvilRecipeCompleted(null, pos, null);
+
+        // Assert
+        _mockFavorSystem.Verify(
+            f => f.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()),
+            Times.Never
+        );
+
+        // Cleanup
+        tracker.Dispose();
+    }
+
+    [Fact]
+    public void HandleAnvilRecipeCompleted_WithEmptyPlayerUid_DoesNotAwardFavor()
+    {
+        // Arrange
+        var tracker = CreateTracker();
+        tracker.Initialize();
+        var pos = new BlockPos(0, 0, 0);
+
+        // Act
+        tracker.HandleAnvilRecipeCompleted(string.Empty, pos, null);
+
+        // Assert
+        _mockFavorSystem.Verify(
+            f => f.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()),
+            Times.Never
+        );
+
+        // Cleanup
+        tracker.Dispose();
+    }
+
+    [Fact]
+    public void HandleAnvilRecipeCompleted_WithPlayerNotFound_DoesNotAwardFavor()
+    {
+        // Arrange
+        var tracker = CreateTracker();
+        tracker.Initialize();
+        var pos = new BlockPos(0, 0, 0);
+
+        // World service returns null for player
+        // (FakeWorldService returns null by default if player not added)
+
+        // Act
+        tracker.HandleAnvilRecipeCompleted("unknown-player", pos, null);
+
+        // Assert
+        _mockFavorSystem.Verify(
+            f => f.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()),
+            Times.Never
+        );
+
+        // Cleanup
+        tracker.Dispose();
+    }
+
+    [Fact]
+    public void HandleAnvilRecipeCompleted_WithNonCraftDeity_DoesNotAwardFavor()
+    {
+        // Arrange
+        var tracker = CreateTracker();
+        tracker.Initialize();
+
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        _fakeWorldService.AddPlayer(mockPlayer.Object);
+
+        // Player follows Wild deity, not Craft
+        _mockPlayerProgressionDataManager
+            .Setup(m => m.GetPlayerDeityType("player-uid"))
+            .Returns(DeityDomain.Wild);
+
+        var pos = new BlockPos(0, 0, 0);
+
+        // Act
+        tracker.HandleAnvilRecipeCompleted("player-uid", pos, null);
+
+        // Assert
+        _mockFavorSystem.Verify(
+            f => f.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()),
+            Times.Never
+        );
+
+        // Cleanup
+        tracker.Dispose();
+    }
+
+    [Fact]
+    public void HandleAnvilRecipeCompleted_WithCraftDeityAndCopperItem_AwardsLowTierFavor()
+    {
+        // Arrange
+        var tracker = CreateTracker();
+        tracker.Initialize();
+
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        _fakeWorldService.AddPlayer(mockPlayer.Object);
+
+        _mockPlayerProgressionDataManager
+            .Setup(m => m.GetPlayerDeityType("player-uid"))
+            .Returns(DeityDomain.Craft);
+
+        // Create copper item
+        var itemStack = CreateTestItemStack("ingot-copper");
+
+        var pos = new BlockPos(0, 0, 0);
+        _fakeWorldService.SetBlock(pos, CreateMockBlock("anvil"));
+
+        // Act
+        tracker.HandleAnvilRecipeCompleted("player-uid", pos, itemStack);
+
+        // Assert - Should award 5 favor (low tier)
+        _mockFavorSystem.Verify(
+            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 5),
+            Times.Once
+        );
+
+        // Cleanup
+        tracker.Dispose();
+    }
+
+    [Fact]
+    public void HandleAnvilRecipeCompleted_WithCraftDeityAndBronzeItem_AwardsMidTierFavor()
+    {
+        // Arrange
+        var tracker = CreateTracker();
+        tracker.Initialize();
+
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        _fakeWorldService.AddPlayer(mockPlayer.Object);
+
+        _mockPlayerProgressionDataManager
+            .Setup(m => m.GetPlayerDeityType("player-uid"))
+            .Returns(DeityDomain.Craft);
+
+        // Create bronze item
+        var itemStack = CreateTestItemStack("ingot-bronze");
+
+        var pos = new BlockPos(0, 0, 0);
+        _fakeWorldService.SetBlock(pos, CreateMockBlock("anvil"));
+
+        // Act
+        tracker.HandleAnvilRecipeCompleted("player-uid", pos, itemStack);
+
+        // Assert - Should award 10 favor (mid tier)
+        _mockFavorSystem.Verify(
+            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 10),
+            Times.Once
+        );
+
+        // Cleanup
+        tracker.Dispose();
+    }
+
+    [Fact]
+    public void HandleAnvilRecipeCompleted_WithCraftDeityAndIronItem_AwardsHighTierFavor()
+    {
+        // Arrange
+        var tracker = CreateTracker();
+        tracker.Initialize();
+
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        _fakeWorldService.AddPlayer(mockPlayer.Object);
+
+        _mockPlayerProgressionDataManager
+            .Setup(m => m.GetPlayerDeityType("player-uid"))
+            .Returns(DeityDomain.Craft);
+
+        // Create iron item
+        var itemStack = CreateTestItemStack("ingot-iron");
+
+        var pos = new BlockPos(0, 0, 0);
+        _fakeWorldService.SetBlock(pos, CreateMockBlock("anvil"));
+
+        // Act
+        tracker.HandleAnvilRecipeCompleted("player-uid", pos, itemStack);
+
+        // Assert - Should award 15 favor (high tier)
+        _mockFavorSystem.Verify(
+            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 15),
+            Times.Once
+        );
+
+        // Cleanup
+        tracker.Dispose();
+    }
+
+    [Fact]
+    public void HandleAnvilRecipeCompleted_WithCraftDeityAndSteelItem_AwardsEliteTierFavor()
+    {
+        // Arrange
+        var tracker = CreateTracker();
+        tracker.Initialize();
+
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        _fakeWorldService.AddPlayer(mockPlayer.Object);
+
+        _mockPlayerProgressionDataManager
+            .Setup(m => m.GetPlayerDeityType("player-uid"))
+            .Returns(DeityDomain.Craft);
+
+        // Create steel item
+        var itemStack = CreateTestItemStack("ingot-steel");
+
+        var pos = new BlockPos(0, 0, 0);
+        _fakeWorldService.SetBlock(pos, CreateMockBlock("anvil"));
+
+        // Act
+        tracker.HandleAnvilRecipeCompleted("player-uid", pos, itemStack);
+
+        // Assert - Should award 20 favor (elite tier)
+        _mockFavorSystem.Verify(
+            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 20),
+            Times.Once
+        );
+
+        // Cleanup
+        tracker.Dispose();
+    }
+
+    [Fact]
+    public void HandleAnvilRecipeCompleted_WithNullOutput_AwardsMidTierFavor()
+    {
+        // Arrange
+        var tracker = CreateTracker();
+        tracker.Initialize();
+
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        _fakeWorldService.AddPlayer(mockPlayer.Object);
+
+        _mockPlayerProgressionDataManager
+            .Setup(m => m.GetPlayerDeityType("player-uid"))
+            .Returns(DeityDomain.Craft);
+
+        var pos = new BlockPos(0, 0, 0);
+        _fakeWorldService.SetBlock(pos, CreateMockBlock("anvil"));
+
+        // Act
+        tracker.HandleAnvilRecipeCompleted("player-uid", pos, null);
+
+        // Assert - Should award 10 favor (mid tier default)
+        _mockFavorSystem.Verify(
+            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 10),
+            Times.Once
+        );
+
+        // Cleanup
         tracker.Dispose();
     }
 
     [Fact]
     public void HandleAnvilRecipeCompleted_WithHelveHammer_AppliesPenalty()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
-        var (mockWorld, mockAccessor) = SetupWorld(mockSapi);
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
-        var mockReligionManager = TestFixtures.CreateMockReligionManager();
-        var mockFavor = TestFixtures.CreateMockFavorSystem();
-        var player = TestFixtures.CreateMockServerPlayer("player-anvil-2", "Hammerer");
-        SetupPlayer(mockWorld, player.Object);
-
-        mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-anvil-2"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-anvil-2", DeityDomain.Craft));
-        mockReligionManager.Setup(d => d.GetPlayerActiveDeityDomain(It.IsAny<string>())).Returns(DeityDomain.Craft);
-        mockPlayerReligion.Setup(d => d.GetPlayerDeityType(It.IsAny<string>())).Returns(DeityDomain.Craft);
-
-        var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
+        // Arrange
+        var tracker = CreateTracker();
         tracker.Initialize();
-        var method = GetHandleMethod();
 
-        var pos = new BlockPos(20, 70, 20);
-        SetupHelveAdjacent(mockAccessor, pos, present: true);
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
 
-        // Null outputPreview → base 10, helve penalty 35% → floor(6.5)=6
-        method.Invoke(tracker, new object?[] { "player-anvil-2", pos, null });
+        _fakeWorldService.AddPlayer(mockPlayer.Object);
 
-        mockFavor.Verify(m => m.AwardFavorForAction(
-            It.Is<IServerPlayer>(p => p.PlayerUID == "player-anvil-2"),
-            "smithing",
-            6), Times.Once);
+        _mockPlayerProgressionDataManager
+            .Setup(m => m.GetPlayerDeityType("player-uid"))
+            .Returns(DeityDomain.Craft);
 
+        // Create steel item (base 20 favor)
+        var itemStack = CreateTestItemStack("ingot-steel");
+
+        var anvilPos = new BlockPos(10, 5, 10);
+        _fakeWorldService.SetBlock(anvilPos, CreateMockBlock("anvil"));
+
+        // Place helve hammer adjacent to anvil (north face)
+        var helvePos = anvilPos.AddCopy(BlockFacing.NORTH);
+        _fakeWorldService.SetBlock(helvePos, CreateMockBlock("helvehammer"));
+
+        // Act
+        tracker.HandleAnvilRecipeCompleted("player-uid", anvilPos, itemStack);
+
+        // Assert - Should award 13 favor (20 * 0.65 = 13)
+        _mockFavorSystem.Verify(
+            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 13),
+            Times.Once
+        );
+
+        // Cleanup
         tracker.Dispose();
+    }
+
+    #endregion
+
+    #region CheckHelveHammerUsage Tests
+
+    [Fact]
+    public void CheckHelveHammerUsage_WithNoHelveHammer_ReturnsFalse()
+    {
+        // Arrange
+        var tracker = CreateTracker();
+        var anvilPos = new BlockPos(0, 0, 0);
+
+        // Set anvil block
+        _fakeWorldService.SetBlock(anvilPos, CreateMockBlock("anvil"));
+
+        // Set non-helve blocks around anvil
+        foreach (var face in BlockFacing.ALLFACES)
+        {
+            var adjacentPos = anvilPos.AddCopy(face);
+            _fakeWorldService.SetBlock(adjacentPos, CreateMockBlock("stone"));
+        }
+
+        // Act
+        var result = tracker.CheckHelveHammerUsage(anvilPos);
+
+        // Assert
+        Assert.False(result);
     }
 
     [Fact]
-    public void HandleAnvilRecipeCompleted_NonKhorasFollower_NoFavor()
+    public void CheckHelveHammerUsage_WithHelveHammerNorth_ReturnsTrue()
     {
-        var mockSapi = TestFixtures.CreateMockServerAPI();
-        var (mockWorld, mockAccessor) = SetupWorld(mockSapi);
-        var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
-        var mockFavor = TestFixtures.CreateMockFavorSystem();
-        var player = TestFixtures.CreateMockServerPlayer("player-anvil-3", "Other");
-        SetupPlayer(mockWorld, player.Object);
+        // Arrange
+        var tracker = CreateTracker();
+        var anvilPos = new BlockPos(0, 0, 0);
 
-        // Player follows Lysa
-        mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-anvil-3"))
-            .Returns(TestFixtures.CreateTestPlayerReligionData("player-anvil-3", DeityDomain.Wild));
+        _fakeWorldService.SetBlock(anvilPos, CreateMockBlock("anvil"));
 
-        var tracker = CreateTracker(mockSapi, mockPlayerReligion, mockFavor);
-        tracker.Initialize();
-        var method = GetHandleMethod();
+        // Place helve hammer to the north
+        var helvePos = anvilPos.AddCopy(BlockFacing.NORTH);
+        _fakeWorldService.SetBlock(helvePos, CreateMockBlock("helvehammer"));
 
-        var pos = new BlockPos(0, 0, 0);
-        SetupHelveAdjacent(mockAccessor, pos, present: false);
+        // Act
+        var result = tracker.CheckHelveHammerUsage(anvilPos);
 
-        method.Invoke(tracker, new object?[] { "player-anvil-3", pos, null });
-
-        mockFavor.Verify(m => m.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()),
-            Times.Never);
-
-        tracker.Dispose();
+        // Assert
+        Assert.True(result);
     }
+
+    [Fact]
+    public void CheckHelveHammerUsage_WithHelveHammerEast_ReturnsTrue()
+    {
+        // Arrange
+        var tracker = CreateTracker();
+        var anvilPos = new BlockPos(0, 0, 0);
+
+        _fakeWorldService.SetBlock(anvilPos, CreateMockBlock("anvil"));
+
+        // Place helve hammer to the east
+        var helvePos = anvilPos.AddCopy(BlockFacing.EAST);
+        _fakeWorldService.SetBlock(helvePos, CreateMockBlock("helvehammer"));
+
+        // Act
+        var result = tracker.CheckHelveHammerUsage(anvilPos);
+
+        // Assert
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void CheckHelveHammerUsage_WithHelveHammerUp_ReturnsTrue()
+    {
+        // Arrange
+        var tracker = CreateTracker();
+        var anvilPos = new BlockPos(0, 0, 0);
+
+        _fakeWorldService.SetBlock(anvilPos, CreateMockBlock("anvil"));
+
+        // Place helve hammer above
+        var helvePos = anvilPos.AddCopy(BlockFacing.UP);
+        _fakeWorldService.SetBlock(helvePos, CreateMockBlock("helvehammer"));
+
+        // Act
+        var result = tracker.CheckHelveHammerUsage(anvilPos);
+
+        // Assert
+        Assert.True(result);
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private Block CreateMockBlock(string code)
+    {
+        return new Block
+        {
+            Code = new AssetLocation("game", code)
+        };
+    }
+
+    private ItemStack CreateTestItemStack(string collectibleCode)
+    {
+        var item = new Item
+        {
+            Code = new AssetLocation("game", collectibleCode)
+        };
+        return new ItemStack(item);
+    }
+
+    #endregion
 }

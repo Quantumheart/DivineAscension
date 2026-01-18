@@ -1,38 +1,48 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Patches;
+using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Systems.Favor;
 
 public class SkinningFavorTracker(
+    ILogger logger,
+    IEventService eventService,
+    IWorldService worldService,
     IPlayerProgressionDataManager playerProgressionDataManager,
-    ICoreServerAPI sapi,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
 {
     private static readonly TimeSpan SkinningAwardCooldown = TimeSpan.FromSeconds(5);
+
+    private readonly IEventService
+        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
     // Per-player, per-entity throttling to prevent duplicate messages
     // Key format: "playerUID:entityID"
     private readonly Dictionary<string, DateTime> _lastSkinningAwardUtc = new();
+    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
-    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
-
     private readonly HashSet<string> _wildFollowers = new();
+
+    private readonly IWorldService
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
 
     public void Dispose()
     {
         SkinningPatches.OnAnimalSkinned -= OnAnimalSkinned;
         _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
         _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
-        _sapi.Event.PlayerDisconnect -= OnPlayerDisconnect;
+        _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
         _wildFollowers.Clear();
         _lastSkinningAwardUtc.Clear();
     }
@@ -51,13 +61,12 @@ public class SkinningFavorTracker(
         _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
 
         // Clean up throttle cache on player disconnect
-        _sapi.Event.PlayerDisconnect += OnPlayerDisconnect;
+        _eventService.OnPlayerDisconnect(OnPlayerDisconnect);
     }
 
     private void RefreshFollowerCache()
     {
-        var onlinePlayers = _sapi?.World?.AllOnlinePlayers;
-        if (onlinePlayers == null) return;
+        var onlinePlayers = _worldService.GetAllOnlinePlayers();
 
         foreach (var player in onlinePlayers) UpdateFollower(player.PlayerUID);
     }

@@ -1,4 +1,5 @@
 using System;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Patches;
@@ -12,14 +13,15 @@ namespace DivineAscension.Systems.Favor;
 ///     Awards favor to Craft followers when an anvil recipe is completed (event-driven)
 /// </summary>
 public class AnvilFavorTracker(
+    ILogger logger,
+    IWorldService worldService,
     IPlayerProgressionDataManager playerProgressionDataManager,
-    ICoreServerAPI sapi,
     IFavorSystem favorSystem)
     : IFavorTracker, IDisposable
 {
     // Favor values per tier
     private const int FavorLowTier = 5; // Copper
-    private const int FavorMidTier = 10; // Bronze, gold 
+    private const int FavorMidTier = 10; // Bronze, gold
     private const int FavorHighTier = 15; // special alloys, iron
     private const int FavorEliteTier = 20; // Steel
 
@@ -28,16 +30,18 @@ public class AnvilFavorTracker(
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
     private readonly Guid _instanceId = Guid.NewGuid();
+    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
-    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+    private readonly IWorldService
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
 
     public void Dispose()
     {
         AnvilPatches.OnAnvilRecipeCompleted -= HandleAnvilRecipeCompleted;
-        _sapi.Logger.Debug($"[DivineAscension] AnvilFavorTracker disposed (ID: {_instanceId})");
+        _logger.Debug($"[DivineAscension] AnvilFavorTracker disposed (ID: {_instanceId})");
     }
 
     public DeityDomain DeityDomain { get; } = DeityDomain.Craft;
@@ -45,14 +49,14 @@ public class AnvilFavorTracker(
     public void Initialize()
     {
         AnvilPatches.OnAnvilRecipeCompleted += HandleAnvilRecipeCompleted;
-        _sapi.Logger.Notification($"[DivineAscension] AnvilFavorTracker initialized (ID: {_instanceId})");
+        _logger.Notification($"[DivineAscension] AnvilFavorTracker initialized (ID: {_instanceId})");
     }
 
-    private void HandleAnvilRecipeCompleted(string? playerUid, BlockPos pos, ItemStack? outputPreview)
+    internal void HandleAnvilRecipeCompleted(string? playerUid, BlockPos pos, ItemStack? outputPreview)
     {
         if (string.IsNullOrEmpty(playerUid)) return;
 
-        var player = _sapi.World.PlayerByUid(playerUid) as IServerPlayer;
+        var player = _worldService.GetPlayerByUID(playerUid) as IServerPlayer;
         if (player == null) return;
 
         // Verify religion
@@ -67,20 +71,20 @@ public class AnvilFavorTracker(
         var finalFavor = ApplyAutomationPenalty(baseFavor, usedHelve);
 
         _favorSystem.AwardFavorForAction(player, "smithing", finalFavor);
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[AnvilFavorTracker:{_instanceId}] Awarded {finalFavor} favor to {player.PlayerName} for smithing (base {baseFavor}, helve:{usedHelve}) at {pos}");
     }
 
     #region Helve Hammer Detection
 
-    private bool CheckHelveHammerUsage(BlockPos anvilPos)
+    internal bool CheckHelveHammerUsage(BlockPos anvilPos)
     {
         // Check if helve hammer is adjacent to this anvil
         // Helve hammer block code: "helvehammer"
         foreach (var face in BlockFacing.ALLFACES)
         {
             var adjacentPos = anvilPos.AddCopy(face);
-            var block = _sapi.World.BlockAccessor.GetBlock(adjacentPos);
+            var block = _worldService.GetBlock(adjacentPos);
 
             if (block?.Code?.Path.Contains("helvehammer") == true) return true;
         }

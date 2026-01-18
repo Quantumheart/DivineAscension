@@ -61,6 +61,12 @@ internal sealed class ServerEventService(IServerEventAPI eventApi) : IEventServi
         _eventApi.DidPlaceBlock += callback;
     }
 
+    public void OnEntityDeath(EntityDeathDelegate callback)
+    {
+        if (callback == null) throw new ArgumentNullException(nameof(callback));
+        _eventApi.OnEntityDeath += callback;
+    }
+
     public long RegisterGameTickListener(Action<float> callback, int intervalMs)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
@@ -112,5 +118,17 @@ internal sealed class ServerEventService(IServerEventAPI eventApi) : IEventServi
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));
         _eventApi.BreakBlock -= callback;
+    }
+
+    public void UnsubscribeDidPlaceBlock(BlockPlacedDelegate callback)
+    {
+        if (callback == null) throw new ArgumentNullException(nameof(callback));
+        _eventApi.DidPlaceBlock -= callback;
+    }
+
+    public void UnsubscribeEntityDeath(EntityDeathDelegate callback)
+    {
+        if (callback == null) throw new ArgumentNullException(nameof(callback));
+        _eventApi.OnEntityDeath -= callback;
     }
 }

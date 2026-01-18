@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Favor;
@@ -19,36 +20,45 @@ public class FavorSystem : IFavorSystem
 
     private readonly IActivityLogManager _activityLogManager;
     private readonly GameBalanceConfig _config;
+    private readonly IEventService _eventService;
+    private readonly ILogger _logger;
 
     // Batching support for high-frequency favor events (e.g., scythe harvesting)
     private readonly Dictionary<string, PendingFavorData> _pendingFavor = new();
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionPrestigeManager _prestigeManager;
     private readonly IReligionManager _religionManager;
-    private readonly ICoreServerAPI _sapi;
+    private readonly IWorldService _worldService;
     private AnvilFavorTracker? _anvilFavorTracker;
     private ConquestFavorTracker? _conquestFavorTracker;
     private ForagingFavorTracker? _foragingFavorTracker;
     private HarvestFavorTracker? _harvestFavorTracker;
     private HuntingFavorTracker? _huntingFavorTracker;
     private MiningFavorTracker? _miningFavorTracker;
+    private RuinDiscoveryFavorTracker? _ruinDiscoveryFavorTracker;
     private SkinningFavorTracker? _skinningFavorTracker;
     private SmeltingFavorTracker? _smeltingFavorTracker;
     private StoneFavorTracker? _stoneFavorTracker;
-    private RuinDiscoveryFavorTracker? _ruinDiscoveryFavorTracker;
 
-    public FavorSystem(ICoreServerAPI sapi,
+    public FavorSystem(
+        ILogger logger,
+        IEventService eventService,
+        IWorldService worldService,
         IPlayerProgressionDataManager playerProgressionDataManager,
-        IReligionManager religionManager, IReligionPrestigeManager prestigeManager,
+        IReligionManager religionManager,
+        IReligionPrestigeManager prestigeManager,
         IActivityLogManager activityLogManager,
         GameBalanceConfig config)
     {
-        _sapi = sapi;
-        _playerProgressionDataManager = playerProgressionDataManager;
-        _religionManager = religionManager;
-        _prestigeManager = prestigeManager;
-        _activityLogManager = activityLogManager;
-        _config = config;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
+        _playerProgressionDataManager = playerProgressionDataManager ??
+                                        throw new ArgumentNullException(nameof(playerProgressionDataManager));
+        _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
+        _prestigeManager = prestigeManager ?? throw new ArgumentNullException(nameof(prestigeManager));
+        _activityLogManager = activityLogManager ?? throw new ArgumentNullException(nameof(activityLogManager));
+        _config = config ?? throw new ArgumentNullException(nameof(config));
     }
 
     /// <summary>
@@ -56,47 +66,53 @@ public class FavorSystem : IFavorSystem
     /// </summary>
     public void Initialize()
     {
-        _sapi.Logger.Notification("[DivineAscension] Initializing Favor System...");
+        _logger.Notification("[DivineAscension] Initializing Favor System...");
 
         // Hook into player death event for PvP favor rewards
-        _sapi.Event.PlayerDeath += OnPlayerDeath;
+        _eventService.OnPlayerDeath(OnPlayerDeath);
 
         // Register passive favor generation tick (once per second)
-        _sapi.Event.RegisterGameTickListener(OnGameTick, PASSIVE_TICK_INTERVAL_MS);
+        _eventService.RegisterGameTickListener(OnGameTick, PASSIVE_TICK_INTERVAL_MS);
 
-        _sapi.Logger.Notification("[DivineAscension] Favor System initialized with passive favor generation");
+        _logger.Notification("[DivineAscension] Favor System initialized with passive favor generation");
 
-        _miningFavorTracker = new MiningFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _miningFavorTracker = new MiningFavorTracker(_logger, _worldService, _playerProgressionDataManager, this);
         _miningFavorTracker.Initialize();
 
-        _anvilFavorTracker = new AnvilFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _anvilFavorTracker = new AnvilFavorTracker(_logger, _worldService, _playerProgressionDataManager, this);
         _anvilFavorTracker.Initialize();
 
-        _huntingFavorTracker = new HuntingFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _huntingFavorTracker =
+            new HuntingFavorTracker(_playerProgressionDataManager, _logger, _eventService, _worldService, this);
         _huntingFavorTracker.Initialize();
 
-        _foragingFavorTracker = new ForagingFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _foragingFavorTracker = new ForagingFavorTracker(_logger, _worldService, _playerProgressionDataManager, this);
         _foragingFavorTracker.Initialize();
 
-        _harvestFavorTracker = new HarvestFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _harvestFavorTracker =
+            new HarvestFavorTracker(_playerProgressionDataManager, _logger, _eventService, _worldService, this);
         _harvestFavorTracker.Initialize();
 
-        _stoneFavorTracker = new StoneFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _stoneFavorTracker =
+            new StoneFavorTracker(_playerProgressionDataManager, _logger, _eventService, _worldService, this);
         _stoneFavorTracker.Initialize();
 
-        _smeltingFavorTracker = new SmeltingFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _smeltingFavorTracker = new SmeltingFavorTracker(_logger, _worldService, _playerProgressionDataManager, this);
         _smeltingFavorTracker.Initialize();
 
-        _skinningFavorTracker = new SkinningFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _skinningFavorTracker =
+            new SkinningFavorTracker(_logger, _eventService, _worldService, _playerProgressionDataManager, this);
         _skinningFavorTracker.Initialize();
 
-        _conquestFavorTracker = new ConquestFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _conquestFavorTracker =
+            new ConquestFavorTracker(_playerProgressionDataManager, _logger, _eventService, _worldService, this);
         _conquestFavorTracker.Initialize();
 
-        _ruinDiscoveryFavorTracker = new RuinDiscoveryFavorTracker(_playerProgressionDataManager, _sapi, this);
+        _ruinDiscoveryFavorTracker = new RuinDiscoveryFavorTracker(_logger, _eventService, _worldService,
+            _playerProgressionDataManager, this);
         _ruinDiscoveryFavorTracker.Initialize();
 
-        _sapi.Logger.Notification("[DivineAscension] Initialized 10 favor trackers");
+        _logger.Notification("[DivineAscension] Initialized 10 favor trackers");
     }
 
     /// <summary>
@@ -110,6 +126,8 @@ public class FavorSystem : IFavorSystem
 
     public void Dispose()
     {
+        _eventService.UnsubscribePlayerDeath(OnPlayerDeath);
+
         _miningFavorTracker?.Dispose();
         _anvilFavorTracker?.Dispose();
         _smeltingFavorTracker?.Dispose();
@@ -140,7 +158,7 @@ public class FavorSystem : IFavorSystem
     {
         // Check if death was caused by another player (PvP)
         if (damageSource?.SourceEntity is EntityPlayer attackerEntity)
-            if (_sapi.World.PlayerByUid(attackerEntity.PlayerUID) is IServerPlayer attackerPlayer &&
+            if (_worldService.GetPlayerByUID(attackerEntity.PlayerUID) is IServerPlayer attackerPlayer &&
                 attackerPlayer != deadPlayer)
                 ProcessPvPKill(attackerPlayer, deadPlayer);
 
@@ -186,7 +204,7 @@ public class FavorSystem : IFavorSystem
             );
         }
 
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[DivineAscension] {attacker.PlayerName} earned {favorReward} favor for killing {victim.PlayerName}");
     }
 
@@ -334,7 +352,7 @@ public class FavorSystem : IFavorSystem
 
         try
         {
-            var playerForName = _sapi.World.PlayerByUid(playerUid);
+            var playerForName = _worldService.GetPlayerByUID(playerUid);
             var playerName = playerForName?.PlayerName ?? playerUid;
 
             // 4. Award fractional prestige (1:1 favor-to-prestige conversion)
@@ -357,7 +375,7 @@ public class FavorSystem : IFavorSystem
         }
         catch (Exception ex)
         {
-            _sapi.Logger.Error($"[FavorSystem] Failed to award prestige/log activity: {ex.Message}");
+            _logger.Error($"[FavorSystem] Failed to award prestige/log activity: {ex.Message}");
         }
 
         // 7. Notify player
@@ -369,7 +387,7 @@ public class FavorSystem : IFavorSystem
     /// </summary>
     private void NotifyPlayer(string playerUid, string actionType, float amount, DeityDomain deityDomain)
     {
-        var player = _sapi?.World?.PlayerByUid(playerUid) as IServerPlayer;
+        var player = _worldService.GetPlayerByUID(playerUid) as IServerPlayer;
         if (player != null)
         {
             AwardFavorMessage(player, actionType, amount, deityDomain);
@@ -387,7 +405,7 @@ public class FavorSystem : IFavorSystem
         FlushPendingFavor();
 
         // Award passive favor to all online players with deities
-        foreach (var player in _sapi.World.AllOnlinePlayers)
+        foreach (var player in _worldService.GetAllOnlinePlayers())
             if (player is IServerPlayer serverPlayer)
                 AwardPassiveFavor(serverPlayer, dt);
     }
@@ -403,7 +421,7 @@ public class FavorSystem : IFavorSystem
 
         // Calculate in-game hours elapsed this tick
         // dt is in real-time seconds, convert to in-game hours
-        var inGameHoursElapsed = dt / _sapi.World.Calendar.HoursPerDay;
+        var inGameHoursElapsed = dt / _worldService.HoursPerDay;
 
         // Calculate base favor for this tick
         var baseFavor = _config.PassiveFavorRate * inGameHoursElapsed;

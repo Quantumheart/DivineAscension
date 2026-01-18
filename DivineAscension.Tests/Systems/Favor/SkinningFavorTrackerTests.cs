@@ -1,9 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
 using Moq;
+using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Tests.Systems.Favor;
@@ -21,7 +23,11 @@ public class SkinningFavorTrackerTests
         Mock<IPlayerProgressionDataManager> mockPlayerReligion,
         Mock<IFavorSystem> mockFavor)
     {
-        return new SkinningFavorTracker(mockPlayerReligion.Object, mockSapi.Object, mockFavor.Object);
+        var mockLogger = new Mock<ILogger>();
+        var mockEventService = new Mock<IEventService>();
+        var mockWorldService = new Mock<IWorldService>();
+        return new SkinningFavorTracker(mockLogger.Object, mockEventService.Object, mockWorldService.Object,
+            mockPlayerReligion.Object, mockFavor.Object);
     }
 
     private static void SetupPlayer(Mock<ICoreServerAPI> mockSapi, IServerPlayer player)
