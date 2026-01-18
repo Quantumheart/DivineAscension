@@ -2,7 +2,6 @@ using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
@@ -20,6 +19,9 @@ namespace DivineAscension.Tests.Systems;
 [ExcludeFromCodeCoverage]
 public class ReligionManagerTests
 {
+    private readonly FakeEventService _fakeEventService;
+    private readonly FakePersistenceService _fakePersistenceService;
+    private readonly FakeWorldService _fakeWorldService;
     private readonly Mock<ICoreServerAPI> _mockAPI;
     private readonly Mock<ILogger> _mockLogger;
     private readonly ReligionManager _religionManager;
@@ -30,7 +32,12 @@ public class ReligionManagerTests
         _mockLogger = new Mock<ILogger>();
         _mockAPI.Setup(a => a.Logger).Returns(_mockLogger.Object);
 
-        _religionManager = new ReligionManager(_mockAPI.Object);
+        _fakeEventService = new FakeEventService();
+        _fakePersistenceService = new FakePersistenceService();
+        _fakeWorldService = new FakeWorldService();
+
+        _religionManager = new ReligionManager(_mockLogger.Object, _fakeEventService, _fakePersistenceService,
+            _fakeWorldService);
     }
 
     #region RemoveInvitation Tests
@@ -100,16 +107,12 @@ public class ReligionManagerTests
     [Fact]
     public void Initialize_RegistersEventHandlers()
     {
-        // Arrange
-        var mockEventAPI = new Mock<IServerEventAPI>();
-        _mockAPI.Setup(a => a.Event).Returns(mockEventAPI.Object);
-
         // Act
         _religionManager.Initialize();
 
         // Assert
-        mockEventAPI.VerifyAdd(e => e.SaveGameLoaded += It.IsAny<Action>(), Times.Once());
-        mockEventAPI.VerifyAdd(e => e.GameWorldSave += It.IsAny<Action>(), Times.Once());
+        Assert.Equal(1, _fakeEventService.SaveGameLoadedCallbackCount);
+        Assert.Equal(1, _fakeEventService.GameWorldSaveCallbackCount);
     }
 
     [Fact]

@@ -2,13 +2,13 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
-using Vintagestory.API.Util;
 
 namespace DivineAscension.Systems;
 
@@ -22,19 +22,30 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     public delegate void PlayerReligionDataChangedDelegate(IServerPlayer player, string religionUID);
 
     private const string DATA_KEY = "divineascension_playerprogressiondata";
+    private readonly GameBalanceConfig _config;
+    private readonly IEventService _eventService;
     private readonly ConcurrentDictionary<string, byte> _initializedPlayers = new();
+
+    private readonly ILogger _logger;
+    private readonly IPersistenceService _persistenceService;
     private readonly ConcurrentDictionary<string, PlayerProgressionData> _playerData = new();
     private readonly IReligionManager _religionManager;
+    private readonly IWorldService _worldService;
 
-    private readonly ICoreServerAPI _sapi;
-    private readonly GameBalanceConfig _config;
-
-    // ReSharper disable once ConvertToPrimaryConstructor
-    public PlayerProgressionDataManager(ICoreServerAPI sapi, IReligionManager religionManager, GameBalanceConfig config)
+    public PlayerProgressionDataManager(
+        ILogger logger,
+        IEventService eventService,
+        IPersistenceService persistenceService,
+        IWorldService worldService,
+        IReligionManager religionManager,
+        GameBalanceConfig config)
     {
-        _sapi = sapi;
-        _religionManager = religionManager;
-        _config = config;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+        _persistenceService = persistenceService ?? throw new ArgumentNullException(nameof(persistenceService));
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
+        _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
+        _config = config ?? throw new ArgumentNullException(nameof(config));
     }
 
     public event PlayerReligionDataChangedDelegate OnPlayerLeavesReligion = null!;
@@ -45,23 +56,23 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     /// </summary>
     public void Initialize()
     {
-        _sapi.Logger.Notification("[DivineAscension] Initializing Player Religion Data Manager...");
+        _logger.Notification("[DivineAscension] Initializing Player Religion Data Manager...");
 
         // Register event handlers
-        _sapi.Event.PlayerJoin += OnPlayerJoin;
-        _sapi.Event.PlayerDisconnect += OnPlayerDisconnect;
-        _sapi.Event.SaveGameLoaded += OnSaveGameLoaded;
-        _sapi.Event.GameWorldSave += OnGameWorldSave;
+        _eventService.OnPlayerJoin(OnPlayerJoin);
+        _eventService.OnPlayerDisconnect(OnPlayerDisconnect);
+        _eventService.OnSaveGameLoaded(OnSaveGameLoaded);
+        _eventService.OnGameWorldSave(OnGameWorldSave);
 
-        _sapi.Logger.Notification("[DivineAscension] Player Religion Data Manager initialized");
+        _logger.Notification("[DivineAscension] Player Religion Data Manager initialized");
     }
 
     public void Dispose()
     {
-        _sapi.Event.PlayerJoin -= OnPlayerJoin;
-        _sapi.Event.PlayerDisconnect -= OnPlayerDisconnect;
-        _sapi.Event.SaveGameLoaded -= OnSaveGameLoaded;
-        _sapi.Event.GameWorldSave -= OnGameWorldSave;
+        _eventService.UnsubscribePlayerJoin(OnPlayerJoin);
+        _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
+        _eventService.UnsubscribeSaveGameLoaded(OnSaveGameLoaded);
+        _eventService.UnsubscribeGameWorldSave(OnGameWorldSave);
     }
 
     /// <summary>
@@ -90,7 +101,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
             // No saved data exists - create new data using GetOrAdd for thread safety
             data = _playerData.GetOrAdd(playerUID, uid =>
             {
-                _sapi.Logger.Debug($"[DivineAscension] Created new player progression data for {uid}");
+                _logger.Debug($"[DivineAscension] Created new player progression data for {uid}");
                 return new PlayerProgressionData(uid);
             });
         }
@@ -117,7 +128,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
         data.AddFavor(amount);
 
         if (!string.IsNullOrEmpty(reason))
-            _sapi.Logger.Debug($"[DivineAscension] Player {playerUID} gained {amount} favor: {reason}");
+            _logger.Debug($"[DivineAscension] Player {playerUID} gained {amount} favor: {reason}");
 
         // Check for rank up
         var newRank = CalculateFavorRank(data.TotalFavorEarned);
@@ -140,7 +151,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
 
         // Only log when favor is actually awarded (when accumulated >= 1)
         if (data.AccumulatedFractionalFavor < amount && !string.IsNullOrEmpty(reason))
-            _sapi.Logger.Debug($"[DivineAscension] Player {playerUID} gained favor: {reason}");
+            _logger.Debug($"[DivineAscension] Player {playerUID} gained favor: {reason}");
 
         // Check for rank up
         var newRank = CalculateFavorRank(data.TotalFavorEarned);
@@ -168,7 +179,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
         var success = data.RemoveFavor(amount);
 
         if (success && !string.IsNullOrEmpty(reason))
-            _sapi.Logger.Debug($"[DivineAscension] Player {playerUID} spent {amount} favor: {reason}");
+            _logger.Debug($"[DivineAscension] Player {playerUID} spent {amount} favor: {reason}");
 
         // Notify listeners that player data changed (for UI updates)
         if (success) OnPlayerDataChanged?.Invoke(playerUID);
@@ -188,7 +199,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
 
         // Unlock the blessing
         data.UnlockBlessing(blessingId);
-        _sapi.Logger.Notification($"[DivineAscension] Player {playerUID} unlocked blessing: {blessingId}");
+        _logger.Notification($"[DivineAscension] Player {playerUID} unlocked blessing: {blessingId}");
 
         return true;
     }
@@ -220,11 +231,11 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
         var religion = _religionManager.GetReligion(religionUID);
         if (religion == null)
         {
-            _sapi.Logger.Error($"[DivineAscension] Cannot set religion data for non-existent religion: {religionUID}");
+            _logger.Error($"[DivineAscension] Cannot set religion data for non-existent religion: {religionUID}");
             return;
         }
 
-        _sapi.Logger.Notification(
+        _logger.Notification(
             $"[DivineAscension] Set player {playerUID} religion data for {religion.ReligionName}");
     }
 
@@ -239,12 +250,12 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
         var religion = _religionManager.GetReligion(religionUID);
         if (religion == null)
         {
-            _sapi.Logger.Error($"[DivineAscension] Cannot join non-existent religion: {religionUID}");
+            _logger.Error($"[DivineAscension] Cannot join non-existent religion: {religionUID}");
             throw new InvalidOperationException($"Cannot join non-existent religion: {religionUID}");
         }
 
         _religionManager.AddMember(religionUID, playerUID);
-        _sapi.Logger.Notification($"[DivineAscension] Player {playerUID} joined religion {religion.ReligionName}");
+        _logger.Notification($"[DivineAscension] Player {playerUID} joined religion {religion.ReligionName}");
     }
 
     /// <summary>
@@ -260,10 +271,10 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
         // Remove from religion
         _religionManager.RemoveMember(playerReligion.ReligionUID, playerUID);
 
-        OnPlayerLeavesReligion.Invoke((_sapi.World.PlayerByUid(playerUID) as IServerPlayer)!,
+        OnPlayerLeavesReligion.Invoke(_worldService.GetPlayerByUID(playerUID)!,
             playerReligion.ReligionUID);
 
-        _sapi.Logger.Notification($"[DivineAscension] Player {playerUID} left religion");
+        _logger.Notification($"[DivineAscension] Player {playerUID} left religion");
     }
 
     public bool HasReligion(string playerUid) => _religionManager.HasReligion(playerUid);
@@ -283,6 +294,19 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
         return CalculateFavorRank(data.TotalFavorEarned);
     }
 
+    /// <summary>
+    ///     Applies switching penalty when changing religions
+    /// </summary>
+    public void HandleReligionSwitch(string playerUID)
+    {
+        var data = GetOrCreatePlayerData(playerUID);
+
+        _logger.Notification($"[DivineAscension] Applying religion switch penalty to player {playerUID}");
+
+        // Apply penalty (reset favor and blessings)
+        data.ApplySwitchPenalty();
+    }
+
     private FavorRank CalculateFavorRank(int totalFavor)
     {
         if (totalFavor >= _config.AvatarThreshold) return FavorRank.Avatar;
@@ -293,24 +317,11 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     }
 
     /// <summary>
-    ///     Applies switching penalty when changing religions
-    /// </summary>
-    public void HandleReligionSwitch(string playerUID)
-    {
-        var data = GetOrCreatePlayerData(playerUID);
-
-        _sapi.Logger.Notification($"[DivineAscension] Applying religion switch penalty to player {playerUID}");
-
-        // Apply penalty (reset favor and blessings)
-        data.ApplySwitchPenalty();
-    }
-
-    /// <summary>
     ///     Sends rank-up notification to player
     /// </summary>
     internal void SendRankUpNotification(string playerUID, FavorRank newRank)
     {
-        var player = _sapi.World.PlayerByUid(playerUID) as IServerPlayer;
+        var player = _worldService.GetPlayerByUID(playerUID);
         if (player != null)
             player.SendMessage(
                 GlobalConstants.GeneralChatGroup,
@@ -363,31 +374,21 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
 
         try
         {
-            var data = _sapi.WorldManager.SaveGame.GetData($"{DATA_KEY}_{playerUID}");
-            if (data != null)
+            var playerData = _persistenceService.Load<PlayerProgressionData>($"{DATA_KEY}_{playerUID}");
+            if (playerData != null)
             {
-                try
+                // Validate the data is actually v3 format by checking Id is populated
+                // (v2 data will deserialize with empty Id due to different ProtoBuf member numbers)
+                if (!string.IsNullOrEmpty(playerData.Id))
                 {
-                    var playerData = SerializerUtil.Deserialize<PlayerProgressionData>(data);
-
-                    // Validate the data is actually v3 format by checking Id is populated
-                    // (v2 data will deserialize with empty Id due to different ProtoBuf member numbers)
-                    if (playerData != null && !string.IsNullOrEmpty(playerData.Id))
-                    {
-                        _playerData[playerUID] = playerData;
-                        _sapi.Logger.Debug(
-                            $"[DivineAscension] Loaded data for player {playerUID} (v{playerData.DataVersion})");
-                    }
-                    else
-                    {
-                        _sapi.Logger.Warning(
-                            $"[DivineAscension] Player {playerUID} has incompatible data format (v2). Starting fresh.");
-                    }
+                    _playerData[playerUID] = playerData;
+                    _logger.Debug(
+                        $"[DivineAscension] Loaded data for player {playerUID} (v{playerData.DataVersion})");
                 }
-                catch (Exception ex)
+                else
                 {
-                    _sapi.Logger.Warning(
-                        $"[DivineAscension] Could not load data for player {playerUID}: {ex.Message}. Starting fresh.");
+                    _logger.Warning(
+                        $"[DivineAscension] Player {playerUID} has incompatible data format (v2). Starting fresh.");
                 }
             }
 
@@ -397,7 +398,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
         }
         catch (Exception ex)
         {
-            _sapi.Logger.Error($"[DivineAscension] Failed to load data for player {playerUID}: {ex.Message}");
+            _logger.Error($"[DivineAscension] Failed to load data for player {playerUID}: {ex.Message}");
             // Still mark as initialized so we don't block forever on repeated failures
             _initializedPlayers.TryAdd(playerUID, 0);
         }
@@ -412,14 +413,13 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
         {
             if (_playerData.TryGetValue(playerUID, out var playerData))
             {
-                var data = SerializerUtil.Serialize(playerData);
-                _sapi.WorldManager.SaveGame.StoreData($"{DATA_KEY}_{playerUID}", data);
-                _sapi.Logger.Debug($"[DivineAscension] Saved religion data for player {playerUID}");
+                _persistenceService.Save($"{DATA_KEY}_{playerUID}", playerData);
+                _logger.Debug($"[DivineAscension] Saved religion data for player {playerUID}");
             }
         }
         catch (Exception ex)
         {
-            _sapi.Logger.Error($"[DivineAscension] Failed to save religion data for player {playerUID}: {ex.Message}");
+            _logger.Error($"[DivineAscension] Failed to save religion data for player {playerUID}: {ex.Message}");
         }
     }
 
@@ -428,7 +428,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     /// </summary>
     internal void LoadAllPlayerData()
     {
-        _sapi.Logger.Notification("[DivineAscension] Loading all player religion data...");
+        _logger.Notification("[DivineAscension] Loading all player religion data...");
         // Player data will be loaded individually as players join
         // This method is here for future batch loading if needed
     }
@@ -438,10 +438,10 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     /// </summary>
     internal void SaveAllPlayerData()
     {
-        _sapi.Logger.Notification("[DivineAscension] Saving all player religion data...");
+        _logger.Notification("[DivineAscension] Saving all player religion data...");
         // Take a snapshot of keys for thread-safe iteration
         foreach (var playerUID in _playerData.Keys.ToList()) SavePlayerData(playerUID);
-        _sapi.Logger.Notification($"[DivineAscension] Saved religion data for {_playerData.Count} players");
+        _logger.Notification($"[DivineAscension] Saved religion data for {_playerData.Count} players");
     }
 
     #endregion

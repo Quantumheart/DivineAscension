@@ -3,27 +3,42 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
-using Vintagestory.API.Server;
-using Vintagestory.API.Util;
+using Vintagestory.API.Common;
 
 namespace DivineAscension.Systems;
 
 /// <summary>
 ///     Manages all religions and congregation membership
 /// </summary>
-public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
+public class ReligionManager : IReligionManager
 {
     private const string DATA_KEY = "divineascension_religions";
     private const string INVITE_DATA_KEY = "divineascension_religion_invites";
+    private readonly IEventService _eventService;
+    private readonly ILogger _logger;
+    private readonly IPersistenceService _persistenceService;
     private readonly ConcurrentDictionary<string, string> _playerToReligionIndex = new();
     private readonly ConcurrentDictionary<string, ReligionData> _religions = new();
-    private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+    private readonly IWorldService _worldService;
     private ReligionWorldData _inviteData = new();
+
+    public ReligionManager(
+        ILogger logger,
+        IEventService eventService,
+        IPersistenceService persistenceService,
+        IWorldService worldService)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+        _persistenceService = persistenceService ?? throw new ArgumentNullException(nameof(persistenceService));
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
+    }
 
 
     internal IReadOnlyDictionary<string, string> PlayerToReligionIndex => _playerToReligionIndex;
@@ -38,24 +53,24 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     /// </summary>
     public void Initialize()
     {
-        _sapi.Logger.Notification("[DivineAscension] Initializing Religion Manager...");
+        _logger.Notification("[DivineAscension] Initializing Religion Manager...");
 
-        // Register event handlers
-        _sapi.Event.SaveGameLoaded += OnSaveGameLoaded;
-        _sapi.Event.GameWorldSave += OnGameWorldSave;
+        // Register event handlers using wrapper service
+        _eventService.OnSaveGameLoaded(OnSaveGameLoaded);
+        _eventService.OnGameWorldSave(OnGameWorldSave);
 
         // Load data immediately in case SaveGameLoaded event already fired
         LoadAllReligions();
         LoadInviteData();
         RebuildPlayerIndex();
 
-        _sapi.Logger.Notification("[DivineAscension] Religion Manager initialized");
+        _logger.Notification("[DivineAscension] Religion Manager initialized");
     }
 
     public void Dispose()
     {
-        _sapi.Event.SaveGameLoaded -= OnSaveGameLoaded;
-        _sapi.Event.GameWorldSave -= OnGameWorldSave;
+        _eventService.UnsubscribeSaveGameLoaded(OnSaveGameLoaded);
+        _eventService.UnsubscribeGameWorldSave(OnGameWorldSave);
     }
 
     /// <summary>
@@ -75,7 +90,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             throw new ArgumentException("Religion must have a deity name");
 
         // Get founder name (player guaranteed to be online during creation)
-        var founderPlayer = _sapi.World.PlayerByUid(founderUID);
+        var founderPlayer = _worldService.GetPlayerByUID(founderUID);
         var founderName = !string.IsNullOrEmpty(founderPlayer?.PlayerName)
             ? founderPlayer.PlayerName
             : founderUID;
@@ -96,7 +111,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         _religions[religionUID] = religion;
         _playerToReligionIndex.TryAdd(founderUID, religionUID);
 
-        _sapi.Logger.Notification(
+        _logger.Notification(
             $"[DivineAscension] Religion created: {name} (Domain: {domain}, Deity: {deityName}, Founder: {founderName}, Public: {isPublic})");
 
         // Immediately save to prevent data loss if server stops before autosave
@@ -156,7 +171,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         religion.DeityName = trimmedName;
         SaveAllReligions();
 
-        _sapi.Logger.Notification(
+        _logger.Notification(
             $"[DivineAscension] Deity name updated for {religion.ReligionName}: {trimmedName}");
 
         return true;
@@ -169,25 +184,25 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     {
         if (!_religions.TryGetValue(religionUID, out var religion))
         {
-            _sapi.Logger.Error($"[DivineAscension] Cannot add member to non-existent religion: {religionUID}");
+            _logger.Error($"[DivineAscension] Cannot add member to non-existent religion: {religionUID}");
             return;
         }
 
         // Check if already a member (idempotency - prevents double-adding)
         if (religion.IsMember(playerUID))
         {
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"[DivineAscension] Player {playerUID} already in religion {religion.ReligionName} - skipping add");
             return;
         }
 
         // Get player name (player guaranteed to be online when joining)
-        var player = _sapi.World.PlayerByUid(playerUID);
+        var player = _worldService.GetPlayerByUID(playerUID);
         var playerName = player?.PlayerName ?? playerUID;
 
         religion.AddMember(playerUID, playerName);
         _playerToReligionIndex[playerUID] = religionUID; // Use indexer to avoid duplicate key exception
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[DivineAscension] Added player {playerName} ({playerUID}) to religion {religion.ReligionName}");
 
         // Save immediately to prevent data loss
@@ -201,7 +216,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     {
         if (!_religions.TryGetValue(religionUID, out var religion))
         {
-            _sapi.Logger.Error($"[DivineAscension] Cannot remove member from non-existent religion: {religionUID}");
+            _logger.Error($"[DivineAscension] Cannot remove member from non-existent religion: {religionUID}");
             return;
         }
 
@@ -210,7 +225,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         if (removed)
         {
             _playerToReligionIndex.TryRemove(playerUID, out _);
-            _sapi.Logger.Debug($"[DivineAscension] Removed player {playerUID} from religion {religion.ReligionName}");
+            _logger.Debug($"[DivineAscension] Removed player {playerUID} from religion {religion.ReligionName}");
 
             // Handle founder leaving
             if (religion.IsFounder(playerUID)) HandleFounderLeaving(religion);
@@ -219,7 +234,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             if (religion.GetMemberCount() == 0)
             {
                 _religions.TryRemove(religionUID, out _);
-                _sapi.Logger.Notification(
+                _logger.Notification(
                     $"[DivineAscension] Religion {religion.ReligionName} disbanded (no members remaining)");
 
                 // Notify subscribers that religion was deleted
@@ -300,21 +315,21 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     {
         if (!_religions.TryGetValue(religionUID, out var religion))
         {
-            _sapi.Logger.Error($"[DivineAscension] Cannot invite to non-existent religion: {religionUID}");
+            _logger.Error($"[DivineAscension] Cannot invite to non-existent religion: {religionUID}");
             return false;
         }
 
         // Validate inviter is a member
         if (!religion.IsMember(inviterUID))
         {
-            _sapi.Logger.Warning($"[DivineAscension] Player {inviterUID} cannot invite to religion they're not in");
+            _logger.Warning($"[DivineAscension] Player {inviterUID} cannot invite to religion they're not in");
             return false;
         }
 
         // Check if invite already exists
         if (_inviteData.HasPendingInvite(religionUID, playerUID))
         {
-            _sapi.Logger.Warning("[DivineAscension] Invite already sent to this player");
+            _logger.Warning("[DivineAscension] Invite already sent to this player");
             return false;
         }
 
@@ -323,7 +338,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         var invite = new ReligionInvite(inviteId, religionUID, playerUID, DateTime.UtcNow);
         _inviteData.AddInvite(invite);
 
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[DivineAscension] Created invitation: InviteId={inviteId}, PlayerUID={playerUID}, ReligionUID={religionUID} ({religion.ReligionName})");
 
         // Save immediately to prevent data loss
@@ -372,33 +387,33 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         var invite = _inviteData.GetInvite(inviteId);
         if (invite == null || !invite.IsValid)
         {
-            _sapi.Logger.Warning($"[DivineAscension] Invalid or expired invite: {inviteId}");
+            _logger.Warning($"[DivineAscension] Invalid or expired invite: {inviteId}");
             return (false, string.Empty, "Invalid or expired invite");
         }
 
         if (invite.PlayerUID != playerUID)
         {
-            _sapi.Logger.Warning($"[DivineAscension] Player {playerUID} cannot accept invite for {invite.PlayerUID}");
+            _logger.Warning($"[DivineAscension] Player {playerUID} cannot accept invite for {invite.PlayerUID}");
             return (false, string.Empty, "Player cannot accept invite");
         }
 
         // Check if player can join
         if (HasReligion(playerUID))
         {
-            _sapi.Logger.Warning($"[DivineAscension] Player {playerUID} already has a religion");
+            _logger.Warning($"[DivineAscension] Player {playerUID} already has a religion");
             return (false, string.Empty, "Player has already has a religion");
         }
 
         var religion = GetReligion(invite.ReligionId);
         if (religion == null)
         {
-            _sapi.Logger.Warning($"[DivineAscension] Religion {invite.ReligionId} no longer exists");
+            _logger.Warning($"[DivineAscension] Religion {invite.ReligionId} no longer exists");
             return (false, string.Empty, "No religion");
         }
 
         if (religion.IsBanned(playerUID))
         {
-            _sapi.Logger.Warning(
+            _logger.Warning(
                 $"[DivineAscension] Player {playerUID} is banned from religion {religion.ReligionName}");
             return (false, string.Empty, "Player is banned from religion");
         }
@@ -410,7 +425,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         _inviteData.RemoveInvite(inviteId);
         SaveInviteData();
 
-        _sapi.Logger.Notification($"[DivineAscension] Player {playerUID} accepted invite to {religion.ReligionName}");
+        _logger.Notification($"[DivineAscension] Player {playerUID} accepted invite to {religion.ReligionName}");
         return (true, religionId, string.Empty);
     }
 
@@ -422,13 +437,13 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         var invite = _inviteData.GetInvite(inviteId);
         if (invite == null)
         {
-            _sapi.Logger.Warning($"[DivineAscension] Invite not found: {inviteId}");
+            _logger.Warning($"[DivineAscension] Invite not found: {inviteId}");
             return false;
         }
 
         if (invite.PlayerUID != playerUID)
         {
-            _sapi.Logger.Warning($"[DivineAscension] Player {playerUID} cannot decline invite for {invite.PlayerUID}");
+            _logger.Warning($"[DivineAscension] Player {playerUID} cannot decline invite for {invite.PlayerUID}");
             return false;
         }
 
@@ -436,7 +451,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         _inviteData.RemoveInvite(inviteId);
         SaveInviteData();
 
-        _sapi.Logger.Debug($"[DivineAscension] Player {playerUID} declined invite {inviteId}");
+        _logger.Debug($"[DivineAscension] Player {playerUID} declined invite {inviteId}");
         return true;
     }
 
@@ -472,20 +487,20 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     {
         if (!_religions.TryGetValue(religionUID, out var religion))
         {
-            _sapi.Logger.Error($"[DivineAscension] Cannot delete non-existent religion: {religionUID}");
+            _logger.Error($"[DivineAscension] Cannot delete non-existent religion: {religionUID}");
             return false;
         }
 
         // Only founder can delete
         if (!religion.IsFounder(requesterUID))
         {
-            _sapi.Logger.Warning(
+            _logger.Warning(
                 $"[DivineAscension] Player {requesterUID} is not founder of {religion.ReligionName}, cannot delete");
             return false;
         }
 
         var memberCount = religion.GetMemberCount();
-        _sapi.Logger.Notification(
+        _logger.Notification(
             $"[DivineAscension] Deleting religion {religion.ReligionName} with {memberCount} member(s)...");
 
         // Remove all members from the index before deleting religion (thread-safe)
@@ -495,17 +510,17 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             if (_playerToReligionIndex.TryRemove(memberUID, out _))
             {
                 removedCount++;
-                _sapi.Logger.Debug($"[DivineAscension] Removed player {memberUID} from index during religion deletion");
+                _logger.Debug($"[DivineAscension] Removed player {memberUID} from index during religion deletion");
             }
         }
 
-        _sapi.Logger.Notification(
+        _logger.Notification(
             $"[DivineAscension] Removed {removedCount} member(s) from index for religion {religion.ReligionName}");
 
         // Verify all members removed
         if (removedCount != memberCount)
         {
-            _sapi.Logger.Warning(
+            _logger.Warning(
                 $"[DivineAscension] Member count mismatch: expected {memberCount}, removed {removedCount}");
         }
 
@@ -513,7 +528,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         _religions.TryRemove(religionUID, out _);
         SaveAllReligions();
 
-        _sapi.Logger.Notification($"[DivineAscension] Religion {religion.ReligionName} disbanded by founder");
+        _logger.Notification($"[DivineAscension] Religion {religion.ReligionName} disbanded by founder");
 
         // Notify subscribers that religion was deleted (CivilizationManager cleans up alliances)
         OnReligionDeleted?.Invoke(religionUID);
@@ -529,7 +544,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     {
         if (!_religions.TryGetValue(religionUID, out var religion))
         {
-            _sapi.Logger.Error($"[DivineAscension] Cannot ban player from non-existent religion: {religionUID}");
+            _logger.Error($"[DivineAscension] Cannot ban player from non-existent religion: {religionUID}");
             return false;
         }
 
@@ -556,7 +571,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         Save(religion);
 
         var expiryText = expiryDays.HasValue ? $" for {expiryDays} days" : " permanently";
-        _sapi.Logger.Notification(
+        _logger.Notification(
             $"[DivineAscension] Player {playerUID} banned from {religion.ReligionName}{expiryText}. Reason: {reason}");
 
         return true;
@@ -569,7 +584,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     {
         if (!_religions.TryGetValue(religionUID, out var religion))
         {
-            _sapi.Logger.Error($"[DivineAscension] Cannot unban player from non-existent religion: {religionUID}");
+            _logger.Error($"[DivineAscension] Cannot unban player from non-existent religion: {religionUID}");
             return false;
         }
 
@@ -577,7 +592,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         Save(religion);
 
         if (removed)
-            _sapi.Logger.Notification($"[DivineAscension] Player {playerUID} unbanned from {religion.ReligionName}");
+            _logger.Notification($"[DivineAscension] Player {playerUID} unbanned from {religion.ReligionName}");
 
         return removed;
     }
@@ -708,7 +723,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             {
                 var religion = actualReligions[0];
                 _playerToReligionIndex[playerUID] = religion.ReligionUID;
-                _sapi.Logger.Debug(
+                _logger.Debug(
                     $"[DivineAscension] Repaired index: Added {playerUID} -> {religion.ReligionName}");
                 return true;
             }
@@ -716,14 +731,14 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             // If player is in no religions, index removal is sufficient
             if (actualReligions.Count == 0)
             {
-                _sapi.Logger.Debug($"[DivineAscension] Repaired index: Removed {playerUID} (no religion)");
+                _logger.Debug($"[DivineAscension] Repaired index: Removed {playerUID} (no religion)");
                 return true;
             }
 
             // If player is in multiple religions (critical error), we can't auto-repair
             if (actualReligions.Count > 1)
             {
-                _sapi.Logger.Error(
+                _logger.Error(
                     $"[DivineAscension] Cannot auto-repair: Player {playerUID} is in multiple religions");
                 return false;
             }
@@ -732,7 +747,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         }
         catch (Exception ex)
         {
-            _sapi.Logger.Error($"[DivineAscension] Error repairing membership for {playerUID}: {ex.Message}");
+            _logger.Error($"[DivineAscension] Error repairing membership for {playerUID}: {ex.Message}");
             return false;
         }
     }
@@ -753,7 +768,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             religion.UpdateFounderName(newFounderName);
             religion.AssignMemberRole(newFounderUID, RoleDefaults.FOUNDER_ROLE_ID);
 
-            _sapi.Logger.Notification(
+            _logger.Notification(
                 $"[DivineAscension] Religion {religion.ReligionName} founder transferred to {newFounderName}");
         }
     }
@@ -783,7 +798,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
                     var existingReligionId = _playerToReligionIndex[userId];
                     _religions.TryGetValue(existingReligionId, out var existingReligion);
 
-                    _sapi.Logger.Error(
+                    _logger.Error(
                         $"[DivineAscension] CRITICAL DATA CORRUPTION: Player {userId} is in multiple religions: " +
                         $"'{existingReligion?.ReligionName}' ({existingReligionId}) and " +
                         $"'{religion.Value.ReligionName}' ({religion.Key}). " +
@@ -796,13 +811,13 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 
         if (corruptionDetected)
         {
-            _sapi.Logger.Warning(
+            _logger.Warning(
                 $"[DivineAscension] Index rebuilt with {_playerToReligionIndex.Count} entries, " +
                 "but data corruption was detected. Validation will attempt auto-repair.");
         }
         else
         {
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"[DivineAscension] Rebuilt player-to-religion index with {_playerToReligionIndex.Count} entries");
         }
     }
@@ -838,7 +853,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             }
         }
 
-        _sapi.Logger.Notification(
+        _logger.Notification(
             $"[DivineAscension] Starting membership validation for {allPlayerUIDs.Count} players...");
 
         // Validate each player
@@ -853,25 +868,25 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
             }
             else
             {
-                _sapi.Logger.Warning($"[DivineAscension] Player {playerUID}: {issues}");
+                _logger.Warning($"[DivineAscension] Player {playerUID}: {issues}");
 
                 // Attempt to repair by rebuilding index from authoritative religion data
                 var wasRepaired = RepairMembershipConsistency(playerUID);
                 if (wasRepaired)
                 {
                     repairedPlayers++;
-                    _sapi.Logger.Notification($"[DivineAscension] Successfully repaired membership for {playerUID}");
+                    _logger.Notification($"[DivineAscension] Successfully repaired membership for {playerUID}");
                 }
                 else
                 {
                     failedPlayers++;
-                    _sapi.Logger.Error($"[DivineAscension] Failed to repair membership for {playerUID}");
+                    _logger.Error($"[DivineAscension] Failed to repair membership for {playerUID}");
                 }
             }
         }
 
         // Log summary
-        _sapi.Logger.Notification(
+        _logger.Notification(
             $"[DivineAscension] Membership validation complete: " +
             $"Total={totalPlayers}, Consistent={consistentPlayers}, Repaired={repairedPlayers}, Failed={failedPlayers}");
 
@@ -909,7 +924,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
                 var domainName = religion.Domain.ToString();
                 religion.DeityName = domainName;
                 migratedUIDs.Add(religion.ReligionUID);
-                _sapi.Logger.Notification(
+                _logger.Notification(
                     $"[DivineAscension] Migrated deity name for {religion.ReligionName}: '{domainName}'");
             }
         }
@@ -917,7 +932,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         if (migratedUIDs.Count > 0)
         {
             SaveAllReligions();
-            _sapi.Logger.Notification(
+            _logger.Notification(
                 $"[DivineAscension] Migrated {migratedUIDs.Count} religion(s) with empty deity names");
         }
 
@@ -930,12 +945,12 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         {
             _religions[religionData.ReligionUID] = religionData;
             SaveAllReligions();
-            _sapi.Logger.Debug($"[DivineAscension] Saved the {religionData.ReligionName} religion");
+            _logger.Debug($"[DivineAscension] Saved the {religionData.ReligionName} religion");
         }
 
         catch (Exception ex)
         {
-            _sapi.Logger.Error($"[DivineAscension] Failed to save the religion: {ex.Message}");
+            _logger.Error($"[DivineAscension] Failed to save the religion: {ex.Message}");
         }
     }
 
@@ -946,25 +961,21 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     {
         try
         {
-            var data = _sapi.WorldManager.SaveGame.GetData(DATA_KEY);
-            if (data != null)
+            var religionsList = _persistenceService.Load<List<ReligionData>>(DATA_KEY);
+            if (religionsList != null)
             {
-                var religionsList = SerializerUtil.Deserialize<List<ReligionData>>(data);
-                if (religionsList != null)
-                {
-                    _religions.Clear();
-                    foreach (var religion in religionsList) _religions[religion.ReligionUID] = religion;
+                _religions.Clear();
+                foreach (var religion in religionsList) _religions[religion.ReligionUID] = religion;
 
-                    // Migrate religions without DeityName (pre-v3.3.0 data)
-                    MigrateReligionsWithoutDeityName();
+                // Migrate religions without DeityName (pre-v3.3.0 data)
+                MigrateReligionsWithoutDeityName();
 
-                    _sapi.Logger.Notification($"[DivineAscension] Loaded {_religions.Count} religions");
-                }
+                _logger.Notification($"[DivineAscension] Loaded {_religions.Count} religions");
             }
         }
         catch (Exception ex)
         {
-            _sapi.Logger.Error($"[DivineAscension] Failed to load religions: {ex.Message}");
+            _logger.Error($"[DivineAscension] Failed to load religions: {ex.Message}");
         }
     }
 
@@ -988,7 +999,7 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
 
         if (migratedCount > 0)
         {
-            _sapi.Logger.Notification(
+            _logger.Notification(
                 $"[DivineAscension] Migrated {migratedCount} religion(s) with default deity names");
             SaveAllReligions(); // Persist the migration
         }
@@ -1002,13 +1013,12 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         try
         {
             var religionsList = _religions.Values.ToList();
-            var data = SerializerUtil.Serialize(religionsList);
-            _sapi.WorldManager.SaveGame.StoreData(DATA_KEY, data);
-            _sapi.Logger.Debug($"[DivineAscension] Saved {religionsList.Count} religions");
+            _persistenceService.Save(DATA_KEY, religionsList);
+            _logger.Debug($"[DivineAscension] Saved {religionsList.Count} religions");
         }
         catch (Exception ex)
         {
-            _sapi.Logger.Error($"[DivineAscension] Failed to save religions: {ex.Message}");
+            _logger.Error($"[DivineAscension] Failed to save religions: {ex.Message}");
         }
     }
 
@@ -1020,30 +1030,30 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
     {
         try
         {
-            var data = _sapi.WorldManager.SaveGame.GetData(INVITE_DATA_KEY);
-            if (data != null)
+            var loadedData = _persistenceService.Load<ReligionWorldData>(INVITE_DATA_KEY);
+            if (loadedData != null)
             {
-                _inviteData = SerializerUtil.Deserialize<ReligionWorldData>(data) ?? new ReligionWorldData();
+                _inviteData = loadedData;
                 _inviteData.CleanupExpired();
-                _sapi.Logger.Notification(
+                _logger.Notification(
                     $"[DivineAscension] Loaded {_inviteData.PendingInvites.Count} religion invites");
 
                 // Log details of each invitation for debugging
                 foreach (var invite in _inviteData.PendingInvites)
                 {
                     var religion = GetReligion(invite.ReligionId);
-                    _sapi.Logger.Debug(
+                    _logger.Debug(
                         $"[DivineAscension]   - Player {invite.PlayerUID} invited to {religion?.ReligionName ?? invite.ReligionId} (expires {invite.ExpiresDate})");
                 }
             }
             else
             {
-                _sapi.Logger.Notification("[DivineAscension] No invitation data found in save game");
+                _logger.Notification("[DivineAscension] No invitation data found in save game");
             }
         }
         catch (Exception ex)
         {
-            _sapi.Logger.Error($"[DivineAscension] Failed to load religion invites: {ex.Message}");
+            _logger.Error($"[DivineAscension] Failed to load religion invites: {ex.Message}");
             _inviteData = new ReligionWorldData();
         }
     }
@@ -1056,13 +1066,12 @@ public class ReligionManager(ICoreServerAPI sapi) : IReligionManager
         try
         {
             _inviteData.CleanupExpired();
-            var data = SerializerUtil.Serialize(_inviteData);
-            _sapi.WorldManager.SaveGame.StoreData(INVITE_DATA_KEY, data);
-            _sapi.Logger.Debug($"[DivineAscension] Saved {_inviteData.PendingInvites.Count} religion invites");
+            _persistenceService.Save(INVITE_DATA_KEY, _inviteData);
+            _logger.Debug($"[DivineAscension] Saved {_inviteData.PendingInvites.Count} religion invites");
         }
         catch (Exception ex)
         {
-            _sapi.Logger.Error($"[DivineAscension] Failed to save religion invites: {ex.Message}");
+            _logger.Error($"[DivineAscension] Failed to save religion invites: {ex.Message}");
         }
     }
 

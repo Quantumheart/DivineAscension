@@ -17,6 +17,11 @@ public interface IWorldService
     long ElapsedMilliseconds { get; }
 
     /// <summary>
+    /// Get the number of in-game hours per real day (for time calculations).
+    /// </summary>
+    float HoursPerDay { get; }
+
+    /// <summary>
     /// Get a player by their unique identifier.
     /// </summary>
     /// <param name="uid">The player's unique ID.</param>

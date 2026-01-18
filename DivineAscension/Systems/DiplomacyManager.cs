@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
-using Vintagestory.API.Server;
+using Vintagestory.API.Common;
 
 namespace DivineAscension.Systems;
 
@@ -16,16 +17,37 @@ namespace DivineAscension.Systems;
 public class DiplomacyManager : IDiplomacyManager
 {
     private readonly CivilizationManager _civilizationManager;
+    private readonly ICooldownManager _cooldownManager;
+    private readonly IEventService _eventService;
+    private readonly ILogger _logger;
+    private readonly IPersistenceService _persistenceService;
     private readonly IReligionPrestigeManager _prestigeManager;
     private readonly IReligionManager _religionManager;
-    private readonly ICoreServerAPI _sapi;
-    private readonly ICooldownManager _cooldownManager;
     private DiplomacyWorldData _data = new();
 
     /// <summary>
     ///     Lazy-initialized lock object for thread safety using Interlocked.CompareExchange
     /// </summary>
     private object? _lock;
+
+    public DiplomacyManager(
+        ILogger logger,
+        IEventService eventService,
+        IPersistenceService persistenceService,
+        CivilizationManager civilizationManager,
+        IReligionPrestigeManager prestigeManager,
+        IReligionManager religionManager,
+        ICooldownManager cooldownManager)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+        _persistenceService = persistenceService ?? throw new ArgumentNullException(nameof(persistenceService));
+        _civilizationManager = civilizationManager ?? throw new ArgumentNullException(nameof(civilizationManager));
+        _prestigeManager = prestigeManager ?? throw new ArgumentNullException(nameof(prestigeManager));
+        _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
+        _cooldownManager = cooldownManager ?? throw new ArgumentNullException(nameof(cooldownManager));
+    }
+
     private object Lock
     {
         get
@@ -34,22 +56,9 @@ public class DiplomacyManager : IDiplomacyManager
             {
                 Interlocked.CompareExchange(ref _lock, new object(), null);
             }
+
             return _lock;
         }
-    }
-
-    public DiplomacyManager(
-        ICoreServerAPI sapi,
-        CivilizationManager civilizationManager,
-        IReligionPrestigeManager prestigeManager,
-        IReligionManager religionManager,
-        ICooldownManager cooldownManager)
-    {
-        _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
-        _civilizationManager = civilizationManager ?? throw new ArgumentNullException(nameof(civilizationManager));
-        _prestigeManager = prestigeManager ?? throw new ArgumentNullException(nameof(prestigeManager));
-        _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
-        _cooldownManager = cooldownManager ?? throw new ArgumentNullException(nameof(cooldownManager));
     }
 
     public event Action<string, string, DiplomaticStatus>? OnRelationshipEstablished;
@@ -58,22 +67,22 @@ public class DiplomacyManager : IDiplomacyManager
 
     public void Initialize()
     {
-        _sapi.Logger.Notification($"{DiplomacyConstants.LogPrefix} Initializing Diplomacy Manager...");
+        _logger.Notification($"{DiplomacyConstants.LogPrefix} Initializing Diplomacy Manager...");
 
         // Register save/load events
-        _sapi.Event.SaveGameLoaded += OnSaveGameLoaded;
-        _sapi.Event.GameWorldSave += OnGameWorldSave;
+        _eventService.OnSaveGameLoaded(OnSaveGameLoaded);
+        _eventService.OnGameWorldSave(OnGameWorldSave);
 
         // Subscribe to civilization disbanded events
         _civilizationManager.OnCivilizationDisbanded += HandleCivilizationDisbanded;
 
-        _sapi.Logger.Notification($"{DiplomacyConstants.LogPrefix} Diplomacy Manager initialized");
+        _logger.Notification($"{DiplomacyConstants.LogPrefix} Diplomacy Manager initialized");
     }
 
     public void Dispose()
     {
-        _sapi.Event.SaveGameLoaded -= OnSaveGameLoaded;
-        _sapi.Event.GameWorldSave -= OnGameWorldSave;
+        _eventService.UnsubscribeSaveGameLoaded(OnSaveGameLoaded);
+        _eventService.UnsubscribeGameWorldSave(OnGameWorldSave);
         _civilizationManager.OnCivilizationDisbanded -= HandleCivilizationDisbanded;
         OnRelationshipEstablished = null;
         OnRelationshipEnded = null;
@@ -86,15 +95,16 @@ public class DiplomacyManager : IDiplomacyManager
     {
         lock (Lock)
         {
-            _data = _sapi.WorldManager.SaveGame.GetData<DiplomacyWorldData>(DiplomacyConstants.DataKey);
-            if (_data == null)
+            var loadedData = _persistenceService.Load<DiplomacyWorldData>(DiplomacyConstants.DataKey);
+            if (loadedData == null)
             {
                 _data = new DiplomacyWorldData();
-                _sapi.Logger.Notification($"{DiplomacyConstants.LogPrefix} No existing diplomacy data found, creating new");
+                _logger.Notification($"{DiplomacyConstants.LogPrefix} No existing diplomacy data found, creating new");
             }
             else
             {
-                _sapi.Logger.Notification(
+                _data = loadedData;
+                _logger.Notification(
                     $"{DiplomacyConstants.LogPrefix} Loaded diplomacy data: {_data.Relationships.Count} relationships");
             }
 
@@ -108,8 +118,8 @@ public class DiplomacyManager : IDiplomacyManager
         lock (Lock)
         {
             CleanupExpiredData_Unlocked();
-            _sapi.WorldManager.SaveGame.StoreData(DiplomacyConstants.DataKey, _data);
-            _sapi.Logger.Debug(
+            _persistenceService.Save(DiplomacyConstants.DataKey, _data);
+            _logger.Debug(
                 $"{DiplomacyConstants.LogPrefix} Saved diplomacy data: {_data.Relationships.Count} relationships");
         }
     }
@@ -118,7 +128,7 @@ public class DiplomacyManager : IDiplomacyManager
     {
         lock (Lock)
         {
-            _sapi.Logger.Debug($"{DiplomacyConstants.LogPrefix} Handling civilization disbanded: {civId}");
+            _logger.Debug($"{DiplomacyConstants.LogPrefix} Handling civilization disbanded: {civId}");
 
             // Remove all relationships involving this civilization
             _data.RemoveRelationshipsForCiv(civId);
@@ -126,7 +136,7 @@ public class DiplomacyManager : IDiplomacyManager
             // Remove all proposals involving this civilization
             _data.RemoveProposalsForCiv(civId);
 
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"{DiplomacyConstants.LogPrefix} Cleaned up diplomacy data for disbanded civilization: {civId}");
         }
     }
@@ -205,7 +215,7 @@ public class DiplomacyManager : IDiplomacyManager
             // Record cooldown after successful proposal
             _cooldownManager.RecordOperation(proposerFounderUID, CooldownType.Proposal);
 
-            _sapi.Logger.Notification(
+            _logger.Notification(
                 $"{DiplomacyConstants.LogPrefix} {proposerCiv.Name} proposed {proposedStatus} to {targetCiv.Name}");
 
             return (true, $"Proposal sent to {targetCiv.Name}", proposalId);
@@ -273,7 +283,7 @@ public class DiplomacyManager : IDiplomacyManager
             OnRelationshipEstablished?.Invoke(proposal.ProposerCivId, proposal.TargetCivId, proposal.ProposedStatus);
 
             var proposerCiv = _civilizationManager.GetCivilization(proposal.ProposerCivId);
-            _sapi.Logger.Notification(
+            _logger.Notification(
                 $"{DiplomacyConstants.LogPrefix} {targetCiv.Name} accepted {proposal.ProposedStatus} with {proposerCiv?.Name}");
 
             return (true, $"Diplomatic relationship established: {proposal.ProposedStatus}", relationshipId);
@@ -298,7 +308,7 @@ public class DiplomacyManager : IDiplomacyManager
 
             _data.RemoveProposal(proposalId);
 
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"{DiplomacyConstants.LogPrefix} {targetCiv.Name} declined proposal from {proposal.ProposerCivId}");
 
             return (true, "Proposal declined");
@@ -329,7 +339,7 @@ public class DiplomacyManager : IDiplomacyManager
 
             relationship.BreakScheduledDate = DateTime.UtcNow.AddHours(DiplomacyConstants.TreatyBreakWarningHours);
 
-            _sapi.Logger.Notification(
+            _logger.Notification(
                 $"{DiplomacyConstants.LogPrefix} {civ.Name} scheduled treaty break with {otherCivId} (24 hours)");
 
             return (true, $"Treaty will break in {DiplomacyConstants.TreatyBreakWarningHours} hours");
@@ -353,7 +363,7 @@ public class DiplomacyManager : IDiplomacyManager
 
             relationship.BreakScheduledDate = null;
 
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"{DiplomacyConstants.LogPrefix} {civ.Name} canceled scheduled treaty break with {otherCivId}");
 
             return (true, "Scheduled treaty break canceled");
@@ -427,7 +437,7 @@ public class DiplomacyManager : IDiplomacyManager
             // Record cooldown after successful war declaration
             _cooldownManager.RecordOperation(founderUID, CooldownType.WarDeclaration);
 
-            _sapi.Logger.Notification(
+            _logger.Notification(
                 $"{DiplomacyConstants.LogPrefix} {declarerCiv.Name} declared WAR on {targetCiv.Name}!");
 
             return (true, $"War declared on {targetCiv.Name}");
@@ -454,7 +464,7 @@ public class DiplomacyManager : IDiplomacyManager
             _data.RemoveRelationship(relationship.RelationshipId);
 
             var otherCiv = _civilizationManager.GetCivilization(otherCivId);
-            _sapi.Logger.Notification($"{DiplomacyConstants.LogPrefix} {civ.Name} declared peace with {otherCiv?.Name}");
+            _logger.Notification($"{DiplomacyConstants.LogPrefix} {civ.Name} declared peace with {otherCiv?.Name}");
 
             return (true, "Peace declared - relationship returned to Neutral");
         }
@@ -478,13 +488,13 @@ public class DiplomacyManager : IDiplomacyManager
 
             relationship.RecordViolation();
 
-            _sapi.Logger.Warning(
+            _logger.Warning(
                 $"{DiplomacyConstants.LogPrefix} PvP violation recorded: {attackerCivId} attacked {victimCivId} (count: {relationship.ViolationCount}/{DiplomacyConstants.MaxViolations})");
 
             // Auto-break on 3rd violation
             if (relationship.ViolationCount >= DiplomacyConstants.MaxViolations)
             {
-                _sapi.Logger.Notification(
+                _logger.Notification(
                     $"{DiplomacyConstants.LogPrefix} Treaty auto-broken due to {DiplomacyConstants.MaxViolations} violations");
                 OnRelationshipEnded?.Invoke(attackerCivId, victimCivId, relationship.Status);
                 _data.RemoveRelationship(relationship.RelationshipId);
@@ -504,7 +514,8 @@ public class DiplomacyManager : IDiplomacyManager
             return status switch
             {
                 DiplomaticStatus.War => DiplomacyConstants.WarFavorMultiplier,
-                DiplomaticStatus.Alliance or DiplomaticStatus.NonAggressionPact => 0.0, // No rewards for attacking allies
+                DiplomaticStatus.Alliance
+                    or DiplomaticStatus.NonAggressionPact => 0.0, // No rewards for attacking allies
                 _ => 1.0 // Neutral
             };
         }
@@ -618,12 +629,12 @@ public class DiplomacyManager : IDiplomacyManager
         // Cleanup expired proposals
         var expiredProposals = _data.CleanupExpiredProposals();
         if (expiredProposals > 0)
-            _sapi.Logger.Debug($"{DiplomacyConstants.LogPrefix} Cleaned up {expiredProposals} expired proposals");
+            _logger.Debug($"{DiplomacyConstants.LogPrefix} Cleaned up {expiredProposals} expired proposals");
 
         // Cleanup expired relationships (NAP)
         var expiredRelationships = _data.CleanupExpiredRelationships();
         if (expiredRelationships > 0)
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"{DiplomacyConstants.LogPrefix} Cleaned up {expiredRelationships} expired relationships");
 
         // Process scheduled breaks
@@ -633,7 +644,7 @@ public class DiplomacyManager : IDiplomacyManager
 
         foreach (var relationship in relationshipsToBreak)
         {
-            _sapi.Logger.Notification(
+            _logger.Notification(
                 $"{DiplomacyConstants.LogPrefix} Executing scheduled treaty break for relationship {relationship.RelationshipId}");
             OnRelationshipEnded?.Invoke(relationship.CivId1, relationship.CivId2, relationship.Status);
             _data.RemoveRelationship(relationship.RelationshipId);

@@ -87,6 +87,8 @@ internal sealed class ServerWorldService(IServerWorldAccessor worldAccessor) : I
 
     public long ElapsedMilliseconds => _worldAccessor.ElapsedMilliseconds;
 
+    public float HoursPerDay => _worldAccessor.Calendar.HoursPerDay;
+
     public IBlockAccessor GetBlockAccessor(bool isWriteAccess, bool isRevertable)
     {
         // VS API requires 4 booleans: lockCheck, revertable, strict, debug

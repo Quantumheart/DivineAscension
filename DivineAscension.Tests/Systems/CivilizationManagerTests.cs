@@ -18,6 +18,9 @@ namespace DivineAscension.Tests.Systems;
 public class CivilizationManagerTests
 {
     private readonly CivilizationManager _civilizationManager;
+    private readonly FakeEventService _fakeEventService;
+    private readonly FakePersistenceService _fakePersistenceService;
+    private readonly FakeWorldService _fakeWorldService;
     private readonly Mock<ICoreServerAPI> _mockAPI;
     private readonly Mock<ILogger> _mockLogger;
     private readonly Mock<IReligionManager> _mockReligionManager;
@@ -31,7 +34,12 @@ public class CivilizationManagerTests
         // Create real instances for integration-style testing
         _mockReligionManager = new Mock<IReligionManager>();
 
-        _civilizationManager = new CivilizationManager(_mockAPI.Object, _mockReligionManager.Object);
+        _fakeEventService = new FakeEventService();
+        _fakePersistenceService = new FakePersistenceService();
+        _fakeWorldService = new FakeWorldService();
+
+        _civilizationManager = new CivilizationManager(_mockLogger.Object, _fakeEventService, _fakePersistenceService,
+            _fakeWorldService, _mockReligionManager.Object);
     }
 
     #region Initialization Tests
@@ -39,16 +47,12 @@ public class CivilizationManagerTests
     [Fact]
     public void Initialize_RegistersEventHandlers()
     {
-        // Arrange
-        var mockEventAPI = new Mock<IServerEventAPI>();
-        _mockAPI.Setup(a => a.Event).Returns(mockEventAPI.Object);
-
         // Act
         _civilizationManager.Initialize();
 
         // Assert
-        mockEventAPI.VerifyAdd(e => e.SaveGameLoaded += It.IsAny<Action>(), Times.Once());
-        mockEventAPI.VerifyAdd(e => e.GameWorldSave += It.IsAny<Action>(), Times.Once());
+        Assert.Equal(1, _fakeEventService.SaveGameLoadedCallbackCount);
+        Assert.Equal(1, _fakeEventService.GameWorldSaveCallbackCount);
     }
 
     [Fact]

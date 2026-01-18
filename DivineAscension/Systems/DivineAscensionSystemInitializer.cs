@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.API.Implementation;
 using DivineAscension.Commands;
 using DivineAscension.Configuration;
 using DivineAscension.Data;
@@ -38,6 +39,12 @@ public static class DivineAscensionSystemInitializer
     {
         api.Logger.Notification("[DivineAscension] Starting server-side system initialization...");
 
+        // Create API wrapper services
+        var logger = api.Logger;
+        var eventService = new ServerEventService(api.Event);
+        var persistenceService = new ServerPersistenceService(api.WorldManager.SaveGame);
+        var worldService = new ServerWorldService(api.World);
+
         // Initialize localization service for server
         LocalizationService.Instance.InitializeServer(api);
 
@@ -59,7 +66,7 @@ public static class DivineAscensionSystemInitializer
 
         api.RegisterEntityBehaviorClass("DivineAscensionBuffTracker", typeof(EntityBehaviorBuffTracker));
 
-        var religionManager = new ReligionManager(api);
+        var religionManager = new ReligionManager(logger, eventService, persistenceService, worldService);
         religionManager.Initialize();
 
         // Migrate existing religions with empty deity names (for backward compatibility)
@@ -68,10 +75,12 @@ public static class DivineAscensionSystemInitializer
         var activityLogManager = new ActivityLogManager(api, religionManager);
         activityLogManager.Initialize();
 
-        var civilizationManager = new CivilizationManager(api, religionManager);
+        var civilizationManager =
+            new CivilizationManager(logger, eventService, persistenceService, worldService, religionManager);
         civilizationManager.Initialize();
 
-        var playerReligionDataManager = new PlayerProgressionDataManager(api, religionManager, gameBalanceConfig);
+        var playerReligionDataManager = new PlayerProgressionDataManager(logger, eventService, persistenceService,
+            worldService, religionManager, gameBalanceConfig);
         playerReligionDataManager.Initialize();
 
         // CRITICAL: MUST be initialized before FavorSystem
@@ -82,7 +91,8 @@ public static class DivineAscensionSystemInitializer
             religionPrestigeManager, activityLogManager, gameBalanceConfig);
         favorSystem.Initialize();
 
-        var diplomacyManager = new DiplomacyManager(api, civilizationManager, religionPrestigeManager, religionManager, cooldownManager);
+        var diplomacyManager = new DiplomacyManager(logger, eventService, persistenceService, civilizationManager,
+            religionPrestigeManager, religionManager, cooldownManager);
         diplomacyManager.Initialize();
 
         var pvpManager = new PvPManager(api, playerReligionDataManager, religionManager, religionPrestigeManager,
@@ -127,7 +137,8 @@ public static class DivineAscensionSystemInitializer
 
         // Create and initialize network handlers
         var playerDataHandler =
-            new PlayerDataNetworkHandler(api, playerReligionDataManager, religionManager, serverChannel, gameBalanceConfig);
+            new PlayerDataNetworkHandler(api, playerReligionDataManager, religionManager, serverChannel,
+                gameBalanceConfig);
         playerDataHandler.RegisterHandlers();
 
         var blessingHandler = new BlessingNetworkHandler(

@@ -23,8 +23,10 @@ public sealed class FakeWorldService : IWorldService
     private readonly List<SoundEvent> _soundsPlayed = new();
     private IBlockAccessor? _blockAccessor;
     private long _elapsedMs = 0;
+    private float _hoursPerDay = 24f; // Default to 24 hours
 
     public long ElapsedMilliseconds => _elapsedMs;
+    public float HoursPerDay => _hoursPerDay;
 
     // Player access
     public IServerPlayer? GetPlayerByUID(string uid)
@@ -131,6 +133,11 @@ public sealed class FakeWorldService : IWorldService
         _elapsedMs = ms;
     }
 
+    public void SetHoursPerDay(float hours)
+    {
+        _hoursPerDay = hours;
+    }
+
     public void SetBlockAccessor(IBlockAccessor blockAccessor)
     {
         _blockAccessor = blockAccessor;
@@ -147,6 +154,7 @@ public sealed class FakeWorldService : IWorldService
         _soundsPlayed.Clear();
         _particlesSpawned.Clear();
         _elapsedMs = 0;
+        _hoursPerDay = 24f;
         _blockAccessor = null;
     }
 
