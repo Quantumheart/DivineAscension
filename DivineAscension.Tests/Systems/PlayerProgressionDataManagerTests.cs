@@ -7,7 +7,6 @@ using DivineAscension.Tests.Helpers;
 using Moq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
-using Vintagestory.API.Util;
 
 namespace DivineAscension.Tests.Systems;
 
@@ -18,6 +17,9 @@ namespace DivineAscension.Tests.Systems;
 [ExcludeFromCodeCoverage]
 public class PlayerProgressionDataManagerTests
 {
+    private readonly FakeEventService _fakeEventService;
+    private readonly FakePersistenceService _fakePersistenceService;
+    private readonly FakeWorldService _fakeWorldService;
     private readonly Mock<ICoreServerAPI> _mockAPI;
     private readonly Mock<ILogger> _mockLogger;
     private readonly Mock<IReligionManager> _mockReligionManager;
@@ -31,8 +33,13 @@ public class PlayerProgressionDataManagerTests
 
         _mockReligionManager = new Mock<IReligionManager>();
 
+        _fakeEventService = new FakeEventService();
+        _fakePersistenceService = new FakePersistenceService();
+        _fakeWorldService = new FakeWorldService();
+
         var config = new GameBalanceConfig();
-        _sut = new PlayerProgressionDataManager(_mockAPI.Object, _mockReligionManager.Object, config);
+        _sut = new PlayerProgressionDataManager(_mockLogger.Object, _fakeEventService, _fakePersistenceService,
+            _fakeWorldService, _mockReligionManager.Object, config);
     }
 
     #region UpdateFavorRank Tests
@@ -58,18 +65,14 @@ public class PlayerProgressionDataManagerTests
     [Fact]
     public void Initialize_RegistersEventHandlers()
     {
-        // Arrange
-        var mockEventAPI = new Mock<IServerEventAPI>();
-        _mockAPI.Setup(a => a.Event).Returns(mockEventAPI.Object);
-
         // Act
         _sut.Initialize();
 
         // Assert
-        mockEventAPI.VerifyAdd(e => e.PlayerJoin += It.IsAny<PlayerDelegate>(), Times.Once());
-        mockEventAPI.VerifyAdd(e => e.PlayerDisconnect += It.IsAny<PlayerDelegate>(), Times.Once());
-        mockEventAPI.VerifyAdd(e => e.SaveGameLoaded += It.IsAny<Action>(), Times.Once());
-        mockEventAPI.VerifyAdd(e => e.GameWorldSave += It.IsAny<Action>(), Times.Once());
+        Assert.Equal(1, _fakeEventService.PlayerJoinCallbackCount);
+        Assert.Equal(1, _fakeEventService.PlayerDisconnectCallbackCount);
+        Assert.Equal(1, _fakeEventService.SaveGameLoadedCallbackCount);
+        Assert.Equal(1, _fakeEventService.GameWorldSaveCallbackCount);
     }
 
     [Fact]
@@ -522,12 +525,11 @@ public class PlayerProgressionDataManagerTests
         _mockReligionManager.Setup(m => m.GetReligion("religion-uid")).Returns(religion);
         _mockReligionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _mockReligionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
-        var mockWorld = new Mock<IServerWorldAccessor>();
+
         var mockPlayer = new Mock<IServerPlayer>();
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
-
-        mockWorld.Setup(w => w.PlayerByUid("player-uid")).Returns(mockPlayer.Object);
-        _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+        _fakeWorldService.AddPlayer(mockPlayer.Object);
 
         _sut.JoinReligion("player-uid", "religion-uid");
 
@@ -674,26 +676,17 @@ public class PlayerProgressionDataManagerTests
     public void SavePlayerData_WithExistingData_SavesSuccessfully()
     {
         // Arrange
-        var mockWorldManager = new Mock<IWorldManagerAPI>();
-        var mockSaveGame = new Mock<ISaveGame>();
-        _mockAPI.Setup(a => a.WorldManager).Returns(mockWorldManager.Object);
-        mockWorldManager.Setup(w => w.SaveGame).Returns(mockSaveGame.Object);
-
         var data = _sut.GetOrCreatePlayerData("player-uid");
         data.Favor = 100;
-
-        byte[]? savedData = null;
-        mockSaveGame
-            .Setup(s => s.StoreData(It.IsAny<string>(), It.IsAny<byte[]>()))
-            .Callback<string, byte[]>((key, bytes) => savedData = bytes);
 
         // Act
         _sut.SavePlayerData("player-uid");
 
-        // Assert
-        Assert.NotNull(savedData);
-        mockSaveGame.Verify(s => s.StoreData("divineascension_playerprogressiondata_player-uid", It.IsAny<byte[]>()),
-            Times.Once());
+        // Assert - Verify data was saved by loading it back
+        var loadedData =
+            _fakePersistenceService.Load<PlayerProgressionData>("divineascension_playerprogressiondata_player-uid");
+        Assert.NotNull(loadedData);
+        Assert.Equal(100, loadedData.Favor);
         _mockLogger.Verify(
             l => l.Debug(It.Is<string>(s => s.Contains("Saved religion data") && s.Contains("player-uid"))),
             Times.Once()
@@ -720,16 +713,8 @@ public class PlayerProgressionDataManagerTests
     public void SavePlayerData_WhenExceptionOccurs_LogsError()
     {
         // Arrange
-        var mockWorldManager = new Mock<IWorldManagerAPI>();
-        var mockSaveGame = new Mock<ISaveGame>();
-        _mockAPI.Setup(a => a.WorldManager).Returns(mockWorldManager.Object);
-        mockWorldManager.Setup(w => w.SaveGame).Returns(mockSaveGame.Object);
-
         _sut.GetOrCreatePlayerData("player-uid");
-
-        mockSaveGame
-            .Setup(s => s.StoreData(It.IsAny<string>(), It.IsAny<byte[]>()))
-            .Throws(new Exception("Save failed"));
+        _fakePersistenceService.ThrowOnSave("divineascension_playerprogressiondata_player-uid");
 
         // Act
         _sut.SavePlayerData("player-uid");
@@ -744,22 +729,13 @@ public class PlayerProgressionDataManagerTests
     [Fact]
     public void LoadPlayerData_WithExistingData_LoadsSuccessfully()
     {
-        // Arrange
-        var mockWorldManager = new Mock<IWorldManagerAPI>();
-        var mockSaveGame = new Mock<ISaveGame>();
-        _mockAPI.Setup(a => a.WorldManager).Returns(mockWorldManager.Object);
-        mockWorldManager.Setup(w => w.SaveGame).Returns(mockSaveGame.Object);
-
+        // Arrange - Save data to fake persistence service first
         var savedData = new PlayerProgressionData("player-uid")
         {
             Favor = 150,
             TotalFavorEarned = 200
         };
-        var serialized = SerializerUtil.Serialize(savedData);
-
-        mockSaveGame
-            .Setup(s => s.GetData("divineascension_playerprogressiondata_player-uid"))
-            .Returns(serialized);
+        _fakePersistenceService.Save("divineascension_playerprogressiondata_player-uid", savedData);
 
         // Act
         _sut.LoadPlayerData("player-uid");
@@ -801,14 +777,7 @@ public class PlayerProgressionDataManagerTests
     public void LoadPlayerData_WhenExceptionOccurs_LogsError()
     {
         // Arrange
-        var mockWorldManager = new Mock<IWorldManagerAPI>();
-        var mockSaveGame = new Mock<ISaveGame>();
-        _mockAPI.Setup(a => a.WorldManager).Returns(mockWorldManager.Object);
-        mockWorldManager.Setup(w => w.SaveGame).Returns(mockSaveGame.Object);
-
-        mockSaveGame
-            .Setup(s => s.GetData(It.IsAny<string>()))
-            .Throws(new Exception("Load failed"));
+        _fakePersistenceService.ThrowOnLoad("divineascension_playerprogressiondata_player-uid");
 
         // Act
         _sut.LoadPlayerData("player-uid");
@@ -824,11 +793,6 @@ public class PlayerProgressionDataManagerTests
     public void SaveAllPlayerData_SavesAllPlayers()
     {
         // Arrange
-        var mockWorldManager = new Mock<IWorldManagerAPI>();
-        var mockSaveGame = new Mock<ISaveGame>();
-        _mockAPI.Setup(a => a.WorldManager).Returns(mockWorldManager.Object);
-        mockWorldManager.Setup(w => w.SaveGame).Returns(mockSaveGame.Object);
-
         _sut.GetOrCreatePlayerData("player-1");
         _sut.GetOrCreatePlayerData("player-2");
         _sut.GetOrCreatePlayerData("player-3");
@@ -836,8 +800,13 @@ public class PlayerProgressionDataManagerTests
         // Act
         _sut.SaveAllPlayerData();
 
-        // Assert
-        mockSaveGame.Verify(s => s.StoreData(It.IsAny<string>(), It.IsAny<byte[]>()), Times.Exactly(3));
+        // Assert - Verify all 3 players were saved
+        Assert.NotNull(
+            _fakePersistenceService.Load<PlayerProgressionData>("divineascension_playerprogressiondata_player-1"));
+        Assert.NotNull(
+            _fakePersistenceService.Load<PlayerProgressionData>("divineascension_playerprogressiondata_player-2"));
+        Assert.NotNull(
+            _fakePersistenceService.Load<PlayerProgressionData>("divineascension_playerprogressiondata_player-3"));
         _mockLogger.Verify(
             l => l.Notification(It.Is<string>(s => s.Contains("Saving all player religion data"))),
             Times.Once()
@@ -869,20 +838,11 @@ public class PlayerProgressionDataManagerTests
     public void OnPlayerJoin_LoadsPlayerData()
     {
         // Arrange
-        var mockWorldManager = new Mock<IWorldManagerAPI>();
-        var mockSaveGame = new Mock<ISaveGame>();
-        _mockAPI.Setup(a => a.WorldManager).Returns(mockWorldManager.Object);
-        mockWorldManager.Setup(w => w.SaveGame).Returns(mockSaveGame.Object);
-
         var mockPlayer = new Mock<IServerPlayer>();
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
 
         var savedData = new PlayerProgressionData("player-uid") { Favor = 50 };
-        var serialized = SerializerUtil.Serialize(savedData);
-
-        mockSaveGame
-            .Setup(s => s.GetData("divineascension_playerprogressiondata_player-uid"))
-            .Returns(serialized);
+        _fakePersistenceService.Save("divineascension_playerprogressiondata_player-uid", savedData);
 
         // Act
         _sut.OnPlayerJoin(mockPlayer.Object);
@@ -909,19 +869,17 @@ public class PlayerProgressionDataManagerTests
     public void OnGameWorldSave_SavesAllPlayerData()
     {
         // Arrange
-        var mockWorldManager = new Mock<IWorldManagerAPI>();
-        var mockSaveGame = new Mock<ISaveGame>();
-        _mockAPI.Setup(a => a.WorldManager).Returns(mockWorldManager.Object);
-        mockWorldManager.Setup(w => w.SaveGame).Returns(mockSaveGame.Object);
-
         _sut.GetOrCreatePlayerData("player-1");
         _sut.GetOrCreatePlayerData("player-2");
 
         // Act
         _sut.OnGameWorldSave();
 
-        // Assert
-        mockSaveGame.Verify(s => s.StoreData(It.IsAny<string>(), It.IsAny<byte[]>()), Times.Exactly(2));
+        // Assert - Verify both players were saved
+        Assert.NotNull(
+            _fakePersistenceService.Load<PlayerProgressionData>("divineascension_playerprogressiondata_player-1"));
+        Assert.NotNull(
+            _fakePersistenceService.Load<PlayerProgressionData>("divineascension_playerprogressiondata_player-2"));
         _mockLogger.Verify(
             l => l.Notification(It.Is<string>(s => s.Contains("Saved religion data for 2 players"))),
             Times.Once()

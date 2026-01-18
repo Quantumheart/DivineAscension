@@ -23,6 +23,16 @@ public sealed class FakeEventService : IEventService
     private readonly List<Action> _saveGameLoadedCallbacks = new();
     private long _nextCallbackId = 1;
 
+    // Test inspection properties
+    public int SaveGameLoadedCallbackCount => _saveGameLoadedCallbacks.Count;
+    public int GameWorldSaveCallbackCount => _gameWorldSaveCallbacks.Count;
+    public int PlayerJoinCallbackCount => _playerJoinCallbacks.Count;
+    public int PlayerDisconnectCallbackCount => _playerDisconnectCallbacks.Count;
+    public int PlayerDeathCallbackCount => _playerDeathCallbacks.Count;
+    public int BreakBlockCallbackCount => _breakBlockCallbacks.Count;
+    public int DidUseBlockCallbackCount => _didUseBlockCallbacks.Count;
+    public int DidPlaceBlockCallbackCount => _didPlaceBlockCallbacks.Count;
+
     // Subscription methods
     public void OnSaveGameLoaded(Action callback)
     {

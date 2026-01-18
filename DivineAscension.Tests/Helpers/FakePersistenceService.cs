@@ -12,11 +12,18 @@ public sealed class FakePersistenceService : IPersistenceService
 {
     private readonly Dictionary<string, byte[]> _rawStore = new();
     private readonly Dictionary<string, object> _store = new();
+    private readonly HashSet<string> _throwOnLoad = new();
+    private readonly HashSet<string> _throwOnSave = new();
 
     public int Count => _store.Count + _rawStore.Count;
 
     public T? Load<T>(string key) where T : class
     {
+        if (_throwOnLoad.Contains(key))
+        {
+            throw new Exception($"Simulated load error for key: {key}");
+        }
+
         if (_store.TryGetValue(key, out var data))
         {
             return (T)data;
@@ -27,6 +34,11 @@ public sealed class FakePersistenceService : IPersistenceService
 
     public void Save<T>(string key, T data) where T : class
     {
+        if (_throwOnSave.Contains(key))
+        {
+            throw new Exception($"Simulated save error for key: {key}");
+        }
+
         _store[key] = data;
     }
 
@@ -56,10 +68,28 @@ public sealed class FakePersistenceService : IPersistenceService
     {
         _store.Clear();
         _rawStore.Clear();
+        _throwOnLoad.Clear();
+        _throwOnSave.Clear();
     }
 
     public IEnumerable<string> GetAllKeys()
     {
         return _store.Keys.Concat(_rawStore.Keys).Distinct();
+    }
+
+    /// <summary>
+    /// Configures the fake service to throw an exception when loading the specified key.
+    /// </summary>
+    public void ThrowOnLoad(string key)
+    {
+        _throwOnLoad.Add(key);
+    }
+
+    /// <summary>
+    /// Configures the fake service to throw an exception when saving to the specified key.
+    /// </summary>
+    public void ThrowOnSave(string key)
+    {
+        _throwOnSave.Add(key);
     }
 }
