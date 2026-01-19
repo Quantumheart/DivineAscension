@@ -34,4 +34,5 @@ public readonly struct CivilizationTabViewModel(
     public bool ShowInvitesTab => HasReligion && !HasCivilization; // Only show if has religion but not in civilization
     public bool ShowCreateTab => HasReligion && !HasCivilization; // Only show if user has religion but no civilization
     public bool ShowDiplomacyTab => HasCivilization; // Only show if user is in a civilization
+    public bool ShowHolySitesTab => HasCivilization; // Only show if user is in a civilization
 }

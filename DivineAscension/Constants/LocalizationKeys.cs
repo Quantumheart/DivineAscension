@@ -261,6 +261,22 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_TAB_INVITES = "divineascension:ui.civilization.tab.invites";
     public const string UI_CIVILIZATION_TAB_CREATE = "divineascension:ui.civilization.tab.create";
     public const string UI_CIVILIZATION_TAB_DIPLOMACY = "divineascension:ui.civilization.tab.diplomacy";
+    public const string UI_CIVILIZATION_TAB_HOLYSITES = "divineascension:ui.civilization.tab.holysites";
+
+    #endregion
+
+    #region Civilization - Holy Sites
+
+    public const string UI_CIVILIZATION_HOLYSITES_TITLE = "divineascension:ui.civilization.holysites.title";
+    public const string UI_CIVILIZATION_HOLYSITES_REFRESH = "divineascension:ui.civilization.holysites.refresh";
+    public const string UI_CIVILIZATION_HOLYSITES_LOADING = "divineascension:ui.civilization.holysites.loading";
+    public const string UI_CIVILIZATION_HOLYSITES_EMPTY = "divineascension:ui.civilization.holysites.empty";
+    public const string UI_CIVILIZATION_HOLYSITES_ERROR = "divineascension:ui.civilization.holysites.error";
+    public const string UI_CIVILIZATION_HOLYSITES_NOT_IN_CIV = "divineascension:ui.civilization.holysites.not_in_civ";
+    public const string UI_CIVILIZATION_HOLYSITES_SITE_COUNT = "divineascension:ui.civilization.holysites.site_count";
+    public const string UI_CIVILIZATION_HOLYSITES_TIER = "divineascension:ui.civilization.holysites.tier";
+    public const string UI_CIVILIZATION_HOLYSITES_VOLUME = "divineascension:ui.civilization.holysites.volume";
+    public const string UI_CIVILIZATION_HOLYSITES_MULTIPLIERS = "divineascension:ui.civilization.holysites.multipliers";
 
     #endregion
 
