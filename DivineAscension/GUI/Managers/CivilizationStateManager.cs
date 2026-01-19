@@ -8,6 +8,7 @@ using DivineAscension.GUI.Models.Civilization.Browse;
 using DivineAscension.GUI.Models.Civilization.Create;
 using DivineAscension.GUI.Models.Civilization.Detail;
 using DivineAscension.GUI.Models.Civilization.Edit;
+using DivineAscension.GUI.Models.Civilization.HolySites;
 using DivineAscension.GUI.Models.Civilization.Info;
 using DivineAscension.GUI.Models.Civilization.Invites;
 using DivineAscension.GUI.Models.Civilization.Tab;
@@ -324,6 +325,61 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     }
 
     /// <summary>
+    ///     Request holy sites for the current civilization
+    /// </summary>
+    public void RequestCivilizationHolySites()
+    {
+        if (!HasCivilization())
+        {
+            State.HolySitesState.ErrorMsg = "Not in a civilization";
+            return;
+        }
+
+        State.HolySitesState.IsLoading = true;
+        State.HolySitesState.ErrorMsg = null;
+
+        // Request all sites - we'll filter client-side
+        _uiService.RequestHolySiteList("");
+    }
+
+    /// <summary>
+    ///     Update holy sites state from network response
+    /// </summary>
+    public void UpdateHolySiteList(List<DivineAscension.Network.HolySite.HolySiteResponsePacket.HolySiteInfo> allSites)
+    {
+        State.HolySitesState.AllSites = allSites;
+        State.HolySitesState.IsLoading = false;
+
+        // Filter to only member religions and group
+        FilterAndGroupHolySites();
+    }
+
+    /// <summary>
+    ///     Filter sites to member religions and group by religion
+    /// </summary>
+    private void FilterAndGroupHolySites()
+    {
+        State.HolySitesState.SitesByReligion.Clear();
+
+        if (CivilizationMemberReligions == null) return;
+
+        var memberReligionUIDs = new HashSet<string>(
+            CivilizationMemberReligions.Select(r => r.ReligionId));
+
+        foreach (var site in State.HolySitesState.AllSites)
+        {
+            if (memberReligionUIDs.Contains(site.ReligionUID))
+            {
+                if (!State.HolySitesState.SitesByReligion.ContainsKey(site.ReligionUID))
+                {
+                    State.HolySitesState.SitesByReligion[site.ReligionUID] = new();
+                }
+                State.HolySitesState.SitesByReligion[site.ReligionUID].Add(site);
+            }
+        }
+    }
+
+    /// <summary>
     ///     Main EDA orchestrator for Civilization tab: builds ViewModels, calls renderers, processes events
     /// </summary>
     internal void DrawCivilizationTab(float x, float y, float width, float height)
@@ -351,6 +407,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             CivilizationSubTab.Invites => tabVm.ShowInvitesTab,
             CivilizationSubTab.Create => tabVm.ShowCreateTab,
             CivilizationSubTab.Diplomacy => tabVm.ShowDiplomacyTab,
+            CivilizationSubTab.HolySites => tabVm.ShowHolySitesTab,
             _ => false
         };
 
@@ -399,6 +456,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 break;
             case CivilizationSubTab.Diplomacy:
                 DrawCivilizationDiplomacy(x, contentY, width, contentHeight);
+                break;
+            case CivilizationSubTab.HolySites:
+                DrawCivilizationHolySites(x, contentY, width, contentHeight);
                 break;
         }
     }
@@ -653,6 +713,37 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         ProcessDiplomacyEvents(result.Events);
     }
 
+    [ExcludeFromCodeCoverage]
+    private void DrawCivilizationHolySites(float x, float y, float width, float height)
+    {
+        // Build religion name and domain maps
+        var religionNames = CivilizationMemberReligions?
+            .ToDictionary(r => r.ReligionId, r => r.ReligionName)
+            ?? new Dictionary<string, string>();
+
+        var religionDomains = CivilizationMemberReligions?
+            .ToDictionary(r => r.ReligionId, r => r.Domain)
+            ?? new Dictionary<string, string>();
+
+        // Build ViewModel
+        var vm = new DivineAscension.GUI.Models.Civilization.HolySites.CivilizationHolySitesViewModel(
+            State.HolySitesState.SitesByReligion,
+            religionNames,
+            religionDomains,
+            State.HolySitesState.ExpandedReligions,
+            State.HolySitesState.IsLoading,
+            State.HolySitesState.ErrorMsg,
+            State.HolySitesState.ScrollY,
+            x, y, width, height);
+
+        // Render
+        var drawList = ImGui.GetWindowDrawList();
+        var result = CivilizationHolySitesRenderer.Draw(vm, drawList);
+
+        // Process events
+        ProcessHolySitesEvents(result.Events);
+    }
+
     #endregion
 
     #region Event Processors
@@ -671,6 +762,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                         CivilizationSubTab.Invites => UserHasReligion && !HasCivilization(),
                         CivilizationSubTab.Create => UserHasReligion && !HasCivilization(),
                         CivilizationSubTab.Diplomacy => HasCivilization(),
+                        CivilizationSubTab.HolySites => HasCivilization(),
                         _ => false
                     };
 
@@ -705,6 +797,10 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                         case CivilizationSubTab.Diplomacy:
                             State.DiplomacyState.ErrorMessage = null;
                             RequestDiplomacyInfo();
+                            break;
+                        case CivilizationSubTab.HolySites:
+                            State.HolySitesState.ErrorMsg = null;
+                            RequestCivilizationHolySites();
                             break;
                     }
 
@@ -1088,6 +1184,33 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     State.DiplomacyState.ErrorMessage = null;
                     break;
             }
+    }
+
+    private void ProcessHolySitesEvents(IReadOnlyList<HolySitesEvent> events)
+    {
+        foreach (var evt in events)
+        {
+            switch (evt)
+            {
+                case HolySitesEvent.RefreshClicked:
+                    RequestCivilizationHolySites();
+                    break;
+                case HolySitesEvent.ScrollChanged e:
+                    State.HolySitesState.ScrollY = e.NewScrollY;
+                    break;
+                case HolySitesEvent.ReligionToggled e:
+                    // Toggle expanded state
+                    if (State.HolySitesState.ExpandedReligions.Contains(e.ReligionUID))
+                        State.HolySitesState.ExpandedReligions.Remove(e.ReligionUID);
+                    else
+                        State.HolySitesState.ExpandedReligions.Add(e.ReligionUID);
+                    break;
+                case HolySitesEvent.SiteSelected e:
+                    // Could open detail view (future enhancement)
+                    _coreClientApi.Logger.Debug($"[DivineAscension:HolySites] Site selected: {e.SiteUID}");
+                    break;
+            }
+        }
     }
 
     #endregion

@@ -613,6 +613,24 @@ public partial class GuiDialog
     }
 
     /// <summary>
+    ///     Handle holy site data received from server
+    /// </summary>
+    private void OnHolySiteDataReceived(DivineAscension.Network.HolySite.HolySiteResponsePacket packet)
+    {
+        // If detail info, ignore for now (or handle separately)
+        if (packet.DetailInfo != null)
+        {
+            _capi!.Logger.Debug("[DivineAscension] Received holy site detail info (not implemented yet)");
+            return;
+        }
+
+        _capi!.Logger.Debug($"[DivineAscension] Received holy site list: {packet.Sites.Count} sites");
+
+        // Update civilization holy sites state
+        _manager!.CivilizationManager.UpdateHolySiteList(packet.Sites);
+    }
+
+    /// <summary>
     ///     Handle available domains received from server
     /// </summary>
     private void OnAvailableDomainsReceived(AvailableDomainsResponsePacket packet)
