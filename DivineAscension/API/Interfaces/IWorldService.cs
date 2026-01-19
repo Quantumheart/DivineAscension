@@ -53,8 +53,8 @@ public interface IWorldService
     /// <summary>
     /// Get all currently online players.
     /// </summary>
-    /// <returns>An enumerable of all online players.</returns>
-    IEnumerable<IPlayer> GetAllOnlinePlayers();
+    /// <returns>An enumerable of all online server players.</returns>
+    IEnumerable<IServerPlayer> GetAllOnlinePlayers();
 
     /// <summary>
     /// Get a block at the specified position.
