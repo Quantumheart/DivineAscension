@@ -51,6 +51,12 @@ public sealed class FakeWorldService : IWorldService
         return _playersByUID.Values;
     }
 
+    public IEnumerable<IPlayer> GetAllPlayers()
+    {
+        // In fake service, return same as online players (tests can control this)
+        return _playersByUID.Values;
+    }
+
     // Block access
     public Block GetBlock(BlockPos pos)
     {
