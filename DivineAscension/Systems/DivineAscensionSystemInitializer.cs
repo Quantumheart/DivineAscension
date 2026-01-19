@@ -45,6 +45,7 @@ public static class DivineAscensionSystemInitializer
         var persistenceService = new ServerPersistenceService(api.WorldManager.SaveGame);
         var worldService = new ServerWorldService(api.World);
         var networkService = new ServerNetworkService(serverChannel);
+        var commandService = new ServerChatCommandService(api.ChatCommands);
 
         // Initialize localization service for server
         LocalizationService.Instance.InitializeServer(api);
@@ -168,6 +169,15 @@ public static class DivineAscensionSystemInitializer
                 cooldownManager, messengerService, worldService, logger);
         civilizationCommands.RegisterCommands();
 
+        var holySiteCommands = new HolySiteCommands(
+            commandService,
+            holySiteManager,
+            religionManager,
+            messengerService,
+            worldService,
+            logger);
+        holySiteCommands.RegisterCommands();
+
         // Create and initialize network handlers
         var playerDataHandler = new PlayerDataNetworkHandler(
             logger,
@@ -274,6 +284,7 @@ public static class DivineAscensionSystemInitializer
             ReligionCommands = religionCommands,
             RoleCommands = roleCommands,
             CivilizationCommands = civilizationCommands,
+            HolySiteCommands = holySiteCommands,
             PlayerDataNetworkHandler = playerDataHandler,
             BlessingNetworkHandler = blessingHandler,
             ReligionNetworkHandler = religionHandler,
@@ -306,12 +317,13 @@ public class InitializationResult
     public BlessingEffectSystem BlessingEffectSystem { get; init; } = null!;
     public RoleManager RoleManager { get; init; } = null!;
 
-    // 5 Commands
+    // 6 Commands
     public FavorCommands FavorCommands { get; init; } = null!;
     public BlessingCommands BlessingCommands { get; init; } = null!;
     public ReligionCommands ReligionCommands { get; init; } = null!;
     public RoleCommands RoleCommands { get; init; } = null!;
     public CivilizationCommands CivilizationCommands { get; init; } = null!;
+    public HolySiteCommands HolySiteCommands { get; init; } = null!;
 
     // Network Handlers
     public PlayerDataNetworkHandler PlayerDataNetworkHandler { get; init; } = null!;

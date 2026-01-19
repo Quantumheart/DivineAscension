@@ -1447,5 +1447,35 @@ public static class LocalizationKeys
     public const string NET_CIV_UNKNOWN_ACTION = "divineascension:net.civ.unknown_action";
     public const string NET_CIV_ERROR = "divineascension:net.civ.error";
 
+    // Holy Site Commands
+    public const string CMD_HOLYSITE_DESC = "divineascension:cmd.holysite.desc";
+    public const string CMD_HOLYSITE_CONSECRATE_DESC = "divineascension:cmd.holysite.consecrate.desc";
+    public const string CMD_HOLYSITE_DECONSECRATE_DESC = "divineascension:cmd.holysite.deconsecrate.desc";
+    public const string CMD_HOLYSITE_INFO_DESC = "divineascension:cmd.holysite.info.desc";
+    public const string CMD_HOLYSITE_LIST_DESC = "divineascension:cmd.holysite.list.desc";
+    public const string CMD_HOLYSITE_NEARBY_DESC = "divineascension:cmd.holysite.nearby.desc";
+
+    // Holy Site Messages
+    public const string HOLYSITE_CONSECRATED = "divineascension:holysite.consecrated";
+    public const string HOLYSITE_DECONSECRATED = "divineascension:holysite.deconsecrated";
+    public const string HOLYSITE_NOT_MEMBER = "divineascension:holysite.not_member";
+    public const string HOLYSITE_NO_PERMISSION = "divineascension:holysite.no_permission";
+    public const string HOLYSITE_NOT_CLAIMED = "divineascension:holysite.not_claimed";
+    public const string HOLYSITE_LIMIT_REACHED = "divineascension:holysite.limit_reached";
+    public const string HOLYSITE_NOT_FOUND = "divineascension:holysite.not_found";
+    public const string HOLYSITE_INFO_HEADER = "divineascension:holysite.info.header";
+    public const string HOLYSITE_INFO_TIER = "divineascension:holysite.info.tier";
+    public const string HOLYSITE_INFO_SIZE = "divineascension:holysite.info.size";
+    public const string HOLYSITE_INFO_BONUSES = "divineascension:holysite.info.bonuses";
+    public const string HOLYSITE_INFO_FOUNDER = "divineascension:holysite.info.founder";
+    public const string HOLYSITE_INFO_CREATED = "divineascension:holysite.info.created";
+    public const string HOLYSITE_LIST_HEADER = "divineascension:holysite.list.header";
+    public const string HOLYSITE_LIST_ENTRY = "divineascension:holysite.list.entry";
+    public const string HOLYSITE_LIST_EMPTY = "divineascension:holysite.list.empty";
+    public const string HOLYSITE_NEARBY_HEADER = "divineascension:holysite.nearby.header";
+    public const string HOLYSITE_NEARBY_ENTRY = "divineascension:holysite.nearby.entry";
+    public const string HOLYSITE_NEARBY_EMPTY = "divineascension:holysite.nearby.empty";
+    public const string HOLYSITE_NOT_IN_SITE = "divineascension:holysite.not_in_site";
+
     #endregion
 }
