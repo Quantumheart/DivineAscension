@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Commands.Parsers;
 using DivineAscension.Constants;
 using DivineAscension.Data;
@@ -23,7 +24,10 @@ public class CivilizationCommands(
     ICivilizationManager civilizationManager,
     IReligionManager religionManager,
     IPlayerProgressionDataManager playerProgressionDataManager,
-    ICooldownManager cooldownManager)
+    ICooldownManager cooldownManager,
+    IPlayerMessengerService messengerService,
+    IWorldService worldService,
+    ILogger logger)
 {
     private readonly ICivilizationManager _civilizationManager =
         civilizationManager ?? throw new ArgumentNullException(nameof(civilizationManager));
@@ -38,6 +42,15 @@ public class CivilizationCommands(
 
     private readonly ICooldownManager _cooldownManager =
         cooldownManager ?? throw new ArgumentNullException(nameof(cooldownManager));
+
+    private readonly IPlayerMessengerService _messengerService =
+        messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+
+    private readonly IWorldService _worldService =
+        worldService ?? throw new ArgumentNullException(nameof(worldService));
+
+    private readonly ILogger _logger =
+        logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <summary>
     ///     Registers all civilization commands
@@ -782,11 +795,11 @@ public class CivilizationCommands(
         {
             foreach (var memberUid in religion.MemberUIDs)
             {
-                var member = _sapi.World.PlayerByUid(memberUid) as IServerPlayer;
+                var member = _worldService.GetPlayerByUID(memberUid);
                 if (member != null)
                 {
                     // Send chat notification
-                    member.SendMessage(GlobalConstants.GeneralChatGroup,
+                    _messengerService.SendMessage(member,
                         LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_RELIGION_JOINED_NOTIFICATION,
                             religion.ReligionName, civName),
                         EnumChatType.Notification);
@@ -797,7 +810,7 @@ public class CivilizationCommands(
             }
         }
 
-        _sapi.Logger.Notification(
+        _logger.Notification(
             $"[DivineAscension] Admin: {player.PlayerName} created civilization '{civName}' with {religions.Count} religion(s)");
 
         return TextCommandResult.Success(
@@ -840,11 +853,11 @@ public class CivilizationCommands(
 
             foreach (var memberUid in religion.MemberUIDs)
             {
-                var member = _sapi.World.PlayerByUid(memberUid) as IServerPlayer;
+                var member = _worldService.GetPlayerByUID(memberUid);
                 if (member != null)
                 {
                     // Send chat notification
-                    member.SendMessage(GlobalConstants.GeneralChatGroup,
+                    _messengerService.SendMessage(member,
                         LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_SUCCESS_ADMIN_DISBANDED_NOTIFICATION,
                             civName),
                         EnumChatType.Notification);
@@ -855,7 +868,7 @@ public class CivilizationCommands(
             }
         }
 
-        _sapi.Logger.Notification(
+        _logger.Notification(
             $"[DivineAscension] Admin: {player.PlayerName} disbanded civilization '{civName}' ({memberCount} religion(s))");
 
         return TextCommandResult.Success(

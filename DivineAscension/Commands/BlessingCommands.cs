@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Extensions;
 using DivineAscension.Models.Enum;
@@ -23,7 +24,8 @@ public class BlessingCommands(
     IPlayerProgressionDataManager? playerReligionDataManager,
     IReligionManager? religionManager,
     IBlessingEffectSystem? blessingEffectSystem,
-    IServerNetworkChannel? serverChannel)
+    INetworkService? networkService,
+    IPlayerMessengerService? messengerService)
 {
     private readonly IBlessingEffectSystem _blessingEffectSystem =
         blessingEffectSystem ?? throw new ArgumentNullException($"{nameof(blessingEffectSystem)}");
@@ -39,8 +41,11 @@ public class BlessingCommands(
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException($"{nameof(sapi)}");
 
-    private readonly IServerNetworkChannel _serverChannel =
-        serverChannel ?? throw new ArgumentNullException($"{nameof(serverChannel)}");
+    private readonly INetworkService _networkService =
+        networkService ?? throw new ArgumentNullException($"{nameof(networkService)}");
+
+    private readonly IPlayerMessengerService _messenger =
+        messengerService ?? throw new ArgumentNullException($"{nameof(messengerService)}");
 
     /// <summary>
     ///     Registers all blessing commands
@@ -520,7 +525,7 @@ public class BlessingCommands(
                 var packet = new BlessingUnlockResponsePacket(true,
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_UNLOCKED, blessing.Name),
                     blessing.BlessingId);
-                _serverChannel.SendPacket(packet, player);
+                _networkService.SendToPlayer(player, packet);
             }
 
             return TextCommandResult.Success(
@@ -545,8 +550,8 @@ public class BlessingCommands(
             if (member != null)
             {
                 // Send chat notification
-                member.SendMessage(
-                    GlobalConstants.GeneralChatGroup,
+                _messenger.SendMessage(
+                    member,
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_UNLOCKED, blessing.Name),
                     EnumChatType.Notification
                 );
@@ -558,7 +563,7 @@ public class BlessingCommands(
                 var packet = new BlessingUnlockResponsePacket(true,
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_UNLOCKED, blessing.Name),
                     blessing.BlessingId);
-                _serverChannel.SendPacket(packet, member);
+                _networkService.SendToPlayer(member, packet);
             }
         }
 
@@ -709,7 +714,7 @@ public class BlessingCommands(
                 new BlessingUnlockResponsePacket(true,
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_UNLOCKED,
                         blessing.Name, resolvedPlayer.PlayerName), blessing.BlessingId);
-            _serverChannel.SendPacket(packet, resolvedPlayer);
+            _networkService.SendToPlayer(resolvedPlayer, packet);
 
             _sapi.Logger.Notification(
                 $"[DivineAscension] Admin: {player.PlayerName} unlocked player blessing '{blessing.Name}' for {resolvedPlayer.PlayerName}");
@@ -745,7 +750,7 @@ public class BlessingCommands(
                     var memberPacket = new BlessingUnlockResponsePacket(true,
                         LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_UNLOCKED,
                             blessing.Name, targetReligion.ReligionName), blessing.BlessingId);
-                    _serverChannel.SendPacket(memberPacket, member);
+                    _networkService.SendToPlayer(member, memberPacket);
                 }
             }
 
@@ -808,7 +813,7 @@ public class BlessingCommands(
             var packet = new BlessingUnlockResponsePacket(false,
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_LOCKED, blessing.Name,
                     resolvedPlayer.PlayerName), blessing.BlessingId);
-            _serverChannel.SendPacket(packet, resolvedPlayer);
+            _networkService.SendToPlayer(resolvedPlayer, packet);
 
             _sapi.Logger.Notification(
                 $"[DivineAscension] Admin: {player.PlayerName} locked player blessing '{blessing.Name}' for {resolvedPlayer.PlayerName}");
@@ -844,7 +849,7 @@ public class BlessingCommands(
                     var memberPacket = new BlessingUnlockResponsePacket(false,
                         LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_LOCKED,
                             blessing.Name, targetReligion.ReligionName), blessing.BlessingId);
-                    _serverChannel.SendPacket(memberPacket, member);
+                    _networkService.SendToPlayer(member, memberPacket);
                 }
             }
 
@@ -980,7 +985,7 @@ public class BlessingCommands(
                                     LocalizationService.Instance.Get(
                                         LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED_FOR_RELIGION, blessing.Name),
                                     blessing.BlessingId);
-                                _serverChannel.SendPacket(memberPacket, member);
+                                _networkService.SendToPlayer(member, memberPacket);
                             }
                         }
                     }
@@ -1003,7 +1008,7 @@ public class BlessingCommands(
                     var packet = new BlessingUnlockResponsePacket(true,
                         LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED, blessing.Name),
                         blessing.BlessingId);
-                    _serverChannel.SendPacket(packet, resolvedPlayer);
+                    _networkService.SendToPlayer(resolvedPlayer, packet);
                 }
             }
         }
