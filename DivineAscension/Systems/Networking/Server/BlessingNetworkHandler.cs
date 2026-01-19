@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network;
@@ -19,20 +20,42 @@ namespace DivineAscension.Systems.Networking.Server;
 ///     Manages blessing unlocks (both player and religion blessings) and blessing data requests.
 /// </summary>
 [ExcludeFromCodeCoverage]
-public class BlessingNetworkHandler(
-    ICoreServerAPI sapi,
-    BlessingRegistry blessingRegistry,
-    BlessingEffectSystem blessingEffectSystem,
-    IPlayerProgressionDataManager playerProgressionDataManager,
-    IReligionManager religionManager,
-    IServerNetworkChannel serverChannel)
-    : IServerNetworkHandler
+public class BlessingNetworkHandler : IServerNetworkHandler
 {
+    private readonly ILogger _logger;
+    private readonly BlessingRegistry _blessingRegistry;
+    private readonly BlessingEffectSystem _blessingEffectSystem;
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
+    private readonly IReligionManager _religionManager;
+    private readonly INetworkService _networkService;
+    private readonly IPlayerMessengerService _messengerService;
+    private readonly IWorldService _worldService;
+
+    public BlessingNetworkHandler(
+        ILogger logger,
+        BlessingRegistry blessingRegistry,
+        BlessingEffectSystem blessingEffectSystem,
+        IPlayerProgressionDataManager playerProgressionDataManager,
+        IReligionManager religionManager,
+        INetworkService networkService,
+        IPlayerMessengerService messengerService,
+        IWorldService worldService)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _blessingRegistry = blessingRegistry ?? throw new ArgumentNullException(nameof(blessingRegistry));
+        _blessingEffectSystem = blessingEffectSystem ?? throw new ArgumentNullException(nameof(blessingEffectSystem));
+        _playerProgressionDataManager = playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
+        _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
+        _networkService = networkService ?? throw new ArgumentNullException(nameof(networkService));
+        _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
+    }
+
     public void RegisterHandlers()
     {
         // Register handlers for blessing system packets
-        serverChannel.SetMessageHandler<BlessingUnlockRequestPacket>(OnBlessingUnlockRequest);
-        serverChannel.SetMessageHandler<BlessingDataRequestPacket>(OnBlessingDataRequest);
+        _networkService.RegisterMessageHandler<BlessingUnlockRequestPacket>(OnBlessingUnlockRequest);
+        _networkService.RegisterMessageHandler<BlessingDataRequestPacket>(OnBlessingDataRequest);
     }
 
     public void Dispose()
@@ -47,18 +70,18 @@ public class BlessingNetworkHandler(
 
         try
         {
-            var blessing = blessingRegistry!.GetBlessing(packet.BlessingId);
+            var blessing = _blessingRegistry.GetBlessing(packet.BlessingId);
             if (blessing == null)
             {
                 message = LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_NOT_FOUND, packet.BlessingId);
             }
             else
             {
-                var playerData = playerProgressionDataManager!.GetOrCreatePlayerData(fromPlayer.PlayerUID);
-                var religion = religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
-                var playerFavorRank = playerProgressionDataManager.GetPlayerFavorRank(fromPlayer.PlayerUID);
+                var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(fromPlayer.PlayerUID);
+                var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+                var playerFavorRank = _playerProgressionDataManager.GetPlayerFavorRank(fromPlayer.PlayerUID);
 
-                var (canUnlock, reason) = blessingRegistry.CanUnlockBlessing(fromPlayer.PlayerUID, playerFavorRank, playerData, religion, blessing);
+                var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(fromPlayer.PlayerUID, playerFavorRank, playerData, religion, blessing);
                 if (!canUnlock)
                 {
                     message = reason;
@@ -75,16 +98,16 @@ public class BlessingNetworkHandler(
                         }
                         else
                         {
-                            success = playerProgressionDataManager.UnlockPlayerBlessing(fromPlayer.PlayerUID,
+                            success = _playerProgressionDataManager.UnlockPlayerBlessing(fromPlayer.PlayerUID,
                                 packet.BlessingId);
                             if (success)
                             {
-                                blessingEffectSystem!.RefreshPlayerBlessings(fromPlayer.PlayerUID);
+                                _blessingEffectSystem.RefreshPlayerBlessings(fromPlayer.PlayerUID);
                                 message = LocalizationService.Instance.Get(
                                     LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED, blessing.Name);
 
                                 // Notify player data changed (triggers event that sends HUD update to client)
-                                playerProgressionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
+                                _playerProgressionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
                             }
                             else
                             {
@@ -108,7 +131,7 @@ public class BlessingNetworkHandler(
                         else
                         {
                             religion.UnlockBlessing(packet.BlessingId);
-                            blessingEffectSystem!.RefreshReligionBlessings(religion.ReligionUID);
+                            _blessingEffectSystem.RefreshReligionBlessings(religion.ReligionUID);
                             message = LocalizationService.Instance.Get(
                                 LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED_FOR_RELIGION, blessing.Name);
                             success = true;
@@ -117,12 +140,12 @@ public class BlessingNetworkHandler(
                             foreach (var memberUid in religion.MemberUIDs)
                             {
                                 // Notify player data changed (triggers event that sends HUD update to client)
-                                playerProgressionDataManager.NotifyPlayerDataChanged(memberUid);
+                                _playerProgressionDataManager.NotifyPlayerDataChanged(memberUid);
 
-                                var member = sapi!.World.PlayerByUid(memberUid) as IServerPlayer;
+                                var member = _worldService.GetPlayerByUID(memberUid) as IServerPlayer;
                                 if (member != null)
-                                    member.SendMessage(
-                                        GlobalConstants.GeneralChatGroup,
+                                    _messengerService.SendMessage(
+                                        member,
                                         LocalizationService.Instance.Get(
                                             LocalizationKeys.NET_BLESSING_UNLOCKED_NOTIFICATION, blessing.Name),
                                         EnumChatType.Notification
@@ -136,11 +159,11 @@ public class BlessingNetworkHandler(
         catch (Exception ex)
         {
             message = LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_ERROR_UNLOCKING, ex.Message);
-            sapi!.Logger.Error($"[DivineAscension] Blessing unlock error: {ex}");
+            _logger.Error($"[DivineAscension] Blessing unlock error: {ex}");
         }
 
         var response = new BlessingUnlockResponsePacket(success, message, packet.BlessingId);
-        serverChannel!.SendPacket(response, fromPlayer);
+        _networkService.SendToPlayer(fromPlayer, response);
     }
 
     /// <summary>
@@ -148,20 +171,20 @@ public class BlessingNetworkHandler(
     /// </summary>
     private void OnBlessingDataRequest(IServerPlayer fromPlayer, BlessingDataRequestPacket packet)
     {
-        sapi!.Logger.Debug($"[DivineAscension] Blessing data requested by {fromPlayer.PlayerName}");
+        _logger.Debug($"[DivineAscension] Blessing data requested by {fromPlayer.PlayerName}");
 
         var response = new BlessingDataResponsePacket();
 
         try
         {
-            var playerData = playerProgressionDataManager!.GetOrCreatePlayerData(fromPlayer.PlayerUID);
+            var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(fromPlayer.PlayerUID);
 
-            var religion = religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
-            var deity = playerProgressionDataManager.GetPlayerDeityType(fromPlayer.PlayerUID);
+            var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+            var deity = _playerProgressionDataManager.GetPlayerDeityType(fromPlayer.PlayerUID);
             if (religion == null || deity == DeityDomain.None)
             {
                 response.HasReligion = false;
-                serverChannel!.SendPacket(response, fromPlayer);
+                _networkService.SendToPlayer(fromPlayer, response);
                 return;
             }
 
@@ -170,14 +193,14 @@ public class BlessingNetworkHandler(
             response.ReligionName = religion.ReligionName;
             response.Domain = deity.ToString();
             response.DeityName = religion.DeityName;
-            response.FavorRank = (int)playerProgressionDataManager!.GetPlayerFavorRank(fromPlayer.PlayerUID);
+            response.FavorRank = (int)_playerProgressionDataManager.GetPlayerFavorRank(fromPlayer.PlayerUID);
             response.PrestigeRank = (int)religion.PrestigeRank;
             response.CurrentFavor = playerData.Favor;
             response.CurrentPrestige = religion.Prestige;
             response.TotalFavorEarned = playerData.TotalFavorEarned;
 
             // Get player blessings for this deity
-            var playerBlessings = blessingRegistry!.GetBlessingsForDeity(deity, BlessingKind.Player);
+            var playerBlessings = _blessingRegistry.GetBlessingsForDeity(deity, BlessingKind.Player);
             response.PlayerBlessings = playerBlessings.Select(p => new BlessingDataResponsePacket.BlessingInfo
             {
                 BlessingId = p.BlessingId,
@@ -193,7 +216,7 @@ public class BlessingNetworkHandler(
 
             // Get religion blessings for this deity
             var religionBlessings =
-                blessingRegistry.GetBlessingsForDeity(deity, BlessingKind.Religion);
+                _blessingRegistry.GetBlessingsForDeity(deity, BlessingKind.Religion);
             response.ReligionBlessings = religionBlessings.Select(p => new BlessingDataResponsePacket.BlessingInfo
             {
                 BlessingId = p.BlessingId,
@@ -217,15 +240,15 @@ public class BlessingNetworkHandler(
                 .Select(kvp => kvp.Key)
                 .ToList();
 
-            sapi.Logger.Debug(
+            _logger.Debug(
                 $"[DivineAscension] Sending blessing data: {response.PlayerBlessings.Count} player, {response.ReligionBlessings.Count} religion");
         }
         catch (Exception ex)
         {
-            sapi!.Logger.Error($"[DivineAscension] Error loading blessing data: {ex}");
+            _logger.Error($"[DivineAscension] Error loading blessing data: {ex}");
             response.HasReligion = false;
         }
 
-        serverChannel!.SendPacket(response, fromPlayer);
+        _networkService.SendToPlayer(fromPlayer, response);
     }
 }

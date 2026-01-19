@@ -1,6 +1,8 @@
 using System.Linq;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Network;
 using DivineAscension.Systems.Interfaces;
+using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Systems.Networking.Server;
@@ -10,18 +12,21 @@ namespace DivineAscension.Systems.Networking.Server;
 /// </summary>
 public class ActivityNetworkHandler
 {
+    private readonly ILogger _logger;
     private readonly IActivityLogManager _activityLogManager;
     private readonly IReligionManager _religionManager;
-    private readonly ICoreServerAPI _sapi;
-    private readonly IServerNetworkChannel _serverChannel;
+    private readonly INetworkService _networkService;
 
-    public ActivityNetworkHandler(ICoreServerAPI sapi, IActivityLogManager activityLogManager,
-        IReligionManager religionManager, IServerNetworkChannel serverChannel)
+    public ActivityNetworkHandler(
+        ILogger logger,
+        IActivityLogManager activityLogManager,
+        IReligionManager religionManager,
+        INetworkService networkService)
     {
-        _sapi = sapi;
+        _logger = logger;
         _activityLogManager = activityLogManager;
         _religionManager = religionManager;
-        _serverChannel = serverChannel;
+        _networkService = networkService;
     }
 
     /// <summary>
@@ -29,9 +34,9 @@ public class ActivityNetworkHandler
     /// </summary>
     public void RegisterHandlers()
     {
-        _serverChannel.SetMessageHandler<ActivityLogRequestPacket>(OnActivityLogRequest);
+        _networkService.RegisterMessageHandler<ActivityLogRequestPacket>(OnActivityLogRequest);
 
-        _sapi.Logger.Notification("[DivineAscension] ActivityNetworkHandler registered");
+        _logger.Notification("[DivineAscension] ActivityNetworkHandler registered");
     }
 
     /// <summary>
@@ -39,7 +44,7 @@ public class ActivityNetworkHandler
     /// </summary>
     private void OnActivityLogRequest(IServerPlayer player, ActivityLogRequestPacket packet)
     {
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[ActivityNetworkHandler] Received activity log request from {player.PlayerName} for religion {packet.ReligionUID}");
 
         // Validate player is member of requested religion
@@ -47,18 +52,18 @@ public class ActivityNetworkHandler
         if (string.IsNullOrEmpty(playerReligion?.ReligionUID) ||
             playerReligion.ReligionUID != packet.ReligionUID)
         {
-            _sapi.Logger.Warning(
+            _logger.Warning(
                 $"[ActivityNetworkHandler] Player {player.PlayerName} requested activity log for religion {packet.ReligionUID} but is not a member");
 
             // Send empty response if not member
-            _serverChannel.SendPacket(new ActivityLogResponsePacket(), player);
+            _networkService.SendToPlayer(player, new ActivityLogResponsePacket());
             return;
         }
 
         // Fetch activity log
         var entries = _activityLogManager.GetActivityLog(packet.ReligionUID, packet.Limit);
 
-        _sapi.Logger.Debug(
+        _logger.Debug(
             $"[ActivityNetworkHandler] Sending {entries.Count} activity entries to {player.PlayerName}");
 
         // Convert to response packet
@@ -77,6 +82,6 @@ public class ActivityNetworkHandler
             }).ToList()
         };
 
-        _serverChannel.SendPacket(response, player);
+        _networkService.SendToPlayer(player, response);
     }
 }
