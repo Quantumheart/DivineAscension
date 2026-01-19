@@ -47,12 +47,12 @@ Choose a deity that matches your playstyle. Each deity rewards different activit
 
 Divine Ascension uses a **domain-based** system:
 
-- **Domain**: The mechanical archetype (Craft, Wild, Harvest, Stone) that determines game mechanics, blessings, and
+- **Domain**: The mechanical archetype (Craft, Wild, Conquest, Harvest, Stone) that determines game mechanics, blessings, and
   favor activities
 - **Deity Name**: A customizable name for the deity your religion worships (e.g., "Khoras the Eternal Smith")
 
 When creating a religion, you choose a **domain** and can give your deity any name you like. The default deity names are
-Khoras, Lysa, Aethra, and Gaia, but founders can customize these with `/religion setdeityname`.
+Khoras (Craft), Lysa (Wild), Aethra (Harvest), and Gaia (Stone), while Conquest uses the domain name itself. Founders can customize these with `/religion setdeityname`.
 
 ---
 
@@ -143,6 +143,56 @@ Khoras, Lysa, Aethra, and Gaia, but founders can customize these with `/religion
 
 ---
 
+### ⚔️ Conquest Domain
+
+**Focus**: Domination, Victory, Martial Prowess
+**Alignment**: Chaotic Neutral
+**Colors**: Deep Crimson and Dark Red
+**Playstyle**: Combat-focused warrior with dual progression paths (Offensive Berserker / Defensive Fortress)
+
+**Best For**:
+- Players who love combat and PvP
+- Warriors seeking martial superiority
+- Monster hunters and dungeon explorers
+- Players who want aggressive, high-risk gameplay
+- Groups focused on conquest and territorial dominance
+
+**Favor Sources**:
+- **Defeating Monsters** (scaled by difficulty):
+  - Boss-tier enemies (100+ HP): 15 favor
+  - Strong monsters (50+ HP): 10 favor
+  - Medium threats (25+ HP): 7 favor
+  - Minor threats (10+ HP): 5 favor
+  - Weak creatures (<10 HP): 3 favor
+- **Discovering Ruins** (one-time per location):
+  - Devastation structures: 100 favor (rarest)
+  - Temporal machinery: 75 favor (rare)
+  - Locust nests: 25 favor
+  - Brick ruins: 20 favor
+- PvP combat (all domains): 10 favor per kill (15 during war)
+- Passive generation: 0.5 favor/hour
+
+**Special Features**:
+- **Battle Fury**: Stack damage bonuses with consecutive kills (up to 5 stacks, +5% damage each)
+- **Bloodlust**: Heal 5% max health on each kill
+- **Last Stand**: Automatic 20% damage reduction when health drops below 25%
+- **Dual Progression Paths**:
+  - Offensive Path: Focus on melee damage, critical strikes, and armor piercing
+  - Defensive Path: Emphasize max health, damage reduction, and survivability
+  - Ultimate: Avatar of Conquest requires BOTH paths for maximum power
+
+**Ruin Discovery System**:
+Conquest followers automatically scan a 50-block radius for ancient ruins every 500ms. Discovering new ruins awards favor based on rarity. Each ruin location can only be discovered once per player.
+
+**Tips**:
+- Hunt in dangerous areas with boss-tier monsters for maximum favor
+- Explore the world to discover rare Devastation and Temporal ruins
+- Build towards both offensive and defensive blessing paths for Avatar of Conquest
+- Coordinate with your religion for group combat bonuses
+- War declarations multiply PvP favor rewards by 1.5x
+
+---
+
 ## Understanding Progression
 
 Divine Ascension features **dual progression**: individual Favor and collective Prestige.
@@ -203,7 +253,7 @@ Prestige is your religion's reputation, earned collectively by all members. It u
 
 **Parameters**:
 - `name`: Your religion's name (use quotes if it contains spaces)
-- `domain`: Choose from `craft`, `wild`, `harvest`, or `stone`
+- `domain`: Choose from `craft`, `wild`, `conquest`, `harvest`, or `stone`
     - **Tip**: In the GUI creation screen, hover over a domain's icon to see detailed information about its
       playstyle and favor sources!
 - `deityname`: The name of your deity (required, 2-48 characters, use quotes)
@@ -364,6 +414,30 @@ Favor is earned by performing activities aligned with your deity's domain.
 - Focus on crafting storage vessels (5 favor) and planters (4 favor)
 - Batch fire pottery in pit kilns for efficient favor gains
 - Build with clay bricks for both favor and base construction
+
+### Conquest Domain (Domination & Victory)
+
+**Primary Activities**:
+- ⚔️ **Defeating Monsters**: Killing hostile creatures (3-15 favor per kill, scaled by difficulty)
+  - Boss-tier enemies (100+ HP): 15 favor
+  - Strong monsters (50+ HP): 10 favor
+  - Medium threats (25+ HP): 7 favor
+  - Minor threats (10+ HP): 5 favor
+  - Weak creatures (<10 HP): 3 favor
+- 🏛️ **Discovering Ruins**: Finding ancient structures (one-time per location)
+  - Devastation structures: 100 favor (rarest)
+  - Temporal machinery (translocators, resonators): 75 favor (rare)
+  - Locust nests: 25 favor
+  - Brick ruins: 20 favor
+- ⚔️ **PvP**: Combat victories (10 favor per kill, 15 during war)
+
+**Tips**:
+- Hunt dangerous monsters in deep caves and ruins for maximum favor
+- Explore actively - ruin discovery is passive within 50 blocks but you must visit new areas
+- Each ruin location can only be discovered once, so keep exploring
+- Devastation and Temporal ruins are extremely rare - prioritize finding them
+- Declare war on rival civilizations for 1.5x PvP favor multiplier
+- Special effects (Battle Fury, Bloodlust, Last Stand) reward aggressive combat
 
 ### Passive Favor Generation
 
@@ -945,7 +1019,7 @@ Press **`Shift+G`** to open the Divine Ascension interface.
 - **Browse**: View and join available religions
 - **Create**: Start your own religion
 - **Info**: View your current religion's details
-- **Activity**: Coming soon (placeholder for future activity feed)
+- **Activity**: View your religion's recent activity feed with favor and prestige awards
 
 **2. Blessings Tab**
 - View the blessing tree layout
@@ -972,6 +1046,36 @@ Press **`Shift+G`** to open the Divine Ascension interface.
 - Icons indicate blessing types and deity associations
 - Color coding shows unlock status and requirements
 - Use filters to find specific content quickly
+
+### Activity Log
+
+The **Activity Log** tracks your religion's recent member activities, showing who earned favor and prestige, and for what actions.
+
+**Accessing the Activity Log**:
+1. Press `Shift+G` to open the GUI
+2. Navigate to the **Religion** tab
+3. Select the **Activity** subtab
+
+**Activity Log Features**:
+- Shows up to 100 most recent entries per religion (oldest entries automatically removed)
+- Displays player name, action type, favor earned, prestige earned, and timestamp
+- Domain-specific color coding for easy identification
+- Automatically updated in real-time as members perform activities
+- Persists across server restarts
+
+**What's Logged**:
+- All favor-earning activities (mining, hunting, crafting, etc.)
+- Prestige awards from member contributions
+- PvP kills and combat victories
+- Ruin discoveries (Conquest domain)
+- Alliance formation bonuses
+
+**Use Cases**:
+- Monitor your religion's most active contributors
+- Track progress toward prestige milestones
+- Identify which activities are most popular among members
+- Recognize and reward dedicated members
+- Analyze activity patterns to coordinate group efforts
 
 ---
 
@@ -1002,6 +1106,14 @@ Press **`Shift+G`** to open the Divine Ascension interface.
 2. Batch fire pottery in pit kilns for efficient favor
 3. Build with clay bricks (2 favor per brick) for dual-purpose construction
 4. Keep clay digging and pottery crafting as regular routines
+
+**Conquest Domain Followers**:
+1. Hunt high-value monsters in dangerous biomes (boss-tier enemies = 15 favor each)
+2. Actively explore new areas to discover ruins (auto-scanned within 50 blocks)
+3. Prioritize finding rare Devastation structures (100 favor) and Temporal machinery (75 favor)
+4. Declare war on rival civilizations for 1.5x PvP favor multiplier (15 instead of 10)
+5. Build towards Avatar of Conquest by unlocking BOTH offensive and defensive blessing paths
+6. Use Battle Fury effect - chain kills for stacking damage bonuses (up to 25% at 5 stacks)
 
 ### Religion Management
 
@@ -1058,6 +1170,7 @@ A: Make sure you're performing activities aligned with your domain:
 
 - **Craft**: Mining ore, smithing at anvil, smelting metals
 - **Wild**: Hunting animals, foraging plants
+- **Conquest**: Defeating monsters, discovering ruins (auto-scans 50 blocks around you)
 - **Harvest**: Harvesting crops, cooking meals, planting
 - **Stone**: Crafting pottery, firing kilns, placing bricks
 
@@ -1096,6 +1209,7 @@ A: It depends on your playstyle:
 
 - **Craft**: Easiest for beginners - mining and smithing are core Vintage Story activities
 - **Wild**: Good for players who enjoy hunting and wilderness survival
+- **Conquest**: For experienced players who enjoy combat and exploration (requires monster hunting and ruin discovery)
 - **Harvest**: Perfect for players who focus on farming and cooking
 - **Stone**: Great for players who enjoy pottery crafting and building with clay
 
@@ -1112,5 +1226,5 @@ A: It depends on your playstyle:
 
 ---
 
-*Last Updated: January 14, 2026*
-*Divine Ascension v4.6.0 - Prestige System Rebalance*
+*Last Updated: January 19, 2026*
+*Divine Ascension v4.7.0 - Conquest Domain & Activity Log*
