@@ -43,6 +43,7 @@ public class DivineAscensionModSystem : ModSystem
     private GameBalanceConfig _gameBalanceConfig = new();
 
     private Harmony? _harmony;
+    private IHolySiteManager? _holySiteManager;
     private HashSet<string> _migratedReligionUIDs = new();
     private PlayerDataNetworkHandler? _playerDataNetworkHandler;
     private PlayerProgressionDataManager? _playerReligionDataManager;
@@ -171,13 +172,16 @@ public class DivineAscensionModSystem : ModSystem
         SetupServerNetworking(api);
 
         // Initialize all server systems using the initializer
-        var result = DivineAscensionSystemInitializer.InitializeServerSystems(api, _serverChannel, _gameBalanceConfig, _configData);
+        var result =
+            DivineAscensionSystemInitializer.InitializeServerSystems(api, _serverChannel, _gameBalanceConfig,
+                _configData);
 
         // Store references to managers for disposal and event subscriptions
         _cooldownManager = result.CooldownManager;
         _religionManager = result.ReligionManager;
         _playerReligionDataManager = result.PlayerProgressionDataManager;
         _favorSystem = result.FavorSystem;
+        _holySiteManager = result.HolySiteManager;
         _civilizationManager = result.CivilizationManager;
         _playerDataNetworkHandler = result.PlayerDataNetworkHandler;
         _blessingNetworkHandler = result.BlessingNetworkHandler;
@@ -255,6 +259,7 @@ public class DivineAscensionModSystem : ModSystem
         // Cleanup systems
         _cooldownManager?.Dispose();
         _favorSystem?.Dispose();
+        _holySiteManager?.Dispose();
         _playerReligionDataManager?.Dispose();
         _religionManager?.Dispose();
         _civilizationManager?.Dispose();
