@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Extensions;
 using DivineAscension.Models;
@@ -20,7 +21,8 @@ public class RoleCommands(
     ICoreServerAPI sapi,
     IRoleManager roleManager,
     IReligionManager religionManager,
-    IPlayerProgressionDataManager playerReligionDataManager)
+    IPlayerProgressionDataManager playerReligionDataManager,
+    IPlayerMessengerService messengerService)
 {
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerReligionDataManager ?? throw new ArgumentNullException(nameof(playerReligionDataManager));
@@ -31,6 +33,8 @@ public class RoleCommands(
     private readonly IRoleManager _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
 
     private readonly ICoreServerAPI _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
+
+    private readonly IPlayerMessengerService _messenger = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
 
     /// <summary>
     ///     Registers all role management commands
@@ -383,8 +387,8 @@ public class RoleCommands(
         // Notify target player if online
         var targetServerPlayer = targetPlayer as IServerPlayer;
         if (targetServerPlayer != null)
-            targetServerPlayer.SendMessage(
-                GlobalConstants.GeneralChatGroup,
+            _messenger.SendMessage(
+                targetServerPlayer,
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_SUCCESS_ASSIGNED_NOTIFICATION,
                     role.RoleName, religion.ReligionName),
                 EnumChatType.Notification
@@ -606,8 +610,8 @@ public class RoleCommands(
         {
             var memberPlayer = _sapi.World.PlayerByUid(memberUID) as IServerPlayer;
             if (memberPlayer != null)
-                memberPlayer.SendMessage(
-                    GlobalConstants.GeneralChatGroup,
+                _messenger.SendMessage(
+                    memberPlayer,
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_SUCCESS_FOUNDER_TRANSFERRED_NOTIFICATION,
                         player.PlayerName, targetPlayerName, religion.ReligionName),
                     EnumChatType.Notification

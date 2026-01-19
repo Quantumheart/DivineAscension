@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Extensions;
 using DivineAscension.Models.Enum;
@@ -20,17 +21,20 @@ public class FavorCommands
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionManager _religionManager;
     private readonly ICoreServerAPI _sapi;
+    private readonly IPlayerMessengerService _messenger;
 
     // ReSharper disable once ConvertToPrimaryConstructor
     public FavorCommands(
         ICoreServerAPI sapi,
         IPlayerProgressionDataManager playerReligionDataManager,
-        IReligionManager religionManager)
+        IReligionManager religionManager,
+        IPlayerMessengerService messengerService)
     {
         _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
         _playerProgressionDataManager = playerReligionDataManager ??
                                         throw new ArgumentNullException(nameof(playerReligionDataManager));
         _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
+        _messenger = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
     }
 
     /// <summary>
