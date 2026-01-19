@@ -32,9 +32,9 @@ internal sealed class ServerWorldService(IServerWorldAccessor worldAccessor) : I
             .FirstOrDefault(p => p.PlayerName.Equals(name, StringComparison.OrdinalIgnoreCase));
     }
 
-    public IEnumerable<IPlayer> GetAllOnlinePlayers()
+    public IEnumerable<IServerPlayer> GetAllOnlinePlayers()
     {
-        return _worldAccessor.AllOnlinePlayers;
+        return _worldAccessor.AllOnlinePlayers.OfType<IServerPlayer>();
     }
 
     public Block GetBlock(BlockPos pos)

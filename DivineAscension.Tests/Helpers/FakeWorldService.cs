@@ -46,7 +46,7 @@ public sealed class FakeWorldService : IWorldService
         return _playersByName.TryGetValue(name, out var player) ? player : null;
     }
 
-    public IEnumerable<IPlayer> GetAllOnlinePlayers()
+    public IEnumerable<IServerPlayer> GetAllOnlinePlayers()
     {
         return _playersByUID.Values;
     }
