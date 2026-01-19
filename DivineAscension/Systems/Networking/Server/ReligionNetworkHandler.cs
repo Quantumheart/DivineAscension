@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models;
@@ -23,50 +24,56 @@ public class ReligionNetworkHandler : IServerNetworkHandler
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionManager _religionManager;
     private readonly IRoleManager _roleManager;
-    private readonly ICoreServerAPI _sapi;
-    private readonly IServerNetworkChannel _serverChannel;
+    private readonly ILogger _logger;
+    private readonly INetworkService _networkService;
+    private readonly IPlayerMessengerService _messengerService;
     private readonly ICooldownManager _cooldownManager;
+    private readonly IWorldService _worldService;
 
     /// <summary>
     ///     Constructor for dependency injection
     /// </summary>
     public ReligionNetworkHandler(
-        ICoreServerAPI sapi,
+        ILogger logger,
         IReligionManager religionManager,
         IPlayerProgressionDataManager playerProgressionDataManager,
         IRoleManager roleManager,
-        IServerNetworkChannel channel,
-        ICooldownManager cooldownManager)
+        INetworkService networkService,
+        IPlayerMessengerService messengerService,
+        ICooldownManager cooldownManager,
+        IWorldService worldService)
     {
-        _sapi = sapi;
-        _religionManager = religionManager;
-        _playerProgressionDataManager = playerProgressionDataManager;
-        _roleManager = roleManager;
-        _serverChannel = channel;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
+        _playerProgressionDataManager = playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
+        _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
+        _networkService = networkService ?? throw new ArgumentNullException(nameof(networkService));
+        _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
         _cooldownManager = cooldownManager ?? throw new ArgumentNullException(nameof(cooldownManager));
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
     }
 
     public void RegisterHandlers()
     {
         // Register handlers for religion dialog packets
-        _serverChannel!.SetMessageHandler<ReligionListRequestPacket>(OnReligionListRequest);
-        _serverChannel.SetMessageHandler<PlayerReligionInfoRequestPacket>(OnPlayerReligionInfoRequest);
-        _serverChannel.SetMessageHandler<ReligionActionRequestPacket>(OnReligionActionRequest);
-        _serverChannel.SetMessageHandler<CreateReligionRequestPacket>(OnCreateReligionRequest);
-        _serverChannel.SetMessageHandler<EditDescriptionRequestPacket>(OnEditDescriptionRequest);
-        _serverChannel.SetMessageHandler<ReligionDetailRequestPacket>(OnReligionDetailRequest);
-        _serverChannel.SetMessageHandler<SetDeityNameRequestPacket>(OnSetDeityNameRequest);
+        _networkService.RegisterMessageHandler<ReligionListRequestPacket>(OnReligionListRequest);
+        _networkService.RegisterMessageHandler<PlayerReligionInfoRequestPacket>(OnPlayerReligionInfoRequest);
+        _networkService.RegisterMessageHandler<ReligionActionRequestPacket>(OnReligionActionRequest);
+        _networkService.RegisterMessageHandler<CreateReligionRequestPacket>(OnCreateReligionRequest);
+        _networkService.RegisterMessageHandler<EditDescriptionRequestPacket>(OnEditDescriptionRequest);
+        _networkService.RegisterMessageHandler<ReligionDetailRequestPacket>(OnReligionDetailRequest);
+        _networkService.RegisterMessageHandler<SetDeityNameRequestPacket>(OnSetDeityNameRequest);
 
         // Register handler for available domains
-        _serverChannel.SetMessageHandler<AvailableDomainsRequestPacket>(OnAvailableDomainsRequest);
+        _networkService.RegisterMessageHandler<AvailableDomainsRequestPacket>(OnAvailableDomainsRequest);
 
         // Register handlers for role management packets
-        _serverChannel.SetMessageHandler<ReligionRolesRequest>(OnReligionRolesRequest);
-        _serverChannel.SetMessageHandler<CreateRoleRequest>(OnCreateRoleRequest);
-        _serverChannel.SetMessageHandler<ModifyRolePermissionsRequest>(OnModifyRolePermissionsRequest);
-        _serverChannel.SetMessageHandler<AssignRoleRequest>(OnAssignRoleRequest);
-        _serverChannel.SetMessageHandler<DeleteRoleRequest>(OnDeleteRoleRequest);
-        _serverChannel.SetMessageHandler<TransferFounderRequest>(OnTransferFounderRequest);
+        _networkService.RegisterMessageHandler<ReligionRolesRequest>(OnReligionRolesRequest);
+        _networkService.RegisterMessageHandler<CreateRoleRequest>(OnCreateRoleRequest);
+        _networkService.RegisterMessageHandler<ModifyRolePermissionsRequest>(OnModifyRolePermissionsRequest);
+        _networkService.RegisterMessageHandler<AssignRoleRequest>(OnAssignRoleRequest);
+        _networkService.RegisterMessageHandler<DeleteRoleRequest>(OnDeleteRoleRequest);
+        _networkService.RegisterMessageHandler<TransferFounderRequest>(OnTransferFounderRequest);
     }
 
     public void Dispose()
@@ -96,7 +103,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         }).ToList();
 
         var response = new ReligionListResponsePacket(religionInfoList);
-        _serverChannel!.SendPacket(response, fromPlayer);
+        _networkService.SendToPlayer(fromPlayer, response);
     }
 
     private void OnAvailableDomainsRequest(IServerPlayer fromPlayer, AvailableDomainsRequestPacket packet)
@@ -106,7 +113,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             .Select(d => d.ToString())
             .ToList();
 
-        _serverChannel!.SendPacket(new AvailableDomainsResponsePacket(domains), fromPlayer);
+        _networkService.SendToPlayer(fromPlayer, new AvailableDomainsResponsePacket(domains));
     }
 
     private void OnPlayerReligionInfoRequest(IServerPlayer fromPlayer, PlayerReligionInfoRequestPacket packet)
@@ -193,7 +200,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
             // Include pending religion invites for the player
             var invites = _religionManager!.GetPlayerInvitations(fromPlayer.PlayerUID);
-            _sapi!.Logger.Debug(
+            _logger.Debug(
                 $"[DivineAscension] Player {fromPlayer.PlayerName} ({fromPlayer.PlayerUID}) has {invites.Count} pending invitations");
 
             foreach (var inv in invites)
@@ -206,13 +213,13 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     ReligionName = rel?.ReligionName ?? inv.ReligionId,
                     ExpiresAt = inv.ExpiresDate
                 });
-                _sapi!.Logger.Debug(
+                _logger.Debug(
                     $"[DivineAscension] - Invitation to {rel?.ReligionName ?? inv.ReligionId}, expires {inv.ExpiresDate}");
             }
         }
 
-        _serverChannel!.SendPacket(response, fromPlayer);
-        _sapi!.Logger.Debug(
+        _networkService.SendToPlayer(fromPlayer, response);
+        _logger.Debug(
             $"[DivineAscension] Sent PlayerReligionInfoResponse to {fromPlayer.PlayerName}: HasReligion={response.HasReligion}, PendingInvites={response.PendingInvites.Count}");
     }
 
@@ -224,8 +231,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         if (religion == null)
         {
             // Return empty response if religion doesn't exist
-            _serverChannel!.SendPacket(response, fromPlayer);
-            _sapi!.Logger.Warning(
+            _networkService.SendToPlayer(fromPlayer, response);
+            _logger.Warning(
                 $"[DivineAscension] Religion detail request for non-existent religion: {packet.ReligionUID}");
             return;
         }
@@ -259,8 +266,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             });
         }
 
-        _serverChannel!.SendPacket(response, fromPlayer);
-        _sapi!.Logger.Debug(
+        _networkService.SendToPlayer(fromPlayer, response);
+        _logger.Debug(
             $"[DivineAscension] Sent ReligionDetailResponse to {fromPlayer.PlayerName} for {religion.ReligionName} with {response.Members.Count} members");
     }
 
@@ -296,11 +303,11 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 Success = false,
                 Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ERROR, ex.Message)
             };
-            _sapi.Logger.Error($"[DivineAscension] Religion action error: {ex}");
+            _logger.Error($"[DivineAscension] Religion action error: {ex}");
         }
 
         var response = new ReligionActionResponsePacket(result.Success, result.Message, packet.Action);
-        _serverChannel.SendPacket(response, fromPlayer);
+        _networkService.SendToPlayer(fromPlayer, response);
     }
 
     private void OnCreateReligionRequest(IServerPlayer fromPlayer, CreateReligionRequestPacket packet)
@@ -377,11 +384,11 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         catch (Exception ex)
         {
             message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_CREATE_ERROR, ex.Message);
-            _sapi!.Logger.Error($"[DivineAscension] Religion creation error: {ex}");
+            _logger.Error($"[DivineAscension] Religion creation error: {ex}");
         }
 
         var response = new CreateReligionResponsePacket(success, message, religionUID);
-        _serverChannel!.SendPacket(response, fromPlayer);
+        _networkService.SendToPlayer(fromPlayer, response);
     }
 
     private void OnEditDescriptionRequest(IServerPlayer fromPlayer, EditDescriptionRequestPacket packet)
@@ -420,11 +427,11 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         catch (Exception ex)
         {
             message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_DESC_ERROR, ex.Message);
-            _sapi!.Logger.Error($"[DivineAscension] Description edit error: {ex}");
+            _logger.Error($"[DivineAscension] Description edit error: {ex}");
         }
 
         var response = new EditDescriptionResponsePacket(success, message);
-        _serverChannel!.SendPacket(response, fromPlayer);
+        _networkService.SendToPlayer(fromPlayer, response);
     }
 
     private void OnSetDeityNameRequest(IServerPlayer fromPlayer, SetDeityNameRequestPacket packet)
@@ -436,47 +443,47 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             if (religion == null)
             {
                 var response = new SetDeityNameResponsePacket(false, "Religion not found");
-                _serverChannel!.SendPacket(response, fromPlayer);
+                _networkService.SendToPlayer(fromPlayer, response);
                 return;
             }
 
             if (religion.FounderUID != fromPlayer.PlayerUID)
             {
                 var response = new SetDeityNameResponsePacket(false, "Only the founder can change the deity name");
-                _serverChannel!.SendPacket(response, fromPlayer);
+                _networkService.SendToPlayer(fromPlayer, response);
                 return;
             }
 
             if (_religionManager.SetDeityName(packet.ReligionUID, packet.NewDeityName, out var error))
             {
                 var response = new SetDeityNameResponsePacket(true, null, packet.NewDeityName);
-                _serverChannel!.SendPacket(response, fromPlayer);
+                _networkService.SendToPlayer(fromPlayer, response);
 
                 // Notify all online members about the change
                 foreach (var memberUID in religion.MemberUIDs)
                 {
-                    var memberPlayer = _sapi!.World.PlayerByUid(memberUID) as IServerPlayer;
+                    var memberPlayer = _worldService.GetPlayerByUID(memberUID);
                     if (memberPlayer != null && memberPlayer.PlayerUID != fromPlayer.PlayerUID)
                     {
-                        _serverChannel.SendPacket(new ReligionStateChangedPacket
+                        _networkService.SendToPlayer(memberPlayer, new ReligionStateChangedPacket
                         {
                             Reason = $"Deity name changed to {packet.NewDeityName}",
                             HasReligion = true
-                        }, memberPlayer);
+                        });
                     }
                 }
             }
             else
             {
                 var response = new SetDeityNameResponsePacket(false, error);
-                _serverChannel!.SendPacket(response, fromPlayer);
+                _networkService.SendToPlayer(fromPlayer, response);
             }
         }
         catch (Exception ex)
         {
-            _sapi!.Logger.Error($"[DivineAscension] Set deity name error: {ex}");
+            _logger.Error($"[DivineAscension] Set deity name error: {ex}");
             var response = new SetDeityNameResponsePacket(false, "An error occurred while updating the deity name");
-            _serverChannel!.SendPacket(response, fromPlayer);
+            _networkService.SendToPlayer(fromPlayer, response);
         }
     }
 
@@ -495,7 +502,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     Success = false,
                     ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NOT_FOUND)
                 };
-                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                _networkService.SendToPlayer(fromPlayer, errorResponse);
                 return;
             }
 
@@ -507,7 +514,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     Success = false,
                     ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NOT_MEMBER)
                 };
-                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                _networkService.SendToPlayer(fromPlayer, errorResponse);
                 return;
             }
 
@@ -526,7 +533,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 response.MemberNames[uid] = religion.GetMemberName(uid);
 
                 // Opportunistic update if online
-                var player = _sapi!.World.PlayerByUid(uid);
+                var player = _worldService.GetPlayerByUID(uid);
                 if (player != null)
                 {
                     religion.UpdateMemberName(uid, player.PlayerName);
@@ -534,17 +541,17 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 }
             }
 
-            _serverChannel!.SendPacket(response, fromPlayer);
+            _networkService.SendToPlayer(fromPlayer, response);
         }
         catch (Exception ex)
         {
-            _sapi!.Logger.Error($"[DivineAscension] Error handling ReligionRolesRequest: {ex}");
+            _logger.Error($"[DivineAscension] Error handling ReligionRolesRequest: {ex}");
             var errorResponse = new ReligionRolesResponse
             {
                 Success = false,
                 ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ERROR, ex.Message)
             };
-            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+            _networkService.SendToPlayer(fromPlayer, errorResponse);
         }
     }
 
@@ -559,7 +566,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     Success = false,
                     ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVALID_REQUEST)
                 };
-                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                _networkService.SendToPlayer(fromPlayer, errorResponse);
                 return;
             }
 
@@ -576,17 +583,17 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 ErrorMessage = error
             };
 
-            _serverChannel!.SendPacket(response, fromPlayer);
+            _networkService.SendToPlayer(fromPlayer, response);
         }
         catch (Exception ex)
         {
-            _sapi!.Logger.Error($"[DivineAscension] Error handling CreateRoleRequest: {ex}");
+            _logger.Error($"[DivineAscension] Error handling CreateRoleRequest: {ex}");
             var errorResponse = new CreateRoleResponse
             {
                 Success = false,
                 ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ERROR, ex.Message)
             };
-            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+            _networkService.SendToPlayer(fromPlayer, errorResponse);
         }
     }
 
@@ -602,7 +609,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     Success = false,
                     ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVALID_REQUEST)
                 };
-                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                _networkService.SendToPlayer(fromPlayer, errorResponse);
                 return;
             }
 
@@ -620,17 +627,17 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 ErrorMessage = error
             };
 
-            _serverChannel!.SendPacket(response, fromPlayer);
+            _networkService.SendToPlayer(fromPlayer, response);
         }
         catch (Exception ex)
         {
-            _sapi!.Logger.Error($"[DivineAscension] Error handling ModifyRolePermissionsRequest: {ex}");
+            _logger.Error($"[DivineAscension] Error handling ModifyRolePermissionsRequest: {ex}");
             var errorResponse = new ModifyRolePermissionsResponse
             {
                 Success = false,
                 ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ERROR, ex.Message)
             };
-            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+            _networkService.SendToPlayer(fromPlayer, errorResponse);
         }
     }
 
@@ -646,7 +653,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     Success = false,
                     ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVALID_REQUEST)
                 };
-                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                _networkService.SendToPlayer(fromPlayer, errorResponse);
                 return;
             }
 
@@ -663,7 +670,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 ErrorMessage = error
             };
 
-            _serverChannel!.SendPacket(response, fromPlayer);
+            _networkService.SendToPlayer(fromPlayer, response);
 
             // Notify the target player if they're online and broadcast roles update
             if (success)
@@ -671,12 +678,12 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 var religion = _religionManager.GetReligion(packet.ReligionUID);
                 if (religion != null)
                 {
-                    var targetPlayer = _sapi!.World.PlayerByUid(packet.TargetPlayerUID) as IServerPlayer;
+                    var targetPlayer = _worldService.GetPlayerByUID(packet.TargetPlayerUID);
                     if (targetPlayer != null && targetPlayer.PlayerUID != fromPlayer.PlayerUID)
                     {
                         var role = religion.GetRole(packet.RoleUID);
                         if (role != null)
-                            targetPlayer.SendMessage(0,
+                            _messengerService.SendMessage(targetPlayer,
                                 LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ROLE_CHANGED,
                                     religion.ReligionName, role.RoleName),
                                 EnumChatType.Notification);
@@ -689,13 +696,13 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         }
         catch (Exception ex)
         {
-            _sapi!.Logger.Error($"[DivineAscension] Error handling AssignRoleRequest: {ex}");
+            _logger.Error($"[DivineAscension] Error handling AssignRoleRequest: {ex}");
             var errorResponse = new AssignRoleResponse
             {
                 Success = false,
                 ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ERROR, ex.Message)
             };
-            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+            _networkService.SendToPlayer(fromPlayer, errorResponse);
         }
     }
 
@@ -710,7 +717,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     Success = false,
                     ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVALID_REQUEST)
                 };
-                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                _networkService.SendToPlayer(fromPlayer, errorResponse);
                 return;
             }
 
@@ -726,7 +733,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 ErrorMessage = error
             };
 
-            _serverChannel!.SendPacket(response, fromPlayer);
+            _networkService.SendToPlayer(fromPlayer, response);
 
             // Broadcast roles update if deletion succeeded (members were reassigned)
             if (success)
@@ -737,13 +744,13 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         }
         catch (Exception ex)
         {
-            _sapi!.Logger.Error($"[DivineAscension] Error handling DeleteRoleRequest: {ex}");
+            _logger.Error($"[DivineAscension] Error handling DeleteRoleRequest: {ex}");
             var errorResponse = new DeleteRoleResponse
             {
                 Success = false,
                 ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ERROR, ex.Message)
             };
-            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+            _networkService.SendToPlayer(fromPlayer, errorResponse);
         }
     }
 
@@ -758,7 +765,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     Success = false,
                     ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVALID_REQUEST)
                 };
-                _serverChannel!.SendPacket(errorResponse, fromPlayer);
+                _networkService.SendToPlayer(fromPlayer, errorResponse);
                 return;
             }
 
@@ -774,7 +781,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 ErrorMessage = error
             };
 
-            _serverChannel!.SendPacket(response, fromPlayer);
+            _networkService.SendToPlayer(fromPlayer, response);
 
             // Notify both players if successful
             if (success)
@@ -783,15 +790,15 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 if (religion != null)
                 {
                     // Notify the new founder
-                    var newFounder = _sapi!.World.PlayerByUid(packet.NewFounderUID) as IServerPlayer;
+                    var newFounder = _worldService.GetPlayerByUID(packet.NewFounderUID);
                     if (newFounder != null)
-                        newFounder.SendMessage(0,
+                        _messengerService.SendMessage(newFounder,
                             LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_FOUNDER_TRANSFERRED,
                                 religion.ReligionName),
                             EnumChatType.Notification);
 
                     // Notify the old founder (fromPlayer)
-                    fromPlayer.SendMessage(0,
+                    _messengerService.SendMessage(fromPlayer,
                         LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_FOUNDER_TRANSFER_SUCCESS,
                             newFounder?.PlayerName ?? packet.NewFounderUID),
                         EnumChatType.Notification);
@@ -800,11 +807,12 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     foreach (var memberUID in religion.MemberUIDs)
                         if (memberUID != fromPlayer.PlayerUID && memberUID != packet.NewFounderUID)
                         {
-                            var member = _sapi!.World.PlayerByUid(memberUID) as IServerPlayer;
-                            member?.SendMessage(0,
-                                LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_FOUNDER_TRANSFERRED,
-                                    religion.ReligionName),
-                                EnumChatType.Notification);
+                            var member = _worldService.GetPlayerByUID(memberUID);
+                            if (member != null)
+                                _messengerService.SendMessage(member,
+                                    LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_FOUNDER_TRANSFERRED,
+                                        religion.ReligionName),
+                                    EnumChatType.Notification);
                         }
 
                     // Broadcast roles update to all religion members so their UI updates
@@ -814,13 +822,13 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         }
         catch (Exception ex)
         {
-            _sapi!.Logger.Error($"[DivineAscension] Error handling TransferFounderRequest: {ex}");
+            _logger.Error($"[DivineAscension] Error handling TransferFounderRequest: {ex}");
             var errorResponse = new TransferFounderResponse
             {
                 Success = false,
                 ErrorMessage = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ERROR, ex.Message)
             };
-            _serverChannel!.SendPacket(errorResponse, fromPlayer);
+            _networkService.SendToPlayer(fromPlayer, errorResponse);
         }
     }
 
@@ -847,7 +855,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         foreach (var uid in religion.MemberUIDs)
             rolesResponse.MemberNames[uid] = religion.GetMemberName(uid);
 
-        _serverChannel.SendPacket(rolesResponse, player);
+        _networkService.SendToPlayer(player, rolesResponse);
     }
 
     private void BroadcastRolesUpdateToReligion(ReligionData religion)
@@ -866,8 +874,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         // Send to all online members
         foreach (var memberUID in religion.MemberUIDs)
         {
-            var memberPlayer = _sapi.World.PlayerByUid(memberUID) as IServerPlayer;
-            if (memberPlayer != null) _serverChannel.SendPacket(rolesResponse, memberPlayer);
+            var memberPlayer = _worldService.GetPlayerByUID(memberUID);
+            if (memberPlayer != null) _networkService.SendToPlayer(memberPlayer, rolesResponse);
         }
     }
 
@@ -878,7 +886,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             Reason = reason,
             HasReligion = hasReligion
         };
-        _serverChannel.SendPacket(statePacket, player);
+        _networkService.SendToPlayer(player, statePacket);
     }
 
     private ReligionActionResult HandleJoinAction(IServerPlayer fromPlayer, ReligionActionRequestPacket packet)
@@ -951,7 +959,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 }
                 catch (Exception ex)
                 {
-                    _sapi.Logger.Error($"[DivineAscension] Failed to join religion after accepting invite: {ex}");
+                    _logger.Error($"[DivineAscension] Failed to join religion after accepting invite: {ex}");
                     // Rollback: Remove from ReligionManager if JoinReligion failed
                     _religionManager.RemoveMember(religionId, fromPlayer.PlayerUID);
                     return new ReligionActionResult
@@ -1065,10 +1073,10 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         _playerProgressionDataManager.LeaveReligion(packet.TargetPlayerUID);
 
         // Notify kicked player if online
-        var kickedPlayer = _sapi.World.PlayerByUid(packet.TargetPlayerUID) as IServerPlayer;
+        var kickedPlayer = _worldService.GetPlayerByUID(packet.TargetPlayerUID);
         if (kickedPlayer != null)
         {
-            kickedPlayer.SendMessage(0,
+            _messengerService.SendMessage(kickedPlayer,
                 LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_KICKED_NOTIFICATION,
                     religion.ReligionName),
                 EnumChatType.Notification);
@@ -1149,10 +1157,10 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         );
 
         // Notify banned player if online
-        var bannedPlayer = _sapi.World.PlayerByUid(packet.TargetPlayerUID) as IServerPlayer;
+        var bannedPlayer = _worldService.GetPlayerByUID(packet.TargetPlayerUID);
         if (bannedPlayer != null)
         {
-            bannedPlayer.SendMessage(0,
+            _messengerService.SendMessage(bannedPlayer,
                 LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_BANNED_NOTIFICATION,
                     religion.ReligionName, reason),
                 EnumChatType.Notification);
@@ -1218,7 +1226,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             };
 
         // Convert player name to UID (UI sends player name in TargetPlayerUID field)
-        var targetPlayer = _sapi.World.AllOnlinePlayers
+        var targetPlayer = _worldService.GetAllOnlinePlayers()
             .FirstOrDefault(p => p.PlayerName.Equals(packet.TargetPlayerUID,
                 StringComparison.OrdinalIgnoreCase)) as IServerPlayer;
 
@@ -1239,7 +1247,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             NotifyPlayerReligionStateChanged(targetPlayer,
                 LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_INVITED_NOTIFICATION,
                     religion.ReligionName), false);
-            _sapi.Logger.Debug(
+            _logger.Debug(
                 $"[DivineAscension] Sent invitation notification to {targetPlayer.PlayerName} ({targetPlayer.PlayerUID})");
 
             // Record cooldown after successful invite
@@ -1281,15 +1289,13 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         {
             _playerProgressionDataManager.LeaveReligion(memberUID);
 
-            var memberPlayer = _sapi.World.PlayerByUid(memberUID) as IServerPlayer;
+            var memberPlayer = _worldService.GetPlayerByUID(memberUID);
             if (memberPlayer != null)
             {
                 if (memberUID != fromPlayer.PlayerUID)
-                    memberPlayer.SendMessage(
-                        GlobalConstants.GeneralChatGroup,
+                    _messengerService.SendMessage(memberPlayer,
                         LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_DISBANDED, religionName),
-                        EnumChatType.Notification
-                    );
+                        EnumChatType.Notification);
 
                 NotifyPlayerReligionStateChanged(memberPlayer,
                     LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_DISBANDED, religionName), false);

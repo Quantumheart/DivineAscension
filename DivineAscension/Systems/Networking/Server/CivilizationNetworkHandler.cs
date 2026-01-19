@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network;
@@ -9,6 +10,7 @@ using DivineAscension.Network.Civilization;
 using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Interfaces;
+using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Systems.Networking.Server;
@@ -20,19 +22,24 @@ namespace DivineAscension.Systems.Networking.Server;
 /// </summary>
 [ExcludeFromCodeCoverage]
 public class CivilizationNetworkHandler(
+    ILogger logger,
     ICoreServerAPI sapi,
     CivilizationManager civilizationManager,
     IReligionManager religionManager,
-    IServerNetworkChannel serverChannel,
+    INetworkService networkService,
     ICooldownManager cooldownManager)
     : IServerNetworkHandler
 {
+    private readonly ILogger _logger = logger;
+    private readonly ICoreServerAPI _sapi = sapi;
+    private readonly INetworkService _networkService = networkService;
+
     public void RegisterHandlers()
     {
         // Register handlers for civilization system packets
-        serverChannel.SetMessageHandler<CivilizationListRequestPacket>(OnCivilizationListRequest);
-        serverChannel.SetMessageHandler<CivilizationInfoRequestPacket>(OnCivilizationInfoRequest);
-        serverChannel.SetMessageHandler<CivilizationActionRequestPacket>(OnCivilizationActionRequest);
+        _networkService.RegisterMessageHandler<CivilizationListRequestPacket>(OnCivilizationListRequest);
+        _networkService.RegisterMessageHandler<CivilizationInfoRequestPacket>(OnCivilizationInfoRequest);
+        _networkService.RegisterMessageHandler<CivilizationActionRequestPacket>(OnCivilizationActionRequest);
     }
 
     public void Dispose()
@@ -45,7 +52,7 @@ public class CivilizationNetworkHandler(
     /// </summary>
     private void OnCivilizationListRequest(IServerPlayer fromPlayer, CivilizationListRequestPacket packet)
     {
-        sapi.Logger.Debug(
+        _logger.Debug(
             $"[DivineAscension] Civilization list requested by {fromPlayer.PlayerName}, filter: '{packet.FilterDeity}'");
 
         var civilizations = civilizationManager.GetAllCivilizations().ToList();
@@ -82,8 +89,8 @@ public class CivilizationNetworkHandler(
         }
 
         var response = new CivilizationListResponsePacket(civInfoList);
-        serverChannel.SendPacket(response, fromPlayer);
-        sapi.Logger.Debug(
+        _networkService.SendToPlayer(fromPlayer, response);
+        _logger.Debug(
             $"[DivineAscension] Sent {civInfoList.Count} civilizations (out of {civilizations.Count} total) with filter '{packet.FilterDeity}'");
     }
 
@@ -93,7 +100,7 @@ public class CivilizationNetworkHandler(
     /// </summary>
     private void OnCivilizationInfoRequest(IServerPlayer fromPlayer, CivilizationInfoRequestPacket packet)
     {
-        sapi.Logger.Debug(
+        _logger.Debug(
             $"[DivineAscension] Civilization info requested by {fromPlayer.PlayerName} for {packet.CivId}");
 
         var civId = packet.CivId;
@@ -104,7 +111,7 @@ public class CivilizationNetworkHandler(
             var playerReligion = religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
             if (playerReligion == null)
             {
-                serverChannel.SendPacket(new CivilizationInfoResponsePacket(), fromPlayer);
+                _networkService.SendToPlayer(fromPlayer, new CivilizationInfoResponsePacket());
                 return;
             }
 
@@ -139,7 +146,7 @@ public class CivilizationNetworkHandler(
                     });
                 }
 
-                serverChannel.SendPacket(new CivilizationInfoResponsePacket(detailsForInvitesOnly), fromPlayer);
+                _networkService.SendToPlayer(fromPlayer, new CivilizationInfoResponsePacket(detailsForInvitesOnly));
                 return;
             }
 
@@ -149,7 +156,7 @@ public class CivilizationNetworkHandler(
         var civ = civilizationManager.GetCivilization(civId);
         if (civ == null)
         {
-            serverChannel.SendPacket(new CivilizationInfoResponsePacket(), fromPlayer);
+            _networkService.SendToPlayer(fromPlayer, new CivilizationInfoResponsePacket());
             return;
         }
 
@@ -214,7 +221,7 @@ public class CivilizationNetworkHandler(
         }
 
         var response = new CivilizationInfoResponsePacket(details);
-        serverChannel.SendPacket(response, fromPlayer);
+        _networkService.SendToPlayer(fromPlayer, response);
     }
 
     /// <summary>
@@ -222,7 +229,7 @@ public class CivilizationNetworkHandler(
     /// </summary>
     private void OnCivilizationActionRequest(IServerPlayer fromPlayer, CivilizationActionRequestPacket packet)
     {
-        sapi.Logger.Debug(
+        _logger.Debug(
             $"[DivineAscension] Civilization action '{packet.Action}' requested by {fromPlayer.PlayerName}");
 
         var response = new CivilizationActionResponsePacket();
@@ -328,7 +335,7 @@ public class CivilizationNetworkHandler(
 
                             foreach (var memberUID in targetReligion.MemberUIDs)
                             {
-                                var memberPlayer = sapi.World.PlayerByUid(memberUID) as IServerPlayer;
+                                var memberPlayer = _sapi.World.PlayerByUid(memberUID) as IServerPlayer;
                                 if (memberPlayer != null)
                                 {
                                     var statePacket = new ReligionStateChangedPacket
@@ -337,7 +344,7 @@ public class CivilizationNetworkHandler(
                                             LocalizationKeys.NET_CIV_INVITED_NOTIFICATION, civ.Name),
                                         HasReligion = true
                                     };
-                                    serverChannel.SendPacket(statePacket, memberPlayer);
+                                    _networkService.SendToPlayer(memberPlayer, statePacket);
                                     notifiedCount++;
                                 }
                                 else
@@ -346,7 +353,7 @@ public class CivilizationNetworkHandler(
                                 }
                             }
 
-                            sapi.Logger.Notification(
+                            _logger.Notification(
                                 $"[DivineAscension] Civilization invitation sent to {targetReligion.ReligionName}: " +
                                 $"{notifiedCount} members notified, {offlineCount} offline");
                         }
@@ -480,11 +487,11 @@ public class CivilizationNetworkHandler(
         }
         catch (Exception ex)
         {
-            sapi.Logger.Error($"[DivineAscension] Error handling civilization action '{packet.Action}': {ex}");
+            _logger.Error($"[DivineAscension] Error handling civilization action '{packet.Action}': {ex}");
             response.Success = false;
             response.Message = LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_ERROR);
         }
 
-        serverChannel.SendPacket(response, fromPlayer);
+        _networkService.SendToPlayer(fromPlayer, response);
     }
 }

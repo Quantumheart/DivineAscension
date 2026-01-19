@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network.Diplomacy;
@@ -20,22 +21,42 @@ namespace DivineAscension.Systems.Networking.Server;
 ///     (propose, accept, decline, schedulebreak, cancelbreak, declarewar, declarepeace).
 /// </summary>
 [ExcludeFromCodeCoverage]
-#pragma warning disable CS9113 // Parameter is unread - kept for interface consistency and future use
-public class DiplomacyNetworkHandler(
-    ICoreServerAPI sapi,
-    IDiplomacyManager diplomacyManager,
-    CivilizationManager civilizationManager,
-    IReligionManager religionManager,
-    IPlayerProgressionDataManager playerProgressionDataManager,
-    IServerNetworkChannel serverChannel)
-#pragma warning restore CS9113
-    : IServerNetworkHandler
+public class DiplomacyNetworkHandler : IServerNetworkHandler
 {
+    private readonly ILogger _logger;
+    private readonly IDiplomacyManager _diplomacyManager;
+    private readonly CivilizationManager _civilizationManager;
+    private readonly IReligionManager _religionManager;
+    private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
+    private readonly INetworkService _networkService;
+    private readonly IPlayerMessengerService _messengerService;
+    private readonly IWorldService _worldService;
+
+    public DiplomacyNetworkHandler(
+        ILogger logger,
+        IDiplomacyManager diplomacyManager,
+        CivilizationManager civilizationManager,
+        IReligionManager religionManager,
+        IPlayerProgressionDataManager playerProgressionDataManager,
+        INetworkService networkService,
+        IPlayerMessengerService messengerService,
+        IWorldService worldService)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _diplomacyManager = diplomacyManager ?? throw new ArgumentNullException(nameof(diplomacyManager));
+        _civilizationManager = civilizationManager ?? throw new ArgumentNullException(nameof(civilizationManager));
+        _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
+        _playerProgressionDataManager = playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
+        _networkService = networkService ?? throw new ArgumentNullException(nameof(networkService));
+        _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
+    }
+
     public void RegisterHandlers()
     {
         // Register handlers for diplomacy system packets
-        serverChannel.SetMessageHandler<DiplomacyInfoRequestPacket>(OnDiplomacyInfoRequest);
-        serverChannel.SetMessageHandler<DiplomacyActionRequestPacket>(OnDiplomacyActionRequest);
+        _networkService.RegisterMessageHandler<DiplomacyInfoRequestPacket>(OnDiplomacyInfoRequest);
+        _networkService.RegisterMessageHandler<DiplomacyActionRequestPacket>(OnDiplomacyActionRequest);
     }
 
     public void Dispose()
@@ -48,29 +69,29 @@ public class DiplomacyNetworkHandler(
     /// </summary>
     private void OnDiplomacyInfoRequest(IServerPlayer fromPlayer, DiplomacyInfoRequestPacket packet)
     {
-        sapi.Logger.Debug(
+        _logger.Debug(
             $"{DiplomacyConstants.LogPrefix} Diplomacy info requested by {fromPlayer.PlayerName} for civilization {packet.CivId}");
 
-        var civ = civilizationManager.GetCivilization(packet.CivId);
+        var civ = _civilizationManager.GetCivilization(packet.CivId);
         if (civ == null)
         {
-            sapi.Logger.Warning(
+            _logger.Warning(
                 $"{DiplomacyConstants.LogPrefix} Civilization {packet.CivId} not found for diplomacy info request");
-            serverChannel.SendPacket(
+            _networkService.SendToPlayer(fromPlayer,
                 new DiplomacyInfoResponsePacket(packet.CivId, new List<DiplomacyInfoResponsePacket.RelationshipInfo>(),
                     new List<DiplomacyInfoResponsePacket.ProposalInfo>(),
-                    new List<DiplomacyInfoResponsePacket.ProposalInfo>()), fromPlayer);
+                    new List<DiplomacyInfoResponsePacket.ProposalInfo>()));
             return;
         }
 
         // Get all relationships for this civilization
-        var relationships = diplomacyManager.GetRelationshipsForCiv(packet.CivId);
+        var relationships = _diplomacyManager.GetRelationshipsForCiv(packet.CivId);
         var relationshipInfos = new List<DiplomacyInfoResponsePacket.RelationshipInfo>();
 
         foreach (var relationship in relationships)
         {
             var otherCivId = relationship.GetOtherCivilization(packet.CivId);
-            var otherCiv = civilizationManager.GetCivilization(otherCivId);
+            var otherCiv = _civilizationManager.GetCivilization(otherCivId);
             var otherCivName = otherCiv?.Name ?? otherCivId;
 
             relationshipInfos.Add(new DiplomacyInfoResponsePacket.RelationshipInfo(
@@ -86,7 +107,7 @@ public class DiplomacyNetworkHandler(
         }
 
         // Get all proposals for this civilization
-        var proposals = diplomacyManager.GetProposalsForCiv(packet.CivId);
+        var proposals = _diplomacyManager.GetProposalsForCiv(packet.CivId);
         var incomingProposals = new List<DiplomacyInfoResponsePacket.ProposalInfo>();
         var outgoingProposals = new List<DiplomacyInfoResponsePacket.ProposalInfo>();
 
@@ -94,7 +115,7 @@ public class DiplomacyNetworkHandler(
         {
             var isIncoming = proposal.TargetCivId == packet.CivId;
             var otherCivId = isIncoming ? proposal.ProposerCivId : proposal.TargetCivId;
-            var otherCiv = civilizationManager.GetCivilization(otherCivId);
+            var otherCiv = _civilizationManager.GetCivilization(otherCivId);
             var otherCivName = otherCiv?.Name ?? otherCivId;
 
             var proposalInfo = new DiplomacyInfoResponsePacket.ProposalInfo(
@@ -115,8 +136,8 @@ public class DiplomacyNetworkHandler(
 
         var response = new DiplomacyInfoResponsePacket(packet.CivId, relationshipInfos, incomingProposals,
             outgoingProposals);
-        serverChannel.SendPacket(response, fromPlayer);
-        sapi.Logger.Debug(
+        _networkService.SendToPlayer(fromPlayer, response);
+        _logger.Debug(
             $"{DiplomacyConstants.LogPrefix} Sent diplomacy info: {relationshipInfos.Count} relationships, {incomingProposals.Count} incoming proposals, {outgoingProposals.Count} outgoing proposals");
     }
 
@@ -125,11 +146,11 @@ public class DiplomacyNetworkHandler(
     /// </summary>
     private void OnDiplomacyActionRequest(IServerPlayer fromPlayer, DiplomacyActionRequestPacket packet)
     {
-        sapi.Logger.Debug(
+        _logger.Debug(
             $"{DiplomacyConstants.LogPrefix} Diplomacy action '{packet.Action}' requested by {fromPlayer.PlayerName}");
 
-        var religion = religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
-        if (!religionManager.HasReligion(fromPlayer.PlayerUID))
+        var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+        if (!_religionManager.HasReligion(fromPlayer.PlayerUID))
         {
             SendActionResponse(fromPlayer, false,
                 LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_MUST_BE_IN_RELIGION), packet.Action);
@@ -145,7 +166,7 @@ public class DiplomacyNetworkHandler(
             return;
         }
 
-        var playerCiv = civilizationManager.GetCivilizationByReligion(religion.ReligionUID);
+        var playerCiv = _civilizationManager.GetCivilizationByReligion(religion.ReligionUID);
         if (playerCiv == null)
         {
             SendActionResponse(fromPlayer, false,
@@ -210,7 +231,7 @@ public class DiplomacyNetworkHandler(
             return;
         }
 
-        var result = diplomacyManager.ProposeRelationship(
+        var result = _diplomacyManager.ProposeRelationship(
             civId,
             packet.TargetCivId,
             proposedStatus,
@@ -237,7 +258,7 @@ public class DiplomacyNetworkHandler(
             return;
         }
 
-        var result = diplomacyManager.AcceptProposal(packet.ProposalId, player.PlayerUID);
+        var result = _diplomacyManager.AcceptProposal(packet.ProposalId, player.PlayerUID);
 
         SendActionResponse(player, result.success, result.message, packet.Action,
             relationshipId: result.relationshipId);
@@ -245,7 +266,7 @@ public class DiplomacyNetworkHandler(
         if (result.success)
         {
             // Notify proposer civilization (the other civ in the newly established relationship)
-            var relationship = diplomacyManager.GetRelationship(result.relationshipId!);
+            var relationship = _diplomacyManager.GetRelationship(result.relationshipId!);
             if (relationship != null)
             {
                 var otherCivId = relationship.GetOtherCivilization(civId);
@@ -265,7 +286,7 @@ public class DiplomacyNetworkHandler(
             return;
         }
 
-        var result = diplomacyManager.DeclineProposal(packet.ProposalId, player.PlayerUID);
+        var result = _diplomacyManager.DeclineProposal(packet.ProposalId, player.PlayerUID);
 
         SendActionResponse(player, result.success, result.message, packet.Action);
 
@@ -281,7 +302,7 @@ public class DiplomacyNetworkHandler(
             return;
         }
 
-        var result = diplomacyManager.ScheduleBreak(civId, packet.TargetCivId, player.PlayerUID);
+        var result = _diplomacyManager.ScheduleBreak(civId, packet.TargetCivId, player.PlayerUID);
 
         SendActionResponse(player, result.success, result.message, packet.Action);
 
@@ -302,7 +323,7 @@ public class DiplomacyNetworkHandler(
             return;
         }
 
-        var result = diplomacyManager.CancelScheduledBreak(civId, packet.TargetCivId, player.PlayerUID);
+        var result = _diplomacyManager.CancelScheduledBreak(civId, packet.TargetCivId, player.PlayerUID);
 
         SendActionResponse(player, result.success, result.message, packet.Action);
 
@@ -323,7 +344,7 @@ public class DiplomacyNetworkHandler(
             return;
         }
 
-        var result = diplomacyManager.DeclareWar(civId, packet.TargetCivId, player.PlayerUID);
+        var result = _diplomacyManager.DeclareWar(civId, packet.TargetCivId, player.PlayerUID);
 
         SendActionResponse(player, result.success, result.message, packet.Action);
 
@@ -339,7 +360,7 @@ public class DiplomacyNetworkHandler(
             return;
         }
 
-        var result = diplomacyManager.DeclarePeace(civId, packet.TargetCivId, player.PlayerUID);
+        var result = _diplomacyManager.DeclarePeace(civId, packet.TargetCivId, player.PlayerUID);
 
         SendActionResponse(player, result.success, result.message, packet.Action);
 
@@ -364,7 +385,7 @@ public class DiplomacyNetworkHandler(
     {
         var response = new DiplomacyActionResponsePacket(success, message, action, relationshipId, proposalId,
             violationCount);
-        serverChannel.SendPacket(response, player);
+        _networkService.SendToPlayer(player, response);
     }
 
     /// <summary>
@@ -372,18 +393,17 @@ public class DiplomacyNetworkHandler(
     /// </summary>
     private void NotifyTargetCivilization(string targetCivId, string message)
     {
-        var targetCiv = civilizationManager.GetCivilization(targetCivId);
+        var targetCiv = _civilizationManager.GetCivilization(targetCivId);
         if (targetCiv == null) return;
 
-        var founderPlayer = sapi.World.AllOnlinePlayers.FirstOrDefault(p => p.PlayerUID == targetCiv.FounderUID);
+        var founderPlayer = _worldService.GetAllOnlinePlayers().FirstOrDefault(p => p.PlayerUID == targetCiv.FounderUID);
         if (founderPlayer is IServerPlayer serverPlayer)
         {
             var prefix = LocalizationService.Instance.Get(LocalizationKeys.NET_DIPLOMACY_PREFIX);
-            serverPlayer.SendMessage(
-                GlobalConstants.GeneralChatGroup,
+            _messengerService.SendMessage(
+                serverPlayer,
                 $"{prefix} {message}",
-                EnumChatType.Notification,
-                null);
+                EnumChatType.Notification);
         }
     }
 
@@ -392,7 +412,7 @@ public class DiplomacyNetworkHandler(
     /// </summary>
     private string GetCivName(string civId)
     {
-        var civ = civilizationManager.GetCivilization(civId);
+        var civ = _civilizationManager.GetCivilization(civId);
         return civ?.Name ?? civId;
     }
 }

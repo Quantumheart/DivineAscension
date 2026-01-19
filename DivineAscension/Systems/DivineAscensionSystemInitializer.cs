@@ -44,6 +44,7 @@ public static class DivineAscensionSystemInitializer
         var eventService = new ServerEventService(api.Event);
         var persistenceService = new ServerPersistenceService(api.WorldManager.SaveGame);
         var worldService = new ServerWorldService(api.World);
+        var networkService = new ServerNetworkService(serverChannel);
 
         // Initialize localization service for server
         LocalizationService.Instance.InitializeServer(api);
@@ -78,6 +79,9 @@ public static class DivineAscensionSystemInitializer
         var civilizationManager =
             new CivilizationManager(logger, eventService, persistenceService, worldService, religionManager);
         civilizationManager.Initialize();
+
+        // Create messenger service after managers are initialized
+        var messengerService = new PlayerMessengerService(worldService, religionManager, civilizationManager);
 
         var playerReligionDataManager = new PlayerProgressionDataManager(logger, eventService, persistenceService,
             worldService, religionManager, gameBalanceConfig);
@@ -151,51 +155,63 @@ public static class DivineAscensionSystemInitializer
         civilizationCommands.RegisterCommands();
 
         // Create and initialize network handlers
-        var playerDataHandler =
-            new PlayerDataNetworkHandler(api, playerReligionDataManager, religionManager, serverChannel,
-                gameBalanceConfig);
+        var playerDataHandler = new PlayerDataNetworkHandler(
+            logger,
+            worldService,
+            eventService,
+            networkService,
+            playerReligionDataManager,
+            religionManager,
+            gameBalanceConfig);
         playerDataHandler.RegisterHandlers();
 
         var blessingHandler = new BlessingNetworkHandler(
-            api,
+            logger,
             blessingRegistry,
             blessingEffectSystem,
             playerReligionDataManager,
             religionManager,
-            serverChannel);
+            networkService,
+            messengerService,
+            worldService);
         blessingHandler.RegisterHandlers();
 
         var religionHandler = new ReligionNetworkHandler(
-            api,
+            logger,
             religionManager,
             playerReligionDataManager,
             roleManager,
-            serverChannel,
-            cooldownManager);
+            networkService,
+            messengerService,
+            cooldownManager,
+            worldService);
         religionHandler.RegisterHandlers();
 
         var civilizationHandler = new CivilizationNetworkHandler(
+            logger,
             api,
             civilizationManager,
             religionManager,
-            serverChannel,
+            networkService,
             cooldownManager);
         civilizationHandler.RegisterHandlers();
 
         var diplomacyHandler = new DiplomacyNetworkHandler(
-            api,
+            logger,
             diplomacyManager,
             civilizationManager,
             religionManager,
             playerReligionDataManager,
-            serverChannel);
+            networkService,
+            messengerService,
+            worldService);
         diplomacyHandler.RegisterHandlers();
 
         var activityHandler = new ActivityNetworkHandler(
-            api,
+            logger,
             activityLogManager,
             religionManager,
-            serverChannel);
+            networkService);
         activityHandler.RegisterHandlers();
 
         // Validate all memberships after initialization

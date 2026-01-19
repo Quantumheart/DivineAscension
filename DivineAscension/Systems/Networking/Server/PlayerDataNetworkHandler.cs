@@ -1,8 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Network;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Interfaces;
+using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Systems.Networking.Server;
@@ -18,29 +20,35 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
 {
     private readonly IPlayerProgressionDataManager? _playerProgressionDataManager;
     private readonly IReligionManager? _religionManager;
-    private readonly ICoreServerAPI? _sapi;
-    private readonly IServerNetworkChannel? _serverChannel;
+    private readonly ILogger? _logger;
+    private readonly IWorldService? _worldService;
+    private readonly IEventService? _eventService;
+    private readonly INetworkService? _networkService;
     private readonly GameBalanceConfig _config;
 
     /// <summary>
     ///     Initialize the handler with all required dependencies.
     ///     This must be called before RegisterHandlers.
     /// </summary>
-    public PlayerDataNetworkHandler(ICoreServerAPI sapi,
+    public PlayerDataNetworkHandler(ILogger logger,
+        IWorldService worldService,
+        IEventService eventService,
+        INetworkService networkService,
         IPlayerProgressionDataManager playerProgressionDataManager,
         IReligionManager religionManager,
-        IServerNetworkChannel serverChannel,
         GameBalanceConfig config)
     {
-        _sapi = sapi;
+        _logger = logger;
+        _worldService = worldService;
+        _eventService = eventService;
+        _networkService = networkService;
         _playerProgressionDataManager = playerProgressionDataManager;
         _religionManager = religionManager;
-        _serverChannel = serverChannel;
         _config = config;
 
         // Subscribe to events
         _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
-        _sapi!.Event.PlayerJoin += OnPlayerJoin;
+        _eventService!.OnPlayerJoin(OnPlayerJoin);
     }
 
     public void RegisterHandlers()
@@ -53,8 +61,8 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
         if (_playerProgressionDataManager != null)
             _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
 
-        if (_sapi != null)
-            _sapi.Event.PlayerJoin -= OnPlayerJoin;
+        if (_eventService != null)
+            _eventService.UnsubscribePlayerJoin(OnPlayerJoin);
     }
 
     private void OnPlayerJoin(IServerPlayer player)
@@ -68,7 +76,7 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
     /// </summary>
     private void OnPlayerDataChanged(string playerUID)
     {
-        var player = _sapi!.World.PlayerByUid(playerUID) as IServerPlayer;
+        var player = _worldService!.GetPlayerByUID(playerUID);
         if (player != null) SendPlayerDataToClient(player);
     }
 
@@ -79,7 +87,7 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
     public void SendPlayerDataToClient(IServerPlayer player)
     {
         if (_playerProgressionDataManager == null || _religionManager == null ||
-            _serverChannel == null) return;
+            _networkService == null) return;
 
         if (!_playerProgressionDataManager.TryGetPlayerData(player.PlayerUID, out var playerReligionData))
             return;
@@ -111,7 +119,7 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
                 MythicThreshold = _config.MythicThreshold
             };
 
-            _serverChannel.SendPacket(packet, player);
+            _networkService.SendToPlayer(player, packet);
         }
     }
 }
