@@ -10,6 +10,7 @@ using DivineAscension.Data;
 using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Network.Diplomacy;
+using DivineAscension.Network.HolySite;
 using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
@@ -148,7 +149,9 @@ public class DivineAscensionModSystem : ModSystem
             .RegisterMessageType<ActivityLogRequestPacket>()
             .RegisterMessageType<ActivityLogResponsePacket>()
             .RegisterMessageType<AvailableDomainsRequestPacket>()
-            .RegisterMessageType<AvailableDomainsResponsePacket>();
+            .RegisterMessageType<AvailableDomainsResponsePacket>()
+            .RegisterMessageType<HolySiteRequestPacket>()
+            .RegisterMessageType<HolySiteResponsePacket>();
     }
 
     public override void StartServerSide(ICoreServerAPI api)

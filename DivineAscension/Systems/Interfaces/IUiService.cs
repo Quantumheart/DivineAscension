@@ -39,4 +39,9 @@ public interface IUiService
 
     void RequestDiplomacyAction(string action, string targetCivId = "", string proposalOrRelationshipId = "",
         string proposedStatus = "");
+
+    // Holy Site Operations
+    void RequestHolySiteList(string domainFilter = "");
+    void RequestHolySiteDetail(string siteUID);
+    void RequestReligionSites(string religionUID);
 }

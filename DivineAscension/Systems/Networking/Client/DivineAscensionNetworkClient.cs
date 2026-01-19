@@ -7,6 +7,7 @@ using DivineAscension.GUI.Utilities;
 using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Network.Diplomacy;
+using DivineAscension.Network.HolySite;
 using DivineAscension.Systems.Networking.Interfaces;
 using Vintagestory.API.Client;
 using GuiDialog = DivineAscension.GUI.GuiDialog;
@@ -83,6 +84,9 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         // Register handler for available domains response
         _clientChannel.SetMessageHandler<AvailableDomainsResponsePacket>(OnAvailableDomainsResponse);
 
+        // Register handler for holy site response
+        _clientChannel.SetMessageHandler<HolySiteResponsePacket>(OnHolySiteResponse);
+
         _clientChannel.RegisterMessageType(typeof(PlayerReligionDataPacket));
     }
 
@@ -110,6 +114,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         WarDeclared = null;
         ActivityLogReceived = null;
         AvailableDomainsReceived = null;
+        HolySiteDataReceived = null;
     }
 
     #endregion
@@ -469,6 +474,15 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         AvailableDomainsReceived?.Invoke(packet);
     }
 
+    private void OnHolySiteResponse(HolySiteResponsePacket packet)
+    {
+        _capi?.Logger.Debug(
+            $"[DivineAscension] Received holy site response with {packet.Sites.Count} site(s)");
+
+        // Fire event for subscribers (e.g., HolySiteTabState)
+        HolySiteDataReceived?.Invoke(packet);
+    }
+
     #endregion
 
     #region Request Methods
@@ -815,6 +829,54 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _capi?.Logger.Debug("[DivineAscension] Sent available domains request to server");
     }
 
+    /// <summary>
+    ///     Request list of all holy sites with optional domain filter
+    /// </summary>
+    public void RequestHolySiteList(string domainFilter = "")
+    {
+        if (!IsNetworkAvailable())
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot request holy site list: client channel not initialized");
+            return;
+        }
+
+        var request = new HolySiteRequestPacket("list", domainFilter: domainFilter);
+        _clientChannel?.SendPacket(request);
+        _capi?.Logger.Debug($"[DivineAscension] Sent holy site list request with filter: '{domainFilter}'");
+    }
+
+    /// <summary>
+    ///     Request detailed information for a specific holy site
+    /// </summary>
+    public void RequestHolySiteDetail(string siteUID)
+    {
+        if (!IsNetworkAvailable())
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot request holy site detail: client channel not initialized");
+            return;
+        }
+
+        var request = new HolySiteRequestPacket("detail", siteUID: siteUID);
+        _clientChannel?.SendPacket(request);
+        _capi?.Logger.Debug($"[DivineAscension] Sent holy site detail request for site {siteUID}");
+    }
+
+    /// <summary>
+    ///     Request all holy sites owned by a specific religion
+    /// </summary>
+    public void RequestReligionSites(string religionUID)
+    {
+        if (!IsNetworkAvailable())
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot request religion sites: client channel not initialized");
+            return;
+        }
+
+        var request = new HolySiteRequestPacket("religion_sites", religionUID: religionUID);
+        _clientChannel?.SendPacket(request);
+        _capi?.Logger.Debug($"[DivineAscension] Sent religion sites request for religion {religionUID}");
+    }
+
     #endregion
 
     #region Events
@@ -934,6 +996,11 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     ///     Event fired when available domains list is received from the server
     /// </summary>
     public event Action<AvailableDomainsResponsePacket>? AvailableDomainsReceived;
+
+    /// <summary>
+    ///     Event fired when holy site data is received from the server
+    /// </summary>
+    public event Action<HolySiteResponsePacket>? HolySiteDataReceived;
 
     #endregion
 }

@@ -121,4 +121,19 @@ public class UiService(DivineAscensionNetworkClient networkClient)
     {
         _networkClient.RequestDiplomacyAction(action, targetCivId, proposalOrRelationshipId, proposedStatus);
     }
+
+    public void RequestHolySiteList(string domainFilter = "")
+    {
+        _networkClient.RequestHolySiteList(domainFilter);
+    }
+
+    public void RequestHolySiteDetail(string siteUID)
+    {
+        _networkClient.RequestHolySiteDetail(siteUID);
+    }
+
+    public void RequestReligionSites(string religionUID)
+    {
+        _networkClient.RequestReligionSites(religionUID);
+    }
 }
