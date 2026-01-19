@@ -37,6 +37,11 @@ internal sealed class ServerWorldService(IServerWorldAccessor worldAccessor) : I
         return _worldAccessor.AllOnlinePlayers.OfType<IServerPlayer>();
     }
 
+    public IEnumerable<IPlayer> GetAllPlayers()
+    {
+        return _worldAccessor.AllPlayers;
+    }
+
     public Block GetBlock(BlockPos pos)
     {
         if (pos == null) throw new ArgumentNullException(nameof(pos));
