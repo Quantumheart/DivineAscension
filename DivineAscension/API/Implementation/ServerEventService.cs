@@ -120,6 +120,12 @@ internal sealed class ServerEventService(IServerEventAPI eventApi) : IEventServi
         _eventApi.BreakBlock -= callback;
     }
 
+    public void UnsubscribeDidUseBlock(BlockUsedDelegate callback)
+    {
+        if (callback == null) throw new ArgumentNullException(nameof(callback));
+        _eventApi.DidUseBlock -= callback;
+    }
+
     public void UnsubscribeDidPlaceBlock(BlockPlacedDelegate callback)
     {
         if (callback == null) throw new ArgumentNullException(nameof(callback));

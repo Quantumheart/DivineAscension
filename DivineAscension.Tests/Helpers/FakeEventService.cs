@@ -132,6 +132,11 @@ public sealed class FakeEventService : IEventService
         _breakBlockCallbacks.Remove(callback);
     }
 
+    public void UnsubscribeDidUseBlock(BlockUsedDelegate callback)
+    {
+        _didUseBlockCallbacks.Remove(callback);
+    }
+
     public void UnsubscribeDidPlaceBlock(BlockPlacedDelegate callback)
     {
         _didPlaceBlockCallbacks.Remove(callback);
@@ -232,6 +237,9 @@ public sealed class FakeEventService : IEventService
             callback.Callback(deltaTime);
         }
     }
+
+    public bool HasDidPlaceBlockSubscribers() => _didPlaceBlockCallbacks.Count > 0;
+    public bool HasDidUseBlockSubscribers() => _didUseBlockCallbacks.Count > 0;
 
     private sealed record PeriodicCallback(Action<float> Callback, int IntervalMs, bool IsGameTick);
 }

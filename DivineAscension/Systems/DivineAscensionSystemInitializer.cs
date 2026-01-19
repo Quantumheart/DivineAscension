@@ -105,6 +105,18 @@ public static class DivineAscensionSystemInitializer
         // Subscribe to religion deletion events for cascading cleanup
         religionManager.OnReligionDeleted += holySiteManager.HandleReligionDeleted;
 
+        // Initialize Altar Placement Handler (automatically creates holy sites when altars are placed)
+        var altarPlacementHandler = new AltarPlacementHandler(
+            logger,
+            eventService,
+            holySiteManager,
+            religionManager,
+            worldService,
+            messengerService);
+        altarPlacementHandler.Initialize();
+
+        // NOTE: AltarPrayerHandler initialized after FavorSystem (needs IFavorSystem and IActivityLogManager)
+
         var favorSystem = new FavorSystem(
             logger,
             eventService,
@@ -115,6 +127,19 @@ public static class DivineAscensionSystemInitializer
             activityLogManager,
             gameBalanceConfig);
         favorSystem.Initialize();
+
+        // Initialize Altar Prayer Handler (handles prayer interactions at altars)
+        var altarPrayerHandler = new AltarPrayerHandler(
+            logger,
+            eventService,
+            holySiteManager,
+            religionManager,
+            favorSystem,
+            religionPrestigeManager,
+            activityLogManager,
+            messengerService,
+            worldService);
+        altarPrayerHandler.Initialize();
 
         var diplomacyManager = new DiplomacyManager(logger, eventService, persistenceService, civilizationManager,
             religionPrestigeManager, religionManager, cooldownManager);
@@ -279,6 +304,8 @@ public static class DivineAscensionSystemInitializer
             PlayerProgressionDataManager = playerReligionDataManager,
             ReligionPrestigeManager = religionPrestigeManager,
             HolySiteManager = holySiteManager,
+            AltarPlacementHandler = altarPlacementHandler,
+            AltarPrayerHandler = altarPrayerHandler,
             FavorSystem = favorSystem,
             ActivityLogManager = activityLogManager,
             PvPManager = pvpManager,
@@ -317,6 +344,8 @@ public class InitializationResult
     public PlayerProgressionDataManager PlayerProgressionDataManager { get; init; } = null!;
     public ReligionPrestigeManager ReligionPrestigeManager { get; init; } = null!;
     public IHolySiteManager HolySiteManager { get; init; } = null!;
+    public AltarPlacementHandler AltarPlacementHandler { get; init; } = null!;
+    public AltarPrayerHandler AltarPrayerHandler { get; init; } = null!;
     public FavorSystem FavorSystem { get; init; } = null!;
     public ActivityLogManager ActivityLogManager { get; init; } = null!;
     public PvPManager PvPManager { get; init; } = null!;

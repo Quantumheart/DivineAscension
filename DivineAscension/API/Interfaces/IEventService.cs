@@ -107,6 +107,11 @@ public interface IEventService
     void UnsubscribeBreakBlock(BlockBreakDelegate callback);
 
     /// <summary>
+    /// Unsubscribe from the DidUseBlock event.
+    /// </summary>
+    void UnsubscribeDidUseBlock(BlockUsedDelegate callback);
+
+    /// <summary>
     /// Unsubscribe from the DidPlaceBlock event.
     /// </summary>
     void UnsubscribeDidPlaceBlock(BlockPlacedDelegate callback);
