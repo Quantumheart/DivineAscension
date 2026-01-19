@@ -133,25 +133,25 @@ public static class DivineAscensionSystemInitializer
         // CRITICAL: Must be called AFTER DiplomacyManager is initialized
         religionPrestigeManager.SetDiplomacyManager(diplomacyManager, civilizationManager);
 
-        var favorCommands = new FavorCommands(api, playerReligionDataManager, religionManager);
+        var favorCommands = new FavorCommands(api, playerReligionDataManager, religionManager, messengerService);
         favorCommands.RegisterCommands();
 
         var blessingCommands = new BlessingCommands(api, blessingRegistry, playerReligionDataManager, religionManager,
-            blessingEffectSystem, serverChannel);
+            blessingEffectSystem, networkService, messengerService);
         blessingCommands.RegisterCommands();
 
         var roleManager = new RoleManager(religionManager);
 
         var religionCommands = new ReligionCommands(api, religionManager, playerReligionDataManager,
-            religionPrestigeManager, serverChannel, roleManager, cooldownManager);
+            religionPrestigeManager, networkService, roleManager, cooldownManager, messengerService, worldService, logger);
         religionCommands.RegisterCommands();
 
-        var roleCommands = new RoleCommands(api, roleManager, religionManager, playerReligionDataManager);
+        var roleCommands = new RoleCommands(api, roleManager, religionManager, playerReligionDataManager, messengerService);
         roleCommands.RegisterCommands();
 
         var civilizationCommands =
             new CivilizationCommands(api, civilizationManager, religionManager, playerReligionDataManager,
-                cooldownManager);
+                cooldownManager, messengerService, worldService, logger);
         civilizationCommands.RegisterCommands();
 
         // Create and initialize network handlers
