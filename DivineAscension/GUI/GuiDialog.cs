@@ -2,6 +2,8 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.API.Implementation;
+using DivineAscension.API.Interfaces;
 using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Managers;
 using DivineAscension.GUI.State;
@@ -39,6 +41,10 @@ public partial class GuiDialog : ModSystem
     private Stopwatch? _stopwatch;
     private ImGuiViewportPtr _viewport;
 
+    // API Services
+    private IInputService? _inputService;
+    private IModLoaderService? _modLoaderService;
+
     /// <summary>
     ///     Public accessor for the dialog manager (for network client access)
     /// </summary>
@@ -62,15 +68,19 @@ public partial class GuiDialog : ModSystem
         _viewport = ImGui.GetMainViewport();
         _stopwatch = Stopwatch.StartNew();
 
+        // Initialize API services
+        _inputService = new ClientInputService(api.Input);
+        _modLoaderService = new ModLoaderService(api.ModLoader);
+
         // Note: ImGui clipboard callbacks disabled - using manual clipboard handling
         // in TextInput.ClipboardCallback instead. The native callbacks conflict with
         // wl-paste on Wayland, causing focus issues when both systems access clipboard.
         // ImGuiClipboardHelper.SetupClipboardCallbacks(api);
 
-        // Register keybind (P key to open)
-        _capi.Input.RegisterHotKey("divineascensionblessings", "Show/Hide Blessing Dialog", GlKeys.G,
+        // Register keybind (Shift+G to open)
+        _inputService.RegisterHotKey("divineascensionblessings", "Show/Hide Blessing Dialog", GlKeys.G,
             HotkeyType.GUIOrOtherControls, shiftPressed: true);
-        _capi.Input.SetHotKeyHandler("divineascensionblessings", OnToggleDialog);
+        _inputService.SetHotKeyHandler("divineascensionblessings", OnToggleDialog);
 
         // Initialize icon loaders
         DeityIconLoader.Initialize(_capi);
@@ -79,7 +89,7 @@ public partial class GuiDialog : ModSystem
         BlessingIconLoader.Initialize(_capi);
 
         // Get DivineAscensionSystem for network communication
-        _divineAscensionModSystem = _capi.ModLoader.GetModSystem<DivineAscensionModSystem>();
+        _divineAscensionModSystem = _modLoaderService.GetModSystem<DivineAscensionModSystem>();
         _soundManager = new SoundManager(_capi);
         _manager = new GuiDialogManager(_capi, _divineAscensionModSystem!.UiService, _soundManager);
         if (_divineAscensionModSystem?.NetworkClient != null)
@@ -112,7 +122,7 @@ public partial class GuiDialog : ModSystem
         }
 
         // Get ImGui mod system
-        _imguiModSystem = _capi.ModLoader.GetModSystem<ImGuiModSystem>();
+        _imguiModSystem = _modLoaderService.GetModSystem<ImGuiModSystem>();
         if (_imguiModSystem != null)
         {
             _imguiModSystem.Draw += OnDraw;

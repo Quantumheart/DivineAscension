@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.API.Implementation;
+using DivineAscension.API.Interfaces;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.Utilities;
 using DivineAscension.Network;
@@ -19,6 +21,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
 {
     private ICoreClientAPI? _capi;
     private IClientNetworkChannel? _clientChannel;
+    private IModLoaderService? _modLoaderService;
 
     private bool IsNetworkAvailable()
     {
@@ -36,6 +39,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     public void Initialize(ICoreClientAPI capi)
     {
         _capi = capi;
+        _modLoaderService = new ModLoaderService(capi.ModLoader);
     }
 
     public void RegisterHandlers(IClientNetworkChannel channel)
@@ -315,7 +319,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
                 $"[DivineAscension:Diplomacy] Received diplomacy info for civ {packet.CivId}: {packet.Relationships.Count} relationships, {packet.IncomingProposals.Count} incoming, {packet.OutgoingProposals.Count} outgoing");
 
             // Update civilization state manager via GuiDialogManager
-            var guiDialogManager = _capi?.ModLoader.GetModSystem<GuiDialog>()?.DialogManager;
+            var guiDialogManager = _modLoaderService?.GetModSystem<GuiDialog>()?.DialogManager;
             if (guiDialogManager != null)
             {
                 var civManager = guiDialogManager.CivilizationManager;
@@ -345,7 +349,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
             _capi?.Logger.Error($"Stack trace: {ex.StackTrace}");
 
             // Set error in state if accessible
-            var guiDialogManager = _capi?.ModLoader.GetModSystem<GuiDialog>()?.DialogManager;
+            var guiDialogManager = _modLoaderService?.GetModSystem<GuiDialog>()?.DialogManager;
             if (guiDialogManager != null)
             {
                 var civManager = guiDialogManager.CivilizationManager;
@@ -372,7 +376,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
             }
 
             // Update state
-            var guiDialogManager = _capi?.ModLoader.GetModSystem<GuiDialog>()?.DialogManager;
+            var guiDialogManager = _modLoaderService?.GetModSystem<GuiDialog>()?.DialogManager;
             if (guiDialogManager != null)
             {
                 var civManager = guiDialogManager.CivilizationManager;
@@ -414,7 +418,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
                 $"[DivineAscension:Diplomacy] War declared: {packet.DeclarerCivName} vs {packet.TargetCivName}");
 
             // Check if player is in either civilization
-            var guiDialogManager = _capi?.ModLoader.GetModSystem<GuiDialog>()?.DialogManager;
+            var guiDialogManager = _modLoaderService?.GetModSystem<GuiDialog>()?.DialogManager;
             if (guiDialogManager != null)
             {
                 var civManager = guiDialogManager.CivilizationManager;
