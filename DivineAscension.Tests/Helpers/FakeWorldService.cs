@@ -28,12 +28,24 @@ public sealed class FakeWorldService : IWorldService
     private IServerWorldAccessor? _worldAccessor;
     private long _elapsedMs = 0;
     private float _hoursPerDay = 24f; // Default to 24 hours
+    private readonly Dictionary<BlockPos, LandClaim[]> _landClaims = new();
+
+    public FakeWorldService()
+    {
+        // Set up default world accessor with land claim API
+        var mockWorld = new Mock<IServerWorldAccessor>();
+        var mockLandClaimAPI = new Mock<ILandClaimAPI>();
+        mockLandClaimAPI.Setup(x => x.Get(It.IsAny<BlockPos>()))
+            .Returns<BlockPos>(pos => _landClaims.TryGetValue(pos, out var claims) ? claims : null);
+        mockWorld.Setup(x => x.Claims).Returns(mockLandClaimAPI.Object);
+        _worldAccessor = mockWorld.Object;
+    }
 
     public long ElapsedMilliseconds => _elapsedMs;
     public float HoursPerDay => _hoursPerDay;
     public IGameCalendar Calendar => _calendar ?? throw new InvalidOperationException("Calendar not set. Call SetCalendar() first.");
     public IBlockAccessor BlockAccessor => _blockAccessor ?? throw new InvalidOperationException("BlockAccessor not set. Call SetBlockAccessor() first.");
-    public IServerWorldAccessor World => _worldAccessor ?? throw new InvalidOperationException("World accessor not set. Call SetWorldAccessor() first.");
+    public IServerWorldAccessor World => _worldAccessor!;
 
     // Player access
     public IServerPlayer? GetPlayerByUID(string uid)
@@ -182,17 +194,45 @@ public sealed class FakeWorldService : IWorldService
         _soundsPlayed.Clear();
         _particlesSpawned.Clear();
         _spawnedItems.Clear();
+        _landClaims.Clear();
         _elapsedMs = 0;
         _hoursPerDay = 24f;
         _blockAccessor = null;
         _calendar = null;
-        _worldAccessor = null;
+        // Don't null out world accessor - we need it for claims
     }
 
     // Test inspection helpers
     public IReadOnlyList<SoundEvent> GetSoundsPlayed() => _soundsPlayed.AsReadOnly();
     public IReadOnlyList<ParticleEvent> GetParticlesSpawned() => _particlesSpawned.AsReadOnly();
     public IReadOnlyList<ItemStack> GetSpawnedItems() => _spawnedItems.AsReadOnly();
+
+    /// <summary>
+    /// Creates a mock player with the specified UID and name.
+    /// This is a helper method for tests to quickly create players.
+    /// </summary>
+    public IServerPlayer CreatePlayer(string uid, string name)
+    {
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(x => x.PlayerUID).Returns(uid);
+        mockPlayer.Setup(x => x.PlayerName).Returns(name);
+
+        var mockEntity = new Mock<EntityPlayer>();
+        // Create a real ItemSlot instance instead of mocking it
+        var rightHandSlot = new ItemSlot(null);
+
+        mockEntity.Setup(x => x.RightHandItemSlot).Returns(rightHandSlot);
+        mockPlayer.Setup(x => x.Entity).Returns(mockEntity.Object);
+
+        var player = mockPlayer.Object;
+        AddPlayer(player);
+        return player;
+    }
+
+    public void AddLandClaim(BlockPos pos, LandClaim[] claims)
+    {
+        _landClaims[pos] = claims;
+    }
 
     public sealed record SoundEvent(
         AssetLocation Sound,
@@ -203,4 +243,12 @@ public sealed class FakeWorldService : IWorldService
         float Volume);
 
     public sealed record ParticleEvent(SimpleParticleProperties Particles, Vec3d Position, IPlayer? SourcePlayer);
+}
+
+/// <summary>
+/// Fake block for testing that allows setting the Code
+/// </summary>
+public class FakeBlock : Block
+{
+    public new AssetLocation? Code { get; set; }
 }

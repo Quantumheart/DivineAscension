@@ -220,6 +220,100 @@ public class HolySiteManager : IHolySiteManager
     }
 
     /// <summary>
+    /// Consecrates a land claim as a holy site with an altar at the specified position.
+    /// Returns null if validation fails (same as ConsecrateHolySite).
+    /// </summary>
+    public HolySiteData? ConsecrateHolySiteWithAltar(
+        string religionUID,
+        string siteName,
+        List<Cuboidi> claimAreas,
+        string founderUID,
+        string founderName,
+        BlockPos altarPosition)
+    {
+        lock (Lock)
+        {
+            try
+            {
+                // Validate inputs
+                if (string.IsNullOrWhiteSpace(siteName))
+                {
+                    _logger.Warning("[DivineAscension] Holy site name cannot be empty");
+                    return null;
+                }
+
+                if (claimAreas == null || claimAreas.Count == 0)
+                {
+                    _logger.Warning("[DivineAscension] Claim areas cannot be empty");
+                    return null;
+                }
+
+                // Check prestige limit
+                if (!CanCreateHolySite(religionUID))
+                {
+                    _logger.Warning($"[DivineAscension] Religion {religionUID} has reached maximum holy site limit");
+                    return null;
+                }
+
+                // Convert Cuboidi to SerializableCuboidi
+                var serializableAreas = claimAreas
+                    .Select(area => new SerializableCuboidi(area))
+                    .ToList();
+
+                // Create temporary site for overlap checking
+                var tempSite = new HolySiteData(
+                    Guid.NewGuid().ToString(),
+                    religionUID,
+                    siteName,
+                    serializableAreas,
+                    founderUID,
+                    founderName);
+
+                // Check for overlap with existing holy sites
+                foreach (var existingSite in _sitesByUID.Values)
+                {
+                    if (tempSite.Intersects(existingSite))
+                    {
+                        _logger.Warning($"[DivineAscension] Holy site overlaps with existing site {existingSite.SiteName}");
+                        return null;
+                    }
+                }
+
+                // Create final site with altar position
+                var siteUID = Guid.NewGuid().ToString();
+                var site = new HolySiteData(
+                    siteUID,
+                    religionUID,
+                    siteName,
+                    serializableAreas,
+                    founderUID,
+                    founderName)
+                {
+                    AltarPosition = SerializableBlockPos.FromBlockPos(altarPosition)
+                };
+
+                // Update indexes
+                _sitesByUID[siteUID] = site;
+
+                if (!_sitesByReligion.ContainsKey(religionUID))
+                    _sitesByReligion[religionUID] = new HashSet<string>();
+                _sitesByReligion[religionUID].Add(siteUID);
+
+                _logger.Notification($"[DivineAscension] Holy site '{siteName}' consecrated with altar at {altarPosition}, tier {site.GetTier()}");
+
+                SaveHolySites();
+
+                return site;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"[DivineAscension] Error creating holy site with altar: {ex.Message}");
+                return null;
+            }
+        }
+    }
+
+    /// <summary>
     /// Removes a holy site and all its areas.
     /// Returns false if site not found.
     /// </summary>
@@ -283,6 +377,16 @@ public class HolySiteManager : IHolySiteManager
                 return site;
         }
         return null;
+    }
+
+    /// <summary>
+    /// Gets the holy site that has an altar at the specified position.
+    /// Returns null if no altar-based holy site exists at that position.
+    /// </summary>
+    public HolySiteData? GetHolySiteByAltarPosition(BlockPos altarPos)
+    {
+        return _sitesByUID.Values
+            .FirstOrDefault(site => site.IsAtAltarPosition(altarPos));
     }
 
     /// <summary>

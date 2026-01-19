@@ -7,6 +7,46 @@ using Vintagestory.API.MathTools;
 namespace DivineAscension.Data;
 
 /// <summary>
+/// Serializable block position for ProtoBuf compatibility.
+/// BlockPos from Vintage Story cannot be serialized directly.
+/// </summary>
+[ProtoContract]
+public class SerializableBlockPos
+{
+    public SerializableBlockPos() { }
+
+    public SerializableBlockPos(int x, int y, int z)
+    {
+        X = x;
+        Y = y;
+        Z = z;
+    }
+
+    [ProtoMember(1)] public int X { get; set; }
+    [ProtoMember(2)] public int Y { get; set; }
+    [ProtoMember(3)] public int Z { get; set; }
+
+    /// <summary>
+    /// Convert to Vintage Story's BlockPos.
+    /// </summary>
+    public BlockPos ToBlockPos() => new BlockPos(X, Y, Z);
+
+    /// <summary>
+    /// Create from Vintage Story's BlockPos.
+    /// </summary>
+    public static SerializableBlockPos FromBlockPos(BlockPos pos)
+        => new SerializableBlockPos(pos.X, pos.Y, pos.Z);
+
+    /// <summary>
+    /// Check equality with another BlockPos.
+    /// </summary>
+    public bool Equals(BlockPos pos)
+    {
+        return X == pos.X && Y == pos.Y && Z == pos.Z;
+    }
+}
+
+/// <summary>
 /// Serializable 3D rectangular area for ProtoBuf compatibility.
 /// Cuboidi from Vintage Story cannot be serialized directly.
 /// </summary>
@@ -136,6 +176,26 @@ public class HolySiteData
 
     [ProtoMember(7)]
     public List<SerializableCuboidi> Areas { get; set; } = new();
+
+    /// <summary>
+    /// Position of the altar block that created this holy site (optional).
+    /// Null for legacy sites created via command.
+    /// </summary>
+    [ProtoMember(8)]
+    public SerializableBlockPos? AltarPosition { get; set; }
+
+    /// <summary>
+    /// Check if this is an altar-based holy site.
+    /// </summary>
+    public bool IsAltarSite() => AltarPosition != null;
+
+    /// <summary>
+    /// Check if the given position matches this site's altar position.
+    /// </summary>
+    public bool IsAtAltarPosition(BlockPos pos)
+    {
+        return AltarPosition?.Equals(pos) ?? false;
+    }
 
     /// <summary>
     /// Calculate total 3D volume of all areas (used for tier calculation).

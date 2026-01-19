@@ -39,6 +39,18 @@ public interface IHolySiteManager
         List<Cuboidi> claimAreas, string founderUID);
 
     /// <summary>
+    /// Consecrates a land claim as a holy site with an altar at the specified position.
+    /// Returns null if validation fails (same as ConsecrateHolySite).
+    /// </summary>
+    HolySiteData? ConsecrateHolySiteWithAltar(
+        string religionUID,
+        string siteName,
+        List<Cuboidi> claimAreas,
+        string founderUID,
+        string founderName,
+        BlockPos altarPosition);
+
+    /// <summary>
     /// Removes a holy site and all its areas.
     /// Returns false if site not found.
     /// </summary>
@@ -53,6 +65,12 @@ public interface IHolySiteManager
     /// Gets the holy site at a specific block position.
     /// </summary>
     HolySiteData? GetHolySiteAtPosition(BlockPos pos);
+
+    /// <summary>
+    /// Gets the holy site that has an altar at the specified position.
+    /// Returns null if no altar-based holy site exists at that position.
+    /// </summary>
+    HolySiteData? GetHolySiteByAltarPosition(BlockPos altarPos);
 
     /// <summary>
     /// Checks if a player is currently in a holy site.

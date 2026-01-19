@@ -81,84 +81,10 @@ public class HolySiteCommands
 
     private TextCommandResult OnConsecrateHolySite(TextCommandCallingArgs args)
     {
-        var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Player not found");
-
-        var siteName = args.Parsers[0].GetValue() as string;
-        if (string.IsNullOrWhiteSpace(siteName))
-            return TextCommandResult.Error("Site name cannot be empty");
-
-        // Check religion membership
-        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
-        if (religion == null)
-            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_NOT_MEMBER));
-
-        // Check permission (founder only for now)
-        // TODO: Add role-based permission checking when CREATE_HOLY_SITE permission is added
-        if (!religion.IsFounder(player.PlayerUID))
-            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_NO_PERMISSION));
-
-        // Get land claims at player's position
-        var blockPos = player.Entity.Pos.AsBlockPos;
-        var landClaims = _worldService.World.Claims.Get(blockPos);
-
-        if (landClaims == null || landClaims.Length == 0)
-        {
-            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_NOT_CLAIMED));
-        }
-
-        // Find first claim owned by player
-        LandClaim? playerClaim = null;
-        foreach (var claim in landClaims)
-        {
-            if (claim.OwnedByPlayerUid == player.PlayerUID)
-            {
-                playerClaim = claim;
-                break;
-            }
-        }
-
-        if (playerClaim == null)
-        {
-            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_NOT_CLAIMED));
-        }
-
-        // Validate claim has areas
-        if (playerClaim.Areas == null || playerClaim.Areas.Count == 0)
-        {
-            return TextCommandResult.Error("Land claim has no defined areas");
-        }
-
-        // Create holy site with all areas from the claim
-        var site = _holySiteManager.ConsecrateHolySite(
-            religion.ReligionUID,
-            siteName,
-            playerClaim.Areas,  // Pass all areas
-            player.PlayerUID);
-
-        if (site == null)
-        {
-            // Check specific failure reasons
-            if (!_holySiteManager.CanCreateHolySite(religion.ReligionUID))
-            {
-                var max = _holySiteManager.GetMaxSitesForReligion(religion.ReligionUID);
-                var current = _holySiteManager.GetReligionHolySites(religion.ReligionUID).Count;
-                return TextCommandResult.Error(LocalizationService.Instance.Get(
-                    LocalizationKeys.HOLYSITE_LIMIT_REACHED, current, max));
-            }
-
-            return TextCommandResult.Error("Failed to create holy site (may overlap existing site)");
-        }
-
-        var center = site.GetCenter();
-        var message = LocalizationService.Instance.Get(
-            LocalizationKeys.HOLYSITE_CONSECRATED,
-            siteName,
-            center.X, center.Z,
-            site.GetTerritoryMultiplier(),
-            site.GetPrayerMultiplier());
-
-        return TextCommandResult.Success(message);
+        // DEPRECATED: Holy sites are now created automatically by placing altars on land claims
+        return TextCommandResult.Error(
+            "This command is deprecated. To create a holy site, place an altar (game:altar) on your land claim. " +
+            "The holy site will be created automatically.");
     }
 
     private TextCommandResult OnDeconsacrateHolySite(TextCommandCallingArgs args)
@@ -185,6 +111,29 @@ public class HolySiteCommands
 
         if (site == null)
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_NOT_FOUND, siteName));
+
+        // Remove altar block if this is an altar-based holy site
+        if (site.IsAltarSite() && site.AltarPosition != null)
+        {
+            try
+            {
+                var altarPos = site.AltarPosition.ToBlockPos();
+                var block = _worldService.GetBlock(altarPos);
+
+                // Check if altar block still exists
+                if (block?.Code?.Path?.StartsWith("altar") ?? false)
+                {
+                    // Break the altar block
+                    _worldService.GetBlockAccessor(true, false).BreakBlock(altarPos, null);
+                    _logger.Debug($"[DivineAscension] Removed altar block at {altarPos} during holy site deconsecration");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning($"[DivineAscension] Failed to remove altar block: {ex.Message}");
+                // Continue with deconsecration even if altar removal fails
+            }
+        }
 
         // Deconsecrate
         if (!_holySiteManager.DeconsacrateHolySite(site.SiteUID))
@@ -242,6 +191,13 @@ public class HolySiteCommands
 
         var center = site.GetCenter();
         sb.AppendLine($"Center: ({center.X}, {center.Y}, {center.Z})");
+
+        // Show altar position if this is an altar-based site
+        if (site.IsAltarSite() && site.AltarPosition != null)
+        {
+            var altarPos = site.AltarPosition.ToBlockPos();
+            sb.AppendLine($"Altar: ({altarPos.X}, {altarPos.Y}, {altarPos.Z})");
+        }
 
         return TextCommandResult.Success(sb.ToString());
     }
