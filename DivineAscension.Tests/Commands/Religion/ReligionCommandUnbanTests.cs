@@ -38,7 +38,7 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
         _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.UnbanPlayer("religion-1", "target-1")).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         var result = _sut!.OnUnbanPlayer(args);
@@ -68,7 +68,7 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
         _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.UnbanPlayer("religion-1", "target-1")).Returns(false);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         var result = _sut!.OnUnbanPlayer(args);
@@ -97,7 +97,7 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
         _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.UnbanPlayer("religion-1", "target-1")).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         var result = _sut!.OnUnbanPlayer(args);
@@ -211,7 +211,7 @@ public class ReligionCommandUnbanTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { mockFounder.Object });
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(new List<IPlayer> { mockFounder.Object });
 
         // Act
         var result = _sut!.OnUnbanPlayer(args);

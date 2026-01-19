@@ -39,7 +39,7 @@ public class ReligionCommandKickTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         var result = _sut!.OnKickPlayer(args);
@@ -69,16 +69,16 @@ public class ReligionCommandKickTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         _sut!.OnKickPlayer(args);
 
         // Assert
-        mockTarget.Verify(t => t.SendMessage(
-            GlobalConstants.GeneralChatGroup,
+        _mockMessengerService.Verify(m => m.SendMessage(
+            mockTarget.Object,
             It.Is<string>(msg => msg.IndexOf("You have been kicked from TestReligion") >= 0),
-            EnumChatType.Notification, null), Times.Once);
+            EnumChatType.Notification), Times.Once);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class ReligionCommandKickTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         var result = _sut!.OnKickPlayer(args);
@@ -130,7 +130,7 @@ public class ReligionCommandKickTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         var result = _sut!.OnKickPlayer(args);
@@ -245,7 +245,7 @@ public class ReligionCommandKickTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { mockFounder.Object });
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(new List<IPlayer> { mockFounder.Object });
 
         // Act
         var result = _sut!.OnKickPlayer(args);
@@ -273,7 +273,7 @@ public class ReligionCommandKickTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         var result = _sut!.OnKickPlayer(args);
@@ -300,7 +300,7 @@ public class ReligionCommandKickTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         var result = _sut!.OnKickPlayer(args);

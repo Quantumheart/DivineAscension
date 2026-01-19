@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Commands;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Commands.Helpers;
@@ -28,15 +29,22 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         var mockRoleManager = new Mock<IRoleManager>();
         var mockCooldownManager = TestFixtures.CreateMockCooldownManager();
+        var mockNetworkService = new Mock<INetworkService>();
+        var mockMessengerService = new Mock<IPlayerMessengerService>();
+        var mockWorldService = new Mock<IWorldService>();
+        var mockLogger = new Mock<ILogger>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             null!,
             _religionManager.Object,
             _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
-            _serverChannel.Object,
+            mockNetworkService.Object,
             mockRoleManager.Object,
-            mockCooldownManager.Object));
+            mockCooldownManager.Object,
+            mockMessengerService.Object,
+            mockWorldService.Object,
+            mockLogger.Object));
     }
 
     [Fact]
@@ -45,15 +53,22 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         var mockRoleManager = new Mock<IRoleManager>();
         var mockCooldownManager = TestFixtures.CreateMockCooldownManager();
+        var mockNetworkService = new Mock<INetworkService>();
+        var mockMessengerService = new Mock<IPlayerMessengerService>();
+        var mockWorldService = new Mock<IWorldService>();
+        var mockLogger = new Mock<ILogger>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
             null!,
             _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
-            _serverChannel.Object,
+            mockNetworkService.Object,
             mockRoleManager.Object,
-            mockCooldownManager.Object));
+            mockCooldownManager.Object,
+            mockMessengerService.Object,
+            mockWorldService.Object,
+            mockLogger.Object));
     }
 
     [Fact]
@@ -62,15 +77,22 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         var mockRoleManager = new Mock<IRoleManager>();
         var mockCooldownManager = TestFixtures.CreateMockCooldownManager();
+        var mockNetworkService = new Mock<INetworkService>();
+        var mockMessengerService = new Mock<IPlayerMessengerService>();
+        var mockWorldService = new Mock<IWorldService>();
+        var mockLogger = new Mock<ILogger>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
             _religionManager.Object,
             null!,
             mockPrestigeManager.Object,
-            _serverChannel.Object,
+            mockNetworkService.Object,
             mockRoleManager.Object,
-            mockCooldownManager.Object));
+            mockCooldownManager.Object,
+            mockMessengerService.Object,
+            mockWorldService.Object,
+            mockLogger.Object));
     }
 
     [Fact]
@@ -79,6 +101,9 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         var mockRoleManager = new Mock<IRoleManager>();
         var mockCooldownManager = TestFixtures.CreateMockCooldownManager();
+        var mockMessengerService = new Mock<IPlayerMessengerService>();
+        var mockWorldService = new Mock<IWorldService>();
+        var mockLogger = new Mock<ILogger>();
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => new ReligionCommands(
             _mockSapi.Object,
@@ -87,7 +112,10 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
             mockPrestigeManager.Object,
             null!,
             mockRoleManager.Object,
-            mockCooldownManager.Object));
+            mockCooldownManager.Object,
+            mockMessengerService.Object,
+            mockWorldService.Object,
+            mockLogger.Object));
     }
 
     [Fact]
@@ -96,15 +124,22 @@ public class ReligionCommandsTests : ReligionCommandsTestHelpers
         var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
         var mockRoleManager = new Mock<IRoleManager>();
         var mockCooldownManager = TestFixtures.CreateMockCooldownManager();
+        var mockNetworkService = new Mock<INetworkService>();
+        var mockMessengerService = new Mock<IPlayerMessengerService>();
+        var mockWorldService = new Mock<IWorldService>();
+        var mockLogger = new Mock<ILogger>();
         // Act
         var commands = new ReligionCommands(
             _mockSapi.Object,
             _religionManager.Object,
             _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
-            _serverChannel.Object,
+            mockNetworkService.Object,
             mockRoleManager.Object,
-            mockCooldownManager.Object);
+            mockCooldownManager.Object,
+            mockMessengerService.Object,
+            mockWorldService.Object,
+            mockLogger.Object);
 
         // Assert
         Assert.NotNull(commands);

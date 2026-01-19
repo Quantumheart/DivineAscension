@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Commands;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
@@ -37,9 +38,12 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
             _religionManager.Object,
             _playerProgressionDataManager.Object,
             _mockPrestigeManager.Object,
-            _serverChannel.Object,
+            _mockNetworkService.Object,
             _mockRoleManager.Object,
-            _mockCooldownManager.Object);
+            _mockCooldownManager.Object,
+            _mockMessengerService.Object,
+            _mockWorldService.Object,
+            _mockLogger.Object);
     }
 
     #region /religion admin repair tests
@@ -56,7 +60,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "Player");
 
-        _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { target.Object });
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(new List<IPlayer> { target.Object });
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
         _religionManager.Setup(m => m.ValidateMembershipConsistency("player-1"))
@@ -86,7 +90,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, (string)null!);
 
-        _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { player1.Object, player2.Object });
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(new List<IPlayer> { player1.Object, player2.Object });
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns((string uid) => CreatePlayerData(uid));
         _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>()))
@@ -111,7 +115,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "NonExistentPlayer");
 
-        _mockWorld.Setup(w => w.AllPlayers).Returns(Array.Empty<IServerPlayer>());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(new List<IPlayer>());
 
         // Act
         var result = _sut!.OnAdminRepair(args);
@@ -138,8 +142,8 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "TestReligion", "Player");
 
-        _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { target.Object });
-        _mockWorld.Setup(w => w.PlayerByUid("player-1")).Returns(target.Object);
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(new List<IPlayer> { target.Object });
+        _mockWorldService.Setup(w => w.GetPlayerByUID("player-1")).Returns(target.Object);
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-1")).Returns(DeityDomain.None);
         _religionManager.Setup(m => m.GetPlayerReligion("player-1"))
@@ -175,7 +179,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "NewReligion", "Player");
 
-        _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { target.Object });
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(new List<IPlayer> { target.Object });
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-1")).Returns(DeityDomain.Wild);
         _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(oldReligion);
@@ -233,7 +237,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "NonExistentReligion", "Player");
 
-        _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { target.Object });
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(new List<IPlayer> { target.Object });
         _religionManager.Setup(m => m.GetReligionByName("NonExistentReligion")).Returns((ReligionData?)null);
 
         // Act
@@ -257,7 +261,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "TestReligion", "Player");
 
-        _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { target.Object });
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(new List<IPlayer> { target.Object });
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-1")).Returns(DeityDomain.Craft);
         _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
@@ -291,8 +295,8 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "Player");
 
-        _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { target.Object });
-        _mockWorld.Setup(w => w.PlayerByUid("player-1")).Returns(target.Object);
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(new List<IPlayer> { target.Object });
+        _mockWorldService.Setup(w => w.GetPlayerByUID("player-1")).Returns(target.Object);
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.HasReligion("player-1")).Returns(true);
         _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
@@ -324,9 +328,9 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "Founder");
 
-        _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { founder.Object, member.Object });
-        _mockWorld.Setup(w => w.PlayerByUid("founder-1")).Returns(founder.Object);
-        _mockWorld.Setup(w => w.PlayerByUid("member-1")).Returns(member.Object);
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(new List<IPlayer> { founder.Object, member.Object });
+        _mockWorldService.Setup(w => w.GetPlayerByUID("founder-1")).Returns(founder.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("member-1")).Returns(member.Object);
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(playerData);
         _religionManager.Setup(m => m.HasReligion("founder-1")).Returns(true);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
@@ -360,8 +364,8 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "Founder");
 
-        _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { founder.Object });
-        _mockWorld.Setup(w => w.PlayerByUid("founder-1")).Returns(founder.Object);
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(new List<IPlayer> { founder.Object });
+        _mockWorldService.Setup(w => w.GetPlayerByUID("founder-1")).Returns(founder.Object);
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(playerData);
         _religionManager.Setup(m => m.HasReligion("founder-1")).Returns(true);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
@@ -389,7 +393,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, (string)null!);
 
-        _mockWorld.Setup(w => w.PlayerByUid("admin-1")).Returns(admin.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("admin-1")).Returns(admin.Object);
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("admin-1")).Returns(playerData);
         _religionManager.Setup(m => m.HasReligion("admin-1")).Returns(true);
         _religionManager.Setup(m => m.GetPlayerReligion("admin-1")).Returns(religion);
@@ -417,7 +421,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         var args = CreateCommandArgs(admin.Object);
         SetupParsers(args, "Player");
 
-        _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { target.Object });
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(new List<IPlayer> { target.Object });
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.HasReligion("player-1")).Returns(false);
 

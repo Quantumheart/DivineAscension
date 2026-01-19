@@ -71,7 +71,8 @@ public class FavorCommandsTests : FavorCommandsTestHelpers
         Assert.Throws<ArgumentNullException>(() => new FavorCommands(
             null!,
             _playerReligionDataManager.Object,
-            _religionManager.Object));
+            _religionManager.Object,
+            _messengerService.Object));
     }
 
     [Fact]
@@ -81,7 +82,8 @@ public class FavorCommandsTests : FavorCommandsTestHelpers
         Assert.Throws<ArgumentNullException>(() => new FavorCommands(
             _mockSapi.Object,
             null!,
-            _religionManager.Object));
+            _religionManager.Object,
+            _messengerService.Object));
     }
 
     [Fact]
@@ -91,7 +93,8 @@ public class FavorCommandsTests : FavorCommandsTestHelpers
         Assert.Throws<ArgumentNullException>(() => new FavorCommands(
             _mockSapi.Object,
             _playerReligionDataManager.Object,
-            null!));
+            null!,
+            _messengerService.Object));
     }
 
     #endregion

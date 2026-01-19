@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Commands;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
@@ -21,6 +22,8 @@ public class CivilizationCommandsTestHelpers
     protected Mock<IServerWorldAccessor> _mockWorld;
     protected Mock<IPlayerProgressionDataManager> _playerProgressionDataManager;
     protected Mock<IReligionManager> _religionManager;
+    protected Mock<IPlayerMessengerService> _mockMessengerService;
+    protected Mock<IWorldService> _mockWorldService;
     protected CivilizationCommands? _sut;
 
     protected CivilizationCommandsTestHelpers()
@@ -32,6 +35,8 @@ public class CivilizationCommandsTestHelpers
         _mockLogger = new Mock<ILogger>();
         _mockChatCommands = new Mock<IChatCommandApi>();
         _mockWorld = new Mock<IServerWorldAccessor>();
+        _mockMessengerService = new Mock<IPlayerMessengerService>();
+        _mockWorldService = new Mock<IWorldService>();
 
         _mockSapi.Setup(api => api.Logger).Returns(_mockLogger.Object);
         _mockSapi.Setup(api => api.ChatCommands).Returns(_mockChatCommands.Object);
@@ -56,7 +61,10 @@ public class CivilizationCommandsTestHelpers
             _civilizationManager.Object,
             _religionManager.Object,
             _playerProgressionDataManager.Object,
-            mockCooldownManager.Object);
+            mockCooldownManager.Object,
+            _mockMessengerService.Object,
+            _mockWorldService.Object,
+            _mockLogger.Object);
     }
 
     /// <summary>

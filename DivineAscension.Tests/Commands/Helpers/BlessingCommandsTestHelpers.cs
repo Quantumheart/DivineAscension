@@ -1,6 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Commands;
 using DivineAscension.Systems.Interfaces;
+using DivineAscension.Systems.Networking.Interfaces;
 using DivineAscension.Tests.Helpers;
 using Moq;
 using Vintagestory.API.Common;
@@ -17,7 +19,8 @@ public class BlessingCommandsTestHelpers
     protected Mock<ICoreServerAPI> _mockSapi;
     protected Mock<IPlayerProgressionDataManager> _playerReligionDataManager;
     protected Mock<IReligionManager> _religionManager;
-    protected Mock<IServerNetworkChannel> _serverChannel;
+    protected Mock<INetworkService> _networkService;
+    protected Mock<IPlayerMessengerService> _messengerService;
     protected BlessingCommands? _sut;
 
     protected BlessingCommandsTestHelpers()
@@ -36,7 +39,8 @@ public class BlessingCommandsTestHelpers
         _religionManager = new Mock<IReligionManager>();
         _playerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
         _blessingEffectSystem = new Mock<IBlessingEffectSystem>();
-        _serverChannel = new Mock<IServerNetworkChannel>();
+        _networkService = new Mock<INetworkService>();
+        _messengerService = new Mock<IPlayerMessengerService>();
     }
 
     protected BlessingCommands InitializeMocksAndSut()
@@ -47,6 +51,7 @@ public class BlessingCommandsTestHelpers
             _playerReligionDataManager.Object,
             _religionManager.Object,
             _blessingEffectSystem.Object,
-            _serverChannel.Object);
+            _networkService.Object,
+            _messengerService.Object);
     }
 }
