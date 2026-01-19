@@ -5,6 +5,7 @@ using DivineAscension.Tests.Commands.Helpers;
 using Moq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
+using Vintagestory.API.Server;
 
 namespace DivineAscension.Tests.Commands.Religion;
 
@@ -38,7 +39,7 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.InvitePlayer("religion-1", "target-1", "player-1")).Returns(true);
-        _mockWorld.Setup(w => w.AllOnlinePlayers).Returns(onlinePlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllOnlinePlayers()).Returns(onlinePlayers.Select(p => (IServerPlayer)p));
 
         // Act
         var result = _sut!.OnInvitePlayer(args);
@@ -67,16 +68,16 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.InvitePlayer("religion-1", "target-1", "player-1")).Returns(true);
-        _mockWorld.Setup(w => w.AllOnlinePlayers).Returns(onlinePlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllOnlinePlayers()).Returns(onlinePlayers.Select(p => (IServerPlayer)p));
 
         // Act
         _sut!.OnInvitePlayer(args);
 
         // Assert
-        mockTarget.Verify(t => t.SendMessage(
-            GlobalConstants.GeneralChatGroup,
+        _mockMessengerService.Verify(m => m.SendMessage(
+            mockTarget.Object,
             It.Is<string>(msg => msg.IndexOf("has invited you to join TestReligion") >= 0),
-            EnumChatType.Notification, null), Times.Once);
+            EnumChatType.Notification), Times.Once);
     }
 
     [Fact]
@@ -96,7 +97,7 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.InvitePlayer("religion-1", "target-1", "player-1")).Returns(true);
-        _mockWorld.Setup(w => w.AllOnlinePlayers).Returns(onlinePlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllOnlinePlayers()).Returns(onlinePlayers.Select(p => (IServerPlayer)p));
 
         // Act
         var result = _sut!.OnInvitePlayer(args);
@@ -189,7 +190,7 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
         _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllOnlinePlayers).Returns(Array.Empty<IPlayer>());
+        _mockWorldService.Setup(w => w.GetAllOnlinePlayers()).Returns(Enumerable.Empty<IServerPlayer>());
 
         // Act
         var result = _sut!.OnInvitePlayer(args);
@@ -219,7 +220,7 @@ public class ReligionCommandInviteTests : ReligionCommandsTestHelpers
         _religionManager.Setup(m => m.GetPlayerReligion("player-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllOnlinePlayers).Returns(onlinePlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllOnlinePlayers()).Returns(onlinePlayers.Select(p => (IServerPlayer)p));
 
         // Act
         var result = _sut!.OnInvitePlayer(args);

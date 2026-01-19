@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Commands;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
@@ -20,6 +21,7 @@ public class FavorCommandsTestHelpers
     protected Mock<IServerWorldAccessor> _mockWorld;
     protected Mock<IPlayerProgressionDataManager> _playerReligionDataManager;
     protected Mock<IReligionManager> _religionManager;
+    protected Mock<IPlayerMessengerService> _messengerService;
     protected FavorCommands? _sut;
 
     protected FavorCommandsTestHelpers()
@@ -38,6 +40,7 @@ public class FavorCommandsTestHelpers
 
         _playerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
         _religionManager = new Mock<IReligionManager>();
+        _messengerService = new Mock<IPlayerMessengerService>();
     }
 
     protected FavorCommands InitializeMocksAndSut()
@@ -45,7 +48,8 @@ public class FavorCommandsTestHelpers
         return new FavorCommands(
             _mockSapi.Object,
             _playerReligionDataManager.Object,
-            _religionManager.Object);
+            _religionManager.Object,
+            _messengerService.Object);
     }
 
     /// <summary>

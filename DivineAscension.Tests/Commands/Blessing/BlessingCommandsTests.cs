@@ -26,7 +26,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _playerReligionDataManager.Object,
             _religionManager.Object,
             _blessingEffectSystem.Object,
-            _serverChannel.Object));
+            _networkService.Object,
+            _messengerService.Object));
     }
 
     [Fact]
@@ -38,7 +39,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _playerReligionDataManager.Object,
             _religionManager.Object,
             _blessingEffectSystem.Object,
-            _serverChannel.Object));
+            _networkService.Object,
+            _messengerService.Object));
     }
 
     [Fact]
@@ -50,7 +52,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             null,
             _religionManager.Object,
             _blessingEffectSystem.Object,
-            _serverChannel.Object));
+            _networkService.Object,
+            _messengerService.Object));
     }
 
     [Fact]
@@ -62,7 +65,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _playerReligionDataManager.Object,
             null,
             _blessingEffectSystem.Object,
-            _serverChannel.Object));
+            _networkService.Object,
+            _messengerService.Object));
     }
 
     [Fact]
@@ -74,7 +78,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _playerReligionDataManager.Object,
             _religionManager.Object,
             null,
-            _serverChannel.Object));
+            _networkService.Object,
+            _messengerService.Object));
     }
 
     [Fact]
@@ -87,7 +92,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _playerReligionDataManager.Object,
             _religionManager.Object,
             _blessingEffectSystem.Object,
-            _serverChannel.Object);
+            _networkService.Object,
+            _messengerService.Object);
 
         Assert.NotNull(commands);
     }
@@ -124,7 +130,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
         mockSapi.Setup(s => s.ChatCommands).Returns(mockChatCommands.Object);
         mockSapi.Setup(s => s.Logger).Returns(mockLogger.Object);
 
-        var mockServerChannel = new Mock<IServerNetworkChannel>();
+        var mockNetworkService = new Mock<DivineAscension.API.Interfaces.INetworkService>();
+        var mockMessengerService = new Mock<DivineAscension.API.Interfaces.IPlayerMessengerService>();
 
         // Create BlessingCommands with properly configured mock
         var blessingCommands = new BlessingCommands(
@@ -133,7 +140,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _playerReligionDataManager.Object,
             _religionManager.Object,
             _blessingEffectSystem.Object,
-            mockServerChannel.Object);
+            mockNetworkService.Object,
+            mockMessengerService.Object);
 
         // Act & Assert - should not throw any exceptions
         var exception = Record.Exception(() => blessingCommands.RegisterCommands());
@@ -176,7 +184,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
         mockSapi.Setup(s => s.ChatCommands).Returns(mockChatCommands.Object);
         mockSapi.Setup(s => s.Logger).Returns(mockLogger.Object);
 
-        var mockServerChannel = new Mock<IServerNetworkChannel>();
+        var mockNetworkService = new Mock<DivineAscension.API.Interfaces.INetworkService>();
+        var mockMessengerService = new Mock<DivineAscension.API.Interfaces.IPlayerMessengerService>();
 
         // Create BlessingCommands with properly configured mock
         var blessingCommands = new BlessingCommands(
@@ -185,7 +194,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _playerReligionDataManager.Object,
             _religionManager.Object,
             _blessingEffectSystem.Object,
-            mockServerChannel.Object);
+            mockNetworkService.Object,
+            mockMessengerService.Object);
 
         // Act
         blessingCommands.RegisterCommands();
@@ -242,7 +252,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
         mockSapi.Setup(s => s.ChatCommands).Returns(mockChatCommands.Object);
         mockSapi.Setup(s => s.Logger).Returns(mockLogger.Object);
 
-        var mockServerChannel = new Mock<IServerNetworkChannel>();
+        var mockNetworkService = new Mock<DivineAscension.API.Interfaces.INetworkService>();
+        var mockMessengerService = new Mock<DivineAscension.API.Interfaces.IPlayerMessengerService>();
 
         // Create BlessingCommands with properly configured mock
         var blessingCommands = new BlessingCommands(
@@ -251,7 +262,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _playerReligionDataManager.Object,
             _religionManager.Object,
             _blessingEffectSystem.Object,
-            mockServerChannel.Object);
+            mockNetworkService.Object,
+            mockMessengerService.Object);
 
         // Act
         blessingCommands.RegisterCommands();

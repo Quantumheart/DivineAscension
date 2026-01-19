@@ -39,7 +39,7 @@ public class ReligionCommandBanTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         var result = _sut!.OnBanPlayer(args);
@@ -71,7 +71,7 @@ public class ReligionCommandBanTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         var result = _sut!.OnBanPlayer(args);
@@ -102,7 +102,7 @@ public class ReligionCommandBanTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         var result = _sut!.OnBanPlayer(args);
@@ -130,7 +130,7 @@ public class ReligionCommandBanTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         _sut!.OnBanPlayer(args);
@@ -160,7 +160,7 @@ public class ReligionCommandBanTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         var result = _sut!.OnBanPlayer(args);
@@ -189,17 +189,17 @@ public class ReligionCommandBanTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         _sut!.OnBanPlayer(args);
 
         // Assert
-        mockTarget.Verify(t => t.SendMessage(
-            GlobalConstants.GeneralChatGroup,
+        _mockMessengerService.Verify(m => m.SendMessage(
+            mockTarget.Object,
             It.Is<string>(msg =>
                 msg.IndexOf("You have been banned from TestReligion") >= 0 && msg.IndexOf("Violation of rules") >= 0),
-            EnumChatType.Notification, null), Times.Once);
+            EnumChatType.Notification), Times.Once);
     }
 
     #endregion
@@ -306,7 +306,7 @@ public class ReligionCommandBanTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(new[] { mockFounder.Object });
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(new List<IPlayer> { mockFounder.Object });
 
         // Act
         var result = _sut!.OnBanPlayer(args);
@@ -333,7 +333,7 @@ public class ReligionCommandBanTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.AllPlayers).Returns(allPlayers.ToArray());
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(allPlayers);
 
         // Act
         var result = _sut!.OnBanPlayer(args);

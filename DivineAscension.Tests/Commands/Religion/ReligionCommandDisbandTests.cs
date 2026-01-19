@@ -6,6 +6,7 @@ using DivineAscension.Tests.Commands.Helpers;
 using Moq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
+using Vintagestory.API.Server;
 
 namespace DivineAscension.Tests.Commands.Religion;
 
@@ -36,7 +37,7 @@ public class ReligionCommandDisbandTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.PlayerByUid("founder-1")).Returns(mockFounder.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("founder-1")).Returns(mockFounder.Object);
 
         // Act
         var result = _sut!.OnDisbandReligion(args);
@@ -68,9 +69,9 @@ public class ReligionCommandDisbandTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.PlayerByUid("founder-1")).Returns(mockFounder.Object);
-        _mockWorld.Setup(w => w.PlayerByUid("member-1")).Returns(mockMember1.Object);
-        _mockWorld.Setup(w => w.PlayerByUid("member-2")).Returns(mockMember2.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("founder-1")).Returns(mockFounder.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("member-1")).Returns(mockMember1.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("member-2")).Returns(mockMember2.Object);
 
         // Act
         var result = _sut!.OnDisbandReligion(args);
@@ -99,17 +100,17 @@ public class ReligionCommandDisbandTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.PlayerByUid("founder-1")).Returns(mockFounder.Object);
-        _mockWorld.Setup(w => w.PlayerByUid("member-1")).Returns(mockMember.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("founder-1")).Returns(mockFounder.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("member-1")).Returns(mockMember.Object);
 
         // Act
         _sut!.OnDisbandReligion(args);
 
         // Assert
-        mockMember.Verify(m => m.SendMessage(
-            GlobalConstants.GeneralChatGroup,
+        _mockMessengerService.Verify(m => m.SendMessage(
+            mockMember.Object,
             It.Is<string>(msg => msg.IndexOf("TestReligion has been disbanded") >= 0),
-            EnumChatType.Notification, null), Times.Once);
+            EnumChatType.Notification), Times.Once);
     }
 
     [Fact]
@@ -128,17 +129,17 @@ public class ReligionCommandDisbandTests : ReligionCommandsTestHelpers
 
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetReligion("religion-1")).Returns(religion);
-        _mockWorld.Setup(w => w.PlayerByUid("founder-1")).Returns(mockFounder.Object);
-        _mockWorld.Setup(w => w.PlayerByUid("member-1")).Returns(mockMember.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("founder-1")).Returns(mockFounder.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("member-1")).Returns(mockMember.Object);
 
         // Act
         _sut!.OnDisbandReligion(args);
 
         // Assert - Founder should NOT receive chat notification (only command result)
-        mockFounder.Verify(m => m.SendMessage(
-            It.IsAny<int>(),
+        _mockMessengerService.Verify(m => m.SendMessage(
+            mockFounder.Object,
             It.Is<string>(msg => msg.IndexOf("disbanded") >= 0),
-            It.IsAny<EnumChatType>(), null), Times.Never);
+            It.IsAny<EnumChatType>()), Times.Never);
     }
 
     [Fact]
@@ -158,22 +159,22 @@ public class ReligionCommandDisbandTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.PlayerByUid("founder-1")).Returns(mockFounder.Object);
-        _mockWorld.Setup(w => w.PlayerByUid("member-1")).Returns(mockMember.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("founder-1")).Returns(mockFounder.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("member-1")).Returns(mockMember.Object);
 
         // Act
         _sut!.OnDisbandReligion(args);
 
         // Assert
-        _serverChannel.Verify(s => s.SendPacket(
+        _mockNetworkService.Verify(s => s.SendToPlayer(
+            mockFounder.Object,
             It.Is<ReligionStateChangedPacket>(p =>
-                p.HasReligion == false && p.Reason.IndexOf("TestReligion has been disbanded") >= 0),
-            mockFounder.Object), Times.AtLeastOnce);
+                p.HasReligion == false && p.Reason.IndexOf("TestReligion has been disbanded") >= 0)), Times.AtLeastOnce);
 
-        _serverChannel.Verify(s => s.SendPacket(
+        _mockNetworkService.Verify(s => s.SendToPlayer(
+            mockMember.Object,
             It.Is<ReligionStateChangedPacket>(p =>
-                p.HasReligion == false && p.Reason.IndexOf("TestReligion has been disbanded") >= 0),
-            mockMember.Object), Times.AtLeastOnce);
+                p.HasReligion == false && p.Reason.IndexOf("TestReligion has been disbanded") >= 0)), Times.AtLeastOnce);
     }
 
     [Fact]
@@ -192,8 +193,8 @@ public class ReligionCommandDisbandTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("founder-1")).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.PlayerByUid("founder-1")).Returns(mockFounder.Object);
-        _mockWorld.Setup(w => w.PlayerByUid("offline-member")).Returns((IPlayer?)null);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("founder-1")).Returns(mockFounder.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("offline-member")).Returns((IServerPlayer?)null);
 
         // Act
         var result = _sut!.OnDisbandReligion(args);

@@ -4,6 +4,7 @@ using DivineAscension.Models.Enum;
 using DivineAscension.Tests.Commands.Helpers;
 using Moq;
 using Vintagestory.API.Common;
+using Vintagestory.API.Server;
 
 namespace DivineAscension.Tests.Commands.Religion;
 
@@ -42,9 +43,9 @@ public class ReligionCommandMembersTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("offline-member")).Returns(memberData);
         _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.PlayerByUid("player-1")).Returns(mockPlayer.Object);
-        _mockWorld.Setup(w => w.PlayerByUid("founder-1")).Returns(mockFounder.Object);
-        _mockWorld.Setup(w => w.PlayerByUid("offline-member")).Returns((IPlayer?)null);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("player-1")).Returns(mockPlayer.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("founder-1")).Returns(mockFounder.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("offline-member")).Returns((IServerPlayer?)null);
 
         // Act
         var result = _sut!.OnListMembers(args);
@@ -83,8 +84,8 @@ public class ReligionCommandMembersTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("member-1")).Returns(memberData);
         _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.PlayerByUid("founder-1")).Returns(mockFounder.Object);
-        _mockWorld.Setup(w => w.PlayerByUid("member-1")).Returns(mockMember.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("founder-1")).Returns(mockFounder.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("member-1")).Returns(mockMember.Object);
 
         // Act
         var result = _sut!.OnListMembers(args);
@@ -120,7 +121,7 @@ public class ReligionCommandMembersTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData(It.IsAny<string>())).Returns(founderData);
         _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.PlayerByUid(It.IsAny<string>())).Returns(mockFounder.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID(It.IsAny<string>())).Returns(mockFounder.Object);
 
         // Act
         var result = _sut!.OnListMembers(args);
@@ -149,8 +150,8 @@ public class ReligionCommandMembersTests : ReligionCommandsTestHelpers
         _playerProgressionDataManager.Setup(m => m.GetOrCreatePlayerData("member-1")).Returns(memberData);
         _religionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
-        _mockWorld.Setup(w => w.PlayerByUid("founder-1")).Returns(mockPlayer.Object);
-        _mockWorld.Setup(w => w.PlayerByUid("member-1")).Returns(mockMember.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("founder-1")).Returns(mockPlayer.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("member-1")).Returns(mockMember.Object);
 
         // Act
         var result = _sut!.OnListMembers(args);

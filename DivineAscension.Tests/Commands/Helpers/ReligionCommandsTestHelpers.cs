@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Commands;
 using DivineAscension.Data;
 using DivineAscension.Models;
@@ -23,6 +24,9 @@ public class ReligionCommandsTestHelpers
     protected Mock<IPlayerProgressionDataManager> _playerProgressionDataManager;
     protected Mock<IReligionManager> _religionManager;
     protected Mock<IServerNetworkChannel> _serverChannel;
+    protected Mock<INetworkService> _mockNetworkService;
+    protected Mock<IPlayerMessengerService> _mockMessengerService;
+    protected Mock<IWorldService> _mockWorldService;
     protected ReligionCommands? _sut;
 
     protected ReligionCommandsTestHelpers()
@@ -40,9 +44,16 @@ public class ReligionCommandsTestHelpers
         _mockSapi.Setup(api => api.World).Returns(_mockWorld.Object);
 
         _religionManager = new Mock<IReligionManager>();
-
         _playerProgressionDataManager = new Mock<IPlayerProgressionDataManager>();
         _serverChannel = new Mock<IServerNetworkChannel>();
+
+        // Initialize service mocks
+        _mockNetworkService = new Mock<INetworkService>();
+        _mockMessengerService = new Mock<IPlayerMessengerService>();
+        _mockWorldService = new Mock<IWorldService>();
+
+        // Default setup: return empty list for GetAllPlayers (tests override this as needed)
+        _mockWorldService.Setup(w => w.GetAllPlayers()).Returns(new List<IPlayer>());
     }
 
     protected ReligionCommands InitializeMocksAndSut()
@@ -61,9 +72,12 @@ public class ReligionCommandsTestHelpers
             _religionManager.Object,
             _playerProgressionDataManager.Object,
             mockPrestigeManager.Object,
-            _serverChannel.Object,
+            _mockNetworkService.Object,
             mockRoleManager.Object,
-            mockCooldownManager.Object);
+            mockCooldownManager.Object,
+            _mockMessengerService.Object,
+            _mockWorldService.Object,
+            _mockLogger.Object);
     }
 
     /// <summary>

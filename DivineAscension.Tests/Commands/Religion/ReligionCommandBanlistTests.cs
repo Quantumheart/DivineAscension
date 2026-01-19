@@ -4,6 +4,7 @@ using DivineAscension.Models.Enum;
 using DivineAscension.Tests.Commands.Helpers;
 using Moq;
 using Vintagestory.API.Common;
+using Vintagestory.API.Server;
 
 namespace DivineAscension.Tests.Commands.Religion;
 
@@ -41,8 +42,8 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.GetBannedPlayers("religion-1")).Returns(bannedPlayers);
-        _mockWorld.Setup(w => w.PlayerByUid("banned-1")).Returns(mockBannedPlayer.Object);
-        _mockWorld.Setup(w => w.PlayerByUid("founder-1")).Returns(mockFounder.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("banned-1")).Returns(mockBannedPlayer.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("founder-1")).Returns(mockFounder.Object);
 
         // Act
         var result = _sut!.OnListBannedPlayers(args);
@@ -78,8 +79,8 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.GetBannedPlayers("religion-1")).Returns(bannedPlayers);
-        _mockWorld.Setup(w => w.PlayerByUid("banned-1")).Returns(mockBannedPlayer.Object);
-        _mockWorld.Setup(w => w.PlayerByUid("founder-1")).Returns(mockFounder.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("banned-1")).Returns(mockBannedPlayer.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("founder-1")).Returns(mockFounder.Object);
 
         // Act
         var result = _sut!.OnListBannedPlayers(args);
@@ -136,9 +137,9 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.GetBannedPlayers("religion-1")).Returns(bannedPlayers);
-        _mockWorld.Setup(w => w.PlayerByUid("banned-1")).Returns(mockBanned1.Object);
-        _mockWorld.Setup(w => w.PlayerByUid("banned-2")).Returns(mockBanned2.Object);
-        _mockWorld.Setup(w => w.PlayerByUid("founder-1")).Returns(mockFounder.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("banned-1")).Returns(mockBanned1.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("banned-2")).Returns(mockBanned2.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("founder-1")).Returns(mockFounder.Object);
 
         // Act
         var result = _sut!.OnListBannedPlayers(args);
@@ -170,8 +171,8 @@ public class ReligionCommandBanlistTests : ReligionCommandsTestHelpers
         _religionManager.Setup(m => m.GetPlayerReligion("founder-1")).Returns(religion);
         _religionManager.Setup(m => m.HasReligion(It.IsAny<string>())).Returns(true);
         _religionManager.Setup(m => m.GetBannedPlayers("religion-1")).Returns(bannedPlayers);
-        _mockWorld.Setup(w => w.PlayerByUid("banned-1")).Returns((IPlayer?)null);
-        _mockWorld.Setup(w => w.PlayerByUid("founder-1")).Returns(mockFounder.Object);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("banned-1")).Returns((IServerPlayer?)null);
+        _mockWorldService.Setup(w => w.GetPlayerByUID("founder-1")).Returns(mockFounder.Object);
 
         // Act
         var result = _sut!.OnListBannedPlayers(args);
