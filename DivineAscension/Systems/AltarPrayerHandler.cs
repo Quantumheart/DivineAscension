@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using DivineAscension.API.Interfaces;
+using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -17,6 +20,56 @@ public class AltarPrayerHandler : IDisposable
 {
     private const int PRAYER_COOLDOWN_MS = 3600000; // 1 hour
     private const int BASE_PRAYER_FAVOR = 5;
+
+    // Domain-specific offering configurations
+    private static readonly Dictionary<DeityDomain, DomainOfferingConfig> DomainOfferings = new()
+    {
+        [DeityDomain.Craft] = new DomainOfferingConfig
+        {
+            Tier1Items = new[] { "ingot-copper", "ingot-bronze", "ingot-tinbronze", "pickaxe-copper", "axe-copper", "shovel-copper" },
+            Tier1Value = 2,
+            Tier2Items = new[] { "ingot-iron", "ingot-steel", "pickaxe-iron", "axe-iron", "saw-iron", "hammer-iron" },
+            Tier2Value = 4,
+            Tier3Items = new[] { "ingot-gold", "ingot-silver", "gear-rusty", "gear-temporal", "anvil" },
+            Tier3Value = 8
+        },
+        [DeityDomain.Wild] = new DomainOfferingConfig
+        {
+            Tier1Items = new[] { "bushmeat", "redmeat-raw", "poultry-raw", "hide-raw-small", "feather" },
+            Tier1Value = 1,
+            Tier2Items = new[] { "hide-raw-medium", "hide-raw-large", "redmeat-cured", "fat", "honey" },
+            Tier2Value = 3,
+            Tier3Items = new[] { "hide-raw-huge", "pelt", "resonance", "forlornhope" },
+            Tier3Value = 6
+        },
+        [DeityDomain.Conquest] = new DomainOfferingConfig
+        {
+            Tier1Items = new[] { "spear-copper", "sword-copper", "blade-copper", "arrow-copper" },
+            Tier1Value = 3,
+            Tier2Items = new[] { "spear-iron", "sword-iron", "blade-iron", "armor-body-chain", "armor-head-chain" },
+            Tier2Value = 5,
+            Tier3Items = new[] { "sword-steel", "spear-steel", "armor-body-plate", "armor-head-basinet", "arrow-steel" },
+            Tier3Value = 10
+        },
+        [DeityDomain.Harvest] = new DomainOfferingConfig
+        {
+            Tier1Items = new[] { "carrot", "onion", "turnip", "parsnip", "grain-flax", "grain-rice" },
+            Tier1Value = 2,
+            Tier2Items = new[] { "bread-", "flaxtwine", "linen", "vegetable-pickled", "fruit-pickled" },
+            Tier2Value = 4,
+            Tier3Items = new[] { "honeycomb", "vegetable-cured", "fruit-cured", "cheese-", "flour" },
+            Tier3Value = 7
+        },
+        [DeityDomain.Stone] = new DomainOfferingConfig
+        {
+            Tier1Items = new[] { "stone-", "ore-quartz", "ore-copper", "clay-" },
+            Tier1Value = 2,
+            Tier2Items = new[] { "ore-iron", "ore-lead", "ore-silver", "gem-quartz", "coal" },
+            Tier2Value = 5,
+            Tier3Items = new[] { "gem-diamond", "gem-emerald", "gem-peridot", "ore-gold", "crystal" },
+            Tier3Value = 9
+        }
+    };
 
     private readonly IEventService _eventService;
     private readonly IHolySiteManager _holySiteManager;
@@ -119,15 +172,21 @@ public class AltarPrayerHandler : IDisposable
             var offering = player.Entity.RightHandItemSlot?.Itemstack;
             int offeringBonus = 0;
             string offeringName = "";
+            bool offeringRejected = false;
             if (offering != null && offering.StackSize > 0)
             {
-                offeringBonus = CalculateOfferingValue(offering);
+                offeringBonus = CalculateOfferingValue(offering, religion.Domain);
                 if (offeringBonus > 0)
                 {
                     offeringName = offering.GetName();
                     // Consume offering (1 item)
                     player.Entity.RightHandItemSlot.TakeOut(1);
                     player.Entity.RightHandItemSlot.MarkDirty();
+                }
+                else
+                {
+                    // Offering doesn't match domain - rejected
+                    offeringRejected = true;
                 }
             }
 
@@ -160,9 +219,19 @@ public class AltarPrayerHandler : IDisposable
             );
 
             // Notify player
-            string msg = offeringBonus > 0
-                ? $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (offering bonus: +{offeringBonus} base, tier {tier} x{prayerMultiplier:F1})"
-                : $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (tier {tier} x{prayerMultiplier:F1})";
+            string msg;
+            if (offeringBonus > 0)
+            {
+                msg = $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (offering bonus: +{offeringBonus} base, tier {tier} x{prayerMultiplier:F1})";
+            }
+            else if (offeringRejected)
+            {
+                msg = $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (tier {tier} x{prayerMultiplier:F1}). Your offering was not suitable for this domain.";
+            }
+            else
+            {
+                msg = $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (tier {tier} x{prayerMultiplier:F1})";
+            }
             _messenger.SendMessage(player, msg, EnumChatType.CommandSuccess);
 
             _logger.Debug($"[DivineAscension] {player.PlayerName} prayed at {holySite.SiteName}, awarded {totalFavor} favor and {totalPrestige} prestige");
@@ -179,28 +248,30 @@ public class AltarPrayerHandler : IDisposable
         return block?.Code?.Path?.StartsWith("altar") ?? false;
     }
 
-    private int CalculateOfferingValue(ItemStack offering)
+    /// <summary>
+    /// Calculate offering value based on domain-specific items.
+    /// Returns 0 if the offering doesn't match the domain.
+    /// </summary>
+    private int CalculateOfferingValue(ItemStack offering, DeityDomain domain)
     {
         var path = offering.Collectible?.Code?.Path ?? string.Empty;
 
-        // Tier 3 offerings (+5 base favor)
-        if (path.Contains("ingot-gold") || path.Contains("gem-diamond"))
-            return 5;
+        if (!DomainOfferings.TryGetValue(domain, out var config))
+            return 0;
 
-        // Tier 2 offerings (+3 base favor)
-        if (path.Contains("ingot-silver") ||
-            path.Contains("gem-emerald") ||
-            path.Contains("gem-peridot"))
-            return 3;
+        // Check tier 3 items (highest value)
+        if (config.Tier3Items.Any(item => path.Contains(item)))
+            return config.Tier3Value;
 
-        // Tier 1 offerings (+1 base favor)
-        if (path.Contains("ingot-copper") ||
-            path.Contains("ingot-bronze") ||
-            path.Contains("bread") ||
-            path.Contains("honey"))
-            return 1;
+        // Check tier 2 items
+        if (config.Tier2Items.Any(item => path.Contains(item)))
+            return config.Tier2Value;
 
-        return 0; // Not a valid offering
+        // Check tier 1 items
+        if (config.Tier1Items.Any(item => path.Contains(item)))
+            return config.Tier1Value;
+
+        return 0; // Not a valid offering for this domain
     }
 
     private void OnPlayerDisconnect(IServerPlayer player)
@@ -208,4 +279,19 @@ public class AltarPrayerHandler : IDisposable
         // Clean up cooldown tracking when player disconnects
         _lastPrayerTime.TryRemove(player.PlayerUID, out _);
     }
+}
+
+/// <summary>
+/// Configuration for domain-specific offerings
+/// </summary>
+internal class DomainOfferingConfig
+{
+    public string[] Tier1Items { get; init; } = Array.Empty<string>();
+    public int Tier1Value { get; init; }
+
+    public string[] Tier2Items { get; init; } = Array.Empty<string>();
+    public int Tier2Value { get; init; }
+
+    public string[] Tier3Items { get; init; } = Array.Empty<string>();
+    public int Tier3Value { get; init; }
 }
