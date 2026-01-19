@@ -238,6 +238,13 @@ public static class DivineAscensionSystemInitializer
             networkService);
         activityHandler.RegisterHandlers();
 
+        var holySiteHandler = new HolySiteNetworkHandler(
+            logger,
+            holySiteManager,
+            religionManager,
+            networkService);
+        holySiteHandler.RegisterHandlers();
+
         // Validate all memberships after initialization
         api.Logger.Notification("[DivineAscension] Running membership validation...");
         var (total, consistent, repaired, failed) =
@@ -291,6 +298,7 @@ public static class DivineAscensionSystemInitializer
             CivilizationNetworkHandler = civilizationHandler,
             DiplomacyNetworkHandler = diplomacyHandler,
             ActivityNetworkHandler = activityHandler,
+            HolySiteNetworkHandler = holySiteHandler,
             MigratedReligionUIDs = migratedReligionUIDs
         };
     }
@@ -332,6 +340,7 @@ public class InitializationResult
     public CivilizationNetworkHandler CivilizationNetworkHandler { get; init; } = null!;
     public DiplomacyNetworkHandler DiplomacyNetworkHandler { get; init; } = null!;
     public ActivityNetworkHandler ActivityNetworkHandler { get; init; } = null!;
+    public HolySiteNetworkHandler HolySiteNetworkHandler { get; init; } = null!;
 
     /// <summary>
     ///     Set of religion UIDs that were migrated with auto-generated deity names.
