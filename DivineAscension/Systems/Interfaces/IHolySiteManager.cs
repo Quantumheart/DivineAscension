@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using DivineAscension.Data;
+using Vintagestory.API.MathTools;
 
 namespace DivineAscension.Systems.Interfaces;
 
 /// <summary>
-/// Interface for managing holy site creation, expansion, and queries.
-/// Holy sites provide territory and prayer bonuses based on tier.
+/// Interface for managing holy site creation and queries.
+/// Holy sites match land claim boundaries and provide territory and prayer bonuses based on tier.
 /// </summary>
 public interface IHolySiteManager
 {
@@ -31,20 +32,14 @@ public interface IHolySiteManager
     bool CanCreateHolySite(string religionUID);
 
     /// <summary>
-    /// Creates a new holy site at the specified chunk.
-    /// Returns null if validation fails (empty name, prestige limit reached, or chunk already claimed).
+    /// Consecrates a land claim as a holy site.
+    /// Returns null if validation fails (empty name, empty areas, prestige limit reached, or overlapping site).
     /// </summary>
     HolySiteData? ConsecrateHolySite(string religionUID, string siteName,
-        SerializableChunkPos centerChunk, string founderUID);
+        List<Cuboidi> claimAreas, string founderUID);
 
     /// <summary>
-    /// Expands a holy site by adding a new chunk.
-    /// Returns false if site not found, chunk already claimed, or max size reached (6 chunks).
-    /// </summary>
-    bool ExpandHolySite(string siteUID, SerializableChunkPos newChunk);
-
-    /// <summary>
-    /// Removes a holy site and all its chunks.
+    /// Removes a holy site and all its areas.
     /// Returns false if site not found.
     /// </summary>
     bool DeconsacrateHolySite(string siteUID);
@@ -55,9 +50,9 @@ public interface IHolySiteManager
     HolySiteData? GetHolySite(string siteUID);
 
     /// <summary>
-    /// Gets the holy site at a specific chunk position.
+    /// Gets the holy site at a specific block position.
     /// </summary>
-    HolySiteData? GetHolySiteAtChunk(SerializableChunkPos chunk);
+    HolySiteData? GetHolySiteAtPosition(BlockPos pos);
 
     /// <summary>
     /// Checks if a player is currently in a holy site.

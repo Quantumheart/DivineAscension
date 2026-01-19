@@ -975,5 +975,29 @@
   "divineascension:cmd.religion.success.admin_left_disbanded": "{0} was the last member. Religion {1} has been disbanded",
   "divineascension:cmd.religion.success.admin_left_founder_transfer": "Founder role transferred to {0}. {1} has left the religion",
   "divineascension:cmd.religion.success.invite_sent": "Invitation sent to {0}",
-  "divineascension:cmd.religion.success.repair_player": "Repaired religion data for player {0}"
+  "divineascension:cmd.religion.success.repair_player": "Repaired religion data for player {0}",
+
+  "divineascension:cmd.holysite.desc": "Manage holy sites for your religion",
+  "divineascension:cmd.holysite.consecrate.desc": "Consecrate your land claim as a holy site",
+  "divineascension:cmd.holysite.deconsecrate.desc": "Remove a holy site",
+  "divineascension:cmd.holysite.info.desc": "Show information about a holy site",
+  "divineascension:cmd.holysite.list.desc": "List all holy sites for your religion",
+  "divineascension:cmd.holysite.nearby.desc": "List holy sites near your location",
+
+  "divineascension:holysite.consecrated": "Holy site '{0}' has been consecrated at ({1}, {2})! Your religion now receives {3}x territory bonuses and {4}x prayer bonuses in this area.",
+  "divineascension:holysite.deconsecrated": "Holy site '{0}' has been deconsecrated.",
+  "divineascension:holysite.not_member": "You must be a member of a religion to use holy site commands.",
+  "divineascension:holysite.no_permission": "You don't have permission to perform this action.",
+  "divineascension:holysite.not_claimed": "You must be in territory claimed by you to consecrate a holy site here.",
+  "divineascension:holysite.limit_reached": "Your religion has reached its maximum number of holy sites ({0}/{1}). Increase your religion's prestige to unlock more sites.",
+  "divineascension:holysite.not_found": "Holy site '{0}' not found.",
+  "divineascension:holysite.info.header": "=== Holy Site: {0} ===",
+  "divineascension:holysite.info.bonuses": "Bonuses: {0}x territory, {1}x prayer",
+  "divineascension:holysite.info.founder": "Founded by: {0}",
+  "divineascension:holysite.info.created": "Created: {0}",
+  "divineascension:holysite.list.header": "=== Holy Sites for {0} ===",
+  "divineascension:holysite.list.empty": "Your religion has no holy sites yet.",
+  "divineascension:holysite.nearby.header": "=== Holy Sites within {0} chunks ===",
+  "divineascension:holysite.nearby.empty": "No holy sites found nearby.",
+  "divineascension:holysite.not_in_site": "You are not currently in a holy site. Specify a site name or use /holysite nearby."
 }

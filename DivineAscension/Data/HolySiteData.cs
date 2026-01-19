@@ -1,94 +1,205 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ProtoBuf;
+using Vintagestory.API.MathTools;
 
 namespace DivineAscension.Data;
 
 /// <summary>
-/// Serializable chunk position for holy site storage.
-/// Uses chunk coordinates (world pos / 256).
+/// Serializable 3D rectangular area for ProtoBuf compatibility.
+/// Cuboidi from Vintage Story cannot be serialized directly.
 /// </summary>
 [ProtoContract]
-public record SerializableChunkPos
+public class SerializableCuboidi
 {
-    public SerializableChunkPos()
+    public SerializableCuboidi() { }
+
+    public SerializableCuboidi(int x1, int y1, int z1, int x2, int y2, int z2)
     {
+        X1 = x1;
+        Y1 = y1;
+        Z1 = z1;
+        X2 = x2;
+        Y2 = y2;
+        Z2 = z2;
     }
 
-    public SerializableChunkPos(int chunkX, int chunkZ)
+    public SerializableCuboidi(Cuboidi source)
     {
-        ChunkX = chunkX;
-        ChunkZ = chunkZ;
+        X1 = source.X1;
+        Y1 = source.Y1;
+        Z1 = source.Z1;
+        X2 = source.X2;
+        Y2 = source.Y2;
+        Z2 = source.Z2;
     }
 
-    [ProtoMember(1)] public int ChunkX { get; init; }
+    [ProtoMember(1)] public int X1 { get; set; }
+    [ProtoMember(2)] public int Y1 { get; set; }
+    [ProtoMember(3)] public int Z1 { get; set; }
+    [ProtoMember(4)] public int X2 { get; set; }
+    [ProtoMember(5)] public int Y2 { get; set; }
+    [ProtoMember(6)] public int Z2 { get; set; }
 
-    [ProtoMember(2)] public int ChunkZ { get; init; }
+    /// <summary>
+    /// Convert back to Vintage Story's Cuboidi.
+    /// </summary>
+    public Cuboidi ToCuboidi() => new Cuboidi(X1, Y1, Z1, X2, Y2, Z2);
 
-    public string ToKey() => $"{ChunkX},{ChunkZ}";
+    /// <summary>
+    /// Calculate 3D volume of this area.
+    /// </summary>
+    public int GetVolume()
+    {
+        int sizeX = Math.Abs(X2 - X1) + 1;
+        int sizeY = Math.Abs(Y2 - Y1) + 1;
+        int sizeZ = Math.Abs(Z2 - Z1) + 1;
+        return sizeX * sizeY * sizeZ;
+    }
+
+    /// <summary>
+    /// Calculate 2D footprint (X×Z area, ignoring Y).
+    /// </summary>
+    public int GetXZArea()
+    {
+        int sizeX = Math.Abs(X2 - X1) + 1;
+        int sizeZ = Math.Abs(Z2 - Z1) + 1;
+        return sizeX * sizeZ;
+    }
+
+    /// <summary>
+    /// Check if this area contains a block position.
+    /// </summary>
+    public bool Contains(BlockPos pos)
+    {
+        return pos.X >= Math.Min(X1, X2) && pos.X <= Math.Max(X1, X2) &&
+               pos.Y >= Math.Min(Y1, Y2) && pos.Y <= Math.Max(Y1, Y2) &&
+               pos.Z >= Math.Min(Z1, Z2) && pos.Z <= Math.Max(Z1, Z2);
+    }
+
+    /// <summary>
+    /// Check if this area intersects another area.
+    /// </summary>
+    public bool Intersects(SerializableCuboidi other)
+    {
+        return ToCuboidi().Intersects(other.ToCuboidi());
+    }
 }
 
 /// <summary>
 /// Data model for a holy site.
-/// Holy sites provide territory and prayer bonuses based on tier (1-3).
-/// Tier is determined by number of chunks (1/2-3/4-6).
+/// Holy sites cover entire land claim boundaries (all areas) with exact claim boundaries.
+/// Tier calculation based on 3D volume (X×Y×Z blocks).
 /// </summary>
 [ProtoContract]
 public class HolySiteData
 {
-    [ProtoMember(8)] private List<SerializableChunkPos> _expandedChunks = new();
-
     // Parameterless constructor for ProtoBuf
-    public HolySiteData()
-    {
-    }
+    public HolySiteData() { }
 
     // Full constructor
-    public HolySiteData(string siteUID, string religionUID, string siteName,
-        SerializableChunkPos centerChunk, string founderUID, string founderName)
+    public HolySiteData(
+        string siteUID,
+        string religionUID,
+        string siteName,
+        List<SerializableCuboidi> areas,
+        string founderUID,
+        string founderName)
     {
         SiteUID = siteUID;
         ReligionUID = religionUID;
         SiteName = siteName;
-        CenterChunk = centerChunk;
+        Areas = areas ?? new List<SerializableCuboidi>();
         FounderUID = founderUID;
         FounderName = founderName;
         CreationDate = DateTime.UtcNow;
     }
 
-    [ProtoMember(1)] public string SiteUID { get; set; } = string.Empty;
+    [ProtoMember(1)]
+    public string SiteUID { get; set; } = string.Empty;
 
-    [ProtoMember(2)] public string ReligionUID { get; set; } = string.Empty;
+    [ProtoMember(2)]
+    public string ReligionUID { get; set; } = string.Empty;
 
-    [ProtoMember(3)] public string SiteName { get; set; } = string.Empty;
+    [ProtoMember(3)]
+    public string SiteName { get; set; } = string.Empty;
 
-    [ProtoMember(4)] public SerializableChunkPos CenterChunk { get; set; } = new();
+    [ProtoMember(4)]
+    public string FounderUID { get; set; } = string.Empty;
 
-    [ProtoMember(5)] public string FounderUID { get; set; } = string.Empty;
+    [ProtoMember(5)]
+    public string FounderName { get; set; } = string.Empty;
 
-    [ProtoMember(6)] public string FounderName { get; set; } = string.Empty;
+    [ProtoMember(6)]
+    public DateTime CreationDate { get; set; } = DateTime.UtcNow;
 
-    [ProtoMember(7)] public DateTime CreationDate { get; set; } = DateTime.UtcNow;
-
-    [ProtoIgnore] public IReadOnlyList<SerializableChunkPos> ExpandedChunks => _expandedChunks.AsReadOnly();
+    [ProtoMember(7)]
+    public List<SerializableCuboidi> Areas { get; set; } = new();
 
     /// <summary>
-    /// Calculates tier based on total chunk count.
-    /// Tier 1: 1 chunk
-    /// Tier 2: 2-3 chunks
-    /// Tier 3: 4-6 chunks
+    /// Calculate total 3D volume of all areas (used for tier calculation).
+    /// </summary>
+    public int GetTotalVolume()
+    {
+        return Areas.Sum(area => area.GetVolume());
+    }
+
+    /// <summary>
+    /// Calculate total 2D footprint of all areas.
+    /// </summary>
+    public int GetTotalXZArea()
+    {
+        return Areas.Sum(area => area.GetXZArea());
+    }
+
+    /// <summary>
+    /// Calculate weighted center position of all areas.
+    /// </summary>
+    public BlockPos GetCenter()
+    {
+        if (Areas.Count == 0)
+            return new BlockPos(0, 0, 0);
+
+        long totalX = 0, totalY = 0, totalZ = 0;
+        int totalVolume = 0;
+
+        foreach (var area in Areas)
+        {
+            int volume = area.GetVolume();
+            int centerX = (area.X1 + area.X2) / 2;
+            int centerY = (area.Y1 + area.Y2) / 2;
+            int centerZ = (area.Z1 + area.Z2) / 2;
+
+            totalX += centerX * volume;
+            totalY += centerY * volume;
+            totalZ += centerZ * volume;
+            totalVolume += volume;
+        }
+
+        return new BlockPos(
+            (int)(totalX / totalVolume),
+            (int)(totalY / totalVolume),
+            (int)(totalZ / totalVolume)
+        );
+    }
+
+    /// <summary>
+    /// Tier calculation based on 3D volume:
+    /// Tier 1: &lt;50,000 blocks³ (territory 1.5x, prayer 2.0x)
+    /// Tier 2: 50,000-200,000 blocks³ (territory 2.0x, prayer 2.5x)
+    /// Tier 3: 200,000+ blocks³ (territory 2.5x, prayer 3.0x)
     /// </summary>
     public int GetTier()
     {
-        int totalChunks = 1 + _expandedChunks.Count;
-        if (totalChunks == 1) return 1;
-        if (totalChunks <= 3) return 2;
+        int volume = GetTotalVolume();
+        if (volume < 50000) return 1;
+        if (volume < 200000) return 2;
         return 3;
     }
 
     /// <summary>
-    /// Gets territory favor multiplier based on tier.
-    /// Tier 1: 1.5x, Tier 2: 2.0x, Tier 3: 2.5x
+    /// Territory multiplier based on tier.
     /// </summary>
     public double GetTerritoryMultiplier()
     {
@@ -102,8 +213,7 @@ public class HolySiteData
     }
 
     /// <summary>
-    /// Gets prayer favor multiplier based on tier.
-    /// Tier 1: 2.0x, Tier 2: 2.5x, Tier 3: 3.0x
+    /// Prayer multiplier based on tier.
     /// </summary>
     public double GetPrayerMultiplier()
     {
@@ -117,30 +227,27 @@ public class HolySiteData
     }
 
     /// <summary>
-    /// Adds a chunk to the expanded territory.
+    /// Check if a block position is within any area of this holy site.
     /// </summary>
-    public void AddChunk(SerializableChunkPos chunk)
+    public bool ContainsPosition(BlockPos pos)
     {
-        if (!_expandedChunks.Contains(chunk))
-            _expandedChunks.Add(chunk);
+        return Areas.Any(area => area.Contains(pos));
     }
 
     /// <summary>
-    /// Checks if a chunk is part of this holy site (center or expanded).
+    /// Check if this holy site intersects with another (for overlap detection).
     /// </summary>
-    public bool ContainsChunk(SerializableChunkPos chunk)
+    public bool Intersects(HolySiteData other)
     {
-        return CenterChunk.Equals(chunk) || _expandedChunks.Contains(chunk);
-    }
-
-    /// <summary>
-    /// Gets all chunks (center + expanded).
-    /// </summary>
-    public List<SerializableChunkPos> GetAllChunks()
-    {
-        var chunks = new List<SerializableChunkPos> { CenterChunk };
-        chunks.AddRange(_expandedChunks);
-        return chunks;
+        foreach (var myArea in Areas)
+        {
+            foreach (var otherArea in other.Areas)
+            {
+                if (myArea.Intersects(otherArea))
+                    return true;
+            }
+        }
+        return false;
     }
 }
 

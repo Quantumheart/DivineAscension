@@ -7,17 +7,18 @@ using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
+using Vintagestory.API.MathTools;
 
 namespace DivineAscension.Systems;
 
 /// <summary>
-/// Manages holy site creation, expansion, and queries.
-/// Holy sites provide territory and prayer bonuses based on tier.
+/// Manages holy site creation and queries.
+/// Holy sites match land claim boundaries and provide territory and prayer bonuses based on tier.
 /// Site limits are based on religion prestige tier (max 5 sites).
 ///
 /// Thread Safety:
 /// - Uses ConcurrentDictionary for all indexes (thread-safe reads)
-/// - Uses lock for multi-step operations (create, expand, delete, load, save)
+/// - Uses lock for multi-step operations (create, delete, load, save)
 /// - Query methods are safe without locks (acceptable stale reads)
 /// - Follows the same pattern as DiplomacyManager and CivilizationManager
 /// </summary>
@@ -26,7 +27,6 @@ public class HolySiteManager : IHolySiteManager
     // Persistence key
     private const string DATA_KEY = "divineascension_holy_sites";
     private const int MAX_SITES_PER_TIER = 5;
-    private readonly ConcurrentDictionary<string, string> _chunkToSite = new();
     private readonly IEventService _eventService;
 
     // Dependencies (API wrappers)
@@ -35,7 +35,7 @@ public class HolySiteManager : IHolySiteManager
     private readonly IReligionManager _religionManager;
     private readonly ConcurrentDictionary<string, HashSet<string>> _sitesByReligion = new();
 
-    // Three indexes for O(1) lookups
+    // Two indexes for O(1) lookups
     private readonly ConcurrentDictionary<string, HolySiteData> _sitesByUID = new();
     private readonly IWorldService _worldService;
 
@@ -130,11 +130,11 @@ public class HolySiteManager : IHolySiteManager
     #region CRUD Operations
 
     /// <summary>
-    /// Creates a new holy site at the specified chunk.
-    /// Returns null if validation fails (empty name, prestige limit reached, or chunk already claimed).
+    /// Consecrates a land claim as a holy site.
+    /// Returns null if validation fails (empty name, empty areas, prestige limit reached, or overlapping site).
     /// </summary>
     public HolySiteData? ConsecrateHolySite(string religionUID, string siteName,
-        SerializableChunkPos centerChunk, string founderUID)
+        List<Cuboidi> claimAreas, string founderUID)
     {
         lock (Lock)
         {
@@ -147,6 +147,12 @@ public class HolySiteManager : IHolySiteManager
                     return null;
                 }
 
+                if (claimAreas == null || claimAreas.Count == 0)
+                {
+                    _logger.Warning("[DivineAscension] Claim areas cannot be empty");
+                    return null;
+                }
+
                 // Check prestige limit
                 if (!CanCreateHolySite(religionUID))
                 {
@@ -154,21 +160,43 @@ public class HolySiteManager : IHolySiteManager
                     return null;
                 }
 
-                // Check for duplicate chunk
-                var chunkKey = centerChunk.ToKey();
-                if (_chunkToSite.ContainsKey(chunkKey))
+                // Convert Cuboidi to SerializableCuboidi
+                var serializableAreas = claimAreas
+                    .Select(area => new SerializableCuboidi(area))
+                    .ToList();
+
+                // Create temporary site for overlap checking
+                var tempSite = new HolySiteData(
+                    Guid.NewGuid().ToString(),
+                    religionUID,
+                    siteName,
+                    serializableAreas,
+                    founderUID,
+                    "");
+
+                // Check for overlap with existing holy sites
+                foreach (var existingSite in _sitesByUID.Values)
                 {
-                    _logger.Warning($"[DivineAscension] Holy site already exists at chunk {chunkKey}");
-                    return null;
+                    if (tempSite.Intersects(existingSite))
+                    {
+                        _logger.Warning($"[DivineAscension] Holy site overlaps with existing site {existingSite.SiteName}");
+                        return null;
+                    }
                 }
 
                 // Get founder info
                 var founder = _worldService.GetPlayerByUID(founderUID);
                 var founderName = founder?.PlayerName ?? founderUID;
 
-                // Create site
+                // Create final site
                 var siteUID = Guid.NewGuid().ToString();
-                var site = new HolySiteData(siteUID, religionUID, siteName, centerChunk, founderUID, founderName);
+                var site = new HolySiteData(
+                    siteUID,
+                    religionUID,
+                    siteName,
+                    serializableAreas,
+                    founderUID,
+                    founderName);
 
                 // Update indexes
                 _sitesByUID[siteUID] = site;
@@ -177,9 +205,7 @@ public class HolySiteManager : IHolySiteManager
                     _sitesByReligion[religionUID] = new HashSet<string>();
                 _sitesByReligion[religionUID].Add(siteUID);
 
-                _chunkToSite[chunkKey] = siteUID;
-
-                _logger.Notification($"[DivineAscension] Holy site '{siteName}' consecrated at {chunkKey}");
+                _logger.Notification($"[DivineAscension] Holy site '{siteName}' consecrated with {site.Areas.Count} area(s), tier {site.GetTier()}");
 
                 SaveHolySites();
 
@@ -194,54 +220,7 @@ public class HolySiteManager : IHolySiteManager
     }
 
     /// <summary>
-    /// Expands a holy site by adding a new chunk.
-    /// Returns false if site not found, chunk already claimed, or max size reached (6 chunks).
-    /// </summary>
-    public bool ExpandHolySite(string siteUID, SerializableChunkPos newChunk)
-    {
-        lock (Lock)
-        {
-            try
-            {
-                if (!_sitesByUID.TryGetValue(siteUID, out var site))
-                {
-                    _logger.Warning($"[DivineAscension] Holy site {siteUID} not found");
-                    return false;
-                }
-
-                var chunkKey = newChunk.ToKey();
-                if (_chunkToSite.ContainsKey(chunkKey))
-                {
-                    _logger.Warning($"[DivineAscension] Chunk {chunkKey} already claimed");
-                    return false;
-                }
-
-                // Check tier limit (max 6 chunks = tier 3)
-                if (site.GetAllChunks().Count >= 6)
-                {
-                    _logger.Warning($"[DivineAscension] Holy site has reached maximum size");
-                    return false;
-                }
-
-                site.AddChunk(newChunk);
-                _chunkToSite[chunkKey] = siteUID;
-
-                _logger.Debug($"[DivineAscension] Holy site {siteUID} expanded to {chunkKey}");
-
-                SaveHolySites();
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.Error($"[DivineAscension] Error expanding holy site: {ex.Message}");
-                return false;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Removes a holy site and all its chunks.
+    /// Removes a holy site and all its areas.
     /// Returns false if site not found.
     /// </summary>
     public bool DeconsacrateHolySite(string siteUID)
@@ -262,12 +241,6 @@ public class HolySiteManager : IHolySiteManager
                     sites.Remove(siteUID);
                     if (sites.Count == 0)
                         _sitesByReligion.TryRemove(site.ReligionUID, out _);
-                }
-
-                // Remove chunk mappings
-                foreach (var chunk in site.GetAllChunks())
-                {
-                    _chunkToSite.TryRemove(chunk.ToKey(), out _);
                 }
 
                 _logger.Notification($"[DivineAscension] Holy site '{site.SiteName}' deconsecrated");
@@ -300,16 +273,16 @@ public class HolySiteManager : IHolySiteManager
     }
 
     /// <summary>
-    /// Gets the holy site at a specific chunk position.
+    /// Gets the holy site at a specific block position.
     /// </summary>
-    public HolySiteData? GetHolySiteAtChunk(SerializableChunkPos chunk)
+    public HolySiteData? GetHolySiteAtPosition(BlockPos pos)
     {
-        var chunkKey = chunk.ToKey();
-        if (!_chunkToSite.TryGetValue(chunkKey, out var siteUID)) return null;
-        lock (Lock)
+        foreach (var site in _sitesByUID.Values)
         {
-            return _sitesByUID.GetValueOrDefault(siteUID);
+            if (site.ContainsPosition(pos))
+                return site;
         }
+        return null;
     }
 
     /// <summary>
@@ -324,12 +297,8 @@ public class HolySiteManager : IHolySiteManager
             return false;
         }
 
-        // Convert player position to chunk coordinates
-        var chunkX = (int)player.Entity.Pos.X / 256;
-        var chunkZ = (int)player.Entity.Pos.Z / 256;
-        var chunk = new SerializableChunkPos(chunkX, chunkZ);
-
-        site = GetHolySiteAtChunk(chunk);
+        var pos = player.Entity.Pos.AsBlockPos;
+        site = GetHolySiteAtPosition(pos);
         return site != null;
     }
 
@@ -425,12 +394,6 @@ public class HolySiteManager : IHolySiteManager
                     _sitesByReligion.TryRemove(site.ReligionUID, out _);
             }
 
-            // Remove chunk mappings
-            foreach (var chunk in site.GetAllChunks())
-            {
-                _chunkToSite.TryRemove(chunk.ToKey(), out _);
-            }
-
             return true;
         }
         catch
@@ -454,20 +417,21 @@ public class HolySiteManager : IHolySiteManager
                 {
                     _sitesByUID.Clear();
                     _sitesByReligion.Clear();
-                    _chunkToSite.Clear();
 
                     foreach (var site in data.HolySites)
                     {
+                        // Skip sites with no areas (corrupted data)
+                        if (site.Areas == null || site.Areas.Count == 0)
+                        {
+                            _logger.Warning($"[DivineAscension] Skipping holy site {site.SiteUID} with no areas");
+                            continue;
+                        }
+
                         _sitesByUID[site.SiteUID] = site;
 
                         if (!_sitesByReligion.ContainsKey(site.ReligionUID))
                             _sitesByReligion[site.ReligionUID] = new HashSet<string>();
                         _sitesByReligion[site.ReligionUID].Add(site.SiteUID);
-
-                        foreach (var chunk in site.GetAllChunks())
-                        {
-                            _chunkToSite[chunk.ToKey()] = site.SiteUID;
-                        }
                     }
 
                     _logger.Notification($"[DivineAscension] Loaded {_sitesByUID.Count} holy sites");
