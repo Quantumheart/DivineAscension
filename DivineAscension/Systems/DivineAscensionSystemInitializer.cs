@@ -92,6 +92,18 @@ public static class DivineAscensionSystemInitializer
             new ReligionPrestigeManager(logger, worldService, religionManager, gameBalanceConfig);
         religionPrestigeManager.Initialize();
 
+        // Initialize Holy Site Manager (depends on ReligionManager)
+        var holySiteManager = new HolySiteManager(
+            logger,
+            eventService,
+            persistenceService,
+            worldService,
+            religionManager);
+        holySiteManager.Initialize();
+
+        // Subscribe to religion deletion events for cascading cleanup
+        religionManager.OnReligionDeleted += holySiteManager.HandleReligionDeleted;
+
         var favorSystem = new FavorSystem(
             logger,
             eventService,
@@ -143,10 +155,12 @@ public static class DivineAscensionSystemInitializer
         var roleManager = new RoleManager(religionManager);
 
         var religionCommands = new ReligionCommands(api, religionManager, playerReligionDataManager,
-            religionPrestigeManager, networkService, roleManager, cooldownManager, messengerService, worldService, logger);
+            religionPrestigeManager, networkService, roleManager, cooldownManager, messengerService, worldService,
+            logger);
         religionCommands.RegisterCommands();
 
-        var roleCommands = new RoleCommands(api, roleManager, religionManager, playerReligionDataManager, messengerService);
+        var roleCommands =
+            new RoleCommands(api, roleManager, religionManager, playerReligionDataManager, messengerService);
         roleCommands.RegisterCommands();
 
         var civilizationCommands =
@@ -247,6 +261,7 @@ public static class DivineAscensionSystemInitializer
             CivilizationManager = civilizationManager,
             PlayerProgressionDataManager = playerReligionDataManager,
             ReligionPrestigeManager = religionPrestigeManager,
+            HolySiteManager = holySiteManager,
             FavorSystem = favorSystem,
             ActivityLogManager = activityLogManager,
             PvPManager = pvpManager,
@@ -276,12 +291,13 @@ public static class DivineAscensionSystemInitializer
 [ExcludeFromCodeCoverage]
 public class InitializationResult
 {
-    // 13 Managers
+    // 14 Managers
     public ICooldownManager CooldownManager { get; init; } = null!;
     public ReligionManager ReligionManager { get; init; } = null!;
     public CivilizationManager CivilizationManager { get; init; } = null!;
     public PlayerProgressionDataManager PlayerProgressionDataManager { get; init; } = null!;
     public ReligionPrestigeManager ReligionPrestigeManager { get; init; } = null!;
+    public IHolySiteManager HolySiteManager { get; init; } = null!;
     public FavorSystem FavorSystem { get; init; } = null!;
     public ActivityLogManager ActivityLogManager { get; init; } = null!;
     public PvPManager PvPManager { get; init; } = null!;
