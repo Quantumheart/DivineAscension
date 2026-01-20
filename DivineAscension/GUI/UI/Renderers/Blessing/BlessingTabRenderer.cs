@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using DivineAscension.GUI.Events.Blessing;
 using DivineAscension.GUI.Models.Blessing.Actions;
 using DivineAscension.GUI.Models.Blessing.Info;
@@ -10,6 +11,7 @@ using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
+[ExcludeFromCodeCoverage]
 internal static class BlessingTabRenderer
 {
     internal static BlessingTabRenderResult DrawBlessingsTab(BlessingTabViewModel vm)

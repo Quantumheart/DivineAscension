@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.Browse;
@@ -16,6 +17,7 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 ///     Renderer for browsing and viewing civilizations.
 ///     Follows separation of concerns pattern from ReligionBrowseRenderer.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class CivilizationBrowseRenderer
 {
     // Layout dimensions

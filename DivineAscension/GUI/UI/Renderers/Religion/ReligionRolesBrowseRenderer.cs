@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
@@ -19,6 +20,7 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 ///     Pure renderer for the roles browse view (role cards list).
 ///     Takes an immutable view model, returns events representing user interactions.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class ReligionRolesBrowseRenderer
 {
     private const float RoleCardHeight = 160f;

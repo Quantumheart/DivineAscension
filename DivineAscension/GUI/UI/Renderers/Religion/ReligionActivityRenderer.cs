@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -19,6 +20,7 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 /// <summary>
 ///     Renderer for religion activity feed showing member contributions
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class ReligionActivityRenderer
 {
     private const float ENTRY_HEIGHT = 80f;

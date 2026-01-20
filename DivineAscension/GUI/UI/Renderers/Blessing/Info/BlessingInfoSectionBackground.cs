@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.GUI.Models.Blessing.Info;
 using DivineAscension.GUI.UI.Utilities;
@@ -5,6 +6,7 @@ using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing.Info;
 
+[ExcludeFromCodeCoverage]
 internal static class BlessingInfoSectionBackground
 {
     public static void Draw(BlessingInfoViewModel vm)

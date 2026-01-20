@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using DivineAscension.Services;
 using Vintagestory.API.Common;
@@ -9,6 +10,7 @@ namespace DivineAscension.GUI;
 ///     Bridge between ImGui's native clipboard callbacks and ClipboardService.
 ///     Provides static callback methods that handle marshaling between ImGui's unmanaged memory and .NET strings.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class ImGuiClipboardBridge
 {
     // Cache the last clipboard text to prevent premature garbage collection

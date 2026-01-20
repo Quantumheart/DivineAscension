@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models.Enum;
 
 namespace DivineAscension.GUI.UI.Adapters.Civilizations;
@@ -8,6 +9,7 @@ namespace DivineAscension.GUI.UI.Adapters.Civilizations;
 ///     Dev-only, UI-only civilization provider that generates synthetic civilizations deterministically.
 ///     Uses adapter pattern via ICivilizationProvider so UIs can swap between real and fake data.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal sealed class FakeCivilizationProvider : ICivilizationProvider
 {
     private static readonly string[] Prefixes =

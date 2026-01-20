@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
@@ -17,6 +18,7 @@ namespace DivineAscension.GUI.UI.Renderers.Blessing;
 ///     Right panel: Religion blessings (50% width)
 ///     Both panels are independently scrollable
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class BlessingTreeRenderer
 {
     // Color constants

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.State;
@@ -9,6 +10,7 @@ using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Components.Overlays;
 
+[ExcludeFromCodeCoverage]
 internal static class RankUpNotificationOverlay
 {
     private const float PanelWidth = 500f;

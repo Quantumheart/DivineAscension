@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
@@ -19,6 +20,7 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 ///     Renders a detailed view of any civilization's public information.
 ///     Used when clicking "View Details" from the Browse tab.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class CivilizationDetailRenderer
 {
     public static CivilizationDetailRendererResult Draw(

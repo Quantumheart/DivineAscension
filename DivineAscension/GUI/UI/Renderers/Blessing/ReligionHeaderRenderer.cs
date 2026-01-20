@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.Extensions;
@@ -16,6 +17,7 @@ namespace DivineAscension.GUI.UI.Renderers.Blessing;
 ///     Renders the religion/deity header banner at the top of the blessing dialog
 ///     Shows: Religion name, deity icon/name, favor/prestige ranks
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class ReligionHeaderRenderer
 {
     /// <summary>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
@@ -16,6 +17,7 @@ namespace DivineAscension.GUI.UI.Renderers.Components;
 /// <summary>
 /// Pure EDA renderer for the members list. Emits events instead of mutating state.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class MemberListRenderer
 {
     /// <summary>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
@@ -21,6 +22,7 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 /// Takes an immutable view model, returns events representing user interactions
 /// Migrates functionality from ReligionManagementOverlay
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class ReligionInfoRenderer
 {
     /// <summary>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models.Enum;
 
 namespace DivineAscension.GUI.UI.Adapters.Religions;
@@ -8,6 +9,7 @@ namespace DivineAscension.GUI.UI.Adapters.Religions;
 ///     Dev-only, UI-only religion provider that generates synthetic religions deterministically.
 ///     Uses adapter pattern via IReligionProvider so UIs can swap between real and fake data.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal sealed class FakeReligionProvider : IReligionProvider
 {
     private static readonly string[] First =
