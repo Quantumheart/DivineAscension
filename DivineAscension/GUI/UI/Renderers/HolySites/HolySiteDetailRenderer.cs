@@ -177,11 +177,6 @@ internal static class HolySiteDetailRenderer
         DrawLabelValuePair(drawList, "Volume:", vm.SiteDetails.Volume.ToString(), x, y, labelColor, valueColor);
         y += FieldHeight;
 
-        // Territory Multiplier
-        DrawLabelValuePair(drawList, "Territory Multiplier:",
-            $"{vm.SiteDetails.TerritoryMultiplier:F2}x", x, y, labelColor, valueColor);
-        y += FieldHeight;
-
         // Prayer Multiplier
         DrawLabelValuePair(drawList, "Prayer Multiplier:",
             $"{vm.SiteDetails.PrayerMultiplier:F2}x", x, y, labelColor, valueColor);

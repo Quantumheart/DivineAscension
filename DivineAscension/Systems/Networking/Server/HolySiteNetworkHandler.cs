@@ -310,7 +310,6 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
             Tier = site.GetTier(),
             Volume = site.GetTotalVolume(),
             AreaCount = site.Areas.Count,
-            TerritoryMultiplier = site.GetTerritoryMultiplier(),
             PrayerMultiplier = site.GetPrayerMultiplier(),
             CenterX = center.X,
             CenterY = center.Y,
@@ -354,7 +353,6 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
             Tier = site.GetTier(),
             Volume = site.GetTotalVolume(),
             XZArea = site.GetTotalXZArea(),
-            TerritoryMultiplier = site.GetTerritoryMultiplier(),
             PrayerMultiplier = site.GetPrayerMultiplier(),
             Center = new HolySiteResponsePacket.CenterPosition
             {

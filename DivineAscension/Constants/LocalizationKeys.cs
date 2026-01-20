@@ -1502,7 +1502,6 @@ public static class LocalizationKeys
     public const string UI_HOLYSITES_TABLE_NAME = "divineascension:ui.holysites.table.name";
     public const string UI_HOLYSITES_TABLE_TIER = "divineascension:ui.holysites.table.tier";
     public const string UI_HOLYSITES_TABLE_VOLUME = "divineascension:ui.holysites.table.volume";
-    public const string UI_HOLYSITES_TABLE_TERRITORY = "divineascension:ui.holysites.table.territory";
     public const string UI_HOLYSITES_TABLE_PRAYER = "divineascension:ui.holysites.table.prayer";
 
     // UI - Detail

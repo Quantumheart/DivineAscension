@@ -345,11 +345,9 @@ internal static class CivilizationHolySitesRenderer
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
             volumeText);
 
-        // Multipliers
+        // Prayer Multiplier
         var multiplierX = currentX + 250f;
-        var multiplierText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_MULTIPLIERS)
-            .Replace("{0}", site.TerritoryMultiplier.ToString("F1"))
-            .Replace("{1}", site.PrayerMultiplier.ToString("F1"));
+        var multiplierText = $"Prayer: {site.PrayerMultiplier:F1}x";
         drawList.AddText(ImGui.GetFont(), 12f,
             new Vector2(multiplierX, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
