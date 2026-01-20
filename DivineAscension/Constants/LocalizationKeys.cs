@@ -516,6 +516,7 @@ public static class LocalizationKeys
     public const string UI_COMMON_CONFIRM = "divineascension:ui.common.confirm";
     public const string UI_COMMON_CANCEL = "divineascension:ui.common.cancel";
     public const string UI_COMMON_EDIT = "divineascension:ui.common.edit";
+    public const string UI_COMMON_SAVE = "divineascension:ui.common.save";
     public const string UI_COMMON_LOADING = "divineascension:ui.common.loading";
     public const string UI_COMMON_NO_DATA = "divineascension:ui.common.no_data";
     public const string UI_COMMON_PUBLIC = "divineascension:ui.common.public";
@@ -1492,6 +1493,43 @@ public static class LocalizationKeys
     public const string HOLYSITE_NEARBY_ENTRY = "divineascension:holysite.nearby.entry";
     public const string HOLYSITE_NEARBY_EMPTY = "divineascension:holysite.nearby.empty";
     public const string HOLYSITE_NOT_IN_SITE = "divineascension:holysite.not_in_site";
+
+    // UI - Browse
+    public const string UI_HOLYSITES_BROWSE_TITLE = "divineascension:ui.holysites.browse.title";
+    public const string UI_HOLYSITES_BROWSE_REFRESH = "divineascension:ui.holysites.browse.refresh";
+    public const string UI_HOLYSITES_BROWSE_LOADING = "divineascension:ui.holysites.browse.loading";
+    public const string UI_HOLYSITES_BROWSE_NO_SITES = "divineascension:ui.holysites.browse.nosites";
+    public const string UI_HOLYSITES_TABLE_NAME = "divineascension:ui.holysites.table.name";
+    public const string UI_HOLYSITES_TABLE_TIER = "divineascension:ui.holysites.table.tier";
+    public const string UI_HOLYSITES_TABLE_VOLUME = "divineascension:ui.holysites.table.volume";
+    public const string UI_HOLYSITES_TABLE_TERRITORY = "divineascension:ui.holysites.table.territory";
+    public const string UI_HOLYSITES_TABLE_PRAYER = "divineascension:ui.holysites.table.prayer";
+
+    // UI - Detail
+    public const string UI_HOLYSITES_DETAIL_LOADING = "divineascension:ui.holysites.detail.loading";
+    public const string UI_HOLYSITES_DETAIL_BACK = "divineascension:ui.holysites.detail.back";
+    public const string UI_HOLYSITES_DETAIL_MARK = "divineascension:ui.holysites.detail.mark";
+    public const string UI_HOLYSITES_DETAIL_NAME = "divineascension:ui.holysites.detail.name";
+    public const string UI_HOLYSITES_DETAIL_COORDINATES = "divineascension:ui.holysites.detail.coordinates";
+    public const string UI_HOLYSITES_DETAIL_DESCRIPTION = "divineascension:ui.holysites.detail.description";
+    public const string UI_HOLYSITES_DETAIL_NO_DESCRIPTION = "divineascension:ui.holysites.detail.nodescription";
+
+    // Messages
+    public const string HOLYSITE_NAME_EMPTY = "divineascension:holysite.name.empty";
+    public const string HOLYSITE_NAME_TOO_LONG = "divineascension:holysite.name.toolong";
+    public const string HOLYSITE_NAME_PROFANITY = "divineascension:holysite.name.profanity";
+    public const string HOLYSITE_NAME_EXISTS = "divineascension:holysite.name.exists";
+    public const string HOLYSITE_RENAMED = "divineascension:holysite.renamed";
+    public const string HOLYSITE_DESC_TOO_LONG = "divineascension:holysite.desc.toolong";
+    public const string HOLYSITE_DESC_PROFANITY = "divineascension:holysite.desc.profanity";
+    public const string HOLYSITE_DESC_UPDATED = "divineascension:holysite.desc.updated";
+    public const string HOLYSITE_WAYPOINT_ADDED = "divineascension:holysite.waypoint.added";
+
+    // Errors
+    public const string ERROR_HOLYSITE_NOT_FOUND = "divineascension:error.holysite.not_found";
+    public const string ERROR_PERMISSION_DENIED = "divineascension:error.permission_denied";
+    public const string ERROR_UPDATE_FAILED = "divineascension:error.update_failed";
+    public const string ERROR_INTERNAL = "divineascension:error.internal";
 
     #endregion
 }

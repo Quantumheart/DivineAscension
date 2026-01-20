@@ -87,6 +87,9 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         // Register handler for holy site response
         _clientChannel.SetMessageHandler<HolySiteResponsePacket>(OnHolySiteResponse);
 
+        // Register handler for holy site update response
+        _clientChannel.SetMessageHandler<HolySiteUpdateResponsePacket>(OnHolySiteUpdateResponse);
+
         _clientChannel.RegisterMessageType(typeof(PlayerReligionDataPacket));
     }
 
@@ -115,6 +118,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         ActivityLogReceived = null;
         AvailableDomainsReceived = null;
         HolySiteDataReceived = null;
+        HolySiteUpdated = null;
     }
 
     #endregion
@@ -481,6 +485,21 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
 
         // Fire event for subscribers (e.g., HolySiteTabState)
         HolySiteDataReceived?.Invoke(packet);
+    }
+
+    private void OnHolySiteUpdateResponse(HolySiteUpdateResponsePacket packet)
+    {
+        _capi?.Logger.Debug(
+            $"[DivineAscension] Received holy site update response: Success={packet.Success}");
+
+        // Show message to user
+        if (!string.IsNullOrEmpty(packet.Message))
+        {
+            _capi?.ShowChatMessage(packet.Message);
+        }
+
+        // Fire event for subscribers (e.g., CivilizationStateManager)
+        HolySiteUpdated?.Invoke(packet);
     }
 
     #endregion
@@ -877,6 +896,27 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _capi?.Logger.Debug($"[DivineAscension] Sent religion sites request for religion {religionUID}");
     }
 
+    /// <summary>
+    ///     Send holy site update request (rename or edit description)
+    /// </summary>
+    public void UpdateHolySite(string action, string siteUID, string newValue)
+    {
+        if (!IsNetworkAvailable())
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot update holy site: client channel not initialized");
+            return;
+        }
+
+        var request = new HolySiteUpdateRequestPacket
+        {
+            Action = action,
+            SiteUID = siteUID,
+            NewValue = newValue
+        };
+        _clientChannel?.SendPacket(request);
+        _capi?.Logger.Debug($"[DivineAscension] Sent holy site update request: {action} for site {siteUID}");
+    }
+
     #endregion
 
     #region Events
@@ -1001,6 +1041,11 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     ///     Event fired when holy site data is received from the server
     /// </summary>
     public event Action<HolySiteResponsePacket>? HolySiteDataReceived;
+
+    /// <summary>
+    ///     Event fired when a holy site update response is received from the server
+    /// </summary>
+    public event Action<HolySiteUpdateResponsePacket>? HolySiteUpdated;
 
     #endregion
 }

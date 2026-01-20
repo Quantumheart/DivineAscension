@@ -185,6 +185,13 @@ public class HolySiteData
     public SerializableBlockPos? AltarPosition { get; set; }
 
     /// <summary>
+    /// Optional description for the holy site (max 200 characters).
+    /// Can only be edited by the site consecrator (FounderUID).
+    /// </summary>
+    [ProtoMember(9)]
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
     /// Check if this is an altar-based holy site.
     /// </summary>
     public bool IsAltarSite() => AltarPosition != null;

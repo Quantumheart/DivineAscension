@@ -351,6 +351,71 @@ public class HolySiteManager : IHolySiteManager
         }
     }
 
+    /// <summary>
+    /// Renames a holy site.
+    /// Returns false if site not found.
+    /// </summary>
+    public bool RenameHolySite(string siteUID, string newName)
+    {
+        lock (Lock)
+        {
+            try
+            {
+                if (!_sitesByUID.TryGetValue(siteUID, out var site))
+                {
+                    _logger.Warning($"[DivineAscension] Holy site {siteUID} not found for rename");
+                    return false;
+                }
+
+                var oldName = site.SiteName;
+                site.SiteName = newName;
+
+                _logger.Notification($"[DivineAscension] Holy site renamed from '{oldName}' to '{newName}'");
+
+                SaveHolySites();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"[DivineAscension] Error renaming holy site: {ex.Message}");
+                return false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Updates the description of a holy site.
+    /// Returns false if site not found.
+    /// </summary>
+    public bool UpdateDescription(string siteUID, string description)
+    {
+        lock (Lock)
+        {
+            try
+            {
+                if (!_sitesByUID.TryGetValue(siteUID, out var site))
+                {
+                    _logger.Warning($"[DivineAscension] Holy site {siteUID} not found for description update");
+                    return false;
+                }
+
+                site.Description = description;
+
+                _logger.Notification($"[DivineAscension] Holy site '{site.SiteName}' description updated");
+
+                SaveHolySites();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"[DivineAscension] Error updating holy site description: {ex.Message}");
+                return false;
+            }
+        }
+    }
+
     #endregion
 
     #region Query Methods
