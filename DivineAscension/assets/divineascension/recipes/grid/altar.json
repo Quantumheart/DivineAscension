@@ -1,0 +1,20 @@
+{
+  "ingredientPattern": "SSS,SCS,SSS",
+  "ingredients": {
+    "S": {
+      "type": "block",
+      "code": "game:rockpolished-*"
+    },
+    "C": {
+      "type": "item",
+      "code": "game:chisel-*",
+      "isTool": true
+    }
+  },
+  "width": 3,
+  "height": 3,
+  "output": {
+    "type": "block",
+    "code": "game:altar-north"
+  }
+}
