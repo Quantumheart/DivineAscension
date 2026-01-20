@@ -86,6 +86,10 @@ public static class VintageStoryStats
     // Other
     public const string AnimalSeekingRange = "animalSeekingRange";
 
+    // Divine Ascension Progression Stats
+    public const string HolySiteFavorMultiplier = "holySiteFavorMultiplier";
+    public const string HolySitePrestigeMultiplier = "holySitePrestigeMultiplier";
+
     #region CombatOverhaul Compatible Stats
 
     // CombatOverhaul-compatible tier bonus stats

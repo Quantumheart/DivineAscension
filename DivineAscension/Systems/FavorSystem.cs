@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
+using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.Interfaces;
@@ -329,7 +330,22 @@ public class FavorSystem : IFavorSystem
     {
         if (deityDomain == DeityDomain.None) return;
 
-        // 1. Award favor
+        // Apply holy site buff multiplier if active
+        var player = _worldService.GetPlayerByUID(playerUid);
+        if (player?.Entity != null)
+        {
+            var holySiteMultiplier = player.Entity.Stats?.GetBlended(
+                VintageStoryStats.HolySiteFavorMultiplier) ?? 1.0f;
+
+            if (holySiteMultiplier > 1.0f)
+            {
+                amount *= holySiteMultiplier;
+                _logger.Debug(
+                    $"[FavorSystem] Applied holy site multiplier {holySiteMultiplier:F2}x to {amount:F2} favor");
+            }
+        }
+
+        // 1. Award favor (now with multiplier applied)
         _playerProgressionDataManager.AddFractionalFavor(playerUid, amount, actionType);
 
         // 2. Check if player is in religion and should receive prestige
