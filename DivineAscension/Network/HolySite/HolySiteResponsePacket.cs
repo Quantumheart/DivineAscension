@@ -62,6 +62,14 @@ public class HolySiteResponsePacket
         [ProtoMember(9)] public double TerritoryMultiplier { get; set; }
 
         [ProtoMember(10)] public double PrayerMultiplier { get; set; }
+
+        [ProtoMember(11)] public int CenterX { get; set; }
+
+        [ProtoMember(12)] public int CenterY { get; set; }
+
+        [ProtoMember(13)] public int CenterZ { get; set; }
+
+        [ProtoMember(14)] public string FounderUID { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -99,6 +107,8 @@ public class HolySiteResponsePacket
         [ProtoMember(14)] public List<ChunkInfo> Areas { get; set; } = new();
 
         [ProtoMember(15)] public CenterPosition Center { get; set; } = new();
+
+        [ProtoMember(16)] public string Description { get; set; } = string.Empty;
     }
 
     /// <summary>

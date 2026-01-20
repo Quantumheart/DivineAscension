@@ -156,7 +156,9 @@ public class DivineAscensionModSystem : ModSystem
             .RegisterMessageType<AvailableDomainsRequestPacket>()
             .RegisterMessageType<AvailableDomainsResponsePacket>()
             .RegisterMessageType<HolySiteRequestPacket>()
-            .RegisterMessageType<HolySiteResponsePacket>();
+            .RegisterMessageType<HolySiteResponsePacket>()
+            .RegisterMessageType<HolySiteUpdateRequestPacket>()
+            .RegisterMessageType<HolySiteUpdateResponsePacket>();
     }
 
     public override void StartServerSide(ICoreServerAPI api)

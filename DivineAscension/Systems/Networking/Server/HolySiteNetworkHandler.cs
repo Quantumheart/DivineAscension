@@ -2,8 +2,10 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using DivineAscension.API.Interfaces;
+using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Network.HolySite;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Interfaces;
 using Vintagestory.API.Common;
@@ -39,6 +41,7 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
     public void RegisterHandlers()
     {
         _networkService.RegisterMessageHandler<HolySiteRequestPacket>(OnHolySiteRequest);
+        _networkService.RegisterMessageHandler<HolySiteUpdateRequestPacket>(OnHolySiteUpdate);
     }
 
     public void Dispose()
@@ -65,6 +68,147 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
             _logger.Error($"[DivineAscension] Error handling holy site request: {ex.Message}");
             _networkService.SendToPlayer(fromPlayer, new HolySiteResponsePacket());
         }
+    }
+
+    private void OnHolySiteUpdate(IServerPlayer fromPlayer, HolySiteUpdateRequestPacket packet)
+    {
+        try
+        {
+            // Get the holy site
+            var site = _holySiteManager.GetHolySite(packet.SiteUID);
+            if (site == null)
+            {
+                SendUpdateError(fromPlayer, packet.SiteUID,
+                    LocalizationService.Instance.Get(LocalizationKeys.ERROR_HOLYSITE_NOT_FOUND));
+                return;
+            }
+
+            // Validate consecrator permission
+            if (site.FounderUID != fromPlayer.PlayerUID)
+            {
+                SendUpdateError(fromPlayer, packet.SiteUID,
+                    LocalizationService.Instance.Get(LocalizationKeys.ERROR_PERMISSION_DENIED));
+                return;
+            }
+
+            // Handle different actions
+            bool success = packet.Action switch
+            {
+                "rename" => HandleRename(fromPlayer, site, packet.SiteUID, packet.NewValue),
+                "edit_description" => HandleDescriptionUpdate(fromPlayer, site, packet.SiteUID, packet.NewValue),
+                _ => false
+            };
+
+            if (!success)
+            {
+                SendUpdateError(fromPlayer, packet.SiteUID,
+                    LocalizationService.Instance.Get(LocalizationKeys.ERROR_UPDATE_FAILED));
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"[DivineAscension] Error handling holy site update: {ex.Message}");
+            SendUpdateError(fromPlayer, packet.SiteUID,
+                LocalizationService.Instance.Get(LocalizationKeys.ERROR_INTERNAL));
+        }
+    }
+
+    private bool HandleRename(IServerPlayer fromPlayer, HolySiteData site, string siteUID, string newName)
+    {
+        // Validate name
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            SendUpdateError(fromPlayer, siteUID,
+                LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_NAME_EMPTY));
+            return false;
+        }
+
+        if (newName.Length > 50)
+        {
+            SendUpdateError(fromPlayer, siteUID,
+                LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_NAME_TOO_LONG));
+            return false;
+        }
+
+        // Check profanity
+        if (ProfanityFilterService.Instance.ContainsProfanity(newName))
+        {
+            SendUpdateError(fromPlayer, siteUID,
+                LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_NAME_PROFANITY));
+            return false;
+        }
+
+        // Check uniqueness within religion
+        var religionSites = _holySiteManager.GetReligionHolySites(site.ReligionUID);
+        if (religionSites.Any(s => s.SiteUID != siteUID &&
+                                   s.SiteName.Equals(newName, StringComparison.OrdinalIgnoreCase)))
+        {
+            SendUpdateError(fromPlayer, siteUID,
+                LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_NAME_EXISTS));
+            return false;
+        }
+
+        // Update the name
+        if (_holySiteManager.RenameHolySite(siteUID, newName))
+        {
+            SendUpdateSuccess(fromPlayer, siteUID, newName,
+                LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_RENAMED));
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool HandleDescriptionUpdate(IServerPlayer fromPlayer, HolySiteData site, string siteUID, string description)
+    {
+        // Validate description length
+        if (description.Length > 200)
+        {
+            SendUpdateError(fromPlayer, siteUID,
+                LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_DESC_TOO_LONG));
+            return false;
+        }
+
+        // Check profanity
+        if (!string.IsNullOrWhiteSpace(description) && ProfanityFilterService.Instance.ContainsProfanity(description))
+        {
+            SendUpdateError(fromPlayer, siteUID,
+                LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_DESC_PROFANITY));
+            return false;
+        }
+
+        // Update the description
+        if (_holySiteManager.UpdateDescription(siteUID, description))
+        {
+            SendUpdateSuccess(fromPlayer, siteUID, description,
+                LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_DESC_UPDATED));
+            return true;
+        }
+
+        return false;
+    }
+
+    private void SendUpdateSuccess(IServerPlayer player, string siteUID, string updatedValue, string message)
+    {
+        var response = new HolySiteUpdateResponsePacket
+        {
+            Success = true,
+            Message = message,
+            SiteUID = siteUID,
+            UpdatedValue = updatedValue
+        };
+        _networkService.SendToPlayer(player, response);
+    }
+
+    private void SendUpdateError(IServerPlayer player, string siteUID, string errorMessage)
+    {
+        var response = new HolySiteUpdateResponsePacket
+        {
+            Success = false,
+            Message = errorMessage,
+            SiteUID = siteUID
+        };
+        _networkService.SendToPlayer(player, response);
     }
 
     /// <summary>
@@ -154,6 +298,8 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
             return null;
         }
 
+        var center = site.GetCenter();
+
         return new HolySiteResponsePacket.HolySiteInfo
         {
             SiteUID = site.SiteUID,
@@ -165,7 +311,11 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
             Volume = site.GetTotalVolume(),
             AreaCount = site.Areas.Count,
             TerritoryMultiplier = site.GetTerritoryMultiplier(),
-            PrayerMultiplier = site.GetPrayerMultiplier()
+            PrayerMultiplier = site.GetPrayerMultiplier(),
+            CenterX = center.X,
+            CenterY = center.Y,
+            CenterZ = center.Z,
+            FounderUID = site.FounderUID
         };
     }
 
@@ -214,7 +364,8 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
                 Z2 = area.Z2,
                 Volume = area.GetVolume(),
                 XZArea = area.GetXZArea()
-            }).ToList()
+            }).ToList(),
+            Description = site.Description
         };
 
         return detailInfo;

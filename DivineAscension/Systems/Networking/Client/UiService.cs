@@ -136,4 +136,9 @@ public class UiService(DivineAscensionNetworkClient networkClient)
     {
         _networkClient.RequestReligionSites(religionUID);
     }
+
+    public void UpdateHolySite(string action, string siteUID, string newValue)
+    {
+        _networkClient.UpdateHolySite(action, siteUID, newValue);
+    }
 }

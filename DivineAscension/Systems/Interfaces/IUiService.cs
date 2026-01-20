@@ -44,4 +44,5 @@ public interface IUiService
     void RequestHolySiteList(string domainFilter = "");
     void RequestHolySiteDetail(string siteUID);
     void RequestReligionSites(string religionUID);
+    void UpdateHolySite(string action, string siteUID, string newValue);
 }

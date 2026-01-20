@@ -57,6 +57,18 @@ public interface IHolySiteManager
     bool DeconsacrateHolySite(string siteUID);
 
     /// <summary>
+    /// Renames a holy site.
+    /// Returns false if site not found.
+    /// </summary>
+    bool RenameHolySite(string siteUID, string newName);
+
+    /// <summary>
+    /// Updates the description of a holy site.
+    /// Returns false if site not found.
+    /// </summary>
+    bool UpdateDescription(string siteUID, string description);
+
+    /// <summary>
     /// Gets a holy site by its UID.
     /// </summary>
     HolySiteData? GetHolySite(string siteUID);
