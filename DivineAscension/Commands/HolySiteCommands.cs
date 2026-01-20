@@ -184,8 +184,7 @@ public class HolySiteCommands
         var sb = new StringBuilder();
         sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_INFO_HEADER, site.SiteName));
         sb.AppendLine($"Tier: {site.GetTier()} (Volume: {site.GetTotalVolume():N0} blocks³, {site.Areas.Count} area(s))");
-        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_INFO_BONUSES,
-            site.GetTerritoryMultiplier(), site.GetPrayerMultiplier()));
+        sb.AppendLine($"Prayer Bonus: {site.GetPrayerMultiplier():F1}x");
         sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_INFO_FOUNDER, site.FounderName));
         sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_INFO_CREATED, site.CreationDate.ToString("yyyy-MM-dd")));
 

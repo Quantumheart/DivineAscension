@@ -153,7 +153,6 @@ internal static class HolySiteTableRenderer
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_NAME),
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_TIER),
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_VOLUME),
-            LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_TERRITORY),
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_PRAYER)
         };
 
@@ -234,11 +233,8 @@ internal static class HolySiteTableRenderer
         // Column 3: Volume
         DrawVolumeColumn(drawList, site, x + ColumnWidth * 2, y);
 
-        // Column 4: Territory Multiplier
-        DrawTerritoryColumn(drawList, site, x + ColumnWidth * 3, y);
-
-        // Column 5: Prayer Multiplier
-        DrawPrayerColumn(drawList, site, x + ColumnWidth * 4, y);
+        // Column 4: Prayer Multiplier
+        DrawPrayerColumn(drawList, site, x + ColumnWidth * 3, y);
 
         return clickedUID;
     }
@@ -301,23 +297,6 @@ internal static class HolySiteTableRenderer
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
         DrawCenteredText(drawList, site.Volume.ToString(), colX, centerY, ColumnWidth, textColor, fontSize);
-    }
-
-    /// <summary>
-    ///     Draw Territory column: Territory multiplier centered
-    /// </summary>
-    private static void DrawTerritoryColumn(
-        ImDrawListPtr drawList,
-        HolySiteResponsePacket.HolySiteInfo site,
-        float colX,
-        float rowY)
-    {
-        var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        const float fontSize = 13f;
-        var centerY = rowY + (RowHeight - fontSize) / 2f;
-
-        var multiplierText = $"{site.TerritoryMultiplier:F2}x";
-        DrawCenteredText(drawList, multiplierText, colX, centerY, ColumnWidth, textColor, fontSize);
     }
 
     /// <summary>

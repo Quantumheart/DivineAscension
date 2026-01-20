@@ -156,24 +156,6 @@ public class HolySiteManagerTests
     }
 
     [Theory]
-    [InlineData(1, 1.5)]
-    [InlineData(2, 2.0)]
-    [InlineData(3, 2.5)]
-    public void HolySiteData_GetTerritoryMultiplier_ReturnsCorrectValue(int tier, double expected)
-    {
-        // Create site with volume for specific tier
-        int volume = tier == 1 ? 40000 : (tier == 2 ? 150000 : 300000);
-        int side = (int)Math.Ceiling(Math.Pow(volume, 1.0/3.0));
-        var areas = new List<SerializableCuboidi>
-        {
-            new SerializableCuboidi(0, 0, 0, side-1, side-1, side-1)
-        };
-        var site = new HolySiteData("site1", "rel1", "Test", areas, "founder", "Founder");
-
-        Assert.Equal(expected, site.GetTerritoryMultiplier());
-    }
-
-    [Theory]
     [InlineData(1, 2.0)]
     [InlineData(2, 2.5)]
     [InlineData(3, 3.0)]

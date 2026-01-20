@@ -255,9 +255,9 @@ public class HolySiteData
 
     /// <summary>
     /// Tier calculation based on 3D volume:
-    /// Tier 1: &lt;50,000 blocks³ (territory 1.5x, prayer 2.0x)
-    /// Tier 2: 50,000-200,000 blocks³ (territory 2.0x, prayer 2.5x)
-    /// Tier 3: 200,000+ blocks³ (territory 2.5x, prayer 3.0x)
+    /// Tier 1: &lt;50,000 blocks³ (prayer 2.0x)
+    /// Tier 2: 50,000-200,000 blocks³ (prayer 2.5x)
+    /// Tier 3: 200,000+ blocks³ (prayer 3.0x)
     /// </summary>
     public int GetTier()
     {
@@ -265,20 +265,6 @@ public class HolySiteData
         if (volume < 50000) return 1;
         if (volume < 200000) return 2;
         return 3;
-    }
-
-    /// <summary>
-    /// Territory multiplier based on tier.
-    /// </summary>
-    public double GetTerritoryMultiplier()
-    {
-        return GetTier() switch
-        {
-            1 => 1.5,
-            2 => 2.0,
-            3 => 2.5,
-            _ => 1.0
-        };
     }
 
     /// <summary>
