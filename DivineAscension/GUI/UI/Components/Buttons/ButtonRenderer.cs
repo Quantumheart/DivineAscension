@@ -88,26 +88,30 @@ internal static class ButtonRenderer
             drawList.AddImage(textureId, iconMin, iconMax, Vector2.Zero, Vector2.One);
         }
 
-        var textSize = ImGui.CalcTextSize(text);
-
-        // Calculate horizontal text position accounting for icon
-        float textX;
-        if (directoryPath != "" && iconName != "")
+        // Only render text if it's not null or empty
+        if (!string.IsNullOrEmpty(text))
         {
-            // Icon is present: offset text to the right with padding on both sides
-            var iconTotalWidth = leftPadding + iconSize + iconSpacing;
-            var availableWidth = width - iconTotalWidth - rightPadding;
-            textX = x + iconTotalWidth + (availableWidth - textSize.X) / 2;
-        }
-        else
-        {
-            // No icon: center text in full button width
-            textX = x + (width - textSize.X) / 2;
-        }
+            var textSize = ImGui.CalcTextSize(text);
 
-        var textPos = new Vector2(textX, y + (height - textSize.Y) / 2);
-        var textColor = ImGui.ColorConvertFloat4ToU32(enabled ? ColorPalette.White : ColorPalette.Grey * 0.7f);
-        drawList.AddText(textPos, textColor, text);
+            // Calculate horizontal text position accounting for icon
+            float textX;
+            if (directoryPath != "" && iconName != "")
+            {
+                // Icon is present: offset text to the right with padding on both sides
+                var iconTotalWidth = leftPadding + iconSize + iconSpacing;
+                var availableWidth = width - iconTotalWidth - rightPadding;
+                textX = x + iconTotalWidth + (availableWidth - textSize.X) / 2;
+            }
+            else
+            {
+                // No icon: center text in full button width
+                textX = x + (width - textSize.X) / 2;
+            }
+
+            var textPos = new Vector2(textX, y + (height - textSize.Y) / 2);
+            var textColor = ImGui.ColorConvertFloat4ToU32(enabled ? ColorPalette.White : ColorPalette.Grey * 0.7f);
+            drawList.AddText(textPos, textColor, text);
+        }
 
         return enabled && isHovering && ImGui.IsMouseReleased(ImGuiMouseButton.Left);
     }

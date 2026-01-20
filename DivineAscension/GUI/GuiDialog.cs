@@ -115,6 +115,7 @@ public partial class GuiDialog : ModSystem
             _divineAscensionModSystem.NetworkClient.ActivityLogReceived += OnActivityLogReceived;
             _divineAscensionModSystem.NetworkClient.AvailableDomainsReceived += OnAvailableDomainsReceived;
             _divineAscensionModSystem.NetworkClient.HolySiteDataReceived += OnHolySiteDataReceived;
+            _divineAscensionModSystem.NetworkClient.HolySiteUpdated += OnHolySiteUpdated;
         }
         else
         {

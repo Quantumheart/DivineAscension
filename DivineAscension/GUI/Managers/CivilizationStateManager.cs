@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Models.Civilization.Browse;
@@ -16,6 +17,7 @@ using DivineAscension.GUI.State;
 using DivineAscension.GUI.State.Civilization;
 using DivineAscension.GUI.UI.Adapters.Civilizations;
 using DivineAscension.GUI.UI.Renderers.Civilization;
+using DivineAscension.GUI.UI.Renderers.HolySites;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Services;
@@ -331,12 +333,12 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     {
         if (!HasCivilization())
         {
-            State.HolySitesState.ErrorMsg = "Not in a civilization";
+            State.HolySitesState.Browse.ErrorMsg = "Not in a civilization";
             return;
         }
 
-        State.HolySitesState.IsLoading = true;
-        State.HolySitesState.ErrorMsg = null;
+        State.HolySitesState.Browse.IsLoading = true;
+        State.HolySitesState.Browse.ErrorMsg = null;
 
         // Request all sites - we'll filter client-side
         _uiService.RequestHolySiteList("");
@@ -347,11 +349,39 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     /// </summary>
     public void UpdateHolySiteList(List<DivineAscension.Network.HolySite.HolySiteResponsePacket.HolySiteInfo> allSites)
     {
-        State.HolySitesState.AllSites = allSites;
-        State.HolySitesState.IsLoading = false;
+        State.HolySitesState.Browse.AllSites = allSites;
+        State.HolySitesState.Browse.IsLoading = false;
 
         // Filter to only member religions and group
         FilterAndGroupHolySites();
+    }
+
+    /// <summary>
+    ///     Update holy site detail state from network response
+    /// </summary>
+    public void UpdateHolySiteDetail(DivineAscension.Network.HolySite.HolySiteResponsePacket.HolySiteDetailInfo detailInfo)
+    {
+        State.HolySitesState.Detail.ViewingSiteDetails = detailInfo;
+        State.HolySitesState.Detail.IsLoading = false;
+        State.HolySitesState.Detail.ErrorMsg = null;
+    }
+
+    /// <summary>
+    ///     Handle successful holy site update - exit editing mode and refresh detail view
+    /// </summary>
+    public void OnHolySiteUpdateSuccess(string siteUID)
+    {
+        // Exit editing mode
+        State.HolySitesState.Detail.IsEditingName = false;
+        State.HolySitesState.Detail.IsEditingDescription = false;
+        State.HolySitesState.Detail.EditingNameValue = null;
+        State.HolySitesState.Detail.EditingDescriptionValue = null;
+
+        // Re-request detail info to refresh the view with updated data
+        if (!string.IsNullOrEmpty(siteUID))
+        {
+            _uiService.RequestHolySiteDetail(siteUID);
+        }
     }
 
     /// <summary>
@@ -359,22 +389,22 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     /// </summary>
     private void FilterAndGroupHolySites()
     {
-        State.HolySitesState.SitesByReligion.Clear();
+        State.HolySitesState.Browse.SitesByReligion.Clear();
 
         if (CivilizationMemberReligions == null) return;
 
         var memberReligionUIDs = new HashSet<string>(
             CivilizationMemberReligions.Select(r => r.ReligionId));
 
-        foreach (var site in State.HolySitesState.AllSites)
+        foreach (var site in State.HolySitesState.Browse.AllSites)
         {
             if (memberReligionUIDs.Contains(site.ReligionUID))
             {
-                if (!State.HolySitesState.SitesByReligion.ContainsKey(site.ReligionUID))
+                if (!State.HolySitesState.Browse.SitesByReligion.ContainsKey(site.ReligionUID))
                 {
-                    State.HolySitesState.SitesByReligion[site.ReligionUID] = new();
+                    State.HolySitesState.Browse.SitesByReligion[site.ReligionUID] = new();
                 }
-                State.HolySitesState.SitesByReligion[site.ReligionUID].Add(site);
+                State.HolySitesState.Browse.SitesByReligion[site.ReligionUID].Add(site);
             }
         }
     }
@@ -716,6 +746,20 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     [ExcludeFromCodeCoverage]
     private void DrawCivilizationHolySites(float x, float y, float width, float height)
     {
+        // Check if viewing detail
+        if (!string.IsNullOrEmpty(State.HolySitesState.Detail.ViewingSiteUID))
+        {
+            DrawHolySiteDetail(x, y, width, height);
+            return;
+        }
+
+        // Otherwise show browse table
+        DrawHolySiteBrowse(x, y, width, height);
+    }
+
+    [ExcludeFromCodeCoverage]
+    private void DrawHolySiteBrowse(float x, float y, float width, float height)
+    {
         // Build religion name and domain maps
         var religionNames = CivilizationMemberReligions?
             .ToDictionary(r => r.ReligionId, r => r.ReligionName)
@@ -725,23 +769,50 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             .ToDictionary(r => r.ReligionId, r => r.Domain)
             ?? new Dictionary<string, string>();
 
-        // Build ViewModel
-        var vm = new DivineAscension.GUI.Models.Civilization.HolySites.CivilizationHolySitesViewModel(
-            State.HolySitesState.SitesByReligion,
+        // Build browse ViewModel
+        var vm = new DivineAscension.GUI.Models.HolySite.Browse.HolySiteBrowseViewModel(
+            x, y, width, height,
+            State.HolySitesState.Browse.SitesByReligion,
             religionNames,
             religionDomains,
-            State.HolySitesState.ExpandedReligions,
-            State.HolySitesState.IsLoading,
-            State.HolySitesState.ErrorMsg,
-            State.HolySitesState.ScrollY,
-            x, y, width, height);
+            State.HolySitesState.Browse.SelectedSiteUID,
+            State.HolySitesState.Browse.IsLoading,
+            State.HolySitesState.Browse.ErrorMsg,
+            State.HolySitesState.Browse.ScrollY);
 
-        // Render
+        // Render with HolySiteBrowseRenderer
         var drawList = ImGui.GetWindowDrawList();
-        var result = CivilizationHolySitesRenderer.Draw(vm, drawList);
+        var result = HolySiteBrowseRenderer.Draw(vm, drawList);
+        ProcessBrowseEvents(result.Events);
+    }
 
-        // Process events
-        ProcessHolySitesEvents(result.Events);
+    [ExcludeFromCodeCoverage]
+    private void DrawHolySiteDetail(float x, float y, float width, float height)
+    {
+        if (State.HolySitesState.Detail.ViewingSiteDetails == null)
+        {
+            // Show loading state
+            ImGui.SetCursorPos(new System.Numerics.Vector2(x, y));
+            ImGui.Text("Loading holy site details...");
+            return;
+        }
+
+        // Build detail ViewModel
+        var vm = new DivineAscension.GUI.Models.HolySite.Detail.HolySiteDetailViewModel(
+            x, y, width, height,
+            State.HolySitesState.Detail.ViewingSiteDetails,
+            _coreClientApi.World.Player.PlayerUID,
+            State.HolySitesState.Detail.IsEditingName,
+            State.HolySitesState.Detail.EditingNameValue,
+            State.HolySitesState.Detail.IsEditingDescription,
+            State.HolySitesState.Detail.EditingDescriptionValue,
+            State.HolySitesState.Detail.IsLoading,
+            State.HolySitesState.Detail.ErrorMsg);
+
+        // Render with HolySiteDetailRenderer
+        var drawList = ImGui.GetWindowDrawList();
+        var result = HolySiteDetailRenderer.Draw(vm, drawList);
+        ProcessDetailEvents(result.Events);
     }
 
     #endregion
@@ -799,7 +870,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                             RequestDiplomacyInfo();
                             break;
                         case CivilizationSubTab.HolySites:
-                            State.HolySitesState.ErrorMsg = null;
+                            State.HolySitesState.Browse.ErrorMsg = null;
                             RequestCivilizationHolySites();
                             break;
                     }
@@ -1186,31 +1257,155 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             }
     }
 
-    private void ProcessHolySitesEvents(IReadOnlyList<HolySitesEvent> events)
+    private void ProcessBrowseEvents(IReadOnlyList<Events.HolySite.BrowseEvent> events)
     {
         foreach (var evt in events)
         {
             switch (evt)
             {
-                case HolySitesEvent.RefreshClicked:
+                case Events.HolySite.BrowseEvent.Selected selected:
+                    // Navigate to detail view
+                    State.HolySitesState.Browse.SelectedSiteUID = selected.SiteUID;
+                    State.HolySitesState.Browse.ScrollY = selected.ScrollY;
+                    State.HolySitesState.Detail.ViewingSiteUID = selected.SiteUID;
+                    RequestHolySiteDetail(selected.SiteUID);
+                    break;
+
+                case Events.HolySite.BrowseEvent.RefreshClicked:
                     RequestCivilizationHolySites();
                     break;
-                case HolySitesEvent.ScrollChanged e:
-                    State.HolySitesState.ScrollY = e.NewScrollY;
-                    break;
-                case HolySitesEvent.ReligionToggled e:
-                    // Toggle expanded state
-                    if (State.HolySitesState.ExpandedReligions.Contains(e.ReligionUID))
-                        State.HolySitesState.ExpandedReligions.Remove(e.ReligionUID);
-                    else
-                        State.HolySitesState.ExpandedReligions.Add(e.ReligionUID);
-                    break;
-                case HolySitesEvent.SiteSelected e:
-                    // Could open detail view (future enhancement)
-                    _coreClientApi.Logger.Debug($"[DivineAscension:HolySites] Site selected: {e.SiteUID}");
+
+                case Events.HolySite.BrowseEvent.ScrollChanged scroll:
+                    State.HolySitesState.Browse.ScrollY = scroll.NewScrollY;
                     break;
             }
         }
+    }
+
+    private void ProcessDetailEvents(IReadOnlyList<Events.HolySite.DetailEvent> events)
+    {
+        foreach (var evt in events)
+        {
+            switch (evt)
+            {
+                case Events.HolySite.DetailEvent.BackToBrowseClicked:
+                    // Navigate back to browse view
+                    State.HolySitesState.Detail.ViewingSiteUID = null;
+                    State.HolySitesState.Detail.ViewingSiteDetails = null;
+                    State.HolySitesState.Detail.IsEditingName = false;
+                    State.HolySitesState.Detail.IsEditingDescription = false;
+                    break;
+
+                case Events.HolySite.DetailEvent.MarkClicked:
+                    HandleMarkWaypoint();
+                    break;
+
+                case Events.HolySite.DetailEvent.RenameClicked:
+                    State.HolySitesState.Detail.IsEditingName = true;
+                    State.HolySitesState.Detail.EditingNameValue =
+                        State.HolySitesState.Detail.ViewingSiteDetails?.SiteName ?? "";
+                    break;
+
+                case Events.HolySite.DetailEvent.RenameValueChanged valueChanged:
+                    // Update the editing value as the user types
+                    State.HolySitesState.Detail.EditingNameValue = valueChanged.NewValue;
+                    break;
+
+                case Events.HolySite.DetailEvent.RenameSave save:
+                    SendRenameRequest(
+                        State.HolySitesState.Detail.ViewingSiteUID!,
+                        save.NewName);
+                    break;
+
+                case Events.HolySite.DetailEvent.RenameCancel:
+                    State.HolySitesState.Detail.IsEditingName = false;
+                    State.HolySitesState.Detail.EditingNameValue = null;
+                    break;
+
+                case Events.HolySite.DetailEvent.EditDescriptionClicked:
+                    State.HolySitesState.Detail.IsEditingDescription = true;
+                    State.HolySitesState.Detail.EditingDescriptionValue =
+                        State.HolySitesState.Detail.ViewingSiteDetails?.Description ?? "";
+                    break;
+
+                case Events.HolySite.DetailEvent.DescriptionValueChanged descValueChanged:
+                    // Update the editing value as the user types
+                    State.HolySitesState.Detail.EditingDescriptionValue = descValueChanged.NewValue;
+                    break;
+
+                case Events.HolySite.DetailEvent.DescriptionSave save:
+                    SendDescriptionUpdateRequest(
+                        State.HolySitesState.Detail.ViewingSiteUID!,
+                        save.Description);
+                    break;
+
+                case Events.HolySite.DetailEvent.DescriptionCancel:
+                    State.HolySitesState.Detail.IsEditingDescription = false;
+                    State.HolySitesState.Detail.EditingDescriptionValue = null;
+                    break;
+            }
+        }
+    }
+
+    private void RequestHolySiteDetail(string siteUID)
+    {
+        State.HolySitesState.Detail.IsLoading = true;
+        _uiService.RequestHolySiteDetail(siteUID);
+    }
+
+    private void SendRenameRequest(string siteUID, string newName)
+    {
+        _uiService.UpdateHolySite("rename", siteUID, newName);
+    }
+
+    private void SendDescriptionUpdateRequest(string siteUID, string description)
+    {
+        _uiService.UpdateHolySite("edit_description", siteUID, description);
+    }
+
+    private void HandleMarkWaypoint()
+    {
+        var site = State.HolySitesState.Detail.ViewingSiteDetails;
+        if (site == null) return;
+
+        try
+        {
+            // Get deity color for the waypoint based on domain
+            var color = DomainHelper.GetDeityColor(site.Domain);
+            var colorHex = ColorToHex(color);
+
+            // Use Vintage Story's waypoint command to add the waypoint
+            // Format: /waypoint addati [icon] [color] [title]
+            // The 'addati' variant adds the waypoint at the player's current position
+            // We'll use 'add' with coordinates instead
+            var waypointCommand = $"/waypoint add {site.Center.X} {site.Center.Y} {site.Center.Z} false landmark {colorHex} {site.SiteName}";
+
+            _coreClientApi.SendChatMessage(waypointCommand);
+
+            // Show success message to player
+            var successMessage = LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_WAYPOINT_ADDED)
+                .Replace("{0}", site.SiteName);
+            _coreClientApi.ShowChatMessage(successMessage);
+
+            _coreClientApi.Logger.Debug(
+                $"[DivineAscension] Added waypoint for holy site: {site.SiteName} at ({site.Center.X}, {site.Center.Y}, {site.Center.Z})");
+        }
+        catch (System.Exception ex)
+        {
+            _coreClientApi.Logger.Error($"[DivineAscension] Failed to add waypoint: {ex.Message}");
+            _coreClientApi.ShowChatMessage("Failed to add waypoint. Please try again.");
+        }
+    }
+
+    /// <summary>
+    /// Converts a Vector4 color to hex format for waypoint command
+    /// </summary>
+    private static string ColorToHex(System.Numerics.Vector4 color)
+    {
+        var r = (int)(color.X * 255);
+        var g = (int)(color.Y * 255);
+        var b = (int)(color.Z * 255);
+        return $"#{r:X2}{g:X2}{b:X2}";
     }
 
     #endregion

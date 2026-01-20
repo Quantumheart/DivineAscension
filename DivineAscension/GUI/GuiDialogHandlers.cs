@@ -617,10 +617,11 @@ public partial class GuiDialog
     /// </summary>
     private void OnHolySiteDataReceived(DivineAscension.Network.HolySite.HolySiteResponsePacket packet)
     {
-        // If detail info, ignore for now (or handle separately)
+        // Handle detail info
         if (packet.DetailInfo != null)
         {
-            _capi!.Logger.Debug("[DivineAscension] Received holy site detail info (not implemented yet)");
+            _capi!.Logger.Debug($"[DivineAscension] Received holy site detail info for site {packet.DetailInfo.SiteUID}");
+            _manager!.CivilizationManager.UpdateHolySiteDetail(packet.DetailInfo);
             return;
         }
 
@@ -628,6 +629,19 @@ public partial class GuiDialog
 
         // Update civilization holy sites state
         _manager!.CivilizationManager.UpdateHolySiteList(packet.Sites);
+    }
+
+    /// <summary>
+    ///     Handle holy site update response (after rename or description change)
+    /// </summary>
+    private void OnHolySiteUpdated(DivineAscension.Network.HolySite.HolySiteUpdateResponsePacket packet)
+    {
+        _capi!.Logger.Debug($"[DivineAscension] Holy site updated: Success={packet.Success}");
+
+        if (packet.Success && !string.IsNullOrEmpty(packet.SiteUID))
+        {
+            _manager!.CivilizationManager.OnHolySiteUpdateSuccess(packet.SiteUID);
+        }
     }
 
     /// <summary>
