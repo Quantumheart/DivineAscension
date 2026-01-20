@@ -136,6 +136,12 @@ public static class DivineAscensionSystemInitializer
         // Initialize Buff Manager (must be before AltarPrayerHandler)
         var buffManager = new BuffManager(logger, worldService);
 
+        // Create progression service facade (encapsulates favor, prestige, and activity logging)
+        IPlayerProgressionService progressionService = new PlayerProgressionService(
+            favorSystem,
+            religionPrestigeManager,
+            activityLogManager);
+
         // Initialize Altar Prayer Handler (handles prayer interactions at altars)
         var altarPrayerHandler = new AltarPrayerHandler(
             logger,
@@ -143,9 +149,7 @@ public static class DivineAscensionSystemInitializer
             offeringLoader,
             holySiteManager,
             religionManager,
-            favorSystem,
-            religionPrestigeManager,
-            activityLogManager,
+            progressionService,
             messengerService,
             worldService,
             buffManager,
