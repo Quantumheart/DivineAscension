@@ -19,6 +19,7 @@ using DivineAscension.Systems.Networking.Server;
 using DivineAscension.Systems.Patches;
 using DivineAscension.Utilities;
 using HarmonyLib;
+using JetBrains.Annotations;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -27,11 +28,15 @@ using Vintagestory.API.Util;
 namespace DivineAscension;
 
 [ExcludeFromCodeCoverage]
+[UsedImplicitly]
 public class DivineAscensionModSystem : ModSystem
 {
     public const string NETWORK_CHANNEL = "divineascension";
     private const string CONFIG_DATA_KEY = "DivineAscension.ModConfig";
 
+    private AltarDestructionHandler? _altarDestructionHandler;
+    private AltarPlacementHandler? _altarPlacementHandler;
+    private AltarPrayerHandler? _altarPrayerHandler;
     private BlessingNetworkHandler? _blessingNetworkHandler;
     private CivilizationManager? _civilizationManager;
     private CivilizationNetworkHandler? _civilizationNetworkHandler;
@@ -186,6 +191,9 @@ public class DivineAscensionModSystem : ModSystem
         _favorSystem = result.FavorSystem;
         _holySiteManager = result.HolySiteManager;
         _civilizationManager = result.CivilizationManager;
+        _altarPlacementHandler = result.AltarPlacementHandler;
+        _altarDestructionHandler = result.AltarDestructionHandler;
+        _altarPrayerHandler = result.AltarPrayerHandler;
         _playerDataNetworkHandler = result.PlayerDataNetworkHandler;
         _blessingNetworkHandler = result.BlessingNetworkHandler;
         _religionNetworkHandler = result.ReligionNetworkHandler;
@@ -263,6 +271,9 @@ public class DivineAscensionModSystem : ModSystem
         _cooldownManager?.Dispose();
         _favorSystem?.Dispose();
         _holySiteManager?.Dispose();
+        _altarPlacementHandler?.Dispose();
+        _altarDestructionHandler?.Dispose();
+        _altarPrayerHandler?.Dispose();
         _playerReligionDataManager?.Dispose();
         _religionManager?.Dispose();
         _civilizationManager?.Dispose();

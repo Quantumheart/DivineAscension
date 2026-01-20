@@ -69,6 +69,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="JetBrains.Annotations" Version="2025.2.4"/>
         <PackageReference Include="TextCopy" Version="6.2.1"/>
         <PackageReference Include="VSImGui" Version="0.0.6"/>
         <PackageReference Include="VSImGui_DebugTools" Version="0.0.6"/>
