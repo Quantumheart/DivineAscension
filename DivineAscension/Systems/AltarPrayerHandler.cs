@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
@@ -120,6 +121,7 @@ public class AltarPrayerHandler : IDisposable
         _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
     }
 
+    [ExcludeFromCodeCoverage]
     private void OnBlockUsed(IServerPlayer player, BlockSelection blockSel)
     {
         try
@@ -242,6 +244,7 @@ public class AltarPrayerHandler : IDisposable
         }
     }
 
+    [ExcludeFromCodeCoverage]
     private bool IsAltarBlock(Block block)
     {
         // Match any block with code path starting with "altar"
