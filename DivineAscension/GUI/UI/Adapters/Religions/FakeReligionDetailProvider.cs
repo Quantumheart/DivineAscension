@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace DivineAscension.GUI.UI.Adapters.Religions;
@@ -9,6 +10,7 @@ namespace DivineAscension.GUI.UI.Adapters.Religions;
 ///     Uses adapter pattern via IReligionDetailProvider so UIs can swap between real and fake data.
 ///     Syncs with IReligionProvider for consistent base religion data.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal sealed class FakeReligionDetailProvider : IReligionDetailProvider
 {
     private static readonly string[] First =

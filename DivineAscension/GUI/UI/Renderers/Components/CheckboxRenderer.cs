@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Components;
 
+[ExcludeFromCodeCoverage]
 internal static class CheckboxRenderer
 {
     /// <summary>

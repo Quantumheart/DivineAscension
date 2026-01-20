@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
@@ -16,6 +17,7 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 /// Pure renderer for religion invitations list
 /// Takes immutable view model, returns events representing user interactions
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class ReligionInvitesRenderer
 {
     /// <summary>

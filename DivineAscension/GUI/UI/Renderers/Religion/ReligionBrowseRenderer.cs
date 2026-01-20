@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Browse;
@@ -16,6 +17,7 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 ///     Renderer for browsing and joining religions
 ///     Migrates functionality from ReligionBrowserOverlay
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class ReligionBrowseRenderer
 {
     // Layout dimensions

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace DivineAscension.GUI.UI.Adapters.Civilizations;
@@ -9,6 +10,7 @@ namespace DivineAscension.GUI.UI.Adapters.Civilizations;
 ///     Uses adapter pattern via ICivilizationDetailProvider so UIs can swap between real and fake data.
 ///     Syncs with ICivilizationProvider for consistent base civilization data.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal sealed class FakeCivilizationDetailProvider : ICivilizationDetailProvider
 {
     private static readonly string[] First =

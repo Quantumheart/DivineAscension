@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
@@ -17,6 +18,7 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 ///     Pure renderer for the role detail view (viewing members with a specific role).
 ///     Takes an immutable view model, returns events representing user interactions.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class ReligionRoleDetailRenderer
 {
     /// <summary>

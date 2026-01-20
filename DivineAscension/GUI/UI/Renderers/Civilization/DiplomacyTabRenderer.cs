@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
@@ -15,6 +16,7 @@ using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
+[ExcludeFromCodeCoverage]
 internal static class DiplomacyTabRenderer
 {
     private const float SectionSpacing = 20f;
@@ -602,6 +604,7 @@ internal static class DiplomacyTabRenderer
 }
 
 // ViewModel for Diplomacy Tab
+// todo: migrate to correct path
 public readonly struct DiplomacyTabViewModel(
     float x,
     float y,
@@ -640,12 +643,15 @@ public readonly struct DiplomacyTabViewModel(
     public bool IsTypeDropdownOpen { get; } = isTypeDropdownOpen;
 }
 
+// todo: migrate to correct path
 public record CivilizationInfo(string CivId, string Name);
 
 // Result containing events
+// todo migrate to correct path
 public record DiplomacyTabRendererResult(List<DiplomacyEvent> Events, float Height);
 
 // Event types
+// todo migrate to correct path
 public abstract record DiplomacyEvent
 {
     public record ProposeRelationship(string TargetCivId, DiplomaticStatus ProposedStatus) : DiplomacyEvent;

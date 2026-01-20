@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
@@ -20,6 +21,7 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 /// <summary>
 ///     Renders detailed view of a religion (from browse)
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class ReligionDetailRenderer
 {
     public static ReligionDetailRendererResult Draw(

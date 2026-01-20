@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models.Enum;
 
 namespace DivineAscension.GUI.UI.Adapters.ReligionMembers;
@@ -7,6 +8,7 @@ namespace DivineAscension.GUI.UI.Adapters.ReligionMembers;
 /// <summary>
 ///     Dev-only, UI-only member provider that generates synthetic members deterministically.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal sealed class FakeReligionMemberProvider : IReligionMemberProvider
 {
     private static readonly string[] First =

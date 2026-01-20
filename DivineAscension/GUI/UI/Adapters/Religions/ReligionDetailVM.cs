@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DivineAscension.GUI.UI.Adapters.Religions;
 
+[ExcludeFromCodeCoverage]
 internal sealed record MemberDetailVM(
     string PlayerUID,
     string PlayerName,
@@ -9,6 +11,7 @@ internal sealed record MemberDetailVM(
     int Favor
 );
 
+[ExcludeFromCodeCoverage]
 internal sealed record ReligionDetailVM(
     string ReligionUID,
     string ReligionName,

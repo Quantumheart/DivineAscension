@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing.Info;
 
+[ExcludeFromCodeCoverage]
 internal static class BlessingInfoSectionDescription
 {
     public static float Draw(BlessingNodeState selectedState, float x,

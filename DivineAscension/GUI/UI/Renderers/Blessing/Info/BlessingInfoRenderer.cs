@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Blessing;
@@ -13,6 +14,7 @@ namespace DivineAscension.GUI.UI.Renderers.Blessing.Info;
 ///     Renders the selected blessing details panel at the bottom of the dialog
 ///     Shows: Name, description, requirements, stats, effects
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class BlessingInfoRenderer
 {
     /// <summary>

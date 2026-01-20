@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Tab;
@@ -16,6 +17,7 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 ///     Pure renderer for the Religion tab header and error banner.
 ///     Accepts a view model and emits UI events. Does not mutate state or perform side effects.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class ReligionTabRenderer
 {
     public static ReligionSubTabRenderResult Draw(

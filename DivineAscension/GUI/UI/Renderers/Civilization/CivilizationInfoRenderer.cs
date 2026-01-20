@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
@@ -17,6 +18,7 @@ using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
+[ExcludeFromCodeCoverage]
 internal static class CivilizationInfoRenderer
 {
     public static CivilizationInfoRendererResult Draw(

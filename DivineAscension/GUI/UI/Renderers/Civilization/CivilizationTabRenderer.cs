@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.Tab;
@@ -15,6 +16,7 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 ///     Pure renderer for the Civilization tab header and error banner.
 ///     Accepts a view model and emits UI events. Does not mutate state or perform side effects.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class CivilizationTabRenderer
 {
     public static CivilizationTabRendererResult Draw(

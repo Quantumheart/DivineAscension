@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.Extensions;
@@ -10,6 +11,7 @@ using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing.Info;
 
+[ExcludeFromCodeCoverage]
 internal static class BlessingInfoSectionRequirements
 {
     public static float Draw(BlessingNodeState selectedState, BlessingInfoViewModel vm, float currentY, float padding,

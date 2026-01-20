@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
@@ -12,6 +13,7 @@ using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
+[ExcludeFromCodeCoverage]
 internal static class CivilizationCreateRenderer
 {
     public static CivilizationCreateRenderResult Draw(
