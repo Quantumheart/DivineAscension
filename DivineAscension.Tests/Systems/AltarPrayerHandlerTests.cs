@@ -1,29 +1,31 @@
 using DivineAscension.API.Interfaces;
+using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
 using Moq;
 using Vintagestory.API.Common;
-using Xunit;
 
 namespace DivineAscension.Tests.Systems;
 
 public class AltarPrayerHandlerTests
 {
-    private readonly FakeEventService _eventService;
-    private readonly Mock<IHolySiteManager> _holySiteManager;
-    private readonly Mock<IReligionManager> _religionManager;
-    private readonly Mock<IFavorSystem> _favorSystem;
-    private readonly Mock<IReligionPrestigeManager> _prestigeManager;
     private readonly Mock<IActivityLogManager> _activityLogManager;
-    private readonly SpyPlayerMessenger _messenger;
-    private readonly Mock<IWorldService> _worldService;
-    private readonly Mock<ILogger> _logger;
+    private readonly FakeEventService _eventService;
+    private readonly Mock<IFavorSystem> _favorSystem;
     private readonly AltarPrayerHandler _handler;
+    private readonly Mock<IHolySiteManager> _holySiteManager;
+    private readonly Mock<ILogger> _logger;
+    private readonly SpyPlayerMessenger _messenger;
+    private readonly Mock<IOfferingLoader> _offeringLoader;
+    private readonly Mock<IReligionPrestigeManager> _prestigeManager;
+    private readonly Mock<IReligionManager> _religionManager;
+    private readonly Mock<IWorldService> _worldService;
 
     public AltarPrayerHandlerTests()
     {
         _eventService = new FakeEventService();
+        _offeringLoader = new Mock<IOfferingLoader>();
         _holySiteManager = new Mock<IHolySiteManager>();
         _religionManager = new Mock<IReligionManager>();
         _favorSystem = new Mock<IFavorSystem>();
@@ -38,6 +40,7 @@ public class AltarPrayerHandlerTests
         _handler = new AltarPrayerHandler(
             _logger.Object,
             _eventService,
+            _offeringLoader.Object,
             _holySiteManager.Object,
             _religionManager.Object,
             _favorSystem.Object,

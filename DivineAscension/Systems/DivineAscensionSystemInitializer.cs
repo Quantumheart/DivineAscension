@@ -128,10 +128,15 @@ public static class DivineAscensionSystemInitializer
             gameBalanceConfig);
         favorSystem.Initialize();
 
+        // Create offering loader for JSON-based offering definitions (must be before AltarPrayerHandler)
+        IOfferingLoader offeringLoader = new OfferingLoader(logger, api.Assets);
+        offeringLoader.LoadOfferings();
+
         // Initialize Altar Prayer Handler (handles prayer interactions at altars)
         var altarPrayerHandler = new AltarPrayerHandler(
             logger,
             eventService,
+            offeringLoader,
             holySiteManager,
             religionManager,
             favorSystem,
