@@ -20,6 +20,7 @@ public class PlayerProgressionDataManagerTests
     private readonly FakeEventService _fakeEventService;
     private readonly FakePersistenceService _fakePersistenceService;
     private readonly FakeWorldService _fakeWorldService;
+    private readonly FakeTimeService _fakeTimeService;
     private readonly Mock<ICoreServerAPI> _mockAPI;
     private readonly Mock<ILogger> _mockLogger;
     private readonly Mock<IReligionManager> _mockReligionManager;
@@ -36,10 +37,11 @@ public class PlayerProgressionDataManagerTests
         _fakeEventService = new FakeEventService();
         _fakePersistenceService = new FakePersistenceService();
         _fakeWorldService = new FakeWorldService();
+        _fakeTimeService = new FakeTimeService();
 
         var config = new GameBalanceConfig();
         _sut = new PlayerProgressionDataManager(_mockLogger.Object, _fakeEventService, _fakePersistenceService,
-            _fakeWorldService, _mockReligionManager.Object, config);
+            _fakeWorldService, _mockReligionManager.Object, config, _fakeTimeService);
     }
 
     #region UpdateFavorRank Tests

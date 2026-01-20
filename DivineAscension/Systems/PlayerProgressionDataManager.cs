@@ -31,6 +31,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     private readonly ConcurrentDictionary<string, PlayerProgressionData> _playerData = new();
     private readonly IReligionManager _religionManager;
     private readonly IWorldService _worldService;
+    private readonly ITimeService _timeService;
 
     public PlayerProgressionDataManager(
         ILogger logger,
@@ -38,7 +39,8 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
         IPersistenceService persistenceService,
         IWorldService worldService,
         IReligionManager religionManager,
-        GameBalanceConfig config)
+        GameBalanceConfig config,
+        ITimeService timeService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
@@ -46,6 +48,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
         _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
         _config = config ?? throw new ArgumentNullException(nameof(config));
+        _timeService = timeService ?? throw new ArgumentNullException(nameof(timeService));
     }
 
     public event PlayerReligionDataChangedDelegate OnPlayerLeavesReligion = null!;
@@ -292,6 +295,38 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     {
         var data = GetOrCreatePlayerData(playerUID);
         return CalculateFavorRank(data.TotalFavorEarned);
+    }
+
+    /// <summary>
+    ///     Gets the timestamp when the player is next allowed to pray.
+    ///     Returns 0 if no cooldown is active or player data doesn't exist.
+    /// </summary>
+    public long GetPrayerCooldownExpiry(string playerUID)
+    {
+        if (TryGetPlayerData(playerUID, out var playerData))
+        {
+            return playerData.NextPrayerAllowedTime;
+        }
+        return 0;  // No player data = no cooldown
+    }
+
+    /// <summary>
+    ///     Sets the prayer cooldown expiry timestamp for the player.
+    ///     Creates player data if it doesn't exist.
+    /// </summary>
+    /// <param name="playerUID">Player unique identifier</param>
+    /// <param name="expiryTime">Absolute timestamp when prayer cooldown expires</param>
+    public void SetPrayerCooldownExpiry(string playerUID, long expiryTime)
+    {
+        // Try to get existing data first
+        if (!TryGetPlayerData(playerUID, out var playerData))
+        {
+            // Create new player data if it doesn't exist
+            playerData = GetOrCreatePlayerData(playerUID);
+        }
+
+        playerData.NextPrayerAllowedTime = expiryTime;
+        NotifyPlayerDataChanged(playerUID);
     }
 
     /// <summary>

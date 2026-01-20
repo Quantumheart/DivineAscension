@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
@@ -42,15 +41,14 @@ public class AltarPrayerHandler : IDisposable
     private readonly GameBalanceConfig _config;
     private readonly IEventService _eventService;
     private readonly IHolySiteManager _holySiteManager;
-
-    // Cooldown tracking: playerUID => last prayer timestamp (in elapsed milliseconds)
-    private readonly ConcurrentDictionary<string, long> _lastPrayerTime = new();
     private readonly ILogger _logger;
     private readonly IPlayerMessengerService _messenger;
     private readonly IOfferingLoader _offeringLoader;
+    private readonly IPlayerProgressionDataManager _progressionDataManager;
     private readonly IPlayerProgressionService _progressionService;
     private readonly IReligionManager _religionManager;
     private readonly IWorldService _worldService;
+    private readonly ITimeService _timeService;
 
     public AltarPrayerHandler(
         ILogger logger,
@@ -58,35 +56,37 @@ public class AltarPrayerHandler : IDisposable
         IOfferingLoader offeringLoader,
         IHolySiteManager holySiteManager,
         IReligionManager religionManager,
+        IPlayerProgressionDataManager progressionDataManager,
         IPlayerProgressionService progressionService,
         IPlayerMessengerService messenger,
         IWorldService worldService,
         IBuffManager buffManager,
-        GameBalanceConfig config)
+        GameBalanceConfig config,
+        ITimeService timeService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
         _offeringLoader = offeringLoader ?? throw new ArgumentNullException(nameof(offeringLoader));
         _holySiteManager = holySiteManager ?? throw new ArgumentNullException(nameof(holySiteManager));
         _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
+        _progressionDataManager = progressionDataManager ?? throw new ArgumentNullException(nameof(progressionDataManager));
         _progressionService = progressionService ?? throw new ArgumentNullException(nameof(progressionService));
         _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
         _buffManager = buffManager ?? throw new ArgumentNullException(nameof(buffManager));
         _config = config ?? throw new ArgumentNullException(nameof(config));
+        _timeService = timeService ?? throw new ArgumentNullException(nameof(timeService));
     }
 
     public void Dispose()
     {
         AltarPatches.OnAltarUsed -= OnAltarUsed;
-        _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
     }
 
     public void Initialize()
     {
         _logger.Notification("[DivineAscension] Initializing Altar Prayer Handler...");
         AltarPatches.OnAltarUsed += OnAltarUsed;
-        _eventService.OnPlayerDisconnect(OnPlayerDisconnect);
         _logger.Notification("[DivineAscension] Altar Prayer Handler initialized");
     }
 
@@ -126,17 +126,20 @@ public class AltarPrayerHandler : IDisposable
                 Message: "You can only pray at altars belonging to your religion.");
         }
 
-        // Check cooldown
-        if (_lastPrayerTime.TryGetValue(playerUID, out var lastTime))
+        // Check cooldown using expiry time from manager
+        var cooldownExpiry = _progressionDataManager.GetPrayerCooldownExpiry(playerUID);
+        if (cooldownExpiry > 0 && currentTime < cooldownExpiry)
         {
-            var timeSince = currentTime - lastTime;
-            if (timeSince < PRAYER_COOLDOWN_MS)
-            {
-                var remainingMinutes = (int)Math.Ceiling((PRAYER_COOLDOWN_MS - timeSince) / 60000.0);
-                return new PrayerResult(
-                    Success: false,
-                    Message: $"You must wait {remainingMinutes} more minute(s) before praying again.");
-            }
+            var remainingMs = cooldownExpiry - currentTime;
+
+            // Round to nearest minute (adds 30s before dividing)
+            var remainingMinutes = (int)((remainingMs + 30000) / 60000);
+            if (remainingMinutes == 0 && remainingMs > 0)
+                remainingMinutes = 1;
+
+            return new PrayerResult(
+                Success: false,
+                Message: $"You must wait {remainingMinutes} more minute(s) before praying again.");
         }
 
         // Calculate holy site tier for offering validation and multipliers
@@ -246,13 +249,16 @@ public class AltarPrayerHandler : IDisposable
         {
             _logger.Debug($"[DivineAscension] Player {player.PlayerName} used altar at {blockSel.Position}");
 
+            // Capture current time once for consistency between checking and updating cooldown
+            var currentTime = _timeService.ElapsedMilliseconds;
+
             // Call testable core logic
             var result = ProcessPrayer(
                 player.PlayerUID,
                 player.PlayerName,
                 blockSel.Position,
                 player.Entity.RightHandItemSlot?.Itemstack,
-                _worldService.ElapsedMilliseconds);
+                currentTime);
 
             // Handle side effects based on result
             if (!result.Success)
@@ -287,10 +293,12 @@ public class AltarPrayerHandler : IDisposable
             _logger.Debug(
                 $"[DivineAscension] Applied holy site buff ({result.BuffMultiplier:F2}x) to {player.PlayerName} for 1 hour");
 
-            // Update cooldown
+            // Set cooldown through manager
             if (result.ShouldUpdateCooldown)
             {
-                _lastPrayerTime[player.PlayerUID] = _worldService.ElapsedMilliseconds;
+                _progressionDataManager.SetPrayerCooldownExpiry(
+                    player.PlayerUID,
+                    currentTime + PRAYER_COOLDOWN_MS);
             }
 
             // Notify player
@@ -330,11 +338,5 @@ public class AltarPrayerHandler : IDisposable
             return -1; // Special value to indicate "rejected by tier gate"
 
         return match.Value;
-    }
-
-    private void OnPlayerDisconnect(IServerPlayer player)
-    {
-        // Clean up cooldown tracking when player disconnects
-        _lastPrayerTime.TryRemove(player.PlayerUID, out _);
     }
 }

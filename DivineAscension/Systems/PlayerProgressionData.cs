@@ -116,6 +116,14 @@ public class PlayerProgressionData
     }
 
     /// <summary>
+    ///     Timestamp when the player is next allowed to pray (in elapsed milliseconds).
+    ///     This is an absolute expiry time, not a "last action" timestamp.
+    ///     Used to enforce prayer cooldown across disconnects and server restarts.
+    /// </summary>
+    [ProtoMember(108)]
+    public long NextPrayerAllowedTime { get; set; }
+
+    /// <summary>
     ///     Adds favor and updates statistics.
     ///     Thread-safe.
     /// </summary>

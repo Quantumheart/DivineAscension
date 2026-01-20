@@ -118,4 +118,17 @@ public interface IPlayerProgressionDataManager : IDisposable
     /// The <see cref="FavorRank"/> representing the player's current favor rank.
     /// </returns>
     public FavorRank GetPlayerFavorRank(string playerUID);
+
+    /// <summary>
+    /// Gets the timestamp when the player is next allowed to pray.
+    /// Returns 0 if no cooldown is active.
+    /// </summary>
+    long GetPrayerCooldownExpiry(string playerUID);
+
+    /// <summary>
+    /// Sets the prayer cooldown expiry timestamp for the player.
+    /// </summary>
+    /// <param name="playerUID">Player unique identifier</param>
+    /// <param name="expiryTime">Absolute timestamp when prayer cooldown expires</param>
+    void SetPrayerCooldownExpiry(string playerUID, long expiryTime);
 }

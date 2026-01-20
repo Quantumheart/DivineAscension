@@ -46,6 +46,7 @@ public static class DivineAscensionSystemInitializer
         var worldService = new ServerWorldService(api.World);
         var networkService = new ServerNetworkService(serverChannel);
         var commandService = new ServerChatCommandService(api.ChatCommands);
+        var timeService = new ServerTimeService(api.World);
 
         // Initialize localization service for server
         LocalizationService.Instance.InitializeServer(api);
@@ -86,7 +87,7 @@ public static class DivineAscensionSystemInitializer
         var messengerService = new PlayerMessengerService(worldService, religionManager, civilizationManager);
 
         var playerReligionDataManager = new PlayerProgressionDataManager(logger, eventService, persistenceService,
-            worldService, religionManager, gameBalanceConfig);
+            worldService, religionManager, gameBalanceConfig, timeService);
         playerReligionDataManager.Initialize();
 
         // CRITICAL: MUST be initialized before FavorSystem
@@ -156,11 +157,13 @@ public static class DivineAscensionSystemInitializer
             offeringLoader,
             holySiteManager,
             religionManager,
+            playerReligionDataManager,
             progressionService,
             messengerService,
             worldService,
             buffManager,
-            gameBalanceConfig);
+            gameBalanceConfig,
+            timeService);
         altarPrayerHandler.Initialize();
 
         var diplomacyManager = new DiplomacyManager(logger, eventService, persistenceService, civilizationManager,
