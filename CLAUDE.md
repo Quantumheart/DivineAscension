@@ -335,20 +335,26 @@ Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
    - Sending: `SendToPlayer<T>`, `SendToAllPlayers<T>`, `Broadcast<T>`
    - Test double: `SpyNetworkService` with `SentMessages` list and `SimulateMessage<T>()` helper
 
+5. **ITimeService** (`ServerTimeService`) - Wraps `IServerWorldAccessor` time access
+   - Time access: `ElapsedMilliseconds` property
+   - Provides monotonically increasing timestamp for absolute time tracking
+   - Used for cooldowns, expiry times, and time-dependent logic
+   - Test double: `FakeTimeService` with `SetElapsedMilliseconds()`, `AdvanceTimeBy()`, and `Reset()` methods
+
 **Tier 2 - High Value Wrappers:**
 
-5. **IPlayerMessengerService** (`PlayerMessengerService`) - Wraps player messaging
+6. **IPlayerMessengerService** (`PlayerMessengerService`) - Wraps player messaging
    - Basic messaging: `SendMessage(player, message, type)`, `SendGroupMessage(groupId, message, type)`
    - Test double: `SpyPlayerMessenger` with `SentMessages` list
 
 **Tier 3 - Specialized Wrappers:**
 
-6. **IModLoaderService** (`ModLoaderService`) - Wraps `IModLoader`
+7. **IModLoaderService** (`ModLoaderService`) - Wraps `IModLoader`
    - Mod checks: `IsModEnabled(modId)`
    - Mod system access: `GetModSystem<T>()`, `GetModSystemByName(name)`
    - Test double: `FakeModLoaderService` with configurable enabled mods and registered systems
 
-7. **IInputService** (`ClientInputService`) - Wraps `IInputAPI` (client-side only)
+8. **IInputService** (`ClientInputService`) - Wraps `IInputAPI` (client-side only)
    - Hotkey management: `RegisterHotKey`, `SetHotKeyHandler`, `UnregisterHotKey`
    - Test double: `FakeInputService` with `SimulateHotKeyPress()` helper
 

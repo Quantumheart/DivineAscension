@@ -23,9 +23,11 @@ public class AltarPrayerHandlerTests
     private readonly Mock<ILogger> _logger;
     private readonly SpyPlayerMessenger _messenger;
     private readonly Mock<IOfferingLoader> _offeringLoader;
+    private readonly Mock<IPlayerProgressionDataManager> _progressionDataManager;
     private readonly Mock<IPlayerProgressionService> _progressionService;
     private readonly Mock<IReligionManager> _religionManager;
     private readonly Mock<IWorldService> _worldService;
+    private readonly FakeTimeService _timeService;
 
     public AltarPrayerHandlerTests()
     {
@@ -33,14 +35,18 @@ public class AltarPrayerHandlerTests
         _offeringLoader = new Mock<IOfferingLoader>();
         _holySiteManager = new Mock<IHolySiteManager>();
         _religionManager = new Mock<IReligionManager>();
+        _progressionDataManager = new Mock<IPlayerProgressionDataManager>();
         _progressionService = new Mock<IPlayerProgressionService>();
         _messenger = new SpyPlayerMessenger();
         _worldService = new Mock<IWorldService>();
         _logger = new Mock<ILogger>();
         _buffManager = new Mock<IBuffManager>();
         _config = new GameBalanceConfig();
+        _timeService = new FakeTimeService();
 
-        _worldService.Setup(x => x.ElapsedMilliseconds).Returns(0);
+        // Setup default: no cooldown active
+        _progressionDataManager.Setup(x => x.GetPrayerCooldownExpiry(It.IsAny<string>()))
+            .Returns(0);
 
         _handler = new AltarPrayerHandler(
             _logger.Object,
@@ -48,11 +54,13 @@ public class AltarPrayerHandlerTests
             _offeringLoader.Object,
             _holySiteManager.Object,
             _religionManager.Object,
+            _progressionDataManager.Object,
             _progressionService.Object,
             _messenger,
             _worldService.Object,
             _buffManager.Object,
-            _config);
+            _config,
+            _timeService);
 
         _handler.Initialize();
     }
@@ -188,4 +196,59 @@ public class AltarPrayerHandlerTests
 
     // Note: Testing with actual ItemStack objects is difficult due to non-virtual properties.
     // Offering-specific logic is tested at integration level or via Calculate OfferingValue tests.
+
+    [Fact]
+    public void ProcessPrayer_OnCooldown_ReturnsCorrectRemainingTime()
+    {
+        // Arrange
+        var altarPos = new BlockPos(100, 50, 100);
+        var holySite = CreateHolySite("religion1");
+        var religion = CreateReligion("religion1", DeityDomain.Craft);
+
+        _holySiteManager.Setup(x => x.GetHolySiteByAltarPosition(altarPos))
+            .Returns(holySite);
+        _religionManager.Setup(x => x.GetPlayerReligion("player1"))
+            .Returns(religion);
+
+        // Setup cooldown: 30 minutes remaining (1800000 ms)
+        var currentTime = 0L;
+        var cooldownExpiry = currentTime + 1800000; // 30 minutes from now
+        _progressionDataManager.Setup(x => x.GetPrayerCooldownExpiry("player1"))
+            .Returns(cooldownExpiry);
+
+        // Act
+        var result = _handler.ProcessPrayer("player1", "TestPlayer", altarPos, null, currentTime);
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Equal("You must wait 30 more minute(s) before praying again.", result.Message);
+    }
+
+    [Fact]
+    public void ProcessPrayer_OnCooldownNearExpiry_RoundsCorrectly()
+    {
+        // Arrange
+        var altarPos = new BlockPos(100, 50, 100);
+        var holySite = CreateHolySite("religion1");
+        var religion = CreateReligion("religion1", DeityDomain.Craft);
+
+        _holySiteManager.Setup(x => x.GetHolySiteByAltarPosition(altarPos))
+            .Returns(holySite);
+        _religionManager.Setup(x => x.GetPlayerReligion("player1"))
+            .Returns(religion);
+
+        // Setup cooldown: 59.5 minutes remaining (3570000 ms = 59 min 30 sec)
+        // This should round to 60 minutes, NOT 61
+        var currentTime = 0L;
+        var cooldownExpiry = currentTime + 3570000; // 59.5 minutes from now
+        _progressionDataManager.Setup(x => x.GetPrayerCooldownExpiry("player1"))
+            .Returns(cooldownExpiry);
+
+        // Act
+        var result = _handler.ProcessPrayer("player1", "TestPlayer", altarPos, null, currentTime);
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Equal("You must wait 60 more minute(s) before praying again.", result.Message);
+    }
 }
