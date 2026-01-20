@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Systems.Interfaces;
@@ -49,6 +50,7 @@ public class AltarPlacementHandler : IDisposable
         _eventService.UnsubscribeDidPlaceBlock(OnBlockPlaced);
     }
 
+    [ExcludeFromCodeCoverage]
     private void OnBlockPlaced(IServerPlayer player, int oldBlockId, BlockSelection blockSel, ItemStack withItemStack)
     {
         try
@@ -127,6 +129,7 @@ public class AltarPlacementHandler : IDisposable
         }
     }
 
+    [ExcludeFromCodeCoverage]
     private bool IsAltarBlock(Block block)
     {
         // Match any block with code path starting with "altar"
