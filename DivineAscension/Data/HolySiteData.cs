@@ -238,9 +238,11 @@ public class HolySiteData
             int centerY = (area.Y1 + area.Y2) / 2;
             int centerZ = (area.Z1 + area.Z2) / 2;
 
-            totalX += centerX * volume;
-            totalY += centerY * volume;
-            totalZ += centerZ * volume;
+            // Cast to long before multiplication to prevent integer overflow
+            // Block coordinates can be very large (500k+), causing overflow when multiplied by volume
+            totalX += (long)centerX * volume;
+            totalY += (long)centerY * volume;
+            totalZ += (long)centerZ * volume;
             totalVolume += volume;
         }
 

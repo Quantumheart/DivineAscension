@@ -331,7 +331,15 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
             return null;
         }
 
+        // Debug: Log area coordinates before GetCenter()
+        _logger.Debug($"[DivineAscension] MapToDetailInfo - Site '{site.SiteName}' has {site.Areas.Count} areas:");
+        foreach (var area in site.Areas)
+        {
+            _logger.Debug($"[DivineAscension]   Area in site data: ({area.X1},{area.Y1},{area.Z1}) to ({area.X2},{area.Y2},{area.Z2})");
+        }
+
         var center = site.GetCenter();
+        _logger.Debug($"[DivineAscension] MapToDetailInfo - Calculated center: ({center.X},{center.Y},{center.Z})");
 
         var detailInfo = new HolySiteResponsePacket.HolySiteDetailInfo
         {

@@ -1370,25 +1370,29 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
         try
         {
-            // Get deity color for the waypoint based on domain
-            var color = DomainHelper.GetDeityColor(site.Domain);
-            var colorHex = ColorToHex(color);
+            // Get named color for the waypoint based on domain
+            var colorName = GetDomainColorName(site.Domain);
 
-            // Use Vintage Story's waypoint command to add the waypoint
-            // Format: /waypoint addati [icon] [color] [title]
-            // The 'addati' variant adds the waypoint at the player's current position
-            // We'll use 'add' with coordinates instead
-            var waypointCommand = $"/waypoint add {site.Center.X} {site.Center.Y} {site.Center.Z} false landmark {colorHex} {site.SiteName}";
+            // Convert absolute world coordinates to relative coordinates (relative to spawn)
+            // Vintage Story's /waypoint addat command expects coordinates relative to spawn
+            var spawnPos = _coreClientApi.World.DefaultSpawnPosition;
+            var relativeX = site.Center.X - (int)spawnPos.X;
+            var relativeY = site.Center.Y;
+            var relativeZ = site.Center.Z - (int)spawnPos.Z;
 
+            // Use /waypoint addati command with relative coordinates and custom icon
+            // Format: /waypoint addati [icon] [x] [y] [z] [pinned] [color] [title]
+            // Using star1 icon for holy sites (more distinctive than circle)
+            var waypointCommand = $"/waypoint addati star1 {relativeX} {relativeY} {relativeZ} false {colorName} {site.SiteName}";
+
+            _coreClientApi.Logger.Debug($"[DivineAscension] Absolute coords: ({site.Center.X},{site.Center.Y},{site.Center.Z}), Spawn: ({(int)spawnPos.X},{(int)spawnPos.Y},{(int)spawnPos.Z}), Relative: ({relativeX},{relativeY},{relativeZ})");
+            _coreClientApi.Logger.Debug($"[DivineAscension] Sending waypoint command: {waypointCommand}");
             _coreClientApi.SendChatMessage(waypointCommand);
 
             // Show success message to player
             var successMessage = LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_WAYPOINT_ADDED)
                 .Replace("{0}", site.SiteName);
             _coreClientApi.ShowChatMessage(successMessage);
-
-            _coreClientApi.Logger.Debug(
-                $"[DivineAscension] Added waypoint for holy site: {site.SiteName} at ({site.Center.X}, {site.Center.Y}, {site.Center.Z})");
         }
         catch (System.Exception ex)
         {
@@ -1398,14 +1402,21 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     }
 
     /// <summary>
-    /// Converts a Vector4 color to hex format for waypoint command
+    /// Gets a hex color from Vintage Story's 36 supported colors based on deity domain
+    /// These are the exact hex values from WaypointMapLayer.hexcolors array
+    /// Note: Vintage Story's color parser accepts colors WITH the # prefix
     /// </summary>
-    private static string ColorToHex(System.Numerics.Vector4 color)
+    private static string GetDomainColorName(string domain)
     {
-        var r = (int)(color.X * 255);
-        var g = (int)(color.Y * 255);
-        var b = (int)(color.Z * 255);
-        return $"#{r:X2}{g:X2}{b:X2}";
+        return domain switch
+        {
+            "Craft" => "red",           // Use named color - more reliable
+            "Wild" => "green",          // Use named color
+            "Conquest" => "crimson",    // Use named color
+            "Harvest" => "orange",      // Use named color
+            "Stone" => "saddlebrown",   // Use named color
+            _ => "gray"                 // Use named color
+        };
     }
 
     #endregion

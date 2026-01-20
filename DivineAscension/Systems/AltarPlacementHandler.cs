@@ -96,6 +96,15 @@ public class AltarPlacementHandler : IDisposable
             // Auto-generate site name
             string siteName = GenerateSiteName(religion, player);
 
+            // Debug: Log land claim area coordinates and player position
+            _logger.Debug($"[DivineAscension] Altar block position: {blockSel.Position}");
+            _logger.Debug($"[DivineAscension] Player entity position: {player.Entity.ServerPos.AsBlockPos}");
+            _logger.Debug($"[DivineAscension] Land claim has {playerClaim.Areas.Count} areas:");
+            foreach (var area in playerClaim.Areas)
+            {
+                _logger.Debug($"[DivineAscension]   Area: ({area.X1},{area.Y1},{area.Z1}) to ({area.X2},{area.Y2},{area.Z2})");
+            }
+
             // Create holy site with altar
             var holySite = _holySiteManager.ConsecrateHolySiteWithAltar(
                 religion.ReligionUID,
