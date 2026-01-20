@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
+using DivineAscension.Configuration;
+using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services.Interfaces;
+using DivineAscension.Systems.BuffSystem.Interfaces;
 using DivineAscension.Systems.Interfaces;
+using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
@@ -20,7 +25,8 @@ public class AltarPrayerHandler : IDisposable
     private const int PRAYER_COOLDOWN_MS = 3600000; // 1 hour
     private const int BASE_PRAYER_FAVOR = 5;
     private readonly IActivityLogManager _activityLogManager;
-
+    private readonly IBuffManager _buffManager;
+    private readonly GameBalanceConfig _config;
     private readonly IEventService _eventService;
     private readonly IFavorSystem _favorSystem;
     private readonly IHolySiteManager _holySiteManager;
@@ -44,7 +50,9 @@ public class AltarPrayerHandler : IDisposable
         IReligionPrestigeManager prestigeManager,
         IActivityLogManager activityLogManager,
         IPlayerMessengerService messenger,
-        IWorldService worldService)
+        IWorldService worldService,
+        IBuffManager buffManager,
+        GameBalanceConfig config)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
@@ -56,32 +64,29 @@ public class AltarPrayerHandler : IDisposable
         _activityLogManager = activityLogManager ?? throw new ArgumentNullException(nameof(activityLogManager));
         _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
+        _buffManager = buffManager ?? throw new ArgumentNullException(nameof(buffManager));
+        _config = config ?? throw new ArgumentNullException(nameof(config));
     }
 
     public void Dispose()
     {
-        _eventService.UnsubscribeDidUseBlock(OnBlockUsed);
+        AltarPatches.OnAltarUsed -= OnAltarUsed;
         _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
     }
 
     public void Initialize()
     {
         _logger.Notification("[DivineAscension] Initializing Altar Prayer Handler...");
-        _eventService.OnDidUseBlock(OnBlockUsed);
+        AltarPatches.OnAltarUsed += OnAltarUsed;
         _eventService.OnPlayerDisconnect(OnPlayerDisconnect);
         _logger.Notification("[DivineAscension] Altar Prayer Handler initialized");
     }
 
     [ExcludeFromCodeCoverage]
-    private void OnBlockUsed(IServerPlayer player, BlockSelection blockSel)
+    private void OnAltarUsed(IServerPlayer player, BlockSelection blockSel)
     {
         try
         {
-            // Check if player used an altar
-            var block = _worldService.GetBlock(blockSel.Position);
-            if (!IsAltarBlock(block))
-                return;
-
             _logger.Debug($"[DivineAscension] Player {player.PlayerName} used altar at {blockSel.Position}");
 
             // Check if altar is part of a holy site
@@ -166,6 +171,35 @@ public class AltarPrayerHandler : IDisposable
             int totalPrestige = totalFavor;
             _prestigeManager.AddPrestige(holySite.ReligionUID, totalPrestige, "prayer");
 
+            // Apply holy site buff for 1 hour
+            var multiplier = tier switch
+            {
+                1 => _config.HolySiteTier1Multiplier,
+                2 => _config.HolySiteTier2Multiplier,
+                3 => _config.HolySiteTier3Multiplier,
+                _ => 1.0f
+            };
+
+            var statModifiers = new Dictionary<string, float>
+            {
+                { VintageStoryStats.HolySiteFavorMultiplier, multiplier },
+                { VintageStoryStats.HolySitePrestigeMultiplier, multiplier }
+            };
+
+            const string BUFF_ID = "holy_site_prayer_buff";
+            _buffManager.ApplyEffect(
+                player.Entity,
+                BUFF_ID,
+                3600f, // 1 hour in seconds
+                "altar_prayer",
+                player.PlayerUID,
+                statModifiers,
+                isBuff: true
+            );
+
+            _logger.Debug(
+                $"[DivineAscension] Applied holy site buff ({multiplier:F2}x) to {player.PlayerName} for 1 hour");
+
             // Update cooldown
             _lastPrayerTime[player.PlayerUID] = now;
 
@@ -187,17 +221,20 @@ public class AltarPrayerHandler : IDisposable
             if (offeringBonus > 0)
             {
                 msg =
-                    $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (offering bonus: +{offeringBonus} base, tier {tier} x{prayerMultiplier:F1})";
+                    $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (offering bonus: +{offeringBonus} base, tier {tier} x{prayerMultiplier:F1}). " +
+                    $"Divine blessing active for 1 hour ({multiplier:F2}x favor/prestige gains)!";
             }
             else if (offeringRejected)
             {
                 msg =
-                    $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (tier {tier} x{prayerMultiplier:F1}). Your offering was not suitable for this domain.";
+                    $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (tier {tier} x{prayerMultiplier:F1}). Your offering was not suitable for this domain. " +
+                    $"Divine blessing active for 1 hour ({multiplier:F2}x favor/prestige gains)!";
             }
             else
             {
                 msg =
-                    $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (tier {tier} x{prayerMultiplier:F1})";
+                    $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (tier {tier} x{prayerMultiplier:F1}). " +
+                    $"Divine blessing active for 1 hour ({multiplier:F2}x favor/prestige gains)!";
             }
 
             _messenger.SendMessage(player, msg, EnumChatType.CommandSuccess);
@@ -209,13 +246,6 @@ public class AltarPrayerHandler : IDisposable
         {
             _logger.Error($"[DivineAscension] Error in AltarPrayerHandler: {ex.Message}");
         }
-    }
-
-    [ExcludeFromCodeCoverage]
-    private bool IsAltarBlock(Block block)
-    {
-        // Match any block with code path starting with "altar"
-        return block?.Code?.Path?.StartsWith("altar") ?? false;
     }
 
     /// <summary>

@@ -94,6 +94,17 @@ public class GameBalanceConfig
     /// <summary>Prestige multiplier during war (default: 1.5)</summary>
     public float WarPrestigeMultiplier { get; set; } = 1.5f;
 
+    // === HOLY SITE BUFFS ===
+
+    /// <summary>Favor/Prestige multiplier for Tier 1 holy sites (default: 1.25)</summary>
+    public float HolySiteTier1Multiplier { get; set; } = 1.25f;
+
+    /// <summary>Favor/Prestige multiplier for Tier 2 holy sites (default: 1.5)</summary>
+    public float HolySiteTier2Multiplier { get; set; } = 1.5f;
+
+    /// <summary>Favor/Prestige multiplier for Tier 3 holy sites (default: 1.75)</summary>
+    public float HolySiteTier3Multiplier { get; set; } = 1.75f;
+
     // === VALIDATION ===
 
     /// <summary>
@@ -158,6 +169,20 @@ public class GameBalanceConfig
         if (WarFavorMultiplier <= 0 || WarPrestigeMultiplier <= 0)
         {
             throw new InvalidOperationException("War multipliers must be positive");
+        }
+
+        // Validate holy site tier multipliers
+        if (HolySiteTier1Multiplier < 1.0f || HolySiteTier1Multiplier > 5.0f ||
+            HolySiteTier2Multiplier < 1.0f || HolySiteTier2Multiplier > 5.0f ||
+            HolySiteTier3Multiplier < 1.0f || HolySiteTier3Multiplier > 5.0f)
+        {
+            throw new InvalidOperationException("Holy site tier multipliers must be between 1.0 and 5.0");
+        }
+
+        if (!(HolySiteTier1Multiplier <= HolySiteTier2Multiplier &&
+              HolySiteTier2Multiplier <= HolySiteTier3Multiplier))
+        {
+            throw new InvalidOperationException("Holy site tier multipliers must be ascending");
         }
     }
 }

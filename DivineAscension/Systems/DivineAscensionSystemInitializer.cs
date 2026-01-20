@@ -55,6 +55,7 @@ public static class DivineAscensionSystemInitializer
         cooldownManager.Initialize();
 
         // Step 1: Clear any static event subscribers from previous loads
+        AltarPatches.ClearSubscribers();
         PitKilnPatches.ClearSubscribers();
         AnvilPatches.ClearSubscribers();
         CookingPatches.ClearSubscribers();
@@ -132,6 +133,9 @@ public static class DivineAscensionSystemInitializer
         IOfferingLoader offeringLoader = new OfferingLoader(logger, api.Assets);
         offeringLoader.LoadOfferings();
 
+        // Initialize Buff Manager (must be before AltarPrayerHandler)
+        var buffManager = new BuffManager(logger, worldService);
+
         // Initialize Altar Prayer Handler (handles prayer interactions at altars)
         var altarPrayerHandler = new AltarPrayerHandler(
             logger,
@@ -143,7 +147,9 @@ public static class DivineAscensionSystemInitializer
             religionPrestigeManager,
             activityLogManager,
             messengerService,
-            worldService);
+            worldService,
+            buffManager,
+            gameBalanceConfig);
         altarPrayerHandler.Initialize();
 
         var diplomacyManager = new DiplomacyManager(logger, eventService, persistenceService, civilizationManager,
