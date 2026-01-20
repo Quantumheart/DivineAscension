@@ -1,0 +1,147 @@
+{
+  "domain": "Craft",
+  "version": 1,
+  "offerings": [
+    {
+      "name": "Copper Ingot",
+      "itemCodes": ["game:ingot-copper"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Basic metalworking material"
+    },
+    {
+      "name": "Bronze Ingot",
+      "itemCodes": ["game:ingot-bronze"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Common alloy for tools"
+    },
+    {
+      "name": "Tin Bronze Ingot",
+      "itemCodes": ["game:ingot-tinbronze"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Refined bronze alloy"
+    },
+    {
+      "name": "Copper Pickaxe",
+      "itemCodes": ["game:pickaxe-copper"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Basic mining tool"
+    },
+    {
+      "name": "Copper Axe",
+      "itemCodes": ["game:axe-copper"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Basic woodcutting tool"
+    },
+    {
+      "name": "Copper Shovel",
+      "itemCodes": ["game:shovel-copper"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Basic digging tool"
+    },
+    {
+      "name": "Iron Ingot",
+      "itemCodes": ["game:ingot-iron"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Common metalworking material"
+    },
+    {
+      "name": "Steel Ingot",
+      "itemCodes": ["game:ingot-steel"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Advanced refined metal"
+    },
+    {
+      "name": "Iron Pickaxe",
+      "itemCodes": ["game:pickaxe-iron"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Improved mining tool"
+    },
+    {
+      "name": "Iron Axe",
+      "itemCodes": ["game:axe-iron"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Improved woodcutting tool"
+    },
+    {
+      "name": "Iron Saw",
+      "itemCodes": ["game:saw-iron"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Precision cutting tool"
+    },
+    {
+      "name": "Iron Hammer",
+      "itemCodes": ["game:hammer-iron"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Essential smithing tool"
+    },
+    {
+      "name": "Gold Ingot",
+      "itemCodes": ["game:ingot-gold"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Precious metal"
+    },
+    {
+      "name": "Silver Ingot",
+      "itemCodes": ["game:ingot-silver"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Precious metal"
+    },
+    {
+      "name": "Rusty Gear",
+      "itemCodes": ["game:gear-rusty"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Ancient mechanical component"
+    },
+    {
+      "name": "Temporal Gear",
+      "itemCodes": ["game:gear-temporal"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 3,
+      "description": "Rare mystical component from temporal storms"
+    },
+    {
+      "name": "Anvil",
+      "itemCodes": [
+        "game:anvil-copper",
+        "game:anvil-bronze",
+        "game:anvil-iron",
+        "game:anvil-meteoriciron"
+      ],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Master smithing station"
+    }
+  ]
+}

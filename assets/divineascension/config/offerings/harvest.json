@@ -1,0 +1,182 @@
+{
+  "domain": "Harvest",
+  "version": 1,
+  "offerings": [
+    {
+      "name": "Carrot",
+      "itemCodes": ["game:carrot"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Fresh root vegetable"
+    },
+    {
+      "name": "Onion",
+      "itemCodes": ["game:onion"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Flavorful cooking ingredient"
+    },
+    {
+      "name": "Turnip",
+      "itemCodes": ["game:turnip"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Hardy root vegetable"
+    },
+    {
+      "name": "Parsnip",
+      "itemCodes": ["game:parsnip"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Sweet root vegetable"
+    },
+    {
+      "name": "Flax Grain",
+      "itemCodes": ["game:grain-flax"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Textile and food crop"
+    },
+    {
+      "name": "Rice Grain",
+      "itemCodes": ["game:grain-rice"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Staple food grain"
+    },
+    {
+      "name": "Bread",
+      "itemCodes": [
+        "game:bread-spelt",
+        "game:bread-rye",
+        "game:bread-flax",
+        "game:bread-rice",
+        "game:bread-cassava",
+        "game:bread-sunflower"
+      ],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Baked staple food"
+    },
+    {
+      "name": "Flax Twine",
+      "itemCodes": ["game:flaxtwine"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Processed fiber material"
+    },
+    {
+      "name": "Linen",
+      "itemCodes": ["game:cloth-linen"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Woven textile"
+    },
+    {
+      "name": "Pickled Vegetables",
+      "itemCodes": [
+        "game:pickledvegetable-carrot",
+        "game:pickledvegetable-onion",
+        "game:pickledvegetable-turnip",
+        "game:pickledvegetable-parsnip",
+        "game:pickledvegetable-cabbage",
+        "game:pickledvegetable-pumpkin"
+      ],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Preserved vegetables"
+    },
+    {
+      "name": "Pickled Fruit",
+      "itemCodes": [
+        "game:pickledfruit-blueberry",
+        "game:pickledfruit-cranberry",
+        "game:pickledfruit-redapple",
+        "game:pickledfruit-pinkapple",
+        "game:pickledfruit-yellowapple",
+        "game:pickledfruit-cherry",
+        "game:pickledfruit-peach",
+        "game:pickledfruit-pear",
+        "game:pickledfruit-orange",
+        "game:pickledfruit-mango",
+        "game:pickledfruit-breadfruit",
+        "game:pickledfruit-lychee",
+        "game:pickledfruit-pomegranate"
+      ],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Preserved fruit"
+    },
+    {
+      "name": "Honeycomb",
+      "itemCodes": ["game:honeycomb"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Natural sweetener source"
+    },
+    {
+      "name": "Cured Vegetables",
+      "itemCodes": [
+        "game:curedmeat-vegetable"
+      ],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Long-term preserved vegetables"
+    },
+    {
+      "name": "Cured Fruit",
+      "itemCodes": [
+        "game:driedfruit-blueberry",
+        "game:driedfruit-cranberry",
+        "game:driedfruit-redapple",
+        "game:driedfruit-pinkapple",
+        "game:driedfruit-yellowapple",
+        "game:driedfruit-cherry"
+      ],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Dried preserved fruit"
+    },
+    {
+      "name": "Cheese",
+      "itemCodes": [
+        "game:cheese-blue",
+        "game:cheese-cheddar",
+        "game:cheese-raw"
+      ],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Aged dairy product"
+    },
+    {
+      "name": "Flour",
+      "itemCodes": [
+        "game:flour-spelt",
+        "game:flour-rye",
+        "game:flour-flax",
+        "game:flour-rice",
+        "game:flour-cassava",
+        "game:flour-sunflower"
+      ],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Refined grain product"
+    }
+  ]
+}

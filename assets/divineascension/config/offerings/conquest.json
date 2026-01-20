@@ -1,0 +1,118 @@
+{
+  "domain": "Conquest",
+  "version": 1,
+  "offerings": [
+    {
+      "name": "Copper Spear",
+      "itemCodes": ["game:spear-copper"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Basic polearm weapon"
+    },
+    {
+      "name": "Copper Sword",
+      "itemCodes": ["game:sword-copper"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Basic melee weapon"
+    },
+    {
+      "name": "Copper Blade",
+      "itemCodes": ["game:blade-copper"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Basic cutting weapon"
+    },
+    {
+      "name": "Copper Arrow",
+      "itemCodes": ["game:arrow-copper"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Basic ranged ammunition"
+    },
+    {
+      "name": "Iron Spear",
+      "itemCodes": ["game:spear-iron"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Improved polearm weapon"
+    },
+    {
+      "name": "Iron Sword",
+      "itemCodes": ["game:sword-iron"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Improved melee weapon"
+    },
+    {
+      "name": "Iron Blade",
+      "itemCodes": ["game:blade-iron"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Improved cutting weapon"
+    },
+    {
+      "name": "Chain Armor Body",
+      "itemCodes": ["game:armor-body-chain"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Medium body protection"
+    },
+    {
+      "name": "Chain Armor Head",
+      "itemCodes": ["game:armor-head-chain"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Medium head protection"
+    },
+    {
+      "name": "Steel Sword",
+      "itemCodes": ["game:sword-steel"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Masterwork blade"
+    },
+    {
+      "name": "Steel Spear",
+      "itemCodes": ["game:spear-steel"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Masterwork polearm"
+    },
+    {
+      "name": "Plate Armor Body",
+      "itemCodes": ["game:armor-body-plate"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Heavy body protection"
+    },
+    {
+      "name": "Basinet Helmet",
+      "itemCodes": ["game:armor-head-basinet"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Heavy head protection"
+    },
+    {
+      "name": "Steel Arrow",
+      "itemCodes": ["game:arrow-steel"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "High-quality ranged ammunition"
+    }
+  ]
+}

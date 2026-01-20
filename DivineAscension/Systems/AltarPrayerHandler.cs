@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
-using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Systems;
@@ -21,73 +19,25 @@ public class AltarPrayerHandler : IDisposable
 {
     private const int PRAYER_COOLDOWN_MS = 3600000; // 1 hour
     private const int BASE_PRAYER_FAVOR = 5;
-
-    // Domain-specific offering configurations
-    private static readonly Dictionary<DeityDomain, DomainOfferingConfig> DomainOfferings = new()
-    {
-        [DeityDomain.Craft] = new DomainOfferingConfig
-        {
-            Tier1Items = new[] { "ingot-copper", "ingot-bronze", "ingot-tinbronze", "pickaxe-copper", "axe-copper", "shovel-copper" },
-            Tier1Value = 2,
-            Tier2Items = new[] { "ingot-iron", "ingot-steel", "pickaxe-iron", "axe-iron", "saw-iron", "hammer-iron" },
-            Tier2Value = 4,
-            Tier3Items = new[] { "ingot-gold", "ingot-silver", "gear-rusty", "gear-temporal", "anvil" },
-            Tier3Value = 8
-        },
-        [DeityDomain.Wild] = new DomainOfferingConfig
-        {
-            Tier1Items = new[] { "bushmeat", "redmeat-raw", "poultry-raw", "hide-raw-small", "feather" },
-            Tier1Value = 1,
-            Tier2Items = new[] { "hide-raw-medium", "hide-raw-large", "redmeat-cured", "fat", "honey" },
-            Tier2Value = 3,
-            Tier3Items = new[] { "hide-raw-huge", "pelt", "resonance", "forlornhope" },
-            Tier3Value = 6
-        },
-        [DeityDomain.Conquest] = new DomainOfferingConfig
-        {
-            Tier1Items = new[] { "spear-copper", "sword-copper", "blade-copper", "arrow-copper" },
-            Tier1Value = 3,
-            Tier2Items = new[] { "spear-iron", "sword-iron", "blade-iron", "armor-body-chain", "armor-head-chain" },
-            Tier2Value = 5,
-            Tier3Items = new[] { "sword-steel", "spear-steel", "armor-body-plate", "armor-head-basinet", "arrow-steel" },
-            Tier3Value = 10
-        },
-        [DeityDomain.Harvest] = new DomainOfferingConfig
-        {
-            Tier1Items = new[] { "carrot", "onion", "turnip", "parsnip", "grain-flax", "grain-rice" },
-            Tier1Value = 2,
-            Tier2Items = new[] { "bread-", "flaxtwine", "linen", "vegetable-pickled", "fruit-pickled" },
-            Tier2Value = 4,
-            Tier3Items = new[] { "honeycomb", "vegetable-cured", "fruit-cured", "cheese-", "flour" },
-            Tier3Value = 7
-        },
-        [DeityDomain.Stone] = new DomainOfferingConfig
-        {
-            Tier1Items = new[] { "stone-", "ore-quartz", "ore-copper", "clay-" },
-            Tier1Value = 2,
-            Tier2Items = new[] { "ore-iron", "ore-lead", "ore-silver", "gem-quartz", "coal" },
-            Tier2Value = 5,
-            Tier3Items = new[] { "gem-diamond", "gem-emerald", "gem-peridot", "ore-gold", "crystal" },
-            Tier3Value = 9
-        }
-    };
+    private readonly IActivityLogManager _activityLogManager;
 
     private readonly IEventService _eventService;
-    private readonly IHolySiteManager _holySiteManager;
-    private readonly IReligionManager _religionManager;
     private readonly IFavorSystem _favorSystem;
-    private readonly IReligionPrestigeManager _prestigeManager;
-    private readonly IActivityLogManager _activityLogManager;
-    private readonly IPlayerMessengerService _messenger;
-    private readonly IWorldService _worldService;
-    private readonly ILogger _logger;
+    private readonly IHolySiteManager _holySiteManager;
 
     // Cooldown tracking: playerUID => last prayer timestamp (in elapsed milliseconds)
     private readonly ConcurrentDictionary<string, long> _lastPrayerTime = new();
+    private readonly ILogger _logger;
+    private readonly IPlayerMessengerService _messenger;
+    private readonly IOfferingLoader _offeringLoader;
+    private readonly IReligionPrestigeManager _prestigeManager;
+    private readonly IReligionManager _religionManager;
+    private readonly IWorldService _worldService;
 
     public AltarPrayerHandler(
         ILogger logger,
         IEventService eventService,
+        IOfferingLoader offeringLoader,
         IHolySiteManager holySiteManager,
         IReligionManager religionManager,
         IFavorSystem favorSystem,
@@ -98,6 +48,7 @@ public class AltarPrayerHandler : IDisposable
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+        _offeringLoader = offeringLoader ?? throw new ArgumentNullException(nameof(offeringLoader));
         _holySiteManager = holySiteManager ?? throw new ArgumentNullException(nameof(holySiteManager));
         _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
         _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
@@ -107,18 +58,18 @@ public class AltarPrayerHandler : IDisposable
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
     }
 
+    public void Dispose()
+    {
+        _eventService.UnsubscribeDidUseBlock(OnBlockUsed);
+        _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
+    }
+
     public void Initialize()
     {
         _logger.Notification("[DivineAscension] Initializing Altar Prayer Handler...");
         _eventService.OnDidUseBlock(OnBlockUsed);
         _eventService.OnPlayerDisconnect(OnPlayerDisconnect);
         _logger.Notification("[DivineAscension] Altar Prayer Handler initialized");
-    }
-
-    public void Dispose()
-    {
-        _eventService.UnsubscribeDidUseBlock(OnBlockUsed);
-        _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
     }
 
     [ExcludeFromCodeCoverage]
@@ -137,7 +88,8 @@ public class AltarPrayerHandler : IDisposable
             var holySite = _holySiteManager.GetHolySiteByAltarPosition(blockSel.Position);
             if (holySite == null)
             {
-                _messenger.SendMessage(player, "This altar is not consecrated. It must be part of a holy site.", EnumChatType.CommandError);
+                _messenger.SendMessage(player, "This altar is not consecrated. It must be part of a holy site.",
+                    EnumChatType.CommandError);
                 return;
             }
 
@@ -151,7 +103,8 @@ public class AltarPrayerHandler : IDisposable
 
             if (religion.ReligionUID != holySite.ReligionUID)
             {
-                _messenger.SendMessage(player, "You can only pray at altars belonging to your religion.", EnumChatType.CommandError);
+                _messenger.SendMessage(player, "You can only pray at altars belonging to your religion.",
+                    EnumChatType.CommandError);
                 return;
             }
 
@@ -170,6 +123,9 @@ public class AltarPrayerHandler : IDisposable
                 }
             }
 
+            // Calculate holy site tier for offering validation and multipliers
+            var tier = holySite.GetTier();
+
             // Process offering (check active hand)
             var offering = player.Entity.RightHandItemSlot?.Itemstack;
             int offeringBonus = 0;
@@ -177,8 +133,16 @@ public class AltarPrayerHandler : IDisposable
             bool offeringRejected = false;
             if (offering != null && offering.StackSize > 0)
             {
-                offeringBonus = CalculateOfferingValue(offering, religion.Domain);
-                if (offeringBonus > 0)
+                offeringBonus = CalculateOfferingValue(offering, religion.Domain, tier);
+                if (offeringBonus == -1)
+                {
+                    // Offering rejected due to insufficient holy site tier
+                    _messenger.SendMessage(player,
+                        "This holy site is not powerful enough to accept such a valuable offering.",
+                        EnumChatType.CommandError);
+                    return;
+                }
+                else if (offeringBonus > 0)
                 {
                     offeringName = offering.GetName();
                     // Consume offering (1 item)
@@ -192,8 +156,6 @@ public class AltarPrayerHandler : IDisposable
                 }
             }
 
-            // Calculate favor with multipliers
-            var tier = holySite.GetTier();
             var prayerMultiplier = holySite.GetPrayerMultiplier();
             int totalFavor = (int)Math.Round((BASE_PRAYER_FAVOR + offeringBonus) * prayerMultiplier);
 
@@ -224,19 +186,24 @@ public class AltarPrayerHandler : IDisposable
             string msg;
             if (offeringBonus > 0)
             {
-                msg = $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (offering bonus: +{offeringBonus} base, tier {tier} x{prayerMultiplier:F1})";
+                msg =
+                    $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (offering bonus: +{offeringBonus} base, tier {tier} x{prayerMultiplier:F1})";
             }
             else if (offeringRejected)
             {
-                msg = $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (tier {tier} x{prayerMultiplier:F1}). Your offering was not suitable for this domain.";
+                msg =
+                    $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (tier {tier} x{prayerMultiplier:F1}). Your offering was not suitable for this domain.";
             }
             else
             {
-                msg = $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (tier {tier} x{prayerMultiplier:F1})";
+                msg =
+                    $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (tier {tier} x{prayerMultiplier:F1})";
             }
+
             _messenger.SendMessage(player, msg, EnumChatType.CommandSuccess);
 
-            _logger.Debug($"[DivineAscension] {player.PlayerName} prayed at {holySite.SiteName}, awarded {totalFavor} favor and {totalPrestige} prestige");
+            _logger.Debug(
+                $"[DivineAscension] {player.PlayerName} prayed at {holySite.SiteName}, awarded {totalFavor} favor and {totalPrestige} prestige");
         }
         catch (Exception ex)
         {
@@ -252,29 +219,30 @@ public class AltarPrayerHandler : IDisposable
     }
 
     /// <summary>
-    /// Calculate offering value based on domain-specific items.
-    /// Returns 0 if the offering doesn't match the domain.
+    /// Calculate offering value based on domain-specific items with tier gating.
     /// </summary>
-    private int CalculateOfferingValue(ItemStack offering, DeityDomain domain)
+    /// <param name="offering">The item stack being offered</param>
+    /// <param name="domain">The deity domain to match against</param>
+    /// <param name="holySiteTier">The tier of the holy site (1-3)</param>
+    /// <returns>
+    /// Offering value if valid and tier-acceptable,
+    /// -1 if rejected by tier gate (holy site tier too low),
+    /// 0 if not a valid offering for this domain
+    /// </returns>
+    private int CalculateOfferingValue(ItemStack offering, DeityDomain domain, int holySiteTier)
     {
-        var path = offering.Collectible?.Code?.Path ?? string.Empty;
+        var fullCode = offering.Collectible?.Code?.ToString() ?? string.Empty;
 
-        if (!DomainOfferings.TryGetValue(domain, out var config))
-            return 0;
+        var match = _offeringLoader.FindOfferingByItemCode(fullCode, domain);
 
-        // Check tier 3 items (highest value)
-        if (config.Tier3Items.Any(item => path.Contains(item)))
-            return config.Tier3Value;
+        if (match == null)
+            return 0; // Not a valid offering for this domain
 
-        // Check tier 2 items
-        if (config.Tier2Items.Any(item => path.Contains(item)))
-            return config.Tier2Value;
+        // Tier gating: check minimum holy site tier requirement
+        if (holySiteTier < match.MinHolySiteTier)
+            return -1; // Special value to indicate "rejected by tier gate"
 
-        // Check tier 1 items
-        if (config.Tier1Items.Any(item => path.Contains(item)))
-            return config.Tier1Value;
-
-        return 0; // Not a valid offering for this domain
+        return match.Value;
     }
 
     private void OnPlayerDisconnect(IServerPlayer player)
@@ -282,19 +250,4 @@ public class AltarPrayerHandler : IDisposable
         // Clean up cooldown tracking when player disconnects
         _lastPrayerTime.TryRemove(player.PlayerUID, out _);
     }
-}
-
-/// <summary>
-/// Configuration for domain-specific offerings
-/// </summary>
-internal class DomainOfferingConfig
-{
-    public string[] Tier1Items { get; init; } = Array.Empty<string>();
-    public int Tier1Value { get; init; }
-
-    public string[] Tier2Items { get; init; } = Array.Empty<string>();
-    public int Tier2Value { get; init; }
-
-    public string[] Tier3Items { get; init; } = Array.Empty<string>();
-    public int Tier3Value { get; init; }
 }

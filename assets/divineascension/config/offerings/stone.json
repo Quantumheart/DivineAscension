@@ -1,0 +1,217 @@
+{
+  "domain": "Stone",
+  "version": 1,
+  "offerings": [
+    {
+      "name": "Stone",
+      "itemCodes": [
+        "game:stone-andesite",
+        "game:stone-basalt",
+        "game:stone-chalk",
+        "game:stone-chert",
+        "game:stone-claystone",
+        "game:stone-conglomerate",
+        "game:stone-granite",
+        "game:stone-limestone",
+        "game:stone-obsidian",
+        "game:stone-phyllite",
+        "game:stone-sandstone",
+        "game:stone-shale",
+        "game:stone-slate",
+        "game:stone-suevite"
+      ],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Basic building material"
+    },
+    {
+      "name": "Quartz Ore",
+      "itemCodes": [
+        "game:ore-quartz-andesite",
+        "game:ore-quartz-basalt",
+        "game:ore-quartz-chalk",
+        "game:ore-quartz-chert",
+        "game:ore-quartz-conglomerate",
+        "game:ore-quartz-granite",
+        "game:ore-quartz-limestone",
+        "game:ore-quartz-phyllite",
+        "game:ore-quartz-sandstone",
+        "game:ore-quartz-shale",
+        "game:ore-quartz-slate"
+      ],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Common crystal ore"
+    },
+    {
+      "name": "Copper Ore",
+      "itemCodes": [
+        "game:ore-copper-andesite",
+        "game:ore-copper-basalt",
+        "game:ore-copper-granite",
+        "game:ore-copper-limestone",
+        "game:ore-copper-sandstone",
+        "game:ore-copper-shale"
+      ],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Basic metal ore"
+    },
+    {
+      "name": "Clay",
+      "itemCodes": [
+        "game:clay-blue",
+        "game:clay-fire",
+        "game:clay-brown",
+        "game:clay-red"
+      ],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Moldable crafting material"
+    },
+    {
+      "name": "Iron Ore",
+      "itemCodes": [
+        "game:ore-iron-andesite",
+        "game:ore-iron-basalt",
+        "game:ore-iron-granite",
+        "game:ore-iron-limestone",
+        "game:ore-iron-sandstone",
+        "game:ore-iron-shale"
+      ],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Common metal ore"
+    },
+    {
+      "name": "Lead Ore",
+      "itemCodes": [
+        "game:ore-lead-andesite",
+        "game:ore-lead-basalt",
+        "game:ore-lead-granite",
+        "game:ore-lead-limestone",
+        "game:ore-lead-sandstone",
+        "game:ore-lead-shale"
+      ],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Useful metal ore"
+    },
+    {
+      "name": "Silver Ore",
+      "itemCodes": [
+        "game:ore-silver-andesite",
+        "game:ore-silver-basalt",
+        "game:ore-silver-granite",
+        "game:ore-silver-limestone",
+        "game:ore-silver-sandstone",
+        "game:ore-silver-shale"
+      ],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Precious metal ore"
+    },
+    {
+      "name": "Quartz Gem",
+      "itemCodes": [
+        "game:gem-quartz-clear",
+        "game:gem-quartz-rose",
+        "game:gem-quartz-smoky",
+        "game:gem-quartz-amethyst",
+        "game:gem-quartz-citrine"
+      ],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Cut crystal gem"
+    },
+    {
+      "name": "Coal",
+      "itemCodes": [
+        "game:ore-coal-anthracite-andesite",
+        "game:ore-coal-anthracite-basalt",
+        "game:ore-coal-anthracite-granite",
+        "game:ore-coal-anthracite-limestone",
+        "game:ore-coal-anthracite-sandstone",
+        "game:ore-coal-anthracite-shale",
+        "game:ore-coal-bituminouscoal-andesite",
+        "game:ore-coal-bituminouscoal-basalt",
+        "game:ore-coal-bituminouscoal-granite",
+        "game:ore-coal-bituminouscoal-limestone",
+        "game:ore-coal-bituminouscoal-sandstone",
+        "game:ore-coal-bituminouscoal-shale",
+        "game:ore-coal-lignite-andesite",
+        "game:ore-coal-lignite-basalt",
+        "game:ore-coal-lignite-granite",
+        "game:ore-coal-lignite-limestone",
+        "game:ore-coal-lignite-sandstone",
+        "game:ore-coal-lignite-shale"
+      ],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Fuel source"
+    },
+    {
+      "name": "Diamond Gem",
+      "itemCodes": ["game:gem-diamond"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Rare precious gemstone"
+    },
+    {
+      "name": "Emerald Gem",
+      "itemCodes": ["game:gem-emerald"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Rare precious gemstone"
+    },
+    {
+      "name": "Peridot Gem",
+      "itemCodes": ["game:gem-peridot"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Rare volcanic gemstone"
+    },
+    {
+      "name": "Gold Ore",
+      "itemCodes": [
+        "game:ore-gold-andesite",
+        "game:ore-gold-basalt",
+        "game:ore-gold-granite",
+        "game:ore-gold-limestone",
+        "game:ore-gold-sandstone",
+        "game:ore-gold-shale"
+      ],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Precious metal ore"
+    },
+    {
+      "name": "Crystal",
+      "itemCodes": [
+        "game:crystal-medium-amethyst",
+        "game:crystal-medium-citrine",
+        "game:crystal-medium-fluorite",
+        "game:crystal-medium-halite",
+        "game:crystal-medium-olivine",
+        "game:crystal-medium-quartz"
+      ],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 3,
+      "description": "Natural crystal formation"
+    }
+  ]
+}

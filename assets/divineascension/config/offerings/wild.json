@@ -1,0 +1,124 @@
+{
+  "domain": "Wild",
+  "version": 1,
+  "offerings": [
+    {
+      "name": "Bushmeat",
+      "itemCodes": ["game:bushmeat"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Small game meat"
+    },
+    {
+      "name": "Raw Red Meat",
+      "itemCodes": ["game:redmeat-raw"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Fresh game meat"
+    },
+    {
+      "name": "Raw Poultry",
+      "itemCodes": ["game:poultry-raw"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Fresh bird meat"
+    },
+    {
+      "name": "Small Hide",
+      "itemCodes": ["game:hide-raw-small"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Basic leather material"
+    },
+    {
+      "name": "Feather",
+      "itemCodes": ["game:feather"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Light crafting material"
+    },
+    {
+      "name": "Medium Hide",
+      "itemCodes": ["game:hide-raw-medium"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Quality leather material"
+    },
+    {
+      "name": "Large Hide",
+      "itemCodes": ["game:hide-raw-large"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Premium leather material"
+    },
+    {
+      "name": "Cured Red Meat",
+      "itemCodes": ["game:redmeat-cured"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Preserved meat"
+    },
+    {
+      "name": "Animal Fat",
+      "itemCodes": ["game:fat"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Valuable resource for cooking and crafting"
+    },
+    {
+      "name": "Honey",
+      "itemCodes": ["game:honeyportion"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Sweet natural food"
+    },
+    {
+      "name": "Huge Hide",
+      "itemCodes": ["game:hide-raw-huge"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Exceptional leather from large beasts"
+    },
+    {
+      "name": "Pelt",
+      "itemCodes": [
+        "game:pelt-wolf-plain",
+        "game:pelt-wolf-arctic",
+        "game:pelt-bear-brown",
+        "game:pelt-bear-black",
+        "game:pelt-bear-polar"
+      ],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Rare trophy from dangerous predators"
+    },
+    {
+      "name": "Resonance",
+      "itemCodes": ["game:resonance"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 3,
+      "description": "Mystical essence from ancient creatures"
+    },
+    {
+      "name": "Forlorn Hope",
+      "itemCodes": ["game:forlornhope"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 3,
+      "description": "Rare flora with mystical properties"
+    }
+  ]
+}
