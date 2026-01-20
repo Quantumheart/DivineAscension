@@ -238,6 +238,7 @@ public sealed class FakeEventService : IEventService
         }
     }
 
+    public bool HasBreakBlockSubscribers() => _breakBlockCallbacks.Count > 0;
     public bool HasDidPlaceBlockSubscribers() => _didPlaceBlockCallbacks.Count > 0;
     public bool HasDidUseBlockSubscribers() => _didUseBlockCallbacks.Count > 0;
 

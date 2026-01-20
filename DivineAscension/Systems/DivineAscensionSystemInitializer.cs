@@ -116,6 +116,13 @@ public static class DivineAscensionSystemInitializer
             messengerService);
         altarPlacementHandler.Initialize();
 
+        // Initialize Altar Destruction Handler (automatically deconsecrates holy sites when altars are destroyed)
+        var altarDestructionHandler = new AltarDestructionHandler(
+            logger,
+            holySiteManager,
+            messengerService);
+        altarDestructionHandler.Initialize();
+
         // NOTE: AltarPrayerHandler initialized after FavorSystem (needs IFavorSystem and IActivityLogManager)
 
         var favorSystem = new FavorSystem(
@@ -320,6 +327,7 @@ public static class DivineAscensionSystemInitializer
             ReligionPrestigeManager = religionPrestigeManager,
             HolySiteManager = holySiteManager,
             AltarPlacementHandler = altarPlacementHandler,
+            AltarDestructionHandler = altarDestructionHandler,
             AltarPrayerHandler = altarPrayerHandler,
             FavorSystem = favorSystem,
             ActivityLogManager = activityLogManager,
@@ -352,7 +360,7 @@ public static class DivineAscensionSystemInitializer
 [ExcludeFromCodeCoverage]
 public class InitializationResult
 {
-    // 14 Managers
+    // 15 Managers
     public ICooldownManager CooldownManager { get; init; } = null!;
     public ReligionManager ReligionManager { get; init; } = null!;
     public CivilizationManager CivilizationManager { get; init; } = null!;
@@ -360,6 +368,7 @@ public class InitializationResult
     public ReligionPrestigeManager ReligionPrestigeManager { get; init; } = null!;
     public IHolySiteManager HolySiteManager { get; init; } = null!;
     public AltarPlacementHandler AltarPlacementHandler { get; init; } = null!;
+    public AltarDestructionHandler AltarDestructionHandler { get; init; } = null!;
     public AltarPrayerHandler AltarPrayerHandler { get; init; } = null!;
     public FavorSystem FavorSystem { get; init; } = null!;
     public ActivityLogManager ActivityLogManager { get; init; } = null!;

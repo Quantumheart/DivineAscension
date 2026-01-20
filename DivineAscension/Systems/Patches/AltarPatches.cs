@@ -1,13 +1,14 @@
 using System;
 using HarmonyLib;
 using Vintagestory.API.Common;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Systems.Patches;
 
 /// <summary>
-/// Harmony patch for altar block interactions.
-/// Fires events when players interact with altar blocks (code starts with "altar").
+/// Harmony patches for altar block interactions and destruction.
+/// Fires events when players interact with or destroy altar blocks (code starts with "altar").
 /// </summary>
 [HarmonyPatch]
 public static class AltarPatches
@@ -19,11 +20,18 @@ public static class AltarPatches
     public static event Action<IServerPlayer, BlockSelection>? OnAltarUsed;
 
     /// <summary>
+    /// Event fired when a player breaks an altar block.
+    /// Provides the server player and block position for holy site deconsecration.
+    /// </summary>
+    public static event Action<IServerPlayer, BlockPos>? OnAltarBroken;
+
+    /// <summary>
     /// Clears event subscribers. Called during server initialization to prevent stale subscriptions.
     /// </summary>
     public static void ClearSubscribers()
     {
         OnAltarUsed = null;
+        OnAltarBroken = null;
     }
 
     /// <summary>
@@ -55,6 +63,37 @@ public static class AltarPatches
         if (byPlayer is IServerPlayer serverPlayer && blockSel != null)
         {
             OnAltarUsed?.Invoke(serverPlayer, blockSel);
+        }
+    }
+
+    /// <summary>
+    /// Patches Block.OnBlockBroken to detect altar destruction.
+    /// Fires before the block is removed so we can access its data.
+    /// </summary>
+    [HarmonyPatch(typeof(Block), nameof(Block.OnBlockBroken))]
+    [HarmonyPrefix]
+    public static void Prefix_OnBlockBroken(
+        Block __instance,
+        IWorldAccessor world,
+        BlockPos pos,
+        IPlayer byPlayer)
+    {
+        // Only process on server side
+        if (world?.Side != EnumAppSide.Server)
+            return;
+
+        // Check if block and player are valid
+        if (__instance?.Code?.Path == null || byPlayer == null)
+            return;
+
+        // Check if this is an altar block
+        if (!__instance.Code.Path.StartsWith("altar"))
+            return;
+
+        // Fire event for altar destruction
+        if (byPlayer is IServerPlayer serverPlayer)
+        {
+            OnAltarBroken?.Invoke(serverPlayer, pos);
         }
     }
 }
