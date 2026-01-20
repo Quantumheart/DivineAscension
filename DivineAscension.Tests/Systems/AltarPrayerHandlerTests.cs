@@ -1,5 +1,7 @@
 using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
+using DivineAscension.Data;
+using DivineAscension.Models.Enum;
 using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems;
 using DivineAscension.Systems.BuffSystem.Interfaces;
@@ -7,22 +9,21 @@ using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
 using Moq;
 using Vintagestory.API.Common;
+using Vintagestory.API.MathTools;
 
 namespace DivineAscension.Tests.Systems;
 
 public class AltarPrayerHandlerTests
 {
-    private readonly Mock<IActivityLogManager> _activityLogManager;
     private readonly Mock<IBuffManager> _buffManager;
     private readonly GameBalanceConfig _config;
     private readonly FakeEventService _eventService;
-    private readonly Mock<IFavorSystem> _favorSystem;
     private readonly AltarPrayerHandler _handler;
     private readonly Mock<IHolySiteManager> _holySiteManager;
     private readonly Mock<ILogger> _logger;
     private readonly SpyPlayerMessenger _messenger;
     private readonly Mock<IOfferingLoader> _offeringLoader;
-    private readonly Mock<IReligionPrestigeManager> _prestigeManager;
+    private readonly Mock<IPlayerProgressionService> _progressionService;
     private readonly Mock<IReligionManager> _religionManager;
     private readonly Mock<IWorldService> _worldService;
 
@@ -32,9 +33,7 @@ public class AltarPrayerHandlerTests
         _offeringLoader = new Mock<IOfferingLoader>();
         _holySiteManager = new Mock<IHolySiteManager>();
         _religionManager = new Mock<IReligionManager>();
-        _favorSystem = new Mock<IFavorSystem>();
-        _prestigeManager = new Mock<IReligionPrestigeManager>();
-        _activityLogManager = new Mock<IActivityLogManager>();
+        _progressionService = new Mock<IPlayerProgressionService>();
         _messenger = new SpyPlayerMessenger();
         _worldService = new Mock<IWorldService>();
         _logger = new Mock<ILogger>();
@@ -49,9 +48,7 @@ public class AltarPrayerHandlerTests
             _offeringLoader.Object,
             _holySiteManager.Object,
             _religionManager.Object,
-            _favorSystem.Object,
-            _prestigeManager.Object,
-            _activityLogManager.Object,
+            _progressionService.Object,
             _messenger,
             _worldService.Object,
             _buffManager.Object,
@@ -79,4 +76,116 @@ public class AltarPrayerHandlerTests
         // Verify no exceptions were thrown during disposal
         Assert.True(true);
     }
+
+    [Fact]
+    public void ProcessPrayer_AltarNotConsecrated_ReturnsFailure()
+    {
+        // Arrange
+        var altarPos = new BlockPos(100, 50, 100);
+        _holySiteManager.Setup(x => x.GetHolySiteByAltarPosition(altarPos))
+            .Returns((HolySiteData?)null);
+
+        // Act
+        var result = _handler.ProcessPrayer("player1", "TestPlayer", altarPos, null, 0);
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Equal("This altar is not consecrated. It must be part of a holy site.", result.Message);
+    }
+
+    // Test helpers
+    private static HolySiteData CreateHolySite(string religionUID) =>
+        new() { SiteUID = "site1", ReligionUID = religionUID, SiteName = "Test Site" };
+
+    private static ReligionData CreateReligion(string religionUID, DeityDomain domain) =>
+        new()
+        {
+            ReligionUID = religionUID,
+            ReligionName = "Test Religion",
+            DeityName = "Test Deity",
+            Domain = domain,
+            FounderUID = "player1",
+            FounderName = "Player1"
+        };
+
+    [Fact]
+    public void ProcessPrayer_PlayerNotInReligion_ReturnsFailure()
+    {
+        // Arrange
+        var altarPos = new BlockPos(100, 50, 100);
+        var holySite = CreateHolySite("religion1");
+
+        _holySiteManager.Setup(x => x.GetHolySiteByAltarPosition(altarPos))
+            .Returns(holySite);
+        _religionManager.Setup(x => x.GetPlayerReligion("player1"))
+            .Returns((ReligionData?)null);
+
+        // Act
+        var result = _handler.ProcessPrayer("player1", "TestPlayer", altarPos, null, 0);
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Equal("You must be in a religion to pray.", result.Message);
+    }
+
+    [Fact]
+    public void ProcessPrayer_WrongReligion_ReturnsFailure()
+    {
+        // Arrange
+        var altarPos = new BlockPos(100, 50, 100);
+        var holySite = CreateHolySite("religion1");
+        var religion = CreateReligion("religion2", DeityDomain.Craft);
+
+        _holySiteManager.Setup(x => x.GetHolySiteByAltarPosition(altarPos))
+            .Returns(holySite);
+        _religionManager.Setup(x => x.GetPlayerReligion("player1"))
+            .Returns(religion);
+
+        // Act
+        var result = _handler.ProcessPrayer("player1", "TestPlayer", altarPos, null, 0);
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Equal("You can only pray at altars belonging to your religion.", result.Message);
+    }
+
+    // Note: Cooldown behavior is a side effect managed by OnAltarUsed, not ProcessPrayer.
+    // ProcessPrayer reads cooldown state but doesn't update it, making it difficult to test in isolation.
+
+    [Fact]
+    public void ProcessPrayer_ValidPrayerWithoutOffering_ReturnsSuccess()
+    {
+        // Arrange
+        var altarPos = new BlockPos(100, 50, 100);
+        var holySite = CreateHolySite("religion1");
+        var religion = CreateReligion("religion1", DeityDomain.Craft);
+
+        _holySiteManager.Setup(x => x.GetHolySiteByAltarPosition(altarPos))
+            .Returns(holySite);
+        _religionManager.Setup(x => x.GetPlayerReligion("player1"))
+            .Returns(religion);
+
+        // Act
+        var result = _handler.ProcessPrayer("player1", "TestPlayer", altarPos, null, 0);
+
+        // Assert
+        Assert.True(result.Success);
+        Assert.Equal(10, result.FavorAwarded); // BASE (5) * tier1 multiplier (2.0) = 10
+        Assert.Equal(10, result.PrestigeAwarded);
+        Assert.Equal(1, result.HolySiteTier);
+        Assert.False(result.ShouldConsumeOffering);
+        Assert.True(result.ShouldUpdateCooldown);
+
+        // Verify progression was awarded
+        _progressionService.Verify(x => x.AwardProgressionForPrayer(
+            "player1",
+            "religion1",
+            10,
+            10,
+            DeityDomain.Craft,
+            It.IsAny<string>()), Times.Once);
+    }
+
+    // Note: Testing with actual ItemStack objects is difficult due to non-virtual properties.
+    // Offering-specific logic is tested at integration level or via Calculate OfferingValue tests.
 }
