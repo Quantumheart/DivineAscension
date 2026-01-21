@@ -100,20 +100,29 @@ When creating feature plans, place them in `docs/topics/planning/features/<featu
 
 **CRITICAL INITIALIZATION ORDER** (in `DivineAscensionSystemInitializer.cs`):
 0. `LocalizationService` - Multi-language support (must initialize before managers that use localized messages)
-1. `ReligionManager` - Religion CRUD and membership with O(1) player-to-religion index
-2. **Deity name migration** - Migrates existing religions with empty deity names (backward compatibility)
-3. `ActivityLogManager` - Activity log tracking (depends on ReligionManager)
-4. `CivilizationManager` - Civilization management (depends on ReligionManager)
-5. `PlayerProgressionDataManager` - Per-player data
-6. `ReligionPrestigeManager` - Religion-level progression (**MUST be initialized before FavorSystem**)
-7. `FavorSystem` - Divine favor rewards (depends on PrestigeManager and ActivityLogManager)
-8. `DiplomacyManager` - Inter-civilization diplomacy
-9. `PvPManager` - PvP favor rewards
-10. `BlessingRegistry` - Blessing definitions
-11. `BlessingEffectSystem` - Stat modifiers and effects (**must register with PrestigeManager after initialization**)
-12. Command handlers (Favor, Blessing, Religion, Role, Civilization, Diplomacy)
-13. Network handlers (PlayerData, Blessing, Religion, Civilization, Activity)
-14. **Membership validation** - Validates and repairs player-to-religion index consistency
+1. `CooldownManager` - Cooldown tracking (early initialization to prevent griefing attacks)
+2. `ReligionManager` - Religion CRUD and membership with O(1) player-to-religion index
+3. **Deity name migration** - Migrates existing religions with empty deity names (backward compatibility)
+4. `ActivityLogManager` - Activity log tracking (depends on ReligionManager)
+5. `CivilizationManager` - Civilization management (depends on ReligionManager)
+6. `PlayerMessengerService` - Player messaging (after managers are initialized)
+7. `PlayerProgressionDataManager` - Per-player data
+8. `ReligionPrestigeManager` - Religion-level progression (**MUST be initialized before FavorSystem**)
+9. `HolySiteManager` - Holy site management (depends on ReligionManager)
+10. `AltarPlacementHandler` - Automatic holy site creation on altar placement (depends on HolySiteManager)
+11. `AltarDestructionHandler` - Automatic holy site deconsecration on altar destruction (depends on HolySiteManager)
+12. `FavorSystem` - Divine favor rewards (depends on PrestigeManager and ActivityLogManager)
+13. `OfferingLoader` - Loads offering configurations from JSON (must be before AltarPrayerHandler)
+14. `BuffManager` - Buff system for temporary stat modifiers (must be before AltarPrayerHandler)
+15. `PlayerProgressionService` - Facade for favor/prestige/activity systems (must be before AltarPrayerHandler)
+16. `AltarPrayerHandler` - Prayer interactions at altars (depends on many systems above)
+17. `DiplomacyManager` - Inter-civilization diplomacy
+18. `PvPManager` - PvP favor rewards
+19. `BlessingRegistry` - Blessing definitions
+20. `BlessingEffectSystem` - Stat modifiers and effects (**must register with PrestigeManager after initialization**)
+21. Command handlers (Favor, Blessing, Religion, Role, Civilization, HolySite)
+22. Network handlers (PlayerData, Blessing, Religion, Civilization, Diplomacy, Activity, HolySite)
+23. **Membership validation** - Validates and repairs player-to-religion index consistency
 
 **Never reorder these** - dependency chains will break.
 
@@ -137,6 +146,18 @@ When creating feature plans, place them in `docs/topics/planning/features/<featu
 - Alliances of 1-4 religions with different domains
 - Invite system (7-day expiry)
 - Handles cascading deletion when religions disband
+
+**HolySiteManager** (`/Systems/HolySiteManager.cs`):
+- Holy site CRUD operations (create, query, remove)
+- Persistence via `HolySiteWorldData` (ProtoBuf serialization)
+- Volume-based tier calculation (Tier 1: <50k blocks³, Tier 2: 50k-200k, Tier 3: 200k+)
+- Prayer multipliers by tier (2.0x, 2.5x, 3.0x)
+- Position-based queries for altar integration (`GetHolySiteAtPosition`)
+- Land claim area tracking with multi-area support
+- Events: `OnHolySiteCreated`, `OnHolySiteDeleted`
+- Cascading cleanup via subscription to `ReligionManager.OnReligionDeleted`
+- Integrated with `AltarPlacementHandler` for automatic holy site creation
+- Integrated with `AltarDestructionHandler` for automatic deconsecration
 
 **FavorSystem** (`/Systems/FavorSystem.cs`):
 - Awards favor for domain-aligned activities
@@ -357,6 +378,12 @@ Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
 8. **IInputService** (`ClientInputService`) - Wraps `IInputAPI` (client-side only)
    - Hotkey management: `RegisterHotKey`, `SetHotKeyHandler`, `UnregisterHotKey`
    - Test double: `FakeInputService` with `SimulateHotKeyPress()` helper
+
+9. **IChatCommandService** (`ServerChatCommandService`) - Wraps `IChatCommand` API
+   - Command registration: `Create(commandName)` returns fluent builder interface
+   - Provides custom parsers: `QuotedString()`, `OptionalQuotedString()` for names with spaces
+   - Handles command hierarchy with subcommands via `BeginSubCommand()`/`EndSubCommand()`
+   - Test double: `FakeChatCommandService` with `RegisteredCommands` list and `SimulateCommand()` helper
 
 **Usage Pattern:**
 ```csharp
