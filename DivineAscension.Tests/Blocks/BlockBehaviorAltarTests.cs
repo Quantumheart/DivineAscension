@@ -2,8 +2,8 @@ using DivineAscension.Blocks;
 using DivineAscension.Systems;
 using Moq;
 using Vintagestory.API.Common;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
-using Xunit;
 
 namespace DivineAscension.Tests.Blocks;
 
@@ -29,8 +29,8 @@ public class BlockBehaviorAltarTests
             mockWorld.Object, mockPlayer.Object, blockSel, ref handling);
 
         // Assert
-        Assert.False(result); // Returns false to allow other behaviors
-        Assert.Equal(EnumHandling.PassThrough, handling);
+        Assert.True(result); // Returns true to indicate we handled the interaction
+        Assert.Equal(EnumHandling.PreventSubsequent, handling);
         Assert.Single(emitterSpy.AltarUsedEvents);
         Assert.Equal(mockPlayer.Object, emitterSpy.AltarUsedEvents[0].Item1);
         Assert.Equal(blockSel, emitterSpy.AltarUsedEvents[0].Item2);
@@ -56,9 +56,9 @@ public class BlockBehaviorAltarTests
             mockWorld.Object, mockPlayer.Object, blockSel, ref handled);
 
         // Assert
-        Assert.False(result);
-        Assert.Equal(EnumHandling.PassThrough, handled);
-        Assert.Empty(emitterSpy.AltarUsedEvents);
+        Assert.True(result); // Still returns true even on client side
+        Assert.Equal(EnumHandling.PreventSubsequent, handled);
+        Assert.Empty(emitterSpy.AltarUsedEvents); // But event is not raised on client
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class BlockBehaviorAltarTests
         var mockWorld = new Mock<IWorldAccessor>();
         mockWorld.Setup(x => x.Side).Returns(EnumAppSide.Server);
         var mockPlayer = new Mock<IServerPlayer>();
-        var pos = new Vintagestory.API.MathTools.BlockPos(10, 20, 30);
+        var pos = new BlockPos(10, 20, 30);
         var emitterSpy = new AltarEventEmitterSpy();
 
         BlockBehaviorAltar.SetEventEmitter(emitterSpy);
@@ -93,7 +93,7 @@ public class BlockBehaviorAltarTests
         var mockWorld = new Mock<IWorldAccessor>();
         mockWorld.Setup(x => x.Side).Returns(EnumAppSide.Client);
         var mockPlayer = new Mock<IPlayer>();
-        var pos = new Vintagestory.API.MathTools.BlockPos(10, 20, 30);
+        var pos = new BlockPos(10, 20, 30);
         var emitterSpy = new AltarEventEmitterSpy();
 
         BlockBehaviorAltar.SetEventEmitter(emitterSpy);
@@ -108,7 +108,7 @@ public class BlockBehaviorAltarTests
     }
 
     [Fact]
-    public void OnBlockInteractStart_AlwaysSetsHandlingToPassThrough()
+    public void OnBlockInteractStart_AlwaysSetsHandlingToPreventSubsequent()
     {
         // Arrange
         var mockBlock = new Mock<Block>();
@@ -126,8 +126,8 @@ public class BlockBehaviorAltarTests
         var result = behavior.OnBlockInteractStart(mockWorld.Object, mockPlayer.Object, blockSel, ref handling);
 
         // Assert
-        Assert.False(result); // Returns false to allow other behaviors
-        Assert.Equal(EnumHandling.PassThrough, handling);
+        Assert.True(result); // Returns true to indicate we handled the interaction
+        Assert.Equal(EnumHandling.PreventSubsequent, handling);
     }
 
     [Fact]
@@ -138,7 +138,7 @@ public class BlockBehaviorAltarTests
         var mockWorld = new Mock<IWorldAccessor>();
         mockWorld.Setup(x => x.Side).Returns(EnumAppSide.Server);
         var mockPlayer = new Mock<IServerPlayer>();
-        var blockSel = new BlockSelection { Position = new Vintagestory.API.MathTools.BlockPos(10, 20, 30) };
+        var blockSel = new BlockSelection { Position = new BlockPos(10, 20, 30) };
         var itemStack = new ItemStack();
         var emitterSpy = new AltarEventEmitterSpy();
 
@@ -186,7 +186,7 @@ public class BlockBehaviorAltarTests
 internal class AltarEventEmitterSpy : AltarEventEmitter
 {
     public List<(IPlayer, BlockSelection)> AltarUsedEvents { get; } = new();
-    public List<(IServerPlayer, Vintagestory.API.MathTools.BlockPos)> AltarBrokenEvents { get; } = new();
+    public List<(IServerPlayer, BlockPos)> AltarBrokenEvents { get; } = new();
     public List<(IServerPlayer, int, BlockSelection, ItemStack)> AltarPlacedEvents { get; } = new();
 
     public override void RaiseAltarUsed(IPlayer player, BlockSelection sel)
@@ -195,13 +195,14 @@ internal class AltarEventEmitterSpy : AltarEventEmitter
         base.RaiseAltarUsed(player, sel);
     }
 
-    public override void RaiseAltarBroken(IServerPlayer player, Vintagestory.API.MathTools.BlockPos pos)
+    public override void RaiseAltarBroken(IServerPlayer player, BlockPos pos)
     {
         AltarBrokenEvents.Add((player, pos));
         base.RaiseAltarBroken(player, pos);
     }
 
-    public override void RaiseAltarPlaced(IServerPlayer player, int oldBlockId, BlockSelection blockSelection, ItemStack withItemStack)
+    public override void RaiseAltarPlaced(IServerPlayer player, int oldBlockId, BlockSelection blockSelection,
+        ItemStack withItemStack)
     {
         AltarPlacedEvents.Add((player, oldBlockId, blockSelection, withItemStack));
         base.RaiseAltarPlaced(player, oldBlockId, blockSelection, withItemStack);
