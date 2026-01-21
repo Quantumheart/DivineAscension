@@ -431,7 +431,8 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
             CenterX = center.X,
             CenterY = center.Y,
             CenterZ = center.Z,
-            FounderUID = site.FounderUID
+            FounderUID = site.FounderUID,
+            Description = site.Description
         };
     }
 

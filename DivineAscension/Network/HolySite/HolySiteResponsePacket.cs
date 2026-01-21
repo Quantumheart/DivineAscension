@@ -70,6 +70,8 @@ public class HolySiteResponsePacket
         [ProtoMember(13)] public int CenterZ { get; set; }
 
         [ProtoMember(14)] public string FounderUID { get; set; } = string.Empty;
+
+        [ProtoMember(15)] public string Description { get; set; } = string.Empty;
     }
 
     /// <summary>

@@ -190,6 +190,7 @@
   "divineascension:ui.holysites.table.tier": "Tier",
   "divineascension:ui.holysites.table.rituals": "Rituals",
   "divineascension:ui.holysites.table.prayer": "Prayer",
+  "divineascension:ui.holysites.table.description": "Description",
   "divineascension:ui.holysites.detail.loading": "Loading holy site details...",
   "divineascension:ui.holysites.detail.back": "Back to List",
   "divineascension:ui.holysites.detail.mark": "Mark on Map",

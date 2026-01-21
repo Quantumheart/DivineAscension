@@ -1503,6 +1503,7 @@ public static class LocalizationKeys
     public const string UI_HOLYSITES_TABLE_TIER = "divineascension:ui.holysites.table.tier";
     public const string UI_HOLYSITES_TABLE_RITUALS = "divineascension:ui.holysites.table.rituals";
     public const string UI_HOLYSITES_TABLE_PRAYER = "divineascension:ui.holysites.table.prayer";
+    public const string UI_HOLYSITES_TABLE_DESCRIPTION = "divineascension:ui.holysites.table.description";
 
     // UI - Detail
     public const string UI_HOLYSITES_DETAIL_LOADING = "divineascension:ui.holysites.detail.loading";

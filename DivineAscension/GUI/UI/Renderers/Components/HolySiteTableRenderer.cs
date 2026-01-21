@@ -153,7 +153,8 @@ internal static class HolySiteTableRenderer
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_NAME),
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_TIER),
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_RITUALS),
-            LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_PRAYER)
+            LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_PRAYER),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_DESCRIPTION)
         };
 
         for (var i = 0; i < columns.Length; i++)
@@ -236,6 +237,9 @@ internal static class HolySiteTableRenderer
         // Column 4: Prayer Multiplier
         DrawPrayerColumn(drawList, site, x + ColumnWidth * 3, y);
 
+        // Column 5: Description
+        DrawDescriptionColumn(drawList, site, x + ColumnWidth * 4, y);
+
         return clickedUID;
     }
 
@@ -314,6 +318,54 @@ internal static class HolySiteTableRenderer
 
         var multiplierText = $"{site.PrayerMultiplier:F2}x";
         DrawCenteredText(drawList, multiplierText, colX, centerY, ColumnWidth, textColor, fontSize);
+    }
+
+    /// <summary>
+    ///     Draw Description column: Truncated description text
+    /// </summary>
+    private static void DrawDescriptionColumn(
+        ImDrawListPtr drawList,
+        HolySiteResponsePacket.HolySiteInfo site,
+        float colX,
+        float rowY)
+    {
+        var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
+        const float fontSize = 12f;
+        const float padding = 8f;
+        var centerY = rowY + (RowHeight - fontSize) / 2f;
+
+        // Truncate description if too long
+        var description = site.Description;
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            description = "-";
+        }
+        else
+        {
+            var maxWidth = ColumnWidth - padding * 2;
+            var textSize = ImGui.CalcTextSize(description);
+            var scale = fontSize / ImGui.GetFont().FontSize;
+            var scaledWidth = textSize.X * scale;
+
+            // Truncate with ellipsis if too long
+            if (scaledWidth > maxWidth)
+            {
+                while (description.Length > 0)
+                {
+                    description = description.Substring(0, description.Length - 1);
+                    var truncated = description + "...";
+                    textSize = ImGui.CalcTextSize(truncated);
+                    scaledWidth = textSize.X * scale;
+                    if (scaledWidth <= maxWidth)
+                    {
+                        description = truncated;
+                        break;
+                    }
+                }
+            }
+        }
+
+        DrawCenteredText(drawList, description, colX, centerY, ColumnWidth, textColor, fontSize);
     }
 
     /// <summary>
