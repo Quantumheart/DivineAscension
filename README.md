@@ -115,6 +115,45 @@ DivineAscension/
 - Keep types `internal` when appropriate; tests already have access via `InternalsVisibleTo`.
 - Place new tests under `DivineAscension.Tests/<Area>/` and align namespaces with folder structure.
 
+### Commit Message Linting
+
+This project uses [commitlint](https://commitlint.js.org/) to enforce [Conventional Commits](https://www.conventionalcommits.org/) format. A git hook automatically validates your commit messages on commit.
+
+**First-time setup:**
+```bash
+# Restore .NET tools (includes Husky.Net)
+dotnet tool restore
+
+# Install Node.js dependencies (commitlint)
+npm install
+```
+
+The commit-msg hook will now run automatically on every commit and reject messages that don't follow the format:
+```
+<type>: <subject>
+
+[optional body]
+```
+
+**Rules:**
+- **type** must be lowercase and one of: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+- **subject** must be lowercase (no sentence-case, start-case, pascal-case, or upper-case)
+- **subject** must not end with a period
+- **header** (type + subject) max 100 characters
+- **body lines** max 100 characters (wrap long lines)
+
+**Examples:**
+```bash
+# ✅ Good
+git commit -m "feat: add prayer cooldown system"
+git commit -m "fix: resolve territory multiplier calculation"
+
+# ❌ Bad
+git commit -m "Feat: Add Prayer System"  # type must be lowercase
+git commit -m "feat: Add Prayer System"  # subject must be lowercase
+git commit -m "add prayer system"        # missing type
+```
+
 ## License
 
 See `LICENSE` in the repository root.
