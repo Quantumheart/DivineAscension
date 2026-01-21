@@ -44,3 +44,7 @@ Thumbs.db
 *.suo
 *.user
 *.sln.docstates
+
+# Node modules
+node_modules/
+package-lock.json
