@@ -5,6 +5,7 @@ using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems.BuffSystem.Interfaces;
 using DivineAscension.Systems.Interfaces;
@@ -36,6 +37,7 @@ public class AltarPrayerHandler : IDisposable
 {
     private const int PRAYER_COOLDOWN_MS = 3600000; // 1 hour
     private const int BASE_PRAYER_FAVOR = 5;
+    private readonly AltarEventEmitter _altarEventEmitter;
     private readonly IBuffManager _buffManager;
     private readonly GameBalanceConfig _config;
     private readonly IHolySiteManager _holySiteManager;
@@ -46,7 +48,6 @@ public class AltarPrayerHandler : IDisposable
     private readonly IPlayerProgressionService _progressionService;
     private readonly IReligionManager _religionManager;
     private readonly ITimeService _timeService;
-    private readonly AltarEventEmitter _altarEventEmitter;
 
     public AltarPrayerHandler(
         ILogger logger,
@@ -65,7 +66,8 @@ public class AltarPrayerHandler : IDisposable
         _offeringLoader = offeringLoader ?? throw new ArgumentNullException(nameof(offeringLoader));
         _holySiteManager = holySiteManager ?? throw new ArgumentNullException(nameof(holySiteManager));
         _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
-        _progressionDataManager = progressionDataManager ?? throw new ArgumentNullException(nameof(progressionDataManager));
+        _progressionDataManager =
+            progressionDataManager ?? throw new ArgumentNullException(nameof(progressionDataManager));
         _progressionService = progressionService ?? throw new ArgumentNullException(nameof(progressionService));
         _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
         _buffManager = buffManager ?? throw new ArgumentNullException(nameof(buffManager));
@@ -103,7 +105,7 @@ public class AltarPrayerHandler : IDisposable
         {
             return new PrayerResult(
                 Success: false,
-                Message: "This altar is not consecrated. It must be part of a holy site.");
+                Message: LocalizationService.Instance.Get(LocalizationKeys.PRAYER_ALTAR_NOT_CONSECRATED));
         }
 
         // Validate player can pray
@@ -112,14 +114,14 @@ public class AltarPrayerHandler : IDisposable
         {
             return new PrayerResult(
                 Success: false,
-                Message: "You must be in a religion to pray.");
+                Message: LocalizationService.Instance.Get(LocalizationKeys.PRAYER_NO_RELIGION));
         }
 
         if (religion.ReligionUID != holySite.ReligionUID)
         {
             return new PrayerResult(
                 Success: false,
-                Message: "You can only pray at altars belonging to your religion.");
+                Message: LocalizationService.Instance.Get(LocalizationKeys.PRAYER_WRONG_RELIGION));
         }
 
         // Check cooldown using expiry time from manager
@@ -135,7 +137,7 @@ public class AltarPrayerHandler : IDisposable
 
             return new PrayerResult(
                 Success: false,
-                Message: $"You must wait {remainingMinutes} more minute(s) before praying again.");
+                Message: LocalizationService.Instance.Get(LocalizationKeys.PRAYER_COOLDOWN, remainingMinutes));
         }
 
         // Calculate holy site tier for offering validation and multipliers
@@ -155,7 +157,7 @@ public class AltarPrayerHandler : IDisposable
                 // Offering rejected due to insufficient holy site tier
                 return new PrayerResult(
                     Success: false,
-                    Message: "This holy site is not powerful enough to accept such a valuable offering.");
+                    Message: LocalizationService.Instance.Get(LocalizationKeys.PRAYER_OFFERING_TIER_REJECTED));
             }
             else if (offeringBonus > 0)
             {
@@ -218,21 +220,34 @@ public class AltarPrayerHandler : IDisposable
         string message;
         if (offeringBonus > 0)
         {
-            message =
-                $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (offering bonus: +{offeringBonus} base, tier {tier} x{prayerMultiplier:F1}). " +
-                $"Divine blessing active for 1 hour ({buffMultiplier:F2}x favor/prestige gains)!";
+            message = LocalizationService.Instance.Get(
+                LocalizationKeys.PRAYER_SUCCESS_WITH_OFFERING,
+                totalFavor,
+                totalPrestige,
+                offeringBonus,
+                tier,
+                prayerMultiplier,
+                buffMultiplier);
         }
         else if (offeringRejected)
         {
-            message =
-                $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (tier {tier} x{prayerMultiplier:F1}). Your offering was not suitable for this domain. " +
-                $"Divine blessing active for 1 hour ({buffMultiplier:F2}x favor/prestige gains)!";
+            message = LocalizationService.Instance.Get(
+                LocalizationKeys.PRAYER_SUCCESS_OFFERING_REJECTED,
+                totalFavor,
+                totalPrestige,
+                tier,
+                prayerMultiplier,
+                buffMultiplier);
         }
         else
         {
-            message =
-                $"Prayer accepted! +{totalFavor} favor, +{totalPrestige} prestige (tier {tier} x{prayerMultiplier:F1}). " +
-                $"Divine blessing active for 1 hour ({buffMultiplier:F2}x favor/prestige gains)!";
+            message = LocalizationService.Instance.Get(
+                LocalizationKeys.PRAYER_SUCCESS_NO_OFFERING,
+                totalFavor,
+                totalPrestige,
+                tier,
+                prayerMultiplier,
+                buffMultiplier);
         }
 
         return message;

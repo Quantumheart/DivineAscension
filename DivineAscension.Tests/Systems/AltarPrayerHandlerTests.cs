@@ -15,6 +15,7 @@ namespace DivineAscension.Tests.Systems;
 
 public class AltarPrayerHandlerTests
 {
+    private readonly Mock<AltarEventEmitter> _altarEventEmitter;
     private readonly Mock<IBuffManager> _buffManager;
     private readonly GameBalanceConfig _config;
     private readonly FakeEventService _eventService;
@@ -26,12 +27,14 @@ public class AltarPrayerHandlerTests
     private readonly Mock<IPlayerProgressionDataManager> _progressionDataManager;
     private readonly Mock<IPlayerProgressionService> _progressionService;
     private readonly Mock<IReligionManager> _religionManager;
-    private readonly Mock<IWorldService> _worldService;
     private readonly FakeTimeService _timeService;
-    private readonly Mock<AltarEventEmitter> _altarEventEmitter;
+    private readonly Mock<IWorldService> _worldService;
 
     public AltarPrayerHandlerTests()
     {
+        // Initialize localization service for tests
+        TestFixtures.InitializeLocalizationForTests();
+
         _eventService = new FakeEventService();
         _offeringLoader = new Mock<IOfferingLoader>();
         _holySiteManager = new Mock<IHolySiteManager>();

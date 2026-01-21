@@ -1035,5 +1035,13 @@
   "divineascension:holysite.desc.toolong": "Description must be 200 characters or less.",
   "divineascension:holysite.desc.profanity": "Description contains inappropriate content.",
   "divineascension:holysite.desc.updated": "Holy site description updated.",
-  "divineascension:holysite.waypoint.added": "Waypoint added for {0}."
+  "divineascension:holysite.waypoint.added": "Waypoint added for {0}.",
+  "divineascension:prayer.altar.not_consecrated": "This altar is not consecrated. It must be part of a holy site.",
+  "divineascension:prayer.no_religion": "You must be in a religion to pray.",
+  "divineascension:prayer.wrong_religion": "You can only pray at altars belonging to your religion.",
+  "divineascension:prayer.cooldown": "You must wait {0} more minute(s) before praying again.",
+  "divineascension:prayer.offering.tier_rejected": "This holy site is not powerful enough to accept such a valuable offering.",
+  "divineascension:prayer.success.with_offering": "Prayer accepted! +{0} favor, +{1} prestige (offering bonus: +{2} base, tier {3} x{4:F1}). Divine blessing active for 1 hour ({5:F2}x favor/prestige gains)!",
+  "divineascension:prayer.success.offering_rejected": "Prayer accepted! +{0} favor, +{1} prestige (tier {2} x{3:F1}). Your offering was not suitable for this domain. Divine blessing active for 1 hour ({4:F2}x favor/prestige gains)!",
+  "divineascension:prayer.success.no_offering": "Prayer accepted! +{0} favor, +{1} prestige (tier {2} x{3:F1}). Divine blessing active for 1 hour ({4:F2}x favor/prestige gains)!"
 }
