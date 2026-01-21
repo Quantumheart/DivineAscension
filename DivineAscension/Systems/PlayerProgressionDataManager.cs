@@ -30,8 +30,8 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     private readonly IPersistenceService _persistenceService;
     private readonly ConcurrentDictionary<string, PlayerProgressionData> _playerData = new();
     private readonly IReligionManager _religionManager;
-    private readonly IWorldService _worldService;
     private readonly ITimeService _timeService;
+    private readonly IWorldService _worldService;
 
     public PlayerProgressionDataManager(
         ILogger logger,
@@ -305,9 +305,10 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     {
         if (TryGetPlayerData(playerUID, out var playerData))
         {
-            return playerData.NextPrayerAllowedTime;
+            if (playerData != null) return playerData.NextPrayerAllowedTime;
         }
-        return 0;  // No player data = no cooldown
+
+        return 0; // No player data = no cooldown
     }
 
     /// <summary>
@@ -325,7 +326,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
             playerData = GetOrCreatePlayerData(playerUID);
         }
 
-        playerData.NextPrayerAllowedTime = expiryTime;
+        if (playerData != null) playerData.NextPrayerAllowedTime = expiryTime;
         NotifyPlayerDataChanged(playerUID);
     }
 
