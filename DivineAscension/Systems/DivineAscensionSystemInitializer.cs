@@ -56,7 +56,6 @@ public static class DivineAscensionSystemInitializer
         cooldownManager.Initialize();
 
         // Step 1: Clear any static event subscribers from previous loads
-        AltarPatches.ClearSubscribers();
         PitKilnPatches.ClearSubscribers();
         AnvilPatches.ClearSubscribers();
         CookingPatches.ClearSubscribers();
@@ -95,6 +94,10 @@ public static class DivineAscensionSystemInitializer
             new ReligionPrestigeManager(logger, worldService, religionManager, gameBalanceConfig);
         religionPrestigeManager.Initialize();
 
+        // Create AltarEventEmitter (service locator for BlockBehaviorAltar)
+        var altarEventEmitter = new AltarEventEmitter();
+        Blocks.BlockBehaviorAltar.SetEventEmitter(altarEventEmitter);
+
         // Initialize Holy Site Manager (depends on ReligionManager)
         var holySiteManager = new HolySiteManager(
             logger,
@@ -110,18 +113,19 @@ public static class DivineAscensionSystemInitializer
         // Initialize Altar Placement Handler (automatically creates holy sites when altars are placed)
         var altarPlacementHandler = new AltarPlacementHandler(
             logger,
-            eventService,
             holySiteManager,
             religionManager,
             worldService,
-            messengerService);
+            messengerService,
+            altarEventEmitter);
         altarPlacementHandler.Initialize();
 
         // Initialize Altar Destruction Handler (automatically deconsecrates holy sites when altars are destroyed)
         var altarDestructionHandler = new AltarDestructionHandler(
             logger,
             holySiteManager,
-            messengerService);
+            messengerService,
+            altarEventEmitter);
         altarDestructionHandler.Initialize();
 
         // NOTE: AltarPrayerHandler initialized after FavorSystem (needs IFavorSystem and IActivityLogManager)
@@ -153,17 +157,16 @@ public static class DivineAscensionSystemInitializer
         // Initialize Altar Prayer Handler (handles prayer interactions at altars)
         var altarPrayerHandler = new AltarPrayerHandler(
             logger,
-            eventService,
             offeringLoader,
             holySiteManager,
             religionManager,
             playerReligionDataManager,
             progressionService,
             messengerService,
-            worldService,
             buffManager,
             gameBalanceConfig,
-            timeService);
+            timeService,
+            altarEventEmitter);
         altarPrayerHandler.Initialize();
 
         var diplomacyManager = new DiplomacyManager(logger, eventService, persistenceService, civilizationManager,
@@ -336,6 +339,7 @@ public static class DivineAscensionSystemInitializer
             BlessingRegistry = blessingRegistry,
             BlessingEffectSystem = blessingEffectSystem,
             RoleManager = roleManager,
+            AltarEventEmitter = altarEventEmitter,
             FavorCommands = favorCommands,
             BlessingCommands = blessingCommands,
             ReligionCommands = religionCommands,
@@ -377,6 +381,7 @@ public class InitializationResult
     public BlessingRegistry BlessingRegistry { get; init; } = null!;
     public BlessingEffectSystem BlessingEffectSystem { get; init; } = null!;
     public RoleManager RoleManager { get; init; } = null!;
+    public AltarEventEmitter AltarEventEmitter { get; init; } = null!;
 
     // 6 Commands
     public FavorCommands FavorCommands { get; init; } = null!;

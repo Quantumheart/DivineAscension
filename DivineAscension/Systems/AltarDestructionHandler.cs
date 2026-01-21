@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
 using DivineAscension.Systems.Interfaces;
-using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
@@ -13,33 +12,36 @@ namespace DivineAscension.Systems;
 /// <summary>
 /// Detects altar destruction and automatically deconsecrates associated holy sites.
 /// When an altar block that created a holy site is destroyed, the holy site is removed.
-/// Subscribes to the AltarPatches.OnAltarBroken event for efficient altar-specific detection.
+/// Subscribes to the AltarEventEmitter.OnAltarBroken event for efficient altar-specific detection.
 /// </summary>
 public class AltarDestructionHandler : IDisposable
 {
     private readonly IHolySiteManager _holySiteManager;
     private readonly ILogger _logger;
     private readonly IPlayerMessengerService _messenger;
+    private readonly AltarEventEmitter _altarEventEmitter;
 
     public AltarDestructionHandler(
         ILogger logger,
         IHolySiteManager holySiteManager,
-        IPlayerMessengerService messenger)
+        IPlayerMessengerService messenger,
+        AltarEventEmitter altarEventEmitter)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _holySiteManager = holySiteManager ?? throw new ArgumentNullException(nameof(holySiteManager));
         _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+        _altarEventEmitter = altarEventEmitter ?? throw new ArgumentNullException(nameof(altarEventEmitter));
     }
 
     public void Dispose()
     {
-        AltarPatches.OnAltarBroken -= OnAltarBroken;
+        _altarEventEmitter.OnAltarBroken -= OnAltarBroken;
     }
 
     public void Initialize()
     {
         _logger.Notification("[DivineAscension] Initializing Altar Destruction Handler...");
-        AltarPatches.OnAltarBroken += OnAltarBroken;
+        _altarEventEmitter.OnAltarBroken += OnAltarBroken;
         _logger.Notification("[DivineAscension] Altar Destruction Handler initialized");
     }
 

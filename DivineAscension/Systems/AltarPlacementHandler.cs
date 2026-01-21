@@ -12,55 +12,58 @@ namespace DivineAscension.Systems;
 /// <summary>
 /// Detects altar placement and automatically creates holy sites from land claims.
 /// Any religion member can place altars - they automatically consecrate the claim as a holy site.
+/// Subscribes to AltarEventEmitter.OnAltarPlaced event for efficient altar-specific detection.
 /// </summary>
 public class AltarPlacementHandler : IDisposable
 {
-    private readonly IEventService _eventService;
     private readonly IHolySiteManager _holySiteManager;
     private readonly IReligionManager _religionManager;
     private readonly IWorldService _worldService;
     private readonly IPlayerMessengerService _messenger;
     private readonly ILogger _logger;
+    private readonly AltarEventEmitter _altarEventEmitter;
 
     public AltarPlacementHandler(
         ILogger logger,
-        IEventService eventService,
         IHolySiteManager holySiteManager,
         IReligionManager religionManager,
         IWorldService worldService,
-        IPlayerMessengerService messenger)
+        IPlayerMessengerService messenger,
+        AltarEventEmitter altarEventEmitter)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
         _holySiteManager = holySiteManager ?? throw new ArgumentNullException(nameof(holySiteManager));
         _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
         _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+        _altarEventEmitter = altarEventEmitter ?? throw new ArgumentNullException(nameof(altarEventEmitter));
     }
 
     public void Initialize()
     {
         _logger.Notification("[DivineAscension] Initializing Altar Placement Handler...");
-        _eventService.OnDidPlaceBlock(OnBlockPlaced);
+        _altarEventEmitter.OnAltarPlaced += OnAltarPlaced;
         _logger.Notification("[DivineAscension] Altar Placement Handler initialized");
     }
 
     public void Dispose()
     {
-        _eventService.UnsubscribeDidPlaceBlock(OnBlockPlaced);
+        _altarEventEmitter.OnAltarPlaced -= OnAltarPlaced;
     }
 
     [ExcludeFromCodeCoverage]
-    private void OnBlockPlaced(IServerPlayer player, int oldBlockId, BlockSelection blockSel, ItemStack withItemStack)
+    private void OnAltarPlaced(IServerPlayer player, int oldBlockId, BlockSelection blockSel, ItemStack withItemStack)
     {
         try
         {
-            // Get the placed block
-            var block = _worldService.GetBlock(blockSel.Position);
-            if (!IsAltarBlock(block))
+            // Validate the ItemStack being placed (block hasn't been set in world yet during DoPlaceBlock)
+            if (withItemStack?.Collectible?.Code == null)
                 return;
 
-            _logger.Debug($"[DivineAscension] Player {player.PlayerName} placed an altar at {blockSel.Position}");
+            if (!IsAltarItem(withItemStack))
+                return;
+
+            _logger.Debug($"[DivineAscension] Player {player.PlayerName} placing an altar at {blockSel.Position}");
 
             // Check religion membership
             var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
@@ -139,6 +142,12 @@ public class AltarPlacementHandler : IDisposable
     }
 
     [ExcludeFromCodeCoverage]
+    private bool IsAltarItem(ItemStack itemStack)
+    {
+        // Match any item/block with code path starting with "altar"
+        return itemStack?.Collectible?.Code?.Path?.StartsWith("altar") ?? false;
+    }
+
     private bool IsAltarBlock(Block block)
     {
         // Match any block with code path starting with "altar"
