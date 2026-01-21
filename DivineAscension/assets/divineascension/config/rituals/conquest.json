@@ -1,0 +1,80 @@
+{
+  "domain": "Conquest",
+  "version": 1,
+  "rituals": [
+    {
+      "ritualId": "conquest_tier2_ritual",
+      "name": "Rite of the Warlord",
+      "sourceTier": 1,
+      "targetTier": 2,
+      "description": "Prove your martial prowess by offering trophies of battle and conquest.",
+      "requirements": [
+        {
+          "requirementId": "armor_pieces",
+          "displayName": "Armor Pieces (Any Type)",
+          "quantity": 10,
+          "type": "Category",
+          "itemCodes": ["game:armor-*"]
+        },
+        {
+          "requirementId": "weapons",
+          "displayName": "Weapons (Any Metal)",
+          "quantity": 15,
+          "type": "Category",
+          "itemCodes": ["game:sword-*", "game:spear-*", "game:bow-*"]
+        },
+        {
+          "requirementId": "arrows",
+          "displayName": "Arrows",
+          "quantity": 50,
+          "type": "Category",
+          "itemCodes": ["game:arrow-*"]
+        },
+        {
+          "requirementId": "rusty_gears",
+          "displayName": "Rusty Gears (Ancient Trophies)",
+          "quantity": 20,
+          "type": "Exact",
+          "itemCodes": ["game:gear-rusty"]
+        }
+      ]
+    },
+    {
+      "ritualId": "conquest_tier3_ritual",
+      "name": "Rite of Eternal Glory",
+      "sourceTier": 2,
+      "targetTier": 3,
+      "description": "Consecrate this ground with the spoils of legendary victories.",
+      "requirements": [
+        {
+          "requirementId": "elite_weapons",
+          "displayName": "Steel or Better Weapons",
+          "quantity": 5,
+          "type": "Category",
+          "itemCodes": ["game:sword-steel", "game:spear-steel", "game:bow-recurve"]
+        },
+        {
+          "requirementId": "shields",
+          "displayName": "Shields (Any Type)",
+          "quantity": 5,
+          "type": "Category",
+          "itemCodes": ["game:shield-*"]
+        },
+        {
+          "requirementId": "temporal_gears",
+          "displayName": "Temporal Gears",
+          "quantity": 10,
+          "type": "Exact",
+          "itemCodes": ["game:gear-temporal"]
+        },
+        {
+          "requirementId": "ancient_armor",
+          "displayName": "Ancient Armor Sets",
+          "quantity": 4,
+          "type": "Category",
+          "itemCodes": ["game:armor-plate-*", "game:armor-brigandine-*"]
+        }
+      ]
+    }
+  ]
+}

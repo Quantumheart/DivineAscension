@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using DivineAscension.API.Interfaces;
@@ -25,23 +26,30 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
     private readonly ILogger _logger;
     private readonly INetworkService _networkService;
     private readonly IReligionManager _religionManager;
+    private readonly IRitualProgressManager _ritualProgressManager;
+    private readonly Services.Interfaces.IRitualLoader _ritualLoader;
 
     public HolySiteNetworkHandler(
         ILogger logger,
         IHolySiteManager holySiteManager,
         IReligionManager religionManager,
-        INetworkService networkService)
+        INetworkService networkService,
+        IRitualProgressManager ritualProgressManager,
+        Services.Interfaces.IRitualLoader ritualLoader)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _holySiteManager = holySiteManager ?? throw new ArgumentNullException(nameof(holySiteManager));
         _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
         _networkService = networkService ?? throw new ArgumentNullException(nameof(networkService));
+        _ritualProgressManager = ritualProgressManager ?? throw new ArgumentNullException(nameof(ritualProgressManager));
+        _ritualLoader = ritualLoader ?? throw new ArgumentNullException(nameof(ritualLoader));
     }
 
     public void RegisterHandlers()
     {
         _networkService.RegisterMessageHandler<HolySiteRequestPacket>(OnHolySiteRequest);
         _networkService.RegisterMessageHandler<HolySiteUpdateRequestPacket>(OnHolySiteUpdate);
+        _networkService.RegisterMessageHandler<RitualRequestPacket>(OnRitualRequest);
     }
 
     public void Dispose()
@@ -111,6 +119,113 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
             SendUpdateError(fromPlayer, packet.SiteUID,
                 LocalizationService.Instance.Get(LocalizationKeys.ERROR_INTERNAL));
         }
+    }
+
+    private void OnRitualRequest(IServerPlayer fromPlayer, RitualRequestPacket packet)
+    {
+        try
+        {
+            // Get the holy site
+            var site = _holySiteManager.GetHolySite(packet.SiteUID);
+            if (site == null)
+            {
+                SendRitualError(fromPlayer,
+                    LocalizationService.Instance.Get(LocalizationKeys.ERROR_HOLYSITE_NOT_FOUND));
+                return;
+            }
+
+            // Validate consecrator permission
+            if (site.FounderUID != fromPlayer.PlayerUID)
+            {
+                SendRitualError(fromPlayer,
+                    LocalizationService.Instance.Get(LocalizationKeys.ERROR_PERMISSION_DENIED));
+                return;
+            }
+
+            // Handle different actions
+            switch (packet.Action)
+            {
+                case "start":
+                    HandleStartRitual(fromPlayer, site, packet.TargetTier);
+                    break;
+                case "cancel":
+                    HandleCancelRitual(fromPlayer, site);
+                    break;
+                default:
+                    SendRitualError(fromPlayer, "Unknown action");
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"[DivineAscension] Error handling ritual request: {ex.Message}");
+            SendRitualError(fromPlayer,
+                LocalizationService.Instance.Get(LocalizationKeys.ERROR_INTERNAL));
+        }
+    }
+
+    private void HandleStartRitual(IServerPlayer fromPlayer, HolySiteData site, int targetTier)
+    {
+        // Get religion for domain info
+        var religion = _religionManager.GetReligion(site.ReligionUID);
+        if (religion == null)
+        {
+            SendRitualError(fromPlayer, "Religion not found");
+            return;
+        }
+
+        // Find the appropriate ritual
+        var sourceTier = site.GetTier();
+        var ritual = _ritualLoader.GetRitualForTierUpgrade(religion.Domain, sourceTier, targetTier);
+        if (ritual == null)
+        {
+            SendRitualError(fromPlayer, $"No ritual found for upgrading from Tier {sourceTier} to Tier {targetTier}");
+            return;
+        }
+
+        // Start the ritual
+        var result = _ritualProgressManager.StartRitual(site.SiteUID, ritual.RitualId, fromPlayer.PlayerUID);
+
+        if (result.Success)
+        {
+            // Map ritual progress and send response
+            var progressInfo = MapRitualProgress(site.ActiveRitual!, ritual, site.ReligionUID);
+            _networkService.SendToPlayer(fromPlayer, new RitualResponsePacket
+            {
+                Success = true,
+                Message = result.Message,
+                RitualProgress = progressInfo
+            });
+        }
+        else
+        {
+            SendRitualError(fromPlayer, result.Message);
+        }
+    }
+
+    private void HandleCancelRitual(IServerPlayer fromPlayer, HolySiteData site)
+    {
+        var success = _ritualProgressManager.CancelRitual(site.SiteUID, fromPlayer.PlayerUID);
+
+        if (success)
+        {
+            // Send updated holy site details to refresh the UI
+            var updatedResponse = HandleDetailAction(site.SiteUID);
+            _networkService.SendToPlayer(fromPlayer, updatedResponse);
+        }
+        else
+        {
+            SendRitualError(fromPlayer, "Failed to cancel ritual");
+        }
+    }
+
+    private void SendRitualError(IServerPlayer player, string message)
+    {
+        _networkService.SendToPlayer(player, new RitualResponsePacket
+        {
+            Success = false,
+            Message = message
+        });
     }
 
     private bool HandleRename(IServerPlayer fromPlayer, HolySiteData site, string siteUID, string newName)
@@ -371,9 +486,85 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
                 Volume = area.GetVolume(),
                 XZArea = area.GetXZArea()
             }).ToList(),
-            Description = site.Description
+            Description = site.Description,
+            ActiveRitual = site.ActiveRitual != null ? MapRitualProgressFromData(site.ActiveRitual, site.ReligionUID) : null
         };
 
         return detailInfo;
+    }
+
+    /// <summary>
+    /// Maps RitualProgressData to RitualProgressInfo for network transmission.
+    /// </summary>
+    private HolySiteResponsePacket.RitualProgressInfo? MapRitualProgressFromData(Data.RitualProgressData progressData, string religionUID)
+    {
+        var ritual = _ritualLoader.GetRitualById(progressData.RitualId);
+        if (ritual == null)
+        {
+            _logger.Warning($"[DivineAscension] Ritual '{progressData.RitualId}' not found in loader");
+            return null;
+        }
+
+        return MapRitualProgress(progressData, ritual, religionUID);
+    }
+
+    /// <summary>
+    /// Maps ritual progress with full ritual context for detailed display.
+    /// </summary>
+    private HolySiteResponsePacket.RitualProgressInfo MapRitualProgress(Data.RitualProgressData progressData, Models.Ritual ritual, string religionUID)
+    {
+        var requirementInfos = ritual.Requirements.Select(req =>
+        {
+            progressData.Progress.TryGetValue(req.RequirementId, out var progress);
+            var topContributors = progress?.Contributors
+                .OrderByDescending(c => c.Value)
+                .Take(5)
+                .Select(c => new HolySiteResponsePacket.ContributorInfo
+                {
+                    PlayerUID = c.Key,
+                    PlayerName = GetPlayerNameOrUID(c.Key, religionUID),
+                    Quantity = c.Value
+                })
+                .ToList() ?? new List<HolySiteResponsePacket.ContributorInfo>();
+
+            return new HolySiteResponsePacket.RequirementProgressInfo
+            {
+                RequirementId = req.RequirementId,
+                DisplayName = req.DisplayName,
+                QuantityContributed = progress?.QuantityContributed ?? 0,
+                QuantityRequired = req.Quantity,
+                TopContributors = topContributors
+            };
+        }).ToList();
+
+        return new HolySiteResponsePacket.RitualProgressInfo
+        {
+            RitualId = ritual.RitualId,
+            RitualName = ritual.Name,
+            Description = ritual.Description,
+            SourceTier = ritual.SourceTier,
+            TargetTier = ritual.TargetTier,
+            Requirements = requirementInfos,
+            StartedAt = progressData.StartedAt
+        };
+    }
+
+    /// <summary>
+    /// Gets player name from UID by looking up in religion members, or returns UID if not found.
+    /// </summary>
+    private string GetPlayerNameOrUID(string playerUID, string religionUID)
+    {
+        var religion = _religionManager.GetReligion(religionUID);
+        if (religion != null)
+        {
+            var playerName = religion.GetMemberName(playerUID);
+            if (!string.IsNullOrEmpty(playerName))
+            {
+                return playerName;
+            }
+        }
+
+        // Fallback to UID if we can't find the name
+        return playerUID;
     }
 }

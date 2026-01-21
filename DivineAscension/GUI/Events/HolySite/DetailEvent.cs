@@ -54,4 +54,14 @@ public abstract record DetailEvent
     /// User clicked cancel on the description edit
     /// </summary>
     public sealed record DescriptionCancel : DetailEvent;
+
+    /// <summary>
+    /// User clicked to start a ritual
+    /// </summary>
+    public sealed record StartRitualClicked(int TargetTier) : DetailEvent;
+
+    /// <summary>
+    /// User clicked to cancel the active ritual
+    /// </summary>
+    public sealed record CancelRitualClicked : DetailEvent;
 }

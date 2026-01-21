@@ -917,6 +917,24 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _capi?.Logger.Debug($"[DivineAscension] Sent holy site update request: {action} for site {siteUID}");
     }
 
+    public void SendRitualRequest(string action, string siteUID, int targetTier = 0)
+    {
+        if (!IsNetworkAvailable())
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot send ritual request: client channel not initialized");
+            return;
+        }
+
+        var request = new RitualRequestPacket
+        {
+            Action = action,
+            SiteUID = siteUID,
+            TargetTier = targetTier
+        };
+        _clientChannel?.SendPacket(request);
+        _capi?.Logger.Debug($"[DivineAscension] Sent ritual request: {action} for site {siteUID}");
+    }
+
     #endregion
 
     #region Events

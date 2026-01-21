@@ -1524,6 +1524,18 @@ public static class LocalizationKeys
     public const string HOLYSITE_DESC_UPDATED = "divineascension:holysite.desc.updated";
     public const string HOLYSITE_WAYPOINT_ADDED = "divineascension:holysite.waypoint.added";
 
+    // Ritual Keys
+    public const string RITUAL_STARTED = "divineascension:ritual.started";
+    public const string RITUAL_CONTRIBUTION = "divineascension:ritual.contribution";
+    public const string RITUAL_COMPLETED = "divineascension:ritual.completed";
+    public const string RITUAL_CANCELLED = "divineascension:ritual.cancelled";
+    public const string RITUAL_PROGRESS = "divineascension:ritual.progress";
+    public const string RITUAL_REQUIREMENT_MET = "divineascension:ritual.requirement_met";
+    public const string RITUAL_NOT_CONSECRATOR = "divineascension:ritual.not_consecrator";
+    public const string RITUAL_ALREADY_ACTIVE = "divineascension:ritual.already_active";
+    public const string RITUAL_INVALID_TIER = "divineascension:ritual.invalid_tier";
+    public const string RITUAL_MAX_TIER = "divineascension:ritual.max_tier";
+
     // Errors
     public const string ERROR_HOLYSITE_NOT_FOUND = "divineascension:error.holysite.not_found";
     public const string ERROR_PERMISSION_DENIED = "divineascension:error.permission_denied";

@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Constants;
+using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using DivineAscension.Services.Interfaces;
@@ -37,6 +38,7 @@ public class AltarPrayerHandler : IDisposable
 {
     private const int PRAYER_COOLDOWN_MS = 3600000; // 1 hour
     private const int BASE_PRAYER_FAVOR = 5;
+    private const float RITUAL_CONTRIBUTION_MULTIPLIER = 0.5f; // 50% of normal favor for ritual contributions
     private readonly AltarEventEmitter _altarEventEmitter;
     private readonly IBuffManager _buffManager;
     private readonly GameBalanceConfig _config;
@@ -47,7 +49,10 @@ public class AltarPrayerHandler : IDisposable
     private readonly IPlayerProgressionDataManager _progressionDataManager;
     private readonly IPlayerProgressionService _progressionService;
     private readonly IReligionManager _religionManager;
+    private readonly IRitualLoader _ritualLoader;
+    private readonly IRitualProgressManager _ritualProgressManager;
     private readonly ITimeService _timeService;
+    private readonly IWorldService _worldService;
 
     public AltarPrayerHandler(
         ILogger logger,
@@ -60,7 +65,10 @@ public class AltarPrayerHandler : IDisposable
         IBuffManager buffManager,
         GameBalanceConfig config,
         ITimeService timeService,
-        AltarEventEmitter altarEventEmitter)
+        AltarEventEmitter altarEventEmitter,
+        IRitualProgressManager ritualProgressManager,
+        IRitualLoader ritualLoader,
+        IWorldService worldService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _offeringLoader = offeringLoader ?? throw new ArgumentNullException(nameof(offeringLoader));
@@ -74,6 +82,9 @@ public class AltarPrayerHandler : IDisposable
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _timeService = timeService ?? throw new ArgumentNullException(nameof(timeService));
         _altarEventEmitter = altarEventEmitter ?? throw new ArgumentNullException(nameof(altarEventEmitter));
+        _ritualProgressManager = ritualProgressManager ?? throw new ArgumentNullException(nameof(ritualProgressManager));
+        _ritualLoader = ritualLoader ?? throw new ArgumentNullException(nameof(ritualLoader));
+        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
     }
 
     public void Dispose()
@@ -143,6 +154,66 @@ public class AltarPrayerHandler : IDisposable
         // Calculate holy site tier for offering validation and multipliers
         var tier = holySite.GetTier();
 
+        // Check for ritual contribution (auto-discover and start if needed)
+        if (offering != null && offering.StackSize > 0)
+        {
+            // Try to auto-discover and start ritual if not active
+            if (holySite.ActiveRitual == null)
+            {
+                var autoStartResult = TryAutoStartRitual(holySite, offering, religion, playerUID);
+                if (autoStartResult != null)
+                {
+                    // Successfully discovered and started a ritual!
+                    return autoStartResult;
+                }
+            }
+
+            // Try to contribute to active ritual
+            if (holySite.ActiveRitual != null)
+            {
+                var contributionResult = _ritualProgressManager.ContributeToRitual(
+                    holySite.SiteUID, offering, playerUID);
+
+                if (contributionResult.Success)
+                {
+                    // Calculate reduced favor/prestige (50% of normal offering value)
+                    var ritualOfferingBonus = CalculateOfferingValue(offering, religion.Domain, tier);
+                    int reducedFavor = ritualOfferingBonus > 0
+                        ? (int)Math.Round(ritualOfferingBonus * RITUAL_CONTRIBUTION_MULTIPLIER)
+                        : 0;
+
+                    // Award progression for ritual contribution
+                    if (reducedFavor > 0)
+                    {
+                        string ritualActivityMsg = contributionResult.RitualCompleted
+                            ? $"{playerName} completed a ritual (tier {tier})"
+                            : $"{playerName} contributed to ritual (tier {tier})";
+
+                        _progressionService.AwardProgressionForPrayer(
+                            playerUID,
+                            holySite.ReligionUID,
+                            reducedFavor,
+                            reducedFavor, // 1:1 ratio
+                            religion.Domain,
+                            ritualActivityMsg);
+                    }
+
+                    // Return success without updating cooldown
+                    return new PrayerResult(
+                        Success: true,
+                        Message: contributionResult.Message + (reducedFavor > 0 ? $" (+{reducedFavor} favor)" : ""),
+                        FavorAwarded: reducedFavor,
+                        PrestigeAwarded: reducedFavor,
+                        HolySiteTier: tier,
+                        BuffMultiplier: 0f, // No buff for ritual contributions
+                        ShouldConsumeOffering: true,
+                        ShouldUpdateCooldown: false // No cooldown for ritual contributions
+                    );
+                }
+                // If contribution failed, continue with normal prayer flow
+            }
+        }
+
         // Process offering
         int offeringBonus = 0;
         string offeringName = "";
@@ -211,6 +282,85 @@ public class AltarPrayerHandler : IDisposable
             BuffMultiplier: buffMultiplier,
             ShouldConsumeOffering: shouldConsumeOffering,
             ShouldUpdateCooldown: true);
+    }
+
+    /// <summary>
+    /// Attempts to auto-discover and start a ritual when a qualifying item is offered.
+    /// </summary>
+    private PrayerResult? TryAutoStartRitual(HolySiteData holySite, ItemStack offering, ReligionData religion, string playerUID)
+    {
+        var currentTier = holySite.GetTier();
+
+        // Can't start ritual if already at max tier
+        if (currentTier >= 3)
+            return null;
+
+        var targetTier = currentTier + 1;
+
+        // Find ritual for this tier upgrade
+        var ritual = _ritualLoader.GetRitualForTierUpgrade(religion.Domain, currentTier, targetTier);
+        if (ritual == null)
+            return null;
+
+        // Check if offering matches any ritual requirement
+        var ritualMatcher = new RitualMatcher();
+        var matchingRequirement = ritualMatcher.FindMatchingRequirement(offering, ritual.Requirements);
+        if (matchingRequirement == null)
+            return null; // Offering doesn't match ritual requirements
+
+        // Auto-start the ritual!
+        var startResult = _ritualProgressManager.StartRitual(holySite.SiteUID, ritual.RitualId, playerUID);
+        if (!startResult.Success)
+            return null;
+
+        _logger.Notification($"[DivineAscension] Ritual '{ritual.Name}' discovered and started at holy site '{holySite.SiteName}' by player {playerUID}");
+
+        // Now contribute the offering
+        var contributionResult = _ritualProgressManager.ContributeToRitual(holySite.SiteUID, offering, playerUID);
+        if (!contributionResult.Success)
+        {
+            _logger.Warning($"[DivineAscension] Failed to contribute after auto-starting ritual: {contributionResult.Message}");
+            return null;
+        }
+
+        // Calculate reduced favor/prestige
+        var tier = holySite.GetTier();
+        var ritualOfferingBonus = CalculateOfferingValue(offering, religion.Domain, tier);
+        int reducedFavor = ritualOfferingBonus > 0
+            ? (int)Math.Round(ritualOfferingBonus * RITUAL_CONTRIBUTION_MULTIPLIER)
+            : 0;
+
+        // Award progression
+        if (reducedFavor > 0)
+        {
+            var playerName = _worldService.GetPlayerByUID(playerUID)?.PlayerName ?? "Unknown";
+            string activityMsg = $"{playerName} discovered ritual '{ritual.Name}' (tier {tier})";
+
+            _progressionService.AwardProgressionForPrayer(
+                playerUID,
+                holySite.ReligionUID,
+                reducedFavor,
+                reducedFavor,
+                religion.Domain,
+                activityMsg);
+        }
+
+        // Return success with discovery message
+        var discoveryMessage = LocalizationService.Instance.Get(
+            LocalizationKeys.RITUAL_STARTED,
+            ritual.Name,
+            holySite.SiteName,
+            targetTier);
+
+        return new PrayerResult(
+            Success: true,
+            Message: discoveryMessage + $"\n{contributionResult.Message}" + (reducedFavor > 0 ? $" (+{reducedFavor} favor)" : ""),
+            FavorAwarded: reducedFavor,
+            PrestigeAwarded: reducedFavor,
+            HolySiteTier: tier,
+            BuffMultiplier: 0f,
+            ShouldConsumeOffering: true,
+            ShouldUpdateCooldown: false);
     }
 
     private static string BuildMessage(int offeringBonus, int totalFavor, int totalPrestige, int tier,

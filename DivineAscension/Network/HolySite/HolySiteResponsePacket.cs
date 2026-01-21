@@ -105,6 +105,8 @@ public class HolySiteResponsePacket
         [ProtoMember(15)] public CenterPosition Center { get; set; } = new();
 
         [ProtoMember(16)] public string Description { get; set; } = string.Empty;
+
+        [ProtoMember(17)] public RitualProgressInfo? ActiveRitual { get; set; }
     }
 
     /// <summary>
@@ -141,5 +143,56 @@ public class HolySiteResponsePacket
         [ProtoMember(2)] public int Y { get; set; }
 
         [ProtoMember(3)] public int Z { get; set; }
+    }
+
+    /// <summary>
+    /// Active ritual progress information for a holy site.
+    /// </summary>
+    [ProtoContract]
+    public class RitualProgressInfo
+    {
+        [ProtoMember(1)] public string RitualId { get; set; } = string.Empty;
+
+        [ProtoMember(2)] public string RitualName { get; set; } = string.Empty;
+
+        [ProtoMember(3)] public string Description { get; set; } = string.Empty;
+
+        [ProtoMember(4)] public int SourceTier { get; set; }
+
+        [ProtoMember(5)] public int TargetTier { get; set; }
+
+        [ProtoMember(6)] public List<RequirementProgressInfo> Requirements { get; set; } = new();
+
+        [ProtoMember(7)] public DateTime StartedAt { get; set; }
+    }
+
+    /// <summary>
+    /// Progress information for a single ritual requirement.
+    /// </summary>
+    [ProtoContract]
+    public class RequirementProgressInfo
+    {
+        [ProtoMember(1)] public string RequirementId { get; set; } = string.Empty;
+
+        [ProtoMember(2)] public string DisplayName { get; set; } = string.Empty;
+
+        [ProtoMember(3)] public int QuantityContributed { get; set; }
+
+        [ProtoMember(4)] public int QuantityRequired { get; set; }
+
+        [ProtoMember(5)] public List<ContributorInfo> TopContributors { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Contributor information for a ritual requirement.
+    /// </summary>
+    [ProtoContract]
+    public class ContributorInfo
+    {
+        [ProtoMember(1)] public string PlayerUID { get; set; } = string.Empty;
+
+        [ProtoMember(2)] public string PlayerName { get; set; } = string.Empty;
+
+        [ProtoMember(3)] public int Quantity { get; set; }
     }
 }

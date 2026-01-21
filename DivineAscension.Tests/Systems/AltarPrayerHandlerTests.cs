@@ -27,6 +27,8 @@ public class AltarPrayerHandlerTests
     private readonly Mock<IPlayerProgressionDataManager> _progressionDataManager;
     private readonly Mock<IPlayerProgressionService> _progressionService;
     private readonly Mock<IReligionManager> _religionManager;
+    private readonly Mock<IRitualLoader> _ritualLoader;
+    private readonly Mock<IRitualProgressManager> _ritualProgressManager;
     private readonly FakeTimeService _timeService;
     private readonly Mock<IWorldService> _worldService;
 
@@ -48,6 +50,8 @@ public class AltarPrayerHandlerTests
         _config = new GameBalanceConfig();
         _timeService = new FakeTimeService();
         _altarEventEmitter = new Mock<AltarEventEmitter>();
+        _ritualLoader = new Mock<IRitualLoader>();
+        _ritualProgressManager = new Mock<IRitualProgressManager>();
 
         // Setup default: no cooldown active
         _progressionDataManager.Setup(x => x.GetPrayerCooldownExpiry(It.IsAny<string>()))
@@ -64,7 +68,10 @@ public class AltarPrayerHandlerTests
             _buffManager.Object,
             _config,
             _timeService,
-            _altarEventEmitter.Object);
+            _altarEventEmitter.Object,
+            _ritualProgressManager.Object,
+            _ritualLoader.Object,
+            _worldService.Object);
 
         _handler.Initialize();
     }

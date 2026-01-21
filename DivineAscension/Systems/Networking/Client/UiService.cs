@@ -141,4 +141,14 @@ public class UiService(DivineAscensionNetworkClient networkClient)
     {
         _networkClient.UpdateHolySite(action, siteUID, newValue);
     }
+
+    public void RequestStartRitual(string siteUID, int targetTier)
+    {
+        _networkClient.SendRitualRequest("start", siteUID, targetTier);
+    }
+
+    public void RequestCancelRitual(string siteUID)
+    {
+        _networkClient.SendRitualRequest("cancel", siteUID);
+    }
 }

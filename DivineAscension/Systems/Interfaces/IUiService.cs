@@ -45,4 +45,6 @@ public interface IUiService
     void RequestHolySiteDetail(string siteUID);
     void RequestReligionSites(string religionUID);
     void UpdateHolySite(string action, string siteUID, string newValue);
+    void RequestStartRitual(string siteUID, int targetTier);
+    void RequestCancelRitual(string siteUID);
 }

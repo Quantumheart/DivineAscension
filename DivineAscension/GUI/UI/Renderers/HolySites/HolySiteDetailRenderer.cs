@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.HolySite;
@@ -9,6 +10,7 @@ using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
+using DivineAscension.Network.HolySite;
 using DivineAscension.Services;
 using ImGuiNET;
 
@@ -94,22 +96,39 @@ internal static class HolySiteDetailRenderer
 
         currentY += 16f;
 
-        // Deity icon (left side)
-        DrawDeityIcon(vm, drawList, vm.X + 97f, currentY);
+        // Two-column layout
+        var leftColumnX = vm.X + 97f;
+        var leftColumnWidth = (vm.Width / 2) - 110f; // Half width minus icon space
+        var rightColumnX = vm.X + (vm.Width / 2) + 20f; // Start right column with padding
+        var dividerX = vm.X + (vm.Width / 2) + 5f; // Vertical divider line
 
-        // Holy site information (right side)
-        var infoStartX = vm.X + 220f;
-        DrawHolySiteInfo(vm, drawList, infoStartX, ref currentY, events);
+        var leftColumnY = currentY;
+        var rightColumnY = currentY;
 
-        currentY += SectionSpacing;
+        // Draw vertical divider line between columns
+        drawList.AddLine(
+            new Vector2(dividerX, currentY - 10f),
+            new Vector2(dividerX, backgroundY + backgroundHeight - 10f),
+            ImGui.ColorConvertFloat4ToU32(new Vector4(0.3f, 0.3f, 0.3f, 0.5f)),
+            1f);
 
-        // Coordinates section
-        DrawCoordinatesSection(vm, drawList, infoStartX, ref currentY);
+        // LEFT COLUMN: Deity icon + Site Info + Coordinates + Description
+        DrawDeityIcon(vm, drawList, leftColumnX, leftColumnY);
 
-        currentY += SectionSpacing;
+        var infoStartX = leftColumnX + 123f; // After icon
+        DrawHolySiteInfo(vm, drawList, infoStartX, ref leftColumnY, events);
 
-        // Description section
-        DrawDescriptionSection(vm, drawList, infoStartX, ref currentY, events);
+        leftColumnY += SectionSpacing;
+        DrawCoordinatesSection(vm, drawList, infoStartX, ref leftColumnY);
+
+        leftColumnY += SectionSpacing;
+        DrawDescriptionSection(vm, drawList, infoStartX, ref leftColumnY, events);
+
+        // RIGHT COLUMN: Ritual section
+        DrawRitualSection(vm, drawList, rightColumnX, ref rightColumnY, events);
+
+        // Use the tallest column to set final currentY
+        currentY = Math.Max(leftColumnY, rightColumnY);
 
         // End clipping
         drawList.PopClipRect();
@@ -181,6 +200,203 @@ internal static class HolySiteDetailRenderer
         DrawLabelValuePair(drawList, "Prayer Multiplier:",
             $"{vm.SiteDetails.PrayerMultiplier:F2}x", x, y, labelColor, valueColor);
         y += FieldHeight;
+    }
+
+    /// <summary>
+    ///     Draw ritual section showing active ritual progress or start ritual buttons
+    /// </summary>
+    private static void DrawRitualSection(
+        HolySiteDetailViewModel vm,
+        ImDrawListPtr drawList,
+        float x,
+        ref float y,
+        List<DetailEvent> events)
+    {
+        var labelColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
+        var valueColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
+
+        if (vm.SiteDetails.ActiveRitual != null)
+        {
+            // Active ritual in progress
+            DrawActiveRitual(vm, drawList, x, ref y, labelColor, valueColor, events);
+        }
+        else
+        {
+            // Show ritual completion stats (completed / undiscovered)
+            DrawRitualCompletionStats(vm, drawList, x, ref y, labelColor);
+        }
+    }
+
+    /// <summary>
+    ///     Draw active ritual progress
+    /// </summary>
+    private static void DrawActiveRitual(
+        HolySiteDetailViewModel vm,
+        ImDrawListPtr drawList,
+        float x,
+        ref float y,
+        uint labelColor,
+        uint valueColor,
+        List<DetailEvent> events)
+    {
+        var ritual = vm.SiteDetails.ActiveRitual!;
+
+        // Section header
+        drawList.AddText(ImGui.GetFont(), 16f, new Vector2(x, y),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), "Active Ritual");
+        y += 24f;
+
+        // Ritual name
+        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x, y), labelColor, ritual.RitualName);
+        y += 20f;
+
+        // Description
+        if (!string.IsNullOrEmpty(ritual.Description))
+        {
+            drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x, y),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), ritual.Description);
+            y += 18f;
+        }
+
+        y += 8f;
+
+        // Draw each requirement with progress bar
+        foreach (var req in ritual.Requirements)
+        {
+            DrawRequirementProgress(drawList, x, ref y, req, labelColor, valueColor);
+            y += 12f;
+        }
+
+        // Cancel button (for consecrator only)
+        if (vm.IsConsecrator)
+        {
+            y += 8f;
+            if (ButtonRenderer.DrawButton(drawList, "Cancel Ritual",
+                    x, y, 120f, 28f, isPrimary: false))
+            {
+                events.Add(new DetailEvent.CancelRitualClicked());
+            }
+            y += 36f;
+        }
+    }
+
+    /// <summary>
+    ///     Draw a single requirement's progress
+    /// </summary>
+    private static void DrawRequirementProgress(
+        ImDrawListPtr drawList,
+        float x,
+        ref float y,
+        HolySiteResponsePacket.RequirementProgressInfo req,
+        uint labelColor,
+        uint valueColor)
+    {
+        // Requirement name and progress
+        var progressText = $"{req.QuantityContributed}/{req.QuantityRequired}";
+        var progressPercent = req.QuantityRequired > 0
+            ? (float)req.QuantityContributed / req.QuantityRequired
+            : 0f;
+
+        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(x, y), labelColor,
+            $"{req.DisplayName}: {progressText}");
+        y += 18f;
+
+        // Progress bar
+        var barWidth = 400f;
+        var barHeight = 12f;
+        var barX = x;
+        var barY = y;
+
+        // Background
+        drawList.AddRectFilled(
+            new Vector2(barX, barY),
+            new Vector2(barX + barWidth, barY + barHeight),
+            ImGui.ColorConvertFloat4ToU32(new Vector4(0.2f, 0.2f, 0.2f, 0.8f)),
+            2f);
+
+        // Progress fill
+        var fillWidth = barWidth * Math.Min(progressPercent, 1f);
+        var fillColor = progressPercent >= 1f
+            ? ImGui.ColorConvertFloat4ToU32(new Vector4(0.2f, 0.8f, 0.2f, 0.9f)) // Green when complete
+            : ImGui.ColorConvertFloat4ToU32(new Vector4(0.8f, 0.6f, 0.2f, 0.9f)); // Gold when in progress
+
+        if (fillWidth > 0)
+        {
+            drawList.AddRectFilled(
+                new Vector2(barX, barY),
+                new Vector2(barX + fillWidth, barY + barHeight),
+                fillColor,
+                2f);
+        }
+
+        // Border
+        drawList.AddRect(
+            new Vector2(barX, barY),
+            new Vector2(barX + barWidth, barY + barHeight),
+            ImGui.ColorConvertFloat4ToU32(new Vector4(0.4f, 0.4f, 0.4f, 1f)),
+            2f, ImDrawFlags.None, 1f);
+
+        y += barHeight + 6f;
+
+        // Top contributors (show top 3)
+        if (req.TopContributors != null && req.TopContributors.Count > 0)
+        {
+            var contributorsText = "Contributors: " + string.Join(", ",
+                req.TopContributors.Take(3).Select(c => $"{c.PlayerName} ({c.Quantity})"));
+
+            drawList.AddText(ImGui.GetFont(), 11f, new Vector2(x + 8f, y),
+                ImGui.ColorConvertFloat4ToU32(new Vector4(0.6f, 0.6f, 0.6f, 1f)),
+                contributorsText);
+            y += 16f;
+        }
+    }
+
+    /// <summary>
+    ///     Draw ritual completion statistics
+    /// </summary>
+    private static void DrawRitualCompletionStats(
+        HolySiteDetailViewModel vm,
+        ImDrawListPtr drawList,
+        float x,
+        ref float y,
+        uint labelColor)
+    {
+        var currentTier = vm.SiteDetails.Tier;
+
+        // Section header
+        drawList.AddText(ImGui.GetFont(), 16f, new Vector2(x, y),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), "Ritual Progress");
+        y += 24f;
+
+        // Calculate completed rituals (tier - 1, since tier 1 is base)
+        var completedRituals = currentTier - 1;
+
+        // Total possible rituals for this holy site (2: tier 1→2 and tier 2→3)
+        var totalRituals = 2;
+        var undiscoveredRituals = totalRituals - completedRituals;
+
+        // Display completion stats
+        var completionText = $"{completedRituals} Rituals Completed / {undiscoveredRituals} Undiscovered";
+        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(x, y),
+            labelColor, completionText);
+        y += 20f;
+
+        // Show discovery hint if not max tier
+        if (currentTier < 3)
+        {
+            drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x, y),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
+                "Offer sacred items at the altar to discover new rituals.");
+            y += 18f;
+        }
+        else
+        {
+            // Max tier reached
+            drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x, y),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold),
+                "All rituals completed! This is a Cathedral.");
+            y += 18f;
+        }
     }
 
     /// <summary>
