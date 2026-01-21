@@ -1,0 +1,73 @@
+{
+  "domain": "Craft",
+  "version": 1,
+  "rituals": [
+    {
+      "ritualId": "craft_tier2_ritual",
+      "name": "Rite of the Master Smith",
+      "sourceTier": 1,
+      "targetTier": 2,
+      "description": "Demonstrate mastery of metalworking to transform this shrine into a temple.",
+      "requirements": [
+        {
+          "requirementId": "copper_ingots",
+          "displayName": "Copper Ingots",
+          "quantity": 20,
+          "type": "Exact",
+          "itemCodes": ["game:ingot-copper"]
+        },
+        {
+          "requirementId": "bronze_ingots",
+          "displayName": "Bronze Ingots",
+          "quantity": 10,
+          "type": "Exact",
+          "itemCodes": ["game:ingot-bronze", "game:ingot-tinbronze"]
+        },
+        {
+          "requirementId": "iron_ingots",
+          "displayName": "Iron Ingots",
+          "quantity": 5,
+          "type": "Exact",
+          "itemCodes": ["game:ingot-iron"]
+        },
+        {
+          "requirementId": "steel_anvil",
+          "displayName": "Steel Anvil",
+          "quantity": 1,
+          "type": "Exact",
+          "itemCodes": ["game:anvil-steel"]
+        }
+      ]
+    },
+    {
+      "ritualId": "craft_tier3_ritual",
+      "name": "Rite of Divine Forging",
+      "sourceTier": 2,
+      "targetTier": 3,
+      "description": "Offer the finest metalwork to elevate this temple into a cathedral of craftsmanship.",
+      "requirements": [
+        {
+          "requirementId": "any_metal_ingots",
+          "displayName": "Metal Ingots (Any Type)",
+          "quantity": 100,
+          "type": "Category",
+          "itemCodes": ["game:ingot-*"]
+        },
+        {
+          "requirementId": "steel_tools",
+          "displayName": "Steel Tools",
+          "quantity": 5,
+          "type": "Category",
+          "itemCodes": ["game:pickaxe-steel", "game:axe-steel", "game:shovel-steel", "game:hammer-steel", "game:sword-steel", "game:knife-steel"]
+        },
+        {
+          "requirementId": "masterwork_anvil",
+          "displayName": "Masterwork Anvils",
+          "quantity": 3,
+          "type": "Category",
+          "itemCodes": ["game:anvil-iron", "game:anvil-steel"]
+        }
+      ]
+    }
+  ]
+}

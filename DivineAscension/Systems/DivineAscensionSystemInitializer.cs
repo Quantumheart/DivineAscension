@@ -145,6 +145,10 @@ public static class DivineAscensionSystemInitializer
         IOfferingLoader offeringLoader = new OfferingLoader(logger, api.Assets);
         offeringLoader.LoadOfferings();
 
+        // Create ritual loader for JSON-based ritual definitions (must be before RitualProgressManager)
+        IRitualLoader ritualLoader = new RitualLoader(logger, api.Assets);
+        ritualLoader.LoadRituals();
+
         // Initialize Buff Manager (must be before AltarPrayerHandler)
         var buffManager = new BuffManager(logger, worldService);
 
@@ -153,6 +157,13 @@ public static class DivineAscensionSystemInitializer
             favorSystem,
             religionPrestigeManager,
             activityLogManager);
+
+        // Initialize Ritual Progress Manager (handles ritual tracking for holy site tier upgrades)
+        var ritualProgressManager = new RitualProgressManager(
+            logger,
+            ritualLoader,
+            holySiteManager,
+            religionManager);
 
         // Initialize Altar Prayer Handler (handles prayer interactions at altars)
         var altarPrayerHandler = new AltarPrayerHandler(
@@ -166,7 +177,10 @@ public static class DivineAscensionSystemInitializer
             buffManager,
             gameBalanceConfig,
             timeService,
-            altarEventEmitter);
+            altarEventEmitter,
+            ritualProgressManager,
+            ritualLoader,
+            worldService);
         altarPrayerHandler.Initialize();
 
         var diplomacyManager = new DiplomacyManager(logger, eventService, persistenceService, civilizationManager,
@@ -292,7 +306,9 @@ public static class DivineAscensionSystemInitializer
             logger,
             holySiteManager,
             religionManager,
-            networkService);
+            networkService,
+            ritualProgressManager,
+            ritualLoader);
         holySiteHandler.RegisterHandlers();
 
         // Validate all memberships after initialization
@@ -340,6 +356,7 @@ public static class DivineAscensionSystemInitializer
             BlessingEffectSystem = blessingEffectSystem,
             RoleManager = roleManager,
             AltarEventEmitter = altarEventEmitter,
+            RitualProgressManager = ritualProgressManager,
             FavorCommands = favorCommands,
             BlessingCommands = blessingCommands,
             ReligionCommands = religionCommands,
@@ -364,7 +381,7 @@ public static class DivineAscensionSystemInitializer
 [ExcludeFromCodeCoverage]
 public class InitializationResult
 {
-    // 15 Managers
+    // 16 Managers
     public ICooldownManager CooldownManager { get; init; } = null!;
     public ReligionManager ReligionManager { get; init; } = null!;
     public CivilizationManager CivilizationManager { get; init; } = null!;
@@ -382,6 +399,7 @@ public class InitializationResult
     public BlessingEffectSystem BlessingEffectSystem { get; init; } = null!;
     public RoleManager RoleManager { get; init; } = null!;
     public AltarEventEmitter AltarEventEmitter { get; init; } = null!;
+    public IRitualProgressManager RitualProgressManager { get; init; } = null!;
 
     // 6 Commands
     public FavorCommands FavorCommands { get; init; } = null!;

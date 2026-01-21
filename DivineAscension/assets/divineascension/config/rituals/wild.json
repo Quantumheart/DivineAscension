@@ -1,0 +1,80 @@
+{
+  "domain": "Wild",
+  "version": 1,
+  "rituals": [
+    {
+      "ritualId": "wild_tier2_ritual",
+      "name": "Rite of the Forest Guardian",
+      "sourceTier": 1,
+      "targetTier": 2,
+      "description": "Prove your connection to nature by offering the bounty of the wilderness.",
+      "requirements": [
+        {
+          "requirementId": "raw_meat",
+          "displayName": "Raw Meat (Any Type)",
+          "quantity": 100,
+          "type": "Category",
+          "itemCodes": ["game:redmeat-raw", "game:bushmeat-raw", "game:poultry-raw"]
+        },
+        {
+          "requirementId": "berries",
+          "displayName": "Berries (Any Type)",
+          "quantity": 300,
+          "type": "Category",
+          "itemCodes": ["game:fruit-*berry"]
+        },
+        {
+          "requirementId": "mushrooms",
+          "displayName": "Mushrooms (Any Type)",
+          "quantity": 75,
+          "type": "Category",
+          "itemCodes": ["game:mushroom-*"]
+        },
+        {
+          "requirementId": "animal_hides",
+          "displayName": "Animal Hides (Any Type)",
+          "quantity": 30,
+          "type": "Category",
+          "itemCodes": ["game:hide-raw-*", "game:hide-prepared-*"]
+        }
+      ]
+    },
+    {
+      "ritualId": "wild_tier3_ritual",
+      "name": "Rite of Primordial Harmony",
+      "sourceTier": 2,
+      "targetTier": 3,
+      "description": "Channel the essence of the wild to create a sacred grove of unmatched power.",
+      "requirements": [
+        {
+          "requirementId": "cured_meat",
+          "displayName": "Cured Meat (Any Type)",
+          "quantity": 10,
+          "type": "Category",
+          "itemCodes": ["game:redmeat-cured", "game:bushmeat-cured", "game:poultry-cured"]
+        },
+        {
+          "requirementId": "leather",
+          "displayName": "Leather (Any Type)",
+          "quantity": 10,
+          "type": "Category",
+          "itemCodes": ["game:leather-*"]
+        },
+        {
+          "requirementId": "honeycomb",
+          "displayName": "Honeycombs",
+          "quantity": 20,
+          "type": "Exact",
+          "itemCodes": ["game:honeycomb"]
+        },
+        {
+          "requirementId": "resin",
+          "displayName": "Resin",
+          "quantity": 20,
+          "type": "Exact",
+          "itemCodes": ["game:resin"]
+        }
+      ]
+    }
+  ]
+}

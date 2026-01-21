@@ -192,6 +192,19 @@ public class HolySiteData
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
+    /// Active ritual progress (null if no ritual in progress).
+    /// </summary>
+    [ProtoMember(10)]
+    public RitualProgressData? ActiveRitual { get; set; }
+
+    /// <summary>
+    /// Current tier of the holy site (1-3).
+    /// All sites start at Tier 1 and upgrade via ritual completion.
+    /// </summary>
+    [ProtoMember(11)]
+    public int RitualTier { get; set; } = 1;
+
+    /// <summary>
     /// Check if this is an altar-based holy site.
     /// </summary>
     public bool IsAltarSite() => AltarPosition != null;
@@ -254,17 +267,12 @@ public class HolySiteData
     }
 
     /// <summary>
-    /// Tier calculation based on 3D volume:
-    /// Tier 1: &lt;50,000 blocks³ (prayer 2.0x)
-    /// Tier 2: 50,000-200,000 blocks³ (prayer 2.5x)
-    /// Tier 3: 200,000+ blocks³ (prayer 3.0x)
+    /// Returns the current tier of the holy site (1-3).
+    /// Tier is upgraded via ritual completion, not volume-based calculation.
     /// </summary>
     public int GetTier()
     {
-        int volume = GetTotalVolume();
-        if (volume < 50000) return 1;
-        if (volume < 200000) return 2;
-        return 3;
+        return RitualTier;
     }
 
     /// <summary>

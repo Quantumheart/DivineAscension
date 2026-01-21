@@ -1,0 +1,80 @@
+{
+  "domain": "Harvest",
+  "version": 1,
+  "rituals": [
+    {
+      "ritualId": "harvest_tier2_ritual",
+      "name": "Rite of the Bountiful Field",
+      "sourceTier": 1,
+      "targetTier": 2,
+      "description": "Offer the fruits of your agricultural labor to bless this shrine as a temple of plenty.",
+      "requirements": [
+        {
+          "requirementId": "grains",
+          "displayName": "Grains (Any Type)",
+          "quantity": 100,
+          "type": "Category",
+          "itemCodes": ["game:grain-*"]
+        },
+        {
+          "requirementId": "vegetables",
+          "displayName": "Vegetables (Any Type)",
+          "quantity": 80,
+          "type": "Category",
+          "itemCodes": ["game:vegetable-*", "game:carrot-*", "game:onion-*", "game:parsnip-*", "game:turnip-*", "game:pumpkin-*"]
+        },
+        {
+          "requirementId": "bread",
+          "displayName": "Bread (Any Type)",
+          "quantity": 30,
+          "type": "Category",
+          "itemCodes": ["game:bread-*"]
+        },
+        {
+          "requirementId": "seeds",
+          "displayName": "Crop Seeds",
+          "quantity": 50,
+          "type": "Category",
+          "itemCodes": ["game:seeds-*"]
+        }
+      ]
+    },
+    {
+      "ritualId": "harvest_tier3_ritual",
+      "name": "Rite of Eternal Abundance",
+      "sourceTier": 2,
+      "targetTier": 3,
+      "description": "Transform this temple into a cathedral that embodies the infinite generosity of the harvest.",
+      "requirements": [
+        {
+          "requirementId": "cooked_meals",
+          "displayName": "Cooked Meals (Any Type)",
+          "quantity": 50,
+          "type": "Category",
+          "itemCodes": ["game:meal-*", "game:porridge-*"]
+        },
+        {
+          "requirementId": "fruits",
+          "displayName": "Fruits (Any Type)",
+          "quantity": 120,
+          "type": "Category",
+          "itemCodes": ["game:fruit-*"]
+        },
+        {
+          "requirementId": "cheese",
+          "displayName": "Cheese",
+          "quantity": 40,
+          "type": "Category",
+          "itemCodes": ["game:cheese-*"]
+        },
+        {
+          "requirementId": "wine",
+          "displayName": "Wine or Cider",
+          "quantity": 20,
+          "type": "Category",
+          "itemCodes": ["game:wine-*", "game:cider-*"]
+        }
+      ]
+    }
+  ]
+}

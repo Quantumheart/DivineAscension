@@ -1343,6 +1343,17 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     State.HolySitesState.Detail.IsEditingDescription = false;
                     State.HolySitesState.Detail.EditingDescriptionValue = null;
                     break;
+
+                case Events.HolySite.DetailEvent.StartRitualClicked startRitual:
+                    SendStartRitualRequest(
+                        State.HolySitesState.Detail.ViewingSiteUID!,
+                        startRitual.TargetTier);
+                    break;
+
+                case Events.HolySite.DetailEvent.CancelRitualClicked:
+                    SendCancelRitualRequest(
+                        State.HolySitesState.Detail.ViewingSiteUID!);
+                    break;
             }
         }
     }
@@ -1361,6 +1372,16 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     private void SendDescriptionUpdateRequest(string siteUID, string description)
     {
         _uiService.UpdateHolySite("edit_description", siteUID, description);
+    }
+
+    private void SendStartRitualRequest(string siteUID, int targetTier)
+    {
+        _uiService.RequestStartRitual(siteUID, targetTier);
+    }
+
+    private void SendCancelRitualRequest(string siteUID)
+    {
+        _uiService.RequestCancelRitual(siteUID);
     }
 
     private void HandleMarkWaypoint()

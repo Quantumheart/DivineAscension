@@ -136,23 +136,38 @@ public class HolySiteManagerTests
         Assert.Equal(393216, site.GetTotalVolume());
     }
 
-    [Theory]
-    [InlineData(30000, 1)]      // < 50k = Tier 1
-    [InlineData(50000, 2)]      // 50k = Tier 2
-    [InlineData(100000, 2)]     // 100k = Tier 2
-    [InlineData(200000, 3)]     // 200k = Tier 3
-    [InlineData(500000, 3)]     // 500k = Tier 3
-    public void HolySiteData_GetTier_CalculatesBasedOnVolume(int volume, int expectedTier)
+    [Fact]
+    public void HolySiteData_GetTier_DefaultsToTierOne()
     {
-        // Create area with specific volume (cube root for dimensions)
-        int side = (int)Math.Ceiling(Math.Pow(volume, 1.0/3.0));
+        // Arrange - Create site without explicitly setting RitualTier
         var areas = new List<SerializableCuboidi>
         {
-            new SerializableCuboidi(0, 0, 0, side-1, side-1, side-1)
+            new SerializableCuboidi(0, 0, 0, 10, 10, 10)
         };
         var site = new HolySiteData("site1", "rel1", "Test", areas, "founder", "Founder");
 
-        Assert.Equal(expectedTier, site.GetTier());
+        // Act & Assert - Should default to Tier 1
+        Assert.Equal(1, site.GetTier());
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    public void HolySiteData_GetTier_ReturnsRitualTier(int ritualTier)
+    {
+        // Arrange - Create site with specific RitualTier
+        var areas = new List<SerializableCuboidi>
+        {
+            new SerializableCuboidi(0, 0, 0, 10, 10, 10)
+        };
+        var site = new HolySiteData("site1", "rel1", "Test", areas, "founder", "Founder")
+        {
+            RitualTier = ritualTier
+        };
+
+        // Act & Assert
+        Assert.Equal(ritualTier, site.GetTier());
     }
 
     [Theory]
@@ -161,14 +176,17 @@ public class HolySiteManagerTests
     [InlineData(3, 3.0)]
     public void HolySiteData_GetPrayerMultiplier_ReturnsCorrectValue(int tier, double expected)
     {
-        int volume = tier == 1 ? 40000 : (tier == 2 ? 150000 : 300000);
-        int side = (int)Math.Ceiling(Math.Pow(volume, 1.0/3.0));
+        // Arrange - Create site with specific RitualTier
         var areas = new List<SerializableCuboidi>
         {
-            new SerializableCuboidi(0, 0, 0, side-1, side-1, side-1)
+            new SerializableCuboidi(0, 0, 0, 10, 10, 10)
         };
-        var site = new HolySiteData("site1", "rel1", "Test", areas, "founder", "Founder");
+        var site = new HolySiteData("site1", "rel1", "Test", areas, "founder", "Founder")
+        {
+            RitualTier = tier
+        };
 
+        // Act & Assert
         Assert.Equal(expected, site.GetPrayerMultiplier());
     }
 

@@ -163,7 +163,9 @@ public class DivineAscensionModSystem : ModSystem
             .RegisterMessageType<HolySiteRequestPacket>()
             .RegisterMessageType<HolySiteResponsePacket>()
             .RegisterMessageType<HolySiteUpdateRequestPacket>()
-            .RegisterMessageType<HolySiteUpdateResponsePacket>();
+            .RegisterMessageType<HolySiteUpdateResponsePacket>()
+            .RegisterMessageType<RitualRequestPacket>()
+            .RegisterMessageType<RitualResponsePacket>();
     }
 
     public override void AssetsFinalize(ICoreAPI api)
