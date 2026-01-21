@@ -59,6 +59,8 @@ public class HolySiteResponsePacket
 
         [ProtoMember(8)] public int AreaCount { get; set; }
 
+        [ProtoMember(9)] public int RitualsCompleted { get; set; }
+
         [ProtoMember(10)] public double PrayerMultiplier { get; set; }
 
         [ProtoMember(11)] public int CenterX { get; set; }

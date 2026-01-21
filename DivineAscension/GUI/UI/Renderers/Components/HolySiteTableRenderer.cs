@@ -152,7 +152,7 @@ internal static class HolySiteTableRenderer
         {
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_NAME),
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_TIER),
-            LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_VOLUME),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_RITUALS),
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_PRAYER)
         };
 
@@ -230,8 +230,8 @@ internal static class HolySiteTableRenderer
         // Column 2: Tier
         DrawTierColumn(drawList, site, x + ColumnWidth, y);
 
-        // Column 3: Volume
-        DrawVolumeColumn(drawList, site, x + ColumnWidth * 2, y);
+        // Column 3: Rituals Completed
+        DrawRitualsColumn(drawList, site, x + ColumnWidth * 2, y);
 
         // Column 4: Prayer Multiplier
         DrawPrayerColumn(drawList, site, x + ColumnWidth * 3, y);
@@ -284,9 +284,9 @@ internal static class HolySiteTableRenderer
     }
 
     /// <summary>
-    ///     Draw Volume column: Volume number centered
+    ///     Draw Rituals column: Rituals completed number centered
     /// </summary>
-    private static void DrawVolumeColumn(
+    private static void DrawRitualsColumn(
         ImDrawListPtr drawList,
         HolySiteResponsePacket.HolySiteInfo site,
         float colX,
@@ -296,7 +296,7 @@ internal static class HolySiteTableRenderer
         const float fontSize = 13f;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
-        DrawCenteredText(drawList, site.Volume.ToString(), colX, centerY, ColumnWidth, textColor, fontSize);
+        DrawCenteredText(drawList, site.RitualsCompleted.ToString(), colX, centerY, ColumnWidth, textColor, fontSize);
     }
 
     /// <summary>
