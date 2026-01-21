@@ -1531,4 +1531,20 @@ public static class LocalizationKeys
     public const string ERROR_INTERNAL = "divineascension:error.internal";
 
     #endregion
+
+    #region Prayer
+
+    // Error messages
+    public const string PRAYER_ALTAR_NOT_CONSECRATED = "divineascension:prayer.altar.not_consecrated";
+    public const string PRAYER_NO_RELIGION = "divineascension:prayer.no_religion";
+    public const string PRAYER_WRONG_RELIGION = "divineascension:prayer.wrong_religion";
+    public const string PRAYER_COOLDOWN = "divineascension:prayer.cooldown";
+    public const string PRAYER_OFFERING_TIER_REJECTED = "divineascension:prayer.offering.tier_rejected";
+
+    // Success messages
+    public const string PRAYER_SUCCESS_WITH_OFFERING = "divineascension:prayer.success.with_offering";
+    public const string PRAYER_SUCCESS_OFFERING_REJECTED = "divineascension:prayer.success.offering_rejected";
+    public const string PRAYER_SUCCESS_NO_OFFERING = "divineascension:prayer.success.no_offering";
+
+    #endregion
 }
