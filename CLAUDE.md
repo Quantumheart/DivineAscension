@@ -113,16 +113,18 @@ When creating feature plans, place them in `docs/topics/planning/features/<featu
 11. `AltarDestructionHandler` - Automatic holy site deconsecration on altar destruction (depends on HolySiteManager)
 12. `FavorSystem` - Divine favor rewards (depends on PrestigeManager and ActivityLogManager)
 13. `OfferingLoader` - Loads offering configurations from JSON (must be before AltarPrayerHandler)
-14. `BuffManager` - Buff system for temporary stat modifiers (must be before AltarPrayerHandler)
-15. `PlayerProgressionService` - Facade for favor/prestige/activity systems (must be before AltarPrayerHandler)
-16. `AltarPrayerHandler` - Prayer interactions at altars (depends on many systems above)
-17. `DiplomacyManager` - Inter-civilization diplomacy
-18. `PvPManager` - PvP favor rewards
-19. `BlessingRegistry` - Blessing definitions
-20. `BlessingEffectSystem` - Stat modifiers and effects (**must register with PrestigeManager after initialization**)
-21. Command handlers (Favor, Blessing, Religion, Role, Civilization, HolySite)
-22. Network handlers (PlayerData, Blessing, Religion, Civilization, Diplomacy, Activity, HolySite)
-23. **Membership validation** - Validates and repairs player-to-religion index consistency
+14. `RitualLoader` - Loads ritual definitions from JSON (must be before RitualProgressManager)
+15. `BuffManager` - Buff system for temporary stat modifiers (must be before AltarPrayerHandler)
+16. `PlayerProgressionService` - Facade for favor/prestige/activity systems (must be before AltarPrayerHandler)
+17. `RitualProgressManager` - Handles ritual tracking for holy site tier upgrades (depends on RitualLoader)
+18. `AltarPrayerHandler` - Prayer interactions at altars (depends on many systems above)
+19. `DiplomacyManager` - Inter-civilization diplomacy
+20. `PvPManager` - PvP favor rewards
+21. `BlessingRegistry` - Blessing definitions
+22. `BlessingEffectSystem` - Stat modifiers and effects (**must register with PrestigeManager after initialization**)
+23. Command handlers (Favor, Blessing, Religion, Role, Civilization, HolySite)
+24. Network handlers (PlayerData, Blessing, Religion, Civilization, Diplomacy, Activity, HolySite)
+25. **Membership validation** - Validates and repairs player-to-religion index consistency
 
 **Never reorder these** - dependency chains will break.
 
@@ -150,8 +152,9 @@ When creating feature plans, place them in `docs/topics/planning/features/<featu
 **HolySiteManager** (`/Systems/HolySiteManager.cs`):
 - Holy site CRUD operations (create, query, remove)
 - Persistence via `HolySiteWorldData` (ProtoBuf serialization)
-- Volume-based tier calculation (Tier 1: <50k blocks³, Tier 2: 50k-200k, Tier 3: 200k+)
+- Ritual-based tier progression (Tier 1 → Tier 2 → Tier 3 via ritual completion)
 - Prayer multipliers by tier (2.0x, 2.5x, 3.0x)
+- Initial tier starts at 1 (Shrine), upgrades to 2 (Temple), then 3 (Cathedral)
 - Position-based queries for altar integration (`GetHolySiteAtPosition`)
 - Land claim area tracking with multi-area support
 - Events: `OnHolySiteCreated`, `OnHolySiteDeleted`
@@ -198,6 +201,17 @@ When creating feature plans, place them in `docs/topics/planning/features/<featu
 - Proposal system with 7-day expiry
 - Violation tracking for treaty breaches
 - Peace/War declarations
+
+**RitualProgressManager** (`/Systems/RitualProgressManager.cs`):
+- Manages ritual progression for holy site tier upgrades
+- Tracks multi-player contributions to active rituals
+- Auto-starts rituals when qualifying items are offered at altars (auto-discovery mechanic)
+- Validates ritual requirements using `RitualMatcher` with glob pattern support
+- Awards 50% favor/prestige for ritual contributions (half of normal prayer rewards)
+- Ritual offerings bypass prayer cooldown to encourage participation
+- Handles ritual completion and tier upgrades (Shrine → Temple → Cathedral)
+- Ritual cancellation (founder-only, no refunds)
+- Persists ritual progress in `HolySiteData.ActiveRitual`
 
 ### Command System
 
@@ -372,6 +386,16 @@ Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
 - Validates domain, kind, and category enums during deserialization
 - Logs warnings for unknown stat keys but still includes blessings
 - DTOs: `BlessingJsonDto` (individual blessing), `BlessingFileDto` (file structure with domain and version)
+
+**RitualLoader** (`/Services/RitualLoader.cs`):
+- Loads ritual definitions from JSON assets following `LocalizationService` pattern
+- Implements `IRitualLoader` interface for dependency injection and testing
+- Reads from `assets/divineascension/config/rituals/{domain}.json` (craft, wild, conquest, harvest, stone)
+- Validates domain enums and requirement types during deserialization
+- Builds indices by domain, ritual ID, and tier upgrade (source tier → target tier)
+- Supports two requirement types: Exact (specific item codes) and Category (glob patterns like `game:ingot-*`)
+- DTOs: `RitualJsonDto` (individual ritual), `RitualFileJsonDto` (file structure with domain and version)
+- Used by `RitualProgressManager` for ritual validation and auto-discovery
 
 ### API Wrapper Layer
 
