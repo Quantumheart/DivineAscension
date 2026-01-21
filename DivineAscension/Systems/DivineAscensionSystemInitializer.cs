@@ -222,10 +222,7 @@ public static class DivineAscensionSystemInitializer
         var holySiteCommands = new HolySiteCommands(
             commandService,
             holySiteManager,
-            religionManager,
-            messengerService,
-            worldService,
-            logger);
+            religionManager);
         holySiteCommands.RegisterCommands();
 
         // Create and initialize network handlers
