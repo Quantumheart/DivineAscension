@@ -415,6 +415,7 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
 
         var center = site.GetCenter();
 
+        var tier = site.GetTier();
         return new HolySiteResponsePacket.HolySiteInfo
         {
             SiteUID = site.SiteUID,
@@ -422,9 +423,10 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
             ReligionUID = site.ReligionUID,
             ReligionName = religion.ReligionName,
             Domain = religion.Domain.ToString(),
-            Tier = site.GetTier(),
+            Tier = tier,
             Volume = site.GetTotalVolume(),
             AreaCount = site.Areas.Count,
+            RitualsCompleted = tier - 1, // Tier 1 = 0 rituals, Tier 2 = 1 ritual, Tier 3 = 2 rituals
             PrayerMultiplier = site.GetPrayerMultiplier(),
             CenterX = center.X,
             CenterY = center.Y,

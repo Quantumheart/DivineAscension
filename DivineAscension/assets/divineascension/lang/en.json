@@ -188,7 +188,7 @@
   "divineascension:ui.holysites.browse.nosites": "No holy sites found.",
   "divineascension:ui.holysites.table.name": "Name",
   "divineascension:ui.holysites.table.tier": "Tier",
-  "divineascension:ui.holysites.table.volume": "Volume",
+  "divineascension:ui.holysites.table.rituals": "Rituals",
   "divineascension:ui.holysites.table.prayer": "Prayer",
   "divineascension:ui.holysites.detail.loading": "Loading holy site details...",
   "divineascension:ui.holysites.detail.back": "Back to List",
