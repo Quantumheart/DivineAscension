@@ -94,6 +94,7 @@ public class HolySiteManager : IHolySiteManager
     /// </summary>
     public void Dispose()
     {
+        _religionManager.OnReligionDeleted -= HandleReligionDeleted;
         _eventService.UnsubscribeSaveGameLoaded(OnSaveGameLoaded);
         _eventService.UnsubscribeGameWorldSave(OnGameWorldSave);
     }
@@ -179,7 +180,8 @@ public class HolySiteManager : IHolySiteManager
                 {
                     if (tempSite.Intersects(existingSite))
                     {
-                        _logger.Warning($"[DivineAscension] Holy site overlaps with existing site {existingSite.SiteName}");
+                        _logger.Warning(
+                            $"[DivineAscension] Holy site overlaps with existing site {existingSite.SiteName}");
                         return null;
                     }
                 }
@@ -205,7 +207,8 @@ public class HolySiteManager : IHolySiteManager
                     _sitesByReligion[religionUID] = new HashSet<string>();
                 _sitesByReligion[religionUID].Add(siteUID);
 
-                _logger.Notification($"[DivineAscension] Holy site '{siteName}' consecrated with {site.Areas.Count} area(s), tier {site.GetTier()}");
+                _logger.Notification(
+                    $"[DivineAscension] Holy site '{siteName}' consecrated with {site.Areas.Count} area(s), tier {site.GetTier()}");
 
                 SaveHolySites();
 
@@ -274,7 +277,8 @@ public class HolySiteManager : IHolySiteManager
                 {
                     if (tempSite.Intersects(existingSite))
                     {
-                        _logger.Warning($"[DivineAscension] Holy site overlaps with existing site {existingSite.SiteName}");
+                        _logger.Warning(
+                            $"[DivineAscension] Holy site overlaps with existing site {existingSite.SiteName}");
                         return null;
                     }
                 }
@@ -299,7 +303,8 @@ public class HolySiteManager : IHolySiteManager
                     _sitesByReligion[religionUID] = new HashSet<string>();
                 _sitesByReligion[religionUID].Add(siteUID);
 
-                _logger.Notification($"[DivineAscension] Holy site '{siteName}' consecrated with altar at {altarPosition}, tier {site.GetTier()}");
+                _logger.Notification(
+                    $"[DivineAscension] Holy site '{siteName}' consecrated with altar at {altarPosition}, tier {site.GetTier()}");
 
                 SaveHolySites();
 
@@ -441,6 +446,7 @@ public class HolySiteManager : IHolySiteManager
             if (site.ContainsPosition(pos))
                 return site;
         }
+
         return null;
     }
 

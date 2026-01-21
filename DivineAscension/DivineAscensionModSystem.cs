@@ -281,6 +281,7 @@ public class DivineAscensionModSystem : ModSystem
         _civilizationManager?.Dispose();
 
         // Clear static events
+        AltarPatches.ClearSubscribers();
         PitKilnPatches.ClearSubscribers();
         AnvilPatches.ClearSubscribers();
         CookingPatches.ClearSubscribers();
