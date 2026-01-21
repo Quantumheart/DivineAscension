@@ -6,7 +6,6 @@ using DivineAscension.Commands.Parsers;
 using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Services;
-using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -17,30 +16,19 @@ namespace DivineAscension.Commands;
 /// Chat commands for holy site management.
 /// Provides commands for creating, querying, and removing holy sites.
 /// </summary>
-public class HolySiteCommands
+public class HolySiteCommands(
+    IChatCommandService commandService,
+    IHolySiteManager holySiteManager,
+    IReligionManager religionManager)
 {
-    private readonly IChatCommandService _commandService;
-    private readonly IHolySiteManager _holySiteManager;
-    private readonly IReligionManager _religionManager;
-    private readonly IPlayerMessengerService _messenger;
-    private readonly IWorldService _worldService;
-    private readonly ILogger _logger;
+    private readonly IChatCommandService _commandService =
+        commandService ?? throw new ArgumentNullException(nameof(commandService));
 
-    public HolySiteCommands(
-        IChatCommandService commandService,
-        IHolySiteManager holySiteManager,
-        IReligionManager religionManager,
-        IPlayerMessengerService messengerService,
-        IWorldService worldService,
-        ILogger logger)
-    {
-        _commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
-        _holySiteManager = holySiteManager ?? throw new ArgumentNullException(nameof(holySiteManager));
-        _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
-        _messenger = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
-        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    private readonly IHolySiteManager _holySiteManager =
+        holySiteManager ?? throw new ArgumentNullException(nameof(holySiteManager));
+
+    private readonly IReligionManager _religionManager =
+        religionManager ?? throw new ArgumentNullException(nameof(religionManager));
 
     public void RegisterCommands()
     {
@@ -48,99 +36,23 @@ public class HolySiteCommands
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_HOLYSITE_DESC))
             .RequiresPlayer()
             .RequiresPrivilege(Privilege.chat)
-            // /holysite consecrate <name>
-            .BeginSubCommand("consecrate")
-                .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_HOLYSITE_CONSECRATE_DESC))
-                .WithArgs(_commandService.Parsers.QuotedString("name"))
-                .HandleWith(OnConsecrateHolySite)
-                .EndSubCommand()
-            // /holysite deconsecrate <site_name>
-            .BeginSubCommand("deconsecrate")
-                .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_HOLYSITE_DECONSECRATE_DESC))
-                .WithArgs(_commandService.Parsers.QuotedString("site_name"))
-                .HandleWith(OnDeconsacrateHolySite)
-                .EndSubCommand()
             // /holysite info [site_name]
             .BeginSubCommand("info")
-                .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_HOLYSITE_INFO_DESC))
-                .WithArgs(_commandService.Parsers.OptionalQuotedString("site_name"))
-                .HandleWith(OnHolySiteInfo)
-                .EndSubCommand()
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_HOLYSITE_INFO_DESC))
+            .WithArgs(_commandService.Parsers.OptionalQuotedString("site_name"))
+            .HandleWith(OnHolySiteInfo)
+            .EndSubCommand()
             // /holysite list
             .BeginSubCommand("list")
-                .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_HOLYSITE_LIST_DESC))
-                .HandleWith(OnListHolySites)
-                .EndSubCommand()
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_HOLYSITE_LIST_DESC))
+            .HandleWith(OnListHolySites)
+            .EndSubCommand()
             // /holysite nearby [radius]
             .BeginSubCommand("nearby")
-                .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_HOLYSITE_NEARBY_DESC))
-                .WithArgs(_commandService.Parsers.OptionalInt("radius", 10))
-                .HandleWith(OnNearbyHolySites)
-                .EndSubCommand();
-    }
-
-    private TextCommandResult OnConsecrateHolySite(TextCommandCallingArgs args)
-    {
-        // DEPRECATED: Holy sites are now created automatically by placing altars on land claims
-        return TextCommandResult.Error(
-            "This command is deprecated. To create a holy site, place an altar (game:altar) on your land claim. " +
-            "The holy site will be created automatically.");
-    }
-
-    private TextCommandResult OnDeconsacrateHolySite(TextCommandCallingArgs args)
-    {
-        var player = args.Caller.Player as IServerPlayer;
-        if (player == null) return TextCommandResult.Error("Player not found");
-
-        var siteName = args.Parsers[0].GetValue() as string;
-        if (string.IsNullOrWhiteSpace(siteName))
-            return TextCommandResult.Error("Site name cannot be empty");
-
-        // Check religion membership
-        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
-        if (religion == null)
-            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_NOT_MEMBER));
-
-        // Only founder can deconsecrate
-        if (!religion.IsFounder(player.PlayerUID))
-            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_NO_PERMISSION));
-
-        // Find site by name
-        var site = _holySiteManager.GetReligionHolySites(religion.ReligionUID)
-            .FirstOrDefault(s => s.SiteName.Equals(siteName, StringComparison.OrdinalIgnoreCase));
-
-        if (site == null)
-            return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_NOT_FOUND, siteName));
-
-        // Remove altar block if this is an altar-based holy site
-        if (site.IsAltarSite() && site.AltarPosition != null)
-        {
-            try
-            {
-                var altarPos = site.AltarPosition.ToBlockPos();
-                var block = _worldService.GetBlock(altarPos);
-
-                // Check if altar block still exists
-                if (block?.Code?.Path?.StartsWith("altar") ?? false)
-                {
-                    // Break the altar block
-                    _worldService.GetBlockAccessor(true, false).BreakBlock(altarPos, null);
-                    _logger.Debug($"[DivineAscension] Removed altar block at {altarPos} during holy site deconsecration");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Warning($"[DivineAscension] Failed to remove altar block: {ex.Message}");
-                // Continue with deconsecration even if altar removal fails
-            }
-        }
-
-        // Deconsecrate
-        if (!_holySiteManager.DeconsacrateHolySite(site.SiteUID))
-            return TextCommandResult.Error("Failed to deconsecrate holy site");
-
-        var message = LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_DECONSECRATED, siteName);
-        return TextCommandResult.Success(message);
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_HOLYSITE_NEARBY_DESC))
+            .WithArgs(_commandService.Parsers.OptionalInt("radius", 10))
+            .HandleWith(OnNearbyHolySites)
+            .EndSubCommand();
     }
 
     private TextCommandResult OnHolySiteInfo(TextCommandCallingArgs args)
@@ -177,16 +89,19 @@ public class HolySiteCommands
             }
 
             if (site == null)
-                return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_NOT_FOUND, siteName));
+                return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_NOT_FOUND,
+                    siteName));
         }
 
         // Build info message
         var sb = new StringBuilder();
         sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_INFO_HEADER, site.SiteName));
-        sb.AppendLine($"Tier: {site.GetTier()} (Volume: {site.GetTotalVolume():N0} blocks³, {site.Areas.Count} area(s))");
+        sb.AppendLine(
+            $"Tier: {site.GetTier()} (Volume: {site.GetTotalVolume():N0} blocks³, {site.Areas.Count} area(s))");
         sb.AppendLine($"Prayer Bonus: {site.GetPrayerMultiplier():F1}x");
         sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_INFO_FOUNDER, site.FounderName));
-        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_INFO_CREATED, site.CreationDate.ToString("yyyy-MM-dd")));
+        sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.HOLYSITE_INFO_CREATED,
+            site.CreationDate.ToString("yyyy-MM-dd")));
 
         var center = site.GetCenter();
         sb.AppendLine($"Center: ({center.X}, {center.Y}, {center.Z})");
@@ -220,7 +135,8 @@ public class HolySiteCommands
         foreach (var site in sites.OrderBy(s => s.SiteName))
         {
             var center = site.GetCenter();
-            sb.AppendLine($"- {site.SiteName} (Tier {site.GetTier()}, {site.GetTotalVolume():N0} blocks³) at ({center.X}, {center.Z})");
+            sb.AppendLine(
+                $"- {site.SiteName} (Tier {site.GetTier()}, {site.GetTotalVolume():N0} blocks³) at ({center.X}, {center.Z})");
         }
 
         return TextCommandResult.Success(sb.ToString());
@@ -242,7 +158,7 @@ public class HolySiteCommands
             {
                 Site = site,
                 Center = site.GetCenter(),
-                Distance = 0.0  // Calculate below
+                Distance = 0.0 // Calculate below
             })
             .Select(x => new
             {
@@ -267,7 +183,8 @@ public class HolySiteCommands
             var religion = _religionManager.GetReligion(item.Site.ReligionUID);
             var religionName = religion?.ReligionName ?? "Unknown";
 
-            sb.AppendLine($"- {item.Site.SiteName} ({religionName}) - Tier {item.Site.GetTier()} at ({item.Center.X}, {item.Center.Z}) - Distance: {(int)item.Distance} chunks");
+            sb.AppendLine(
+                $"- {item.Site.SiteName} ({religionName}) - Tier {item.Site.GetTier()} at ({item.Center.X}, {item.Center.Z}) - Distance: {(int)item.Distance} chunks");
         }
 
         return TextCommandResult.Success(sb.ToString());
