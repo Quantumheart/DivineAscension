@@ -1,0 +1,11 @@
+[
+  {
+    "op": "add",
+    "path": "/behaviors/-",
+    "value": {
+      "name": "DivineAscensionAltar"
+    },
+    "file": "blocktypes/stone/generic/altar.json",
+    "side": "Server"
+  }
+]

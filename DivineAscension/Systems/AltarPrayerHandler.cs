@@ -8,7 +8,6 @@ using DivineAscension.Models.Enum;
 using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems.BuffSystem.Interfaces;
 using DivineAscension.Systems.Interfaces;
-using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
@@ -39,7 +38,6 @@ public class AltarPrayerHandler : IDisposable
     private const int BASE_PRAYER_FAVOR = 5;
     private readonly IBuffManager _buffManager;
     private readonly GameBalanceConfig _config;
-    private readonly IEventService _eventService;
     private readonly IHolySiteManager _holySiteManager;
     private readonly ILogger _logger;
     private readonly IPlayerMessengerService _messenger;
@@ -47,46 +45,44 @@ public class AltarPrayerHandler : IDisposable
     private readonly IPlayerProgressionDataManager _progressionDataManager;
     private readonly IPlayerProgressionService _progressionService;
     private readonly IReligionManager _religionManager;
-    private readonly IWorldService _worldService;
     private readonly ITimeService _timeService;
+    private readonly AltarEventEmitter _altarEventEmitter;
 
     public AltarPrayerHandler(
         ILogger logger,
-        IEventService eventService,
         IOfferingLoader offeringLoader,
         IHolySiteManager holySiteManager,
         IReligionManager religionManager,
         IPlayerProgressionDataManager progressionDataManager,
         IPlayerProgressionService progressionService,
         IPlayerMessengerService messenger,
-        IWorldService worldService,
         IBuffManager buffManager,
         GameBalanceConfig config,
-        ITimeService timeService)
+        ITimeService timeService,
+        AltarEventEmitter altarEventEmitter)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
         _offeringLoader = offeringLoader ?? throw new ArgumentNullException(nameof(offeringLoader));
         _holySiteManager = holySiteManager ?? throw new ArgumentNullException(nameof(holySiteManager));
         _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
         _progressionDataManager = progressionDataManager ?? throw new ArgumentNullException(nameof(progressionDataManager));
         _progressionService = progressionService ?? throw new ArgumentNullException(nameof(progressionService));
         _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
-        _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
         _buffManager = buffManager ?? throw new ArgumentNullException(nameof(buffManager));
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _timeService = timeService ?? throw new ArgumentNullException(nameof(timeService));
+        _altarEventEmitter = altarEventEmitter ?? throw new ArgumentNullException(nameof(altarEventEmitter));
     }
 
     public void Dispose()
     {
-        AltarPatches.OnAltarUsed -= OnAltarUsed;
+        _altarEventEmitter.OnAltarUsed -= OnAltarUsed;
     }
 
     public void Initialize()
     {
         _logger.Notification("[DivineAscension] Initializing Altar Prayer Handler...");
-        AltarPatches.OnAltarUsed += OnAltarUsed;
+        _altarEventEmitter.OnAltarUsed += OnAltarUsed;
         _logger.Notification("[DivineAscension] Altar Prayer Handler initialized");
     }
 
@@ -243,12 +239,15 @@ public class AltarPrayerHandler : IDisposable
     }
 
     [ExcludeFromCodeCoverage]
-    private void OnAltarUsed(IServerPlayer player, BlockSelection blockSel)
+    private void OnAltarUsed(IPlayer player, BlockSelection blockSel)
     {
         try
         {
+            var serverPlayer = player as IServerPlayer;
             _logger.Debug($"[DivineAscension] Player {player.PlayerName} used altar at {blockSel.Position}");
 
+            if (serverPlayer == null)
+                return;
             // Capture current time once for consistency between checking and updating cooldown
             var currentTime = _timeService.ElapsedMilliseconds;
 
@@ -263,7 +262,7 @@ public class AltarPrayerHandler : IDisposable
             // Handle side effects based on result
             if (!result.Success)
             {
-                _messenger.SendMessage(player, result.Message, EnumChatType.CommandError);
+                _messenger.SendMessage(serverPlayer, result.Message, EnumChatType.CommandError);
                 return;
             }
 
@@ -302,7 +301,7 @@ public class AltarPrayerHandler : IDisposable
             }
 
             // Notify player
-            _messenger.SendMessage(player, result.Message, EnumChatType.CommandSuccess);
+            _messenger.SendMessage(serverPlayer, result.Message, EnumChatType.CommandSuccess);
 
             _logger.Debug(
                 $"[DivineAscension] {player.PlayerName} prayed, awarded {result.FavorAwarded} favor and {result.PrestigeAwarded} prestige");

@@ -35,6 +35,7 @@ public class DivineAscensionModSystem : ModSystem
     private const string CONFIG_DATA_KEY = "DivineAscension.ModConfig";
 
     private AltarDestructionHandler? _altarDestructionHandler;
+    private AltarEventEmitter? _altarEventEmitter;
     private AltarPlacementHandler? _altarPlacementHandler;
     private AltarPrayerHandler? _altarPrayerHandler;
     private BlessingNetworkHandler? _blessingNetworkHandler;
@@ -91,6 +92,10 @@ public class DivineAscensionModSystem : ModSystem
             _harmony.PatchAll(Assembly.GetExecutingAssembly());
             api.Logger.Notification("[DivineAscension] Harmony patches registered.");
         }
+
+        // Register BlockBehavior for altar blocks
+        api.RegisterBlockBehaviorClass("DivineAscensionAltar", typeof(Blocks.BlockBehaviorAltar));
+        api.Logger.Notification("[DivineAscension] BlockBehaviorAltar registered");
 
         // Register with ConfigLib if available
         TryRegisterWithConfigLib(api);
@@ -161,6 +166,15 @@ public class DivineAscensionModSystem : ModSystem
             .RegisterMessageType<HolySiteUpdateResponsePacket>();
     }
 
+    public override void AssetsFinalize(ICoreAPI api)
+    {
+        base.AssetsFinalize(api);
+
+        // Apply code-based patching to altar blocks
+        // This runs after assets are loaded but before they're declared ready
+        AltarBlockBehaviorPatch.PatchAltarBlocks(api);
+    }
+
     public override void StartServerSide(ICoreServerAPI api)
     {
         base.StartServerSide(api);
@@ -196,6 +210,7 @@ public class DivineAscensionModSystem : ModSystem
         _altarPlacementHandler = result.AltarPlacementHandler;
         _altarDestructionHandler = result.AltarDestructionHandler;
         _altarPrayerHandler = result.AltarPrayerHandler;
+        _altarEventEmitter = result.AltarEventEmitter;
         _playerDataNetworkHandler = result.PlayerDataNetworkHandler;
         _blessingNetworkHandler = result.BlessingNetworkHandler;
         _religionNetworkHandler = result.ReligionNetworkHandler;
@@ -281,7 +296,7 @@ public class DivineAscensionModSystem : ModSystem
         _civilizationManager?.Dispose();
 
         // Clear static events
-        AltarPatches.ClearSubscribers();
+        _altarEventEmitter?.ClearSubscribers();
         PitKilnPatches.ClearSubscribers();
         AnvilPatches.ClearSubscribers();
         CookingPatches.ClearSubscribers();

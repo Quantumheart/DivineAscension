@@ -15,17 +15,20 @@ public class AltarDestructionHandlerTests
     private readonly Mock<IHolySiteManager> _holySiteManager;
     private readonly Mock<ILogger> _logger;
     private readonly SpyPlayerMessenger _messenger;
+    private readonly Mock<AltarEventEmitter> _altarEventEmitter;
 
     public AltarDestructionHandlerTests()
     {
         _holySiteManager = new Mock<IHolySiteManager>();
         _messenger = new SpyPlayerMessenger();
         _logger = new Mock<ILogger>();
+        _altarEventEmitter = new Mock<AltarEventEmitter>();
 
         _handler = new AltarDestructionHandler(
             _logger.Object,
             _holySiteManager.Object,
-            _messenger);
+            _messenger,
+            _altarEventEmitter.Object);
 
         _handler.Initialize();
     }
@@ -64,7 +67,8 @@ public class AltarDestructionHandlerTests
         var ex = Assert.Throws<ArgumentNullException>(() => new AltarDestructionHandler(
             null!,
             _holySiteManager.Object,
-            _messenger));
+            _messenger,
+            _altarEventEmitter.Object));
 
         Assert.Equal("logger", ex.ParamName);
     }
@@ -76,7 +80,8 @@ public class AltarDestructionHandlerTests
         var ex = Assert.Throws<ArgumentNullException>(() => new AltarDestructionHandler(
             _logger.Object,
             null!,
-            _messenger));
+            _messenger,
+            _altarEventEmitter.Object));
 
         Assert.Equal("holySiteManager", ex.ParamName);
     }
@@ -88,9 +93,23 @@ public class AltarDestructionHandlerTests
         var ex = Assert.Throws<ArgumentNullException>(() => new AltarDestructionHandler(
             _logger.Object,
             _holySiteManager.Object,
-            null!));
+            null!,
+            _altarEventEmitter.Object));
 
         Assert.Equal("messenger", ex.ParamName);
+    }
+
+    [Fact]
+    public void Constructor_RequiresAltarEventEmitter()
+    {
+        // Act & Assert
+        var ex = Assert.Throws<ArgumentNullException>(() => new AltarDestructionHandler(
+            _logger.Object,
+            _holySiteManager.Object,
+            _messenger,
+            null!));
+
+        Assert.Equal("altarEventEmitter", ex.ParamName);
     }
 
     #region DeconsecrateHolySiteAfterAltarDestruction Tests
