@@ -2,7 +2,7 @@
 
 Deity-driven religion and faction systems for Vintage Story: create and manage religions, earn player Favor and Religion Prestige, unlock blessing trees, and organize multi‑religion civilizations. This repository contains the mod/library and an extensive xUnit test suite.
 
-Status: Active development (last updated 2025-12-04). **New to Divine Ascension? Read the [Player Guide](docs/PLAYER_GUIDE.md)!**
+Status: Active development (last updated 2026-01-21). **New to Divine Ascension? Read the [Player Guide](docs/PLAYER_GUIDE.md)!**
 
 ## Feature Summary
 
@@ -22,8 +22,12 @@ Status: Active development (last updated 2025-12-04). **New to Divine Ascension?
   - Blessing dialog with tooltips, tree layout, and civilization management views; consistent color palette and icon utilities.
 - Test suite
   - Large xUnit v3 test project covering systems, GUI utilities, networking, and models.
-
-In progress (see docs/topics/integration/): shrine/prayer mechanics and land‑claim holy‑site bonuses.
+- Holy Sites and Prayer
+  - Land claim-based holy site creation with tiered bonuses; altar prayer mechanics with 1-hour cooldowns; offering system for bonus favor rewards; automatic holy site creation/removal on altar placement/destruction.
+- Localization
+  - Multi-language support with translation files; server and client-side localization service.
+- Content Moderation
+  - Configurable profanity filter for religion/civilization names and descriptions; L33t speak detection; per-world enable/disable.
 
 ## Build and Configuration
 
@@ -109,12 +113,6 @@ DivineAscension/
 - Coverage script doesn’t open the report → open `coverage-report/index.html` manually.
 - Intermittent test failures tied to time/randomness → prefer injecting clocks and random sources.
 
-## Contributing
-
-- Match the existing C# style (C# 12, `ImplicitUsings`, `Nullable` enabled).
-- Keep types `internal` when appropriate; tests already have access via `InternalsVisibleTo`.
-- Place new tests under `DivineAscension.Tests/<Area>/` and align namespaces with folder structure.
-
 ### Commit Message Linting
 
 This project uses [commitlint](https://commitlint.js.org/) to enforce [Conventional Commits](https://www.conventionalcommits.org/) format. A git hook automatically validates your commit messages on commit.
@@ -154,10 +152,6 @@ git commit -m "feat: Add Prayer System"  # subject must be lowercase
 git commit -m "add prayer system"        # missing type
 ```
 
-## License
-
-See `LICENSE` in the repository root.
-
 ## Contributing
 
 **v1.0 is now in beta testing!** We're looking for:
@@ -167,6 +161,12 @@ See `LICENSE` in the repository root.
 - **Feature Requests:** What would make the religion system more engaging?
 
 Contributions, suggestions, and feedback are welcome! Please open an issue or discussion on the repository.
+
+### Code Contributions
+
+- Match the existing C# style (C# 12, `ImplicitUsings`, `Nullable` enabled).
+- Keep types `internal` when appropriate; tests already have access via `InternalsVisibleTo`.
+- Place new tests under `DivineAscension.Tests/<Area>/` and align namespaces with folder structure.
 
 ## License
 

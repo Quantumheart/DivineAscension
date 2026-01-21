@@ -7,6 +7,7 @@
 - [Quick Start](#quick-start)
 - [The Deities](#the-deities)
 - [Understanding Progression](#understanding-progression)
+- [Holy Sites & Prayer](#holy-sites--prayer)
 - [Creating & Joining Religions](#creating--joining-religions)
 - [Earning Favor](#earning-favor)
 - [Unlocking Blessings](#unlocking-blessings)
@@ -27,13 +28,15 @@
 1. **Choose a deity** based on your playstyle (see [The Deities](#the-deities))
 2. **Create or join a religion** using `/religion create` or `/religion join`
 3. **Open the GUI** with `Shift+G` to view your progression and blessings
-4. **Earn Favor** by performing deity-aligned activities
-5. **Unlock Blessings** to gain powerful stat bonuses and effects
+4. **Create a holy site** by placing an altar within your land claims
+5. **Earn Favor** by performing deity-aligned activities and praying at holy sites
+6. **Unlock Blessings** to gain powerful stat bonuses and effects
 
 ### Core Concepts
 
 - **Favor**: Your personal progression with your deity (individual)
 - **Prestige**: Your religion's collective reputation (shared by all members)
+- **Holy Sites**: Sacred territories that amplify prayers and provide bonuses (tier-based)
 - **Blessings**: Powerful upgrades unlocked using Favor points
 - **Civilizations**: Multi-religion alliances for shared goals
 
@@ -73,6 +76,7 @@ Khoras, Lysa, Aethra, and Gaia, but founders can customize these with `/religion
 - Mining ore: 2 favor per ore
 - Smithing at the anvil: 5-15 favor per craft
 - Smelting metals: 1-8 favor per smelt
+- Prayer at holy sites: 5 base favor (multiplied by holy site tier)
 - PvP combat (all deities): 10 favor per kill
 - Passive generation: 0.5 favor/hour
 
@@ -94,6 +98,7 @@ Khoras, Lysa, Aethra, and Gaia, but founders can customize these with `/religion
 **Favor Sources**:
 - Hunting animals: 3-20 favor per kill (varies by animal)
 - Foraging plants and resources: 0.5 favor per harvest
+- Prayer at holy sites: 5 base favor (multiplied by holy site tier)
 - PvP combat (all deities): 10 favor per kill
 - Passive generation: 0.5 favor/hour
 
@@ -116,6 +121,7 @@ Khoras, Lysa, Aethra, and Gaia, but founders can customize these with `/religion
 - Harvesting crops: 1 favor per harvest
 - Cooking meals: 3-8 favor per meal (varies by complexity)
 - Planting crops: 0.5 favor per plant
+- Prayer at holy sites: 5 base favor (multiplied by holy site tier)
 - PvP combat (all deities): 10 favor per kill
 - Passive generation: 0.5 favor/hour
 
@@ -138,6 +144,7 @@ Khoras, Lysa, Aethra, and Gaia, but founders can customize these with `/religion
 - Crafting pottery items: 2-5 favor per craft (varies by item complexity)
 - Firing pottery in kilns: 3-8 favor per firing
 - Placing clay bricks: 2 favor per brick
+- Prayer at holy sites: 5 base favor (multiplied by holy site tier)
 - PvP combat (all deities): 10 favor per kill
 - Passive generation: 0.5 favor/hour
 
@@ -188,6 +195,184 @@ Prestige is your religion's reputation, earned collectively by all members. It u
 - PvP victories (75 prestige per kill)
 - Diplomatic alliances (500 prestige bonus)
 - Contributions from all active members
+
+---
+
+## Holy Sites & Prayer
+
+Holy Sites are sacred territories that amplify your connection to your deity. They provide prayer bonuses and are
+automatically created when you place an altar within your land claims.
+
+### What are Holy Sites?
+
+Holy Sites are blessed areas that enhance your religious activities:
+
+- **Automatic Creation**: Placing an altar automatically creates a holy site from your land claims
+- **Tiered System**: Larger territories provide greater bonuses (3 tiers)
+- **Prayer Bonuses**: Multipliers to favor rewards when praying at consecrated altars
+- **Territory-Based**: Based on land claim areas around the altar
+
+### Holy Site Tiers
+
+Holy Sites are categorized by type based on the total volume of all connected land claim areas:
+
+| Tier       | Type          | Volume Required          | Land Claims | Prayer Multiplier |
+|------------|---------------|--------------------------|-------------|-------------------|
+| **Tier 1** | **Shrine**    | < 50,000 blocks³         | ~1 claim    | 2.0x              |
+| **Tier 2** | **Temple**    | 50,000 - 200,000 blocks³ | 1-2 claims  | 2.5x              |
+| **Tier 3** | **Cathedral** | 200,000+ blocks³         | 3+ claims   | 3.0x              |
+
+**Important Notes**:
+
+- Volume is calculated from ALL your land claim areas near the altar
+- Multiple smaller claims can combine to reach higher tiers
+- **Cathedrals require cooperation**: A single maxed-out land claim (~98k blocks³) can only reach Tier 2 (Temple). To
+  build a Cathedral (Tier 3), you need 3 or more land claims working together.
+- Expanding your land claims increases your holy site tier automatically
+- The prayer multiplier applies to all favor earned from prayers and offerings
+
+### Creating a Holy Site
+
+**Automatic Creation**:
+
+1. Ensure you have active land claims in the area
+2. Place a vanilla altar block anywhere within your claims
+3. A holy site is automatically created using all your land claim areas
+4. The site is named based on the religion's deity and a unique suffix
+
+**Requirements**:
+
+- You must be a member of a religion
+- You must have at least one active land claim
+- The altar must be placed within your land claims
+
+**What Happens**:
+
+- Holy site is created immediately
+- All your land claim areas within range are included
+- Tier is calculated based on total volume
+- Prayer multiplier is set based on tier
+- You'll receive a confirmation message
+
+### Removing a Holy Site
+
+Holy sites are automatically removed when:
+
+- The altar is destroyed (broken by any player)
+- The land claims expire or are removed
+- The religion is disbanded
+
+**Deconsecration**:
+
+- Breaking an altar automatically deconsecrates the holy site
+- All associated bonuses are removed
+- Players will be notified the site has been deconsecrated
+
+### Prayer Mechanics
+
+Pray at consecrated altars to earn favor from your deity.
+
+**How to Pray**:
+
+1. Find a consecrated altar (one that's part of a holy site)
+2. Right-click the altar with an empty hand or while holding an offering
+3. Receive favor based on the altar's tier and any offering
+
+**Prayer Rewards**:
+
+- **Base Favor**: 5 favor per prayer
+- **Holy Site Multiplier**: 2.0x (Shrine), 2.5x (Temple), or 3.0x (Cathedral)
+- **Offering Bonus**: Additional favor for valuable offerings (varies by item)
+- **Total Example**: Cathedral (Tier 3, 3.0x) = 15 base favor per prayer
+
+**Prayer Cooldown**:
+
+- **1 hour** cooldown between prayers
+- Cooldown is per-player, not per-altar
+- You'll receive a message with remaining time if on cooldown
+
+### Offerings
+
+Enhance your prayers with offerings for bonus favor.
+
+**How Offerings Work**:
+
+1. Hold an offering item in your hand
+2. Right-click the altar to pray
+3. The offering is consumed
+4. Receive bonus favor based on the offering's value
+
+**Offering Categories**:
+
+Offerings are categorized by type, with different favor bonuses:
+
+- **Precious Metals**: Gold, silver nuggets and items (high favor)
+- **Gemstones**: Diamonds, emeralds, precious gems (very high favor)
+- **Food Items**: Cooked meals, bread, prepared foods (moderate favor)
+- **Crafted Items**: Tools, weapons, armor (varies by quality)
+- **Raw Materials**: Ores, ingots, refined materials (moderate favor)
+
+**Tips**:
+
+- Higher quality offerings provide more favor
+- Offerings are multiplied by the holy site tier
+- Plan your offerings around the 1-hour cooldown
+- Save rare offerings for Cathedrals (Tier 3) for maximum 3.0x benefit
+
+### Holy Site Commands
+
+Manage and view holy sites with these commands:
+
+| Command                      | Description                                                        |
+|------------------------------|--------------------------------------------------------------------|
+| `/holysite info [site_name]` | View details about a holy site (current location if no name given) |
+| `/holysite list`             | List all holy sites belonging to your religion                     |
+| `/holysite nearby [radius]`  | Show nearby holy sites within radius (default: 10 chunks)          |
+
+**Examples**:
+
+```
+/holysite info                    # Show info for holy site at your current location
+/holysite info "Temple of Khoras" # Show info for a specific site
+/holysite list                    # List all your religion's holy sites
+/holysite nearby 20               # Find holy sites within 20 chunks
+```
+
+**Holy Site Information Includes**:
+
+- Site name and tier
+- Prayer multiplier bonus
+- Founder and creation date
+- Center coordinates
+- Altar position (for altar-based sites)
+- Total volume and number of land claim areas
+
+### Strategy Tips
+
+**Maximizing Holy Site Benefits**:
+
+1. **Expand Strategically**: Build larger land claims to reach higher tiers
+2. **Multiple Claims**: Combine several smaller claims to reach volume thresholds
+3. **Central Altar**: Place your altar centrally to include all nearby claims
+4. **Tier Thresholds**:
+    - **Temple (Tier 2)**: Aim for 50,000 blocks³ (1-2 land claims)
+    - **Cathedral (Tier 3)**: Aim for 200,000 blocks³ (requires 3+ land claims working together)
+5. **Cooperation for Cathedrals**: Since a single maxed claim can't reach Tier 3, work with religion members to combine
+   multiple claims
+
+**Prayer Optimization**:
+
+1. **Set Timers**: Track your 1-hour cooldown to maximize prayers
+2. **Save Offerings**: Use best offerings at Cathedrals (Tier 3) for 3.0x multiplier
+3. **Group Activities**: Coordinate with religion members for collective prayer sessions
+4. **Regular Routine**: Build prayer into your daily gameplay loop
+
+**Protection**:
+
+- Holy sites are tied to land claims - maintain your claims to keep them active
+- Altars can be broken by anyone - protect them with building design
+- Consider multiple backup holy sites across your territory
+- Larger holy sites are harder to fully remove (multiple claim areas)
 
 ---
 
@@ -364,6 +549,29 @@ Favor is earned by performing activities aligned with your deity's domain.
 - Focus on crafting storage vessels (5 favor) and planters (4 favor)
 - Batch fire pottery in pit kilns for efficient favor gains
 - Build with clay bricks for both favor and base construction
+
+### Prayer (All Domains)
+
+**Primary Activities**:
+
+- 🙏 **Prayer at Altars**: Visit consecrated altars within holy sites (5 base favor, multiplied by holy site tier)
+- 🎁 **Offerings**: Bring valuable items to earn bonus favor (varies by item quality and tier)
+
+**How Prayer Works**:
+
+1. Place an altar within your land claims to create a holy site
+2. Right-click the altar with an empty hand to pray (5 base favor × tier multiplier)
+3. Hold an offering item to gain additional bonus favor
+4. Wait 1 hour before you can pray again
+
+**Tips**:
+
+- Build larger holy sites (200,000+ blocks³) to create a Cathedral (Tier 3, 3.0x multiplier = 15 base favor)
+- Save rare offerings for Cathedrals to maximize the multiplier
+- Set a timer to track your 1-hour cooldown
+- Coordinate prayer sessions with your religion for group activities
+- Remember: Cathedrals require 3+ land claims working together
+- See the [Holy Sites & Prayer](#holy-sites--prayer) section for complete details
 
 ### Passive Favor Generation
 
@@ -779,6 +987,14 @@ Killing another player awards:
 | `/role assign <player> <role>` | Assign a role to a member |
 | `/role remove <player> <role>` | Remove a role from a member |
 
+### Holy Site Commands
+
+| Command                      | Description                                                        |
+|------------------------------|--------------------------------------------------------------------|
+| `/holysite info [site_name]` | View details about a holy site (current location if no name given) |
+| `/holysite list`             | List all holy sites belonging to your religion                     |
+| `/holysite nearby [radius]`  | Show nearby holy sites within radius (default: 10 chunks)          |
+
 ---
 
 ## Admin Commands
@@ -984,24 +1200,28 @@ Press **`Shift+G`** to open the Divine Ascension interface.
 2. Create a deep mine with multiple ore veins
 3. Combine mining sessions with smithing batches
 4. Focus on complex anvil crafts (10-15 favor each)
+5. Build a Cathedral (Tier 3) near your workshop for efficient prayers (15 favor per hour)
 
 **Wild Domain Followers**:
 1. Find areas with high animal spawns (wolves/bears = 12-15 favor)
 2. Create hunting routes through multiple biomes
 3. Forage consistently while traveling (0.5 favor adds up)
 4. Balance hunting with sustainable foraging
+5. Build a Tier 3 holy site at your hunting lodge for prayers (15 favor per hour)
 
 **Harvest Domain Followers**:
 1. Build large automated crop farms for mass harvesting
 2. Cook complex meals (stews, pies, porridge) for 5-8 favor each
 3. Plant in bulk during planting season
 4. Set up cooking stations near farms for efficiency
+5. Build a Tier 3 holy site at your farm for prayers with food offerings (15+ favor per hour)
 
 **Stone Domain Followers**:
 1. Mass-produce storage vessels (5 favor each) and planters (4 favor)
 2. Batch fire pottery in pit kilns for efficient favor
 3. Build with clay bricks (2 favor per brick) for dual-purpose construction
 4. Keep clay digging and pottery crafting as regular routines
+5. Build a Tier 3 holy site at your pottery workshop for prayers (15 favor per hour)
 
 ### Religion Management
 
@@ -1071,6 +1291,32 @@ A: Make sure you're pressing `Shift+G` (not just `G`). Check for keybind conflic
 A: No, domains are tied to religions. To switch domains, you must leave your religion and join one following a
 different domain.
 
+**Q: My altar isn't creating a holy site**
+A: Make sure:
+
+- You are a member of a religion
+- You have active land claims in the area
+- The altar is placed within your land claim boundaries
+- Your land claims haven't expired
+
+**Q: Prayer isn't working at my altar**
+A: Check these requirements:
+
+- The altar must be part of a holy site (use `/holysite info` while standing near it)
+- You must be a member of the religion that owns the holy site
+- You must not be on cooldown (1 hour between prayers)
+- The holy site hasn't been deconsecrated (altar destroyed)
+
+**Q: How do I increase my holy site tier?**
+A: Expand your land claims around the altar. The tier is based on the total volume of all connected land claim areas:
+
+- **Tier 1 (Shrine)**: < 50,000 blocks³ (~1 claim)
+- **Tier 2 (Temple)**: 50,000 - 200,000 blocks³ (1-2 claims)
+- **Tier 3 (Cathedral)**: 200,000+ blocks³ (3+ claims)
+
+Note: A single maxed-out land claim can only reach Temple (Tier 2). To build a Cathedral (Tier 3), you need 3 or more
+land claims working together.
+
 ---
 
 ## FAQ
@@ -1112,5 +1358,5 @@ A: It depends on your playstyle:
 
 ---
 
-*Last Updated: January 14, 2026*
-*Divine Ascension v4.6.0 - Prestige System Rebalance*
+*Last Updated: January 21, 2026*
+*Divine Ascension v1.0.0 - Holy Sites & Prayer System*
