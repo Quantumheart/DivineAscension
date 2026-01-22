@@ -14,7 +14,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
-namespace DivineAscension.Systems;
+namespace DivineAscension.Systems.Altar;
 
 /// <summary>
 /// Result of processing a prayer attempt.
@@ -82,7 +82,8 @@ public class AltarPrayerHandler : IDisposable
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _timeService = timeService ?? throw new ArgumentNullException(nameof(timeService));
         _altarEventEmitter = altarEventEmitter ?? throw new ArgumentNullException(nameof(altarEventEmitter));
-        _ritualProgressManager = ritualProgressManager ?? throw new ArgumentNullException(nameof(ritualProgressManager));
+        _ritualProgressManager =
+            ritualProgressManager ?? throw new ArgumentNullException(nameof(ritualProgressManager));
         _ritualLoader = ritualLoader ?? throw new ArgumentNullException(nameof(ritualLoader));
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
     }
@@ -287,7 +288,8 @@ public class AltarPrayerHandler : IDisposable
     /// <summary>
     /// Attempts to auto-discover and start a ritual when a qualifying item is offered.
     /// </summary>
-    private PrayerResult? TryAutoStartRitual(HolySiteData holySite, ItemStack offering, ReligionData religion, string playerUID)
+    private PrayerResult? TryAutoStartRitual(HolySiteData holySite, ItemStack offering, ReligionData religion,
+        string playerUID)
     {
         var currentTier = holySite.GetTier();
 
@@ -322,13 +324,15 @@ public class AltarPrayerHandler : IDisposable
         if (!startResult.Success)
             return null;
 
-        _logger.Notification($"[DivineAscension] Ritual '{ritual.Name}' discovered and started at holy site '{holySite.SiteName}' by player {playerUID}");
+        _logger.Notification(
+            $"[DivineAscension] Ritual '{ritual.Name}' discovered and started at holy site '{holySite.SiteName}' by player {playerUID}");
 
         // Now contribute the offering
         var contributionResult = _ritualProgressManager.ContributeToRitual(holySite.SiteUID, offering, playerUID);
         if (!contributionResult.Success)
         {
-            _logger.Warning($"[DivineAscension] Failed to contribute after auto-starting ritual: {contributionResult.Message}");
+            _logger.Warning(
+                $"[DivineAscension] Failed to contribute after auto-starting ritual: {contributionResult.Message}");
             return null;
         }
 
@@ -363,7 +367,8 @@ public class AltarPrayerHandler : IDisposable
 
         return new PrayerResult(
             Success: true,
-            Message: discoveryMessage + $"\n{contributionResult.Message}" + (reducedFavor > 0 ? $" (+{reducedFavor} favor)" : ""),
+            Message: discoveryMessage + $"\n{contributionResult.Message}" +
+                     (reducedFavor > 0 ? $" (+{reducedFavor} favor)" : ""),
             FavorAwarded: reducedFavor,
             PrestigeAwarded: reducedFavor,
             HolySiteTier: tier,

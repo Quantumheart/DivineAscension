@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using DivineAscension.Blocks;
 using DivineAscension.Commands;
 using DivineAscension.Configuration;
 using DivineAscension.Constants;
@@ -13,6 +14,7 @@ using DivineAscension.Network.Diplomacy;
 using DivineAscension.Network.HolySite;
 using DivineAscension.Services;
 using DivineAscension.Systems;
+using DivineAscension.Systems.Altar;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Client;
 using DivineAscension.Systems.Networking.Server;
@@ -94,7 +96,7 @@ public class DivineAscensionModSystem : ModSystem
         }
 
         // Register BlockBehavior for altar blocks
-        api.RegisterBlockBehaviorClass("DivineAscensionAltar", typeof(Blocks.BlockBehaviorAltar));
+        api.RegisterBlockBehaviorClass("DivineAscensionAltar", typeof(BlockBehaviorAltar));
         api.Logger.Notification("[DivineAscension] BlockBehaviorAltar registered");
 
         // Register with ConfigLib if available

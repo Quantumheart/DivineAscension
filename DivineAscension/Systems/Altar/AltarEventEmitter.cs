@@ -3,7 +3,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
-namespace DivineAscension.Systems;
+namespace DivineAscension.Systems.Altar;
 
 /// <summary>
 /// Service locator for altar block events.
@@ -45,7 +45,8 @@ public class AltarEventEmitter
     /// <summary>
     /// Raises the OnAltarPlaced event.
     /// </summary>
-    public virtual void RaiseAltarPlaced(IServerPlayer player, int oldBlockId, BlockSelection blockSelection, ItemStack withItemStack)
+    public virtual void RaiseAltarPlaced(IServerPlayer player, int oldBlockId, BlockSelection blockSelection,
+        ItemStack withItemStack)
     {
         OnAltarPlaced?.Invoke(player, oldBlockId, blockSelection, withItemStack);
     }

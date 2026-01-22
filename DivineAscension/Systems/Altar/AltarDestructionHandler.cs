@@ -7,7 +7,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
-namespace DivineAscension.Systems;
+namespace DivineAscension.Systems.Altar;
 
 /// <summary>
 /// Detects altar destruction and automatically deconsecrates associated holy sites.
@@ -16,10 +16,10 @@ namespace DivineAscension.Systems;
 /// </summary>
 public class AltarDestructionHandler : IDisposable
 {
+    private readonly AltarEventEmitter _altarEventEmitter;
     private readonly IHolySiteManager _holySiteManager;
     private readonly ILogger _logger;
     private readonly IPlayerMessengerService _messenger;
-    private readonly AltarEventEmitter _altarEventEmitter;
 
     public AltarDestructionHandler(
         ILogger logger,

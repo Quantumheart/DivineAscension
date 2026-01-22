@@ -1,5 +1,5 @@
 using DivineAscension.Blocks;
-using DivineAscension.Systems;
+using DivineAscension.Systems.Altar;
 using Moq;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
