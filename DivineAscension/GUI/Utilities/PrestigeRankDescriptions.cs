@@ -1,6 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models.Enum;
 
+namespace DivineAscension.GUI.Utilities;
+
 [ExcludeFromCodeCoverage]
 public static class PrestigeRankDescriptions
 {

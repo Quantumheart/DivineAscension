@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Blocks;
+using DivineAscension.Collectible;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Patches;
@@ -16,7 +17,8 @@ public class StoneFavorTracker(
     ILogger logger,
     IEventService eventService,
     IWorldService worldService,
-    IFavorSystem favorSystem) : IFavorTracker, IDisposable
+    IFavorSystem favorSystem,
+    IPlayerMessengerService messenger) : IFavorTracker, IDisposable
 {
     // --- Stone Gathering Tracking ---
     private const int FavorPerStoneBlock = 1; // Base stone blocks (granite, andesite, etc.)
@@ -27,12 +29,36 @@ public class StoneFavorTracker(
     private const int FavorPerConstructionBlock = 1; // Stone bricks, slabs, stairs
     private const long ConstructionCooldownMs = 1000; // 1 second cooldown (reduced from 5s)
 
+    // --- Chiseling Tracking ---
+    private const float FavorPerVoxel = 0.02f; // Favor awarded per voxel carved/added
+    private const long ChiselingCooldownMs = 3000; // 3 second cooldown to prevent add/remove spam
+    private const long SessionTimeoutMs = 45000; // 45s idle timeout for combo reset
+    private const long SessionDecayCheckMs = 5000; // Cleanup check interval (every 5 seconds)
+    private const int ComboTier2 = 3;   // 1.25x at 3 actions
+    private const int ComboTier3 = 6;   // 1.5x at 6 actions
+    private const int ComboTier4 = 11;  // 2.0x at 11 actions
+    private const int ComboTier5 = 21;  // 2.5x at 21+ actions
+
+    /// <summary>
+    /// Tracks chiseling session state for combo multiplier system
+    /// </summary>
+    private class ChiselingSession
+    {
+        public int ComboCount { get; set; }
+        public long LastActionTime { get; set; }
+        public long SessionStartTime { get; set; }
+        public int TotalVoxelsThisSession { get; set; }
+        public float PreviousMultiplier { get; set; } = 1.0f;
+    }
+
     private readonly IEventService
         _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
 
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
     private readonly Guid _instanceId = Guid.NewGuid();
     private readonly Dictionary<string, long> _lastConstructionTime = new(); // Renamed for clarity
+    private readonly Dictionary<string, ChiselingSession> _chiselingSessions = new();
+    private long _sessionCleanupCallbackId;
 
     private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -42,14 +68,26 @@ public class StoneFavorTracker(
     private readonly IWorldService
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
 
+    private readonly IPlayerMessengerService _messenger =
+        messenger ?? throw new ArgumentNullException(nameof(messenger));
+
     public void Dispose()
     {
         ClayFormingPatches.OnClayFormingFinished -= HandleClayFormingFinished;
         PitKilnPatches.OnPitKilnFired -= HandlePitKilnFired;
         BlockBehaviorStone.OnStoneBlockBroken -= OnBlockBroken;
+        CollectibleBehaviorChiselTracking.OnVoxelsChanged -= HandleVoxelsChanged;
         _eventService.UnsubscribeDidPlaceBlock(OnBlockPlaced);
         _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
+
+        // Unregister session cleanup callback
+        if (_sessionCleanupCallbackId != 0)
+        {
+            _eventService.UnregisterCallback(_sessionCleanupCallbackId);
+        }
+
         _lastConstructionTime.Clear();
+        _chiselingSessions.Clear();
         _logger.Debug($"[DivineAscension] StoneFavorTracker disposed (ID: {_instanceId})");
     }
 
@@ -61,10 +99,14 @@ public class StoneFavorTracker(
         PitKilnPatches.OnPitKilnFired += HandlePitKilnFired;
         // Track stone gathering
         BlockBehaviorStone.OnStoneBlockBroken += OnBlockBroken;
+        // Track chiseling work
+        CollectibleBehaviorChiselTracking.OnVoxelsChanged += HandleVoxelsChanged;
         // Track construction (brick/stone placement)
         _eventService.OnDidPlaceBlock(OnBlockPlaced);
         // Clean up cooldown data on player disconnect
         _eventService.OnPlayerDisconnect(OnPlayerDisconnect);
+        // Register periodic session cleanup callback (every 5 seconds)
+        _sessionCleanupCallbackId = _eventService.RegisterCallback(OnSessionDecayCheck, (int)SessionDecayCheckMs);
         _logger.Notification($"[DivineAscension] StoneFavorTracker initialized (ID: {_instanceId})");
     }
 
@@ -85,6 +127,120 @@ public class StoneFavorTracker(
                 $"[StoneFavorTracker] Awarded {favorAmount} favor for clay forming " +
                 $"(clay consumed: {clayConsumed}, stack size: {stack?.StackSize ?? 1}, item: {stack?.Collectible?.Code?.Path ?? "unknown"})");
         }
+    }
+
+    /// <summary>
+    /// Gets an existing chiseling session or creates a new one for the player
+    /// </summary>
+    private ChiselingSession GetOrCreateChiselingSession(string playerUID, long currentTime)
+    {
+        if (!_chiselingSessions.TryGetValue(playerUID, out var session))
+        {
+            session = new ChiselingSession
+            {
+                ComboCount = 0,
+                LastActionTime = 0,
+                SessionStartTime = currentTime,
+                TotalVoxelsThisSession = 0
+            };
+            _chiselingSessions[playerUID] = session;
+        }
+        return session;
+    }
+
+    /// <summary>
+    /// Checks if the session has expired and resets it if needed
+    /// </summary>
+    /// <returns>True if session was reset, false otherwise</returns>
+    private bool CheckAndResetExpiredSession(ChiselingSession session, string playerName, long currentTime, long timeSinceLastAction)
+    {
+        if (session.LastActionTime > 0 && timeSinceLastAction > SessionTimeoutMs)
+        {
+            // Session expired - reset combo
+            session.ComboCount = 0;
+            session.SessionStartTime = currentTime;
+            session.TotalVoxelsThisSession = 0;
+            session.PreviousMultiplier = 1.0f;
+            _logger.Debug(
+                $"[StoneFavorTracker] {playerName}'s chiseling session expired after {timeSinceLastAction / 1000.0:F1}s idle");
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if the player is still in anti-spam cooldown
+    /// </summary>
+    private bool IsInCooldown(ChiselingSession session, long timeSinceLastAction)
+    {
+        return session.LastActionTime > 0 && timeSinceLastAction < ChiselingCooldownMs;
+    }
+
+    /// <summary>
+    /// Updates session state with new chiseling action
+    /// </summary>
+    private void UpdateSessionState(ChiselingSession session, int voxelsDelta, long currentTime)
+    {
+        session.ComboCount++;
+        session.TotalVoxelsThisSession += voxelsDelta;
+        session.LastActionTime = currentTime;
+    }
+
+    /// <summary>
+    /// Sends a chat notification if the player reached a new combo tier
+    /// </summary>
+    private void NotifyTierChange(IServerPlayer player, ChiselingSession session, float newMultiplier)
+    {
+        if (Math.Abs(newMultiplier - session.PreviousMultiplier) > 0.01f)
+        {
+            var tierName = GetChiselingStreakTierName(session.ComboCount);
+            var message = $"Chiseling Streak: {tierName}! ({newMultiplier:F2}x favor)";
+            _messenger.SendMessage(player, message, EnumChatType.Notification);
+            session.PreviousMultiplier = newMultiplier;
+        }
+    }
+
+    /// <summary>
+    /// Calculates favor amount and awards it to the player
+    /// </summary>
+    /// <returns>The calculated favor amount</returns>
+    private void CalculateAndAwardFavor(IServerPlayer player, int voxelsDelta, float multiplier)
+    {
+        var favorAmount = voxelsDelta * FavorPerVoxel * multiplier;
+        _favorSystem.AwardFavorForAction(player, "Stone Carving", favorAmount);
+    }
+
+    private void HandleVoxelsChanged(IPlayer player, BlockPos pos, int voxelsDelta)
+    {
+        // Verify religion
+        var deityType = _playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID);
+        if (deityType != DeityDomain.Stone) return;
+
+        if (voxelsDelta <= 0) return;
+
+        var serverPlayer = player as IServerPlayer;
+        if (serverPlayer == null) return;
+
+        var currentTime = _worldService.ElapsedMilliseconds;
+        var session = GetOrCreateChiselingSession(player.PlayerUID, currentTime);
+
+        // Check if session expired and reset if needed
+        var timeSinceLastAction = currentTime - session.LastActionTime;
+        CheckAndResetExpiredSession(session, player.PlayerName, currentTime, timeSinceLastAction);
+
+        // Anti-spam cooldown check
+        if (IsInCooldown(session, timeSinceLastAction))
+            return;
+
+        // Update session state
+        UpdateSessionState(session, voxelsDelta, currentTime);
+
+        // Calculate multiplier and notify if tier changed
+        var multiplier = GetComboMultiplier(session.ComboCount);
+        NotifyTierChange(serverPlayer, session, multiplier);
+
+        // Award favor
+        CalculateAndAwardFavor(serverPlayer, voxelsDelta, multiplier);
     }
 
     private void OnBlockPlaced(IServerPlayer byPlayer, int oldblockId, BlockSelection blockSel, ItemStack withItemStack)
@@ -206,9 +362,12 @@ public class StoneFavorTracker(
         return path.Contains("clay") || path.Contains("ceramic") ? 3 : 0;
     }
 
-    private void OnBlockBroken(IWorldAccessor worldAccessor, BlockPos blockPos, IPlayer player,
+    private void OnBlockBroken(IWorldAccessor worldAccessor, BlockPos blockPos, IPlayer? player,
         EnumHandling enumHandling)
     {
+        // Player can be null when blocks break automatically (gravity, neighbor updates, etc.)
+        if (player == null) return;
+
         // Verify religion
         var deityType = _playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID);
         if (deityType != DeityDomain.Stone) return;
@@ -216,17 +375,69 @@ public class StoneFavorTracker(
         var serverPlayer = player as IServerPlayer;
         if (serverPlayer == null)
             return;
-        
+
         _favorSystem.AwardFavorForAction(serverPlayer, "gathering stone", FavorPerStoneBlock);
 
         _logger.Debug(
             $"[StoneFavorTracker] Awarded {FavorPerStoneBlock} favor to {player.PlayerName} for mining");
     }
 
+    /// <summary>
+    /// Periodic callback to clean up expired chiseling sessions (prevent memory leaks)
+    /// </summary>
+    private void OnSessionDecayCheck(float dt)
+    {
+        var currentTime = _worldService.ElapsedMilliseconds;
+        var expiredSessionTimeout = SessionTimeoutMs * 2; // 90 seconds (2× normal timeout)
+
+        // Find and remove expired sessions
+        var expiredPlayers = new List<string>();
+        foreach (var kvp in _chiselingSessions)
+        {
+            var timeSinceLastAction = currentTime - kvp.Value.LastActionTime;
+            if (kvp.Value.LastActionTime > 0 && timeSinceLastAction > expiredSessionTimeout)
+            {
+                expiredPlayers.Add(kvp.Key);
+            }
+        }
+
+        // Remove expired sessions
+        foreach (var playerUid in expiredPlayers)
+        {
+            _chiselingSessions.Remove(playerUid);
+            _logger.Debug($"[StoneFavorTracker] Cleaned up expired chiseling session for player {playerUid}");
+        }
+    }
+
+    /// <summary>
+    /// Calculates combo multiplier based on number of consecutive chiseling actions
+    /// </summary>
+    private float GetComboMultiplier(int comboCount)
+    {
+        if (comboCount >= ComboTier5) return 2.5f;
+        if (comboCount >= ComboTier4) return 2.0f;
+        if (comboCount >= ComboTier3) return 1.5f;
+        if (comboCount >= ComboTier2) return 1.25f;
+        return 1.0f;
+    }
+
+    /// <summary>
+    /// Gets the tier name for display in chat messages
+    /// </summary>
+    private string GetChiselingStreakTierName(int comboCount)
+    {
+        if (comboCount >= ComboTier5) return "Legendary";
+        if (comboCount >= ComboTier4) return "Epic";
+        if (comboCount >= ComboTier3) return "Great";
+        if (comboCount >= ComboTier2) return "Good";
+        return "Started";
+    }
+
     private void OnPlayerDisconnect(IServerPlayer player)
     {
         // Clean up cooldown tracking data to prevent memory leaks
         _lastConstructionTime.Remove(player.PlayerUID);
+        _chiselingSessions.Remove(player.PlayerUID);
     }
 
     private void HandlePitKilnFired(string playerUid, List<ItemStack> firedItems)
