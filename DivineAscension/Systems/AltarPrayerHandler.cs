@@ -302,11 +302,20 @@ public class AltarPrayerHandler : IDisposable
         if (ritual == null)
             return null;
 
-        // Check if offering matches any ritual requirement
+        // Check if offering matches any requirement in any step
         var ritualMatcher = new RitualMatcher();
-        var matchingRequirement = ritualMatcher.FindMatchingRequirement(offering, ritual.Requirements);
-        if (matchingRequirement == null)
-            return null; // Offering doesn't match ritual requirements
+        var matchingRequirement = false;
+        foreach (var step in ritual.Steps)
+        {
+            if (ritualMatcher.FindMatchingRequirement(offering, step.Requirements) != null)
+            {
+                matchingRequirement = true;
+                break;
+            }
+        }
+
+        if (!matchingRequirement)
+            return null; // Offering doesn't match any ritual requirements
 
         // Auto-start the ritual!
         var startResult = _ritualProgressManager.StartRitual(holySite.SiteUID, ritual.RitualId, playerUID);
