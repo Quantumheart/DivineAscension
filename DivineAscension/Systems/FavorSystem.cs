@@ -252,7 +252,9 @@ public class FavorSystem : IFavorSystem
         var actionLower = actionType.ToLowerInvariant();
 
         // Exclude PvP - already handled by PvPManager
-        if (actionLower.Contains("pvp") || actionLower.Contains("kill"))
+        // Note: Only filter "pvp" actions, not all actions containing "kill"
+        // ConquestFavorTracker uses "combat kill {entity}" which should award prestige
+        if (actionLower.Contains("pvp"))
             return false;
 
         // Exclude passive favor - not deity-themed activity
