@@ -25,6 +25,8 @@ public class FavorSystem : IFavorSystem
     private readonly IEventService _eventService;
     private readonly ILoggerWrapper _logger;
 
+    private readonly IPlayerMessengerService _messenger;
+
     // Batching support for high-frequency favor events (e.g., scythe harvesting)
     private readonly Dictionary<string, PendingFavorData> _pendingFavor = new();
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
@@ -41,8 +43,6 @@ public class FavorSystem : IFavorSystem
     private SkinningFavorTracker? _skinningFavorTracker;
     private SmeltingFavorTracker? _smeltingFavorTracker;
     private StoneFavorTracker? _stoneFavorTracker;
-
-    private readonly IPlayerMessengerService _messenger;
 
     public FavorSystem(ILoggerWrapper logger,
         IEventService eventService,
@@ -99,7 +99,8 @@ public class FavorSystem : IFavorSystem
         _harvestFavorTracker.Initialize();
 
         _stoneFavorTracker =
-            new StoneFavorTracker(_playerProgressionDataManager, _logger, _eventService, _worldService, this, _messenger);
+            new StoneFavorTracker(_playerProgressionDataManager, _logger, _eventService, _worldService, this,
+                _messenger);
         _stoneFavorTracker.Initialize();
 
         _smeltingFavorTracker = new SmeltingFavorTracker(_logger, _worldService, _playerProgressionDataManager, this);
@@ -290,7 +291,8 @@ public class FavorSystem : IFavorSystem
             DeityDomain.Stone =>
                 actionLower.Contains("pottery") ||
                 actionLower.Contains("brick") ||
-                actionLower.Contains("clay"),
+                actionLower.Contains("clay") ||
+                actionLower.Contains("carving"),
 
             _ => false
         };
