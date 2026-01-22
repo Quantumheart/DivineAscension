@@ -3,6 +3,7 @@ using System.Reflection;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
@@ -22,7 +23,7 @@ public class BlessingEffectSystemTests
     private readonly BlessingEffectSystem _effectSystem;
     private readonly Mock<IBlessingRegistry> _mockBlessingRegistry;
     private readonly Mock<IEventService> _mockEventService;
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILoggerWrapper> _mockLogger;
     private readonly Mock<IPlayerProgressionDataManager> _mockPlayerReligionDataManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
     private readonly Mock<IWorldService> _mockWorldService;
@@ -31,7 +32,7 @@ public class BlessingEffectSystemTests
     {
         TestFixtures.InitializeLocalizationForTests();
 
-        _mockLogger = new Mock<ILogger>();
+        _mockLogger = new Mock<ILoggerWrapper>();
         _mockEventService = new Mock<IEventService>();
         _mockWorldService = new Mock<IWorldService>();
         _mockBlessingRegistry = new Mock<IBlessingRegistry>();

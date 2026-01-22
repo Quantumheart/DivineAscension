@@ -20,10 +20,12 @@ public class BlessingLoader : IBlessingLoader
 
     private readonly ICoreAPI _api;
     private readonly List<Blessing> _loadedBlessings = new();
+    private readonly ILoggerWrapper _logger;
 
-    public BlessingLoader(ICoreAPI api)
+    public BlessingLoader(ICoreAPI api, ILoggerWrapper logger)
     {
         _api = api ?? throw new ArgumentNullException(nameof(api));
+        _logger =  logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <inheritdoc />
@@ -51,13 +53,13 @@ public class BlessingLoader : IBlessingLoader
                     _loadedBlessings.AddRange(blessingsFromFile);
                     totalLoaded += blessingsFromFile.Count;
                     filesLoaded++;
-                    _api.Logger.Debug(
+                    _logger.Debug(
                         $"[DivineAscension BlessingLoader] Loaded {blessingsFromFile.Count} blessings from {domainFile}.json");
                 }
             }
             catch (Exception ex)
             {
-                _api.Logger.Error(
+                _logger.Error(
                     $"[DivineAscension BlessingLoader] Failed to load blessings from {domainFile}.json: {ex.Message}");
             }
         }
@@ -65,12 +67,12 @@ public class BlessingLoader : IBlessingLoader
         if (filesLoaded > 0)
         {
             LoadedSuccessfully = true;
-            _api.Logger.Notification(
+            _logger.Notification(
                 $"[DivineAscension BlessingLoader] Successfully loaded {totalLoaded} blessings from {filesLoaded} files");
         }
         else
         {
-            _api.Logger.Warning(
+            _logger.Warning(
                 "[DivineAscension BlessingLoader] No blessing files were loaded. Fallback to hardcoded definitions may be needed.");
         }
 
@@ -88,7 +90,7 @@ public class BlessingLoader : IBlessingLoader
         var asset = _api.Assets.Get(new AssetLocation("divineascension", assetPath));
         if (asset == null)
         {
-            _api.Logger.Debug($"[DivineAscension BlessingLoader] Asset not found: {assetPath}");
+            _logger.Debug($"[DivineAscension BlessingLoader] Asset not found: {assetPath}");
             return blessings;
         }
 
@@ -100,14 +102,14 @@ public class BlessingLoader : IBlessingLoader
 
         if (fileDto == null)
         {
-            _api.Logger.Warning($"[DivineAscension BlessingLoader] Failed to parse {domainFileName}.json");
+            _logger.Warning($"[DivineAscension BlessingLoader] Failed to parse {domainFileName}.json");
             return blessings;
         }
 
         // Validate and convert domain
         if (!TryParseDomain(fileDto.Domain, out var domain))
         {
-            _api.Logger.Error(
+            _logger.Error(
                 $"[DivineAscension BlessingLoader] Invalid domain '{fileDto.Domain}' in {domainFileName}.json");
             return blessings;
         }
@@ -124,7 +126,7 @@ public class BlessingLoader : IBlessingLoader
             }
             catch (Exception ex)
             {
-                _api.Logger.Warning(
+                _logger.Warning(
                     $"[DivineAscension BlessingLoader] Failed to convert blessing '{dto.BlessingId}': {ex.Message}");
             }
         }
@@ -140,20 +142,20 @@ public class BlessingLoader : IBlessingLoader
         // Validate required fields
         if (string.IsNullOrWhiteSpace(dto.BlessingId))
         {
-            _api.Logger.Warning("[DivineAscension BlessingLoader] Blessing has empty BlessingId, skipping");
+            _logger.Warning("[DivineAscension BlessingLoader] Blessing has empty BlessingId, skipping");
             return null;
         }
 
         if (string.IsNullOrWhiteSpace(dto.Name))
         {
-            _api.Logger.Warning($"[DivineAscension BlessingLoader] Blessing '{dto.BlessingId}' has empty Name, skipping");
+            _logger.Warning($"[DivineAscension BlessingLoader] Blessing '{dto.BlessingId}' has empty Name, skipping");
             return null;
         }
 
         // Parse Kind enum
         if (!TryParseKind(dto.Kind, out var kind))
         {
-            _api.Logger.Warning(
+            _logger.Warning(
                 $"[DivineAscension BlessingLoader] Blessing '{dto.BlessingId}' has invalid Kind '{dto.Kind}', skipping");
             return null;
         }
@@ -161,7 +163,7 @@ public class BlessingLoader : IBlessingLoader
         // Parse Category enum
         if (!TryParseCategory(dto.Category, out var category))
         {
-            _api.Logger.Warning(
+            _logger.Warning(
                 $"[DivineAscension BlessingLoader] Blessing '{dto.BlessingId}' has invalid Category '{dto.Category}', using Utility as default");
             category = BlessingCategory.Utility;
         }
@@ -186,7 +188,7 @@ public class BlessingLoader : IBlessingLoader
             {
                 if (!IsKnownStatKey(key))
                 {
-                    _api.Logger.Debug(
+                    _logger.Debug(
                         $"[DivineAscension BlessingLoader] Blessing '{dto.BlessingId}' has unknown stat key '{key}'");
                 }
             }

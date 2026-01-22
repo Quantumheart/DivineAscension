@@ -6,6 +6,7 @@ using System.Linq;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
@@ -23,13 +24,13 @@ public class HolySiteManagerTests
     private readonly FakeEventService _fakeEventService;
     private readonly FakePersistenceService _fakePersistenceService;
     private readonly FakeWorldService _fakeWorldService;
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILoggerWrapper> _mockLogger;
     private readonly Mock<IReligionManager> _mockReligionManager;
     private readonly HolySiteManager _manager;
 
     public HolySiteManagerTests()
     {
-        _mockLogger = new Mock<ILogger>();
+        _mockLogger = new Mock<ILoggerWrapper>();
         _fakeEventService = new FakeEventService();
         _fakePersistenceService = new FakePersistenceService();
         _fakeWorldService = new FakeWorldService();

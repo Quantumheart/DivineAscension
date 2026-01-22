@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
@@ -15,12 +16,12 @@ public class AnvilFavorTrackerTests
 {
     private readonly FakeWorldService _fakeWorldService;
     private readonly Mock<IFavorSystem> _mockFavorSystem;
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILoggerWrapper> _mockLogger;
     private readonly Mock<IPlayerProgressionDataManager> _mockPlayerProgressionDataManager;
 
     public AnvilFavorTrackerTests()
     {
-        _mockLogger = new Mock<ILogger>();
+        _mockLogger = new Mock<ILoggerWrapper>();
         _fakeWorldService = new FakeWorldService();
         _mockPlayerProgressionDataManager = new Mock<IPlayerProgressionDataManager>();
         _mockFavorSystem = new Mock<IFavorSystem>();

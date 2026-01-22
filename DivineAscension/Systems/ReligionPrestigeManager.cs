@@ -5,6 +5,7 @@ using DivineAscension.Configuration;
 using DivineAscension.Constants;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -18,7 +19,7 @@ namespace DivineAscension.Systems;
 public class ReligionPrestigeManager : IReligionPrestigeManager
 {
     private readonly GameBalanceConfig _config;
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly IReligionManager _religionManager;
     private readonly IWorldService _worldService;
     private IBlessingEffectSystem? _blessingEffectSystem;
@@ -26,7 +27,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
     private CivilizationManager? _civilizationManager;
     private IDiplomacyManager? _diplomacyManager;
 
-    public ReligionPrestigeManager(ILogger logger, IWorldService worldService, IReligionManager religionManager,
+    public ReligionPrestigeManager(ILoggerWrapper logger, IWorldService worldService, IReligionManager religionManager,
         GameBalanceConfig config)
     {
         _logger = logger;

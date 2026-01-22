@@ -4,6 +4,7 @@ using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -22,7 +23,7 @@ public class FavorSystem : IFavorSystem
     private readonly IActivityLogManager _activityLogManager;
     private readonly GameBalanceConfig _config;
     private readonly IEventService _eventService;
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
 
     // Batching support for high-frequency favor events (e.g., scythe harvesting)
     private readonly Dictionary<string, PendingFavorData> _pendingFavor = new();
@@ -43,8 +44,7 @@ public class FavorSystem : IFavorSystem
 
     private readonly IPlayerMessengerService _messenger;
 
-    public FavorSystem(
-        ILogger logger,
+    public FavorSystem(ILoggerWrapper logger,
         IEventService eventService,
         IWorldService worldService,
         IPlayerProgressionDataManager playerProgressionDataManager,

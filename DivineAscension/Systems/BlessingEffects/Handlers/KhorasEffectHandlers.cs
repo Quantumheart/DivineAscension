@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
+using DivineAscension.Services;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
@@ -25,12 +26,12 @@ public static class KhorasEffectHandlers
 
         private readonly Dictionary<string, long> _lastRepairTime = new();
         private IEventService? _eventService;
-        private ILogger? _logger;
+        private ILoggerWrapper? _logger;
         private IWorldService? _worldService;
 
         public string EffectId => "passive_tool_repair_1per5min";
 
-        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
+        public void Initialize(ILoggerWrapper logger, IEventService eventService, IWorldService worldService)
         {
             _logger = logger;
             _eventService = eventService;

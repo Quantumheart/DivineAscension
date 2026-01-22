@@ -4,6 +4,7 @@ using System.Linq;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -17,7 +18,7 @@ namespace DivineAscension.Systems.Favor;
 ///     Awards favor for discovering ancient ruins, temporal machinery, and other structures.
 /// </summary>
 public class RuinDiscoveryFavorTracker(
-    ILogger logger,
+    ILoggerWrapper logger,
     IEventService eventService,
     IWorldService worldService,
     IPlayerProgressionDataManager playerProgressionDataManager,
@@ -33,7 +34,7 @@ public class RuinDiscoveryFavorTracker(
         _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
 
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
-    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ILoggerWrapper _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));

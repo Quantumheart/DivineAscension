@@ -4,6 +4,7 @@ using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
@@ -23,7 +24,7 @@ public class FavorSystemTests
     public void Initialize_DoesNotThrowException()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -131,7 +132,7 @@ public class FavorSystemTests
     public void Initialize_RegistersPlayerDeathHandler()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -162,7 +163,7 @@ public class FavorSystemTests
     public void AwardFavorForAction_SendsNotificationToPlayer()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -230,7 +231,7 @@ public class FavorSystemTests
     }
 
     private FavorSystem CreateFavorSystem(
-        ILogger logger,
+        ILoggerWrapper logger,
         IEventService eventService,
         IWorldService worldService,
         IPlayerProgressionDataManager playerProgressionDataManager,
@@ -260,7 +261,7 @@ public class FavorSystemTests
     public void ProcessPvPKill_WithAttackerWithoutDeity_DoesNotAwardFavor()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -304,7 +305,7 @@ public class FavorSystemTests
     public void ProcessPvPKill_SendsNotificationToAttacker()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -355,7 +356,7 @@ public class FavorSystemTests
     public void ProcessDeathPenalty_WithPlayerHavingDeity_RemovesFavor()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -392,7 +393,7 @@ public class FavorSystemTests
     public void ProcessDeathPenalty_WithPlayerWithoutDeity_DoesNotRemoveFavor()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -428,7 +429,7 @@ public class FavorSystemTests
     public void ProcessDeathPenalty_WithZeroFavor_DoesNotRemoveFavor()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -468,7 +469,7 @@ public class FavorSystemTests
     public void CalculateFavorReward_WithNoVictimDeity_ReturnsBaseFavor()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -492,7 +493,7 @@ public class FavorSystemTests
     public void CalculateFavorReward_WithSameDeity_ReturnsFullFavor()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -520,7 +521,7 @@ public class FavorSystemTests
     public void AwardFavorForAction_WithPlayerHavingDeity_AwardsFavor()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -557,7 +558,7 @@ public class FavorSystemTests
     public void AwardFavorForAction_WithPlayerWithoutDeity_DoesNotAwardFavor()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -597,7 +598,7 @@ public class FavorSystemTests
     public void AwardPassiveFavor_WithPlayerHavingDeity_AwardsFavor()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -641,7 +642,7 @@ public class FavorSystemTests
     public void AwardPassiveFavor_WithPlayerWithoutDeity_DoesNotAwardFavor()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -677,7 +678,7 @@ public class FavorSystemTests
     public void CalculatePassiveFavorMultiplier_WithHigherRanks_ReturnsHigherMultiplier()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -724,7 +725,7 @@ public class FavorSystemTests
     public void CalculatePassiveFavorMultiplier_WithReligionPrestige_AppliesMultiplier()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -858,7 +859,7 @@ public class FavorSystemTests
     public void OnPlayerDeath_WithNonPvPDeath_OnlyAppliesPenalty()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -906,7 +907,7 @@ public class FavorSystemTests
     public void ProcessPvPKill_SendsNotificationToVictim()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -954,7 +955,7 @@ public class FavorSystemTests
     public void ProcessDeathPenalty_SendsNotificationToPlayer()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -1000,7 +1001,7 @@ public class FavorSystemTests
     public void OnGameTick_AwardsPassiveFavorToOnlinePlayers()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -1053,7 +1054,7 @@ public class FavorSystemTests
     public void OnGameTick_SkipsPlayersWithoutDeity()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -1095,7 +1096,7 @@ public class FavorSystemTests
     public void AwardFavorForAction_ConquestCombatKill_ShouldAwardPrestige()
     {
         // Arrange - Conquest player in a religion
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerProgressionDataManager = new Mock<IPlayerProgressionDataManager>();
@@ -1152,7 +1153,7 @@ public class FavorSystemTests
     public void AwardFavorForAction_PvPKill_ShouldNotAwardPrestigeThroughFavorSystem()
     {
         // Arrange - Player in a religion
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         var fakeEventService = new FakeEventService();
         var fakeWorldService = new FakeWorldService();
         var mockPlayerProgressionDataManager = new Mock<IPlayerProgressionDataManager>();

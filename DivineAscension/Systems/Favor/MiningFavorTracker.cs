@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -9,7 +10,7 @@ using Vintagestory.API.Server;
 namespace DivineAscension.Systems.Favor;
 
 public class MiningFavorTracker(
-    ILogger logger,
+    ILoggerWrapper logger,
     IWorldService worldService,
     IPlayerProgressionDataManager playerProgressionDataManager,
     IFavorSystem favorSystem) : IFavorTracker, IDisposable
@@ -31,7 +32,7 @@ public class MiningFavorTracker(
     private readonly HashSet<string> _craftFollowers = new();
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
-    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ILoggerWrapper _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));

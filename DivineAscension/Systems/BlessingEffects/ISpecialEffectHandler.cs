@@ -1,4 +1,5 @@
 using DivineAscension.API.Interfaces;
+using DivineAscension.Services;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
@@ -17,7 +18,7 @@ public interface ISpecialEffectHandler
     /// <summary>
     ///     Initializes the effect handler (called once at system startup)
     /// </summary>
-    void Initialize(ILogger logger, IEventService eventService, IWorldService worldService);
+    void Initialize(ILoggerWrapper logger, IEventService eventService, IWorldService worldService);
 
     /// <summary>
     ///     Activates the effect for a player (called when blessing is unlocked)

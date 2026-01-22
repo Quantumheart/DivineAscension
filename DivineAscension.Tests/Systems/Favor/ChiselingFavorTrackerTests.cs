@@ -1,6 +1,7 @@
 using System.Reflection;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
@@ -16,7 +17,7 @@ public class ChiselingFavorTrackerTests
 {
     private static StoneFavorTracker CreateTracker(
         IPlayerProgressionDataManager progression,
-        ILogger logger,
+        ILoggerWrapper logger,
         IEventService eventService,
         FakeWorldService worldService,
         IFavorSystem favorSystem,
@@ -47,7 +48,7 @@ public class ChiselingFavorTrackerTests
         var mockFavor = new Mock<IFavorSystem>();
         var fakeWorld = new FakeWorldService();
         var mockEvent = new Mock<IEventService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
 
         var tracker = CreateTracker(
             mockProgression.Object,
@@ -83,7 +84,7 @@ public class ChiselingFavorTrackerTests
         var mockFavor = new Mock<IFavorSystem>();
         var fakeWorld = new FakeWorldService();
         var mockEvent = new Mock<IEventService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
 
         var tracker = CreateTracker(
             mockProgression.Object,
@@ -119,7 +120,7 @@ public class ChiselingFavorTrackerTests
         var mockFavor = new Mock<IFavorSystem>();
         var fakeWorld = new FakeWorldService();
         var mockEvent = new Mock<IEventService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
 
         var tracker = CreateTracker(
             mockProgression.Object,
@@ -155,7 +156,7 @@ public class ChiselingFavorTrackerTests
         var mockFavor = new Mock<IFavorSystem>();
         var fakeWorld = new FakeWorldService();
         var mockEvent = new Mock<IEventService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
 
         var tracker = CreateTracker(
             mockProgression.Object,
@@ -191,7 +192,7 @@ public class ChiselingFavorTrackerTests
         var mockFavor = new Mock<IFavorSystem>();
         var fakeWorld = new FakeWorldService();
         var mockEvent = new Mock<IEventService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
 
         var tracker = CreateTracker(
             mockProgression.Object,
@@ -233,7 +234,7 @@ public class ChiselingFavorTrackerTests
         var mockFavor = new Mock<IFavorSystem>();
         var fakeWorld = new FakeWorldService();
         var mockEvent = new Mock<IEventService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
 
         var tracker = CreateTracker(
             mockProgression.Object,
@@ -277,7 +278,7 @@ public class ChiselingFavorTrackerTests
         var mockFavor = new Mock<IFavorSystem>();
         var fakeWorld = new FakeWorldService();
         var mockEvent = new Mock<IEventService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
 
         var tracker = CreateTracker(
             mockProgression.Object,
@@ -318,7 +319,7 @@ public class ChiselingFavorTrackerTests
         var mockFavor = new Mock<IFavorSystem>();
         var fakeWorld = new FakeWorldService();
         var mockEvent = new Mock<IEventService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
 
         var tracker = CreateTracker(
             mockProgression.Object,
@@ -366,7 +367,7 @@ public class ChiselingFavorTrackerTests
         var mockFavor = new Mock<IFavorSystem>();
         var fakeWorld = new FakeWorldService();
         var mockEvent = new Mock<IEventService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
 
         var tracker = CreateTracker(
             mockProgression.Object,
@@ -407,7 +408,7 @@ public class ChiselingFavorTrackerTests
         var mockFavor = new Mock<IFavorSystem>();
         var fakeWorld = new FakeWorldService();
         var mockEvent = new Mock<IEventService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
 
         var tracker = CreateTracker(
             mockProgression.Object,
@@ -451,7 +452,7 @@ public class ChiselingFavorTrackerTests
         var mockFavor = new Mock<IFavorSystem>();
         var fakeWorld = new FakeWorldService();
         var mockEvent = new Mock<IEventService>();
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
 
         var tracker = CreateTracker(
             mockProgression.Object,

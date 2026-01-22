@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
+using DivineAscension.Services;
 using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -22,12 +23,12 @@ public static class GaiaEffectHandlers
     {
         private readonly HashSet<string> _activePlayers = new();
         private IEventService? _eventService;
-        private ILogger? _logger;
+        private ILoggerWrapper? _logger;
         private IWorldService? _worldService;
 
         public string EffectId => SpecialEffects.PotteryBatchCompletionBonus;
 
-        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
+        public void Initialize(ILoggerWrapper logger, IEventService eventService, IWorldService worldService)
         {
             _logger = logger;
             _eventService = eventService;

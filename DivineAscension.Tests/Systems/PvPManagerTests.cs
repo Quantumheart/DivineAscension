@@ -3,6 +3,7 @@ using System.Reflection;
 using DivineAscension.Configuration;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
@@ -24,7 +25,7 @@ public class PvPManagerTests
     private readonly FakeWorldService _fakeWorldService;
     private readonly Mock<ICivilizationManager> _mockCivilizationManager;
     private readonly Mock<IDiplomacyManager> _mockDiplomacyManager;
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILoggerWrapper> _mockLogger;
     private readonly Mock<IPlayerProgressionDataManager> _mockPlayerReligionDataManager;
     private readonly Mock<IReligionPrestigeManager> _mockPrestigeManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
@@ -32,7 +33,7 @@ public class PvPManagerTests
 
     public PvPManagerTests()
     {
-        _mockLogger = new Mock<ILogger>();
+        _mockLogger = new Mock<ILoggerWrapper>();
         _fakeEventService = new FakeEventService();
         _fakeWorldService = new FakeWorldService();
         _mockPlayerReligionDataManager = TestFixtures.CreateMockPlayerProgressionDataManager();

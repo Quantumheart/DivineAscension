@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
+using DivineAscension.Services;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
@@ -16,13 +17,13 @@ public class SpecialEffectRegistry
 {
     private readonly IEventService _eventService;
     private readonly Dictionary<string, ISpecialEffectHandler> _handlers = new();
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly Dictionary<string, HashSet<string>> _playerActiveEffects = new();
     private readonly IWorldService _worldService;
     private long? _tickListenerId;
 
     public SpecialEffectRegistry(
-        ILogger logger,
+        ILoggerWrapper logger,
         IEventService eventService,
         IWorldService worldService)
     {

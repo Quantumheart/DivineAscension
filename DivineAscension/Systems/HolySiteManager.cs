@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -30,7 +31,7 @@ public class HolySiteManager : IHolySiteManager
     private readonly IEventService _eventService;
 
     // Dependencies (API wrappers)
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly IPersistenceService _persistenceService;
     private readonly IReligionManager _religionManager;
     private readonly ConcurrentDictionary<string, HashSet<string>> _sitesByReligion = new();
@@ -48,7 +49,7 @@ public class HolySiteManager : IHolySiteManager
     /// Constructs a new HolySiteManager with required dependencies.
     /// </summary>
     public HolySiteManager(
-        ILogger logger,
+        ILoggerWrapper logger,
         IEventService eventService,
         IPersistenceService persistenceService,
         IWorldService worldService,

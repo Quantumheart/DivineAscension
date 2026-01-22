@@ -45,11 +45,11 @@ internal static class ImGuiClipboardHelper
             io.SetClipboardTextFn = Marshal.GetFunctionPointerForDelegate(_setClipboardDelegate);
 
             _isConfigured = true;
-            api.Logger.Notification("[DivineAscension] ImGui clipboard callbacks configured");
+            GuiDialog.Logger?.Notification("[DivineAscension] ImGui clipboard callbacks configured");
         }
         catch (Exception ex)
         {
-            api.Logger.Error($"[DivineAscension] Failed to configure ImGui clipboard callbacks: {ex}");
+            GuiDialog.Logger?.Error($"[DivineAscension] Failed to configure ImGui clipboard callbacks: {ex}");
         }
     }
 

@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
@@ -22,14 +23,14 @@ public class CivilizationManagerTests
     private readonly FakePersistenceService _fakePersistenceService;
     private readonly FakeWorldService _fakeWorldService;
     private readonly Mock<ICoreServerAPI> _mockAPI;
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILoggerWrapper> _mockLogger;
     private readonly Mock<IReligionManager> _mockReligionManager;
 
     public CivilizationManagerTests()
     {
         _mockAPI = TestFixtures.CreateMockServerAPI();
-        _mockLogger = new Mock<ILogger>();
-        _mockAPI.Setup(a => a.Logger).Returns(_mockLogger.Object);
+        _mockLogger = new Mock<ILoggerWrapper>();
+        // _mockAPI.Setup(a => a.Logger).Returns(_mockLogger.Object);
 
         // Create real instances for integration-style testing
         _mockReligionManager = new Mock<IReligionManager>();

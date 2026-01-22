@@ -9,11 +9,11 @@ namespace DivineAscension.Tests.Services;
 public class OfferingLoaderTests
 {
     private readonly Mock<IAssetManager> _mockAssetManager;
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILoggerWrapper> _mockLogger;
 
     public OfferingLoaderTests()
     {
-        _mockLogger = new Mock<ILogger>();
+        _mockLogger = new Mock<ILoggerWrapper>();
         _mockAssetManager = new Mock<IAssetManager>();
     }
 

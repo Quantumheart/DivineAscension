@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
+using DivineAscension.Services;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
@@ -28,7 +29,7 @@ public static class ConquestEffectHandlers
 
         private readonly Dictionary<string, FuryState> _playerFuryStates = new();
         private IEventService? _eventService;
-        private ILogger? _logger;
+        private ILoggerWrapper? _logger;
         private IWorldService? _worldService;
 
         public void Dispose()
@@ -43,7 +44,7 @@ public static class ConquestEffectHandlers
 
         public string EffectId => SpecialEffects.BattleFury;
 
-        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
+        public void Initialize(ILoggerWrapper logger, IEventService eventService, IWorldService worldService)
         {
             _logger = logger;
             _eventService = eventService;
@@ -150,7 +151,7 @@ public static class ConquestEffectHandlers
 
         private readonly HashSet<string> _activePlayers = new();
         private IEventService? _eventService;
-        private ILogger? _logger;
+        private ILoggerWrapper? _logger;
         private IWorldService? _worldService;
 
         public void Dispose()
@@ -165,7 +166,7 @@ public static class ConquestEffectHandlers
 
         public string EffectId => SpecialEffects.Bloodlust;
 
-        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
+        public void Initialize(ILoggerWrapper logger, IEventService eventService, IWorldService worldService)
         {
             _logger = logger;
             _eventService = eventService;
@@ -223,12 +224,12 @@ public static class ConquestEffectHandlers
 
         private readonly Dictionary<string, bool> _lastStandActive = new();
         private IEventService? _eventService;
-        private ILogger? _logger;
+        private ILoggerWrapper? _logger;
         private IWorldService? _worldService;
 
         public string EffectId => SpecialEffects.LastStand;
 
-        public void Initialize(ILogger logger, IEventService eventService, IWorldService worldService)
+        public void Initialize(ILoggerWrapper logger, IEventService eventService, IWorldService worldService)
         {
             _logger = logger;
             _eventService = eventService;

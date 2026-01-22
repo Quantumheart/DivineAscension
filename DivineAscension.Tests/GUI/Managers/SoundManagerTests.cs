@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.GUI.Managers;
 using DivineAscension.GUI.Models.Enum;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using Moq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -14,7 +15,7 @@ public class SoundManagerTests
 {
     private readonly Mock<ICoreClientAPI> _mockApi = new();
     private readonly Mock<EntityPlayer> _mockEntity = new();
-    private readonly Mock<ILogger> _mockLogger = new();
+    private readonly Mock<ILoggerWrapper> _mockLogger = new();
     private readonly Mock<IClientPlayer> _mockPlayer = new();
     private readonly Mock<IClientWorldAccessor> _mockWorld = new();
 
@@ -23,12 +24,11 @@ public class SoundManagerTests
     public SoundManagerTests()
     {
         _mockApi.SetupGet(a => a.World).Returns(_mockWorld.Object);
-        _mockApi.SetupGet(a => a.Logger).Returns(_mockLogger.Object);
 
         _mockWorld.SetupGet(w => w.Player).Returns(_mockPlayer.Object);
         _mockPlayer.SetupGet(p => p.Entity).Returns(_mockEntity.Object);
 
-        _sut = new SoundManager(_mockApi.Object);
+        _sut = new SoundManager(_mockApi.Object, _mockLogger.Object);
     }
 
     [Fact]

@@ -45,7 +45,7 @@ internal static class DeityIconLoader
             var asset = _api.Assets.TryGet(assetPath);
             if (asset == null)
             {
-                _api.Logger.Warning($"[DivineAscension] Deity icon not found: {assetPath}");
+                GuiDialog.Logger?.Warning($"[DivineAscension] Deity icon not found: {assetPath}");
                 return null;
             }
 
@@ -53,7 +53,7 @@ internal static class DeityIconLoader
             var textureId = _api.Render.GetOrLoadTexture(assetPath);
             if (textureId == 0)
             {
-                _api.Logger.Warning($"[DivineAscension] Failed to load deity texture: {assetPath}");
+                GuiDialog.Logger?.Warning($"[DivineAscension] Failed to load deity texture: {assetPath}");
                 return null;
             }
 
@@ -64,12 +64,12 @@ internal static class DeityIconLoader
                 Height = 32
             };
 
-            _api.Logger.Debug($"[DivineAscension] Loaded deity icon: {deityName} (ID: {texture.TextureId})");
+            GuiDialog.Logger?.Debug($"[DivineAscension] Loaded deity icon: {deityName} (ID: {texture.TextureId})");
             return texture;
         }
         catch (Exception ex)
         {
-            _api.Logger.Error($"[DivineAscension] Error loading deity texture {deityName}: {ex.Message}");
+            GuiDialog.Logger?.Error($"[DivineAscension] Error loading deity texture {deityName}: {ex.Message}");
             return null;
         }
     }

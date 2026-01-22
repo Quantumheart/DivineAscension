@@ -2,6 +2,7 @@ using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems.Altar;
 using DivineAscension.Systems.BuffSystem.Interfaces;
@@ -21,7 +22,7 @@ public class AltarPrayerHandlerTests
     private readonly FakeEventService _eventService;
     private readonly AltarPrayerHandler _handler;
     private readonly Mock<IHolySiteManager> _holySiteManager;
-    private readonly Mock<ILogger> _logger;
+    private readonly Mock<ILoggerWrapper> _logger;
     private readonly SpyPlayerMessenger _messenger;
     private readonly Mock<IOfferingLoader> _offeringLoader;
     private readonly Mock<IPlayerProgressionDataManager> _progressionDataManager;
@@ -45,7 +46,7 @@ public class AltarPrayerHandlerTests
         _progressionService = new Mock<IPlayerProgressionService>();
         _messenger = new SpyPlayerMessenger();
         _worldService = new Mock<IWorldService>();
-        _logger = new Mock<ILogger>();
+        _logger = new Mock<ILoggerWrapper>();
         _buffManager = new Mock<IBuffManager>();
         _config = new GameBalanceConfig();
         _timeService = new FakeTimeService();

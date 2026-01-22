@@ -10,6 +10,7 @@ using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI;
 using DivineAscension.GUI.UI.Components.Overlays;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services;
 using ImGuiNET;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -45,6 +46,14 @@ public partial class GuiDialog : ModSystem
     private Stopwatch? _stopwatch;
     private ImGuiViewportPtr _viewport;
 
+    // GUI Logger - static so it can be accessed from partial class methods and icon loaders
+    private static ILoggerWrapper? _logger;
+
+    /// <summary>
+    ///     Public accessor for the GUI logger (for icon loaders and utilities)
+    /// </summary>
+    public static ILoggerWrapper? Logger => _logger;
+
     /// <summary>
     ///     Public accessor for the dialog manager (for network client access)
     /// </summary>
@@ -67,6 +76,9 @@ public partial class GuiDialog : ModSystem
         _capi = api;
         _viewport = ImGui.GetMainViewport();
         _stopwatch = Stopwatch.StartNew();
+
+        // Initialize GUI logger (static, accessible from all GUI code)
+        _logger = LoggingService.Instance.CreateLogger("GUI");
 
         // Initialize API services
         _inputService = new ClientInputService(api.Input);
@@ -122,7 +134,7 @@ public partial class GuiDialog : ModSystem
         }
         else
         {
-            _capi.Logger.Error(
+            _logger?.Error(
                 "[DivineAscension] DivineAscensionModSystem or NetworkClient not found! Blessing unlocking will not work.");
         }
 
@@ -139,13 +151,13 @@ public partial class GuiDialog : ModSystem
         }
         else
         {
-            _capi.Logger.Error("[DivineAscension] VSImGui mod not found! Blessing dialog will not work.");
+            _logger?.Error("[DivineAscension] VSImGui mod not found! Blessing dialog will not work.");
         }
 
         // Register periodic check for data availability
         _checkDataId = _capi.Event.RegisterGameTickListener(OnCheckDataAvailability, CheckDataInterval);
 
-        _capi.Logger.Notification("[DivineAscension] Blessing Dialog initialized");
+        _logger?.Notification("[DivineAscension] Blessing Dialog initialized");
     }
 
 
@@ -181,7 +193,7 @@ public partial class GuiDialog : ModSystem
 
         _state.IsOpen = false;
 
-        _capi!.Logger.Debug("[DivineAscension] Blessing Dialog closed");
+        _logger?.Debug("[DivineAscension] Blessing Dialog closed");
     }
 
     /// <summary>
@@ -371,7 +383,7 @@ public partial class GuiDialog : ModSystem
     /// </summary>
     private void PreloadTextures()
     {
-        _capi!.Logger.Debug("[DivineAscension] Preloading GUI textures...");
+        _logger?.Debug("[DivineAscension] Preloading GUI textures...");
 
         // Preload all deity icons (5 icons: Craft, Wild, Harvest, Stone, Conquest)
         DeityIconLoader.PreloadAllTextures();
@@ -395,7 +407,7 @@ public partial class GuiDialog : ModSystem
         // Note: Blessing icons cannot be preloaded here because we don't have blessing data yet
         // They will be preloaded in OnBlessingDataReceived after blessing data is received
 
-        _capi.Logger.Debug("[DivineAscension] GUI texture preload complete");
+        _logger?.Debug("[DivineAscension] GUI texture preload complete");
     }
 
     /// <summary>
@@ -455,6 +467,6 @@ public partial class GuiDialog : ModSystem
         CivilizationIconLoader.Dispose();
         BlessingIconLoader.Dispose();
 
-        _capi?.Logger.Notification("[DivineAscension] Blessing Dialog disposed");
+        _logger?.Notification("[DivineAscension] Blessing Dialog disposed");
     }
 }

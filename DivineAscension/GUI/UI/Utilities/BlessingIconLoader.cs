@@ -49,7 +49,7 @@ internal static class BlessingIconLoader
             var asset = _api.Assets.TryGet(assetPath);
             if (asset == null)
             {
-                _api.Logger.Warning($"[DivineAscension] Blessing icon not found: {assetPath}");
+                GuiDialog.Logger?.Warning($"[DivineAscension] Blessing icon not found: {assetPath}");
                 return null;
             }
 
@@ -57,7 +57,7 @@ internal static class BlessingIconLoader
             var textureId = _api.Render.GetOrLoadTexture(assetPath);
             if (textureId == 0)
             {
-                _api.Logger.Warning($"[DivineAscension] Failed to load blessing texture: {assetPath}");
+                GuiDialog.Logger?.Warning($"[DivineAscension] Failed to load blessing texture: {assetPath}");
                 return null;
             }
 
@@ -68,13 +68,13 @@ internal static class BlessingIconLoader
                 Height = 48
             };
 
-            _api.Logger.Debug(
+            GuiDialog.Logger?.Debug(
                 $"[DivineAscension] Loaded blessing icon: {deityName}/{normalizedIconName} (ID: {texture.TextureId})");
             return texture;
         }
         catch (Exception ex)
         {
-            _api.Logger.Error(
+            GuiDialog.Logger?.Error(
                 $"[DivineAscension] Error loading blessing texture {deityName}/{normalizedIconName}: {ex.Message}");
             return null;
         }

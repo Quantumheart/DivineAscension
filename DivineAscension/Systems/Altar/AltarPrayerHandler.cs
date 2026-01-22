@@ -43,7 +43,7 @@ public class AltarPrayerHandler : IDisposable
     private readonly IBuffManager _buffManager;
     private readonly GameBalanceConfig _config;
     private readonly IHolySiteManager _holySiteManager;
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly IPlayerMessengerService _messenger;
     private readonly IOfferingLoader _offeringLoader;
     private readonly IPlayerProgressionDataManager _progressionDataManager;
@@ -55,7 +55,7 @@ public class AltarPrayerHandler : IDisposable
     private readonly IWorldService _worldService;
 
     public AltarPrayerHandler(
-        ILogger logger,
+        ILoggerWrapper logger,
         IOfferingLoader offeringLoader,
         IHolySiteManager holySiteManager,
         IReligionManager religionManager,

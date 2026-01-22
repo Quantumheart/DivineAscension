@@ -1,6 +1,7 @@
 using System;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
@@ -13,7 +14,7 @@ namespace DivineAscension.Systems.Favor;
 ///     Tracks metal pouring into molds and awards favor to Craft followers
 /// </summary>
 public class SmeltingFavorTracker(
-    ILogger logger,
+    ILoggerWrapper logger,
     IWorldService worldService,
     IPlayerProgressionDataManager playerProgressionDataManager,
     IFavorSystem favorSystem)
@@ -25,7 +26,7 @@ public class SmeltingFavorTracker(
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
     private readonly Guid _instanceId = Guid.NewGuid();
-    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ILoggerWrapper _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));

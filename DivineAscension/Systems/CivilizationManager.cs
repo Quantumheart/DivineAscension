@@ -5,6 +5,7 @@ using System.Threading;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -22,7 +23,7 @@ public class CivilizationManager : ICivilizationManager
     private const int MAX_RELIGIONS = 4;
     private const int INVITE_EXPIRY_DAYS = 7;
     private readonly IEventService _eventService;
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly IPersistenceService _persistenceService;
 
     private readonly IReligionManager _religionManager;
@@ -35,7 +36,7 @@ public class CivilizationManager : ICivilizationManager
     private object? _lock;
 
     public CivilizationManager(
-        ILogger logger,
+        ILoggerWrapper logger,
         IEventService eventService,
         IPersistenceService persistenceService,
         IWorldService worldService,

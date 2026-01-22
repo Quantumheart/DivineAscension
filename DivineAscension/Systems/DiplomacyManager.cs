@@ -6,6 +6,7 @@ using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 
@@ -19,7 +20,7 @@ public class DiplomacyManager : IDiplomacyManager
     private readonly CivilizationManager _civilizationManager;
     private readonly ICooldownManager _cooldownManager;
     private readonly IEventService _eventService;
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly IPersistenceService _persistenceService;
     private readonly IReligionPrestigeManager _prestigeManager;
     private readonly IReligionManager _religionManager;
@@ -31,7 +32,7 @@ public class DiplomacyManager : IDiplomacyManager
     private object? _lock;
 
     public DiplomacyManager(
-        ILogger logger,
+        ILoggerWrapper logger,
         IEventService eventService,
         IPersistenceService persistenceService,
         CivilizationManager civilizationManager,

@@ -4,6 +4,7 @@ using System.Linq;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 
@@ -15,11 +16,11 @@ namespace DivineAscension.Systems;
 public class ActivityLogManager : IActivityLogManager
 {
     private const int MAX_ENTRIES_PER_RELIGION = 100;
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly IReligionManager _religionManager;
     private readonly IWorldService _worldService;
 
-    public ActivityLogManager(ILogger logger, IWorldService worldService, IReligionManager religionManager)
+    public ActivityLogManager(ILoggerWrapper logger, IWorldService worldService, IReligionManager religionManager)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
