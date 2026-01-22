@@ -67,7 +67,14 @@ public class RitualProgressManagerTests
         Assert.NotNull(result.Ritual);
         Assert.NotNull(site.ActiveRitual);
         Assert.Equal(TestRitualId, site.ActiveRitual.RitualId);
-        Assert.Equal(2, site.ActiveRitual.Progress.Count); // 2 requirements in test ritual
+        Assert.Equal(3, site.ActiveRitual.Progress.Count); // 3 steps in test ritual
+
+        // Verify all steps are initialized with IsDiscovered=false
+        Assert.All(site.ActiveRitual.Progress.Values, stepProgress =>
+        {
+            Assert.False(stepProgress.IsDiscovered);
+            Assert.False(stepProgress.IsComplete);
+        });
     }
 
     [Fact]
@@ -224,11 +231,16 @@ public class RitualProgressManagerTests
 
         // Assert
         Assert.True(result.Success);
-        Assert.Equal("copper_ingots", result.RequirementId);
-        Assert.Equal(10, result.QuantityContributed);
-        Assert.Equal(50, result.QuantityRequired);
-        Assert.False(result.RequirementCompleted); // Only 10/50
+        Assert.Equal("step1", result.StepId);
+        Assert.True(result.StepDiscovered); // Should discover step1 on first contribution
+        Assert.False(result.StepCompleted); // Only 10/50 copper ingots
         Assert.False(result.RitualCompleted);
+
+        // Verify progress was updated
+        var stepProgress = site.ActiveRitual!.Progress["step1"];
+        Assert.True(stepProgress.IsDiscovered);
+        Assert.False(stepProgress.IsComplete);
+        Assert.Equal(10, stepProgress.RequirementProgress["copper_ingots"].QuantityContributed);
     }
 
     [Fact]
@@ -305,8 +317,10 @@ public class RitualProgressManagerTests
     {
         // Arrange
         var site = CreateTestSiteWithActiveRitual();
-        // Mark copper requirement as complete
-        site.ActiveRitual!.Progress["copper_ingots"].QuantityContributed = 50;
+        // Mark copper requirement as complete in step1
+        site.ActiveRitual!.Progress["step1"].RequirementProgress["copper_ingots"].QuantityContributed = 50;
+        site.ActiveRitual!.Progress["step1"].IsComplete = true;
+        site.ActiveRitual!.Progress["step1"].IsDiscovered = true;
 
         var ritual = CreateTestRitual();
         var offering = CreateItemStack("game:ingot-copper");
@@ -319,7 +333,7 @@ public class RitualProgressManagerTests
 
         // Assert
         Assert.False(result.Success);
-        Assert.Contains("already completed", result.Message);
+        Assert.Contains("already complete", result.Message);
     }
 
     [Fact]
@@ -327,8 +341,9 @@ public class RitualProgressManagerTests
     {
         // Arrange
         var site = CreateTestSiteWithActiveRitual();
-        // Set progress to 45/50 (only 5 more needed)
-        site.ActiveRitual!.Progress["copper_ingots"].QuantityContributed = 45;
+        // Set progress to 45/50 in step1 (only 5 more needed)
+        site.ActiveRitual!.Progress["step1"].RequirementProgress["copper_ingots"].QuantityContributed = 45;
+        site.ActiveRitual!.Progress["step1"].IsDiscovered = true;
 
         var ritual = CreateTestRitual();
         var offering = CreateItemStack("game:ingot-copper", stackSize: 20); // Offering 20, but only 5 needed
@@ -341,8 +356,12 @@ public class RitualProgressManagerTests
 
         // Assert
         Assert.True(result.Success);
-        Assert.Equal(50, result.QuantityContributed); // Should be capped at 50
-        Assert.True(result.RequirementCompleted);
+        Assert.True(result.StepCompleted); // Step1 should be completed
+        Assert.False(result.RitualCompleted); // But ritual not complete (still have step2 and step3)
+
+        // Verify final quantity is capped at 50
+        var reqProgress = site.ActiveRitual!.Progress["step1"].RequirementProgress["copper_ingots"];
+        Assert.Equal(50, reqProgress.QuantityContributed);
     }
 
     [Fact]
@@ -366,12 +385,13 @@ public class RitualProgressManagerTests
         // Assert
         Assert.True(result1.Success);
         Assert.True(result2.Success);
-        Assert.Equal(35, result2.QuantityContributed); // Total
 
-        var progress = site.ActiveRitual!.Progress["copper_ingots"];
-        Assert.Equal(2, progress.Contributors.Count);
-        Assert.Equal(20, progress.Contributors["player1"]);
-        Assert.Equal(15, progress.Contributors["player2"]);
+        // Verify contributors are tracked in step1's copper_ingots requirement
+        var reqProgress = site.ActiveRitual!.Progress["step1"].RequirementProgress["copper_ingots"];
+        Assert.Equal(35, reqProgress.QuantityContributed); // Total
+        Assert.Equal(2, reqProgress.Contributors.Count);
+        Assert.Equal(20, reqProgress.Contributors["player1"]);
+        Assert.Equal(15, reqProgress.Contributors["player2"]);
     }
 
     [Fact]
@@ -379,11 +399,19 @@ public class RitualProgressManagerTests
     {
         // Arrange
         var site = CreateTestSiteWithActiveRitual();
-        // Set first requirement to complete
-        site.ActiveRitual!.Progress["copper_ingots"].QuantityContributed = 50;
+
+        // Complete step1 (copper ingots)
+        site.ActiveRitual!.Progress["step1"].RequirementProgress["copper_ingots"].QuantityContributed = 50;
+        site.ActiveRitual!.Progress["step1"].IsComplete = true;
+        site.ActiveRitual!.Progress["step1"].IsDiscovered = true;
+
+        // Complete step2 (bronze ingots)
+        site.ActiveRitual!.Progress["step2"].RequirementProgress["bronze_ingots"].QuantityContributed = 25;
+        site.ActiveRitual!.Progress["step2"].IsComplete = true;
+        site.ActiveRitual!.Progress["step2"].IsDiscovered = true;
 
         var ritual = CreateTestRitual();
-        var offering = CreateItemStack("game:ingot-bronze", stackSize: 25); // Complete second requirement
+        var offering = CreateItemStack("game:anvil-steel", stackSize: 1); // Complete step3 (final requirement)
 
         _mockHolySiteManager.Setup(m => m.GetHolySite(TestSiteUID)).Returns(site);
         _mockRitualLoader.Setup(m => m.GetRitualById(TestRitualId)).Returns(ritual);
@@ -393,7 +421,8 @@ public class RitualProgressManagerTests
 
         // Assert
         Assert.True(result.Success);
-        Assert.True(result.RitualCompleted);
+        Assert.True(result.StepCompleted); // Step3 completed
+        Assert.True(result.RitualCompleted); // Entire ritual completed
         Assert.Equal(2, site.RitualTier); // Upgraded to Tier 2
         Assert.Null(site.ActiveRitual); // Ritual cleared
     }
@@ -487,19 +516,49 @@ public class RitualProgressManagerTests
         {
             RitualId = TestRitualId,
             StartedAt = DateTime.UtcNow,
-            Progress = new Dictionary<string, ItemProgress>
+            Progress = new Dictionary<string, StepProgress>
             {
-                ["copper_ingots"] = new ItemProgress
+                ["step1"] = new StepProgress
                 {
-                    QuantityContributed = 0,
-                    QuantityRequired = 50,
-                    Contributors = new Dictionary<string, int>()
+                    IsComplete = false,
+                    IsDiscovered = false,
+                    RequirementProgress = new Dictionary<string, ItemProgress>
+                    {
+                        ["copper_ingots"] = new ItemProgress
+                        {
+                            QuantityContributed = 0,
+                            QuantityRequired = 50,
+                            Contributors = new Dictionary<string, int>()
+                        }
+                    }
                 },
-                ["bronze_ingots"] = new ItemProgress
+                ["step2"] = new StepProgress
                 {
-                    QuantityContributed = 0,
-                    QuantityRequired = 25,
-                    Contributors = new Dictionary<string, int>()
+                    IsComplete = false,
+                    IsDiscovered = false,
+                    RequirementProgress = new Dictionary<string, ItemProgress>
+                    {
+                        ["bronze_ingots"] = new ItemProgress
+                        {
+                            QuantityContributed = 0,
+                            QuantityRequired = 25,
+                            Contributors = new Dictionary<string, int>()
+                        }
+                    }
+                },
+                ["step3"] = new StepProgress
+                {
+                    IsComplete = false,
+                    IsDiscovered = false,
+                    RequirementProgress = new Dictionary<string, ItemProgress>
+                    {
+                        ["steel_anvil"] = new ItemProgress
+                        {
+                            QuantityContributed = 0,
+                            QuantityRequired = 1,
+                            Contributors = new Dictionary<string, int>()
+                        }
+                    }
                 }
             }
         };
@@ -519,12 +578,10 @@ public class RitualProgressManagerTests
 
     private static Ritual CreateTestRitual(DeityDomain domain = DeityDomain.Craft, int sourceTier = 1)
     {
-        return new Ritual(
-            RitualId: TestRitualId,
-            Name: "Test Ritual",
-            Domain: domain,
-            SourceTier: sourceTier,
-            TargetTier: 2,
+        // Create a 3-step ritual for testing
+        var step1 = new RitualStep(
+            StepId: "step1",
+            StepName: "Base Metals",
             Requirements: new List<RitualRequirement>
             {
                 new RitualRequirement(
@@ -532,14 +589,42 @@ public class RitualProgressManagerTests
                     DisplayName: "Copper Ingots",
                     Quantity: 50,
                     Type: RequirementType.Exact,
-                    ItemCodes: new[] { "game:ingot-copper" }),
+                    ItemCodes: new[] { "game:ingot-copper" })
+            }.AsReadOnly());
+
+        var step2 = new RitualStep(
+            StepId: "step2",
+            StepName: "Refined Materials",
+            Requirements: new List<RitualRequirement>
+            {
                 new RitualRequirement(
                     RequirementId: "bronze_ingots",
                     DisplayName: "Bronze Ingots",
                     Quantity: 25,
                     Type: RequirementType.Exact,
                     ItemCodes: new[] { "game:ingot-bronze" })
-            },
+            }.AsReadOnly());
+
+        var step3 = new RitualStep(
+            StepId: "step3",
+            StepName: "Masterwork Tool",
+            Requirements: new List<RitualRequirement>
+            {
+                new RitualRequirement(
+                    RequirementId: "steel_anvil",
+                    DisplayName: "Steel Anvil",
+                    Quantity: 1,
+                    Type: RequirementType.Exact,
+                    ItemCodes: new[] { "game:anvil-steel" })
+            }.AsReadOnly());
+
+        return new Ritual(
+            RitualId: TestRitualId,
+            Name: "Test Ritual",
+            Domain: domain,
+            SourceTier: sourceTier,
+            TargetTier: 2,
+            Steps: new List<RitualStep> { step1, step2, step3 }.AsReadOnly(),
             Description: "Test ritual description");
     }
 
