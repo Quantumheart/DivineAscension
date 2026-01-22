@@ -1,22 +1,21 @@
 using DivineAscension.API.Interfaces;
-using DivineAscension.Systems;
+using DivineAscension.Systems.Altar;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
 using Moq;
 using Vintagestory.API.Common;
-using Xunit;
 
 namespace DivineAscension.Tests.Systems;
 
 public class AltarPlacementHandlerTests
 {
-    private readonly Mock<IHolySiteManager> _holySiteManager;
-    private readonly Mock<IReligionManager> _religionManager;
-    private readonly Mock<IWorldService> _worldService;
-    private readonly SpyPlayerMessenger _messenger;
-    private readonly Mock<ILogger> _logger;
     private readonly Mock<AltarEventEmitter> _altarEventEmitter;
     private readonly AltarPlacementHandler _handler;
+    private readonly Mock<IHolySiteManager> _holySiteManager;
+    private readonly Mock<ILogger> _logger;
+    private readonly SpyPlayerMessenger _messenger;
+    private readonly Mock<IReligionManager> _religionManager;
+    private readonly Mock<IWorldService> _worldService;
 
     public AltarPlacementHandlerTests()
     {

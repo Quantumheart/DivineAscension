@@ -1,5 +1,5 @@
 using DivineAscension.Data;
-using DivineAscension.Systems;
+using DivineAscension.Systems.Altar;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
 using Moq;
@@ -11,11 +11,11 @@ namespace DivineAscension.Tests.Systems;
 
 public class AltarDestructionHandlerTests
 {
+    private readonly Mock<AltarEventEmitter> _altarEventEmitter;
     private readonly AltarDestructionHandler _handler;
     private readonly Mock<IHolySiteManager> _holySiteManager;
     private readonly Mock<ILogger> _logger;
     private readonly SpyPlayerMessenger _messenger;
-    private readonly Mock<AltarEventEmitter> _altarEventEmitter;
 
     public AltarDestructionHandlerTests()
     {

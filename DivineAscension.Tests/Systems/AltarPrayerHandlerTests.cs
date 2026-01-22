@@ -3,7 +3,7 @@ using DivineAscension.Configuration;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services.Interfaces;
-using DivineAscension.Systems;
+using DivineAscension.Systems.Altar;
 using DivineAscension.Systems.BuffSystem.Interfaces;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;

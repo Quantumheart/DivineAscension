@@ -1,4 +1,4 @@
-using DivineAscension.Systems;
+using DivineAscension.Systems.Altar;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;

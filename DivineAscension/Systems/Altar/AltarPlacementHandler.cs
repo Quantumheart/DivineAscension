@@ -1,13 +1,12 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using DivineAscension.API.Interfaces;
+using DivineAscension.Data;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
-using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
-namespace DivineAscension.Systems;
+namespace DivineAscension.Systems.Altar;
 
 /// <summary>
 /// Detects altar placement and automatically creates holy sites from land claims.
@@ -16,12 +15,12 @@ namespace DivineAscension.Systems;
 /// </summary>
 public class AltarPlacementHandler : IDisposable
 {
+    private readonly AltarEventEmitter _altarEventEmitter;
     private readonly IHolySiteManager _holySiteManager;
+    private readonly ILogger _logger;
+    private readonly IPlayerMessengerService _messenger;
     private readonly IReligionManager _religionManager;
     private readonly IWorldService _worldService;
-    private readonly IPlayerMessengerService _messenger;
-    private readonly ILogger _logger;
-    private readonly AltarEventEmitter _altarEventEmitter;
 
     public AltarPlacementHandler(
         ILogger logger,
@@ -39,16 +38,16 @@ public class AltarPlacementHandler : IDisposable
         _altarEventEmitter = altarEventEmitter ?? throw new ArgumentNullException(nameof(altarEventEmitter));
     }
 
+    public void Dispose()
+    {
+        _altarEventEmitter.OnAltarPlaced -= OnAltarPlaced;
+    }
+
     public void Initialize()
     {
         _logger.Notification("[DivineAscension] Initializing Altar Placement Handler...");
         _altarEventEmitter.OnAltarPlaced += OnAltarPlaced;
         _logger.Notification("[DivineAscension] Altar Placement Handler initialized");
-    }
-
-    public void Dispose()
-    {
-        _altarEventEmitter.OnAltarPlaced -= OnAltarPlaced;
     }
 
     [ExcludeFromCodeCoverage]
@@ -69,7 +68,8 @@ public class AltarPlacementHandler : IDisposable
             var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
             if (religion == null)
             {
-                _messenger.SendMessage(player, "You must be in a religion to create holy sites with altars.", EnumChatType.CommandError);
+                _messenger.SendMessage(player, "You must be in a religion to create holy sites with altars.",
+                    EnumChatType.CommandError);
                 return; // Allow altar placement but don't create holy site
             }
 
@@ -77,7 +77,8 @@ public class AltarPlacementHandler : IDisposable
             var landClaims = _worldService.World.Claims.Get(blockSel.Position);
             if (landClaims == null || landClaims.Length == 0)
             {
-                _messenger.SendMessage(player, "Altar placed, but no land claim detected. Holy site not created.", EnumChatType.CommandError);
+                _messenger.SendMessage(player, "Altar placed, but no land claim detected. Holy site not created.",
+                    EnumChatType.CommandError);
                 return; // Allow placement but warn
             }
 
@@ -85,14 +86,16 @@ public class AltarPlacementHandler : IDisposable
             var playerClaim = FindPlayerClaim(landClaims, player.PlayerUID);
             if (playerClaim == null)
             {
-                _messenger.SendMessage(player, "You can only create holy sites on your own land claims.", EnumChatType.CommandError);
+                _messenger.SendMessage(player, "You can only create holy sites on your own land claims.",
+                    EnumChatType.CommandError);
                 return;
             }
 
             // Validate claim has areas
             if (playerClaim.Areas == null || playerClaim.Areas.Count == 0)
             {
-                _messenger.SendMessage(player, "Land claim has no valid areas. Holy site not created.", EnumChatType.CommandError);
+                _messenger.SendMessage(player, "Land claim has no valid areas. Holy site not created.",
+                    EnumChatType.CommandError);
                 return;
             }
 
@@ -105,7 +108,8 @@ public class AltarPlacementHandler : IDisposable
             _logger.Debug($"[DivineAscension] Land claim has {playerClaim.Areas.Count} areas:");
             foreach (var area in playerClaim.Areas)
             {
-                _logger.Debug($"[DivineAscension]   Area: ({area.X1},{area.Y1},{area.Z1}) to ({area.X2},{area.Y2},{area.Z2})");
+                _logger.Debug(
+                    $"[DivineAscension]   Area: ({area.X1},{area.Y1},{area.Z1}) to ({area.X2},{area.Y2},{area.Z2})");
             }
 
             // Create holy site with altar
@@ -126,7 +130,8 @@ public class AltarPlacementHandler : IDisposable
                     $"Holy site '{siteName}' consecrated! Tier {tier}, Prayer bonus: {prayerMult:F1}x",
                     EnumChatType.CommandSuccess);
 
-                _logger.Notification($"[DivineAscension] Holy site '{siteName}' created by {player.PlayerName} via altar placement");
+                _logger.Notification(
+                    $"[DivineAscension] Holy site '{siteName}' created by {player.PlayerName} via altar placement");
             }
             else
             {
@@ -162,10 +167,11 @@ public class AltarPlacementHandler : IDisposable
             if (claim.OwnedByPlayerUid == playerUID)
                 return claim;
         }
+
         return null;
     }
 
-    private string GenerateSiteName(Data.ReligionData religion, IServerPlayer player)
+    private string GenerateSiteName(ReligionData religion, IServerPlayer player)
     {
         var existingCount = _holySiteManager.GetReligionHolySites(religion.ReligionUID).Count;
         return $"{religion.ReligionName} - Site {existingCount + 1}";

@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Implementation;
+using DivineAscension.Blocks;
 using DivineAscension.Commands;
 using DivineAscension.Configuration;
 using DivineAscension.Data;
 using DivineAscension.Services;
 using DivineAscension.Services.Interfaces;
+using DivineAscension.Systems.Altar;
 using DivineAscension.Systems.BuffSystem;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Server;
@@ -96,7 +98,7 @@ public static class DivineAscensionSystemInitializer
 
         // Create AltarEventEmitter (service locator for BlockBehaviorAltar)
         var altarEventEmitter = new AltarEventEmitter();
-        Blocks.BlockBehaviorAltar.SetEventEmitter(altarEventEmitter);
+        BlockBehaviorAltar.SetEventEmitter(altarEventEmitter);
 
         // Initialize Holy Site Manager (depends on ReligionManager)
         var holySiteManager = new HolySiteManager(
