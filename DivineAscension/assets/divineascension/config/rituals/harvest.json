@@ -1,6 +1,6 @@
 {
   "domain": "Harvest",
-  "version": 1,
+  "version": 2,
   "rituals": [
     {
       "ritualId": "harvest_tier2_ritual",
@@ -8,34 +8,52 @@
       "sourceTier": 1,
       "targetTier": 2,
       "description": "Offer the fruits of your agricultural labor to bless this shrine as a temple of plenty.",
-      "requirements": [
+      "steps": [
         {
-          "requirementId": "grains",
-          "displayName": "Grains (Any Type)",
-          "quantity": 100,
-          "type": "Category",
-          "itemCodes": ["game:grain-*"]
+          "stepId": "farmers_harvest",
+          "stepName": "Farmer's Harvest",
+          "requirements": [
+            {
+              "requirementId": "grains",
+              "displayName": "Grains (Any Type)",
+              "quantity": 100,
+              "type": "Category",
+              "itemCodes": ["game:grain-*"]
+            },
+            {
+              "requirementId": "vegetables",
+              "displayName": "Vegetables (Any Type)",
+              "quantity": 80,
+              "type": "Category",
+              "itemCodes": ["game:vegetable-*", "game:carrot-*", "game:onion-*", "game:parsnip-*", "game:turnip-*", "game:pumpkin-*"]
+            }
+          ]
         },
         {
-          "requirementId": "vegetables",
-          "displayName": "Vegetables (Any Type)",
-          "quantity": 80,
-          "type": "Category",
-          "itemCodes": ["game:vegetable-*", "game:carrot-*", "game:onion-*", "game:parsnip-*", "game:turnip-*", "game:pumpkin-*"]
+          "stepId": "bakers_offering",
+          "stepName": "Baker's Offering",
+          "requirements": [
+            {
+              "requirementId": "bread",
+              "displayName": "Bread (Any Type)",
+              "quantity": 30,
+              "type": "Category",
+              "itemCodes": ["game:bread-*"]
+            }
+          ]
         },
         {
-          "requirementId": "bread",
-          "displayName": "Bread (Any Type)",
-          "quantity": 30,
-          "type": "Category",
-          "itemCodes": ["game:bread-*"]
-        },
-        {
-          "requirementId": "seeds",
-          "displayName": "Crop Seeds",
-          "quantity": 50,
-          "type": "Category",
-          "itemCodes": ["game:seeds-*"]
+          "stepId": "seeds_of_tomorrow",
+          "stepName": "Seeds of Tomorrow",
+          "requirements": [
+            {
+              "requirementId": "seeds",
+              "displayName": "Crop Seeds",
+              "quantity": 50,
+              "type": "Category",
+              "itemCodes": ["game:seeds-*"]
+            }
+          ]
         }
       ]
     },
@@ -45,34 +63,58 @@
       "sourceTier": 2,
       "targetTier": 3,
       "description": "Transform this temple into a cathedral that embodies the infinite generosity of the harvest.",
-      "requirements": [
+      "steps": [
         {
-          "requirementId": "cooked_meals",
-          "displayName": "Cooked Meals (Any Type)",
-          "quantity": 50,
-          "type": "Category",
-          "itemCodes": ["game:meal-*", "game:porridge-*"]
+          "stepId": "prepared_feast",
+          "stepName": "Prepared Feast",
+          "requirements": [
+            {
+              "requirementId": "cooked_meals",
+              "displayName": "Cooked Meals (Any Type)",
+              "quantity": 50,
+              "type": "Category",
+              "itemCodes": ["game:meal-*", "game:porridge-*"]
+            }
+          ]
         },
         {
-          "requirementId": "fruits",
-          "displayName": "Fruits (Any Type)",
-          "quantity": 120,
-          "type": "Category",
-          "itemCodes": ["game:fruit-*"]
+          "stepId": "orchards_bounty",
+          "stepName": "Orchard's Bounty",
+          "requirements": [
+            {
+              "requirementId": "fruits",
+              "displayName": "Fruits (Any Type)",
+              "quantity": 120,
+              "type": "Category",
+              "itemCodes": ["game:fruit-*"]
+            }
+          ]
         },
         {
-          "requirementId": "cheese",
-          "displayName": "Cheese",
-          "quantity": 40,
-          "type": "Category",
-          "itemCodes": ["game:cheese-*"]
+          "stepId": "dairy_delights",
+          "stepName": "Dairy Delights",
+          "requirements": [
+            {
+              "requirementId": "cheese",
+              "displayName": "Cheese",
+              "quantity": 40,
+              "type": "Category",
+              "itemCodes": ["game:cheese-*"]
+            }
+          ]
         },
         {
-          "requirementId": "wine",
-          "displayName": "Wine or Cider",
-          "quantity": 20,
-          "type": "Category",
-          "itemCodes": ["game:wine-*", "game:cider-*"]
+          "stepId": "fermented_spirits",
+          "stepName": "Fermented Spirits",
+          "requirements": [
+            {
+              "requirementId": "wine",
+              "displayName": "Wine or Cider",
+              "quantity": 20,
+              "type": "Category",
+              "itemCodes": ["game:wine-*", "game:cider-*"]
+            }
+          ]
         }
       ]
     }

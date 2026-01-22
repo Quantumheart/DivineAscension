@@ -1,6 +1,6 @@
 {
   "domain": "Wild",
-  "version": 1,
+  "version": 2,
   "rituals": [
     {
       "ritualId": "wild_tier2_ritual",
@@ -8,34 +8,52 @@
       "sourceTier": 1,
       "targetTier": 2,
       "description": "Prove your connection to nature by offering the bounty of the wilderness.",
-      "requirements": [
+      "steps": [
         {
-          "requirementId": "raw_meat",
-          "displayName": "Raw Meat (Any Type)",
-          "quantity": 100,
-          "type": "Category",
-          "itemCodes": ["game:redmeat-raw", "game:bushmeat-raw", "game:poultry-raw"]
+          "stepId": "hunters_bounty",
+          "stepName": "Hunter's Bounty",
+          "requirements": [
+            {
+              "requirementId": "raw_meat",
+              "displayName": "Raw Meat (Any Type)",
+              "quantity": 100,
+              "type": "Category",
+              "itemCodes": ["game:redmeat-raw", "game:bushmeat-raw", "game:poultry-raw"]
+            }
+          ]
         },
         {
-          "requirementId": "berries",
-          "displayName": "Berries (Any Type)",
-          "quantity": 300,
-          "type": "Category",
-          "itemCodes": ["game:fruit-*berry"]
+          "stepId": "gatherers_gift",
+          "stepName": "Gatherer's Gift",
+          "requirements": [
+            {
+              "requirementId": "berries",
+              "displayName": "Berries (Any Type)",
+              "quantity": 300,
+              "type": "Category",
+              "itemCodes": ["game:fruit-*berry"]
+            },
+            {
+              "requirementId": "mushrooms",
+              "displayName": "Mushrooms (Any Type)",
+              "quantity": 75,
+              "type": "Category",
+              "itemCodes": ["game:mushroom-*"]
+            }
+          ]
         },
         {
-          "requirementId": "mushrooms",
-          "displayName": "Mushrooms (Any Type)",
-          "quantity": 75,
-          "type": "Category",
-          "itemCodes": ["game:mushroom-*"]
-        },
-        {
-          "requirementId": "animal_hides",
-          "displayName": "Animal Hides (Any Type)",
-          "quantity": 30,
-          "type": "Category",
-          "itemCodes": ["game:hide-raw-*", "game:hide-prepared-*"]
+          "stepId": "wild_mastery",
+          "stepName": "Wild Mastery",
+          "requirements": [
+            {
+              "requirementId": "animal_hides",
+              "displayName": "Animal Hides (Any Type)",
+              "quantity": 30,
+              "type": "Category",
+              "itemCodes": ["game:hide-raw-*", "game:hide-prepared-*"]
+            }
+          ]
         }
       ]
     },
@@ -45,34 +63,58 @@
       "sourceTier": 2,
       "targetTier": 3,
       "description": "Channel the essence of the wild to create a sacred grove of unmatched power.",
-      "requirements": [
+      "steps": [
         {
-          "requirementId": "cured_meat",
-          "displayName": "Cured Meat (Any Type)",
-          "quantity": 10,
-          "type": "Category",
-          "itemCodes": ["game:redmeat-cured", "game:bushmeat-cured", "game:poultry-cured"]
+          "stepId": "preserved_bounty",
+          "stepName": "Preserved Bounty",
+          "requirements": [
+            {
+              "requirementId": "cured_meat",
+              "displayName": "Cured Meat (Any Type)",
+              "quantity": 10,
+              "type": "Category",
+              "itemCodes": ["game:redmeat-cured", "game:bushmeat-cured", "game:poultry-cured"]
+            }
+          ]
         },
         {
-          "requirementId": "leather",
-          "displayName": "Leather (Any Type)",
-          "quantity": 10,
-          "type": "Category",
-          "itemCodes": ["game:leather-*"]
+          "stepId": "tanned_goods",
+          "stepName": "Tanned Goods",
+          "requirements": [
+            {
+              "requirementId": "leather",
+              "displayName": "Leather (Any Type)",
+              "quantity": 10,
+              "type": "Category",
+              "itemCodes": ["game:leather-*"]
+            }
+          ]
         },
         {
-          "requirementId": "honeycomb",
-          "displayName": "Honeycombs",
-          "quantity": 20,
-          "type": "Exact",
-          "itemCodes": ["game:honeycomb"]
+          "stepId": "sweet_offering",
+          "stepName": "Sweet Offering",
+          "requirements": [
+            {
+              "requirementId": "honeycomb",
+              "displayName": "Honeycombs",
+              "quantity": 20,
+              "type": "Exact",
+              "itemCodes": ["game:honeycomb"]
+            }
+          ]
         },
         {
-          "requirementId": "resin",
-          "displayName": "Resin",
-          "quantity": 20,
-          "type": "Exact",
-          "itemCodes": ["game:resin"]
+          "stepId": "forest_essence",
+          "stepName": "Forest Essence",
+          "requirements": [
+            {
+              "requirementId": "resin",
+              "displayName": "Resin",
+              "quantity": 20,
+              "type": "Exact",
+              "itemCodes": ["game:resin"]
+            }
+          ]
         }
       ]
     }
