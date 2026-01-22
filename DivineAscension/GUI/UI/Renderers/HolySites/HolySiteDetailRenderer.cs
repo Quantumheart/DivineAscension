@@ -228,7 +228,7 @@ internal static class HolySiteDetailRenderer
     }
 
     /// <summary>
-    ///     Draw active ritual progress
+    ///     Draw active ritual progress with step-based workflow
     /// </summary>
     private static void DrawActiveRitual(
         HolySiteDetailViewModel vm,
@@ -258,13 +258,13 @@ internal static class HolySiteDetailRenderer
             y += 18f;
         }
 
-        y += 8f;
+        y += 12f;
 
-        // Draw each requirement with progress bar
-        foreach (var req in ritual.Requirements)
+        // Draw all step checkboxes (3-5 steps depending on ritual)
+        foreach (var step in ritual.Steps)
         {
-            DrawRequirementProgress(drawList, x, ref y, req, labelColor, valueColor);
-            y += 12f;
+            DrawStepCheckbox(drawList, x, ref y, step, labelColor);
+            y += 8f;
         }
 
         // Cancel button (for consecrator only)
@@ -281,74 +281,112 @@ internal static class HolySiteDetailRenderer
     }
 
     /// <summary>
-    ///     Draw a single requirement's progress
+    ///     Draw a single step checkbox (discovered or undiscovered)
     /// </summary>
-    private static void DrawRequirementProgress(
+    private static void DrawStepCheckbox(
         ImDrawListPtr drawList,
         float x,
         ref float y,
-        HolySiteResponsePacket.RequirementProgressInfo req,
-        uint labelColor,
-        uint valueColor)
+        HolySiteResponsePacket.StepProgressInfo step,
+        uint labelColor)
     {
-        // Requirement name and progress
-        var progressText = $"{req.QuantityContributed}/{req.QuantityRequired}";
-        var progressPercent = req.QuantityRequired > 0
-            ? (float)req.QuantityContributed / req.QuantityRequired
-            : 0f;
-
-        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(x, y), labelColor,
-            $"{req.DisplayName}: {progressText}");
-        y += 18f;
-
-        // Progress bar
-        var barWidth = 400f;
-        var barHeight = 12f;
-        var barX = x;
-        var barY = y;
-
-        // Background
-        drawList.AddRectFilled(
-            new Vector2(barX, barY),
-            new Vector2(barX + barWidth, barY + barHeight),
-            ImGui.ColorConvertFloat4ToU32(new Vector4(0.2f, 0.2f, 0.2f, 0.8f)),
-            2f);
-
-        // Progress fill
-        var fillWidth = barWidth * Math.Min(progressPercent, 1f);
-        var fillColor = progressPercent >= 1f
-            ? ImGui.ColorConvertFloat4ToU32(new Vector4(0.2f, 0.8f, 0.2f, 0.9f)) // Green when complete
-            : ImGui.ColorConvertFloat4ToU32(new Vector4(0.8f, 0.6f, 0.2f, 0.9f)); // Gold when in progress
-
-        if (fillWidth > 0)
+        // Handle undiscovered steps differently
+        if (!step.IsDiscovered)
         {
-            drawList.AddRectFilled(
-                new Vector2(barX, barY),
-                new Vector2(barX + fillWidth, barY + barHeight),
-                fillColor,
-                2f);
+            DrawUndiscoveredStep(drawList, x, ref y);
+            return;
         }
 
-        // Border
+        // Discovered step rendering with checkbox
+        var checkboxSize = 18f;
+
+        // Checkbox background (green if complete, dark gray if not)
+        var bgColor = step.IsComplete
+            ? ImGui.ColorConvertFloat4ToU32(new Vector4(0.2f, 0.8f, 0.2f, 0.9f))
+            : ImGui.ColorConvertFloat4ToU32(new Vector4(0.2f, 0.2f, 0.2f, 0.8f));
+
+        drawList.AddRectFilled(
+            new Vector2(x, y),
+            new Vector2(x + checkboxSize, y + checkboxSize),
+            bgColor, 3f);
+
+        // Checkbox border
         drawList.AddRect(
-            new Vector2(barX, barY),
-            new Vector2(barX + barWidth, barY + barHeight),
+            new Vector2(x, y),
+            new Vector2(x + checkboxSize, y + checkboxSize),
             ImGui.ColorConvertFloat4ToU32(new Vector4(0.4f, 0.4f, 0.4f, 1f)),
-            2f, ImDrawFlags.None, 1f);
+            3f, ImDrawFlags.None, 1.5f);
 
-        y += barHeight + 6f;
-
-        // Top contributors (show top 3)
-        if (req.TopContributors != null && req.TopContributors.Count > 0)
+        // Checkmark (if complete)
+        if (step.IsComplete)
         {
-            var contributorsText = "Contributors: " + string.Join(", ",
-                req.TopContributors.Take(3).Select(c => $"{c.PlayerName} ({c.Quantity})"));
+            var checkColor = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
+            drawList.AddLine(
+                new Vector2(x + 3f, y + checkboxSize / 2),
+                new Vector2(x + checkboxSize / 2, y + checkboxSize - 3f),
+                checkColor, 2f);
+            drawList.AddLine(
+                new Vector2(x + checkboxSize / 2, y + checkboxSize - 3f),
+                new Vector2(x + checkboxSize - 3f, y + 3f),
+                checkColor, 2f);
+        }
 
-            drawList.AddText(ImGui.GetFont(), 11f, new Vector2(x + 8f, y),
+        // Step name
+        var textX = x + checkboxSize + 10f;
+        var textColor = step.IsComplete
+            ? ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold)
+            : labelColor;
+        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(textX, y), textColor, step.StepName);
+        y += 20f;
+
+        // Contributors (only for discovered steps)
+        if (step.TopContributors != null && step.TopContributors.Count > 0)
+        {
+            var contributorsText = "  Contributors: " + string.Join(", ",
+                step.TopContributors.Take(3).Select(c => $"{c.PlayerName} ({c.Quantity})"));
+            drawList.AddText(ImGui.GetFont(), 11f, new Vector2(textX, y),
                 ImGui.ColorConvertFloat4ToU32(new Vector4(0.6f, 0.6f, 0.6f, 1f)),
                 contributorsText);
             y += 16f;
         }
+    }
+
+    /// <summary>
+    ///     Draw an undiscovered step placeholder with mystery icon
+    /// </summary>
+    private static void DrawUndiscoveredStep(ImDrawListPtr drawList, float x, ref float y)
+    {
+        var iconSize = 18f;
+        var mysteryColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.5f, 0.4f, 0.6f, 0.9f)); // Purple tint
+
+        // Question mark icon background
+        drawList.AddRectFilled(
+            new Vector2(x, y),
+            new Vector2(x + iconSize, y + iconSize),
+            mysteryColor, 3f);
+
+        // Question mark icon border
+        drawList.AddRect(
+            new Vector2(x, y),
+            new Vector2(x + iconSize, y + iconSize),
+            ImGui.ColorConvertFloat4ToU32(new Vector4(0.6f, 0.5f, 0.7f, 1f)),
+            3f, ImDrawFlags.None, 1.5f);
+
+        // Question mark symbol
+        var questionMarkColor = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
+        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 4f, y + 1f), questionMarkColor, "?");
+
+        // "Undiscovered Step" text
+        var textX = x + iconSize + 10f;
+        var textColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.5f, 0.5f, 0.5f, 1f)); // Gray
+        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(textX, y), textColor, "??? Undiscovered Step");
+        y += 20f;
+
+        // Hint text
+        var hintText = "  Offer sacred items to discover this step";
+        var hintColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.4f, 0.4f, 0.4f, 1f));
+        drawList.AddText(ImGui.GetFont(), 11f, new Vector2(textX, y), hintColor, hintText);
+        y += 16f;
     }
 
     /// <summary>
