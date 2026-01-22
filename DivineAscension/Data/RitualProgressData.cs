@@ -24,12 +24,41 @@ public class RitualProgressData
     public DateTime StartedAt { get; set; }
 
     /// <summary>
-    /// Progress for each requirement in the ritual.
+    /// Progress for each step in the ritual.
+    /// Key: StepId (e.g., "base_metals")
+    /// Value: StepProgress tracking completion, discovery, and contributors
+    /// </summary>
+    [ProtoMember(3)]
+    public Dictionary<string, StepProgress> Progress { get; set; } = new();
+}
+
+/// <summary>
+/// Tracks progress for a single step within a ritual.
+/// A step is complete when all its requirements are satisfied.
+/// Steps start as undiscovered and are revealed when players offer matching items.
+/// </summary>
+[ProtoContract]
+public class StepProgress
+{
+    /// <summary>
+    /// Whether this step is complete (all requirements satisfied)
+    /// </summary>
+    [ProtoMember(1)]
+    public bool IsComplete { get; set; }
+
+    /// <summary>
+    /// Whether this step has been discovered (visible to players)
+    /// </summary>
+    [ProtoMember(2)]
+    public bool IsDiscovered { get; set; }
+
+    /// <summary>
+    /// Progress for each requirement within this step.
     /// Key: RequirementId (e.g., "copper_ingots")
     /// Value: ItemProgress tracking quantity and contributors
     /// </summary>
     [ProtoMember(3)]
-    public Dictionary<string, ItemProgress> Progress { get; set; } = new();
+    public Dictionary<string, ItemProgress> RequirementProgress { get; set; } = new();
 }
 
 /// <summary>
