@@ -1,6 +1,6 @@
 {
   "domain": "Craft",
-  "version": 1,
+  "version": 2,
   "rituals": [
     {
       "ritualId": "craft_tier2_ritual",
@@ -8,34 +8,52 @@
       "sourceTier": 1,
       "targetTier": 2,
       "description": "Demonstrate mastery of metalworking to transform this shrine into a temple.",
-      "requirements": [
+      "steps": [
         {
-          "requirementId": "copper_ingots",
-          "displayName": "Copper Ingots",
-          "quantity": 20,
-          "type": "Exact",
-          "itemCodes": ["game:ingot-copper"]
+          "stepId": "base_metals",
+          "stepName": "Base Metals",
+          "requirements": [
+            {
+              "requirementId": "copper_ingots",
+              "displayName": "Copper Ingots",
+              "quantity": 20,
+              "type": "Exact",
+              "itemCodes": ["game:ingot-copper"]
+            },
+            {
+              "requirementId": "bronze_ingots",
+              "displayName": "Bronze Ingots",
+              "quantity": 10,
+              "type": "Exact",
+              "itemCodes": ["game:ingot-bronze", "game:ingot-tinbronze"]
+            }
+          ]
         },
         {
-          "requirementId": "bronze_ingots",
-          "displayName": "Bronze Ingots",
-          "quantity": 10,
-          "type": "Exact",
-          "itemCodes": ["game:ingot-bronze", "game:ingot-tinbronze"]
+          "stepId": "refined_materials",
+          "stepName": "Refined Materials",
+          "requirements": [
+            {
+              "requirementId": "iron_ingots",
+              "displayName": "Iron Ingots",
+              "quantity": 5,
+              "type": "Exact",
+              "itemCodes": ["game:ingot-iron"]
+            }
+          ]
         },
         {
-          "requirementId": "iron_ingots",
-          "displayName": "Iron Ingots",
-          "quantity": 5,
-          "type": "Exact",
-          "itemCodes": ["game:ingot-iron"]
-        },
-        {
-          "requirementId": "steel_anvil",
-          "displayName": "Steel Anvil",
-          "quantity": 1,
-          "type": "Exact",
-          "itemCodes": ["game:anvil-steel"]
+          "stepId": "masterwork_tool",
+          "stepName": "Masterwork Tool",
+          "requirements": [
+            {
+              "requirementId": "steel_anvil",
+              "displayName": "Steel Anvil",
+              "quantity": 1,
+              "type": "Exact",
+              "itemCodes": ["game:anvil-steel"]
+            }
+          ]
         }
       ]
     },
@@ -45,27 +63,58 @@
       "sourceTier": 2,
       "targetTier": 3,
       "description": "Offer the finest metalwork to elevate this temple into a cathedral of craftsmanship.",
-      "requirements": [
+      "steps": [
         {
-          "requirementId": "any_metal_ingots",
-          "displayName": "Metal Ingots (Any Type)",
-          "quantity": 100,
-          "type": "Category",
-          "itemCodes": ["game:ingot-*"]
+          "stepId": "metal_mastery",
+          "stepName": "Metal Mastery",
+          "requirements": [
+            {
+              "requirementId": "metal_ingots_1",
+              "displayName": "Metal Ingots (Any Type)",
+              "quantity": 50,
+              "type": "Category",
+              "itemCodes": ["game:ingot-*"]
+            }
+          ]
         },
         {
-          "requirementId": "steel_tools",
-          "displayName": "Steel Tools",
-          "quantity": 5,
-          "type": "Category",
-          "itemCodes": ["game:pickaxe-steel", "game:axe-steel", "game:shovel-steel", "game:hammer-steel", "game:sword-steel", "game:knife-steel"]
+          "stepId": "advanced_metalwork",
+          "stepName": "Advanced Metalwork",
+          "requirements": [
+            {
+              "requirementId": "metal_ingots_2",
+              "displayName": "Metal Ingots (Any Type)",
+              "quantity": 50,
+              "type": "Category",
+              "itemCodes": ["game:ingot-*"]
+            }
+          ]
         },
         {
-          "requirementId": "masterwork_anvil",
-          "displayName": "Masterwork Anvils",
-          "quantity": 3,
-          "type": "Category",
-          "itemCodes": ["game:anvil-iron", "game:anvil-steel"]
+          "stepId": "legendary_tools",
+          "stepName": "Legendary Tools",
+          "requirements": [
+            {
+              "requirementId": "steel_tools",
+              "displayName": "Steel Tools",
+              "quantity": 5,
+              "type": "Category",
+              "itemCodes": ["game:pickaxe-steel", "game:axe-steel", "game:shovel-steel", "game:hammer-steel", "game:sword-steel", "game:knife-steel"]
+            }
+          ]
+        },
+        {
+          "stepId": "masterwork_anvils",
+          "stepName": "Masterwork Anvils",
+          "requirements": [
+            {
+              "requirementId": "masterwork_anvil",
+              "displayName": "Masterwork Anvils",
+              "quantity": 3,
+              "type": "Category",
+              "itemCodes": ["game:anvil-iron", "game:anvil-steel"]
+            }
+          ]
         }
       ]
     }

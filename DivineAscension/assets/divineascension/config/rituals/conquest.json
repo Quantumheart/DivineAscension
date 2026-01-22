@@ -1,6 +1,6 @@
 {
   "domain": "Conquest",
-  "version": 1,
+  "version": 2,
   "rituals": [
     {
       "ritualId": "conquest_tier2_ritual",
@@ -8,34 +8,52 @@
       "sourceTier": 1,
       "targetTier": 2,
       "description": "Prove your martial prowess by offering trophies of battle and conquest.",
-      "requirements": [
+      "steps": [
         {
-          "requirementId": "armor_pieces",
-          "displayName": "Armor Pieces (Any Type)",
-          "quantity": 10,
-          "type": "Category",
-          "itemCodes": ["game:armor-*"]
+          "stepId": "warriors_arsenal",
+          "stepName": "Warrior's Arsenal",
+          "requirements": [
+            {
+              "requirementId": "armor_pieces",
+              "displayName": "Armor Pieces (Any Type)",
+              "quantity": 10,
+              "type": "Category",
+              "itemCodes": ["game:armor-*"]
+            },
+            {
+              "requirementId": "weapons",
+              "displayName": "Weapons (Any Metal)",
+              "quantity": 15,
+              "type": "Category",
+              "itemCodes": ["game:sword-*", "game:spear-*", "game:bow-*"]
+            }
+          ]
         },
         {
-          "requirementId": "weapons",
-          "displayName": "Weapons (Any Metal)",
-          "quantity": 15,
-          "type": "Category",
-          "itemCodes": ["game:sword-*", "game:spear-*", "game:bow-*"]
+          "stepId": "ammunition_cache",
+          "stepName": "Ammunition Cache",
+          "requirements": [
+            {
+              "requirementId": "arrows",
+              "displayName": "Arrows",
+              "quantity": 50,
+              "type": "Category",
+              "itemCodes": ["game:arrow-*"]
+            }
+          ]
         },
         {
-          "requirementId": "arrows",
-          "displayName": "Arrows",
-          "quantity": 50,
-          "type": "Category",
-          "itemCodes": ["game:arrow-*"]
-        },
-        {
-          "requirementId": "rusty_gears",
-          "displayName": "Rusty Gears (Ancient Trophies)",
-          "quantity": 20,
-          "type": "Exact",
-          "itemCodes": ["game:gear-rusty"]
+          "stepId": "ancient_trophies",
+          "stepName": "Ancient Trophies",
+          "requirements": [
+            {
+              "requirementId": "rusty_gears",
+              "displayName": "Rusty Gears (Ancient Trophies)",
+              "quantity": 20,
+              "type": "Exact",
+              "itemCodes": ["game:gear-rusty"]
+            }
+          ]
         }
       ]
     },
@@ -45,34 +63,58 @@
       "sourceTier": 2,
       "targetTier": 3,
       "description": "Consecrate this ground with the spoils of legendary victories.",
-      "requirements": [
+      "steps": [
         {
-          "requirementId": "elite_weapons",
-          "displayName": "Steel or Better Weapons",
-          "quantity": 5,
-          "type": "Category",
-          "itemCodes": ["game:sword-steel", "game:spear-steel", "game:bow-recurve"]
+          "stepId": "elite_armaments",
+          "stepName": "Elite Armaments",
+          "requirements": [
+            {
+              "requirementId": "elite_weapons",
+              "displayName": "Steel or Better Weapons",
+              "quantity": 5,
+              "type": "Category",
+              "itemCodes": ["game:sword-steel", "game:spear-steel", "game:bow-recurve"]
+            }
+          ]
         },
         {
-          "requirementId": "shields",
-          "displayName": "Shields (Any Type)",
-          "quantity": 5,
-          "type": "Category",
-          "itemCodes": ["game:shield-*"]
+          "stepId": "defenders_oath",
+          "stepName": "Defender's Oath",
+          "requirements": [
+            {
+              "requirementId": "shields",
+              "displayName": "Shields (Any Type)",
+              "quantity": 5,
+              "type": "Category",
+              "itemCodes": ["game:shield-*"]
+            }
+          ]
         },
         {
-          "requirementId": "temporal_gears",
-          "displayName": "Temporal Gears",
-          "quantity": 10,
-          "type": "Exact",
-          "itemCodes": ["game:gear-temporal"]
+          "stepId": "temporal_relics",
+          "stepName": "Temporal Relics",
+          "requirements": [
+            {
+              "requirementId": "temporal_gears",
+              "displayName": "Temporal Gears",
+              "quantity": 10,
+              "type": "Exact",
+              "itemCodes": ["game:gear-temporal"]
+            }
+          ]
         },
         {
-          "requirementId": "ancient_armor",
-          "displayName": "Ancient Armor Sets",
-          "quantity": 4,
-          "type": "Category",
-          "itemCodes": ["game:armor-plate-*", "game:armor-brigandine-*"]
+          "stepId": "legendary_protection",
+          "stepName": "Legendary Protection",
+          "requirements": [
+            {
+              "requirementId": "ancient_armor",
+              "displayName": "Ancient Armor Sets",
+              "quantity": 4,
+              "type": "Category",
+              "itemCodes": ["game:armor-plate-*", "game:armor-brigandine-*"]
+            }
+          ]
         }
       ]
     }

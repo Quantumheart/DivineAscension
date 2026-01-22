@@ -1,6 +1,6 @@
 {
   "domain": "Stone",
-  "version": 1,
+  "version": 2,
   "rituals": [
     {
       "ritualId": "stone_tier2_ritual",
@@ -8,34 +8,52 @@
       "sourceTier": 1,
       "targetTier": 2,
       "description": "Demonstrate your mastery of stonework to elevate this shrine into a temple of enduring strength.",
-      "requirements": [
+      "steps": [
         {
-          "requirementId": "stone_blocks",
-          "displayName": "Stone Blocks (Any Type)",
-          "quantity": 200,
-          "type": "Category",
-          "itemCodes": ["game:stone-*", "game:rock-*"]
+          "stepId": "foundation_stones",
+          "stepName": "Foundation Stones",
+          "requirements": [
+            {
+              "requirementId": "stone_blocks",
+              "displayName": "Stone Blocks (Any Type)",
+              "quantity": 200,
+              "type": "Category",
+              "itemCodes": ["game:stone-*", "game:rock-*"]
+            },
+            {
+              "requirementId": "bricks",
+              "displayName": "Bricks (Any Type)",
+              "quantity": 100,
+              "type": "Category",
+              "itemCodes": ["game:claybrick-*"]
+            }
+          ]
         },
         {
-          "requirementId": "bricks",
-          "displayName": "Bricks (Any Type)",
-          "quantity": 100,
-          "type": "Category",
-          "itemCodes": ["game:claybrick-*"]
+          "stepId": "glass_panes",
+          "stepName": "Glass Panes",
+          "requirements": [
+            {
+              "requirementId": "glass",
+              "displayName": "Glass",
+              "quantity": 10,
+              "type": "Exact",
+              "itemCodes": ["game:glass"]
+            }
+          ]
         },
         {
-          "requirementId": "glass",
-          "displayName": "Glass",
-          "quantity": 10,
-          "type": "Exact",
-          "itemCodes": ["game:glass"]
-        },
-        {
-          "requirementId": "chiseled_blocks",
-          "displayName": "Chiseled Stone Blocks",
-          "quantity": 100,
-          "type": "Category",
-          "itemCodes": ["game:chiseledstone-*"]
+          "stepId": "artisan_work",
+          "stepName": "Artisan Work",
+          "requirements": [
+            {
+              "requirementId": "chiseled_blocks",
+              "displayName": "Chiseled Stone Blocks",
+              "quantity": 100,
+              "type": "Category",
+              "itemCodes": ["game:chiseledstone-*"]
+            }
+          ]
         }
       ]
     },
@@ -45,34 +63,58 @@
       "sourceTier": 2,
       "targetTier": 3,
       "description": "Forge a cathedral that will stand for eternity, carved from the bones of the earth.",
-      "requirements": [
+      "steps": [
         {
-          "requirementId": "polished_stone",
-          "displayName": "Polished Stone (Any Type)",
-          "quantity": 300,
-          "type": "Category",
-          "itemCodes": ["game:polishedstone-*"]
+          "stepId": "polished_foundation",
+          "stepName": "Polished Foundation",
+          "requirements": [
+            {
+              "requirementId": "polished_stone",
+              "displayName": "Polished Stone (Any Type)",
+              "quantity": 300,
+              "type": "Category",
+              "itemCodes": ["game:polishedstone-*"]
+            }
+          ]
         },
         {
-          "requirementId": "marble",
-          "displayName": "Marble Blocks",
-          "quantity": 100,
-          "type": "Category",
-          "itemCodes": ["game:rock-marble-*"]
+          "stepId": "marble_grandeur",
+          "stepName": "Marble Grandeur",
+          "requirements": [
+            {
+              "requirementId": "marble",
+              "displayName": "Marble Blocks",
+              "quantity": 100,
+              "type": "Category",
+              "itemCodes": ["game:rock-marble-*"]
+            }
+          ]
         },
         {
-          "requirementId": "reinforced_glass",
-          "displayName": "Glass (Architectural)",
-          "quantity": 75,
-          "type": "Category",
-          "itemCodes": ["game:glass", "game:glasspane-*"]
+          "stepId": "architectural_glass",
+          "stepName": "Architectural Glass",
+          "requirements": [
+            {
+              "requirementId": "reinforced_glass",
+              "displayName": "Glass (Architectural)",
+              "quantity": 75,
+              "type": "Category",
+              "itemCodes": ["game:glass", "game:glasspane-*"]
+            }
+          ]
         },
         {
-          "requirementId": "carved_pillars",
-          "displayName": "Carved Stone Pillars",
-          "quantity": 10,
-          "type": "Category",
-          "itemCodes": ["game:pillar-*"]
+          "stepId": "carved_pillars",
+          "stepName": "Carved Pillars",
+          "requirements": [
+            {
+              "requirementId": "carved_pillars",
+              "displayName": "Carved Stone Pillars",
+              "quantity": 10,
+              "type": "Category",
+              "itemCodes": ["game:pillar-*"]
+            }
+          ]
         }
       ]
     }
