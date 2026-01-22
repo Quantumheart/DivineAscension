@@ -65,7 +65,32 @@ public class RitualJsonDto
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
-    /// List of requirements for this ritual
+    /// List of steps for this ritual (must be 3-5 steps)
+    /// </summary>
+    [JsonPropertyName("steps")]
+    public List<RitualStepJsonDto> Steps { get; set; } = new();
+}
+
+/// <summary>
+/// Data transfer object for ritual step definitions from JSON.
+/// Maps to the RitualStep domain model after deserialization.
+/// </summary>
+public class RitualStepJsonDto
+{
+    /// <summary>
+    /// Unique step identifier (e.g., "base_metals")
+    /// </summary>
+    [JsonPropertyName("stepId")]
+    public string StepId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Display name of the step (e.g., "Base Metals")
+    /// </summary>
+    [JsonPropertyName("stepName")]
+    public string StepName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// List of requirements for this step
     /// </summary>
     [JsonPropertyName("requirements")]
     public List<RitualRequirementJsonDto> Requirements { get; set; } = new();

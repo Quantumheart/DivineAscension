@@ -5,7 +5,8 @@ namespace DivineAscension.Models;
 
 /// <summary>
 /// Represents a ritual that players complete to upgrade a holy site's tier.
-/// Rituals require specific items to be offered at altars within the holy site.
+/// Rituals have 3-5 steps (configurable per ritual) that must be completed in any order.
+/// Each step must be discovered by offering matching items before becoming visible.
 /// </summary>
 public record Ritual(
     string RitualId,
@@ -13,8 +14,19 @@ public record Ritual(
     DeityDomain Domain,
     int SourceTier,
     int TargetTier,
-    IReadOnlyList<RitualRequirement> Requirements,
+    IReadOnlyList<RitualStep> Steps,
     string Description
+);
+
+/// <summary>
+/// Represents one step within a ritual.
+/// A step is completed when all its requirements are satisfied.
+/// Steps start as undiscovered and are revealed when players offer matching items.
+/// </summary>
+public record RitualStep(
+    string StepId,
+    string StepName,
+    IReadOnlyList<RitualRequirement> Requirements
 );
 
 /// <summary>

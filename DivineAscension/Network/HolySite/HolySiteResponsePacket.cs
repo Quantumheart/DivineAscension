@@ -165,24 +165,25 @@ public class HolySiteResponsePacket
 
         [ProtoMember(5)] public int TargetTier { get; set; }
 
-        [ProtoMember(6)] public List<RequirementProgressInfo> Requirements { get; set; } = new();
+        [ProtoMember(6)] public List<StepProgressInfo> Steps { get; set; } = new();
 
         [ProtoMember(7)] public DateTime StartedAt { get; set; }
     }
 
     /// <summary>
-    /// Progress information for a single ritual requirement.
+    /// Progress information for a single ritual step.
+    /// Steps can be undiscovered (hidden), discovered (visible), or complete.
     /// </summary>
     [ProtoContract]
-    public class RequirementProgressInfo
+    public class StepProgressInfo
     {
-        [ProtoMember(1)] public string RequirementId { get; set; } = string.Empty;
+        [ProtoMember(1)] public string StepId { get; set; } = string.Empty;
 
-        [ProtoMember(2)] public string DisplayName { get; set; } = string.Empty;
+        [ProtoMember(2)] public string StepName { get; set; } = string.Empty;
 
-        [ProtoMember(3)] public int QuantityContributed { get; set; }
+        [ProtoMember(3)] public bool IsComplete { get; set; }
 
-        [ProtoMember(4)] public int QuantityRequired { get; set; }
+        [ProtoMember(4)] public bool IsDiscovered { get; set; }
 
         [ProtoMember(5)] public List<ContributorInfo> TopContributors { get; set; } = new();
     }
