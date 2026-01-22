@@ -203,15 +203,18 @@ When creating feature plans, place them in `docs/topics/planning/features/<featu
 - Peace/War declarations
 
 **RitualProgressManager** (`/Systems/RitualProgressManager.cs`):
-- Manages ritual progression for holy site tier upgrades
-- Tracks multi-player contributions to active rituals
+- Manages ritual progression for holy site tier upgrades using step-based workflow
+- Each ritual consists of 3-5 steps (configurable per ritual in JSON)
+- Step discovery mechanic: steps start hidden ("??? Undiscovered") and are revealed when players offer matching items
+- Tracks multi-player contributions to active rituals (per step, aggregated across requirements)
 - Auto-starts rituals when qualifying items are offered at altars (auto-discovery mechanic)
 - Validates ritual requirements using `RitualMatcher` with glob pattern support
 - Awards 50% favor/prestige for ritual contributions (half of normal prayer rewards)
 - Ritual offerings bypass prayer cooldown to encourage participation
 - Handles ritual completion and tier upgrades (Shrine → Temple → Cathedral)
+- Steps can be completed in any order; ritual completes when all steps are complete
 - Ritual cancellation (founder-only, no refunds)
-- Persists ritual progress in `HolySiteData.ActiveRitual`
+- Persists ritual progress in `HolySiteData.ActiveRitual` with step-level tracking (IsDiscovered, IsComplete flags)
 
 ### Command System
 
@@ -391,10 +394,11 @@ Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
 - Loads ritual definitions from JSON assets following `LocalizationService` pattern
 - Implements `IRitualLoader` interface for dependency injection and testing
 - Reads from `assets/divineascension/config/rituals/{domain}.json` (craft, wild, conquest, harvest, stone)
-- Validates domain enums and requirement types during deserialization
+- Validates domain enums, requirement types, and step count (3-5 steps required per ritual) during deserialization
 - Builds indices by domain, ritual ID, and tier upgrade (source tier → target tier)
 - Supports two requirement types: Exact (specific item codes) and Category (glob patterns like `game:ingot-*`)
-- DTOs: `RitualJsonDto` (individual ritual), `RitualFileJsonDto` (file structure with domain and version)
+- DTOs: `RitualJsonDto` (individual ritual), `RitualStepJsonDto` (step with nested requirements), `RitualFileJsonDto` (file structure with domain and version)
+- Step-based structure: each ritual has 3-5 steps, each step has a name, ID, and list of requirements
 - Used by `RitualProgressManager` for ritual validation and auto-discovery
 
 ### API Wrapper Layer

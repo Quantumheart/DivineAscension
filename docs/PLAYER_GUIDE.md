@@ -214,21 +214,22 @@ Holy Sites are blessed areas that enhance your religious activities:
 
 ### Holy Site Tiers
 
-Holy Sites are categorized by type based on the total volume of all connected land claim areas:
+Holy Sites progress through three tiers by completing sacred rituals:
 
-| Tier       | Type          | Volume Required          | Land Claims | Prayer Multiplier |
-|------------|---------------|--------------------------|-------------|-------------------|
-| **Tier 1** | **Shrine**    | < 50,000 blocks³         | ~1 claim    | 2.0x              |
-| **Tier 2** | **Temple**    | 50,000 - 200,000 blocks³ | 1-2 claims  | 2.5x              |
-| **Tier 3** | **Cathedral** | 200,000+ blocks³         | 3+ claims   | 3.0x              |
+| Tier       | Type          | How to Achieve                              | Prayer Multiplier |
+|------------|---------------|---------------------------------------------|-------------------|
+| **Tier 1** | **Shrine**    | Created automatically when placing an altar | 2.0x              |
+| **Tier 2** | **Temple**    | Complete the Tier 1→2 ritual                | 2.5x              |
+| **Tier 3** | **Cathedral** | Complete the Tier 2→3 ritual                | 3.0x              |
 
-**Important Notes**:
+**Ritual-Based Progression**:
 
-- Volume is calculated from ALL your land claim areas near the altar
-- Multiple smaller claims can combine to reach higher tiers
-- **Cathedrals require cooperation**: A single maxed-out land claim (~98k blocks³) can only reach Tier 2 (Temple). To
-  build a Cathedral (Tier 3), you need 3 or more land claims working together.
-- Expanding your land claims increases your holy site tier automatically
+- Each tier upgrade requires completing a multi-step ritual specific to your deity's domain
+- Rituals consist of 3-5 steps that must be completed by offering sacred items at the altar
+- Steps are discovered progressively as you offer matching items (they start hidden as "??? Undiscovered")
+- Multiple players can contribute to the same ritual, making cooperation beneficial
+- Steps can be completed in any order - the ritual finishes when all steps are complete
+- Only the holy site founder (consecrator) can start or cancel rituals
 - The prayer multiplier applies to all favor earned from prayers and offerings
 
 ### Creating a Holy Site
@@ -267,6 +268,42 @@ Holy sites are automatically removed when:
 - Breaking an altar automatically deconsecrates the holy site
 - All associated bonuses are removed
 - Players will be notified the site has been deconsecrated
+
+### Rituals & Tier Upgrades
+
+Transform your holy site from a humble shrine into a magnificent cathedral through sacred rituals.
+
+**How Rituals Work**:
+
+1. **Auto-Discovery**: Offer any sacred item at your altar - if it matches a ritual requirement, the ritual automatically starts!
+2. **Step Discovery**: Rituals have 3-5 hidden steps. Each step is revealed when you offer a matching item.
+3. **Progressive Completion**: Complete steps in any order by offering the required items.
+4. **Cooperation**: Multiple players can contribute to the same ritual.
+5. **Tier Upgrade**: When all steps are complete, your holy site advances to the next tier.
+
+**Step States**:
+
+- **Undiscovered** (???) - Hidden until you offer a matching item
+- **Discovered** (☐) - Visible with checkbox, shows what's needed
+- **Complete** (✓) - Step finished with green checkmark
+
+**Ritual Offerings**:
+
+- Award 50% of normal favor/prestige (encourages participation without replacing prayer)
+- **No cooldown** - contribute as often as you have materials
+- Items are consumed when offered (no refunds if ritual is cancelled)
+
+**Founder Controls**:
+
+- Only the holy site founder (altar placer) can cancel active rituals
+- Cancelling a ritual provides no refunds - all contributed items are lost
+
+**Viewing Progress**:
+
+- Open the Divine Ascension UI (Shift+G)
+- Navigate to Holy Sites tab
+- Select your holy site to view active ritual progress
+- Discovered steps show requirements and top contributors
 
 ### Prayer Mechanics
 
