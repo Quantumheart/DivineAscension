@@ -2,11 +2,13 @@ using System;
 using System.Linq;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.State.Religion;
+using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.GUI.Utilities;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
+using DivineAscension.Network.HolySite;
 using Vintagestory.API.Client;
 
 namespace DivineAscension.GUI;
@@ -99,6 +101,12 @@ public partial class GuiDialog
 
         // Load blessing states into manager
         _manager.BlessingStateManager.LoadBlessingStates(playerBlessings, religionBlessings);
+
+        // Preload blessing textures for this deity domain to prevent stuttering on first render
+        var allBlessings = playerBlessings.Concat(religionBlessings).ToList();
+        _capi.Logger.Debug(
+            $"[DivineAscension] Preloading {allBlessings.Count} blessing textures for {deityType}...");
+        BlessingIconLoader.PreloadDeityTextures(allBlessings, deityType);
 
         // Mark unlocked blessings
         foreach (var blessingId in packet.UnlockedPlayerBlessings)
@@ -615,12 +623,13 @@ public partial class GuiDialog
     /// <summary>
     ///     Handle holy site data received from server
     /// </summary>
-    private void OnHolySiteDataReceived(DivineAscension.Network.HolySite.HolySiteResponsePacket packet)
+    private void OnHolySiteDataReceived(HolySiteResponsePacket packet)
     {
         // Handle detail info
         if (packet.DetailInfo != null)
         {
-            _capi!.Logger.Debug($"[DivineAscension] Received holy site detail info for site {packet.DetailInfo.SiteUID}");
+            _capi!.Logger.Debug(
+                $"[DivineAscension] Received holy site detail info for site {packet.DetailInfo.SiteUID}");
             _manager!.CivilizationManager.UpdateHolySiteDetail(packet.DetailInfo);
             return;
         }
@@ -634,7 +643,7 @@ public partial class GuiDialog
     /// <summary>
     ///     Handle holy site update response (after rename or description change)
     /// </summary>
-    private void OnHolySiteUpdated(DivineAscension.Network.HolySite.HolySiteUpdateResponsePacket packet)
+    private void OnHolySiteUpdated(HolySiteUpdateResponsePacket packet)
     {
         _capi!.Logger.Debug($"[DivineAscension] Holy site updated: Success={packet.Success}");
 

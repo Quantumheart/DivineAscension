@@ -36,14 +36,14 @@ public partial class GuiDialog : ModSystem
     private DivineAscensionModSystem? _divineAscensionModSystem;
     private ImGuiModSystem? _imguiModSystem;
 
+    // API Services
+    private IInputService? _inputService;
+
     private GuiDialogManager? _manager;
+    private IModLoaderService? _modLoaderService;
     private ISoundManager? _soundManager;
     private Stopwatch? _stopwatch;
     private ImGuiViewportPtr _viewport;
-
-    // API Services
-    private IInputService? _inputService;
-    private IModLoaderService? _modLoaderService;
 
     /// <summary>
     ///     Public accessor for the dialog manager (for network client access)
@@ -87,6 +87,9 @@ public partial class GuiDialog : ModSystem
         GuiIconLoader.Initialize(_capi);
         CivilizationIconLoader.Initialize(_capi);
         BlessingIconLoader.Initialize(_capi);
+
+        // Preload textures to prevent stuttering on first GUI open
+        PreloadTextures();
 
         // Get DivineAscensionSystem for network communication
         _divineAscensionModSystem = _modLoaderService.GetModSystem<DivineAscensionModSystem>();
@@ -361,6 +364,38 @@ public partial class GuiDialog : ModSystem
         ImGui.End();
         ImGui.PopStyleColor(); // Pop window background color
         ImGui.PopStyleVar(4); // Pop all 4 style vars
+    }
+
+    /// <summary>
+    ///     Preload textures during initialization to prevent stuttering on first GUI open
+    /// </summary>
+    private void PreloadTextures()
+    {
+        _capi!.Logger.Debug("[DivineAscension] Preloading GUI textures...");
+
+        // Preload all deity icons (5 icons: Craft, Wild, Harvest, Stone, Conquest)
+        DeityIconLoader.PreloadAllTextures();
+
+        // Preload common civilization icons
+        CivilizationIconLoader.PreloadTexture("default");
+
+        // Preload common GUI icons (tab icons and frequently used buttons)
+        var commonGuiIcons = new[]
+        {
+            "browse", "create", "info", "activity", "invites", "roles", // Religion tab icons
+            "castle", "diplomacy", "temple", "holysite", // Civilization tab icons
+            "meditation", "back", "choice", "hazard-sign", "church", "up", "down" // Common button icons
+        };
+
+        foreach (var iconName in commonGuiIcons)
+        {
+            GuiIconLoader.GetTextureId("gui", iconName);
+        }
+
+        // Note: Blessing icons cannot be preloaded here because we don't have blessing data yet
+        // They will be preloaded in OnBlessingDataReceived after blessing data is received
+
+        _capi.Logger.Debug("[DivineAscension] GUI texture preload complete");
     }
 
     /// <summary>
