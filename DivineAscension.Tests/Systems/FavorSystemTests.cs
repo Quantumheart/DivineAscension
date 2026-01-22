@@ -1089,6 +1089,121 @@ public class FavorSystemTests
 
     #endregion
 
+    #region Conquest Prestige Bug Tests (Issue #197)
+
+    [Fact]
+    public void AwardFavorForAction_ConquestCombatKill_ShouldAwardPrestige()
+    {
+        // Arrange - Conquest player in a religion
+        var mockLogger = new Mock<ILogger>();
+        var fakeEventService = new FakeEventService();
+        var fakeWorldService = new FakeWorldService();
+        var mockPlayerProgressionDataManager = new Mock<IPlayerProgressionDataManager>();
+        var mockReligionManager = new Mock<IReligionManager>();
+        var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
+        var mockActivityLogManager = new Mock<IActivityLogManager>();
+        var mockMessenger = new Mock<IPlayerMessengerService>();
+
+        var religion = new ReligionData
+        {
+            ReligionUID = "conquest-religion-uid",
+            ReligionName = "Warriors of War",
+            Domain = DeityDomain.Conquest,
+            DeityName = "Ares",
+            FounderUID = "player-uid"
+        };
+
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestWarrior");
+
+        fakeWorldService.AddPlayer(mockPlayer.Object);
+
+        mockReligionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-uid"))
+            .Returns(DeityDomain.Conquest);
+        mockReligionManager.Setup(m => m.GetPlayerReligion("player-uid"))
+            .Returns(religion);
+
+        var favorSystem = new FavorSystem(
+            mockLogger.Object,
+            fakeEventService,
+            fakeWorldService,
+            mockPlayerProgressionDataManager.Object,
+            mockReligionManager.Object,
+            mockPrestigeManager.Object,
+            mockActivityLogManager.Object,
+            CreateTestConfig(),
+            mockMessenger.Object);
+
+        // Act - Award favor for a combat kill (typical action from ConquestFavorTracker)
+        favorSystem.AwardFavorForAction(mockPlayer.Object, "combat kill drifter-normal", 5);
+
+        // Assert - Prestige SHOULD be awarded (but currently is NOT due to bug)
+        mockPrestigeManager.Verify(
+            m => m.AddFractionalPrestige(
+                "conquest-religion-uid",
+                5f,
+                It.Is<string>(s => s.Contains("combat kill"))),
+            Times.Once,
+            "Combat kills should award prestige to Conquest religions, but the overly broad 'kill' filter prevents this");
+    }
+
+    [Fact]
+    public void AwardFavorForAction_PvPKill_ShouldNotAwardPrestigeThroughFavorSystem()
+    {
+        // Arrange - Player in a religion
+        var mockLogger = new Mock<ILogger>();
+        var fakeEventService = new FakeEventService();
+        var fakeWorldService = new FakeWorldService();
+        var mockPlayerProgressionDataManager = new Mock<IPlayerProgressionDataManager>();
+        var mockReligionManager = new Mock<IReligionManager>();
+        var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
+        var mockActivityLogManager = new Mock<IActivityLogManager>();
+        var mockMessenger = new Mock<IPlayerMessengerService>();
+
+        var religion = new ReligionData
+        {
+            ReligionUID = "test-religion-uid",
+            ReligionName = "Test Religion",
+            Domain = DeityDomain.Conquest,
+            DeityName = "TestDeity",
+            FounderUID = "player-uid"
+        };
+
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        fakeWorldService.AddPlayer(mockPlayer.Object);
+
+        mockReligionManager.Setup(m => m.GetPlayerActiveDeityDomain("player-uid"))
+            .Returns(DeityDomain.Conquest);
+        mockReligionManager.Setup(m => m.GetPlayerReligion("player-uid"))
+            .Returns(religion);
+
+        var favorSystem = new FavorSystem(
+            mockLogger.Object,
+            fakeEventService,
+            fakeWorldService,
+            mockPlayerProgressionDataManager.Object,
+            mockReligionManager.Object,
+            mockPrestigeManager.Object,
+            mockActivityLogManager.Object,
+            CreateTestConfig(),
+            mockMessenger.Object);
+
+        // Act - Award favor for a PvP kill (this should NOT go through FavorSystem for prestige)
+        favorSystem.AwardFavorForAction(mockPlayer.Object, "PvP kill against OtherPlayer", 10);
+
+        // Assert - Prestige should NOT be awarded (PvPManager handles this separately)
+        mockPrestigeManager.Verify(
+            m => m.AddFractionalPrestige(It.IsAny<string>(), It.IsAny<float>(), It.IsAny<string>()),
+            Times.Never,
+            "PvP kills should NOT award prestige through FavorSystem (PvPManager handles it)");
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private float GetDevotionMultiplier(DevotionRank rank)
