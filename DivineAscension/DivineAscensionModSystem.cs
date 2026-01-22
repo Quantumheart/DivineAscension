@@ -95,9 +95,11 @@ public class DivineAscensionModSystem : ModSystem
             api.Logger.Notification("[DivineAscension] Harmony patches registered.");
         }
 
-        // Register BlockBehavior for altar blocks
+        // Register BlockBehavior classes
+        // Required for JSON patching and client-server serialization
         api.RegisterBlockBehaviorClass("DivineAscensionAltar", typeof(BlockBehaviorAltar));
-        api.Logger.Notification("[DivineAscension] BlockBehaviorAltar registered");
+        api.RegisterBlockBehaviorClass("DivineAscensionStone", typeof(BlockBehaviorStone));
+        api.Logger.Notification("[DivineAscension] BlockBehavior classes registered");
 
         // Register with ConfigLib if available
         TryRegisterWithConfigLib(api);
@@ -174,9 +176,7 @@ public class DivineAscensionModSystem : ModSystem
     {
         base.AssetsFinalize(api);
 
-        // Apply code-based patching to altar blocks
-        // This runs after assets are loaded but before they're declared ready
-        AltarBlockBehaviorPatch.PatchAltarBlocks(api);
+        // Block behaviors are now applied via JSON patches in assets/divineascension/patches/
     }
 
     public override void StartServerSide(ICoreServerAPI api)

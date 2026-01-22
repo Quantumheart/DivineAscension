@@ -297,8 +297,8 @@ Users can specify names as `"Name With Spaces"` or `SingleWord` (backward compat
 
 Divine Ascension uses BlockBehavior to extend vanilla blocks. BlockBehaviors are attached via JSON patches and emit events that handlers subscribe to.
 
-**BlockBehaviorAltar** (`/DivineAscension/Blocks/BlockBehaviorAltar.cs`):
-- Attached to: Vanilla altar blocks via JSON patches (`assets/divineascension/patches/blocks/altars.json`)
+**BlockBehaviorAltar** (`/Blocks/BlockBehaviorAltar.cs`):
+- Attached to: Vanilla altar blocks via JSON patch (`assets/divineascension/patches/altar.json`)
 - Intercepts: `OnBlockInteractStart` (right-click), `OnBlockBroken` (destruction), `DoPlaceBlock` (placement)
 - Events: `OnAltarUsed`, `OnAltarBroken`, `OnAltarPlaced` (via `AltarEventEmitter`)
 - Handlers:
@@ -306,50 +306,50 @@ Divine Ascension uses BlockBehavior to extend vanilla blocks. BlockBehaviors are
   - `AltarDestructionHandler` - Automatic holy site deconsecration on destruction
   - `AltarPlacementHandler` - Automatic holy site creation from land claims
 
+**BlockBehaviorStone** (`/Blocks/BlockBehaviorStone.cs`):
+- Attached to: Vanilla stone blocks via JSON patch (`assets/divineascension/patches/stone.json`)
+- Intercepts: `GetDrops` (drop quantity modification), `OnBlockBroken` (event emission)
+- Applies `StoneYield` stat bonus to drop multipliers
+- Static event: `OnStoneBlockBroken` for handlers to subscribe
+- Covers all 23 rock variants (granite, basalt, marble, etc.)
+
 **Service Locator Pattern:**
 - BlockBehavior constructors don't support DI (only receive `Block` instance)
 - `AltarEventEmitter` acts as static service locator initialized in `DivineAscensionSystemInitializer`
 - Allows handlers to keep full DI support while BlockBehavior emits events
 - Initialized via `BlockBehaviorAltar.SetEventEmitter(altarEventEmitter)` in `DivineAscensionSystemInitializer.cs`
-- Cleaned up via `AltarEventEmitter.ClearSubscribers()` in `DivineAscensionModSystem.Dispose()`
+- Cleaned up via `AltarEventEmitter.ClearSubscribers()` and `BlockBehaviorStone.ClearSubscribers()` in `DivineAscensionModSystem.Dispose()`
 
 **JSON Patch Structure:**
 ```json
 {
-  "op": "add",
+  "op": "addmerge",
   "path": "/behaviors/-",
   "value": { "name": "DivineAscensionAltar" },
-  "file": "blocktypes/stone/generic/altar.json",
+  "file": "game:blocktypes/stone/generic/altar.json",
   "side": "Server"
 }
 ```
 **Important:**
-- File path is relative (no mod domain prefix like `survival:`)
+- File path requires `game:` domain prefix for vanilla game assets
+- Use `"op": "addmerge"` instead of `"add"` for better mod compatibility (v1.19.4+)
 - `side` is capitalized: `"Server"` not `"server"`
 - BlockBehavior class must be `public` (not `internal`) for Vintage Story to instantiate it
-- Single patch applies to all altar orientations (north/east/south/west) since variants are generated from the base file
+- BlockBehavior must be registered via `api.RegisterBlockBehaviorClass()` in `ModSystem.Start()`
+- Single patch applies to all block variants generated from the base file
 
 **Block Placement Lifecycle:**
 - `DoPlaceBlock` (Step 3) is used instead of `OnBlockPlaced` (Step 4) because it provides player context
 - `OnBlockPlaced` lacks player/itemstack parameters and is called for all placements (including worldgen)
 - `DoPlaceBlock` is called during manual placement and has full context for event emission
 
-### Block Behaviors
-
-**BlockBehaviorAltar** (`/Blocks/BlockBehaviorAltar.cs`):
-- Attached to vanilla altar blocks via **code-based patching** in `AltarBlockBehaviorPatch.cs`
-- Patching occurs in `ModSystem.AssetsFinalize()` override (after assets loaded, before ready)
-- Emits events through `AltarEventEmitter` (Service Locator pattern) to `AltarPrayerHandler`, `AltarDestructionHandler`, `AltarPlacementHandler`
-- **CRITICAL:** Blocks require adding behavior to BOTH `CollectibleBehaviors` AND `BlockBehaviors` arrays
-- **Why code-based vs JSON patches:** JSON patches can be unreliable and may not update both behavior arrays correctly. Code-based patching provides better control and reliability.
-
 ### Harmony Patches
 
 **Patch classes** (`/Systems/Patches/`):
-- `AnvilPatches`, `BlockCropPatches`, `ClayFormingPatches`, `CookingPatches`, `CraftPatches`, `CropPlantingPatches`, `EatingPatches`, `FlowerPatches`, `ForagingPatches`, `MoldPourPatches`, `MushroomPatches`, `PitKilnPatches`, `SkinningPatches`
-- `AltarBlockBehaviorPatch` - Code-based asset patching to add BlockBehaviorAltar to vanilla altars
+- `AnvilPatches`, `BlockCropPatches`, `ClayFormingPatches`, `CookingPatches`, `CraftPatches`, `CropPlantingPatches`, `EatingPatches`, `FlowerPatches`, `ForagingPatches`, `MoldPourPatches`, `MushroomPatches`, `PitKilnPatches`, `SkinningPatches`, `StonePatches`
 - **Pattern:** Intercept game methods with Harmony, raise events that favor trackers subscribe to
 - **Note:** Altar-related Harmony patches (`AltarPatches`, `AltarBlockPatches`) have been replaced by `BlockBehaviorAltar`
+- **Note:** `StonePatches` provides stone/clay yield bonuses via Harmony prefix on `Block.OnBlockBroken`
 
 ### Data Persistence
 
