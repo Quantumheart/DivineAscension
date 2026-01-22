@@ -92,7 +92,8 @@ internal static class HolySiteDetailRenderer
             4f);
 
         // Clip content to container boundaries
-        drawList.PushClipRect(new Vector2(vm.X, backgroundY), new Vector2(vm.X + vm.Width, backgroundY + backgroundHeight), true);
+        drawList.PushClipRect(new Vector2(vm.X, backgroundY),
+            new Vector2(vm.X + vm.Width, backgroundY + backgroundHeight), true);
 
         currentY += 16f;
 
@@ -116,13 +117,22 @@ internal static class HolySiteDetailRenderer
         DrawDeityIcon(vm, drawList, leftColumnX, leftColumnY);
 
         var infoStartX = leftColumnX + 123f; // After icon
-        DrawHolySiteInfo(vm, drawList, infoStartX, ref leftColumnY, events);
+
+        // Calculate max width for name field
+        // Total available: dividerX - infoStartX - 20f (padding)
+        // Need to fit: Label (150f) + Input + Spacing (8f) + Save (60f) + Spacing (8f) + Cancel (60f)
+        var nameFieldMaxWidth =
+            dividerX - infoStartX - 150f - 8f - 60f - 8f - 60f - 20f; // LabelWidth + buttons + padding
+        DrawHolySiteInfo(vm, drawList, infoStartX, ref leftColumnY, nameFieldMaxWidth, events);
 
         leftColumnY += SectionSpacing;
         DrawCoordinatesSection(vm, drawList, infoStartX, ref leftColumnY);
 
         leftColumnY += SectionSpacing;
-        DrawDescriptionSection(vm, drawList, infoStartX, ref leftColumnY, events);
+
+        // Calculate max width for description (respect divider boundary)
+        var descriptionMaxWidth = dividerX - infoStartX - 20f; // 20f padding from divider
+        DrawDescriptionSection(vm, drawList, infoStartX, ref leftColumnY, descriptionMaxWidth, events);
 
         // RIGHT COLUMN: Ritual section
         DrawRitualSection(vm, drawList, rightColumnX, ref rightColumnY, events);
@@ -172,6 +182,7 @@ internal static class HolySiteDetailRenderer
         ImDrawListPtr drawList,
         float x,
         ref float y,
+        float nameFieldMaxWidth,
         List<DetailEvent> events)
     {
         var labelColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
@@ -180,12 +191,13 @@ internal static class HolySiteDetailRenderer
         // Name field (with edit button for consecrator)
         if (vm.IsEditingName)
         {
-            DrawNameEditField(vm, drawList, x, y, events);
+            DrawNameEditField(vm, drawList, x, y, nameFieldMaxWidth, events);
         }
         else
         {
             DrawNameDisplay(vm, drawList, x, y, labelColor, valueColor, events);
         }
+
         y += FieldHeight + 8f;
 
         // Tier
@@ -276,6 +288,7 @@ internal static class HolySiteDetailRenderer
             {
                 events.Add(new DetailEvent.CancelRitualClicked());
             }
+
             y += 36f;
         }
     }
@@ -479,6 +492,7 @@ internal static class HolySiteDetailRenderer
         ImDrawListPtr drawList,
         float x,
         float y,
+        float maxWidth,
         List<DetailEvent> events)
     {
         // Label
@@ -488,10 +502,10 @@ internal static class HolySiteDetailRenderer
 
         // Text input
         var inputX = x + LabelWidth;
-        var inputWidth = 300f;
 
         var editValue = vm.EditingNameValue ?? vm.SiteDetails.SiteName;
-        var newValue = TextInput.Draw(drawList, "##holysite_name_edit", editValue, inputX, y, inputWidth, FieldHeight, maxLength: 50);
+        var newValue = TextInput.Draw(drawList, "##holysite_name_edit", editValue, inputX, y, maxWidth, FieldHeight,
+            maxLength: 50);
 
         if (newValue != editValue)
         {
@@ -500,7 +514,7 @@ internal static class HolySiteDetailRenderer
         }
 
         // Save button
-        var saveButtonX = inputX + inputWidth + 8f;
+        var saveButtonX = inputX + maxWidth + 8f;
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_SAVE),
                 saveButtonX, y, 60f, FieldHeight, isPrimary: true))
@@ -545,6 +559,7 @@ internal static class HolySiteDetailRenderer
         ImDrawListPtr drawList,
         float x,
         ref float y,
+        float maxWidth,
         List<DetailEvent> events)
     {
         // Section header
@@ -569,11 +584,11 @@ internal static class HolySiteDetailRenderer
 
         if (vm.IsEditingDescription)
         {
-            DrawDescriptionEditField(vm, drawList, x, ref y, events);
+            DrawDescriptionEditField(vm, drawList, x, ref y, maxWidth, events);
         }
         else
         {
-            DrawDescriptionDisplay(vm, drawList, x, ref y);
+            DrawDescriptionDisplay(vm, drawList, x, ref y, maxWidth);
         }
     }
 
@@ -584,19 +599,19 @@ internal static class HolySiteDetailRenderer
         HolySiteDetailViewModel vm,
         ImDrawListPtr drawList,
         float x,
-        ref float y)
+        ref float y,
+        float maxWidth)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         var descriptionText = string.IsNullOrEmpty(vm.SiteDetails.Description)
             ? LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_DETAIL_NO_DESCRIPTION)
             : vm.SiteDetails.Description;
 
-        var wrappedWidth = 800f;
-        ImGui.PushTextWrapPos(x + wrappedWidth);
+        ImGui.PushTextWrapPos(x + maxWidth);
         drawList.AddText(ImGui.GetFont(), 13f, new Vector2(x, y), textColor, descriptionText);
         ImGui.PopTextWrapPos();
 
-        var textSize = ImGui.CalcTextSize(descriptionText, wrappedWidth);
+        var textSize = ImGui.CalcTextSize(descriptionText, maxWidth);
         y += textSize.Y + 8f;
     }
 
@@ -608,13 +623,14 @@ internal static class HolySiteDetailRenderer
         ImDrawListPtr drawList,
         float x,
         ref float y,
+        float maxWidth,
         List<DetailEvent> events)
     {
-        var inputWidth = 800f;
         var inputHeight = 100f;
 
         var editValue = vm.EditingDescriptionValue ?? vm.SiteDetails.Description;
-        var newValue = TextInput.DrawMultiline(drawList, "##holysite_description_edit", editValue, x, y, inputWidth, inputHeight, maxLength: 200);
+        var newValue = TextInput.DrawMultiline(drawList, "##holysite_description_edit", editValue, x, y, maxWidth,
+            inputHeight, maxLength: 200);
 
         if (newValue != editValue)
         {
@@ -630,7 +646,7 @@ internal static class HolySiteDetailRenderer
         var charCountColor = charCount > DescriptionMaxChars
             ? ImGui.ColorConvertFloat4ToU32(ColorPalette.Red)
             : ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x + inputWidth - 60f, y), charCountColor, charCountText);
+        drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x + maxWidth - 60f, y), charCountColor, charCountText);
 
         y += 24f;
 
