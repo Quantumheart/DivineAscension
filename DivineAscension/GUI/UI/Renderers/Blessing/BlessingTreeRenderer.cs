@@ -56,7 +56,8 @@ internal static class BlessingTreeRenderer
             vm.DeltaTime,
             vm.PlayerTreeScroll.X,
             vm.PlayerTreeScroll.Y,
-            vm.SelectedBlessingId
+            vm.SelectedBlessingId,
+            "blessing_tree_player"
         );
 
         // === CENTER DIVIDER ===
@@ -82,7 +83,8 @@ internal static class BlessingTreeRenderer
             vm.DeltaTime,
             vm.ReligionTreeScroll.X,
             vm.ReligionTreeScroll.Y,
-            vm.SelectedBlessingId
+            vm.SelectedBlessingId,
+            "blessing_tree_religion"
         );
 
         // Build events
@@ -140,7 +142,8 @@ internal static class BlessingTreeRenderer
         IReadOnlyDictionary<string, BlessingNodeState> blessingStates,
         float deltaTime,
         float prevScrollX, float prevScrollY,
-        string? selectedBlessingId)
+        string? selectedBlessingId,
+        string panelId)
     {
         const float padding = 16f;
 
@@ -168,16 +171,19 @@ internal static class BlessingTreeRenderer
         var totalHeight = BlessingTreeLayout.GetTotalHeight(dict);
         var totalWidth = BlessingTreeLayout.GetTotalWidth(dict);
 
-        // Create scrollable area using ImGui child window
-        var childId = blessingStates.GetHashCode().ToString(); // Unique ID per panel
+        // Create scrollable area using ImGui child window with stable ID
         ImGui.SetCursorScreenPos(new Vector2(x, y));
 
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(padding, padding));
         ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(0.1f, 0.08f, 0.06f, 0.5f));
 
         // Enable scrolling with mouse wheel - border=true enables scrollbar
-        ImGui.BeginChild(childId, new Vector2(width, height), true,
+        ImGui.BeginChild(panelId, new Vector2(width, height), true,
             ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
+
+        // Reserve scroll space FIRST so ImGui knows the content size before we draw
+        // This ensures scrollbars work correctly for content drawn via DrawList
+        ImGui.Dummy(new Vector2(totalWidth + padding * 2, totalHeight + padding * 2));
 
         // Get mouse position (in screen space)
         var mousePos = ImGui.GetMousePos();
@@ -228,10 +234,6 @@ internal static class BlessingTreeRenderer
                 }
             }
         }
-
-        // Set child window content size for scrolling
-        // We need to use Dummy to actually reserve the space since we're using DrawList
-        ImGui.Dummy(new Vector2(totalWidth + padding * 2, totalHeight + padding * 2));
 
         ImGui.EndChild();
         ImGui.PopStyleColor();
