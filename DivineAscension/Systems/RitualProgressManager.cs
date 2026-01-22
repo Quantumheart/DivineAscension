@@ -89,21 +89,34 @@ public class RitualProgressManager : IRitualProgressManager
             Progress = new()
         };
 
-        // Initialize progress for each requirement
-        foreach (var requirement in ritual.Requirements)
+        // Initialize progress for each step (all start as undiscovered)
+        foreach (var step in ritual.Steps)
         {
-            progressData.Progress[requirement.RequirementId] = new ItemProgress
+            var stepProgress = new StepProgress
             {
-                QuantityContributed = 0,
-                QuantityRequired = requirement.Quantity,
-                Contributors = new()
+                IsComplete = false,
+                IsDiscovered = false,
+                RequirementProgress = new()
             };
+
+            // Initialize each requirement within the step
+            foreach (var requirement in step.Requirements)
+            {
+                stepProgress.RequirementProgress[requirement.RequirementId] = new ItemProgress
+                {
+                    QuantityContributed = 0,
+                    QuantityRequired = requirement.Quantity,
+                    Contributors = new()
+                };
+            }
+
+            progressData.Progress[step.StepId] = stepProgress;
         }
 
         // Set active ritual
         site.ActiveRitual = progressData;
 
-        _logger.Debug($"[DivineAscension RitualProgressManager] Started ritual '{ritual.Name}' at holy site '{site.SiteName}' (UID: {siteUID})");
+        _logger.Debug($"[DivineAscension RitualProgressManager] Started ritual '{ritual.Name}' ({ritual.Steps.Count} steps) at holy site '{site.SiteName}' (UID: {siteUID})");
 
         return new RitualStartResult(true, $"Started ritual: {ritual.Name}", ritual);
     }
@@ -132,27 +145,47 @@ public class RitualProgressManager : IRitualProgressManager
             return new RitualContributionResult(false, "Ritual definition not found");
         }
 
-        // Find matching requirement
-        var matchingRequirement = _ritualMatcher.FindMatchingRequirement(offering, ritual.Requirements);
-        if (matchingRequirement == null)
+        // Find matching step and requirement
+        var (matchingStep, matchingRequirement) = FindMatchingStepAndRequirement(offering, ritual.Steps);
+        if (matchingStep == null || matchingRequirement == null)
         {
             return new RitualContributionResult(false, "This item is not needed for the current ritual");
         }
 
-        // Get progress for this requirement
-        if (!site.ActiveRitual.Progress.TryGetValue(matchingRequirement.RequirementId, out var itemProgress))
+        // Get step progress
+        if (!site.ActiveRitual.Progress.TryGetValue(matchingStep.StepId, out var stepProgress))
         {
-            _logger.Error($"[DivineAscension RitualProgressManager] Progress tracking not found for requirement '{matchingRequirement.RequirementId}'");
+            _logger.Error($"[DivineAscension RitualProgressManager] Progress tracking not found for step '{matchingStep.StepId}'");
             return new RitualContributionResult(false, "Progress tracking error");
         }
 
-        // Check if requirement already completed
-        if (itemProgress.QuantityContributed >= itemProgress.QuantityRequired)
+        // Discover step if not already discovered
+        var wasDiscovered = stepProgress.IsDiscovered;
+        if (!stepProgress.IsDiscovered)
         {
-            return new RitualContributionResult(false, $"This requirement ({matchingRequirement.DisplayName}) is already completed");
+            stepProgress.IsDiscovered = true;
         }
 
-        // Calculate contribution amount (respect stack size and remaining needed)
+        // Check if step already complete
+        if (stepProgress.IsComplete)
+        {
+            return new RitualContributionResult(false, $"Step '{matchingStep.StepName}' is already complete");
+        }
+
+        // Get requirement progress
+        if (!stepProgress.RequirementProgress.TryGetValue(matchingRequirement.RequirementId, out var itemProgress))
+        {
+            _logger.Error($"[DivineAscension RitualProgressManager] Progress tracking not found for requirement '{matchingRequirement.RequirementId}' in step '{matchingStep.StepId}'");
+            return new RitualContributionResult(false, "Progress tracking error");
+        }
+
+        // Check if this specific requirement is satisfied
+        if (itemProgress.QuantityContributed >= itemProgress.QuantityRequired)
+        {
+            return new RitualContributionResult(false, $"This requirement ({matchingRequirement.DisplayName}) is already satisfied");
+        }
+
+        // Calculate contribution amount
         var remainingNeeded = itemProgress.QuantityRequired - itemProgress.QuantityContributed;
         var contributionAmount = Math.Min(offering.StackSize, remainingNeeded);
 
@@ -166,22 +199,43 @@ public class RitualProgressManager : IRitualProgressManager
         }
         itemProgress.Contributors[playerUID] += contributionAmount;
 
-        var requirementCompleted = itemProgress.QuantityContributed >= itemProgress.QuantityRequired;
-
-        _logger.Debug($"[DivineAscension RitualProgressManager] Player {playerUID} contributed {contributionAmount}x {offering.Collectible.Code} to ritual at site {siteUID}");
+        // Check if step is now complete
+        var stepComplete = CheckStepCompletion(stepProgress);
+        if (stepComplete)
+        {
+            stepProgress.IsComplete = true;
+        }
 
         // Check if entire ritual is completed
         var ritualCompleted = CheckAndCompleteRitual(site, ritual);
 
+        // Build message with discovery notification
+        string message;
+        if (ritualCompleted)
+        {
+            message = $"Ritual completed! {site.SiteName} is now a Tier {site.RitualTier} holy site!";
+        }
+        else if (stepComplete)
+        {
+            message = $"Step '{matchingStep.StepName}' completed!";
+        }
+        else if (!wasDiscovered)
+        {
+            message = $"Step discovered: {matchingStep.StepName}! Contributed {contributionAmount}x {matchingRequirement.DisplayName}";
+        }
+        else
+        {
+            message = $"Contributed {contributionAmount}x {matchingRequirement.DisplayName}";
+        }
+
+        _logger.Debug($"[DivineAscension RitualProgressManager] Player {playerUID} contributed {contributionAmount}x {offering.Collectible.Code} to step '{matchingStep.StepName}' at site {siteUID}");
+
         return new RitualContributionResult(
             Success: true,
-            Message: ritualCompleted
-                ? $"Ritual completed! {site.SiteName} is now a Tier {site.RitualTier} holy site!"
-                : $"Contributed {contributionAmount}x {matchingRequirement.DisplayName} ({itemProgress.QuantityContributed}/{itemProgress.QuantityRequired})",
-            RequirementId: matchingRequirement.RequirementId,
-            QuantityContributed: itemProgress.QuantityContributed,
-            QuantityRequired: itemProgress.QuantityRequired,
-            RequirementCompleted: requirementCompleted,
+            Message: message,
+            StepId: matchingStep.StepId,
+            StepDiscovered: !wasDiscovered,
+            StepCompleted: stepComplete,
             RitualCompleted: ritualCompleted
         );
     }
@@ -218,7 +272,7 @@ public class RitualProgressManager : IRitualProgressManager
     }
 
     /// <summary>
-    /// Checks if all requirements are met and completes the ritual if so.
+    /// Checks if all steps are complete and completes the ritual if so.
     /// </summary>
     /// <returns>True if ritual was completed</returns>
     private bool CheckAndCompleteRitual(HolySiteData site, Ritual ritual)
@@ -226,11 +280,12 @@ public class RitualProgressManager : IRitualProgressManager
         if (site.ActiveRitual == null)
             return false;
 
-        // Check if all requirements are completed
-        var allComplete = site.ActiveRitual.Progress.Values
-            .All(p => p.QuantityContributed >= p.QuantityRequired);
+        // Check if all steps are complete
+        var allStepsComplete = ritual.Steps.All(step =>
+            site.ActiveRitual.Progress.TryGetValue(step.StepId, out var stepProgress) &&
+            stepProgress.IsComplete);
 
-        if (!allComplete)
+        if (!allStepsComplete)
             return false;
 
         // Upgrade tier
@@ -240,5 +295,32 @@ public class RitualProgressManager : IRitualProgressManager
         _logger.Notification($"[DivineAscension RitualProgressManager] Ritual '{ritual.Name}' completed at holy site '{site.SiteName}' (UID: {site.SiteUID}). Tier upgraded to {ritual.TargetTier}");
 
         return true;
+    }
+
+    /// <summary>
+    /// Checks if a step is complete (all requirements satisfied).
+    /// </summary>
+    private bool CheckStepCompletion(StepProgress stepProgress)
+    {
+        return stepProgress.RequirementProgress.Values
+            .All(p => p.QuantityContributed >= p.QuantityRequired);
+    }
+
+    /// <summary>
+    /// Finds the step and requirement that matches the offering.
+    /// </summary>
+    private (RitualStep?, RitualRequirement?) FindMatchingStepAndRequirement(
+        ItemStack offering,
+        System.Collections.Generic.IReadOnlyList<RitualStep> steps)
+    {
+        foreach (var step in steps)
+        {
+            var matchingReq = _ritualMatcher.FindMatchingRequirement(offering, step.Requirements);
+            if (matchingReq != null)
+            {
+                return (step, matchingReq);
+            }
+        }
+        return (null, null);
     }
 }

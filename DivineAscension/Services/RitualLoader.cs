@@ -206,29 +206,34 @@ public class RitualLoader(ILogger logger, IAssetManager assetManager) : IRitualL
             return null;
         }
 
-        // Validate requirements
-        if (dto.Requirements == null || dto.Requirements.Count == 0)
+        // Validate steps (3-5 steps required)
+        const int MinSteps = 3;
+        const int MaxSteps = 5;
+
+        if (dto.Steps == null || dto.Steps.Count < MinSteps || dto.Steps.Count > MaxSteps)
         {
             _logger.Warning(
-                $"[DivineAscension RitualLoader] Ritual '{dto.RitualId}' has no requirements, skipping");
+                $"[DivineAscension RitualLoader] Ritual '{dto.RitualId}' must have {MinSteps}-{MaxSteps} steps, has {dto.Steps?.Count ?? 0}, skipping");
             return null;
         }
 
-        // Convert requirements
-        var requirements = new List<RitualRequirement>();
-        foreach (var reqDto in dto.Requirements)
+        var expectedStepCount = dto.Steps.Count;
+
+        // Convert steps
+        var steps = new List<RitualStep>();
+        foreach (var stepDto in dto.Steps)
         {
-            var requirement = ConvertToRitualRequirement(reqDto, dto.RitualId);
-            if (requirement != null)
+            var step = ConvertToRitualStep(stepDto, dto.RitualId);
+            if (step != null)
             {
-                requirements.Add(requirement);
+                steps.Add(step);
             }
         }
 
-        if (requirements.Count == 0)
+        if (steps.Count != expectedStepCount)
         {
             _logger.Warning(
-                $"[DivineAscension RitualLoader] Ritual '{dto.RitualId}' has no valid requirements, skipping");
+                $"[DivineAscension RitualLoader] Ritual '{dto.RitualId}' failed to convert {expectedStepCount} valid steps (got {steps.Count}), skipping");
             return null;
         }
 
@@ -238,11 +243,67 @@ public class RitualLoader(ILogger logger, IAssetManager assetManager) : IRitualL
             domain,
             dto.SourceTier,
             dto.TargetTier,
-            requirements.AsReadOnly(),
+            steps.AsReadOnly(),
             dto.Description ?? string.Empty
         );
 
         return ritual;
+    }
+
+    /// <summary>
+    /// Converts a RitualStepJsonDto to a RitualStep model.
+    /// </summary>
+    private RitualStep? ConvertToRitualStep(RitualStepJsonDto dto, string ritualId)
+    {
+        // Validate step ID
+        if (string.IsNullOrWhiteSpace(dto.StepId))
+        {
+            _logger.Warning(
+                $"[DivineAscension RitualLoader] Step in ritual '{ritualId}' has empty StepId, skipping");
+            return null;
+        }
+
+        // Validate step name
+        if (string.IsNullOrWhiteSpace(dto.StepName))
+        {
+            _logger.Warning(
+                $"[DivineAscension RitualLoader] Step '{dto.StepId}' in ritual '{ritualId}' has empty StepName, skipping");
+            return null;
+        }
+
+        // Validate requirements
+        if (dto.Requirements == null || dto.Requirements.Count == 0)
+        {
+            _logger.Warning(
+                $"[DivineAscension RitualLoader] Step '{dto.StepId}' in ritual '{ritualId}' has no requirements, skipping");
+            return null;
+        }
+
+        // Convert requirements
+        var requirements = new List<RitualRequirement>();
+        foreach (var reqDto in dto.Requirements)
+        {
+            var requirement = ConvertToRitualRequirement(reqDto, ritualId);
+            if (requirement != null)
+            {
+                requirements.Add(requirement);
+            }
+        }
+
+        if (requirements.Count == 0)
+        {
+            _logger.Warning(
+                $"[DivineAscension RitualLoader] Step '{dto.StepId}' in ritual '{ritualId}' has no valid requirements, skipping");
+            return null;
+        }
+
+        var step = new RitualStep(
+            dto.StepId,
+            dto.StepName,
+            requirements.AsReadOnly()
+        );
+
+        return step;
     }
 
     /// <summary>

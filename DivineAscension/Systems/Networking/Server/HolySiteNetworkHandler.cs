@@ -516,26 +516,44 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
     /// </summary>
     private HolySiteResponsePacket.RitualProgressInfo MapRitualProgress(Data.RitualProgressData progressData, Models.Ritual ritual, string religionUID)
     {
-        var requirementInfos = ritual.Requirements.Select(req =>
+        var stepInfos = ritual.Steps.Select(step =>
         {
-            progressData.Progress.TryGetValue(req.RequirementId, out var progress);
-            var topContributors = progress?.Contributors
+            progressData.Progress.TryGetValue(step.StepId, out var stepProgress);
+
+            // Aggregate all contributors across all requirements within the step
+            var allContributors = new Dictionary<string, int>();
+            if (stepProgress?.RequirementProgress != null)
+            {
+                foreach (var reqProgress in stepProgress.RequirementProgress.Values)
+                {
+                    foreach (var contributor in reqProgress.Contributors)
+                    {
+                        if (!allContributors.ContainsKey(contributor.Key))
+                        {
+                            allContributors[contributor.Key] = 0;
+                        }
+                        allContributors[contributor.Key] += contributor.Value;
+                    }
+                }
+            }
+
+            var topContributors = allContributors
                 .OrderByDescending(c => c.Value)
-                .Take(5)
+                .Take(3)
                 .Select(c => new HolySiteResponsePacket.ContributorInfo
                 {
                     PlayerUID = c.Key,
                     PlayerName = GetPlayerNameOrUID(c.Key, religionUID),
                     Quantity = c.Value
                 })
-                .ToList() ?? new List<HolySiteResponsePacket.ContributorInfo>();
+                .ToList();
 
-            return new HolySiteResponsePacket.RequirementProgressInfo
+            return new HolySiteResponsePacket.StepProgressInfo
             {
-                RequirementId = req.RequirementId,
-                DisplayName = req.DisplayName,
-                QuantityContributed = progress?.QuantityContributed ?? 0,
-                QuantityRequired = req.Quantity,
+                StepId = step.StepId,
+                StepName = step.StepName,
+                IsComplete = stepProgress?.IsComplete ?? false,
+                IsDiscovered = stepProgress?.IsDiscovered ?? false,
                 TopContributors = topContributors
             };
         }).ToList();
@@ -547,7 +565,7 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
             Description = ritual.Description,
             SourceTier = ritual.SourceTier,
             TargetTier = ritual.TargetTier,
-            Requirements = requirementInfos,
+            Steps = stepInfos,
             StartedAt = progressData.StartedAt
         };
     }
