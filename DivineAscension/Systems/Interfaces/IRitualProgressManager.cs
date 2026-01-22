@@ -18,10 +18,9 @@ public record RitualStartResult(
 public record RitualContributionResult(
     bool Success,
     string Message,
-    string? RequirementId = null,
-    int QuantityContributed = 0,
-    int QuantityRequired = 0,
-    bool RequirementCompleted = false,
+    string? StepId = null,
+    bool StepDiscovered = false,
+    bool StepCompleted = false,
     bool RitualCompleted = false
 );
 
