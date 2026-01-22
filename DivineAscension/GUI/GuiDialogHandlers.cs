@@ -40,11 +40,11 @@ public partial class GuiDialog
     /// </summary>
     private void OnBlessingDataReceived(BlessingDataResponsePacket packet)
     {
-        _capi!.Logger.Debug($"[DivineAscension] Processing blessing data: HasReligion={packet.HasReligion}");
+        _logger?.Debug($"[DivineAscension] Processing blessing data: HasReligion={packet.HasReligion}");
 
         if (!packet.HasReligion)
         {
-            _capi.Logger.Debug("[DivineAscension] Player has no religion - data ready for 'No Religion' state");
+            _logger?.Debug("[DivineAscension] Player has no religion - data ready for 'No Religion' state");
             _manager!.Reset();
             _state.IsReady = true; // Set ready so dialog can open to show "No Religion" state
 
@@ -60,7 +60,7 @@ public partial class GuiDialog
         // Parse deity type from string
         if (!Enum.TryParse<DeityDomain>(packet.Domain, out var deityType))
         {
-            _capi.Logger.Error($"[DivineAscension] Invalid deity type: {packet.Domain}");
+            _logger?.Error($"[DivineAscension] Invalid deity type: {packet.Domain}");
             return;
         }
 
@@ -104,7 +104,7 @@ public partial class GuiDialog
 
         // Preload blessing textures for this deity domain to prevent stuttering on first render
         var allBlessings = playerBlessings.Concat(religionBlessings).ToList();
-        _capi.Logger.Debug(
+        _logger?.Debug(
             $"[DivineAscension] Preloading {allBlessings.Count} blessing textures for {deityType}...");
         BlessingIconLoader.PreloadDeityTextures(allBlessings, deityType);
 
@@ -124,11 +124,11 @@ public partial class GuiDialog
         var prestigeRankName = ((PrestigeRank)packet.PrestigeRank).ToString();
         _state.PreviousFavorRank = favorRankName;
         _state.PreviousPrestigeRank = prestigeRankName;
-        _capi.Logger.Debug(
+        _logger?.Debug(
             $"[DivineAscension] Initialized previous ranks: Favor={favorRankName}, Prestige={prestigeRankName}");
 
         _state.IsReady = true;
-        _capi.Logger.Notification(
+        _logger?.Notification(
             $"[DivineAscension] Loaded {playerBlessings.Count} player blessings and {religionBlessings.Count} religion blessings for {packet.Domain}");
     }
 
@@ -137,7 +137,7 @@ public partial class GuiDialog
     /// </summary>
     private void OnReligionStateChanged(ReligionStateChangedPacket packet)
     {
-        _capi!.Logger.Notification($"[DivineAscension] Religion state changed: {packet.Reason}");
+        _logger?.Notification($"[DivineAscension] Religion state changed: {packet.Reason}");
 
         // Show notification to user
         _capi.ShowChatMessage(packet.Reason);
@@ -149,7 +149,7 @@ public partial class GuiDialog
             _manager.NotificationManager.State.PendingNotifications.Clear();
             _state.PreviousFavorRank = string.Empty;
             _state.PreviousPrestigeRank = string.Empty;
-            _capi.Logger.Debug(
+            _logger?.Debug(
                 "[DivineAscension] Cleared notification queue and previous ranks due to religion state change");
         }
 
@@ -169,7 +169,7 @@ public partial class GuiDialog
 
         if (shouldSwitchTab)
         {
-            _capi.Logger.Debug(
+            _logger?.Debug(
                 $"[DivineAscension] Switching tab from {currentTab} to Browse due to religion state change");
             _manager.ReligionStateManager.State.CurrentSubTab = SubTab.Browse;
         }
@@ -215,7 +215,7 @@ public partial class GuiDialog
     /// </summary>
     private void OnReligionListReceived(ReligionListResponsePacket packet)
     {
-        _capi!.Logger.Debug($"[DivineAscension] Received {packet.Religions.Count} religions from server");
+        _logger?.Debug($"[DivineAscension] Received {packet.Religions.Count} religions from server");
         // Update manager religion tab state
         _manager!.ReligionStateManager.UpdateReligionList(packet.Religions);
     }
@@ -225,7 +225,7 @@ public partial class GuiDialog
     /// </summary>
     private void OnReligionActionCompleted(ReligionActionResponsePacket packet)
     {
-        _capi!.Logger.Debug($"[DivineAscension] Religion action '{packet.Action}' completed: {packet.Message}");
+        _logger?.Debug($"[DivineAscension] Religion action '{packet.Action}' completed: {packet.Message}");
 
         if (packet.Success)
         {
@@ -238,14 +238,14 @@ public partial class GuiDialog
             // If leaving religion, reset blessing dialog state immediately
             if (packet.Action == "leave")
             {
-                _capi.Logger.Debug("[DivineAscension] Resetting blessing dialog after leaving religion");
+                _logger?.Debug("[DivineAscension] Resetting blessing dialog after leaving religion");
                 _manager!.Reset();
 
                 // AUTO-CORRECT TAB: Switch away from member-only tabs
                 var currentTab = _manager.ReligionStateManager.State.CurrentSubTab;
                 if (currentTab is SubTab.Info or SubTab.Activity or SubTab.Roles)
                 {
-                    _capi.Logger.Debug(
+                    _logger?.Debug(
                         $"[DivineAscension] Switching tab from {currentTab} to Browse after leaving religion");
                     _manager.ReligionStateManager.State.CurrentSubTab = SubTab.Browse;
                 }
@@ -257,7 +257,7 @@ public partial class GuiDialog
                 var currentTab = _manager!.ReligionStateManager.State.CurrentSubTab;
                 if (currentTab is SubTab.Invites or SubTab.Create)
                 {
-                    _capi.Logger.Debug(
+                    _logger?.Debug(
                         $"[DivineAscension] Switching tab from {currentTab} to Info after joining religion");
                     _manager.ReligionStateManager.State.CurrentSubTab = SubTab.Info;
                 }
@@ -297,7 +297,7 @@ public partial class GuiDialog
 
     private void OnReligionRolesReceived(ReligionRolesResponse packet)
     {
-        _capi!.Logger.Debug($"[DivineAscension] Received religion roles response: Success={packet.Success}");
+        _logger?.Debug($"[DivineAscension] Received religion roles response: Success={packet.Success}");
 
         if (packet.Success)
         {
@@ -359,7 +359,7 @@ public partial class GuiDialog
     /// </summary>
     private void OnPlayerReligionInfoReceived(PlayerReligionInfoResponsePacket packet)
     {
-        _capi!.Logger.Debug(
+        _logger?.Debug(
             $"[DivineAscension] Received player religion info: HasReligion={packet.HasReligion}, IsFounder={packet.IsFounder}");
 
         // Update manager religion tab state
@@ -371,20 +371,20 @@ public partial class GuiDialog
             _manager.ReligionStateManager.PlayerRoleInReligion = packet.IsFounder ? "Leader" : "Member";
             _manager.ReligionStateManager.ReligionMemberCount = packet.Members.Count;
             _manager.ReligionStateManager.CurrentReligionUID = packet.ReligionUID;
-            _capi!.Logger.Debug(
+            _logger?.Debug(
                 $"[DivineAscension] Set PlayerRoleInReligion to: {_manager.ReligionStateManager.PlayerRoleInReligion}, MemberCount: {_manager.ReligionStateManager.ReligionMemberCount}");
 
             // CRITICAL: Reset ActivityState so it will request activity log on next draw
             // This handles the case where Activity tab was opened before religion info arrived
             _manager.ReligionStateManager.State.ActivityState.LastRefresh = DateTime.MinValue;
             _manager.ReligionStateManager.State.ActivityState.IsLoading = false;
-            _capi!.Logger.Debug("[DivineAscension] Reset ActivityState to trigger activity log request");
+            _logger?.Debug("[DivineAscension] Reset ActivityState to trigger activity log request");
         }
         else
         {
             _manager.ReligionStateManager.PlayerRoleInReligion = null;
             _manager.ReligionStateManager.ReligionMemberCount = 0;
-            _capi!.Logger.Debug("[DivineAscension] Cleared PlayerRoleInReligion (no religion)");
+            _logger?.Debug("[DivineAscension] Cleared PlayerRoleInReligion (no religion)");
         }
 
         // Update civilization manager's religion state
@@ -396,7 +396,7 @@ public partial class GuiDialog
     /// </summary>
     private void OnDeityNameChanged(SetDeityNameResponsePacket packet)
     {
-        _capi!.Logger.Debug($"[DivineAscension] Deity name change response: Success={packet.Success}");
+        _logger?.Debug($"[DivineAscension] Deity name change response: Success={packet.Success}");
 
         // Update state - stop saving indicator
         _manager!.ReligionStateManager.State.InfoState.IsSavingDeityName = false;
@@ -433,7 +433,7 @@ public partial class GuiDialog
     /// </summary>
     private void OnReligionDetailReceived(ReligionDetailResponsePacket packet)
     {
-        _capi!.Logger.Debug(
+        _logger?.Debug(
             $"[DivineAscension] Received religion detail: {packet.ReligionName}, Members={packet.Members.Count}");
 
         // Update religion state manager
@@ -448,7 +448,7 @@ public partial class GuiDialog
         // Skip if manager is not initialized yet
         if (_manager == null) return;
 
-        _capi!.Logger.Debug(
+        _logger?.Debug(
             $"[DivineAscension] Updating blessing dialog with new favor data: {packet.Favor}, Total: {packet.TotalFavorEarned}");
 
         // Always update manager with new values, even if dialog is closed
@@ -480,7 +480,7 @@ public partial class GuiDialog
             Enum.TryParse<FavorRank>(_state.PreviousFavorRank, out var previousFavorRank) &&
             favorRankEnum > previousFavorRank)
         {
-            _capi!.Logger.Notification(
+            _logger?.Notification(
                 $"[DivineAscension] Favor rank increased: {previousFavorRank} → {favorRankEnum}");
             var description = FavorRankDescriptions.GetDescription(favorRankEnum);
             if (packet.FavorRank != null)
@@ -496,7 +496,7 @@ public partial class GuiDialog
             Enum.TryParse<PrestigeRank>(_state.PreviousPrestigeRank, out var previousPrestigeRank) &&
             prestigeRankEnum > previousPrestigeRank)
         {
-            _capi!.Logger.Notification(
+            _logger?.Notification(
                 $"[DivineAscension] Prestige rank increased: {previousPrestigeRank} → {prestigeRankEnum}");
             var description = PrestigeRankDescriptions.GetDescription(prestigeRankEnum);
             if (packet.PrestigeRank != null)
@@ -525,7 +525,7 @@ public partial class GuiDialog
     {
         if (!success)
         {
-            _capi!.Logger.Debug($"[DivineAscension] Blessing unlock failed: {blessingId}");
+            _logger?.Debug($"[DivineAscension] Blessing unlock failed: {blessingId}");
 
             // Play error sound on failure
             _soundManager!.PlayError();
@@ -533,7 +533,7 @@ public partial class GuiDialog
             return;
         }
 
-        _capi!.Logger.Debug($"[DivineAscension] Blessing unlocked from server: {blessingId}");
+        _logger?.Debug($"[DivineAscension] Blessing unlocked from server: {blessingId}");
 
         // Play unlock success sound
         if (_manager != null)
@@ -575,7 +575,7 @@ public partial class GuiDialog
     /// </summary>
     private void OnCivilizationListReceived(CivilizationListResponsePacket packet)
     {
-        _capi!.Logger.Debug($"[DivineAscension] Received civilization list: {packet.Civilizations.Count} items");
+        _logger?.Debug($"[DivineAscension] Received civilization list: {packet.Civilizations.Count} items");
         _manager!.CivilizationManager.OnCivilizationListReceived(packet);
     }
 
@@ -584,14 +584,14 @@ public partial class GuiDialog
     /// </summary>
     private void OnCivilizationInfoReceived(CivilizationInfoResponsePacket packet)
     {
-        _capi!.Logger.Debug($"[DivineAscension] Received civilization info: HasCiv={packet.Details != null}");
+        _logger?.Debug($"[DivineAscension] Received civilization info: HasCiv={packet.Details != null}");
         _manager!.CivilizationManager.OnCivilizationInfoReceived(packet);
 
         if (packet.Details != null)
-            _capi.Logger.Notification(
+            _logger?.Notification(
                 $"[DivineAscension] Loaded civilization '{packet.Details.Name}' with {packet.Details.MemberReligions?.Count} religions");
         else
-            _capi.Logger.Debug("[DivineAscension] Player's religion is not in a civilization");
+            _logger?.Debug("[DivineAscension] Player's religion is not in a civilization");
     }
 
     /// <summary>
@@ -599,7 +599,7 @@ public partial class GuiDialog
     /// </summary>
     private void OnCivilizationActionCompleted(CivilizationActionResponsePacket packet)
     {
-        _capi!.Logger.Debug(
+        _logger?.Debug(
             $"[DivineAscension] Civilization action completed: Success={packet.Success}, Message={packet.Message}");
 
         // Show result message to user
@@ -614,7 +614,7 @@ public partial class GuiDialog
     /// </summary>
     private void OnActivityLogReceived(ActivityLogResponsePacket packet)
     {
-        _capi!.Logger.Debug($"[DivineAscension] Received activity log with {packet.Entries.Count} entries");
+        _logger?.Debug($"[DivineAscension] Received activity log with {packet.Entries.Count} entries");
 
         // Update activity state
         _manager!.ReligionStateManager.State.ActivityState.UpdateEntries(packet.Entries);
@@ -628,13 +628,13 @@ public partial class GuiDialog
         // Handle detail info
         if (packet.DetailInfo != null)
         {
-            _capi!.Logger.Debug(
+            _logger?.Debug(
                 $"[DivineAscension] Received holy site detail info for site {packet.DetailInfo.SiteUID}");
             _manager!.CivilizationManager.UpdateHolySiteDetail(packet.DetailInfo);
             return;
         }
 
-        _capi!.Logger.Debug($"[DivineAscension] Received holy site list: {packet.Sites.Count} sites");
+        _logger?.Debug($"[DivineAscension] Received holy site list: {packet.Sites.Count} sites");
 
         // Update civilization holy sites state
         _manager!.CivilizationManager.UpdateHolySiteList(packet.Sites);
@@ -645,7 +645,7 @@ public partial class GuiDialog
     /// </summary>
     private void OnHolySiteUpdated(HolySiteUpdateResponsePacket packet)
     {
-        _capi!.Logger.Debug($"[DivineAscension] Holy site updated: Success={packet.Success}");
+        _logger?.Debug($"[DivineAscension] Holy site updated: Success={packet.Success}");
 
         if (packet.Success && !string.IsNullOrEmpty(packet.SiteUID))
         {
@@ -658,7 +658,7 @@ public partial class GuiDialog
     /// </summary>
     private void OnAvailableDomainsReceived(AvailableDomainsResponsePacket packet)
     {
-        _capi!.Logger.Debug($"[DivineAscension] Received {packet.Domains.Count} available domains from server");
+        _logger?.Debug($"[DivineAscension] Received {packet.Domains.Count} available domains from server");
 
         // Update religion state manager with available domains
         _manager!.ReligionStateManager.SetAvailableDomains(packet.Domains);

@@ -5,6 +5,7 @@ using System.Linq;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -26,7 +27,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     private readonly IEventService _eventService;
     private readonly ConcurrentDictionary<string, byte> _initializedPlayers = new();
 
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly IPersistenceService _persistenceService;
     private readonly ConcurrentDictionary<string, PlayerProgressionData> _playerData = new();
     private readonly IReligionManager _religionManager;
@@ -34,7 +35,7 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     private readonly IWorldService _worldService;
 
     public PlayerProgressionDataManager(
-        ILogger logger,
+        ILoggerWrapper logger,
         IEventService eventService,
         IPersistenceService persistenceService,
         IWorldService worldService,

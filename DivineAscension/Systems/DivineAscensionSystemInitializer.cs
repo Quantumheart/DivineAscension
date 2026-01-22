@@ -80,23 +80,28 @@ public static class DivineAscensionSystemInitializer
         // Migrate existing religions with empty deity names (for backward compatibility)
         var migratedReligionUIDs = religionManager.MigrateEmptyDeityNames();
 
-        var activityLogManager = new ActivityLogManager(logger, worldService, religionManager);
+        var activityLogManager = new ActivityLogManager(LoggingService.Instance.CreateLogger("ActivityLogManager")
+            , worldService, religionManager);
         activityLogManager.Initialize();
 
         var civilizationManager =
-            new CivilizationManager(logger, eventService, persistenceService, worldService, religionManager);
+            new CivilizationManager(LoggingService.Instance.CreateLogger("CivilizationManager"),
+                eventService, persistenceService, worldService, religionManager);
         civilizationManager.Initialize();
 
         // Create messenger service after managers are initialized
         var messengerService = new PlayerMessengerService(worldService, religionManager, civilizationManager);
 
-        var playerReligionDataManager = new PlayerProgressionDataManager(logger, eventService, persistenceService,
+        var playerReligionDataManager = new PlayerProgressionDataManager(
+            LoggingService.Instance.CreateLogger("PlayerProgressionDataManager")
+            , eventService, persistenceService,
             worldService, religionManager, gameBalanceConfig, timeService);
         playerReligionDataManager.Initialize();
 
         // CRITICAL: MUST be initialized before FavorSystem
         var religionPrestigeManager =
-            new ReligionPrestigeManager(logger, worldService, religionManager, gameBalanceConfig);
+            new ReligionPrestigeManager(LoggingService.Instance.CreateLogger("ReligionPrestigeManager")
+                , worldService, religionManager, gameBalanceConfig);
         religionPrestigeManager.Initialize();
 
         // Create AltarEventEmitter (service locator for BlockBehaviorAltar)
@@ -105,7 +110,7 @@ public static class DivineAscensionSystemInitializer
 
         // Initialize Holy Site Manager (depends on ReligionManager)
         var holySiteManager = new HolySiteManager(
-            logger,
+            LoggingService.Instance.CreateLogger("HolySiteManager"),
             eventService,
             persistenceService,
             worldService,
@@ -117,7 +122,7 @@ public static class DivineAscensionSystemInitializer
 
         // Initialize Altar Placement Handler (automatically creates holy sites when altars are placed)
         var altarPlacementHandler = new AltarPlacementHandler(
-            logger,
+            LoggingService.Instance.CreateLogger("AltarPlacementHandler"),
             holySiteManager,
             religionManager,
             worldService,
@@ -127,7 +132,7 @@ public static class DivineAscensionSystemInitializer
 
         // Initialize Altar Destruction Handler (automatically deconsecrates holy sites when altars are destroyed)
         var altarDestructionHandler = new AltarDestructionHandler(
-            logger,
+            LoggingService.Instance.CreateLogger("AltarDestructionHandler"),
             holySiteManager,
             messengerService,
             altarEventEmitter);
@@ -136,7 +141,7 @@ public static class DivineAscensionSystemInitializer
         // NOTE: AltarPrayerHandler initialized after FavorSystem (needs IFavorSystem and IActivityLogManager)
 
         var favorSystem = new FavorSystem(
-            logger,
+            LoggingService.Instance.CreateLogger("FavorSystem"),
             eventService,
             worldService,
             playerReligionDataManager,
@@ -148,11 +153,13 @@ public static class DivineAscensionSystemInitializer
         favorSystem.Initialize();
 
         // Create offering loader for JSON-based offering definitions (must be before AltarPrayerHandler)
-        IOfferingLoader offeringLoader = new OfferingLoader(logger, api.Assets);
+        IOfferingLoader offeringLoader = new OfferingLoader(LoggingService.Instance.CreateLogger("OfferingLoader")
+            , api.Assets);
         offeringLoader.LoadOfferings();
 
         // Create ritual loader for JSON-based ritual definitions (must be before RitualProgressManager)
-        IRitualLoader ritualLoader = new RitualLoader(logger, api.Assets);
+        IRitualLoader ritualLoader = new RitualLoader(LoggingService.Instance.CreateLogger("RitualLoader")
+            , api.Assets);
         ritualLoader.LoadRituals();
 
         // Initialize Buff Manager (must be before AltarPrayerHandler)
@@ -166,14 +173,14 @@ public static class DivineAscensionSystemInitializer
 
         // Initialize Ritual Progress Manager (handles ritual tracking for holy site tier upgrades)
         var ritualProgressManager = new RitualProgressManager(
-            logger,
+            LoggingService.Instance.CreateLogger("RitualProgressManager"),
             ritualLoader,
             holySiteManager,
             religionManager);
 
         // Initialize Altar Prayer Handler (handles prayer interactions at altars)
         var altarPrayerHandler = new AltarPrayerHandler(
-            logger,
+            LoggingService.Instance.CreateLogger("AltarPrayerHandler"),
             offeringLoader,
             holySiteManager,
             religionManager,
@@ -189,23 +196,23 @@ public static class DivineAscensionSystemInitializer
             worldService);
         altarPrayerHandler.Initialize();
 
-        var diplomacyManager = new DiplomacyManager(logger, eventService, persistenceService, civilizationManager,
+        var diplomacyManager = new DiplomacyManager(LoggingService.Instance.CreateLogger("DiplomacyManager"), eventService, persistenceService, civilizationManager,
             religionPrestigeManager, religionManager, cooldownManager);
         diplomacyManager.Initialize();
 
-        var pvpManager = new PvPManager(logger, eventService, worldService, playerReligionDataManager, religionManager,
+        var pvpManager = new PvPManager(LoggingService.Instance.CreateLogger("PvPManager"), eventService, worldService, playerReligionDataManager, religionManager,
             religionPrestigeManager,
             civilizationManager, diplomacyManager, gameBalanceConfig);
         pvpManager.Initialize();
 
         // Create blessing loader for JSON-based blessing definitions
-        IBlessingLoader blessingLoader = new BlessingLoader(api);
+        IBlessingLoader blessingLoader = new BlessingLoader(api, LoggingService.Instance.CreateLogger("BlessingLoader"));
         var blessingRegistry = new BlessingRegistry(api, blessingLoader);
         blessingRegistry.Initialize();
 
         var blessingEffectSystem =
             new BlessingEffectSystem(
-                logger,
+                LoggingService.Instance.CreateLogger("RitualProgressManager"),
                 eventService,
                 worldService,
                 blessingRegistry,

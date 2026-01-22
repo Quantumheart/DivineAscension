@@ -14,14 +14,14 @@ namespace DivineAscension.Services;
 /// Loads ritual definitions from JSON asset files.
 /// Uses focused dependencies (ILogger, IAssetManager) for better testability.
 /// </summary>
-public class RitualLoader(ILogger logger, IAssetManager assetManager) : IRitualLoader
+public class RitualLoader(ILoggerWrapper logger, IAssetManager assetManager) : IRitualLoader
 {
     private static readonly string[] DomainFiles = { "craft", "wild", "conquest", "harvest", "stone" };
 
     private readonly IAssetManager
         _assetManager = assetManager ?? throw new ArgumentNullException(nameof(assetManager));
 
-    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ILoggerWrapper _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly Dictionary<DeityDomain, List<Ritual>> _ritualsByDomain = new();
     private readonly Dictionary<string, Ritual> _ritualsById = new();
     private readonly Dictionary<string, Ritual> _ritualsByTierUpgrade = new();

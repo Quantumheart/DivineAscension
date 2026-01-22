@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Favor;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
@@ -18,7 +19,7 @@ public class RuinDiscoveryFavorTrackerTests
         Mock<IPlayerProgressionDataManager> mockPlayerProgression,
         Mock<IFavorSystem> mockFavor)
     {
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         return new RuinDiscoveryFavorTracker(mockLogger.Object, mockEventService.Object, worldService,
             mockPlayerProgression.Object, mockFavor.Object);
     }

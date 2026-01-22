@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
@@ -19,7 +20,7 @@ namespace DivineAscension.Tests.Systems;
 [ExcludeFromCodeCoverage]
 public class RitualProgressManagerTests
 {
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILoggerWrapper> _mockLogger;
     private readonly Mock<IRitualLoader> _mockRitualLoader;
     private readonly Mock<IHolySiteManager> _mockHolySiteManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
@@ -32,7 +33,7 @@ public class RitualProgressManagerTests
 
     public RitualProgressManagerTests()
     {
-        _mockLogger = new Mock<ILogger>();
+        _mockLogger = new Mock<ILoggerWrapper>();
         _mockRitualLoader = new Mock<IRitualLoader>();
         _mockHolySiteManager = new Mock<IHolySiteManager>();
         _mockReligionManager = new Mock<IReligionManager>();

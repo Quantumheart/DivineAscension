@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
@@ -18,11 +19,11 @@ public class AltarDestructionHandler : IDisposable
 {
     private readonly AltarEventEmitter _altarEventEmitter;
     private readonly IHolySiteManager _holySiteManager;
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly IPlayerMessengerService _messenger;
 
     public AltarDestructionHandler(
-        ILogger logger,
+        ILoggerWrapper logger,
         IHolySiteManager holySiteManager,
         IPlayerMessengerService messenger,
         AltarEventEmitter altarEventEmitter)

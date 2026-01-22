@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
@@ -11,7 +12,7 @@ using Vintagestory.API.Server;
 namespace DivineAscension.Systems.Favor;
 
 public class SkinningFavorTracker(
-    ILogger logger,
+    ILoggerWrapper logger,
     IEventService eventService,
     IWorldService worldService,
     IPlayerProgressionDataManager playerProgressionDataManager,
@@ -27,7 +28,7 @@ public class SkinningFavorTracker(
     // Per-player, per-entity throttling to prevent duplicate messages
     // Key format: "playerUID:entityID"
     private readonly Dictionary<string, DateTime> _lastSkinningAwardUtc = new();
-    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ILoggerWrapper _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));

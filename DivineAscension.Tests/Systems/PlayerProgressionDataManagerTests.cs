@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
@@ -22,15 +23,14 @@ public class PlayerProgressionDataManagerTests
     private readonly FakeWorldService _fakeWorldService;
     private readonly FakeTimeService _fakeTimeService;
     private readonly Mock<ICoreServerAPI> _mockAPI;
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILoggerWrapper> _mockLogger;
     private readonly Mock<IReligionManager> _mockReligionManager;
     private readonly PlayerProgressionDataManager _sut;
 
     public PlayerProgressionDataManagerTests()
     {
         _mockAPI = TestFixtures.CreateMockServerAPI();
-        _mockLogger = new Mock<ILogger>();
-        _mockAPI.Setup(a => a.Logger).Returns(_mockLogger.Object);
+        _mockLogger = new Mock<ILoggerWrapper>();
 
         _mockReligionManager = new Mock<IReligionManager>();
 

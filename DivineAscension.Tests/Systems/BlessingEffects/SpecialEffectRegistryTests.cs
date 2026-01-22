@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
+using DivineAscension.Services;
 using DivineAscension.Systems.BlessingEffects;
 using Moq;
 using Vintagestory.API.Common;
@@ -14,12 +15,12 @@ namespace DivineAscension.Tests.Systems.BlessingEffects;
 public class SpecialEffectRegistryTests
 {
     private readonly Mock<IEventService> _mockEventService;
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILoggerWrapper> _mockLogger;
     private readonly Mock<IWorldService> _mockWorldService;
 
     public SpecialEffectRegistryTests()
     {
-        _mockLogger = new Mock<ILogger>();
+        _mockLogger = new Mock<ILoggerWrapper>();
         _mockEventService = new Mock<IEventService>();
         _mockWorldService = new Mock<IWorldService>();
     }

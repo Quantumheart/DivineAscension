@@ -44,12 +44,12 @@ internal static class CivilizationIconLoader
             var asset = _api.Assets.TryGet(assetPath);
             if (asset == null)
             {
-                _api.Logger.Warning($"[DivineAscension] Civilization icon not found: {assetPath}");
+                GuiDialog.Logger?.Warning($"[DivineAscension] Civilization icon not found: {assetPath}");
 
                 // Try to load default icon as fallback
                 if (normalizedIconName != "default")
                 {
-                    _api.Logger.Debug("[DivineAscension] Attempting to load default civilization icon as fallback");
+                    GuiDialog.Logger?.Debug("[DivineAscension] Attempting to load default civilization icon as fallback");
                     return LoadCivilizationTexture("default");
                 }
 
@@ -60,7 +60,7 @@ internal static class CivilizationIconLoader
             var textureId = _api.Render.GetOrLoadTexture(assetPath);
             if (textureId == 0)
             {
-                _api.Logger.Warning($"[DivineAscension] Failed to load civilization texture: {assetPath}");
+                GuiDialog.Logger?.Warning($"[DivineAscension] Failed to load civilization texture: {assetPath}");
 
                 // Try to load default icon as fallback
                 if (normalizedIconName != "default") return LoadCivilizationTexture("default");
@@ -75,13 +75,13 @@ internal static class CivilizationIconLoader
                 Height = 48
             };
 
-            _api.Logger.Debug(
+            GuiDialog.Logger?.Debug(
                 $"[DivineAscension] Loaded civilization icon: {normalizedIconName} (ID: {texture.TextureId})");
             return texture;
         }
         catch (Exception ex)
         {
-            _api.Logger.Error(
+            GuiDialog.Logger?.Error(
                 $"[DivineAscension] Error loading civilization texture {normalizedIconName}: {ex.Message}");
 
             // Try to load default icon as fallback

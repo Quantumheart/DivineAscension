@@ -38,7 +38,7 @@ public static class GuiIconLoader
             var asset = _api.Assets.TryGet(assetPath);
             if (asset == null)
             {
-                _api.Logger.Warning($"[DivineAscension] Icon not found: {assetPath}");
+                GuiDialog.Logger?.Warning($"[DivineAscension] Icon not found: {assetPath}");
                 return null;
             }
 
@@ -46,7 +46,7 @@ public static class GuiIconLoader
             var textureId = _api.Render.GetOrLoadTexture(assetPath);
             if (textureId == 0)
             {
-                _api.Logger.Warning($"[DivineAscension] Failed to load icon texture: {assetPath}");
+                GuiDialog.Logger?.Warning($"[DivineAscension] Failed to load icon texture: {assetPath}");
                 return null;
             }
 
@@ -57,12 +57,12 @@ public static class GuiIconLoader
                 Height = 32
             };
 
-            _api.Logger.Debug($"[DivineAscension] Loaded GUI icon: {iconName} (ID: {texture.TextureId})");
+            GuiDialog.Logger?.Debug($"[DivineAscension] Loaded GUI icon: {iconName} (ID: {texture.TextureId})");
             return texture;
         }
         catch (Exception ex)
         {
-            _api.Logger.Error($"[DivineAscension] Error loading GUI texture {iconName}: {ex.Message}");
+            GuiDialog.Logger?.Error($"[DivineAscension] Error loading GUI texture {iconName}: {ex.Message}");
             return null;
         }
     }

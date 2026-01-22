@@ -1,4 +1,5 @@
 using DivineAscension.Data;
+using DivineAscension.Services;
 using DivineAscension.Systems.Altar;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
@@ -14,14 +15,14 @@ public class AltarDestructionHandlerTests
     private readonly Mock<AltarEventEmitter> _altarEventEmitter;
     private readonly AltarDestructionHandler _handler;
     private readonly Mock<IHolySiteManager> _holySiteManager;
-    private readonly Mock<ILogger> _logger;
+    private readonly Mock<ILoggerWrapper> _logger;
     private readonly SpyPlayerMessenger _messenger;
 
     public AltarDestructionHandlerTests()
     {
         _holySiteManager = new Mock<IHolySiteManager>();
         _messenger = new SpyPlayerMessenger();
-        _logger = new Mock<ILogger>();
+        _logger = new Mock<ILoggerWrapper>();
         _altarEventEmitter = new Mock<AltarEventEmitter>();
 
         _handler = new AltarDestructionHandler(

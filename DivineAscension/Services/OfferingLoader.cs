@@ -13,14 +13,14 @@ namespace DivineAscension.Services;
 /// Loads offering definitions from JSON asset files.
 /// Uses focused dependencies (ILogger, IAssetManager) for better testability.
 /// </summary>
-public class OfferingLoader(ILogger logger, IAssetManager assetManager) : IOfferingLoader
+public class OfferingLoader(ILoggerWrapper logger, IAssetManager assetManager) : IOfferingLoader
 {
     private static readonly string[] DomainFiles = { "craft", "wild", "conquest", "harvest", "stone" };
 
     private readonly IAssetManager
         _assetManager = assetManager ?? throw new ArgumentNullException(nameof(assetManager));
 
-    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ILoggerWrapper _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly Dictionary<DeityDomain, List<Offering>> _offeringsByDomain = new();
     private readonly Dictionary<string, Offering> _offeringsByItemCode = new();
 

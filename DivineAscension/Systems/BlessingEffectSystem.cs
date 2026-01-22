@@ -24,7 +24,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     private readonly Dictionary<string, HashSet<string>> _appliedModifiers = new();
     private readonly IBlessingRegistry _blessingRegistry;
     private readonly IEventService _eventService;
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
 
     // Cache for stat modifiers to reduce computation
     private readonly Dictionary<string, Dictionary<string, float>> _playerModifierCache = new();
@@ -35,7 +35,7 @@ public class BlessingEffectSystem : IBlessingEffectSystem
     private readonly IWorldService _worldService;
 
     public BlessingEffectSystem(
-        ILogger logger,
+        ILoggerWrapper logger,
         IEventService eventService,
         IWorldService worldService,
         IBlessingRegistry blessingRegistry,

@@ -2,6 +2,7 @@ using System;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -19,14 +20,14 @@ public class PvPManager : IPvPManager
     private readonly IDiplomacyManager _diplomacyManager;
     private readonly IEventService _eventService;
 
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionPrestigeManager _prestigeManager;
     private readonly IReligionManager _religionManager;
     private readonly IWorldService _worldService;
 
     public PvPManager(
-        ILogger logger,
+        ILoggerWrapper logger,
         IEventService eventService,
         IWorldService worldService,
         IPlayerProgressionDataManager playerProgressionDataManager,

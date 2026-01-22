@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
@@ -17,7 +18,7 @@ namespace DivineAscension.Systems.Favor;
 /// </summary>
 public class HarvestFavorTracker(
     IPlayerProgressionDataManager playerProgressionDataManager,
-    ILogger logger,
+    ILoggerWrapper logger,
     IEventService eventService,
     IWorldService worldService,
     IFavorSystem favorSystem)
@@ -43,7 +44,7 @@ public class HarvestFavorTracker(
     // Simple per-player cooking award rate limit (to prevent rapid repeats)
     private readonly Dictionary<string, DateTime> _lastCookingAwardUtc = new();
 
-    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ILoggerWrapper _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));

@@ -4,6 +4,7 @@ using DivineAscension.API.Interfaces;
 using DivineAscension.Blocks;
 using DivineAscension.Collectible;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
@@ -14,7 +15,7 @@ namespace DivineAscension.Systems.Favor;
 
 public class StoneFavorTracker(
     IPlayerProgressionDataManager playerProgressionDataManager,
-    ILogger logger,
+    ILoggerWrapper logger,
     IEventService eventService,
     IWorldService worldService,
     IFavorSystem favorSystem,
@@ -60,7 +61,7 @@ public class StoneFavorTracker(
     private readonly Dictionary<string, ChiselingSession> _chiselingSessions = new();
     private long _sessionCleanupCallbackId;
 
-    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ILoggerWrapper _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));

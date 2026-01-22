@@ -11,13 +11,13 @@ namespace DivineAscension.Tests.Services;
 public class BlessingLoaderTests
 {
     private readonly Mock<ICoreAPI> _mockApi;
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILoggerWrapper> _mockLogger;
     private readonly Mock<IAssetManager> _mockAssetManager;
 
     public BlessingLoaderTests()
     {
         _mockApi = TestFixtures.CreateMockCoreAPI();
-        _mockLogger = Mock.Get(_mockApi.Object.Logger);
+        _mockLogger = new Mock<ILoggerWrapper>();
         _mockAssetManager = new Mock<IAssetManager>();
         _mockApi.Setup(a => a.Assets).Returns(_mockAssetManager.Object);
     }
@@ -28,14 +28,14 @@ public class BlessingLoaderTests
     public void Constructor_WithNullApi_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new BlessingLoader(null!));
+        Assert.Throws<ArgumentNullException>(() => new BlessingLoader(null!, _mockLogger.Object));
     }
 
     [Fact]
     public void Constructor_WithValidApi_CreatesInstance()
     {
         // Act
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Assert
         Assert.NotNull(loader);
@@ -55,7 +55,7 @@ public class BlessingLoaderTests
             .Setup(a => a.Get(It.IsAny<AssetLocation>()))
             .Returns((IAsset?)null);
 
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Act
         var result = loader.LoadBlessings();
@@ -77,7 +77,7 @@ public class BlessingLoaderTests
         var craftJson = CreateValidCraftJson();
         SetupMockAsset("config/blessings/craft.json", craftJson);
 
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Act
         var result = loader.LoadBlessings();
@@ -96,7 +96,7 @@ public class BlessingLoaderTests
         var craftJson = CreateSingleBlessingJson();
         SetupMockAsset("config/blessings/craft.json", craftJson);
 
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Act
         var result = loader.LoadBlessings();
@@ -130,7 +130,7 @@ public class BlessingLoaderTests
         SetupMockAsset("config/blessings/craft.json", CreateValidCraftJson());
         SetupMockAsset("config/blessings/wild.json", CreateValidWildJson());
 
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Act
         var result = loader.LoadBlessings();
@@ -152,7 +152,7 @@ public class BlessingLoaderTests
         SetupMockAsset("config/blessings/craft.json", "{ invalid json }");
         SetupMockAsset("config/blessings/wild.json", CreateValidWildJson());
 
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Act
         var result = loader.LoadBlessings();
@@ -173,7 +173,7 @@ public class BlessingLoaderTests
         }";
         SetupMockAsset("config/blessings/craft.json", invalidDomainJson);
 
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Act
         var result = loader.LoadBlessings();
@@ -207,7 +207,7 @@ public class BlessingLoaderTests
         }";
         SetupMockAsset("config/blessings/craft.json", json);
 
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Act
         var result = loader.LoadBlessings();
@@ -235,7 +235,7 @@ public class BlessingLoaderTests
         }";
         SetupMockAsset("config/blessings/craft.json", json);
 
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Act
         var result = loader.LoadBlessings();
@@ -262,7 +262,7 @@ public class BlessingLoaderTests
         }";
         SetupMockAsset("config/blessings/craft.json", json);
 
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Act
         var result = loader.LoadBlessings();
@@ -289,7 +289,7 @@ public class BlessingLoaderTests
         }";
         SetupMockAsset("config/blessings/craft.json", json);
 
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Act
         var result = loader.LoadBlessings();
@@ -320,7 +320,7 @@ public class BlessingLoaderTests
         }";
         SetupMockAsset("config/blessings/craft.json", json);
 
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Act
         var result = loader.LoadBlessings();
@@ -352,7 +352,7 @@ public class BlessingLoaderTests
         }";
         SetupMockAsset("config/blessings/craft.json", json);
 
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Act
         var result = loader.LoadBlessings();
@@ -388,7 +388,7 @@ public class BlessingLoaderTests
         }";
         SetupMockAsset("config/blessings/craft.json", json);
 
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Act
         var result = loader.LoadBlessings();
@@ -419,7 +419,7 @@ public class BlessingLoaderTests
         }";
         SetupMockAsset("config/blessings/craft.json", json);
 
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Act
         var result = loader.LoadBlessings();
@@ -454,7 +454,7 @@ public class BlessingLoaderTests
         }";
         SetupMockAsset("config/blessings/craft.json", json);
 
-        var loader = new BlessingLoader(_mockApi.Object);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
 
         // Act
         var result = loader.LoadBlessings();

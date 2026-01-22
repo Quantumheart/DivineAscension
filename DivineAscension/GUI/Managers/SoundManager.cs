@@ -2,13 +2,16 @@ using System.Collections.Generic;
 using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Models.Enum;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
 namespace DivineAscension.GUI.Managers;
 
-public class SoundManager(ICoreClientAPI api) : ISoundManager
+public class SoundManager : ISoundManager
 {
+    private readonly ICoreClientAPI _api;
+    private readonly ILoggerWrapper? _logger;
     private const float SoundRange = 8f;
 
     private static readonly Dictionary<SoundType, string> SoundPaths = new()
@@ -31,17 +34,28 @@ public class SoundManager(ICoreClientAPI api) : ISoundManager
         { SoundVolume.Loud, 0.7f }
     };
 
+    /// <summary>
+    ///     Creates a new SoundManager instance.
+    /// </summary>
+    /// <param name="api">Client API for playing sounds</param>
+    /// <param name="logger">Optional logger for warnings (defaults to GuiDialog.Logger)</param>
+    public SoundManager(ICoreClientAPI api, ILoggerWrapper? logger = null)
+    {
+        _api = api;
+        _logger = logger ?? GuiDialog.Logger;
+    }
+
     public void Play(SoundType sound, SoundVolume volume = SoundVolume.Normal)
     {
         if (!SoundPaths.TryGetValue(sound, out var path))
         {
-            api.Logger.Warning($"Sound {sound} not found in SoundPaths dictionary");
+            _logger?.Warning($"Sound {sound} not found in SoundPaths dictionary");
             return;
         }
 
-        api.World.PlaySoundAt(
+        _api.World.PlaySoundAt(
             new AssetLocation(path),
-            api.World.Player.Entity,
+            _api.World.Player.Entity,
             null,
             false,
             SoundRange,

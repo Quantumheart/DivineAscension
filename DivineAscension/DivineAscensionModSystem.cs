@@ -83,6 +83,10 @@ public class DivineAscensionModSystem : ModSystem
     public override void Start(ICoreAPI api)
     {
         base.Start(api);
+        // Initialize logging service FIRST (before any logging occurs)
+        var loggingConfig = LoggingConfig.NoDebug(); // or LoggingConfig.Silent()
+        LoggingService.Instance.Initialize(api.Logger, loggingConfig);
+        
         api.Logger.Notification("[DivineAscension] Mod loaded!");
 
         // Initialize profanity filter service

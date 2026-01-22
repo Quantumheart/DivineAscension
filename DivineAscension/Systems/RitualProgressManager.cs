@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using DivineAscension.Data;
 using DivineAscension.Models;
+using DivineAscension.Services;
 using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -13,14 +14,14 @@ namespace DivineAscension.Systems;
 /// </summary>
 public class RitualProgressManager : IRitualProgressManager
 {
-    private readonly ILogger _logger;
+    private readonly ILoggerWrapper _logger;
     private readonly IRitualLoader _ritualLoader;
     private readonly IHolySiteManager _holySiteManager;
     private readonly IReligionManager _religionManager;
     private readonly RitualMatcher _ritualMatcher;
 
     public RitualProgressManager(
-        ILogger logger,
+        ILoggerWrapper logger,
         IRitualLoader ritualLoader,
         IHolySiteManager holySiteManager,
         IReligionManager religionManager)

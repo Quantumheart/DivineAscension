@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
@@ -27,7 +28,7 @@ public class FavorSystemIntegrationTests
 
     public FavorSystemIntegrationTests()
     {
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<ILoggerWrapper>();
         _fakeEventService = new FakeEventService();
         _fakeWorldService = new FakeWorldService();
         _mockPlayerReligionDataManager = TestFixtures.CreateMockPlayerProgressionDataManager();

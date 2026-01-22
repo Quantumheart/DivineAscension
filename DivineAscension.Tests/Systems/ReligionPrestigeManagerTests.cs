@@ -3,6 +3,7 @@ using DivineAscension.Configuration;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
@@ -21,14 +22,14 @@ namespace DivineAscension.Tests.Systems;
 public class ReligionPrestigeManagerTests
 {
     private readonly FakeWorldService _fakeWorldService;
-    private readonly Mock<ILogger> _mockLogger;
+    private readonly Mock<ILoggerWrapper> _mockLogger;
     private readonly Mock<IReligionManager> _mockReligionManager;
     private readonly ReligionPrestigeManager _prestigeManager;
     private readonly ReligionData _testReligion;
 
     public ReligionPrestigeManagerTests()
     {
-        _mockLogger = new Mock<ILogger>();
+        _mockLogger = new Mock<ILoggerWrapper>();
         _fakeWorldService = new FakeWorldService();
 
         _mockReligionManager = new Mock<IReligionManager>();
