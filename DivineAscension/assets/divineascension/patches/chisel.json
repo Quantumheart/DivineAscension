@@ -1,0 +1,11 @@
+[
+  {
+    "op": "addmerge",
+    "path": "/behaviors/-",
+    "value": {
+      "name": "ChiselTracking"
+    },
+    "file": "game:itemtypes/tool/chisel.json",
+    "side": "Server"
+  }
+]

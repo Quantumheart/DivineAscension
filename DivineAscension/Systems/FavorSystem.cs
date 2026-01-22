@@ -41,6 +41,8 @@ public class FavorSystem : IFavorSystem
     private SmeltingFavorTracker? _smeltingFavorTracker;
     private StoneFavorTracker? _stoneFavorTracker;
 
+    private readonly IPlayerMessengerService _messenger;
+
     public FavorSystem(
         ILogger logger,
         IEventService eventService,
@@ -49,7 +51,8 @@ public class FavorSystem : IFavorSystem
         IReligionManager religionManager,
         IReligionPrestigeManager prestigeManager,
         IActivityLogManager activityLogManager,
-        GameBalanceConfig config)
+        GameBalanceConfig config,
+        IPlayerMessengerService messenger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
@@ -60,6 +63,7 @@ public class FavorSystem : IFavorSystem
         _prestigeManager = prestigeManager ?? throw new ArgumentNullException(nameof(prestigeManager));
         _activityLogManager = activityLogManager ?? throw new ArgumentNullException(nameof(activityLogManager));
         _config = config ?? throw new ArgumentNullException(nameof(config));
+        _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
     }
 
     /// <summary>
@@ -95,7 +99,7 @@ public class FavorSystem : IFavorSystem
         _harvestFavorTracker.Initialize();
 
         _stoneFavorTracker =
-            new StoneFavorTracker(_playerProgressionDataManager, _logger, _eventService, _worldService, this);
+            new StoneFavorTracker(_playerProgressionDataManager, _logger, _eventService, _worldService, this, _messenger);
         _stoneFavorTracker.Initialize();
 
         _smeltingFavorTracker = new SmeltingFavorTracker(_logger, _worldService, _playerProgressionDataManager, this);

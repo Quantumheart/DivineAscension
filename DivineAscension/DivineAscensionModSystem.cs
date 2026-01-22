@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using DivineAscension.Blocks;
+using DivineAscension.Collectible;
 using DivineAscension.Commands;
 using DivineAscension.Configuration;
 using DivineAscension.Constants;
@@ -99,7 +100,8 @@ public class DivineAscensionModSystem : ModSystem
         // Required for JSON patching and client-server serialization
         api.RegisterBlockBehaviorClass("DivineAscensionAltar", typeof(BlockBehaviorAltar));
         api.RegisterBlockBehaviorClass("DivineAscensionStone", typeof(BlockBehaviorStone));
-        api.Logger.Notification("[DivineAscension] BlockBehavior classes registered");
+        api.RegisterCollectibleBehaviorClass("ChiselTracking", typeof(CollectibleBehaviorChiselTracking));
+        api.Logger.Notification("[DivineAscension] Block and Collectible behavior classes registered");
 
         // Register with ConfigLib if available
         TryRegisterWithConfigLib(api);

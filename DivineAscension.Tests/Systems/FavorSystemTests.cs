@@ -239,6 +239,7 @@ public class FavorSystemTests
     {
         var mockPrestige = new Mock<IReligionPrestigeManager>();
         var mockActivityLogManager = new Mock<IActivityLogManager>();
+        var mockMessenger = new Mock<IPlayerMessengerService>();
         return new FavorSystem(
             logger,
             eventService,
@@ -247,7 +248,8 @@ public class FavorSystemTests
             religionManager,
             mockPrestige.Object,
             mockActivityLogManager.Object,
-            config ?? CreateTestConfig());
+            config ?? CreateTestConfig(),
+            mockMessenger.Object);
     }
 
     #endregion

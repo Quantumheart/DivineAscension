@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Implementation;
 using DivineAscension.Blocks;
+using DivineAscension.Collectible;
 using DivineAscension.Commands;
 using DivineAscension.Configuration;
 using DivineAscension.Data;
@@ -68,6 +69,8 @@ public static class DivineAscensionSystemInitializer
         FlowerPatches.ClearSubscribers();
         MushroomPatches.ClearSubscribers();
         SkinningPatches.ClearSubscribers();
+        BlockBehaviorStone.ClearSubscribers();
+        CollectibleBehaviorChiselTracking.ClearSubscribers();
 
         api.RegisterEntityBehaviorClass("DivineAscensionBuffTracker", typeof(EntityBehaviorBuffTracker));
 
@@ -140,7 +143,8 @@ public static class DivineAscensionSystemInitializer
             religionManager,
             religionPrestigeManager,
             activityLogManager,
-            gameBalanceConfig);
+            gameBalanceConfig,
+            messengerService);
         favorSystem.Initialize();
 
         // Create offering loader for JSON-based offering definitions (must be before AltarPrayerHandler)

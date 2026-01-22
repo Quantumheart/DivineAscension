@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
@@ -34,6 +35,7 @@ public class FavorSystemIntegrationTests
         _mockPrestigeManager = TestFixtures.CreateMockReligionPrestigeManager();
 
         var mockActivityLogManager = new Mock<IActivityLogManager>();
+        var mockMessenger = new Mock<IPlayerMessengerService>();
         var testConfig = new GameBalanceConfig(); // Uses default values
         _favorSystem = new FavorSystem(
             mockLogger.Object,
@@ -43,7 +45,8 @@ public class FavorSystemIntegrationTests
             _mockReligionManager.Object,
             _mockPrestigeManager.Object,
             mockActivityLogManager.Object,
-            testConfig
+            testConfig,
+            mockMessenger.Object
         );
     }
 
