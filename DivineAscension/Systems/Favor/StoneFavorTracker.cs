@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
+using DivineAscension.Blocks;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Patches;
 using Vintagestory.API.Common;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Systems.Favor;
@@ -44,7 +46,7 @@ public class StoneFavorTracker(
     {
         ClayFormingPatches.OnClayFormingFinished -= HandleClayFormingFinished;
         PitKilnPatches.OnPitKilnFired -= HandlePitKilnFired;
-        _eventService.UnsubscribeBreakBlock(OnBlockBroken);
+        BlockBehaviorStone.OnStoneBlockBroken -= OnBlockBroken;
         _eventService.UnsubscribeDidPlaceBlock(OnBlockPlaced);
         _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
         _lastConstructionTime.Clear();
@@ -58,7 +60,7 @@ public class StoneFavorTracker(
         ClayFormingPatches.OnClayFormingFinished += HandleClayFormingFinished;
         PitKilnPatches.OnPitKilnFired += HandlePitKilnFired;
         // Track stone gathering
-        _eventService.OnBreakBlock(OnBlockBroken);
+        BlockBehaviorStone.OnStoneBlockBroken += OnBlockBroken;
         // Track construction (brick/stone placement)
         _eventService.OnDidPlaceBlock(OnBlockPlaced);
         // Clean up cooldown data on player disconnect
@@ -204,87 +206,21 @@ public class StoneFavorTracker(
         return path.Contains("clay") || path.Contains("ceramic") ? 3 : 0;
     }
 
-    private void OnBlockBroken(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier,
-        ref EnumHandling handling)
+    private void OnBlockBroken(IWorldAccessor worldAccessor, BlockPos blockPos, IPlayer player,
+        EnumHandling enumHandling)
     {
         // Verify religion
         var deityType = _playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID);
         if (deityType != DeityDomain.Stone) return;
 
-        var block = _worldService.GetBlock(blockSel.Position);
-        if (!IsStoneBlock(block, out var favor)) return;
-
-        _favorSystem.AwardFavorForAction(player, "gathering stone", favor);
+        var serverPlayer = player as IServerPlayer;
+        if (serverPlayer == null)
+            return;
+        
+        _favorSystem.AwardFavorForAction(serverPlayer, "gathering stone", FavorPerStoneBlock);
 
         _logger.Debug(
-            $"[StoneFavorTracker] Awarded {favor} favor to {player.PlayerName} for mining {block.Code.Path}");
-    }
-
-    /// <summary>
-    /// Checks if a block is a stone block and returns the favor amount
-    /// </summary>
-    private static bool IsStoneBlock(Block block, out float favor)
-    {
-        favor = 0;
-        if (block?.Code == null) return false;
-
-        var path = block.Code.Path.ToLowerInvariant();
-
-        // Valuable stones - higher favor
-        if (IsValuableStone(path))
-        {
-            favor = FavorPerValuableStone;
-            return true;
-        }
-
-        // Regular stone blocks
-        if (IsRegularStone(path))
-        {
-            favor = FavorPerStoneBlock;
-            return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Checks if a block is valuable stone (marble, obsidian, etc.)
-    /// </summary>
-    private static bool IsValuableStone(string path)
-    {
-        // Valuable decorative/rare stones
-        return path.Contains("marble") || path.Contains("obsidian");
-    }
-
-    /// <summary>
-    /// Checks if a block is regular stone
-    /// </summary>
-    private static bool IsRegularStone(string path)
-    {
-        // Check if it's a rock/stone block but NOT ore
-        if (path.StartsWith("ore-", StringComparison.Ordinal))
-            return false; // Ore blocks are handled by MiningFavorTracker (Craft domain)
-
-        // Common stone types
-        var stoneTypes = new[]
-        {
-            "granite", "andesite", "basalt", "peridotite", "limestone",
-            "sandstone", "claystone", "chalk", "chert", "suevite",
-            "phyllite", "slate", "conglomerate", "shale"
-        };
-
-        foreach (var stoneType in stoneTypes)
-        {
-            if (path.Contains(stoneType))
-                return true;
-        }
-
-        // Generic "rock" or "stone" blocks
-        if (path.StartsWith("rock-") || path.StartsWith("stone-") || path.Contains("-rock-") ||
-            path.Contains("-stone-"))
-            return true;
-
-        return false;
+            $"[StoneFavorTracker] Awarded {FavorPerStoneBlock} favor to {player.PlayerName} for mining");
     }
 
     private void OnPlayerDisconnect(IServerPlayer player)

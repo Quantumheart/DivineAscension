@@ -3,9 +3,9 @@
     "op": "addmerge",
     "path": "/behaviors/-",
     "value": {
-      "name": "DivineAscensionAltar"
+      "name": "DivineAscensionStone"
     },
-    "file": "game:blocktypes/stone/generic/altar.json",
+    "file": "game:blocktypes/stone/rock.json",
     "side": "Server"
   }
 ]
