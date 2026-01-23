@@ -79,12 +79,6 @@ public interface IHolySiteManager
     HolySiteData? GetHolySiteAtPosition(BlockPos pos);
 
     /// <summary>
-    /// Gets the holy site at a specific block position, checking only X and Z coordinates.
-    /// Ignores Y coordinate - useful for tracking player presence regardless of vertical position.
-    /// </summary>
-    HolySiteData? GetHolySiteAtPositionXZ(BlockPos pos);
-
-    /// <summary>
     /// Gets the holy site that has an altar at the specified position.
     /// Returns null if no altar-based holy site exists at that position.
     /// </summary>

@@ -88,10 +88,9 @@ public class PlayerProgressionData
 
     /// <summary>
     ///     Data version for migration purposes.
-    ///     Version 4: Added patrol system fields (PatrolComboCount, LastPatrolCompletionTime, PatrolPreviousMultiplier)
     /// </summary>
     [ProtoMember(104)]
-    public int DataVersion { get; set; } = 4;
+    public int DataVersion { get; set; } = 3;
 
     /// <summary>
     ///     Accumulated fractional favor (not yet awarded) for passive generation
