@@ -4,6 +4,7 @@ using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Blessing;
 using DivineAscension.GUI.Models.Blessing.Actions;
+using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using ImGuiNET;
 
@@ -45,23 +46,45 @@ internal static class BlessingActionsRenderer
             var unlockButtonX = viewModel.X - ButtonWidth - ButtonSpacing;
             var canUnlock = selectedState.CanUnlock;
 
-            var buttonText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNLOCK_BUTTON);
-            var buttonColor = canUnlock ? ColorButtonActive : ColorButtonDisabled;
-            var textColor = canUnlock ? ColorTextNormal : ColorTextDisabled;
+            // Build button text with cost if applicable
+            var baseText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNLOCK_BUTTON);
+            string buttonText;
+            if (selectedState.Blessing.Cost > 0)
+            {
+                // Show cost on button (e.g., "Unlock (400)")
+                buttonText = $"{baseText} ({selectedState.Blessing.Cost})";
+            }
+            else
+            {
+                buttonText = baseText;
+            }
+
+            // Check if player can afford the cost
+            var canAfford = true;
+            if (selectedState.Blessing.Cost > 0)
+            {
+                canAfford = selectedState.Blessing.Kind == BlessingKind.Player
+                    ? viewModel.PlayerFavor >= selectedState.Blessing.Cost
+                    : viewModel.ReligionPrestige >= selectedState.Blessing.Cost;
+            }
+
+            var isEnabled = canUnlock && canAfford;
+            var buttonColor = isEnabled ? ColorButtonActive : ColorButtonDisabled;
+            var textColor = isEnabled ? ColorTextNormal : ColorTextDisabled;
 
             var clicked = DrawButton(buttonText, unlockButtonX, viewModel.Y, ButtonWidth, ButtonHeight,
-                buttonColor, textColor, canUnlock);
+                buttonColor, textColor, isEnabled);
 
             if (clicked)
             {
-                if (canUnlock)
+                if (isEnabled)
                     emitted.Add(new ActionsEvent.UnlockClicked());
                 else
                     emitted.Add(new ActionsEvent.UnlockBlockedClicked());
             }
 
             // Show tooltip on hover if disabled
-            if (!canUnlock && IsMouseInRect(unlockButtonX, viewModel.Y, ButtonWidth, ButtonHeight))
+            if (!isEnabled && IsMouseInRect(unlockButtonX, viewModel.Y, ButtonWidth, ButtonHeight))
             {
                 ImGui.SetMouseCursor(ImGuiMouseCursor.NotAllowed);
 

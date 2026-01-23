@@ -232,7 +232,8 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                 PrerequisiteBlessings = p.PrerequisiteBlessings ?? new List<string>(),
                 Category = (int)p.Category,
                 StatModifiers = p.StatModifiers ?? new Dictionary<string, float>(),
-                IconName = p.IconName
+                IconName = p.IconName,
+                Cost = p.Cost
             }).ToList();
 
             // Get religion blessings for this deity
@@ -248,7 +249,8 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                 PrerequisiteBlessings = p.PrerequisiteBlessings ?? new List<string>(),
                 Category = (int)p.Category,
                 StatModifiers = p.StatModifiers ?? new Dictionary<string, float>(),
-                IconName = p.IconName
+                IconName = p.IconName,
+                Cost = p.Cost
             }).ToList();
 
             // Get unlocked player blessings

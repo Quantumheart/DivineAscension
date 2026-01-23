@@ -14,7 +14,7 @@ internal static class BlessingInfoSectionDescription
         var descriptionColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
         BlessingInfoTextUtils.DrawWrappedText(selectedState.Blessing.Description,
             x + padding, currentY, contentWidth, descriptionColorU32, 14f);
-        currentY += 40f; // Approximate space for description
+        currentY += 20f; // Small margin after description
         return currentY;
     }
 }
