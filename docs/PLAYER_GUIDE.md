@@ -208,7 +208,7 @@ automatically created when you place an altar within your land claims.
 Holy Sites are blessed areas that enhance your religious activities:
 
 - **Automatic Creation**: Placing an altar automatically creates a holy site from your land claims
-- **Tiered System**: Larger territories provide greater bonuses (3 tiers)
+- **Tiered System**: Upgrade through rituals for greater bonuses (3 tiers)
 - **Prayer Bonuses**: Multipliers to favor rewards when praying at consecrated altars
 - **Territory-Based**: Based on land claim areas around the altar
 
@@ -249,11 +249,11 @@ Holy Sites progress through three tiers by completing sacred rituals:
 
 **What Happens**:
 
-- Holy site is created immediately
+- Holy site is created immediately at Tier 1 (Shrine)
 - All your land claim areas within range are included
-- Tier is calculated based on total volume
-- Prayer multiplier is set based on tier
+- Prayer multiplier is set based on tier (2.0x for Shrine)
 - You'll receive a confirmation message
+- Complete rituals to upgrade to higher tiers
 
 ### Removing a Holy Site
 
@@ -388,14 +388,13 @@ Manage and view holy sites with these commands:
 
 **Maximizing Holy Site Benefits**:
 
-1. **Expand Strategically**: Build larger land claims to reach higher tiers
-2. **Multiple Claims**: Combine several smaller claims to reach volume thresholds
-3. **Central Altar**: Place your altar centrally to include all nearby claims
-4. **Tier Thresholds**:
-    - **Temple (Tier 2)**: Aim for 50,000 blocks³ (1-2 land claims)
-    - **Cathedral (Tier 3)**: Aim for 200,000 blocks³ (requires 3+ land claims working together)
-5. **Cooperation for Cathedrals**: Since a single maxed claim can't reach Tier 3, work with religion members to combine
-   multiple claims
+1. **Complete Rituals**: Upgrade your holy site by completing domain-specific rituals
+2. **Gather Ritual Materials**: Each tier upgrade requires specific items - explore and prepare
+3. **Coordinate Contributions**: Multiple players can contribute to the same ritual
+4. **Discover Steps**: Offer matching items to reveal hidden ritual steps
+5. **Plan Upgrades**:
+    - **Temple (Tier 2)**: Complete the Shrine → Temple ritual for your domain
+    - **Cathedral (Tier 3)**: Complete the Temple → Cathedral ritual for maximum 3.0x multiplier
 
 **Prayer Optimization**:
 
@@ -603,11 +602,11 @@ Favor is earned by performing activities aligned with your deity's domain.
 
 **Tips**:
 
-- Build larger holy sites (200,000+ blocks³) to create a Cathedral (Tier 3, 3.0x multiplier = 15 base favor)
+- Complete rituals to upgrade your holy site to Cathedral (Tier 3, 3.0x multiplier = 15 base favor)
 - Save rare offerings for Cathedrals to maximize the multiplier
 - Set a timer to track your 1-hour cooldown
 - Coordinate prayer sessions with your religion for group activities
-- Remember: Cathedrals require 3+ land claims working together
+- Contribute to rituals together - multiple players can help complete steps faster
 - See the [Holy Sites & Prayer](#holy-sites--prayer) section for complete details
 
 ### Passive Favor Generation
@@ -1219,6 +1218,12 @@ Press **`Shift+G`** to open the Divine Ascension interface.
     - Monitor violation counters
     - Schedule treaty breaks with 24-hour warnings
 
+**4. Holy Sites Tab**
+- **List**: View all holy sites belonging to your religion
+- **Details**: Select a site to view tier, prayer multiplier, and location
+- **Rituals**: View active ritual progress and step completion
+- **Contributors**: See who has contributed to ongoing rituals
+
 ### Interface Tips
 
 - Hover over blessings to see detailed tooltips
@@ -1345,14 +1350,14 @@ A: Check these requirements:
 - The holy site hasn't been deconsecrated (altar destroyed)
 
 **Q: How do I increase my holy site tier?**
-A: Expand your land claims around the altar. The tier is based on the total volume of all connected land claim areas:
+A: Complete sacred rituals to upgrade your holy site. Each domain has specific rituals for tier upgrades:
 
-- **Tier 1 (Shrine)**: < 50,000 blocks³ (~1 claim)
-- **Tier 2 (Temple)**: 50,000 - 200,000 blocks³ (1-2 claims)
-- **Tier 3 (Cathedral)**: 200,000+ blocks³ (3+ claims)
+- **Tier 1 (Shrine)**: Created automatically when you place an altar in your land claims
+- **Tier 2 (Temple)**: Complete the Shrine → Temple ritual by offering required items
+- **Tier 3 (Cathedral)**: Complete the Temple → Cathedral ritual for maximum bonuses
 
-Note: A single maxed-out land claim can only reach Temple (Tier 2). To build a Cathedral (Tier 3), you need 3 or more
-land claims working together.
+Rituals have 3-5 steps that start hidden. Offer matching items at the altar to discover steps and progress. Multiple
+players can contribute to the same ritual.
 
 ---
 
