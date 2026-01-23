@@ -119,16 +119,6 @@ public class SerializableCuboidi
     }
 
     /// <summary>
-    /// Check if this area contains a block position on the XZ plane (ignores Y coordinate).
-    /// Useful for tracking player presence in an area regardless of vertical position.
-    /// </summary>
-    public bool ContainsXZ(BlockPos pos)
-    {
-        return pos.X >= Math.Min(X1, X2) && pos.X <= Math.Max(X1, X2) &&
-               pos.Z >= Math.Min(Z1, Z2) && pos.Z <= Math.Max(Z1, Z2);
-    }
-
-    /// <summary>
     /// Check if this area intersects another area.
     /// </summary>
     public bool Intersects(SerializableCuboidi other)
@@ -305,15 +295,6 @@ public class HolySiteData
     public bool ContainsPosition(BlockPos pos)
     {
         return Areas.Any(area => area.Contains(pos));
-    }
-
-    /// <summary>
-    /// Check if a block position is within any area of this holy site on the XZ plane.
-    /// Ignores Y coordinate - useful for tracking player presence regardless of vertical position.
-    /// </summary>
-    public bool ContainsPositionXZ(BlockPos pos)
-    {
-        return Areas.Any(area => area.ContainsXZ(pos));
     }
 
     /// <summary>

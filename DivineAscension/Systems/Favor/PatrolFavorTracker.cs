@@ -238,9 +238,9 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         session.VisitedSiteUIDs.Add(siteUID);
         session.LastSiteVisitTime = currentTime;
 
-        // Store position for distance calculation
+        // Store position for distance calculation (in visit order)
         var playerPos = player.Entity.Pos.AsBlockPos;
-        session.SitePositions[siteUID] = playerPos;
+        session.VisitPositions.Add(playerPos);
 
         _logger.Debug($"{SystemConstants.LogPrefix} Player {player.PlayerName} visited site '{site.SiteName}' ({session.VisitedSiteUIDs.Count} sites in patrol)");
 
@@ -388,20 +388,19 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
     /// </summary>
     private float CalculateDistanceBonus(PatrolSession session)
     {
-        if (session.SitePositions.Count < 2)
+        if (session.VisitPositions.Count < 2)
         {
             return 0f;
         }
 
-        // Calculate total distance between sites (in order of visit)
-        var positions = session.SitePositions.Values.ToList();
+        // Calculate total distance between sites (in visit order)
         var totalDistance = 0f;
 
-        for (int i = 1; i < positions.Count; i++)
+        for (int i = 1; i < session.VisitPositions.Count; i++)
         {
-            var dx = positions[i].X - positions[i - 1].X;
-            var dy = positions[i].Y - positions[i - 1].Y;
-            var dz = positions[i].Z - positions[i - 1].Z;
+            var dx = session.VisitPositions[i].X - session.VisitPositions[i - 1].X;
+            var dy = session.VisitPositions[i].Y - session.VisitPositions[i - 1].Y;
+            var dz = session.VisitPositions[i].Z - session.VisitPositions[i - 1].Z;
             totalDistance += (float)Math.Sqrt(dx * dx + dy * dy + dz * dz);
         }
 
@@ -436,7 +435,7 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
     private void ResetSession(PatrolSession session, long currentTime)
     {
         session.VisitedSiteUIDs.Clear();
-        session.SitePositions.Clear();
+        session.VisitPositions.Clear();
         session.PatrolStartTime = currentTime;
         session.LastSiteVisitTime = currentTime;
     }
@@ -600,8 +599,8 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         /// <summary>Holy site UIDs visited in this patrol</summary>
         public HashSet<string> VisitedSiteUIDs { get; set; } = new();
 
-        /// <summary>Maps site UID to player position when they visited (for distance calc)</summary>
-        public Dictionary<string, BlockPos> SitePositions { get; set; } = new();
+        /// <summary>Player positions when visiting sites, in visit order (for distance calc)</summary>
+        public List<BlockPos> VisitPositions { get; set; } = new();
 
         /// <summary>When the patrol started (elapsed ms)</summary>
         public long PatrolStartTime { get; set; }

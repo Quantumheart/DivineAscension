@@ -518,33 +518,6 @@ public class HolySiteManager : IHolySiteManager
     }
 
     /// <summary>
-    /// Gets the holy site at a specific block position, checking only X and Z coordinates.
-    /// Ignores Y coordinate - useful for tracking player presence regardless of vertical position.
-    /// Uses chunk-based spatial index for O(1) lookup when player is far from all sites.
-    /// </summary>
-    public HolySiteData? GetHolySiteAtPositionXZ(BlockPos pos)
-    {
-        var chunkKey = GetChunkKey(pos);
-
-        // O(1) lookup: check if any sites overlap this chunk
-        if (!_sitesByChunk.TryGetValue(chunkKey, out var candidateSites))
-        {
-            return null; // No sites in this chunk - early exit
-        }
-
-        // O(k) where k is typically 0-2 sites: verify exact XZ containment
-        foreach (var siteUID in candidateSites)
-        {
-            if (_sitesByUID.TryGetValue(siteUID, out var site) && site.ContainsPositionXZ(pos))
-            {
-                return site;
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>
     /// Gets the holy site that has an altar at the specified position.
     /// Returns null if no altar-based holy site exists at that position.
     /// </summary>
