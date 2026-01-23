@@ -36,7 +36,7 @@ public sealed class FakeWorldService : IWorldService
         var mockWorld = new Mock<IServerWorldAccessor>();
         var mockLandClaimAPI = new Mock<ILandClaimAPI>();
         mockLandClaimAPI.Setup(x => x.Get(It.IsAny<BlockPos>()))
-            .Returns<BlockPos>(pos => _landClaims.TryGetValue(pos, out var claims) ? claims : null);
+            .Returns<BlockPos>(pos => _landClaims.TryGetValue(pos, out var claims) ? claims : Array.Empty<LandClaim>());
         mockWorld.Setup(x => x.Claims).Returns(mockLandClaimAPI.Object);
         _worldAccessor = mockWorld.Object;
     }
