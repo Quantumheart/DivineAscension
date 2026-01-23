@@ -140,7 +140,7 @@ public partial class GuiDialog
         _logger?.Notification($"[DivineAscension] Religion state changed: {packet.Reason}");
 
         // Show notification to user
-        _capi.ShowChatMessage(packet.Reason);
+        _capi?.ShowChatMessage(packet.Reason);
 
         // Clear notification queue and previous ranks when player leaves religion
         if (!packet.HasReligion)
@@ -229,7 +229,7 @@ public partial class GuiDialog
 
         if (packet.Success)
         {
-            _capi.ShowChatMessage(packet.Message);
+            _capi?.ShowChatMessage(packet.Message);
 
             // Play success sound
             _soundManager!.PlayClick();
@@ -285,7 +285,7 @@ public partial class GuiDialog
         }
         else
         {
-            _capi.ShowChatMessage($"Error: {packet.Message}");
+            _capi?.ShowChatMessage($"Error: {packet.Message}");
 
             // Play error sound
             _soundManager!.PlayError();
@@ -603,7 +603,7 @@ public partial class GuiDialog
             $"[DivineAscension] Civilization action completed: Success={packet.Success}, Message={packet.Message}");
 
         // Show result message to user
-        _capi.ShowChatMessage(packet.Message);
+        _capi?.ShowChatMessage(packet.Message);
 
         // Delegate to StateManager for state updates and side effects
         _manager!.CivilizationManager.OnCivilizationActionCompleted(packet);
