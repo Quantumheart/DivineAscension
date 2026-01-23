@@ -78,7 +78,7 @@ Khoras, Lysa, Aethra, and Gaia, but founders can customize these with `/religion
 - Smelting metals: 1-8 favor per smelt
 - Prayer at holy sites: 5 base favor (multiplied by holy site tier)
 - PvP combat (all deities): 10 favor per kill
-- Passive generation: 0.5 favor/hour
+- Passive generation: 0.5 favor per in-game hour (~12 favor/real hour)
 
 ---
 
@@ -100,7 +100,7 @@ Khoras, Lysa, Aethra, and Gaia, but founders can customize these with `/religion
 - Foraging plants and resources: 0.5 favor per harvest
 - Prayer at holy sites: 5 base favor (multiplied by holy site tier)
 - PvP combat (all deities): 10 favor per kill
-- Passive generation: 0.5 favor/hour
+- Passive generation: 0.5 favor per in-game hour (~12 favor/real hour)
 
 ---
 
@@ -131,7 +131,7 @@ Khoras, Lysa, Aethra, and Gaia, but founders can customize these with `/religion
   - Brick ruins: 20 favor
 - Prayer at holy sites: 5 base favor (multiplied by holy site tier)
 - PvP combat (all deities): 10 favor per kill
-- Passive generation: 0.5 favor/hour
+- Passive generation: 0.5 favor per in-game hour (~12 favor/real hour)
 
 ---
 
@@ -154,7 +154,7 @@ Khoras, Lysa, Aethra, and Gaia, but founders can customize these with `/religion
 - Planting crops: 0.5 favor per plant
 - Prayer at holy sites: 5 base favor (multiplied by holy site tier)
 - PvP combat (all deities): 10 favor per kill
-- Passive generation: 0.5 favor/hour
+- Passive generation: 0.5 favor per in-game hour (~12 favor/real hour)
 
 ---
 
@@ -177,7 +177,7 @@ Khoras, Lysa, Aethra, and Gaia, but founders can customize these with `/religion
 - Placing clay bricks: 2 favor per brick
 - Prayer at holy sites: 5 base favor (multiplied by holy site tier)
 - PvP combat (all deities): 10 favor per kill
-- Passive generation: 0.5 favor/hour
+- Passive generation: 0.5 favor per in-game hour (~12 favor/real hour)
 
 ---
 
@@ -658,7 +658,7 @@ Favor is earned by performing activities aligned with your deity's domain.
 
 ### Passive Favor Generation
 
-All players generate **0.5 favor per hour** automatically, regardless of activity. Stay logged in to benefit!
+All players generate **0.5 favor per in-game hour** automatically, regardless of activity. Since a full in-game day is ~24 real minutes, this equals approximately **12 favor per real hour** while online.
 
 ### Death Penalty
 
