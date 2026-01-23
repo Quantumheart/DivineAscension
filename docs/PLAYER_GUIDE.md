@@ -779,7 +779,6 @@ Example: `/diplomacy propose "Golden Empire" alliance`
 
 - Only **one pending proposal** allowed per civilization pair
 - **Bidirectional proposals** (both sides proposing to each other) are blocked
-- Target civilization must have a **different domain** than yours
 - Both civilizations must meet the **prestige rank requirements**
 
 ### Accepting or Declining Proposals
