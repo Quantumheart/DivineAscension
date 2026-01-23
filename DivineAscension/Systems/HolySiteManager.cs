@@ -41,7 +41,8 @@ public class HolySiteManager : IHolySiteManager
 
     // Chunk-based spatial index for O(1) position lookups
     // Maps chunk coordinates to the set of holy site UIDs that overlap that chunk
-    private readonly Dictionary<(int chunkX, int chunkZ), HashSet<string>> _sitesByChunk = new();
+    // Uses ConcurrentDictionary for thread-safe reads during position checks
+    private readonly ConcurrentDictionary<(int chunkX, int chunkZ), HashSet<string>> _sitesByChunk = new();
     private readonly IWorldService _worldService;
 
     /// <summary>
@@ -624,7 +625,7 @@ public class HolySiteManager : IHolySiteManager
                         sites.Remove(site.SiteUID);
                         if (sites.Count == 0)
                         {
-                            _sitesByChunk.Remove(key);
+                            _sitesByChunk.TryRemove(key, out _);
                         }
                     }
                 }
