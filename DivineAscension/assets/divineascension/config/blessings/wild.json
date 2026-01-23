@@ -17,7 +17,8 @@
         "forageDropRate": 0.15,
         "walkspeed": 0.05
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 50
     },
     {
       "blessingId": "lysa_master_forager",
@@ -34,7 +35,8 @@
         "wildCropDropRate": 0.20,
         "foodSpoilage": 0.15
       },
-      "specialEffects": ["food_spoilage_reduction"]
+      "specialEffects": ["food_spoilage_reduction"],
+      "cost": 150
     },
     {
       "blessingId": "lysa_apex_predator",
@@ -50,7 +52,8 @@
         "animalLootDropRate": 0.20,
         "animalHarvestingTime": 0.10
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 150
     },
     {
       "blessingId": "lysa_abundance_of_wild",
@@ -66,7 +69,8 @@
         "forageDropRate": 0.25,
         "foodSpoilage": 0.25
       },
-      "specialEffects": ["food_spoilage_reduction"]
+      "specialEffects": ["food_spoilage_reduction"],
+      "cost": 400
     },
     {
       "blessingId": "lysa_silent_death",
@@ -83,7 +87,8 @@
         "rangedWeaponsDamage": 0.15,
         "rangedDamageTierBonusPiercingAttack": 1.0
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 400
     },
     {
       "blessingId": "lysa_avatar_of_wild",
@@ -99,7 +104,8 @@
         "rangedWeaponsRange": 0.20,
         "animalSeekingRange": 0.20
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 800
     },
     {
       "blessingId": "lysa_hunting_party",
@@ -115,7 +121,8 @@
         "animalLootDropRate": 0.15,
         "forageDropRate": 0.15
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 500
     },
     {
       "blessingId": "lysa_wilderness_tribe",
@@ -132,7 +139,8 @@
         "forageDropRate": 0.20,
         "foodSpoilage": 0.15
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 1500
     },
     {
       "blessingId": "lysa_children_of_forest",
@@ -149,7 +157,8 @@
         "forageDropRate": 0.25,
         "walkspeed": 0.05
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 4000
     },
     {
       "blessingId": "lysa_pantheon_of_hunt",
@@ -164,7 +173,8 @@
       "statModifiers": {
         "temperatureResistance": 5.0
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 8000
     }
   ]
 }

@@ -508,6 +508,10 @@ public class BlessingCommands(
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_IN_RELIGION));
 
+            // Deduct favor cost
+            if (blessing.Cost > 0 && !playerData.RemoveFavor(blessing.Cost))
+                return TextCommandResult.Error($"Failed to deduct favor cost of {blessing.Cost}");
+
             var success = _playerProgressionDataManager.UnlockPlayerBlessing(playerUid, blessingId);
             if (!success)
                 return TextCommandResult.Error(
@@ -540,6 +544,10 @@ public class BlessingCommands(
         // Only founder can unlock religion blessings (optional restriction)
         if (!religion.IsFounder(playerUid))
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_FOUNDER));
+
+        // Deduct prestige cost
+        if (blessing.Cost > 0 && !religion.RemovePrestige(blessing.Cost))
+            return TextCommandResult.Error($"Failed to deduct prestige cost of {blessing.Cost}");
 
         religion.UnlockBlessing(blessingId);
         _blessingEffectSystem.RefreshReligionBlessings(religion.ReligionUID);

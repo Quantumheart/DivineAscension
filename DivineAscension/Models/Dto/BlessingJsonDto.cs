@@ -78,4 +78,12 @@ public class BlessingJsonDto
     /// </summary>
     [JsonPropertyName("specialEffects")]
     public List<string>? SpecialEffects { get; set; }
+
+    /// <summary>
+    ///     Cost to unlock this blessing.
+    ///     For Player blessings: favor cost.
+    ///     For Religion blessings: prestige cost.
+    /// </summary>
+    [JsonPropertyName("cost")]
+    public int Cost { get; set; }
 }

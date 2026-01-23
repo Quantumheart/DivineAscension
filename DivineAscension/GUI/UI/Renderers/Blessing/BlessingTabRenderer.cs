@@ -33,7 +33,9 @@ internal static class BlessingTabRenderer
             vm.ReligionBlessingStates,
             vm.X, vm.Y, vm.Width, treeHeight,
             vm.DeltaTime,
-            vm.SelectedBlessingId
+            vm.SelectedBlessingId,
+            vm.PlayerFavor,
+            vm.ReligionPrestige
         );
 
         var treeResult = BlessingTreeRenderer.Draw(treeVm);
@@ -59,7 +61,9 @@ internal static class BlessingTabRenderer
             vm.X,
             infoY,
             vm.Width,
-            infoPanelHeight);
+            infoPanelHeight,
+            vm.PlayerFavor,
+            vm.ReligionPrestige);
         var infoResult = BlessingInfoRenderer.Draw(infoVm);
 
         // Action Buttons (overlay bottom-right)

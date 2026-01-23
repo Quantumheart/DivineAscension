@@ -60,7 +60,8 @@ internal static class MainDialogRenderer
             manager.ReligionStateManager.CurrentReligionName,
             manager.ReligionStateManager.ReligionMemberCount, manager.ReligionStateManager.PlayerRoleInReligion,
             manager.ReligionStateManager.GetPlayerFavorProgress(),
-            manager.ReligionStateManager.GetReligionPrestigeProgress(), manager.IsCivilizationFounder,
+            manager.ReligionStateManager.GetReligionPrestigeProgress(),
+            manager.IsCivilizationFounder,
             manager.CivilizationManager.CivilizationIcon, windowPos.X + x,
             windowPos.Y + y, width);
         var headerHeight = ReligionHeaderRenderer.Draw(
@@ -145,7 +146,9 @@ internal static class MainDialogRenderer
                     contentHeight,
                     windowWidth,
                     windowHeight,
-                    deltaTime);
+                    deltaTime,
+                    manager.ReligionStateManager.CurrentFavor,
+                    manager.ReligionStateManager.CurrentPrestige);
                 break;
             case MainDialogTab.Civilization: // Civilization
                 manager.CivilizationManager.DrawCivilizationTab(windowPos.X + x, windowPos.Y + y, width, contentHeight);

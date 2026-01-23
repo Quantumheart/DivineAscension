@@ -215,8 +215,12 @@ public static class LocalizationKeys
     #region Blessing Tab
 
     public const string UI_BLESSING_NO_RELIGION = "divineascension:ui.blessing.no_religion";
-    public const string UI_BLESSING_PLAYER_PROGRESS = "divineascension:ui.blessing.player_progress";
+    public const string UI_BLESSING_RANK_PROGRESS = "divineascension:ui.blessing.rank_progress";
+    public const string UI_BLESSING_FAVOR_BALANCE = "divineascension:ui.blessing.favor_balance";
+    public const string UI_BLESSING_PRESTIGE_BALANCE = "divineascension:ui.blessing.prestige_balance";
     public const string UI_BLESSING_RELIGION_PROGRESS = "divineascension:ui.blessing.religion_progress";
+    public const string UI_BLESSING_COST_FAVOR = "divineascension:ui.blessing.cost_favor";
+    public const string UI_BLESSING_COST_PRESTIGE = "divineascension:ui.blessing.cost_prestige";
     public const string UI_BLESSING_CIVILIZATION = "divineascension:ui.blessing.civilization";
     public const string UI_BLESSING_MEMBER_COUNT = "divineascension:ui.blessing.member_count";
     public const string UI_BLESSING_NO_MEMBERS = "divineascension:ui.blessing.no_members";

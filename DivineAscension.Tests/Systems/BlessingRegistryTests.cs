@@ -456,6 +456,69 @@ public class BlessingRegistryTests
         Assert.Equal("Can unlock", reason);
     }
 
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_InsufficientFavor_ReturnsFalse()
+    {
+        // Arrange - explicitly set favor to 30 (less than cost of 50)
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid", favor: 30);
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Cost = 50;
+
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
+
+        // Act
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+
+        // Assert
+        Assert.False(canUnlock);
+        Assert.Contains("Insufficient favor", reason);
+        Assert.Contains("requires 50", reason);
+        Assert.Contains("have 30", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_SufficientFavor_ReturnsTrue()
+    {
+        // Arrange
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        playerData.AddFavor(100); // Enough for cost of 50
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Cost = 50;
+
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
+
+        // Act
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+
+        // Assert
+        Assert.True(canUnlock);
+        Assert.Equal("Can unlock", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_ZeroCost_ReturnsTrue()
+    {
+        // Arrange - even with 0 favor, a free blessing should be unlockable
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid", favor: 0);
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Cost = 0; // Free blessing
+
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
+
+        // Act
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+
+        // Assert
+        Assert.True(canUnlock);
+        Assert.Equal("Can unlock", reason);
+    }
+
     #endregion
 
     #region CanUnlockBlessing Tests - Religion Blessings
@@ -539,6 +602,68 @@ public class BlessingRegistryTests
 
         var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Religion);
         blessing.RequiredPrestigeRank = 1;
+
+        // Act
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+
+        // Assert
+        Assert.True(canUnlock);
+        Assert.Equal("Can unlock", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_ReligionBlessing_InsufficientPrestige_ReturnsFalse()
+    {
+        // Arrange
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
+        religionData.AddPrestige(300); // Not enough for cost of 500
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Religion);
+        blessing.RequiredPrestigeRank = 0;
+        blessing.Cost = 500;
+
+        // Act
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+
+        // Assert
+        Assert.False(canUnlock);
+        Assert.Contains("Insufficient prestige", reason);
+        Assert.Contains("requires 500", reason);
+        Assert.Contains("have 300", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_ReligionBlessing_SufficientPrestige_ReturnsTrue()
+    {
+        // Arrange
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
+        religionData.AddPrestige(1000); // Enough for cost of 500
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Religion);
+        blessing.RequiredPrestigeRank = 0;
+        blessing.Cost = 500;
+
+        // Act
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+
+        // Assert
+        Assert.True(canUnlock);
+        Assert.Equal("Can unlock", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_ReligionBlessing_ZeroCost_ReturnsTrue()
+    {
+        // Arrange
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
+        // No prestige added
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Religion);
+        blessing.RequiredPrestigeRank = 0;
+        blessing.Cost = 0; // Free blessing
 
         // Act
         var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);

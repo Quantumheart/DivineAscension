@@ -343,6 +343,51 @@ public class ReligionDataTests
         Assert.Equal(PrestigeRank.Renowned, religion.PrestigeRank);
     }
 
+    [Fact]
+    public void RemovePrestige_SufficientPrestige_DeductsAndReturnsTrue()
+    {
+        // Arrange
+        var religion = new ReligionData("uid", "name", DeityDomain.Craft, "TestDeity", "founder", "TestFounder");
+        religion.AddPrestige(500);
+
+        // Act
+        var result = religion.RemovePrestige(200);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(300, religion.Prestige);
+    }
+
+    [Fact]
+    public void RemovePrestige_InsufficientPrestige_ReturnsFalseAndDoesNotDeduct()
+    {
+        // Arrange
+        var religion = new ReligionData("uid", "name", DeityDomain.Craft, "TestDeity", "founder", "TestFounder");
+        religion.AddPrestige(100);
+
+        // Act
+        var result = religion.RemovePrestige(200);
+
+        // Assert
+        Assert.False(result);
+        Assert.Equal(100, religion.Prestige); // Prestige unchanged
+    }
+
+    [Fact]
+    public void RemovePrestige_ExactAmount_DeductsAndReturnsTrue()
+    {
+        // Arrange
+        var religion = new ReligionData("uid", "name", DeityDomain.Craft, "TestDeity", "founder", "TestFounder");
+        religion.AddPrestige(500);
+
+        // Act
+        var result = religion.RemovePrestige(500);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(0, religion.Prestige);
+    }
+
     #endregion
 
     #region Blessing Tests
