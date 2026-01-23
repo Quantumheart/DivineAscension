@@ -31,7 +31,7 @@ tools/*
 !lib/ci-stubs/*.dll
 
 # Release packages
-Release/*.zip
+Releases/
 
 # OS files
 .DS_Store
