@@ -497,7 +497,8 @@ public class BlessingCommands(
         var religion = _religionManager.GetPlayerReligion(playerUid);
         var playerFavorRank = _playerProgressionDataManager.GetPlayerFavorRank(playerUid);
 
-        var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(playerUid, playerFavorRank, playerData, religion, blessing);
+        // Skip cost check here - we'll handle it atomically below
+        var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(playerUid, playerFavorRank, playerData, religion, blessing, skipCostCheck: true);
         if (!canUnlock)
             return TextCommandResult.Error(reason);
 
@@ -508,9 +509,11 @@ public class BlessingCommands(
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_IN_RELIGION));
 
-            // Deduct favor cost
+            // Atomically deduct favor cost (includes sufficiency check)
             if (blessing.Cost > 0 && !playerData.RemoveFavor(blessing.Cost))
-                return TextCommandResult.Error($"Failed to deduct favor cost of {blessing.Cost}");
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_INSUFFICIENT_FAVOR,
+                        blessing.Cost, playerData.Favor));
 
             var success = _playerProgressionDataManager.UnlockPlayerBlessing(playerUid, blessingId);
             if (!success)
@@ -545,9 +548,11 @@ public class BlessingCommands(
         if (!religion.IsFounder(playerUid))
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_FOUNDER));
 
-        // Deduct prestige cost
+        // Atomically deduct prestige cost (includes sufficiency check)
         if (blessing.Cost > 0 && !religion.RemovePrestige(blessing.Cost))
-            return TextCommandResult.Error($"Failed to deduct prestige cost of {blessing.Cost}");
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_INSUFFICIENT_PRESTIGE,
+                    blessing.Cost, religion.Prestige));
 
         religion.UnlockBlessing(blessingId);
         _blessingEffectSystem.RefreshReligionBlessings(religion.ReligionUID);

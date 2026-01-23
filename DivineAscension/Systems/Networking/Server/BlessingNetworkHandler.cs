@@ -81,7 +81,8 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                 var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
                 var playerFavorRank = _playerProgressionDataManager.GetPlayerFavorRank(fromPlayer.PlayerUID);
 
-                var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(fromPlayer.PlayerUID, playerFavorRank, playerData, religion, blessing);
+                // Skip cost check here - we'll handle it atomically below
+                var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(fromPlayer.PlayerUID, playerFavorRank, playerData, religion, blessing, skipCostCheck: true);
                 if (!canUnlock)
                 {
                     message = reason;
@@ -98,10 +99,12 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                         }
                         else
                         {
-                            // Deduct favor cost
+                            // Atomically deduct favor cost (includes sufficiency check)
                             if (blessing.Cost > 0 && !playerData.RemoveFavor(blessing.Cost))
                             {
-                                message = $"Failed to deduct favor cost of {blessing.Cost}";
+                                message = LocalizationService.Instance.Get(
+                                    LocalizationKeys.CMD_BLESSING_ERROR_INSUFFICIENT_FAVOR,
+                                    blessing.Cost, playerData.Favor);
                             }
                             else
                             {
@@ -138,10 +141,12 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                         }
                         else
                         {
-                            // Deduct prestige cost
+                            // Atomically deduct prestige cost (includes sufficiency check)
                             if (blessing.Cost > 0 && !religion.RemovePrestige(blessing.Cost))
                             {
-                                message = $"Failed to deduct prestige cost of {blessing.Cost}";
+                                message = LocalizationService.Instance.Get(
+                                    LocalizationKeys.CMD_BLESSING_ERROR_INSUFFICIENT_PRESTIGE,
+                                    blessing.Cost, religion.Prestige);
                             }
                             else
                             {
