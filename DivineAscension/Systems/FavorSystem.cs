@@ -154,7 +154,8 @@ public class FavorSystem : IFavorSystem
                 _civilizationManager,
                 _holySiteManager,
                 _religionManager,
-                _messenger);
+                _messenger,
+                _eventService);
             _patrolFavorTracker.Initialize();
             _logger.Notification("[DivineAscension] Initialized 11 favor trackers (including patrol)");
         }
