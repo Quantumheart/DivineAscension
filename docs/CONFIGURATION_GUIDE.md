@@ -142,41 +142,171 @@ Customize blessings, offerings, and rituals via JSON files in `assets/divineasce
 
 ### Stat Modifier Keys
 
+**Values**: Decimal percentages (0.05 = 5%, 0.10 = 10%)
+
+#### Combat Stats
+
+| Key | Description |
+|-----|-------------|
+| `meleeWeaponsDamage` | Melee damage bonus |
+| `meleeWeaponsSpeed` | Melee attack speed |
+| `rangedWeaponsDamage` | Ranged damage bonus |
+| `rangedWeaponsAcc` | Ranged accuracy bonus |
+| `rangedWeaponsRange` | Ranged weapon range |
+| `criticalHitChance` | Critical hit chance |
+| `criticalHitDamage` | Critical hit damage multiplier |
+| `killHealthRestore` | HP restored on kill (percentage) |
+| `damageReduction` | Damage reduction percentage |
+
+#### Defense Stats
+
+| Key | Description |
+|-----|-------------|
+| `maxhealthExtraPoints` | Flat max health bonus |
+| `maxhealthExtraMultiplier` | Max health percentage bonus |
+| `armorEffectiveness` | Armor effectiveness bonus |
+| `armorDurabilityLoss` | Armor durability loss reduction |
+| `meleeWeaponArmor` | Melee weapon armor bonus |
+
+#### Movement & Utility
+
+| Key | Description |
+|-----|-------------|
+| `walkspeed` | Movement speed bonus |
+| `healingeffectivness` | Healing effectiveness bonus |
+| `hungerrate` | Hunger rate modifier |
+
+#### Craft Domain
+
 | Key | Description |
 |-----|-------------|
 | `toolDurability` | Chance for tools to take no damage |
 | `oreDropRate` | Ore drop quantity bonus |
 | `miningSpeedMul` | Mining speed multiplier |
-| `meleeWeaponsDamage` | Melee damage bonus |
-| `meleeWeaponsSpeed` | Melee attack speed |
-| `rangedWeaponsAcc` | Ranged accuracy bonus |
-| `rangedWeaponsDamage` | Ranged damage bonus |
-| `criticalHitChance` | Critical hit chance |
-| `criticalHitDamage` | Critical hit damage multiplier |
-| `maxhealthExtraMultiplier` | Max health bonus |
-| `damageReduction` | Damage reduction percentage |
-| `killHealthRestore` | HP restored on kill (percentage) |
-| `walkspeed` | Movement speed bonus |
+| `coldResistance` | Cold resistance (degrees) |
+| `repairCostReduction` | Repair cost reduction |
+| `repairEfficiency` | Repair efficiency bonus |
+| `smithingCostReduction` | Smithing material reduction |
+| `metalArmorBonus` | Metal armor bonus |
+| `armorWalkSpeedAffectedness` | Armor walk speed penalty reduction |
+
+#### Wild Domain
+
+| Key | Description |
+|-----|-------------|
 | `animalLootDropRate` | Animal drop quantity bonus |
 | `animalHarvestingTime` | Skinning speed bonus |
+| `animalDamage` | Damage dealt to animals |
 | `forageDropRate` | Forage drop quantity bonus |
-| `wildCropDropRate` | Wild crop drop bonus |
+| `foragingYield` | Foraging yield bonus |
+| `doubleHarvestChance` | Double harvest chance |
 | `foodSpoilage` | Food spoilage reduction |
-| `cropYield` | Crop harvest bonus |
 | `satiety` | Food satiety bonus |
-| `cookedFoodSatiety` | Cooked food satiety bonus |
-| `cookingYield` | Cooking output bonus |
+| `temperatureResistance` | Temperature resistance |
+| `animalSeekingRange` | Animal detection range |
+
+#### Harvest Domain
+
+| Key | Description |
+|-----|-------------|
+| `cropYield` | Crop harvest bonus |
 | `seedDropChance` | Seed drop chance from harvesting |
 | `rareCropChance` | Rare crop variant chance |
+| `wildCropDropRate` | Wild crop drop bonus |
+| `cookingYield` | Cooking output bonus |
+| `cookedFoodSatiety` | Cooked food satiety bonus |
 | `heatResistance` | Heat resistance (degrees) |
+
+#### Stone Domain
+
+| Key | Description |
+|-----|-------------|
 | `stoneYield` | Stone mining drop bonus |
 | `clayYield` | Clay digging drop bonus |
 | `diggingSpeed` | Digging speed bonus |
+| `clayFormingVoxelChance` | Clay forming voxel bonus |
 | `potteryBatchCompletionChance` | Pottery batch completion bonus |
-| `armorEffectiveness` | Armor effectiveness bonus |
-| `armorDurabilityLoss` | Armor durability loss reduction |
+| `storageVesselCapacity` | Storage vessel capacity bonus |
+| `pickDurability` | Pick durability bonus |
+| `fallDamageReduction` | Fall damage reduction |
+| `rareStoneChance` | Rare stone discovery chance |
+| `oreInStoneChance` | Ore in stone chance |
+| `gravelYield` | Gravel yield bonus |
 
-**Values**: Decimal percentages (0.05 = 5%, 0.10 = 10%)
+#### Divine Ascension Progression
+
+| Key | Description |
+|-----|-------------|
+| `holySiteFavorMultiplier` | Holy site favor multiplier |
+| `holySitePrestigeMultiplier` | Holy site prestige multiplier |
+
+#### Combat Overhaul Compatible Stats
+
+These stats integrate with the Combat Overhaul mod when installed.
+
+**Damage Type Bonuses** (tier bonus for specific damage types):
+
+| Key | Description |
+|-----|-------------|
+| `meleeDamageTierBonusSlashingAttack` | Melee slashing damage tier bonus |
+| `meleeDamageTierBonusPiercingAttack` | Melee piercing damage tier bonus |
+| `meleeDamageTierBonusBluntAttack` | Melee blunt damage tier bonus |
+| `rangedDamageTierBonusSlashingAttack` | Ranged slashing damage tier bonus |
+| `rangedDamageTierBonusPiercingAttack` | Ranged piercing damage tier bonus |
+| `rangedDamageTierBonusBluntAttack` | Ranged blunt damage tier bonus |
+| `mechanicalsDamage` | Mechanical weapons damage |
+
+**Armor Penalty Reduction**:
+
+| Key | Description |
+|-----|-------------|
+| `armorManipulationSpeedAffectedness` | Armor manipulation speed penalty reduction |
+| `armorHungerRateAffectedness` | Armor hunger rate penalty reduction |
+
+**Movement & Utility**:
+
+| Key | Description |
+|-----|-------------|
+| `manipulationSpeed` | Item manipulation speed |
+| `steadyAim` | Aiming stability bonus |
+
+**Body Zone Damage Factors** (modify damage taken to specific body parts):
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `playerHeadDamageFactor` | 2.0x | Head damage multiplier |
+| `playerFaceDamageFactor` | 1.5x | Face damage multiplier |
+| `playerNeckDamageFactor` | 2.0x | Neck damage multiplier |
+| `playerTorsoDamageFactor` | 1.0x | Torso damage multiplier |
+| `playerArmsDamageFactor` | 0.5x | Arms damage multiplier |
+| `playerLegsDamageFactor` | 0.5x | Legs damage multiplier |
+| `playerHandsDamageFactor` | 0.5x | Hands damage multiplier |
+| `playerFeetDamageFactor` | 0.5x | Feet damage multiplier |
+
+**Weapon Proficiencies** (affect attack/reload/draw speed):
+
+| Key | Description |
+|-----|-------------|
+| `bowsProficiency` | Bow draw speed |
+| `crossbowsProficiency` | Crossbow reload speed |
+| `firearmsProficiency` | Firearm reload speed |
+| `oneHandedSwordsProficiency` | One-handed sword attack speed |
+| `twoHandedSwordsProficiency` | Two-handed sword attack speed |
+| `spearsProficiency` | Spear attack speed |
+| `javelinsProficiency` | Javelin throw speed |
+| `macesProficiency` | Mace attack speed |
+| `clubsProficiency` | Club attack speed |
+| `halberdsProficiency` | Halberd attack speed |
+| `axesProficiency` | Axe attack speed |
+| `quarterstaffProficiency` | Quarterstaff attack speed |
+| `slingsProficiency` | Sling attack speed |
+
+**Second Chance Mechanic**:
+
+| Key | Description |
+|-----|-------------|
+| `secondChanceCooldown` | Second chance cooldown reduction |
+| `secondChanceGracePeriod` | Second chance grace period extension |
 
 ### Adding a New Blessing
 
