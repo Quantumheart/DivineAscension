@@ -104,6 +104,37 @@ Khoras, Lysa, Aethra, and Gaia, but founders can customize these with `/religion
 
 ---
 
+### ⚔️ Conquest Domain (Default Deity: Vekthar)
+
+**Focus**: Domination, Victory, Combat, Exploration
+**Alignment**: Chaotic Neutral
+**Colors**: Crimson and Dark Red
+**Playstyle**: Combat-focused with bonuses for defeating enemies and discovering ruins
+
+**Best For**:
+- Players who enjoy combat and monster hunting
+- Explorers who seek out ancient ruins and structures
+- Warriors who thrive on defeating challenging foes
+- Players focused on martial prowess and dominance
+
+**Favor Sources**:
+- Killing hostile creatures: 3-15 favor (based on difficulty)
+  - Boss-tier (100+ health): 15 favor
+  - Strong monsters (50+ health): 10 favor
+  - Medium threats (25+ health): 7 favor
+  - Minor threats (10+ health): 5 favor
+  - Weak creatures: 3 favor
+- Discovering ruins: 20-100 favor (based on rarity)
+  - Devastation structures: 100 favor
+  - Temporal machinery: 75 favor
+  - Locust nests: 25 favor
+  - Brick ruins: 20 favor
+- Prayer at holy sites: 5 base favor (multiplied by holy site tier)
+- PvP combat (all deities): 10 favor per kill
+- Passive generation: 0.5 favor/hour
+
+---
+
 ### 🌾 Harvest Domain (Default Deity: Aethra)
 
 **Focus**: Light, Agriculture, Growth, Warmth
@@ -559,6 +590,19 @@ Favor is earned by performing activities aligned with your deity's domain.
 - Go on regular hunting trips for high-value animals (wolves, bears)
 - Gather from various biomes to find diverse forageable resources
 - Maintain sustainable hunting practices
+
+### Conquest Domain (Domination & Victory)
+
+**Primary Activities**:
+- ⚔️ **Monster Hunting**: Killing hostile creatures (3-15 favor based on difficulty)
+- 🏛️ **Ruin Discovery**: Finding ancient structures (20-100 favor based on rarity)
+- ⚔️ **PvP**: Combat victories (10 favor per kill)
+
+**Tips**:
+- Seek out drifter camps and locust nests for combat favor
+- Explore the world to discover ruins - devastation sites give 100 favor each
+- Temporal machinery (translocators, resonators) award 75 favor on discovery
+- Each ruin location can only be discovered once per player
 
 ### Harvest Domain (Agriculture & Light)
 
@@ -1252,6 +1296,13 @@ Press **`Shift+G`** to open the Divine Ascension interface.
 3. Forage consistently while traveling (0.5 favor adds up)
 4. Balance hunting with sustainable foraging
 5. Build a Tier 3 holy site at your hunting lodge for prayers (15 favor per hour)
+
+**Conquest Domain Followers**:
+1. Hunt drifters and locusts in temporal storms for high combat favor (up to 15 favor per kill)
+2. Explore systematically to discover ruins - devastation sites (100 favor) are the jackpot
+3. Seek out temporal machinery (translocators, resonators) for 75 favor discoveries
+4. Clear locust nests (25 favor) and brick ruins (20 favor) as you explore
+5. Build a Tier 3 holy site as a war camp for prayers between expeditions (15 favor per hour)
 
 **Harvest Domain Followers**:
 1. Build large automated crop farms for mass harvesting
