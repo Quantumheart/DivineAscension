@@ -37,6 +37,7 @@ public class FavorSystemIntegrationTests
 
         var mockActivityLogManager = new Mock<IActivityLogManager>();
         var mockMessenger = new Mock<IPlayerMessengerService>();
+        var mockTimeService = new Mock<ITimeService>();
         var testConfig = new GameBalanceConfig(); // Uses default values
         _favorSystem = new FavorSystem(
             mockLogger.Object,
@@ -47,7 +48,8 @@ public class FavorSystemIntegrationTests
             _mockPrestigeManager.Object,
             mockActivityLogManager.Object,
             testConfig,
-            mockMessenger.Object
+            mockMessenger.Object,
+            mockTimeService.Object
         );
     }
 

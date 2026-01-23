@@ -6,6 +6,7 @@ using DivineAscension.Constants;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using DivineAscension.Systems.Favor;
+using DivineAscension.Systems.HolySite;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -33,6 +34,12 @@ public class FavorSystem : IFavorSystem
     private readonly IReligionPrestigeManager _prestigeManager;
     private readonly IReligionManager _religionManager;
     private readonly IWorldService _worldService;
+    private readonly ITimeService _timeService;
+
+    // Optional dependencies for patrol system (set via SetPatrolDependencies)
+    private IHolySiteAreaTracker? _holySiteAreaTracker;
+    private ICivilizationManager? _civilizationManager;
+    private IHolySiteManager? _holySiteManager;
     private AnvilFavorTracker? _anvilFavorTracker;
     private ConquestFavorTracker? _conquestFavorTracker;
     private ForagingFavorTracker? _foragingFavorTracker;
@@ -43,6 +50,7 @@ public class FavorSystem : IFavorSystem
     private SkinningFavorTracker? _skinningFavorTracker;
     private SmeltingFavorTracker? _smeltingFavorTracker;
     private StoneFavorTracker? _stoneFavorTracker;
+    private PatrolFavorTracker? _patrolFavorTracker;
 
     public FavorSystem(ILoggerWrapper logger,
         IEventService eventService,
@@ -52,7 +60,8 @@ public class FavorSystem : IFavorSystem
         IReligionPrestigeManager prestigeManager,
         IActivityLogManager activityLogManager,
         GameBalanceConfig config,
-        IPlayerMessengerService messenger)
+        IPlayerMessengerService messenger,
+        ITimeService timeService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
@@ -64,6 +73,21 @@ public class FavorSystem : IFavorSystem
         _activityLogManager = activityLogManager ?? throw new ArgumentNullException(nameof(activityLogManager));
         _config = config ?? throw new ArgumentNullException(nameof(config));
         _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+        _timeService = timeService ?? throw new ArgumentNullException(nameof(timeService));
+    }
+
+    /// <summary>
+    /// Sets dependencies required for patrol tracking.
+    /// Must be called after HolySiteAreaTracker is initialized but before Initialize().
+    /// </summary>
+    public void SetPatrolDependencies(
+        IHolySiteAreaTracker holySiteAreaTracker,
+        ICivilizationManager civilizationManager,
+        IHolySiteManager holySiteManager)
+    {
+        _holySiteAreaTracker = holySiteAreaTracker ?? throw new ArgumentNullException(nameof(holySiteAreaTracker));
+        _civilizationManager = civilizationManager ?? throw new ArgumentNullException(nameof(civilizationManager));
+        _holySiteManager = holySiteManager ?? throw new ArgumentNullException(nameof(holySiteManager));
     }
 
     /// <summary>
@@ -118,7 +142,26 @@ public class FavorSystem : IFavorSystem
             _playerProgressionDataManager, this);
         _ruinDiscoveryFavorTracker.Initialize();
 
-        _logger.Notification("[DivineAscension] Initialized 10 favor trackers");
+        // Initialize patrol tracker only if dependencies were set
+        if (_holySiteAreaTracker != null && _civilizationManager != null && _holySiteManager != null)
+        {
+            _patrolFavorTracker = new PatrolFavorTracker(
+                _playerProgressionDataManager,
+                _logger,
+                _timeService,
+                this,
+                _holySiteAreaTracker,
+                _civilizationManager,
+                _holySiteManager,
+                _religionManager,
+                _messenger);
+            _patrolFavorTracker.Initialize();
+            _logger.Notification("[DivineAscension] Initialized 11 favor trackers (including patrol)");
+        }
+        else
+        {
+            _logger.Notification("[DivineAscension] Initialized 10 favor trackers (patrol disabled - missing dependencies)");
+        }
     }
 
     /// <summary>
@@ -144,6 +187,7 @@ public class FavorSystem : IFavorSystem
         _stoneFavorTracker?.Dispose();
         _conquestFavorTracker?.Dispose();
         _ruinDiscoveryFavorTracker?.Dispose();
+        _patrolFavorTracker?.Dispose();
     }
 
     public void AwardFavorForAction(IServerPlayer player, string actionType, float amount)
@@ -281,7 +325,8 @@ public class FavorSystem : IFavorSystem
                 actionLower.Contains("battle") ||
                 actionLower.Contains("fight") ||
                 actionLower.Contains("discovered") ||
-                actionLower.Contains("ruin"),
+                actionLower.Contains("ruin") ||
+                actionLower.Contains("patrol"),
 
             DeityDomain.Harvest =>
                 actionLower.Contains("harvest") ||

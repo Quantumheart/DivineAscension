@@ -241,6 +241,7 @@ public class FavorSystemTests
         var mockPrestige = new Mock<IReligionPrestigeManager>();
         var mockActivityLogManager = new Mock<IActivityLogManager>();
         var mockMessenger = new Mock<IPlayerMessengerService>();
+        var mockTimeService = new Mock<ITimeService>();
         return new FavorSystem(
             logger,
             eventService,
@@ -250,7 +251,8 @@ public class FavorSystemTests
             mockPrestige.Object,
             mockActivityLogManager.Object,
             config ?? CreateTestConfig(),
-            mockMessenger.Object);
+            mockMessenger.Object,
+            mockTimeService.Object);
     }
 
     #endregion
@@ -1125,6 +1127,7 @@ public class FavorSystemTests
         mockReligionManager.Setup(m => m.GetPlayerReligion("player-uid"))
             .Returns(religion);
 
+        var mockTimeService = new Mock<ITimeService>();
         var favorSystem = new FavorSystem(
             mockLogger.Object,
             fakeEventService,
@@ -1134,7 +1137,8 @@ public class FavorSystemTests
             mockPrestigeManager.Object,
             mockActivityLogManager.Object,
             CreateTestConfig(),
-            mockMessenger.Object);
+            mockMessenger.Object,
+            mockTimeService.Object);
 
         // Act - Award favor for a combat kill (typical action from ConquestFavorTracker)
         favorSystem.AwardFavorForAction(mockPlayer.Object, "combat kill drifter-normal", 5);
@@ -1182,6 +1186,7 @@ public class FavorSystemTests
         mockReligionManager.Setup(m => m.GetPlayerReligion("player-uid"))
             .Returns(religion);
 
+        var mockTimeService = new Mock<ITimeService>();
         var favorSystem = new FavorSystem(
             mockLogger.Object,
             fakeEventService,
@@ -1191,7 +1196,8 @@ public class FavorSystemTests
             mockPrestigeManager.Object,
             mockActivityLogManager.Object,
             CreateTestConfig(),
-            mockMessenger.Object);
+            mockMessenger.Object,
+            mockTimeService.Object);
 
         // Act - Award favor for a PvP kill (this should NOT go through FavorSystem for prestige)
         favorSystem.AwardFavorForAction(mockPlayer.Object, "PvP kill against OtherPlayer", 10);

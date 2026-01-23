@@ -747,7 +747,7 @@ public class PlayerProgressionDataManagerTests
         Assert.Equal(150, loadedData.Favor);
         Assert.Equal(200, loadedData.TotalFavorEarned);
         _mockLogger.Verify(
-            l => l.Debug(It.Is<string>(s => s.Contains("Loaded data") && s.Contains("player-uid") && s.Contains("v3"))),
+            l => l.Debug(It.Is<string>(s => s.Contains("Loaded data") && s.Contains("player-uid") && s.Contains("v4"))),
             Times.Once()
         );
     }

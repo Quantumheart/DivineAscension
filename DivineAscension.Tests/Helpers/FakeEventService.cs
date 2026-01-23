@@ -242,5 +242,19 @@ public sealed class FakeEventService : IEventService
     public bool HasDidPlaceBlockSubscribers() => _didPlaceBlockCallbacks.Count > 0;
     public bool HasDidUseBlockSubscribers() => _didUseBlockCallbacks.Count > 0;
 
+    /// <summary>
+    /// Gets the number of registered periodic callbacks.
+    /// </summary>
+    public int RegisteredCallbackCount => _callbacks.Count;
+
+    /// <summary>
+    /// Triggers all registered periodic callbacks with the given delta time.
+    /// Alias for TriggerPeriodicCallbacks for consistency with test naming.
+    /// </summary>
+    public void TriggerPeriodicCallback(float deltaTime)
+    {
+        TriggerPeriodicCallbacks(deltaTime);
+    }
+
     private sealed record PeriodicCallback(Action<float> Callback, int IntervalMs, bool IsGameTick);
 }
