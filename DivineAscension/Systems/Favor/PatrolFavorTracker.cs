@@ -75,6 +75,7 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
     private readonly IHolySiteManager _holySiteManager;
     private readonly IReligionManager _religionManager;
     private readonly IPlayerMessengerService _messenger;
+    private readonly IEventService _eventService;
 
     #endregion
 
@@ -98,7 +99,8 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         ICivilizationManager civilizationManager,
         IHolySiteManager holySiteManager,
         IReligionManager religionManager,
-        IPlayerMessengerService messenger)
+        IPlayerMessengerService messenger,
+        IEventService eventService)
     {
         _playerProgressionDataManager = playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -109,6 +111,7 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         _holySiteManager = holySiteManager ?? throw new ArgumentNullException(nameof(holySiteManager));
         _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
         _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
     }
 
     /// <inheritdoc />
@@ -123,8 +126,9 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         _holySiteAreaTracker.OnPlayerEnteredHolySite += OnPlayerEnteredHolySite;
         _holySiteAreaTracker.OnPlayerExitedHolySite += OnPlayerExitedHolySite;
 
-        // Subscribe to player disconnect to clean up sessions
+        // Subscribe to player events to clean up sessions
         _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesReligion;
+        _eventService.OnPlayerDisconnect(OnPlayerDisconnect);
 
         _logger.Debug($"{SystemConstants.LogPrefix} PatrolFavorTracker initialized");
     }
@@ -138,6 +142,7 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         _holySiteAreaTracker.OnPlayerEnteredHolySite -= OnPlayerEnteredHolySite;
         _holySiteAreaTracker.OnPlayerExitedHolySite -= OnPlayerExitedHolySite;
         _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
+        _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
 
         _activeSessions.Clear();
     }
@@ -203,6 +208,14 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         _activeSessions.Remove(player.PlayerUID);
     }
 
+    /// <summary>
+    /// Handles player disconnect - cleans up session.
+    /// </summary>
+    private void OnPlayerDisconnect(IServerPlayer player)
+    {
+        _activeSessions.Remove(player.PlayerUID);
+    }
+
     #endregion
 
     #region Patrol Logic
@@ -235,11 +248,19 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         var civSites = GetCivilizationHolySites(player.PlayerUID);
         if (session.VisitedSiteUIDs.Count == 1)
         {
-            _messenger.SendMessage(player, $"[Patrol] Started patrol route. Visit {MIN_SITES_FOR_PATROL - 1} more site(s) to complete.");
+            var message = LocalizationService.Instance.Get(
+                "divineascension:patrol.started",
+                MIN_SITES_FOR_PATROL - 1);
+            _messenger.SendMessage(player, message);
         }
         else if (session.VisitedSiteUIDs.Count < MIN_SITES_FOR_PATROL)
         {
-            _messenger.SendMessage(player, $"[Patrol] {session.VisitedSiteUIDs.Count}/{MIN_SITES_FOR_PATROL} sites visited. Visit {MIN_SITES_FOR_PATROL - session.VisitedSiteUIDs.Count} more to complete.");
+            var message = LocalizationService.Instance.Get(
+                "divineascension:patrol.progress",
+                session.VisitedSiteUIDs.Count,
+                MIN_SITES_FOR_PATROL,
+                MIN_SITES_FOR_PATROL - session.VisitedSiteUIDs.Count);
+            _messenger.SendMessage(player, message);
         }
     }
 
@@ -266,7 +287,8 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         {
             var remainingMs = playerData!.LastPatrolCompletionTime + PATROL_COMPLETION_COOLDOWN_MS - currentTime;
             var remainingMins = (int)(remainingMs / 60000);
-            _messenger.SendMessage(player, $"[Patrol] Patrol complete but on cooldown. {remainingMins} minute(s) until next reward.");
+            var cooldownMessage = LocalizationService.Instance.Get("divineascension:patrol.cooldown", remainingMins);
+            _messenger.SendMessage(player, cooldownMessage);
             return;
         }
 
@@ -289,6 +311,9 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         playerData!.PatrolComboCount++;
         var newMultiplier = GetComboMultiplier(playerData.PatrolComboCount);
 
+        // Calculate full circuit before resetting session
+        var isFullCircuit = session.VisitedSiteUIDs.Count >= civTotalSites && civTotalSites > 1;
+
         // Award favor/prestige
         _favorSystem.AwardFavorForAction(playerUID, "patrol completion", finalReward, DeityDomain.Conquest);
 
@@ -298,20 +323,20 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
 
         // Reset session for next patrol
         ResetSession(session, currentTime);
-
-        // Notify player
-        var isFullCircuit = session.VisitedSiteUIDs.Count >= civTotalSites;
         var comboTier = GetComboTierName(playerData.PatrolComboCount);
-        var message = $"[Patrol] Patrol complete! +{finalReward:F1} favor";
+
+        // Build completion message
+        var message = LocalizationService.Instance.Get("divineascension:patrol.complete", finalReward);
 
         if (isFullCircuit)
         {
-            message += " (Full Circuit!)";
+            message += " " + LocalizationService.Instance.Get("divineascension:patrol.full_circuit");
         }
 
         if (!string.IsNullOrEmpty(comboTier))
         {
-            message += $" [{comboTier} x{newMultiplier:F2}]";
+            var localizedTier = LocalizationService.Instance.Get($"divineascension:patrol.tier.{comboTier.ToLowerInvariant()}");
+            message += " " + LocalizationService.Instance.Get("divineascension:patrol.combo", localizedTier, newMultiplier);
         }
 
         _messenger.SendMessage(player, message);
@@ -544,19 +569,21 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
     private void NotifyTierChange(IServerPlayer player, float oldMult, float newMult)
     {
         // Determine which tier we reached
-        var tierName = "";
+        var tierKey = "";
         if (newMult >= 1.75f && oldMult < 1.75f)
-            tierName = "Legendary";
+            tierKey = "legendary";
         else if (newMult >= 1.5f && oldMult < 1.5f)
-            tierName = "Tireless";
+            tierKey = "tireless";
         else if (newMult >= 1.3f && oldMult < 1.3f)
-            tierName = "Dedicated";
+            tierKey = "dedicated";
         else if (newMult >= 1.15f && oldMult < 1.15f)
-            tierName = "Vigilant";
+            tierKey = "vigilant";
 
-        if (!string.IsNullOrEmpty(tierName))
+        if (!string.IsNullOrEmpty(tierKey))
         {
-            _messenger.SendMessage(player, $"[Patrol] You've reached {tierName} status! Patrol rewards now x{newMult:F2}");
+            var tierName = LocalizationService.Instance.Get($"divineascension:patrol.tier.{tierKey}");
+            var message = LocalizationService.Instance.Get("divineascension:patrol.tier_reached", tierName, newMult);
+            _messenger.SendMessage(player, message);
         }
     }
 

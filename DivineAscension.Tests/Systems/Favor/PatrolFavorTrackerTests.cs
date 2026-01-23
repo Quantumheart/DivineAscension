@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
@@ -28,6 +29,7 @@ public class PatrolFavorTrackerTests
     private readonly Mock<IHolySiteManager> _mockHolySiteManager;
     private readonly Mock<IReligionManager> _mockReligionManager;
     private readonly Mock<IPlayerMessengerService> _mockMessenger;
+    private readonly Mock<IEventService> _mockEventService;
     private readonly PatrolFavorTracker _tracker;
 
     public PatrolFavorTrackerTests()
@@ -41,6 +43,7 @@ public class PatrolFavorTrackerTests
         _mockHolySiteManager = new Mock<IHolySiteManager>();
         _mockReligionManager = new Mock<IReligionManager>();
         _mockMessenger = new Mock<IPlayerMessengerService>();
+        _mockEventService = new Mock<IEventService>();
 
         _tracker = new PatrolFavorTracker(
             _mockPlayerProgressionDataManager.Object,
@@ -51,7 +54,8 @@ public class PatrolFavorTrackerTests
             _mockCivilizationManager.Object,
             _mockHolySiteManager.Object,
             _mockReligionManager.Object,
-            _mockMessenger.Object);
+            _mockMessenger.Object,
+            _mockEventService.Object);
     }
 
     #region Test Data Helpers
@@ -118,6 +122,16 @@ public class PatrolFavorTrackerTests
             Times.Once);
     }
 
+    [Fact]
+    public void Initialize_SubscribesToPlayerDisconnectEvent()
+    {
+        // Act
+        _tracker.Initialize();
+
+        // Assert
+        _mockEventService.Verify(m => m.OnPlayerDisconnect(It.IsAny<PlayerDelegate>()), Times.Once);
+    }
+
     #endregion
 
     #region Dispose Tests
@@ -138,6 +152,7 @@ public class PatrolFavorTrackerTests
         _mockAreaTracker.VerifyRemove(
             m => m.OnPlayerExitedHolySite -= It.IsAny<Action<IServerPlayer, HolySiteData>>(),
             Times.Once);
+        _mockEventService.Verify(m => m.UnsubscribePlayerDisconnect(It.IsAny<PlayerDelegate>()), Times.Once);
     }
 
     [Fact]
@@ -195,12 +210,8 @@ public class PatrolFavorTrackerTests
         // Arrange
         SetupConquestPlayer("player1");
 
-        // Use reflection to test internal method
-        var method = typeof(PatrolFavorTracker).GetMethod("IsConquestDomainPlayer",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        // Act
-        var result = (bool)method!.Invoke(_tracker, new object[] { "player1" })!;
+        // Act - directly call internal method
+        var result = _tracker.IsConquestDomainPlayer("player1");
 
         // Assert
         Assert.True(result);
@@ -212,12 +223,8 @@ public class PatrolFavorTrackerTests
         // Arrange
         SetupNonConquestPlayer("player1");
 
-        // Use reflection to test internal method
-        var method = typeof(PatrolFavorTracker).GetMethod("IsConquestDomainPlayer",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        // Act
-        var result = (bool)method!.Invoke(_tracker, new object[] { "player1" })!;
+        // Act - directly call internal method
+        var result = _tracker.IsConquestDomainPlayer("player1");
 
         // Assert
         Assert.False(result);
@@ -242,12 +249,8 @@ public class PatrolFavorTrackerTests
         };
         _mockHolySiteManager.Setup(m => m.GetReligionHolySites("rel1")).Returns(sites);
 
-        // Use reflection to test internal method
-        var method = typeof(PatrolFavorTracker).GetMethod("GetCivilizationHolySites",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        // Act
-        var result = (List<HolySiteData>)method!.Invoke(_tracker, new object[] { "player1" })!;
+        // Act - directly call internal method
+        var result = _tracker.GetCivilizationHolySites("player1");
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -272,12 +275,8 @@ public class PatrolFavorTrackerTests
         _mockHolySiteManager.Setup(m => m.GetReligionHolySites("rel1")).Returns(sites1);
         _mockHolySiteManager.Setup(m => m.GetReligionHolySites("rel2")).Returns(sites2);
 
-        // Use reflection to test internal method
-        var method = typeof(PatrolFavorTracker).GetMethod("GetCivilizationHolySites",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        // Act
-        var result = (List<HolySiteData>)method!.Invoke(_tracker, new object[] { "player1" })!;
+        // Act - directly call internal method
+        var result = _tracker.GetCivilizationHolySites("player1");
 
         // Assert
         Assert.Equal(3, result.Count);
@@ -300,12 +299,8 @@ public class PatrolFavorTrackerTests
     [InlineData(100, 1.75f)]
     public void GetComboMultiplier_ReturnsCorrectValue(int comboCount, float expectedMultiplier)
     {
-        // Use reflection to test internal method
-        var method = typeof(PatrolFavorTracker).GetMethod("GetComboMultiplier",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        // Act
-        var result = (float)method!.Invoke(_tracker, new object[] { comboCount })!;
+        // Act - directly call internal method
+        var result = _tracker.GetComboMultiplier(comboCount);
 
         // Assert
         Assert.Equal(expectedMultiplier, result);
@@ -328,12 +323,8 @@ public class PatrolFavorTrackerTests
     [InlineData(100, "Legendary")]
     public void GetComboTierName_ReturnsCorrectName(int comboCount, string expectedName)
     {
-        // Use reflection to test internal method
-        var method = typeof(PatrolFavorTracker).GetMethod("GetComboTierName",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        // Act
-        var result = (string)method!.Invoke(_tracker, new object[] { comboCount })!;
+        // Act - directly call internal method
+        var result = _tracker.GetComboTierName(comboCount);
 
         // Assert
         Assert.Equal(expectedName, result);
@@ -350,12 +341,8 @@ public class PatrolFavorTrackerTests
         var playerData = new PlayerProgressionData { LastPatrolCompletionTime = 0 };
         _fakeTimeService.SetElapsedMilliseconds(1000);
 
-        // Use reflection to test internal method
-        var method = typeof(PatrolFavorTracker).GetMethod("IsOnPatrolCooldown",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        // Act
-        var result = (bool)method!.Invoke(_tracker, new object[] { playerData, 1000L })!;
+        // Act - directly call internal method
+        var result = _tracker.IsOnPatrolCooldown(playerData, 1000L);
 
         // Assert
         Assert.False(result);
@@ -368,12 +355,8 @@ public class PatrolFavorTrackerTests
         var playerData = new PlayerProgressionData { LastPatrolCompletionTime = 30 * 60 * 1000 };
         var currentTime = 60 * 60 * 1000L; // 60 minutes total
 
-        // Use reflection to test internal method
-        var method = typeof(PatrolFavorTracker).GetMethod("IsOnPatrolCooldown",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        // Act
-        var result = (bool)method!.Invoke(_tracker, new object[] { playerData, currentTime })!;
+        // Act - directly call internal method
+        var result = _tracker.IsOnPatrolCooldown(playerData, currentTime);
 
         // Assert
         Assert.True(result);
@@ -386,12 +369,8 @@ public class PatrolFavorTrackerTests
         var playerData = new PlayerProgressionData { LastPatrolCompletionTime = 0 };
         var currentTime = 90 * 60 * 1000L; // 90 minutes total
 
-        // Use reflection to test internal method
-        var method = typeof(PatrolFavorTracker).GetMethod("IsOnPatrolCooldown",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        // Act
-        var result = (bool)method!.Invoke(_tracker, new object[] { playerData, currentTime })!;
+        // Act - directly call internal method
+        var result = _tracker.IsOnPatrolCooldown(playerData, currentTime);
 
         // Assert
         Assert.False(result);
@@ -408,12 +387,8 @@ public class PatrolFavorTrackerTests
         var playerData = new PlayerProgressionData { PatrolComboCount = 0 };
         var currentTime = 10 * 60 * 60 * 1000L; // 10 hours
 
-        // Use reflection to test internal method
-        var method = typeof(PatrolFavorTracker).GetMethod("ShouldResetCombo",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        // Act
-        var result = (bool)method!.Invoke(_tracker, new object[] { playerData, currentTime })!;
+        // Act - directly call internal method
+        var result = _tracker.ShouldResetCombo(playerData, currentTime);
 
         // Assert
         Assert.False(result);
@@ -430,12 +405,8 @@ public class PatrolFavorTrackerTests
         };
         var currentTime = 2 * 60 * 60 * 1000L; // 2 hours total
 
-        // Use reflection to test internal method
-        var method = typeof(PatrolFavorTracker).GetMethod("ShouldResetCombo",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        // Act
-        var result = (bool)method!.Invoke(_tracker, new object[] { playerData, currentTime })!;
+        // Act - directly call internal method
+        var result = _tracker.ShouldResetCombo(playerData, currentTime);
 
         // Assert
         Assert.False(result);
@@ -452,12 +423,8 @@ public class PatrolFavorTrackerTests
         };
         var currentTime = 3 * 60 * 60 * 1000L; // 3 hours
 
-        // Use reflection to test internal method
-        var method = typeof(PatrolFavorTracker).GetMethod("ShouldResetCombo",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        // Act
-        var result = (bool)method!.Invoke(_tracker, new object[] { playerData, currentTime })!;
+        // Act - directly call internal method
+        var result = _tracker.ShouldResetCombo(playerData, currentTime);
 
         // Assert
         Assert.True(result);
