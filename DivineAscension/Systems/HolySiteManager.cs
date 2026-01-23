@@ -143,90 +143,11 @@ public class HolySiteManager : IHolySiteManager
     public HolySiteData? ConsecrateHolySite(string religionUID, string siteName,
         List<Cuboidi> claimAreas, string founderUID)
     {
-        lock (Lock)
-        {
-            try
-            {
-                // Validate inputs
-                if (string.IsNullOrWhiteSpace(siteName))
-                {
-                    _logger.Warning("[DivineAscension] Holy site name cannot be empty");
-                    return null;
-                }
+        // Get founder info
+        var founder = _worldService.GetPlayerByUID(founderUID);
+        var founderName = founder?.PlayerName ?? founderUID;
 
-                if (claimAreas == null || claimAreas.Count == 0)
-                {
-                    _logger.Warning("[DivineAscension] Claim areas cannot be empty");
-                    return null;
-                }
-
-                // Check prestige limit
-                if (!CanCreateHolySite(religionUID))
-                {
-                    _logger.Warning($"[DivineAscension] Religion {religionUID} has reached maximum holy site limit");
-                    return null;
-                }
-
-                // Convert Cuboidi to SerializableCuboidi
-                var serializableAreas = claimAreas
-                    .Select(area => new SerializableCuboidi(area))
-                    .ToList();
-
-                // Create temporary site for overlap checking
-                var tempSite = new HolySiteData(
-                    Guid.NewGuid().ToString(),
-                    religionUID,
-                    siteName,
-                    serializableAreas,
-                    founderUID,
-                    "");
-
-                // Check for overlap with existing holy sites
-                foreach (var existingSite in _sitesByUID.Values)
-                {
-                    if (tempSite.Intersects(existingSite))
-                    {
-                        _logger.Warning(
-                            $"[DivineAscension] Holy site overlaps with existing site {existingSite.SiteName}");
-                        return null;
-                    }
-                }
-
-                // Get founder info
-                var founder = _worldService.GetPlayerByUID(founderUID);
-                var founderName = founder?.PlayerName ?? founderUID;
-
-                // Create final site
-                var siteUID = Guid.NewGuid().ToString();
-                var site = new HolySiteData(
-                    siteUID,
-                    religionUID,
-                    siteName,
-                    serializableAreas,
-                    founderUID,
-                    founderName);
-
-                // Update indexes
-                _sitesByUID[siteUID] = site;
-                IndexSiteChunks(site);
-
-                if (!_sitesByReligion.ContainsKey(religionUID))
-                    _sitesByReligion[religionUID] = new HashSet<string>();
-                _sitesByReligion[religionUID].Add(siteUID);
-
-                _logger.Notification(
-                    $"[DivineAscension] Holy site '{siteName}' consecrated with {site.Areas.Count} area(s), tier {site.GetTier()}");
-
-                SaveHolySites();
-
-                return site;
-            }
-            catch (Exception ex)
-            {
-                _logger.Error($"[DivineAscension] Error creating holy site: {ex.Message}");
-                return null;
-            }
-        }
+        return ConsecrateHolySiteInternal(religionUID, siteName, claimAreas, founderUID, founderName, null);
     }
 
     /// <summary>
@@ -241,20 +162,30 @@ public class HolySiteManager : IHolySiteManager
         string founderName,
         BlockPos altarPosition)
     {
+        return ConsecrateHolySiteInternal(religionUID, siteName, claimAreas, founderUID, founderName, altarPosition);
+    }
+
+    /// <summary>
+    /// Internal implementation for holy site consecration.
+    /// Separated for testability - contains all validation and creation logic.
+    /// </summary>
+    internal HolySiteData? ConsecrateHolySiteInternal(
+        string religionUID,
+        string siteName,
+        List<Cuboidi>? claimAreas,
+        string founderUID,
+        string founderName,
+        BlockPos? altarPosition)
+    {
         lock (Lock)
         {
             try
             {
                 // Validate inputs
-                if (string.IsNullOrWhiteSpace(siteName))
+                var validationError = ValidateHolySiteCreationInputs(siteName, claimAreas);
+                if (validationError != null)
                 {
-                    _logger.Warning("[DivineAscension] Holy site name cannot be empty");
-                    return null;
-                }
-
-                if (claimAreas == null || claimAreas.Count == 0)
-                {
-                    _logger.Warning("[DivineAscension] Claim areas cannot be empty");
+                    _logger.Warning($"[DivineAscension] {validationError}");
                     return null;
                 }
 
@@ -266,31 +197,19 @@ public class HolySiteManager : IHolySiteManager
                 }
 
                 // Convert Cuboidi to SerializableCuboidi
-                var serializableAreas = claimAreas
+                var serializableAreas = claimAreas!
                     .Select(area => new SerializableCuboidi(area))
                     .ToList();
 
-                // Create temporary site for overlap checking
-                var tempSite = new HolySiteData(
-                    Guid.NewGuid().ToString(),
-                    religionUID,
-                    siteName,
-                    serializableAreas,
-                    founderUID,
-                    founderName);
-
                 // Check for overlap with existing holy sites
-                foreach (var existingSite in _sitesByUID.Values)
+                var overlappingSiteName = FindOverlappingHolySite(serializableAreas);
+                if (overlappingSiteName != null)
                 {
-                    if (tempSite.Intersects(existingSite))
-                    {
-                        _logger.Warning(
-                            $"[DivineAscension] Holy site overlaps with existing site {existingSite.SiteName}");
-                        return null;
-                    }
+                    _logger.Warning($"[DivineAscension] Holy site overlaps with existing site {overlappingSiteName}");
+                    return null;
                 }
 
-                // Create final site with altar position
+                // Create final site
                 var siteUID = Guid.NewGuid().ToString();
                 var site = new HolySiteData(
                     siteUID,
@@ -298,21 +217,20 @@ public class HolySiteManager : IHolySiteManager
                     siteName,
                     serializableAreas,
                     founderUID,
-                    founderName)
+                    founderName);
+
+                // Set altar position if provided
+                if (altarPosition != null)
                 {
-                    AltarPosition = SerializableBlockPos.FromBlockPos(altarPosition)
-                };
+                    site.AltarPosition = SerializableBlockPos.FromBlockPos(altarPosition);
+                }
 
-                // Update indexes
-                _sitesByUID[siteUID] = site;
-                IndexSiteChunks(site);
+                // Register the site in indexes
+                RegisterNewHolySite(site, religionUID);
 
-                if (!_sitesByReligion.ContainsKey(religionUID))
-                    _sitesByReligion[religionUID] = new HashSet<string>();
-                _sitesByReligion[religionUID].Add(siteUID);
-
-                _logger.Notification(
-                    $"[DivineAscension] Holy site '{siteName}' consecrated with altar at {altarPosition}, tier {site.GetTier()}");
+                // Log creation
+                var altarInfo = altarPosition != null ? $" with altar at {altarPosition}" : $" with {site.Areas.Count} area(s)";
+                _logger.Notification($"[DivineAscension] Holy site '{siteName}' consecrated{altarInfo}, tier {site.GetTier()}");
 
                 SaveHolySites();
 
@@ -320,10 +238,69 @@ public class HolySiteManager : IHolySiteManager
             }
             catch (Exception ex)
             {
-                _logger.Error($"[DivineAscension] Error creating holy site with altar: {ex.Message}");
+                _logger.Error($"[DivineAscension] Error creating holy site: {ex.Message}");
                 return null;
             }
         }
+    }
+
+    /// <summary>
+    /// Validates inputs for holy site creation.
+    /// Returns an error message if validation fails, null if inputs are valid.
+    /// </summary>
+    internal static string? ValidateHolySiteCreationInputs(string? siteName, List<Cuboidi>? claimAreas)
+    {
+        if (string.IsNullOrWhiteSpace(siteName))
+        {
+            return "Holy site name cannot be empty";
+        }
+
+        if (claimAreas == null || claimAreas.Count == 0)
+        {
+            return "Claim areas cannot be empty";
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Finds the first existing holy site that overlaps with the given areas.
+    /// Returns the overlapping site's name, or null if no overlap.
+    /// </summary>
+    internal string? FindOverlappingHolySite(List<SerializableCuboidi> areas)
+    {
+        // Create temporary site for intersection checking
+        var tempSite = new HolySiteData(
+            "temp",
+            "temp",
+            "temp",
+            areas,
+            "temp",
+            "temp");
+
+        foreach (var existingSite in _sitesByUID.Values)
+        {
+            if (tempSite.Intersects(existingSite))
+            {
+                return existingSite.SiteName;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Registers a new holy site in all indexes.
+    /// Does not save to persistence - caller is responsible for calling SaveHolySites().
+    /// </summary>
+    internal void RegisterNewHolySite(HolySiteData site, string religionUID)
+    {
+        _sitesByUID[site.SiteUID] = site;
+        IndexSiteChunks(site);
+
+        if (!_sitesByReligion.ContainsKey(religionUID))
+            _sitesByReligion[religionUID] = new HashSet<string>();
+        _sitesByReligion[religionUID].Add(site.SiteUID);
     }
 
     /// <summary>
@@ -370,7 +347,7 @@ public class HolySiteManager : IHolySiteManager
 
     /// <summary>
     /// Renames a holy site.
-    /// Returns false if site not found.
+    /// Returns false if site not found or name is invalid.
     /// </summary>
     public bool RenameHolySite(string siteUID, string newName)
     {
@@ -384,8 +361,15 @@ public class HolySiteManager : IHolySiteManager
                     return false;
                 }
 
+                var validationError = ValidateHolySiteName(newName);
+                if (validationError != null)
+                {
+                    _logger.Warning($"[DivineAscension] {validationError}");
+                    return false;
+                }
+
                 var oldName = site.SiteName;
-                site.SiteName = newName;
+                ApplyHolySiteRename(site, newName);
 
                 _logger.Notification($"[DivineAscension] Holy site renamed from '{oldName}' to '{newName}'");
 
@@ -403,7 +387,7 @@ public class HolySiteManager : IHolySiteManager
 
     /// <summary>
     /// Updates the description of a holy site.
-    /// Returns false if site not found.
+    /// Returns false if site not found or description is invalid.
     /// </summary>
     public bool UpdateDescription(string siteUID, string description)
     {
@@ -417,7 +401,14 @@ public class HolySiteManager : IHolySiteManager
                     return false;
                 }
 
-                site.Description = description;
+                var validationError = ValidateHolySiteDescription(description);
+                if (validationError != null)
+                {
+                    _logger.Warning($"[DivineAscension] {validationError}");
+                    return false;
+                }
+
+                ApplyHolySiteDescriptionUpdate(site, description);
 
                 _logger.Notification($"[DivineAscension] Holy site '{site.SiteName}' description updated");
 
@@ -431,6 +422,58 @@ public class HolySiteManager : IHolySiteManager
                 return false;
             }
         }
+    }
+
+    /// <summary>
+    /// Validates a holy site name.
+    /// Returns an error message if invalid, null if valid.
+    /// </summary>
+    internal static string? ValidateHolySiteName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return "Holy site name cannot be empty";
+        }
+
+        if (name.Length > 50)
+        {
+            return "Holy site name cannot exceed 50 characters";
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Validates a holy site description.
+    /// Returns an error message if invalid, null if valid.
+    /// </summary>
+    internal static string? ValidateHolySiteDescription(string? description)
+    {
+        // Null/empty description is allowed (clears the description)
+        if (description != null && description.Length > 200)
+        {
+            return "Holy site description cannot exceed 200 characters";
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Applies a rename to a holy site.
+    /// Does not save to persistence - caller is responsible for calling SaveHolySites().
+    /// </summary>
+    internal static void ApplyHolySiteRename(HolySiteData site, string newName)
+    {
+        site.SiteName = newName;
+    }
+
+    /// <summary>
+    /// Applies a description update to a holy site.
+    /// Does not save to persistence - caller is responsible for calling SaveHolySites().
+    /// </summary>
+    internal static void ApplyHolySiteDescriptionUpdate(HolySiteData site, string description)
+    {
+        site.Description = description ?? string.Empty;
     }
 
     #endregion
