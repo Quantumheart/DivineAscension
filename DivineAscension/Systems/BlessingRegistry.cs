@@ -122,11 +122,19 @@ public class BlessingRegistry : IBlessingRegistry
     /// <summary>
     ///     Checks if a blessing can be unlocked by a player/religion
     /// </summary>
+    /// <param name="playerUID">The player's UID</param>
+    /// <param name="playerFavorRank">The player's current favor rank</param>
+    /// <param name="playerData">The player's progression data</param>
+    /// <param name="religionData">The player's religion data (can be null)</param>
+    /// <param name="blessing">The blessing to check</param>
+    /// <param name="skipCostCheck">If true, skips the cost check (use when cost will be deducted atomically)</param>
+    /// <returns>A tuple of (canUnlock, reason)</returns>
     public (bool canUnlock, string reason) CanUnlockBlessing(string playerUID,
         FavorRank playerFavorRank,
         PlayerProgressionData playerData,
         ReligionData? religionData,
-        Blessing? blessing)
+        Blessing? blessing,
+        bool skipCostCheck = false)
     {
         // Check if blessing exists
         if (blessing == null) return (false, "Blessing not found");
@@ -160,8 +168,8 @@ public class BlessingRegistry : IBlessingRegistry
                         return (false, $"Requires prerequisite blessing: {prereqName}");
                     }
 
-            // Check favor cost
-            if (blessing.Cost > 0 && playerData.Favor < blessing.Cost)
+            // Check favor cost (skip if cost will be deducted atomically)
+            if (!skipCostCheck && blessing.Cost > 0 && playerData.Favor < blessing.Cost)
                 return (false, $"Insufficient favor: requires {blessing.Cost}, have {playerData.Favor}");
 
             return (true, "Can unlock");
@@ -196,8 +204,8 @@ public class BlessingRegistry : IBlessingRegistry
                     return (false, $"Requires prerequisite blessing: {prereqName}");
                 }
 
-        // Check prestige cost
-        if (blessing.Cost > 0 && religionData.Prestige < blessing.Cost)
+        // Check prestige cost (skip if cost will be deducted atomically)
+        if (!skipCostCheck && blessing.Cost > 0 && religionData.Prestige < blessing.Cost)
             return (false, $"Insufficient prestige: requires {blessing.Cost}, have {religionData.Prestige}");
 
         return (true, "Can unlock");

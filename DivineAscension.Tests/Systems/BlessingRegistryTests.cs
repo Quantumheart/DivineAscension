@@ -519,6 +519,26 @@ public class BlessingRegistryTests
         Assert.Equal("Can unlock", reason);
     }
 
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_InsufficientFavor_WithSkipCostCheck_ReturnsTrue()
+    {
+        // Arrange - insufficient favor, but skipCostCheck=true should allow unlock
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid", favor: 30);
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Cost = 50; // More than available favor
+
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
+
+        // Act - pass skipCostCheck: true
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing, skipCostCheck: true);
+
+        // Assert - should return true because cost check is skipped
+        Assert.True(canUnlock);
+        Assert.Equal("Can unlock", reason);
+    }
+
     #endregion
 
     #region CanUnlockBlessing Tests - Religion Blessings
@@ -669,6 +689,26 @@ public class BlessingRegistryTests
         var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
 
         // Assert
+        Assert.True(canUnlock);
+        Assert.Equal("Can unlock", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_ReligionBlessing_InsufficientPrestige_WithSkipCostCheck_ReturnsTrue()
+    {
+        // Arrange - insufficient prestige, but skipCostCheck=true should allow unlock
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
+        religionData.AddPrestige(300); // Not enough for cost of 500
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Religion);
+        blessing.RequiredPrestigeRank = 0;
+        blessing.Cost = 500; // More than available prestige
+
+        // Act - pass skipCostCheck: true
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing, skipCostCheck: true);
+
+        // Assert - should return true because cost check is skipped
         Assert.True(canUnlock);
         Assert.Equal("Can unlock", reason);
     }

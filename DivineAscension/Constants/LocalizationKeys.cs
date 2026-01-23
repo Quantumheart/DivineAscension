@@ -780,6 +780,8 @@ public static class LocalizationKeys
     public const string CMD_BLESSING_SUCCESS_ADMIN_RESET = "divineascension:cmd.blessing.success.admin_reset";
     public const string CMD_BLESSING_SUCCESS_ADMIN_UNLOCKALL = "divineascension:cmd.blessing.success.admin_unlockall";
     public const string CMD_BLESSING_ERROR_ALREADY_UNLOCKED = "divineascension:cmd.blessing.error.already_unlocked";
+    public const string CMD_BLESSING_ERROR_INSUFFICIENT_FAVOR = "divineascension:cmd.blessing.error.insufficient_favor";
+    public const string CMD_BLESSING_ERROR_INSUFFICIENT_PRESTIGE = "divineascension:cmd.blessing.error.insufficient_prestige";
 
     #endregion
 

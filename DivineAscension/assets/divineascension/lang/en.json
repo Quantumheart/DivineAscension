@@ -859,6 +859,8 @@
   "divineascension:cmd.blessing.error.only_founder": "Only the religion founder can unlock religion blessings.",
   "divineascension:cmd.blessing.error.cannot_unlock": "Cannot unlock blessing: {0}",
   "divineascension:cmd.blessing.error.failed_to_unlock": "Failed to unlock blessing (may already be unlocked)",
+  "divineascension:cmd.blessing.error.insufficient_favor": "Insufficient favor: requires {0}, you have {1}",
+  "divineascension:cmd.blessing.error.insufficient_prestige": "Insufficient prestige: requires {0}, religion has {1}",
   "divineascension:cmd.blessing.usage.info": "Usage: /blessings info <blessingid>",
   "divineascension:cmd.blessing.success.unlocked_player": "Unlocked player blessing: {0}!",
   "divineascension:cmd.blessing.success.unlocked_religion": "Unlocked religion blessing: {0} for all members!",
