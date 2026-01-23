@@ -72,7 +72,9 @@ internal static class BlessingTabRenderer
         var actionsVm = new BlessingActionsViewModel(
             vm.SelectedBlessingState,
             ImGui.GetWindowPos().X + buttonX,
-            ImGui.GetWindowPos().Y + buttonY
+            ImGui.GetWindowPos().Y + buttonY,
+            vm.PlayerFavor,
+            vm.ReligionPrestige
         );
 
         var actionsResult = BlessingActionsRenderer.Draw(actionsVm);

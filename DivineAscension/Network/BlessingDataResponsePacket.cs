@@ -68,5 +68,7 @@ public class BlessingDataResponsePacket
         [ProtoMember(8)] public Dictionary<string, float> StatModifiers { get; set; } = new();
 
         [ProtoMember(9)] public string IconName { get; set; } = string.Empty;
+
+        [ProtoMember(10)] public int Cost { get; set; }
     }
 }
