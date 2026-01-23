@@ -30,7 +30,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     ///     Draws the blessings tab and processes all events
     /// </summary>
     public void DrawBlessingsTab(float windowPosX, float windowPosY, float width, float contentHeight, int windowWidth,
-        int windowHeight, float deltaTime)
+        int windowHeight, float deltaTime, int playerFavor, int religionPrestige)
     {
         var vm = new BlessingTabViewModel(
             windowPosX,
@@ -45,7 +45,9 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             State.PlayerBlessingStates,
             State.ReligionBlessingStates,
             State.TreeState.PlayerScrollState,
-            State.TreeState.ReligionScrollState
+            State.TreeState.ReligionScrollState,
+            playerFavor,
+            religionPrestige
         );
 
         var result = BlessingTabRenderer.DrawBlessingsTab(vm);

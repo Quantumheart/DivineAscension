@@ -9,7 +9,9 @@ internal readonly struct BlessingInfoViewModel(
     float x,
     float y,
     float width,
-    float height)
+    float height,
+    int playerFavor,
+    int religionPrestige)
 {
     public BlessingNodeState? SelectedBlessingState { get; } = selectedBlessingState;
     public Dictionary<string, BlessingNodeState> BlessingStates { get; } = blessingStates;
@@ -17,4 +19,6 @@ internal readonly struct BlessingInfoViewModel(
     public float Y { get; } = y;
     public float Width { get; } = width;
     public float Height { get; } = height;
+    public int PlayerFavor { get; } = playerFavor;
+    public int ReligionPrestige { get; } = religionPrestige;
 }

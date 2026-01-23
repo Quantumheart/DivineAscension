@@ -84,6 +84,33 @@ internal static class BlessingInfoSectionRequirements
                         prereqColorU32, prereqText);
                     currentY += 18f;
                 }
+
+            // Cost requirement (if blessing has a cost)
+            if (selectedState.Blessing.Cost > 0 && currentY < vm.Y + vm.Height - 20f)
+            {
+                string costText;
+                Vector4 costColor;
+
+                if (selectedState.Blessing.Kind == BlessingKind.Player)
+                {
+                    // Player blessing: cost in favor
+                    costText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_COST_FAVOR,
+                        selectedState.Blessing.Cost, vm.PlayerFavor);
+                    costColor = vm.PlayerFavor >= selectedState.Blessing.Cost ? ColorPalette.Green : ColorPalette.Red;
+                }
+                else
+                {
+                    // Religion blessing: cost in prestige
+                    costText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_COST_PRESTIGE,
+                        selectedState.Blessing.Cost, vm.ReligionPrestige);
+                    costColor = vm.ReligionPrestige >= selectedState.Blessing.Cost ? ColorPalette.Green : ColorPalette.Red;
+                }
+
+                var costColorU32 = ImGui.ColorConvertFloat4ToU32(costColor);
+                drawList.AddText(ImGui.GetFont(), 14f, new Vector2(vm.X + padding + 8, currentY),
+                    costColorU32, costText);
+                currentY += 18f;
+            }
         }
 
         return currentY;

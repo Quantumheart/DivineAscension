@@ -87,4 +87,11 @@ public class Blessing
     ///     List of special effect identifiers for complex blessing behaviors
     /// </summary>
     public List<string>? SpecialEffects { get; set; } = new();
+
+    /// <summary>
+    ///     Cost to unlock this blessing.
+    ///     For Player blessings: favor cost.
+    ///     For Religion blessings: prestige cost.
+    /// </summary>
+    public int Cost { get; set; }
 }

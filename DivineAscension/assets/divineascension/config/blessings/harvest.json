@@ -17,7 +17,8 @@
         "satiety": 0.10,
         "heatResistance": 3.0
       },
-      "specialEffects": ["light_warmth_bonus"]
+      "specialEffects": ["light_warmth_bonus"],
+      "cost": 50
     },
     {
       "blessingId": "aethra_bountiful_harvest",
@@ -34,7 +35,8 @@
         "seedDropChance": 0.15,
         "rareCropChance": 0.15
       },
-      "specialEffects": ["rare_crop_discovery"]
+      "specialEffects": ["rare_crop_discovery"],
+      "cost": 150
     },
     {
       "blessingId": "aethra_bakers_touch",
@@ -52,7 +54,8 @@
         "foodSpoilage": 0.20,
         "heatResistance": 5.0
       },
-      "specialEffects": ["food_spoilage_reduction"]
+      "specialEffects": ["food_spoilage_reduction"],
+      "cost": 150
     },
     {
       "blessingId": "aethra_master_farmer",
@@ -70,7 +73,8 @@
         "rareCropChance": 0.30,
         "wildCropDropRate": 0.40
       },
-      "specialEffects": ["rare_crop_discovery"]
+      "specialEffects": ["rare_crop_discovery"],
+      "cost": 400
     },
     {
       "blessingId": "aethra_divine_kitchen",
@@ -88,7 +92,8 @@
         "foodSpoilage": 0.30,
         "heatResistance": 7.0
       },
-      "specialEffects": ["temp_health_buff_5", "food_spoilage_reduction"]
+      "specialEffects": ["temp_health_buff_5", "food_spoilage_reduction"],
+      "cost": 400
     },
     {
       "blessingId": "aethra_avatar_of_abundance",
@@ -104,7 +109,8 @@
         "walkspeed": 0.08,
         "maxhealthExtraMultiplier": 0.10
       },
-      "specialEffects": ["never_malnourished", "blessed_meals"]
+      "specialEffects": ["never_malnourished", "blessed_meals"],
+      "cost": 800
     },
     {
       "blessingId": "aethra_community_farm",
@@ -120,7 +126,8 @@
         "cropYield": 0.10,
         "satiety": 0.08
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 500
     },
     {
       "blessingId": "aethra_harvest_festival",
@@ -137,7 +144,8 @@
         "satiety": 0.12,
         "foodSpoilage": 0.10
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 1500
     },
     {
       "blessingId": "aethra_land_of_plenty",
@@ -155,7 +163,8 @@
         "foodSpoilage": 0.18,
         "heatResistance": 5.0
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 4000
     },
     {
       "blessingId": "aethra_pantheon_of_light",
@@ -173,7 +182,8 @@
         "foodSpoilage": 0.25,
         "heatResistance": 8.0
       },
-      "specialEffects": ["sacred_granary"]
+      "specialEffects": ["sacred_granary"],
+      "cost": 8000
     }
   ]
 }

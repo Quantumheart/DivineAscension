@@ -17,7 +17,8 @@
         "diggingSpeed": 0.15,
         "walkspeed": 0.05
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 50
     },
     {
       "blessingId": "gaia_master_potter",
@@ -34,7 +35,8 @@
         "potteryBatchCompletionChance": 0.15,
         "diggingSpeed": 0.10
       },
-      "specialEffects": ["pottery_batch_completion_bonus"]
+      "specialEffects": ["pottery_batch_completion_bonus"],
+      "cost": 150
     },
     {
       "blessingId": "gaia_earthen_builder",
@@ -51,7 +53,8 @@
         "armorEffectiveness": 0.15,
         "diggingSpeed": 0.10
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 150
     },
     {
       "blessingId": "gaia_kiln_master",
@@ -68,7 +71,8 @@
         "potteryBatchCompletionChance": 0.25,
         "diggingSpeed": 0.15
       },
-      "specialEffects": ["pottery_batch_completion_bonus"]
+      "specialEffects": ["pottery_batch_completion_bonus"],
+      "cost": 400
     },
     {
       "blessingId": "gaia_clay_architect",
@@ -86,7 +90,8 @@
         "diggingSpeed": 0.15,
         "armorDurabilityLoss": -0.10
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 400
     },
     {
       "blessingId": "gaia_avatar_of_clay",
@@ -103,7 +108,8 @@
         "meleeWeaponsDamage": 0.10,
         "armorWalkSpeedAffectedness": -0.10
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 800
     },
     {
       "blessingId": "gaia_potters_circle",
@@ -119,7 +125,8 @@
         "stoneYield": 0.15,
         "diggingSpeed": 0.10
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 500
     },
     {
       "blessingId": "gaia_clay_guild",
@@ -136,7 +143,8 @@
         "diggingSpeed": 0.15,
         "armorEffectiveness": 0.10
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 1500
     },
     {
       "blessingId": "gaia_earthen_community",
@@ -153,7 +161,8 @@
         "diggingSpeed": 0.20,
         "armorEffectiveness": 0.15
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 4000
     },
     {
       "blessingId": "gaia_pantheon_of_clay",
@@ -169,7 +178,8 @@
         "maxhealthExtraMultiplier": 0.15,
         "armorEffectiveness": 0.10
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 8000
     }
   ]
 }

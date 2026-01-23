@@ -98,21 +98,29 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                         }
                         else
                         {
-                            success = _playerProgressionDataManager.UnlockPlayerBlessing(fromPlayer.PlayerUID,
-                                packet.BlessingId);
-                            if (success)
+                            // Deduct favor cost
+                            if (blessing.Cost > 0 && !playerData.RemoveFavor(blessing.Cost))
                             {
-                                _blessingEffectSystem.RefreshPlayerBlessings(fromPlayer.PlayerUID);
-                                message = LocalizationService.Instance.Get(
-                                    LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED, blessing.Name);
-
-                                // Notify player data changed (triggers event that sends HUD update to client)
-                                _playerProgressionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
+                                message = $"Failed to deduct favor cost of {blessing.Cost}";
                             }
                             else
                             {
-                                message = LocalizationService.Instance.Get(LocalizationKeys
-                                    .NET_BLESSING_FAILED_TO_UNLOCK);
+                                success = _playerProgressionDataManager.UnlockPlayerBlessing(fromPlayer.PlayerUID,
+                                    packet.BlessingId);
+                                if (success)
+                                {
+                                    _blessingEffectSystem.RefreshPlayerBlessings(fromPlayer.PlayerUID);
+                                    message = LocalizationService.Instance.Get(
+                                        LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED, blessing.Name);
+
+                                    // Notify player data changed (triggers event that sends HUD update to client)
+                                    _playerProgressionDataManager.NotifyPlayerDataChanged(fromPlayer.PlayerUID);
+                                }
+                                else
+                                {
+                                    message = LocalizationService.Instance.Get(LocalizationKeys
+                                        .NET_BLESSING_FAILED_TO_UNLOCK);
+                                }
                             }
                         }
                     }
@@ -130,11 +138,18 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                         }
                         else
                         {
-                            religion.UnlockBlessing(packet.BlessingId);
-                            _blessingEffectSystem.RefreshReligionBlessings(religion.ReligionUID);
-                            message = LocalizationService.Instance.Get(
-                                LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED_FOR_RELIGION, blessing.Name);
-                            success = true;
+                            // Deduct prestige cost
+                            if (blessing.Cost > 0 && !religion.RemovePrestige(blessing.Cost))
+                            {
+                                message = $"Failed to deduct prestige cost of {blessing.Cost}";
+                            }
+                            else
+                            {
+                                religion.UnlockBlessing(packet.BlessingId);
+                                _blessingEffectSystem.RefreshReligionBlessings(religion.ReligionUID);
+                                message = LocalizationService.Instance.Get(
+                                    LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED_FOR_RELIGION, blessing.Name);
+                                success = true;
 
                             // Notify all members
                             foreach (var memberUid in religion.MemberUIDs)
@@ -150,6 +165,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                                             LocalizationKeys.NET_BLESSING_UNLOCKED_NOTIFICATION, blessing.Name),
                                         EnumChatType.Notification
                                     );
+                            }
                             }
                         }
                     }

@@ -160,6 +160,10 @@ public class BlessingRegistry : IBlessingRegistry
                         return (false, $"Requires prerequisite blessing: {prereqName}");
                     }
 
+            // Check favor cost
+            if (blessing.Cost > 0 && playerData.Favor < blessing.Cost)
+                return (false, $"Insufficient favor: requires {blessing.Cost}, have {playerData.Favor}");
+
             return (true, "Can unlock");
         }
 
@@ -191,6 +195,10 @@ public class BlessingRegistry : IBlessingRegistry
                     var prereqName = prereqBlessing?.Name ?? prereqId;
                     return (false, $"Requires prerequisite blessing: {prereqName}");
                 }
+
+        // Check prestige cost
+        if (blessing.Cost > 0 && religionData.Prestige < blessing.Cost)
+            return (false, $"Insufficient prestige: requires {blessing.Cost}, have {religionData.Prestige}");
 
         return (true, "Can unlock");
     }

@@ -19,7 +19,9 @@ public readonly struct BlessingTabViewModel(
     Dictionary<string, BlessingNodeState> playerBlessingStates,
     Dictionary<string, BlessingNodeState> religionBlessingStates,
     ScrollState playerTreeScrollState,
-    ScrollState religionTreeScrollState
+    ScrollState religionTreeScrollState,
+    int playerFavor,
+    int religionPrestige
 )
 {
     // Layout
@@ -38,4 +40,6 @@ public readonly struct BlessingTabViewModel(
     public Dictionary<string, BlessingNodeState> ReligionBlessingStates { get; } = religionBlessingStates;
     public ScrollState PlayerTreeScrollState { get; } = playerTreeScrollState;
     public ScrollState ReligionTreeScrollState { get; } = religionTreeScrollState;
+    public int PlayerFavor { get; } = playerFavor;
+    public int ReligionPrestige { get; } = religionPrestige;
 }

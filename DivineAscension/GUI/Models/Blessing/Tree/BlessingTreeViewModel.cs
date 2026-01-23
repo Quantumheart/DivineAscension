@@ -17,4 +17,6 @@ public readonly record struct BlessingTreeViewModel(
     float Width,
     float Height,
     float DeltaTime,
-    string? SelectedBlessingId);
+    string? SelectedBlessingId,
+    int PlayerFavor,
+    int ReligionPrestige);

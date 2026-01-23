@@ -145,7 +145,7 @@ internal static class ReligionHeaderRenderer
         var favorLabelPos = new Vector2(currentX, progressY);
         var labelColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
         drawList.AddText(ImGui.GetFont(), 12f, favorLabelPos, labelColor,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PLAYER_PROGRESS));
+            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_RANK_PROGRESS));
 
         // Progress bar
         ProgressBarRenderer.DrawProgressBar(

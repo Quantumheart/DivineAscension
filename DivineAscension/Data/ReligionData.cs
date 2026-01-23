@@ -581,6 +581,26 @@ public class ReligionData
     }
 
     /// <summary>
+    ///     Removes prestige (for costs like unlocking religion blessings).
+    ///     Thread-safe.
+    /// </summary>
+    /// <param name="amount">Amount of prestige to remove</param>
+    /// <returns>True if successful, false if insufficient prestige</returns>
+    public bool RemovePrestige(int amount)
+    {
+        lock (Lock)
+        {
+            if (Prestige >= amount)
+            {
+                Prestige -= amount;
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    /// <summary>
     ///     Unlocks a blessing for this religion.
     ///     Thread-safe.
     /// </summary>

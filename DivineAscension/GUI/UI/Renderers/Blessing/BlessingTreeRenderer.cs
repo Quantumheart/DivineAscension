@@ -43,10 +43,11 @@ internal static class BlessingTreeRenderer
         var leftX = vm.X;
         var leftY = vm.Y;
 
-        // Draw label
+        // Draw label with favor balance
+        var favorText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_FAVOR_BALANCE, vm.PlayerFavor);
         DrawPanelLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_TREE_PLAYER_PANEL),
-            leftX, leftY, panelWidth);
+            leftX, leftY, panelWidth, favorText);
 
         // Draw tree area (use local variables for scroll offsets)
         var treeY = leftY + labelHeight;
@@ -71,10 +72,11 @@ internal static class BlessingTreeRenderer
         var rightX = dividerX + dividerWidth;
         var rightY = vm.Y;
 
-        // Draw label
+        // Draw label with prestige balance
+        var prestigeText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PRESTIGE_BALANCE, vm.ReligionPrestige);
         DrawPanelLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_TREE_RELIGION_PANEL),
-            rightX, rightY, panelWidth);
+            rightX, rightY, panelWidth, prestigeText);
 
         // Draw tree area (use local variables for scroll offsets)
         var rightPanel = DrawTreePanel(drawList,
@@ -111,11 +113,13 @@ internal static class BlessingTreeRenderer
     }
 
     /// <summary>
-    ///     Draw panel label header
+    ///     Draw panel label header with optional currency display
     /// </summary>
-    private static void DrawPanelLabel(ImDrawListPtr drawList, string label, float x, float y, float width)
+    private static void DrawPanelLabel(ImDrawListPtr drawList, string label, float x, float y, float width,
+        string? currencyText = null)
     {
         const float labelHeight = 30f;
+        const float padding = 8f;
 
         // Draw background
         var bgStart = new Vector2(x, y);
@@ -123,14 +127,36 @@ internal static class BlessingTreeRenderer
         var bgColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.16f, 0.12f, 0.09f, 0.8f));
         drawList.AddRectFilled(bgStart, bgEnd, bgColor);
 
-        // Draw text (centered)
-        var textSize = ImGui.CalcTextSize(label);
-        var textPos = new Vector2(
-            x + (width - textSize.X) / 2,
-            y + (labelHeight - textSize.Y) / 2
-        );
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorLabel);
-        drawList.AddText(ImGui.GetFont(), 16f, textPos, textColor, label);
+
+        if (string.IsNullOrEmpty(currencyText))
+        {
+            // Draw text (centered)
+            var textSize = ImGui.CalcTextSize(label);
+            var textPos = new Vector2(
+                x + (width - textSize.X) / 2,
+                y + (labelHeight - textSize.Y) / 2
+            );
+            drawList.AddText(ImGui.GetFont(), 16f, textPos, textColor, label);
+        }
+        else
+        {
+            // Draw label on the left
+            var labelSize = ImGui.CalcTextSize(label);
+            var labelPos = new Vector2(
+                x + padding,
+                y + (labelHeight - labelSize.Y) / 2
+            );
+            drawList.AddText(ImGui.GetFont(), 16f, labelPos, textColor, label);
+
+            // Draw currency on the right
+            var currencySize = ImGui.CalcTextSize(currencyText);
+            var currencyPos = new Vector2(
+                x + width - currencySize.X - padding,
+                y + (labelHeight - currencySize.Y) / 2
+            );
+            drawList.AddText(ImGui.GetFont(), 16f, currencyPos, textColor, currencyText);
+        }
     }
 
     /// <summary>

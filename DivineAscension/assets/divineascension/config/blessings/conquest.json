@@ -16,7 +16,8 @@
         "meleeWeaponsDamage": 0.08,
         "meleeWeaponsSpeed": 0.10
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 50
     },
     {
       "blessingId": "conquest_berserker_rage",
@@ -32,7 +33,8 @@
         "meleeWeaponsDamage": 0.10,
         "criticalHitChance": 0.05
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 150
     },
     {
       "blessingId": "conquest_iron_will",
@@ -48,7 +50,8 @@
         "maxhealthExtraMultiplier": 0.10,
         "damageReduction": 0.10
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 150
     },
     {
       "blessingId": "conquest_warlords_strike",
@@ -65,7 +68,8 @@
         "criticalHitChance": 0.08,
         "criticalHitDamage": 0.15
       },
-      "specialEffects": ["battle_fury"]
+      "specialEffects": ["battle_fury"],
+      "cost": 400
     },
     {
       "blessingId": "conquest_unyielding_fortitude",
@@ -81,7 +85,8 @@
         "maxhealthExtraMultiplier": 0.12,
         "damageReduction": 0.12
       },
-      "specialEffects": ["last_stand"]
+      "specialEffects": ["last_stand"],
+      "cost": 400
     },
     {
       "blessingId": "conquest_avatar_of_conquest",
@@ -97,7 +102,8 @@
         "killHealthRestore": 0.05,
         "walkspeed": 0.10
       },
-      "specialEffects": ["bloodlust"]
+      "specialEffects": ["bloodlust"],
+      "cost": 800
     },
     {
       "blessingId": "conquest_warband",
@@ -113,7 +119,8 @@
         "meleeWeaponsDamage": 0.08,
         "meleeWeaponsSpeed": 0.10
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 500
     },
     {
       "blessingId": "conquest_conquering_legion",
@@ -129,7 +136,8 @@
         "meleeWeaponsDamage": 0.10,
         "maxhealthExtraMultiplier": 0.08
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 1500
     },
     {
       "blessingId": "conquest_conquerors_banner",
@@ -146,7 +154,8 @@
         "maxhealthExtraMultiplier": 0.10,
         "damageReduction": 0.08
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 4000
     },
     {
       "blessingId": "conquest_pantheon_of_conquest",
@@ -163,7 +172,8 @@
         "walkspeed": 0.10,
         "damageReduction": 0.05
       },
-      "specialEffects": []
+      "specialEffects": [],
+      "cost": 8000
     }
   ]
 }
