@@ -6,7 +6,9 @@ using DivineAscension.Systems.HolySite;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
 using Moq;
+using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 using Xunit;
 
 namespace DivineAscension.Tests.Systems.HolySite;
@@ -184,6 +186,328 @@ public class HolySiteAreaTrackerTests
 
         // Assert
         Assert.Equal(0, eventCount);
+    }
+
+    #endregion
+
+    #region CheckPlayerPosition Tests
+
+    [Fact]
+    public void CheckPlayerPosition_NullEntity_DoesNotThrow()
+    {
+        // Arrange - Entity.Pos is not virtual so we can only test null entity case
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.Entity).Returns((EntityPlayer?)null);
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player1");
+
+        _tracker.Initialize();
+
+        // Act & Assert - should not throw and should return early
+        _tracker.CheckPlayerPosition(mockPlayer.Object);
+    }
+
+    #endregion
+
+    #region CheckPlayerPositionAt Tests
+
+    [Fact]
+    public void CheckPlayerPositionAt_EnteringHolySite_EmitsEnteredEvent()
+    {
+        // Arrange
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player1");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        var site = CreateTestSite("site1", "Test Temple");
+        var position = new BlockPos(10, 64, 10);
+
+        _mockHolySiteManager.Setup(m => m.GetHolySiteAtPosition(position)).Returns(site);
+
+        HolySiteData? enteredSite = null;
+        _tracker.OnPlayerEnteredHolySite += (_, s) => enteredSite = s;
+        _tracker.Initialize();
+
+        // Act
+        _tracker.CheckPlayerPositionAt(mockPlayer.Object, position);
+
+        // Assert
+        Assert.NotNull(enteredSite);
+        Assert.Equal("site1", enteredSite.SiteUID);
+    }
+
+    [Fact]
+    public void CheckPlayerPositionAt_ExitingHolySite_EmitsExitedEvent()
+    {
+        // Arrange
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player1");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        var site = CreateTestSite("site1", "Test Temple");
+        var insidePosition = new BlockPos(10, 64, 10);
+        var outsidePosition = new BlockPos(500, 64, 500);
+
+        _mockHolySiteManager.Setup(m => m.GetHolySiteAtPosition(insidePosition)).Returns(site);
+        _mockHolySiteManager.Setup(m => m.GetHolySiteAtPosition(outsidePosition)).Returns((HolySiteData?)null);
+        _mockHolySiteManager.Setup(m => m.GetHolySite("site1")).Returns(site);
+
+        HolySiteData? exitedSite = null;
+        _tracker.OnPlayerExitedHolySite += (_, s) => exitedSite = s;
+        _tracker.Initialize();
+
+        // First enter the site
+        _tracker.CheckPlayerPositionAt(mockPlayer.Object, insidePosition);
+
+        // Act - now exit the site
+        _tracker.CheckPlayerPositionAt(mockPlayer.Object, outsidePosition);
+
+        // Assert
+        Assert.NotNull(exitedSite);
+        Assert.Equal("site1", exitedSite.SiteUID);
+    }
+
+    [Fact]
+    public void CheckPlayerPositionAt_MovingBetweenSites_EmitsBothEvents()
+    {
+        // Arrange
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player1");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        var site1 = CreateTestSite("site1", "Temple One");
+        var site2 = CreateTestSite("site2", "Temple Two");
+        var position1 = new BlockPos(10, 64, 10);
+        var position2 = new BlockPos(200, 64, 200);
+
+        _mockHolySiteManager.Setup(m => m.GetHolySiteAtPosition(position1)).Returns(site1);
+        _mockHolySiteManager.Setup(m => m.GetHolySiteAtPosition(position2)).Returns(site2);
+        _mockHolySiteManager.Setup(m => m.GetHolySite("site1")).Returns(site1);
+        _mockHolySiteManager.Setup(m => m.GetHolySite("site2")).Returns(site2);
+
+        var enteredSites = new List<string>();
+        var exitedSites = new List<string>();
+        _tracker.OnPlayerEnteredHolySite += (_, s) => enteredSites.Add(s.SiteUID);
+        _tracker.OnPlayerExitedHolySite += (_, s) => exitedSites.Add(s.SiteUID);
+        _tracker.Initialize();
+
+        // Enter first site
+        _tracker.CheckPlayerPositionAt(mockPlayer.Object, position1);
+
+        // Act - move to second site
+        _tracker.CheckPlayerPositionAt(mockPlayer.Object, position2);
+
+        // Assert
+        Assert.Equal(2, enteredSites.Count);
+        Assert.Contains("site1", enteredSites);
+        Assert.Contains("site2", enteredSites);
+        Assert.Single(exitedSites);
+        Assert.Equal("site1", exitedSites[0]);
+    }
+
+    [Fact]
+    public void CheckPlayerPositionAt_StayingInSameSite_NoEvents()
+    {
+        // Arrange
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player1");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        var site = CreateTestSite("site1", "Test Temple");
+        var position1 = new BlockPos(10, 64, 10);
+        var position2 = new BlockPos(15, 64, 15); // Still inside same site
+
+        _mockHolySiteManager.Setup(m => m.GetHolySiteAtPosition(It.IsAny<BlockPos>())).Returns(site);
+
+        int enteredCount = 0;
+        int exitedCount = 0;
+        _tracker.OnPlayerEnteredHolySite += (_, _) => enteredCount++;
+        _tracker.OnPlayerExitedHolySite += (_, _) => exitedCount++;
+        _tracker.Initialize();
+
+        // Enter site
+        _tracker.CheckPlayerPositionAt(mockPlayer.Object, position1);
+
+        // Act - move within same site
+        _tracker.CheckPlayerPositionAt(mockPlayer.Object, position2);
+
+        // Assert - only one enter event, no exit
+        Assert.Equal(1, enteredCount);
+        Assert.Equal(0, exitedCount);
+    }
+
+    [Fact]
+    public void CheckPlayerPositionAt_StayingOutsideAllSites_NoEvents()
+    {
+        // Arrange
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player1");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        var position1 = new BlockPos(500, 64, 500);
+        var position2 = new BlockPos(600, 64, 600);
+
+        _mockHolySiteManager.Setup(m => m.GetHolySiteAtPosition(It.IsAny<BlockPos>()))
+            .Returns((HolySiteData?)null);
+
+        int enteredCount = 0;
+        int exitedCount = 0;
+        _tracker.OnPlayerEnteredHolySite += (_, _) => enteredCount++;
+        _tracker.OnPlayerExitedHolySite += (_, _) => exitedCount++;
+        _tracker.Initialize();
+
+        // Act
+        _tracker.CheckPlayerPositionAt(mockPlayer.Object, position1);
+        _tracker.CheckPlayerPositionAt(mockPlayer.Object, position2);
+
+        // Assert
+        Assert.Equal(0, enteredCount);
+        Assert.Equal(0, exitedCount);
+    }
+
+    [Fact]
+    public void CheckPlayerPositionAt_AfterEntering_GetPlayerCurrentSiteReturnsCorrectSite()
+    {
+        // Arrange
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player1");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        var site = CreateTestSite("site1", "Test Temple");
+        var position = new BlockPos(10, 64, 10);
+
+        _mockHolySiteManager.Setup(m => m.GetHolySiteAtPosition(position)).Returns(site);
+        _mockHolySiteManager.Setup(m => m.GetHolySite("site1")).Returns(site);
+
+        _tracker.Initialize();
+        _tracker.CheckPlayerPositionAt(mockPlayer.Object, position);
+
+        // Act
+        var currentSite = _tracker.GetPlayerCurrentSite("player1");
+
+        // Assert
+        Assert.NotNull(currentSite);
+        Assert.Equal("site1", currentSite.SiteUID);
+    }
+
+    [Fact]
+    public void CheckPlayerPositionAt_AfterExiting_GetPlayerCurrentSiteReturnsNull()
+    {
+        // Arrange
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player1");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        var site = CreateTestSite("site1", "Test Temple");
+        var insidePosition = new BlockPos(10, 64, 10);
+        var outsidePosition = new BlockPos(500, 64, 500);
+
+        _mockHolySiteManager.Setup(m => m.GetHolySiteAtPosition(insidePosition)).Returns(site);
+        _mockHolySiteManager.Setup(m => m.GetHolySiteAtPosition(outsidePosition)).Returns((HolySiteData?)null);
+        _mockHolySiteManager.Setup(m => m.GetHolySite("site1")).Returns(site);
+
+        _tracker.Initialize();
+        _tracker.CheckPlayerPositionAt(mockPlayer.Object, insidePosition);
+        _tracker.CheckPlayerPositionAt(mockPlayer.Object, outsidePosition);
+
+        // Act
+        var currentSite = _tracker.GetPlayerCurrentSite("player1");
+
+        // Assert
+        Assert.Null(currentSite);
+    }
+
+    #endregion
+
+    #region HandlePlayerExitFromHolySite Tests
+
+    [Fact]
+    public void HandlePlayerExitFromHolySite_PlayerNotTracked_NoEventEmitted()
+    {
+        // Arrange
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player1");
+
+        int exitCount = 0;
+        _tracker.OnPlayerExitedHolySite += (_, _) => exitCount++;
+        _tracker.Initialize();
+
+        // Act - player was never tracked
+        _tracker.HandlePlayerExitFromHolySite(mockPlayer.Object);
+
+        // Assert
+        Assert.Equal(0, exitCount);
+    }
+
+    [Fact]
+    public void HandlePlayerExitFromHolySite_PlayerTrackedInSite_EmitsExitEvent()
+    {
+        // Arrange
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player1");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        var site = CreateTestSite("site1", "Test Temple");
+        var position = new BlockPos(10, 64, 10);
+
+        _mockHolySiteManager.Setup(m => m.GetHolySiteAtPosition(position)).Returns(site);
+        _mockHolySiteManager.Setup(m => m.GetHolySite("site1")).Returns(site);
+
+        HolySiteData? exitedSite = null;
+        _tracker.OnPlayerExitedHolySite += (_, s) => exitedSite = s;
+        _tracker.Initialize();
+
+        // First enter the site
+        _tracker.CheckPlayerPositionAt(mockPlayer.Object, position);
+
+        // Act - simulate disconnect while in site
+        _tracker.HandlePlayerExitFromHolySite(mockPlayer.Object);
+
+        // Assert
+        Assert.NotNull(exitedSite);
+        Assert.Equal("site1", exitedSite.SiteUID);
+    }
+
+    [Fact]
+    public void HandlePlayerExitFromHolySite_RemovesPlayerFromTracking()
+    {
+        // Arrange
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player1");
+
+        _tracker.Initialize();
+
+        // Act
+        _tracker.HandlePlayerExitFromHolySite(mockPlayer.Object);
+
+        // Assert - GetPlayerCurrentSite should return null (player not tracked)
+        Assert.Null(_tracker.GetPlayerCurrentSite("player1"));
+    }
+
+    [Fact]
+    public void HandlePlayerExitFromHolySite_AfterTracked_ClearsFromTracking()
+    {
+        // Arrange
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player1");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+
+        var site = CreateTestSite("site1", "Test Temple");
+        var position = new BlockPos(10, 64, 10);
+
+        _mockHolySiteManager.Setup(m => m.GetHolySiteAtPosition(position)).Returns(site);
+        _mockHolySiteManager.Setup(m => m.GetHolySite("site1")).Returns(site);
+
+        _tracker.Initialize();
+        _tracker.CheckPlayerPositionAt(mockPlayer.Object, position);
+
+        // Verify player is tracked
+        Assert.NotNull(_tracker.GetPlayerCurrentSite("player1"));
+
+        // Act
+        _tracker.HandlePlayerExitFromHolySite(mockPlayer.Object);
+
+        // Assert - player should no longer be tracked
+        Assert.Null(_tracker.GetPlayerCurrentSite("player1"));
     }
 
     #endregion

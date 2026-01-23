@@ -4,6 +4,7 @@ using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
 using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Systems.HolySite;
@@ -124,13 +125,23 @@ public class HolySiteAreaTracker : IHolySiteAreaTracker
 
     /// <summary>
     /// Checks a player's position and emits enter/exit events as needed.
+    /// Extracts position from entity and delegates to CheckPlayerPositionAt.
     /// </summary>
-    private void CheckPlayerPosition(IServerPlayer player)
+    internal void CheckPlayerPosition(IServerPlayer player)
     {
         if (player.Entity == null) return;
 
-        var playerUID = player.PlayerUID;
         var currentPos = player.Entity.Pos.AsBlockPos;
+        CheckPlayerPositionAt(player, currentPos);
+    }
+
+    /// <summary>
+    /// Checks if a player at the given position should trigger enter/exit events.
+    /// Separated from CheckPlayerPosition for testability (Entity.Pos is not mockable).
+    /// </summary>
+    internal void CheckPlayerPositionAt(IServerPlayer player, BlockPos currentPos)
+    {
+        var playerUID = player.PlayerUID;
 
         // Use the optimized chunk-based lookup
         var currentSite = _holySiteManager.GetHolySiteAtPosition(currentPos);
@@ -171,6 +182,11 @@ public class HolySiteAreaTracker : IHolySiteAreaTracker
     /// Handles player disconnect by cleaning up tracking state.
     /// </summary>
     private void OnPlayerDisconnect(IServerPlayer player)
+    {
+        HandlePlayerExitFromHolySite(player);
+    }
+
+    internal void HandlePlayerExitFromHolySite(IServerPlayer player)
     {
         var playerUID = player.PlayerUID;
 

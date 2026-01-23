@@ -607,4 +607,541 @@ public class HolySiteManagerTests
         Assert.Equal(original.GetTotalVolume(), deserialized.GetTotalVolume());
     }
     #endregion
+
+    #region ValidateHolySiteCreationInputs Tests
+
+    [Fact]
+    public void ValidateHolySiteCreationInputs_ValidInputs_ReturnsNull()
+    {
+        var areas = CreateSingleArea(0, 0, 0, 31, 255, 31);
+
+        var result = HolySiteManager.ValidateHolySiteCreationInputs("Valid Name", areas);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void ValidateHolySiteCreationInputs_NullName_ReturnsError()
+    {
+        var areas = CreateSingleArea(0, 0, 0, 31, 255, 31);
+
+        var result = HolySiteManager.ValidateHolySiteCreationInputs(null, areas);
+
+        Assert.NotNull(result);
+        Assert.Contains("name cannot be empty", result);
+    }
+
+    [Fact]
+    public void ValidateHolySiteCreationInputs_EmptyName_ReturnsError()
+    {
+        var areas = CreateSingleArea(0, 0, 0, 31, 255, 31);
+
+        var result = HolySiteManager.ValidateHolySiteCreationInputs("", areas);
+
+        Assert.NotNull(result);
+        Assert.Contains("name cannot be empty", result);
+    }
+
+    [Fact]
+    public void ValidateHolySiteCreationInputs_WhitespaceName_ReturnsError()
+    {
+        var areas = CreateSingleArea(0, 0, 0, 31, 255, 31);
+
+        var result = HolySiteManager.ValidateHolySiteCreationInputs("   ", areas);
+
+        Assert.NotNull(result);
+        Assert.Contains("name cannot be empty", result);
+    }
+
+    [Fact]
+    public void ValidateHolySiteCreationInputs_NullAreas_ReturnsError()
+    {
+        var result = HolySiteManager.ValidateHolySiteCreationInputs("Valid Name", null);
+
+        Assert.NotNull(result);
+        Assert.Contains("areas cannot be empty", result);
+    }
+
+    [Fact]
+    public void ValidateHolySiteCreationInputs_EmptyAreas_ReturnsError()
+    {
+        var result = HolySiteManager.ValidateHolySiteCreationInputs("Valid Name", new List<Cuboidi>());
+
+        Assert.NotNull(result);
+        Assert.Contains("areas cannot be empty", result);
+    }
+
+    #endregion
+
+    #region FindOverlappingHolySite Tests
+
+    [Fact]
+    public void FindOverlappingHolySite_NoExistingSites_ReturnsNull()
+    {
+        _manager.Initialize();
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        var areas = new List<SerializableCuboidi>
+        {
+            new SerializableCuboidi(0, 0, 0, 31, 255, 31)
+        };
+
+        var result = _manager.FindOverlappingHolySite(areas);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void FindOverlappingHolySite_WithOverlap_ReturnsSiteName()
+    {
+        _manager.Initialize();
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        // Create an existing site
+        var existingAreas = CreateSingleArea(0, 0, 0, 31, 255, 31);
+        _manager.ConsecrateHolySite("rel1", "Existing Temple", existingAreas, "founder");
+
+        // Try to check overlap with an overlapping area
+        var newAreas = new List<SerializableCuboidi>
+        {
+            new SerializableCuboidi(10, 0, 10, 50, 255, 50) // Overlaps with existing
+        };
+
+        var result = _manager.FindOverlappingHolySite(newAreas);
+
+        Assert.NotNull(result);
+        Assert.Equal("Existing Temple", result);
+    }
+
+    [Fact]
+    public void FindOverlappingHolySite_NoOverlap_ReturnsNull()
+    {
+        _manager.Initialize();
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        // Create an existing site
+        var existingAreas = CreateSingleArea(0, 0, 0, 31, 255, 31);
+        _manager.ConsecrateHolySite("rel1", "Existing Temple", existingAreas, "founder");
+
+        // Check with non-overlapping area
+        var newAreas = new List<SerializableCuboidi>
+        {
+            new SerializableCuboidi(100, 0, 100, 131, 255, 131) // Far away
+        };
+
+        var result = _manager.FindOverlappingHolySite(newAreas);
+
+        Assert.Null(result);
+    }
+
+    #endregion
+
+    #region RegisterNewHolySite Tests
+
+    [Fact]
+    public void RegisterNewHolySite_AddsSiteToUIDIndex()
+    {
+        _manager.Initialize();
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        var site = new HolySiteData(
+            "site-uid-1",
+            "rel1",
+            "Test Temple",
+            new List<SerializableCuboidi> { new SerializableCuboidi(0, 0, 0, 31, 255, 31) },
+            "founder",
+            "Founder");
+
+        _manager.RegisterNewHolySite(site, "rel1");
+
+        var retrieved = _manager.GetHolySite("site-uid-1");
+        Assert.NotNull(retrieved);
+        Assert.Equal("Test Temple", retrieved.SiteName);
+    }
+
+    [Fact]
+    public void RegisterNewHolySite_AddsSiteToReligionIndex()
+    {
+        _manager.Initialize();
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        var site = new HolySiteData(
+            "site-uid-1",
+            "rel1",
+            "Test Temple",
+            new List<SerializableCuboidi> { new SerializableCuboidi(0, 0, 0, 31, 255, 31) },
+            "founder",
+            "Founder");
+
+        _manager.RegisterNewHolySite(site, "rel1");
+
+        var religionSites = _manager.GetReligionHolySites("rel1");
+        Assert.Single(religionSites);
+        Assert.Equal("site-uid-1", religionSites[0].SiteUID);
+    }
+
+    [Fact]
+    public void RegisterNewHolySite_IndexesChunksForPositionLookup()
+    {
+        _manager.Initialize();
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        var site = new HolySiteData(
+            "site-uid-1",
+            "rel1",
+            "Test Temple",
+            new List<SerializableCuboidi> { new SerializableCuboidi(0, 0, 0, 31, 255, 31) },
+            "founder",
+            "Founder");
+
+        _manager.RegisterNewHolySite(site, "rel1");
+
+        // Should be findable by position
+        var found = _manager.GetHolySiteAtPosition(new BlockPos(10, 64, 10));
+        Assert.NotNull(found);
+        Assert.Equal("site-uid-1", found.SiteUID);
+    }
+
+    #endregion
+
+    #region ConsecrateHolySiteInternal Tests
+
+    [Fact]
+    public void ConsecrateHolySiteInternal_ValidInputs_CreatesSite()
+    {
+        _manager.Initialize();
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        var areas = CreateSingleArea(0, 0, 0, 31, 255, 31);
+
+        var result = _manager.ConsecrateHolySiteInternal(
+            "rel1", "Test Temple", areas, "founder", "FounderName", null);
+
+        Assert.NotNull(result);
+        Assert.Equal("Test Temple", result.SiteName);
+        Assert.Null(result.AltarPosition);
+    }
+
+    [Fact]
+    public void ConsecrateHolySiteInternal_WithAltarPosition_SetsAltarPosition()
+    {
+        _manager.Initialize();
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        var areas = CreateSingleArea(0, 0, 0, 31, 255, 31);
+        var altarPos = new BlockPos(10, 64, 10);
+
+        var result = _manager.ConsecrateHolySiteInternal(
+            "rel1", "Test Temple", areas, "founder", "FounderName", altarPos);
+
+        Assert.NotNull(result);
+        Assert.NotNull(result.AltarPosition);
+        Assert.Equal(10, result.AltarPosition.X);
+        Assert.Equal(64, result.AltarPosition.Y);
+        Assert.Equal(10, result.AltarPosition.Z);
+    }
+
+    [Fact]
+    public void ConsecrateHolySiteInternal_InvalidName_ReturnsNull()
+    {
+        _manager.Initialize();
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        var areas = CreateSingleArea(0, 0, 0, 31, 255, 31);
+
+        var result = _manager.ConsecrateHolySiteInternal(
+            "rel1", "", areas, "founder", "FounderName", null);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void ConsecrateHolySiteInternal_NullAreas_ReturnsNull()
+    {
+        _manager.Initialize();
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        var result = _manager.ConsecrateHolySiteInternal(
+            "rel1", "Test Temple", null, "founder", "FounderName", null);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void ConsecrateHolySiteInternal_OverlappingSite_ReturnsNull()
+    {
+        _manager.Initialize();
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        // Create first site
+        var areas1 = CreateSingleArea(0, 0, 0, 31, 255, 31);
+        _manager.ConsecrateHolySiteInternal("rel1", "First Temple", areas1, "founder", "Founder", null);
+
+        // Increase prestige to allow more sites
+        var religion = new ReligionData("rel1", "Test", DeityDomain.Craft, "Deity", "founder", "Founder");
+        religion.PrestigeRank = PrestigeRank.Established;
+        _mockReligionManager.Setup(m => m.GetReligion("rel1")).Returns(religion);
+
+        // Try to create overlapping site
+        var areas2 = CreateSingleArea(10, 0, 10, 50, 255, 50);
+        var result = _manager.ConsecrateHolySiteInternal("rel1", "Second Temple", areas2, "founder", "Founder", null);
+
+        Assert.Null(result);
+    }
+
+    #endregion
+
+    #region ValidateHolySiteName Tests
+
+    [Fact]
+    public void ValidateHolySiteName_ValidName_ReturnsNull()
+    {
+        var result = HolySiteManager.ValidateHolySiteName("Valid Temple Name");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void ValidateHolySiteName_NullName_ReturnsError()
+    {
+        var result = HolySiteManager.ValidateHolySiteName(null);
+
+        Assert.NotNull(result);
+        Assert.Contains("cannot be empty", result);
+    }
+
+    [Fact]
+    public void ValidateHolySiteName_EmptyName_ReturnsError()
+    {
+        var result = HolySiteManager.ValidateHolySiteName("");
+
+        Assert.NotNull(result);
+        Assert.Contains("cannot be empty", result);
+    }
+
+    [Fact]
+    public void ValidateHolySiteName_WhitespaceName_ReturnsError()
+    {
+        var result = HolySiteManager.ValidateHolySiteName("   ");
+
+        Assert.NotNull(result);
+        Assert.Contains("cannot be empty", result);
+    }
+
+    [Fact]
+    public void ValidateHolySiteName_TooLongName_ReturnsError()
+    {
+        var longName = new string('A', 51); // 51 characters
+
+        var result = HolySiteManager.ValidateHolySiteName(longName);
+
+        Assert.NotNull(result);
+        Assert.Contains("cannot exceed 50 characters", result);
+    }
+
+    [Fact]
+    public void ValidateHolySiteName_MaxLengthName_ReturnsNull()
+    {
+        var maxName = new string('A', 50); // Exactly 50 characters
+
+        var result = HolySiteManager.ValidateHolySiteName(maxName);
+
+        Assert.Null(result);
+    }
+
+    #endregion
+
+    #region ValidateHolySiteDescription Tests
+
+    [Fact]
+    public void ValidateHolySiteDescription_ValidDescription_ReturnsNull()
+    {
+        var result = HolySiteManager.ValidateHolySiteDescription("A beautiful temple dedicated to the gods.");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void ValidateHolySiteDescription_NullDescription_ReturnsNull()
+    {
+        // Null is allowed (clears description)
+        var result = HolySiteManager.ValidateHolySiteDescription(null);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void ValidateHolySiteDescription_EmptyDescription_ReturnsNull()
+    {
+        // Empty is allowed (clears description)
+        var result = HolySiteManager.ValidateHolySiteDescription("");
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void ValidateHolySiteDescription_TooLongDescription_ReturnsError()
+    {
+        var longDescription = new string('A', 201); // 201 characters
+
+        var result = HolySiteManager.ValidateHolySiteDescription(longDescription);
+
+        Assert.NotNull(result);
+        Assert.Contains("cannot exceed 200 characters", result);
+    }
+
+    [Fact]
+    public void ValidateHolySiteDescription_MaxLengthDescription_ReturnsNull()
+    {
+        var maxDescription = new string('A', 200); // Exactly 200 characters
+
+        var result = HolySiteManager.ValidateHolySiteDescription(maxDescription);
+
+        Assert.Null(result);
+    }
+
+    #endregion
+
+    #region ApplyHolySiteRename Tests
+
+    [Fact]
+    public void ApplyHolySiteRename_UpdatesSiteName()
+    {
+        var site = new HolySiteData(
+            "site1", "rel1", "Old Name",
+            new List<SerializableCuboidi> { new SerializableCuboidi(0, 0, 0, 31, 255, 31) },
+            "founder", "Founder");
+
+        HolySiteManager.ApplyHolySiteRename(site, "New Name");
+
+        Assert.Equal("New Name", site.SiteName);
+    }
+
+    #endregion
+
+    #region ApplyHolySiteDescriptionUpdate Tests
+
+    [Fact]
+    public void ApplyHolySiteDescriptionUpdate_UpdatesDescription()
+    {
+        var site = new HolySiteData(
+            "site1", "rel1", "Temple",
+            new List<SerializableCuboidi> { new SerializableCuboidi(0, 0, 0, 31, 255, 31) },
+            "founder", "Founder");
+
+        HolySiteManager.ApplyHolySiteDescriptionUpdate(site, "A sacred place of worship.");
+
+        Assert.Equal("A sacred place of worship.", site.Description);
+    }
+
+    [Fact]
+    public void ApplyHolySiteDescriptionUpdate_NullDescription_SetsEmptyString()
+    {
+        var site = new HolySiteData(
+            "site1", "rel1", "Temple",
+            new List<SerializableCuboidi> { new SerializableCuboidi(0, 0, 0, 31, 255, 31) },
+            "founder", "Founder")
+        {
+            Description = "Existing description"
+        };
+
+        HolySiteManager.ApplyHolySiteDescriptionUpdate(site, null!);
+
+        Assert.Equal(string.Empty, site.Description);
+    }
+
+    [Fact]
+    public void ApplyHolySiteDescriptionUpdate_EmptyDescription_ClearsDescription()
+    {
+        var site = new HolySiteData(
+            "site1", "rel1", "Temple",
+            new List<SerializableCuboidi> { new SerializableCuboidi(0, 0, 0, 31, 255, 31) },
+            "founder", "Founder")
+        {
+            Description = "Existing description"
+        };
+
+        HolySiteManager.ApplyHolySiteDescriptionUpdate(site, "");
+
+        Assert.Equal("", site.Description);
+    }
+
+    #endregion
+
+    #region RenameHolySite Integration Tests
+
+    [Fact]
+    public void RenameHolySite_InvalidName_ReturnsFalse()
+    {
+        _manager.Initialize();
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        // Create a site first
+        var areas = CreateSingleArea(0, 0, 0, 31, 255, 31);
+        var site = _manager.ConsecrateHolySite("rel1", "Original Name", areas, "founder");
+        Assert.NotNull(site);
+
+        // Try to rename with invalid name
+        var result = _manager.RenameHolySite(site.SiteUID, "");
+
+        Assert.False(result);
+        // Name should be unchanged
+        var retrieved = _manager.GetHolySite(site.SiteUID);
+        Assert.Equal("Original Name", retrieved!.SiteName);
+    }
+
+    [Fact]
+    public void RenameHolySite_TooLongName_ReturnsFalse()
+    {
+        _manager.Initialize();
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        var areas = CreateSingleArea(0, 0, 0, 31, 255, 31);
+        var site = _manager.ConsecrateHolySite("rel1", "Original Name", areas, "founder");
+        Assert.NotNull(site);
+
+        var longName = new string('A', 51);
+        var result = _manager.RenameHolySite(site.SiteUID, longName);
+
+        Assert.False(result);
+    }
+
+    #endregion
+
+    #region UpdateDescription Integration Tests
+
+    [Fact]
+    public void UpdateDescription_TooLongDescription_ReturnsFalse()
+    {
+        _manager.Initialize();
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        var areas = CreateSingleArea(0, 0, 0, 31, 255, 31);
+        var site = _manager.ConsecrateHolySite("rel1", "Temple", areas, "founder");
+        Assert.NotNull(site);
+
+        var longDescription = new string('A', 201);
+        var result = _manager.UpdateDescription(site.SiteUID, longDescription);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void UpdateDescription_ValidDescription_ReturnsTrue()
+    {
+        _manager.Initialize();
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        var areas = CreateSingleArea(0, 0, 0, 31, 255, 31);
+        var site = _manager.ConsecrateHolySite("rel1", "Temple", areas, "founder");
+        Assert.NotNull(site);
+
+        var result = _manager.UpdateDescription(site.SiteUID, "A sacred place.");
+
+        Assert.True(result);
+        var retrieved = _manager.GetHolySite(site.SiteUID);
+        Assert.Equal("A sacred place.", retrieved!.Description);
+    }
+
+    #endregion
 }
