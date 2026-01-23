@@ -10,6 +10,7 @@ using DivineAscension.Services;
 using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems.Altar;
 using DivineAscension.Systems.BuffSystem;
+using DivineAscension.Systems.HolySite;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Server;
 using DivineAscension.Systems.Patches;
@@ -120,6 +121,14 @@ public static class DivineAscensionSystemInitializer
         // Subscribe to religion deletion events for cascading cleanup
         religionManager.OnReligionDeleted += holySiteManager.HandleReligionDeleted;
 
+        // Initialize Holy Site Area Tracker (tracks player enter/exit events for holy sites)
+        var holySiteAreaTracker = new HolySiteAreaTracker(
+            eventService,
+            worldService,
+            holySiteManager,
+            LoggingService.Instance.CreateLogger("HolySiteAreaTracker"));
+        holySiteAreaTracker.Initialize();
+
         // Initialize Altar Placement Handler (automatically creates holy sites when altars are placed)
         var altarPlacementHandler = new AltarPlacementHandler(
             LoggingService.Instance.CreateLogger("AltarPlacementHandler"),
@@ -149,7 +158,11 @@ public static class DivineAscensionSystemInitializer
             religionPrestigeManager,
             activityLogManager,
             gameBalanceConfig,
-            messengerService);
+            messengerService,
+            timeService);
+
+        // Set patrol dependencies before initialization
+        favorSystem.SetPatrolDependencies(holySiteAreaTracker, civilizationManager, holySiteManager);
         favorSystem.Initialize();
 
         // Create offering loader for JSON-based offering definitions (must be before AltarPrayerHandler)
@@ -358,6 +371,7 @@ public static class DivineAscensionSystemInitializer
             PlayerProgressionDataManager = playerReligionDataManager,
             ReligionPrestigeManager = religionPrestigeManager,
             HolySiteManager = holySiteManager,
+            HolySiteAreaTracker = holySiteAreaTracker,
             AltarPlacementHandler = altarPlacementHandler,
             AltarDestructionHandler = altarDestructionHandler,
             AltarPrayerHandler = altarPrayerHandler,
@@ -401,6 +415,7 @@ public class InitializationResult
     public PlayerProgressionDataManager PlayerProgressionDataManager { get; init; } = null!;
     public ReligionPrestigeManager ReligionPrestigeManager { get; init; } = null!;
     public IHolySiteManager HolySiteManager { get; init; } = null!;
+    public IHolySiteAreaTracker HolySiteAreaTracker { get; init; } = null!;
     public AltarPlacementHandler AltarPlacementHandler { get; init; } = null!;
     public AltarDestructionHandler AltarDestructionHandler { get; init; } = null!;
     public AltarPrayerHandler AltarPrayerHandler { get; init; } = null!;

@@ -34,7 +34,7 @@ public class PlayerProgressionDataTests
         Assert.Equal(0, data.Favor);
         Assert.Equal(0, data.TotalFavorEarned);
         Assert.Equal(0f, data.AccumulatedFractionalFavor);
-        Assert.Equal(3, data.DataVersion);
+        Assert.Equal(4, data.DataVersion);
         Assert.Empty(data.UnlockedBlessings);
     }
 

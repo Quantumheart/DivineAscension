@@ -84,7 +84,7 @@ public class DivineAscensionModSystem : ModSystem
     {
         base.Start(api);
         // Initialize logging service FIRST (before any logging occurs)
-        var loggingConfig = LoggingConfig.NoDebug(); // or LoggingConfig.Silent()
+        var loggingConfig = LoggingConfig.Default(); // or LoggingConfig.Silent()
         LoggingService.Instance.Initialize(api.Logger, loggingConfig);
         
         api.Logger.Notification("[DivineAscension] Mod loaded!");

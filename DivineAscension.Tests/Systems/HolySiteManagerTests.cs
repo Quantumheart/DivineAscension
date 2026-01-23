@@ -444,6 +444,110 @@ public class HolySiteManagerTests
     }
     #endregion
 
+    #region Chunk Index Optimization Tests
+
+    [Fact]
+    public void GetHolySiteAtPosition_WithNoSites_ReturnsNull()
+    {
+        _manager.Initialize();
+
+        // Position far from any sites - should be O(1) early exit
+        var result = _manager.GetHolySiteAtPosition(new BlockPos(5000, 100, 5000));
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void GetHolySiteAtPosition_MultipleChunks_FindsSiteSpanningChunks()
+    {
+        // Configure religion for max sites
+        var religion = new ReligionData("rel1", "Test Religion", DeityDomain.Craft, "Test Deity", "founder", "Founder");
+        religion.PrestigeRank = PrestigeRank.Mythic;
+        _mockReligionManager.Setup(m => m.GetReligion("rel1")).Returns(religion);
+        _manager.Initialize();
+
+        // Create a site that spans multiple chunks (chunks are 32x32)
+        // Area from x=0 to x=100 spans chunks 0, 1, 2, 3
+        var areas = CreateSingleArea(0, 0, 0, 100, 255, 100);
+        var site = _manager.ConsecrateHolySite("rel1", "Large Temple", areas, "founder");
+
+        // Test positions in different chunks within the area
+        Assert.NotNull(_manager.GetHolySiteAtPosition(new BlockPos(10, 100, 10)));   // Chunk (0, 0)
+        Assert.NotNull(_manager.GetHolySiteAtPosition(new BlockPos(50, 100, 50)));   // Chunk (1, 1)
+        Assert.NotNull(_manager.GetHolySiteAtPosition(new BlockPos(90, 100, 90)));   // Chunk (2, 2)
+    }
+
+    [Fact]
+    public void DeconsacrateHolySite_CleansUpChunkIndex()
+    {
+        _manager.Initialize();
+        var areas = CreateSingleArea(0, 0, 0, 31, 255, 31);
+        var site = _manager.ConsecrateHolySite("rel1", "Temple", areas, "founder");
+
+        // Verify site is found at position
+        Assert.NotNull(_manager.GetHolySiteAtPosition(new BlockPos(10, 100, 10)));
+
+        // Deconsecrate the site
+        _manager.DeconsacrateHolySite(site!.SiteUID);
+
+        // Verify position lookup now returns null (chunk index should be cleaned up)
+        Assert.Null(_manager.GetHolySiteAtPosition(new BlockPos(10, 100, 10)));
+    }
+
+    [Fact]
+    public void OnSaveGameLoaded_RebuildsChunkIndex()
+    {
+        var areas = new List<SerializableCuboidi>
+        {
+            new SerializableCuboidi(0, 0, 0, 31, 255, 31)
+        };
+        var data = new HolySiteWorldData
+        {
+            HolySites = new List<HolySiteData>
+            {
+                new("site1", "rel1", "Temple", areas, "founder", "Founder")
+            }
+        };
+        _fakePersistenceService.Save("divineascension_holy_sites", data);
+        _manager.Initialize();
+
+        // Trigger reload
+        _fakeEventService.TriggerSaveGameLoaded();
+
+        // Verify chunk index was rebuilt - site should be findable
+        var site = _manager.GetHolySiteAtPosition(new BlockPos(10, 100, 10));
+        Assert.NotNull(site);
+        Assert.Equal("site1", site.SiteUID);
+    }
+
+    [Fact]
+    public void GetHolySiteAtPosition_WithMultipleSitesInDifferentChunks_FindsCorrectSite()
+    {
+        // Configure religion for max sites
+        var religion = new ReligionData("rel1", "Test Religion", DeityDomain.Craft, "Test Deity", "founder", "Founder");
+        religion.PrestigeRank = PrestigeRank.Mythic;
+        _mockReligionManager.Setup(m => m.GetReligion("rel1")).Returns(religion);
+        _manager.Initialize();
+
+        // Create two sites in different locations
+        var areas1 = CreateSingleArea(0, 0, 0, 31, 255, 31);       // Chunk (0, 0)
+        var site1 = _manager.ConsecrateHolySite("rel1", "Temple 1", areas1, "founder");
+
+        var areas2 = CreateSingleArea(500, 0, 500, 531, 255, 531);  // Chunk (15, 15)
+        var site2 = _manager.ConsecrateHolySite("rel1", "Temple 2", areas2, "founder");
+
+        // Verify correct site is returned for each position
+        var foundSite1 = _manager.GetHolySiteAtPosition(new BlockPos(10, 100, 10));
+        var foundSite2 = _manager.GetHolySiteAtPosition(new BlockPos(510, 100, 510));
+
+        Assert.NotNull(foundSite1);
+        Assert.NotNull(foundSite2);
+        Assert.Equal("Temple 1", foundSite1.SiteName);
+        Assert.Equal("Temple 2", foundSite2.SiteName);
+    }
+
+    #endregion
+
     #region Persistence Tests
     [Fact]
     public void ConsecrateHolySite_SavesData()

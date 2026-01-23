@@ -38,6 +38,10 @@ public class HolySiteManager : IHolySiteManager
 
     // Two indexes for O(1) lookups
     private readonly ConcurrentDictionary<string, HolySiteData> _sitesByUID = new();
+
+    // Chunk-based spatial index for O(1) position lookups
+    // Maps chunk coordinates to the set of holy site UIDs that overlap that chunk
+    private readonly Dictionary<(int chunkX, int chunkZ), HashSet<string>> _sitesByChunk = new();
     private readonly IWorldService _worldService;
 
     /// <summary>
@@ -203,6 +207,7 @@ public class HolySiteManager : IHolySiteManager
 
                 // Update indexes
                 _sitesByUID[siteUID] = site;
+                IndexSiteChunks(site);
 
                 if (!_sitesByReligion.ContainsKey(religionUID))
                     _sitesByReligion[religionUID] = new HashSet<string>();
@@ -299,6 +304,7 @@ public class HolySiteManager : IHolySiteManager
 
                 // Update indexes
                 _sitesByUID[siteUID] = site;
+                IndexSiteChunks(site);
 
                 if (!_sitesByReligion.ContainsKey(religionUID))
                     _sitesByReligion[religionUID] = new HashSet<string>();
@@ -329,11 +335,15 @@ public class HolySiteManager : IHolySiteManager
         {
             try
             {
-                if (!_sitesByUID.TryRemove(siteUID, out var site))
+                if (!_sitesByUID.TryGetValue(siteUID, out var site))
                 {
                     _logger.Warning($"[DivineAscension] Holy site {siteUID} not found");
                     return false;
                 }
+
+                // Remove from chunk index before removing from main index
+                RemoveSiteFromChunkIndex(site);
+                _sitesByUID.TryRemove(siteUID, out _);
 
                 // Remove from religion index
                 if (_sitesByReligion.TryGetValue(site.ReligionUID, out var sites))
@@ -439,13 +449,52 @@ public class HolySiteManager : IHolySiteManager
 
     /// <summary>
     /// Gets the holy site at a specific block position.
+    /// Uses chunk-based spatial index for O(1) lookup when player is far from all sites.
     /// </summary>
     public HolySiteData? GetHolySiteAtPosition(BlockPos pos)
     {
-        foreach (var site in _sitesByUID.Values)
+        var chunkKey = GetChunkKey(pos);
+
+        // O(1) lookup: check if any sites overlap this chunk
+        if (!_sitesByChunk.TryGetValue(chunkKey, out var candidateSites))
         {
-            if (site.ContainsPosition(pos))
+            return null; // No sites in this chunk - early exit
+        }
+
+        // O(k) where k is typically 0-2 sites: verify exact containment
+        foreach (var siteUID in candidateSites)
+        {
+            if (_sitesByUID.TryGetValue(siteUID, out var site) && site.ContainsPosition(pos))
+            {
                 return site;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the holy site at a specific block position, checking only X and Z coordinates.
+    /// Ignores Y coordinate - useful for tracking player presence regardless of vertical position.
+    /// Uses chunk-based spatial index for O(1) lookup when player is far from all sites.
+    /// </summary>
+    public HolySiteData? GetHolySiteAtPositionXZ(BlockPos pos)
+    {
+        var chunkKey = GetChunkKey(pos);
+
+        // O(1) lookup: check if any sites overlap this chunk
+        if (!_sitesByChunk.TryGetValue(chunkKey, out var candidateSites))
+        {
+            return null; // No sites in this chunk - early exit
+        }
+
+        // O(k) where k is typically 0-2 sites: verify exact XZ containment
+        foreach (var siteUID in candidateSites)
+        {
+            if (_sitesByUID.TryGetValue(siteUID, out var site) && site.ContainsPositionXZ(pos))
+            {
+                return site;
+            }
         }
 
         return null;
@@ -508,6 +557,96 @@ public class HolySiteManager : IHolySiteManager
 
     #endregion
 
+    #region Chunk Index Methods
+
+    /// <summary>
+    /// Gets the chunk key for a block position.
+    /// Vintage Story chunks are 32x32, so we use bit shift for speed.
+    /// </summary>
+    private static (int chunkX, int chunkZ) GetChunkKey(BlockPos pos) => (pos.X >> 5, pos.Z >> 5);
+
+    /// <summary>
+    /// Gets the chunk key for raw coordinates.
+    /// </summary>
+    private static (int chunkX, int chunkZ) GetChunkKey(int x, int z) => (x >> 5, z >> 5);
+
+    /// <summary>
+    /// Indexes a holy site's areas into the chunk map.
+    /// Must be called within a lock context.
+    /// </summary>
+    private void IndexSiteChunks(HolySiteData site)
+    {
+        foreach (var area in site.Areas)
+        {
+            // Use Min/Max because X1/X2 and Z1/Z2 aren't guaranteed to be ordered
+            int minCX = Math.Min(area.X1, area.X2) >> 5;
+            int maxCX = Math.Max(area.X1, area.X2) >> 5;
+            int minCZ = Math.Min(area.Z1, area.Z2) >> 5;
+            int maxCZ = Math.Max(area.Z1, area.Z2) >> 5;
+
+            for (int cx = minCX; cx <= maxCX; cx++)
+            {
+                for (int cz = minCZ; cz <= maxCZ; cz++)
+                {
+                    var key = (cx, cz);
+                    if (!_sitesByChunk.TryGetValue(key, out var sites))
+                    {
+                        _sitesByChunk[key] = sites = new HashSet<string>();
+                    }
+
+                    sites.Add(site.SiteUID);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Removes a holy site from the chunk index.
+    /// Must be called within a lock context.
+    /// </summary>
+    private void RemoveSiteFromChunkIndex(HolySiteData site)
+    {
+        foreach (var area in site.Areas)
+        {
+            // Use Min/Max because X1/X2 and Z1/Z2 aren't guaranteed to be ordered
+            int minCX = Math.Min(area.X1, area.X2) >> 5;
+            int maxCX = Math.Max(area.X1, area.X2) >> 5;
+            int minCZ = Math.Min(area.Z1, area.Z2) >> 5;
+            int maxCZ = Math.Max(area.Z1, area.Z2) >> 5;
+
+            for (int cx = minCX; cx <= maxCX; cx++)
+            {
+                for (int cz = minCZ; cz <= maxCZ; cz++)
+                {
+                    var key = (cx, cz);
+                    if (_sitesByChunk.TryGetValue(key, out var sites))
+                    {
+                        sites.Remove(site.SiteUID);
+                        if (sites.Count == 0)
+                        {
+                            _sitesByChunk.Remove(key);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Rebuilds the entire chunk index from scratch.
+    /// Must be called within a lock context.
+    /// </summary>
+    private void RebuildChunkIndex()
+    {
+        _sitesByChunk.Clear();
+        foreach (var site in _sitesByUID.Values)
+        {
+            IndexSiteChunks(site);
+        }
+    }
+
+    #endregion
+
     #region Cascading Deletion
 
     /// <summary>
@@ -557,10 +696,14 @@ public class HolySiteManager : IHolySiteManager
     {
         try
         {
-            if (!_sitesByUID.TryRemove(siteUID, out var site))
+            if (!_sitesByUID.TryGetValue(siteUID, out var site))
             {
                 return false;
             }
+
+            // Remove from chunk index before removing from main index
+            RemoveSiteFromChunkIndex(site);
+            _sitesByUID.TryRemove(siteUID, out _);
 
             // Remove from religion index
             if (_sitesByReligion.TryGetValue(site.ReligionUID, out var sites))
@@ -593,6 +736,7 @@ public class HolySiteManager : IHolySiteManager
                 {
                     _sitesByUID.Clear();
                     _sitesByReligion.Clear();
+                    _sitesByChunk.Clear();
 
                     foreach (var site in data.HolySites)
                     {
@@ -609,6 +753,9 @@ public class HolySiteManager : IHolySiteManager
                             _sitesByReligion[site.ReligionUID] = new HashSet<string>();
                         _sitesByReligion[site.ReligionUID].Add(site.SiteUID);
                     }
+
+                    // Rebuild chunk index after loading all sites
+                    RebuildChunkIndex();
 
                     _logger.Notification($"[DivineAscension] Loaded {_sitesByUID.Count} holy sites");
                 }

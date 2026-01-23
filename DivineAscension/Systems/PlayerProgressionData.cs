@@ -87,10 +87,11 @@ public class PlayerProgressionData
 
 
     /// <summary>
-    ///     Data version for migration purposes
+    ///     Data version for migration purposes.
+    ///     Version 4: Added patrol system fields (PatrolComboCount, LastPatrolCompletionTime, PatrolPreviousMultiplier)
     /// </summary>
     [ProtoMember(104)]
-    public int DataVersion { get; set; } = 3;
+    public int DataVersion { get; set; } = 4;
 
     /// <summary>
     ///     Accumulated fractional favor (not yet awarded) for passive generation
@@ -122,6 +123,32 @@ public class PlayerProgressionData
     /// </summary>
     [ProtoMember(108)]
     public long NextPrayerAllowedTime { get; set; }
+
+    #region Patrol System Data
+
+    /// <summary>
+    ///     Current patrol combo count.
+    ///     Increments each time a patrol is completed successfully.
+    ///     Resets to 0 after combo timeout (2 hours).
+    /// </summary>
+    [ProtoMember(109)]
+    public int PatrolComboCount { get; set; }
+
+    /// <summary>
+    ///     Timestamp when the last patrol was completed (in elapsed milliseconds).
+    ///     Used to determine combo timeout and completion cooldown.
+    /// </summary>
+    [ProtoMember(110)]
+    public long LastPatrolCompletionTime { get; set; }
+
+    /// <summary>
+    ///     The multiplier value from the previous patrol completion.
+    ///     Used to detect tier changes for notifications.
+    /// </summary>
+    [ProtoMember(111)]
+    public float PatrolPreviousMultiplier { get; set; } = 1.0f;
+
+    #endregion
 
     /// <summary>
     ///     Adds favor and updates statistics.
