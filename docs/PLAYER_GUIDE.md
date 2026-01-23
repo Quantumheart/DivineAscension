@@ -576,15 +576,18 @@ Favor is earned by performing activities aligned with your deity's domain.
 ### Stone Domain (Pottery & Clay)
 
 **Primary Activities**:
-- 🏺 **Crafting Pottery**: Forming clay items (2-5 favor per craft, varies by complexity)
-- 🔥 **Firing Kilns**: Completing pit kiln firings (3-8 favor per firing)
-- 🧱 **Placing Bricks**: Building with clay bricks (2 favor per brick)
+- 🏺 **Crafting Pottery**: Forming clay items (clay consumed × 2 favor, e.g., storage vessel = 70 favor)
+- 🔥 **Firing Kilns**: Completing pit kiln firings (clay × 2 favor per item fired)
+- 🧱 **Placing Bricks**: Building with clay bricks (5 favor per brick)
+- 🪨 **Stone Gathering**: Mining stone blocks (1 favor per block)
+- 🔨 **Chiseling**: Carving stone blocks (0.02 favor per voxel, combo multipliers up to 2.5x)
 - ⚔️ **PvP**: Combat victories (10 favor per kill)
 
 **Tips**:
-- Focus on crafting storage vessels (5 favor) and planters (4 favor)
+- Focus on large clay items: storage vessels (70 favor) and planters (36 favor)
 - Batch fire pottery in pit kilns for efficient favor gains
-- Build with clay bricks for both favor and base construction
+- Build with clay bricks (5 favor each) for dual-purpose construction
+- Chisel continuously to build combo streaks for up to 2.5x favor multiplier
 
 ### Prayer (All Domains)
 
@@ -1258,10 +1261,10 @@ Press **`Shift+G`** to open the Divine Ascension interface.
 5. Build a Tier 3 holy site at your farm for prayers with food offerings (15+ favor per hour)
 
 **Stone Domain Followers**:
-1. Mass-produce storage vessels (5 favor each) and planters (4 favor)
-2. Batch fire pottery in pit kilns for efficient favor
-3. Build with clay bricks (2 favor per brick) for dual-purpose construction
-4. Keep clay digging and pottery crafting as regular routines
+1. Mass-produce storage vessels (70 favor each) and planters (36 favor) - highest favor items
+2. Batch fire pottery in pit kilns for efficient favor (clay × 2 per item)
+3. Build with clay bricks (5 favor per brick) for dual-purpose construction
+4. Chisel decorative stonework to build combo streaks (up to 2.5x multiplier at 21+ actions)
 5. Build a Tier 3 holy site at your pottery workshop for prayers (15 favor per hour)
 
 ### Religion Management
