@@ -1557,6 +1557,7 @@ public static class LocalizationKeys
     public const string PRAYER_ALTAR_NOT_CONSECRATED = "divineascension:prayer.altar.not_consecrated";
     public const string PRAYER_NO_RELIGION = "divineascension:prayer.no_religion";
     public const string PRAYER_WRONG_RELIGION = "divineascension:prayer.wrong_religion";
+    public const string PRAYER_WRONG_DOMAIN = "divineascension:prayer.wrong_domain";
     public const string PRAYER_COOLDOWN = "divineascension:prayer.cooldown";
     public const string PRAYER_OFFERING_TIER_REJECTED = "divineascension:prayer.offering.tier_rejected";
 

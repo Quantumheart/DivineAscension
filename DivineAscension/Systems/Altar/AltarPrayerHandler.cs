@@ -129,11 +129,21 @@ public class AltarPrayerHandler : IDisposable
                 Message: LocalizationService.Instance.Get(LocalizationKeys.PRAYER_NO_RELIGION));
         }
 
+        // Check if player can pray at this holy site:
+        // 1. Same religion (member of the religion that owns the holy site)
+        // 2. Same domain (player's religion worships the same deity domain)
         if (religion.ReligionUID != holySite.ReligionUID)
         {
-            return new PrayerResult(
-                Success: false,
-                Message: LocalizationService.Instance.Get(LocalizationKeys.PRAYER_WRONG_RELIGION));
+            // Not a member - check if same domain allows prayer
+            var holySiteOwnerReligion = _religionManager.GetReligion(holySite.ReligionUID);
+            var holySiteDomain = holySiteOwnerReligion?.Domain ?? DeityDomain.None;
+
+            if (religion.Domain != holySiteDomain || holySiteDomain == DeityDomain.None)
+            {
+                return new PrayerResult(
+                    Success: false,
+                    Message: LocalizationService.Instance.Get(LocalizationKeys.PRAYER_WRONG_DOMAIN));
+            }
         }
 
         // Check cooldown using expiry time from manager
