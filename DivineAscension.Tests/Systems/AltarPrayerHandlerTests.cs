@@ -149,24 +149,63 @@ public class AltarPrayerHandlerTests
     }
 
     [Fact]
-    public void ProcessPrayer_WrongReligion_ReturnsFailure()
+    public void ProcessPrayer_WrongDomain_ReturnsFailure()
     {
         // Arrange
         var altarPos = new BlockPos(100, 50, 100);
         var holySite = CreateHolySite("religion1");
-        var religion = CreateReligion("religion2", DeityDomain.Craft);
+        var holySiteOwnerReligion = CreateReligion("religion1", DeityDomain.Craft);
+        var playerReligion = CreateReligion("religion2", DeityDomain.Wild); // Different domain
 
         _holySiteManager.Setup(x => x.GetHolySiteByAltarPosition(altarPos))
             .Returns(holySite);
         _religionManager.Setup(x => x.GetPlayerReligion("player1"))
-            .Returns(religion);
+            .Returns(playerReligion);
+        _religionManager.Setup(x => x.GetReligion("religion1"))
+            .Returns(holySiteOwnerReligion);
 
         // Act
         var result = _handler.ProcessPrayer("player1", "TestPlayer", altarPos, null, 0);
 
         // Assert
         Assert.False(result.Success);
-        Assert.Equal("You can only pray at altars belonging to your religion.", result.Message);
+        Assert.Equal("You can only pray at altars of religions that worship the same deity domain.", result.Message);
+    }
+
+    [Fact]
+    public void ProcessPrayer_SameDomainDifferentReligion_ReturnsSuccess()
+    {
+        // Arrange
+        var altarPos = new BlockPos(100, 50, 100);
+        var holySite = CreateHolySite("religion1");
+        var holySiteOwnerReligion = CreateReligion("religion1", DeityDomain.Craft);
+        var playerReligion = CreateReligion("religion2", DeityDomain.Craft); // Same domain, different religion
+
+        _holySiteManager.Setup(x => x.GetHolySiteByAltarPosition(altarPos))
+            .Returns(holySite);
+        _religionManager.Setup(x => x.GetPlayerReligion("player1"))
+            .Returns(playerReligion);
+        _religionManager.Setup(x => x.GetReligion("religion1"))
+            .Returns(holySiteOwnerReligion);
+
+        // Act
+        var result = _handler.ProcessPrayer("player1", "TestPlayer", altarPos, null, 0);
+
+        // Assert
+        Assert.True(result.Success);
+        Assert.Equal(10, result.FavorAwarded); // BASE (5) * tier1 multiplier (2.0) = 10
+        Assert.Equal(10, result.PrestigeAwarded);
+        Assert.Equal(1, result.HolySiteTier);
+        Assert.True(result.ShouldUpdateCooldown);
+
+        // Verify progression was awarded using the holy site's religion (not the player's)
+        _progressionService.Verify(x => x.AwardProgressionForPrayer(
+            "player1",
+            "religion1", // Holy site's religion
+            10,
+            10,
+            DeityDomain.Craft,
+            It.IsAny<string>()), Times.Once);
     }
 
     // Note: Cooldown behavior is a side effect managed by OnAltarUsed, not ProcessPrayer.

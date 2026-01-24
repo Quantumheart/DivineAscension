@@ -1056,6 +1056,7 @@
   "divineascension:prayer.altar.not_consecrated": "This altar is not consecrated. It must be part of a holy site.",
   "divineascension:prayer.no_religion": "You must be in a religion to pray.",
   "divineascension:prayer.wrong_religion": "You can only pray at altars belonging to your religion.",
+  "divineascension:prayer.wrong_domain": "You can only pray at altars of religions that worship the same deity domain.",
   "divineascension:prayer.cooldown": "You must wait {0} more minute(s) before praying again.",
   "divineascension:prayer.offering.tier_rejected": "This holy site is not powerful enough to accept such a valuable offering.",
   "divineascension:prayer.success.with_offering": "Prayer accepted! +{0} favor, +{1} prestige (offering bonus: +{2} base, tier {3} x{4:F1}). Divine blessing active for 1 hour ({5:F2}x favor/prestige gains)!",
