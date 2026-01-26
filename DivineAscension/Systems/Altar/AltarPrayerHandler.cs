@@ -41,6 +41,7 @@ public class AltarPrayerHandler : IDisposable
     private const float RITUAL_CONTRIBUTION_MULTIPLIER = 0.5f; // 50% of normal favor for ritual contributions
     private readonly AltarEventEmitter _altarEventEmitter;
     private readonly IBuffManager _buffManager;
+    private readonly IChatCommandService _chatCommandService;
     private readonly GameBalanceConfig _config;
     private readonly IHolySiteManager _holySiteManager;
     private readonly ILoggerWrapper _logger;
@@ -68,7 +69,8 @@ public class AltarPrayerHandler : IDisposable
         AltarEventEmitter altarEventEmitter,
         IRitualProgressManager ritualProgressManager,
         IRitualLoader ritualLoader,
-        IWorldService worldService)
+        IWorldService worldService,
+        IChatCommandService chatCommandService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _offeringLoader = offeringLoader ?? throw new ArgumentNullException(nameof(offeringLoader));
@@ -86,6 +88,7 @@ public class AltarPrayerHandler : IDisposable
             ritualProgressManager ?? throw new ArgumentNullException(nameof(ritualProgressManager));
         _ritualLoader = ritualLoader ?? throw new ArgumentNullException(nameof(ritualLoader));
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
+        _chatCommandService = chatCommandService ?? throw new ArgumentNullException(nameof(chatCommandService));
     }
 
     public void Dispose()
@@ -455,6 +458,9 @@ public class AltarPrayerHandler : IDisposable
                 return;
             }
 
+            // Play prayer effects (animation, particles, sound)
+            PlayPrayerEffects(player, blockSel.Position, result.HolySiteTier);
+
             // Consume offering if needed
             if (result.ShouldConsumeOffering && player.Entity.RightHandItemSlot != null)
             {
@@ -526,5 +532,133 @@ public class AltarPrayerHandler : IDisposable
             return -1; // Special value to indicate "rejected by tier gate"
 
         return match.Value;
+    }
+
+    /// <summary>
+    /// Plays visual and audio effects for a successful prayer.
+    /// Triggers player bow emote, spawns tier-scaled particles, and plays divine sounds.
+    /// </summary>
+    /// <param name="player">The player who prayed</param>
+    /// <param name="altarPosition">Position of the altar block</param>
+    /// <param name="holySiteTier">Tier of the holy site (1=Shrine, 2=Temple, 3=Cathedral)</param>
+    internal void PlayPrayerEffects(IPlayer player, BlockPos altarPosition, int holySiteTier)
+    {
+        // Validate inputs
+        if (player?.Entity == null || holySiteTier < 1)
+        {
+            _logger.Debug("[DivineAscension] Skipping prayer effects - invalid player or tier");
+            return;
+        }
+
+        _logger.Notification($"[DivineAscension] Playing prayer effects for tier {holySiteTier} at {altarPosition}");
+
+        try
+        {
+            var world = _worldService.World;
+            if (world == null)
+            {
+                _logger.Error("[DivineAscension] World accessor is null!");
+                return;
+            }
+
+            // 1. Trigger bow emote via the ChatCommands service (handles network sync)
+            var serverPlayer = player as IServerPlayer;
+            if (serverPlayer != null)
+            {
+                _chatCommandService.ExecuteUnparsed("/emote bow", serverPlayer);
+                _logger.Notification("[DivineAscension] Triggered /emote bow via ChatCommandService");
+            }
+            else
+            {
+                _logger.Debug("[DivineAscension] Could not trigger emote - player is not IServerPlayer");
+            }
+
+            // 2. Spawn particles (pass null to send to all nearby players)
+            var particlePos = new Vec3d(
+                altarPosition.X + 0.5,
+                altarPosition.Y + 1.0,
+                altarPosition.Z + 0.5
+            );
+            _logger.Notification($"[DivineAscension] Spawning particles at {particlePos}");
+            var particleProps = CreateDivineParticles(holySiteTier, particlePos);
+            world.SpawnParticles(particleProps, null);
+
+            // 3. Play sound (pass null to send to all nearby players)
+            var soundAsset = GetBellSoundForTier(holySiteTier);
+            _logger.Notification($"[DivineAscension] Playing sound: {soundAsset}");
+            world.PlaySoundAt(
+                soundAsset,
+                altarPosition.X + 0.5,
+                altarPosition.Y + 0.5,
+                altarPosition.Z + 0.5,
+                null,   // null = send to all nearby players
+                false,  // randomizePitch
+                32f,    // range
+                1.0f    // volume
+            );
+
+            _logger.Notification("[DivineAscension] Prayer effects completed successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"[DivineAscension] Error playing prayer effects: {ex.Message}\n{ex.StackTrace}");
+        }
+    }
+
+    /// <summary>
+    /// Creates divine particle properties scaled by holy site tier.
+    /// Higher tiers produce more intense, longer-lasting particle effects.
+    /// </summary>
+    /// <param name="tier">Holy site tier (1-3)</param>
+    /// <param name="basePos">Base position to spawn particles at</param>
+    /// <returns>Configured particle properties with golden divine theme</returns>
+    internal SimpleParticleProperties CreateDivineParticles(int tier, Vec3d basePos)
+    {
+        // Tier-based scaling: quantity, lifetime, size
+        var (minQty, addQty, lifetime, minSize, maxSize) = tier switch
+        {
+            1 => (10f, 10f, 1.5f, 0.1f, 0.2f),   // Shrine: Subtle sparkles
+            2 => (20f, 20f, 2.0f, 0.15f, 0.3f),  // Temple: Medium glow
+            3 => (30f, 30f, 2.5f, 0.2f, 0.4f),   // Cathedral: Intense burst
+            _ => (10f, 10f, 1.5f, 0.1f, 0.2f)
+        };
+
+        // Golden/yellow color (ARGB format: Alpha, Red, Green, Blue)
+        var color = ColorUtil.ToRgba(255, 255, 200, 50); // Bright golden yellow
+
+        var particles = new SimpleParticleProperties
+        {
+            MinQuantity = minQty,
+            AddQuantity = addQty,
+            Color = color,
+            MinPos = basePos,
+            AddPos = new Vec3d(0.5, 0.5, 0.5),
+            MinVelocity = new Vec3f(0, 0.5f, 0),
+            AddVelocity = new Vec3f(0.2f, 0.5f, 0.2f),
+            LifeLength = lifetime,
+            GravityEffect = -0.1f,
+            MinSize = minSize,
+            MaxSize = maxSize,
+            ParticleModel = EnumParticleModel.Quad
+        };
+
+        return particles;
+    }
+
+    /// <summary>
+    /// Gets the appropriate sound effect for the holy site tier.
+    /// Uses vanilla Vintage Story collect sounds for satisfying feedback.
+    /// </summary>
+    /// <param name="tier">Holy site tier (1-3)</param>
+    /// <returns>Asset location for the sound effect</returns>
+    internal AssetLocation GetBellSoundForTier(int tier)
+    {
+        return tier switch
+        {
+            1 => new AssetLocation("game:sounds/player/collect1"),  // Soft chime
+            2 => new AssetLocation("game:sounds/player/collect2"),  // Medium chime
+            3 => new AssetLocation("game:sounds/player/collect3"),  // Rich chime
+            _ => new AssetLocation("game:sounds/player/collect1")
+        };
     }
 }
