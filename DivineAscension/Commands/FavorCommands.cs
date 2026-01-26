@@ -100,6 +100,12 @@ public class FavorCommands
             .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"), _sapi.ChatCommands.Parsers.OptionalWord("playername"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnSetTotalFavor)
+            .EndSubCommand()
+            .BeginSubCommand("resetcooldown")
+            .WithDescription("Resets the prayer cooldown for a player")
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("playername"))
+            .RequiresPrivilege(Privilege.root)
+            .HandleWith(OnResetCooldown)
             .EndSubCommand();
 
         _sapi.Logger.Notification("[DivineAscension] Favor commands registered");
@@ -476,6 +482,34 @@ public class FavorCommands
         var targetName = targetPlayerName != null ? $" for {targetPlayer?.PlayerName}" : "";
         return TextCommandResult.Success(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_MAX,
             targetName, oldFavor.ToString("N0")));
+    }
+
+    /// <summary>
+    ///     Resets the prayer cooldown for a player (Admin only)
+    /// </summary>
+    internal TextCommandResult OnResetCooldown(TextCommandCallingArgs args)
+    {
+        var player = args.Caller.Player as IServerPlayer;
+        if (player == null)
+            return TextCommandResult.Error(
+                LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_BE_PLAYER));
+
+        var targetPlayerName = (string)args[0];
+
+        // Resolve target player
+        var (targetPlayer, playerData, errorResult) = CommandHelpers.ResolveTargetPlayer(player, targetPlayerName,
+            _sapi, _playerProgressionDataManager, _religionManager);
+        if (errorResult is { Status: EnumCommandStatus.Error })
+            return errorResult;
+
+        // Get the actual player UID to reset
+        var targetUID = targetPlayer?.PlayerUID ?? player.PlayerUID;
+        var displayName = targetPlayerName ?? player.PlayerName;
+
+        // Reset cooldown by setting expiry to 0
+        _playerProgressionDataManager.SetPrayerCooldownExpiry(targetUID, 0);
+
+        return TextCommandResult.Success($"Prayer cooldown reset for {displayName}. They can pray again immediately.");
     }
 
     /// <summary>

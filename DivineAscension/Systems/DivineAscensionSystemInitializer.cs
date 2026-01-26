@@ -236,7 +236,8 @@ public static class DivineAscensionSystemInitializer
             altarEventEmitter,
             ritualProgressManager,
             ritualLoader,
-            worldService);
+            worldService,
+            commandService);
         altarPrayerHandler.Initialize();
 
         var diplomacyManager = new DiplomacyManager(LoggingService.Instance.CreateLogger("DiplomacyManager"), eventService, persistenceService, civilizationManager,

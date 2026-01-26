@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
 using Moq;
 using Vintagestory.API.Common;
+using Vintagestory.API.Server;
 
 namespace DivineAscension.Tests.Helpers;
 
@@ -13,6 +14,7 @@ public class FakeChatCommandService : IChatCommandService
 {
     public List<string> RegisteredCommands { get; } = new();
     public List<string> RegisteredSubCommands { get; } = new();
+    public List<(string CommandLine, IServerPlayer Player)> ExecutedCommands { get; } = new();
     private readonly Mock<ICommandBuilder> _mockBuilder;
 
     public FakeChatCommandService()
@@ -40,4 +42,9 @@ public class FakeChatCommandService : IChatCommandService
     }
 
     public CommandArgumentParsers Parsers => null!; // Not needed for basic registration tests
+
+    public void ExecuteUnparsed(string commandLine, IServerPlayer player)
+    {
+        ExecutedCommands.Add((commandLine, player));
+    }
 }
