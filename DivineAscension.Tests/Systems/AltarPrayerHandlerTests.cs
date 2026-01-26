@@ -11,6 +11,7 @@ using DivineAscension.Tests.Helpers;
 using Moq;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 
 namespace DivineAscension.Tests.Systems;
 
@@ -18,6 +19,7 @@ public class AltarPrayerHandlerTests
 {
     private readonly Mock<AltarEventEmitter> _altarEventEmitter;
     private readonly Mock<IBuffManager> _buffManager;
+    private readonly Mock<IChatCommandService> _chatCommandService;
     private readonly GameBalanceConfig _config;
     private readonly FakeEventService _eventService;
     private readonly AltarPrayerHandler _handler;
@@ -53,6 +55,7 @@ public class AltarPrayerHandlerTests
         _altarEventEmitter = new Mock<AltarEventEmitter>();
         _ritualLoader = new Mock<IRitualLoader>();
         _ritualProgressManager = new Mock<IRitualProgressManager>();
+        _chatCommandService = new Mock<IChatCommandService>();
 
         // Setup default: no cooldown active
         _progressionDataManager.Setup(x => x.GetPrayerCooldownExpiry(It.IsAny<string>()))
@@ -72,7 +75,8 @@ public class AltarPrayerHandlerTests
             _altarEventEmitter.Object,
             _ritualProgressManager.Object,
             _ritualLoader.Object,
-            _worldService.Object);
+            _worldService.Object,
+            _chatCommandService.Object);
 
         _handler.Initialize();
     }
@@ -302,4 +306,140 @@ public class AltarPrayerHandlerTests
         Assert.False(result.Success);
         Assert.Equal("You must wait 60 more minute(s) before praying again.", result.Message);
     }
+
+    [Fact]
+    public void PlayPrayerEffects_ValidPlayer_TriggersPlayerBowEmote()
+    {
+        // Arrange
+        var mockServerPlayer = new Mock<IServerPlayer>(MockBehavior.Loose);
+        var mockEntity = new Mock<EntityPlayer>(MockBehavior.Loose);
+        mockServerPlayer.Setup(p => p.Entity).Returns(mockEntity.Object);
+        var altarPos = new BlockPos(100, 64, 200);
+
+        var mockWorld = new Mock<IServerWorldAccessor>(MockBehavior.Loose);
+        _worldService.Setup(w => w.World).Returns(mockWorld.Object);
+
+        // Act
+        _handler.PlayPrayerEffects(mockServerPlayer.Object, altarPos, 1);
+
+        // Assert - IChatCommandService.ExecuteUnparsed is called with /emote bow
+        _chatCommandService.Verify(cmd => cmd.ExecuteUnparsed(
+            "/emote bow",
+            mockServerPlayer.Object), Times.Once);
+    }
+
+    [Fact]
+    public void PlayPrayerEffects_SpawnsParticles()
+    {
+        // Arrange
+        var mockServerPlayer = new Mock<IServerPlayer>(MockBehavior.Loose);
+        var mockEntity = new Mock<EntityPlayer>(MockBehavior.Loose);
+        mockServerPlayer.Setup(p => p.Entity).Returns(mockEntity.Object);
+        var altarPos = new BlockPos(100, 64, 200);
+
+        var mockWorld = new Mock<IServerWorldAccessor>(MockBehavior.Loose);
+        _worldService.Setup(w => w.World).Returns(mockWorld.Object);
+
+        // Act
+        _handler.PlayPrayerEffects(mockServerPlayer.Object, altarPos, 1);
+
+        // Assert - null player means send to all nearby players
+        mockWorld.Verify(w => w.SpawnParticles(
+            It.IsAny<SimpleParticleProperties>(),
+            null), Times.Once);
+    }
+
+    [Fact]
+    public void PlayPrayerEffects_PlaysSoundAtAltarPosition()
+    {
+        // Arrange
+        var mockServerPlayer = new Mock<IServerPlayer>(MockBehavior.Loose);
+        var mockEntity = new Mock<EntityPlayer>(MockBehavior.Loose);
+        mockServerPlayer.Setup(p => p.Entity).Returns(mockEntity.Object);
+        var altarPos = new BlockPos(100, 64, 200);
+
+        var mockWorld = new Mock<IServerWorldAccessor>(MockBehavior.Loose);
+        _worldService.Setup(w => w.World).Returns(mockWorld.Object);
+
+        // Act
+        _handler.PlayPrayerEffects(mockServerPlayer.Object, altarPos, 1);
+
+        // Assert - null player means send to all nearby players
+        mockWorld.Verify(w => w.PlaySoundAt(
+            It.IsAny<AssetLocation>(),
+            100.5, 64.5, 200.5,  // Center of block
+            null,   // null = send to all players
+            false,  // No pitch randomization
+            32f,    // Range
+            1.0f    // Volume
+        ), Times.Once);
+    }
+
+    [Fact]
+    public void PlayPrayerEffects_NullPlayer_DoesNotTriggerEffects()
+    {
+        // Arrange
+        var altarPos = new BlockPos(100, 64, 200);
+
+        // Act
+        _handler.PlayPrayerEffects(null!, altarPos, 1);
+
+        // Assert - no effects triggered
+        _worldService.Verify(w => w.SpawnParticles(
+            It.IsAny<SimpleParticleProperties>(),
+            It.IsAny<Vec3d>(),
+            It.IsAny<IPlayer>()), Times.Never);
+        _worldService.Verify(w => w.PlaySoundAt(
+            It.IsAny<AssetLocation>(),
+            It.IsAny<double>(),
+            It.IsAny<double>(),
+            It.IsAny<double>(),
+            It.IsAny<IServerPlayer>(),
+            It.IsAny<bool>(),
+            It.IsAny<float>(),
+            It.IsAny<float>()), Times.Never);
+    }
+
+    [Fact]
+    public void PlayPrayerEffects_InvalidTier_DoesNotTriggerEffects()
+    {
+        // Arrange
+        var mockServerPlayer = new Mock<IServerPlayer>(MockBehavior.Loose);
+        var mockEntity = new Mock<EntityPlayer>(MockBehavior.Loose);
+        mockServerPlayer.Setup(p => p.Entity).Returns(mockEntity.Object);
+        var altarPos = new BlockPos(100, 64, 200);
+
+        // Act
+        _handler.PlayPrayerEffects(mockServerPlayer.Object, altarPos, 0);
+
+        // Assert - no effects triggered (tier 0 is invalid, so no world access should occur)
+        _worldService.Verify(w => w.World, Times.Never);
+    }
+
+    [Theory]
+    [InlineData(1, "game:sounds/player/collect1")]
+    [InlineData(2, "game:sounds/player/collect2")]
+    [InlineData(3, "game:sounds/player/collect3")]
+    public void GetBellSoundForTier_ReturnsCorrectSound(int tier, string expectedPath)
+    {
+        // Act
+        var result = _handler.GetBellSoundForTier(tier);
+
+        // Assert
+        Assert.Equal(expectedPath, result.ToString());
+    }
+
+    [Fact]
+    public void CreateDivineParticles_ReturnsValidParticleProperties()
+    {
+        // Arrange
+        var basePos = new Vec3d(100, 64, 200);
+
+        // Act
+        var result = _handler.CreateDivineParticles(1, basePos);
+
+        // Assert
+        Assert.NotNull(result);
+    }
+
 }

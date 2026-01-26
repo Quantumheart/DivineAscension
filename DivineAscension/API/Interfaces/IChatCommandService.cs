@@ -20,6 +20,14 @@ public interface IChatCommandService
     /// Exposes QuotedString, OptionalQuotedString, Int, OptionalInt, etc.
     /// </summary>
     CommandArgumentParsers Parsers { get; }
+
+    /// <summary>
+    /// Executes a raw command string on behalf of a player.
+    /// Used for programmatically triggering commands like /emote.
+    /// </summary>
+    /// <param name="commandLine">Full command line (e.g., "/emote bow")</param>
+    /// <param name="player">The player to execute the command as</param>
+    void ExecuteUnparsed(string commandLine, IServerPlayer player);
 }
 
 /// <summary>
