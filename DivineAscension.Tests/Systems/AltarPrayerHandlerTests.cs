@@ -320,7 +320,7 @@ public class AltarPrayerHandlerTests
         _worldService.Setup(w => w.World).Returns(mockWorld.Object);
 
         // Act
-        _handler.PlayPrayerEffects(mockServerPlayer.Object, altarPos, 1);
+        _handler.PlayPrayerEffects(mockServerPlayer.Object, altarPos, 1, DeityDomain.Craft);
 
         // Assert - IChatCommandService.ExecuteUnparsed is called with /emote bow
         _chatCommandService.Verify(cmd => cmd.ExecuteUnparsed(
@@ -329,7 +329,7 @@ public class AltarPrayerHandlerTests
     }
 
     [Fact]
-    public void PlayPrayerEffects_SpawnsParticles()
+    public void PlayPrayerEffects_SpawnsParticlesFromAllFiveSidesAndTop()
     {
         // Arrange
         var mockServerPlayer = new Mock<IServerPlayer>(MockBehavior.Loose);
@@ -341,12 +341,12 @@ public class AltarPrayerHandlerTests
         _worldService.Setup(w => w.World).Returns(mockWorld.Object);
 
         // Act
-        _handler.PlayPrayerEffects(mockServerPlayer.Object, altarPos, 1);
+        _handler.PlayPrayerEffects(mockServerPlayer.Object, altarPos, 1, DeityDomain.Wild);
 
-        // Assert - null player means send to all nearby players
+        // Assert - particles spawn from all 4 sides + top of altar
         mockWorld.Verify(w => w.SpawnParticles(
             It.IsAny<SimpleParticleProperties>(),
-            null), Times.Once);
+            null), Times.Exactly(5));
     }
 
     [Fact]
@@ -362,16 +362,16 @@ public class AltarPrayerHandlerTests
         _worldService.Setup(w => w.World).Returns(mockWorld.Object);
 
         // Act
-        _handler.PlayPrayerEffects(mockServerPlayer.Object, altarPos, 1);
+        _handler.PlayPrayerEffects(mockServerPlayer.Object, altarPos, 1, DeityDomain.Harvest);
 
         // Assert - null player means send to all nearby players
         mockWorld.Verify(w => w.PlaySoundAt(
             It.IsAny<AssetLocation>(),
-            100.5, 64.5, 200.5,  // Center of block
-            null,   // null = send to all players
-            false,  // No pitch randomization
-            32f,    // Range
-            1.0f    // Volume
+            100.5, 64.5, 200.5, // Center of block
+            null, // null = send to all players
+            false, // No pitch randomization
+            32f, // Range
+            1.0f // Volume
         ), Times.Once);
     }
 
@@ -382,7 +382,7 @@ public class AltarPrayerHandlerTests
         var altarPos = new BlockPos(100, 64, 200);
 
         // Act
-        _handler.PlayPrayerEffects(null!, altarPos, 1);
+        _handler.PlayPrayerEffects(null!, altarPos, 1, DeityDomain.Craft);
 
         // Assert - no effects triggered
         _worldService.Verify(w => w.SpawnParticles(
@@ -410,7 +410,7 @@ public class AltarPrayerHandlerTests
         var altarPos = new BlockPos(100, 64, 200);
 
         // Act
-        _handler.PlayPrayerEffects(mockServerPlayer.Object, altarPos, 0);
+        _handler.PlayPrayerEffects(mockServerPlayer.Object, altarPos, 0, DeityDomain.Stone);
 
         // Assert - no effects triggered (tier 0 is invalid, so no world access should occur)
         _worldService.Verify(w => w.World, Times.Never);
@@ -434,12 +434,33 @@ public class AltarPrayerHandlerTests
     {
         // Arrange
         var basePos = new Vec3d(100, 64, 200);
+        var velocity = new Vec3f(0.5f, 0.5f, 0);
 
         // Act
-        var result = _handler.CreateDivineParticles(1, basePos);
+        var result = _handler.CreateDivineParticles(1, basePos, velocity, DeityDomain.Conquest);
 
         // Assert
         Assert.NotNull(result);
+        Assert.Equal(velocity, result.MinVelocity);
     }
 
+    [Theory]
+    [InlineData(DeityDomain.Craft)]
+    [InlineData(DeityDomain.Wild)]
+    [InlineData(DeityDomain.Conquest)]
+    [InlineData(DeityDomain.Harvest)]
+    [InlineData(DeityDomain.Stone)]
+    public void CreateDivineParticles_SetsDomainBasedColor(DeityDomain domain)
+    {
+        // Arrange
+        var basePos = new Vec3d(100, 64, 200);
+        var velocity = new Vec3f(0.5f, 0.5f, 0);
+
+        // Act
+        var result = _handler.CreateDivineParticles(1, basePos, velocity, domain);
+
+        // Assert - each domain should produce a non-zero color
+        Assert.NotNull(result);
+        Assert.NotEqual(0, result.Color);
+    }
 }
