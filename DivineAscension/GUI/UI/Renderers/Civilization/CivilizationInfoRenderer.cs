@@ -14,6 +14,7 @@ using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Services;
+using DivineAscension.Systems;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
@@ -67,8 +68,13 @@ internal static class CivilizationInfoRenderer
             drawList.AddRect(iconMin, iconMax, iconBorderColor, 4f, ImDrawFlags.None, 1f);
         }
 
-        // Draw civilization name next to icon
+        // Draw civilization name next to icon with rank
         TextRenderer.DrawLabel(drawList, vm.CivName, vm.X + iconSize + 12f, currentY + 4f, 18f, ColorPalette.White);
+        var civNameWidth = ImGui.CalcTextSize(vm.CivName).X * (18f / 14f); // Approximate scaled width
+        var rankName = RankRequirements.GetCivilizationRankName(vm.Rank);
+        var rankText = $"[{rankName}]";
+        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(vm.X + iconSize + 12f + civNameWidth + 8f, currentY + 6f),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), rankText);
         currentY += Math.Max(iconSize + 4f, 32f);
 
         // Info grid

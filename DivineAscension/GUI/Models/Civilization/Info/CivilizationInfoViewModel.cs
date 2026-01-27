@@ -13,6 +13,7 @@ public readonly struct CivilizationInfoViewModel(
     string descriptionText,
     string founderName,
     bool isFounder,
+    int rank,
     IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> memberReligions,
     string inviteReligionName,
     bool showDisbandConfirm,
@@ -33,6 +34,7 @@ public readonly struct CivilizationInfoViewModel(
     public string DescriptionText { get; } = descriptionText;
     public string FounderName { get; } = founderName;
     public bool IsFounder { get; } = isFounder;
+    public int Rank { get; } = rank;
     public IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> MemberReligions { get; } = memberReligions;
     public string InviteReligionName { get; } = inviteReligionName;
     public bool ShowDisbandConfirm { get; } = showDisbandConfirm;

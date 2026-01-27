@@ -10,6 +10,7 @@ public readonly struct CivilizationDetailViewModel(
     string civName,
     string founderName,
     string founderReligionName,
+    int rank,
     IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> memberReligions,
     DateTime createdDate,
     string description,
@@ -25,6 +26,7 @@ public readonly struct CivilizationDetailViewModel(
     public string CivName { get; } = civName;
     public string FounderName { get; } = founderName;
     public string FounderReligionName { get; } = founderReligionName;
+    public int Rank { get; } = rank;
     public IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> MemberReligions { get; } = memberReligions;
     public DateTime CreatedDate { get; } = createdDate;
     public string Description { get; } = description;
