@@ -56,6 +56,12 @@ public class CivilizationInfoResponsePacket
         /// </summary>
         [ProtoMember(12)]
         public bool IsFounder { get; set; }
+
+        /// <summary>
+        ///     The civilization's current rank based on milestone completion
+        /// </summary>
+        [ProtoMember(13)]
+        public int Rank { get; set; }
     }
 
     /// <summary>

@@ -178,6 +178,7 @@ public class CivilizationNetworkHandler(
             Icon = civ.Icon,
             Description = civ.Description,
             IsFounder = civ.IsFounder(fromPlayer.PlayerUID),
+            Rank = (int)civ.Rank,
             MemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(),
             PendingInvites = new List<CivilizationInfoResponsePacket.PendingInvite>()
         };

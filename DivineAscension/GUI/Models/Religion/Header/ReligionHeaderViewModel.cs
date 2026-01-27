@@ -19,6 +19,7 @@ public readonly struct ReligionHeaderViewModel(
     ReligionPrestigeProgress religionPrestigeProgress,
     bool isCivilizationFounder,
     string? civilizationIcon,
+    int civilizationRank,
     float x,
     float y,
     float width)
@@ -39,6 +40,7 @@ public readonly struct ReligionHeaderViewModel(
     public ReligionPrestigeProgress ReligionPrestigeProgress { get; } = religionPrestigeProgress;
     public bool IsCivilizationFounder { get; } = isCivilizationFounder;
     public string? CivilizationIcon { get; } = civilizationIcon;
+    public int CivilizationRank { get; } = civilizationRank;
     public float X { get; } = x;
     public float Y { get; } = y;
     public float Width { get; } = width;

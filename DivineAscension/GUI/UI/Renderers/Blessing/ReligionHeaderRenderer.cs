@@ -224,6 +224,14 @@ internal static class ReligionHeaderRenderer
             var civNameColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.5f, 0.8f, 1f, 1f));
             drawList.AddText(ImGui.GetFont(), 15f, civNamePos, civNameColor, civNameText);
 
+            // Civilization rank (right after civilization name)
+            var civRankName = RankRequirements.GetCivilizationRankName(viewModel.CivilizationRank);
+            var rankText = $"[{civRankName}]";
+            var civNameWidth = ImGui.CalcTextSize(civNameText).X;
+            var rankPos = new Vector2(civCurrentX + civNameWidth + 8f, viewModel.Y + 12f);
+            var rankColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.8f);
+            drawList.AddText(ImGui.GetFont(), 13f, rankPos, rankColor, rankText);
+
             // Member religions with deity colors (align with religion info position Y+35)
             var civInfoY = viewModel.Y + 35f;
             var memberCount = viewModel.CivilizationMemberReligions?.Count ?? 0;

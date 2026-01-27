@@ -68,6 +68,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
     public string CivilizationIcon { get; set; } = string.Empty;
 
+    public int CivilizationRank { get; set; }
+
     // Religion state (updated by GuiDialogManager)
     public bool UserHasReligion { get; set; }
     public bool UserIsReligionFounder { get; set; }
@@ -81,6 +83,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         CurrentCivilizationName = string.Empty;
         CivilizationFounderReligionUID = string.Empty;
         CivilizationFounderUID = string.Empty;
+        CivilizationIcon = string.Empty;
+        CivilizationRank = 0;
         if (CivilizationMemberReligions != null) CivilizationMemberReligions.Clear();
     }
 
@@ -115,6 +119,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             CivilizationIcon = string.Empty;
             CivilizationFounderReligionUID = string.Empty;
             CivilizationFounderUID = string.Empty;
+            CivilizationRank = 0;
             UserIsCivilizationFounder = false;
             CivilizationMemberReligions?.Clear();
             State.InfoState.Info = null;
@@ -140,6 +145,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 CivilizationIcon = string.Empty;
                 CivilizationFounderReligionUID = string.Empty;
                 CivilizationFounderUID = string.Empty;
+                CivilizationRank = 0;
                 UserIsCivilizationFounder = false;
                 CivilizationMemberReligions?.Clear();
                 State.InfoState.Info = null;
@@ -154,6 +160,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 CivilizationIcon = details.Icon ?? "default";
                 CivilizationFounderReligionUID = details.FounderReligionUID;
                 CivilizationFounderUID = details.FounderUID;
+                CivilizationRank = details.Rank;
                 UserIsCivilizationFounder = details.IsFounder;
                 CivilizationMemberReligions =
                     new List<CivilizationInfoResponsePacket.MemberReligion>(details.MemberReligions ?? []);
@@ -580,6 +587,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             details?.Name ?? string.Empty,
             details?.FounderName ?? string.Empty,
             details?.FounderReligionName ?? string.Empty,
+            details?.Rank ?? 0,
             details?.MemberReligions ?? new List<CivilizationInfoResponsePacket.MemberReligion>(),
             details?.CreatedDate ?? DateTime.MinValue,
             details?.Description ?? string.Empty,
@@ -614,6 +622,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             State.InfoState.DescriptionText,
             civ?.FounderName ?? string.Empty,
             UserIsCivilizationFounder,
+            civ?.Rank ?? 0,
             civ?.MemberReligions ?? new List<CivilizationInfoResponsePacket.MemberReligion>(),
             State.InfoState.InviteReligionName ?? string.Empty,
             State.ShowDisbandConfirm,
