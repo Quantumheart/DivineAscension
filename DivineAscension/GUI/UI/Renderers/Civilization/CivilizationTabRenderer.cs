@@ -73,6 +73,10 @@ internal static class CivilizationTabRenderer
             DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_HOLYSITES),
                 CivilizationSubTab.HolySites, "GUI", "holysite");
 
+        if (vm.ShowMilestonesTab)
+            DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_MILESTONES),
+                CivilizationSubTab.Milestones, "GUI", "milestone");
+
         var contentY = vm.Y + tabH + 10f;
         var renderedHeight = tabH + 10f;
 

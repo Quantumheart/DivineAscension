@@ -266,6 +266,7 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_TAB_CREATE = "divineascension:ui.civilization.tab.create";
     public const string UI_CIVILIZATION_TAB_DIPLOMACY = "divineascension:ui.civilization.tab.diplomacy";
     public const string UI_CIVILIZATION_TAB_HOLYSITES = "divineascension:ui.civilization.tab.holysites";
+    public const string UI_CIVILIZATION_TAB_MILESTONES = "divineascension:ui.civilization.tab.milestones";
 
     #endregion
 
@@ -281,6 +282,26 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_HOLYSITES_TIER = "divineascension:ui.civilization.holysites.tier";
     public const string UI_CIVILIZATION_HOLYSITES_VOLUME = "divineascension:ui.civilization.holysites.volume";
     public const string UI_CIVILIZATION_HOLYSITES_MULTIPLIERS = "divineascension:ui.civilization.holysites.multipliers";
+
+    #endregion
+
+    #region Civilization - Milestones
+
+    public const string UI_CIVILIZATION_MILESTONES_TITLE = "divineascension:ui.civilization.milestones.title";
+    public const string UI_CIVILIZATION_MILESTONES_REFRESH = "divineascension:ui.civilization.milestones.refresh";
+    public const string UI_CIVILIZATION_MILESTONES_LOADING = "divineascension:ui.civilization.milestones.loading";
+    public const string UI_CIVILIZATION_MILESTONES_EMPTY = "divineascension:ui.civilization.milestones.empty";
+    public const string UI_CIVILIZATION_MILESTONES_ERROR = "divineascension:ui.civilization.milestones.error";
+    public const string UI_CIVILIZATION_MILESTONES_NOT_IN_CIV = "divineascension:ui.civilization.milestones.not_in_civ";
+    public const string UI_CIVILIZATION_MILESTONES_RANK = "divineascension:ui.civilization.milestones.rank";
+    public const string UI_CIVILIZATION_MILESTONES_PROGRESS = "divineascension:ui.civilization.milestones.progress";
+    public const string UI_CIVILIZATION_MILESTONES_COMPLETED = "divineascension:ui.civilization.milestones.completed";
+    public const string UI_CIVILIZATION_MILESTONES_IN_PROGRESS = "divineascension:ui.civilization.milestones.in_progress";
+    public const string UI_CIVILIZATION_MILESTONES_BONUSES_TITLE = "divineascension:ui.civilization.milestones.bonuses.title";
+    public const string UI_CIVILIZATION_MILESTONES_BONUS_PRESTIGE = "divineascension:ui.civilization.milestones.bonuses.prestige";
+    public const string UI_CIVILIZATION_MILESTONES_BONUS_FAVOR = "divineascension:ui.civilization.milestones.bonuses.favor";
+    public const string UI_CIVILIZATION_MILESTONES_BONUS_CONQUEST = "divineascension:ui.civilization.milestones.bonuses.conquest";
+    public const string UI_CIVILIZATION_MILESTONES_BONUS_HOLYSITES = "divineascension:ui.civilization.milestones.bonuses.holysites";
 
     #endregion
 
