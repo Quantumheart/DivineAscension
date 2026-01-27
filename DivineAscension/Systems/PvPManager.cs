@@ -26,6 +26,9 @@ public class PvPManager : IPvPManager
     private readonly IReligionManager _religionManager;
     private readonly IWorldService _worldService;
 
+    // Optional dependency for civilization conquest bonuses (set via SetCivilizationBonusSystem)
+    private ICivilizationBonusSystem? _civilizationBonusSystem;
+
     /// <inheritdoc />
     public event Action<string>? OnWarKill;
 
@@ -62,6 +65,12 @@ public class PvPManager : IPvPManager
         _eventService.OnPlayerDeath(OnPlayerDeath);
 
         _logger.Notification("[DivineAscension] PvP Manager initialized");
+    }
+
+    /// <inheritdoc />
+    public void SetCivilizationBonusSystem(ICivilizationBonusSystem civilizationBonusSystem)
+    {
+        _civilizationBonusSystem = civilizationBonusSystem ?? throw new ArgumentNullException(nameof(civilizationBonusSystem));
     }
 
     /// <summary>
@@ -181,27 +190,43 @@ public class PvPManager : IPvPManager
         var basePrestigeReward = CalculatePrestigeReward(attackerDeityDomain, victimDeityDomain);
 
         // Apply diplomacy multiplier
-        var favorReward = (int)(baseFavorReward * diplomacyMultiplier);
-        var prestigeReward = (int)(basePrestigeReward * diplomacyMultiplier);
+        var favorReward = baseFavorReward * diplomacyMultiplier;
+        var prestigeReward = basePrestigeReward * diplomacyMultiplier;
+
+        // Apply civilization conquest bonus if player is in a civilization
+        var conquestMultiplier = 1.0f;
+        if (_civilizationBonusSystem != null && attackerCiv != null)
+        {
+            conquestMultiplier = _civilizationBonusSystem.GetConquestMultiplier(attackerCiv.CivId);
+            if (conquestMultiplier > 1.0f)
+            {
+                favorReward *= conquestMultiplier;
+                prestigeReward *= conquestMultiplier;
+                _logger.Debug($"Applied civilization conquest multiplier {conquestMultiplier:F2}x to PvP rewards");
+            }
+        }
 
         // Award favor to player
-        _playerProgressionDataManager.AddFavor(attacker.PlayerUID, favorReward,
+        _playerProgressionDataManager.AddFavor(attacker.PlayerUID, (int)favorReward,
             $"PvP kill against {victim.PlayerName}");
 
         // Award prestige to religion
-        _prestigeManager.AddPrestige(resolvedAttackerReligion.ReligionUID, prestigeReward,
+        _prestigeManager.AddPrestige(resolvedAttackerReligion.ReligionUID, (int)prestigeReward,
             $"PvP kill by {attacker.PlayerName} against {victim.PlayerName}");
 
         // Get deity for display
         var deityName = attackerReligion.DeityName;
 
         // Notify attacker with combined rewards
-        var warBonus = diplomacyMultiplier > 1.0
-            ? $" [WAR BONUS +{(diplomacyMultiplier - 1.0) * 100:F0}%]"
-            : "";
+        var bonusText = "";
+        if (diplomacyMultiplier > 1.0)
+            bonusText += $" [WAR +{(diplomacyMultiplier - 1.0) * 100:F0}%]";
+        if (conquestMultiplier > 1.0f)
+            bonusText += $" [CIV +{(conquestMultiplier - 1.0f) * 100:F0}%]";
+
         attacker.SendMessage(
             GlobalConstants.GeneralChatGroup,
-            $"[Divine Victory] {deityName} rewards you with {favorReward} favor! Your religion gains {prestigeReward} prestige!{warBonus}",
+            $"[Divine Victory] {deityName} rewards you with {(int)favorReward} favor! Your religion gains {(int)prestigeReward} prestige!{bonusText}",
             EnumChatType.Notification
         );
 

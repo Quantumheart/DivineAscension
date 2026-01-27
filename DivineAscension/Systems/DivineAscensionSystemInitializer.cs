@@ -248,6 +248,9 @@ public static class DivineAscensionSystemInitializer
             civilizationManager, diplomacyManager, gameBalanceConfig);
         pvpManager.Initialize();
 
+        // Wire up civilization bonus system for conquest multipliers (late binding)
+        pvpManager.SetCivilizationBonusSystem(civilizationBonusSystem);
+
         // Wire up PvP manager for war kill milestone tracking (late binding)
         civilizationMilestoneManager.SetPvPManager(pvpManager);
 

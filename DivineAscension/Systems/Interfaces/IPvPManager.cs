@@ -23,4 +23,10 @@ public interface IPvPManager
     ///     Awards favor and prestige for deity-aligned actions (extensible for future features)
     /// </summary>
     void AwardRewardsForAction(IServerPlayer player, string actionType, int favorAmount, int prestigeAmount);
+
+    /// <summary>
+    ///     Sets the civilization bonus system for applying conquest multipliers.
+    ///     Uses late binding to avoid circular dependencies during initialization.
+    /// </summary>
+    void SetCivilizationBonusSystem(ICivilizationBonusSystem civilizationBonusSystem);
 }
