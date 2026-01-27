@@ -7,6 +7,7 @@ using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.Milestones;
 using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network;
 using DivineAscension.Services;
@@ -30,7 +31,10 @@ internal static class CivilizationMilestoneRenderer
     private const float RankSectionHeight = 60f;
     private const float BonusSectionHeight = 120f;
     private const float MilestoneItemHeight = 70f;
+    private const float MilestoneItemPadding = 5f;
     private const float ProgressBarHeight = 16f;
+    private const float ScrollbarWidth = 12f;
+    private const float ScrollbarPadding = 4f;
 
     /// <summary>
     ///     Pure renderer: builds visuals from view model and emits UI events.
@@ -76,7 +80,8 @@ internal static class CivilizationMilestoneRenderer
         currentY += SectionSpacing;
 
         // === MILESTONES LIST ===
-        DrawMilestonesList(viewModel, drawList, currentY);
+        var contentHeight = viewModel.Height - (currentY - viewModel.Y);
+        DrawMilestonesList(viewModel, drawList, currentY, contentHeight, events);
 
         return new CivilizationMilestoneRenderResult(events, viewModel.Height);
     }
@@ -291,11 +296,12 @@ internal static class CivilizationMilestoneRenderer
     private static void DrawMilestonesList(
         CivilizationMilestoneViewModel viewModel,
         ImDrawListPtr drawList,
-        float startY)
+        float startY,
+        float availableHeight,
+        List<MilestoneEvent> events)
     {
-        var currentY = startY;
         var x = viewModel.X + 20f;
-        var width = viewModel.Width - 40f;
+        var width = viewModel.Width - 40f - ScrollbarWidth - ScrollbarPadding;
 
         // Sort milestones: completed last, then by progress percentage
         var sortedMilestones = viewModel.Milestones
@@ -303,15 +309,82 @@ internal static class CivilizationMilestoneRenderer
             .ThenByDescending(m => m.TargetValue > 0 ? (float)m.CurrentValue / m.TargetValue : 0)
             .ToList();
 
+        // Calculate total content height
+        var totalContentHeight = sortedMilestones.Count * (MilestoneItemHeight + MilestoneItemPadding);
+        var maxScroll = Math.Max(0f, totalContentHeight - availableHeight);
+
+        // Scrollable region (without built-in scrollbar)
+        var scrollRegionStart = new Vector2(x, startY);
+        var scrollRegionSize = new Vector2(width, availableHeight);
+
+        ImGui.SetCursorScreenPos(scrollRegionStart);
+        ImGui.BeginChild("MilestoneScroll", scrollRegionSize, false,
+            ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
+
+        // Get child window drawlist and position
+        var childDrawList = ImGui.GetWindowDrawList();
+        var childPos = ImGui.GetCursorScreenPos();
+
+        // Draw entries with manual scroll offset
+        var currentY = -viewModel.ScrollY;
+
         foreach (var milestone in sortedMilestones)
         {
-            DrawMilestoneItem(drawList, x, currentY, width, milestone);
-            currentY += MilestoneItemHeight + 5f;
+            var entryY = childPos.Y + currentY;
 
-            // Check if we've exceeded available height
-            if (currentY - startY > viewModel.Height - (startY - viewModel.Y))
+            // Only draw if visible (culling for performance)
+            if (entryY + MilestoneItemHeight >= startY && entryY <= startY + availableHeight)
             {
-                break;
+                DrawMilestoneItem(childDrawList, childPos.X, entryY, width - 20f, milestone);
+            }
+
+            currentY += MilestoneItemHeight + MilestoneItemPadding;
+        }
+
+        ImGui.EndChild();
+
+        // Draw custom scrollbar
+        if (maxScroll > 0)
+        {
+            var scrollbarX = viewModel.X + viewModel.Width - ScrollbarWidth - 20f;
+
+            Scrollbar.Draw(
+                drawList,
+                scrollbarX,
+                startY,
+                ScrollbarWidth,
+                availableHeight,
+                viewModel.ScrollY,
+                maxScroll
+            );
+
+            // Handle mouse wheel scrolling
+            var mousePos = ImGui.GetMousePos();
+            var newScrollY = Scrollbar.HandleMouseWheel(
+                viewModel.ScrollY,
+                maxScroll,
+                mousePos.X,
+                mousePos.Y,
+                viewModel.X,
+                startY,
+                viewModel.Width,
+                availableHeight
+            );
+
+            // Handle scrollbar dragging
+            newScrollY = Scrollbar.HandleDragging(
+                newScrollY,
+                maxScroll,
+                scrollbarX,
+                startY,
+                ScrollbarWidth,
+                availableHeight
+            );
+
+            // Track scroll changes
+            if (Math.Abs(newScrollY - viewModel.ScrollY) > 0.01f)
+            {
+                events.Add(new MilestoneEvent.ScrollChanged(newScrollY));
             }
         }
     }
