@@ -458,8 +458,12 @@ public class AltarPrayerHandler : IDisposable
                 return;
             }
 
+            // Get player's domain for particle color
+            var playerReligion = _religionManager.GetPlayerReligion(player.PlayerUID);
+            var domain = playerReligion?.Domain ?? DeityDomain.None;
+
             // Play prayer effects (animation, particles, sound)
-            PlayPrayerEffects(player, blockSel.Position, result.HolySiteTier);
+            PlayPrayerEffects(player, blockSel.Position, result.HolySiteTier, domain);
 
             // Consume offering if needed
             if (result.ShouldConsumeOffering && player.Entity.RightHandItemSlot != null)
@@ -541,7 +545,8 @@ public class AltarPrayerHandler : IDisposable
     /// <param name="player">The player who prayed</param>
     /// <param name="altarPosition">Position of the altar block</param>
     /// <param name="holySiteTier">Tier of the holy site (1=Shrine, 2=Temple, 3=Cathedral)</param>
-    internal void PlayPrayerEffects(IPlayer player, BlockPos altarPosition, int holySiteTier)
+    /// <param name="domain">The deity domain of the player's religion (determines particle color)</param>
+    internal void PlayPrayerEffects(IPlayer player, BlockPos altarPosition, int holySiteTier, DeityDomain domain)
     {
         // Validate inputs
         if (player?.Entity == null || holySiteTier < 1)
@@ -573,15 +578,28 @@ public class AltarPrayerHandler : IDisposable
                 _logger.Debug("[DivineAscension] Could not trigger emote - player is not IServerPlayer");
             }
 
-            // 2. Spawn particles (pass null to send to all nearby players)
-            var particlePos = new Vec3d(
-                altarPosition.X + 0.5,
-                altarPosition.Y + 1.0,
-                altarPosition.Z + 0.5
-            );
-            _logger.Notification($"[DivineAscension] Spawning particles at {particlePos}");
-            var particleProps = CreateDivineParticles(holySiteTier, particlePos);
-            world.SpawnParticles(particleProps, null);
+            // 2. Spawn particles from each side and top of the altar
+            var baseX = altarPosition.X + 0.5;
+            var baseY = altarPosition.Y + 0.5;
+            var baseZ = altarPosition.Z + 0.5;
+
+            // Spawn from all 4 sides + top with outward/upward velocity
+            var spawnPoints = new[]
+            {
+                (new Vec3d(baseX - 0.5, baseY, baseZ), new Vec3f(-0.5f, 0.5f, 0)), // West
+                (new Vec3d(baseX + 0.5, baseY, baseZ), new Vec3f(0.5f, 0.5f, 0)), // East
+                (new Vec3d(baseX, baseY, baseZ - 0.5), new Vec3f(0, 0.5f, -0.5f)), // North
+                (new Vec3d(baseX, baseY, baseZ + 0.5), new Vec3f(0, 0.5f, 0.5f)), // South
+                (new Vec3d(baseX, baseY + 0.5, baseZ), new Vec3f(0, 0.8f, 0)) // Top
+            };
+
+            foreach (var (pos, velocity) in spawnPoints)
+            {
+                var particleProps = CreateDivineParticles(holySiteTier, pos, velocity, domain);
+                world.SpawnParticles(particleProps, null);
+            }
+
+            _logger.Notification($"[DivineAscension] Spawned particles from 5 points (4 sides + top) of altar");
 
             // 3. Play sound (pass null to send to all nearby players)
             var soundAsset = GetBellSoundForTier(holySiteTier);
@@ -591,10 +609,10 @@ public class AltarPrayerHandler : IDisposable
                 altarPosition.X + 0.5,
                 altarPosition.Y + 0.5,
                 altarPosition.Z + 0.5,
-                null,   // null = send to all nearby players
-                false,  // randomizePitch
-                32f,    // range
-                1.0f    // volume
+                null, // null = send to all nearby players
+                false, // randomizePitch
+                32f, // range
+                1.0f // volume
             );
 
             _logger.Notification("[DivineAscension] Prayer effects completed successfully");
@@ -611,20 +629,32 @@ public class AltarPrayerHandler : IDisposable
     /// </summary>
     /// <param name="tier">Holy site tier (1-3)</param>
     /// <param name="basePos">Base position to spawn particles at</param>
-    /// <returns>Configured particle properties with golden divine theme</returns>
-    internal SimpleParticleProperties CreateDivineParticles(int tier, Vec3d basePos)
+    /// <param name="outwardVelocity">Direction particles should travel (outward from altar side)</param>
+    /// <param name="domain">The deity domain (determines particle color)</param>
+    /// <returns>Configured particle properties with domain-themed color</returns>
+    internal SimpleParticleProperties CreateDivineParticles(int tier, Vec3d basePos, Vec3f outwardVelocity,
+        DeityDomain domain)
     {
         // Tier-based scaling: quantity, lifetime, size
+        // Divide by 5 since we're spawning from 5 points (4 sides + top)
         var (minQty, addQty, lifetime, minSize, maxSize) = tier switch
         {
-            1 => (10f, 10f, 1.5f, 0.1f, 0.2f),   // Shrine: Subtle sparkles
-            2 => (20f, 20f, 2.0f, 0.15f, 0.3f),  // Temple: Medium glow
-            3 => (30f, 30f, 2.5f, 0.2f, 0.4f),   // Cathedral: Intense burst
-            _ => (10f, 10f, 1.5f, 0.1f, 0.2f)
+            1 => (22f, 23f, 1.5f, 0.1f, 0.2f), // Shrine: Sparkles (110/5 = 22 per point)
+            2 => (45f, 45f, 2.0f, 0.15f, 0.3f), // Temple: Glow (225/5 = 45 per point)
+            3 => (68f, 67f, 2.5f, 0.2f, 0.4f), // Cathedral: Intense burst (340/5 = 68 per point)
+            _ => (22f, 23f, 1.5f, 0.1f, 0.2f)
         };
 
-        // Golden/yellow color (ARGB format: Alpha, Red, Green, Blue)
-        var color = ColorUtil.ToRgba(255, 255, 200, 50); // Bright golden yellow
+        // Domain-based color (ARGB format: Alpha, Red, Green, Blue)
+        var color = domain switch
+        {
+            DeityDomain.Craft => ColorUtil.ToRgba(255, 255, 60, 40), // Red/orange for forging
+            DeityDomain.Wild => ColorUtil.ToRgba(255, 50, 220, 80), // Green for nature
+            DeityDomain.Conquest => ColorUtil.ToRgba(255, 140, 20, 30), // Crimson/blood for battle
+            DeityDomain.Harvest => ColorUtil.ToRgba(255, 255, 200, 50), // Golden for crops
+            DeityDomain.Stone => ColorUtil.ToRgba(255, 160, 140, 120), // Brown/tan for earth
+            _ => ColorUtil.ToRgba(255, 255, 255, 200) // White/silver default
+        };
 
         var particles = new SimpleParticleProperties
         {
@@ -632,9 +662,9 @@ public class AltarPrayerHandler : IDisposable
             AddQuantity = addQty,
             Color = color,
             MinPos = basePos,
-            AddPos = new Vec3d(0.5, 0.5, 0.5),
-            MinVelocity = new Vec3f(0, 0.5f, 0),
-            AddVelocity = new Vec3f(0.2f, 0.5f, 0.2f),
+            AddPos = new Vec3d(0.2, 0.5, 0.2),
+            MinVelocity = outwardVelocity,
+            AddVelocity = new Vec3f(0.2f, 0.3f, 0.2f),
             LifeLength = lifetime,
             GravityEffect = -0.1f,
             MinSize = minSize,
@@ -655,9 +685,9 @@ public class AltarPrayerHandler : IDisposable
     {
         return tier switch
         {
-            1 => new AssetLocation("game:sounds/player/collect1"),  // Soft chime
-            2 => new AssetLocation("game:sounds/player/collect2"),  // Medium chime
-            3 => new AssetLocation("game:sounds/player/collect3"),  // Rich chime
+            1 => new AssetLocation("game:sounds/player/collect1"), // Soft chime
+            2 => new AssetLocation("game:sounds/player/collect2"), // Medium chime
+            3 => new AssetLocation("game:sounds/player/collect3"), // Rich chime
             _ => new AssetLocation("game:sounds/player/collect1")
         };
     }
