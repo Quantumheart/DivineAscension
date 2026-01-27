@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Data;
 using DivineAscension.Models;
+using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems;
@@ -146,7 +147,7 @@ public class CivilizationMilestoneManagerTests
         // Arrange
         var civId = "test-civ-1";
         var civ = CreateTestCivilization(civId);
-        civ.Rank = 3;
+        civ.Rank = CivilizationRank.Hegemonic;
 
         _mockCivilizationManager.Setup(c => c.GetCivilization(civId)).Returns(civ);
 
@@ -323,7 +324,7 @@ public class CivilizationMilestoneManagerTests
         // Assert
         Assert.True(unlocked);
         Assert.Contains("first_alliance", civ.CompletedMilestones);
-        Assert.Equal(1, civ.Rank);
+        Assert.Equal(CivilizationRank.Rising, civ.Rank);
     }
 
     [Fact]
@@ -350,7 +351,7 @@ public class CivilizationMilestoneManagerTests
 
         // Assert
         Assert.Empty(civ.CompletedMilestones);
-        Assert.Equal(0, civ.Rank);
+        Assert.Equal(CivilizationRank.Nascent, civ.Rank);
     }
 
     [Fact]
@@ -361,7 +362,7 @@ public class CivilizationMilestoneManagerTests
         var civ = CreateTestCivilization(civId);
         civ.AddReligion("religion-2");
         civ.CompletedMilestones.Add("first_alliance");
-        civ.Rank = 1;
+        civ.Rank = CivilizationRank.Rising;
 
         var milestone = new MilestoneDefinition(
             "first_alliance",
@@ -378,8 +379,8 @@ public class CivilizationMilestoneManagerTests
         // Act
         _milestoneManager.CheckMilestones(civId);
 
-        // Assert - Rank should still be 1, not 2
-        Assert.Equal(1, civ.Rank);
+        // Assert - Rank should still be Rising, not Dominant
+        Assert.Equal(CivilizationRank.Rising, civ.Rank);
     }
 
     [Fact]

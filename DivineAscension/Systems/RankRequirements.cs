@@ -107,4 +107,22 @@ public static class RankRequirements
             _ => $"Rank {rank}"
         };
     }
+
+    /// <summary>
+    ///     Get civilization rank name
+    /// </summary>
+    /// <param name="rank">Civilization rank (0-4)</param>
+    /// <returns>Rank name</returns>
+    public static string GetCivilizationRankName(int rank)
+    {
+        return rank switch
+        {
+            0 => "Nascent",
+            1 => "Rising",
+            2 => "Dominant",
+            3 => "Hegemonic",
+            4 => "Eternal",
+            _ => $"Rank {rank}"
+        };
+    }
 }

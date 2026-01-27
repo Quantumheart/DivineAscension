@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using DivineAscension.Data;
 using DivineAscension.Models;
+using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems.Interfaces;
@@ -139,7 +140,7 @@ public class CivilizationMilestoneManager : ICivilizationMilestoneManager
     public int GetCivilizationRank(string civId)
     {
         var civ = _civilizationManager.GetCivilization(civId);
-        return civ?.Rank ?? 0;
+        return civ != null ? (int)civ.Rank : 0;
     }
 
     /// <inheritdoc />
@@ -365,10 +366,11 @@ public class CivilizationMilestoneManager : ICivilizationMilestoneManager
         if (milestone.Type == MilestoneType.Major && milestone.RankReward > 0)
         {
             var oldRank = civ.Rank;
-            civ.Rank += milestone.RankReward;
+            var newRankValue = Math.Min((int)civ.Rank + milestone.RankReward, (int)CivilizationRank.Eternal);
+            civ.Rank = (CivilizationRank)newRankValue;
             _logger.Notification(
                 $"[DivineAscension MilestoneManager] Civilization '{civ.Name}' rank increased: {oldRank} -> {civ.Rank}");
-            OnRankIncreased?.Invoke(civ.CivId, civ.Rank);
+            OnRankIncreased?.Invoke(civ.CivId, (int)civ.Rank);
         }
 
         // Apply prestige payout to founding religion
