@@ -1,3 +1,4 @@
+using System;
 using DivineAscension.Models;
 using Vintagestory.API.Common;
 
@@ -29,6 +30,11 @@ public record RitualContributionResult(
 /// </summary>
 public interface IRitualProgressManager
 {
+    /// <summary>
+    /// Event fired when a ritual is completed at a holy site
+    /// Parameters: religionUID, siteUID, newTier
+    /// </summary>
+    event Action<string, string, int>? OnRitualCompleted;
     /// <summary>
     /// Starts a ritual for upgrading a holy site tier.
     /// </summary>

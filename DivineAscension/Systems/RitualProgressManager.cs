@@ -20,6 +20,9 @@ public class RitualProgressManager : IRitualProgressManager
     private readonly IReligionManager _religionManager;
     private readonly RitualMatcher _ritualMatcher;
 
+    /// <inheritdoc />
+    public event Action<string, string, int>? OnRitualCompleted;
+
     public RitualProgressManager(
         ILoggerWrapper logger,
         IRitualLoader ritualLoader,
@@ -294,6 +297,9 @@ public class RitualProgressManager : IRitualProgressManager
         site.ActiveRitual = null;
 
         _logger.Notification($"[DivineAscension RitualProgressManager] Ritual '{ritual.Name}' completed at holy site '{site.SiteName}' (UID: {site.SiteUID}). Tier upgraded to {ritual.TargetTier}");
+
+        // Fire event for milestone tracking
+        OnRitualCompleted?.Invoke(site.ReligionUID, site.SiteUID, ritual.TargetTier);
 
         return true;
     }

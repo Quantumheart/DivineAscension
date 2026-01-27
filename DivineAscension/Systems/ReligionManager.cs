@@ -48,6 +48,12 @@ public class ReligionManager : IReligionManager
     /// </summary>
     public event Action<string>? OnReligionDeleted;
 
+    /// <inheritdoc />
+    public event Action<string, string>? OnMemberAdded;
+
+    /// <inheritdoc />
+    public event Action<string, string>? OnMemberRemoved;
+
     /// <summary>
     ///     Initializes the religion manager
     /// </summary>
@@ -207,6 +213,9 @@ public class ReligionManager : IReligionManager
 
         // Save immediately to prevent data loss
         Save(religion);
+
+        // Fire member added event
+        OnMemberAdded?.Invoke(religionUID, playerUID);
     }
 
     /// <summary>
@@ -226,6 +235,9 @@ public class ReligionManager : IReligionManager
         {
             _playerToReligionIndex.TryRemove(playerUID, out _);
             _logger.Debug($"[DivineAscension] Removed player {playerUID} from religion {religion.ReligionName}");
+
+            // Fire member removed event before potential religion deletion
+            OnMemberRemoved?.Invoke(religionUID, playerUID);
 
             // Handle founder leaving
             if (religion.IsFounder(playerUID)) HandleFounderLeaving(religion);

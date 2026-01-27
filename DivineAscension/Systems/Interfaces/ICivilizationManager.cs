@@ -13,6 +13,16 @@ public interface ICivilizationManager
     event Action<string>? OnCivilizationDisbanded;
 
     /// <summary>
+    ///     Event fired when a religion joins a civilization
+    /// </summary>
+    event Action<string, string>? OnReligionAdded;
+
+    /// <summary>
+    ///     Event fired when a religion leaves or is removed from a civilization
+    /// </summary>
+    event Action<string, string>? OnReligionRemoved;
+
+    /// <summary>
     ///     Initializes the civilization manager
     /// </summary>
     void Initialize();

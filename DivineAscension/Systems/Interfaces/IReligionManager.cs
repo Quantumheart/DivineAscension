@@ -13,6 +13,18 @@ public interface IReligionManager : IDisposable
     event Action<string>? OnReligionDeleted;
 
     /// <summary>
+    ///     Event fired when a member is added to a religion.
+    ///     Parameters: religionUID, playerUID
+    /// </summary>
+    event Action<string, string>? OnMemberAdded;
+
+    /// <summary>
+    ///     Event fired when a member is removed from a religion.
+    ///     Parameters: religionUID, playerUID
+    /// </summary>
+    event Action<string, string>? OnMemberRemoved;
+
+    /// <summary>
     ///     Initializes the religion manager
     /// </summary>
     void Initialize();

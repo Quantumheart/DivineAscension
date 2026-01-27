@@ -13,5 +13,10 @@ public enum BlessingKind
     /// <summary>
     ///     Religion blessing - unlocked by religion prestige rank, benefits all congregation members
     /// </summary>
-    Religion
+    Religion,
+
+    /// <summary>
+    ///     Civilization blessing - unlocked by civilization milestones, benefits all civilization members
+    /// </summary>
+    Civilization
 }

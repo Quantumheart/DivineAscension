@@ -26,6 +26,9 @@ public class PvPManager : IPvPManager
     private readonly IReligionManager _religionManager;
     private readonly IWorldService _worldService;
 
+    /// <inheritdoc />
+    public event Action<string>? OnWarKill;
+
     public PvPManager(
         ILoggerWrapper logger,
         IEventService eventService,
@@ -167,6 +170,9 @@ public class PvPManager : IPvPManager
             if (diplomaticStatus == DiplomaticStatus.War)
             {
                 diplomacyMultiplier = _config.WarFavorMultiplier;
+
+                // Fire war kill event for civilization milestone tracking
+                OnWarKill?.Invoke(attackerCiv.CivId);
             }
         }
 

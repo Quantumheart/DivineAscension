@@ -1,0 +1,21 @@
+{
+  "domain": "civilization",
+  "version": 1,
+  "blessings": [
+    {
+      "id": "civilization_cooperation",
+      "name": "Bond of Unity",
+      "description": "The combined faith of allied religions strengthens all members, granting increased divine favor and prestige.",
+      "kind": "Civilization",
+      "category": "Passive",
+      "requiredRank": 0,
+      "prestigeCost": 0,
+      "statModifiers": {
+        "favorMultiplier": 0.03,
+        "prestigeMultiplier": 0.03
+      },
+      "specialEffects": [],
+      "prerequisites": []
+    }
+  ]
+}

@@ -175,6 +175,12 @@ public static class DivineAscensionSystemInitializer
             , api.Assets);
         ritualLoader.LoadRituals();
 
+        // Create milestone definition loader for civilization progression milestones
+        IMilestoneDefinitionLoader milestoneLoader = new MilestoneDefinitionLoader(
+            LoggingService.Instance.CreateLogger("MilestoneLoader"),
+            api.Assets);
+        milestoneLoader.LoadMilestones();
+
         // Initialize Buff Manager (must be before AltarPrayerHandler)
         var buffManager = new BuffManager(logger, worldService);
 
@@ -190,6 +196,30 @@ public static class DivineAscensionSystemInitializer
             ritualLoader,
             holySiteManager,
             religionManager);
+
+        // Initialize Civilization Milestone Manager (handles civilization progression milestones)
+        var civilizationMilestoneManager = new CivilizationMilestoneManager(
+            LoggingService.Instance.CreateLogger("CivilizationMilestoneManager"),
+            civilizationManager,
+            religionManager,
+            holySiteManager,
+            religionPrestigeManager,
+            milestoneLoader);
+        civilizationMilestoneManager.Initialize();
+
+        // Wire up ritual progress manager for milestone detection (late binding due to initialization order)
+        civilizationMilestoneManager.SetRitualProgressManager(ritualProgressManager);
+
+        // Initialize Civilization Bonus System (provides civ-wide bonuses from milestones)
+        var civilizationBonusSystem = new CivilizationBonusSystem(
+            LoggingService.Instance.CreateLogger("CivilizationBonusSystem"),
+            civilizationManager,
+            civilizationMilestoneManager,
+            religionManager);
+
+        // Wire up civilization bonus system for favor/prestige multipliers and holy site slots (late binding)
+        favorSystem.SetCivilizationBonusSystem(civilizationBonusSystem);
+        holySiteManager.SetCivilizationBonusSystem(civilizationBonusSystem);
 
         // Initialize Altar Prayer Handler (handles prayer interactions at altars)
         var altarPrayerHandler = new AltarPrayerHandler(
@@ -217,6 +247,9 @@ public static class DivineAscensionSystemInitializer
             religionPrestigeManager,
             civilizationManager, diplomacyManager, gameBalanceConfig);
         pvpManager.Initialize();
+
+        // Wire up PvP manager for war kill milestone tracking (late binding)
+        civilizationMilestoneManager.SetPvPManager(pvpManager);
 
         // Create blessing loader for JSON-based blessing definitions
         IBlessingLoader blessingLoader = new BlessingLoader(api, LoggingService.Instance.CreateLogger("BlessingLoader"));
@@ -337,6 +370,15 @@ public static class DivineAscensionSystemInitializer
             ritualLoader);
         holySiteHandler.RegisterHandlers();
 
+        var milestoneHandler = new MilestoneNetworkHandler(
+            logger,
+            civilizationMilestoneManager,
+            civilizationManager,
+            religionManager,
+            networkService,
+            worldService);
+        milestoneHandler.RegisterHandlers();
+
         // Validate all memberships after initialization
         api.Logger.Notification("[DivineAscension] Running membership validation...");
         var (total, consistent, repaired, failed) =
@@ -368,6 +410,8 @@ public static class DivineAscensionSystemInitializer
             CooldownManager = cooldownManager,
             ReligionManager = religionManager,
             CivilizationManager = civilizationManager,
+            CivilizationMilestoneManager = civilizationMilestoneManager,
+            CivilizationBonusSystem = civilizationBonusSystem,
             PlayerProgressionDataManager = playerReligionDataManager,
             ReligionPrestigeManager = religionPrestigeManager,
             HolySiteManager = holySiteManager,
@@ -397,6 +441,7 @@ public static class DivineAscensionSystemInitializer
             DiplomacyNetworkHandler = diplomacyHandler,
             ActivityNetworkHandler = activityHandler,
             HolySiteNetworkHandler = holySiteHandler,
+            MilestoneNetworkHandler = milestoneHandler,
             MigratedReligionUIDs = migratedReligionUIDs
         };
     }
@@ -408,10 +453,12 @@ public static class DivineAscensionSystemInitializer
 [ExcludeFromCodeCoverage]
 public class InitializationResult
 {
-    // 16 Managers
+    // 18 Managers
     public ICooldownManager CooldownManager { get; init; } = null!;
     public ReligionManager ReligionManager { get; init; } = null!;
     public CivilizationManager CivilizationManager { get; init; } = null!;
+    public ICivilizationMilestoneManager CivilizationMilestoneManager { get; init; } = null!;
+    public ICivilizationBonusSystem CivilizationBonusSystem { get; init; } = null!;
     public PlayerProgressionDataManager PlayerProgressionDataManager { get; init; } = null!;
     public ReligionPrestigeManager ReligionPrestigeManager { get; init; } = null!;
     public IHolySiteManager HolySiteManager { get; init; } = null!;
@@ -445,6 +492,7 @@ public class InitializationResult
     public DiplomacyNetworkHandler DiplomacyNetworkHandler { get; init; } = null!;
     public ActivityNetworkHandler ActivityNetworkHandler { get; init; } = null!;
     public HolySiteNetworkHandler HolySiteNetworkHandler { get; init; } = null!;
+    public MilestoneNetworkHandler MilestoneNetworkHandler { get; init; } = null!;
 
     /// <summary>
     ///     Set of religion UIDs that were migrated with auto-generated deity names.

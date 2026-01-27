@@ -132,6 +132,30 @@ public class Civilization
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
+    ///     Civilization rank - number of major milestones completed
+    /// </summary>
+    [ProtoMember(11)]
+    public int Rank { get; set; } = 0;
+
+    /// <summary>
+    ///     Set of completed milestone IDs
+    /// </summary>
+    [ProtoMember(12)]
+    public HashSet<string> CompletedMilestones { get; set; } = new();
+
+    /// <summary>
+    ///     Cumulative PvP kills during active wars (for war_heroes milestone)
+    /// </summary>
+    [ProtoMember(13)]
+    public int WarKillCount { get; set; } = 0;
+
+    /// <summary>
+    ///     Civilization-wide blessings unlocked via milestones
+    /// </summary>
+    [ProtoMember(14)]
+    public HashSet<string> UnlockedBlessings { get; set; } = new();
+
+    /// <summary>
     ///     Checks if the civilization has a valid number of member religions (1-4)
     /// </summary>
     public bool IsValid
