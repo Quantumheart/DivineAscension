@@ -444,13 +444,13 @@ internal static class CivilizationMilestoneRenderer
         var progressBarX = currentX;
         var progressBarY = currentY;
 
-        // Progress bar background
+        // Progress bar background (match player progress bar style)
         var progressBgRect = new Vector2(progressBarX, progressBarY);
         var progressBgRectEnd = new Vector2(progressBarX + progressBarWidth, progressBarY + ProgressBarHeight);
         drawList.AddRectFilled(progressBgRect, progressBgRectEnd,
-            ImGui.ColorConvertFloat4ToU32(new Vector4(0.2f, 0.2f, 0.2f, 1f)), 2f);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown), 4f);
 
-        // Progress bar fill
+        // Progress bar fill (Gold for in-progress, brighter Gold for completed)
         var progress = milestone.TargetValue > 0
             ? Math.Min((float)milestone.CurrentValue / milestone.TargetValue, 1f)
             : 0f;
@@ -460,10 +460,14 @@ internal static class CivilizationMilestoneRenderer
             var fillRect = new Vector2(progressBarX, progressBarY);
             var fillRectEnd = new Vector2(progressBarX + fillWidth, progressBarY + ProgressBarHeight);
             var fillColor = milestone.IsCompleted
-                ? ImGui.ColorConvertFloat4ToU32(new Vector4(0.3f, 0.8f, 0.3f, 1f))
-                : ImGui.ColorConvertFloat4ToU32(new Vector4(0.3f, 0.6f, 0.9f, 1f));
-            drawList.AddRectFilled(fillRect, fillRectEnd, fillColor, 2f);
+                ? ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 1.2f)
+                : ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
+            drawList.AddRectFilled(fillRect, fillRectEnd, fillColor, 4f);
         }
+
+        // Progress bar border (match player progress bar style)
+        var progressBorderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.5f);
+        drawList.AddRect(progressBgRect, progressBgRectEnd, progressBorderColor, 4f, ImDrawFlags.None, 1f);
 
         // Progress text
         var progressText = $"{milestone.CurrentValue}/{milestone.TargetValue}";
