@@ -672,4 +672,14 @@ public partial class GuiDialog
         // Update religion state manager with available domains
         _manager!.ReligionStateManager.SetAvailableDomains(packet.Domains);
     }
+
+    /// <summary>
+    ///     Handle milestone progress received from server
+    /// </summary>
+    private void OnMilestoneProgressReceived(MilestoneProgressResponsePacket packet)
+    {
+        _logger?.Debug($"[DivineAscension] Received milestone progress for civ {packet.CivId}: Rank={packet.Rank}, Completed={packet.CompletedMilestones?.Count ?? 0}");
+
+        _manager!.CivilizationManager.UpdateMilestoneProgress(packet);
+    }
 }

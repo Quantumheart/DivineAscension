@@ -131,6 +131,7 @@ public partial class GuiDialog : ModSystem
             _divineAscensionModSystem.NetworkClient.AvailableDomainsReceived += OnAvailableDomainsReceived;
             _divineAscensionModSystem.NetworkClient.HolySiteDataReceived += OnHolySiteDataReceived;
             _divineAscensionModSystem.NetworkClient.HolySiteUpdated += OnHolySiteUpdated;
+            _divineAscensionModSystem.NetworkClient.MilestoneProgressReceived += OnMilestoneProgressReceived;
         }
         else
         {
@@ -459,6 +460,7 @@ public partial class GuiDialog : ModSystem
             _divineAscensionModSystem.NetworkClient.ActivityLogReceived -= OnActivityLogReceived;
             _divineAscensionModSystem.NetworkClient.AvailableDomainsReceived -= OnAvailableDomainsReceived;
             _divineAscensionModSystem.NetworkClient.HolySiteDataReceived -= OnHolySiteDataReceived;
+            _divineAscensionModSystem.NetworkClient.MilestoneProgressReceived -= OnMilestoneProgressReceived;
         }
 
         // Dispose icon loaders

@@ -25,6 +25,8 @@ public class CivilizationTabState
 
     public HolySitesState HolySitesState { get; } = new();
 
+    public MilestoneState MilestoneState { get; } = new();
+
     // Error messages (null = no error)
     public string? LastActionError { get; set; }
     public string? CreateError { get; set; }
@@ -48,6 +50,7 @@ public class CivilizationTabState
         EditState.Reset();
         DiplomacyState.Reset();
         HolySitesState.Reset();
+        MilestoneState.Reset();
 
         // Errors
         LastActionError = null;
@@ -66,5 +69,6 @@ public enum CivilizationSubTab
     Invites,
     Create,
     Diplomacy,
-    HolySites
+    HolySites,
+    Milestones
 }

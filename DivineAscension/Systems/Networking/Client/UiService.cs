@@ -151,4 +151,9 @@ public class UiService(DivineAscensionNetworkClient networkClient)
     {
         _networkClient.SendRitualRequest("cancel", siteUID);
     }
+
+    public void RequestMilestoneProgress(string civId)
+    {
+        _networkClient.RequestMilestoneProgress(civId);
+    }
 }

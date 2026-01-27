@@ -47,4 +47,7 @@ public interface IUiService
     void UpdateHolySite(string action, string siteUID, string newValue);
     void RequestStartRitual(string siteUID, int targetTier);
     void RequestCancelRitual(string siteUID);
+
+    // Milestone Operations
+    void RequestMilestoneProgress(string civId);
 }

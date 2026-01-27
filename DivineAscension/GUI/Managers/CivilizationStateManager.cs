@@ -11,6 +11,7 @@ using DivineAscension.GUI.Models.Civilization.Detail;
 using DivineAscension.GUI.Models.Civilization.Edit;
 using DivineAscension.GUI.Models.Civilization.HolySites;
 using DivineAscension.GUI.Models.Civilization.Info;
+using DivineAscension.GUI.Models.Civilization.Milestones;
 using DivineAscension.GUI.Models.Civilization.Invites;
 using DivineAscension.GUI.Models.Civilization.Tab;
 using DivineAscension.GUI.State;
@@ -367,6 +368,31 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     }
 
     /// <summary>
+    ///     Request milestone progress for the current civilization
+    /// </summary>
+    public void RequestMilestoneProgress()
+    {
+        if (!HasCivilization())
+        {
+            State.MilestoneState.ErrorMsg = "Not in a civilization";
+            return;
+        }
+
+        State.MilestoneState.IsLoading = true;
+        State.MilestoneState.ErrorMsg = null;
+
+        _uiService.RequestMilestoneProgress(CurrentCivilizationId);
+    }
+
+    /// <summary>
+    ///     Update milestone state from network response
+    /// </summary>
+    public void UpdateMilestoneProgress(DivineAscension.Network.MilestoneProgressResponsePacket packet)
+    {
+        State.MilestoneState.UpdateFromPacket(packet);
+    }
+
+    /// <summary>
     ///     Handle successful holy site update - exit editing mode and refresh detail view
     /// </summary>
     public void OnHolySiteUpdateSuccess(string siteUID)
@@ -438,6 +464,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             CivilizationSubTab.Create => tabVm.ShowCreateTab,
             CivilizationSubTab.Diplomacy => tabVm.ShowDiplomacyTab,
             CivilizationSubTab.HolySites => tabVm.ShowHolySitesTab,
+            CivilizationSubTab.Milestones => tabVm.ShowMilestonesTab,
             _ => false
         };
 
@@ -489,6 +516,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 break;
             case CivilizationSubTab.HolySites:
                 DrawCivilizationHolySites(x, contentY, width, contentHeight);
+                break;
+            case CivilizationSubTab.Milestones:
+                DrawCivilizationMilestones(x, contentY, width, contentHeight);
                 break;
         }
     }
@@ -815,6 +845,39 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         ProcessDetailEvents(result.Events);
     }
 
+    [ExcludeFromCodeCoverage]
+    private void DrawCivilizationMilestones(float x, float y, float width, float height)
+    {
+        // Build milestone ViewModel
+        var vm = new CivilizationMilestoneViewModel(
+            State.MilestoneState.Rank,
+            State.MilestoneState.Progress,
+            State.MilestoneState.Bonuses,
+            State.MilestoneState.IsLoading,
+            State.MilestoneState.ErrorMsg,
+            State.MilestoneState.ScrollY,
+            x, y, width, height);
+
+        // Render with CivilizationMilestoneRenderer
+        var drawList = ImGui.GetWindowDrawList();
+        var result = CivilizationMilestoneRenderer.Draw(vm, drawList);
+        ProcessMilestoneEvents(result.Events);
+    }
+
+    private void ProcessMilestoneEvents(IReadOnlyList<MilestoneEvent> events)
+    {
+        foreach (var evt in events)
+            switch (evt)
+            {
+                case MilestoneEvent.RefreshClicked:
+                    RequestMilestoneProgress();
+                    break;
+                case MilestoneEvent.ScrollChanged sc:
+                    State.MilestoneState.ScrollY = sc.NewScrollY;
+                    break;
+            }
+    }
+
     #endregion
 
     #region Event Processors
@@ -834,6 +897,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                         CivilizationSubTab.Create => UserHasReligion && !HasCivilization(),
                         CivilizationSubTab.Diplomacy => HasCivilization(),
                         CivilizationSubTab.HolySites => HasCivilization(),
+                        CivilizationSubTab.Milestones => HasCivilization(),
                         _ => false
                     };
 
@@ -872,6 +936,10 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                         case CivilizationSubTab.HolySites:
                             State.HolySitesState.Browse.ErrorMsg = null;
                             RequestCivilizationHolySites();
+                            break;
+                        case CivilizationSubTab.Milestones:
+                            State.MilestoneState.ErrorMsg = null;
+                            RequestMilestoneProgress();
                             break;
                     }
 

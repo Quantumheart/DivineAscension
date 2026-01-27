@@ -90,6 +90,10 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         // Register handler for holy site update response
         _clientChannel.SetMessageHandler<HolySiteUpdateResponsePacket>(OnHolySiteUpdateResponse);
 
+        // Register handlers for milestone responses
+        _clientChannel.SetMessageHandler<MilestoneProgressResponsePacket>(OnMilestoneProgressResponse);
+        _clientChannel.SetMessageHandler<MilestoneUnlockedPacket>(OnMilestoneUnlockedBroadcast);
+
         _clientChannel.RegisterMessageType(typeof(PlayerReligionDataPacket));
     }
 
@@ -119,6 +123,8 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         AvailableDomainsReceived = null;
         HolySiteDataReceived = null;
         HolySiteUpdated = null;
+        MilestoneProgressReceived = null;
+        MilestoneUnlocked = null;
     }
 
     #endregion
@@ -502,6 +508,27 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         HolySiteUpdated?.Invoke(packet);
     }
 
+    private void OnMilestoneProgressResponse(MilestoneProgressResponsePacket packet)
+    {
+        _capi?.Logger.Debug(
+            $"[DivineAscension] Received milestone progress response for civ {packet.CivId}: Rank={packet.Rank}, Completed={packet.CompletedMilestones.Count}");
+
+        // Fire event for subscribers
+        MilestoneProgressReceived?.Invoke(packet);
+    }
+
+    private void OnMilestoneUnlockedBroadcast(MilestoneUnlockedPacket packet)
+    {
+        _capi?.Logger.Debug(
+            $"[DivineAscension] Received milestone unlocked broadcast: {packet.MilestoneName} for civ {packet.CivId}");
+
+        // Show notification to user
+        _capi?.ShowChatMessage($"[Civilization Milestone] {packet.MilestoneName} unlocked! New Rank: {packet.NewRank}");
+
+        // Fire event for subscribers
+        MilestoneUnlocked?.Invoke(packet);
+    }
+
     #endregion
 
     #region Request Methods
@@ -770,6 +797,22 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         var request = new CivilizationActionRequestPacket(action, civId, targetId, name, icon, description);
         _clientChannel.SendPacket(request);
         _capi?.Logger.Debug($"[DivineAscension] Sent civilization action request: {action}");
+    }
+
+    /// <summary>
+    ///     Request milestone progress for a civilization
+    /// </summary>
+    public void RequestMilestoneProgress(string civId)
+    {
+        if (_clientChannel == null)
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot request milestone progress: client channel not initialized");
+            return;
+        }
+
+        var request = new MilestoneProgressRequestPacket { CivId = civId };
+        _clientChannel.SendPacket(request);
+        _capi?.Logger.Debug($"[DivineAscension] Sent milestone progress request for {civId}");
     }
 
     /// <summary>
@@ -1064,6 +1107,16 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     ///     Event fired when a holy site update response is received from the server
     /// </summary>
     public event Action<HolySiteUpdateResponsePacket>? HolySiteUpdated;
+
+    /// <summary>
+    ///     Event fired when milestone progress data is received from the server
+    /// </summary>
+    public event Action<MilestoneProgressResponsePacket>? MilestoneProgressReceived;
+
+    /// <summary>
+    ///     Event fired when a milestone is unlocked (broadcast from server)
+    /// </summary>
+    public event Action<MilestoneUnlockedPacket>? MilestoneUnlocked;
 
     #endregion
 }
