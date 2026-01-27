@@ -11,6 +11,7 @@ using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network;
 using DivineAscension.Services;
+using DivineAscension.Systems;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
@@ -184,9 +185,10 @@ internal static class CivilizationMilestoneRenderer
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor);
         drawList.AddRect(bgRect, bgRectEnd, borderColor, 4f, ImDrawFlags.None, 1f);
 
-        // Rank text
+        // Rank text (display rank name)
+        var rankName = RankRequirements.GetCivilizationRankName(viewModel.Rank);
         var rankText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_RANK)
-            .Replace("{0}", viewModel.Rank.ToString());
+            .Replace("{0}", rankName);
         var rankY = startY + (RankSectionHeight - ImGui.CalcTextSize(rankText).Y) / 2f;
         drawList.AddText(ImGui.GetFont(), 24f,
             new Vector2(x + 20f, rankY),

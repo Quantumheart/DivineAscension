@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using DivineAscension.Models.Enum;
 using ProtoBuf;
 
 namespace DivineAscension.Data;
@@ -132,10 +133,10 @@ public class Civilization
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
-    ///     Civilization rank - number of major milestones completed
+    ///     Civilization rank - based on number of major milestones completed
     /// </summary>
     [ProtoMember(11)]
-    public int Rank { get; set; } = 0;
+    public CivilizationRank Rank { get; set; } = CivilizationRank.Nascent;
 
     /// <summary>
     ///     Set of completed milestone IDs
