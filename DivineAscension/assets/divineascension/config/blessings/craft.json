@@ -1,6 +1,6 @@
 {
   "domain": "Craft",
-  "version": 1,
+  "version": 2,
   "blessings": [
     {
       "blessingId": "khoras_craftsmans_touch",
@@ -17,7 +17,9 @@
         "oreDropRate": 0.05
       },
       "specialEffects": [],
-      "cost": 50
+      "cost": 50,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "khoras_masterwork_tools",
@@ -34,7 +36,9 @@
         "miningSpeedMul": 0.10
       },
       "specialEffects": [],
-      "cost": 150
+      "cost": 150,
+      "branch": "Forge",
+      "exclusiveBranches": ["Endurance"]
     },
     {
       "blessingId": "khoras_forgeborn_endurance",
@@ -51,7 +55,9 @@
         "maxhealthExtraMultiplier": 0.10
       },
       "specialEffects": [],
-      "cost": 150
+      "cost": 150,
+      "branch": "Endurance",
+      "exclusiveBranches": ["Forge"]
     },
     {
       "blessingId": "khoras_legendary_smith",
@@ -68,7 +74,9 @@
         "oreDropRate": 0.075
       },
       "specialEffects": [],
-      "cost": 400
+      "cost": 400,
+      "branch": "Forge",
+      "exclusiveBranches": ["Endurance"]
     },
     {
       "blessingId": "khoras_unyielding",
@@ -85,12 +93,14 @@
         "maxhealthExtraMultiplier": 0.15
       },
       "specialEffects": [],
-      "cost": 400
+      "cost": 400,
+      "branch": "Endurance",
+      "exclusiveBranches": ["Forge"]
     },
     {
       "blessingId": "khoras_avatar_of_forge",
       "name": "Avatar of the Forge",
-      "description": "Tools repair 1 durability per 5 minutes. +10% armor walk speed. Requires both Legendary Smith and Unyielding.",
+      "description": "Tools repair 1 durability per 5 minutes. +10% armor walk speed. Requires Legendary Smith or Unyielding.",
       "kind": "Player",
       "category": "Utility",
       "iconName": "sword-mold",
@@ -101,7 +111,9 @@
         "armorWalkSpeedAffectedness": -0.10
       },
       "specialEffects": ["passive_tool_repair_1per5min"],
-      "cost": 800
+      "cost": 800,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "khoras_shared_workshop",
@@ -118,7 +130,9 @@
         "oreDropRate": 0.05
       },
       "specialEffects": [],
-      "cost": 500
+      "cost": 500,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "khoras_guild_of_smiths",
@@ -135,7 +149,9 @@
         "oreDropRate": 0.075
       },
       "specialEffects": [],
-      "cost": 1500
+      "cost": 1500,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "khoras_master_craftsmen",
@@ -153,7 +169,9 @@
         "armorWalkSpeedAffectedness": -0.10
       },
       "specialEffects": [],
-      "cost": 4000
+      "cost": 4000,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "khoras_pantheon_of_creation",
@@ -169,7 +187,9 @@
         "maxhealthExtraMultiplier": 0.10
       },
       "specialEffects": [],
-      "cost": 8000
+      "cost": 8000,
+      "branch": null,
+      "exclusiveBranches": null
     }
   ]
 }

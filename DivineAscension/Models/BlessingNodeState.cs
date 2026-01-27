@@ -34,6 +34,17 @@ public class BlessingNodeState
     public bool CanUnlock { get; set; }
 
     /// <summary>
+    ///     Whether the blessing's branch is locked due to committing to an exclusive branch
+    /// </summary>
+    public bool IsBranchLocked { get; set; }
+
+    /// <summary>
+    ///     The name of the branch the player committed to that locked this blessing's branch.
+    ///     Only set when IsBranchLocked is true.
+    /// </summary>
+    public string? LockedByBranch { get; set; }
+
+    /// <summary>
     ///     X position in the tree layout (calculated by BlessingTreeLayout)
     /// </summary>
     public float PositionX { get; set; }
@@ -82,6 +93,8 @@ public class BlessingNodeState
     {
         if (IsUnlocked)
             VisualState = BlessingNodeVisualState.Unlocked;
+        else if (IsBranchLocked)
+            VisualState = BlessingNodeVisualState.BranchLocked;
         else if (CanUnlock)
             VisualState = BlessingNodeVisualState.Unlockable;
         else
@@ -107,5 +120,11 @@ public enum BlessingNodeVisualState
     /// <summary>
     ///     Blessing is already unlocked (gold/active color)
     /// </summary>
-    Unlocked
+    Unlocked,
+
+    /// <summary>
+    ///     Blessing's branch is permanently locked due to committing to an exclusive branch
+    ///     (red/X overlay, cannot ever be unlocked)
+    /// </summary>
+    BranchLocked
 }

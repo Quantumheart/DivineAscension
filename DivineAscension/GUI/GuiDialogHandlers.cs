@@ -85,7 +85,9 @@ public partial class GuiDialog
             PrerequisiteBlessings = p.PrerequisiteBlessings,
             StatModifiers = p.StatModifiers,
             IconName = p.IconName,
-            Cost = p.Cost
+            Cost = p.Cost,
+            Branch = p.Branch,
+            ExclusiveBranches = p.ExclusiveBranches
         }).ToList();
 
         var religionBlessings = packet.ReligionBlessings.Select(p => new Blessing(p.BlessingId, p.Name, deityType)
@@ -98,7 +100,9 @@ public partial class GuiDialog
             PrerequisiteBlessings = p.PrerequisiteBlessings,
             StatModifiers = p.StatModifiers,
             IconName = p.IconName,
-            Cost = p.Cost
+            Cost = p.Cost,
+            Branch = p.Branch,
+            ExclusiveBranches = p.ExclusiveBranches
         }).ToList();
 
         // Load blessing states into manager
@@ -116,6 +120,9 @@ public partial class GuiDialog
 
         foreach (var blessingId in packet.UnlockedReligionBlessings)
             _manager.BlessingStateManager.SetBlessingUnlocked(blessingId, true);
+
+        // Set branch state from server (committed and locked branches)
+        _manager.BlessingStateManager.SetBranchState(packet.CommittedBranches, packet.LockedBranches);
 
         // Refresh states to update can-unlock status
         _manager.BlessingStateManager.RefreshAllBlessingStates(_manager.ReligionStateManager.CurrentFavorRank,

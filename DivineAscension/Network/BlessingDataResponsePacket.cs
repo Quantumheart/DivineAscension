@@ -46,6 +46,19 @@ public class BlessingDataResponsePacket
     [ProtoMember(13)] public List<string> UnlockedReligionBlessings { get; set; } = new();
 
     /// <summary>
+    ///     Branches the player has committed to, keyed by domain enum as int.
+    /// </summary>
+    [ProtoMember(15)]
+    public Dictionary<int, string> CommittedBranches { get; set; } = new();
+
+    /// <summary>
+    ///     Branches that are locked out due to exclusive branch choices.
+    ///     Keyed by domain enum as int.
+    /// </summary>
+    [ProtoMember(16)]
+    public Dictionary<int, List<string>> LockedBranches { get; set; } = new();
+
+    /// <summary>
     ///     Basic blessing information needed for UI display
     /// </summary>
     [ProtoContract]
@@ -70,5 +83,17 @@ public class BlessingDataResponsePacket
         [ProtoMember(9)] public string IconName { get; set; } = string.Empty;
 
         [ProtoMember(10)] public int Cost { get; set; }
+
+        /// <summary>
+        ///     The branch this blessing belongs to (null/empty = shared)
+        /// </summary>
+        [ProtoMember(11)]
+        public string? Branch { get; set; }
+
+        /// <summary>
+        ///     Branch names that become locked if this blessing is unlocked
+        /// </summary>
+        [ProtoMember(12)]
+        public List<string>? ExclusiveBranches { get; set; }
     }
 }

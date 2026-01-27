@@ -42,7 +42,8 @@ public class BlessingStateManagerTests
         BlessingKind kind,
         int requiredFavorRank = 0,
         int requiredPrestigeRank = 0,
-        List<string>? prerequisites = null)
+        List<string>? prerequisites = null,
+        string? branch = null)
     {
         return new Blessing
         {
@@ -50,7 +51,8 @@ public class BlessingStateManagerTests
             Kind = kind,
             RequiredFavorRank = requiredFavorRank,
             RequiredPrestigeRank = requiredPrestigeRank,
-            PrerequisiteBlessings = prerequisites ?? new List<string>()
+            PrerequisiteBlessings = prerequisites ?? new List<string>(),
+            Branch = branch
         };
     }
 
@@ -570,13 +572,14 @@ public class BlessingStateManagerTests
     }
 
     [Fact]
-    public void RefreshAllBlessingStates_WithMultiplePrerequisites_AllMustBeUnlocked()
+    public void RefreshAllBlessingStates_WithMultiplePrerequisites_BranchBlessing_AllMustBeUnlocked()
     {
-        // Arrange
+        // Arrange - blessing with a branch uses AND logic (all prerequisites required)
         var prereq1 = CreateBlessing("prereq1", BlessingKind.Player);
         var prereq2 = CreateBlessing("prereq2", BlessingKind.Player);
         var dependent = CreateBlessing("dependent", BlessingKind.Player,
-            prerequisites: new List<string> { "prereq1", "prereq2" });
+            prerequisites: new List<string> { "prereq1", "prereq2" },
+            branch: "TestBranch"); // Non-null branch = AND logic
 
         _sut.LoadBlessingStates(
             new List<Blessing> { prereq1, prereq2, dependent },
@@ -588,8 +591,32 @@ public class BlessingStateManagerTests
         // Act
         _sut.RefreshAllBlessingStates(10, 10);
 
-        // Assert - should be false because prereq2 is not unlocked
+        // Assert - should be false because prereq2 is not unlocked (AND logic)
         Assert.False(_sut.State.PlayerBlessingStates["dependent"].CanUnlock);
+    }
+
+    [Fact]
+    public void RefreshAllBlessingStates_WithMultiplePrerequisites_CapstoneBlessing_OnlyOneRequired()
+    {
+        // Arrange - capstone blessing (branch = null) uses OR logic (one prerequisite sufficient)
+        var prereq1 = CreateBlessing("prereq1", BlessingKind.Player);
+        var prereq2 = CreateBlessing("prereq2", BlessingKind.Player);
+        var capstone = CreateBlessing("capstone", BlessingKind.Player,
+            prerequisites: new List<string> { "prereq1", "prereq2" },
+            branch: null); // Null branch = OR logic (capstone)
+
+        _sut.LoadBlessingStates(
+            new List<Blessing> { prereq1, prereq2, capstone },
+            new List<Blessing>());
+
+        // Only unlock one prerequisite
+        _sut.SetBlessingUnlocked("prereq1", true);
+
+        // Act
+        _sut.RefreshAllBlessingStates(10, 10);
+
+        // Assert - should be true because one prerequisite is unlocked (OR logic)
+        Assert.True(_sut.State.PlayerBlessingStates["capstone"].CanUnlock);
     }
 
     #endregion

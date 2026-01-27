@@ -158,15 +158,47 @@ public class BlessingRegistry : IBlessingRegistry
             if (religionData!.Domain != blessing.Domain)
                 return (false, $"Requires deity: {blessing.Domain} (Current: {religionData!.Domain})");
 
+            // Check branch exclusivity (only for player blessings with a branch)
+            if (!string.IsNullOrEmpty(blessing.Branch))
+            {
+                if (playerData.IsBranchLocked(blessing.Domain, blessing.Branch))
+                {
+                    var committedBranch = playerData.GetCommittedBranch(blessing.Domain);
+                    return (false, $"Branch '{blessing.Branch}' is locked. You committed to '{committedBranch}'.");
+                }
+            }
+
             // Check prerequisites
-            if (blessing.PrerequisiteBlessings != null)
-                foreach (var prereqId in blessing.PrerequisiteBlessings)
-                    if (!playerData.IsBlessingUnlocked(prereqId))
+            if (blessing.PrerequisiteBlessings is { Count: > 0 })
+            {
+                // Capstone blessings (branch == null) use OR logic - at least one prerequisite must be unlocked
+                // Regular blessings use AND logic - all prerequisites must be unlocked
+                var isCapstone = string.IsNullOrEmpty(blessing.Branch);
+
+                if (isCapstone)
+                {
+                    // OR logic: at least one prerequisite must be unlocked
+                    var anyUnlocked = blessing.PrerequisiteBlessings.Any(prereqId => playerData.IsBlessingUnlocked(prereqId));
+                    if (!anyUnlocked)
                     {
-                        var prereqBlessing = GetBlessing(prereqId);
-                        var prereqName = prereqBlessing?.Name ?? prereqId;
-                        return (false, $"Requires prerequisite blessing: {prereqName}");
+                        var prereqNames = blessing.PrerequisiteBlessings
+                            .Select(id => GetBlessing(id)?.Name ?? id)
+                            .ToList();
+                        return (false, $"Requires one of: {string.Join(" or ", prereqNames)}");
                     }
+                }
+                else
+                {
+                    // AND logic: all prerequisites must be unlocked
+                    foreach (var prereqId in blessing.PrerequisiteBlessings)
+                        if (!playerData.IsBlessingUnlocked(prereqId))
+                        {
+                            var prereqBlessing = GetBlessing(prereqId);
+                            var prereqName = prereqBlessing?.Name ?? prereqId;
+                            return (false, $"Requires prerequisite blessing: {prereqName}");
+                        }
+                }
+            }
 
             // Check favor cost (skip if cost will be deducted atomically)
             if (!skipCostCheck && blessing.Cost > 0 && playerData.Favor < blessing.Cost)

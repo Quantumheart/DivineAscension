@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DivineAscension.Models.Enum;
+using DivineAscension.Systems.Interfaces;
 
 namespace DivineAscension.Systems.Interfaces;
 
@@ -131,4 +132,12 @@ public interface IPlayerProgressionDataManager : IDisposable
     /// <param name="playerUID">Player unique identifier</param>
     /// <param name="expiryTime">Absolute timestamp when prayer cooldown expires</param>
     void SetPrayerCooldownExpiry(string playerUID, long expiryTime);
+
+    /// <summary>
+    /// Migrates player branch commitments from existing unlocked blessings.
+    /// Called for players with DataVersion &lt; 4 to infer branch commitments.
+    /// </summary>
+    /// <param name="playerUID">Player unique identifier</param>
+    /// <param name="blessingRegistry">Blessing registry to look up blessing branch info</param>
+    void MigrateBranchCommitments(string playerUID, IBlessingRegistry blessingRegistry);
 }

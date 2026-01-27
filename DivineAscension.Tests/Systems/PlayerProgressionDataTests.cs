@@ -294,4 +294,221 @@ public class PlayerProgressionDataTests
     }
 
     #endregion
+
+    #region Branch Commitment Tests
+
+    [Fact]
+    public void CommitToBranch_FirstBranchInDomain_SetsCommittedBranch()
+    {
+        // Arrange
+        var data = new PlayerProgressionData("player-123");
+
+        // Act
+        data.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
+
+        // Assert
+        Assert.Equal("Forge", data.GetCommittedBranch(DeityDomain.Craft));
+    }
+
+    [Fact]
+    public void CommitToBranch_WithExclusiveBranches_LocksExclusiveBranches()
+    {
+        // Arrange
+        var data = new PlayerProgressionData("player-123");
+
+        // Act
+        data.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
+
+        // Assert
+        Assert.True(data.IsBranchLocked(DeityDomain.Craft, "Endurance"));
+        Assert.False(data.IsBranchLocked(DeityDomain.Craft, "Forge"));
+    }
+
+    [Fact]
+    public void CommitToBranch_MultipleExclusiveBranches_LocksAll()
+    {
+        // Arrange
+        var data = new PlayerProgressionData("player-123");
+
+        // Act
+        data.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance", "Speed", "Power" });
+
+        // Assert
+        Assert.True(data.IsBranchLocked(DeityDomain.Craft, "Endurance"));
+        Assert.True(data.IsBranchLocked(DeityDomain.Craft, "Speed"));
+        Assert.True(data.IsBranchLocked(DeityDomain.Craft, "Power"));
+        Assert.False(data.IsBranchLocked(DeityDomain.Craft, "Forge"));
+    }
+
+    [Fact]
+    public void CommitToBranch_WhenAlreadyCommittedInDomain_DoesNotChange()
+    {
+        // Arrange
+        var data = new PlayerProgressionData("player-123");
+        data.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
+
+        // Act - try to commit to a different branch
+        data.CommitToBranch(DeityDomain.Craft, "Endurance", new[] { "Forge" });
+
+        // Assert - should still be committed to Forge, not Endurance
+        Assert.Equal("Forge", data.GetCommittedBranch(DeityDomain.Craft));
+        Assert.True(data.IsBranchLocked(DeityDomain.Craft, "Endurance"));
+        Assert.False(data.IsBranchLocked(DeityDomain.Craft, "Forge")); // Forge should NOT be locked
+    }
+
+    [Fact]
+    public void CommitToBranch_DifferentDomains_TracksSeparately()
+    {
+        // Arrange
+        var data = new PlayerProgressionData("player-123");
+
+        // Act
+        data.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
+        data.CommitToBranch(DeityDomain.Wild, "Hunter", new[] { "Forager" });
+
+        // Assert
+        Assert.Equal("Forge", data.GetCommittedBranch(DeityDomain.Craft));
+        Assert.Equal("Hunter", data.GetCommittedBranch(DeityDomain.Wild));
+        Assert.True(data.IsBranchLocked(DeityDomain.Craft, "Endurance"));
+        Assert.True(data.IsBranchLocked(DeityDomain.Wild, "Forager"));
+        Assert.False(data.IsBranchLocked(DeityDomain.Craft, "Hunter")); // Different domain
+        Assert.False(data.IsBranchLocked(DeityDomain.Wild, "Endurance")); // Different domain
+    }
+
+    [Fact]
+    public void CommitToBranch_WithNullExclusiveBranches_DoesNotLockAnything()
+    {
+        // Arrange
+        var data = new PlayerProgressionData("player-123");
+
+        // Act
+        data.CommitToBranch(DeityDomain.Craft, "Forge", null);
+
+        // Assert
+        Assert.Equal("Forge", data.GetCommittedBranch(DeityDomain.Craft));
+        Assert.False(data.IsBranchLocked(DeityDomain.Craft, "Endurance"));
+    }
+
+    [Fact]
+    public void CommitToBranch_WithEmptyBranchName_DoesNothing()
+    {
+        // Arrange
+        var data = new PlayerProgressionData("player-123");
+
+        // Act
+        data.CommitToBranch(DeityDomain.Craft, "", new[] { "Endurance" });
+
+        // Assert
+        Assert.Null(data.GetCommittedBranch(DeityDomain.Craft));
+    }
+
+    [Fact]
+    public void IsBranchLocked_NoBranchesLocked_ReturnsFalse()
+    {
+        // Arrange
+        var data = new PlayerProgressionData("player-123");
+
+        // Act & Assert
+        Assert.False(data.IsBranchLocked(DeityDomain.Craft, "Forge"));
+        Assert.False(data.IsBranchLocked(DeityDomain.Craft, "Endurance"));
+    }
+
+    [Fact]
+    public void GetCommittedBranch_NoCommitment_ReturnsNull()
+    {
+        // Arrange
+        var data = new PlayerProgressionData("player-123");
+
+        // Act
+        var branch = data.GetCommittedBranch(DeityDomain.Craft);
+
+        // Assert
+        Assert.Null(branch);
+    }
+
+    [Fact]
+    public void GetLockedBranches_WithLockedBranches_ReturnsAll()
+    {
+        // Arrange
+        var data = new PlayerProgressionData("player-123");
+        data.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance", "Speed" });
+
+        // Act
+        var locked = data.GetLockedBranches(DeityDomain.Craft);
+
+        // Assert
+        Assert.Equal(2, locked.Count);
+        Assert.Contains("Endurance", locked);
+        Assert.Contains("Speed", locked);
+    }
+
+    [Fact]
+    public void GetLockedBranches_NoBranchesLocked_ReturnsEmpty()
+    {
+        // Arrange
+        var data = new PlayerProgressionData("player-123");
+
+        // Act
+        var locked = data.GetLockedBranches(DeityDomain.Craft);
+
+        // Assert
+        Assert.Empty(locked);
+    }
+
+    [Fact]
+    public void ClearBranchCommitments_RemovesAllCommitmentsAndLocks()
+    {
+        // Arrange
+        var data = new PlayerProgressionData("player-123");
+        data.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
+        data.CommitToBranch(DeityDomain.Wild, "Hunter", new[] { "Forager" });
+
+        // Act
+        data.ClearBranchCommitments();
+
+        // Assert
+        Assert.Null(data.GetCommittedBranch(DeityDomain.Craft));
+        Assert.Null(data.GetCommittedBranch(DeityDomain.Wild));
+        Assert.False(data.IsBranchLocked(DeityDomain.Craft, "Endurance"));
+        Assert.False(data.IsBranchLocked(DeityDomain.Wild, "Forager"));
+    }
+
+    [Fact]
+    public void ClearBranchCommitmentsForDomain_RemovesOnlySpecifiedDomain()
+    {
+        // Arrange
+        var data = new PlayerProgressionData("player-123");
+        data.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
+        data.CommitToBranch(DeityDomain.Wild, "Hunter", new[] { "Forager" });
+
+        // Act
+        data.ClearBranchCommitmentsForDomain(DeityDomain.Craft);
+
+        // Assert
+        Assert.Null(data.GetCommittedBranch(DeityDomain.Craft));
+        Assert.Equal("Hunter", data.GetCommittedBranch(DeityDomain.Wild));
+        Assert.False(data.IsBranchLocked(DeityDomain.Craft, "Endurance"));
+        Assert.True(data.IsBranchLocked(DeityDomain.Wild, "Forager"));
+    }
+
+    [Fact]
+    public void ApplySwitchPenalty_ClearsBranchCommitments()
+    {
+        // Arrange
+        var data = new PlayerProgressionData("player-123")
+        {
+            Favor = 100
+        };
+        data.UnlockBlessing("blessing1");
+        data.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
+
+        // Act
+        data.ApplySwitchPenalty();
+
+        // Assert
+        Assert.Null(data.GetCommittedBranch(DeityDomain.Craft));
+        Assert.False(data.IsBranchLocked(DeityDomain.Craft, "Endurance"));
+    }
+
+    #endregion
 }

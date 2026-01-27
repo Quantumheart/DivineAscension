@@ -94,4 +94,18 @@ public class Blessing
     ///     For Religion blessings: prestige cost.
     /// </summary>
     public int Cost { get; set; }
+
+    /// <summary>
+    ///     The branch this blessing belongs to within its domain.
+    ///     Null or empty means "Shared" (no branch restrictions).
+    ///     Examples: "Forge", "Endurance", "Hunt", "Harmony"
+    /// </summary>
+    public string? Branch { get; set; }
+
+    /// <summary>
+    ///     List of branch names that become locked if this blessing is unlocked.
+    ///     Only applies when unlocking the first blessing in a branch.
+    ///     For example, unlocking a "Forge" branch blessing might lock the "Endurance" branch.
+    /// </summary>
+    public List<string>? ExclusiveBranches { get; set; }
 }
