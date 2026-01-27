@@ -114,17 +114,27 @@ When creating feature plans, place them in `docs/topics/planning/features/<featu
 12. `FavorSystem` - Divine favor rewards (depends on PrestigeManager and ActivityLogManager)
 13. `OfferingLoader` - Loads offering configurations from JSON (must be before AltarPrayerHandler)
 14. `RitualLoader` - Loads ritual definitions from JSON (must be before RitualProgressManager)
-15. `BuffManager` - Buff system for temporary stat modifiers (must be before AltarPrayerHandler)
-16. `PlayerProgressionService` - Facade for favor/prestige/activity systems (must be before AltarPrayerHandler)
-17. `RitualProgressManager` - Handles ritual tracking for holy site tier upgrades (depends on RitualLoader)
-18. `AltarPrayerHandler` - Prayer interactions at altars (depends on many systems above)
-19. `DiplomacyManager` - Inter-civilization diplomacy
-20. `PvPManager` - PvP favor rewards
-21. `BlessingRegistry` - Blessing definitions
-22. `BlessingEffectSystem` - Stat modifiers and effects (**must register with PrestigeManager after initialization**)
-23. Command handlers (Favor, Blessing, Religion, Role, Civilization, HolySite)
-24. Network handlers (PlayerData, Blessing, Religion, Civilization, Diplomacy, Activity, HolySite)
-25. **Membership validation** - Validates and repairs player-to-religion index consistency
+15. `MilestoneDefinitionLoader` - Loads milestone definitions from JSON (must be before CivilizationMilestoneManager)
+16. `BuffManager` - Buff system for temporary stat modifiers (must be before AltarPrayerHandler)
+17. `PlayerProgressionService` - Facade for favor/prestige/activity systems (must be before AltarPrayerHandler)
+18. `RitualProgressManager` - Handles ritual tracking for holy site tier upgrades (depends on RitualLoader)
+19. `CivilizationMilestoneManager` - Tracks civilization milestone progression (depends on CivilizationManager, HolySiteManager, MilestoneDefinitionLoader)
+20. `CivilizationBonusSystem` - Provides civilization-wide bonuses from milestones (depends on CivilizationMilestoneManager)
+21. `AltarPrayerHandler` - Prayer interactions at altars (depends on many systems above)
+22. `DiplomacyManager` - Inter-civilization diplomacy
+23. `PvPManager` - PvP favor rewards
+24. `BlessingRegistry` - Blessing definitions
+25. `BlessingEffectSystem` - Stat modifiers and effects (**must register with PrestigeManager after initialization**)
+26. Command handlers (Favor, Blessing, Religion, Role, Civilization, HolySite)
+27. Network handlers (PlayerData, Blessing, Religion, Civilization, Diplomacy, Activity, HolySite, Milestone)
+28. **Membership validation** - Validates and repairs player-to-religion index consistency
+
+**Late-binding dependencies** (called after initial construction to resolve circular dependencies):
+- `civilizationMilestoneManager.SetRitualProgressManager(ritualProgressManager)` - Subscribe to ritual completion events
+- `civilizationMilestoneManager.SetPvPManager(pvpManager)` - Subscribe to PvP kill events
+- `favorSystem.SetCivilizationBonusSystem(civilizationBonusSystem)` - Apply favor multipliers from milestones
+- `holySiteManager.SetCivilizationBonusSystem(civilizationBonusSystem)` - Apply holy site slot bonuses from milestones
+- `pvpManager.SetCivilizationBonusSystem(civilizationBonusSystem)` - Apply conquest multipliers from milestones
 
 **Never reorder these** - dependency chains will break.
 
