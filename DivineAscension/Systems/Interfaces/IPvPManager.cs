@@ -1,3 +1,4 @@
+using System;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Systems.Interfaces;
@@ -7,6 +8,12 @@ namespace DivineAscension.Systems.Interfaces;
 /// </summary>
 public interface IPvPManager
 {
+    /// <summary>
+    ///     Event fired when a PvP kill occurs against an enemy civilization during war.
+    ///     Parameters: attackerCivId
+    /// </summary>
+    event Action<string>? OnWarKill;
+
     /// <summary>
     ///     Initializes the PvP manager and hooks into game events
     /// </summary>

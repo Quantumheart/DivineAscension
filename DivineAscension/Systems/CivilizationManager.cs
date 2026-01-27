@@ -68,6 +68,16 @@ public class CivilizationManager : ICivilizationManager
     public event Action<string>? OnCivilizationDisbanded;
 
     /// <summary>
+    ///     Event fired when a religion joins a civilization
+    /// </summary>
+    public event Action<string, string>? OnReligionAdded;
+
+    /// <summary>
+    ///     Event fired when a religion leaves or is removed from a civilization
+    /// </summary>
+    public event Action<string, string>? OnReligionRemoved;
+
+    /// <summary>
     ///     Initializes the civilization manager
     /// </summary>
     public void Initialize()
@@ -94,6 +104,8 @@ public class CivilizationManager : ICivilizationManager
         _eventService.UnsubscribeGameWorldSave(OnGameWorldSave);
         _religionManager.OnReligionDeleted -= HandleReligionDeleted;
         OnCivilizationDisbanded = null;
+        OnReligionAdded = null;
+        OnReligionRemoved = null;
     }
 
     #region Event Handlers
@@ -117,9 +129,13 @@ public class CivilizationManager : ICivilizationManager
 
                 // Check if the deleted religion was the founder's religion
                 var isFounderReligion = civ.FounderReligionUID == religionId;
+                var civIdForEvent = civ.CivId;
 
                 // Remove religion from civilization
                 _data.RemoveReligionFromCivilization(religionId);
+
+                // Fire event for milestone tracking
+                OnReligionRemoved?.Invoke(civIdForEvent, religionId);
 
                 // Update member count (recalculate from remaining religions)
                 var totalMembers = 0;
@@ -418,6 +434,10 @@ public class CivilizationManager : ICivilizationManager
 
                 _logger.Notification(
                     $"[DivineAscension] Religion '{religion.ReligionName}' joined civilization '{civ.Name}'");
+
+                // Fire event for milestone tracking
+                OnReligionAdded?.Invoke(civ.CivId, invite.ReligionId);
+
                 return true;
             }
             catch (Exception ex)
@@ -548,9 +568,12 @@ public class CivilizationManager : ICivilizationManager
                 }
 
                 // Remove religion from civilization
+                var civIdForEvent = civ.CivId;
                 _data.RemoveReligionFromCivilization(religionId);
                 civ.MemberCount -= religion.MemberUIDs.Count;
 
+                // Fire event for milestone tracking (before potential disband)
+                OnReligionRemoved?.Invoke(civIdForEvent, religionId);
 
                 // Check if civilization falls below minimum
                 if (civ.MemberReligionIds.Count < MIN_RELIGIONS)
@@ -623,6 +646,9 @@ public class CivilizationManager : ICivilizationManager
                 // Remove religion from civilization
                 _data.RemoveReligionFromCivilization(religionId);
                 civ.MemberCount -= religion.MemberUIDs.Count;
+
+                // Fire event for milestone tracking (before potential disband)
+                OnReligionRemoved?.Invoke(civId, religionId);
 
                 // Check if civilization falls below minimum
                 if (civ.MemberReligionIds.Count < MIN_RELIGIONS)

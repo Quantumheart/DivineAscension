@@ -30,6 +30,9 @@ public class HolySiteManager : IHolySiteManager
     private const int MAX_SITES_PER_TIER = 5;
     private readonly IEventService _eventService;
 
+    /// <inheritdoc />
+    public event Action<string, string>? OnHolySiteCreated;
+
     // Dependencies (API wrappers)
     private readonly ILoggerWrapper _logger;
     private readonly IPersistenceService _persistenceService;
@@ -44,6 +47,9 @@ public class HolySiteManager : IHolySiteManager
     // Uses ConcurrentDictionary for thread-safe reads during position checks
     private readonly ConcurrentDictionary<(int chunkX, int chunkZ), HashSet<string>> _sitesByChunk = new();
     private readonly IWorldService _worldService;
+
+    // Optional dependency for civilization bonus slots (set via SetCivilizationBonusSystem)
+    private ICivilizationBonusSystem? _civilizationBonusSystem;
 
     /// <summary>
     /// Lazy-initialized lock object for thread safety using Interlocked.CompareExchange
@@ -105,11 +111,21 @@ public class HolySiteManager : IHolySiteManager
         _eventService.UnsubscribeGameWorldSave(OnGameWorldSave);
     }
 
+    /// <summary>
+    /// Sets the civilization bonus system for bonus holy site slots.
+    /// Must be called after CivilizationBonusSystem is initialized.
+    /// </summary>
+    public void SetCivilizationBonusSystem(ICivilizationBonusSystem civilizationBonusSystem)
+    {
+        _civilizationBonusSystem = civilizationBonusSystem ?? throw new ArgumentNullException(nameof(civilizationBonusSystem));
+    }
+
     #region Prestige-Based Limits
 
     /// <summary>
-    /// Gets the maximum number of holy sites a religion can have based on prestige tier.
-    /// Tier is calculated as PrestigeRank + 1 (1-5 range), capped at 5 sites maximum.
+    /// Gets the maximum number of holy sites a religion can have based on prestige tier
+    /// plus any bonus slots from civilization milestones.
+    /// Tier is calculated as PrestigeRank + 1 (1-5 range), with bonus slots added on top.
     /// </summary>
     public int GetMaxSitesForReligion(string religionUID)
     {
@@ -119,7 +135,16 @@ public class HolySiteManager : IHolySiteManager
 
         // Convert PrestigeRank (0-4) to tier (1-5)
         int tier = (int)religion.PrestigeRank + 1;
-        return Math.Min(tier, MAX_SITES_PER_TIER);
+        int baseSites = Math.Min(tier, MAX_SITES_PER_TIER);
+
+        // Add bonus slots from civilization milestones
+        int bonusSlots = 0;
+        if (_civilizationBonusSystem != null)
+        {
+            bonusSlots = _civilizationBonusSystem.GetBonusHolySiteSlotsForReligion(religionUID);
+        }
+
+        return baseSites + bonusSlots;
     }
 
     /// <summary>
@@ -233,6 +258,9 @@ public class HolySiteManager : IHolySiteManager
                 _logger.Notification($"[DivineAscension] Holy site '{siteName}' consecrated{altarInfo}, tier {site.GetTier()}");
 
                 SaveHolySites();
+
+                // Fire event for milestone tracking
+                OnHolySiteCreated?.Invoke(religionUID, site.SiteUID);
 
                 return site;
             }

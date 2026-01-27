@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "milestones": [
+    {
+      "id": "first_alliance",
+      "name": "First Alliance",
+      "description": "Form an alliance by adding a second religion to your civilization.",
+      "type": "major",
+      "trigger": {
+        "type": "religion_count",
+        "threshold": 2
+      },
+      "rankReward": 1,
+      "prestigePayout": 250,
+      "permanentBenefit": {
+        "type": "prestige_multiplier",
+        "amount": 0.05
+      }
+    },
+    {
+      "id": "holy_expansion",
+      "name": "Holy Expansion",
+      "description": "Create two holy sites across your civilization's religions.",
+      "type": "major",
+      "trigger": {
+        "type": "holy_site_count",
+        "threshold": 2
+      },
+      "rankReward": 1,
+      "prestigePayout": 300,
+      "permanentBenefit": {
+        "type": "holy_site_slot",
+        "amount": 1
+      }
+    },
+    {
+      "id": "ritual_mastery",
+      "name": "Ritual Mastery",
+      "description": "Complete five rituals across your civilization's holy sites.",
+      "type": "major",
+      "trigger": {
+        "type": "ritual_count",
+        "threshold": 5
+      },
+      "rankReward": 1,
+      "prestigePayout": 400,
+      "permanentBenefit": {
+        "type": "unlock_blessing",
+        "amount": 0,
+        "blessingId": "civilization_cooperation"
+      }
+    },
+    {
+      "id": "united_front",
+      "name": "United Front",
+      "description": "Unite all four deity domains under your civilization's banner.",
+      "type": "major",
+      "trigger": {
+        "type": "domain_count",
+        "threshold": 4
+      },
+      "rankReward": 1,
+      "prestigePayout": 500,
+      "permanentBenefit": {
+        "type": "favor_multiplier",
+        "amount": 0.10
+      }
+    },
+    {
+      "id": "population_milestone",
+      "name": "Population Surge",
+      "description": "Reach 25 members across all religions in your civilization.",
+      "type": "major",
+      "trigger": {
+        "type": "member_count",
+        "threshold": 25
+      },
+      "rankReward": 1,
+      "prestigePayout": 350,
+      "permanentBenefit": {
+        "type": "all_rewards_multiplier",
+        "amount": 0.02
+      }
+    },
+    {
+      "id": "tier_triumph",
+      "name": "Tier Triumph",
+      "description": "Upgrade any holy site to Tier 2 (Temple).",
+      "type": "minor",
+      "trigger": {
+        "type": "holy_site_tier",
+        "threshold": 2
+      },
+      "rankReward": 0,
+      "prestigePayout": 300
+    },
+    {
+      "id": "diplomatic_victory",
+      "name": "Diplomatic Victory",
+      "description": "Form a Non-Aggression Pact or Alliance with another civilization.",
+      "type": "minor",
+      "trigger": {
+        "type": "diplomatic_relationship",
+        "threshold": 1
+      },
+      "rankReward": 0,
+      "prestigePayout": 200
+    },
+    {
+      "id": "war_heroes",
+      "name": "War Heroes",
+      "description": "Achieve 50 PvP kills during active wars.",
+      "type": "minor",
+      "trigger": {
+        "type": "war_kill_count",
+        "threshold": 50
+      },
+      "rankReward": 0,
+      "prestigePayout": 300,
+      "temporaryBenefit": {
+        "type": "conquest_multiplier",
+        "amount": 0.05,
+        "durationDays": 7
+      }
+    },
+    {
+      "id": "cultural_monument",
+      "name": "Cultural Monument",
+      "description": "Complete all five major milestones to achieve legendary status.",
+      "type": "minor",
+      "trigger": {
+        "type": "all_major_milestones",
+        "threshold": 5
+      },
+      "rankReward": 0,
+      "prestigePayout": 1000,
+      "permanentBenefit": {
+        "type": "prestige_multiplier",
+        "amount": 0.02
+      }
+    }
+  ]
+}

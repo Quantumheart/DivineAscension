@@ -40,6 +40,7 @@ public class FavorSystem : IFavorSystem
     private IHolySiteAreaTracker? _holySiteAreaTracker;
     private ICivilizationManager? _civilizationManager;
     private IHolySiteManager? _holySiteManager;
+    private ICivilizationBonusSystem? _civilizationBonusSystem;
     private AnvilFavorTracker? _anvilFavorTracker;
     private ConquestFavorTracker? _conquestFavorTracker;
     private ForagingFavorTracker? _foragingFavorTracker;
@@ -88,6 +89,15 @@ public class FavorSystem : IFavorSystem
         _holySiteAreaTracker = holySiteAreaTracker ?? throw new ArgumentNullException(nameof(holySiteAreaTracker));
         _civilizationManager = civilizationManager ?? throw new ArgumentNullException(nameof(civilizationManager));
         _holySiteManager = holySiteManager ?? throw new ArgumentNullException(nameof(holySiteManager));
+    }
+
+    /// <summary>
+    /// Sets the civilization bonus system for applying milestone bonuses to favor/prestige.
+    /// Must be called after CivilizationBonusSystem is initialized.
+    /// </summary>
+    public void SetCivilizationBonusSystem(ICivilizationBonusSystem civilizationBonusSystem)
+    {
+        _civilizationBonusSystem = civilizationBonusSystem ?? throw new ArgumentNullException(nameof(civilizationBonusSystem));
     }
 
     /// <summary>
@@ -399,6 +409,19 @@ public class FavorSystem : IFavorSystem
             }
         }
 
+        // Apply civilization favor bonus if player is in a civilization
+        var civFavorMultiplier = 1.0f;
+        if (_civilizationBonusSystem != null)
+        {
+            civFavorMultiplier = _civilizationBonusSystem.GetFavorMultiplierForPlayer(playerUid);
+            if (civFavorMultiplier > 1.0f)
+            {
+                amount *= civFavorMultiplier;
+                _logger.Debug(
+                    $"[FavorSystem] Applied civilization bonus multiplier {civFavorMultiplier:F2}x to {amount:F2} favor");
+            }
+        }
+
         // 1. Award favor (now with multiplier applied)
         _playerProgressionDataManager.AddFractionalFavor(playerUid, amount, actionType);
 
@@ -425,10 +448,23 @@ public class FavorSystem : IFavorSystem
             var playerForName = _worldService.GetPlayerByUID(playerUid);
             var playerName = playerForName?.PlayerName ?? playerUid;
 
-            // 4. Award fractional prestige (1:1 favor-to-prestige conversion)
+            // Calculate prestige with civilization bonus multiplier
+            var prestigeAmount = amount;
+            if (_civilizationBonusSystem != null)
+            {
+                var civPrestigeMultiplier = _civilizationBonusSystem.GetPrestigeMultiplierForPlayer(playerUid);
+                if (civPrestigeMultiplier > 1.0f)
+                {
+                    prestigeAmount *= civPrestigeMultiplier;
+                    _logger.Debug(
+                        $"[FavorSystem] Applied civilization prestige multiplier {civPrestigeMultiplier:F2}x to {prestigeAmount:F2} prestige");
+                }
+            }
+
+            // 4. Award fractional prestige (with civilization bonus applied)
             _prestigeManager.AddFractionalPrestige(
                 playerReligion.ReligionUID,
-                amount,
+                prestigeAmount,
                 $"{actionType} by {playerName}"
             );
 
@@ -439,7 +475,7 @@ public class FavorSystem : IFavorSystem
                 playerUid,
                 actionType,
                 (int)Math.Floor(amount),
-                (int)Math.Floor(amount), // Show favor amount as prestige (1:1 ratio)
+                (int)Math.Floor(prestigeAmount), // Show prestige with civ bonus applied
                 deityDomain
             );
         }

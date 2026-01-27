@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using DivineAscension.Data;
 using Vintagestory.API.MathTools;
@@ -10,6 +11,12 @@ namespace DivineAscension.Systems.Interfaces;
 /// </summary>
 public interface IHolySiteManager
 {
+    /// <summary>
+    /// Event fired when a holy site is created
+    /// Parameters: religionUID, siteUID
+    /// </summary>
+    event Action<string, string>? OnHolySiteCreated;
+
     /// <summary>
     /// Initializes the manager and registers event handlers.
     /// </summary>
