@@ -356,7 +356,7 @@ Divine Ascension uses BlockBehavior to extend vanilla blocks. BlockBehaviors are
 All data stored via Vintage Story's world save system with ProtoBuf serialization (`[ProtoContract]` attributes):
 - `ReligionWorldData` - All religions
 - `CivilizationWorldData` - All civilizations
-- `PlayerProgressionData` - Per-player progression data (loaded on join, DataVersion=3)
+- `PlayerProgressionData` - Per-player progression data (loaded on join, DataVersion=4)
   - Player religion membership tracked via ReligionManager's player-to-religion index
 
 Events: `SaveGameLoaded` (load), `GameWorldSave` (persist)
