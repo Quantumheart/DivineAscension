@@ -75,7 +75,7 @@ internal static class CivilizationTabRenderer
 
         if (vm.ShowMilestonesTab)
             DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_MILESTONES),
-                CivilizationSubTab.Milestones, "GUI", "milestone");
+                CivilizationSubTab.Milestones, "GUI", "achievement");
 
         var contentY = vm.Y + tabH + 10f;
         var renderedHeight = tabH + 10f;
