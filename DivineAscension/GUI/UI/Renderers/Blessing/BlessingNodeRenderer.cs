@@ -19,6 +19,7 @@ internal static class BlessingNodeRenderer
     private static readonly Vector4 ColorLocked = new(0.573f, 0.502f, 0.416f, 1.0f); // #92806a grey
     private static readonly Vector4 ColorUnlockable = new(0.478f, 0.776f, 0.184f, 1.0f); // #7ac62f lime
     private static readonly Vector4 ColorUnlocked = new(0.996f, 0.682f, 0.204f, 1.0f); // #feae34 gold
+    private static readonly Vector4 ColorBranchLocked = new(0.698f, 0.133f, 0.133f, 1.0f); // #b22222 firebrick red
     private static readonly Vector4 ColorSelected = new(1.0f, 1.0f, 1.0f, 1.0f); // White border
     private static readonly Vector4 ColorHover = new(0.8f, 0.8f, 1.0f, 1.0f); // Light blue tint
 
@@ -81,6 +82,7 @@ internal static class BlessingNodeRenderer
             BlessingNodeVisualState.Locked => ColorLocked,
             BlessingNodeVisualState.Unlockable => ColorUnlockable,
             BlessingNodeVisualState.Unlocked => ColorUnlocked,
+            BlessingNodeVisualState.BranchLocked => ColorBranchLocked,
             _ => ColorLocked
         };
 
@@ -127,6 +129,7 @@ internal static class BlessingNodeRenderer
             {
                 BlessingNodeVisualState.Unlocked => new Vector4(1f, 1f, 1f, 1f), // Full color
                 BlessingNodeVisualState.Unlockable => new Vector4(0.9f, 1f, 0.9f, 1f), // Slight green tint
+                BlessingNodeVisualState.BranchLocked => new Vector4(0.5f, 0.3f, 0.3f, 0.6f), // Red-tinted and dimmed
                 _ => new Vector4(0.6f, 0.6f, 0.6f, 0.7f) // Desaturated/dimmed for locked
             };
             var iconTintU32 = ImGui.ColorConvertFloat4ToU32(iconTint);

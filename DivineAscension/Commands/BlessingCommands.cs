@@ -520,6 +520,12 @@ public class BlessingCommands(
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_ALREADY_UNLOCKED));
 
+            // Commit to branch if this blessing has one (locks exclusive branches)
+            if (!string.IsNullOrEmpty(blessing.Branch))
+            {
+                playerData.CommitToBranch(blessing.Domain, blessing.Branch, blessing.ExclusiveBranches);
+            }
+
             _blessingEffectSystem.RefreshPlayerBlessings(playerUid);
 
             // Notify player data changed (triggers HUD update)

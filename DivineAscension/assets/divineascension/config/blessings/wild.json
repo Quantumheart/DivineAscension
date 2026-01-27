@@ -1,6 +1,6 @@
 {
   "domain": "Wild",
-  "version": 1,
+  "version": 2,
   "blessings": [
     {
       "blessingId": "lysa_hunters_instinct",
@@ -18,7 +18,9 @@
         "walkspeed": 0.05
       },
       "specialEffects": [],
-      "cost": 50
+      "cost": 50,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "lysa_master_forager",
@@ -36,7 +38,9 @@
         "foodSpoilage": 0.15
       },
       "specialEffects": ["food_spoilage_reduction"],
-      "cost": 150
+      "cost": 150,
+      "branch": "Forager",
+      "exclusiveBranches": ["Hunter"]
     },
     {
       "blessingId": "lysa_apex_predator",
@@ -53,7 +57,9 @@
         "animalHarvestingTime": 0.10
       },
       "specialEffects": [],
-      "cost": 150
+      "cost": 150,
+      "branch": "Hunter",
+      "exclusiveBranches": ["Forager"]
     },
     {
       "blessingId": "lysa_abundance_of_wild",
@@ -70,7 +76,9 @@
         "foodSpoilage": 0.25
       },
       "specialEffects": ["food_spoilage_reduction"],
-      "cost": 400
+      "cost": 400,
+      "branch": "Forager",
+      "exclusiveBranches": ["Hunter"]
     },
     {
       "blessingId": "lysa_silent_death",
@@ -88,12 +96,14 @@
         "rangedDamageTierBonusPiercingAttack": 1.0
       },
       "specialEffects": [],
-      "cost": 400
+      "cost": 400,
+      "branch": "Hunter",
+      "exclusiveBranches": ["Forager"]
     },
     {
       "blessingId": "lysa_avatar_of_wild",
       "name": "Avatar of the Wild",
-      "description": "+20% ranged distance, +20% reduced animal seeking range. Requires both Abundance of the Wild and Silent Death.",
+      "description": "+20% ranged distance, +20% reduced animal seeking range. Requires Abundance of the Wild or Silent Death.",
       "kind": "Player",
       "category": "Utility",
       "iconName": "bear-head",
@@ -105,7 +115,9 @@
         "animalSeekingRange": 0.20
       },
       "specialEffects": [],
-      "cost": 800
+      "cost": 800,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "lysa_hunting_party",
@@ -122,7 +134,9 @@
         "forageDropRate": 0.15
       },
       "specialEffects": [],
-      "cost": 500
+      "cost": 500,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "lysa_wilderness_tribe",
@@ -140,7 +154,9 @@
         "foodSpoilage": 0.15
       },
       "specialEffects": [],
-      "cost": 1500
+      "cost": 1500,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "lysa_children_of_forest",
@@ -158,7 +174,9 @@
         "walkspeed": 0.05
       },
       "specialEffects": [],
-      "cost": 4000
+      "cost": 4000,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "lysa_pantheon_of_hunt",
@@ -174,7 +192,9 @@
         "temperatureResistance": 5.0
       },
       "specialEffects": [],
-      "cost": 8000
+      "cost": 8000,
+      "branch": null,
+      "exclusiveBranches": null
     }
   ]
 }

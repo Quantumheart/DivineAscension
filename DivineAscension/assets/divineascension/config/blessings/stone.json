@@ -1,6 +1,6 @@
 {
   "domain": "Stone",
-  "version": 1,
+  "version": 2,
   "blessings": [
     {
       "blessingId": "gaia_clay_shaper",
@@ -18,7 +18,9 @@
         "walkspeed": 0.05
       },
       "specialEffects": [],
-      "cost": 50
+      "cost": 50,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "gaia_master_potter",
@@ -36,7 +38,9 @@
         "diggingSpeed": 0.10
       },
       "specialEffects": ["pottery_batch_completion_bonus"],
-      "cost": 150
+      "cost": 150,
+      "branch": "Pottery",
+      "exclusiveBranches": ["Construction"]
     },
     {
       "blessingId": "gaia_earthen_builder",
@@ -54,7 +58,9 @@
         "diggingSpeed": 0.10
       },
       "specialEffects": [],
-      "cost": 150
+      "cost": 150,
+      "branch": "Construction",
+      "exclusiveBranches": ["Pottery"]
     },
     {
       "blessingId": "gaia_kiln_master",
@@ -72,7 +78,9 @@
         "diggingSpeed": 0.15
       },
       "specialEffects": ["pottery_batch_completion_bonus"],
-      "cost": 400
+      "cost": 400,
+      "branch": "Pottery",
+      "exclusiveBranches": ["Construction"]
     },
     {
       "blessingId": "gaia_clay_architect",
@@ -91,12 +99,14 @@
         "armorDurabilityLoss": -0.10
       },
       "specialEffects": [],
-      "cost": 400
+      "cost": 400,
+      "branch": "Construction",
+      "exclusiveBranches": ["Pottery"]
     },
     {
       "blessingId": "gaia_avatar_of_clay",
       "name": "Avatar of Earth",
-      "description": "Embody the strength and permanence of stone. +15% max health, +10% melee damage, +10% reduced armor walk speed penalty. Requires both Kiln Master and Fortress Architect.",
+      "description": "Embody the strength and permanence of stone. +15% max health, +10% melee damage, +10% reduced armor walk speed penalty. Requires Kiln Master or Fortress Architect.",
       "kind": "Player",
       "category": "Utility",
       "iconName": "clay-golem",
@@ -109,7 +119,9 @@
         "armorWalkSpeedAffectedness": -0.10
       },
       "specialEffects": [],
-      "cost": 800
+      "cost": 800,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "gaia_potters_circle",
@@ -126,7 +138,9 @@
         "diggingSpeed": 0.10
       },
       "specialEffects": [],
-      "cost": 500
+      "cost": 500,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "gaia_clay_guild",
@@ -144,7 +158,9 @@
         "armorEffectiveness": 0.10
       },
       "specialEffects": [],
-      "cost": 1500
+      "cost": 1500,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "gaia_earthen_community",
@@ -162,7 +178,9 @@
         "armorEffectiveness": 0.15
       },
       "specialEffects": [],
-      "cost": 4000
+      "cost": 4000,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "gaia_pantheon_of_clay",
@@ -179,7 +197,9 @@
         "armorEffectiveness": 0.10
       },
       "specialEffects": [],
-      "cost": 8000
+      "cost": 8000,
+      "branch": null,
+      "exclusiveBranches": null
     }
   ]
 }

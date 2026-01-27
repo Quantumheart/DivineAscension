@@ -179,7 +179,9 @@ public class BlessingLoader : IBlessingLoader
             PrerequisiteBlessings = dto.PrerequisiteBlessings ?? new List<string>(),
             StatModifiers = dto.StatModifiers ?? new Dictionary<string, float>(),
             SpecialEffects = dto.SpecialEffects ?? new List<string>(),
-            Cost = dto.Cost
+            Cost = dto.Cost,
+            Branch = dto.Branch,
+            ExclusiveBranches = dto.ExclusiveBranches
         };
 
         // Log warning for unknown stat keys (but still include them)

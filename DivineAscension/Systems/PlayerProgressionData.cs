@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -149,6 +150,130 @@ public class PlayerProgressionData
 
     #endregion
 
+    #region Branch Commitment System
+
+    /// <summary>
+    ///     Branches the player has committed to, keyed by domain (as int for ProtoBuf).
+    ///     Once a branch is committed, exclusive branches become locked.
+    /// </summary>
+    [ProtoMember(112)]
+    private Dictionary<int, string> _committedBranchesSerializable = new();
+
+    /// <summary>
+    ///     Branches that are locked out due to exclusive branch choices.
+    ///     Keyed by domain (as int), value is list of locked branch names.
+    ///     Uses List instead of HashSet for ProtoBuf compatibility.
+    /// </summary>
+    [ProtoMember(113)]
+    private Dictionary<int, List<string>> _lockedBranchesSerializable = new();
+
+    /// <summary>
+    ///     Gets the committed branch for a domain (thread-safe).
+    /// </summary>
+    public string? GetCommittedBranch(DeityDomain domain)
+    {
+        lock (Lock)
+        {
+            return _committedBranchesSerializable.GetValueOrDefault((int)domain);
+        }
+    }
+
+    /// <summary>
+    ///     Checks if a branch is locked in a domain (thread-safe).
+    /// </summary>
+    public bool IsBranchLocked(DeityDomain domain, string branch)
+    {
+        lock (Lock)
+        {
+            return _lockedBranchesSerializable.TryGetValue((int)domain, out var locked)
+                   && locked.Contains(branch);
+        }
+    }
+
+    /// <summary>
+    ///     Gets all locked branches for a domain (thread-safe).
+    ///     Returns empty collection if no branches are locked.
+    /// </summary>
+    public IReadOnlyCollection<string> GetLockedBranches(DeityDomain domain)
+    {
+        lock (Lock)
+        {
+            if (_lockedBranchesSerializable.TryGetValue((int)domain, out var locked))
+            {
+                return locked.ToList();
+            }
+            return Array.Empty<string>();
+        }
+    }
+
+    /// <summary>
+    ///     Commits to a branch in a domain, locking out exclusive branches.
+    ///     Does nothing if already committed to a branch in this domain.
+    ///     Thread-safe.
+    /// </summary>
+    public void CommitToBranch(DeityDomain domain, string branch, IEnumerable<string>? exclusiveBranches)
+    {
+        if (string.IsNullOrEmpty(branch))
+            return;
+
+        lock (Lock)
+        {
+            var domainKey = (int)domain;
+
+            // Only commit if not already committed to a branch in this domain
+            if (_committedBranchesSerializable.ContainsKey(domainKey))
+                return;
+
+            _committedBranchesSerializable[domainKey] = branch;
+
+            if (exclusiveBranches != null)
+            {
+                if (!_lockedBranchesSerializable.TryGetValue(domainKey, out var lockedList))
+                {
+                    lockedList = new List<string>();
+                    _lockedBranchesSerializable[domainKey] = lockedList;
+                }
+
+                foreach (var excludedBranch in exclusiveBranches)
+                {
+                    if (!lockedList.Contains(excludedBranch))
+                    {
+                        lockedList.Add(excludedBranch);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Clears all branch commitments (used by admin commands).
+    ///     Thread-safe.
+    /// </summary>
+    public void ClearBranchCommitments()
+    {
+        lock (Lock)
+        {
+            _committedBranchesSerializable.Clear();
+            _lockedBranchesSerializable.Clear();
+        }
+    }
+
+    /// <summary>
+    ///     Clears branch commitments for a specific domain.
+    ///     Thread-safe.
+    /// </summary>
+    public void ClearBranchCommitmentsForDomain(DeityDomain domain)
+    {
+        lock (Lock)
+        {
+            var domainKey = (int)domain;
+            _committedBranchesSerializable.Remove(domainKey);
+            _lockedBranchesSerializable.Remove(domainKey);
+        }
+    }
+
+    #endregion
+
     /// <summary>
     ///     Adds favor and updates statistics.
     ///     Thread-safe.
@@ -258,6 +383,7 @@ public class PlayerProgressionData
 
     /// <summary>
     ///     Resets favor and blessings (penalty for switching religions).
+    ///     Also clears branch commitments since branches are domain-specific.
     ///     Thread-safe.
     /// </summary>
     public void ApplySwitchPenalty()
@@ -266,6 +392,8 @@ public class PlayerProgressionData
         {
             Favor = 0;
             _unlockedBlessings.Clear();
+            _committedBranchesSerializable.Clear();
+            _lockedBranchesSerializable.Clear();
         }
     }
 }

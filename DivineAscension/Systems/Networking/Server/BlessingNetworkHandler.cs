@@ -112,6 +112,12 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                                     packet.BlessingId);
                                 if (success)
                                 {
+                                    // Commit to branch if this blessing has one (locks exclusive branches)
+                                    if (!string.IsNullOrEmpty(blessing.Branch))
+                                    {
+                                        playerData.CommitToBranch(blessing.Domain, blessing.Branch, blessing.ExclusiveBranches);
+                                    }
+
                                     _blessingEffectSystem.RefreshPlayerBlessings(fromPlayer.PlayerUID);
                                     message = LocalizationService.Instance.Get(
                                         LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED, blessing.Name);
@@ -200,6 +206,9 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         {
             var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(fromPlayer.PlayerUID);
 
+            // Run branch commitment migration for players with older data versions
+            _playerProgressionDataManager.MigrateBranchCommitments(fromPlayer.PlayerUID, _blessingRegistry);
+
             var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
             var deity = _playerProgressionDataManager.GetPlayerDeityType(fromPlayer.PlayerUID);
             if (religion == null || deity == DeityDomain.None)
@@ -233,7 +242,9 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                 Category = (int)p.Category,
                 StatModifiers = p.StatModifiers ?? new Dictionary<string, float>(),
                 IconName = p.IconName,
-                Cost = p.Cost
+                Cost = p.Cost,
+                Branch = p.Branch,
+                ExclusiveBranches = p.ExclusiveBranches
             }).ToList();
 
             // Get religion blessings for this deity
@@ -250,7 +261,9 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                 Category = (int)p.Category,
                 StatModifiers = p.StatModifiers ?? new Dictionary<string, float>(),
                 IconName = p.IconName,
-                Cost = p.Cost
+                Cost = p.Cost,
+                Branch = p.Branch,
+                ExclusiveBranches = p.ExclusiveBranches
             }).ToList();
 
             // Get unlocked player blessings
@@ -262,6 +275,18 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                 .Where(kvp => kvp.Value)
                 .Select(kvp => kvp.Key)
                 .ToList();
+
+            // Sync branch state (committed and locked branches)
+            var committedBranch = playerData.GetCommittedBranch(deity);
+            if (committedBranch != null)
+            {
+                response.CommittedBranches[(int)deity] = committedBranch;
+            }
+            var lockedBranches = playerData.GetLockedBranches(deity);
+            if (lockedBranches.Count > 0)
+            {
+                response.LockedBranches[(int)deity] = lockedBranches.ToList();
+            }
 
             _logger.Debug(
                 $"[DivineAscension] Sending blessing data: {response.PlayerBlessings.Count} player, {response.ReligionBlessings.Count} religion");

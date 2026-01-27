@@ -27,6 +27,16 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     public BlessingTabState State { get; } = new();
 
     /// <summary>
+    ///     Branches the player has committed to, keyed by domain (as int)
+    /// </summary>
+    private Dictionary<int, string> _committedBranches = new();
+
+    /// <summary>
+    ///     Branches that are locked out due to exclusive branch choices, keyed by domain (as int)
+    /// </summary>
+    private Dictionary<int, List<string>> _lockedBranches = new();
+
+    /// <summary>
     ///     Draws the blessings tab and processes all events
     /// </summary>
     public void DrawBlessingsTab(float windowPosX, float windowPosY, float width, float contentHeight, int windowWidth,
@@ -179,13 +189,20 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         // Update CanUnlock status for all player blessings
         foreach (var state in State.PlayerBlessingStates.Values)
         {
+            // Check branch lock status
+            var branchLocked = IsBranchLocked(state.Blessing.Domain, state.Blessing.Branch);
+            state.IsBranchLocked = branchLocked;
+            state.LockedByBranch = branchLocked ? GetCommittedBranch(state.Blessing.Domain) : null;
+
             state.CanUnlock = CanUnlockBlessing(state, currentFavorRank, currentPrestigeRank);
             state.UpdateVisualState();
         }
 
-        // Update CanUnlock status for all religion blessings
+        // Update CanUnlock status for all religion blessings (no branch restrictions)
         foreach (var state in State.ReligionBlessingStates.Values)
         {
+            state.IsBranchLocked = false;
+            state.LockedByBranch = null;
             state.CanUnlock = CanUnlockBlessing(state, currentFavorRank, currentPrestigeRank);
             state.UpdateVisualState();
         }
@@ -200,13 +217,41 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         // Already unlocked
         if (state.IsUnlocked) return false;
 
+        // Branch is locked (for player blessings only)
+        if (state.IsBranchLocked) return false;
+
         // Check prerequisites
         if (state.Blessing.PrerequisiteBlessings is { Count: > 0 })
-            foreach (var prereqId in state.Blessing.PrerequisiteBlessings)
+        {
+            // Capstone blessings (branch == null) use OR logic - at least one prerequisite must be unlocked
+            // Regular blessings use AND logic - all prerequisites must be unlocked
+            var isCapstone = string.IsNullOrEmpty(state.Blessing.Branch);
+
+            if (isCapstone)
             {
-                var prereqState = GetBlessingState(prereqId);
-                if (prereqState == null || !prereqState.IsUnlocked) return false; // Prerequisite not unlocked
+                // OR logic: at least one prerequisite must be unlocked
+                var anyUnlocked = false;
+                foreach (var prereqId in state.Blessing.PrerequisiteBlessings)
+                {
+                    var prereqState = GetBlessingState(prereqId);
+                    if (prereqState != null && prereqState.IsUnlocked)
+                    {
+                        anyUnlocked = true;
+                        break;
+                    }
+                }
+                if (!anyUnlocked) return false;
             }
+            else
+            {
+                // AND logic: all prerequisites must be unlocked
+                foreach (var prereqId in state.Blessing.PrerequisiteBlessings)
+                {
+                    var prereqState = GetBlessingState(prereqId);
+                    if (prereqState == null || !prereqState.IsUnlocked) return false;
+                }
+            }
+        }
 
         // Check rank requirements based on the blessing kind
         if (state.Blessing.Kind == BlessingKind.Player)
@@ -238,5 +283,34 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     public void SelectBlessing(string blessingId)
     {
         State.TreeState.SelectedBlessingId = blessingId;
+    }
+
+    /// <summary>
+    ///     Sets the branch state received from the server
+    /// </summary>
+    public void SetBranchState(Dictionary<int, string> committedBranches, Dictionary<int, List<string>> lockedBranches)
+    {
+        _committedBranches = committedBranches ?? new Dictionary<int, string>();
+        _lockedBranches = lockedBranches ?? new Dictionary<int, List<string>>();
+    }
+
+    /// <summary>
+    ///     Check if a branch is locked for a given domain
+    /// </summary>
+    private bool IsBranchLocked(DeityDomain domain, string? branch)
+    {
+        if (string.IsNullOrEmpty(branch))
+            return false;
+
+        var domainKey = (int)domain;
+        return _lockedBranches.TryGetValue(domainKey, out var locked) && locked.Contains(branch);
+    }
+
+    /// <summary>
+    ///     Get the committed branch for a domain (if any)
+    /// </summary>
+    private string? GetCommittedBranch(DeityDomain domain)
+    {
+        return _committedBranches.GetValueOrDefault((int)domain);
     }
 }

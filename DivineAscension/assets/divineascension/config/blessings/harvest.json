@@ -1,6 +1,6 @@
 {
   "domain": "Harvest",
-  "version": 1,
+  "version": 2,
   "blessings": [
     {
       "blessingId": "aethra_suns_blessing",
@@ -18,7 +18,9 @@
         "heatResistance": 3.0
       },
       "specialEffects": ["light_warmth_bonus"],
-      "cost": 50
+      "cost": 50,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "aethra_bountiful_harvest",
@@ -36,7 +38,9 @@
         "rareCropChance": 0.15
       },
       "specialEffects": ["rare_crop_discovery"],
-      "cost": 150
+      "cost": 150,
+      "branch": "Agriculture",
+      "exclusiveBranches": ["Cooking"]
     },
     {
       "blessingId": "aethra_bakers_touch",
@@ -55,7 +59,9 @@
         "heatResistance": 5.0
       },
       "specialEffects": ["food_spoilage_reduction"],
-      "cost": 150
+      "cost": 150,
+      "branch": "Cooking",
+      "exclusiveBranches": ["Agriculture"]
     },
     {
       "blessingId": "aethra_master_farmer",
@@ -74,7 +80,9 @@
         "wildCropDropRate": 0.40
       },
       "specialEffects": ["rare_crop_discovery"],
-      "cost": 400
+      "cost": 400,
+      "branch": "Agriculture",
+      "exclusiveBranches": ["Cooking"]
     },
     {
       "blessingId": "aethra_divine_kitchen",
@@ -93,12 +101,14 @@
         "heatResistance": 7.0
       },
       "specialEffects": ["temp_health_buff_5", "food_spoilage_reduction"],
-      "cost": 400
+      "cost": 400,
+      "branch": "Cooking",
+      "exclusiveBranches": ["Agriculture"]
     },
     {
       "blessingId": "aethra_avatar_of_abundance",
       "name": "Avatar of Abundance",
-      "description": "Embody the endless bounty of the harvest. +8% movement speed, +10% max health, never suffer malnutrition penalties, can create blessed meals with powerful buffs. Requires both Master Farmer and Divine Kitchen.",
+      "description": "Embody the endless bounty of the harvest. +8% movement speed, +10% max health, never suffer malnutrition penalties, can create blessed meals with powerful buffs. Requires Master Farmer or Divine Kitchen.",
       "kind": "Player",
       "category": "Utility",
       "iconName": "cornucopia",
@@ -110,7 +120,9 @@
         "maxhealthExtraMultiplier": 0.10
       },
       "specialEffects": ["never_malnourished", "blessed_meals"],
-      "cost": 800
+      "cost": 800,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "aethra_community_farm",
@@ -127,7 +139,9 @@
         "satiety": 0.08
       },
       "specialEffects": [],
-      "cost": 500
+      "cost": 500,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "aethra_harvest_festival",
@@ -145,7 +159,9 @@
         "foodSpoilage": 0.10
       },
       "specialEffects": [],
-      "cost": 1500
+      "cost": 1500,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "aethra_land_of_plenty",
@@ -164,7 +180,9 @@
         "heatResistance": 5.0
       },
       "specialEffects": [],
-      "cost": 4000
+      "cost": 4000,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "aethra_pantheon_of_light",
@@ -183,7 +201,9 @@
         "heatResistance": 8.0
       },
       "specialEffects": ["sacred_granary"],
-      "cost": 8000
+      "cost": 8000,
+      "branch": null,
+      "exclusiveBranches": null
     }
   ]
 }

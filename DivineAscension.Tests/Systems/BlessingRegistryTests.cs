@@ -425,6 +425,7 @@ public class BlessingRegistryTests
         var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Player);
         blessing.RequiredFavorRank = 0; // Set to Initiate so favor rank check passes
         blessing.PrerequisiteBlessings.Add("prereq");
+        blessing.Branch = "TestBranch"; // Non-null branch = AND logic for prerequisites
 
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
 
@@ -709,6 +710,149 @@ public class BlessingRegistryTests
         var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing, skipCostCheck: true);
 
         // Assert - should return true because cost check is skipped
+        Assert.True(canUnlock);
+        Assert.Equal("Can unlock", reason);
+    }
+
+    #endregion
+
+    #region CanUnlockBlessing Tests - Branch Exclusivity
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_BranchLocked_ReturnsFalse()
+    {
+        // Arrange
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        playerData.AddFavor(200);
+        // Player committed to "Forge" branch, locking "Endurance"
+        playerData.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Branch = "Endurance"; // This branch is locked
+
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
+
+        // Act
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+
+        // Assert
+        Assert.False(canUnlock);
+        Assert.Contains("Branch 'Endurance' is locked", reason);
+        Assert.Contains("committed to 'Forge'", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_SameBranchAsCommitted_ReturnsTrue()
+    {
+        // Arrange
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        playerData.AddFavor(200);
+        // Player committed to "Forge" branch
+        playerData.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Branch = "Forge"; // Same as committed - should work
+
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
+
+        // Act
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+
+        // Assert
+        Assert.True(canUnlock);
+        Assert.Equal("Can unlock", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_NoBranchRestriction_ReturnsTrue()
+    {
+        // Arrange
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        playerData.AddFavor(200);
+        // Player committed to "Forge" branch
+        playerData.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Branch = null; // Shared blessing - no branch restriction
+
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
+
+        // Act
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+
+        // Assert
+        Assert.True(canUnlock);
+        Assert.Equal("Can unlock", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_EmptyBranch_ReturnsTrue()
+    {
+        // Arrange
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        playerData.AddFavor(200);
+        // Player committed to "Forge" branch
+        playerData.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Branch = ""; // Empty string should be treated as shared
+
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
+
+        // Act
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+
+        // Assert
+        Assert.True(canUnlock);
+        Assert.Equal("Can unlock", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_BranchLockedInDifferentDomain_ReturnsTrue()
+    {
+        // Arrange
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Wild, "religion-uid");
+        playerData.AddFavor(200);
+        // Player committed to "Forge" branch in CRAFT domain
+        playerData.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Wild, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Branch = "Endurance"; // Same name but different domain
+
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Wild, "player-uid");
+
+        // Act
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+
+        // Assert - Should pass because branch lock is domain-specific
+        Assert.True(canUnlock);
+        Assert.Equal("Can unlock", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_NoPreviousCommitment_ReturnsTrue()
+    {
+        // Arrange
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        playerData.AddFavor(200);
+        // No branch commitment yet
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Branch = "Forge";
+        blessing.ExclusiveBranches = new List<string> { "Endurance" };
+
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
+
+        // Act
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+
+        // Assert - Should pass because no branch is locked yet
         Assert.True(canUnlock);
         Assert.Equal("Can unlock", reason);
     }

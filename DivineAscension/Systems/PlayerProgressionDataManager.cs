@@ -332,6 +332,46 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     }
 
     /// <summary>
+    ///     Migrates player branch commitments from existing unlocked blessings.
+    ///     For players with DataVersion &lt; 4, infers branch commitments from unlocked blessings.
+    /// </summary>
+    public void MigrateBranchCommitments(string playerUID, IBlessingRegistry blessingRegistry)
+    {
+        if (!TryGetPlayerData(playerUID, out var playerData) || playerData == null)
+            return;
+
+        // Only migrate if data version is less than 4
+        if (playerData.DataVersion >= 4)
+            return;
+
+        _logger.Debug($"[DivineAscension] Migrating branch commitments for player {playerUID} (v{playerData.DataVersion} -> v4)");
+
+        var migratedCount = 0;
+        foreach (var blessingId in playerData.UnlockedBlessings)
+        {
+            var blessing = blessingRegistry.GetBlessing(blessingId);
+            if (blessing == null || string.IsNullOrEmpty(blessing.Branch))
+                continue;
+
+            // Commit to this branch if not already committed in this domain
+            if (playerData.GetCommittedBranch(blessing.Domain) == null)
+            {
+                playerData.CommitToBranch(blessing.Domain, blessing.Branch, blessing.ExclusiveBranches);
+                migratedCount++;
+                _logger.Debug($"[DivineAscension] Migrated branch commitment: {blessing.Domain} -> {blessing.Branch}");
+            }
+        }
+
+        // Bump data version to 4
+        playerData.DataVersion = 4;
+
+        if (migratedCount > 0)
+        {
+            _logger.Notification($"[DivineAscension] Migrated {migratedCount} branch commitment(s) for player {playerUID}");
+        }
+    }
+
+    /// <summary>
     ///     Applies switching penalty when changing religions
     /// </summary>
     public void HandleReligionSwitch(string playerUID)

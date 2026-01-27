@@ -1,6 +1,6 @@
 {
   "domain": "Conquest",
-  "version": 1,
+  "version": 2,
   "blessings": [
     {
       "blessingId": "conquest_bloodthirst",
@@ -17,7 +17,9 @@
         "meleeWeaponsSpeed": 0.10
       },
       "specialEffects": [],
-      "cost": 50
+      "cost": 50,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "conquest_berserker_rage",
@@ -34,7 +36,9 @@
         "criticalHitChance": 0.05
       },
       "specialEffects": [],
-      "cost": 150
+      "cost": 150,
+      "branch": "Offense",
+      "exclusiveBranches": ["Defense"]
     },
     {
       "blessingId": "conquest_iron_will",
@@ -51,7 +55,9 @@
         "damageReduction": 0.10
       },
       "specialEffects": [],
-      "cost": 150
+      "cost": 150,
+      "branch": "Defense",
+      "exclusiveBranches": ["Offense"]
     },
     {
       "blessingId": "conquest_warlords_strike",
@@ -69,7 +75,9 @@
         "criticalHitDamage": 0.15
       },
       "specialEffects": ["battle_fury"],
-      "cost": 400
+      "cost": 400,
+      "branch": "Offense",
+      "exclusiveBranches": ["Defense"]
     },
     {
       "blessingId": "conquest_unyielding_fortitude",
@@ -86,12 +94,14 @@
         "damageReduction": 0.12
       },
       "specialEffects": ["last_stand"],
-      "cost": 400
+      "cost": 400,
+      "branch": "Defense",
+      "exclusiveBranches": ["Offense"]
     },
     {
       "blessingId": "conquest_avatar_of_conquest",
       "name": "Avatar of Conquest",
-      "description": "Heal 5% of max health on each kill, +10% movement speed in combat. The ultimate conqueror. Requires both Warlord's Strike and Unyielding Fortitude.",
+      "description": "Heal 5% of max health on each kill, +10% movement speed in combat. The ultimate conqueror. Requires Warlord's Strike or Unyielding Fortitude.",
       "kind": "Player",
       "category": "Combat",
       "iconName": "warlord-helmet",
@@ -103,7 +113,9 @@
         "walkspeed": 0.10
       },
       "specialEffects": ["bloodlust"],
-      "cost": 800
+      "cost": 800,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "conquest_warband",
@@ -120,7 +132,9 @@
         "meleeWeaponsSpeed": 0.10
       },
       "specialEffects": [],
-      "cost": 500
+      "cost": 500,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "conquest_conquering_legion",
@@ -137,7 +151,9 @@
         "maxhealthExtraMultiplier": 0.08
       },
       "specialEffects": [],
-      "cost": 1500
+      "cost": 1500,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "conquest_conquerors_banner",
@@ -155,7 +171,9 @@
         "damageReduction": 0.08
       },
       "specialEffects": [],
-      "cost": 4000
+      "cost": 4000,
+      "branch": null,
+      "exclusiveBranches": null
     },
     {
       "blessingId": "conquest_pantheon_of_conquest",
@@ -173,7 +191,9 @@
         "damageReduction": 0.05
       },
       "specialEffects": [],
-      "cost": 8000
+      "cost": 8000,
+      "branch": null,
+      "exclusiveBranches": null
     }
   ]
 }
