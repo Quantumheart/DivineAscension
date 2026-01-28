@@ -88,6 +88,54 @@ public class MilestoneProgressDto
     /// </summary>
     [ProtoMember(5)]
     public bool IsCompleted { get; set; }
+
+    /// <summary>
+    ///     Description of what the milestone represents
+    /// </summary>
+    [ProtoMember(6)]
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Trigger type name (e.g. "ReligionCount", "HolySiteCount")
+    /// </summary>
+    [ProtoMember(7)]
+    public string TriggerType { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Target threshold for the trigger condition
+    /// </summary>
+    [ProtoMember(8)]
+    public int TriggerThreshold { get; set; }
+
+    /// <summary>
+    ///     One-time prestige payout awarded on completion
+    /// </summary>
+    [ProtoMember(9)]
+    public int PrestigePayout { get; set; }
+
+    /// <summary>
+    ///     Rank increase awarded on completion (major milestones only)
+    /// </summary>
+    [ProtoMember(10)]
+    public int RankReward { get; set; }
+
+    /// <summary>
+    ///     Milestone type ("Major" or "Minor")
+    /// </summary>
+    [ProtoMember(11)]
+    public string MilestoneType { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Pre-formatted permanent benefit description (empty if none)
+    /// </summary>
+    [ProtoMember(12)]
+    public string PermanentBenefitDescription { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Pre-formatted temporary benefit description (empty if none)
+    /// </summary>
+    [ProtoMember(13)]
+    public string TemporaryBenefitDescription { get; set; } = string.Empty;
 }
 
 /// <summary>
