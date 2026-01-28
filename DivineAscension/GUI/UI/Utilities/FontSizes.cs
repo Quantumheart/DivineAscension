@@ -15,21 +15,21 @@ internal static class FontSizes
     public const float SectionHeader = 18f;
 
     /// <summary>Table column headers, detail section titles, religion names</summary>
-    public const float TableHeader = 16f;
+    public const float TableHeader = 17f;
 
     /// <summary>Field labels, requirement headers, ritual details</summary>
-    public const float SubsectionLabel = 14f;
+    public const float SubsectionLabel = 16f;
 
     // Content level
     /// <summary>Primary body text, table data, list items</summary>
-    public const float Body = 13f;
+    public const float Body = 15f;
 
     /// <summary>Info text, descriptions, metadata</summary>
-    public const float Secondary = 12f;
+    public const float Secondary = 14f;
 
     /// <summary>Hints, timestamps, minor labels</summary>
-    public const float Small = 11f;
+    public const float Small = 14f;
 
     /// <summary>Tier labels, very small text</summary>
-    public const float Compact = 10f;
+    public const float Compact = 14f;
 }
