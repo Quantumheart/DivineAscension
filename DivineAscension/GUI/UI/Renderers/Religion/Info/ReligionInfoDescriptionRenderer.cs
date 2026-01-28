@@ -7,6 +7,7 @@ using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion.Info;
 
@@ -35,7 +36,7 @@ internal static class ReligionInfoDescriptionRenderer
             // Editable description for founder
             TextRenderer.DrawLabel(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DESCRIPTION_EDITABLE),
-                x, currentY, 14f, ColorPalette.White);
+                x, currentY, SubsectionLabel, ColorPalette.White);
             currentY += 22f;
 
             const float descHeight = 80f;
@@ -69,7 +70,7 @@ internal static class ReligionInfoDescriptionRenderer
             // Read-only description for members
             TextRenderer.DrawLabel(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DESCRIPTION_LABEL),
-                x, currentY, 14f, ColorPalette.White);
+                x, currentY, SubsectionLabel, ColorPalette.White);
             currentY += 22f;
 
             var desc = string.IsNullOrEmpty(viewModel.Description)

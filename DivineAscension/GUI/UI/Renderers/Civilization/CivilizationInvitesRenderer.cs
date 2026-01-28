@@ -11,6 +11,7 @@ using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
@@ -25,7 +26,7 @@ internal static class CivilizationInvitesRenderer
         var currentY = vm.Y;
 
         TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_TITLE), vm.X, currentY, 18f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_TITLE), vm.X, currentY, SectionHeader,
             ColorPalette.White);
         currentY += 26f;
 
@@ -84,11 +85,11 @@ internal static class CivilizationInvitesRenderer
 
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_CARD_TITLE), x + 12f, y + 8f,
-            16f);
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 14f, y + 30f),
+            TableHeader);
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x + 14f, y + 30f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_CARD_FROM, invite.ReligionName));
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 14f, y + 48f),
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x + 14f, y + 48f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_CARD_EXPIRES,
                 invite.ExpiresAt.ToString("yyyy-MM-dd HH:mm")));

@@ -6,6 +6,7 @@ using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing.Info;
 
@@ -21,7 +22,7 @@ internal static class BlessingInfoSectionStats
 
         currentY += 8f;
         var statsTitleColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        drawList.AddText(ImGui.GetFont(), 16f, new Vector2(vm.X + padding, currentY), statsTitleColorU32,
+        drawList.AddText(ImGui.GetFont(), TableHeader, new Vector2(vm.X + padding, currentY), statsTitleColorU32,
             LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_EFFECTS));
         currentY += 22f;
 
@@ -29,7 +30,7 @@ internal static class BlessingInfoSectionStats
         {
             var statText = BlessingInfoTextUtils.FormatStatModifier(stat.Key, stat.Value);
             var statColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.Green);
-            drawList.AddText(ImGui.GetFont(), 14f, new Vector2(vm.X + padding + 8, currentY), statColorU32,
+            drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(vm.X + padding + 8, currentY), statColorU32,
                 statText);
             currentY += 18f;
 

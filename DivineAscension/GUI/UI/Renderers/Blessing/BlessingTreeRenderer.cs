@@ -6,9 +6,11 @@ using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Blessing;
 using DivineAscension.GUI.Models.Blessing.Tree;
+using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
@@ -137,7 +139,7 @@ internal static class BlessingTreeRenderer
                 x + (width - textSize.X) / 2,
                 y + (labelHeight - textSize.Y) / 2
             );
-            drawList.AddText(ImGui.GetFont(), 16f, textPos, textColor, label);
+            drawList.AddText(ImGui.GetFont(), TableHeader, textPos, textColor, label);
         }
         else
         {
@@ -147,7 +149,7 @@ internal static class BlessingTreeRenderer
                 x + padding,
                 y + (labelHeight - labelSize.Y) / 2
             );
-            drawList.AddText(ImGui.GetFont(), 16f, labelPos, textColor, label);
+            drawList.AddText(ImGui.GetFont(), TableHeader, labelPos, textColor, label);
 
             // Draw currency on the right
             var currencySize = ImGui.CalcTextSize(currencyText);
@@ -155,7 +157,7 @@ internal static class BlessingTreeRenderer
                 x + width - currencySize.X - padding,
                 y + (labelHeight - currencySize.Y) / 2
             );
-            drawList.AddText(ImGui.GetFont(), 16f, currencyPos, textColor, currencyText);
+            drawList.AddText(ImGui.GetFont(), TableHeader, currencyPos, textColor, currencyText);
         }
     }
 

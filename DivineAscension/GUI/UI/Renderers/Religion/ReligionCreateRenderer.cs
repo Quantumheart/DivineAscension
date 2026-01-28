@@ -13,6 +13,7 @@ using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
 
@@ -45,7 +46,7 @@ internal static class ReligionCreateRenderer
         var headerSize = ImGui.CalcTextSize(headerText);
         var headerPos = new Vector2(formX, currentY);
         var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        drawList.AddText(ImGui.GetFont(), 20f, headerPos, headerColor, headerText);
+        drawList.AddText(ImGui.GetFont(), PageTitle, headerPos, headerColor, headerText);
         currentY += headerSize.Y + padding;
 
         // === FORM FIELDS ===

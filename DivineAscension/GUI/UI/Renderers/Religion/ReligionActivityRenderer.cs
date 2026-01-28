@@ -14,6 +14,7 @@ using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
 
@@ -77,7 +78,7 @@ internal static class ReligionActivityRenderer
 
         // Title
         var titleText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTIVITY_TITLE);
-        drawList.AddText(ImGui.GetFont(), 18f,
+        drawList.AddText(ImGui.GetFont(), SectionHeader,
             new Vector2(viewModel.X + 20f, headerY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), titleText);
 
@@ -217,14 +218,14 @@ internal static class ReligionActivityRenderer
         var textY = y + 12f;
 
         // Player name
-        drawList.AddText(ImGui.GetFont(), 14f,
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel,
             new Vector2(textX, textY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
             entry.PlayerName);
 
         // Action description
         var actionText = FormatActionText(entry.ActionType, entry.FavorAmount, entry.PrestigeAmount);
-        drawList.AddText(ImGui.GetFont(), 12f,
+        drawList.AddText(ImGui.GetFont(), Secondary,
             new Vector2(textX, textY + 20f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
             actionText);
@@ -233,7 +234,7 @@ internal static class ReligionActivityRenderer
         var timestamp = new DateTime(entry.TimestampTicks);
         var timeText = FormatTimestamp(timestamp);
         var timeTextSize = ImGui.CalcTextSize(timeText);
-        drawList.AddText(ImGui.GetFont(), 11f,
+        drawList.AddText(ImGui.GetFont(), Small,
             new Vector2(x + width - timeTextSize.X - 15f, y + ENTRY_HEIGHT - 25f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey * 0.7f),
             timeText);
@@ -270,7 +271,7 @@ internal static class ReligionActivityRenderer
             // Domain initial letter
             var letter = domain.Length > 0 ? domain[0].ToString() : "?";
             var textSize = ImGui.CalcTextSize(letter);
-            drawList.AddText(ImGui.GetFont(), 20f,
+            drawList.AddText(ImGui.GetFont(), PageTitle,
                 new Vector2(x - textSize.X / 2f, y - textSize.Y / 2f),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.White), letter);
         }
@@ -319,7 +320,7 @@ internal static class ReligionActivityRenderer
             viewModel.Y + viewModel.Height / 2f - textSize.Y / 2f
         );
 
-        drawList.AddText(ImGui.GetFont(), 14f, textPos,
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), text);
     }
 
@@ -332,7 +333,7 @@ internal static class ReligionActivityRenderer
             viewModel.Y + viewModel.Height / 2f - textSize.Y / 2f
         );
 
-        drawList.AddText(ImGui.GetFont(), 14f, textPos,
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), text);
     }
 
@@ -345,7 +346,7 @@ internal static class ReligionActivityRenderer
             viewModel.Y + viewModel.Height / 2f - textSize.Y / 2f
         );
 
-        drawList.AddText(ImGui.GetFont(), 14f, textPos,
-            ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 0.3f, 0.3f, 1f)), text);
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Red), text);
     }
 }

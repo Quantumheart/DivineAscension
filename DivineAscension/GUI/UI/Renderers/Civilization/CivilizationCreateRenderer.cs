@@ -10,6 +10,7 @@ using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
@@ -24,13 +25,13 @@ internal static class CivilizationCreateRenderer
         var currentY = vm.Y;
 
         TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_TITLE), vm.X, currentY, 18f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_TITLE), vm.X, currentY, SectionHeader,
             ColorPalette.White);
         currentY += 32f;
 
         // Requirements
         TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_REQUIREMENTS), vm.X, currentY, 14f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_REQUIREMENTS), vm.X, currentY, SubsectionLabel,
             ColorPalette.Grey);
         currentY += 22f;
 
@@ -46,7 +47,7 @@ internal static class CivilizationCreateRenderer
             // bullet
             drawList.AddCircleFilled(new Vector2(vm.X + 8f, currentY + 7f), 2f,
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold));
-            drawList.AddText(ImGui.GetFont(), 14f, new Vector2(vm.X + 16f, currentY),
+            drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(vm.X + 16f, currentY),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), req);
             currentY += 18f;
         }

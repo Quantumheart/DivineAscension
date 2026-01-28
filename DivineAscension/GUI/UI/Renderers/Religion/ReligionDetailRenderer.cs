@@ -15,6 +15,7 @@ using DivineAscension.Network;
 using DivineAscension.Services;
 using DivineAscension.Systems;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
 
@@ -107,24 +108,24 @@ internal static class ReligionDetailRenderer
         // Name header (centered in 270px column at 291px)
         var nameHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_NAME);
         var nameHeaderWidth = ImGui.CalcTextSize(nameHeader).X;
-        drawList.AddText(font, 16f, new Vector2(nameCenter - nameHeaderWidth / 2f, currentY), headerColor, nameHeader);
+        drawList.AddText(font, TableHeader, new Vector2(nameCenter - nameHeaderWidth / 2f, currentY), headerColor, nameHeader);
 
         // Deity header
         var deityHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_DOMAIN);
         var deityHeaderWidth = ImGui.CalcTextSize(deityHeader).X;
-        drawList.AddText(font, 16f, new Vector2(deityCenter - deityHeaderWidth / 2f, currentY), headerColor,
+        drawList.AddText(font, TableHeader, new Vector2(deityCenter - deityHeaderWidth / 2f, currentY), headerColor,
             deityHeader);
 
         // Prestige header
         var prestigeHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_PRESTIGE);
         var prestigeHeaderWidth = ImGui.CalcTextSize(prestigeHeader).X;
-        drawList.AddText(font, 16f, new Vector2(prestigeCenter - prestigeHeaderWidth / 2f, currentY), headerColor,
+        drawList.AddText(font, TableHeader, new Vector2(prestigeCenter - prestigeHeaderWidth / 2f, currentY), headerColor,
             prestigeHeader);
 
         // Public header
         var publicHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_PUBLIC);
         var publicHeaderWidth = ImGui.CalcTextSize(publicHeader).X;
-        drawList.AddText(font, 16f, new Vector2(publicCenter - publicHeaderWidth / 2f, currentY), headerColor,
+        drawList.AddText(font, TableHeader, new Vector2(publicCenter - publicHeaderWidth / 2f, currentY), headerColor,
             publicHeader);
 
         currentY += 32f;
@@ -162,7 +163,7 @@ internal static class ReligionDetailRenderer
 
         // Name vertically aligned with icon center
         var nameY = iconY + (iconSize - 16f) / 2f;
-        drawList.AddText(font, 13f,
+        drawList.AddText(font, Body,
             new Vector2(nameCenter - nameApproxWidth / 2f, nameY),
             nameColor, vm.ReligionName);
 
@@ -181,7 +182,7 @@ internal static class ReligionDetailRenderer
         foreach (var line in deityLines)
         {
             var lineApproxWidth = line.Length * 6.5f;
-            drawList.AddText(font, 13f,
+            drawList.AddText(font, Body,
                 new Vector2(deityCenter - lineApproxWidth / 2f, deityStartY),
                 valueColor, line);
             deityStartY += 16f; // Line height
@@ -201,7 +202,7 @@ internal static class ReligionDetailRenderer
         foreach (var line in prestigeLines)
         {
             var lineApproxWidth = line.Length * 6.5f;
-            drawList.AddText(font, 13f,
+            drawList.AddText(font, Body,
                 new Vector2(prestigeCenter - lineApproxWidth / 2f, prestigeStartY),
                 valueColor, line);
             prestigeStartY += 16f; // Line height
@@ -212,7 +213,7 @@ internal static class ReligionDetailRenderer
             ? LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_PUBLIC)
             : LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_PRIVATE);
         var publicApproxWidth = publicText.Length * 6.5f;
-        drawList.AddText(font, 13f,
+        drawList.AddText(font, Body,
             new Vector2(publicCenter - publicApproxWidth / 2f, deityValueY),
             valueColor, publicText);
 
@@ -231,7 +232,7 @@ internal static class ReligionDetailRenderer
         var descCenter = vm.X + descColumnLeft + (columnWidth / 2f);
         var descHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_DESCRIPTION);
         var descHeaderWidth = ImGui.CalcTextSize(descHeader).X;
-        drawList.AddText(font, 16f, new Vector2(descCenter - descHeaderWidth / 2f, currentY), headerColor,
+        drawList.AddText(font, TableHeader, new Vector2(descCenter - descHeaderWidth / 2f, currentY), headerColor,
             descHeader);
 
         currentY += 28f;
@@ -242,11 +243,11 @@ internal static class ReligionDetailRenderer
 
         // Simple wrapping: use ImGui text wrapping by drawing text blocks
         ImGui.PushFont(ImGui.GetFont());
-        var descLines = WrapText(vm.Description, maxWidth, font, 13f);
+        var descLines = WrapText(vm.Description, maxWidth, font, Body);
 
         foreach (var line in descLines)
         {
-            drawList.AddText(font, 13f, new Vector2(descCenter, currentY), valueColor, line);
+            drawList.AddText(font, Body, new Vector2(descCenter, currentY), valueColor, line);
             currentY += lineHeight;
         }
 
@@ -291,7 +292,7 @@ internal static class ReligionDetailRenderer
 
         // Members header
         var headerText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_MEMBERS, vm.MemberCount);
-        drawList.AddText(font, 16f, new Vector2(vm.X + 16, currentY), headerColor, headerText);
+        drawList.AddText(font, TableHeader, new Vector2(vm.X + 16, currentY), headerColor, headerText);
 
         currentY += 28f;
 
@@ -342,13 +343,13 @@ internal static class ReligionDetailRenderer
         var font = ImGui.GetFont();
 
         // Member name (left-aligned)
-        drawList.AddText(font, 13f,
+        drawList.AddText(font, Body,
             new Vector2(x + 16f, y + (height - 16f) / 2f),
             textColor, member.PlayerName);
 
         // Favor rank (right-aligned - approximate positioning)
         var rankApproxWidth = member.FavorRank.Length * 7f; // Rough approximation
-        drawList.AddText(font, 13f,
+        drawList.AddText(font, Body,
             new Vector2(x + width - 16f - rankApproxWidth, y + (height - 16f) / 2f),
             textColor, member.FavorRank);
     }

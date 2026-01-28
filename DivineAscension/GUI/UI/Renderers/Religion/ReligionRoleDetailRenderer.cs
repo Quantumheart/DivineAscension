@@ -11,6 +11,7 @@ using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
 
@@ -46,7 +47,7 @@ internal static class ReligionRoleDetailRenderer
         // Title
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_TITLE, viewModel.ViewingRoleName),
-            x, currentY, 18f, ColorPalette.Gold);
+            x, currentY, SectionHeader, ColorPalette.Gold);
         currentY += 30f;
 
         // Get members with this role
@@ -78,7 +79,7 @@ internal static class ReligionRoleDetailRenderer
 
             // Member name on left
             TextRenderer.DrawInfoText(drawList, $"- {memberName}", x, currentY + 4f,
-                width - dropdownWidth - 10f, 16f);
+                width - dropdownWidth - 10f, TableHeader);
 
             // Role dropdown or static text on right
             if (viewModel.CanAssignRoleToMember(memberUID))
@@ -89,7 +90,7 @@ internal static class ReligionRoleDetailRenderer
 
                 // Draw dropdown button with larger font
                 if (Dropdown.DrawButton(drawList, dropdownX, dropdownY, dropdownWidth, dropdownHeight,
-                        memberRoleName, isOpen, 14f))
+                        memberRoleName, isOpen, SubsectionLabel))
                     events.Add(new RoleDetailEvent.AssignRoleDropdownToggled(memberUID, !isOpen));
 
                 // Track if this dropdown is open (for menu rendering later)
@@ -126,7 +127,7 @@ internal static class ReligionRoleDetailRenderer
 
             // Draw menu visual with larger font (pass button position, not menu position - component handles offset)
             Dropdown.DrawMenuVisual(drawList, dropdownX, dropdownY, dropdownWidth,
-                dropdownHeight, roleNames, currentRoleIndex, 32f, 14f);
+                dropdownHeight, roleNames, currentRoleIndex, 32f, SubsectionLabel);
 
             // Handle menu interaction
             var (selectedIndex, shouldClose, clickConsumed) = Dropdown.DrawMenuAndHandleInteraction(

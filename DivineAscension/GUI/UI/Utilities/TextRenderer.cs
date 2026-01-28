@@ -12,20 +12,20 @@ namespace DivineAscension.GUI.UI.Utilities;
 public static class TextRenderer
 {
     /// <summary>
-    ///     Draw a label (white text, 14pt)
+    ///     Draw a label (white text, SubsectionLabel size)
     /// </summary>
     /// <param name="drawList">ImGui draw list</param>
     /// <param name="text">Text to display</param>
     /// <param name="x">X position</param>
     /// <param name="y">Y position</param>
-    /// <param name="fontSize">Font size (default 14f)</param>
+    /// <param name="fontSize">Font size (default FontSizes.SubsectionLabel)</param>
     /// <param name="color">Text color (default white)</param>
     public static void DrawLabel(
         ImDrawListPtr drawList,
         string text,
         float x,
         float y,
-        float fontSize = 14f,
+        float fontSize = FontSizes.SubsectionLabel,
         Vector4? color = null)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(color ?? ColorPalette.White);
@@ -33,14 +33,14 @@ public static class TextRenderer
     }
 
     /// <summary>
-    ///     Draw info text (light grey text, 12pt, word-wrapped)
+    ///     Draw info text (light grey text, Secondary size, word-wrapped)
     /// </summary>
     /// <param name="drawList">ImGui draw list</param>
     /// <param name="text">Text to display</param>
     /// <param name="x">X position</param>
     /// <param name="y">Y position</param>
     /// <param name="width">Maximum width for word wrapping</param>
-    /// <param name="fontSize">Font size (default 12f)</param>
+    /// <param name="fontSize">Font size (default FontSizes.Secondary)</param>
     /// <param name="color">Optional color override (default lighter grey for better contrast)</param>
     public static void DrawInfoText(
         ImDrawListPtr drawList,
@@ -48,7 +48,7 @@ public static class TextRenderer
         float x,
         float y,
         float width,
-        float fontSize = 12f,
+        float fontSize = FontSizes.Secondary,
         Vector4? color = null)
     {
         // Use a lighter grey (0.8, 0.8, 0.8) for better contrast on dark backgrounds
@@ -88,9 +88,9 @@ public static class TextRenderer
     /// </summary>
     /// <param name="text">Text to measure</param>
     /// <param name="width">Maximum width for wrapping</param>
-    /// <param name="fontSize">Font size used when rendering (default 12f)</param>
+    /// <param name="fontSize">Font size used when rendering (default FontSizes.Secondary)</param>
     /// <returns>Total height in pixels required to render the wrapped text</returns>
-    public static float MeasureWrappedHeight(string text, float width, float fontSize = 12f)
+    public static float MeasureWrappedHeight(string text, float width, float fontSize = FontSizes.Secondary)
     {
         // Mirror the wrapping logic to keep measurements consistent
         var words = text.Split(' ');
@@ -120,57 +120,57 @@ public static class TextRenderer
     }
 
     /// <summary>
-    ///     Draw error text (red text, 13pt)
+    ///     Draw error text (red text, Body size)
     /// </summary>
     /// <param name="drawList">ImGui draw list</param>
     /// <param name="text">Error message to display</param>
     /// <param name="x">X position</param>
     /// <param name="y">Y position</param>
-    /// <param name="fontSize">Font size (default 13f)</param>
+    /// <param name="fontSize">Font size (default FontSizes.Body)</param>
     public static void DrawErrorText(
         ImDrawListPtr drawList,
         string text,
         float x,
         float y,
-        float fontSize = 13f)
+        float fontSize = FontSizes.Body)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Red);
         drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(x, y), textColor, text);
     }
 
     /// <summary>
-    ///     Draw success text (green text, 13pt)
+    ///     Draw success text (green text, Body size)
     /// </summary>
     /// <param name="drawList">ImGui draw list</param>
     /// <param name="text">Success message to display</param>
     /// <param name="x">X position</param>
     /// <param name="y">Y position</param>
-    /// <param name="fontSize">Font size (default 13f)</param>
+    /// <param name="fontSize">Font size (default FontSizes.Body)</param>
     public static void DrawSuccessText(
         ImDrawListPtr drawList,
         string text,
         float x,
         float y,
-        float fontSize = 13f)
+        float fontSize = FontSizes.Body)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Green);
         drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(x, y), textColor, text);
     }
 
     /// <summary>
-    ///     Draw warning text (yellow text, 13pt)
+    ///     Draw warning text (yellow text, Body size)
     /// </summary>
     /// <param name="drawList">ImGui draw list</param>
     /// <param name="text">Warning message to display</param>
     /// <param name="x">X position</param>
     /// <param name="y">Y position</param>
-    /// <param name="fontSize">Font size (default 13f)</param>
+    /// <param name="fontSize">Font size (default FontSizes.Body)</param>
     public static void DrawWarningText(
         ImDrawListPtr drawList,
         string text,
         float x,
         float y,
-        float fontSize = 13f)
+        float fontSize = FontSizes.Body)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Yellow);
         drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(x, y), textColor, text);

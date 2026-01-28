@@ -11,6 +11,7 @@ using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network.HolySite;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
@@ -82,7 +83,7 @@ internal static class CivilizationHolySitesRenderer
     {
         // Title
         var titleText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_TITLE);
-        drawList.AddText(ImGui.GetFont(), 18f,
+        drawList.AddText(ImGui.GetFont(), SectionHeader,
             new Vector2(viewModel.X + 20f, y),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
             titleText);
@@ -115,7 +116,7 @@ internal static class CivilizationHolySitesRenderer
             contentStartY + contentHeight / 2f - textSize.Y / 2f
         );
 
-        drawList.AddText(ImGui.GetFont(), 14f, textPos,
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), text);
     }
 
@@ -132,7 +133,7 @@ internal static class CivilizationHolySitesRenderer
             contentStartY + contentHeight / 2f - textSize.Y / 2f
         );
 
-        drawList.AddText(ImGui.GetFont(), 14f, textPos,
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), text);
     }
 
@@ -150,7 +151,7 @@ internal static class CivilizationHolySitesRenderer
             contentStartY + contentHeight / 2f - textSize.Y / 2f
         );
 
-        drawList.AddText(ImGui.GetFont(), 14f, textPos,
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
             ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 0.3f, 0.3f, 1f)), text);
     }
 
@@ -266,7 +267,7 @@ internal static class CivilizationHolySitesRenderer
         // Religion name - adjusted X position to account for deity icon
         var nameX = deityIconX + deityIconSize + 12f;
         var nameY = y + (ReligionHeaderHeight - ImGui.CalcTextSize(religionName).Y) / 2f;
-        drawList.AddText(ImGui.GetFont(), 18f,
+        drawList.AddText(ImGui.GetFont(), SectionHeader,
             new Vector2(nameX, nameY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
             religionName);
@@ -277,7 +278,7 @@ internal static class CivilizationHolySitesRenderer
         var countSize = ImGui.CalcTextSize(countText);
         var countX = x + width - countSize.X - 10f;
         var countY = y + (ReligionHeaderHeight - countSize.Y) / 2f;
-        drawList.AddText(ImGui.GetFont(), 14f,
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel,
             new Vector2(countX, countY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
             countText);
@@ -321,7 +322,7 @@ internal static class CivilizationHolySitesRenderer
         var currentY = y + SiteItemPadding;
 
         // Site name (larger font)
-        drawList.AddText(ImGui.GetFont(), 15f,
+        drawList.AddText(ImGui.GetFont(), TableHeader - 1f,
             new Vector2(currentX, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
             site.SiteName);
@@ -331,7 +332,7 @@ internal static class CivilizationHolySitesRenderer
         // Tier badge
         var tierText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_TIER)
             .Replace("{0}", site.Tier.ToString());
-        drawList.AddText(ImGui.GetFont(), 12f,
+        drawList.AddText(ImGui.GetFont(), Secondary,
             new Vector2(currentX, currentY),
             ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 0.84f, 0f, 1f)), // Gold color
             tierText);
@@ -340,7 +341,7 @@ internal static class CivilizationHolySitesRenderer
         var volumeX = currentX + 100f;
         var volumeText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_VOLUME)
             .Replace("{0}", site.Volume.ToString("N0"));
-        drawList.AddText(ImGui.GetFont(), 12f,
+        drawList.AddText(ImGui.GetFont(), Secondary,
             new Vector2(volumeX, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
             volumeText);
@@ -348,7 +349,7 @@ internal static class CivilizationHolySitesRenderer
         // Prayer Multiplier
         var multiplierX = currentX + 250f;
         var multiplierText = $"Prayer: {site.PrayerMultiplier:F1}x";
-        drawList.AddText(ImGui.GetFont(), 12f,
+        drawList.AddText(ImGui.GetFont(), Secondary,
             new Vector2(multiplierX, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
             multiplierText);
