@@ -1,6 +1,8 @@
 using System.Linq;
 using DivineAscension.API.Interfaces;
+using DivineAscension.Models;
 using DivineAscension.Network;
+using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
@@ -18,6 +20,7 @@ public class MilestoneNetworkHandler
     private readonly IReligionManager _religionManager;
     private readonly INetworkService _networkService;
     private readonly IWorldService _worldService;
+    private readonly IMilestoneDefinitionLoader _milestoneDefinitionLoader;
 
     public MilestoneNetworkHandler(
         ILogger logger,
@@ -25,7 +28,8 @@ public class MilestoneNetworkHandler
         ICivilizationManager civilizationManager,
         IReligionManager religionManager,
         INetworkService networkService,
-        IWorldService worldService)
+        IWorldService worldService,
+        IMilestoneDefinitionLoader milestoneDefinitionLoader)
     {
         _logger = logger;
         _milestoneManager = milestoneManager;
@@ -33,6 +37,7 @@ public class MilestoneNetworkHandler
         _religionManager = religionManager;
         _networkService = networkService;
         _worldService = worldService;
+        _milestoneDefinitionLoader = milestoneDefinitionLoader;
     }
 
     /// <summary>
@@ -85,13 +90,31 @@ public class MilestoneNetworkHandler
             CivId = packet.CivId,
             Rank = _milestoneManager.GetCivilizationRank(packet.CivId),
             CompletedMilestones = _milestoneManager.GetCompletedMilestones(packet.CivId).ToList(),
-            Progress = allProgress.Values.Select(p => new MilestoneProgressDto
+            Progress = allProgress.Values.Select(p =>
             {
-                MilestoneId = p.MilestoneId,
-                MilestoneName = p.MilestoneName,
-                CurrentValue = p.CurrentValue,
-                TargetValue = p.TargetValue,
-                IsCompleted = p.IsCompleted
+                var dto = new MilestoneProgressDto
+                {
+                    MilestoneId = p.MilestoneId,
+                    MilestoneName = p.MilestoneName,
+                    CurrentValue = p.CurrentValue,
+                    TargetValue = p.TargetValue,
+                    IsCompleted = p.IsCompleted
+                };
+
+                var definition = _milestoneDefinitionLoader.GetMilestone(p.MilestoneId);
+                if (definition != null)
+                {
+                    dto.Description = definition.Description;
+                    dto.TriggerType = definition.Trigger.Type.ToString();
+                    dto.TriggerThreshold = definition.Trigger.Threshold;
+                    dto.PrestigePayout = definition.PrestigePayout;
+                    dto.RankReward = definition.RankReward;
+                    dto.MilestoneType = definition.Type.ToString();
+                    dto.PermanentBenefitDescription = FormatPermanentBenefit(definition.PermanentBenefit);
+                    dto.TemporaryBenefitDescription = FormatTemporaryBenefit(definition.TemporaryBenefit);
+                }
+
+                return dto;
             }).ToList(),
             Bonuses = new CivilizationBonusesDto
             {
@@ -150,5 +173,37 @@ public class MilestoneNetworkHandler
 
         _logger.Notification(
             $"[MilestoneNetworkHandler] Broadcast milestone unlock '{milestoneId}' to civilization '{civ.Name}'");
+    }
+
+    private static string FormatPermanentBenefit(MilestoneBenefit? benefit)
+    {
+        if (benefit == null) return string.Empty;
+
+        return benefit.Type switch
+        {
+            MilestoneBenefitType.PrestigeMultiplier => $"+{benefit.Amount * 100:F0}% Prestige",
+            MilestoneBenefitType.FavorMultiplier => $"+{benefit.Amount * 100:F0}% Favor",
+            MilestoneBenefitType.ConquestMultiplier => $"+{benefit.Amount * 100:F0}% Conquest",
+            MilestoneBenefitType.HolySiteSlot => $"+{benefit.Amount:F0} Holy Site Slot{(benefit.Amount > 1 ? "s" : "")}",
+            MilestoneBenefitType.UnlockBlessing => $"Unlock Blessing: {benefit.BlessingId ?? "Unknown"}",
+            MilestoneBenefitType.AllRewardsMultiplier => $"+{benefit.Amount * 100:F0}% All Rewards",
+            _ => string.Empty
+        };
+    }
+
+    private static string FormatTemporaryBenefit(MilestoneTemporaryBenefit? benefit)
+    {
+        if (benefit == null) return string.Empty;
+
+        var effect = benefit.Type switch
+        {
+            MilestoneBenefitType.PrestigeMultiplier => $"+{benefit.Amount * 100:F0}% Prestige",
+            MilestoneBenefitType.FavorMultiplier => $"+{benefit.Amount * 100:F0}% Favor",
+            MilestoneBenefitType.ConquestMultiplier => $"+{benefit.Amount * 100:F0}% Conquest",
+            MilestoneBenefitType.AllRewardsMultiplier => $"+{benefit.Amount * 100:F0}% All Rewards",
+            _ => string.Empty
+        };
+
+        return string.IsNullOrEmpty(effect) ? string.Empty : $"{effect} for {benefit.DurationDays} day{(benefit.DurationDays != 1 ? "s" : "")}";
     }
 }

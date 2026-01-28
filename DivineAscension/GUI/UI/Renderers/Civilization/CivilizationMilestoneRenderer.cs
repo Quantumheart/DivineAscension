@@ -83,9 +83,9 @@ internal static class CivilizationMilestoneRenderer
 
         // === MILESTONES LIST ===
         var contentHeight = viewModel.Height - (currentY - viewModel.Y);
-        DrawMilestonesList(viewModel, drawList, currentY, contentHeight, events);
+        var hoveredMilestone = DrawMilestonesList(viewModel, drawList, currentY, contentHeight, events);
 
-        return new CivilizationMilestoneRenderResult(events, viewModel.Height);
+        return new CivilizationMilestoneRenderResult(events, viewModel.Height, hoveredMilestone);
     }
 
     private static float DrawHeader(
@@ -296,13 +296,14 @@ internal static class CivilizationMilestoneRenderer
             value);
     }
 
-    private static void DrawMilestonesList(
+    private static MilestoneProgressDto? DrawMilestonesList(
         CivilizationMilestoneViewModel viewModel,
         ImDrawListPtr drawList,
         float startY,
         float availableHeight,
         List<MilestoneEvent> events)
     {
+        MilestoneProgressDto? hoveredMilestone = null;
         var x = viewModel.X + 20f;
         var width = viewModel.Width - 40f - ScrollbarWidth - ScrollbarPadding;
 
@@ -338,7 +339,9 @@ internal static class CivilizationMilestoneRenderer
             // Only draw if visible (culling for performance)
             if (entryY + MilestoneItemHeight >= startY && entryY <= startY + availableHeight)
             {
-                DrawMilestoneItem(childDrawList, childPos.X, entryY, width - 20f, milestone);
+                var isHovered = DrawMilestoneItem(childDrawList, childPos.X, entryY, width - 20f, milestone);
+                if (isHovered)
+                    hoveredMilestone = milestone;
             }
 
             currentY += MilestoneItemHeight + MilestoneItemPadding;
@@ -390,9 +393,11 @@ internal static class CivilizationMilestoneRenderer
                 events.Add(new MilestoneEvent.ScrollChanged(newScrollY));
             }
         }
+
+        return hoveredMilestone;
     }
 
-    private static void DrawMilestoneItem(
+    private static bool DrawMilestoneItem(
         ImDrawListPtr drawList,
         float x,
         float y,
@@ -480,5 +485,18 @@ internal static class CivilizationMilestoneRenderer
             new Vector2(progressTextX, progressTextY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
             progressText);
+
+        // Hover detection
+        var mousePos = ImGui.GetMousePos();
+        var isHovered = mousePos.X >= itemRect.X && mousePos.X <= itemRectEnd.X &&
+                        mousePos.Y >= itemRect.Y && mousePos.Y <= itemRectEnd.Y;
+
+        if (isHovered)
+        {
+            var hoverColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.White, 0.08f));
+            drawList.AddRectFilled(itemRect, itemRectEnd, hoverColor, 3f);
+        }
+
+        return isHovered;
     }
 }

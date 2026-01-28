@@ -379,7 +379,8 @@ public static class DivineAscensionSystemInitializer
             civilizationManager,
             religionManager,
             networkService,
-            worldService);
+            worldService,
+            milestoneLoader);
         milestoneHandler.RegisterHandlers();
 
         // Validate all memberships after initialization

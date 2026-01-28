@@ -871,6 +871,13 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         var drawList = ImGui.GetWindowDrawList();
         var result = CivilizationMilestoneRenderer.Draw(vm, drawList);
         ProcessMilestoneEvents(result.Events);
+
+        // Draw tooltip for hovered milestone
+        if (result.HoveredMilestone != null)
+        {
+            var mousePos = ImGui.GetMousePos();
+            MilestoneTooltipRenderer.Draw(result.HoveredMilestone, mousePos.X, mousePos.Y, width, height);
+        }
     }
 
     private void ProcessMilestoneEvents(IReadOnlyList<MilestoneEvent> events)

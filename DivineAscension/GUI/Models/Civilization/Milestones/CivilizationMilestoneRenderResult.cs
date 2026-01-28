@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DivineAscension.GUI.Events.Civilization;
+using DivineAscension.Network;
 
 namespace DivineAscension.GUI.Models.Civilization.Milestones;
 
@@ -8,8 +9,10 @@ namespace DivineAscension.GUI.Models.Civilization.Milestones;
 /// </summary>
 public readonly struct CivilizationMilestoneRenderResult(
     IReadOnlyList<MilestoneEvent> events,
-    float renderedHeight)
+    float renderedHeight,
+    MilestoneProgressDto? hoveredMilestone = null)
 {
     public IReadOnlyList<MilestoneEvent> Events { get; } = events;
     public float RenderedHeight { get; } = renderedHeight;
+    public MilestoneProgressDto? HoveredMilestone { get; } = hoveredMilestone;
 }
