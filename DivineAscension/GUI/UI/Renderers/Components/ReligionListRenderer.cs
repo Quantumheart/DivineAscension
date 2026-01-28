@@ -10,6 +10,7 @@ using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Components;
 
@@ -221,7 +222,7 @@ public static class ReligionListRenderer
         // Draw religion name
         var namePos = new Vector2(x + padding * 2 + iconSize, y + padding);
         var nameColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        drawList.AddText(ImGui.GetFont(), 16f, namePos, nameColor, religion.ReligionName);
+        drawList.AddText(ImGui.GetFont(), TableHeader, namePos, nameColor, religion.ReligionName);
 
         // Draw deity name - show custom name if available, otherwise domain with title
         var deityText = !string.IsNullOrWhiteSpace(religion.DeityName)
@@ -229,7 +230,7 @@ public static class ReligionListRenderer
             : $"{religion.Domain} - {DomainHelper.GetDeityTitle(religion.Domain)}";
         var deityPos = new Vector2(x + padding * 2 + iconSize, y + padding + 22f);
         var deityColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
-        drawList.AddText(ImGui.GetFont(), 13f, deityPos, deityColorU32, deityText);
+        drawList.AddText(ImGui.GetFont(), Body, deityPos, deityColorU32, deityText);
 
         // Draw member count and prestige
         var statusText = religion.IsPublic
@@ -239,7 +240,7 @@ public static class ReligionListRenderer
             religion.MemberCount, religion.PrestigeRank, statusText);
         var infoPos = new Vector2(x + padding * 2 + iconSize, y + padding + 42f);
         var infoColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), 12f, infoPos, infoColor, infoText);
+        drawList.AddText(ImGui.GetFont(), Secondary, infoPos, infoColor, infoText);
 
         return (clickedUID, isHovering);
     }
@@ -361,13 +362,13 @@ public static class ReligionListRenderer
             {
                 // Title (religion name)
                 textColor = ColorPalette.Gold;
-                fontSize = 16f;
+                fontSize = TableHeader;
             }
             else if (i == 1)
             {
                 // Deity subtitle
                 textColor = ColorPalette.White;
-                fontSize = 13f;
+                fontSize = Body;
             }
             else if (line.StartsWith(
                          LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_LIST_DESCRIPTION_LABEL)) ||
@@ -379,13 +380,13 @@ public static class ReligionListRenderer
             {
                 // Section headers
                 textColor = ColorPalette.Grey;
-                fontSize = 12f;
+                fontSize = Secondary;
             }
             else
             {
                 // Regular text
                 textColor = ColorPalette.White;
-                fontSize = 13f;
+                fontSize = Body;
             }
 
             var textPos = new Vector2(tooltipX + tooltipPadding, currentY);

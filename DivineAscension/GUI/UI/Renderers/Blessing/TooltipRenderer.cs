@@ -7,6 +7,7 @@ using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
@@ -98,7 +99,7 @@ internal static class TooltipRenderer
                 tooltipY + TOOLTIP_PADDING
             );
             var lockColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Red);
-            drawList.AddText(ImGui.GetFont(), 14f, lockPos, lockColor, lockText);
+            drawList.AddText(ImGui.GetFont(), SubsectionLabel, lockPos, lockColor, lockText);
         }
         else if (tooltipData.IsUnlocked)
         {
@@ -110,7 +111,7 @@ internal static class TooltipRenderer
                 tooltipY + TOOLTIP_PADDING
             );
             var unlockColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Green);
-            drawList.AddText(ImGui.GetFont(), 14f, unlockPos, unlockColor, unlockText);
+            drawList.AddText(ImGui.GetFont(), SubsectionLabel, unlockPos, unlockColor, unlockText);
         }
 
         // Render content
@@ -141,7 +142,7 @@ internal static class TooltipRenderer
         {
             Text = data.Name,
             Color = ColorPalette.Gold,
-            FontSize = 18f,
+            FontSize = SectionHeader,
             IsBold = true,
             SpacingAfter = TITLE_TO_SUBTEXT
         });
@@ -156,7 +157,7 @@ internal static class TooltipRenderer
         {
             Text = categoryText,
             Color = ColorPalette.Grey,
-            FontSize = 12f,
+            FontSize = Secondary,
             SpacingAfter = SECTION_SPACING
         });
 
@@ -173,7 +174,7 @@ internal static class TooltipRenderer
                 Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_FAVOR_RANK,
                     data.RequiredFavorRank),
                 Color = rankColor,
-                FontSize = 13f,
+                FontSize = Body,
                 SpacingAfter = LINE_SPACING
             });
             hasRequirements = true;
@@ -187,7 +188,7 @@ internal static class TooltipRenderer
                 Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_PRESTIGE_RANK,
                     data.RequiredPrestigeRank),
                 Color = rankColor,
-                FontSize = 13f,
+                FontSize = Body,
                 SpacingAfter = LINE_SPACING
             });
             hasRequirements = true;
@@ -204,7 +205,7 @@ internal static class TooltipRenderer
                 {
                     Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_BLESSING, prereq),
                     Color = prereqColor,
-                    FontSize = 13f,
+                    FontSize = Body,
                     SpacingAfter = LINE_SPACING
                 });
             }
@@ -219,13 +220,13 @@ internal static class TooltipRenderer
         // Description (wrap if too long)
         if (!string.IsNullOrEmpty(data.Description))
         {
-            var wrappedLines = WrapText(data.Description, TOOLTIP_MAX_WIDTH - TOOLTIP_PADDING * 2, 14f);
+            var wrappedLines = WrapText(data.Description, TOOLTIP_MAX_WIDTH - TOOLTIP_PADDING * 2, SubsectionLabel);
             foreach (var wrappedLine in wrappedLines)
                 lines.Add(new TooltipLine
                 {
                     Text = wrappedLine,
                     Color = ColorPalette.White,
-                    FontSize = 14f,
+                    FontSize = SubsectionLabel,
                     SpacingAfter = LINE_SPACING
                 });
 
@@ -239,13 +240,13 @@ internal static class TooltipRenderer
         {
             foreach (var effect in data.SpecialEffectDescriptions)
             {
-                var wrappedEffects = WrapText("- " + effect, TOOLTIP_MAX_WIDTH - TOOLTIP_PADDING * 2, 13f);
+                var wrappedEffects = WrapText("- " + effect, TOOLTIP_MAX_WIDTH - TOOLTIP_PADDING * 2, Body);
                 foreach (var wrappedLine in wrappedEffects)
                     lines.Add(new TooltipLine
                     {
                         Text = wrappedLine,
                         Color = ColorPalette.White,
-                        FontSize = 13f,
+                        FontSize = Body,
                         SpacingAfter = LINE_SPACING
                     });
             }
@@ -262,7 +263,7 @@ internal static class TooltipRenderer
             {
                 Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_CLICK_TO_UNLOCK),
                 Color = ColorPalette.Green,
-                FontSize = 13f,
+                FontSize = Body,
                 SpacingAfter = 0
             });
         }
@@ -327,7 +328,7 @@ internal static class TooltipRenderer
     {
         public string Text { get; set; } = string.Empty;
         public Vector4 Color { get; set; } = new(1, 1, 1, 1);
-        public float FontSize { get; set; } = 14f;
+        public float FontSize { get; set; } = SubsectionLabel;
         public bool IsBold { get; set; }
         public float SpacingAfter { get; set; }
 

@@ -13,6 +13,7 @@ using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
 
@@ -96,7 +97,7 @@ internal static class ReligionRolesBrowseRenderer
         // Header
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_TITLE),
-            x, currentY, 16f, ColorPalette.Gold);
+            x, currentY, TableHeader, ColorPalette.Gold);
         currentY += 30f;
 
         // Create Role button (if player can manage roles)
@@ -156,7 +157,7 @@ internal static class ReligionRolesBrowseRenderer
 
         // Role name header
         var roleNameColor = role.IsProtected ? ColorPalette.Gold : ColorPalette.White;
-        TextRenderer.DrawLabel(drawList, role.RoleName, contentX, currentY, 14f, roleNameColor);
+        TextRenderer.DrawLabel(drawList, role.RoleName, contentX, currentY, SubsectionLabel, roleNameColor);
 
         // Member count badge
         var memberCount = viewModel.GetMemberCount(role.RoleUID);
@@ -285,7 +286,7 @@ internal static class ReligionRolesBrowseRenderer
         // Role name input
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_NAME_LABEL), dlgX + padding, currentY,
-            13f, ColorPalette.White);
+            Body, ColorPalette.White);
         currentY += 20f;
 
         // Actual text input using ImGui
@@ -372,7 +373,7 @@ internal static class ReligionRolesBrowseRenderer
         {
             TextRenderer.DrawLabel(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_NAME_LABEL), dlgX + padding,
-                currentY, 13f, ColorPalette.White);
+                currentY, Body, ColorPalette.White);
             currentY += 20f;
 
             var inputX = dlgX + padding;
@@ -392,7 +393,7 @@ internal static class ReligionRolesBrowseRenderer
         // Permissions section
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_PERMISSIONS_LABEL), dlgX + padding,
-            currentY, 14f, ColorPalette.Gold);
+            currentY, SubsectionLabel, ColorPalette.Gold);
         currentY += 25f;
 
         // Permission checkboxes

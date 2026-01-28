@@ -8,6 +8,7 @@ using DivineAscension.GUI.Models.HolySite.Table;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network.HolySite;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 using DivineAscension.Services;
 using ImGuiNET;
 
@@ -144,7 +145,7 @@ internal static class HolySiteTableRenderer
     private static void DrawTableHeader(ImDrawListPtr drawList, float x, float y)
     {
         var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-        const float fontSize = 16f;
+        const float fontSize = TableHeader;
         const float padding = 12f;
 
         // Column labels
@@ -268,7 +269,7 @@ internal static class HolySiteTableRenderer
         var textPosY = rowY + (RowHeight - textSize.Y) / 2f;
 
         var nameColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(textPosX, textPosY), nameColor, nameText);
+        drawList.AddText(ImGui.GetFont(), Body, new Vector2(textPosX, textPosY), nameColor, nameText);
     }
 
     /// <summary>
@@ -281,7 +282,7 @@ internal static class HolySiteTableRenderer
         float rowY)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        const float fontSize = 13f;
+        const float fontSize = Body;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
         DrawCenteredText(drawList, site.Tier.ToString(), colX, centerY, ColumnWidth, textColor, fontSize);
@@ -297,7 +298,7 @@ internal static class HolySiteTableRenderer
         float rowY)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        const float fontSize = 13f;
+        const float fontSize = Body;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
         DrawCenteredText(drawList, site.RitualsCompleted.ToString(), colX, centerY, ColumnWidth, textColor, fontSize);
@@ -313,7 +314,7 @@ internal static class HolySiteTableRenderer
         float rowY)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        const float fontSize = 13f;
+        const float fontSize = Body;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
         var multiplierText = $"{site.PrayerMultiplier:F2}x";
@@ -330,7 +331,7 @@ internal static class HolySiteTableRenderer
         float rowY)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        const float fontSize = 12f;
+        const float fontSize = Secondary;
         const float padding = 8f;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 

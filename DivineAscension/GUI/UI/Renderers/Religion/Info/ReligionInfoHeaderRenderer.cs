@@ -8,6 +8,7 @@ using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion.Info;
 
@@ -32,7 +33,7 @@ internal static class ReligionInfoHeaderRenderer
         var currentY = y;
 
         // === RELIGION HEADER ===
-        TextRenderer.DrawLabel(drawList, viewModel.ReligionName, x, currentY, 20f, ColorPalette.Gold);
+        TextRenderer.DrawLabel(drawList, viewModel.ReligionName, x, currentY, PageTitle, ColorPalette.Gold);
         currentY += 32f;
 
         // Info grid
@@ -43,7 +44,7 @@ internal static class ReligionInfoHeaderRenderer
         // If founder and editing, show input field; otherwise show text with edit button
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DEITY_LABEL),
-            leftCol, currentY, 13f, ColorPalette.Grey);
+            leftCol, currentY, Body, ColorPalette.Grey);
 
         if (viewModel.IsEditingDeityName)
         {
@@ -57,7 +58,7 @@ internal static class ReligionInfoHeaderRenderer
                 ? $"{viewModel.DeityName} ({viewModel.Deity})"
                 : viewModel.Deity;
 
-            drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 80f, currentY),
+            drawList.AddText(ImGui.GetFont(), Body, new Vector2(leftCol + 80f, currentY),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.White), deityDisplay);
 
             // Show edit button for founders
@@ -79,8 +80,8 @@ internal static class ReligionInfoHeaderRenderer
             // Member count (same row as deity in display mode)
             TextRenderer.DrawLabel(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MEMBERS_COUNT),
-                rightCol, currentY, 13f, ColorPalette.Grey);
-            drawList.AddText(ImGui.GetFont(), 13f, new Vector2(rightCol + 80f, currentY),
+                rightCol, currentY, Body, ColorPalette.Grey);
+            drawList.AddText(ImGui.GetFont(), Body, new Vector2(rightCol + 80f, currentY),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.White), viewModel.MemberCount.ToString());
 
             currentY += 22f;
@@ -89,16 +90,16 @@ internal static class ReligionInfoHeaderRenderer
         // Founder
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_FOUNDER_LABEL),
-            leftCol, currentY, 13f, ColorPalette.Grey);
+            leftCol, currentY, Body, ColorPalette.Grey);
         var founderName = viewModel.GetFounderDisplayName();
-        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(leftCol + 80f, currentY),
+        drawList.AddText(ImGui.GetFont(), Body, new Vector2(leftCol + 80f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), founderName);
 
         // Prestige
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_PRESTIGE_LABEL),
-            rightCol, currentY, 13f, ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(rightCol + 80f, currentY),
+            rightCol, currentY, Body, ColorPalette.Grey);
+        drawList.AddText(ImGui.GetFont(), Body, new Vector2(rightCol + 80f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_PRESTIGE_VALUE,
                 viewModel.Prestige, viewModel.PrestigeRank));
@@ -197,8 +198,8 @@ internal static class ReligionInfoHeaderRenderer
         // Member count (show on separate row in edit mode)
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MEMBERS_COUNT),
-            x, currentY, 13f, ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(x + 80f, currentY),
+            x, currentY, Body, ColorPalette.Grey);
+        drawList.AddText(ImGui.GetFont(), Body, new Vector2(x + 80f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White), viewModel.MemberCount.ToString());
 
         currentY += 22f;

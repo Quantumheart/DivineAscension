@@ -5,6 +5,7 @@ using System.Numerics;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
@@ -141,7 +142,7 @@ internal static class BlessingNodeRenderer
             // Fallback: Show initials (first 2-3 letters)
             var blessingName = state.Blessing!.Name;
             var initials = blessingName.Length <= 3 ? blessingName : blessingName.Substring(0, 3);
-            const float fontSize = 16f; // Larger font for initials
+            const float fontSize = TableHeader; // Larger font for initials
 
             var textSize = ImGui.CalcTextSize(initials);
             var textPos = new Vector2(
@@ -161,7 +162,7 @@ internal static class BlessingNodeRenderer
             screenY + state.Height - tierSize.Y - 4f
         );
         var tierColorU32 = ImGui.ColorConvertFloat4ToU32(textColor * 0.7f);
-        drawList.AddText(ImGui.GetFont(), 10f, tierPos, tierColorU32, tierText);
+        drawList.AddText(ImGui.GetFont(), Compact, tierPos, tierColorU32, tierText);
 
         return isHovering;
     }

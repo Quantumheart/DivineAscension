@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.GUI.UI.Utilities;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Utilities;
 
@@ -75,14 +76,14 @@ internal static class DeityTooltipRenderer
     {
         var lines = new List<TooltipLine>();
 
-        // Deity name in deity color, bold, 18px
-        lines.Add(new TooltipLine(info.Name, deityColor, 18f, true, SECTION_SPACING));
+        // Deity name in deity color, bold, SectionHeader
+        lines.Add(new TooltipLine(info.Name, deityColor, SectionHeader, true, SECTION_SPACING));
 
-        // Description wrapped, white, 13px (reserve space for icon on right)
-        var wrappedDesc = WrapText(info.Description, TOOLTIP_MAX_WIDTH - TOOLTIP_PADDING * 2 - 40f, 13f);
+        // Description wrapped, white, Body (reserve space for icon on right)
+        var wrappedDesc = WrapText(info.Description, TOOLTIP_MAX_WIDTH - TOOLTIP_PADDING * 2 - 40f, Body);
         foreach (var line in wrappedDesc)
         {
-            lines.Add(new TooltipLine(line, ColorPalette.White, 13f, false, LINE_SPACING));
+            lines.Add(new TooltipLine(line, ColorPalette.White, Body, false, LINE_SPACING));
         }
 
         return lines;

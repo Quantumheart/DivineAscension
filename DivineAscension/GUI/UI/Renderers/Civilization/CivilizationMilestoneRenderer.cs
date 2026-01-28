@@ -13,6 +13,7 @@ using DivineAscension.Network;
 using DivineAscension.Services;
 using DivineAscension.Systems;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
@@ -95,7 +96,7 @@ internal static class CivilizationMilestoneRenderer
     {
         // Title
         var titleText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_TITLE);
-        drawList.AddText(ImGui.GetFont(), 18f,
+        drawList.AddText(ImGui.GetFont(), SectionHeader,
             new Vector2(viewModel.X + 20f, y),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
             titleText);
@@ -128,7 +129,7 @@ internal static class CivilizationMilestoneRenderer
             contentStartY + contentHeight / 2f - textSize.Y / 2f
         );
 
-        drawList.AddText(ImGui.GetFont(), 14f, textPos,
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), text);
     }
 
@@ -145,7 +146,7 @@ internal static class CivilizationMilestoneRenderer
             contentStartY + contentHeight / 2f - textSize.Y / 2f
         );
 
-        drawList.AddText(ImGui.GetFont(), 14f, textPos,
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), text);
     }
 
@@ -163,7 +164,7 @@ internal static class CivilizationMilestoneRenderer
             contentStartY + contentHeight / 2f - textSize.Y / 2f
         );
 
-        drawList.AddText(ImGui.GetFont(), 14f, textPos,
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
             ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 0.3f, 0.3f, 1f)), text);
     }
 
@@ -204,7 +205,7 @@ internal static class CivilizationMilestoneRenderer
         var progressSize = ImGui.CalcTextSize(progressText);
         var progressX = x + width - progressSize.X - 20f;
         var progressY = startY + (RankSectionHeight - progressSize.Y) / 2f;
-        drawList.AddText(ImGui.GetFont(), 14f,
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel,
             new Vector2(progressX, progressY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
             progressText);
@@ -232,7 +233,7 @@ internal static class CivilizationMilestoneRenderer
 
         // Title
         var titleText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_BONUSES_TITLE);
-        drawList.AddText(ImGui.GetFont(), 16f,
+        drawList.AddText(ImGui.GetFont(), TableHeader,
             new Vector2(x + 15f, startY + 10f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
             titleText);
@@ -283,13 +284,13 @@ internal static class CivilizationMilestoneRenderer
             ? ImGui.ColorConvertFloat4ToU32(new Vector4(0.3f, 0.9f, 0.3f, 1f)) // Green when active
             : ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
 
-        drawList.AddText(ImGui.GetFont(), 13f,
+        drawList.AddText(ImGui.GetFont(), Body,
             new Vector2(x, y),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
             $"{label}: ");
 
         var labelWidth = ImGui.CalcTextSize($"{label}: ").X;
-        drawList.AddText(ImGui.GetFont(), 13f,
+        drawList.AddText(ImGui.GetFont(), Body,
             new Vector2(x + labelWidth, y),
             color,
             value);
@@ -420,7 +421,7 @@ internal static class CivilizationMilestoneRenderer
         var nameColor = milestone.IsCompleted
             ? ImGui.ColorConvertFloat4ToU32(new Vector4(0.5f, 1f, 0.5f, 1f))
             : ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
-        drawList.AddText(ImGui.GetFont(), 15f,
+        drawList.AddText(ImGui.GetFont(), TableHeader - 1f,
             new Vector2(currentX, currentY),
             nameColor,
             milestone.MilestoneName);
@@ -434,7 +435,7 @@ internal static class CivilizationMilestoneRenderer
         var statusColor = milestone.IsCompleted
             ? ImGui.ColorConvertFloat4ToU32(new Vector4(0.3f, 0.9f, 0.3f, 1f))
             : ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 0.84f, 0f, 1f));
-        drawList.AddText(ImGui.GetFont(), 12f,
+        drawList.AddText(ImGui.GetFont(), Secondary,
             new Vector2(statusX, currentY),
             statusColor,
             statusText);
@@ -475,7 +476,7 @@ internal static class CivilizationMilestoneRenderer
         var progressText = $"{milestone.CurrentValue}/{milestone.TargetValue}";
         var progressTextX = progressBarX + progressBarWidth + 10f;
         var progressTextY = progressBarY + (ProgressBarHeight - ImGui.CalcTextSize(progressText).Y) / 2f;
-        drawList.AddText(ImGui.GetFont(), 12f,
+        drawList.AddText(ImGui.GetFont(), Secondary,
             new Vector2(progressTextX, progressTextY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
             progressText);

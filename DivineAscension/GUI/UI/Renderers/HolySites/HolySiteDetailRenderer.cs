@@ -10,6 +10,7 @@ using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 using DivineAscension.Network.HolySite;
 using DivineAscension.Services;
 using ImGuiNET;
@@ -254,18 +255,18 @@ internal static class HolySiteDetailRenderer
         var ritual = vm.SiteDetails.ActiveRitual!;
 
         // Section header
-        drawList.AddText(ImGui.GetFont(), 16f, new Vector2(x, y),
+        drawList.AddText(ImGui.GetFont(), TableHeader, new Vector2(x, y),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), "Active Ritual");
         y += 24f;
 
         // Ritual name
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x, y), labelColor, ritual.RitualName);
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x, y), labelColor, ritual.RitualName);
         y += 20f;
 
         // Description
         if (!string.IsNullOrEmpty(ritual.Description))
         {
-            drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x, y),
+            drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(x, y),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), ritual.Description);
             y += 18f;
         }
@@ -349,7 +350,7 @@ internal static class HolySiteDetailRenderer
         var textColor = step.IsComplete
             ? ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold)
             : labelColor;
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(textX, y), textColor, step.StepName);
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(textX, y), textColor, step.StepName);
         y += 20f;
 
         // Contributors (only for discovered steps)
@@ -357,7 +358,7 @@ internal static class HolySiteDetailRenderer
         {
             var contributorsText = "  Contributors: " + string.Join(", ",
                 step.TopContributors.Take(3).Select(c => $"{c.PlayerName} ({c.Quantity})"));
-            drawList.AddText(ImGui.GetFont(), 11f, new Vector2(textX, y),
+            drawList.AddText(ImGui.GetFont(), Small, new Vector2(textX, y),
                 ImGui.ColorConvertFloat4ToU32(new Vector4(0.6f, 0.6f, 0.6f, 1f)),
                 contributorsText);
             y += 16f;
@@ -387,18 +388,18 @@ internal static class HolySiteDetailRenderer
 
         // Question mark symbol
         var questionMarkColor = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x + 4f, y + 1f), questionMarkColor, "?");
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x + 4f, y + 1f), questionMarkColor, "?");
 
         // "Undiscovered Step" text
         var textX = x + iconSize + 10f;
         var textColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.5f, 0.5f, 0.5f, 1f)); // Gray
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(textX, y), textColor, "??? Undiscovered Step");
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(textX, y), textColor, "??? Undiscovered Step");
         y += 20f;
 
         // Hint text
         var hintText = "  Offer sacred items to discover this step";
         var hintColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.4f, 0.4f, 0.4f, 1f));
-        drawList.AddText(ImGui.GetFont(), 11f, new Vector2(textX, y), hintColor, hintText);
+        drawList.AddText(ImGui.GetFont(), Small, new Vector2(textX, y), hintColor, hintText);
         y += 16f;
     }
 
@@ -415,7 +416,7 @@ internal static class HolySiteDetailRenderer
         var currentTier = vm.SiteDetails.Tier;
 
         // Section header
-        drawList.AddText(ImGui.GetFont(), 16f, new Vector2(x, y),
+        drawList.AddText(ImGui.GetFont(), TableHeader, new Vector2(x, y),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), "Ritual Progress");
         y += 24f;
 
@@ -428,14 +429,14 @@ internal static class HolySiteDetailRenderer
 
         // Display completion stats
         var completionText = $"{completedRituals} Rituals Completed / {undiscoveredRituals} Undiscovered";
-        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(x, y),
+        drawList.AddText(ImGui.GetFont(), Body, new Vector2(x, y),
             labelColor, completionText);
         y += 20f;
 
         // Show discovery hint if not max tier
         if (currentTier < 3)
         {
-            drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x, y),
+            drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(x, y),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
                 "Offer sacred items at the altar to discover new rituals.");
             y += 18f;
@@ -443,7 +444,7 @@ internal static class HolySiteDetailRenderer
         else
         {
             // Max tier reached
-            drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x, y),
+            drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(x, y),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold),
                 "All rituals completed! This is a Cathedral.");
             y += 18f;
@@ -463,12 +464,12 @@ internal static class HolySiteDetailRenderer
         List<DetailEvent> events)
     {
         // Label
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x, y + 8f), labelColor,
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x, y + 8f), labelColor,
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_DETAIL_NAME));
 
         // Value
         var valueX = x + LabelWidth;
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(valueX, y + 8f),
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(valueX, y + 8f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), vm.SiteDetails.SiteName);
 
         // Edit button (for consecrator)
@@ -496,7 +497,7 @@ internal static class HolySiteDetailRenderer
         List<DetailEvent> events)
     {
         // Label
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x, y + 8f),
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x, y + 8f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown),
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_DETAIL_NAME));
 
@@ -564,7 +565,7 @@ internal static class HolySiteDetailRenderer
     {
         // Section header
         var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-        drawList.AddText(ImGui.GetFont(), 16f, new Vector2(x, y), headerColor,
+        drawList.AddText(ImGui.GetFont(), TableHeader, new Vector2(x, y), headerColor,
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_DETAIL_DESCRIPTION));
 
         // Edit button (for consecrator, only in display mode)
@@ -608,7 +609,7 @@ internal static class HolySiteDetailRenderer
             : vm.SiteDetails.Description;
 
         ImGui.PushTextWrapPos(x + maxWidth);
-        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(x, y), textColor, descriptionText);
+        drawList.AddText(ImGui.GetFont(), Body, new Vector2(x, y), textColor, descriptionText);
         ImGui.PopTextWrapPos();
 
         var textSize = ImGui.CalcTextSize(descriptionText, maxWidth);
@@ -646,7 +647,7 @@ internal static class HolySiteDetailRenderer
         var charCountColor = charCount > DescriptionMaxChars
             ? ImGui.ColorConvertFloat4ToU32(ColorPalette.Red)
             : ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), 12f, new Vector2(x + maxWidth - 60f, y), charCountColor, charCountText);
+        drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(x + maxWidth - 60f, y), charCountColor, charCountText);
 
         y += 24f;
 
@@ -684,11 +685,11 @@ internal static class HolySiteDetailRenderer
         uint valueColor)
     {
         // Label
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(x, y + 8f), labelColor, label);
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x, y + 8f), labelColor, label);
 
         // Value
         var valueX = x + LabelWidth;
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(valueX, y + 8f), valueColor, value);
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(valueX, y + 8f), valueColor, value);
     }
 
     /// <summary>

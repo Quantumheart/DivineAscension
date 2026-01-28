@@ -13,6 +13,7 @@ using DivineAscension.Models.Enum;
 using DivineAscension.Network.Diplomacy;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
@@ -20,8 +21,8 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 internal static class DiplomacyTabRenderer
 {
     private const float SectionSpacing = 20f;
-    private const float HeaderSize = 16f;
-    private const float LabelSize = 13f;
+    private const float HeaderSize = TableHeader;
+    private const float LabelSize = Body;
     private const float TableRowHeight = 24f;
 
     public static DiplomacyTabRendererResult Draw(

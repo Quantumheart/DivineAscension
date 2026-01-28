@@ -10,6 +10,7 @@ using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Components;
 
@@ -145,7 +146,7 @@ internal static class ReligionTableRenderer
     private static void DrawTableHeader(ImDrawListPtr drawList, float x, float y)
     {
         var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-        const float fontSize = 16f;
+        const float fontSize = TableHeader;
         const float padding = 12f;
 
         // Column labels
@@ -269,7 +270,7 @@ internal static class ReligionTableRenderer
         var textPosY = rowY + (RowHeight - textSize.Y) / 2f;
 
         var nameColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        drawList.AddText(ImGui.GetFont(), 13f, new Vector2(textPosX, textPosY), nameColor, nameText);
+        drawList.AddText(ImGui.GetFont(), Body, new Vector2(textPosX, textPosY), nameColor, nameText);
     }
 
     /// <summary>
@@ -282,7 +283,7 @@ internal static class ReligionTableRenderer
         float rowY)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        const float fontSize = 13f;
+        const float fontSize = Body;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
         DrawCenteredText(drawList, religion.DeityName, colX, centerY, ColumnWidth, textColor, fontSize);
@@ -298,7 +299,7 @@ internal static class ReligionTableRenderer
         float rowY)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        const float fontSize = 13f;
+        const float fontSize = Body;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
         DrawCenteredText(drawList, religion.PrestigeRank, colX, centerY, ColumnWidth, textColor, fontSize);
@@ -314,7 +315,7 @@ internal static class ReligionTableRenderer
         float rowY)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        const float fontSize = 13f;
+        const float fontSize = Body;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
         var memberText = religion.MemberCount.ToString();
@@ -331,7 +332,7 @@ internal static class ReligionTableRenderer
         float rowY)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        const float fontSize = 13f;
+        const float fontSize = Body;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
         var publicText = religion.IsPublic

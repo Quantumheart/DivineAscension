@@ -22,7 +22,7 @@ internal static class Dropdown
     /// <param name="height">Dropdown height</param>
     /// <param name="selectedText">Text to display for the selected item</param>
     /// <param name="isOpen">Whether the dropdown is currently open</param>
-    /// <param name="fontSize">Font size for the text (default 13f)</param>
+    /// <param name="fontSize">Font size for the text (default FontSizes.Body)</param>
     /// <returns>True if the dropdown was clicked</returns>
     public static bool DrawButton(
         ImDrawListPtr drawList,
@@ -32,7 +32,7 @@ internal static class Dropdown
         float height,
         string selectedText,
         bool isOpen,
-        float fontSize = 13f)
+        float fontSize = FontSizes.Body)
     {
         var dropdownStart = new Vector2(x, y);
         var dropdownEnd = new Vector2(x + width, y + height);
@@ -54,7 +54,7 @@ internal static class Dropdown
         if (isHovering) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
         // Draw selected text with font scaling
-        var fontScale = fontSize / 13f;
+        var fontScale = fontSize / FontSizes.Body;
         ImGui.SetWindowFontScale(fontScale);
         var scaledTextSize = ImGui.CalcTextSize(selectedText);
         ImGui.SetWindowFontScale(1f);
@@ -169,7 +169,7 @@ internal static class Dropdown
     /// <param name="items">Array of menu items to display</param>
     /// <param name="selectedIndex">Currently selected index</param>
     /// <param name="itemHeight">Height of each menu item (default 40)</param>
-    /// <param name="fontSize">Font size for the text (default 13f)</param>
+    /// <param name="fontSize">Font size for the text (default FontSizes.Body)</param>
     public static void DrawMenuVisual(
         ImDrawListPtr drawList,
         float x,
@@ -179,7 +179,7 @@ internal static class Dropdown
         string[] items,
         int selectedIndex,
         float itemHeight = 40f,
-        float fontSize = 13f)
+        float fontSize = FontSizes.Body)
     {
         var mousePos = ImGui.GetMousePos();
         var menuHeight = items.Length * itemHeight;
@@ -214,7 +214,7 @@ internal static class Dropdown
             }
 
             // Draw item text with font scaling
-            var fontScale = fontSize / 13f;
+            var fontScale = fontSize / FontSizes.Body;
             ImGui.SetWindowFontScale(fontScale);
             var itemTextSize = ImGui.CalcTextSize(items[i]);
             ImGui.SetWindowFontScale(1f);

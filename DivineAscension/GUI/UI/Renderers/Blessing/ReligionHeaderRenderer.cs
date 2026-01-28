@@ -7,6 +7,7 @@ using DivineAscension.GUI.Models.Religion.Header;
 using DivineAscension.GUI.UI.Renderers.Components;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 using DivineAscension.Services;
 using DivineAscension.Systems;
 using ImGuiNET;
@@ -54,7 +55,7 @@ internal static class ReligionHeaderRenderer
             );
 
             var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-            drawList.AddText(ImGui.GetFont(), 16f, textPos, textColor, noReligionText);
+            drawList.AddText(ImGui.GetFont(), TableHeader, textPos, textColor, noReligionText);
 
             return headerHeight;
         }
@@ -112,7 +113,7 @@ internal static class ReligionHeaderRenderer
 
         var headerTextPos = new Vector2(currentX, viewModel.Y + 12f);
         var headerTextColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        drawList.AddText(ImGui.GetFont(), 18f, headerTextPos, headerTextColor, headerText);
+        drawList.AddText(ImGui.GetFont(), SectionHeader, headerTextPos, headerTextColor, headerText);
 
         // Member count and role
         var memberInfo = viewModel.ReligionMemberCount > 0
@@ -125,7 +126,7 @@ internal static class ReligionHeaderRenderer
         var infoText = $"{memberInfo}{roleInfo}";
         var infoTextPos = new Vector2(currentX, viewModel.Y + 35f);
         var infoTextColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), 13f, infoTextPos, infoTextColor, infoText);
+        drawList.AddText(ImGui.GetFont(), Body, infoTextPos, infoTextColor, infoText);
 
         // Progress bars
         currentX = innerX + iconSize + padding;
@@ -144,7 +145,7 @@ internal static class ReligionHeaderRenderer
         // Label
         var favorLabelPos = new Vector2(currentX, progressY);
         var labelColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
-        drawList.AddText(ImGui.GetFont(), 12f, favorLabelPos, labelColor,
+        drawList.AddText(ImGui.GetFont(), Secondary, favorLabelPos, labelColor,
             LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_RANK_PROGRESS));
 
         // Progress bar
@@ -168,7 +169,7 @@ internal static class ReligionHeaderRenderer
 
         // Label
         var prestigeLabelPos = new Vector2(currentX, progressY);
-        drawList.AddText(ImGui.GetFont(), 12f, prestigeLabelPos, labelColor,
+        drawList.AddText(ImGui.GetFont(), Secondary, prestigeLabelPos, labelColor,
             LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_RELIGION_PROGRESS));
 
         // Progress bar (purple color)
@@ -230,7 +231,7 @@ internal static class ReligionHeaderRenderer
             var civNameWidth = ImGui.CalcTextSize(civNameText).X;
             var rankPos = new Vector2(civCurrentX + civNameWidth + 8f, viewModel.Y + 12f);
             var rankColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.8f);
-            drawList.AddText(ImGui.GetFont(), 13f, rankPos, rankColor, rankText);
+            drawList.AddText(ImGui.GetFont(), Body, rankPos, rankColor, rankText);
 
             // Member religions with deity colors (align with religion info position Y+35)
             var civInfoY = viewModel.Y + 35f;
@@ -239,7 +240,7 @@ internal static class ReligionHeaderRenderer
                 memberCount);
             var memberPos = new Vector2(civCurrentX, civInfoY);
             var memberColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-            drawList.AddText(ImGui.GetFont(), 13f, memberPos, memberColor, memberText);
+            drawList.AddText(ImGui.GetFont(), Body, memberPos, memberColor, memberText);
 
             // Add deity icons below member count (add visual balance)
             if (viewModel.CivilizationMemberReligions?.Count > 0)
@@ -269,7 +270,7 @@ internal static class ReligionHeaderRenderer
                 var founderText = "*** Founder ***";
                 var founderPos = new Vector2(civCurrentX, viewModel.Y + 82f); // Add spacing for visual balance
                 var founderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-                drawList.AddText(ImGui.GetFont(), 12f, founderPos, founderColor, founderText);
+                drawList.AddText(ImGui.GetFont(), Secondary, founderPos, founderColor, founderText);
             }
         }
 

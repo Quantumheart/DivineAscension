@@ -8,6 +8,7 @@ using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing.Info;
 
@@ -24,7 +25,7 @@ internal static class BlessingInfoSectionRequirements
 
         currentY += 8f;
         var reqTitleColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        drawList.AddText(ImGui.GetFont(), 14f, new Vector2(vm.X + padding, currentY), reqTitleColorU32,
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(vm.X + padding, currentY), reqTitleColorU32,
             LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIREMENTS));
         currentY += 18f;
 
@@ -39,7 +40,7 @@ internal static class BlessingInfoSectionRequirements
                     ((PrestigeRank)selectedState.Blessing.RequiredPrestigeRank).ToLocalizedString());
 
             var descriptionColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
-            drawList.AddText(ImGui.GetFont(), 14f, new Vector2(vm.X + padding + 8, currentY), descriptionColorU32,
+            drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(vm.X + padding + 8, currentY), descriptionColorU32,
                 rankReq);
             currentY += 18f;
 
@@ -80,7 +81,7 @@ internal static class BlessingInfoSectionRequirements
                     var prereqColor = prereqState?.IsUnlocked ?? false ? ColorPalette.Green : ColorPalette.Red;
                     var prereqColorU32 = ImGui.ColorConvertFloat4ToU32(prereqColor);
 
-                    drawList.AddText(ImGui.GetFont(), 14f, new Vector2(vm.X + padding + 8, currentY),
+                    drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(vm.X + padding + 8, currentY),
                         prereqColorU32, prereqText);
                     currentY += 18f;
                 }
