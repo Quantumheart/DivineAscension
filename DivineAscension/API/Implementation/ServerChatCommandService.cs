@@ -1,6 +1,9 @@
 using System;
 using DivineAscension.API.Interfaces;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
+using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 
 namespace DivineAscension.API.Implementation;
 
@@ -24,6 +27,31 @@ public class ServerChatCommandService : IChatCommandService
     }
 
     public CommandArgumentParsers Parsers => _chatCommands.Parsers;
+
+    public void ExecuteUnparsed(string commandLine, IServerPlayer player)
+    {
+        if (player == null) return;
+
+        // Build caller context for command execution
+        var caller = new Caller
+        {
+            Player = player,
+            Entity = player.Entity,
+            Type = EnumCallerType.Player,
+            CallerPrivileges = player.Privileges,
+            CallerRole = player.Role?.Code ?? "suplayer",
+            Pos = player.Entity?.Pos?.XYZ ?? new Vec3d(),
+            FromChatGroupId = GlobalConstants.GeneralChatGroup
+        };
+
+        var args = new TextCommandCallingArgs
+        {
+            Caller = caller,
+            RawArgs = new CmdArgs()
+        };
+
+        _chatCommands.ExecuteUnparsed(commandLine, args);
+    }
 }
 
 /// <summary>
