@@ -193,7 +193,7 @@ internal static class CivilizationMilestoneRenderer
         var rankY = startY + (RankSectionHeight - ImGui.CalcTextSize(rankText).Y) / 2f;
         drawList.AddText(ImGui.GetFont(), 24f,
             new Vector2(x + 20f, rankY),
-            ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 0.84f, 0f, 1f)), // Gold color
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold),
             rankText);
 
         // Completed milestone count
@@ -314,7 +314,7 @@ internal static class CivilizationMilestoneRenderer
             .ToList();
 
         // Calculate total content height
-        var totalContentHeight = sortedMilestones.Count * (MilestoneItemHeight + MilestoneItemPadding);
+        var totalContentHeight = MilestoneItemPadding + sortedMilestones.Count * (MilestoneItemHeight + MilestoneItemPadding);
         var maxScroll = Math.Max(0f, totalContentHeight - availableHeight);
 
         // Scrollable region (without built-in scrollbar)
@@ -329,8 +329,8 @@ internal static class CivilizationMilestoneRenderer
         var childDrawList = ImGui.GetWindowDrawList();
         var childPos = ImGui.GetCursorScreenPos();
 
-        // Draw entries with manual scroll offset
-        var currentY = -viewModel.ScrollY;
+        // Draw entries with manual scroll offset (top padding matches side padding)
+        var currentY = MilestoneItemPadding - viewModel.ScrollY;
 
         foreach (var milestone in sortedMilestones)
         {
@@ -339,7 +339,7 @@ internal static class CivilizationMilestoneRenderer
             // Only draw if visible (culling for performance)
             if (entryY + MilestoneItemHeight >= startY && entryY <= startY + availableHeight)
             {
-                var isHovered = DrawMilestoneItem(childDrawList, childPos.X, entryY, width - 20f, milestone);
+                var isHovered = DrawMilestoneItem(childDrawList, childPos.X + 20f, entryY, width - 40f, milestone);
                 if (isHovered)
                     hoveredMilestone = milestone;
             }
@@ -439,7 +439,7 @@ internal static class CivilizationMilestoneRenderer
         var statusX = x + width - statusSize.X - padding;
         var statusColor = milestone.IsCompleted
             ? ImGui.ColorConvertFloat4ToU32(new Vector4(0.3f, 0.9f, 0.3f, 1f))
-            : ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 0.84f, 0f, 1f));
+            : ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
         drawList.AddText(ImGui.GetFont(), Secondary,
             new Vector2(statusX, currentY),
             statusColor,

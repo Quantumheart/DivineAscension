@@ -52,12 +52,12 @@ internal static class MilestoneTooltipRenderer
     private static List<TooltipLine> BuildTooltipLines(MilestoneProgressDto milestone)
     {
         var lines = new List<TooltipLine>();
-        var goldColor = new Vector4(1f, 0.84f, 0f, 1f);
+        var goldColor = ColorPalette.Gold;
         var greenColor = new Vector4(0.3f, 0.9f, 0.3f, 1f);
         var contentWidth = TOOLTIP_MAX_WIDTH - TOOLTIP_PADDING * 2;
 
         // Title in gold
-        lines.Add(new TooltipLine(milestone.MilestoneName, goldColor, SectionHeader, SECTION_SPACING));
+        lines.Add(new TooltipLine(milestone.MilestoneName ?? "Unknown Milestone", goldColor, SectionHeader, SECTION_SPACING));
 
         // Type badge
         if (!string.IsNullOrEmpty(milestone.MilestoneType))
@@ -101,23 +101,27 @@ internal static class MilestoneTooltipRenderer
             lines.Add(new TooltipLine("Rewards:", ColorPalette.Grey, SubsectionLabel, LINE_SPACING));
 
             if (milestone.PrestigePayout > 0)
-                lines.Add(new TooltipLine($"  +{milestone.PrestigePayout} Prestige", greenColor, Body,
-                    LINE_SPACING));
+                AddWrappedLines(lines, $"  +{milestone.PrestigePayout} Prestige", greenColor, contentWidth);
 
             if (milestone.RankReward > 0)
-                lines.Add(new TooltipLine($"  +{milestone.RankReward} Civilization Rank", greenColor, Body,
-                    LINE_SPACING));
+                AddWrappedLines(lines, $"  +{milestone.RankReward} Civilization Rank", greenColor, contentWidth);
 
             if (!string.IsNullOrEmpty(milestone.PermanentBenefitDescription))
-                lines.Add(new TooltipLine($"  {milestone.PermanentBenefitDescription} (permanent)", greenColor, Body,
-                    LINE_SPACING));
+                AddWrappedLines(lines, $"  {milestone.PermanentBenefitDescription} (permanent)", greenColor,
+                    contentWidth);
 
             if (!string.IsNullOrEmpty(milestone.TemporaryBenefitDescription))
-                lines.Add(new TooltipLine($"  {milestone.TemporaryBenefitDescription}", greenColor, Body,
-                    LINE_SPACING));
+                AddWrappedLines(lines, $"  {milestone.TemporaryBenefitDescription}", greenColor, contentWidth);
         }
 
         return lines;
+    }
+
+    private static void AddWrappedLines(List<TooltipLine> lines, string text, Vector4 color, float maxWidth)
+    {
+        var wrapped = WrapText(text, maxWidth, Body);
+        foreach (var line in wrapped)
+            lines.Add(new TooltipLine(line, color, Body, LINE_SPACING));
     }
 
     private static string FormatTriggerDescription(string triggerType, int threshold)
@@ -195,6 +199,12 @@ internal static class MilestoneTooltipRenderer
         var currentY = tooltipY + TOOLTIP_PADDING;
         foreach (var line in lines)
         {
+            if (string.IsNullOrEmpty(line.Text))
+            {
+                currentY += line.Height + line.SpacingAfter;
+                continue;
+            }
+
             var textPos = new Vector2(tooltipX + TOOLTIP_PADDING, currentY);
             var textColor = ImGui.ColorConvertFloat4ToU32(line.Color);
 
@@ -204,7 +214,7 @@ internal static class MilestoneTooltipRenderer
         }
     }
 
-    private static List<string> WrapText(string text, float maxWidth, float fontSize)
+    private static List<string> WrapText(string? text, float maxWidth, float fontSize)
     {
         var result = new List<string>();
         if (string.IsNullOrEmpty(text)) return result;
@@ -214,6 +224,8 @@ internal static class MilestoneTooltipRenderer
 
         foreach (var word in words)
         {
+            if (string.IsNullOrEmpty(word)) continue;
+
             var testLine = string.IsNullOrEmpty(currentLine) ? word : currentLine + " " + word;
             var testSize = ImGui.CalcTextSize(testLine);
             var scaledWidth = testSize.X * (fontSize / ImGui.GetFontSize());
