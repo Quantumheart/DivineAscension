@@ -21,6 +21,7 @@ public class MilestoneNetworkHandler
     private readonly INetworkService _networkService;
     private readonly IWorldService _worldService;
     private readonly IMilestoneDefinitionLoader _milestoneDefinitionLoader;
+    private readonly IBlessingRegistry _blessingRegistry;
 
     public MilestoneNetworkHandler(
         ILogger logger,
@@ -29,7 +30,8 @@ public class MilestoneNetworkHandler
         IReligionManager religionManager,
         INetworkService networkService,
         IWorldService worldService,
-        IMilestoneDefinitionLoader milestoneDefinitionLoader)
+        IMilestoneDefinitionLoader milestoneDefinitionLoader,
+        IBlessingRegistry blessingRegistry)
     {
         _logger = logger;
         _milestoneManager = milestoneManager;
@@ -38,6 +40,7 @@ public class MilestoneNetworkHandler
         _networkService = networkService;
         _worldService = worldService;
         _milestoneDefinitionLoader = milestoneDefinitionLoader;
+        _blessingRegistry = blessingRegistry;
     }
 
     /// <summary>
@@ -110,7 +113,7 @@ public class MilestoneNetworkHandler
                     dto.PrestigePayout = definition.PrestigePayout;
                     dto.RankReward = definition.RankReward;
                     dto.MilestoneType = definition.Type.ToString();
-                    dto.PermanentBenefitDescription = FormatPermanentBenefit(definition.PermanentBenefit);
+                    dto.PermanentBenefitDescription = FormatPermanentBenefit(definition.PermanentBenefit, _blessingRegistry);
                     dto.TemporaryBenefitDescription = FormatTemporaryBenefit(definition.TemporaryBenefit);
                 }
 
@@ -175,7 +178,7 @@ public class MilestoneNetworkHandler
             $"[MilestoneNetworkHandler] Broadcast milestone unlock '{milestoneId}' to civilization '{civ.Name}'");
     }
 
-    private static string FormatPermanentBenefit(MilestoneBenefit? benefit)
+    private static string FormatPermanentBenefit(MilestoneBenefit? benefit, IBlessingRegistry blessingRegistry)
     {
         if (benefit == null) return string.Empty;
 
@@ -185,10 +188,32 @@ public class MilestoneNetworkHandler
             MilestoneBenefitType.FavorMultiplier => $"+{benefit.Amount * 100:F0}% Favor",
             MilestoneBenefitType.ConquestMultiplier => $"+{benefit.Amount * 100:F0}% Conquest",
             MilestoneBenefitType.HolySiteSlot => $"+{benefit.Amount:F0} Holy Site Slot{(benefit.Amount > 1 ? "s" : "")}",
-            MilestoneBenefitType.UnlockBlessing => $"Unlock Blessing: {benefit.BlessingId ?? "Unknown"}",
+            MilestoneBenefitType.UnlockBlessing => FormatBlessingName(benefit.BlessingId, blessingRegistry),
             MilestoneBenefitType.AllRewardsMultiplier => $"+{benefit.Amount * 100:F0}% All Rewards",
             _ => string.Empty
         };
+    }
+
+    private static string FormatBlessingName(string? blessingId, IBlessingRegistry blessingRegistry)
+    {
+        if (string.IsNullOrEmpty(blessingId))
+            return "Unlock Blessing";
+
+        var blessing = blessingRegistry.GetBlessing(blessingId);
+        var displayName = blessing?.Name ?? HumanizeId(blessingId);
+        return $"Unlock Blessing: {displayName}";
+    }
+
+    private static string HumanizeId(string id)
+    {
+        var words = id.Split('_');
+        for (var i = 0; i < words.Length; i++)
+        {
+            if (words[i].Length > 0)
+                words[i] = char.ToUpperInvariant(words[i][0]) + words[i][1..];
+        }
+
+        return string.Join(" ", words);
     }
 
     private static string FormatTemporaryBenefit(MilestoneTemporaryBenefit? benefit)

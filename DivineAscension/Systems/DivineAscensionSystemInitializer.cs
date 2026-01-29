@@ -380,7 +380,8 @@ public static class DivineAscensionSystemInitializer
             religionManager,
             networkService,
             worldService,
-            milestoneLoader);
+            milestoneLoader,
+            blessingRegistry);
         milestoneHandler.RegisterHandlers();
 
         // Validate all memberships after initialization
