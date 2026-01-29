@@ -101,7 +101,7 @@ public class AltarPlacementHandler : IDisposable
             }
 
             // Auto-generate site name
-            string siteName = GenerateSiteName(religion, player);
+            string siteName = GenerateSiteName(religion);
 
             // Debug: Log land claim area coordinates and player position
             _logger.Debug($"[DivineAscension] Altar block position: {blockSel.Position}");
@@ -154,12 +154,6 @@ public class AltarPlacementHandler : IDisposable
         return itemStack?.Collectible?.Code?.Path?.StartsWith("altar") ?? false;
     }
 
-    private bool IsAltarBlock(Block block)
-    {
-        // Match any block with code path starting with "altar"
-        return block?.Code?.Path?.StartsWith("altar") ?? false;
-    }
-
     private LandClaim? FindPlayerClaim(LandClaim[] claims, string playerUID)
     {
         foreach (var claim in claims)
@@ -172,7 +166,7 @@ public class AltarPlacementHandler : IDisposable
         return null;
     }
 
-    private string GenerateSiteName(ReligionData religion, IServerPlayer player)
+    private string GenerateSiteName(ReligionData religion)
     {
         var existingCount = _holySiteManager.GetReligionHolySites(religion.ReligionUID).Count;
         return $"{religion.ReligionName} - Site {existingCount + 1}";
