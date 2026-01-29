@@ -221,23 +221,38 @@ public static class DivineAscensionSystemInitializer
         favorSystem.SetCivilizationBonusSystem(civilizationBonusSystem);
         holySiteManager.SetCivilizationBonusSystem(civilizationBonusSystem);
 
+        // Create offering evaluator service (encapsulates offering value calculation)
+        IOfferingEvaluator offeringEvaluator = new OfferingEvaluator(offeringLoader);
+
+        // Create prayer effects service (handles VFX/SFX for prayers)
+        IPrayerEffectsService prayerEffectsService = new PrayerEffectsService(
+            worldService,
+            commandService,
+            LoggingService.Instance.CreateLogger("PrayerEffectsService"));
+
+        // Create ritual contribution service (handles ritual auto-discovery and contributions)
+        IRitualContributionService ritualContributionService = new RitualContributionService(
+            ritualProgressManager,
+            ritualLoader,
+            offeringEvaluator,
+            progressionService,
+            worldService,
+            LoggingService.Instance.CreateLogger("RitualContributionService"));
+
         // Initialize Altar Prayer Handler (handles prayer interactions at altars)
         var altarPrayerHandler = new AltarPrayerHandler(
             LoggingService.Instance.CreateLogger("AltarPrayerHandler"),
-            offeringLoader,
             holySiteManager,
             religionManager,
             playerReligionDataManager,
-            progressionService,
             messengerService,
             buffManager,
             gameBalanceConfig,
             timeService,
             altarEventEmitter,
-            ritualProgressManager,
-            ritualLoader,
-            worldService,
-            commandService);
+            offeringEvaluator,
+            prayerEffectsService,
+            ritualContributionService);
         altarPrayerHandler.Initialize();
 
         var diplomacyManager = new DiplomacyManager(LoggingService.Instance.CreateLogger("DiplomacyManager"), eventService, persistenceService, civilizationManager,
