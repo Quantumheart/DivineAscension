@@ -24,4 +24,7 @@ public class ServerTimeService : ITimeService
 
     /// <inheritdoc />
     public long ElapsedMilliseconds => _world.ElapsedMilliseconds;
+
+    /// <inheritdoc />
+    public DateTime UtcNow => DateTime.UtcNow;
 }

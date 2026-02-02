@@ -1,4 +1,5 @@
 using System;
+using DivineAscension.API.Interfaces;
 using DivineAscension.Systems.Interfaces;
 
 namespace DivineAscension.Systems.Altar.Pipeline.Steps;
@@ -12,10 +13,12 @@ public class CooldownUpdateStep : IPrayerStep
     private static readonly TimeSpan PrayerCooldown = TimeSpan.FromHours(1);
 
     private readonly IPlayerProgressionDataManager _progressionDataManager;
+    private readonly ITimeService _timeService;
 
-    public CooldownUpdateStep(IPlayerProgressionDataManager progressionDataManager)
+    public CooldownUpdateStep(IPlayerProgressionDataManager progressionDataManager, ITimeService timeService)
     {
         _progressionDataManager = progressionDataManager;
+        _timeService = timeService;
     }
 
     public string Name => "CooldownUpdate";
@@ -27,6 +30,6 @@ public class CooldownUpdateStep : IPrayerStep
 
         _progressionDataManager.SetPrayerCooldownExpiryUtc(
             context.PlayerUID,
-            DateTime.UtcNow + PrayerCooldown);
+            _timeService.UtcNow + PrayerCooldown);
     }
 }
