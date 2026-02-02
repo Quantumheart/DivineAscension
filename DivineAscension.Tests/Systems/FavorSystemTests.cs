@@ -155,56 +155,9 @@ public class FavorSystemTests
     // NOTE: Initialize_RegistersGameTickListener test removed - RegisterGameTickListener has optional parameters
     // which cannot be used in Moq expression trees. The functionality is tested through integration tests.
 
-    #endregion
-
-    #region AwardFavorForAction Notification Tests
-
-    [Fact]
-    public void AwardFavorForAction_SendsNotificationToPlayer()
-    {
-        // Arrange
-        var mockLogger = new Mock<ILoggerWrapper>();
-        var fakeEventService = new FakeEventService();
-        var fakeWorldService = new FakeWorldService();
-        var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
-        var mockReligionManager = new Mock<IReligionManager>();
-
-        var playerData = new PlayerProgressionData { };
-
-        var mockPlayer = new Mock<IServerPlayer>();
-        mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
-        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
-
-        fakeWorldService.AddPlayer(mockPlayer.Object);
-
-        mockPlayerReligionDataManager
-            .Setup(m => m.GetOrCreatePlayerData("player-uid"))
-            .Returns(playerData);
-
-        mockReligionManager.Setup(d => d.GetPlayerActiveDeityDomain("player-uid")).Returns(DeityDomain.Craft);
-        mockReligionManager.Setup(d => d.GetPlayerReligion("player-uid")).Returns(TestFixtures.CreateTestReligion());
-
-        var favorSystem = CreateFavorSystem(
-            mockLogger.Object,
-            fakeEventService,
-            fakeWorldService,
-            mockPlayerReligionDataManager.Object,
-            mockReligionManager.Object);
-
-        // Act
-        favorSystem.AwardFavorForAction(mockPlayer.Object, "test action", 15);
-
-        // Assert
-        mockPlayer.Verify(
-            p => p.SendMessage(
-                It.Is<int>(g => g == GlobalConstants.GeneralChatGroup),
-                It.Is<string>(s => s.Contains("gained") && s.Contains("15") && s.Contains("favor")),
-                It.Is<EnumChatType>(t => t == EnumChatType.Notification),
-                It.IsAny<string>()
-            ),
-            Times.Once
-        );
-    }
+    // NOTE: AwardFavorForAction_SendsNotificationToPlayer test removed - routine favor notifications
+    // were intentionally removed to reduce chat spam. Important notifications (PvP, death penalty,
+    // patrol progress) still send messages through separate code paths.
 
     #endregion
 

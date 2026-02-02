@@ -364,29 +364,6 @@ public class FavorSystem : IFavorSystem
     }
 
     /// <summary>
-    ///     Sends favor notification to player (generic to handle int/float)
-    /// </summary>
-    private void AwardFavorMessage<T>(IServerPlayer player, string actionType, T amount, DeityDomain deityDomain)
-        where T : struct
-    {
-        var deityName = deityDomain switch
-        {
-            DeityDomain.Craft => nameof(DeityDomain.Craft),
-            DeityDomain.Wild => nameof(DeityDomain.Wild),
-            DeityDomain.Conquest => nameof(DeityDomain.Conquest),
-            DeityDomain.Harvest => nameof(DeityDomain.Harvest),
-            DeityDomain.Stone => nameof(DeityDomain.Stone),
-            _ => nameof(DeityDomain.None)
-        };
-
-        player.SendMessage(
-            GlobalConstants.GeneralChatGroup,
-            $"[Divine Favor] {deityName}: You gained {amount} favor for {actionType}",
-            EnumChatType.Notification
-        );
-    }
-
-    /// <summary>
     ///     Core favor award implementation with activity logging.
     ///     All public overloads delegate to this method.
     /// </summary>
@@ -429,8 +406,7 @@ public class FavorSystem : IFavorSystem
         var playerReligion = _religionManager.GetPlayerReligion(playerUid);
         if (string.IsNullOrEmpty(playerReligion?.ReligionUID))
         {
-            // Not in religion - send player message and return
-            NotifyPlayer(playerUid, actionType, amount, deityDomain);
+            // Not in religion - no prestige to award
             return;
         }
 
@@ -438,8 +414,7 @@ public class FavorSystem : IFavorSystem
         var isDeityThemed = ShouldAwardPrestigeForActivity(deityDomain, actionType);
         if (!isDeityThemed)
         {
-            // Not deity-themed - send player message and return (no prestige, no logging)
-            NotifyPlayer(playerUid, actionType, amount, deityDomain);
+            // Not deity-themed - no prestige or logging
             return;
         }
 
@@ -482,21 +457,6 @@ public class FavorSystem : IFavorSystem
         catch (Exception ex)
         {
             _logger.Error($"[FavorSystem] Failed to award prestige/log activity: {ex.Message}");
-        }
-
-        // 7. Notify player
-        NotifyPlayer(playerUid, actionType, amount, deityDomain);
-    }
-
-    /// <summary>
-    ///     Sends favor notification to player if online
-    /// </summary>
-    private void NotifyPlayer(string playerUid, string actionType, float amount, DeityDomain deityDomain)
-    {
-        var player = _worldService.GetPlayerByUID(playerUid) as IServerPlayer;
-        if (player != null)
-        {
-            AwardFavorMessage(player, actionType, amount, deityDomain);
         }
     }
 
