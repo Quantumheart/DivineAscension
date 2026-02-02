@@ -252,6 +252,8 @@ public static class DivineAscensionSystemInitializer
             new RitualContributionStep(ritualContributionService),
             new OfferingEvaluationStep(offeringEvaluator),
             new RewardCalculationStep(gameBalanceConfig),
+            // Progression award (must be after reward calculation, skipped for ritual contributions)
+            new ProgressionAwardStep(progressionService),
             // Side-effect steps (only execute on success)
             new BuffApplicationStep(buffManager),
             new CooldownUpdateStep(playerReligionDataManager),
