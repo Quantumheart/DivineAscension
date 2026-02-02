@@ -41,8 +41,8 @@ public class CooldownValidationStepTests
     {
         // Arrange
         var context = CreateContext();
-        _progressionDataManager.Setup(x => x.GetPrayerCooldownExpiry("player1"))
-            .Returns(0);
+        _progressionDataManager.Setup(x => x.GetPrayerCooldownExpiryUtc("player1"))
+            .Returns((DateTime?)null);
 
         // Act
         _step.Execute(context);
@@ -54,10 +54,10 @@ public class CooldownValidationStepTests
     [Fact]
     public void Execute_CooldownExpired_Continues()
     {
-        // Arrange
-        var context = CreateContext(currentTime: 5000000); // 5 seconds after expiry
-        _progressionDataManager.Setup(x => x.GetPrayerCooldownExpiry("player1"))
-            .Returns(4000000); // Expired in the past
+        // Arrange - cooldown expired 5 minutes ago
+        var context = CreateContext();
+        _progressionDataManager.Setup(x => x.GetPrayerCooldownExpiryUtc("player1"))
+            .Returns(DateTime.UtcNow.AddMinutes(-5));
 
         // Act
         _step.Execute(context);
@@ -70,9 +70,9 @@ public class CooldownValidationStepTests
     public void Execute_OnCooldown_SetsFailureAndCompletes()
     {
         // Arrange - 30 minutes remaining
-        var context = CreateContext(currentTime: 0);
-        _progressionDataManager.Setup(x => x.GetPrayerCooldownExpiry("player1"))
-            .Returns(1800000); // 30 minutes from now
+        var context = CreateContext();
+        _progressionDataManager.Setup(x => x.GetPrayerCooldownExpiryUtc("player1"))
+            .Returns(DateTime.UtcNow.AddMinutes(30));
 
         // Act
         _step.Execute(context);
@@ -86,10 +86,11 @@ public class CooldownValidationStepTests
     [Fact]
     public void Execute_CooldownNearExpiry_RoundsCorrectly()
     {
-        // Arrange - 59.5 minutes remaining, should round to 60
-        var context = CreateContext(currentTime: 0);
-        _progressionDataManager.Setup(x => x.GetPrayerCooldownExpiry("player1"))
-            .Returns(3570000); // 59.5 minutes
+        // Arrange - 59.7 minutes remaining (slightly more than 59.5 to account for test execution time)
+        // This ensures it rounds to 60 even if a few ms pass between setup and execution
+        var context = CreateContext();
+        _progressionDataManager.Setup(x => x.GetPrayerCooldownExpiryUtc("player1"))
+            .Returns(DateTime.UtcNow.AddMinutes(59.7));
 
         // Act
         _step.Execute(context);
@@ -104,9 +105,9 @@ public class CooldownValidationStepTests
     public void Execute_CooldownLessThanOneMinute_ShowsOneMinute()
     {
         // Arrange - 15 seconds remaining
-        var context = CreateContext(currentTime: 0);
-        _progressionDataManager.Setup(x => x.GetPrayerCooldownExpiry("player1"))
-            .Returns(15000); // 15 seconds
+        var context = CreateContext();
+        _progressionDataManager.Setup(x => x.GetPrayerCooldownExpiryUtc("player1"))
+            .Returns(DateTime.UtcNow.AddSeconds(15));
 
         // Act
         _step.Execute(context);

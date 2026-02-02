@@ -1,3 +1,4 @@
+using System;
 using DivineAscension.Systems.Interfaces;
 
 namespace DivineAscension.Systems.Altar.Pipeline.Steps;
@@ -8,7 +9,7 @@ namespace DivineAscension.Systems.Altar.Pipeline.Steps;
 /// </summary>
 public class CooldownUpdateStep : IPrayerStep
 {
-    private const int PRAYER_COOLDOWN_MS = 3600000; // 1 hour
+    private static readonly TimeSpan PrayerCooldown = TimeSpan.FromHours(1);
 
     private readonly IPlayerProgressionDataManager _progressionDataManager;
 
@@ -24,8 +25,8 @@ public class CooldownUpdateStep : IPrayerStep
         if (!context.Success || !context.ShouldUpdateCooldown)
             return;
 
-        _progressionDataManager.SetPrayerCooldownExpiry(
+        _progressionDataManager.SetPrayerCooldownExpiryUtc(
             context.PlayerUID,
-            context.CurrentTime + PRAYER_COOLDOWN_MS);
+            DateTime.UtcNow + PrayerCooldown);
     }
 }

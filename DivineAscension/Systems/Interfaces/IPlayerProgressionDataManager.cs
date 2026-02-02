@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using DivineAscension.Models.Enum;
-using DivineAscension.Systems.Interfaces;
 
 namespace DivineAscension.Systems.Interfaces;
 
@@ -121,17 +120,48 @@ public interface IPlayerProgressionDataManager : IDisposable
     public FavorRank GetPlayerFavorRank(string playerUID);
 
     /// <summary>
-    /// Gets the timestamp when the player is next allowed to pray.
-    /// Returns 0 if no cooldown is active.
+    /// [DEPRECATED] Gets the timestamp when the player is next allowed to pray (elapsed milliseconds).
+    /// Returns 0 if no cooldown is active. Use GetPrayerCooldownExpiryUtc instead.
     /// </summary>
     long GetPrayerCooldownExpiry(string playerUID);
 
     /// <summary>
-    /// Sets the prayer cooldown expiry timestamp for the player.
+    /// [DEPRECATED] Sets the prayer cooldown expiry timestamp for the player (elapsed milliseconds).
+    /// Use SetPrayerCooldownExpiryUtc instead.
     /// </summary>
     /// <param name="playerUID">Player unique identifier</param>
     /// <param name="expiryTime">Absolute timestamp when prayer cooldown expires</param>
     void SetPrayerCooldownExpiry(string playerUID, long expiryTime);
+
+    /// <summary>
+    /// Gets the UTC timestamp when the player is next allowed to pray.
+    /// Returns null if no cooldown is active.
+    /// </summary>
+    /// <param name="playerUID">Player unique identifier</param>
+    /// <returns>UTC DateTime when prayer is allowed, or null if no cooldown</returns>
+    DateTime? GetPrayerCooldownExpiryUtc(string playerUID);
+
+    /// <summary>
+    /// Sets the prayer cooldown expiry UTC timestamp for the player.
+    /// </summary>
+    /// <param name="playerUID">Player unique identifier</param>
+    /// <param name="expiryTimeUtc">UTC DateTime when prayer cooldown expires</param>
+    void SetPrayerCooldownExpiryUtc(string playerUID, DateTime expiryTimeUtc);
+
+    /// <summary>
+    /// Gets the UTC timestamp when the last patrol was completed.
+    /// Returns null if no patrol has been completed.
+    /// </summary>
+    /// <param name="playerUID">Player unique identifier</param>
+    /// <returns>UTC DateTime of last patrol completion, or null</returns>
+    DateTime? GetLastPatrolCompletionTimeUtc(string playerUID);
+
+    /// <summary>
+    /// Sets the UTC timestamp when the patrol was completed.
+    /// </summary>
+    /// <param name="playerUID">Player unique identifier</param>
+    /// <param name="completionTimeUtc">UTC DateTime when patrol was completed</param>
+    void SetLastPatrolCompletionTimeUtc(string playerUID, DateTime completionTimeUtc);
 
     /// <summary>
     /// Migrates player branch commitments from existing unlocked blessings.

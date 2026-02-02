@@ -8,7 +8,6 @@ using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using DivineAscension.Systems.HolySite;
 using DivineAscension.Systems.Interfaces;
-using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
@@ -21,6 +20,87 @@ namespace DivineAscension.Systems.Favor;
 /// </summary>
 public class PatrolFavorTracker : IFavorTracker, IDisposable
 {
+    public PatrolFavorTracker(
+        IPlayerProgressionDataManager playerProgressionDataManager,
+        ILoggerWrapper logger,
+        ITimeService timeService,
+        IFavorSystem favorSystem,
+        IHolySiteAreaTracker holySiteAreaTracker,
+        ICivilizationManager civilizationManager,
+        IHolySiteManager holySiteManager,
+        IReligionManager religionManager,
+        IPlayerMessengerService messenger,
+        IEventService eventService)
+    {
+        _playerProgressionDataManager = playerProgressionDataManager ??
+                                        throw new ArgumentNullException(nameof(playerProgressionDataManager));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timeService = timeService ?? throw new ArgumentNullException(nameof(timeService));
+        _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
+        _holySiteAreaTracker = holySiteAreaTracker ?? throw new ArgumentNullException(nameof(holySiteAreaTracker));
+        _civilizationManager = civilizationManager ?? throw new ArgumentNullException(nameof(civilizationManager));
+        _holySiteManager = holySiteManager ?? throw new ArgumentNullException(nameof(holySiteManager));
+        _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
+        _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        _holySiteAreaTracker.OnPlayerEnteredHolySite -= OnPlayerEnteredHolySite;
+        _holySiteAreaTracker.OnPlayerExitedHolySite -= OnPlayerExitedHolySite;
+        _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
+        _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
+
+        _activeSessions.Clear();
+    }
+
+    /// <inheritdoc />
+    public DeityDomain DeityDomain => DeityDomain.Conquest;
+
+    /// <inheritdoc />
+    public void Initialize()
+    {
+        _logger.Debug($"{SystemConstants.LogPrefix} Initializing PatrolFavorTracker...");
+
+        // Subscribe to holy site area events
+        _holySiteAreaTracker.OnPlayerEnteredHolySite += OnPlayerEnteredHolySite;
+        _holySiteAreaTracker.OnPlayerExitedHolySite += OnPlayerExitedHolySite;
+
+        // Subscribe to player events to clean up sessions
+        _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesReligion;
+        _eventService.OnPlayerDisconnect(OnPlayerDisconnect);
+
+        _logger.Debug($"{SystemConstants.LogPrefix} PatrolFavorTracker initialized");
+    }
+
+    #region Session Data
+
+    /// <summary>
+    /// In-memory session state for a player's current patrol.
+    /// Not persisted - resets on disconnect or patrol completion.
+    /// </summary>
+    private class PatrolSession
+    {
+        /// <summary>Holy site UIDs visited in this patrol</summary>
+        public HashSet<string> VisitedSiteUIDs { get; set; } = new();
+
+        /// <summary>Player positions when visiting sites, in visit order (for distance calc)</summary>
+        public List<BlockPos> VisitPositions { get; set; } = new();
+
+        /// <summary>When the patrol started (elapsed ms)</summary>
+        public long PatrolStartTime { get; set; }
+
+        /// <summary>When the player last visited a site (for idle detection)</summary>
+        public long LastSiteVisitTime { get; set; }
+    }
+
+    #endregion
+
     #region Configuration Constants
 
     /// <summary>Maximum time to complete a patrol (30 minutes)</summary>
@@ -30,10 +110,10 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
     private const long PATROL_IDLE_TIMEOUT_MS = 5 * 60 * 1000;
 
     /// <summary>Cooldown between patrol completions (60 minutes)</summary>
-    private const long PATROL_COMPLETION_COOLDOWN_MS = 60 * 60 * 1000;
+    private static readonly TimeSpan PatrolCompletionCooldown = TimeSpan.FromHours(1);
 
     /// <summary>Reset combo multiplier after 2 hours</summary>
-    private const long COMBO_TIMEOUT_MS = 2 * 60 * 60 * 1000;
+    private static readonly TimeSpan ComboTimeout = TimeSpan.FromHours(2);
 
     /// <summary>Minimum sites required to complete a patrol</summary>
     private const int MIN_SITES_FOR_PATROL = 2;
@@ -90,63 +170,6 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
 
     #endregion
 
-    public PatrolFavorTracker(
-        IPlayerProgressionDataManager playerProgressionDataManager,
-        ILoggerWrapper logger,
-        ITimeService timeService,
-        IFavorSystem favorSystem,
-        IHolySiteAreaTracker holySiteAreaTracker,
-        ICivilizationManager civilizationManager,
-        IHolySiteManager holySiteManager,
-        IReligionManager religionManager,
-        IPlayerMessengerService messenger,
-        IEventService eventService)
-    {
-        _playerProgressionDataManager = playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _timeService = timeService ?? throw new ArgumentNullException(nameof(timeService));
-        _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
-        _holySiteAreaTracker = holySiteAreaTracker ?? throw new ArgumentNullException(nameof(holySiteAreaTracker));
-        _civilizationManager = civilizationManager ?? throw new ArgumentNullException(nameof(civilizationManager));
-        _holySiteManager = holySiteManager ?? throw new ArgumentNullException(nameof(holySiteManager));
-        _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
-        _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
-        _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
-    }
-
-    /// <inheritdoc />
-    public DeityDomain DeityDomain => DeityDomain.Conquest;
-
-    /// <inheritdoc />
-    public void Initialize()
-    {
-        _logger.Debug($"{SystemConstants.LogPrefix} Initializing PatrolFavorTracker...");
-
-        // Subscribe to holy site area events
-        _holySiteAreaTracker.OnPlayerEnteredHolySite += OnPlayerEnteredHolySite;
-        _holySiteAreaTracker.OnPlayerExitedHolySite += OnPlayerExitedHolySite;
-
-        // Subscribe to player events to clean up sessions
-        _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesReligion;
-        _eventService.OnPlayerDisconnect(OnPlayerDisconnect);
-
-        _logger.Debug($"{SystemConstants.LogPrefix} PatrolFavorTracker initialized");
-    }
-
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        if (_disposed) return;
-        _disposed = true;
-
-        _holySiteAreaTracker.OnPlayerEnteredHolySite -= OnPlayerEnteredHolySite;
-        _holySiteAreaTracker.OnPlayerExitedHolySite -= OnPlayerExitedHolySite;
-        _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesReligion;
-        _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
-
-        _activeSessions.Clear();
-    }
-
     #region Event Handlers
 
     /// <summary>
@@ -166,7 +189,8 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         var civSites = GetCivilizationHolySites(playerUID);
         if (!civSites.Any(s => s.SiteUID == site.SiteUID))
         {
-            _logger.Debug($"{SystemConstants.LogPrefix} Player {player.PlayerName} entered non-civilization site '{site.SiteName}' - not tracking");
+            _logger.Debug(
+                $"{SystemConstants.LogPrefix} Player {player.PlayerName} entered non-civilization site '{site.SiteName}' - not tracking");
             return;
         }
 
@@ -176,7 +200,8 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         // Check for session reset conditions
         if (ShouldResetCurrentPatrol(session, currentTime))
         {
-            _logger.Debug($"{SystemConstants.LogPrefix} Resetting patrol session for {player.PlayerName} (timeout or idle)");
+            _logger.Debug(
+                $"{SystemConstants.LogPrefix} Resetting patrol session for {player.PlayerName} (timeout or idle)");
             ResetSession(session, currentTime);
         }
 
@@ -230,7 +255,8 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         // Don't record duplicate visits
         if (session.VisitedSiteUIDs.Contains(siteUID))
         {
-            _logger.Debug($"{SystemConstants.LogPrefix} Player {player.PlayerName} re-entered site '{site.SiteName}' - not counting duplicate");
+            _logger.Debug(
+                $"{SystemConstants.LogPrefix} Player {player.PlayerName} re-entered site '{site.SiteName}' - not counting duplicate");
             return;
         }
 
@@ -242,7 +268,8 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         var playerPos = player.Entity.Pos.AsBlockPos;
         session.VisitPositions.Add(playerPos);
 
-        _logger.Debug($"{SystemConstants.LogPrefix} Player {player.PlayerName} visited site '{site.SiteName}' ({session.VisitedSiteUIDs.Count} sites in patrol)");
+        _logger.Debug(
+            $"{SystemConstants.LogPrefix} Player {player.PlayerName} visited site '{site.SiteName}' ({session.VisitedSiteUIDs.Count} sites in patrol)");
 
         // Notify player of patrol progress
         var civSites = GetCivilizationHolySites(player.PlayerUID);
@@ -283,10 +310,12 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
             return;
         }
 
-        if (IsOnPatrolCooldown(playerData!, currentTime))
+        var now = DateTime.UtcNow;
+        if (IsOnPatrolCooldown(playerData!, now))
         {
-            var remainingMs = playerData!.LastPatrolCompletionTime + PATROL_COMPLETION_COOLDOWN_MS - currentTime;
-            var remainingMins = (int)(remainingMs / 60000);
+            var lastCompletion = playerData!.LastPatrolCompletionTimeUtc ?? DateTime.MinValue;
+            var remainingTime = PatrolCompletionCooldown - (now - lastCompletion);
+            var remainingMins = (int)Math.Max(1, remainingTime.TotalMinutes);
             var cooldownMessage = LocalizationService.Instance.Get("divineascension:patrol.cooldown", remainingMins);
             _messenger.SendMessage(player, cooldownMessage);
             return;
@@ -296,7 +325,7 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         var reward = CalculateReward(session, civTotalSites, playerData!, currentTime);
 
         // Check combo timeout and reset if needed
-        if (ShouldResetCombo(playerData!, currentTime))
+        if (ShouldResetCombo(playerData!, now))
         {
             _logger.Debug($"{SystemConstants.LogPrefix} Resetting combo for {player.PlayerName} (timeout)");
             playerData!.PatrolComboCount = 0;
@@ -317,8 +346,8 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         // Award favor/prestige
         _favorSystem.AwardFavorForAction(playerUID, "patrol completion", finalReward, DeityDomain.Conquest);
 
-        // Update persistence
-        playerData.LastPatrolCompletionTime = currentTime;
+        // Update persistence using DateTime
+        playerData.LastPatrolCompletionTimeUtc = now;
         playerData.PatrolPreviousMultiplier = newMultiplier;
 
         // Reset session for next patrol
@@ -335,8 +364,10 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
 
         if (!string.IsNullOrEmpty(comboTier))
         {
-            var localizedTier = LocalizationService.Instance.Get($"divineascension:patrol.tier.{comboTier.ToLowerInvariant()}");
-            message += " " + LocalizationService.Instance.Get("divineascension:patrol.combo", localizedTier, newMultiplier);
+            var localizedTier =
+                LocalizationService.Instance.Get($"divineascension:patrol.tier.{comboTier.ToLowerInvariant()}");
+            message += " " +
+                       LocalizationService.Instance.Get("divineascension:patrol.combo", localizedTier, newMultiplier);
         }
 
         _messenger.SendMessage(player, message);
@@ -347,13 +378,15 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
             NotifyTierChange(player, oldMultiplier, newMultiplier);
         }
 
-        _logger.Debug($"{SystemConstants.LogPrefix} Player {player.PlayerName} completed patrol: {finalReward:F1} favor, combo {playerData.PatrolComboCount}");
+        _logger.Debug(
+            $"{SystemConstants.LogPrefix} Player {player.PlayerName} completed patrol: {finalReward:F1} favor, combo {playerData.PatrolComboCount}");
     }
 
     /// <summary>
     /// Calculates the total reward for completing a patrol.
     /// </summary>
-    private float CalculateReward(PatrolSession session, int civTotalSites, PlayerProgressionData playerData, long currentTime)
+    private float CalculateReward(PatrolSession session, int civTotalSites, PlayerProgressionData playerData,
+        long currentTime)
     {
         var sitesVisited = session.VisitedSiteUIDs.Count;
         var elapsedMs = currentTime - session.PatrolStartTime;
@@ -463,27 +496,32 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
     /// <summary>
     /// Checks if the combo should be reset due to timeout.
     /// </summary>
-    internal bool ShouldResetCombo(PlayerProgressionData data, long currentTime)
+    internal bool ShouldResetCombo(PlayerProgressionData data, DateTime currentTimeUtc)
     {
         if (data.PatrolComboCount == 0)
         {
             return false;
         }
 
-        return currentTime - data.LastPatrolCompletionTime > COMBO_TIMEOUT_MS;
+        if (!data.LastPatrolCompletionTimeUtc.HasValue)
+        {
+            return false;
+        }
+
+        return currentTimeUtc - data.LastPatrolCompletionTimeUtc.Value > ComboTimeout;
     }
 
     /// <summary>
     /// Checks if the player is on patrol completion cooldown.
     /// </summary>
-    internal bool IsOnPatrolCooldown(PlayerProgressionData data, long currentTime)
+    internal bool IsOnPatrolCooldown(PlayerProgressionData data, DateTime currentTimeUtc)
     {
-        if (data.LastPatrolCompletionTime == 0)
+        if (!data.LastPatrolCompletionTimeUtc.HasValue)
         {
             return false;
         }
 
-        return currentTime - data.LastPatrolCompletionTime < PATROL_COMPLETION_COOLDOWN_MS;
+        return currentTimeUtc - data.LastPatrolCompletionTimeUtc.Value < PatrolCompletionCooldown;
     }
 
     #endregion
@@ -540,10 +578,10 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         return comboCount switch
         {
             <= 1 => 1.0f,
-            <= 3 => 1.15f,   // Vigilant
-            <= 7 => 1.3f,    // Dedicated
-            <= 14 => 1.5f,   // Tireless
-            _ => 1.75f       // Legendary
+            <= 3 => 1.15f, // Vigilant
+            <= 7 => 1.3f, // Dedicated
+            <= 14 => 1.5f, // Tireless
+            _ => 1.75f // Legendary
         };
     }
 
@@ -584,29 +622,6 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
             var message = LocalizationService.Instance.Get("divineascension:patrol.tier_reached", tierName, newMult);
             _messenger.SendMessage(player, message);
         }
-    }
-
-    #endregion
-
-    #region Session Data
-
-    /// <summary>
-    /// In-memory session state for a player's current patrol.
-    /// Not persisted - resets on disconnect or patrol completion.
-    /// </summary>
-    private class PatrolSession
-    {
-        /// <summary>Holy site UIDs visited in this patrol</summary>
-        public HashSet<string> VisitedSiteUIDs { get; set; } = new();
-
-        /// <summary>Player positions when visiting sites, in visit order (for distance calc)</summary>
-        public List<BlockPos> VisitPositions { get; set; } = new();
-
-        /// <summary>When the patrol started (elapsed ms)</summary>
-        public long PatrolStartTime { get; set; }
-
-        /// <summary>When the player last visited a site (for idle detection)</summary>
-        public long LastSiteVisitTime { get; set; }
     }
 
     #endregion

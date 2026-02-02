@@ -1,3 +1,4 @@
+using System;
 using DivineAscension.Constants;
 using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
@@ -13,15 +14,15 @@ public class CooldownValidationStep(IPlayerProgressionDataManager progressionDat
 
     public void Execute(PrayerContext context)
     {
-        var cooldownExpiry = progressionDataManager.GetPrayerCooldownExpiry(context.PlayerUID);
+        var cooldownExpiry = progressionDataManager.GetPrayerCooldownExpiryUtc(context.PlayerUID);
 
-        if (cooldownExpiry > 0 && context.CurrentTime < cooldownExpiry)
+        if (cooldownExpiry.HasValue && DateTime.UtcNow < cooldownExpiry.Value)
         {
-            var remainingMs = cooldownExpiry - context.CurrentTime;
+            var remainingTime = cooldownExpiry.Value - DateTime.UtcNow;
 
-            // Round to nearest minute (adds 30s before dividing)
-            var remainingMinutes = (int)((remainingMs + 30000) / 60000);
-            if (remainingMinutes == 0 && remainingMs > 0)
+            // Round to nearest minute (adds 30s before rounding)
+            var remainingMinutes = (int)Math.Round(remainingTime.TotalMinutes);
+            if (remainingMinutes == 0 && remainingTime.TotalMilliseconds > 0)
                 remainingMinutes = 1;
 
             context.Success = false;
