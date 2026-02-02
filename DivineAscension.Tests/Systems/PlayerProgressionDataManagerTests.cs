@@ -6,7 +6,6 @@ using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Tests.Helpers;
 using Moq;
-using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Tests.Systems;
@@ -20,8 +19,8 @@ public class PlayerProgressionDataManagerTests
 {
     private readonly FakeEventService _fakeEventService;
     private readonly FakePersistenceService _fakePersistenceService;
-    private readonly FakeWorldService _fakeWorldService;
     private readonly FakeTimeService _fakeTimeService;
+    private readonly FakeWorldService _fakeWorldService;
     private readonly Mock<ICoreServerAPI> _mockAPI;
     private readonly Mock<ILoggerWrapper> _mockLogger;
     private readonly Mock<IReligionManager> _mockReligionManager;
@@ -747,7 +746,7 @@ public class PlayerProgressionDataManagerTests
         Assert.Equal(150, loadedData.Favor);
         Assert.Equal(200, loadedData.TotalFavorEarned);
         _mockLogger.Verify(
-            l => l.Debug(It.Is<string>(s => s.Contains("Loaded data") && s.Contains("player-uid") && s.Contains("v3"))),
+            l => l.Debug(It.Is<string>(s => s.Contains("Loaded data") && s.Contains("player-uid") && s.Contains("v5"))),
             Times.Once()
         );
     }

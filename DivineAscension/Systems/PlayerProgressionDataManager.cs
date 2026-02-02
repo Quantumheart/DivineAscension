@@ -299,8 +299,9 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     }
 
     /// <summary>
-    ///     Gets the timestamp when the player is next allowed to pray.
+    ///     [DEPRECATED] Gets the timestamp when the player is next allowed to pray (elapsed milliseconds).
     ///     Returns 0 if no cooldown is active or player data doesn't exist.
+    ///     Use GetPrayerCooldownExpiryUtc instead.
     /// </summary>
     public long GetPrayerCooldownExpiry(string playerUID)
     {
@@ -313,8 +314,9 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     }
 
     /// <summary>
-    ///     Sets the prayer cooldown expiry timestamp for the player.
+    ///     [DEPRECATED] Sets the prayer cooldown expiry timestamp for the player (elapsed milliseconds).
     ///     Creates player data if it doesn't exist.
+    ///     Use SetPrayerCooldownExpiryUtc instead.
     /// </summary>
     /// <param name="playerUID">Player unique identifier</param>
     /// <param name="expiryTime">Absolute timestamp when prayer cooldown expires</param>
@@ -332,6 +334,55 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     }
 
     /// <summary>
+    ///     Gets the UTC timestamp when the player is next allowed to pray.
+    ///     Returns null if no cooldown is active or player data doesn't exist.
+    /// </summary>
+    public DateTime? GetPrayerCooldownExpiryUtc(string playerUID)
+    {
+        if (TryGetPlayerData(playerUID, out var playerData))
+        {
+            return playerData?.NextPrayerAllowedTimeUtc;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    ///     Sets the prayer cooldown expiry UTC timestamp for the player.
+    ///     Creates player data if it doesn't exist.
+    /// </summary>
+    public void SetPrayerCooldownExpiryUtc(string playerUID, DateTime expiryTimeUtc)
+    {
+        var playerData = GetOrCreatePlayerData(playerUID);
+        playerData.NextPrayerAllowedTimeUtc = expiryTimeUtc;
+        NotifyPlayerDataChanged(playerUID);
+    }
+
+    /// <summary>
+    ///     Gets the UTC timestamp when the last patrol was completed.
+    ///     Returns null if no patrol has been completed.
+    /// </summary>
+    public DateTime? GetLastPatrolCompletionTimeUtc(string playerUID)
+    {
+        if (TryGetPlayerData(playerUID, out var playerData))
+        {
+            return playerData?.LastPatrolCompletionTimeUtc;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    ///     Sets the UTC timestamp when the patrol was completed.
+    /// </summary>
+    public void SetLastPatrolCompletionTimeUtc(string playerUID, DateTime completionTimeUtc)
+    {
+        var playerData = GetOrCreatePlayerData(playerUID);
+        playerData.LastPatrolCompletionTimeUtc = completionTimeUtc;
+        NotifyPlayerDataChanged(playerUID);
+    }
+
+    /// <summary>
     ///     Migrates player branch commitments from existing unlocked blessings.
     ///     For players with DataVersion &lt; 4, infers branch commitments from unlocked blessings.
     /// </summary>
@@ -344,7 +395,8 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
         if (playerData.DataVersion >= 4)
             return;
 
-        _logger.Debug($"[DivineAscension] Migrating branch commitments for player {playerUID} (v{playerData.DataVersion} -> v4)");
+        _logger.Debug(
+            $"[DivineAscension] Migrating branch commitments for player {playerUID} (v{playerData.DataVersion} -> v4)");
 
         var migratedCount = 0;
         foreach (var blessingId in playerData.UnlockedBlessings)
@@ -367,7 +419,8 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
 
         if (migratedCount > 0)
         {
-            _logger.Notification($"[DivineAscension] Migrated {migratedCount} branch commitment(s) for player {playerUID}");
+            _logger.Notification(
+                $"[DivineAscension] Migrated {migratedCount} branch commitment(s) for player {playerUID}");
         }
     }
 
@@ -382,6 +435,39 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
 
         // Apply penalty (reset favor and blessings)
         data.ApplySwitchPenalty();
+    }
+
+    /// <summary>
+    ///     Migrates player cooldowns from elapsed milliseconds to UTC DateTime.
+    ///     For players with DataVersion &lt; 5, clears old cooldowns (one-time reset).
+    ///     Cannot accurately convert elapsed-ms to DateTime without knowing server start time.
+    /// </summary>
+    internal void MigrateCooldownsToUtc(string playerUID)
+    {
+        if (!TryGetPlayerData(playerUID, out var playerData) || playerData == null)
+            return;
+
+        // Only migrate if data version is less than 5
+        if (playerData.DataVersion >= 5)
+            return;
+
+        _logger.Debug(
+            $"[DivineAscension] Migrating cooldowns for player {playerUID} (v{playerData.DataVersion} -> v5)");
+
+        // Clear old elapsed-ms cooldowns - cannot convert accurately
+        // Players get a one-time reset of their cooldowns after update
+        playerData.NextPrayerAllowedTime = 0;
+        playerData.LastPatrolCompletionTime = 0;
+
+        // New DateTime fields start as null (no cooldown active)
+        playerData.NextPrayerAllowedTimeUtc = null;
+        playerData.LastPatrolCompletionTimeUtc = null;
+
+        // Bump data version to 5
+        playerData.DataVersion = 5;
+
+        _logger.Notification(
+            $"[DivineAscension] Migrated cooldowns to UTC DateTime for player {playerUID} (cooldowns reset)");
     }
 
     private FavorRank CalculateFavorRank(int totalFavor)
@@ -461,6 +547,12 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
                     _playerData[playerUID] = playerData;
                     _logger.Debug(
                         $"[DivineAscension] Loaded data for player {playerUID} (v{playerData.DataVersion})");
+
+                    // Run migrations for older data versions
+                    if (playerData.DataVersion < 5)
+                    {
+                        MigrateCooldownsToUtc(playerUID);
+                    }
                 }
                 else
                 {
