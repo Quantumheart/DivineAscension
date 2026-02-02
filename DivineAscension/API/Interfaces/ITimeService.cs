@@ -1,3 +1,5 @@
+using System;
+
 namespace DivineAscension.API.Interfaces;
 
 /// <summary>
@@ -11,4 +13,10 @@ public interface ITimeService
     /// This is a monotonically increasing value used for absolute timestamps.
     /// </summary>
     long ElapsedMilliseconds { get; }
+
+    /// <summary>
+    /// Gets the current UTC wall-clock time.
+    /// Used for cooldowns and expiry times that need to survive server restarts.
+    /// </summary>
+    DateTime UtcNow { get; }
 }

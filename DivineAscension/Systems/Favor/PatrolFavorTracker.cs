@@ -310,7 +310,7 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
             return;
         }
 
-        var now = DateTime.UtcNow;
+        var now = _timeService.UtcNow;
         if (IsOnPatrolCooldown(playerData!, now))
         {
             var lastCompletion = playerData!.LastPatrolCompletionTimeUtc ?? DateTime.MinValue;

@@ -247,7 +247,7 @@ public static class DivineAscensionSystemInitializer
             // Validation steps (may short-circuit)
             new HolySiteValidationStep(holySiteManager),
             new ReligionValidationStep(religionManager),
-            new CooldownValidationStep(playerReligionDataManager),
+            new CooldownValidationStep(playerReligionDataManager, timeService),
             // Processing steps
             new RitualContributionStep(ritualContributionService),
             new OfferingEvaluationStep(offeringEvaluator),
@@ -256,7 +256,7 @@ public static class DivineAscensionSystemInitializer
             new ProgressionAwardStep(progressionService),
             // Side-effect steps (only execute on success)
             new BuffApplicationStep(buffManager),
-            new CooldownUpdateStep(playerReligionDataManager),
+            new CooldownUpdateStep(playerReligionDataManager, timeService),
             new OfferingConsumptionStep(),
             new PrayerEffectsStep(prayerEffectsService)
         };
