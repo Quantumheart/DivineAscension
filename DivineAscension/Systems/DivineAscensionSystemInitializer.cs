@@ -9,6 +9,8 @@ using DivineAscension.Data;
 using DivineAscension.Services;
 using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems.Altar;
+using DivineAscension.Systems.Altar.Pipeline;
+using DivineAscension.Systems.Altar.Pipeline.Steps;
 using DivineAscension.Systems.BuffSystem;
 using DivineAscension.Systems.HolySite;
 using DivineAscension.Systems.Interfaces;
@@ -239,27 +241,43 @@ public static class DivineAscensionSystemInitializer
             worldService,
             LoggingService.Instance.CreateLogger("RitualContributionService"));
 
+        // Create prayer pipeline steps in execution order
+        var prayerSteps = new IPrayerStep[]
+        {
+            // Validation steps (may short-circuit)
+            new HolySiteValidationStep(holySiteManager),
+            new ReligionValidationStep(religionManager),
+            new CooldownValidationStep(playerReligionDataManager),
+            // Processing steps
+            new RitualContributionStep(ritualContributionService),
+            new OfferingEvaluationStep(offeringEvaluator),
+            new RewardCalculationStep(gameBalanceConfig),
+            // Side-effect steps (only execute on success)
+            new BuffApplicationStep(buffManager),
+            new CooldownUpdateStep(playerReligionDataManager),
+            new OfferingConsumptionStep(),
+            new PrayerEffectsStep(prayerEffectsService)
+        };
+
+        var prayerPipeline = new PrayerPipeline(prayerSteps,
+            LoggingService.Instance.CreateLogger("PrayerPipeline"));
+
         // Initialize Altar Prayer Handler (handles prayer interactions at altars)
         var altarPrayerHandler = new AltarPrayerHandler(
-            LoggingService.Instance.CreateLogger("AltarPrayerHandler"),
-            holySiteManager,
-            religionManager,
-            playerReligionDataManager,
-            messengerService,
-            buffManager,
-            gameBalanceConfig,
-            timeService,
             altarEventEmitter,
-            offeringEvaluator,
-            prayerEffectsService,
-            ritualContributionService);
+            prayerPipeline,
+            messengerService,
+            timeService,
+            LoggingService.Instance.CreateLogger("AltarPrayerHandler"));
         altarPrayerHandler.Initialize();
 
-        var diplomacyManager = new DiplomacyManager(LoggingService.Instance.CreateLogger("DiplomacyManager"), eventService, persistenceService, civilizationManager,
+        var diplomacyManager = new DiplomacyManager(LoggingService.Instance.CreateLogger("DiplomacyManager"),
+            eventService, persistenceService, civilizationManager,
             religionPrestigeManager, religionManager, cooldownManager);
         diplomacyManager.Initialize();
 
-        var pvpManager = new PvPManager(LoggingService.Instance.CreateLogger("PvPManager"), eventService, worldService, playerReligionDataManager, religionManager,
+        var pvpManager = new PvPManager(LoggingService.Instance.CreateLogger("PvPManager"), eventService, worldService,
+            playerReligionDataManager, religionManager,
             religionPrestigeManager,
             civilizationManager, diplomacyManager, gameBalanceConfig);
         pvpManager.Initialize();
@@ -271,7 +289,8 @@ public static class DivineAscensionSystemInitializer
         civilizationMilestoneManager.SetPvPManager(pvpManager);
 
         // Create blessing loader for JSON-based blessing definitions
-        IBlessingLoader blessingLoader = new BlessingLoader(api, LoggingService.Instance.CreateLogger("BlessingLoader"));
+        IBlessingLoader blessingLoader =
+            new BlessingLoader(api, LoggingService.Instance.CreateLogger("BlessingLoader"));
         var blessingRegistry = new BlessingRegistry(api, blessingLoader);
         blessingRegistry.Initialize();
 
