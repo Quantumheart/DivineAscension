@@ -104,6 +104,7 @@ public class DivineAscensionModSystem : ModSystem
         // Required for JSON patching and client-server serialization
         api.RegisterBlockBehaviorClass("DivineAscensionAltar", typeof(BlockBehaviorAltar));
         api.RegisterBlockBehaviorClass("DivineAscensionStone", typeof(BlockBehaviorStone));
+        api.RegisterBlockBehaviorClass("DivineAscensionOre", typeof(BlockBehaviorOre));
         api.RegisterCollectibleBehaviorClass("ChiselTracking", typeof(CollectibleBehaviorChiselTracking));
         api.Logger.Notification("[DivineAscension] Block and Collectible behavior classes registered");
 

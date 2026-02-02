@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
+using DivineAscension.Blocks;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Systems.Favor;
@@ -42,6 +44,7 @@ public class MiningFavorTracker(
 
     public void Dispose()
     {
+        BlockBehaviorOre.OnOreBlockBroken -= OnOreBlockBroken;
         _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
         _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
         _craftFollowers.Clear();
@@ -51,6 +54,9 @@ public class MiningFavorTracker(
 
     public void Initialize()
     {
+        // Subscribe to ore block break events (via BlockBehavior)
+        BlockBehaviorOre.OnOreBlockBroken += OnOreBlockBroken;
+
         // Build initial cache of Craft followers
         RefreshFollowerCache();
 
@@ -95,12 +101,14 @@ public class MiningFavorTracker(
         _craftFollowers.Remove(player.PlayerUID);
     }
 
-    internal void OnBlockBroken(IServerPlayer player, BlockSelection blockSel, ref float dropQuantityMultiplier,
-        ref EnumHandling handling)
+    /// <summary>
+    ///     Handles ore block broken events from BlockBehaviorOre.
+    ///     Awards favor to Craft domain followers based on ore tier and quality.
+    /// </summary>
+    private void OnOreBlockBroken(IWorldAccessor world, BlockPos pos, IPlayer? player, Block block, EnumHandling handling)
     {
-        var block = _worldService.GetBlock(blockSel.Position);
-        if (!IsOreBlock(block)) return;
-
+        // Player can be null when blocks break automatically (gravity, neighbor updates, etc.)
+        if (player == null) return;
         if (!_craftFollowers.Contains(player.PlayerUID)) return;
 
         // Calculate favor based on mineral type and quality
@@ -108,22 +116,15 @@ public class MiningFavorTracker(
         var qualityMultiplier = GetOreQualityMultiplier(block);
         var finalFavor = (int)(baseFavor * qualityMultiplier);
 
-        _favorSystem.AwardFavorForAction(player, "mining ore", finalFavor);
+        var serverPlayer = _worldService.GetPlayerByUID(player.PlayerUID) as IServerPlayer;
+        if (serverPlayer != null)
+        {
+            _favorSystem.AwardFavorForAction(serverPlayer, "mining ore", finalFavor);
 
-        _logger.Debug(
-            $"[MiningFavorTracker] Awarded {finalFavor} favor to {player.PlayerName} " +
-            $"for mining {block.Code.Path} (base: {baseFavor}, quality: {qualityMultiplier}x)");
-    }
-
-    /// <summary>
-    ///     Fast ore block detection using StartsWith
-    /// </summary>
-    internal bool IsOreBlock(Block block)
-    {
-        if (block?.Code is null) return false;
-
-        var path = block.Code.Path;
-        return path.StartsWith("ore-", StringComparison.Ordinal);
+            _logger.Debug(
+                $"[MiningFavorTracker] Awarded {finalFavor} favor to {player.PlayerName} " +
+                $"for mining {block.Code.Path} (base: {baseFavor}, quality: {qualityMultiplier}x)");
+        }
     }
 
     /// <summary>

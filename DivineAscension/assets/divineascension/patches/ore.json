@@ -1,0 +1,20 @@
+[
+  {
+    "op": "addmerge",
+    "path": "/behaviors/-",
+    "value": {
+      "name": "DivineAscensionOre"
+    },
+    "file": "game:blocktypes/stone/ore-graded.json",
+    "side": "Server"
+  },
+  {
+    "op": "addmerge",
+    "path": "/behaviors/-",
+    "value": {
+      "name": "DivineAscensionOre"
+    },
+    "file": "game:blocktypes/stone/ore-ungraded.json",
+    "side": "Server"
+  }
+]
