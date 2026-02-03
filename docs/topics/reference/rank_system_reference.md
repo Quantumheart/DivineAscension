@@ -200,7 +200,7 @@ Civilization ranks represent a civilization's collective achievement and influen
 Unlike player favor ranks (based on accumulating a resource), civilization ranks advance discretely when major milestones are completed:
 
 1. Complete a major milestone (e.g., "First Alliance" - reach 2 religions)
-2. Receive the milestone's prestige payout (distributed to all member religions)
+2. Receive the milestone's prestige payout (awarded to the founding religion)
 3. Receive the milestone's permanent bonus (applies to all member religions)
 4. Civilization rank advances by 1 (up to Eternal at 4+)
 
