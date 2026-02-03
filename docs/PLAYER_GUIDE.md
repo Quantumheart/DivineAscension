@@ -235,6 +235,51 @@ Requirements: Must be religion founder, not already in a civilization.
 - Invitations expire in 7 days
 - Maximum 4 religions per civilization
 
+### Milestones & Ranks
+
+Civilizations progress through ranks by completing milestones. Each major milestone advances your civilization's rank and provides permanent bonuses that benefit all member religions.
+
+#### Civilization Ranks
+
+| Rank | Major Milestones Required |
+|------|---------------------------|
+| Nascent | 0 |
+| Rising | 1 |
+| Dominant | 2 |
+| Hegemonic | 3 |
+| Eternal | 4+ |
+
+#### Major Milestones
+
+Major milestones advance your civilization's rank and provide permanent bonuses.
+
+| Milestone | Trigger | Prestige | Permanent Bonus |
+|-----------|---------|----------|-----------------|
+| First Alliance | 2 religions | 250 | +5% prestige multiplier |
+| Holy Expansion | 2 holy sites | 300 | +1 holy site slot |
+| Ritual Mastery | 5 rituals completed | 400 | Unlock civilization blessing |
+| United Front | 4 domains represented | 500 | +10% favor multiplier |
+| Population Surge | 25 members | 350 | +2% all rewards |
+
+#### Minor Milestones
+
+Minor milestones provide one-time prestige payouts without advancing rank.
+
+| Milestone | Trigger | Prestige | Bonus |
+|-----------|---------|----------|-------|
+| Tier Triumph | Holy site reaches Tier 2 | 300 | - |
+| Diplomatic Victory | NAP/Alliance with another civ | 200 | - |
+| War Heroes | 50 PvP kills in wars | 300 | +5% conquest (7 days) |
+| Cultural Monument | All 5 major milestones done | 1000 | +2% prestige |
+
+#### Viewing Milestones
+
+Open the civilization panel to view your progress:
+1. Press `Shift+G` to open the GUI
+2. Navigate to the Civilizations tab
+3. Select your civilization
+4. Click the Milestones tab
+
 ---
 
 ## Diplomacy
@@ -369,4 +414,4 @@ Perform activities matching your domain:
 
 ---
 
-*Last Updated: January 23, 2026*
+*Last Updated: February 2, 2026*
