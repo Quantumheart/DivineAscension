@@ -1,7 +1,7 @@
 # Rank System Reference
 
-**Last Updated:** 2026-01-14
-**Version:** v4.6.0 (Prestige System Rebalance)
+**Last Updated:** 2026-02-02
+**Version:** v4.24.0 (Civilization Milestones)
 
 ## Overview
 
@@ -181,6 +181,55 @@ The system uses event-driven updates to ensure UI stays synchronized:
 - Client receives packets and updates UI without requiring dialog refresh
 - Progress bars and blessing availability update in real-time
 
+## Civilization Ranks
+
+Civilization ranks represent a civilization's collective achievement and influence. Ranks are determined by **major milestones completed** (not minor milestones).
+
+### Rank Thresholds
+
+| Rank | Enum Value | Display Name | Major Milestones Required | Rank Number |
+|------|------------|--------------|---------------------------|-------------|
+| Nascent | `CivilizationRank.Nascent` | Nascent | **0** | 0 |
+| Rising | `CivilizationRank.Rising` | Rising | **1** | 1 |
+| Dominant | `CivilizationRank.Dominant` | Dominant | **2** | 2 |
+| Hegemonic | `CivilizationRank.Hegemonic` | Hegemonic | **3** | 3 |
+| Eternal | `CivilizationRank.Eternal` | Eternal | **4+** | 4 |
+
+### Rank Advancement
+
+Unlike player favor ranks (based on accumulating a resource), civilization ranks advance discretely when major milestones are completed:
+
+1. Complete a major milestone (e.g., "First Alliance" - reach 2 religions)
+2. Receive the milestone's prestige payout (distributed to all member religions)
+3. Receive the milestone's permanent bonus (applies to all member religions)
+4. Civilization rank advances by 1 (up to Eternal at 4+)
+
+### Source Files
+
+The authoritative rank definition is in:
+
+1. **`CivilizationRank.cs`** - Enum definition with XML documentation
+   ```csharp
+   public enum CivilizationRank
+   {
+       Nascent = 0,    // 0 major milestones
+       Rising = 1,     // 1 major milestone
+       Dominant = 2,   // 2 major milestones
+       Hegemonic = 3,  // 3 major milestones
+       Eternal = 4     // 4+ major milestones
+   }
+   ```
+
+2. **`CivilizationMilestoneManager.cs`** - Tracks milestone completion and rank advancement
+
+3. **`milestones.json`** - Milestone definitions with triggers and rewards
+
+### Related Documentation
+
+For detailed milestone information including triggers, rewards, and configuration options, see:
+- [Player Guide - Milestones & Ranks](../../PLAYER_GUIDE.md#milestones--ranks)
+- [Milestone Configuration](../configuration/milestones.md)
+
 ## Related Documentation
 
 - [Blessing System Reference](./blessing_reference.md)
@@ -189,6 +238,12 @@ The system uses event-driven updates to ensure UI stays synchronized:
 - [UI Implementation Plan](../ui-design/BLESSING_UI_IMPLEMENTATION_PLAN.md)
 
 ## Version History
+
+### v3.0 (2026-02-02)
+
+- Added Civilization Ranks section
+- Documented milestone-driven rank advancement system
+- Added links to milestone configuration documentation
 
 ### v2.0 (2026-01-14)
 

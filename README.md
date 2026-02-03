@@ -13,7 +13,7 @@ Status: Active development (last updated 2026-01-21). **New to Divine Ascension?
 - Blessing trees and effects
   - Unlockable blessing nodes with prerequisites and categories; server‑validated unlocks; effects applied via the Buff system; in‑game tree layout and icon rendering.
 - Civilizations (multi‑religion alliances)
-  - Create, browse, and manage civilizations; invite/accept/kick/disband flows; UI tabs and server commands; religion‑level membership.
+  - Create, browse, and manage civilizations; invite/accept/kick/disband flows; UI tabs and server commands; religion‑level membership; milestone-driven rank progression (Nascent → Eternal) with permanent stat bonuses.
 - PvP integration
   - Kill rewards and death penalties integrated with Favor/Prestige.
 - Networking and persistence
