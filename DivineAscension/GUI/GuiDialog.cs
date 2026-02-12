@@ -45,6 +45,7 @@ public partial class GuiDialog : ModSystem
     private ISoundManager? _soundManager;
     private Stopwatch? _stopwatch;
     private ImGuiViewportPtr _viewport;
+    private bool _hudDrawnOnce;
 
     // GUI Logger - static so it can be accessed from partial class methods and icon loaders
     private static ILoggerWrapper? _logger;
@@ -145,6 +146,7 @@ public partial class GuiDialog : ModSystem
         {
             _imguiModSystem.Draw += OnDraw;
             _imguiModSystem.Draw += OnDrawNotifications; // Always-active notification overlay
+            _imguiModSystem.Draw += OnDrawRankProgressHud; // Persistent rank progress HUD
             _imguiModSystem.Closed += OnClose;
 
             // Set callback for notification manager to trigger ImGui showing
@@ -313,6 +315,83 @@ public partial class GuiDialog : ModSystem
     }
 
     /// <summary>
+    ///     ImGui Draw callback for the persistent rank progress HUD - always visible when player has religion
+    /// </summary>
+    private CallbackGUIStatus OnDrawRankProgressHud(float deltaSeconds)
+    {
+        // Only show HUD when player has a religion and data is ready
+        if (!_state.IsReady || _manager == null)
+        {
+            return CallbackGUIStatus.Closed;
+        }
+
+        // Update viewport each frame (may not be initialized properly at startup)
+        _viewport = ImGui.GetMainViewport();
+
+        // Build view model from current state
+        var vm = _manager.ReligionStateManager.BuildHudViewModel(
+            _viewport.Size.X,
+            _viewport.Size.Y);
+
+        // If player doesn't have a religion, don't show HUD
+        if (!vm.IsVisible)
+        {
+            return CallbackGUIStatus.Closed;
+        }
+
+        // Debug: Log first time HUD is drawn
+        if (!_hudDrawnOnce)
+        {
+            _logger?.Debug($"[DivineAscension] HUD drawing - Screen: {_viewport.Size.X}x{_viewport.Size.Y}, Favor: {vm.SpendableFavor}, Rank: {vm.FavorRankName}");
+            _hudDrawnOnce = true;
+        }
+
+        // Create invisible fullscreen window to provide ImGui context for drawing
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+        ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 0));
+
+        // Use viewport position as offset (not always at 0,0)
+        ImGui.SetNextWindowPos(_viewport.Pos);
+        ImGui.SetNextWindowSize(_viewport.Size);
+
+        var flags = ImGuiWindowFlags.NoTitleBar |
+                    ImGuiWindowFlags.NoResize |
+                    ImGuiWindowFlags.NoMove |
+                    ImGuiWindowFlags.NoScrollbar |
+                    ImGuiWindowFlags.NoScrollWithMouse |
+                    ImGuiWindowFlags.NoBackground |
+                    ImGuiWindowFlags.NoInputs |
+                    ImGuiWindowFlags.NoBringToFrontOnFocus;
+
+        ImGui.Begin("DivineAscension HUD Overlay", flags);
+
+        // Render the HUD overlay
+        RankProgressHudOverlay.Draw(vm);
+
+        ImGui.End();
+        ImGui.PopStyleColor();
+        ImGui.PopStyleVar(3);
+
+        // Keep ImGui rendering by calling Show() each frame, but return Closed
+        // to avoid capturing mouse input (HUD is display-only)
+        _imguiModSystem?.Show();
+        return CallbackGUIStatus.Closed;
+    }
+
+    /// <summary>
+    ///     Ensures ImGui is shown when player has a religion (for HUD rendering)
+    /// </summary>
+    private void EnsureHudVisible()
+    {
+        if (_state.IsReady && _manager?.ReligionStateManager.HasReligion() == true)
+        {
+            _imguiModSystem?.Show();
+        }
+    }
+
+    /// <summary>
     ///     ImGui Closed callback
     /// </summary>
     private void OnClose()
@@ -439,6 +518,7 @@ public partial class GuiDialog : ModSystem
         {
             _imguiModSystem.Draw -= OnDraw;
             _imguiModSystem.Draw -= OnDrawNotifications;
+            _imguiModSystem.Draw -= OnDrawRankProgressHud;
             _imguiModSystem.Closed -= OnClose;
         }
 

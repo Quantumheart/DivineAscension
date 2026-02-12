@@ -148,6 +148,46 @@ public class ReligionStateManager : IReligionStateManager
         };
     }
 
+    /// <summary>
+    ///     Build the HUD view model from current state
+    /// </summary>
+    /// <param name="screenWidth">Screen width for positioning</param>
+    /// <param name="screenHeight">Screen height for positioning</param>
+    /// <returns>View model for the rank progress HUD overlay</returns>
+    public Models.Hud.RankProgressHudViewModel BuildHudViewModel(float screenWidth, float screenHeight)
+    {
+        var favorProgress = GetPlayerFavorProgress();
+        var prestigeProgress = GetReligionPrestigeProgress();
+
+        // Calculate progress percentages
+        var favorPct = favorProgress.IsMaxRank || favorProgress.RequiredFavor <= 0
+            ? 1.0f
+            : Math.Clamp((float)favorProgress.CurrentFavor / favorProgress.RequiredFavor, 0f, 1f);
+
+        var prestigePct = prestigeProgress.IsMaxRank || prestigeProgress.RequiredPrestige <= 0
+            ? 1.0f
+            : Math.Clamp((float)prestigeProgress.CurrentPrestige / prestigeProgress.RequiredPrestige, 0f, 1f);
+
+        return new Models.Hud.RankProgressHudViewModel(
+            FavorRankName: RankRequirements.GetFavorRankName(CurrentFavorRank),
+            NextFavorRankName: RankRequirements.GetFavorRankName(CurrentFavorRank + 1),
+            TotalFavorEarned: TotalFavorEarned,
+            FavorRequiredForNext: favorProgress.RequiredFavor,
+            FavorProgress: favorPct,
+            IsFavorMaxRank: favorProgress.IsMaxRank,
+            PrestigeRankName: RankRequirements.GetPrestigeRankName(CurrentPrestigeRank),
+            NextPrestigeRankName: RankRequirements.GetPrestigeRankName(CurrentPrestigeRank + 1),
+            CurrentPrestige: CurrentPrestige,
+            PrestigeRequiredForNext: prestigeProgress.RequiredPrestige,
+            PrestigeProgress: prestigePct,
+            IsPrestigeMaxRank: prestigeProgress.IsMaxRank,
+            SpendableFavor: CurrentFavor,
+            ScreenWidth: screenWidth,
+            ScreenHeight: screenHeight,
+            IsVisible: HasReligion()
+        );
+    }
+
     public void RequestReligionList(string? deityFilter = "")
     {
         // Adapter short-circuit: if a UI-only provider is configured, use it instead of network
