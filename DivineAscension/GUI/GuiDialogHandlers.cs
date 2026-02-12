@@ -139,6 +139,9 @@ public partial class GuiDialog
         _state.IsReady = true;
         _logger?.Notification(
             $"[DivineAscension] Loaded {playerBlessings.Count} player blessings and {religionBlessings.Count} religion blessings for {packet.Domain}");
+
+        // Ensure HUD is visible now that we have religion data
+        EnsureHudVisible();
     }
 
     /// <summary>
@@ -525,6 +528,9 @@ public partial class GuiDialog
         if (_state.IsOpen && _manager.HasReligion())
             _manager.BlessingStateManager.RefreshAllBlessingStates(_manager.ReligionStateManager.CurrentFavorRank,
                 _manager.ReligionStateManager.CurrentPrestigeRank);
+
+        // Ensure HUD is visible when player has religion data
+        EnsureHudVisible();
     }
 
     /// <summary>

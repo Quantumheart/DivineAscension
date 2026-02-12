@@ -40,6 +40,11 @@ public class GuiDialogState
     public string? PreviousPrestigeRank { get; set; }
 
     /// <summary>
+    ///     State for the rank progress HUD overlay
+    /// </summary>
+    public RankProgressHudState HudState { get; set; } = new();
+
+    /// <summary>
     ///     Initialize/reset all state to defaults
     /// </summary>
     public void Reset()
@@ -51,6 +56,7 @@ public class GuiDialogState
         WindowPosX = 0f;
         WindowPosY = 0f;
         NotificationState?.Reset();
+        HudState.Reset();
     }
 }
 
