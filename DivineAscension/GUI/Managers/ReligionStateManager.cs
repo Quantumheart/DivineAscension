@@ -59,6 +59,10 @@ public class ReligionStateManager : IReligionStateManager
     public int CurrentPrestige { get; set; }
     public int TotalFavorEarned { get; set; }
 
+    public Dictionary<DeityDomain, int> FavorByDeity { get; set; } = new();
+    public Dictionary<DeityDomain, int> FavorRanksByDeity { get; set; } = new();
+    public Dictionary<DeityDomain, int> TotalFavorEarnedByDeity { get; set; } = new();
+
     // Available domains (synced from server)
     private string[] _availableDomains = { "Craft", "Wild", "Conquest", "Harvest", "Stone" };
 
@@ -102,6 +106,10 @@ public class ReligionStateManager : IReligionStateManager
         CurrentReligionName = null;
         ReligionMemberCount = 0;
         PlayerRoleInReligion = null;
+
+        FavorByDeity.Clear();
+        FavorRanksByDeity.Clear();
+        TotalFavorEarnedByDeity.Clear();
 
         // Clear religion tab state
         State.Reset();

@@ -22,6 +22,12 @@ namespace DivineAscension.Systems.Networking.Server;
 [ExcludeFromCodeCoverage]
 public class BlessingNetworkHandler : IServerNetworkHandler
 {
+    private static readonly DeityDomain[] AllDeities =
+    {
+        DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest,
+        DeityDomain.Harvest, DeityDomain.Stone
+    };
+
     private readonly ILogger _logger;
     private readonly BlessingRegistry _blessingRegistry;
     private readonly BlessingEffectSystem _blessingEffectSystem;
@@ -211,61 +217,64 @@ public class BlessingNetworkHandler : IServerNetworkHandler
             var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(fromPlayer.PlayerUID);
 
             var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
-            var deity = _playerProgressionDataManager.GetPlayerDeityType(fromPlayer.PlayerUID);
-            if (religion == null || deity == DeityDomain.None)
+            if (religion == null)
             {
                 response.HasReligion = false;
                 _networkService.SendToPlayer(fromPlayer, response);
                 return;
             }
 
+            var patron = religion.PatronDomain;
+
             response.HasReligion = true;
             response.ReligionUID = religion.ReligionUID;
             response.ReligionName = religion.ReligionName;
-            response.Domain = deity.ToString();
-            response.DeityName = religion.PatronName;
-            response.FavorRank = (int)_playerProgressionDataManager.GetPlayerFavorRank(fromPlayer.PlayerUID, deity);
+            response.PatronDomain = patron;
+            response.PatronName = religion.PatronName;
             response.PrestigeRank = (int)religion.PrestigeRank;
-            response.CurrentFavor = playerData.GetFavor(deity);
             response.CurrentPrestige = religion.Prestige;
-            response.TotalFavorEarned = playerData.GetTotalFavorEarned(deity);
 
-            // Get player blessings for this deity
-            var playerBlessings = _blessingRegistry.GetBlessingsForDeity(deity, BlessingKind.Player);
-            response.PlayerBlessings = playerBlessings.Select(p => new BlessingDataResponsePacket.BlessingInfo
+            foreach (var domain in AllDeities)
             {
-                BlessingId = p.BlessingId,
-                Name = p.Name,
-                Description = p.Description,
-                RequiredFavorRank = p.RequiredFavorRank,
-                RequiredPrestigeRank = p.RequiredPrestigeRank,
-                PrerequisiteBlessings = p.PrerequisiteBlessings ?? new List<string>(),
-                Category = (int)p.Category,
-                StatModifiers = p.StatModifiers ?? new Dictionary<string, float>(),
-                IconName = p.IconName,
-                Cost = p.Cost,
-                Branch = p.Branch,
-                ExclusiveBranches = p.ExclusiveBranches
-            }).ToList();
+                response.FavorByDeity[domain] = playerData.GetFavor(domain);
+                response.FavorRanksByDeity[domain] =
+                    (int)_playerProgressionDataManager.GetPlayerFavorRank(fromPlayer.PlayerUID, domain);
+                response.TotalFavorEarnedByDeity[domain] = playerData.GetTotalFavorEarned(domain);
+            }
 
-            // Get religion blessings for this deity
-            var religionBlessings =
-                _blessingRegistry.GetBlessingsForDeity(deity, BlessingKind.Religion);
-            response.ReligionBlessings = religionBlessings.Select(p => new BlessingDataResponsePacket.BlessingInfo
+            BlessingDataResponsePacket.BlessingInfo ToInfo(Models.Blessing p) =>
+                new()
+                {
+                    BlessingId = p.BlessingId,
+                    Name = p.Name,
+                    Description = p.Description,
+                    RequiredFavorRank = p.RequiredFavorRank,
+                    RequiredPrestigeRank = p.RequiredPrestigeRank,
+                    PrerequisiteBlessings = p.PrerequisiteBlessings ?? new List<string>(),
+                    Category = (int)p.Category,
+                    StatModifiers = p.StatModifiers ?? new Dictionary<string, float>(),
+                    IconName = p.IconName,
+                    Cost = p.Cost,
+                    Branch = p.Branch,
+                    ExclusiveBranches = p.ExclusiveBranches,
+                    Domain = p.Domain,
+                    RequiresPatron = p.RequiresPatron
+                };
+
+            foreach (var domain in AllDeities)
             {
-                BlessingId = p.BlessingId,
-                Name = p.Name,
-                Description = p.Description,
-                RequiredFavorRank = p.RequiredPrestigeRank,
-                RequiredPrestigeRank = p.RequiredPrestigeRank,
-                PrerequisiteBlessings = p.PrerequisiteBlessings ?? new List<string>(),
-                Category = (int)p.Category,
-                StatModifiers = p.StatModifiers ?? new Dictionary<string, float>(),
-                IconName = p.IconName,
-                Cost = p.Cost,
-                Branch = p.Branch,
-                ExclusiveBranches = p.ExclusiveBranches
-            }).ToList();
+                response.PlayerBlessings.AddRange(
+                    _blessingRegistry.GetBlessingsForDeity(domain, BlessingKind.Player).Select(ToInfo));
+                response.ReligionBlessings.AddRange(
+                    _blessingRegistry.GetBlessingsForDeity(domain, BlessingKind.Religion).Select(ToInfo));
+
+                var committedBranch = playerData.GetCommittedBranch(domain);
+                if (committedBranch != null)
+                    response.CommittedBranches[(int)domain] = committedBranch;
+                var lockedBranches = playerData.GetLockedBranches(domain);
+                if (lockedBranches.Count > 0)
+                    response.LockedBranches[(int)domain] = lockedBranches.ToList();
+            }
 
             // Get unlocked player blessings
             response.UnlockedPlayerBlessings = playerData.UnlockedBlessings
@@ -276,18 +285,6 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                 .Where(kvp => kvp.Value)
                 .Select(kvp => kvp.Key)
                 .ToList();
-
-            // Sync branch state (committed and locked branches)
-            var committedBranch = playerData.GetCommittedBranch(deity);
-            if (committedBranch != null)
-            {
-                response.CommittedBranches[(int)deity] = committedBranch;
-            }
-            var lockedBranches = playerData.GetLockedBranches(deity);
-            if (lockedBranches.Count > 0)
-            {
-                response.LockedBranches[(int)deity] = lockedBranches.ToList();
-            }
 
             _logger.Debug(
                 $"[DivineAscension] Sending blessing data: {response.PlayerBlessings.Count} player, {response.ReligionBlessings.Count} religion");

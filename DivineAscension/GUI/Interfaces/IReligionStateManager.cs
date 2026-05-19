@@ -22,6 +22,22 @@ public interface IReligionStateManager
     int TotalFavorEarned { get; set; }
 
     /// <summary>
+    ///     Per-deity favor (all five domains). Patron entry mirrors <see cref="CurrentFavor"/>.
+    /// </summary>
+    Dictionary<DeityDomain, int> FavorByDeity { get; set; }
+
+    /// <summary>
+    ///     Per-deity favor rank as <see cref="FavorRank"/> cast to int. Patron entry mirrors
+    ///     <see cref="CurrentFavorRank"/>.
+    /// </summary>
+    Dictionary<DeityDomain, int> FavorRanksByDeity { get; set; }
+
+    /// <summary>
+    ///     Per-deity total favor earned. Patron entry mirrors <see cref="TotalFavorEarned"/>.
+    /// </summary>
+    Dictionary<DeityDomain, int> TotalFavorEarnedByDeity { get; set; }
+
+    /// <summary>
     ///     Initialize dialog state from player's current religion data
     /// </summary>
     void Initialize(string? id, DeityDomain domain, string? religionName, int favorRank = 0,

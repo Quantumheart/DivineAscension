@@ -21,17 +21,12 @@ public partial class GuiDialog
 {
     /// <summary>
     ///     Builds the per-deity favor-rank dict consumed by BlessingStateManager.
-    ///     Phase 3: only the patron-deity rank is available client-side. Phase 4 will wire all five
-    ///     through BlessingDataResponsePacket.
+    ///     Sourced from the server packet via <see cref="ReligionStateManager.FavorRanksByDeity"/>.
     /// </summary>
     private Dictionary<DeityDomain, int> BuildFavorRanksByDeity()
     {
-        var dict = new Dictionary<DeityDomain, int>();
-        if (_manager == null) return dict;
-        var patron = _manager.ReligionStateManager.CurrentReligionDomain;
-        if (patron != DeityDomain.None)
-            dict[patron] = _manager.ReligionStateManager.CurrentFavorRank;
-        return dict;
+        if (_manager == null) return new Dictionary<DeityDomain, int>();
+        return new Dictionary<DeityDomain, int>(_manager.ReligionStateManager.FavorRanksByDeity);
     }
 
     /// <summary>
@@ -73,62 +68,53 @@ public partial class GuiDialog
             return;
         }
 
-        // Parse deity type from string
-        if (!Enum.TryParse<DeityDomain>(packet.Domain, out var deityType))
-        {
-            _logger?.Error($"[DivineAscension] Invalid deity type: {packet.Domain}");
-            return;
-        }
+        var patron = packet.PatronDomain;
+        var patronFavorRank = packet.FavorRanksByDeity.GetValueOrDefault(patron);
 
-        // Initialize manager with real data
-        _manager!.Initialize(packet.ReligionUID, deityType, packet.ReligionName, packet.FavorRank,
+        // Initialize manager with patron-deity values; per-deity dicts capture all five domains below.
+        _manager!.Initialize(packet.ReligionUID, patron, packet.ReligionName, patronFavorRank,
             packet.PrestigeRank);
 
-        // Set deity name and current favor/prestige values for progress bars
-        _manager.ReligionStateManager.CurrentDeityName = packet.DeityName;
-        _manager.ReligionStateManager.CurrentFavor = packet.CurrentFavor;
+        _manager.ReligionStateManager.CurrentDeityName = packet.PatronName;
+        _manager.ReligionStateManager.CurrentFavor = packet.FavorByDeity.GetValueOrDefault(patron);
         _manager.ReligionStateManager.CurrentPrestige = packet.CurrentPrestige;
-        _manager.ReligionStateManager.TotalFavorEarned = packet.TotalFavorEarned;
+        _manager.ReligionStateManager.TotalFavorEarned = packet.TotalFavorEarnedByDeity.GetValueOrDefault(patron);
+        _manager.ReligionStateManager.FavorByDeity = new Dictionary<DeityDomain, int>(packet.FavorByDeity);
+        _manager.ReligionStateManager.FavorRanksByDeity = new Dictionary<DeityDomain, int>(packet.FavorRanksByDeity);
+        _manager.ReligionStateManager.TotalFavorEarnedByDeity =
+            new Dictionary<DeityDomain, int>(packet.TotalFavorEarnedByDeity);
 
-        // Convert packet blessings to Blessing objects
-        var playerBlessings = packet.PlayerBlessings.Select(p => new Blessing(p.BlessingId, p.Name, deityType)
-        {
-            Kind = BlessingKind.Player,
-            Category = (BlessingCategory)p.Category,
-            Description = p.Description,
-            RequiredFavorRank = p.RequiredFavorRank,
-            RequiredPrestigeRank = p.RequiredPrestigeRank,
-            PrerequisiteBlessings = p.PrerequisiteBlessings,
-            StatModifiers = p.StatModifiers,
-            IconName = p.IconName,
-            Cost = p.Cost,
-            Branch = p.Branch,
-            ExclusiveBranches = p.ExclusiveBranches
-        }).ToList();
+        Blessing ToModel(BlessingDataResponsePacket.BlessingInfo p, BlessingKind kind) =>
+            new(p.BlessingId, p.Name, p.Domain)
+            {
+                Kind = kind,
+                Category = (BlessingCategory)p.Category,
+                Description = p.Description,
+                RequiredFavorRank = p.RequiredFavorRank,
+                RequiredPrestigeRank = p.RequiredPrestigeRank,
+                PrerequisiteBlessings = p.PrerequisiteBlessings,
+                StatModifiers = p.StatModifiers,
+                IconName = p.IconName,
+                Cost = p.Cost,
+                Branch = p.Branch,
+                ExclusiveBranches = p.ExclusiveBranches,
+                RequiresPatron = p.RequiresPatron
+            };
 
-        var religionBlessings = packet.ReligionBlessings.Select(p => new Blessing(p.BlessingId, p.Name, deityType)
-        {
-            Kind = BlessingKind.Religion,
-            Category = (BlessingCategory)p.Category,
-            Description = p.Description,
-            RequiredFavorRank = p.RequiredFavorRank,
-            RequiredPrestigeRank = p.RequiredPrestigeRank,
-            PrerequisiteBlessings = p.PrerequisiteBlessings,
-            StatModifiers = p.StatModifiers,
-            IconName = p.IconName,
-            Cost = p.Cost,
-            Branch = p.Branch,
-            ExclusiveBranches = p.ExclusiveBranches
-        }).ToList();
+        var playerBlessings = packet.PlayerBlessings.Select(p => ToModel(p, BlessingKind.Player)).ToList();
+        var religionBlessings = packet.ReligionBlessings.Select(p => ToModel(p, BlessingKind.Religion)).ToList();
+        // Pre-Phase-5 single-tree UI still renders one deity; filter to patron.
+        var patronPlayerBlessings = playerBlessings.Where(b => b.Domain == patron).ToList();
+        var patronReligionBlessings = religionBlessings.Where(b => b.Domain == patron).ToList();
 
-        // Load blessing states into manager
-        _manager.BlessingStateManager.LoadBlessingStates(playerBlessings, religionBlessings);
+        // Load blessing states into manager (single-tree UI consumes patron deity only for now)
+        _manager.BlessingStateManager.LoadBlessingStates(patronPlayerBlessings, patronReligionBlessings);
 
-        // Preload blessing textures for this deity domain to prevent stuttering on first render
-        var allBlessings = playerBlessings.Concat(religionBlessings).ToList();
+        // Preload blessing textures for the patron deity domain to prevent stuttering on first render
+        var allBlessings = patronPlayerBlessings.Concat(patronReligionBlessings).ToList();
         _logger?.Debug(
-            $"[DivineAscension] Preloading {allBlessings.Count} blessing textures for {deityType}...");
-        BlessingIconLoader.PreloadDeityTextures(allBlessings, deityType);
+            $"[DivineAscension] Preloading {allBlessings.Count} blessing textures for {patron}...");
+        BlessingIconLoader.PreloadDeityTextures(allBlessings, patron);
 
         // Mark unlocked blessings
         foreach (var blessingId in packet.UnlockedPlayerBlessings)
@@ -140,16 +126,13 @@ public partial class GuiDialog
         // Set branch state from server (committed and locked branches)
         _manager.BlessingStateManager.SetBranchState(packet.CommittedBranches, packet.LockedBranches);
 
-        // Refresh states to update can-unlock status.
-        // TODO(Phase 4): wire per-deity favor ranks through BlessingDataResponsePacket; for now only the
-        // patron-deity rank is known client-side, so other domains will read as Initiate (rank 0).
         _manager.BlessingStateManager.RefreshAllBlessingStates(
             BuildFavorRanksByDeity(),
             _manager.ReligionStateManager.CurrentPrestigeRank,
             _manager.ReligionStateManager.CurrentReligionDomain);
 
         // Initialize previous ranks to prevent false positives on first update
-        var favorRankName = ((FavorRank)packet.FavorRank).ToString();
+        var favorRankName = ((FavorRank)patronFavorRank).ToString();
         var prestigeRankName = ((PrestigeRank)packet.PrestigeRank).ToString();
         _state.PreviousFavorRank = favorRankName;
         _state.PreviousPrestigeRank = prestigeRankName;
@@ -158,7 +141,7 @@ public partial class GuiDialog
 
         _state.IsReady = true;
         _logger?.Notification(
-            $"[DivineAscension] Loaded {playerBlessings.Count} player blessings and {religionBlessings.Count} religion blessings for {packet.Domain}");
+            $"[DivineAscension] Loaded {patronPlayerBlessings.Count} player blessings and {patronReligionBlessings.Count} religion blessings for {patron}");
 
         // Ensure HUD is visible now that we have religion data
         EnsureHudVisible();
@@ -480,14 +463,29 @@ public partial class GuiDialog
         // Skip if manager is not initialized yet
         if (_manager == null) return;
 
-        _logger?.Debug(
-            $"[DivineAscension] Updating blessing dialog with new favor data: {packet.Favor}, Total: {packet.TotalFavorEarned}");
+        var patron = packet.PatronDomain;
+        var patronFavor = packet.FavorByDeity.GetValueOrDefault(patron);
+        var patronTotal = packet.TotalFavorEarnedByDeity.GetValueOrDefault(patron);
+        var patronRankName = packet.FavorRanksByDeity.GetValueOrDefault(patron) ?? FavorRank.Initiate.ToString();
 
-        // Always update manager with new values, even if dialog is closed
-        // This ensures the UI shows correct values when opened
-        _manager.ReligionStateManager.CurrentFavor = packet.Favor;
+        _logger?.Debug(
+            $"[DivineAscension] Updating blessing dialog with new favor data: {patronFavor}, Total: {patronTotal}");
+
+        _manager.ReligionStateManager.CurrentFavor = patronFavor;
         _manager.ReligionStateManager.CurrentPrestige = packet.Prestige;
-        _manager.ReligionStateManager.TotalFavorEarned = packet.TotalFavorEarned;
+        _manager.ReligionStateManager.TotalFavorEarned = patronTotal;
+
+        // Update per-deity dicts.
+        _manager.ReligionStateManager.FavorByDeity = new Dictionary<DeityDomain, int>(packet.FavorByDeity);
+        _manager.ReligionStateManager.TotalFavorEarnedByDeity =
+            new Dictionary<DeityDomain, int>(packet.TotalFavorEarnedByDeity);
+        var ranksByDeity = new Dictionary<DeityDomain, int>();
+        foreach (var kvp in packet.FavorRanksByDeity)
+        {
+            if (Enum.TryParse<FavorRank>(kvp.Value, out var r))
+                ranksByDeity[kvp.Key] = (int)r;
+        }
+        _manager.ReligionStateManager.FavorRanksByDeity = ranksByDeity;
 
         // Update config thresholds (synced from server so UI displays correct progression caps)
         _manager.ReligionStateManager.DiscipleThreshold = packet.DiscipleThreshold;
@@ -499,15 +497,15 @@ public partial class GuiDialog
         _manager.ReligionStateManager.LegendaryThreshold = packet.LegendaryThreshold;
         _manager.ReligionStateManager.MythicThreshold = packet.MythicThreshold;
 
-        // Update rank if it changed (this affects which blessings can be unlocked)
-        // FavorRank comes as enum name (e.g., "Initiate", "Disciple"), parse to get numeric value
-        if (Enum.TryParse<FavorRank>(packet.FavorRank, out var favorRankEnum))
+        if (Enum.TryParse<FavorRank>(patronRankName, out var favorRankEnum))
             _manager.ReligionStateManager.CurrentFavorRank = (int)favorRankEnum;
+        else
+            favorRankEnum = FavorRank.Initiate;
 
         if (Enum.TryParse<PrestigeRank>(packet.PrestigeRank, out var prestigeRankEnum))
             _manager.ReligionStateManager.CurrentPrestigeRank = (int)prestigeRankEnum;
 
-        // Check for favor rank-up
+        // Check for favor rank-up (on patron deity)
         if (!string.IsNullOrEmpty(_state.PreviousFavorRank) &&
             Enum.TryParse<FavorRank>(_state.PreviousFavorRank, out var previousFavorRank) &&
             favorRankEnum > previousFavorRank)
@@ -515,12 +513,11 @@ public partial class GuiDialog
             _logger?.Notification(
                 $"[DivineAscension] Favor rank increased: {previousFavorRank} → {favorRankEnum}");
             var description = FavorRankDescriptions.GetDescription(favorRankEnum);
-            if (packet.FavorRank != null)
-                _manager.NotificationManager.QueueRankUpNotification(
-                    NotificationType.FavorRankUp,
-                    packet.FavorRank,
-                    description,
-                    _manager.ReligionStateManager.CurrentReligionDomain);
+            _manager.NotificationManager.QueueRankUpNotification(
+                NotificationType.FavorRankUp,
+                patronRankName,
+                description,
+                _manager.ReligionStateManager.CurrentReligionDomain);
         }
 
         // Check for prestige rank-up
@@ -539,8 +536,7 @@ public partial class GuiDialog
                     _manager.ReligionStateManager.CurrentReligionDomain);
         }
 
-        // Update previous ranks for next comparison
-        if (packet.FavorRank != null) _state.PreviousFavorRank = packet.FavorRank;
+        _state.PreviousFavorRank = patronRankName;
         if (packet.PrestigeRank != null) _state.PreviousPrestigeRank = packet.PrestigeRank;
 
         // Refresh blessing states in case new blessings became available
