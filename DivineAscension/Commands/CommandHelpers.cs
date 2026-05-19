@@ -89,4 +89,46 @@ public static class CommandHelpers
 
         return (caller, callerData, null);
     }
+
+    /// <summary>
+    ///     Parse two optional positional args (`[arg1] [arg2]`) into a domain + playername pair.
+    ///     Tries each arg as <see cref="DeityDomain"/> first (case-insensitive); the leftover is the
+    ///     playername. Either or both may be null. When both args fail to parse as a domain, the first
+    ///     is treated as the playername.
+    /// </summary>
+    public static (DeityDomain? domain, string? playerName) ParseDomainAndPlayer(string? arg1, string? arg2)
+    {
+        DeityDomain? domain = null;
+        string? playerName = null;
+
+        if (TryParseDomain(arg1, out var d1))
+            domain = d1;
+        else if (!string.IsNullOrEmpty(arg1))
+            playerName = arg1;
+
+        if (TryParseDomain(arg2, out var d2))
+        {
+            // If both parse as a domain, last one wins; the other becomes a name.
+            if (domain.HasValue) playerName = arg1;
+            domain = d2;
+        }
+        else if (!string.IsNullOrEmpty(arg2))
+        {
+            // arg2 is a name. If arg1 was also a name (no domain parsed), arg2 takes the slot.
+            if (playerName == null) playerName = arg2;
+            else playerName = arg2; // explicit second positional wins
+        }
+
+        return (domain, playerName);
+    }
+
+    private static bool TryParseDomain(string? value, out DeityDomain domain)
+    {
+        domain = DeityDomain.None;
+        if (string.IsNullOrEmpty(value)) return false;
+        if (!Enum.TryParse(value, ignoreCase: true, out DeityDomain parsed)) return false;
+        if (parsed == DeityDomain.None) return false;
+        domain = parsed;
+        return true;
+    }
 }

@@ -130,6 +130,8 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
         var playerData = CreatePlayerData("player-1", DeityDomain.Craft, 600, 600,
             FavorRank.Disciple);
         var args = CreateCommandArgs(mockPlayer.Object);
+        // Explicit-domain path produces single-deity output with Next Rank info.
+        SetupParsers(args, "Craft");
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
