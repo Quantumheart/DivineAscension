@@ -8,6 +8,7 @@ using DivineAscension.Extensions;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network;
 using DivineAscension.Services;
+using DivineAscension.Systems;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -509,11 +510,13 @@ public class BlessingCommands(
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_IN_RELIGION));
 
-            // Atomically deduct favor cost (includes sufficiency check)
-            if (blessing.Cost > 0 && !playerData.RemoveFavor(blessing.Domain, blessing.Cost))
+            // Atomically deduct favor cost (includes sufficiency check).
+            // Non-patron blessings cost 1.5x; capstones are patron-only and always 1.0x.
+            var adjustedCost = BlessingRegistry.AdjustedCost(blessing, religion);
+            if (adjustedCost > 0 && !playerData.RemoveFavor(blessing.Domain, adjustedCost))
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_INSUFFICIENT_FAVOR,
-                        blessing.Cost, playerData.GetFavor(blessing.Domain)));
+                        adjustedCost, playerData.GetFavor(blessing.Domain)));
 
             var success = _playerProgressionDataManager.UnlockPlayerBlessing(playerUid, blessingId);
             if (!success)
@@ -554,11 +557,13 @@ public class BlessingCommands(
         if (!religion.IsFounder(playerUid))
             return TextCommandResult.Error(LocalizationService.Instance.Get(LocalizationKeys.CMD_ERROR_NOT_FOUNDER));
 
-        // Atomically deduct prestige cost (includes sufficiency check)
-        if (blessing.Cost > 0 && !religion.RemovePrestige(blessing.Cost))
+        // Atomically deduct prestige cost (includes sufficiency check).
+        // Non-patron religion blessings cost 1.5x; capstones are patron-only and always 1.0x.
+        var adjustedReligionCost = BlessingRegistry.AdjustedCost(blessing, religion);
+        if (adjustedReligionCost > 0 && !religion.RemovePrestige(adjustedReligionCost))
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_INSUFFICIENT_PRESTIGE,
-                    blessing.Cost, religion.Prestige));
+                    adjustedReligionCost, religion.Prestige));
 
         religion.UnlockBlessing(blessingId);
         _blessingEffectSystem.RefreshReligionBlessings(religion.ReligionUID);
