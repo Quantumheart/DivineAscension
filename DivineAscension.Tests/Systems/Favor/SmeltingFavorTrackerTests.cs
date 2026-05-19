@@ -60,7 +60,7 @@ public class SmeltingFavorTrackerTests
         mockFavor.Verify(m => m.AwardFavorForAction(
             It.Is<IServerPlayer>(p => p.PlayerUID == "player-smelt-1"),
             "smelting",
-            It.Is<float>(f => Math.Abs(f - 1.0f) < 0.001f)
+            It.Is<float>(f => Math.Abs(f - 1.0f) < 0.001f), It.IsAny<DeityDomain>()
         ), Times.Once);
 
         tracker.Dispose();
@@ -93,23 +93,24 @@ public class SmeltingFavorTrackerTests
         mockFavor.Verify(m => m.AwardFavorForAction(
             It.Is<IServerPlayer>(p => p.PlayerUID == "player-smelt-2"),
             "smelting",
-            It.Is<float>(f => Math.Abs(f - 0.4f) < 0.001f)
+            It.Is<float>(f => Math.Abs(f - 0.4f) < 0.001f),
+            It.IsAny<DeityDomain>()
         ), Times.Once);
 
         tracker.Dispose();
     }
 
     [Fact]
-    public void HandleMoldPoured_NonKhorasFollower_NoFavor()
+    public void HandleMoldPoured_NonCraftPatron_StillAwardsCraftFavor()
     {
+        // Pantheon model: smelting favor routes to Craft regardless of player's active deity.
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
-        var mockPlayer = TestFixtures.CreateMockServerPlayer("player-smelt-3", "OtherDeity");
+        var mockPlayer = TestFixtures.CreateMockServerPlayer("player-smelt-3", "WildPlayer");
 
         fakeWorldService.AddPlayer(mockPlayer.Object);
 
-        // Player follows Lysa
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-smelt-3"))
             .Returns(TestFixtures.CreateTestPlayerReligionData("player-smelt-3", DeityDomain.Wild));
 
@@ -119,8 +120,8 @@ public class SmeltingFavorTrackerTests
         var method = GetHandleMethod();
         method.Invoke(tracker, new object?[] { "player-smelt-3", new BlockPos(5, 5, 5), 100, true });
 
-        mockFavor.Verify(m => m.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<float>()),
-            Times.Never);
+        mockFavor.Verify(m => m.AwardFavorForAction(It.IsAny<IServerPlayer>(), "smelting", It.IsAny<float>(), DeityDomain.Craft),
+            Times.Once);
 
         tracker.Dispose();
     }

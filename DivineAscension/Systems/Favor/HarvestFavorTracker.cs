@@ -37,8 +37,6 @@ public class HarvestFavorTracker(
 
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
-    private readonly HashSet<string> _harvestFollowers = new();
-
     // Event-based: no polling or container tracking needed
 
     // Simple per-player cooking award rate limit (to prevent rapid repeats)
@@ -57,10 +55,7 @@ public class HarvestFavorTracker(
         BlockCropPatches.OnCropHarvested -= OnCropHarvested;
         CropPlantingPatches.OnCropPlanted -= HandleCropPlanted;
         CookingPatches.OnMealCooked -= HandleMealCooked;
-        _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
-        _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
         _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
-        _harvestFollowers.Clear();
         _lastCookingAwardUtc.Clear();
     }
 
@@ -78,13 +73,6 @@ public class HarvestFavorTracker(
         // be the last interacting player; patches will ensure correct uid.
         CookingPatches.OnMealCooked += HandleMealCooked;
 
-        // Build initial cache of Aethra followers
-        RefreshFollowerCache();
-
-        // Listen for religion changes to update cache
-        _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
-        _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
-
         // Clean up cooking cooldown cache on player disconnect
         _eventService.OnPlayerDisconnect(OnPlayerDisconnect);
 
@@ -95,42 +83,13 @@ public class HarvestFavorTracker(
 
     private void HandleCropPlanted(IServerPlayer player, Block cropBlock)
     {
-        if (!_harvestFollowers.Contains(player.PlayerUID)) return;
-
         // Award favor for planting crops
-        _favorSystem.AwardFavorForAction(player, "planting " + GetCropName(cropBlock), FavorPerPlanting);
+        _favorSystem.AwardFavorForAction(player, "planting " + GetCropName(cropBlock), FavorPerPlanting, DeityDomain.Harvest);
     }
 
     #endregion
 
-    #region Follower Cache Management
-
-    private void RefreshFollowerCache()
-    {
-        _harvestFollowers.Clear();
-
-        var onlinePlayers = _worldService.GetAllOnlinePlayers();
-        if (onlinePlayers == null) return;
-
-        foreach (var player in onlinePlayers)
-        {
-            if (_playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID) == DeityDomain)
-                _harvestFollowers.Add(player.PlayerUID);
-        }
-    }
-
-    private void OnPlayerDataChanged(string playerUID)
-    {
-        if (_playerProgressionDataManager.GetPlayerDeityType(playerUID) == DeityDomain)
-            _harvestFollowers.Add(playerUID);
-        else
-            _harvestFollowers.Remove(playerUID);
-    }
-
-    private void OnPlayerLeavesProgression(IServerPlayer player, string religionUID)
-    {
-        _harvestFollowers.Remove(player.PlayerUID);
-    }
+    #region Player Disconnect Cleanup
 
     private void OnPlayerDisconnect(IServerPlayer player)
     {
@@ -147,7 +106,6 @@ public class HarvestFavorTracker(
     /// </summary>
     private void OnCropHarvested(IServerPlayer player, BlockCrop crop, BlockPos pos, bool isScytheHarvest)
     {
-        if (!_harvestFollowers.Contains(player.PlayerUID)) return;
         if (!IsMatureCrop(crop)) return;
 
         var actionName = "harvesting " + GetCropName(crop);
@@ -160,7 +118,7 @@ public class HarvestFavorTracker(
         else
         {
             // Use immediate favor for manual harvesting (better player feedback)
-            _favorSystem.AwardFavorForAction(player, actionName, FavorPerCropHarvest);
+            _favorSystem.AwardFavorForAction(player, actionName, FavorPerCropHarvest, DeityDomain.Harvest);
         }
     }
 
@@ -204,8 +162,6 @@ public class HarvestFavorTracker(
 
     private void HandleMealCooked(IServerPlayer player, ItemStack cookedStack, BlockPos pos)
     {
-        if (!_harvestFollowers.Contains(player.PlayerUID)) return;
-
         // Rate limit per player
         var now = DateTime.UtcNow;
         if (_lastCookingAwardUtc.TryGetValue(player.PlayerUID, out var last) &&
@@ -214,7 +170,7 @@ public class HarvestFavorTracker(
         var favor = CalculateMealFavor(cookedStack);
         if (favor <= 0) return;
 
-        _favorSystem.AwardFavorForAction(player, "cooking " + GetMealName(cookedStack), favor);
+        _favorSystem.AwardFavorForAction(player, "cooking " + GetMealName(cookedStack), favor, DeityDomain.Harvest);
         _lastCookingAwardUtc[player.PlayerUID] = now;
 
         _logger.Debug(

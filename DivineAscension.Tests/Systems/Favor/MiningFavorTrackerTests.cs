@@ -38,34 +38,31 @@ public class MiningFavorTrackerTests : IDisposable
     }
 
     [Fact]
-    public void OnOreBlockBroken_WhenPlayerNotFollowingCraft_AwardsNoFavor()
+    public void OnOreBlockBroken_WhenPlayerHasNonCraftPatron_StillAwardsCraftFavor()
     {
+        // Under pantheon model, all players accrue per-deity favor; patron multiplier
+        // is applied centrally in FavorSystem rather than gating per-tracker.
         var fakeWorldService = new FakeWorldService();
         var mockPlayerReligion = TestFixtures.CreateMockPlayerProgressionDataManager();
         var mockFavor = TestFixtures.CreateMockFavorSystem();
-        var mockPlayer = TestFixtures.CreateMockServerPlayer("player-4", "NotKhoras");
+        var mockPlayer = TestFixtures.CreateMockServerPlayer("player-4", "WildPlayer");
 
         fakeWorldService.AddPlayer(mockPlayer.Object);
 
-        // Player follows Wild (not Craft)
         mockPlayerReligion.Setup(m => m.GetOrCreatePlayerData("player-4"))
             .Returns(TestFixtures.CreateTestPlayerReligionData("player-4", DeityDomain.Wild));
-        mockPlayerReligion.Setup(m => m.GetPlayerDeityType("player-4"))
-            .Returns(DeityDomain.Wild);
 
-        // Ore block would normally grant favor, but since player doesn't follow Craft, expect none
         var block = new Block { Code = new AssetLocation("game", "ore-medium-tin") };
         fakeWorldService.SetBlock(new BlockPos(0, 0, 0), block);
 
         var tracker = CreateTracker(fakeWorldService, mockPlayerReligion, mockFavor);
         tracker.Initialize();
 
-        // Trigger the ore block broken event
         var mockWorld = new Mock<IWorldAccessor>();
         BlockBehaviorOre.TriggerOreBlockBroken(mockWorld.Object, new BlockPos(0, 0, 0), mockPlayer.Object, block, EnumHandling.PassThrough);
 
-        mockFavor.Verify(m => m.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()),
-            Times.Never);
+        mockFavor.Verify(m => m.AwardFavorForAction(It.IsAny<IServerPlayer>(), "mining ore", It.IsAny<float>(), DeityDomain.Craft),
+            Times.Once);
 
         tracker.Dispose();
     }
@@ -101,7 +98,7 @@ public class MiningFavorTrackerTests : IDisposable
         mockFavor.Verify(m => m.AwardFavorForAction(
             It.Is<IServerPlayer>(p => p.PlayerUID == "player-1"),
             "mining ore",
-            1), Times.Once);
+            1, It.IsAny<DeityDomain>()), Times.Once);
 
         tracker.Dispose();
     }
@@ -137,7 +134,7 @@ public class MiningFavorTrackerTests : IDisposable
         mockFavor.Verify(m => m.AwardFavorForAction(
             It.Is<IServerPlayer>(p => p.PlayerUID == "player-3"),
             "mining ore",
-            5), Times.Once);
+            5, It.IsAny<DeityDomain>()), Times.Once);
 
         tracker.Dispose();
     }

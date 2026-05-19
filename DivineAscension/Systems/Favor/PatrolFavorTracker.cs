@@ -179,12 +179,6 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
     {
         var playerUID = player.PlayerUID;
 
-        // Only track Conquest domain players
-        if (!IsConquestDomainPlayer(playerUID))
-        {
-            return;
-        }
-
         // Only track civilization sites (not just own religion)
         var civSites = GetCivilizationHolySites(playerUID);
         if (!civSites.Any(s => s.SiteUID == site.SiteUID))
@@ -556,14 +550,6 @@ public class PatrolFavorTracker : IFavorTracker, IDisposable
         }
 
         return sites;
-    }
-
-    /// <summary>
-    /// Checks if a player is a Conquest domain follower.
-    /// </summary>
-    internal bool IsConquestDomainPlayer(string playerUID)
-    {
-        return _playerProgressionDataManager.GetPlayerDeityType(playerUID) == DeityDomain.Conquest;
     }
 
     #endregion

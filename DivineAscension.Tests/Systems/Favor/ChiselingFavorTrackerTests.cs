@@ -66,7 +66,7 @@ public class ChiselingFavorTrackerTests
 
         // Assert
         mockFavor.Verify(f => f.AwardFavorForAction(
-            mockPlayer.Object, "Stone Carving", 0.02f), Times.Once);
+            mockPlayer.Object, "Stone Carving", 0.02f, DeityDomain.Stone), Times.Once);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class ChiselingFavorTrackerTests
 
         // Assert
         mockFavor.Verify(f => f.AwardFavorForAction(
-            mockPlayer.Object, "Stone Carving", 2f), Times.Once);
+            mockPlayer.Object, "Stone Carving", 2f, DeityDomain.Stone), Times.Once);
     }
 
     [Fact]
@@ -138,20 +138,20 @@ public class ChiselingFavorTrackerTests
 
         // Assert
         mockFavor.Verify(f => f.AwardFavorForAction(
-            mockPlayer.Object, "Stone Carving", 40f), Times.Once);
+            mockPlayer.Object, "Stone Carving", 40f, DeityDomain.Stone), Times.Once);
     }
 
     [Fact]
-    public void HandleVoxelsChanged_NonStoneFollower_NoFavor()
+    public void HandleVoxelsChanged_NonStonePatron_StillAwardsStoneFavor()
     {
-        // Arrange
+        // Pantheon model: tracker no longer gates on the player's active deity.
         var mockPlayer = new Mock<IServerPlayer>();
         mockPlayer.Setup(p => p.PlayerUID).Returns("player1");
         mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
 
         var mockProgression = new Mock<IPlayerProgressionDataManager>();
         mockProgression.Setup(m => m.GetPlayerDeityType("player1"))
-            .Returns(DeityDomain.Wild); // Not Stone domain
+            .Returns(DeityDomain.Wild);
 
         var mockFavor = new Mock<IFavorSystem>();
         var fakeWorld = new FakeWorldService();
@@ -167,14 +167,12 @@ public class ChiselingFavorTrackerTests
 
         tracker.Initialize();
 
-        // Act - Invoke via reflection
         var method = typeof(StoneFavorTracker).GetMethod("HandleVoxelsChanged",
             BindingFlags.Instance | BindingFlags.NonPublic);
         method!.Invoke(tracker, new object[] { mockPlayer.Object, new BlockPos(0, 0, 0), 100 });
 
-        // Assert - No favor awarded
         mockFavor.Verify(f => f.AwardFavorForAction(
-            It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<float>()), Times.Never);
+            mockPlayer.Object, "Stone Carving", It.IsAny<float>(), DeityDomain.Stone), Times.Once);
     }
 
     [Fact]
@@ -216,7 +214,7 @@ public class ChiselingFavorTrackerTests
 
         // Assert - Both should have 1.0x multiplier
         mockFavor.Verify(f => f.AwardFavorForAction(
-            mockPlayer.Object, "Stone Carving", 2f), Times.Exactly(2)); // 100 × 0.02 × 1.0 = 2f
+            mockPlayer.Object, "Stone Carving", 2f, DeityDomain.Stone), Times.Exactly(2)); // 100 × 0.02 × 1.0 = 2f
     }
 
     [Fact]
@@ -260,7 +258,7 @@ public class ChiselingFavorTrackerTests
 
         // Assert - Third action should have 1.25x multiplier
         mockFavor.Verify(f => f.AwardFavorForAction(
-            mockPlayer.Object, "Stone Carving", 2.5f), Times.Once); // 100 × 0.02 × 1.25 = 2.5f
+            mockPlayer.Object, "Stone Carving", 2.5f, DeityDomain.Stone), Times.Once); // 100 × 0.02 × 1.25 = 2.5f
     }
 
     [Fact]
@@ -301,7 +299,7 @@ public class ChiselingFavorTrackerTests
 
         // Assert - Sixth action should have 1.5x multiplier
         mockFavor.Verify(f => f.AwardFavorForAction(
-            mockPlayer.Object, "Stone Carving", 3f), Times.Once); // 100 × 0.02 × 1.5 = 3f
+            mockPlayer.Object, "Stone Carving", 3f, DeityDomain.Stone), Times.Once); // 100 × 0.02 × 1.5 = 3f
     }
 
     [Fact]
@@ -349,7 +347,7 @@ public class ChiselingFavorTrackerTests
 
         // Assert - After timeout, should be back to 1.0x multiplier
         mockFavor.Verify(f => f.AwardFavorForAction(
-            mockPlayer.Object, "Stone Carving", 2f), Times.Exactly(3)); // Last action: 100 × 0.02 × 1.0 = 2f
+            mockPlayer.Object, "Stone Carving", 2f, DeityDomain.Stone), Times.Exactly(3)); // Last action: 100 × 0.02 × 1.0 = 2f
     }
 
     [Fact]
@@ -390,7 +388,7 @@ public class ChiselingFavorTrackerTests
 
         // Assert - 21st action should have 2.5x multiplier
         mockFavor.Verify(f => f.AwardFavorForAction(
-            mockPlayer.Object, "Stone Carving", 5f), Times.Once); // 100 × 0.02 × 2.5 = 5f
+            mockPlayer.Object, "Stone Carving", 5f, DeityDomain.Stone), Times.Once); // 100 × 0.02 × 2.5 = 5f
     }
 
     [Fact]
@@ -434,7 +432,7 @@ public class ChiselingFavorTrackerTests
 
         // Assert - Only 2 actions should be awarded (spam blocked by cooldown)
         mockFavor.Verify(f => f.AwardFavorForAction(
-            It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<float>()), Times.Exactly(2));
+            It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<float>(), It.IsAny<DeityDomain>()), Times.Exactly(2));
     }
 
     [Fact]
@@ -484,6 +482,6 @@ public class ChiselingFavorTrackerTests
 
         // Assert - Should have two awards with 1.0x multiplier (session was cleaned up and restarted)
         mockFavor.Verify(f => f.AwardFavorForAction(
-            mockPlayer.Object, "Stone Carving", 2f), Times.Exactly(2)); // 100 × 0.02 × 1.0 = 2f
+            mockPlayer.Object, "Stone Carving", 2f, DeityDomain.Stone), Times.Exactly(2)); // 100 × 0.02 × 1.0 = 2f
     }
 }

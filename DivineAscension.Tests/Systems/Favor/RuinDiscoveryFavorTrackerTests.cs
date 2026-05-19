@@ -164,55 +164,6 @@ public class RuinDiscoveryFavorTrackerTests
     }
 
     [Fact]
-    public void UpdateFollower_ConquestFollower_AddsToCache()
-    {
-        var fakeWorldService = new FakeWorldService();
-        var mockEventService = new Mock<IEventService>();
-        var mockPlayerProgression = TestFixtures.CreateMockPlayerProgressionDataManager();
-        var mockFavor = TestFixtures.CreateMockFavorSystem();
-        var mockPlayer = TestFixtures.CreateMockServerPlayer("player-1", "TestPlayer");
-
-        fakeWorldService.AddPlayer(mockPlayer.Object);
-
-        // Player follows Conquest
-        mockPlayerProgression.Setup(m => m.GetPlayerDeityType("player-1"))
-            .Returns(DeityDomain.Conquest);
-
-        var tracker = CreateTracker(mockEventService, fakeWorldService, mockPlayerProgression, mockFavor);
-        tracker.Initialize();
-
-        // Verify player is in follower cache by checking if they would be scanned
-        // (We can't directly access the cache, but initialization should add them)
-        mockPlayerProgression.Verify(m => m.GetPlayerDeityType("player-1"), Times.AtLeastOnce);
-
-        tracker.Dispose();
-    }
-
-    [Fact]
-    public void UpdateFollower_NonConquestFollower_RemovesFromCache()
-    {
-        var fakeWorldService = new FakeWorldService();
-        var mockEventService = new Mock<IEventService>();
-        var mockPlayerProgression = TestFixtures.CreateMockPlayerProgressionDataManager();
-        var mockFavor = TestFixtures.CreateMockFavorSystem();
-        var mockPlayer = TestFixtures.CreateMockServerPlayer("player-1", "TestPlayer");
-
-        fakeWorldService.AddPlayer(mockPlayer.Object);
-
-        // Player follows Harvest (not Conquest)
-        mockPlayerProgression.Setup(m => m.GetPlayerDeityType("player-1"))
-            .Returns(DeityDomain.Harvest);
-
-        var tracker = CreateTracker(mockEventService, fakeWorldService, mockPlayerProgression, mockFavor);
-        tracker.Initialize();
-
-        // Player should not be in cache (verified by deity type check)
-        mockPlayerProgression.Verify(m => m.GetPlayerDeityType("player-1"), Times.AtLeastOnce);
-
-        tracker.Dispose();
-    }
-
-    [Fact]
     public void Dispose_UnregistersCallbackAndClearsCache()
     {
         var mockEventService = new Mock<IEventService>();

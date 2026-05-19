@@ -501,18 +501,18 @@ public class FavorSystemTests
             mockPlayerReligionDataManager.Object,
             mockReligionManager.Object);
 
-        // Act
-        favorSystem.AwardFavorForAction(mockPlayer.Object, "test action", 15);
+        // Act — patron domain matches source, expect 1.5x multiplier
+        favorSystem.AwardFavorForAction(mockPlayer.Object, "test action", 15f, DeityDomain.Craft);
 
         // Assert
         mockPlayerReligionDataManager.Verify(
-            m => m.AddFractionalFavor("player-uid", DeityDomain.Craft, 15, "test action"),
+            m => m.AddFractionalFavor("player-uid", DeityDomain.Craft, 22.5f, "test action"),
             Times.Once
         );
     }
 
     [Fact]
-    public void AwardFavorForAction_WithPlayerWithoutDeity_DoesNotAwardFavor()
+    public void AwardFavorForAction_WithSourceDomainNone_DoesNotAwardFavor()
     {
         // Arrange
         var mockLogger = new Mock<ILoggerWrapper>();
@@ -537,14 +537,70 @@ public class FavorSystemTests
             mockPlayerReligionDataManager.Object,
             mockReligionManager.Object);
 
-        // Act
-        favorSystem.AwardFavorForAction(mockPlayer.Object, "test action", 15);
+        // Act — DeityDomain.None short-circuits in AwardFavorCore
+        favorSystem.AwardFavorForAction(mockPlayer.Object, "test action", 15f, DeityDomain.None);
 
         // Assert
         mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<int>(), It.IsAny<string>()),
+            m => m.AddFavor(It.IsAny<string>(), It.IsAny<DeityDomain>(), It.IsAny<int>(), It.IsAny<string>()),
             Times.Never
         );
+        mockPlayerReligionDataManager.Verify(
+            m => m.AddFractionalFavor(It.IsAny<string>(), It.IsAny<DeityDomain>(), It.IsAny<float>(), It.IsAny<string>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public void AwardFavorForAction_NonPatronDomain_Applies1xMultiplier()
+    {
+        var mockLogger = new Mock<ILoggerWrapper>();
+        var fakeEventService = new FakeEventService();
+        var fakeWorldService = new FakeWorldService();
+        var mockProgression = new Mock<IPlayerProgressionDataManager>();
+        var mockReligionManager = new Mock<IReligionManager>();
+
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
+
+        // Religion's patron is Craft; source is Wild → non-patron, 1.0x.
+        mockProgression.Setup(m => m.GetOrCreatePlayerData("player-uid")).Returns(new PlayerProgressionData());
+        mockReligionManager.Setup(d => d.GetPlayerReligion("player-uid"))
+            .Returns(TestFixtures.CreateTestReligion(domain: DeityDomain.Craft));
+
+        var favorSystem = CreateFavorSystem(mockLogger.Object, fakeEventService, fakeWorldService,
+            mockProgression.Object, mockReligionManager.Object);
+
+        favorSystem.AwardFavorForAction(mockPlayer.Object, "hunting", 10f, DeityDomain.Wild);
+
+        mockProgression.Verify(
+            m => m.AddFractionalFavor("player-uid", DeityDomain.Wild, 10f, "hunting"),
+            Times.Once);
+    }
+
+    [Fact]
+    public void AwardFavorForAction_NullReligion_Applies1xMultiplier()
+    {
+        var mockLogger = new Mock<ILoggerWrapper>();
+        var fakeEventService = new FakeEventService();
+        var fakeWorldService = new FakeWorldService();
+        var mockProgression = new Mock<IPlayerProgressionDataManager>();
+        var mockReligionManager = new Mock<IReligionManager>();
+
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
+
+        mockProgression.Setup(m => m.GetOrCreatePlayerData("player-uid")).Returns(new PlayerProgressionData());
+        mockReligionManager.Setup(d => d.GetPlayerReligion("player-uid")).Returns((ReligionData?)null);
+
+        var favorSystem = CreateFavorSystem(mockLogger.Object, fakeEventService, fakeWorldService,
+            mockProgression.Object, mockReligionManager.Object);
+
+        favorSystem.AwardFavorForAction(mockPlayer.Object, "mining ore", 10f, DeityDomain.Craft);
+
+        mockProgression.Verify(
+            m => m.AddFractionalFavor("player-uid", DeityDomain.Craft, 10f, "mining ore"),
+            Times.Once);
     }
 
     #endregion
@@ -578,6 +634,7 @@ public class FavorSystemTests
             .Returns(playerData);
 
         mockReligionManager.Setup(d => d.GetPlayerActiveDeityDomain("player-uid")).Returns(DeityDomain.Craft);
+        mockReligionManager.Setup(d => d.GetPlayerReligion("player-uid")).Returns(TestFixtures.CreateTestReligion());
         var favorSystem = CreateFavorSystem(
             mockLogger.Object,
             fakeEventService,
@@ -588,7 +645,7 @@ public class FavorSystemTests
         // Act
         favorSystem.AwardPassiveFavor(mockPlayer.Object, 1.0f);
 
-        // Assert
+        // Assert — passive favor now routes via AwardFavorCore (per-deity + patron multiplier applied).
         mockPlayerReligionDataManager.Verify(
             m => m.AddFractionalFavor("player-uid", DeityDomain.Craft, It.IsAny<float>(), "Passive devotion"),
             Times.Once
@@ -981,7 +1038,7 @@ public class FavorSystemTests
         mockPlayerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player1-uid")).Returns(playerData1);
         mockPlayerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player2-uid")).Returns(playerData2);
 
-        mockReligionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns((ReligionData?)null);
+        mockReligionManager.Setup(m => m.GetPlayerReligion(It.IsAny<string>())).Returns(TestFixtures.CreateTestReligion());
         mockReligionManager.Setup(m => m.GetPlayerActiveDeityDomain(It.IsAny<string>())).Returns(DeityDomain.Craft);
 
         var favorSystem = CreateFavorSystem(
@@ -1094,13 +1151,14 @@ public class FavorSystemTests
             mockTimeService.Object);
 
         // Act - Award favor for a combat kill (typical action from ConquestFavorTracker)
-        favorSystem.AwardFavorForAction(mockPlayer.Object, "combat kill drifter-normal", 5);
+        // Patron domain matches → 1.5x → favor 5 becomes 7.5, prestige tracks favor amount.
+        favorSystem.AwardFavorForAction(mockPlayer.Object, "combat kill drifter-normal", 5f, DeityDomain.Conquest);
 
-        // Assert - Prestige SHOULD be awarded (but currently is NOT due to bug)
+        // Assert - Prestige SHOULD be awarded
         mockPrestigeManager.Verify(
             m => m.AddFractionalPrestige(
                 "conquest-religion-uid",
-                5f,
+                7.5f,
                 It.Is<string>(s => s.Contains("combat kill"))),
             Times.Once,
             "Combat kills should award prestige to Conquest religions, but the overly broad 'kill' filter prevents this");
@@ -1153,13 +1211,126 @@ public class FavorSystemTests
             mockTimeService.Object);
 
         // Act - Award favor for a PvP kill (this should NOT go through FavorSystem for prestige)
-        favorSystem.AwardFavorForAction(mockPlayer.Object, "PvP kill against OtherPlayer", 10);
+        favorSystem.AwardFavorForAction(mockPlayer.Object, "PvP kill against OtherPlayer", 10f, DeityDomain.Conquest);
 
         // Assert - Prestige should NOT be awarded (PvPManager handles this separately)
         mockPrestigeManager.Verify(
             m => m.AddFractionalPrestige(It.IsAny<string>(), It.IsAny<float>(), It.IsAny<string>()),
             Times.Never,
             "PvP kills should NOT award prestige through FavorSystem (PvPManager handles it)");
+    }
+
+    [Fact]
+    public void AwardFavorForAction_NonPatronSource_DoesNotAwardPrestige()
+    {
+        // Pantheon model: a player can earn favor in every domain, but their religion
+        // only gains prestige from activity in its own patron domain.
+        var mockLogger = new Mock<ILoggerWrapper>();
+        var fakeEventService = new FakeEventService();
+        var fakeWorldService = new FakeWorldService();
+        var mockPlayerProgressionDataManager = new Mock<IPlayerProgressionDataManager>();
+        var mockReligionManager = new Mock<IReligionManager>();
+        var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
+        var mockActivityLogManager = new Mock<IActivityLogManager>();
+        var mockMessenger = new Mock<IPlayerMessengerService>();
+
+        var religion = new ReligionData
+        {
+            ReligionUID = "craft-religion-uid",
+            ReligionName = "Smiths",
+            PatronDomain = DeityDomain.Craft,
+            PatronName = "Khoras",
+            FounderUID = "player-uid"
+        };
+
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+        fakeWorldService.AddPlayer(mockPlayer.Object);
+
+        mockReligionManager.Setup(m => m.GetPlayerReligion("player-uid")).Returns(religion);
+
+        var mockTimeService = new Mock<ITimeService>();
+        var favorSystem = new FavorSystem(
+            mockLogger.Object,
+            fakeEventService,
+            fakeWorldService,
+            mockPlayerProgressionDataManager.Object,
+            mockReligionManager.Object,
+            mockPrestigeManager.Object,
+            mockActivityLogManager.Object,
+            CreateTestConfig(),
+            mockMessenger.Object,
+            mockTimeService.Object);
+
+        // Act — Wild source, religion is Craft patron
+        favorSystem.AwardFavorForAction(mockPlayer.Object, "hunting deer", 10f, DeityDomain.Wild);
+
+        // Favor still lands in the Wild bucket at 1.0× (non-patron multiplier).
+        mockPlayerProgressionDataManager.Verify(
+            m => m.AddFractionalFavor("player-uid", DeityDomain.Wild, 10f, "hunting deer"),
+            Times.Once);
+
+        // Prestige and activity log must NOT fire for non-patron source.
+        mockPrestigeManager.Verify(
+            m => m.AddFractionalPrestige(It.IsAny<string>(), It.IsAny<float>(), It.IsAny<string>()),
+            Times.Never);
+        mockActivityLogManager.Verify(
+            m => m.LogActivity(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DeityDomain>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public void AwardFavorForAction_PatronSource_AwardsPrestige()
+    {
+        var mockLogger = new Mock<ILoggerWrapper>();
+        var fakeEventService = new FakeEventService();
+        var fakeWorldService = new FakeWorldService();
+        var mockPlayerProgressionDataManager = new Mock<IPlayerProgressionDataManager>();
+        var mockReligionManager = new Mock<IReligionManager>();
+        var mockPrestigeManager = new Mock<IReligionPrestigeManager>();
+        var mockActivityLogManager = new Mock<IActivityLogManager>();
+        var mockMessenger = new Mock<IPlayerMessengerService>();
+
+        var religion = new ReligionData
+        {
+            ReligionUID = "craft-religion-uid",
+            ReligionName = "Smiths",
+            PatronDomain = DeityDomain.Craft,
+            PatronName = "Khoras",
+            FounderUID = "player-uid"
+        };
+
+        var mockPlayer = new Mock<IServerPlayer>();
+        mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
+        mockPlayer.Setup(p => p.PlayerName).Returns("TestPlayer");
+        fakeWorldService.AddPlayer(mockPlayer.Object);
+
+        mockReligionManager.Setup(m => m.GetPlayerReligion("player-uid")).Returns(religion);
+
+        var mockTimeService = new Mock<ITimeService>();
+        var favorSystem = new FavorSystem(
+            mockLogger.Object,
+            fakeEventService,
+            fakeWorldService,
+            mockPlayerProgressionDataManager.Object,
+            mockReligionManager.Object,
+            mockPrestigeManager.Object,
+            mockActivityLogManager.Object,
+            CreateTestConfig(),
+            mockMessenger.Object,
+            mockTimeService.Object);
+
+        // Act — patron-domain source: favor × 1.5, prestige flows.
+        favorSystem.AwardFavorForAction(mockPlayer.Object, "mining ore", 10f, DeityDomain.Craft);
+
+        mockPlayerProgressionDataManager.Verify(
+            m => m.AddFractionalFavor("player-uid", DeityDomain.Craft, 15f, "mining ore"),
+            Times.Once);
+        mockPrestigeManager.Verify(
+            m => m.AddFractionalPrestige("craft-religion-uid", 15f, It.Is<string>(s => s.Contains("mining ore"))),
+            Times.Once);
     }
 
     #endregion

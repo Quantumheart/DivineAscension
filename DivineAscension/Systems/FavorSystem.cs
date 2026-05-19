@@ -175,15 +175,6 @@ public class FavorSystem : IFavorSystem
         }
     }
 
-    /// <summary>
-    ///     Awards favor for deity-aligned actions (extensible for future features)
-    /// </summary>
-    public void AwardFavorForAction(IServerPlayer player, string actionType, int amount)
-    {
-        var domain = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
-        AwardFavorCore(player.PlayerUID, actionType, amount, domain);
-    }
-
     public void Dispose()
     {
         _eventService.UnsubscribePlayerDeath(OnPlayerDeath);
@@ -201,15 +192,14 @@ public class FavorSystem : IFavorSystem
         _patrolFavorTracker?.Dispose();
     }
 
-    public void AwardFavorForAction(IServerPlayer player, string actionType, float amount)
+    public void AwardFavorForAction(IServerPlayer player, string actionType, float amount, DeityDomain sourceDomain)
     {
-        var domain = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
-        AwardFavorCore(player.PlayerUID, actionType, amount, domain);
+        AwardFavorCore(player.PlayerUID, actionType, amount, sourceDomain);
     }
 
-    public void AwardFavorForAction(string playerUid, string actionType, float amount, DeityDomain deityDomain)
+    public void AwardFavorForAction(string playerUid, string actionType, float amount, DeityDomain sourceDomain)
     {
-        AwardFavorCore(playerUid, actionType, amount, deityDomain);
+        AwardFavorCore(playerUid, actionType, amount, sourceDomain);
     }
 
     /// <summary>
@@ -355,21 +345,20 @@ public class FavorSystem : IFavorSystem
     }
 
     /// <summary>
-    ///     Awards favor for deity-aligned actions (extensible for future features) by UID
-    /// </summary>
-    internal void AwardFavorForAction(string playerUid, string actionType, int amount)
-    {
-        var domain = _religionManager.GetPlayerActiveDeityDomain(playerUid);
-        AwardFavorCore(playerUid, actionType, amount, domain);
-    }
-
-    /// <summary>
     ///     Core favor award implementation with activity logging.
     ///     All public overloads delegate to this method.
     /// </summary>
     private void AwardFavorCore(string playerUid, string actionType, float amount, DeityDomain deityDomain)
     {
         if (deityDomain == DeityDomain.None) return;
+
+        // Apply patron multiplier: religion's patron domain accrues at 1.5x, all others (and null religion) at 1.0x.
+        var playerReligion = _religionManager.GetPlayerReligion(playerUid);
+        if (playerReligion != null && playerReligion.PatronDomain == deityDomain)
+        {
+            amount *= 1.5f;
+            _logger.Debug($"[FavorSystem] Applied patron multiplier 1.5x to {amount:F2} favor ({deityDomain})");
+        }
 
         // Apply holy site buff multiplier if active
         var player = _worldService.GetPlayerByUID(playerUid);
@@ -403,12 +392,16 @@ public class FavorSystem : IFavorSystem
         _playerProgressionDataManager.AddFractionalFavor(playerUid, deityDomain, amount, actionType);
 
         // 2. Check if player is in religion and should receive prestige
-        var playerReligion = _religionManager.GetPlayerReligion(playerUid);
         if (string.IsNullOrEmpty(playerReligion?.ReligionUID))
         {
             // Not in religion - no prestige to award
             return;
         }
+
+        // Prestige only flows when the source domain matches the religion's patron.
+        // Pantheon model: every player accrues all five domains, but a religion only
+        // gains stature from activity in its own patron domain.
+        if (playerReligion.PatronDomain != deityDomain) return;
 
         // 3. Check if activity is deity-themed (determines both prestige and logging)
         var isDeityThemed = ShouldAwardPrestigeForActivity(deityDomain, actionType);
@@ -483,7 +476,9 @@ public class FavorSystem : IFavorSystem
     {
         var religionData = _playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
 
-        var deity = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+        // Passive favor is religion-driven; route into the religion's patron domain so a future removal is a clean delete.
+        var religion = _religionManager.GetPlayerReligion(player.PlayerUID);
+        var deity = religion?.PatronDomain ?? DeityDomain.None;
         if (deity == DeityDomain.None) return;
 
         // Calculate in-game hours elapsed this tick
@@ -496,9 +491,10 @@ public class FavorSystem : IFavorSystem
         // Apply multipliers
         var finalFavor = baseFavor * CalculatePassiveFavorMultiplier(player, religionData, deity);
 
-        // Award favor using fractional accumulation
-        if (finalFavor >= 0.01f) // Only award when we have at least 0.01 favor
-            _playerProgressionDataManager.AddFractionalFavor(player.PlayerUID, deity, finalFavor, "Passive devotion");
+        // Route through core so per-deity + (patron) multiplier path is consistent; "Passive devotion" actionType
+        // is excluded from prestige in ShouldAwardPrestigeForActivity.
+        if (finalFavor >= 0.01f)
+            AwardFavorCore(player.PlayerUID, "Passive devotion", finalFavor, deity);
     }
 
     /// <summary>

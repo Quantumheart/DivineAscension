@@ -105,7 +105,7 @@ public class AnvilFavorTrackerTests
 
         // Assert
         _mockFavorSystem.Verify(
-            f => f.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()),
+            f => f.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<float>(), It.IsAny<DeityDomain>()),
             Times.Never
         );
 
@@ -126,7 +126,7 @@ public class AnvilFavorTrackerTests
 
         // Assert
         _mockFavorSystem.Verify(
-            f => f.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()),
+            f => f.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<float>(), It.IsAny<DeityDomain>()),
             Times.Never
         );
 
@@ -150,7 +150,7 @@ public class AnvilFavorTrackerTests
 
         // Assert
         _mockFavorSystem.Verify(
-            f => f.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()),
+            f => f.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<float>(), It.IsAny<DeityDomain>()),
             Times.Never
         );
 
@@ -159,9 +159,10 @@ public class AnvilFavorTrackerTests
     }
 
     [Fact]
-    public void HandleAnvilRecipeCompleted_WithNonCraftDeity_DoesNotAwardFavor()
+    public void HandleAnvilRecipeCompleted_WithNonCraftPatron_StillAwardsCraftFavor()
     {
-        // Arrange
+        // Under pantheon model, every player accrues per-deity favor via the source domain;
+        // the tracker no longer gates on the player's "active" deity.
         var tracker = CreateTracker();
         tracker.Initialize();
 
@@ -171,7 +172,7 @@ public class AnvilFavorTrackerTests
 
         _fakeWorldService.AddPlayer(mockPlayer.Object);
 
-        // Player follows Wild deity, not Craft
+        // Player has Wild patron — irrelevant; tracker routes Craft regardless.
         _mockPlayerProgressionDataManager
             .Setup(m => m.GetPlayerDeityType("player-uid"))
             .Returns(DeityDomain.Wild);
@@ -181,10 +182,10 @@ public class AnvilFavorTrackerTests
         // Act
         tracker.HandleAnvilRecipeCompleted("player-uid", pos, null);
 
-        // Assert
+        // Assert — tracker still emits Craft-domain favor
         _mockFavorSystem.Verify(
-            f => f.AwardFavorForAction(It.IsAny<IServerPlayer>(), It.IsAny<string>(), It.IsAny<int>()),
-            Times.Never
+            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", It.IsAny<float>(), DeityDomain.Craft),
+            Times.Once
         );
 
         // Cleanup
@@ -219,7 +220,7 @@ public class AnvilFavorTrackerTests
 
         // Assert - Should award 5 favor (low tier)
         _mockFavorSystem.Verify(
-            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 5),
+            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 5, DeityDomain.Craft),
             Times.Once
         );
 
@@ -255,7 +256,7 @@ public class AnvilFavorTrackerTests
 
         // Assert - Should award 10 favor (mid tier)
         _mockFavorSystem.Verify(
-            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 10),
+            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 10, DeityDomain.Craft),
             Times.Once
         );
 
@@ -291,7 +292,7 @@ public class AnvilFavorTrackerTests
 
         // Assert - Should award 15 favor (high tier)
         _mockFavorSystem.Verify(
-            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 15),
+            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 15, DeityDomain.Craft),
             Times.Once
         );
 
@@ -327,7 +328,7 @@ public class AnvilFavorTrackerTests
 
         // Assert - Should award 20 favor (elite tier)
         _mockFavorSystem.Verify(
-            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 20),
+            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 20, DeityDomain.Craft),
             Times.Once
         );
 
@@ -360,7 +361,7 @@ public class AnvilFavorTrackerTests
 
         // Assert - Should award 10 favor (mid tier default)
         _mockFavorSystem.Verify(
-            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 10),
+            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 10, DeityDomain.Craft),
             Times.Once
         );
 
@@ -400,7 +401,7 @@ public class AnvilFavorTrackerTests
 
         // Assert - Should award 13 favor (20 * 0.65 = 13)
         _mockFavorSystem.Verify(
-            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 13),
+            f => f.AwardFavorForAction(mockPlayer.Object, "smithing", 13, DeityDomain.Craft),
             Times.Once
         );
 

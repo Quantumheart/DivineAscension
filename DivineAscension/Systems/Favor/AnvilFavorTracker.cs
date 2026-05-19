@@ -60,10 +60,6 @@ public class AnvilFavorTracker(
         var player = _worldService.GetPlayerByUID(playerUid) as IServerPlayer;
         if (player == null) return;
 
-        // Verify religion
-        var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerUid);
-        if (deityType != DeityDomain.Craft) return;
-
         // Compute favor from output preview (fallback to mid tier)
         var baseFavor = outputPreview != null ? CalculateBaseFavor(outputPreview) : FavorMidTier;
 
@@ -71,7 +67,7 @@ public class AnvilFavorTracker(
         var usedHelve = CheckHelveHammerUsage(pos);
         var finalFavor = ApplyAutomationPenalty(baseFavor, usedHelve);
 
-        _favorSystem.AwardFavorForAction(player, "smithing", finalFavor);
+        _favorSystem.AwardFavorForAction(player, "smithing", finalFavor, DeityDomain.Craft);
         _logger.Debug(
             $"[AnvilFavorTracker:{_instanceId}] Awarded {finalFavor} favor to {player.PlayerName} for smithing (base {baseFavor}, helve:{usedHelve}) at {pos}");
     }
