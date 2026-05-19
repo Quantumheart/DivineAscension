@@ -7,7 +7,7 @@
         <NoWarn>$(NoWarn);CS8600;CS8602;CS8604;CS8620;CS8625</NoWarn>
         <OutputType>Exe</OutputType>
         <RootNamespace>DivineAscension.Tests</RootNamespace>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <!--
         This template uses native xUnit.net command line options when using 'dotnet run' and
         VSTest by default when using 'dotnet test'. For more information on how to enable support
