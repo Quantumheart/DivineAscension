@@ -1,7 +1,16 @@
 [
   {
     "op": "addmerge",
-    "path": "/behaviors/-",
+    "path": "/behaviorsByType/*/-",
+    "value": {
+      "name": "ChiselTracking"
+    },
+    "file": "game:itemtypes/tool/chisel.json",
+    "side": "Server"
+  },
+  {
+    "op": "addmerge",
+    "path": "/behaviorsByType/@(.*-steel|.*-meteoriciron|.*-iron)/-",
     "value": {
       "name": "ChiselTracking"
     },
