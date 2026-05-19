@@ -967,4 +967,35 @@ public class BlessingRegistryTests
     }
 
     #endregion
+
+    #region AdjustedCost Tests
+
+    [Fact]
+    public void AdjustedCost_PatronDomain_ReturnsBaseCost()
+    {
+        var blessing = new Blessing { Cost = 100, Domain = DeityDomain.Craft };
+        var religion = TestFixtures.CreateTestReligion("uid", "Test", DeityDomain.Craft, "founder");
+
+        Assert.Equal(100, BlessingRegistry.AdjustedCost(blessing, religion));
+    }
+
+    [Fact]
+    public void AdjustedCost_NonPatronDomain_AppliesOneAndAHalfMultiplier()
+    {
+        var blessing = new Blessing { Cost = 100, Domain = DeityDomain.Wild };
+        var religion = TestFixtures.CreateTestReligion("uid", "Test", DeityDomain.Craft, "founder");
+
+        Assert.Equal(150, BlessingRegistry.AdjustedCost(blessing, religion));
+    }
+
+    [Fact]
+    public void AdjustedCost_ZeroBaseCost_ReturnsZero()
+    {
+        var blessing = new Blessing { Cost = 0, Domain = DeityDomain.Wild };
+        var religion = TestFixtures.CreateTestReligion("uid", "Test", DeityDomain.Craft, "founder");
+
+        Assert.Equal(0, BlessingRegistry.AdjustedCost(blessing, religion));
+    }
+
+    #endregion
 }
