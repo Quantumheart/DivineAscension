@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Configuration;
+using DivineAscension.Models.Enum;
 using DivineAscension.Network;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Interfaces;
@@ -18,6 +20,12 @@ namespace DivineAscension.Systems.Networking.Server;
 [ExcludeFromCodeCoverage]
 public class PlayerDataNetworkHandler : IServerNetworkHandler
 {
+    private static readonly DeityDomain[] AllDeities =
+    {
+        DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest,
+        DeityDomain.Harvest, DeityDomain.Stone
+    };
+
     private readonly IPlayerProgressionDataManager? _playerProgressionDataManager;
     private readonly IReligionManager? _religionManager;
     private readonly ILogger? _logger;
@@ -93,19 +101,29 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
             return;
 
         var religionData = _religionManager.GetPlayerReligion(player.PlayerUID);
-        var deity = _playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID);
 
         if (religionData != null)
         {
+            var favorByDeity = new Dictionary<DeityDomain, int>();
+            var ranksByDeity = new Dictionary<DeityDomain, string>();
+            var totalByDeity = new Dictionary<DeityDomain, int>();
+            foreach (var domain in AllDeities)
+            {
+                favorByDeity[domain] = playerReligionData!.GetFavor(domain);
+                ranksByDeity[domain] = _playerProgressionDataManager
+                    .GetPlayerFavorRank(player.PlayerUID, domain).ToString();
+                totalByDeity[domain] = playerReligionData.GetTotalFavorEarned(domain);
+            }
+
             var packet = new PlayerReligionDataPacket(
                 religionData.ReligionName,
-                deity.ToString(),
+                religionData.PatronDomain,
                 religionData.PatronName,
-                playerReligionData!.GetFavor(deity),
-                _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID, deity).ToString(),
+                favorByDeity,
+                ranksByDeity,
+                totalByDeity,
                 religionData.Prestige,
-                religionData.PrestigeRank.ToString(),
-                playerReligionData.GetTotalFavorEarned(deity)
+                religionData.PrestigeRank.ToString()
             )
             {
                 // Send config thresholds so client UI displays correct values
