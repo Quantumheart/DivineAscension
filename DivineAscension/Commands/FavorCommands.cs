@@ -50,14 +50,17 @@ public class FavorCommands
             .HandleWith(OnCheckFavor) // Default behavior: show current favor
             .BeginSubCommand("get")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_GET_DESC))
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("domain"))
             .HandleWith(OnCheckFavor)
             .EndSubCommand()
             .BeginSubCommand("info")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_INFO_DESC))
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("domain"))
             .HandleWith(OnFavorInfo)
             .EndSubCommand()
             .BeginSubCommand("stats")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_STATS_DESC))
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("domain"))
             .HandleWith(OnFavorStats)
             .EndSubCommand()
             .BeginSubCommand("ranks")
@@ -67,37 +70,47 @@ public class FavorCommands
             .EndSubCommand()
             .BeginSubCommand("set")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SET_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"), _sapi.ChatCommands.Parsers.OptionalWord("playername"))
+            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"),
+                _sapi.ChatCommands.Parsers.OptionalWord("domain_or_player"),
+                _sapi.ChatCommands.Parsers.OptionalWord("playername_or_domain"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnSetFavor)
             .EndSubCommand()
             .BeginSubCommand("add")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ADD_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"), _sapi.ChatCommands.Parsers.OptionalWord("playername"))
+            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"),
+                _sapi.ChatCommands.Parsers.OptionalWord("domain_or_player"),
+                _sapi.ChatCommands.Parsers.OptionalWord("playername_or_domain"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnAddFavor)
             .EndSubCommand()
             .BeginSubCommand("remove")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_REMOVE_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"), _sapi.ChatCommands.Parsers.OptionalWord("playername"))
+            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"),
+                _sapi.ChatCommands.Parsers.OptionalWord("domain_or_player"),
+                _sapi.ChatCommands.Parsers.OptionalWord("playername_or_domain"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnRemoveFavor)
             .EndSubCommand()
             .BeginSubCommand("reset")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_RESET_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("playername"))
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("domain_or_player"),
+                _sapi.ChatCommands.Parsers.OptionalWord("playername_or_domain"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnResetFavor)
             .EndSubCommand()
             .BeginSubCommand("max")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_MAX_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("playername"))
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("domain_or_player"),
+                _sapi.ChatCommands.Parsers.OptionalWord("playername_or_domain"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnMaxFavor)
             .EndSubCommand()
             .BeginSubCommand("settotal")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SETTOTAL_DESC))
-            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"), _sapi.ChatCommands.Parsers.OptionalWord("playername"))
+            .WithArgs(_sapi.ChatCommands.Parsers.Int("amount"),
+                _sapi.ChatCommands.Parsers.OptionalWord("domain_or_player"),
+                _sapi.ChatCommands.Parsers.OptionalWord("playername_or_domain"))
             .RequiresPrivilege(Privilege.root)
             .HandleWith(OnSetTotalFavor)
             .EndSubCommand()
@@ -164,13 +177,34 @@ public class FavorCommands
             CommandHelpers.ValidatePlayerHasDeity(player, _playerProgressionDataManager, _religionManager);
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
-        var deity = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+        var deityResult = ResolveDeity(player.PlayerUID, args.ArgCount > 0 ? args[0] as string : null);
+        if (deityResult.Error != null) return deityResult.Error;
+        var deity = deityResult.Domain;
         var deityName = deity.ToString();
 
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_CHECK, playerProgressionData!.GetFavor(deity),
                 deityName, _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID, deity).ToLocalizedString())
         );
+    }
+
+    /// <summary>
+    ///     Resolves a single optional domain arg, defaulting to the player's patron when absent.
+    /// </summary>
+    private (DeityDomain Domain, TextCommandResult? Error) ResolveDeity(string playerUID, string? domainArg)
+    {
+        if (!string.IsNullOrEmpty(domainArg))
+        {
+            if (!Enum.TryParse<DeityDomain>(domainArg, ignoreCase: true, out var parsed) ||
+                parsed == DeityDomain.None)
+            {
+                return (DeityDomain.None,
+                    TextCommandResult.Error(LocalizationService.Instance.Get(
+                        LocalizationKeys.CMD_FAVOR_ERROR_INVALID_DOMAIN, domainArg)));
+            }
+            return (parsed, null);
+        }
+        return (_religionManager.GetPlayerActiveDeityDomain(playerUID), null);
     }
 
     /// <summary>
@@ -187,7 +221,9 @@ public class FavorCommands
             CommandHelpers.ValidatePlayerHasDeity(player, _playerProgressionDataManager, _religionManager);
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
-        var deityDomain = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+        var infoResult = ResolveDeity(player.PlayerUID, args.ArgCount > 0 ? args[0] as string : null);
+        if (infoResult.Error != null) return infoResult.Error;
+        var deityDomain = infoResult.Domain;
         var domainLocalized = deityDomain.ToLocalizedString();
 
         // Get current rank based on total favor
@@ -243,7 +279,26 @@ public class FavorCommands
             CommandHelpers.ValidatePlayerHasDeity(player, _playerProgressionDataManager, _religionManager);
         if (errorResult is { Status: EnumCommandStatus.Error }) return errorResult;
 
-        var deity = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+        var domainArg = args.ArgCount > 0 ? args[0] as string : null;
+        var sb = new StringBuilder();
+
+        if (string.IsNullOrEmpty(domainArg))
+        {
+            // No domain arg: show per-deity summary for all five.
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_HEADER_STATS));
+            sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_PER_DEITY));
+            foreach (var d in AllDeities)
+            {
+                var total = playerProgressionData!.GetTotalFavorEarned(d);
+                var rankName = RankRequirements.GetFavorRankName(GetCurrentFavorRank(total));
+                sb.AppendLine($"  {d.ToLocalizedString()}: {playerProgressionData.GetFavor(d):N0} ({rankName}, total {total:N0})");
+            }
+            return TextCommandResult.Success(sb.ToString());
+        }
+
+        var statsResult = ResolveDeity(player.PlayerUID, domainArg);
+        if (statsResult.Error != null) return statsResult.Error;
+        var deity = statsResult.Domain;
         var deityName = deity.ToLocalizedString();
 
         // Get current rank based on total favor
@@ -251,7 +306,6 @@ public class FavorCommands
         var currentRank = GetCurrentFavorRank(totalForDeity);
         var currentRankName = RankRequirements.GetFavorRankName(currentRank);
 
-        var sb = new StringBuilder();
         sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_HEADER_STATS));
         sb.AppendLine($"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_DOMAIN)} {deityName}");
         sb.AppendLine(
@@ -277,6 +331,38 @@ public class FavorCommands
         }
 
         return TextCommandResult.Success(sb.ToString());
+    }
+
+    private static readonly DeityDomain[] AllDeities =
+    {
+        DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest,
+        DeityDomain.Harvest, DeityDomain.Stone
+    };
+
+    /// <summary>
+    ///     Reads `args[startIndex]` and `args[startIndex+1]` as two optional positional words and
+    ///     smart-parses them into (domain?, playerName?). Returns an error result when a raw value
+    ///     was supplied that resembles neither a known DeityDomain nor a valid playername context.
+    ///     The error case fires only when *both* args are present and *neither* parses as a domain
+    ///     and ParseDomainAndPlayer leaves the user with an ambiguous duplicate playername — we
+    ///     surface a clear "invalid domain" message instead of silently dropping an arg.
+    /// </summary>
+    private static (DeityDomain? Domain, string? PlayerName, TextCommandResult? Error)
+        ParseDomainAndPlayerArgs(TextCommandCallingArgs args, int startIndex)
+    {
+        var arg1 = args.ArgCount > startIndex ? args[startIndex] as string : null;
+        var arg2 = args.ArgCount > startIndex + 1 ? args[startIndex + 1] as string : null;
+        var (domain, playerName) = CommandHelpers.ParseDomainAndPlayer(arg1, arg2);
+
+        // If user supplied two args and neither resolved to a domain, assume the second was meant
+        // as the domain — flag it as invalid so the admin sees a precise error.
+        if (domain == null && !string.IsNullOrEmpty(arg1) && !string.IsNullOrEmpty(arg2))
+        {
+            return (null, null, TextCommandResult.Error(LocalizationService.Instance.Get(
+                LocalizationKeys.CMD_FAVOR_ERROR_INVALID_DOMAIN, arg2)));
+        }
+
+        return (domain, playerName, null);
     }
 
     /// <summary>
@@ -318,7 +404,8 @@ public class FavorCommands
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_BE_PLAYER));
 
         var amount = (int)args[0];
-        var targetPlayerName = (string)args[1];
+        var (parsedDomain, targetPlayerName, parseError) = ParseDomainAndPlayerArgs(args, 1);
+        if (parseError != null) return parseError;
 
         // Validate amount
         if (amount < 0)
@@ -339,7 +426,7 @@ public class FavorCommands
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
         var targetUID = targetPlayer?.PlayerUID ?? player.PlayerUID;
-        var targetDeity = _religionManager.GetPlayerActiveDeityDomain(targetUID);
+        var targetDeity = parsedDomain ?? _religionManager.GetPlayerActiveDeityDomain(targetUID);
         playerData.SetFavor(targetDeity, amount);
 
         var targetName = targetPlayerName != null ? $" for {targetPlayer?.PlayerName}" : "";
@@ -358,7 +445,8 @@ public class FavorCommands
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_BE_PLAYER));
 
         var amount = (int)args[0];
-        var targetPlayerName = (string)args[1];
+        var (parsedDomain, targetPlayerName, parseError) = ParseDomainAndPlayerArgs(args, 1);
+        if (parseError != null) return parseError;
 
         // Validate amount
         if (amount <= 0)
@@ -378,7 +466,7 @@ public class FavorCommands
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
-        var targetDeity = _religionManager.GetPlayerActiveDeityDomain(targetPlayer.PlayerUID);
+        var targetDeity = parsedDomain ?? _religionManager.GetPlayerActiveDeityDomain(targetPlayer.PlayerUID);
         var oldFavor = playerData.GetFavor(targetDeity);
         _playerProgressionDataManager.AddFavor(targetPlayer.PlayerUID, targetDeity, amount);
 
@@ -399,7 +487,8 @@ public class FavorCommands
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_BE_PLAYER));
 
         var amount = (int)args[0];
-        var targetPlayerName = (string)args[1];
+        var (parsedDomain, targetPlayerName, parseError) = ParseDomainAndPlayerArgs(args, 1);
+        if (parseError != null) return parseError;
 
         // Validate amount
         if (amount <= 0)
@@ -419,7 +508,7 @@ public class FavorCommands
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
-        var targetDeity = _religionManager.GetPlayerActiveDeityDomain(targetPlayer.PlayerUID);
+        var targetDeity = parsedDomain ?? _religionManager.GetPlayerActiveDeityDomain(targetPlayer.PlayerUID);
         var oldFavor = playerData.GetFavor(targetDeity);
         _playerProgressionDataManager.RemoveFavor(targetPlayer.PlayerUID, targetDeity, amount);
         var actualRemoved = oldFavor - playerData.GetFavor(targetDeity);
@@ -440,7 +529,8 @@ public class FavorCommands
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_BE_PLAYER));
 
-        var targetPlayerName = (string)args[0];
+        var (parsedDomain, targetPlayerName, parseError) = ParseDomainAndPlayerArgs(args, 0);
+        if (parseError != null) return parseError;
 
         // Resolve target player
         var (targetPlayer, playerData, errorResult) = CommandHelpers.ResolveTargetPlayer(player, targetPlayerName,
@@ -453,7 +543,7 @@ public class FavorCommands
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
         var targetUID = targetPlayer?.PlayerUID ?? player.PlayerUID;
-        var targetDeity = _religionManager.GetPlayerActiveDeityDomain(targetUID);
+        var targetDeity = parsedDomain ?? _religionManager.GetPlayerActiveDeityDomain(targetUID);
         var oldFavor = playerData.GetFavor(targetDeity);
         playerData.SetFavor(targetDeity, 0);
 
@@ -472,7 +562,8 @@ public class FavorCommands
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_BE_PLAYER));
 
-        var targetPlayerName = (string)args[0];
+        var (parsedDomain, targetPlayerName, parseError) = ParseDomainAndPlayerArgs(args, 0);
+        if (parseError != null) return parseError;
 
         // Resolve target player
         var (targetPlayer, playerData, errorResult) = CommandHelpers.ResolveTargetPlayer(player, targetPlayerName,
@@ -485,7 +576,7 @@ public class FavorCommands
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
         var targetUID = targetPlayer?.PlayerUID ?? player.PlayerUID;
-        var targetDeity = _religionManager.GetPlayerActiveDeityDomain(targetUID);
+        var targetDeity = parsedDomain ?? _religionManager.GetPlayerActiveDeityDomain(targetUID);
         var oldFavor = playerData.GetFavor(targetDeity);
         playerData.SetFavor(targetDeity, 99999);
 
@@ -543,7 +634,8 @@ public class FavorCommands
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_TOTAL_EXCEEDS_MAX));
 
-        var targetPlayerArg = (string)args[1];
+        var (parsedDomain, targetPlayerArg, parseError) = ParseDomainAndPlayerArgs(args, 1);
+        if (parseError != null) return parseError;
 
         // Handle targeting another player
         if (targetPlayerArg != null)
@@ -570,7 +662,7 @@ public class FavorCommands
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_TARGET_NO_RELIGION));
 
-            var targetDeity = _religionManager.GetPlayerActiveDeityDomain(serverPlayer.PlayerUID);
+            var targetDeity = parsedDomain ?? _religionManager.GetPlayerActiveDeityDomain(serverPlayer.PlayerUID);
             var oldTotal = targetProgressionData.GetTotalFavorEarned(targetDeity);
             var oldRank = _playerProgressionDataManager.GetPlayerFavorRank(serverPlayer.PlayerUID, targetDeity);
 
@@ -589,7 +681,7 @@ public class FavorCommands
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
-        var callerDeity = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+        var callerDeity = parsedDomain ?? _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
         var callerOldTotal = religionData.GetTotalFavorEarned(callerDeity);
         var callerOldRank = _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID, callerDeity);
 

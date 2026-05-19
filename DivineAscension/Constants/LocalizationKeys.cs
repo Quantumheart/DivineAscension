@@ -832,6 +832,8 @@ public static class LocalizationKeys
     public const string CMD_FAVOR_ERROR_TARGET_NO_RELIGION = "divineascension:cmd.favor.error.target_no_religion";
     public const string CMD_FAVOR_ERROR_TOTAL_NEGATIVE = "divineascension:cmd.favor.error.total_negative";
     public const string CMD_FAVOR_ERROR_TOTAL_EXCEEDS_MAX = "divineascension:cmd.favor.error.total_exceeds_max";
+    public const string CMD_FAVOR_ERROR_INVALID_DOMAIN = "divineascension:cmd.favor.error.invalid_domain";
+    public const string CMD_FAVOR_LABEL_PER_DEITY = "divineascension:cmd.favor.label.per_deity";
 
     // Success messages
     public const string CMD_FAVOR_SUCCESS_CHECK = "divineascension:cmd.favor.success.check";

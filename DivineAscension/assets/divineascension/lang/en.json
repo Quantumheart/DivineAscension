@@ -524,6 +524,8 @@
   "divineascension:cmd.favor.error.target_no_religion": "Target must have a religion",
   "divineascension:cmd.favor.error.total_negative": "Total favor earned cannot be negative.",
   "divineascension:cmd.favor.error.total_exceeds_max": "Total favor earned cannot exceed 999,999.",
+  "divineascension:cmd.favor.error.invalid_domain": "Invalid deity domain '{0}'. Expected one of: Craft, Wild, Conquest, Harvest, Stone.",
+  "divineascension:cmd.favor.label.per_deity": "Per-deity favor:",
   "divineascension:cmd.favor.success.check": "You have {0} favor with {1} (Rank: {2})",
   "divineascension:cmd.favor.success.set": "Favor set to {0}{1}",
   "divineascension:cmd.favor.success.add": "Added {0} favor{1} ({2} → {3})",

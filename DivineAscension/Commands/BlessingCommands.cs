@@ -59,6 +59,7 @@ public class BlessingCommands(
             .RequiresPrivilege(Privilege.chat)
             .BeginSubCommand(BlessingCommandConstants.SubCommandList)
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSINGS_LIST_DESC))
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("domain"))
             .HandleWith(OnList)
             .EndSubCommand()
             .BeginSubCommand(BlessingCommandConstants.SubCommandPlayer)
@@ -129,10 +130,24 @@ public class BlessingCommands(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_PLAYER_NOT_FOUND));
 
         var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
-        var playerDeity = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
-        if (playerDeity == DeityDomain.None)
-            return TextCommandResult.Error(
-                LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_IN_RELIGION));
+
+        var domainArg = args.ArgCount > 0 ? args[0] as string : null;
+        DeityDomain playerDeity;
+        if (!string.IsNullOrEmpty(domainArg))
+        {
+            if (!Enum.TryParse<DeityDomain>(domainArg, ignoreCase: true, out var parsed) ||
+                parsed == DeityDomain.None)
+                return TextCommandResult.Error(LocalizationService.Instance.Get(
+                    LocalizationKeys.CMD_FAVOR_ERROR_INVALID_DOMAIN, domainArg));
+            playerDeity = parsed;
+        }
+        else
+        {
+            playerDeity = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+            if (playerDeity == DeityDomain.None)
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_IN_RELIGION));
+        }
 
         var playerBlessings = _blessingRegistry.GetBlessingsForDeity(playerDeity, BlessingKind.Player);
         var religionBlessings = _blessingRegistry.GetBlessingsForDeity(playerDeity, BlessingKind.Religion);
