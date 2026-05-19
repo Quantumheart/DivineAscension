@@ -215,7 +215,7 @@ public class RoleCommands(
                 var memberData = _playerProgressionDataManager.GetOrCreatePlayerData(memberUID);
 
                 sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_ROLE_FORMAT_MEMBER_INFO,
-                    memberName, _playerProgressionDataManager.GetPlayerFavorRank(memberUID).ToLocalizedString(), memberData.Favor));
+                    memberName, _playerProgressionDataManager.GetPlayerFavorRank(memberUID, religion.PatronDomain).ToLocalizedString(), memberData.GetFavor(religion.PatronDomain)));
             }
 
         return TextCommandResult.Success(sb.ToString());

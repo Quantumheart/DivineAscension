@@ -484,7 +484,7 @@ public class BlessingRegistryTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
-        playerData.AddFavor(100); // Enough for cost of 50
+        playerData.AddFavor(DeityDomain.Craft, 100); // Enough for cost of 50
 
         var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Player);
         blessing.RequiredFavorRank = 0;
@@ -723,7 +723,7 @@ public class BlessingRegistryTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
-        playerData.AddFavor(200);
+        playerData.AddFavor(DeityDomain.Craft, 200);
         // Player committed to "Forge" branch, locking "Endurance"
         playerData.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
 
@@ -747,7 +747,7 @@ public class BlessingRegistryTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
-        playerData.AddFavor(200);
+        playerData.AddFavor(DeityDomain.Craft, 200);
         // Player committed to "Forge" branch
         playerData.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
 
@@ -770,7 +770,7 @@ public class BlessingRegistryTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
-        playerData.AddFavor(200);
+        playerData.AddFavor(DeityDomain.Craft, 200);
         // Player committed to "Forge" branch
         playerData.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
 
@@ -793,7 +793,7 @@ public class BlessingRegistryTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
-        playerData.AddFavor(200);
+        playerData.AddFavor(DeityDomain.Craft, 200);
         // Player committed to "Forge" branch
         playerData.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
 
@@ -816,7 +816,7 @@ public class BlessingRegistryTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Wild, "religion-uid");
-        playerData.AddFavor(200);
+        playerData.AddFavor(DeityDomain.Craft, 200);
         // Player committed to "Forge" branch in CRAFT domain
         playerData.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
 
@@ -839,7 +839,7 @@ public class BlessingRegistryTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
-        playerData.AddFavor(200);
+        playerData.AddFavor(DeityDomain.Craft, 200);
         // No branch commitment yet
 
         var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Player);

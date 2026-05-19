@@ -73,9 +73,9 @@ public class RitualProgressManager : IRitualProgressManager
         }
 
         // Validate domain match
-        if (ritual.Domain != religion.Domain)
+        if (ritual.Domain != religion.PatronDomain)
         {
-            return new RitualStartResult(false, $"This ritual is for {ritual.Domain} domain, but your religion follows {religion.Domain}");
+            return new RitualStartResult(false, $"This ritual is for {ritual.Domain} domain, but your religion follows {religion.PatronDomain}");
         }
 
         // Validate tier progression

@@ -25,7 +25,7 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.None);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft);
         var args = CreateCommandArgs(mockPlayer.Object);
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
@@ -76,7 +76,7 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.Wild, 100, 100,
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft, 100, 100,
             FavorRank.Initiate);
         var args = CreateCommandArgs(mockPlayer.Object);
 
@@ -85,7 +85,7 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Wild);
+            .Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnFavorStats(args);
@@ -102,7 +102,7 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.Harvest, 5000, 12000,
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft, 5000, 12000,
             FavorRank.Avatar);
         var args = CreateCommandArgs(mockPlayer.Object);
 
@@ -127,7 +127,7 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.Harvest, 600, 600,
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft, 600, 600,
             FavorRank.Disciple);
         var args = CreateCommandArgs(mockPlayer.Object);
 
@@ -136,7 +136,7 @@ public class FavorCommandStatsTests : FavorCommandsTestHelpers
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Harvest);
+            .Returns(DeityDomain.Craft);
         // Act
         var result = _sut!.OnFavorStats(args);
 

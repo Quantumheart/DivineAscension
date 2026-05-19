@@ -176,7 +176,7 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
 
         // Find the appropriate ritual
         var sourceTier = site.GetTier();
-        var ritual = _ritualLoader.GetRitualForTierUpgrade(religion.Domain, sourceTier, targetTier);
+        var ritual = _ritualLoader.GetRitualForTierUpgrade(religion.PatronDomain, sourceTier, targetTier);
         if (ritual == null)
         {
             SendRitualError(fromPlayer, $"No ritual found for upgrading from Tier {sourceTier} to Tier {targetTier}");
@@ -340,7 +340,7 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
                 .Where(site =>
                 {
                     var religion = _religionManager.GetReligion(site.ReligionUID);
-                    return religion != null && religion.Domain.ToString() == domainFilter;
+                    return religion != null && religion.PatronDomain.ToString() == domainFilter;
                 })
                 .ToList();
         }
@@ -422,7 +422,7 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
             SiteName = site.SiteName,
             ReligionUID = site.ReligionUID,
             ReligionName = religion.ReligionName,
-            Domain = religion.Domain.ToString(),
+            Domain = religion.PatronDomain.ToString(),
             Tier = tier,
             Volume = site.GetTotalVolume(),
             AreaCount = site.Areas.Count,
@@ -464,7 +464,7 @@ public class HolySiteNetworkHandler : IServerNetworkHandler
             SiteName = site.SiteName,
             ReligionUID = site.ReligionUID,
             ReligionName = religion.ReligionName,
-            Domain = religion.Domain.ToString(),
+            Domain = religion.PatronDomain.ToString(),
             FounderUID = site.FounderUID,
             FounderName = site.FounderName,
             CreationDate = site.CreationDate,

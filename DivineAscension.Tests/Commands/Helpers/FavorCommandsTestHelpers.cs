@@ -118,11 +118,10 @@ public class FavorCommandsTestHelpers
         int totalFavor = 0,
         FavorRank rank = FavorRank.Initiate)
     {
-        return new PlayerProgressionData(playerUID)
-        {
-            Favor = favor,
-            TotalFavorEarned = totalFavor,
-        };
+        var data = new PlayerProgressionData(playerUID);
+        if (favor > 0) data.SetFavor(deity, favor);
+        if (totalFavor > 0) data.SetTotalFavorEarned(deity, totalFavor);
+        return data;
     }
 
     /// <summary>

@@ -117,7 +117,8 @@
       "specialEffects": [],
       "cost": 800,
       "branch": null,
-      "exclusiveBranches": null
+      "exclusiveBranches": null,
+      "requiresPatron": true
     },
     {
       "blessingId": "lysa_hunting_party",
@@ -194,7 +195,8 @@
       "specialEffects": [],
       "cost": 8000,
       "branch": null,
-      "exclusiveBranches": null
+      "exclusiveBranches": null,
+      "requiresPatron": true
     }
   ]
 }

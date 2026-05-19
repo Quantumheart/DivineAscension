@@ -32,13 +32,13 @@ public class ReligionData
     /// <summary>
     ///     Creates a new religion with the specified parameters
     /// </summary>
-    public ReligionData(string religionUID, string religionName, DeityDomain domain, string deityName,
+    public ReligionData(string religionUID, string religionName, DeityDomain patronDomain, string patronName,
         string founderUID, string founderName)
     {
         ReligionUID = religionUID;
         ReligionName = religionName;
-        Domain = domain;
-        DeityName = deityName;
+        PatronDomain = patronDomain;
+        PatronName = patronName;
         FounderUID = founderUID;
         FounderName = founderName;
         _memberUIDs = new List<string> { founderUID }; // Founder is first member
@@ -69,10 +69,12 @@ public class ReligionData
     public string ReligionName { get; set; } = string.Empty;
 
     /// <summary>
-    ///     The deity this religion serves (permanent, cannot be changed)
+    ///     The patron deity's domain (permanent, cannot be changed).
+    ///     Renamed from Domain in Pantheon 2.0 for clarity — religions have a primary patron,
+    ///     but players may accumulate favor with secondary deities.
     /// </summary>
     [ProtoMember(3)]
-    public DeityDomain Domain { get; set; } = DeityDomain.None;
+    public DeityDomain PatronDomain { get; set; } = DeityDomain.None;
 
     /// <summary>
     ///     Player UID of the religion founder
@@ -327,11 +329,11 @@ public class ReligionData
     public string FounderName { get; set; } = string.Empty;
 
     /// <summary>
-    ///     The custom name of the deity this religion worships (required).
-    ///     This allows religions with the same domain to have uniquely named deities.
+    ///     The custom name of the patron deity this religion worships (required).
+    ///     Allows religions with the same patron domain to have uniquely named deities.
     /// </summary>
     [ProtoMember(18)]
-    public string DeityName { get; set; } = string.Empty;
+    public string PatronName { get; set; } = string.Empty;
 
     /// <summary>
     ///     Backing field for activity log (serialized)

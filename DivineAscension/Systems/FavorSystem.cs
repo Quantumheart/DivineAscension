@@ -238,14 +238,14 @@ public class FavorSystem : IFavorSystem
         if (attackerReligion is null || victimReligion is null) return;
 
         // Calculate favor reward
-        var favorReward = CalculateFavorReward(attackerReligion.Domain, victimReligion.Domain);
+        var favorReward = CalculateFavorReward(attackerReligion.PatronDomain, victimReligion.PatronDomain);
 
         // Award favor
-        _playerProgressionDataManager.AddFavor(attacker.PlayerUID, favorReward,
+        _playerProgressionDataManager.AddFavor(attacker.PlayerUID, attackerReligion.PatronDomain, favorReward,
             $"PvP kill against {victim.PlayerName}");
 
         // Get deity for display
-        var deityName = attackerReligion.DeityName;
+        var deityName = attackerReligion.PatronName;
 
         // Notify attacker
         attacker.SendMessage(
@@ -255,9 +255,9 @@ public class FavorSystem : IFavorSystem
         );
 
         // Notify victim
-        if (victimReligion.Domain != DeityDomain.None)
+        if (victimReligion.PatronDomain != DeityDomain.None)
         {
-            var victimDeityName = victimReligion.DeityName;
+            var victimDeityName = victimReligion.PatronName;
             victim.SendMessage(
                 GlobalConstants.GeneralChatGroup,
                 $"[Divine Favor] {victimDeityName} is displeased by your defeat.",
@@ -279,10 +279,10 @@ public class FavorSystem : IFavorSystem
         if (deityType == DeityDomain.None) return;
 
         // Remove favor as penalty (minimum 0)
-        var penalty = Math.Min(_config.DeathPenalty, religionData.Favor);
+        var penalty = Math.Min(_config.DeathPenalty, religionData.GetFavor(deityType));
         if (penalty > 0)
         {
-            _playerProgressionDataManager.RemoveFavor(player.PlayerUID, penalty, "Death penalty");
+            _playerProgressionDataManager.RemoveFavor(player.PlayerUID, deityType, penalty, "Death penalty");
 
             player.SendMessage(
                 GlobalConstants.GeneralChatGroup,
@@ -400,7 +400,7 @@ public class FavorSystem : IFavorSystem
         }
 
         // 1. Award favor (now with multiplier applied)
-        _playerProgressionDataManager.AddFractionalFavor(playerUid, amount, actionType);
+        _playerProgressionDataManager.AddFractionalFavor(playerUid, deityDomain, amount, actionType);
 
         // 2. Check if player is in religion and should receive prestige
         var playerReligion = _religionManager.GetPlayerReligion(playerUid);
@@ -483,7 +483,8 @@ public class FavorSystem : IFavorSystem
     {
         var religionData = _playerProgressionDataManager.GetOrCreatePlayerData(player.PlayerUID);
 
-        if (_religionManager.GetPlayerActiveDeityDomain(player.PlayerUID) == DeityDomain.None) return;
+        var deity = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+        if (deity == DeityDomain.None) return;
 
         // Calculate in-game hours elapsed this tick
         // dt is in real-time seconds, convert to in-game hours
@@ -493,22 +494,22 @@ public class FavorSystem : IFavorSystem
         var baseFavor = _config.PassiveFavorRate * inGameHoursElapsed;
 
         // Apply multipliers
-        var finalFavor = baseFavor * CalculatePassiveFavorMultiplier(player, religionData);
+        var finalFavor = baseFavor * CalculatePassiveFavorMultiplier(player, religionData, deity);
 
         // Award favor using fractional accumulation
         if (finalFavor >= 0.01f) // Only award when we have at least 0.01 favor
-            _playerProgressionDataManager.AddFractionalFavor(player.PlayerUID, finalFavor, "Passive devotion");
+            _playerProgressionDataManager.AddFractionalFavor(player.PlayerUID, deity, finalFavor, "Passive devotion");
     }
 
     /// <summary>
     ///     Calculates the total multiplier for passive favor generation
     /// </summary>
-    internal float CalculatePassiveFavorMultiplier(IServerPlayer player, PlayerProgressionData playerProgressionData)
+    internal float CalculatePassiveFavorMultiplier(IServerPlayer player, PlayerProgressionData playerProgressionData, DeityDomain deity)
     {
         var multiplier = 1.0f;
 
         // Favor rank bonuses (higher ranks gain passive favor faster)
-        var playerFavorRank = _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID);
+        var playerFavorRank = _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID, deity);
         multiplier *= playerFavorRank switch
         {
             FavorRank.Initiate => _config.InitiateMultiplier,

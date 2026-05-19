@@ -505,7 +505,7 @@ public class CivilizationCommands(
         foreach (var civ in civilizations)
         {
             var religions = _civilizationManager.GetCivReligions(civ.CivId);
-            var deities = religions.Select(r => r.Domain.ToString()).Distinct().ToList();
+            var deities = religions.Select(r => r.PatronDomain.ToString()).Distinct().ToList();
 
             // Apply deity filter if specified
             if (!string.IsNullOrEmpty(deityFilter) &&
@@ -581,7 +581,7 @@ public class CivilizationCommands(
                 ? LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_LABEL_FOUNDER)
                 : "";
             sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_CIV_FORMAT_MEMBER_RELIGION,
-                religion.ReligionName, religion.Domain, religion.MemberUIDs.Count, isFounder));
+                religion.ReligionName, religion.PatronDomain, religion.MemberUIDs.Count, isFounder));
         }
 
         // Show pending invites only to founder
@@ -740,10 +740,10 @@ public class CivilizationCommands(
         var duplicateDeities = new List<DeityDomain>();
         foreach (var religion in religions)
         {
-            if (!deitySet.Add(religion.Domain))
+            if (!deitySet.Add(religion.PatronDomain))
             {
-                if (!duplicateDeities.Contains(religion.Domain))
-                    duplicateDeities.Add(religion.Domain);
+                if (!duplicateDeities.Contains(religion.PatronDomain))
+                    duplicateDeities.Add(religion.PatronDomain);
             }
         }
 

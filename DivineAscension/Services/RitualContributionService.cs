@@ -82,7 +82,7 @@ public class RitualContributionService : IRitualContributionService
         }
 
         // Calculate reduced favor/prestige (50% of normal offering value)
-        var ritualOfferingBonus = _offeringEvaluator.CalculateOfferingValue(offering, religion.Domain, tier);
+        var ritualOfferingBonus = _offeringEvaluator.CalculateOfferingValue(offering, religion.PatronDomain, tier);
         int reducedFavor = ritualOfferingBonus > 0
             ? (int)Math.Round(ritualOfferingBonus * RITUAL_CONTRIBUTION_MULTIPLIER)
             : 0;
@@ -99,7 +99,7 @@ public class RitualContributionService : IRitualContributionService
                 holySite.ReligionUID,
                 reducedFavor,
                 reducedFavor, // 1:1 ratio
-                religion.Domain,
+                religion.PatronDomain,
                 ritualActivityMsg);
         }
 
@@ -135,7 +135,7 @@ public class RitualContributionService : IRitualContributionService
         var targetTier = currentTier + 1;
 
         // Find ritual for this tier upgrade
-        var ritual = _ritualLoader.GetRitualForTierUpgrade(religion.Domain, currentTier, targetTier);
+        var ritual = _ritualLoader.GetRitualForTierUpgrade(religion.PatronDomain, currentTier, targetTier);
         if (ritual == null)
             return null;
 
@@ -173,7 +173,7 @@ public class RitualContributionService : IRitualContributionService
 
         // Calculate reduced favor/prestige
         var tier = holySite.GetTier();
-        var ritualOfferingBonus = _offeringEvaluator.CalculateOfferingValue(offering, religion.Domain, tier);
+        var ritualOfferingBonus = _offeringEvaluator.CalculateOfferingValue(offering, religion.PatronDomain, tier);
         int reducedFavor = ritualOfferingBonus > 0
             ? (int)Math.Round(ritualOfferingBonus * RITUAL_CONTRIBUTION_MULTIPLIER)
             : 0;
@@ -188,7 +188,7 @@ public class RitualContributionService : IRitualContributionService
                 holySite.ReligionUID,
                 reducedFavor,
                 reducedFavor,
-                religion.Domain,
+                religion.PatronDomain,
                 activityMsg);
         }
 

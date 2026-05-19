@@ -272,7 +272,7 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         if (religion == null) return;
 
         // Get all religion blessings for this deity
-        var allReligionBlessings = _blessingRegistry.GetBlessingsForDeity(religion.Domain, BlessingKind.Religion);
+        var allReligionBlessings = _blessingRegistry.GetBlessingsForDeity(religion.PatronDomain, BlessingKind.Religion);
 
         // Find blessings that are now unlockable at the new rank
         var newlyUnlockableBlessings = new List<Blessing>();

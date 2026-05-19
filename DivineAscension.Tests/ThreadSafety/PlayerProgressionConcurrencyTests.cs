@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
 
 namespace DivineAscension.Tests.ThreadSafety;
@@ -31,15 +32,15 @@ public class PlayerProgressionConcurrencyTests
                     {
                         if (threadIndex % 2 == 0)
                         {
-                            data.AddFavor(10);
+                            data.AddFavor(DeityDomain.Craft, 10);
                         }
                         else
                         {
-                            data.RemoveFavor(5);
+                            data.RemoveFavor(DeityDomain.Craft, 5);
                         }
                         // Read during modifications
-                        _ = data.Favor;
-                        _ = data.TotalFavorEarned;
+                        _ = data.GetFavor(DeityDomain.Craft);
+                        _ = data.GetTotalFavorEarned(DeityDomain.Craft);
                     }
                 }
                 catch (Exception ex)
@@ -133,10 +134,10 @@ public class PlayerProgressionConcurrencyTests
                 {
                     for (int i = 0; i < operationsPerThread; i++)
                     {
-                        data.AddFractionalFavor(0.1f);
+                        data.AddFractionalFavor(DeityDomain.Craft, 0.1f);
                         // Read during modifications
-                        _ = data.AccumulatedFractionalFavor;
-                        _ = data.Favor;
+                        _ = data.GetAccumulatedFractionalFavor(DeityDomain.Craft);
+                        _ = data.GetFavor(DeityDomain.Craft);
                     }
                 }
                 catch (Exception ex)
@@ -163,7 +164,7 @@ public class PlayerProgressionConcurrencyTests
         // Arrange
         var data = new PlayerProgressionData("player-1");
         // Pre-populate
-        data.AddFavor(1000);
+        data.AddFavor(DeityDomain.Craft, 1000);
         for (int i = 0; i < 50; i++)
         {
             data.UnlockBlessing($"blessing-{i}");
@@ -186,11 +187,11 @@ public class PlayerProgressionConcurrencyTests
                     {
                         if (threadIndex % 4 == 0)
                         {
-                            data.ApplySwitchPenalty();
+                            data.ApplySwitchPenalty(DeityDomain.Craft);
                         }
                         else if (threadIndex % 4 == 1)
                         {
-                            data.AddFavor(10);
+                            data.AddFavor(DeityDomain.Craft, 10);
                         }
                         else if (threadIndex % 4 == 2)
                         {
@@ -199,7 +200,7 @@ public class PlayerProgressionConcurrencyTests
                         else
                         {
                             // Reader
-                            _ = data.Favor;
+                            _ = data.GetFavor(DeityDomain.Craft);
                             var snapshot = data.UnlockedBlessings.ToList();
                             _ = snapshot.Count;
                         }

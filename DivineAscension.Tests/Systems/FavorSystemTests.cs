@@ -251,7 +251,7 @@ public class FavorSystemTests
 
         // Assert
         mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()),
+            m => m.AddFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<int>(), It.IsAny<string>()),
             Times.Never
         );
     }
@@ -317,7 +317,8 @@ public class FavorSystemTests
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
         var mockReligionManager = new Mock<IReligionManager>();
 
-        var playerData = new PlayerProgressionData { Favor = 10 };
+        var playerData = new PlayerProgressionData();
+        playerData.SetFavor(DeityDomain.Craft, 10);
 
         var mockPlayer = new Mock<IServerPlayer>();
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
@@ -339,7 +340,7 @@ public class FavorSystemTests
 
         // Assert
         mockPlayerReligionDataManager.Verify(
-            m => m.RemoveFavor("player-uid", 10, "Death penalty"),
+            m => m.RemoveFavor("player-uid", DeityDomain.Craft, 10, "Death penalty"),
             Times.Once
         );
     }
@@ -375,7 +376,7 @@ public class FavorSystemTests
 
         // Assert
         mockPlayerReligionDataManager.Verify(
-            m => m.RemoveFavor(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()),
+            m => m.RemoveFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<int>(), It.IsAny<string>()),
             Times.Never
         );
     }
@@ -390,7 +391,8 @@ public class FavorSystemTests
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
         var mockReligionManager = new Mock<IReligionManager>();
 
-        var playerData = new PlayerProgressionData { Favor = 0 };
+        var playerData = new PlayerProgressionData();
+        playerData.SetFavor(DeityDomain.Craft, 0);
 
         var mockPlayer = new Mock<IServerPlayer>();
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
@@ -411,7 +413,7 @@ public class FavorSystemTests
 
         // Assert
         mockPlayerReligionDataManager.Verify(
-            m => m.RemoveFavor(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()),
+            m => m.RemoveFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<int>(), It.IsAny<string>()),
             Times.Never
         );
     }
@@ -504,7 +506,7 @@ public class FavorSystemTests
 
         // Assert
         mockPlayerReligionDataManager.Verify(
-            m => m.AddFractionalFavor("player-uid", 15, "test action"),
+            m => m.AddFractionalFavor("player-uid", DeityDomain.Craft, 15, "test action"),
             Times.Once
         );
     }
@@ -540,7 +542,7 @@ public class FavorSystemTests
 
         // Assert
         mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()),
+            m => m.AddFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<int>(), It.IsAny<string>()),
             Times.Never
         );
     }
@@ -588,7 +590,7 @@ public class FavorSystemTests
 
         // Assert
         mockPlayerReligionDataManager.Verify(
-            m => m.AddFractionalFavor("player-uid", It.IsAny<float>(), "Passive devotion"),
+            m => m.AddFractionalFavor("player-uid", DeityDomain.Craft, It.IsAny<float>(), "Passive devotion"),
             Times.Once
         );
     }
@@ -624,7 +626,7 @@ public class FavorSystemTests
 
         // Assert
         mockPlayerReligionDataManager.Verify(
-            m => m.AddFractionalFavor(It.IsAny<string>(), It.IsAny<float>(), It.IsAny<string>()),
+            m => m.AddFractionalFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<float>(), It.IsAny<string>()),
             Times.Never
         );
     }
@@ -643,10 +645,8 @@ public class FavorSystemTests
         {
         };
 
-        var playerDataAvatar = new PlayerProgressionData()
-        {
-            TotalFavorEarned = 10000
-        };
+        var playerDataAvatar = new PlayerProgressionData();
+        playerDataAvatar.SetTotalFavorEarned(DeityDomain.Craft, 10000);
 
         var mockPlayer = new Mock<IServerPlayer>();
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
@@ -656,7 +656,7 @@ public class FavorSystemTests
             .Returns((ReligionData?)null);
 
         mockPlayerReligionDataManager
-            .SetupSequence(m => m.GetPlayerFavorRank("player-uid"))
+            .SetupSequence(m => m.GetPlayerFavorRank("player-uid", DeityDomain.Craft))
             .Returns(FavorRank.Initiate) // First call with 0 favor
             .Returns(FavorRank.Avatar); // Second call with 10000 favor
 
@@ -668,8 +668,8 @@ public class FavorSystemTests
             mockReligionManager.Object);
 
         // Act
-        var multiplierInitiate = favorSystem.CalculatePassiveFavorMultiplier(mockPlayer.Object, playerDataInitiate);
-        var multiplierAvatar = favorSystem.CalculatePassiveFavorMultiplier(mockPlayer.Object, playerDataAvatar);
+        var multiplierInitiate = favorSystem.CalculatePassiveFavorMultiplier(mockPlayer.Object, playerDataInitiate, DeityDomain.Craft);
+        var multiplierAvatar = favorSystem.CalculatePassiveFavorMultiplier(mockPlayer.Object, playerDataAvatar, DeityDomain.Craft);
 
         // Assert
         Assert.Equal(1.0f, multiplierInitiate);
@@ -686,10 +686,8 @@ public class FavorSystemTests
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
         var mockReligionManager = new Mock<IReligionManager>();
 
-        var playerData = new PlayerProgressionData
-        {
-            TotalFavorEarned = 0
-        };
+        var playerData = new PlayerProgressionData();
+        playerData.SetTotalFavorEarned(DeityDomain.Craft, 0);
 
         var religion = new ReligionData
         {
@@ -714,7 +712,7 @@ public class FavorSystemTests
             mockReligionManager.Object);
 
         // Act
-        var multiplier = favorSystem.CalculatePassiveFavorMultiplier(mockPlayer.Object, playerData);
+        var multiplier = favorSystem.CalculatePassiveFavorMultiplier(mockPlayer.Object, playerData, DeityDomain.Craft);
 
         // Assert
         Assert.Equal(1.5f, multiplier); // 1.0 (Initiate) * 1.5 (Mythic)
@@ -820,7 +818,8 @@ public class FavorSystemTests
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
         var mockReligionManager = new Mock<IReligionManager>();
 
-        var victimData = new PlayerProgressionData() { Favor = 50 };
+        var victimData = new PlayerProgressionData();
+        victimData.SetFavor(DeityDomain.Craft, 50);
 
         var mockVictim = new Mock<IServerPlayer>();
         mockVictim.Setup(p => p.PlayerUID).Returns("victim-uid");
@@ -849,11 +848,11 @@ public class FavorSystemTests
 
         // Assert - Only penalty, no reward
         mockPlayerReligionDataManager.Verify(
-            m => m.RemoveFavor("victim-uid", It.IsAny<int>(), It.IsAny<string>()),
+            m => m.RemoveFavor("victim-uid", DeityDomain.Craft, It.IsAny<int>(), It.IsAny<string>()),
             Times.Once
         );
         mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()),
+            m => m.AddFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<int>(), It.IsAny<string>()),
             Times.Never
         );
     }
@@ -916,7 +915,8 @@ public class FavorSystemTests
         var mockPlayerReligionDataManager = new Mock<IPlayerProgressionDataManager>();
         var mockReligionManager = new Mock<IReligionManager>();
 
-        var playerData = new PlayerProgressionData { Favor = 10 };
+        var playerData = new PlayerProgressionData();
+        playerData.SetFavor(DeityDomain.Craft, 10);
 
         var mockPlayer = new Mock<IServerPlayer>();
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
@@ -996,11 +996,11 @@ public class FavorSystemTests
 
         // Assert - Both players should receive favor
         mockPlayerReligionDataManager.Verify(
-            m => m.AddFractionalFavor("player1-uid", It.IsAny<float>(), It.IsAny<string>()),
+            m => m.AddFractionalFavor("player1-uid", DeityDomain.Craft, It.IsAny<float>(), It.IsAny<string>()),
             Times.Once
         );
         mockPlayerReligionDataManager.Verify(
-            m => m.AddFractionalFavor("player2-uid", It.IsAny<float>(), It.IsAny<string>()),
+            m => m.AddFractionalFavor("player2-uid", DeityDomain.Craft, It.IsAny<float>(), It.IsAny<string>()),
             Times.Once
         );
     }
@@ -1038,7 +1038,7 @@ public class FavorSystemTests
 
         // Assert - No favor awarded
         mockPlayerReligionDataManager.Verify(
-            m => m.AddFractionalFavor(It.IsAny<string>(), It.IsAny<float>(), It.IsAny<string>()),
+            m => m.AddFractionalFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<float>(), It.IsAny<string>()),
             Times.Never
         );
     }
@@ -1064,8 +1064,8 @@ public class FavorSystemTests
         {
             ReligionUID = "conquest-religion-uid",
             ReligionName = "Warriors of War",
-            Domain = DeityDomain.Conquest,
-            DeityName = "Ares",
+            PatronDomain = DeityDomain.Conquest,
+            PatronName = "Ares",
             FounderUID = "player-uid"
         };
 
@@ -1123,8 +1123,8 @@ public class FavorSystemTests
         {
             ReligionUID = "test-religion-uid",
             ReligionName = "Test Religion",
-            Domain = DeityDomain.Conquest,
-            DeityName = "TestDeity",
+            PatronDomain = DeityDomain.Conquest,
+            PatronName = "TestDeity",
             FounderUID = "player-uid"
         };
 

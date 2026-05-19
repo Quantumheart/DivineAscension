@@ -79,7 +79,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
             {
                 var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(fromPlayer.PlayerUID);
                 var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
-                var playerFavorRank = _playerProgressionDataManager.GetPlayerFavorRank(fromPlayer.PlayerUID);
+                var playerFavorRank = _playerProgressionDataManager.GetPlayerFavorRank(fromPlayer.PlayerUID, blessing.Domain);
 
                 // Skip cost check here - we'll handle it atomically below
                 var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(fromPlayer.PlayerUID, playerFavorRank, playerData, religion, blessing, skipCostCheck: true);
@@ -100,11 +100,11 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                         else
                         {
                             // Atomically deduct favor cost (includes sufficiency check)
-                            if (blessing.Cost > 0 && !playerData.RemoveFavor(blessing.Cost))
+                            if (blessing.Cost > 0 && !playerData.RemoveFavor(blessing.Domain, blessing.Cost))
                             {
                                 message = LocalizationService.Instance.Get(
                                     LocalizationKeys.CMD_BLESSING_ERROR_INSUFFICIENT_FAVOR,
-                                    blessing.Cost, playerData.Favor);
+                                    blessing.Cost, playerData.GetFavor(blessing.Domain));
                             }
                             else
                             {
@@ -206,9 +206,6 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         {
             var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(fromPlayer.PlayerUID);
 
-            // Run branch commitment migration for players with older data versions
-            _playerProgressionDataManager.MigrateBranchCommitments(fromPlayer.PlayerUID, _blessingRegistry);
-
             var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
             var deity = _playerProgressionDataManager.GetPlayerDeityType(fromPlayer.PlayerUID);
             if (religion == null || deity == DeityDomain.None)
@@ -222,12 +219,12 @@ public class BlessingNetworkHandler : IServerNetworkHandler
             response.ReligionUID = religion.ReligionUID;
             response.ReligionName = religion.ReligionName;
             response.Domain = deity.ToString();
-            response.DeityName = religion.DeityName;
-            response.FavorRank = (int)_playerProgressionDataManager.GetPlayerFavorRank(fromPlayer.PlayerUID);
+            response.DeityName = religion.PatronName;
+            response.FavorRank = (int)_playerProgressionDataManager.GetPlayerFavorRank(fromPlayer.PlayerUID, deity);
             response.PrestigeRank = (int)religion.PrestigeRank;
-            response.CurrentFavor = playerData.Favor;
+            response.CurrentFavor = playerData.GetFavor(deity);
             response.CurrentPrestige = religion.Prestige;
-            response.TotalFavorEarned = playerData.TotalFavorEarned;
+            response.TotalFavorEarned = playerData.GetTotalFavorEarned(deity);
 
             // Get player blessings for this deity
             var playerBlessings = _blessingRegistry.GetBlessingsForDeity(deity, BlessingKind.Player);

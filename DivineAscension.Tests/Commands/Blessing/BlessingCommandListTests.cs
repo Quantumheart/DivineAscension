@@ -72,10 +72,10 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Harvest);
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Player))
+            .Returns(DeityDomain.Craft);
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Player))
             .Returns(playerBlessings);
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Religion))
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Religion))
             .Returns(religionBlessings);
 
         var religion = new ReligionData("religion-uid", "Test Religion", DeityDomain.Harvest, "Test Deity", "founder-uid", "Founder");
@@ -92,7 +92,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
 
         // Assert
         Assert.Contains(
-            string.Format(FormatStringConstants.HeaderBlessingsForDeity, DeityDomain.Harvest.ToLocalizedString()),
+            string.Format(FormatStringConstants.HeaderBlessingsForDeity, DeityDomain.Craft.ToLocalizedString()),
             result.StatusMessage);
         Assert.Contains(FormatStringConstants.HeaderPlayerBlessings, result.StatusMessage);
         Assert.Contains("✓ Divine Strike", result.StatusMessage); // Localized format
@@ -158,10 +158,10 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Harvest);
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Player))
+            .Returns(DeityDomain.Craft);
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Player))
             .Returns(new List<DivineAscension.Models.Blessing>());
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Religion))
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Religion))
             .Returns(new List<DivineAscension.Models.Blessing>());
 
         // Act
@@ -169,7 +169,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
 
         // Assert
         Assert.Contains(
-            string.Format(FormatStringConstants.HeaderBlessingsForDeity, DeityDomain.Harvest.ToLocalizedString()),
+            string.Format(FormatStringConstants.HeaderBlessingsForDeity, DeityDomain.Craft.ToLocalizedString()),
             result.StatusMessage);
         Assert.Contains(FormatStringConstants.HeaderPlayerBlessings, result.StatusMessage);
         Assert.Contains(FormatStringConstants.HeaderReligionBlessings, result.StatusMessage);
@@ -195,10 +195,10 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Harvest);
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Player))
+            .Returns(DeityDomain.Craft);
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Player))
             .Returns(new List<DivineAscension.Models.Blessing>());
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Religion))
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Religion))
             .Returns(new List<DivineAscension.Models.Blessing>());
 
         // Act
@@ -206,7 +206,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
 
         // Assert
         Assert.Contains(
-            string.Format(FormatStringConstants.HeaderBlessingsForDeity, DeityDomain.Harvest.ToLocalizedString()),
+            string.Format(FormatStringConstants.HeaderBlessingsForDeity, DeityDomain.Craft.ToLocalizedString()),
             result.StatusMessage);
         Assert.Contains(FormatStringConstants.HeaderPlayerBlessings, result.StatusMessage);
         Assert.Contains(FormatStringConstants.HeaderReligionBlessings, result.StatusMessage);
@@ -244,11 +244,11 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
             .Returns(playerData);
 
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Harvest);
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Religion))
+            .Returns(DeityDomain.Craft);
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Religion))
             .Returns(religionBlessings);
 
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Player))
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Player))
             .Returns(new List<DivineAscension.Models.Blessing>());
 
         var religion = new ReligionData("religion-uid", "Test Religion", DeityDomain.Harvest, "Test Deity", "founder-uid", "Founder");
@@ -262,7 +262,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
 
         // Assert
         Assert.Contains(
-            string.Format(FormatStringConstants.HeaderBlessingsForDeity, DeityDomain.Harvest.ToLocalizedString()),
+            string.Format(FormatStringConstants.HeaderBlessingsForDeity, DeityDomain.Craft.ToLocalizedString()),
             result.StatusMessage);
         Assert.Contains(FormatStringConstants.HeaderReligionBlessings, result.StatusMessage);
         Assert.Contains("✓ Sacred Flame", result.StatusMessage); // Localized format
@@ -299,10 +299,10 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Harvest);
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Player))
+            .Returns(DeityDomain.Craft);
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Player))
             .Returns(playerBlessings);
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Religion))
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Religion))
             .Returns(new List<DivineAscension.Models.Blessing>());
 
         // Act
@@ -345,10 +345,10 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Harvest);
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Player))
+            .Returns(DeityDomain.Craft);
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Player))
             .Returns(new List<DivineAscension.Models.Blessing>());
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Religion))
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Religion))
             .Returns(religionBlessings);
 
         var religion = new ReligionData("religion-uid", "Test Religion", DeityDomain.Harvest, "Test Deity", "founder-uid", "Founder");
@@ -396,10 +396,10 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Harvest);
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Player))
+            .Returns(DeityDomain.Craft);
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Player))
             .Returns(playerBlessings);
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Religion))
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Religion))
             .Returns(new List<DivineAscension.Models.Blessing>());
 
         // Act
@@ -456,10 +456,10 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
         _playerReligionDataManager.Setup(prdm => prdm.GetOrCreatePlayerData(It.IsAny<string>()))
             .Returns(playerData);
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Harvest);
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Player))
+            .Returns(DeityDomain.Craft);
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Player))
             .Returns(playerBlessings);
-        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Harvest, BlessingKind.Religion))
+        _blessingRegistry.Setup(pr => pr.GetBlessingsForDeity(DeityDomain.Craft, BlessingKind.Religion))
             .Returns(religionBlessings);
 
         var religion = new ReligionData("religion-uid", "Test Religion", DeityDomain.Harvest, "Test Deity", "founder-uid", "Founder");
@@ -475,7 +475,7 @@ public class BlessingCommandListTests : BlessingCommandsTestHelpers
 
         // Header
         Assert.Contains(
-            string.Format(FormatStringConstants.HeaderBlessingsForDeity, DeityDomain.Harvest.ToLocalizedString()),
+            string.Format(FormatStringConstants.HeaderBlessingsForDeity, DeityDomain.Craft.ToLocalizedString()),
             message);
 
         // Player blessings section

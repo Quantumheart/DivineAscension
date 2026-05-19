@@ -122,7 +122,8 @@
       "specialEffects": ["never_malnourished", "blessed_meals"],
       "cost": 800,
       "branch": null,
-      "exclusiveBranches": null
+      "exclusiveBranches": null,
+      "requiresPatron": true
     },
     {
       "blessingId": "aethra_community_farm",
@@ -203,7 +204,8 @@
       "specialEffects": ["sacred_granary"],
       "cost": 8000,
       "branch": null,
-      "exclusiveBranches": null
+      "exclusiveBranches": null,
+      "requiresPatron": true
     }
   ]
 }

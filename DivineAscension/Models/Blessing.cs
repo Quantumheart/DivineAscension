@@ -108,4 +108,10 @@ public class Blessing
     ///     For example, unlocking a "Forge" branch blessing might lock the "Endurance" branch.
     /// </summary>
     public List<string>? ExclusiveBranches { get; set; }
+
+    /// <summary>
+    ///     When true, this blessing requires the player's religion to have the matching patron domain.
+    ///     Used to gate Pantheon 2.0 capstones (avatars + religion pantheons) behind patron commitment.
+    /// </summary>
+    public bool RequiresPatron { get; set; }
 }

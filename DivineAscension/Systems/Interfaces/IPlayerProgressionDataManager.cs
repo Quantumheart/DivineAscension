@@ -28,9 +28,9 @@ public interface IPlayerProgressionDataManager : IDisposable
     bool TryGetPlayerData(string playerUID, out PlayerProgressionData? data);
 
     /// <summary>
-    ///     Adds favor to a player
+    ///     Adds favor to a player for a specific deity.
     /// </summary>
-    void AddFavor(string playerUID, int amount, string reason = "");
+    void AddFavor(string playerUID, DeityDomain domain, int amount, string reason = "");
 
     /// <summary>
     ///     Unlocks a player blessing
@@ -59,9 +59,10 @@ public interface IPlayerProgressionDataManager : IDisposable
     void LeaveReligion(string playerUID);
 
     /// <summary>
-    ///     Applies switching penalty when changing religions
+    ///     Applies switching penalty when leaving the religion serving the given deity
+    ///     (clears favor + blessings for that deity only).
     /// </summary>
-    void HandleReligionSwitch(string playerUID);
+    void HandleReligionSwitch(string playerUID, DeityDomain abandonedDomain);
 
     /// <summary>
     ///     Removes favor from the player
@@ -70,7 +71,7 @@ public interface IPlayerProgressionDataManager : IDisposable
     /// <param name="amount"></param>
     /// <param name="reason"></param>
     /// <returns></returns>
-    bool RemoveFavor(string playerUID, int amount, string reason = "");
+    bool RemoveFavor(string playerUID, DeityDomain domain, int amount, string reason = "");
 
     /// <summary>
     ///     Adds fractional favor to a player (for passive favor generation)
@@ -78,7 +79,7 @@ public interface IPlayerProgressionDataManager : IDisposable
     /// <param name="playerUID">Player unique identifier</param>
     /// <param name="amount">Amount of favor to add</param>
     /// <param name="reason">Reason for adding favor (optional)</param>
-    void AddFractionalFavor(string playerUID, float amount, string reason = "");
+    void AddFractionalFavor(string playerUID, DeityDomain domain, float amount, string reason = "");
 
     /// <summary>
     ///     Triggers the OnPlayerDataChanged event for the specified player.
@@ -117,7 +118,7 @@ public interface IPlayerProgressionDataManager : IDisposable
     /// <returns>
     /// The <see cref="FavorRank"/> representing the player's current favor rank.
     /// </returns>
-    public FavorRank GetPlayerFavorRank(string playerUID);
+    public FavorRank GetPlayerFavorRank(string playerUID, DeityDomain domain);
 
     /// <summary>
     /// [DEPRECATED] Gets the timestamp when the player is next allowed to pray (elapsed milliseconds).
@@ -163,11 +164,4 @@ public interface IPlayerProgressionDataManager : IDisposable
     /// <param name="completionTimeUtc">UTC DateTime when patrol was completed</param>
     void SetLastPatrolCompletionTimeUtc(string playerUID, DateTime completionTimeUtc);
 
-    /// <summary>
-    /// Migrates player branch commitments from existing unlocked blessings.
-    /// Called for players with DataVersion &lt; 4 to infer branch commitments.
-    /// </summary>
-    /// <param name="playerUID">Player unique identifier</param>
-    /// <param name="blessingRegistry">Blessing registry to look up blessing branch info</param>
-    void MigrateBranchCommitments(string playerUID, IBlessingRegistry blessingRegistry);
 }

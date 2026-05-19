@@ -121,7 +121,8 @@
       "specialEffects": [],
       "cost": 800,
       "branch": null,
-      "exclusiveBranches": null
+      "exclusiveBranches": null,
+      "requiresPatron": true
     },
     {
       "blessingId": "gaia_potters_circle",
@@ -199,7 +200,8 @@
       "specialEffects": [],
       "cost": 8000,
       "branch": null,
-      "exclusiveBranches": null
+      "exclusiveBranches": null,
+      "requiresPatron": true
     }
   ]
 }

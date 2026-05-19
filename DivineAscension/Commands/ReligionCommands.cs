@@ -293,7 +293,11 @@ public class ReligionCommands(
 
         // Apply switching penalty if needed
         if (_religionManager.HasReligion(player.PlayerUID))
-            _playerProgressionDataManager.HandleReligionSwitch(player.PlayerUID);
+        {
+            var oldReligion = _religionManager.GetPlayerReligion(player.PlayerUID);
+            if (oldReligion != null)
+                _playerProgressionDataManager.HandleReligionSwitch(player.PlayerUID, oldReligion.PatronDomain);
+        }
 
         // Join the religion
         _playerProgressionDataManager.JoinReligion(player.PlayerUID, religion.ReligionUID);
@@ -303,7 +307,7 @@ public class ReligionCommands(
 
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_SUCCESS_JOINED,
-                religion.ReligionName, religion.Domain.ToLocalizedString()));
+                religion.ReligionName, religion.PatronDomain.ToLocalizedString()));
     }
 
     /// <summary>
@@ -371,7 +375,7 @@ public class ReligionCommands(
             sb.AppendLine(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_LIST_ENTRY,
                     religion.ReligionName,
-                    religion.Domain.ToLocalizedString(),
+                    religion.PatronDomain.ToLocalizedString(),
                     visibility,
                     religion.GetMemberCount(),
                     religion.PrestigeRank.ToLocalizedString()));
@@ -417,7 +421,7 @@ public class ReligionCommands(
         sb.AppendLine(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_HEADER_INFO, religion.ReligionName));
         sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_DEITY,
-            religion.Domain.ToLocalizedString()));
+            religion.PatronDomain.ToLocalizedString()));
         var visibility = religion.IsPublic
             ? LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_VISIBILITY_PUBLIC)
             : LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_VISIBILITY_PRIVATE);
@@ -476,7 +480,7 @@ public class ReligionCommands(
                 : LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_ROLE_MEMBER);
 
             sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_RELIGION_FORMAT_MEMBER,
-                memberName, role, _playerProgressionDataManager.GetPlayerFavorRank(memberUID).ToLocalizedString(), memberData.Favor));
+                memberName, role, _playerProgressionDataManager.GetPlayerFavorRank(memberUID, religion.PatronDomain).ToLocalizedString(), memberData.GetFavor(religion.PatronDomain)));
         }
 
         return TextCommandResult.Success(sb.ToString());

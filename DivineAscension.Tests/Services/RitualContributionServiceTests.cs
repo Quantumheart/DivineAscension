@@ -294,7 +294,7 @@ public class RitualContributionServiceTests
         {
             ReligionUID = "religion1",
             ReligionName = "Test Religion",
-            Domain = domain,
+            PatronDomain = domain,
             FounderUID = "founder1",
             FounderName = "Founder"
         };

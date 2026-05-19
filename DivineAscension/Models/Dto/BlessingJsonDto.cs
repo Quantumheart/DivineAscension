@@ -100,4 +100,10 @@ public class BlessingJsonDto
     /// </summary>
     [JsonPropertyName("exclusiveBranches")]
     public List<string>? ExclusiveBranches { get; set; }
+
+    /// <summary>
+    ///     When true, this blessing requires the player's religion to have the matching patron domain.
+    /// </summary>
+    [JsonPropertyName("requiresPatron")]
+    public bool RequiresPatron { get; set; }
 }

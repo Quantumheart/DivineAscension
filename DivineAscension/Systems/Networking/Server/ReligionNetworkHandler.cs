@@ -92,8 +92,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         {
             ReligionUID = r.ReligionUID,
             ReligionName = r.ReligionName,
-            Domain = r.Domain.ToString(),
-            DeityName = r.DeityName,
+            Domain = r.PatronDomain.ToString(),
+            DeityName = r.PatronName,
             MemberCount = r.MemberUIDs.Count,
             Prestige = r.Prestige,
             PrestigeRank = r.PrestigeRank.ToString(),
@@ -126,8 +126,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             response.HasReligion = true;
             response.ReligionUID = religion.ReligionUID;
             response.ReligionName = religion.ReligionName;
-            response.Domain = religion.Domain.ToString();
-            response.DeityName = religion.DeityName;
+            response.Domain = religion.PatronDomain.ToString();
+            response.DeityName = religion.PatronName;
             response.FounderUID = religion.FounderUID;
             response.FounderName = religion.FounderName;
             response.Prestige = religion.Prestige;
@@ -162,8 +162,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                 {
                     PlayerUID = member.Key,
                     PlayerName = memberName,
-                    FavorRank = _playerProgressionDataManager!.GetPlayerFavorRank(member.Key).ToString(),
-                    Favor = memberPlayerData.Favor,
+                    FavorRank = _playerProgressionDataManager!.GetPlayerFavorRank(member.Key, religion.PatronDomain).ToString(),
+                    Favor = memberPlayerData.GetFavor(religion.PatronDomain),
                     IsFounder = roleId == RoleDefaults.FOUNDER_ROLE_ID,
                     RoleName = roleName,
                     RoleId = roleId
@@ -240,8 +240,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         // Build response with religion details
         response.ReligionUID = religion.ReligionUID;
         response.ReligionName = religion.ReligionName;
-        response.Domain = religion.Domain.ToString();
-        response.DeityName = religion.DeityName;
+        response.Domain = religion.PatronDomain.ToString();
+        response.DeityName = religion.PatronName;
         response.Description = religion.Description;
         response.Prestige = religion.Prestige;
         response.PrestigeRank = religion.PrestigeRank.ToString();
@@ -261,8 +261,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             {
                 PlayerUID = member.Key,
                 PlayerName = memberName,
-                FavorRank = _playerProgressionDataManager!.GetPlayerFavorRank(member.Key).ToString(),
-                Favor = memberPlayerData.Favor
+                FavorRank = _playerProgressionDataManager!.GetPlayerFavorRank(member.Key, religion.PatronDomain).ToString(),
+                Favor = memberPlayerData.GetFavor(religion.PatronDomain)
             });
         }
 

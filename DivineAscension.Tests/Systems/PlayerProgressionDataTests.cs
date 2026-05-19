@@ -31,10 +31,10 @@ public class PlayerProgressionDataTests
 
         // Assert
         Assert.Equal(string.Empty, data.Id);
-        Assert.Equal(0, data.Favor);
-        Assert.Equal(0, data.TotalFavorEarned);
-        Assert.Equal(0f, data.AccumulatedFractionalFavor);
-        Assert.Equal(5, data.DataVersion); // v5: DateTime-based cooldowns
+        Assert.Equal(0, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(0, data.GetTotalFavorEarned(DeityDomain.Craft));
+        Assert.Equal(0f, data.GetAccumulatedFractionalFavor(DeityDomain.Craft));
+        Assert.Equal(6, data.DataVersion); // v6: per-deity favor (Pantheon 2.0)
         Assert.Empty(data.UnlockedBlessings);
     }
 
@@ -172,82 +172,74 @@ public class PlayerProgressionDataTests
         var data = new PlayerProgressionData("player-123");
 
         // Act
-        data.AddFavor(100);
+        data.AddFavor(DeityDomain.Craft, 100);
 
         // Assert
-        Assert.Equal(100, data.Favor);
-        Assert.Equal(100, data.TotalFavorEarned);
+        Assert.Equal(100, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(100, data.GetTotalFavorEarned(DeityDomain.Craft));
     }
 
     [Fact]
     public void AddFavor_WithNegativeAmount_DoesNothing()
     {
         // Arrange
-        var data = new PlayerProgressionData("player-123")
-        {
-            Favor = 50,
-            TotalFavorEarned = 50
-        };
+        var data = new PlayerProgressionData("player-123");
+        data.SetFavor(DeityDomain.Craft, 50);
+        data.SetTotalFavorEarned(DeityDomain.Craft, 50);
 
         // Act
-        data.AddFavor(-10);
+        data.AddFavor(DeityDomain.Craft, -10);
 
         // Assert
-        Assert.Equal(50, data.Favor);
-        Assert.Equal(50, data.TotalFavorEarned);
+        Assert.Equal(50, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(50, data.GetTotalFavorEarned(DeityDomain.Craft));
     }
 
     [Fact]
     public void AddFavor_WithZero_DoesNothing()
     {
         // Arrange
-        var data = new PlayerProgressionData("player-123")
-        {
-            Favor = 50,
-            TotalFavorEarned = 50
-        };
+        var data = new PlayerProgressionData("player-123");
+        data.SetFavor(DeityDomain.Craft, 50);
+        data.SetTotalFavorEarned(DeityDomain.Craft, 50);
 
         // Act
-        data.AddFavor(0);
+        data.AddFavor(DeityDomain.Craft, 0);
 
         // Assert
-        Assert.Equal(50, data.Favor);
-        Assert.Equal(50, data.TotalFavorEarned);
+        Assert.Equal(50, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(50, data.GetTotalFavorEarned(DeityDomain.Craft));
     }
 
     [Fact]
     public void RemoveFavor_WithSufficientFavor_RemovesAndReturnsTrue()
     {
         // Arrange
-        var data = new PlayerProgressionData("player-123")
-        {
-            Favor = 100
-        };
+        var data = new PlayerProgressionData("player-123");
+        data.SetFavor(DeityDomain.Craft, 100);
 
         // Act
-        var result = data.RemoveFavor(50);
+        var result = data.RemoveFavor(DeityDomain.Craft, 50);
 
         // Assert
         Assert.True(result);
-        Assert.Equal(50, data.Favor);
-        Assert.Equal(0, data.TotalFavorEarned); // TotalFavorEarned should not decrease
+        Assert.Equal(50, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(0, data.GetTotalFavorEarned(DeityDomain.Craft)); // TotalFavorEarned should not decrease
     }
 
     [Fact]
     public void RemoveFavor_WithInsufficientFavor_ReturnsFalse()
     {
         // Arrange
-        var data = new PlayerProgressionData("player-123")
-        {
-            Favor = 30
-        };
+        var data = new PlayerProgressionData("player-123");
+        data.SetFavor(DeityDomain.Craft, 30);
 
         // Act
-        var result = data.RemoveFavor(50);
+        var result = data.RemoveFavor(DeityDomain.Craft, 50);
 
         // Assert
         Assert.False(result);
-        Assert.Equal(30, data.Favor); // Favor should not change
+        Assert.Equal(30, data.GetFavor(DeityDomain.Craft)); // Favor should not change
     }
 
     [Fact]
@@ -257,40 +249,124 @@ public class PlayerProgressionDataTests
         var data = new PlayerProgressionData("player-123");
 
         // Act
-        data.AddFractionalFavor(0.3f);
-        Assert.Equal(0, data.Favor);
-        Assert.Equal(0.3f, data.AccumulatedFractionalFavor, precision: 5);
+        data.AddFractionalFavor(DeityDomain.Craft, 0.3f);
+        Assert.Equal(0, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(0.3f, data.GetAccumulatedFractionalFavor(DeityDomain.Craft), precision: 5);
 
-        data.AddFractionalFavor(0.4f);
-        Assert.Equal(0, data.Favor);
-        Assert.Equal(0.7f, data.AccumulatedFractionalFavor, precision: 5);
+        data.AddFractionalFavor(DeityDomain.Craft, 0.4f);
+        Assert.Equal(0, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(0.7f, data.GetAccumulatedFractionalFavor(DeityDomain.Craft), precision: 5);
 
-        data.AddFractionalFavor(0.5f); // Total: 1.2
-        Assert.Equal(1, data.Favor);
-        Assert.Equal(0.2f, data.AccumulatedFractionalFavor, precision: 5);
-        Assert.Equal(1, data.TotalFavorEarned);
+        data.AddFractionalFavor(DeityDomain.Craft, 0.5f); // Total: 1.2
+        Assert.Equal(1, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(0.2f, data.GetAccumulatedFractionalFavor(DeityDomain.Craft), precision: 5);
+        Assert.Equal(1, data.GetTotalFavorEarned(DeityDomain.Craft));
     }
 
     [Fact]
     public void ApplySwitchPenalty_ResetsFavorAndBlessings()
     {
         // Arrange
-        var data = new PlayerProgressionData("player-123")
-        {
-            Favor = 100,
-            TotalFavorEarned = 2500 // Champion rank
-        };
+        var data = new PlayerProgressionData("player-123");
+        data.SetFavor(DeityDomain.Craft, 100);
+        data.SetTotalFavorEarned(DeityDomain.Craft, 2500); // Champion rank
         data.UnlockBlessing("blessing1");
         data.UnlockBlessing("blessing2");
 
         // Act
-        data.ApplySwitchPenalty();
+        data.ApplySwitchPenalty(DeityDomain.Craft);
 
         // Assert
-        Assert.Equal(0, data.Favor);
-        Assert.Equal(2500, data.TotalFavorEarned); // Should not change
+        Assert.Equal(0, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(2500, data.GetTotalFavorEarned(DeityDomain.Craft)); // Should not change
         // Note: FavorRank is now calculated by the manager, not the data model
         Assert.Empty(data.UnlockedBlessings);
+    }
+
+    #endregion
+
+    #region Per-Deity Isolation Tests (Pantheon 2.0)
+
+    [Fact]
+    public void AddFavor_IsolatedPerDeity()
+    {
+        var data = new PlayerProgressionData("player-1");
+
+        data.AddFavor(DeityDomain.Craft, 100);
+        data.AddFavor(DeityDomain.Wild, 250);
+
+        Assert.Equal(100, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(250, data.GetFavor(DeityDomain.Wild));
+        Assert.Equal(0, data.GetFavor(DeityDomain.Conquest));
+        Assert.Equal(100, data.GetTotalFavorEarned(DeityDomain.Craft));
+        Assert.Equal(250, data.GetTotalFavorEarned(DeityDomain.Wild));
+    }
+
+    [Fact]
+    public void RemoveFavor_OnlyAffectsTargetDeity()
+    {
+        var data = new PlayerProgressionData("player-1");
+        data.AddFavor(DeityDomain.Craft, 100);
+        data.AddFavor(DeityDomain.Wild, 100);
+
+        var removed = data.RemoveFavor(DeityDomain.Craft, 40);
+
+        Assert.True(removed);
+        Assert.Equal(60, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(100, data.GetFavor(DeityDomain.Wild));
+    }
+
+    [Fact]
+    public void AddFractionalFavor_AccumulatesPerDeity()
+    {
+        var data = new PlayerProgressionData("player-1");
+
+        data.AddFractionalFavor(DeityDomain.Craft, 0.4f);
+        data.AddFractionalFavor(DeityDomain.Wild, 0.6f);
+        data.AddFractionalFavor(DeityDomain.Craft, 0.7f); // Craft now 1.1 → award 1
+
+        Assert.Equal(1, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(0, data.GetFavor(DeityDomain.Wild));
+        Assert.InRange(data.GetAccumulatedFractionalFavor(DeityDomain.Craft), 0.099f, 0.101f);
+        Assert.InRange(data.GetAccumulatedFractionalFavor(DeityDomain.Wild), 0.599f, 0.601f);
+    }
+
+    [Fact]
+    public void ApplySwitchPenalty_ClearsOnlyAbandonedDeity()
+    {
+        var data = new PlayerProgressionData("player-1");
+        data.AddFavor(DeityDomain.Craft, 500);
+        data.AddFavor(DeityDomain.Wild, 700);
+        data.AddFractionalFavor(DeityDomain.Craft, 0.5f);
+        data.UnlockBlessing("test_blessing");
+
+        data.ApplySwitchPenalty(DeityDomain.Craft);
+
+        Assert.Equal(0, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(700, data.GetFavor(DeityDomain.Wild));
+        Assert.Equal(0f, data.GetAccumulatedFractionalFavor(DeityDomain.Craft));
+        Assert.Empty(data.UnlockedBlessings); // blessings always cleared on switch
+    }
+
+    [Fact]
+    public void ProtoBuf_RoundTrip_PreservesPerDeityFavor()
+    {
+        var data = new PlayerProgressionData("player-roundtrip");
+        data.AddFavor(DeityDomain.Craft, 123);
+        data.AddFavor(DeityDomain.Wild, 456);
+        data.AddFavor(DeityDomain.Conquest, 789);
+        data.AddFractionalFavor(DeityDomain.Wild, 0.3f);
+
+        using var ms = new System.IO.MemoryStream();
+        ProtoBuf.Serializer.Serialize(ms, data);
+        ms.Position = 0;
+        var roundTripped = ProtoBuf.Serializer.Deserialize<PlayerProgressionData>(ms);
+
+        Assert.Equal(123, roundTripped.GetFavor(DeityDomain.Craft));
+        Assert.Equal(456, roundTripped.GetFavor(DeityDomain.Wild));
+        Assert.Equal(789, roundTripped.GetFavor(DeityDomain.Conquest));
+        Assert.Equal(123, roundTripped.GetTotalFavorEarned(DeityDomain.Craft));
+        Assert.InRange(roundTripped.GetAccumulatedFractionalFavor(DeityDomain.Wild), 0.299f, 0.301f);
     }
 
     #endregion
@@ -495,15 +571,13 @@ public class PlayerProgressionDataTests
     public void ApplySwitchPenalty_ClearsBranchCommitments()
     {
         // Arrange
-        var data = new PlayerProgressionData("player-123")
-        {
-            Favor = 100
-        };
+        var data = new PlayerProgressionData("player-123");
+        data.SetFavor(DeityDomain.Craft, 100);
         data.UnlockBlessing("blessing1");
         data.CommitToBranch(DeityDomain.Craft, "Forge", new[] { "Endurance" });
 
         // Act
-        data.ApplySwitchPenalty();
+        data.ApplySwitchPenalty(DeityDomain.Craft);
 
         // Assert
         Assert.Null(data.GetCommittedBranch(DeityDomain.Craft));

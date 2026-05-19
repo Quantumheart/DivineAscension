@@ -105,7 +105,7 @@ public class PvPManagerTests
 
         // Assert - Should award favor
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor("player-uid", 10, "test action"),
+            m => m.AddFavor("player-uid", DeityDomain.Craft, 10, "test action"),
             Times.Once()
         );
 
@@ -145,7 +145,7 @@ public class PvPManagerTests
 
         // Assert - Should not award favor
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()),
+            m => m.AddFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<int>(), It.IsAny<string>()),
             Times.Never()
         );
 
@@ -174,7 +174,7 @@ public class PvPManagerTests
 
         // Assert - Should not award anything
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()),
+            m => m.AddFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<int>(), It.IsAny<string>()),
             Times.Never()
         );
 
@@ -207,7 +207,7 @@ public class PvPManagerTests
 
         // Assert - Should not award favor
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()),
+            m => m.AddFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<int>(), It.IsAny<string>()),
             Times.Never()
         );
 
@@ -241,7 +241,7 @@ public class PvPManagerTests
 
         // Assert - Should award favor
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor("player-uid", 10, "test action"),
+            m => m.AddFavor("player-uid", DeityDomain.Craft, 10, "test action"),
             Times.Once()
         );
 
@@ -306,7 +306,7 @@ public class PvPManagerTests
 
         // Assert - Base favor should be 10
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor("attacker-uid", 10, It.IsAny<string>()),
+            m => m.AddFavor("attacker-uid", DeityDomain.Craft, 10, It.IsAny<string>()),
             Times.Once()
         );
     }
@@ -350,7 +350,7 @@ public class PvPManagerTests
 
         // Assert - Full favor (no same-deity penalty)
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor("attacker-uid", 10, It.IsAny<string>()),
+            m => m.AddFavor("attacker-uid", DeityDomain.Craft, 10, It.IsAny<string>()),
             Times.Once()
         );
     }
@@ -487,7 +487,7 @@ public class PvPManagerTests
 
         // Should not award any rewards
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()),
+            m => m.AddFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<int>(), It.IsAny<string>()),
             Times.Never()
         );
     }
@@ -526,7 +526,7 @@ public class PvPManagerTests
 
         // Assert - Attacker should get rewards even if victim has no religion
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor("attacker-uid", 10, It.IsAny<string>()),
+            m => m.AddFavor("attacker-uid", DeityDomain.Craft, 10, It.IsAny<string>()),
             Times.Once()
         );
 
@@ -592,7 +592,7 @@ public class PvPManagerTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
-        playerData.Favor = 100;
+        playerData.SetFavor(DeityDomain.Craft, 100);
 
         _mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
@@ -613,7 +613,7 @@ public class PvPManagerTests
         _pvpManager.ProcessDeathPenalty(mockPlayer.Object);
 
         // Assert - Should have removed 50 favor (100 - 50 = 50)
-        Assert.Equal(50, playerData.Favor);
+        Assert.Equal(50, playerData.GetFavor(DeityDomain.Craft));
 
         // Should send notification
         mockPlayer.Verify(
@@ -632,7 +632,7 @@ public class PvPManagerTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
-        playerData.Favor = 30;
+        playerData.SetFavor(DeityDomain.Craft, 30);
 
         _mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
@@ -653,7 +653,7 @@ public class PvPManagerTests
         _pvpManager.ProcessDeathPenalty(mockPlayer.Object);
 
         // Assert - Should have removed only 30 favor (all available, since penalty is 50 but only 30 available)
-        Assert.Equal(0, playerData.Favor);
+        Assert.Equal(0, playerData.GetFavor(DeityDomain.Craft));
 
         // Should send notification with 30 favor
         mockPlayer.Verify(
@@ -672,7 +672,7 @@ public class PvPManagerTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
-        playerData.Favor = 0;
+        playerData.SetFavor(DeityDomain.Craft, 0);
 
         _mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
@@ -700,7 +700,7 @@ public class PvPManagerTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.None, null);
-        playerData.Favor = 10;
+        playerData.SetFavor(DeityDomain.Craft, 10);
 
         _mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
@@ -712,7 +712,7 @@ public class PvPManagerTests
         _pvpManager.ProcessDeathPenalty(mockPlayer.Object);
 
         // Assert - Favor should remain unchanged
-        Assert.Equal(10, playerData.Favor);
+        Assert.Equal(10, playerData.GetFavor(DeityDomain.Craft));
 
         // Should not send notification
         mockPlayer.Verify(
@@ -731,7 +731,7 @@ public class PvPManagerTests
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, null);
-        playerData.Favor = 10;
+        playerData.SetFavor(DeityDomain.Craft, 10);
 
         _mockPlayerReligionDataManager
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
@@ -743,7 +743,7 @@ public class PvPManagerTests
         _pvpManager.ProcessDeathPenalty(mockPlayer.Object);
 
         // Assert - Favor should remain unchanged
-        Assert.Equal(10, playerData.Favor);
+        Assert.Equal(10, playerData.GetFavor(DeityDomain.Craft));
 
         // Should not send notification
         mockPlayer.Verify(

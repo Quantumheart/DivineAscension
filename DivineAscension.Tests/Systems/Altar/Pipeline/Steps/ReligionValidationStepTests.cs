@@ -38,8 +38,8 @@ public class ReligionValidationStepTests
         {
             ReligionUID = uid,
             ReligionName = "Test Religion",
-            DeityName = "Test Deity",
-            Domain = domain,
+            PatronName = "Test Deity",
+            PatronDomain = domain,
             FounderUID = "founder1",
             FounderName = "Founder"
         };

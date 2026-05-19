@@ -128,14 +128,14 @@ public class FavorCommands
     /// <summary>
     ///     Formats the result message for total favor changes
     /// </summary>
-    private string FormatTotalFavorResult(string playerUID, PlayerProgressionData playerData, int newAmount, int oldTotal,
+    private string FormatTotalFavorResult(string playerUID, DeityDomain domain, PlayerProgressionData playerData, int newAmount, int oldTotal,
         FavorRank oldRank)
     {
         var sb = new StringBuilder();
         sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_TOTAL_SET,
             newAmount.ToString("N0"), oldTotal.ToString("N0")));
 
-        var newRank = _playerProgressionDataManager.GetPlayerFavorRank(playerUID);
+        var newRank = _playerProgressionDataManager.GetPlayerFavorRank(playerUID, domain);
         if (oldRank != newRank)
             sb.Append(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_RANK_UPDATE,
                 oldRank.ToLocalizedString(), newRank.ToLocalizedString()));
@@ -168,8 +168,8 @@ public class FavorCommands
         var deityName = deity.ToString();
 
         return TextCommandResult.Success(
-            LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_CHECK, playerProgressionData!.Favor,
-                deityName, _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID).ToLocalizedString())
+            LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_CHECK, playerProgressionData!.GetFavor(deity),
+                deityName, _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID, deity).ToLocalizedString())
         );
     }
 
@@ -191,16 +191,17 @@ public class FavorCommands
         var domainLocalized = deityDomain.ToLocalizedString();
 
         // Get current rank based on total favor
-        var currentRank = GetCurrentFavorRank(playerProgressionData!.TotalFavorEarned);
+        var totalForDomain = playerProgressionData!.GetTotalFavorEarned(deityDomain);
+        var currentRank = GetCurrentFavorRank(totalForDomain);
         var currentRankName = RankRequirements.GetFavorRankName(currentRank);
 
         var sb = new StringBuilder();
         sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_HEADER_INFO));
         sb.AppendLine($"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_DOMAIN)} {domainLocalized}");
         sb.AppendLine(
-            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_CURRENT)} {playerProgressionData.Favor:N0}");
+            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_CURRENT)} {playerProgressionData.GetFavor(deityDomain):N0}");
         sb.AppendLine(
-            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_TOTAL_EARNED)} {playerProgressionData.TotalFavorEarned:N0}");
+            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_TOTAL_EARNED)} {totalForDomain:N0}");
         sb.AppendLine(
             $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_CURRENT_RANK)} {currentRankName}");
 
@@ -214,8 +215,8 @@ public class FavorCommands
             sb.AppendLine(
                 $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_NEXT_RANK)} {nextRankName} ({nextThreshold:N0} total favor required)");
 
-            var remaining = nextThreshold - playerProgressionData.TotalFavorEarned;
-            var progress = (float)playerProgressionData.TotalFavorEarned / nextThreshold * 100f;
+            var remaining = nextThreshold - totalForDomain;
+            var progress = (float)totalForDomain / nextThreshold * 100f;
             sb.AppendLine(
                 $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_PROGRESS)} {progress:F1}% ({remaining:N0} favor needed)");
         }
@@ -246,16 +247,17 @@ public class FavorCommands
         var deityName = deity.ToLocalizedString();
 
         // Get current rank based on total favor
-        var currentRank = GetCurrentFavorRank(playerProgressionData!.TotalFavorEarned);
+        var totalForDeity = playerProgressionData!.GetTotalFavorEarned(deity);
+        var currentRank = GetCurrentFavorRank(totalForDeity);
         var currentRankName = RankRequirements.GetFavorRankName(currentRank);
 
         var sb = new StringBuilder();
         sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_HEADER_STATS));
         sb.AppendLine($"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_DOMAIN)} {deityName}");
         sb.AppendLine(
-            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_CURRENT)} {playerProgressionData.Favor:N0}");
+            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_CURRENT)} {playerProgressionData.GetFavor(deity):N0}");
         sb.AppendLine(
-            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_TOTAL_EARNED)} {playerProgressionData.TotalFavorEarned:N0}");
+            $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_TOTAL_EARNED)} {totalForDeity:N0}");
         sb.AppendLine(
             $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_DEVOTION_RANK)} {currentRankName}");
 
@@ -265,7 +267,7 @@ public class FavorCommands
             var nextRank = currentRank + 1;
             var nextRankName = RankRequirements.GetFavorRankName(nextRank);
             var nextThreshold = RankRequirements.GetRequiredFavorForNextRank(currentRank);
-            var remaining = nextThreshold - playerProgressionData.TotalFavorEarned;
+            var remaining = nextThreshold - totalForDeity;
 
             sb.AppendLine();
             sb.AppendLine(
@@ -336,7 +338,9 @@ public class FavorCommands
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
-        playerData.Favor = amount;
+        var targetUID = targetPlayer?.PlayerUID ?? player.PlayerUID;
+        var targetDeity = _religionManager.GetPlayerActiveDeityDomain(targetUID);
+        playerData.SetFavor(targetDeity, amount);
 
         var targetName = targetPlayerName != null ? $" for {targetPlayer?.PlayerName}" : "";
         return TextCommandResult.Success(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_SET,
@@ -374,13 +378,14 @@ public class FavorCommands
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
-        var oldFavor = playerData.Favor;
-        _playerProgressionDataManager.AddFavor(targetPlayer.PlayerUID, amount);
+        var targetDeity = _religionManager.GetPlayerActiveDeityDomain(targetPlayer.PlayerUID);
+        var oldFavor = playerData.GetFavor(targetDeity);
+        _playerProgressionDataManager.AddFavor(targetPlayer.PlayerUID, targetDeity, amount);
 
         var targetName = targetPlayerName != null ? $" for {targetPlayer.PlayerName}" : "";
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_ADD, amount.ToString("N0"), targetName,
-                oldFavor.ToString("N0"), playerData.Favor.ToString("N0")));
+                oldFavor.ToString("N0"), playerData.GetFavor(targetDeity).ToString("N0")));
     }
 
     /// <summary>
@@ -414,14 +419,15 @@ public class FavorCommands
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
-        var oldFavor = playerData.Favor;
-        _playerProgressionDataManager.RemoveFavor(targetPlayer.PlayerUID, amount);
-        var actualRemoved = oldFavor - playerData.Favor;
+        var targetDeity = _religionManager.GetPlayerActiveDeityDomain(targetPlayer.PlayerUID);
+        var oldFavor = playerData.GetFavor(targetDeity);
+        _playerProgressionDataManager.RemoveFavor(targetPlayer.PlayerUID, targetDeity, amount);
+        var actualRemoved = oldFavor - playerData.GetFavor(targetDeity);
 
         var targetName = targetPlayerName != null ? $" for {targetPlayer.PlayerName}" : "";
         return TextCommandResult.Success(
             LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_REMOVE, actualRemoved.ToString("N0"),
-                targetName, oldFavor.ToString("N0"), playerData.Favor.ToString("N0")));
+                targetName, oldFavor.ToString("N0"), playerData.GetFavor(targetDeity).ToString("N0")));
     }
 
     /// <summary>
@@ -446,8 +452,10 @@ public class FavorCommands
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
-        var oldFavor = playerData.Favor;
-        playerData.Favor = 0;
+        var targetUID = targetPlayer?.PlayerUID ?? player.PlayerUID;
+        var targetDeity = _religionManager.GetPlayerActiveDeityDomain(targetUID);
+        var oldFavor = playerData.GetFavor(targetDeity);
+        playerData.SetFavor(targetDeity, 0);
 
         var targetName = targetPlayerName != null ? $" for {targetPlayer?.PlayerName}" : "";
         return TextCommandResult.Success(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_RESET,
@@ -476,8 +484,10 @@ public class FavorCommands
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
-        var oldFavor = playerData.Favor;
-        playerData.Favor = 99999;
+        var targetUID = targetPlayer?.PlayerUID ?? player.PlayerUID;
+        var targetDeity = _religionManager.GetPlayerActiveDeityDomain(targetUID);
+        var oldFavor = playerData.GetFavor(targetDeity);
+        playerData.SetFavor(targetDeity, 99999);
 
         var targetName = targetPlayerName != null ? $" for {targetPlayer?.PlayerName}" : "";
         return TextCommandResult.Success(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_SUCCESS_MAX,
@@ -560,12 +570,13 @@ public class FavorCommands
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_TARGET_NO_RELIGION));
 
-            var oldTotal = targetProgressionData.TotalFavorEarned;
-            var oldRank = _playerProgressionDataManager.GetPlayerFavorRank(serverPlayer.PlayerUID);
+            var targetDeity = _religionManager.GetPlayerActiveDeityDomain(serverPlayer.PlayerUID);
+            var oldTotal = targetProgressionData.GetTotalFavorEarned(targetDeity);
+            var oldRank = _playerProgressionDataManager.GetPlayerFavorRank(serverPlayer.PlayerUID, targetDeity);
 
-            targetProgressionData.TotalFavorEarned = amount;
+            targetProgressionData.SetTotalFavorEarned(targetDeity, amount);
 
-            return TextCommandResult.Success(FormatTotalFavorResult(serverPlayer.PlayerUID, targetProgressionData, amount, oldTotal, oldRank));
+            return TextCommandResult.Success(FormatTotalFavorResult(serverPlayer.PlayerUID, targetDeity, targetProgressionData, amount, oldTotal, oldRank));
         }
 
         // Handle setting own favor
@@ -578,12 +589,13 @@ public class FavorCommands
             return TextCommandResult.Error(
                 LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_ERROR_MUST_HAVE_RELIGION));
 
-        var callerOldTotal = religionData.TotalFavorEarned;
-        var callerOldRank = _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID);
+        var callerDeity = _religionManager.GetPlayerActiveDeityDomain(player.PlayerUID);
+        var callerOldTotal = religionData.GetTotalFavorEarned(callerDeity);
+        var callerOldRank = _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID, callerDeity);
 
-        religionData.TotalFavorEarned = amount;
+        religionData.SetTotalFavorEarned(callerDeity, amount);
 
-        return TextCommandResult.Success(FormatTotalFavorResult(player.PlayerUID, religionData, amount, callerOldTotal, callerOldRank));
+        return TextCommandResult.Success(FormatTotalFavorResult(player.PlayerUID, callerDeity, religionData, amount, callerOldTotal, callerOldRank));
     }
 
     #endregion

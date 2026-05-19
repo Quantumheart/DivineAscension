@@ -117,6 +117,39 @@ public class BlessingLoaderTests
         Assert.Single(blessing.StatModifiers);
         Assert.Equal(0.10f, blessing.StatModifiers["toolDurability"]);
         Assert.Empty(blessing.SpecialEffects!);
+        Assert.False(blessing.RequiresPatron); // default
+    }
+
+    [Fact]
+    public void LoadBlessings_WithRequiresPatronTrue_MapsField()
+    {
+        var json = @"{
+            ""domain"": ""Craft"",
+            ""version"": 1,
+            ""blessings"": [
+                {
+                    ""blessingId"": ""patron_capstone"",
+                    ""name"": ""Capstone"",
+                    ""description"": ""x"",
+                    ""kind"": ""Player"",
+                    ""category"": ""Utility"",
+                    ""iconName"": ""x"",
+                    ""requiredFavorRank"": 3,
+                    ""requiredPrestigeRank"": 0,
+                    ""prerequisiteBlessings"": [],
+                    ""statModifiers"": {},
+                    ""specialEffects"": [],
+                    ""requiresPatron"": true
+                }
+            ]
+        }";
+        SetupMockAsset("config/blessings/craft.json", json);
+        var loader = new BlessingLoader(_mockApi.Object, _mockLogger.Object);
+
+        var result = loader.LoadBlessings();
+
+        Assert.Single(result);
+        Assert.True(result[0].RequiresPatron);
     }
 
     #endregion

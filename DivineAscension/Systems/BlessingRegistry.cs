@@ -155,8 +155,8 @@ public class BlessingRegistry : IBlessingRegistry
             }
 
             // Check deity matches
-            if (religionData!.Domain != blessing.Domain)
-                return (false, $"Requires deity: {blessing.Domain} (Current: {religionData!.Domain})");
+            if (religionData!.PatronDomain != blessing.Domain)
+                return (false, $"Requires deity: {blessing.Domain} (Current: {religionData!.PatronDomain})");
 
             // Check branch exclusivity (only for player blessings with a branch)
             if (!string.IsNullOrEmpty(blessing.Branch))
@@ -201,8 +201,8 @@ public class BlessingRegistry : IBlessingRegistry
             }
 
             // Check favor cost (skip if cost will be deducted atomically)
-            if (!skipCostCheck && blessing.Cost > 0 && playerData.Favor < blessing.Cost)
-                return (false, $"Insufficient favor: requires {blessing.Cost}, have {playerData.Favor}");
+            if (!skipCostCheck && blessing.Cost > 0 && playerData.GetFavor(blessing.Domain) < blessing.Cost)
+                return (false, $"Insufficient favor: requires {blessing.Cost}, have {playerData.GetFavor(blessing.Domain)}");
 
             return (true, "Can unlock");
         }
@@ -223,8 +223,8 @@ public class BlessingRegistry : IBlessingRegistry
         }
 
         // Check deity matches
-        if (religionData.Domain != blessing.Domain)
-            return (false, $"Religion deity mismatch (Blessing: {blessing.Domain}, Religion: {religionData.Domain})");
+        if (religionData.PatronDomain != blessing.Domain)
+            return (false, $"Religion deity mismatch (Blessing: {blessing.Domain}, Religion: {religionData.PatronDomain})");
 
         // Check prerequisites
         if (blessing.PrerequisiteBlessings != null)

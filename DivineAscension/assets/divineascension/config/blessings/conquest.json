@@ -115,7 +115,8 @@
       "specialEffects": ["bloodlust"],
       "cost": 800,
       "branch": null,
-      "exclusiveBranches": null
+      "exclusiveBranches": null,
+      "requiresPatron": true
     },
     {
       "blessingId": "conquest_warband",
@@ -193,7 +194,8 @@
       "specialEffects": [],
       "cost": 8000,
       "branch": null,
-      "exclusiveBranches": null
+      "exclusiveBranches": null,
+      "requiresPatron": true
     }
   ]
 }

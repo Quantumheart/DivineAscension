@@ -122,47 +122,42 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     }
 
     /// <summary>
-    ///     Adds favor to a player
+    ///     Adds favor to a player for a specific deity.
     /// </summary>
-    public void AddFavor(string playerUID, int amount, string reason = "")
+    public void AddFavor(string playerUID, DeityDomain domain, int amount, string reason = "")
     {
         var data = GetOrCreatePlayerData(playerUID);
-        var oldRank = CalculateFavorRank(data.TotalFavorEarned);
+        var oldRank = CalculateFavorRank(data.GetTotalFavorEarned(domain));
 
-        data.AddFavor(amount);
+        data.AddFavor(domain, amount);
 
         if (!string.IsNullOrEmpty(reason))
-            _logger.Debug($"[DivineAscension] Player {playerUID} gained {amount} favor: {reason}");
+            _logger.Debug($"[DivineAscension] Player {playerUID} gained {amount} favor ({domain}): {reason}");
 
-        // Check for rank up
-        var newRank = CalculateFavorRank(data.TotalFavorEarned);
+        var newRank = CalculateFavorRank(data.GetTotalFavorEarned(domain));
         if (newRank > oldRank) SendRankUpNotification(playerUID, newRank);
 
-        // Notify listeners that player data changed (for UI updates)
         OnPlayerDataChanged?.Invoke(playerUID);
     }
 
     /// <summary>
-    ///     Adds fractional favor to a player (for passive favor generation)
+    ///     Adds fractional favor to a player for a specific deity (passive generation).
     /// </summary>
-    public void AddFractionalFavor(string playerUID, float amount, string reason = "")
+    public void AddFractionalFavor(string playerUID, DeityDomain domain, float amount, string reason = "")
     {
         var data = GetOrCreatePlayerData(playerUID);
-        var oldRank = CalculateFavorRank(data.TotalFavorEarned);
-        var oldFavor = data.Favor;
+        var oldRank = CalculateFavorRank(data.GetTotalFavorEarned(domain));
+        var oldFavor = data.GetFavor(domain);
 
-        data.AddFractionalFavor(amount);
+        data.AddFractionalFavor(domain, amount);
 
-        // Only log when favor is actually awarded (when accumulated >= 1)
-        if (data.AccumulatedFractionalFavor < amount && !string.IsNullOrEmpty(reason))
-            _logger.Debug($"[DivineAscension] Player {playerUID} gained favor: {reason}");
+        if (data.GetAccumulatedFractionalFavor(domain) < amount && !string.IsNullOrEmpty(reason))
+            _logger.Debug($"[DivineAscension] Player {playerUID} gained favor ({domain}): {reason}");
 
-        // Check for rank up
-        var newRank = CalculateFavorRank(data.TotalFavorEarned);
+        var newRank = CalculateFavorRank(data.GetTotalFavorEarned(domain));
         if (newRank > oldRank) SendRankUpNotification(playerUID, newRank);
 
-        // Notify listeners if favor actually changed (UI updates)
-        if (data.Favor != oldFavor) OnPlayerDataChanged?.Invoke(playerUID);
+        if (data.GetFavor(domain) != oldFavor) OnPlayerDataChanged?.Invoke(playerUID);
     }
 
     /// <summary>
@@ -175,17 +170,16 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     }
 
     /// <summary>
-    ///     Removes favor from a player
+    ///     Removes favor from a player for a specific deity.
     /// </summary>
-    public bool RemoveFavor(string playerUID, int amount, string reason = "")
+    public bool RemoveFavor(string playerUID, DeityDomain domain, int amount, string reason = "")
     {
         var data = GetOrCreatePlayerData(playerUID);
-        var success = data.RemoveFavor(amount);
+        var success = data.RemoveFavor(domain, amount);
 
         if (success && !string.IsNullOrEmpty(reason))
-            _logger.Debug($"[DivineAscension] Player {playerUID} spent {amount} favor: {reason}");
+            _logger.Debug($"[DivineAscension] Player {playerUID} spent {amount} favor ({domain}): {reason}");
 
-        // Notify listeners that player data changed (for UI updates)
         if (success) OnPlayerDataChanged?.Invoke(playerUID);
 
         return success;
@@ -269,10 +263,10 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     {
         if (!HasReligion(playerUID)) return;
 
-        HandleReligionSwitch(playerUID);
         var playerReligion = _religionManager.GetPlayerReligion(playerUID);
         if (playerReligion == null) return;
-        // Remove from religion
+
+        HandleReligionSwitch(playerUID, playerReligion.PatronDomain);
         _religionManager.RemoveMember(playerReligion.ReligionUID, playerUID);
 
         OnPlayerLeavesReligion.Invoke(_worldService.GetPlayerByUID(playerUID)!,
@@ -290,12 +284,12 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     }
 
     /// <summary>
-    ///     Calculates favor rank based on total favor earned using configured thresholds
+    ///     Calculates favor rank for a deity based on total favor earned with that deity.
     /// </summary>
-    public FavorRank GetPlayerFavorRank(string playerUID)
+    public FavorRank GetPlayerFavorRank(string playerUID, DeityDomain domain)
     {
         var data = GetOrCreatePlayerData(playerUID);
-        return CalculateFavorRank(data.TotalFavorEarned);
+        return CalculateFavorRank(data.GetTotalFavorEarned(domain));
     }
 
     /// <summary>
@@ -383,91 +377,17 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     }
 
     /// <summary>
-    ///     Migrates player branch commitments from existing unlocked blessings.
-    ///     For players with DataVersion &lt; 4, infers branch commitments from unlocked blessings.
+    ///     Applies switching penalty when leaving a religion (clears favor + blessings
+    ///     for the abandoned deity only; favor with other deities is preserved).
     /// </summary>
-    public void MigrateBranchCommitments(string playerUID, IBlessingRegistry blessingRegistry)
-    {
-        if (!TryGetPlayerData(playerUID, out var playerData) || playerData == null)
-            return;
-
-        // Only migrate if data version is less than 4
-        if (playerData.DataVersion >= 4)
-            return;
-
-        _logger.Debug(
-            $"[DivineAscension] Migrating branch commitments for player {playerUID} (v{playerData.DataVersion} -> v4)");
-
-        var migratedCount = 0;
-        foreach (var blessingId in playerData.UnlockedBlessings)
-        {
-            var blessing = blessingRegistry.GetBlessing(blessingId);
-            if (blessing == null || string.IsNullOrEmpty(blessing.Branch))
-                continue;
-
-            // Commit to this branch if not already committed in this domain
-            if (playerData.GetCommittedBranch(blessing.Domain) == null)
-            {
-                playerData.CommitToBranch(blessing.Domain, blessing.Branch, blessing.ExclusiveBranches);
-                migratedCount++;
-                _logger.Debug($"[DivineAscension] Migrated branch commitment: {blessing.Domain} -> {blessing.Branch}");
-            }
-        }
-
-        // Bump data version to 4
-        playerData.DataVersion = 4;
-
-        if (migratedCount > 0)
-        {
-            _logger.Notification(
-                $"[DivineAscension] Migrated {migratedCount} branch commitment(s) for player {playerUID}");
-        }
-    }
-
-    /// <summary>
-    ///     Applies switching penalty when changing religions
-    /// </summary>
-    public void HandleReligionSwitch(string playerUID)
+    public void HandleReligionSwitch(string playerUID, DeityDomain abandonedDomain)
     {
         var data = GetOrCreatePlayerData(playerUID);
 
-        _logger.Notification($"[DivineAscension] Applying religion switch penalty to player {playerUID}");
-
-        // Apply penalty (reset favor and blessings)
-        data.ApplySwitchPenalty();
-    }
-
-    /// <summary>
-    ///     Migrates player cooldowns from elapsed milliseconds to UTC DateTime.
-    ///     For players with DataVersion &lt; 5, clears old cooldowns (one-time reset).
-    ///     Cannot accurately convert elapsed-ms to DateTime without knowing server start time.
-    /// </summary>
-    internal void MigrateCooldownsToUtc(string playerUID)
-    {
-        if (!TryGetPlayerData(playerUID, out var playerData) || playerData == null)
-            return;
-
-        // Only migrate if data version is less than 5
-        if (playerData.DataVersion >= 5)
-            return;
-
-        _logger.Debug(
-            $"[DivineAscension] Migrating cooldowns for player {playerUID} (v{playerData.DataVersion} -> v5)");
-
-        // Clear old elapsed-ms cooldowns - cannot convert accurately
-        // Players get a one-time reset of their cooldowns after update
-        playerData.NextPrayerAllowedTime = 0;
-        playerData.LastPatrolCompletionTime = 0;
-
-        // New DateTime fields start as null (no cooldown active)
-        playerData.NextPrayerAllowedTimeUtc = null;
-        playerData.LastPatrolCompletionTimeUtc = null;
-
-        // Bump data version to 5
-        playerData.DataVersion = 5;
-
         _logger.Notification(
-            $"[DivineAscension] Migrated cooldowns to UTC DateTime for player {playerUID} (cooldowns reset)");
+            $"[DivineAscension] Applying religion switch penalty to player {playerUID} (deity {abandonedDomain})");
+
+        data.ApplySwitchPenalty(abandonedDomain);
     }
 
     private FavorRank CalculateFavorRank(int totalFavor)
@@ -547,12 +467,6 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
                     _playerData[playerUID] = playerData;
                     _logger.Debug(
                         $"[DivineAscension] Loaded data for player {playerUID} (v{playerData.DataVersion})");
-
-                    // Run migrations for older data versions
-                    if (playerData.DataVersion < 5)
-                    {
-                        MigrateCooldownsToUtc(playerUID);
-                    }
                 }
                 else
                 {

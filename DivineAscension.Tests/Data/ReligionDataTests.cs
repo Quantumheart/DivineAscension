@@ -18,7 +18,7 @@ public class ReligionDataTests
         // Assert
         Assert.Empty(religion.ReligionUID);
         Assert.Empty(religion.ReligionName);
-        Assert.Equal(DeityDomain.None, religion.Domain);
+        Assert.Equal(DeityDomain.None, religion.PatronDomain);
         Assert.Empty(religion.FounderUID);
         Assert.Empty(religion.MemberUIDs);
         Assert.Equal(PrestigeRank.Fledgling, religion.PrestigeRank);
@@ -44,7 +44,7 @@ public class ReligionDataTests
         // Assert
         Assert.Equal(religionUID, religion.ReligionUID);
         Assert.Equal(religionName, religion.ReligionName);
-        Assert.Equal(deity, religion.Domain);
+        Assert.Equal(deity, religion.PatronDomain);
         Assert.Equal(founderUID, religion.FounderUID);
         Assert.Single(religion.MemberUIDs);
         Assert.Contains(founderUID, religion.MemberUIDs);

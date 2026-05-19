@@ -195,7 +195,7 @@ public class ReligionCommandAdminTests : ReligionCommandsTestHelpers
         Assert.Contains("Successfully added Player to religion NewReligion", result.StatusMessage);
         _playerProgressionDataManager.Verify(m => m.LeaveReligion("player-1"), Times.Once);
         _playerProgressionDataManager.Verify(m => m.JoinReligion("player-1", "new-religion"), Times.Once);
-        _playerProgressionDataManager.Verify(m => m.HandleReligionSwitch("player-1"), Times.Never);
+        _playerProgressionDataManager.Verify(m => m.HandleReligionSwitch("player-1", DeityDomain.Craft), Times.Never);
     }
 
     [Fact]

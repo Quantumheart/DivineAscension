@@ -174,7 +174,7 @@ public class ReligionManager : IReligionManager
             return false;
         }
 
-        religion.DeityName = trimmedName;
+        religion.PatronName = trimmedName;
         SaveAllReligions();
 
         _logger.Notification(
@@ -298,7 +298,7 @@ public class ReligionManager : IReligionManager
     public DeityDomain GetPlayerActiveDeityDomain(string playerId)
     {
         var religion = GetPlayerReligion(playerId);
-        return religion?.Domain ?? DeityDomain.None;
+        return religion?.PatronDomain ?? DeityDomain.None;
     }
 
     /// <summary>
@@ -488,7 +488,7 @@ public class ReligionManager : IReligionManager
     /// </summary>
     public List<ReligionData> GetReligionsByDomain(DeityDomain domain)
     {
-        return _religions.Values.Where(r => r.Domain == domain).ToList();
+        return _religions.Values.Where(r => r.PatronDomain == domain).ToList();
     }
 
     /// <summary>
@@ -931,10 +931,10 @@ public class ReligionManager : IReligionManager
         // Take snapshot for thread-safe iteration
         foreach (var religion in _religions.Values.ToList())
         {
-            if (string.IsNullOrEmpty(religion.DeityName))
+            if (string.IsNullOrEmpty(religion.PatronName))
             {
-                var domainName = religion.Domain.ToString();
-                religion.DeityName = domainName;
+                var domainName = religion.PatronDomain.ToString();
+                religion.PatronName = domainName;
                 migratedUIDs.Add(religion.ReligionUID);
                 _logger.Notification(
                     $"[DivineAscension] Migrated deity name for {religion.ReligionName}: '{domainName}'");
@@ -1001,10 +1001,10 @@ public class ReligionManager : IReligionManager
         // Take snapshot for thread-safe iteration
         foreach (var religion in _religions.Values.ToList())
         {
-            if (string.IsNullOrWhiteSpace(religion.DeityName))
+            if (string.IsNullOrWhiteSpace(religion.PatronName))
             {
                 // Set default deity name to domain name
-                religion.DeityName = religion.Domain.ToString();
+                religion.PatronName = religion.PatronDomain.ToString();
                 migratedCount++;
             }
         }
