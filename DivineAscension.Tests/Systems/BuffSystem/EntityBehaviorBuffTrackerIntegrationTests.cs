@@ -20,7 +20,6 @@ public class EntityBehaviorBuffTrackerIntegrationTests
     {
         var entity = new TestEntity();
         entity.WatchedAttributes = new SyncedTreeAttribute();
-        entity.Pos = new EntityPos();
         // EntityStats requires the entity parameter
         entity.Stats = new EntityStats(entity);
         return entity;
