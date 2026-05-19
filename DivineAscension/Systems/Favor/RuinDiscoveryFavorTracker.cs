@@ -28,8 +28,6 @@ public class RuinDiscoveryFavorTracker(
     private const int SCAN_RADIUS = 50; // 50 blocks
     private const int SCAN_STEP = 5; // Check every 5 blocks (sparse scanning)
 
-    private readonly HashSet<string> _conquestFollowers = new();
-
     private readonly IEventService
         _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
 
@@ -47,9 +45,6 @@ public class RuinDiscoveryFavorTracker(
     public void Dispose()
     {
         _eventService.UnregisterCallback(_callbackId);
-        _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
-        _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
-        _conquestFollowers.Clear();
     }
 
     public DeityDomain DeityDomain { get; } = DeityDomain.Conquest;
@@ -59,26 +54,17 @@ public class RuinDiscoveryFavorTracker(
         // Register periodic callback for ruin scanning
         _callbackId = _eventService.RegisterCallback(OnTick, SCAN_INTERVAL_MS);
 
-        // Build initial cache of Conquest followers
-        RefreshFollowerCache();
-
-        // Listen for religion changes to update cache
-        _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
-        _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
-
         _logger.Debug($"{SystemConstants.LogPrefix} Initialized RuinDiscoveryFavorTracker");
     }
 
     /// <summary>
-    ///     Periodic callback to scan for ruins near Conquest followers
+    ///     Periodic callback to scan for ruins near all online players
     /// </summary>
     private void OnTick(float deltaTime)
     {
-        foreach (var playerUID in _conquestFollowers.ToList())
+        foreach (var p in _worldService.GetAllOnlinePlayers())
         {
-            var player = _worldService.GetPlayerByUID(playerUID) as IServerPlayer;
-            if (player?.Entity == null) continue;
-
+            if (p is not IServerPlayer player || player.Entity == null) continue;
             ScanForRuins(player);
         }
     }
@@ -202,7 +188,7 @@ public class RuinDiscoveryFavorTracker(
         playerData!.DiscoveredRuins.Add(posKey);
 
         // Award favor
-        _favorSystem.AwardFavorForAction(player, $"discovered {type} ruin", favor);
+        _favorSystem.AwardFavorForAction(player, $"discovered {type} ruin", favor, DeityDomain.Conquest);
 
         // Send notification
         player.SendMessage(GlobalConstants.GeneralChatGroup,
@@ -211,42 +197,6 @@ public class RuinDiscoveryFavorTracker(
 
         _logger.Debug(
             $"{SystemConstants.LogPrefix} Player {player.PlayerName} discovered {type} ruin at {posKey} (+{favor} favor)");
-    }
-
-    /// <summary>
-    ///     Rebuild cache of active Conquest followers
-    /// </summary>
-    private void RefreshFollowerCache()
-    {
-        _conquestFollowers.Clear();
-
-        var onlinePlayers = _worldService.GetAllOnlinePlayers();
-        if (onlinePlayers == null) return;
-
-        foreach (var player in onlinePlayers)
-        {
-            if (_playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID) == DeityDomain)
-                _conquestFollowers.Add(player.PlayerUID);
-        }
-    }
-
-    /// <summary>
-    ///     Update cache when player data changes (e.g., joins a religion)
-    /// </summary>
-    private void OnPlayerDataChanged(string playerUID)
-    {
-        if (_playerProgressionDataManager.GetPlayerDeityType(playerUID) == DeityDomain)
-            _conquestFollowers.Add(playerUID);
-        else
-            _conquestFollowers.Remove(playerUID);
-    }
-
-    /// <summary>
-    ///     Update cache when a player leaves a religion
-    /// </summary>
-    private void OnPlayerLeavesProgression(IServerPlayer player, string religionUID)
-    {
-        _conquestFollowers.Remove(player.PlayerUID);
     }
 
     /// <summary>

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
@@ -28,8 +27,6 @@ public class HuntingFavorTracker(
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
-    private readonly HashSet<string> _wildFollowers = new();
-
     private readonly IWorldService
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
 
@@ -41,9 +38,6 @@ public class HuntingFavorTracker(
     public void Dispose()
     {
         _eventService.UnsubscribeEntityDeath(OnEntityDeath);
-        _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
-        _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
-        _wildFollowers.Clear();
     }
 
     public DeityDomain DeityDomain { get; } = DeityDomain.Wild;
@@ -52,39 +46,6 @@ public class HuntingFavorTracker(
     public void Initialize()
     {
         _eventService.OnEntityDeath(OnEntityDeath);
-
-        // Cache followers
-        RefreshFollowerCache();
-
-        _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
-        _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
-    }
-
-    private void RefreshFollowerCache()
-    {
-        var onlinePlayers = _worldService.GetAllOnlinePlayers();
-        if (onlinePlayers == null) return;
-
-        foreach (var player in onlinePlayers) UpdateFollower(player.PlayerUID);
-    }
-
-    private void OnPlayerDataChanged(string playerId)
-    {
-        UpdateFollower(playerId);
-    }
-
-    private void UpdateFollower(string playerId)
-    {
-        var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerId);
-        if (deityType == DeityDomain)
-            _wildFollowers.Add(playerId);
-        else
-            _wildFollowers.Remove(playerId);
-    }
-
-    private void OnPlayerLeavesProgression(IServerPlayer player, string religionId)
-    {
-        _wildFollowers.Remove(player.PlayerUID);
     }
 
     private void OnEntityDeath(Entity? entity, DamageSource? damageSource)
@@ -95,12 +56,11 @@ public class HuntingFavorTracker(
         var killer = damageSource.GetCauseEntity();
         if (killer is EntityPlayer { Player: IServerPlayer player })
         {
-            if (!_wildFollowers.Contains(player.PlayerUID)) return;
             if (entity is not EntityAgent || entity is EntityPlayer) return;
 
             if (!IsHuntable(entity)) return;
             var favor = GetFavorForEntity(entity);
-            if (favor > 0) _favorSystem.AwardFavorForAction(player, "hunting " + entity.Code.Path, favor);
+            if (favor > 0) _favorSystem.AwardFavorForAction(player, "hunting " + entity.Code.Path, favor, DeityDomain.Wild);
         }
     }
 

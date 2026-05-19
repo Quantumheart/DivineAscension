@@ -113,16 +113,12 @@ public class StoneFavorTracker(
 
     private void HandleClayFormingFinished(IServerPlayer player, ItemStack stack, int clayConsumed)
     {
-        // Verify religion
-        var deityType = _playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID);
-        if (deityType != DeityDomain.Stone) return;
-
         if (clayConsumed > 0)
         {
             // Clay consumed already accounts for the total batch (don't multiply by stack size)
             // Phase 1 improvement: Double pottery favor rewards
             var favorAmount = clayConsumed * 2;
-            _favorSystem.AwardFavorForAction(player, "Pottery Crafting", favorAmount);
+            _favorSystem.AwardFavorForAction(player, "Pottery Crafting", favorAmount, DeityDomain.Stone);
 
             _logger.Debug(
                 $"[StoneFavorTracker] Awarded {favorAmount} favor for clay forming " +
@@ -208,15 +204,11 @@ public class StoneFavorTracker(
     private void CalculateAndAwardFavor(IServerPlayer player, int voxelsDelta, float multiplier)
     {
         var favorAmount = voxelsDelta * FavorPerVoxel * multiplier;
-        _favorSystem.AwardFavorForAction(player, "Stone Carving", favorAmount);
+        _favorSystem.AwardFavorForAction(player, "Stone Carving", favorAmount, DeityDomain.Stone);
     }
 
     private void HandleVoxelsChanged(IPlayer player, BlockPos pos, int voxelsDelta)
     {
-        // Verify religion
-        var deityType = _playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID);
-        if (deityType != DeityDomain.Stone) return;
-
         if (voxelsDelta <= 0) return;
 
         var serverPlayer = player as IServerPlayer;
@@ -246,10 +238,6 @@ public class StoneFavorTracker(
 
     private void OnBlockPlaced(IServerPlayer byPlayer, int oldblockId, BlockSelection blockSel, ItemStack withItemStack)
     {
-        // Verify religion
-        var deityType = _playerProgressionDataManager.GetPlayerDeityType(byPlayer.PlayerUID);
-        if (deityType != DeityDomain.Stone) return;
-
         var placedBlock = _worldService.GetBlock(blockSel.Position);
         if (!IsConstructionBlock(placedBlock, out var favor)) return;
 
@@ -261,7 +249,7 @@ public class StoneFavorTracker(
                 return; // Still in cooldown
         }
 
-        _favorSystem.AwardFavorForAction(byPlayer, "construction", favor);
+        _favorSystem.AwardFavorForAction(byPlayer, "construction", favor, DeityDomain.Stone);
         _lastConstructionTime[byPlayer.PlayerUID] = currentTime;
 
         _logger.Debug(
@@ -369,15 +357,11 @@ public class StoneFavorTracker(
         // Player can be null when blocks break automatically (gravity, neighbor updates, etc.)
         if (player == null) return;
 
-        // Verify religion
-        var deityType = _playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID);
-        if (deityType != DeityDomain.Stone) return;
-
         var serverPlayer = player as IServerPlayer;
         if (serverPlayer == null)
             return;
 
-        _favorSystem.AwardFavorForAction(serverPlayer, "gathering stone", FavorPerStoneBlock);
+        _favorSystem.AwardFavorForAction(serverPlayer, "gathering stone", FavorPerStoneBlock, DeityDomain.Stone);
 
         _logger.Debug(
             $"[StoneFavorTracker] Awarded {FavorPerStoneBlock} favor to {player.PlayerName} for mining");
@@ -448,9 +432,6 @@ public class StoneFavorTracker(
 
         if (string.IsNullOrEmpty(playerUid)) return;
 
-        var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerUid);
-        if (deityType != DeityDomain.Stone) return;
-
         float totalFavor = 0;
         foreach (var stack in firedItems)
         {
@@ -468,7 +449,7 @@ public class StoneFavorTracker(
 
         if (totalFavor > 0)
         {
-            _favorSystem.AwardFavorForAction(playerUid, "Pottery firing", totalFavor, deityType);
+            _favorSystem.AwardFavorForAction(playerUid, "Pottery firing", totalFavor, DeityDomain.Stone);
             _logger.Debug($"[StoneFavorTracker] Total pit kiln favor awarded: {totalFavor}");
         }
     }

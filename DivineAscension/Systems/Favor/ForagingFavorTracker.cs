@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
@@ -22,8 +21,6 @@ public class ForagingFavorTracker(
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
-    private readonly HashSet<string> _wildFollowers = new();
-
     private readonly IWorldService
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
 
@@ -32,9 +29,6 @@ public class ForagingFavorTracker(
         ForagingPatches.Picked -= OnBlockUsed;
         MushroomPatches.OnMushroomHarvested -= OnMushroomHarvested;
         FlowerPatches.OnFlowerHarvested -= OnFlowerHarvested;
-        _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
-        _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
-        _wildFollowers.Clear();
     }
 
     public DeityDomain DeityDomain { get; } = DeityDomain.Wild;
@@ -44,38 +38,6 @@ public class ForagingFavorTracker(
         ForagingPatches.Picked += OnBlockUsed;
         MushroomPatches.OnMushroomHarvested += OnMushroomHarvested;
         FlowerPatches.OnFlowerHarvested += OnFlowerHarvested;
-
-        // Cache followers
-        RefreshFollowerCache();
-
-        _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
-        _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
-    }
-
-    private void RefreshFollowerCache()
-    {
-        var onlinePlayers = _worldService.GetAllOnlinePlayers();
-
-        foreach (var player in onlinePlayers) UpdateFollower(player.PlayerUID);
-    }
-
-    private void OnPlayerDataChanged(string playerUID)
-    {
-        UpdateFollower(playerUID);
-    }
-
-    private void UpdateFollower(string playerUID)
-    {
-        var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerUID);
-        if (deityType == DeityDomain)
-            _wildFollowers.Add(playerUID);
-        else
-            _wildFollowers.Remove(playerUID);
-    }
-
-    private void OnPlayerLeavesProgression(IServerPlayer player, string religionUID)
-    {
-        _wildFollowers.Remove(player.PlayerUID);
     }
 
     /// <summary>
@@ -83,9 +45,7 @@ public class ForagingFavorTracker(
     /// </summary>
     private void OnMushroomHarvested(IServerPlayer player, Block block, string? mushroomType)
     {
-        if (!_wildFollowers.Contains(player.PlayerUID)) return;
-
-        _favorSystem.AwardFavorForAction(player, "foraging", 0.5f);
+        _favorSystem.AwardFavorForAction(player, "foraging", 0.5f, DeityDomain.Wild);
     }
 
     /// <summary>
@@ -94,8 +54,6 @@ public class ForagingFavorTracker(
     /// </summary>
     private void OnFlowerHarvested(IServerPlayer player, Block block, string? flowerType, bool isScytheHarvest)
     {
-        if (!_wildFollowers.Contains(player.PlayerUID)) return;
-
         if (isScytheHarvest)
         {
             // Use batched favor for scythe harvesting (avoid performance issues on large fields)
@@ -104,7 +62,7 @@ public class ForagingFavorTracker(
         else
         {
             // Use immediate favor for manual harvesting (better player feedback)
-            _favorSystem.AwardFavorForAction(player, "foraging", 0.5f);
+            _favorSystem.AwardFavorForAction(player, "foraging", 0.5f, DeityDomain.Wild);
         }
     }
 
@@ -115,10 +73,9 @@ public class ForagingFavorTracker(
     private void OnBlockUsed(IServerPlayer? player, BlockSelection? blockSel, Block? block)
     {
         if (player == null || blockSel == null || block == null) return;
-        if (!_wildFollowers.Contains(player.PlayerUID)) return;
 
         if (IsBerryBush(block) && HasRipeBerries(block))
-            _favorSystem.AwardFavorForAction(player, "foraging", 0.5f);
+            _favorSystem.AwardFavorForAction(player, "foraging", 0.5f, DeityDomain.Wild);
     }
 
     private bool IsBerryBush(Block block)

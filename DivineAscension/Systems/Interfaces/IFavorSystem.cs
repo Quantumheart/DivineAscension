@@ -15,19 +15,16 @@ public interface IFavorSystem : IDisposable
     void Initialize();
 
     /// <summary>
-    ///     Awards favor for deity-aligned actions (extensible for future features)
+    ///     Awards favor for a deity-aligned action against the specified source domain.
+    ///     Patron multiplier (1.5x) is applied inside the system when the player's religion
+    ///     has <paramref name="sourceDomain"/> as its PatronDomain; otherwise 1.0x.
     /// </summary>
-    void AwardFavorForAction(IServerPlayer player, string actionType, int amount);
+    void AwardFavorForAction(IServerPlayer player, string actionType, float amount, DeityDomain sourceDomain);
 
     /// <summary>
-    ///     Awards a fractional amount of favor (supports fine-grained activities)
+    ///     Awards favor by player UID (for async/delayed events) against the specified source domain.
     /// </summary>
-    void AwardFavorForAction(IServerPlayer player, string actionType, float amount);
-
-    /// <summary>
-    ///     Awards a fractional amount of favor by player UID (for async/delayed events)
-    /// </summary>
-    void AwardFavorForAction(string playerUid, string actionType, float amount, DeityDomain deityDomain);
+    void AwardFavorForAction(string playerUid, string actionType, float amount, DeityDomain sourceDomain);
 
     /// <summary>
     ///     Queues favor for batched processing. Use this for high-frequency events like scythe harvesting

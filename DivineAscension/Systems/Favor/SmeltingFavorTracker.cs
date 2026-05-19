@@ -92,17 +92,13 @@ public class SmeltingFavorTracker(
         if (player == null)
             return;
 
-        // Check if player follows Craft domain
-        if (_playerProgressionDataManager.GetPlayerDeityType(playerId) != DeityDomain.Craft)
-            return;
-
         // Calculate favor
         var favor = CalculatePouringFavor(unitsPoured, isToolMold);
 
         if (favor >= 0.01f) // Only award if meaningful amount
         {
             // Use fractional favor accumulation
-            _favorSystem.AwardFavorForAction(player, "smelting", favor);
+            _favorSystem.AwardFavorForAction(player, "smelting", favor, DeityDomain.Craft);
 
             _logger.Debug(
                 $"[SmeltingFavorTracker] Awarded {favor:F2} favor to {player.PlayerName} for pouring {unitsPoured} units into {(isToolMold ? "tool" : "ingot")} mold");

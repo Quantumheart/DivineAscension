@@ -233,18 +233,18 @@ public class FavorSystemIntegrationTests
         _mockReligionManager.Setup(d => d.GetPlayerActiveDeityDomain("player-uid")).Returns(DeityDomain.Craft);
         _mockReligionManager.Setup(d => d.GetPlayerReligion("player-uid")).Returns(religion);
 
-        // Act
-        _favorSystem.AwardFavorForAction(mockPlayer.Object, "test action", 15);
+        // Act — patron domain matches source, expect 1.5x multiplier
+        _favorSystem.AwardFavorForAction(mockPlayer.Object, "test action", 15f, DeityDomain.Craft);
 
         // Assert
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFractionalFavor("player-uid", DeityDomain.Craft, 15, "test action"),
+            m => m.AddFractionalFavor("player-uid", DeityDomain.Craft, 22.5f, "test action"),
             Times.Once()
         );
     }
 
     [Fact]
-    public void AwardFavorForAction_WithoutDeity_DoesNotAwardFavor()
+    public void AwardFavorForAction_WithSourceDomainNone_DoesNotAwardFavor()
     {
         // Arrange
         var playerData = TestFixtures.CreateTestPlayerReligionData(
@@ -258,12 +258,12 @@ public class FavorSystemIntegrationTests
             .Setup(m => m.GetOrCreatePlayerData("player-uid"))
             .Returns(playerData);
 
-        // Act
-        _favorSystem.AwardFavorForAction(mockPlayer.Object, "test action", 15);
+        // Act — DeityDomain.None short-circuits in AwardFavorCore
+        _favorSystem.AwardFavorForAction(mockPlayer.Object, "test action", 15f, DeityDomain.None);
 
         // Assert
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<int>(), It.IsAny<string>()),
+            m => m.AddFractionalFavor(It.IsAny<string>(), It.IsAny<DeityDomain>(), It.IsAny<float>(), It.IsAny<string>()),
             Times.Never()
         );
     }

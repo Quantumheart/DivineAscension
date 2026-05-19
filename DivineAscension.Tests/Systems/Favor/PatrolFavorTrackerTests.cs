@@ -247,36 +247,6 @@ public class PatrolFavorTrackerTests
 
     #endregion
 
-    #region IsConquestDomainPlayer Tests
-
-    [Fact]
-    public void IsConquestDomainPlayer_ConquestPlayer_ReturnsTrue()
-    {
-        // Arrange
-        SetupConquestPlayer("player1");
-
-        // Act - directly call internal method
-        var result = _tracker.IsConquestDomainPlayer("player1");
-
-        // Assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void IsConquestDomainPlayer_NonConquestPlayer_ReturnsFalse()
-    {
-        // Arrange
-        SetupNonConquestPlayer("player1");
-
-        // Act - directly call internal method
-        var result = _tracker.IsConquestDomainPlayer("player1");
-
-        // Assert
-        Assert.False(result);
-    }
-
-    #endregion
-
     #region GetCivilizationHolySites Tests
 
     [Fact]

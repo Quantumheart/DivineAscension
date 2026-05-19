@@ -30,8 +30,6 @@ public class MiningFavorTracker(
     private const float QualityRich = 1.5f;
     private const float QualityBountiful = 2.0f;
 
-    // Cache of active Craft followers for fast lookup (avoids database hit on every block break)
-    private readonly HashSet<string> _craftFollowers = new();
     private readonly IFavorSystem _favorSystem = favorSystem ?? throw new ArgumentNullException(nameof(favorSystem));
 
     private readonly ILoggerWrapper _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -45,9 +43,6 @@ public class MiningFavorTracker(
     public void Dispose()
     {
         BlockBehaviorOre.OnOreBlockBroken -= OnOreBlockBroken;
-        _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
-        _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
-        _craftFollowers.Clear();
     }
 
     public DeityDomain DeityDomain { get; } = DeityDomain.Craft;
@@ -56,49 +51,6 @@ public class MiningFavorTracker(
     {
         // Subscribe to ore block break events (via BlockBehavior)
         BlockBehaviorOre.OnOreBlockBroken += OnOreBlockBroken;
-
-        // Build initial cache of Craft followers
-        RefreshFollowerCache();
-
-        // Listen for religion changes to update cache
-        _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
-        _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
-    }
-
-    /// <summary>
-    ///     Rebuild cache of active Craft followers
-    /// </summary>
-    private void RefreshFollowerCache()
-    {
-        _craftFollowers.Clear();
-
-        var onlinePlayers = _worldService.GetAllOnlinePlayers();
-
-        foreach (var player in onlinePlayers)
-        {
-            if (_playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID) == DeityDomain)
-                _craftFollowers.Add(player.PlayerUID);
-        }
-    }
-
-    /// <summary>
-    ///     Update cache when player data changes (e.g., joins a religion)
-    /// </summary>
-    private void OnPlayerDataChanged(string playerUID)
-    {
-        if (_playerProgressionDataManager.GetPlayerDeityType(playerUID) == DeityDomain)
-            _craftFollowers.Add(playerUID);
-        else
-            _craftFollowers.Remove(playerUID);
-    }
-
-    /// <summary>
-    ///     Update cache when a player leaves a religion
-    /// </summary>
-    private void OnPlayerLeavesProgression(IServerPlayer player, string religionUID)
-    {
-        // Player left religion, remove from cache
-        _craftFollowers.Remove(player.PlayerUID);
     }
 
     /// <summary>
@@ -109,7 +61,6 @@ public class MiningFavorTracker(
     {
         // Player can be null when blocks break automatically (gravity, neighbor updates, etc.)
         if (player == null) return;
-        if (!_craftFollowers.Contains(player.PlayerUID)) return;
 
         // Calculate favor based on mineral type and quality
         var baseFavor = GetMineralTierFavor(block);
@@ -119,7 +70,7 @@ public class MiningFavorTracker(
         var serverPlayer = _worldService.GetPlayerByUID(player.PlayerUID) as IServerPlayer;
         if (serverPlayer != null)
         {
-            _favorSystem.AwardFavorForAction(serverPlayer, "mining ore", finalFavor);
+            _favorSystem.AwardFavorForAction(serverPlayer, "mining ore", finalFavor, DeityDomain.Craft);
 
             _logger.Debug(
                 $"[MiningFavorTracker] Awarded {finalFavor} favor to {player.PlayerName} " +

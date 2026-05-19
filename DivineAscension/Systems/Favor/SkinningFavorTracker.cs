@@ -33,18 +33,13 @@ public class SkinningFavorTracker(
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager =
         playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
 
-    private readonly HashSet<string> _wildFollowers = new();
-
     private readonly IWorldService
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
 
     public void Dispose()
     {
         SkinningPatches.OnAnimalSkinned -= OnAnimalSkinned;
-        _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
-        _playerProgressionDataManager.OnPlayerLeavesReligion -= OnPlayerLeavesProgression;
         _eventService.UnsubscribePlayerDisconnect(OnPlayerDisconnect);
-        _wildFollowers.Clear();
         _lastSkinningAwardUtc.Clear();
     }
 
@@ -55,40 +50,8 @@ public class SkinningFavorTracker(
     {
         SkinningPatches.OnAnimalSkinned += OnAnimalSkinned;
 
-        // Cache followers
-        RefreshFollowerCache();
-
-        _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
-        _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesProgression;
-
         // Clean up throttle cache on player disconnect
         _eventService.OnPlayerDisconnect(OnPlayerDisconnect);
-    }
-
-    private void RefreshFollowerCache()
-    {
-        var onlinePlayers = _worldService.GetAllOnlinePlayers();
-
-        foreach (var player in onlinePlayers) UpdateFollower(player.PlayerUID);
-    }
-
-    private void OnPlayerDataChanged(string playerId)
-    {
-        UpdateFollower(playerId);
-    }
-
-    private void UpdateFollower(string playerId)
-    {
-        var deityType = _playerProgressionDataManager.GetPlayerDeityType(playerId);
-        if (deityType == DeityDomain)
-            _wildFollowers.Add(playerId);
-        else
-            _wildFollowers.Remove(playerId);
-    }
-
-    private void OnPlayerLeavesProgression(IServerPlayer player, string religionId)
-    {
-        _wildFollowers.Remove(player.PlayerUID);
     }
 
     private void OnPlayerDisconnect(IServerPlayer player)
@@ -109,9 +72,6 @@ public class SkinningFavorTracker(
     {
         if (player == null || entity == null) return;
 
-        // Only award favor to Wild domain followers
-        if (!_wildFollowers.Contains(player.PlayerUID)) return;
-
         // Rate limit per player per entity to prevent duplicate messages
         var key = $"{player.PlayerUID}:{entity.EntityId}";
         var now = DateTime.UtcNow;
@@ -124,7 +84,7 @@ public class SkinningFavorTracker(
         if (favor > 0)
         {
             // Award favor with action type for prestige integration
-            _favorSystem.AwardFavorForAction(player, "skinning " + entity.Code.Path, favor);
+            _favorSystem.AwardFavorForAction(player, "skinning " + entity.Code.Path, favor, DeityDomain.Wild);
             _lastSkinningAwardUtc[key] = now;
         }
     }
