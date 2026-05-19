@@ -14,12 +14,12 @@ public static class CraftPatches
     // Logic: Reduce damage amount based on ToolDurability stat
     [HarmonyPatch(typeof(CollectibleObject), "DamageItem")]
     [HarmonyPrefix]
-    public static void Prefix_DamageItem(IWorldAccessor world, Entity byEntity, ItemSlot itemslot, ref int amount)
+    public static void Prefix_DamageItem(IWorldAccessor world, Entity byEntity, ItemSlot itemSlot, ref int amount)
     {
         if (byEntity == null || amount <= 0) return;
 
         // Only apply to items with mining/tool properties
-        if (itemslot?.Itemstack?.Collectible is not Item item) return;
+        if (itemSlot?.Itemstack?.Collectible is not Item item) return;
         if (item.Tool == null) return; // Not a tool
 
         // Get tool durability bonus (e.g. 0.10 for 10%)
