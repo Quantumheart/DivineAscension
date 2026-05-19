@@ -36,8 +36,8 @@ public class RewardCalculationStepTests
             {
                 ReligionUID = "religion1",
                 ReligionName = "Test",
-                DeityName = "Deity",
-                Domain = DeityDomain.Craft,
+                PatronName = "Deity",
+                PatronDomain = DeityDomain.Craft,
                 FounderUID = "founder1",
                 FounderName = "Founder"
             }

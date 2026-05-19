@@ -495,7 +495,7 @@ public class BlessingCommands(
 
         var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(playerUid);
         var religion = _religionManager.GetPlayerReligion(playerUid);
-        var playerFavorRank = _playerProgressionDataManager.GetPlayerFavorRank(playerUid);
+        var playerFavorRank = _playerProgressionDataManager.GetPlayerFavorRank(playerUid, blessing.Domain);
 
         // Skip cost check here - we'll handle it atomically below
         var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(playerUid, playerFavorRank, playerData, religion, blessing, skipCostCheck: true);
@@ -510,10 +510,10 @@ public class BlessingCommands(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_NOT_IN_RELIGION));
 
             // Atomically deduct favor cost (includes sufficiency check)
-            if (blessing.Cost > 0 && !playerData.RemoveFavor(blessing.Cost))
+            if (blessing.Cost > 0 && !playerData.RemoveFavor(blessing.Domain, blessing.Cost))
                 return TextCommandResult.Error(
                     LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_ERROR_INSUFFICIENT_FAVOR,
-                        blessing.Cost, playerData.Favor));
+                        blessing.Cost, playerData.GetFavor(blessing.Domain)));
 
             var success = _playerProgressionDataManager.UnlockPlayerBlessing(playerUid, blessingId);
             if (!success)

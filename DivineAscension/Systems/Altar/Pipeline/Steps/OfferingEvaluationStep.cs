@@ -20,7 +20,7 @@ public class OfferingEvaluationStep(IOfferingEvaluator offeringEvaluator) : IPra
 
         var value = offeringEvaluator.CalculateOfferingValue(
             context.Offering,
-            context.Religion!.Domain,
+            context.Religion!.PatronDomain,
             context.HolySiteTier);
 
         if (value == -1)

@@ -68,10 +68,10 @@ public class ReligionCommandMembersTests : ReligionCommandsTestHelpers
 
         var playerData = CreatePlayerData("player-1");
         var founderData = CreatePlayerData("founder-1");
-        founderData.Favor = 100;
+        founderData.SetFavor(DeityDomain.Craft, 100);
 
         var memberData = CreatePlayerData("member-1");
-        memberData.Favor = 50;
+        memberData.SetFavor(DeityDomain.Craft, 50);
 
         var religion = CreateReligion("religion-1", "TestReligion", DeityDomain.Craft, "founder-1");
         religion.AddMember("member-1", "Test Member");

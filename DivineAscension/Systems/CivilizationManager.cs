@@ -349,9 +349,9 @@ public class CivilizationManager : ICivilizationManager
 
                 // Check deity diversity (no duplicate deities)
                 var civDeities = GetCivDeityTypes_Unlocked(civId);
-                if (civDeities.Contains(targetReligion.Domain))
+                if (civDeities.Contains(targetReligion.PatronDomain))
                 {
-                    _logger.Warning($"[DivineAscension] Civilization already has a {targetReligion.Domain} religion");
+                    _logger.Warning($"[DivineAscension] Civilization already has a {targetReligion.PatronDomain} religion");
                     return false;
                 }
 
@@ -948,7 +948,7 @@ public class CivilizationManager : ICivilizationManager
         foreach (var religionId in civ.GetMemberReligionIdsSnapshot())
         {
             var religion = _religionManager.GetReligion(religionId);
-            if (religion != null) deities.Add(religion.Domain);
+            if (religion != null) deities.Add(religion.PatronDomain);
         }
 
         return deities;

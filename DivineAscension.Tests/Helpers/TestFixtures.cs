@@ -178,11 +178,10 @@ public static class TestFixtures
         int favor = 100,
         int totalFavorEarned = 500)
     {
-        return new PlayerProgressionData(playerUID)
-        {
-            Favor = favor,
-            TotalFavorEarned = totalFavorEarned
-        };
+        var data = new PlayerProgressionData(playerUID);
+        if (favor > 0) data.SetFavor(deity, favor);
+        if (totalFavorEarned > 0) data.SetTotalFavorEarned(deity, totalFavorEarned);
+        return data;
     }
 
     /// <summary>

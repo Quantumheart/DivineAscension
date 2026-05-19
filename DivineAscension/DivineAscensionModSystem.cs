@@ -355,7 +355,7 @@ public class DivineAscensionModSystem : ModSystem
             // Send notification to founder
             var message = LocalizationService.Instance.Get(
                 LocalizationKeys.MIGRATION_DEITY_NAME_NOTICE,
-                religion.DeityName);
+                religion.PatronName);
 
             player.SendMessage(0, message, EnumChatType.Notification);
 

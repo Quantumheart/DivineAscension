@@ -113,7 +113,8 @@
       "specialEffects": ["passive_tool_repair_1per5min"],
       "cost": 800,
       "branch": null,
-      "exclusiveBranches": null
+      "exclusiveBranches": null,
+      "requiresPatron": true
     },
     {
       "blessingId": "khoras_shared_workshop",
@@ -189,7 +190,8 @@
       "specialEffects": [],
       "cost": 8000,
       "branch": null,
-      "exclusiveBranches": null
+      "exclusiveBranches": null,
+      "requiresPatron": true
     }
   ]
 }

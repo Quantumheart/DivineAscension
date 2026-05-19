@@ -61,7 +61,7 @@ public class CivilizationNetworkHandler(
         foreach (var civ in civilizations)
         {
             var religions = civilizationManager.GetCivReligions(civ.CivId);
-            var deities = religions.Select(r => r.Domain.ToString()).Distinct().ToList();
+            var deities = religions.Select(r => r.PatronDomain.ToString()).Distinct().ToList();
             var religionNames = religions.Select(r => r.ReligionName).ToList();
 
             // Apply deity filter if specified
@@ -69,7 +69,7 @@ public class CivilizationNetworkHandler(
             {
                 // Check if any religion in this civilization has the filtered deity
                 var hasFilteredDeity = religions.Any(r =>
-                    string.Equals(r.Domain.ToString(), packet.FilterDeity, StringComparison.OrdinalIgnoreCase));
+                    string.Equals(r.PatronDomain.ToString(), packet.FilterDeity, StringComparison.OrdinalIgnoreCase));
 
                 if (!hasFilteredDeity) continue; // Skip this civilization if it doesn't have the filtered deity
             }
@@ -194,8 +194,8 @@ public class CivilizationNetworkHandler(
             {
                 ReligionId = religion.ReligionUID,
                 ReligionName = religion.ReligionName,
-                Domain = religion.Domain.ToString(),
-                DeityName = religion.DeityName,
+                Domain = religion.PatronDomain.ToString(),
+                DeityName = religion.PatronName,
                 FounderReligionUID = civ.FounderReligionUID,
                 FounderUID = religion.FounderUID,
                 FounderName = religionFounderName,

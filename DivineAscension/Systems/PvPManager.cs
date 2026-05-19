@@ -79,11 +79,12 @@ public class PvPManager : IPvPManager
     public void AwardRewardsForAction(IServerPlayer player, string actionType, int favorAmount, int prestigeAmount)
     {
         var playerReligion = _religionManager.GetPlayerReligion(player.PlayerUID);
-        if (_playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID) == DeityDomain.None ||
+        var deity = _playerProgressionDataManager.GetPlayerDeityType(player.PlayerUID);
+        if (deity == DeityDomain.None ||
             !_playerProgressionDataManager.HasReligion(player.PlayerUID)) return;
 
         // Award favor
-        if (favorAmount > 0) _playerProgressionDataManager.AddFavor(player.PlayerUID, favorAmount, actionType);
+        if (favorAmount > 0) _playerProgressionDataManager.AddFavor(player.PlayerUID, deity, favorAmount, actionType);
 
         // Award prestige
         if (prestigeAmount > 0)
@@ -207,7 +208,7 @@ public class PvPManager : IPvPManager
         }
 
         // Award favor to player
-        _playerProgressionDataManager.AddFavor(attacker.PlayerUID, (int)favorReward,
+        _playerProgressionDataManager.AddFavor(attacker.PlayerUID, attackerReligion.PatronDomain, (int)favorReward,
             $"PvP kill against {victim.PlayerName}");
 
         // Award prestige to religion
@@ -215,7 +216,7 @@ public class PvPManager : IPvPManager
             $"PvP kill by {attacker.PlayerName} against {victim.PlayerName}");
 
         // Get deity for display
-        var deityName = attackerReligion.DeityName;
+        var deityName = attackerReligion.PatronName;
 
         // Notify attacker with combined rewards
         var bonusText = "";
@@ -232,9 +233,9 @@ public class PvPManager : IPvPManager
 
         // Notify victim
         if (victimDeityDomain != DeityDomain.None && victimReligion != null &&
-            !string.IsNullOrEmpty(victimReligion.DeityName))
+            !string.IsNullOrEmpty(victimReligion.PatronName))
         {
-            var victimDeityName = victimReligion.DeityName;
+            var victimDeityName = victimReligion.PatronName;
             victim.SendMessage(
                 GlobalConstants.GeneralChatGroup,
                 $"[Divine Defeat] {victimDeityName} is displeased by your defeat.",
@@ -258,10 +259,10 @@ public class PvPManager : IPvPManager
         if (activeDeityType == DeityDomain.None || religionId == null) return;
 
         // Remove favor as penalty (minimum 0)
-        var penalty = Math.Min(_config.DeathPenalty, playerData.Favor);
+        var penalty = Math.Min(_config.DeathPenalty, playerData.GetFavor(activeDeityType));
         if (penalty > 0)
         {
-            playerData.Favor -= penalty;
+            playerData.RemoveFavor(activeDeityType, penalty);
 
             player.SendMessage(
                 GlobalConstants.GeneralChatGroup,

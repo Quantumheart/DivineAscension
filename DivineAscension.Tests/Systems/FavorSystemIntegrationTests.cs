@@ -85,7 +85,7 @@ public class FavorSystemIntegrationTests
 
         // Assert - Should not award any favor
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()),
+            m => m.AddFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<int>(), It.IsAny<string>()),
             Times.Never()
         );
     }
@@ -147,7 +147,7 @@ public class FavorSystemIntegrationTests
 
         // Assert - Should remove 50 favor (DEATH_PENALTY_FAVOR)
         _mockPlayerReligionDataManager.Verify(
-            m => m.RemoveFavor("player-uid", 10, "Death penalty"),
+            m => m.RemoveFavor("player-uid", DeityDomain.Craft, 10, "Death penalty"),
             Times.Once()
         );
     }
@@ -173,7 +173,7 @@ public class FavorSystemIntegrationTests
 
         // Assert - Should not call RemoveFavor when favor is 0
         _mockPlayerReligionDataManager.Verify(
-            m => m.RemoveFavor(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()),
+            m => m.RemoveFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<int>(), It.IsAny<string>()),
             Times.Never()
         );
     }
@@ -238,7 +238,7 @@ public class FavorSystemIntegrationTests
 
         // Assert
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFractionalFavor("player-uid", 15, "test action"),
+            m => m.AddFractionalFavor("player-uid", DeityDomain.Craft, 15, "test action"),
             Times.Once()
         );
     }
@@ -263,7 +263,7 @@ public class FavorSystemIntegrationTests
 
         // Assert
         _mockPlayerReligionDataManager.Verify(
-            m => m.AddFavor(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string>()),
+            m => m.AddFavor(It.IsAny<string>(), DeityDomain.Craft, It.IsAny<int>(), It.IsAny<string>()),
             Times.Never()
         );
     }

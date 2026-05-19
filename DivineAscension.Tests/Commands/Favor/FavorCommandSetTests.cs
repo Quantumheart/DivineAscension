@@ -42,7 +42,7 @@ public class FavorCommandSetTests : FavorCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("1,000", result.StatusMessage);
-        Assert.Equal(1000, playerData.Favor);
+        Assert.Equal(1000, playerData.GetFavor(DeityDomain.Craft));
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class FavorCommandSetTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.Wild, favor: 5000, totalFavor: 5000);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft, favor: 5000, totalFavor: 5000);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "0");
         SetupParsers(args, 0, null);
 
@@ -59,14 +59,14 @@ public class FavorCommandSetTests : FavorCommandsTestHelpers
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Wild);
+            .Returns(DeityDomain.Craft);
         // Act
         var result = _sut!.OnSetFavor(args);
 
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Equal(0, playerData.Favor);
+        Assert.Equal(0, playerData.GetFavor(DeityDomain.Craft));
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public class FavorCommandSetTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.Harvest);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "999999");
         SetupParsers(args, 999999, null);
 
@@ -83,7 +83,7 @@ public class FavorCommandSetTests : FavorCommandsTestHelpers
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Harvest);
+            .Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnSetFavor(args);
@@ -91,7 +91,7 @@ public class FavorCommandSetTests : FavorCommandsTestHelpers
         // Assert
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
-        Assert.Equal(999999, playerData.Favor);
+        Assert.Equal(999999, playerData.GetFavor(DeityDomain.Craft));
     }
 
     #endregion
@@ -152,7 +152,7 @@ public class FavorCommandSetTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.None);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "100");
         SetupParsers(args, 100, null);
 

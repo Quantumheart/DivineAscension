@@ -25,7 +25,7 @@ public class FavorCommandInfoTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.None);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft);
         var args = CreateCommandArgs(mockPlayer.Object);
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
@@ -77,7 +77,7 @@ public class FavorCommandInfoTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.Wild, 5000, 15000,
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft, 5000, 15000,
             FavorRank.Avatar);
         var args = CreateCommandArgs(mockPlayer.Object);
 
@@ -86,7 +86,7 @@ public class FavorCommandInfoTests : FavorCommandsTestHelpers
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Wild);
+            .Returns(DeityDomain.Craft);
         // Act
         var result = _sut!.OnFavorInfo(args);
 
@@ -102,7 +102,7 @@ public class FavorCommandInfoTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.Harvest, 1000, 2000,
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft, 1000, 2000,
             FavorRank.Zealot);
         var args = CreateCommandArgs(mockPlayer.Object);
 
@@ -111,7 +111,7 @@ public class FavorCommandInfoTests : FavorCommandsTestHelpers
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Harvest);
+            .Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnFavorInfo(args);

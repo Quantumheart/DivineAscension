@@ -50,10 +50,10 @@ public class PlayerProgressionDataManagerTests
     {
         // Arrange
         var data = _sut.GetOrCreatePlayerData("player-uid");
-        data.TotalFavorEarned = 500; // Should be Disciple rank
+        data.SetTotalFavorEarned(DeityDomain.Craft, 500); // Should be Disciple rank
 
         // Act
-        var rank = _sut.GetPlayerFavorRank("player-uid");
+        var rank = _sut.GetPlayerFavorRank("player-uid", DeityDomain.Craft);
 
         // Assert
         Assert.Equal(FavorRank.Disciple, rank);
@@ -106,7 +106,7 @@ public class PlayerProgressionDataManagerTests
 
         // Assert
         Assert.NotNull(data);
-        Assert.Equal(0, data.Favor);
+        Assert.Equal(0, data.GetFavor(DeityDomain.Craft));
     }
 
     [Fact]
@@ -114,14 +114,14 @@ public class PlayerProgressionDataManagerTests
     {
         // Arrange
         var firstCall = _sut.GetOrCreatePlayerData("player-uid");
-        firstCall.Favor = 100;
+        firstCall.SetFavor(DeityDomain.Craft, 100);
 
         // Act
         var secondCall = _sut.GetOrCreatePlayerData("player-uid");
 
         // Assert
         Assert.Same(firstCall, secondCall);
-        Assert.Equal(100, secondCall.Favor);
+        Assert.Equal(100, secondCall.GetFavor(DeityDomain.Craft));
     }
 
     [Fact]
@@ -147,21 +147,21 @@ public class PlayerProgressionDataManagerTests
     {
         // Arrange
         var data = _sut.GetOrCreatePlayerData("player-uid");
-        data.Favor = 50;
+        data.SetFavor(DeityDomain.Craft, 50);
 
         // Act
-        _sut.AddFavor("player-uid", 25, "Test reason");
+        _sut.AddFavor("player-uid", DeityDomain.Craft, 25, "Test reason");
 
         // Assert
-        Assert.Equal(75, data.Favor);
-        Assert.Equal(25, data.TotalFavorEarned); // Total also increased
+        Assert.Equal(75, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(25, data.GetTotalFavorEarned(DeityDomain.Craft)); // Total also increased
     }
 
     [Fact]
     public void AddFavor_WithReason_LogsDebugMessage()
     {
         // Act
-        _sut.AddFavor("player-uid", 10, "PvP kill");
+        _sut.AddFavor("player-uid", DeityDomain.Craft, 10, "PvP kill");
 
         // Assert
         _mockLogger.Verify(
@@ -175,7 +175,7 @@ public class PlayerProgressionDataManagerTests
     {
         // Arrange
         var data = _sut.GetOrCreatePlayerData("player-uid");
-        data.TotalFavorEarned = 490; // Close to Disciple threshold (500)
+        data.SetTotalFavorEarned(DeityDomain.Craft, 490); // Close to Disciple threshold (500)
 
         var eventFired = false;
         _sut.OnPlayerDataChanged += (playerUID) => eventFired = true;
@@ -184,10 +184,10 @@ public class PlayerProgressionDataManagerTests
         _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
 
         // Act
-        _sut.AddFavor("player-uid", 20); // Should rank up
+        _sut.AddFavor("player-uid", DeityDomain.Craft, 20); // Should rank up
 
         // Assert
-        Assert.Equal(FavorRank.Disciple, _sut.GetPlayerFavorRank("player-uid"));
+        Assert.Equal(FavorRank.Disciple, _sut.GetPlayerFavorRank("player-uid", DeityDomain.Craft));
         Assert.True(eventFired);
     }
 
@@ -199,7 +199,7 @@ public class PlayerProgressionDataManagerTests
         _sut.OnPlayerDataChanged += (playerUID) => firedPlayerUID = playerUID;
 
         // Act
-        _sut.AddFavor("player-uid", 10);
+        _sut.AddFavor("player-uid", DeityDomain.Craft, 10);
 
         // Assert
         Assert.Equal("player-uid", firedPlayerUID);
@@ -216,13 +216,13 @@ public class PlayerProgressionDataManagerTests
         var data = _sut.GetOrCreatePlayerData("player-uid");
 
         // Act
-        _sut.AddFractionalFavor("player-uid", 0.3f);
-        _sut.AddFractionalFavor("player-uid", 0.3f);
-        _sut.AddFractionalFavor("player-uid", 0.5f); // Should award 1 favor
+        _sut.AddFractionalFavor("player-uid", DeityDomain.Craft, 0.3f);
+        _sut.AddFractionalFavor("player-uid", DeityDomain.Craft, 0.3f);
+        _sut.AddFractionalFavor("player-uid", DeityDomain.Craft, 0.5f); // Should award 1 favor
 
         // Assert
-        Assert.Equal(1, data.Favor);
-        Assert.True(data.AccumulatedFractionalFavor < 1.0f);
+        Assert.Equal(1, data.GetFavor(DeityDomain.Craft));
+        Assert.True(data.GetAccumulatedFractionalFavor(DeityDomain.Craft) < 1.0f);
     }
 
     [Fact]
@@ -233,7 +233,7 @@ public class PlayerProgressionDataManagerTests
         _sut.OnPlayerDataChanged += (_) => eventFired = true;
 
         // Act - Add enough fractional favor to award 1 full favor
-        _sut.AddFractionalFavor("player-uid", 1.2f);
+        _sut.AddFractionalFavor("player-uid", DeityDomain.Craft, 1.2f);
 
         // Assert
         Assert.True(eventFired);
@@ -247,7 +247,7 @@ public class PlayerProgressionDataManagerTests
         _sut.OnPlayerDataChanged += (_) => eventFired = true;
 
         // Act - Add fractional favor that doesn't reach 1.0
-        _sut.AddFractionalFavor("player-uid", 0.3f);
+        _sut.AddFractionalFavor("player-uid", DeityDomain.Craft, 0.3f);
 
         // Assert
         Assert.False(eventFired);
@@ -262,14 +262,14 @@ public class PlayerProgressionDataManagerTests
     {
         // Arrange
         var data = _sut.GetOrCreatePlayerData("player-uid");
-        data.Favor = 50;
+        data.SetFavor(DeityDomain.Craft, 50);
 
         // Act
-        var success = _sut.RemoveFavor("player-uid", 20, "Blessing unlock");
+        var success = _sut.RemoveFavor("player-uid", DeityDomain.Craft, 20, "Blessing unlock");
 
         // Assert
         Assert.True(success);
-        Assert.Equal(30, data.Favor);
+        Assert.Equal(30, data.GetFavor(DeityDomain.Craft));
     }
 
     [Fact]
@@ -277,14 +277,14 @@ public class PlayerProgressionDataManagerTests
     {
         // Arrange
         var data = _sut.GetOrCreatePlayerData("player-uid");
-        data.Favor = 10;
+        data.SetFavor(DeityDomain.Craft, 10);
 
         // Act
-        var success = _sut.RemoveFavor("player-uid", 20);
+        var success = _sut.RemoveFavor("player-uid", DeityDomain.Craft, 20);
 
         // Assert
         Assert.False(success);
-        Assert.Equal(10, data.Favor); // Unchanged
+        Assert.Equal(10, data.GetFavor(DeityDomain.Craft)); // Unchanged
     }
 
     [Fact]
@@ -292,13 +292,13 @@ public class PlayerProgressionDataManagerTests
     {
         // Arrange
         var data = _sut.GetOrCreatePlayerData("player-uid");
-        data.Favor = 50;
+        data.SetFavor(DeityDomain.Craft, 50);
 
         var eventFired = false;
         _sut.OnPlayerDataChanged += (_) => eventFired = true;
 
         // Act
-        _sut.RemoveFavor("player-uid", 10);
+        _sut.RemoveFavor("player-uid", DeityDomain.Craft, 10);
 
         // Assert
         Assert.True(eventFired);
@@ -309,10 +309,10 @@ public class PlayerProgressionDataManagerTests
     {
         // Arrange
         var data = _sut.GetOrCreatePlayerData("player-uid");
-        data.Favor = 50;
+        data.SetFavor(DeityDomain.Craft, 50);
 
         // Act
-        _sut.RemoveFavor("player-uid", 10, "Blessing unlock");
+        _sut.RemoveFavor("player-uid", DeityDomain.Craft, 10, "Blessing unlock");
 
         // Assert
         _mockLogger.Verify(
@@ -445,7 +445,7 @@ public class PlayerProgressionDataManagerTests
 
         var data = _sut.GetOrCreatePlayerData("player-uid");
         _sut.JoinReligion("player-uid", "religion-uid");
-        data.Favor = 100;
+        data.SetFavor(DeityDomain.Craft, 100);
         int count = 0;
         _sut.OnPlayerLeavesReligion += (player, uid) => count++;
 
@@ -453,9 +453,9 @@ public class PlayerProgressionDataManagerTests
         _sut.LeaveReligion("player-uid");
 
         // AsserT
-        Assert.Equal(0, data.Favor);
-        Assert.Equal(0, data.TotalFavorEarned);
-        Assert.Equal(FavorRank.Initiate, _sut.GetPlayerFavorRank("player-uid"));
+        Assert.Equal(0, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(0, data.GetTotalFavorEarned(DeityDomain.Craft));
+        Assert.Equal(FavorRank.Initiate, _sut.GetPlayerFavorRank("player-uid", DeityDomain.Craft));
     }
 
     [Fact]
@@ -489,14 +489,14 @@ public class PlayerProgressionDataManagerTests
     {
         // Arrange
         var data = _sut.GetOrCreatePlayerData("player-uid");
-        data.Favor = 100;
+        data.SetFavor(DeityDomain.Craft, 100);
         data.UnlockBlessing("blessing1");
 
         // Act
-        _sut.HandleReligionSwitch("player-uid");
+        _sut.HandleReligionSwitch("player-uid", DeityDomain.Craft);
 
         // Assert
-        Assert.Equal(0, data.Favor);
+        Assert.Equal(0, data.GetFavor(DeityDomain.Craft));
         Assert.Empty(data.UnlockedBlessings); // All blessings locked
     }
 
@@ -504,7 +504,7 @@ public class PlayerProgressionDataManagerTests
     public void HandleReligionSwitch_LogsNotification()
     {
         // Act
-        _sut.HandleReligionSwitch("player-uid");
+        _sut.HandleReligionSwitch("player-uid", DeityDomain.Craft);
 
         // Assert
         _mockLogger.Verify(
@@ -612,13 +612,13 @@ public class PlayerProgressionDataManagerTests
         _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
 
         var data = _sut.GetOrCreatePlayerData("player-uid");
-        data.TotalFavorEarned = 490; // Close to Disciple threshold (500)
+        data.SetTotalFavorEarned(DeityDomain.Craft, 490); // Close to Disciple threshold (500)
 
         // Act & Assert - Should not throw
-        _sut.AddFavor("player-uid", 20);
+        _sut.AddFavor("player-uid", DeityDomain.Craft, 20);
 
         // Verify rank changed
-        Assert.Equal(FavorRank.Disciple, _sut.GetPlayerFavorRank("player-uid"));
+        Assert.Equal(FavorRank.Disciple, _sut.GetPlayerFavorRank("player-uid", DeityDomain.Craft));
     }
 
     [Fact]
@@ -626,16 +626,16 @@ public class PlayerProgressionDataManagerTests
     {
         // Arrange
         var data = _sut.GetOrCreatePlayerData("player-uid");
-        data.TotalFavorEarned = 495; // Close to Disciple threshold (500)
+        data.SetTotalFavorEarned(DeityDomain.Craft, 495); // Close to Disciple threshold (500)
 
         var mockWorld = new Mock<IServerWorldAccessor>();
         _mockAPI.Setup(a => a.World).Returns(mockWorld.Object);
 
         // Act
-        _sut.AddFractionalFavor("player-uid", 10.5f); // Should award 10 favor and rank up
+        _sut.AddFractionalFavor("player-uid", DeityDomain.Craft, 10.5f); // Should award 10 favor and rank up
 
         // Assert
-        Assert.Equal(FavorRank.Disciple, _sut.GetPlayerFavorRank("player-uid"));
+        Assert.Equal(FavorRank.Disciple, _sut.GetPlayerFavorRank("player-uid", DeityDomain.Craft));
     }
 
     #endregion
@@ -678,7 +678,7 @@ public class PlayerProgressionDataManagerTests
     {
         // Arrange
         var data = _sut.GetOrCreatePlayerData("player-uid");
-        data.Favor = 100;
+        data.SetFavor(DeityDomain.Craft, 100);
 
         // Act
         _sut.SavePlayerData("player-uid");
@@ -687,7 +687,7 @@ public class PlayerProgressionDataManagerTests
         var loadedData =
             _fakePersistenceService.Load<PlayerProgressionData>("divineascension_playerprogressiondata_player-uid");
         Assert.NotNull(loadedData);
-        Assert.Equal(100, loadedData.Favor);
+        Assert.Equal(100, loadedData.GetFavor(DeityDomain.Craft));
         _mockLogger.Verify(
             l => l.Debug(It.Is<string>(s => s.Contains("Saved religion data") && s.Contains("player-uid"))),
             Times.Once()
@@ -731,11 +731,9 @@ public class PlayerProgressionDataManagerTests
     public void LoadPlayerData_WithExistingData_LoadsSuccessfully()
     {
         // Arrange - Save data to fake persistence service first
-        var savedData = new PlayerProgressionData("player-uid")
-        {
-            Favor = 150,
-            TotalFavorEarned = 200
-        };
+        var savedData = new PlayerProgressionData("player-uid");
+        savedData.SetFavor(DeityDomain.Craft, 150);
+        savedData.SetTotalFavorEarned(DeityDomain.Craft, 200);
         _fakePersistenceService.Save("divineascension_playerprogressiondata_player-uid", savedData);
 
         // Act
@@ -743,10 +741,10 @@ public class PlayerProgressionDataManagerTests
 
         // Assert
         var loadedData = _sut.GetOrCreatePlayerData("player-uid");
-        Assert.Equal(150, loadedData.Favor);
-        Assert.Equal(200, loadedData.TotalFavorEarned);
+        Assert.Equal(150, loadedData.GetFavor(DeityDomain.Craft));
+        Assert.Equal(200, loadedData.GetTotalFavorEarned(DeityDomain.Craft));
         _mockLogger.Verify(
-            l => l.Debug(It.Is<string>(s => s.Contains("Loaded data") && s.Contains("player-uid") && s.Contains("v5"))),
+            l => l.Debug(It.Is<string>(s => s.Contains("Loaded data") && s.Contains("player-uid") && s.Contains("v6"))),
             Times.Once()
         );
     }
@@ -842,7 +840,8 @@ public class PlayerProgressionDataManagerTests
         var mockPlayer = new Mock<IServerPlayer>();
         mockPlayer.Setup(p => p.PlayerUID).Returns("player-uid");
 
-        var savedData = new PlayerProgressionData("player-uid") { Favor = 50 };
+        var savedData = new PlayerProgressionData("player-uid");
+        savedData.SetFavor(DeityDomain.Craft, 50);
         _fakePersistenceService.Save("divineascension_playerprogressiondata_player-uid", savedData);
 
         // Act
@@ -850,7 +849,7 @@ public class PlayerProgressionDataManagerTests
 
         // Assert
         var loadedData = _sut.GetOrCreatePlayerData("player-uid");
-        Assert.Equal(50, loadedData.Favor);
+        Assert.Equal(50, loadedData.GetFavor(DeityDomain.Craft));
     }
 
     [Fact]

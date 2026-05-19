@@ -100,12 +100,12 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
             var packet = new PlayerReligionDataPacket(
                 religionData.ReligionName,
                 deity.ToString(),
-                religionData.DeityName,
-                playerReligionData!.Favor,
-                _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID).ToString(),
+                religionData.PatronName,
+                playerReligionData!.GetFavor(deity),
+                _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID, deity).ToString(),
                 religionData.Prestige,
                 religionData.PrestigeRank.ToString(),
-                playerReligionData.TotalFavorEarned
+                playerReligionData.GetTotalFavorEarned(deity)
             )
             {
                 // Send config thresholds so client UI displays correct values

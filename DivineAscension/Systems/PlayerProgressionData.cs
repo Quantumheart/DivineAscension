@@ -58,16 +58,16 @@ public class PlayerProgressionData
 
 
     /// <summary>
-    ///     Current favor points
+    ///     Current favor points per deity domain.
     /// </summary>
     [ProtoMember(101)]
-    public int Favor { get; set; }
+    public Dictionary<DeityDomain, int> FavorByDeity { get; set; } = new();
 
     /// <summary>
-    ///     Total favor earned (lifetime stat, persists across religion changes)
+    ///     Total favor earned per deity domain (lifetime stat, persists across religion changes).
     /// </summary>
     [ProtoMember(102)]
-    public int TotalFavorEarned { get; set; }
+    public Dictionary<DeityDomain, int> TotalFavorEarnedByDeity { get; set; } = new();
 
     /// <summary>
     ///     Read-only view of unlocked player blessings.
@@ -87,19 +87,16 @@ public class PlayerProgressionData
 
 
     /// <summary>
-    ///     Data version for migration purposes.
-    ///     v3: Initial v3 format
-    ///     v4: Branch commitments
-    ///     v5: DateTime-based cooldowns (prayer and patrol)
+    ///     Data version (internal bookkeeping only — Pantheon 2.0 no longer carries cross-version save migrations).
     /// </summary>
     [ProtoMember(104)]
-    public int DataVersion { get; set; } = 5;
+    public int DataVersion { get; set; } = 6;
 
     /// <summary>
-    ///     Accumulated fractional favor (not yet awarded) for passive generation
+    ///     Accumulated fractional favor per deity domain (not yet awarded) for passive generation.
     /// </summary>
     [ProtoMember(105)]
-    public float AccumulatedFractionalFavor { get; set; }
+    public Dictionary<DeityDomain, float> AccumulatedFractionalFavorByDeity { get; set; } = new();
 
     /// <summary>
     ///     Set of discovered ruin locations (format: "x_y_z")
@@ -126,57 +123,115 @@ public class PlayerProgressionData
     public long NextPrayerAllowedTime { get; set; }
 
     /// <summary>
-    ///     Adds favor and updates statistics.
-    ///     Thread-safe.
+    ///     Gets current favor for a domain (thread-safe).
     /// </summary>
-    public void AddFavor(int amount)
-    {
-        if (amount > 0)
-        {
-            lock (Lock)
-            {
-                Favor += amount;
-                TotalFavorEarned += amount;
-            }
-        }
-    }
-
-    /// <summary>
-    ///     Adds fractional favor and updates statistics when accumulated amount >= 1.
-    ///     Thread-safe.
-    /// </summary>
-    public void AddFractionalFavor(float amount)
-    {
-        if (amount > 0)
-        {
-            lock (Lock)
-            {
-                AccumulatedFractionalFavor += amount;
-
-                // Award integer favor when we have accumulated >= 1.0
-                if (AccumulatedFractionalFavor >= 1.0f)
-                {
-                    var favorToAward = (int)AccumulatedFractionalFavor;
-                    AccumulatedFractionalFavor -= favorToAward; // Keep the fractional remainder
-
-                    Favor += favorToAward;
-                    TotalFavorEarned += favorToAward;
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    ///     Removes favor (for costs or penalties).
-    ///     Thread-safe.
-    /// </summary>
-    public bool RemoveFavor(int amount)
+    public int GetFavor(DeityDomain domain)
     {
         lock (Lock)
         {
-            if (Favor >= amount)
+            return FavorByDeity.GetValueOrDefault(domain);
+        }
+    }
+
+    /// <summary>
+    ///     Gets lifetime total favor earned for a domain (thread-safe).
+    /// </summary>
+    public int GetTotalFavorEarned(DeityDomain domain)
+    {
+        lock (Lock)
+        {
+            return TotalFavorEarnedByDeity.GetValueOrDefault(domain);
+        }
+    }
+
+    /// <summary>
+    ///     Gets accumulated fractional favor for a domain (thread-safe).
+    /// </summary>
+    public float GetAccumulatedFractionalFavor(DeityDomain domain)
+    {
+        lock (Lock)
+        {
+            return AccumulatedFractionalFavorByDeity.GetValueOrDefault(domain);
+        }
+    }
+
+    /// <summary>
+    ///     Adds favor for a deity and updates lifetime statistics.
+    ///     Thread-safe.
+    /// </summary>
+    public void AddFavor(DeityDomain domain, int amount)
+    {
+        if (amount <= 0)
+            return;
+
+        lock (Lock)
+        {
+            FavorByDeity[domain] = FavorByDeity.GetValueOrDefault(domain) + amount;
+            TotalFavorEarnedByDeity[domain] = TotalFavorEarnedByDeity.GetValueOrDefault(domain) + amount;
+        }
+    }
+
+    /// <summary>
+    ///     Adds fractional favor for a deity and awards integer favor when accumulated >= 1.
+    ///     Thread-safe.
+    /// </summary>
+    public void AddFractionalFavor(DeityDomain domain, float amount)
+    {
+        if (amount <= 0)
+            return;
+
+        lock (Lock)
+        {
+            var accumulated = AccumulatedFractionalFavorByDeity.GetValueOrDefault(domain) + amount;
+
+            if (accumulated >= 1.0f)
             {
-                Favor -= amount;
+                var favorToAward = (int)accumulated;
+                accumulated -= favorToAward;
+
+                FavorByDeity[domain] = FavorByDeity.GetValueOrDefault(domain) + favorToAward;
+                TotalFavorEarnedByDeity[domain] = TotalFavorEarnedByDeity.GetValueOrDefault(domain) + favorToAward;
+            }
+
+            AccumulatedFractionalFavorByDeity[domain] = accumulated;
+        }
+    }
+
+    /// <summary>
+    ///     Sets current favor for a deity (admin/testing path). Thread-safe.
+    /// </summary>
+    public void SetFavor(DeityDomain domain, int amount)
+    {
+        lock (Lock)
+        {
+            FavorByDeity[domain] = amount;
+        }
+    }
+
+    /// <summary>
+    ///     Sets total favor earned for a deity (admin/testing path). Thread-safe.
+    /// </summary>
+    public void SetTotalFavorEarned(DeityDomain domain, int amount)
+    {
+        lock (Lock)
+        {
+            TotalFavorEarnedByDeity[domain] = amount;
+        }
+    }
+
+    /// <summary>
+    ///     Removes favor for a deity (for costs or penalties).
+    ///     Returns false if insufficient favor.
+    ///     Thread-safe.
+    /// </summary>
+    public bool RemoveFavor(DeityDomain domain, int amount)
+    {
+        lock (Lock)
+        {
+            var current = FavorByDeity.GetValueOrDefault(domain);
+            if (current >= amount)
+            {
+                FavorByDeity[domain] = current - amount;
                 return true;
             }
 
@@ -233,15 +288,16 @@ public class PlayerProgressionData
     }
 
     /// <summary>
-    ///     Resets favor and blessings (penalty for switching religions).
-    ///     Also clears branch commitments since branches are domain-specific.
+    ///     Resets favor for the abandoned deity and clears blessings + branch commitments
+    ///     (penalty for switching religions). Favor with other deities is preserved.
     ///     Thread-safe.
     /// </summary>
-    public void ApplySwitchPenalty()
+    public void ApplySwitchPenalty(DeityDomain abandonedDomain)
     {
         lock (Lock)
         {
-            Favor = 0;
+            FavorByDeity.Remove(abandonedDomain);
+            AccumulatedFractionalFavorByDeity.Remove(abandonedDomain);
             _unlockedBlessings.Clear();
             _committedBranchesSerializable.Clear();
             _lockedBranchesSerializable.Clear();

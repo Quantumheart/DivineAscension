@@ -25,7 +25,7 @@ public class FavorCommandCheckTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.None);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft);
         var args = CreateCommandArgs(mockPlayer.Object);
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
@@ -60,14 +60,14 @@ public class FavorCommandCheckTests : FavorCommandsTestHelpers
             .Returns(DeityDomain.Craft);
 
         _playerReligionDataManager
-            .Setup(m => m.GetPlayerFavorRank("player-1"))
+            .Setup(m => m.GetPlayerFavorRank("player-1", DeityDomain.Craft))
             .Returns(() =>
             {
                 // Calculate rank based on current TotalFavorEarned
-                if (playerData.TotalFavorEarned >= 10000) return FavorRank.Avatar;
-                if (playerData.TotalFavorEarned >= 5000) return FavorRank.Champion;
-                if (playerData.TotalFavorEarned >= 2000) return FavorRank.Zealot;
-                if (playerData.TotalFavorEarned >= 500) return FavorRank.Disciple;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 10000) return FavorRank.Avatar;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 5000) return FavorRank.Champion;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 2000) return FavorRank.Zealot;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 500) return FavorRank.Disciple;
                 return FavorRank.Initiate;
             });
 
@@ -88,7 +88,7 @@ public class FavorCommandCheckTests : FavorCommandsTestHelpers
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
         var playerData =
-            CreatePlayerData("player-1", DeityDomain.Wild, 0, 0, FavorRank.Initiate);
+            CreatePlayerData("player-1", DeityDomain.Craft, 0, 0, FavorRank.Initiate);
         var args = CreateCommandArgs(mockPlayer.Object);
 
 
@@ -96,7 +96,7 @@ public class FavorCommandCheckTests : FavorCommandsTestHelpers
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Wild);
+            .Returns(DeityDomain.Craft);
         // Act
         var result = _sut!.OnCheckFavor(args);
 
@@ -104,7 +104,7 @@ public class FavorCommandCheckTests : FavorCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("0 favor", result.StatusMessage);
-        Assert.Contains("Wild", result.StatusMessage);
+        Assert.Contains("Craft", result.StatusMessage);
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class FavorCommandCheckTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.Harvest, 7000, 15000,
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft, 7000, 15000,
             FavorRank.Avatar);
         var args = CreateCommandArgs(mockPlayer.Object);
 
@@ -121,17 +121,17 @@ public class FavorCommandCheckTests : FavorCommandsTestHelpers
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Harvest);
+            .Returns(DeityDomain.Craft);
 
         _playerReligionDataManager
-            .Setup(m => m.GetPlayerFavorRank("player-1"))
+            .Setup(m => m.GetPlayerFavorRank("player-1", DeityDomain.Craft))
             .Returns(() =>
             {
                 // Calculate rank based on current TotalFavorEarned
-                if (playerData.TotalFavorEarned >= 10000) return FavorRank.Avatar;
-                if (playerData.TotalFavorEarned >= 5000) return FavorRank.Champion;
-                if (playerData.TotalFavorEarned >= 2000) return FavorRank.Zealot;
-                if (playerData.TotalFavorEarned >= 500) return FavorRank.Disciple;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 10000) return FavorRank.Avatar;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 5000) return FavorRank.Champion;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 2000) return FavorRank.Zealot;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 500) return FavorRank.Disciple;
                 return FavorRank.Initiate;
             });
 

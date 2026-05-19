@@ -106,7 +106,7 @@ public class ReligionCommandJoinTests : ReligionCommandsTestHelpers
         _sut!.OnJoinReligion(args);
 
         // Assert
-        _playerProgressionDataManager.Verify(m => m.HandleReligionSwitch(It.IsAny<string>()), Times.Never);
+        _playerProgressionDataManager.Verify(m => m.HandleReligionSwitch(It.IsAny<string>(), It.IsAny<DeityDomain>()), Times.Never);
     }
 
     #endregion

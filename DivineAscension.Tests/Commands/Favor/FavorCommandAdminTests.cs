@@ -25,7 +25,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.Harvest, 5000, 10000);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft, 5000, 10000);
         var args = CreateAdminCommandArgs(mockPlayer.Object);
         SetupParsers(args, new object[] { null });
 
@@ -34,7 +34,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Harvest);
+            .Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnResetFavor(args);
@@ -44,7 +44,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("reset to 0", result.StatusMessage);
         Assert.Contains("5,000", result.StatusMessage); // Old value
-        Assert.Equal(0, playerData.Favor);
+        Assert.Equal(0, playerData.GetFavor(DeityDomain.Craft));
     }
 
     #endregion
@@ -56,7 +56,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.Harvest, 100, 500);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft, 100, 500);
         var args = CreateAdminCommandArgs(mockPlayer.Object);
         SetupParsers(args, new object[] { null });
 
@@ -73,7 +73,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("99,999", result.StatusMessage);
         Assert.Contains("100", result.StatusMessage); // Old value
-        Assert.Equal(99999, playerData.Favor);
+        Assert.Equal(99999, playerData.GetFavor(DeityDomain.Craft));
     }
 
     #endregion
@@ -85,7 +85,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.None);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft);
         var argsReset = CreateAdminCommandArgs(mockPlayer.Object);
         SetupParsers(argsReset, new object[] { null });
         var argsMax = CreateAdminCommandArgs(mockPlayer.Object);
@@ -113,7 +113,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
         var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityDomain.Wild, 100, 500);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Craft, 100, 500);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "50", "TargetPlayer");
         SetupParsers(args, 50, "TargetPlayer");
@@ -123,8 +123,8 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("admin-1")).Returns(adminData);
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-2")).Returns(targetData);
-        _playerReligionDataManager.Setup(m => m.AddFavor("player-2", 50, It.IsAny<string>()))
-            .Callback(() => targetData.Favor += 50);
+        _playerReligionDataManager.Setup(m => m.AddFavor("player-2", DeityDomain.Craft, 50, It.IsAny<string>()))
+            .Callback(() => targetData.AddFavor(DeityDomain.Craft, 50));
 
         _religionManager.Setup(pr => pr.GetPlayerReligion("admin-1"))
             .Returns(TestFixtures.CreateTestReligion());
@@ -132,7 +132,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
             .Returns(TestFixtures.CreateTestReligion());
 
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Wild);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnAddFavor(args);
@@ -144,7 +144,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         Assert.Contains("TargetPlayer", result.StatusMessage);
         Assert.Contains("100", result.StatusMessage);
         Assert.Contains("150", result.StatusMessage);
-        Assert.Equal(150, targetData.Favor);
+        Assert.Equal(150, targetData.GetFavor(DeityDomain.Craft));
     }
 
     #endregion
@@ -159,7 +159,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
         var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityDomain.Stone, 200, 500);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Craft, 200, 500);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "50", "TargetPlayer");
         SetupParsers(args, 50, "TargetPlayer");
@@ -169,8 +169,8 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("admin-1")).Returns(adminData);
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-2")).Returns(targetData);
-        _playerReligionDataManager.Setup(m => m.RemoveFavor("player-2", 50, It.IsAny<string>()))
-            .Callback(() => targetData.Favor = Math.Max(0, targetData.Favor - 50))
+        _playerReligionDataManager.Setup(m => m.RemoveFavor("player-2", DeityDomain.Craft, 50, It.IsAny<string>()))
+            .Callback(() => targetData.SetFavor(DeityDomain.Craft, Math.Max(0, targetData.GetFavor(DeityDomain.Craft) - 50)))
             .Returns(true);
 
         _religionManager.Setup(pr => pr.GetPlayerReligion("admin-1"))
@@ -179,7 +179,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
             .Returns(TestFixtures.CreateTestReligion());
 
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Stone);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnRemoveFavor(args);
@@ -191,7 +191,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         Assert.Contains("TargetPlayer", result.StatusMessage);
         Assert.Contains("200", result.StatusMessage);
         Assert.Contains("150", result.StatusMessage);
-        Assert.Equal(150, targetData.Favor);
+        Assert.Equal(150, targetData.GetFavor(DeityDomain.Craft));
     }
 
     #endregion
@@ -206,7 +206,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
         var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityDomain.Harvest, 5000, 10000);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Craft, 5000, 10000);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "TargetPlayer");
         SetupParsers(args, "TargetPlayer");
@@ -223,7 +223,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
             .Returns(TestFixtures.CreateTestReligion());
 
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Harvest);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnResetFavor(args);
@@ -234,7 +234,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         Assert.Contains("reset to 0", result.StatusMessage);
         Assert.Contains("TargetPlayer", result.StatusMessage);
         Assert.Contains("5,000", result.StatusMessage);
-        Assert.Equal(0, targetData.Favor);
+        Assert.Equal(0, targetData.GetFavor(DeityDomain.Craft));
     }
 
     #endregion
@@ -249,7 +249,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
         var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityDomain.Wild, 100, 500);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Craft, 100, 500);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "TargetPlayer");
         SetupParsers(args, "TargetPlayer");
@@ -266,7 +266,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
             .Returns(TestFixtures.CreateTestReligion());
 
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Wild);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnMaxFavor(args);
@@ -277,7 +277,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         Assert.Contains("99,999", result.StatusMessage);
         Assert.Contains("TargetPlayer", result.StatusMessage);
         Assert.Contains("100", result.StatusMessage);
-        Assert.Equal(99999, targetData.Favor);
+        Assert.Equal(99999, targetData.GetFavor(DeityDomain.Craft));
     }
 
     #endregion
@@ -295,8 +295,8 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _playerReligionDataManager.Setup(m => m.AddFavor("player-1", 50, It.IsAny<string>()))
-            .Callback(() => playerData.Favor += 50);
+        _playerReligionDataManager.Setup(m => m.AddFavor("player-1", DeityDomain.Craft, 50, It.IsAny<string>()))
+            .Callback(() => playerData.AddFavor(DeityDomain.Craft, 50));
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
@@ -347,14 +347,14 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.Wild, favor: 200, totalFavor: 500);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft, favor: 200, totalFavor: 500);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "50");
         SetupParsers(args, 50, (string)null);
 
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _playerReligionDataManager.Setup(m => m.RemoveFavor("player-1", 50, It.IsAny<string>()))
-            .Callback(() => playerData.Favor = Math.Max(0, playerData.Favor - 50))
+        _playerReligionDataManager.Setup(m => m.RemoveFavor("player-1", DeityDomain.Craft, 50, It.IsAny<string>()))
+            .Callback(() => playerData.SetFavor(DeityDomain.Craft, Math.Max(0, playerData.GetFavor(DeityDomain.Craft) - 50)))
             .Returns(true);
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
@@ -377,13 +377,13 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.Harvest, favor: 50, totalFavor: 500);
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft, favor: 50, totalFavor: 500);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "100");
         SetupParsers(args, 100, (string)null);
 
         _playerReligionDataManager.Setup(m => m.GetOrCreatePlayerData("player-1")).Returns(playerData);
-        _playerReligionDataManager.Setup(m => m.RemoveFavor("player-1", 100, It.IsAny<string>()))
-            .Callback(() => playerData.Favor = 0)
+        _playerReligionDataManager.Setup(m => m.RemoveFavor("player-1", DeityDomain.Craft, 100, It.IsAny<string>()))
+            .Callback(() => playerData.SetFavor(DeityDomain.Craft, 0))
             .Returns(true);
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
@@ -433,7 +433,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.Harvest, 100, 100,
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft, 100, 100,
             FavorRank.Initiate);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "5000");
         SetupParsers(args, 5000, (string)null);
@@ -443,17 +443,17 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Harvest);
+            .Returns(DeityDomain.Craft);
 
         _playerReligionDataManager
-            .Setup(m => m.GetPlayerFavorRank("player-1"))
+            .Setup(m => m.GetPlayerFavorRank("player-1", DeityDomain.Craft))
             .Returns(() =>
             {
                 // Calculate rank based on current TotalFavorEarned
-                if (playerData.TotalFavorEarned >= 10000) return FavorRank.Avatar;
-                if (playerData.TotalFavorEarned >= 5000) return FavorRank.Champion;
-                if (playerData.TotalFavorEarned >= 2000) return FavorRank.Zealot;
-                if (playerData.TotalFavorEarned >= 500) return FavorRank.Disciple;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 10000) return FavorRank.Avatar;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 5000) return FavorRank.Champion;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 2000) return FavorRank.Zealot;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 500) return FavorRank.Disciple;
                 return FavorRank.Initiate;
             });
 
@@ -466,7 +466,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         Assert.Contains("5,000", result.StatusMessage);
         Assert.Contains("100", result.StatusMessage); // Old total
         Assert.Contains("Rank updated", result.StatusMessage);
-        Assert.Equal(5000, playerData.TotalFavorEarned);
+        Assert.Equal(5000, playerData.GetTotalFavorEarned(DeityDomain.Craft));
     }
 
     [Fact]
@@ -474,7 +474,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
     {
         // Arrange
         var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
-        var playerData = CreatePlayerData("player-1", DeityDomain.Stone, 100, 600,
+        var playerData = CreatePlayerData("player-1", DeityDomain.Craft, 100, 600,
             FavorRank.Disciple);
         var args = CreateAdminCommandArgs(mockPlayer.Object, "700");
         SetupParsers(args, 700, (string)null);
@@ -484,17 +484,17 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         _religionManager.Setup(pr => pr.GetPlayerReligion("player-1"))
             .Returns(TestFixtures.CreateTestReligion());
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain(It.IsAny<string>()))
-            .Returns(DeityDomain.Stone);
+            .Returns(DeityDomain.Craft);
 
         _playerReligionDataManager
-            .Setup(m => m.GetPlayerFavorRank("player-1"))
+            .Setup(m => m.GetPlayerFavorRank("player-1", DeityDomain.Craft))
             .Returns(() =>
             {
                 // Calculate rank based on current TotalFavorEarned
-                if (playerData.TotalFavorEarned >= 10000) return FavorRank.Avatar;
-                if (playerData.TotalFavorEarned >= 5000) return FavorRank.Champion;
-                if (playerData.TotalFavorEarned >= 2000) return FavorRank.Zealot;
-                if (playerData.TotalFavorEarned >= 500) return FavorRank.Disciple;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 10000) return FavorRank.Avatar;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 5000) return FavorRank.Champion;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 2000) return FavorRank.Zealot;
+                if (playerData.GetTotalFavorEarned(DeityDomain.Craft) >= 500) return FavorRank.Disciple;
                 return FavorRank.Initiate;
             });
 
@@ -506,7 +506,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("Rank unchanged", result.StatusMessage);
         Assert.Contains("Disciple", result.StatusMessage);
-        Assert.Equal(700, playerData.TotalFavorEarned);
+        Assert.Equal(700, playerData.GetTotalFavorEarned(DeityDomain.Craft));
     }
 
     [Fact]
@@ -566,7 +566,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
         var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityDomain.Harvest, 100, 100, FavorRank.Initiate);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Craft, 100, 100, FavorRank.Initiate);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "5000", "TargetPlayer");
         SetupParsers(args, 5000, "TargetPlayer");
@@ -583,17 +583,17 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
             .Returns(TestFixtures.CreateTestReligion());
 
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Harvest);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Craft);
 
         _playerReligionDataManager
-            .Setup(m => m.GetPlayerFavorRank("player-2"))
+            .Setup(m => m.GetPlayerFavorRank("player-2", DeityDomain.Craft))
             .Returns(() =>
             {
                 // Calculate rank based on current TotalFavorEarned
-                if (targetData.TotalFavorEarned >= 10000) return FavorRank.Avatar;
-                if (targetData.TotalFavorEarned >= 5000) return FavorRank.Champion;
-                if (targetData.TotalFavorEarned >= 2000) return FavorRank.Zealot;
-                if (targetData.TotalFavorEarned >= 500) return FavorRank.Disciple;
+                if (targetData.GetTotalFavorEarned(DeityDomain.Craft) >= 10000) return FavorRank.Avatar;
+                if (targetData.GetTotalFavorEarned(DeityDomain.Craft) >= 5000) return FavorRank.Champion;
+                if (targetData.GetTotalFavorEarned(DeityDomain.Craft) >= 2000) return FavorRank.Zealot;
+                if (targetData.GetTotalFavorEarned(DeityDomain.Craft) >= 500) return FavorRank.Disciple;
                 return FavorRank.Initiate;
             });
 
@@ -606,7 +606,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         Assert.Contains("5,000", result.StatusMessage);
         Assert.Contains("100", result.StatusMessage); // Old total
         Assert.Contains("Rank updated", result.StatusMessage);
-        Assert.Equal(5000, targetData.TotalFavorEarned);
+        Assert.Equal(5000, targetData.GetTotalFavorEarned(DeityDomain.Craft));
     }
 
     [Fact]
@@ -617,7 +617,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
         var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityDomain.Wild, 100, 600, FavorRank.Disciple);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Craft, 100, 600, FavorRank.Disciple);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "700", "TargetPlayer");
         SetupParsers(args, 700, "TargetPlayer");
@@ -634,17 +634,17 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
             .Returns(TestFixtures.CreateTestReligion());
 
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Wild);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Craft);
 
         _playerReligionDataManager
-            .Setup(m => m.GetPlayerFavorRank("player-2"))
+            .Setup(m => m.GetPlayerFavorRank("player-2", DeityDomain.Craft))
             .Returns(() =>
             {
                 // Calculate rank based on current TotalFavorEarned
-                if (targetData.TotalFavorEarned >= 10000) return FavorRank.Avatar;
-                if (targetData.TotalFavorEarned >= 5000) return FavorRank.Champion;
-                if (targetData.TotalFavorEarned >= 2000) return FavorRank.Zealot;
-                if (targetData.TotalFavorEarned >= 500) return FavorRank.Disciple;
+                if (targetData.GetTotalFavorEarned(DeityDomain.Craft) >= 10000) return FavorRank.Avatar;
+                if (targetData.GetTotalFavorEarned(DeityDomain.Craft) >= 5000) return FavorRank.Champion;
+                if (targetData.GetTotalFavorEarned(DeityDomain.Craft) >= 2000) return FavorRank.Zealot;
+                if (targetData.GetTotalFavorEarned(DeityDomain.Craft) >= 500) return FavorRank.Disciple;
                 return FavorRank.Initiate;
             });
 
@@ -658,7 +658,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         Assert.Contains("600", result.StatusMessage); // Old total
         Assert.Contains("Rank unchanged", result.StatusMessage);
         Assert.Contains("Disciple", result.StatusMessage);
-        Assert.Equal(700, targetData.TotalFavorEarned);
+        Assert.Equal(700, targetData.GetTotalFavorEarned(DeityDomain.Craft));
     }
 
     [Fact]
@@ -696,7 +696,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
         var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityDomain.None, 0, 0);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Craft, 0, 0);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "5000", "TargetPlayer");
         SetupParsers(args, 5000, "TargetPlayer");
@@ -714,6 +714,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
 
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.None);
+        _religionManager.Setup(pr => pr.GetPlayerReligion("player-2")).Returns((DivineAscension.Data.ReligionData?)null);
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
@@ -732,7 +733,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
         var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityDomain.Stone, 100, 100);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Craft, 100, 100);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "1000", "targetplayer"); // lowercase
         SetupParsers(args, 1000, "targetplayer");
@@ -749,7 +750,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
             .Returns(TestFixtures.CreateTestReligion());
 
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Stone);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnSetTotalFavor(args);
@@ -758,7 +759,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         Assert.NotNull(result);
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("1,000", result.StatusMessage);
-        Assert.Equal(1000, targetData.TotalFavorEarned);
+        Assert.Equal(1000, targetData.GetTotalFavorEarned(DeityDomain.Craft));
     }
 
     #endregion
@@ -773,7 +774,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         var targetPlayer = CreateMockPlayer("player-2", "TargetPlayer");
 
         var adminData = CreatePlayerData("admin-1", DeityDomain.Craft, 1000, 2000);
-        var targetData = CreatePlayerData("player-2", DeityDomain.Harvest, 100, 500);
+        var targetData = CreatePlayerData("player-2", DeityDomain.Craft, 100, 500);
 
         var args = CreateAdminCommandArgs(adminPlayer.Object, "5000", "TargetPlayer");
         SetupParsers(args, 5000, "TargetPlayer");
@@ -791,7 +792,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
             .Returns(TestFixtures.CreateTestReligion());
 
         _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("admin-1")).Returns(DeityDomain.Craft);
-        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Harvest);
+        _religionManager.Setup(pr => pr.GetPlayerActiveDeityDomain("player-2")).Returns(DeityDomain.Craft);
 
         // Act
         var result = _sut!.OnSetFavor(args);
@@ -801,7 +802,7 @@ public class FavorCommandAdminTests : FavorCommandsTestHelpers
         Assert.Equal(EnumCommandStatus.Success, result.Status);
         Assert.Contains("5,000", result.StatusMessage);
         Assert.Contains("TargetPlayer", result.StatusMessage);
-        Assert.Equal(5000, targetData.Favor);
+        Assert.Equal(5000, targetData.GetFavor(DeityDomain.Craft));
     }
 
     [Fact]

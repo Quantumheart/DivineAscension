@@ -74,7 +74,7 @@ public class ReligionManagerTests
 
         // Assert
         Assert.Equal(2, khorasReligions.Count);
-        Assert.All(khorasReligions, r => Assert.Equal(DeityDomain.Craft, r.Domain));
+        Assert.All(khorasReligions, r => Assert.Equal(DeityDomain.Craft, r.PatronDomain));
     }
 
     #endregion
@@ -376,7 +376,7 @@ public class ReligionManagerTests
         // Assert
         Assert.NotNull(religion);
         Assert.Equal("Test Religion", religion.ReligionName);
-        Assert.Equal(DeityDomain.Craft, religion.Domain);
+        Assert.Equal(DeityDomain.Craft, religion.PatronDomain);
         Assert.Equal("founder-uid", religion.FounderUID);
         Assert.True(religion.IsPublic);
         Assert.Contains("founder-uid", religion.MemberUIDs);

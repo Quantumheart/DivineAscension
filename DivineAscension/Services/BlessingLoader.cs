@@ -181,7 +181,8 @@ public class BlessingLoader : IBlessingLoader
             SpecialEffects = dto.SpecialEffects ?? new List<string>(),
             Cost = dto.Cost,
             Branch = dto.Branch,
-            ExclusiveBranches = dto.ExclusiveBranches
+            ExclusiveBranches = dto.ExclusiveBranches,
+            RequiresPatron = dto.RequiresPatron
         };
 
         // Log warning for unknown stat keys (but still include them)

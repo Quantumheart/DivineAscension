@@ -26,7 +26,7 @@ public class ReligionValidationStep(IReligionManager religionManager) : IPrayerS
             return;
         }
 
-        context.Domain = context.Religion.Domain;
+        context.Domain = context.Religion.PatronDomain;
 
         // Check if player can pray at this holy site:
         // 1. Same religion (member of the religion that owns the holy site)
@@ -35,9 +35,9 @@ public class ReligionValidationStep(IReligionManager religionManager) : IPrayerS
         {
             // Not a member - check if same domain allows prayer
             var holySiteOwnerReligion = religionManager.GetReligion(context.HolySite.ReligionUID);
-            var holySiteDomain = holySiteOwnerReligion?.Domain ?? DeityDomain.None;
+            var holySiteDomain = holySiteOwnerReligion?.PatronDomain ?? DeityDomain.None;
 
-            if (context.Religion.Domain != holySiteDomain || holySiteDomain == DeityDomain.None)
+            if (context.Religion.PatronDomain != holySiteDomain || holySiteDomain == DeityDomain.None)
             {
                 context.Success = false;
                 context.Message = LocalizationService.Instance.Get(LocalizationKeys.PRAYER_WRONG_DOMAIN);
