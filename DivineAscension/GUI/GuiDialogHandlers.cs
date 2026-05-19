@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.State.Religion;
@@ -18,6 +19,21 @@ namespace DivineAscension.GUI;
 /// </summary>
 public partial class GuiDialog
 {
+    /// <summary>
+    ///     Builds the per-deity favor-rank dict consumed by BlessingStateManager.
+    ///     Phase 3: only the patron-deity rank is available client-side. Phase 4 will wire all five
+    ///     through BlessingDataResponsePacket.
+    /// </summary>
+    private Dictionary<DeityDomain, int> BuildFavorRanksByDeity()
+    {
+        var dict = new Dictionary<DeityDomain, int>();
+        if (_manager == null) return dict;
+        var patron = _manager.ReligionStateManager.CurrentReligionDomain;
+        if (patron != DeityDomain.None)
+            dict[patron] = _manager.ReligionStateManager.CurrentFavorRank;
+        return dict;
+    }
+
     /// <summary>
     ///     Periodically check if player religion data is available
     /// </summary>
@@ -124,9 +140,13 @@ public partial class GuiDialog
         // Set branch state from server (committed and locked branches)
         _manager.BlessingStateManager.SetBranchState(packet.CommittedBranches, packet.LockedBranches);
 
-        // Refresh states to update can-unlock status
-        _manager.BlessingStateManager.RefreshAllBlessingStates(_manager.ReligionStateManager.CurrentFavorRank,
-            _manager.ReligionStateManager.CurrentPrestigeRank);
+        // Refresh states to update can-unlock status.
+        // TODO(Phase 4): wire per-deity favor ranks through BlessingDataResponsePacket; for now only the
+        // patron-deity rank is known client-side, so other domains will read as Initiate (rank 0).
+        _manager.BlessingStateManager.RefreshAllBlessingStates(
+            BuildFavorRanksByDeity(),
+            _manager.ReligionStateManager.CurrentPrestigeRank,
+            _manager.ReligionStateManager.CurrentReligionDomain);
 
         // Initialize previous ranks to prevent false positives on first update
         var favorRankName = ((FavorRank)packet.FavorRank).ToString();
@@ -526,8 +546,10 @@ public partial class GuiDialog
         // Refresh blessing states in case new blessings became available
         // Only do this if dialog is open to avoid unnecessary processing
         if (_state.IsOpen && _manager.HasReligion())
-            _manager.BlessingStateManager.RefreshAllBlessingStates(_manager.ReligionStateManager.CurrentFavorRank,
-                _manager.ReligionStateManager.CurrentPrestigeRank);
+            _manager.BlessingStateManager.RefreshAllBlessingStates(
+                BuildFavorRanksByDeity(),
+                _manager.ReligionStateManager.CurrentPrestigeRank,
+                _manager.ReligionStateManager.CurrentReligionDomain);
 
         // Ensure HUD is visible when player has religion data
         EnsureHudVisible();
@@ -580,8 +602,10 @@ public partial class GuiDialog
             _manager?.BlessingStateManager.SetBlessingUnlocked(blessingId, true);
 
             // Refresh all blessing states to update prerequisites and glow effects
-            _manager?.BlessingStateManager.RefreshAllBlessingStates(_manager.ReligionStateManager.CurrentFavorRank,
-                _manager.ReligionStateManager.CurrentPrestigeRank);
+            _manager?.BlessingStateManager.RefreshAllBlessingStates(
+                BuildFavorRanksByDeity(),
+                _manager.ReligionStateManager.CurrentPrestigeRank,
+                _manager.ReligionStateManager.CurrentReligionDomain);
         }
     }
 

@@ -184,7 +184,10 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         }
     }
 
-    public void RefreshAllBlessingStates(int currentFavorRank, int currentPrestigeRank)
+    public void RefreshAllBlessingStates(
+        Dictionary<DeityDomain, int> favorRanksByDeity,
+        int currentPrestigeRank,
+        DeityDomain patronDomain)
     {
         // Update CanUnlock status for all player blessings
         foreach (var state in State.PlayerBlessingStates.Values)
@@ -194,7 +197,8 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             state.IsBranchLocked = branchLocked;
             state.LockedByBranch = branchLocked ? GetCommittedBranch(state.Blessing.Domain) : null;
 
-            state.CanUnlock = CanUnlockBlessing(state, currentFavorRank, currentPrestigeRank);
+            state.NonPatronCostMultiplier = state.Blessing.Domain == patronDomain ? 1.0f : 1.5f;
+            state.CanUnlock = CanUnlockBlessing(state, favorRanksByDeity, currentPrestigeRank, patronDomain);
             state.UpdateVisualState();
         }
 
@@ -203,22 +207,30 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         {
             state.IsBranchLocked = false;
             state.LockedByBranch = null;
-            state.CanUnlock = CanUnlockBlessing(state, currentFavorRank, currentPrestigeRank);
+            state.NonPatronCostMultiplier = state.Blessing.Domain == patronDomain ? 1.0f : 1.5f;
+            state.CanUnlock = CanUnlockBlessing(state, favorRanksByDeity, currentPrestigeRank, patronDomain);
             state.UpdateVisualState();
         }
     }
 
     /// <summary>
-    ///     Check if a blessing can be unlocked based on prerequisites and rank requirements
-    ///     This is a client-side validation - server will do final validation
+    ///     Check if a blessing can be unlocked based on prerequisites and rank requirements.
+    ///     Client-side validation only — server is authoritative.
     /// </summary>
-    private bool CanUnlockBlessing(BlessingNodeState state, int currentFavorRank, int currentPrestigeRank)
+    private bool CanUnlockBlessing(
+        BlessingNodeState state,
+        Dictionary<DeityDomain, int> favorRanksByDeity,
+        int currentPrestigeRank,
+        DeityDomain patronDomain)
     {
         // Already unlocked
         if (state.IsUnlocked) return false;
 
         // Branch is locked (for player blessings only)
         if (state.IsBranchLocked) return false;
+
+        // Patron capstone gate: capstones (RequiresPatron) require religion's patron to match blessing domain
+        if (state.Blessing.RequiresPatron && patronDomain != state.Blessing.Domain) return false;
 
         // Check prerequisites
         if (state.Blessing.PrerequisiteBlessings is { Count: > 0 })
@@ -256,8 +268,9 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         // Check rank requirements based on the blessing kind
         if (state.Blessing.Kind == BlessingKind.Player)
         {
-            // Player blessings require favor rank
-            if (state.Blessing.RequiredFavorRank > currentFavorRank) return false;
+            // Player blessings require per-deity favor rank for the blessing's domain
+            var domainRank = favorRanksByDeity.GetValueOrDefault(state.Blessing.Domain);
+            if (state.Blessing.RequiredFavorRank > domainRank) return false;
         }
         else if (state.Blessing.Kind == BlessingKind.Religion)
         {

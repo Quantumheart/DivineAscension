@@ -56,6 +56,26 @@ public class BlessingStateManagerTests
         };
     }
 
+    /// <summary>
+    ///     Backward-compatible refresh helper for tests written before Phase 3's per-deity rank dict.
+    ///     Treats <paramref name="favorRank"/> as the rank for every deity, patron = Craft (default Blessing.Domain).
+    /// </summary>
+    private void Refresh(int favorRank, int prestigeRank)
+    {
+        // Seed every DeityDomain (incl. None, which is the default for blessings created without an explicit Domain)
+        // with the same rank so legacy tests keep their single-rank semantics.
+        var dict = new Dictionary<DeityDomain, int>
+        {
+            [DeityDomain.None] = favorRank,
+            [DeityDomain.Craft] = favorRank,
+            [DeityDomain.Wild] = favorRank,
+            [DeityDomain.Harvest] = favorRank,
+            [DeityDomain.Stone] = favorRank,
+            [DeityDomain.Conquest] = favorRank
+        };
+        _sut.RefreshAllBlessingStates(dict, prestigeRank, DeityDomain.None);
+    }
+
     #endregion
 
     #region Constructor Tests
@@ -469,7 +489,7 @@ public class BlessingStateManagerTests
         _sut.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
 
         // Act - with sufficient favor rank
-        _sut.RefreshAllBlessingStates(3, 0);
+        Refresh(3, 0);
 
         // Assert
         Assert.True(_sut.State.PlayerBlessingStates["test"].CanUnlock);
@@ -483,7 +503,7 @@ public class BlessingStateManagerTests
         _sut.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
 
         // Act - with insufficient favor rank
-        _sut.RefreshAllBlessingStates(2, 0);
+        Refresh(2, 0);
 
         // Assert
         Assert.False(_sut.State.PlayerBlessingStates["test"].CanUnlock);
@@ -497,7 +517,7 @@ public class BlessingStateManagerTests
         _sut.LoadBlessingStates(new List<Blessing>(), new List<Blessing> { blessing });
 
         // Act - with sufficient prestige rank
-        _sut.RefreshAllBlessingStates(0, 3);
+        Refresh(0, 3);
 
         // Assert
         Assert.True(_sut.State.ReligionBlessingStates["test"].CanUnlock);
@@ -511,7 +531,7 @@ public class BlessingStateManagerTests
         _sut.LoadBlessingStates(new List<Blessing>(), new List<Blessing> { blessing });
 
         // Act - with insufficient prestige rank
-        _sut.RefreshAllBlessingStates(0, 2);
+        Refresh(0, 2);
 
         // Assert
         Assert.False(_sut.State.ReligionBlessingStates["test"].CanUnlock);
@@ -526,7 +546,7 @@ public class BlessingStateManagerTests
         _sut.SetBlessingUnlocked("test", true);
 
         // Act
-        _sut.RefreshAllBlessingStates(5, 5);
+        Refresh(5, 5);
 
         // Assert - already unlocked, so CanUnlock should be false
         Assert.False(_sut.State.PlayerBlessingStates["test"].CanUnlock);
@@ -545,7 +565,7 @@ public class BlessingStateManagerTests
             new List<Blessing>());
 
         // Act - prereq not unlocked
-        _sut.RefreshAllBlessingStates(10, 10);
+        Refresh(10, 10);
 
         // Assert
         Assert.False(_sut.State.PlayerBlessingStates["dependent"].CanUnlock);
@@ -565,7 +585,7 @@ public class BlessingStateManagerTests
         _sut.SetBlessingUnlocked("prereq", true);
 
         // Act
-        _sut.RefreshAllBlessingStates(10, 10);
+        Refresh(10, 10);
 
         // Assert
         Assert.True(_sut.State.PlayerBlessingStates["dependent"].CanUnlock);
@@ -589,10 +609,88 @@ public class BlessingStateManagerTests
         _sut.SetBlessingUnlocked("prereq1", true);
 
         // Act
-        _sut.RefreshAllBlessingStates(10, 10);
+        Refresh(10, 10);
 
         // Assert - should be false because prereq2 is not unlocked (AND logic)
         Assert.False(_sut.State.PlayerBlessingStates["dependent"].CanUnlock);
+    }
+
+    [Fact]
+    public void RefreshAllBlessingStates_CapstoneRequiresPatron_NonPatronBlocked()
+    {
+        // Phase 3: a RequiresPatron blessing in a non-patron domain stays locked.
+        var capstone = CreateBlessing("avatar_of_wild", BlessingKind.Player);
+        capstone.Domain = DeityDomain.Wild;
+        capstone.RequiresPatron = true;
+
+        _sut.LoadBlessingStates(new List<Blessing> { capstone }, new List<Blessing>());
+
+        var dict = new Dictionary<DeityDomain, int> { [DeityDomain.Wild] = 4 };
+        _sut.RefreshAllBlessingStates(dict, 4, DeityDomain.Craft);
+
+        Assert.False(_sut.State.PlayerBlessingStates["avatar_of_wild"].CanUnlock);
+    }
+
+    [Fact]
+    public void RefreshAllBlessingStates_CapstoneRequiresPatron_PatronCanUnlock()
+    {
+        var capstone = CreateBlessing("avatar_of_wild", BlessingKind.Player);
+        capstone.Domain = DeityDomain.Wild;
+        capstone.RequiresPatron = true;
+
+        _sut.LoadBlessingStates(new List<Blessing> { capstone }, new List<Blessing>());
+
+        var dict = new Dictionary<DeityDomain, int> { [DeityDomain.Wild] = 4 };
+        _sut.RefreshAllBlessingStates(dict, 4, DeityDomain.Wild);
+
+        Assert.True(_sut.State.PlayerBlessingStates["avatar_of_wild"].CanUnlock);
+    }
+
+    [Fact]
+    public void RefreshAllBlessingStates_NonPatron_SetsCostMultiplier1_5()
+    {
+        var blessing = CreateBlessing("test", BlessingKind.Player);
+        blessing.Domain = DeityDomain.Wild;
+
+        _sut.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
+
+        var dict = new Dictionary<DeityDomain, int> { [DeityDomain.Wild] = 4 };
+        _sut.RefreshAllBlessingStates(dict, 0, DeityDomain.Craft);
+
+        Assert.Equal(1.5f, _sut.State.PlayerBlessingStates["test"].NonPatronCostMultiplier);
+    }
+
+    [Fact]
+    public void RefreshAllBlessingStates_Patron_SetsCostMultiplier1_0()
+    {
+        var blessing = CreateBlessing("test", BlessingKind.Player);
+        blessing.Domain = DeityDomain.Wild;
+
+        _sut.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
+
+        var dict = new Dictionary<DeityDomain, int> { [DeityDomain.Wild] = 4 };
+        _sut.RefreshAllBlessingStates(dict, 0, DeityDomain.Wild);
+
+        Assert.Equal(1.0f, _sut.State.PlayerBlessingStates["test"].NonPatronCostMultiplier);
+    }
+
+    [Fact]
+    public void RefreshAllBlessingStates_PerDeityFavorRank_GatesByDomain()
+    {
+        // Stone-patron player with no Conquest favor is blocked from a Conquest tier-3 blessing.
+        var blessing = CreateBlessing("conquest_t3", BlessingKind.Player, requiredFavorRank: 3);
+        blessing.Domain = DeityDomain.Conquest;
+
+        _sut.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
+
+        var dict = new Dictionary<DeityDomain, int>
+        {
+            [DeityDomain.Stone] = 4,
+            [DeityDomain.Conquest] = 0
+        };
+        _sut.RefreshAllBlessingStates(dict, 0, DeityDomain.Stone);
+
+        Assert.False(_sut.State.PlayerBlessingStates["conquest_t3"].CanUnlock);
     }
 
     [Fact]
@@ -613,7 +711,7 @@ public class BlessingStateManagerTests
         _sut.SetBlessingUnlocked("prereq1", true);
 
         // Act
-        _sut.RefreshAllBlessingStates(10, 10);
+        Refresh(10, 10);
 
         // Assert - should be true because one prerequisite is unlocked (OR logic)
         Assert.True(_sut.State.PlayerBlessingStates["capstone"].CanUnlock);

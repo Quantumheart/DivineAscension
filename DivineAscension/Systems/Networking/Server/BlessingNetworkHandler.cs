@@ -99,12 +99,14 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                         }
                         else
                         {
-                            // Atomically deduct favor cost (includes sufficiency check)
-                            if (blessing.Cost > 0 && !playerData.RemoveFavor(blessing.Domain, blessing.Cost))
+                            // Atomically deduct favor cost (includes sufficiency check).
+                            // Non-patron blessings cost 1.5x; capstones are patron-only and always 1.0x.
+                            var adjustedCost = BlessingRegistry.AdjustedCost(blessing, religion);
+                            if (adjustedCost > 0 && !playerData.RemoveFavor(blessing.Domain, adjustedCost))
                             {
                                 message = LocalizationService.Instance.Get(
                                     LocalizationKeys.CMD_BLESSING_ERROR_INSUFFICIENT_FAVOR,
-                                    blessing.Cost, playerData.GetFavor(blessing.Domain));
+                                    adjustedCost, playerData.GetFavor(blessing.Domain));
                             }
                             else
                             {
@@ -147,12 +149,14 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                         }
                         else
                         {
-                            // Atomically deduct prestige cost (includes sufficiency check)
-                            if (blessing.Cost > 0 && !religion.RemovePrestige(blessing.Cost))
+                            // Atomically deduct prestige cost (includes sufficiency check).
+                            // Non-patron religion blessings cost 1.5x; capstones are patron-only and always 1.0x.
+                            var adjustedCost = BlessingRegistry.AdjustedCost(blessing, religion);
+                            if (adjustedCost > 0 && !religion.RemovePrestige(adjustedCost))
                             {
                                 message = LocalizationService.Instance.Get(
                                     LocalizationKeys.CMD_BLESSING_ERROR_INSUFFICIENT_PRESTIGE,
-                                    blessing.Cost, religion.Prestige);
+                                    adjustedCost, religion.Prestige);
                             }
                             else
                             {
