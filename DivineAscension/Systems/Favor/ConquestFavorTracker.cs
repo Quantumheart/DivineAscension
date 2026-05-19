@@ -6,6 +6,7 @@ using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
 using Vintagestory.GameContent;
 
@@ -36,6 +37,12 @@ public class ConquestFavorTracker(
 
     private readonly IWorldService
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
+
+    private TagSetFast? _hostileTags;
+
+    private TagSetFast HostileTags =>
+        _hostileTags ??= _worldService.World.Api.EntityTagRegistry.CreateTagSet(
+            ["hostile", "monster", "drifter", "locust"]);
 
     public void Dispose()
     {
@@ -126,12 +133,7 @@ public class ConquestFavorTracker(
 
         // ONLY reward killing hostile creatures and monsters
         // Excludes: domesticated animals, wildlife, predators (those belong to Wild domain)
-#pragma warning disable CS0618
-        if (entity.HasTags("hostile", "monster", "drifter", "locust"))
-            return true;
-#pragma warning restore CS0618
-
-        return false;
+        return HostileTags.Overlaps(entity.Tags);
     }
 
     /// <summary>

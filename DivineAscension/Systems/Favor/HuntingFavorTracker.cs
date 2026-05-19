@@ -6,6 +6,7 @@ using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
 
 namespace DivineAscension.Systems.Favor;
@@ -31,6 +32,11 @@ public class HuntingFavorTracker(
 
     private readonly IWorldService
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
+
+    private TagSetFast? _huntableAnimalTags;
+
+    private TagSetFast HuntableAnimalTags =>
+        _huntableAnimalTags ??= _worldService.World.Api.EntityTagRegistry.CreateTagSet(["huntable", "animal"]);
 
     public void Dispose()
     {
@@ -114,12 +120,7 @@ public class HuntingFavorTracker(
     /// </summary>
     private bool IsHuntable(Entity entity)
     {
-#pragma warning disable CS0618
-        if (entity.HasTags("huntable", "animal"))
-            return true;
-#pragma warning restore CS0618
-
-        return false;
+        return HuntableAnimalTags.IsFullyContainedIn(entity.Tags);
     }
 
     /// <summary>

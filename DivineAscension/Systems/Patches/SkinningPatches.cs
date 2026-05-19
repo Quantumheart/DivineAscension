@@ -2,6 +2,7 @@ using System;
 using HarmonyLib;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
 using Vintagestory.GameContent;
 
@@ -15,6 +16,13 @@ public static class SkinningPatches
     /// Provides the player, entity, and entity weight for favor calculation.
     /// </summary>
     public static event Action<IServerPlayer, Entity, float>? OnAnimalSkinned;
+
+    private static TagSetFast _huntableAnimalTags;
+
+    public static void Initialize(ICoreAPI api)
+    {
+        _huntableAnimalTags = api.EntityTagRegistry.CreateTagSet(["huntable", "animal"]);
+    }
 
     public static void ClearSubscribers()
     {
@@ -38,9 +46,7 @@ public static class SkinningPatches
         if (byPlayer is not IServerPlayer serverPlayer) return;
 
         // Check if the entity is an animal (huntable + animal tags)
-#pragma warning disable CS0618
-        if (!__instance.entity.HasTags("huntable", "animal")) return;
-#pragma warning restore CS0618
+        if (!_huntableAnimalTags.IsFullyContainedIn(__instance.entity.Tags)) return;
 
         // Get entity weight for favor calculation
         float weight = __instance.entity.Properties?.Weight ?? 0f;
