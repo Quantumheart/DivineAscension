@@ -87,6 +87,13 @@ public class BlessingNodeState
     public int Tier { get; set; }
 
     /// <summary>
+    ///     Cost multiplier applied because the blessing's domain differs from the religion's patron.
+    ///     1.0 when the blessing's domain matches the patron (or no religion); 1.5 otherwise.
+    ///     UI uses this to show a "1.5x cost" hint on non-patron blessings.
+    /// </summary>
+    public float NonPatronCostMultiplier { get; set; } = 1.0f;
+
+    /// <summary>
     ///     Update visual state based on unlock status and unlock eligibility
     /// </summary>
     public void UpdateVisualState()

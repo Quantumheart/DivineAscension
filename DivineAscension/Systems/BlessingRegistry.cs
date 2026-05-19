@@ -154,9 +154,9 @@ public class BlessingRegistry : IBlessingRegistry
                 return (false, $"Requires {requiredRank} favor rank (Current: {playerFavorRank})");
             }
 
-            // Check deity matches
-            if (religionData!.PatronDomain != blessing.Domain)
-                return (false, $"Requires deity: {blessing.Domain} (Current: {religionData!.PatronDomain})");
+            // Patron capstone gate: capstones require religion's patron to match blessing's domain
+            if (blessing.RequiresPatron && religionData!.PatronDomain != blessing.Domain)
+                return (false, $"Capstone blessing requires patron deity: {blessing.Domain} (Current: {religionData!.PatronDomain})");
 
             // Check branch exclusivity (only for player blessings with a branch)
             if (!string.IsNullOrEmpty(blessing.Branch))
@@ -201,8 +201,9 @@ public class BlessingRegistry : IBlessingRegistry
             }
 
             // Check favor cost (skip if cost will be deducted atomically)
-            if (!skipCostCheck && blessing.Cost > 0 && playerData.GetFavor(blessing.Domain) < blessing.Cost)
-                return (false, $"Insufficient favor: requires {blessing.Cost}, have {playerData.GetFavor(blessing.Domain)}");
+            var playerAdjustedCost = AdjustedCost(blessing, religionData);
+            if (!skipCostCheck && playerAdjustedCost > 0 && playerData.GetFavor(blessing.Domain) < playerAdjustedCost)
+                return (false, $"Insufficient favor: requires {playerAdjustedCost}, have {playerData.GetFavor(blessing.Domain)}");
 
             return (true, "Can unlock");
         }
@@ -222,9 +223,9 @@ public class BlessingRegistry : IBlessingRegistry
             return (false, $"Religion requires {requiredRank} prestige rank (Current: {religionData.PrestigeRank})");
         }
 
-        // Check deity matches
-        if (religionData.PatronDomain != blessing.Domain)
-            return (false, $"Religion deity mismatch (Blessing: {blessing.Domain}, Religion: {religionData.PatronDomain})");
+        // Patron capstone gate: capstones require religion's patron to match blessing's domain
+        if (blessing.RequiresPatron && religionData.PatronDomain != blessing.Domain)
+            return (false, $"Capstone blessing requires patron deity: {blessing.Domain} (Current: {religionData.PatronDomain})");
 
         // Check prerequisites
         if (blessing.PrerequisiteBlessings != null)
@@ -237,9 +238,22 @@ public class BlessingRegistry : IBlessingRegistry
                 }
 
         // Check prestige cost (skip if cost will be deducted atomically)
-        if (!skipCostCheck && blessing.Cost > 0 && religionData.Prestige < blessing.Cost)
-            return (false, $"Insufficient prestige: requires {blessing.Cost}, have {religionData.Prestige}");
+        var religionAdjustedCost = AdjustedCost(blessing, religionData);
+        if (!skipCostCheck && religionAdjustedCost > 0 && religionData.Prestige < religionAdjustedCost)
+            return (false, $"Insufficient prestige: requires {religionAdjustedCost}, have {religionData.Prestige}");
 
         return (true, "Can unlock");
+    }
+
+    /// <summary>
+    ///     Compute adjusted blessing cost. Non-patron domain blessings cost 1.5x; patron domain blessings cost 1.0x.
+    ///     Capstones (RequiresPatron) are gated separately and always paid at 1.0x.
+    /// </summary>
+    public static int AdjustedCost(Blessing blessing, ReligionData religion)
+    {
+        if (blessing.Cost <= 0) return 0;
+        return religion.PatronDomain == blessing.Domain
+            ? blessing.Cost
+            : (int)(blessing.Cost * 1.5f);
     }
 }

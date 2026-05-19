@@ -397,20 +397,85 @@ public class BlessingRegistryTests
     }
 
     [Fact]
-    public void CanUnlockBlessing_PlayerBlessing_WrongDeity_ReturnsFalse()
+    public void CanUnlockBlessing_PlayerBlessing_NonCapstoneWrongDeity_ReturnsTrue()
     {
-        // Arrange
+        // Phase 3: non-capstone player blessings unlock from any of the five deity trees,
+        // regardless of religion's patron domain. (Cost is 1.5x; see separate cost test.)
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
         var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Wild, BlessingKind.Player);
-        blessing.RequiredFavorRank = 0; // Set to Initiate so favor rank check passes
+        blessing.RequiredFavorRank = 0;
+        blessing.RequiresPatron = false;
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
 
-        // Act
+        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+
+        Assert.True(canUnlock);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_CapstoneNonPatron_ReturnsFalse()
+    {
+        // Capstones (RequiresPatron=true) are restricted to followers of the matching patron.
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        var blessing = TestFixtures.CreateTestBlessing("avatar_of_wild", "Avatar of Wild", DeityDomain.Wild, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.RequiresPatron = true;
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
+
         var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
 
-        // Assert
         Assert.False(canUnlock);
-        Assert.Contains("Requires deity: Wild", reason);
+        Assert.Contains("Capstone blessing requires patron deity: Wild", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_CapstonePatron_ReturnsTrue()
+    {
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Wild, "religion-uid");
+        var blessing = TestFixtures.CreateTestBlessing("avatar_of_wild", "Avatar of Wild", DeityDomain.Wild, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.RequiresPatron = true;
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Wild, "player-uid");
+
+        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+
+        Assert.True(canUnlock);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_NonPatronCostIs1_5x()
+    {
+        // Patron=Craft, blessing domain=Wild, cost=100 → adjusted=150. Player has 140 → insufficient.
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        playerData.AddFavor(DeityDomain.Wild, 140);
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Wild, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Cost = 100;
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
+
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+
+        Assert.False(canUnlock);
+        Assert.Contains("Insufficient favor", reason);
+        Assert.Contains("requires 150", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_PatronCostIs1x()
+    {
+        // Patron=Wild, blessing domain=Wild, cost=100, player has 100 → exactly enough at 1.0x.
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Wild, "religion-uid", favor: 0);
+        playerData.AddFavor(DeityDomain.Wild, 100);
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Wild, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Cost = 100;
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Wild, "player-uid");
+
+        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+
+        Assert.True(canUnlock);
     }
 
     [Fact]
@@ -598,19 +663,63 @@ public class BlessingRegistryTests
     }
 
     [Fact]
-    public void CanUnlockBlessing_ReligionBlessing_WrongDeity_ReturnsFalse()
+    public void CanUnlockBlessing_ReligionBlessing_NonCapstoneWrongDeity_ReturnsTrue()
     {
-        // Arrange
+        // Phase 3: non-capstone religion blessings unlock from any deity tree regardless of patron.
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
         var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
         var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Wild, BlessingKind.Religion);
+        blessing.RequiresPatron = false;
 
-        // Act
+        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+
+        Assert.True(canUnlock);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_ReligionBlessing_CapstoneNonPatron_ReturnsFalse()
+    {
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
+        var blessing = TestFixtures.CreateTestBlessing("pantheon_of_wild", "Pantheon of Wild", DeityDomain.Wild, BlessingKind.Religion);
+        blessing.RequiresPatron = true;
+
         var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
 
-        // Assert
         Assert.False(canUnlock);
-        Assert.Contains("Religion deity mismatch", reason);
+        Assert.Contains("Capstone blessing requires patron deity: Wild", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_ReligionBlessing_CapstonePatron_ReturnsTrue()
+    {
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Wild, "religion-uid");
+        var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Wild);
+        var blessing = TestFixtures.CreateTestBlessing("pantheon_of_wild", "Pantheon of Wild", DeityDomain.Wild, BlessingKind.Religion);
+        blessing.RequiresPatron = true;
+
+        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+
+        Assert.True(canUnlock);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_ReligionBlessing_NonPatronCostIs1_5x()
+    {
+        // Patron=Craft, blessing domain=Wild, cost=400 → adjusted=600. Religion has 500 → insufficient.
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
+        religionData.AddPrestige(500);
+
+        var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Wild, BlessingKind.Religion);
+        blessing.RequiredPrestigeRank = 0;
+        blessing.Cost = 400;
+
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+
+        Assert.False(canUnlock);
+        Assert.Contains("Insufficient prestige", reason);
+        Assert.Contains("requires 600", reason);
     }
 
     [Fact]
