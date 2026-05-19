@@ -23,7 +23,7 @@
   -->
   <ItemGroup Condition="'$(UseStubDependencies)' == 'true'">
     <PackageReference Include="Lib.Harmony" Version="2.3.3" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 
   <!-- Vintage Story bundled dependencies - use copies from VS installation in CI -->
