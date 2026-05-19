@@ -17,6 +17,7 @@ public class BlockBehaviorOre(Block block) : BlockBehavior(block)
         IWorldAccessor world,
         BlockPos pos,
         IPlayer byPlayer,
+        float dropQuantityMultiplier,
         ref EnumHandling handling)
     {
         // Pass the block reference so trackers can access ore type/grade

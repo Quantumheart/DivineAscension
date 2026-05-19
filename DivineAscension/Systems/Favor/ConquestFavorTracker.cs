@@ -126,8 +126,10 @@ public class ConquestFavorTracker(
 
         // ONLY reward killing hostile creatures and monsters
         // Excludes: domesticated animals, wildlife, predators (those belong to Wild domain)
+#pragma warning disable CS0618
         if (entity.HasTags("hostile", "monster", "drifter", "locust"))
             return true;
+#pragma warning restore CS0618
 
         return false;
     }

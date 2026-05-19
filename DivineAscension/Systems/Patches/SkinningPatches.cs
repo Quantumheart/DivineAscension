@@ -38,7 +38,9 @@ public static class SkinningPatches
         if (byPlayer is not IServerPlayer serverPlayer) return;
 
         // Check if the entity is an animal (huntable + animal tags)
+#pragma warning disable CS0618
         if (!__instance.entity.HasTags("huntable", "animal")) return;
+#pragma warning restore CS0618
 
         // Get entity weight for favor calculation
         float weight = __instance.entity.Properties?.Weight ?? 0f;

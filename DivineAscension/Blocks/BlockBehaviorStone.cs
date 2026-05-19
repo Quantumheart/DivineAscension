@@ -29,6 +29,7 @@ public class BlockBehaviorStone : BlockBehavior
     public override void OnBlockBroken(IWorldAccessor world,
         BlockPos pos,
         IPlayer byPlayer,
+        float dropQuantityMultiplier,
         ref EnumHandling handling)
     {
         OnStoneBlockBroken?.Invoke(world, pos, byPlayer, handling);

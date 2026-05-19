@@ -114,8 +114,10 @@ public class HuntingFavorTracker(
     /// </summary>
     private bool IsHuntable(Entity entity)
     {
+#pragma warning disable CS0618
         if (entity.HasTags("huntable", "animal"))
             return true;
+#pragma warning restore CS0618
 
         return false;
     }

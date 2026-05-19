@@ -72,7 +72,7 @@ public static class GaiaEffectHandlers
                 if (!given)
                 {
                     // Drop at player's position as a fallback
-                    var pos = player.Entity?.ServerPos.XYZ ?? player.Entity?.Pos.XYZ;
+                    var pos = player.Entity?.Pos.XYZ;
                     if (pos != null) _worldService.SpawnItemEntity(duplicate, pos);
                 }
 

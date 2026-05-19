@@ -57,14 +57,14 @@ public class BlockBehaviorAltar : BlockBehavior
     /// Server-side only - emits OnAltarBroken event.
     /// </summary>
     public override void OnBlockBroken(IWorldAccessor world, BlockPos pos,
-        IPlayer byPlayer, ref EnumHandling handling)
+        IPlayer byPlayer, float dropQuantityMultiplier, ref EnumHandling handling)
     {
         if (world.Side == EnumAppSide.Server && byPlayer is IServerPlayer serverPlayer)
         {
             _emitter?.RaiseAltarBroken(serverPlayer, pos);
         }
 
-        base.OnBlockBroken(world, pos, byPlayer, ref handling);
+        base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier, ref handling);
     }
 
     /// <summary>
