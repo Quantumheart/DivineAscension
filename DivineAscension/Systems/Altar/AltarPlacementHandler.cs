@@ -105,7 +105,7 @@ public class AltarPlacementHandler : IDisposable
 
             // Debug: Log land claim area coordinates and player position
             _logger.Debug($"[DivineAscension] Altar block position: {blockSel.Position}");
-            _logger.Debug($"[DivineAscension] Player entity position: {player.Entity.ServerPos.AsBlockPos}");
+            _logger.Debug($"[DivineAscension] Player entity position: {player.Entity.Pos.AsBlockPos}");
             _logger.Debug($"[DivineAscension] Land claim has {playerClaim.Areas.Count} areas:");
             foreach (var area in playerClaim.Areas)
             {

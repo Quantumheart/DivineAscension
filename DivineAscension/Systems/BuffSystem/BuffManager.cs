@@ -140,7 +140,7 @@ public class BuffManager : IBuffManager
         var affectedCount = 0;
 
         // Find all entities in radius
-        _worldService.World.GetNearestEntity(caster.ServerPos.XYZ, radius, radius, entity =>
+        _worldService.World.GetNearestEntity(caster.Pos.XYZ, radius, radius, entity =>
         {
             // Check if it's a player entity
             if (entity is EntityPlayer player)

@@ -77,7 +77,7 @@ public class BlockBehaviorAltarTests
         var handling = EnumHandling.PassThrough;
 
         // Act
-        behavior.OnBlockBroken(mockWorld.Object, pos, mockPlayer.Object, ref handling);
+        behavior.OnBlockBroken(mockWorld.Object, pos, mockPlayer.Object, 1f, ref handling);
 
         // Assert
         Assert.Single(emitterSpy.AltarBrokenEvents);
@@ -101,7 +101,7 @@ public class BlockBehaviorAltarTests
         var handling = EnumHandling.PassThrough;
 
         // Act
-        behavior.OnBlockBroken(mockWorld.Object, pos, mockPlayer.Object, ref handling);
+        behavior.OnBlockBroken(mockWorld.Object, pos, mockPlayer.Object, 1f, ref handling);
 
         // Assert
         Assert.Empty(emitterSpy.AltarBrokenEvents);

@@ -35,7 +35,7 @@ public static class ClayFormingPatches
         if (__instance.SelectedRecipe == null)
             if (byPlayer is IServerPlayer serverPlayer)
             {
-                var resultStack = __state.Output.ResolvedItemstack.Clone();
+                var resultStack = __state.Output.ResolvedItemstack!.Clone();
 
                 // Extract clay quantity from recipe
                 int clayConsumed = ExtractClayQuantity(__state, __instance.Api);
