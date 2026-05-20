@@ -80,19 +80,6 @@ public class DivineAscensionModSystem : ModSystem
 
     public string ModName => "divineascension";
 
-    // VSImGui's StartPre calls TryOpen → LoadFonts → FontManager.Load()
-    // synchronously, firing BeforeFontsLoaded before any later phase. We
-    // must subscribe before that, so run our StartPre first via
-    // ExecuteOrder = -1.0 and pre-load cimgui ourselves inside the
-    // service (FontManager's cctor touches ImGui.GetIO()).
-    public override double ExecuteOrder() => -1.0;
-
-    public override void StartPre(ICoreAPI api)
-    {
-        base.StartPre(api);
-        DivineAscension.Services.UI.CinzelFontService.Register(api);
-    }
-
     public override void Start(ICoreAPI api)
     {
         base.Start(api);
@@ -193,6 +180,16 @@ public class DivineAscensionModSystem : ModSystem
             .RegisterMessageType<MilestoneProgressRequestPacket>()
             .RegisterMessageType<MilestoneProgressResponsePacket>()
             .RegisterMessageType<MilestoneUnlockedPacket>();
+    }
+
+    public override void AssetsLoaded(ICoreAPI api)
+    {
+        base.AssetsLoaded(api);
+
+        // Load Cinzel into ImGui's font atlas now: VSImGui's StartPre has
+        // created the ImGui context, asset reads are legal, and the first
+        // frame (which bakes the atlas to GPU) hasn't rendered yet.
+        DivineAscension.Services.UI.CinzelFontService.LoadDirectly(api);
     }
 
     public override void AssetsFinalize(ICoreAPI api)
