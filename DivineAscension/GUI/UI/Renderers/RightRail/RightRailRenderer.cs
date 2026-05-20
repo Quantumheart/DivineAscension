@@ -25,7 +25,6 @@ internal static class RightRailRenderer
 {
     private const float Padding = 8f;
     private const float HeaderBottomGap = 8f;
-    private const float FeedHeaderHeight = 26f;
     private const float FeedHeaderBottomGap = 4f;
 
     public static IReadOnlyList<RightRailEvent> Draw(UiRect rect, RightRailViewModel vm)
@@ -87,9 +86,9 @@ internal static class RightRailRenderer
     private static void DrawNotificationFeed(UiRect rect, RightRailViewModel vm,
         List<RightRailEvent> events)
     {
-        DrawFeedHeader(rect, vm, events);
+        var headerHeight = DrawFeedHeader(rect, vm, events);
 
-        var listTop = rect.Y + FeedHeaderHeight + FeedHeaderBottomGap;
+        var listTop = rect.Y + headerHeight + FeedHeaderBottomGap;
         var listHeight = rect.Bottom - listTop;
         if (listHeight <= 0f) return;
 
@@ -122,41 +121,53 @@ internal static class RightRailRenderer
         ImGui.EndChild();
     }
 
-    private static void DrawFeedHeader(UiRect rect, RightRailViewModel vm,
+    /// <summary>
+    ///     Draw the feed header (title + filter checkbox + clear button) into
+    ///     the top of <paramref name="rect" />. Returns the actual height
+    ///     consumed so the caller can position the row list below it.
+    /// </summary>
+    private static float DrawFeedHeader(UiRect rect, RightRailViewModel vm,
         List<RightRailEvent> events)
     {
         var drawList = ImGui.GetWindowDrawList();
+        var unreadLabel = LocalizationService.Instance.Get(LocalizationKeys.RIGHT_RAIL_NOTIFICATIONS_UNREAD_ONLY);
+        var clearLabel = LocalizationService.Instance.Get(LocalizationKeys.RIGHT_RAIL_NOTIFICATIONS_CLEAR);
 
-        // Title text on the left.
+        // Use real ImGui frame metrics so the controls align cleanly against
+        // the right edge regardless of font size or style padding.
+        var style = ImGui.GetStyle();
+        var frameH = ImGui.GetFrameHeight();
+        var checkboxWidth = frameH + style.ItemInnerSpacing.X
+                                   + ImGui.CalcTextSize(unreadLabel).X;
+        var clearWidth = ImGui.CalcTextSize(clearLabel).X + style.FramePadding.X * 2f;
+        var controlsWidth = checkboxWidth + style.ItemSpacing.X + clearWidth;
+
+        var headerHeight = frameH;
+
+        // Left: title text, vertical-centered against the control row height.
         var title = LocalizationService.Instance.Get(LocalizationKeys.RIGHT_RAIL_NOTIFICATIONS_TITLE);
         var titleColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
         var fontHeight = ImGui.GetFontSize();
-        var titleY = rect.Y + (FeedHeaderHeight - fontHeight) / 2f;
+        var titleY = rect.Y + (headerHeight - fontHeight) / 2f;
         drawList.AddText(new Vector2(rect.X, titleY), titleColor, title);
 
-        // Right-aligned controls: [unread-only toggle] [clear all].
-        ImGui.SetCursorScreenPos(new Vector2(rect.X, rect.Y));
+        // Right: checkbox + button via ImGui's auto-layout. Anchor the cursor
+        // at right-edge minus the combined control width and let SameLine
+        // handle the in-between spacing.
+        ImGui.SetCursorScreenPos(new Vector2(rect.Right - controlsWidth, rect.Y));
 
-        var unreadLabel = LocalizationService.Instance.Get(LocalizationKeys.RIGHT_RAIL_NOTIFICATIONS_UNREAD_ONLY);
-        var clearLabel = LocalizationService.Instance.Get(LocalizationKeys.RIGHT_RAIL_NOTIFICATIONS_CLEAR);
-        var unreadSize = ImGui.CalcTextSize(unreadLabel).X + 24f; // padding + checkbox glyph
-        var clearSize = ImGui.CalcTextSize(clearLabel).X + 16f;
-        var buttonY = rect.Y + (FeedHeaderHeight - 20f) / 2f;
-
-        var clearX = rect.Right - clearSize;
-        ImGui.SetCursorScreenPos(new Vector2(clearX, buttonY));
-        if (ImGui.SmallButton($"{clearLabel}##da-rail-clear"))
-        {
-            events.Add(new RightRailEvent.ClearNotificationHistory());
-        }
-
-        var unreadX = clearX - unreadSize - 6f;
-        ImGui.SetCursorScreenPos(new Vector2(unreadX, buttonY));
         var unread = vm.ShowUnreadOnly;
         if (ImGui.Checkbox($"{unreadLabel}##da-rail-unread", ref unread))
         {
             events.Add(new RightRailEvent.SetUnreadOnly(unread));
         }
+        ImGui.SameLine();
+        if (ImGui.Button($"{clearLabel}##da-rail-clear"))
+        {
+            events.Add(new RightRailEvent.ClearNotificationHistory());
+        }
+
+        return headerHeight;
     }
 
     private static void DrawNotificationRow(int index, NotificationHistoryEntry entry,
