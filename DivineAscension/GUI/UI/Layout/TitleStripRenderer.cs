@@ -54,8 +54,12 @@ internal static class TitleStripRenderer
         // Left: a flanking diamond, then the app title in gold, then a
         // second flanking diamond. Diamonds are drawn primitives rather than
         // ✦ glyphs because ImGui's default font ranges don't include
-        // Dingbats — text glyphs would render as `?`.
-        var titleSize = ImGui.CalcTextSize(TitleText);
+        // Dingbats — text glyphs would render as `?`. Measure the title at
+        // its actual render size (SubsectionLabel) so the right diamond
+        // doesn't drift outwards by the difference between the default font
+        // size and the size we draw at.
+        var renderScale = SubsectionLabel / ImGui.GetFontSize();
+        var titleSize = ImGui.CalcTextSize(TitleText) * renderScale;
         var titleY = rect.Y + (rect.H - titleSize.Y) / 2f;
         var titleColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
 
