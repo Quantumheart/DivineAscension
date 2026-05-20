@@ -77,4 +77,10 @@ public class ModConfigData
     /// </summary>
     [ProtoMember(9)]
     public int WarDeclarationCooldown { get; set; } = 60;
+
+    /// <summary>
+    ///     Persisted UI preferences (window size, sidebar collapsed state, last nav, etc.).
+    /// </summary>
+    [ProtoMember(11)]
+    public UiPrefs UiPrefs { get; set; } = new();
 }

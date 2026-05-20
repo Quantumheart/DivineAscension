@@ -45,6 +45,16 @@ public class GuiDialogState
     public RankProgressHudState HudState { get; set; } = new();
 
     /// <summary>
+    ///     Sidebar nav state (Phase 1 scaffold; wired in Phase 3).
+    /// </summary>
+    public SidebarState Sidebar { get; } = new();
+
+    /// <summary>
+    ///     Right-rail state (Phase 1 scaffold; wired in Phase 3).
+    /// </summary>
+    public RightRailState RightRail { get; } = new();
+
+    /// <summary>
     ///     Initialize/reset all state to defaults
     /// </summary>
     public void Reset()
@@ -57,6 +67,8 @@ public class GuiDialogState
         WindowPosY = 0f;
         NotificationState?.Reset();
         HudState.Reset();
+        Sidebar.Reset();
+        RightRail.Reset();
     }
 }
 
