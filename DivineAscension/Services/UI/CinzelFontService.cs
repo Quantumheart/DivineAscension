@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using ImGuiNET;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
@@ -31,15 +32,29 @@ public static class CinzelFontService
     private static Dictionary<(string, int), ImFontPtr>? _loadedCache;
 
     /// <summary>
-    ///     Hook into VSImGui's font load. Idempotent. Must be called before
-    ///     VSImGui builds its font atlas (AssetsLoaded), so wire from
-    ///     <c>Start(api)</c>, not <c>StartClientSide</c>.
+    ///     Hook into VSImGui's font load. Idempotent. Must be called from
+    ///     our <c>StartPre</c> with <c>ExecuteOrder() = -1.0</c> — VSImGui's
+    ///     own <c>StartPre</c> calls <c>TryOpen()</c> on its dialog, which
+    ///     triggers <c>FontManager.Load()</c> and fires
+    ///     <see cref="FontManager.BeforeFontsLoaded" /> synchronously. We
+    ///     must subscribe before that runs.
+    ///
+    ///     Touching <see cref="FontManager" /> normally throws
+    ///     <c>DllNotFoundException</c> when called before VSImGui's natives
+    ///     are loaded, so we pre-load <c>cimgui</c> ourselves from VSImGui's
+    ///     mod folder.
     /// </summary>
     public static void Register(ICoreAPI api)
     {
         if (_registered) return;
         if (api.Side != EnumAppSide.Client) return;
-        api.Logger.Notification("[DivineAscension] CinzelFontService.Register: subscribing to BeforeFontsLoaded");
+        api.Logger.Notification("[DivineAscension] CinzelFontService.Register: pre-loading cimgui and subscribing to BeforeFontsLoaded");
+
+        if (!PreloadCimgui(api))
+        {
+            api.Logger.Error("[DivineAscension] Could not pre-load cimgui — Cinzel registration skipped");
+            return;
+        }
 
         // VS forbids asset reads until AssetsLoaded, but VSImGui fires
         // BeforeFontsLoaded during its own AssetsLoaded — so do the
@@ -97,6 +112,61 @@ public static class CinzelFontService
         var prop = typeof(FontManager).GetProperty("Loaded",
             BindingFlags.NonPublic | BindingFlags.Static);
         return prop?.GetValue(null) as Dictionary<(string, int), ImFontPtr>;
+    }
+
+    /// <summary>
+    ///     Load <c>cimgui</c> from VSImGui's mod folder so subsequent calls
+    ///     to <see cref="FontManager" /> don't blow up the static cctor.
+    ///     Idempotent — re-loading an already-loaded library is a no-op
+    ///     for both Windows and POSIX dlopen.
+    /// </summary>
+    private static bool PreloadCimgui(ICoreAPI api)
+    {
+        try
+        {
+            var vsImGuiMod = api.ModLoader.GetMod("vsimgui");
+            if (vsImGuiMod == null)
+            {
+                api.Logger.Error("[DivineAscension] vsimgui mod not found via ModLoader");
+                return false;
+            }
+
+            // FolderPath lives on the internal ModContainer subclass; reach
+            // it by name so we don't take a hard dep on the internal type.
+            var folderPath = vsImGuiMod.GetType()
+                .GetProperty("FolderPath", BindingFlags.Public | BindingFlags.Instance)
+                ?.GetValue(vsImGuiMod) as string
+                ?? vsImGuiMod.GetType()
+                .GetProperty("SourcePath", BindingFlags.Public | BindingFlags.Instance)
+                ?.GetValue(vsImGuiMod) as string;
+
+            if (string.IsNullOrEmpty(folderPath))
+            {
+                api.Logger.Error("[DivineAscension] Could not resolve VSImGui mod folder path");
+                return false;
+            }
+
+            string subdir, ext;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { subdir = "win"; ext = ".dll"; }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) { subdir = "mac"; ext = ".dylib"; }
+            else { subdir = "linux"; ext = ".so"; }
+
+            var cimguiPath = Path.Combine(folderPath, "native", subdir, $"cimgui{ext}");
+            if (!File.Exists(cimguiPath))
+            {
+                api.Logger.Error($"[DivineAscension] cimgui native not found at expected path: {cimguiPath}");
+                return false;
+            }
+
+            NativeLibrary.Load(cimguiPath);
+            api.Logger.Notification($"[DivineAscension] Pre-loaded cimgui from {cimguiPath}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            api.Logger.Error($"[DivineAscension] PreloadCimgui failed: {ex}");
+            return false;
+        }
     }
 
     private static string? ExtractFontToCache(ICoreAPI api, string assetPath, string cacheDir,
