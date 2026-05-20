@@ -37,9 +37,20 @@ public class ConquestFavorTracker(
 
     private TagSetFast? _hostileTags;
 
-    private TagSetFast HostileTags =>
-        _hostileTags ??= _worldService.World.Api.EntityTagRegistry.CreateTagSet(
-            ["hostile", "monster", "drifter", "locust"]);
+    private TagSetFast HostileTags
+    {
+        get
+        {
+            if (_hostileTags is { } cached) return cached;
+            // VS 1.22 tag names: drifters carry "rust-creature", locusts/bosses carry "mechanical".
+            // No generic "hostile"/"monster" tags exist. TryCreateTagSet populates partial sets on unknown
+            // names instead of throwing, so future asset renames don't stall the death event tick.
+            _worldService.World.Api.EntityTagRegistry.TryCreateTagSetAndLogIssues(
+                out TagSetFast set, "rust-creature", "mechanical");
+            _hostileTags = set;
+            return set;
+        }
+    }
 
     public void Dispose()
     {
