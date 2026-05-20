@@ -201,6 +201,13 @@ public partial class GuiDialog : ModSystem
 
         _state.IsOpen = false;
 
+        // Persist the most recent window size captured during DrawWindow.
+        // Snapshot lives on _state; DrawWindow refreshes it each frame.
+        if (_state.WindowWidth > 0f && _state.WindowHeight > 0f)
+        {
+            _divineAscensionModSystem?.SaveUiPrefs((int)_state.WindowWidth, (int)_state.WindowHeight);
+        }
+
         _logger?.Debug("[DivineAscension] Blessing Dialog closed");
     }
 
@@ -414,9 +421,16 @@ public partial class GuiDialog : ModSystem
         var deltaTime = _stopwatch!.ElapsedMilliseconds / 1000f;
         _stopwatch.Restart();
 
-        // Calculate window size (constrained to screen)
-        var windowWidth = Math.Min(WindowBaseWidth, (int)window.OuterWidth - 128);
-        var windowHeight = Math.Min(WindowBaseHeight, (int)window.OuterHeight - 128);
+        // Initial window size from persisted UiPrefs (clamped to screen).
+        // Applied only on first use; user-driven resizes within a session and
+        // restored sizes across sessions stick from then on.
+        var uiPrefs = _divineAscensionModSystem?.Config.UiPrefs;
+        var prefsW = uiPrefs?.WindowWidth ?? WindowBaseWidth;
+        var prefsH = uiPrefs?.WindowHeight ?? WindowBaseHeight;
+        if (prefsW <= 0) prefsW = WindowBaseWidth;
+        if (prefsH <= 0) prefsH = WindowBaseHeight;
+        var initialW = Math.Min(prefsW, (int)window.OuterWidth - 128);
+        var initialH = Math.Min(prefsH, (int)window.OuterHeight - 128);
 
         // Set window style (no borders, no title bar, no padding, centered)
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
@@ -424,15 +438,14 @@ public partial class GuiDialog : ModSystem
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
 
-        // Position window at center of screen
-        ImGui.SetNextWindowSize(new Vector2(windowWidth, windowHeight));
+        // Size + center on first open only — afterwards ImGui keeps user resizes.
+        ImGui.SetNextWindowSize(new Vector2(initialW, initialH), ImGuiCond.FirstUseEver);
         ImGui.SetNextWindowPos(new Vector2(
-            _viewport.Pos.X + (_viewport.Size.X - windowWidth) / 2,
-            _viewport.Pos.Y + (_viewport.Size.Y - windowHeight) / 2
-        ));
+            _viewport.Pos.X + (_viewport.Size.X - initialW) / 2,
+            _viewport.Pos.Y + (_viewport.Size.Y - initialH) / 2
+        ), ImGuiCond.FirstUseEver);
 
         var flags = ImGuiWindowFlags.NoTitleBar |
-                    ImGuiWindowFlags.NoResize |
                     ImGuiWindowFlags.NoMove |
                     ImGuiWindowFlags.NoScrollbar |
                     ImGuiWindowFlags.NoScrollWithMouse;
@@ -442,10 +455,17 @@ public partial class GuiDialog : ModSystem
 
         ImGui.Begin("DivineAscension Blessing Dialog", flags);
 
-        // Track window position for drawing
+        // Track live window position + size (drives renderer layout and the
+        // size-on-close persistence in Close()).
         var windowPos = ImGui.GetWindowPos();
+        var windowSize = ImGui.GetWindowSize();
         _state.WindowPosX = windowPos.X;
         _state.WindowPosY = windowPos.Y;
+        _state.WindowWidth = windowSize.X;
+        _state.WindowHeight = windowSize.Y;
+
+        var windowWidth = (int)windowSize.X;
+        var windowHeight = (int)windowSize.Y;
 
         // Draw content
         DrawBackground(windowWidth, windowHeight);

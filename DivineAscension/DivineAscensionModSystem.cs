@@ -543,5 +543,18 @@ public class DivineAscensionModSystem : ModSystem
         SaveModConfig();
     }
 
+    /// <summary>
+    ///     Persists the user's chosen dialog window size into <c>UiPrefs</c> and
+    ///     writes the mod config. Safe to call on the client; <c>SaveModConfig</c>
+    ///     silently no-ops if no server save-game is available.
+    /// </summary>
+    public void SaveUiPrefs(int width, int height)
+    {
+        if (width <= 0 || height <= 0) return;
+        _configData.UiPrefs.WindowWidth = width;
+        _configData.UiPrefs.WindowHeight = height;
+        SaveModConfig();
+    }
+
     #endregion
 }
