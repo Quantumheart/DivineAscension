@@ -5,6 +5,7 @@ using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Info;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Services;
 using ImGuiNET;
@@ -36,39 +37,38 @@ internal static class ReligionInfoHeaderRenderer
         TextRenderer.DrawLabel(drawList, viewModel.ReligionName, x, currentY, PageTitle, ColorPalette.Gold);
         currentY += 32f;
 
-        // Info grid
-        var leftCol = x;
-        var rightCol = x + width / 2f;
+        // Ornamental divider under the religion title.
+        ChromeRenderer.DrawDivider(drawList, x, currentY, width);
+        currentY += 20f;
 
-        // Deity - display custom name if available, otherwise just domain
-        // If founder and editing, show input field; otherwise show text with edit button
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DEITY_LABEL),
-            leftCol, currentY, Body, ColorPalette.Grey);
-
+        // Deity row keeps its inline Edit button affordance for founders, so
+        // it doesn't fold into a clean leader. The remaining stat rows do.
         if (viewModel.IsEditingDeityName)
         {
-            // Edit mode - show input field with save/cancel buttons
-            currentY = DrawDeityNameEditMode(viewModel, drawList, leftCol, currentY, width, events);
+            TextRenderer.DrawLabel(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DEITY_LABEL),
+                x, currentY, Body, ColorPalette.Grey);
+            currentY = DrawDeityNameEditMode(viewModel, drawList, x, currentY, width, events);
         }
         else
         {
-            // Display mode - show deity name with edit button for founders
             var deityDisplay = !string.IsNullOrWhiteSpace(viewModel.DeityName)
                 ? $"{viewModel.DeityName} ({viewModel.Deity})"
                 : viewModel.Deity;
 
-            drawList.AddText(ImGui.GetFont(), Body, new Vector2(leftCol + 80f, currentY),
+            TextRenderer.DrawLabel(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DEITY_LABEL),
+                x, currentY, Body, ColorPalette.Grey);
+            drawList.AddText(ImGui.GetFont(), Body, new Vector2(x + 80f, currentY),
                 ImGui.ColorConvertFloat4ToU32(ColorPalette.White), deityDisplay);
 
-            // Show edit button for founders
             if (viewModel.IsFounder)
             {
                 var textWidth = ImGui.CalcTextSize(deityDisplay).X;
                 const float buttonWidth = 40f;
                 const float buttonHeight = 18f;
                 const float buttonPadding = 8f;
-                var buttonX = leftCol + 80f + textWidth + buttonPadding;
+                var buttonX = x + 80f + textWidth + buttonPadding;
 
                 if (ButtonRenderer.DrawButton(drawList, "Edit", buttonX, currentY - 2f, buttonWidth, buttonHeight,
                         isPrimary: false, enabled: true))
@@ -77,33 +77,30 @@ internal static class ReligionInfoHeaderRenderer
                 }
             }
 
-            // Member count (same row as deity in display mode)
-            TextRenderer.DrawLabel(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MEMBERS_COUNT),
-                rightCol, currentY, Body, ColorPalette.Grey);
-            drawList.AddText(ImGui.GetFont(), Body, new Vector2(rightCol + 80f, currentY),
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.White), viewModel.MemberCount.ToString());
-
-            currentY += 22f;
+            currentY += 24f;
         }
 
-        // Founder
-        TextRenderer.DrawLabel(drawList,
+        // Members · · · · · 12
+        ChromeRenderer.DrawLeader(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MEMBERS_COUNT),
+            viewModel.MemberCount.ToString(),
+            x, currentY, width);
+        currentY += 22f;
+
+        // Founder · · · · · Aelric    (value painted gold)
+        ChromeRenderer.DrawLeader(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_FOUNDER_LABEL),
-            leftCol, currentY, Body, ColorPalette.Grey);
-        var founderName = viewModel.GetFounderDisplayName();
-        drawList.AddText(ImGui.GetFont(), Body, new Vector2(leftCol + 80f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), founderName);
+            viewModel.GetFounderDisplayName(),
+            x, currentY, width,
+            valueColor: ColorPalette.Gold);
+        currentY += 22f;
 
-        // Prestige
-        TextRenderer.DrawLabel(drawList,
+        // Prestige · · · · · 42 (II)
+        ChromeRenderer.DrawLeader(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_PRESTIGE_LABEL),
-            rightCol, currentY, Body, ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), Body, new Vector2(rightCol + 80f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_PRESTIGE_VALUE,
-                viewModel.Prestige, viewModel.PrestigeRank));
-
+                viewModel.Prestige, viewModel.PrestigeRank),
+            x, currentY, width);
         currentY += 28f;
 
         return currentY;
