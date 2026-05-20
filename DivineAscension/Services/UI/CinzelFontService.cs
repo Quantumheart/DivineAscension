@@ -62,6 +62,10 @@ public static class CinzelFontService
 
             if (regularPath != null) fonts.Add(regularPath);
             if (boldPath != null) fonts.Add(boldPath);
+
+            var registered = (regularPath != null ? 1 : 0) + (boldPath != null ? 1 : 0);
+            api.Logger.Notification(
+                $"[DivineAscension] Registered Cinzel with VSImGui: {registered}/2 faces, cache dir {cacheDir}");
         };
 
         _registered = true;
