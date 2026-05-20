@@ -67,6 +67,8 @@ public class GuiDialogStateTests
         state.Sidebar.CollapsedGroups["g"] = true;
         state.RightRail.ScrollY = 42f;
         state.RightRail.ShowUnreadOnly = true;
+        state.WindowWidth = 1234f;
+        state.WindowHeight = 567f;
 
         // Act
         state.Reset();
@@ -81,6 +83,8 @@ public class GuiDialogStateTests
         Assert.Empty(state.Sidebar.CollapsedGroups);
         Assert.Equal(0f, state.RightRail.ScrollY);
         Assert.False(state.RightRail.ShowUnreadOnly);
+        Assert.Equal(0f, state.WindowWidth);
+        Assert.Equal(0f, state.WindowHeight);
     }
 
     [Fact]

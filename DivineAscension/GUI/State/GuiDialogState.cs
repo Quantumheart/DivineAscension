@@ -35,6 +35,18 @@ public class GuiDialogState
     /// </summary>
     public float WindowPosY { get; set; }
 
+    /// <summary>
+    ///     Live window width snapshot, captured each frame inside <c>DrawWindow</c>.
+    ///     Persisted on <c>Close()</c> via <c>UiPrefs</c>.
+    /// </summary>
+    public float WindowWidth { get; set; }
+
+    /// <summary>
+    ///     Live window height snapshot, captured each frame inside <c>DrawWindow</c>.
+    ///     Persisted on <c>Close()</c> via <c>UiPrefs</c>.
+    /// </summary>
+    public float WindowHeight { get; set; }
+
     public NotificationState? NotificationState { get; set; }
     public string? PreviousFavorRank { get; set; }
     public string? PreviousPrestigeRank { get; set; }
@@ -65,6 +77,8 @@ public class GuiDialogState
         CurrentMainTab = MainDialogTab.Religion;
         WindowPosX = 0f;
         WindowPosY = 0f;
+        WindowWidth = 0f;
+        WindowHeight = 0f;
         NotificationState?.Reset();
         HudState.Reset();
         Sidebar.Reset();
