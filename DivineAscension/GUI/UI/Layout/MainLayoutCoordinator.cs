@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.GUI.Events.EdgeBookmarks;
 using DivineAscension.GUI.Events.RightRail;
 using DivineAscension.GUI.Models.Religion.Header;
 using DivineAscension.GUI.State;
+using DivineAscension.GUI.UI.Renderers.EdgeBookmarks;
 using DivineAscension.GUI.UI.Renderers.RightRail;
 using DivineAscension.GUI.UI.Renderers.Sidebar;
 using DivineAscension.GUI.UI.Utilities;
@@ -23,6 +25,8 @@ internal static class MainLayoutCoordinator
     private const float SidebarWidth = 240f;
     private const float SidebarCollapsedWidth = 40f;
     private const float RailWidth = 340f;
+    private const float BookmarkColumnWidth = 28f;
+    private const float BookmarkGap = 4f;
     private const float Gap = 8f;
     private const float TopChromeHeight = 32f;
 
@@ -64,7 +68,10 @@ internal static class MainLayoutCoordinator
         var body = inner.Cut(TopChromeHeight, 0f);
         var sidebarW = state.Sidebar.IsCollapsed ? SidebarCollapsedWidth : SidebarWidth;
         var (sidebar, afterSidebar) = body.SplitLeft(sidebarW, Gap);
-        var (content, rail) = afterSidebar.SplitRight(RailWidth, Gap);
+        // Bookmark column hugs the far right edge of the spread; the rail sits
+        // immediately to its left, content fills the remainder.
+        var (afterBookmarks, bookmarks) = afterSidebar.SplitRight(BookmarkColumnWidth, BookmarkGap);
+        var (content, rail) = afterBookmarks.SplitRight(RailWidth, Gap);
 
         // --- Sidebar ---
         var sidebarCtx = SidebarNavMapper.ContextFromManager(manager, state.Sidebar);
@@ -76,6 +83,15 @@ internal static class MainLayoutCoordinator
         var railVm = BuildRailViewModel(manager, state, rail);
         var railEvents = RightRailRenderer.Draw(rail, railVm);
         ApplyRailEvents(railEvents, manager, state);
+
+        // --- Edge bookmarks ---
+        var bookmarkCtx = new EdgeBookmarkMapper.Context(
+            manager.HasReligion(),
+            manager.HasCivilization(),
+            state.Sidebar.CurrentNav);
+        var bookmarkStack = EdgeBookmarkMapper.BuildViewModel(bookmarkCtx);
+        var bookmarkEvents = EdgeBookmarkRenderer.Draw(bookmarks, bookmarkStack);
+        ApplyBookmarkEvents(bookmarkEvents, manager, state);
 
         // --- Content dispatch (driven by Sidebar.CurrentNav).
         DispatchContent(manager, state, content, windowWidth, windowHeight, deltaTime);
@@ -221,6 +237,19 @@ internal static class MainLayoutCoordinator
                 case RightRailEvent.SetUnreadOnly toggle:
                     state.RightRail.ShowUnreadOnly = toggle.Enabled;
                     break;
+            }
+        }
+    }
+
+    private static void ApplyBookmarkEvents(IReadOnlyList<EdgeBookmarkEvent> events,
+        GuiDialogManager manager, GuiDialogState state)
+    {
+        foreach (var ev in events)
+        {
+            if (ev is EdgeBookmarkEvent.Jump jump)
+            {
+                SidebarNavMapper.Apply(jump.Target, state);
+                RefreshSidebarDestinationData(jump.Target, manager);
             }
         }
     }
