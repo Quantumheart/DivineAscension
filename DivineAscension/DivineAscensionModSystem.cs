@@ -80,6 +80,18 @@ public class DivineAscensionModSystem : ModSystem
 
     public string ModName => "divineascension";
 
+    // Run before VSImGui (ExecuteOrder = 0.0) so we can subscribe to
+    // FontManager.BeforeFontsLoaded inside StartPre — in 1.1.14 VSImGui
+    // creates its dialog and triggers FontManager.Load() from its own
+    // StartPre, and we need our subscriber registered first.
+    public override double ExecuteOrder() => -1.0;
+
+    public override void StartPre(ICoreAPI api)
+    {
+        base.StartPre(api);
+        DivineAscension.Services.UI.CinzelFontService.Register(api);
+    }
+
     public override void Start(ICoreAPI api)
     {
         base.Start(api);
@@ -92,8 +104,7 @@ public class DivineAscensionModSystem : ModSystem
         // Initialize profanity filter service
         ProfanityFilterService.Instance.Initialize(api);
 
-        // Hook Cinzel into VSImGui's font atlas before AssetsLoaded fires.
-        DivineAscension.Services.UI.CinzelFontService.Register(api);
+        // Cinzel registered earlier via StartPre — see ExecuteOrder override.
 
         // Register Harmony Patches
         if (_harmony == null)
