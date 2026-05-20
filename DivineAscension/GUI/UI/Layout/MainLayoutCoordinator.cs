@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
 using DivineAscension.GUI.Events.RightRail;
 using DivineAscension.GUI.Models.Religion.Header;
 using DivineAscension.GUI.State;
@@ -26,7 +25,6 @@ internal static class MainLayoutCoordinator
     private const float RailWidth = 340f;
     private const float Gap = 8f;
     private const float TopChromeHeight = 32f;
-    private const float ParchmentTileSize = 512f;
 
     public static void Draw(
         GuiDialogManager manager,
@@ -227,34 +225,10 @@ internal static class MainLayoutCoordinator
         }
     }
 
-    /// <summary>
-    ///     Paint the parchment tile across the content rect, then a cream
-    ///     multiply overlay to lift readability (issue #286). Falls back to a
-    ///     flat cream if the texture failed to load so the pane stays legible.
-    /// </summary>
-    private static void PaintParchment(UiRect content)
-    {
-        var drawList = ImGui.GetWindowDrawList();
-        var topLeft = new Vector2(content.X, content.Y);
-        var bottomRight = new Vector2(content.Right, content.Bottom);
-
-        var textureId = ParchmentTexture.GetTextureId();
-        if (textureId != System.IntPtr.Zero)
-        {
-            var uv1 = new Vector2(content.W / ParchmentTileSize, content.H / ParchmentTileSize);
-            drawList.AddImage(textureId, topLeft, bottomRight, Vector2.Zero, uv1);
-        }
-
-        var overlay = ImGui.ColorConvertFloat4ToU32(ColorPalette.Parchment);
-        drawList.AddRectFilled(topLeft, bottomRight, overlay);
-    }
-
     private static void DispatchContent(GuiDialogManager manager, GuiDialogState state,
         UiRect content, int windowWidth, int windowHeight, float deltaTime)
     {
         if (content.W <= 0f || content.H <= 0f) return;
-
-        PaintParchment(content);
 
         var nav = state.Sidebar.CurrentNav;
         switch (nav)
