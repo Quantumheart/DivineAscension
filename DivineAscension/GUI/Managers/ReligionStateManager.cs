@@ -620,7 +620,7 @@ public class ReligionStateManager : IReligionStateManager
             members: religion?.Members ?? new List<PlayerReligionInfoResponsePacket.MemberInfo>(),
             bannedPlayers: religion?.BannedPlayers,
             prestige: prestigeProgress.CurrentPrestige,
-            prestigeRank: prestigeProgress.CurrentRank.ToString(),
+            prestigeRank: RankRequirements.GetPrestigeRankName(prestigeProgress.CurrentRank),
             isPublic: religion?.IsPublic ?? true,
             descriptionText: State.InfoState.Description ?? religion?.Description ?? string.Empty,
             invitePlayerName: State.InfoState.InvitePlayerName ?? string.Empty,
