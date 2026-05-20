@@ -52,6 +52,11 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     public DiplomacyState DiplomacyState => State.DiplomacyState;
 
     /// <summary>
+    ///     Public accessor for invite state (used by sidebar nav badge counts).
+    /// </summary>
+    public InviteState InviteState => State.InviteState;
+
+    /// <summary>
     ///     Public accessor for current sub-tab (for network client access)
     /// </summary>
     public CivilizationSubTab CurrentSubTab => State.CurrentSubTab;
