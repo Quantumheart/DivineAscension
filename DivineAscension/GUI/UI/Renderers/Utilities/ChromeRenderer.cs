@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.GUI.UI.Utilities;
@@ -7,15 +8,49 @@ namespace DivineAscension.GUI.UI.Renderers.Utilities;
 
 /// <summary>
 ///     Shared codex-chrome helpers for ornamental dividers, drawn diamonds,
-///     and dotted-leader stat lines. Pure drawList primitives — no state, no
-///     events. Diamonds are painted as quads rather than text glyphs because
-///     ImGui's default font ranges exclude the Dingbats codepoints we'd
-///     otherwise reach for (`✦` etc. would render as `?`).
+///     dotted-leader stat lines, and styled tooltip popups. Pure drawList /
+///     ImGui primitives — no state, no events. Diamonds are painted as quads
+///     rather than text glyphs because ImGui's default font ranges exclude
+///     the Dingbats codepoints we'd otherwise reach for (`✦` etc. would
+///     render as `?`).
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class ChromeRenderer
 {
     private const string LeaderDot = "·"; // Middle dot — U+00B7, inside Latin-1.
+
+    /// <summary>
+    ///     Open a tooltip styled to match the rest of the dialog chrome:
+    ///     dark-brown popup background, gold border, white text. Caller is
+    ///     responsible for writing tooltip content and disposing the returned
+    ///     scope (a <c>using</c> block matches the End/Pop pairing).
+    /// </summary>
+    public static StyledTooltipScope BeginStyledTooltip()
+    {
+        ImGui.PushStyleColor(ImGuiCol.PopupBg, ColorPalette.DarkBrown);
+        ImGui.PushStyleColor(ImGuiCol.Border, ColorPalette.Gold * 0.6f);
+        ImGui.PushStyleColor(ImGuiCol.Text, ColorPalette.White);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 2f);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 4f);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10f, 6f));
+        ImGui.BeginTooltip();
+        return new StyledTooltipScope();
+    }
+
+    /// <summary>
+    ///     Disposable scope returned by <see cref="BeginStyledTooltip" />. The
+    ///     <c>Dispose</c> call closes the tooltip and unwinds the style stack
+    ///     in the matching order.
+    /// </summary>
+    public readonly struct StyledTooltipScope : IDisposable
+    {
+        public void Dispose()
+        {
+            ImGui.EndTooltip();
+            ImGui.PopStyleVar(3);
+            ImGui.PopStyleColor(3);
+        }
+    }
 
     /// <summary>
     ///     Paint a small filled rhombus centered at (<paramref name="cx" />,
