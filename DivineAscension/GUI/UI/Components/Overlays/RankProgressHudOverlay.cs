@@ -3,147 +3,161 @@ using System.Numerics;
 using DivineAscension.GUI.Models.Hud;
 using DivineAscension.GUI.UI.Renderers.Components;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models.Enum;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Components.Overlays;
 
 /// <summary>
-///     Renders the persistent rank progress HUD overlay in the bottom-right corner
+///     Renders the persistent rank progress HUD overlay in the bottom-right corner.
+///     Multi-deity: stacked mini-bars per deity, patron highlighted, plus prestige + balance.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class RankProgressHudOverlay
 {
-    private const float PanelWidth = 220f;
-    private const float PanelHeight = 85f;
+    private const float PanelWidth = 240f;
     private const float EdgeMargin = 20f;
     private const float Padding = 10f;
-    private const float ProgressBarHeight = 16f;
-    private const float RowSpacing = 6f;
-    private const float LabelFontSize = 12f;
+    private const float DeityBarHeight = 12f;
+    private const float PrestigeBarHeight = 16f;
+    private const float RowSpacing = 4f;
+    private const float SectionSpacing = 6f;
+    private const float BalanceRowHeight = 16f;
     private const float FavorFontSize = 14f;
+    private const float PatronBorderThickness = 2f;
 
-    /// <summary>
-    ///     Draw the rank progress HUD overlay
-    /// </summary>
-    /// <param name="vm">View model containing display data</param>
     internal static void Draw(RankProgressHudViewModel vm)
     {
         if (!vm.IsVisible) return;
 
-        // Use window draw list (requires ImGui window context)
         var drawList = ImGui.GetWindowDrawList();
         var winPos = ImGui.GetWindowPos();
 
-        // Calculate panel position (bottom-right corner, offset by window position)
-        var panelX = winPos.X + vm.ScreenWidth - PanelWidth - EdgeMargin;
-        var panelY = winPos.Y + vm.ScreenHeight - PanelHeight - EdgeMargin;
+        var collapsed = vm.CollapsedToPatron && vm.PatronDomain != DeityDomain.None;
+        var deityRowCount = collapsed ? 1 : vm.Deities.Count;
 
-        // Draw panel background with rounded corners
+        var panelHeight = (Padding * 2)
+                         + (deityRowCount * DeityBarHeight) + ((deityRowCount - 1) * RowSpacing)
+                         + (vm.HasReligion ? SectionSpacing + PrestigeBarHeight : 0)
+                         + SectionSpacing + BalanceRowHeight;
+
+        var panelX = winPos.X + vm.ScreenWidth - PanelWidth - EdgeMargin;
+        var panelY = winPos.Y + vm.ScreenHeight - panelHeight - EdgeMargin;
+
         var panelMin = new Vector2(panelX, panelY);
-        var panelMax = new Vector2(panelX + PanelWidth, panelY + PanelHeight);
+        var panelMax = new Vector2(panelX + PanelWidth, panelY + panelHeight);
         var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.Background, 0.9f));
         drawList.AddRectFilled(panelMin, panelMax, bgColor, 6f);
-
-        // Draw panel border
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
         drawList.AddRect(panelMin, panelMax, borderColor, 6f, ImDrawFlags.None, 1.5f);
 
-        // Track current Y position for layout
-        var currentY = panelY + Padding;
         var contentX = panelX + Padding;
         var contentWidth = PanelWidth - (Padding * 2);
+        var currentY = panelY + Padding;
 
-        // --- Favor Rank Progress ---
-        DrawRankProgressRow(
-            drawList,
-            contentX,
-            currentY,
-            contentWidth,
-            vm.FavorRankName,
-            vm.TotalFavorEarned,
-            vm.FavorRequiredForNext,
-            vm.FavorProgress,
-            vm.IsFavorMaxRank,
-            ColorPalette.Gold);
-
-        currentY += ProgressBarHeight + RowSpacing;
-
-        // --- Prestige Progress ---
-        DrawRankProgressRow(
-            drawList,
-            contentX,
-            currentY,
-            contentWidth,
-            vm.PrestigeRankName,
-            vm.CurrentPrestige,
-            vm.PrestigeRequiredForNext,
-            vm.PrestigeProgress,
-            vm.IsPrestigeMaxRank,
-            new Vector4(0.6f, 0.4f, 0.8f, 1.0f)); // Purple for prestige
-
-        currentY += ProgressBarHeight + RowSpacing;
-
-        // --- Spendable Favor Balance ---
-        DrawFavorBalance(drawList, contentX, currentY, vm.SpendableFavor);
-    }
-
-    /// <summary>
-    ///     Draw a single rank progress row with label and progress bar
-    /// </summary>
-    private static void DrawRankProgressRow(
-        ImDrawListPtr drawList,
-        float x,
-        float y,
-        float width,
-        string rankName,
-        int current,
-        int required,
-        float progress,
-        bool isMaxRank,
-        Vector4 fillColor)
-    {
-        // Build progress label text
-        string labelText;
-        if (isMaxRank)
+        if (collapsed)
         {
-            labelText = $"{rankName} (MAX)";
+            foreach (var slice in vm.Deities)
+            {
+                if (slice.Domain != vm.PatronDomain) continue;
+                DrawDeityRow(drawList, contentX, currentY, contentWidth, slice);
+                currentY += DeityBarHeight;
+                break;
+            }
         }
         else
         {
-            labelText = $"{rankName} ({current:N0}/{required:N0})";
+            for (var i = 0; i < vm.Deities.Count; i++)
+            {
+                if (i > 0) currentY += RowSpacing;
+                DrawDeityRow(drawList, contentX, currentY, contentWidth, vm.Deities[i]);
+                currentY += DeityBarHeight;
+            }
         }
 
-        // Draw progress bar with label
+        if (vm.HasReligion)
+        {
+            currentY += SectionSpacing;
+            DrawPrestigeRow(drawList, contentX, currentY, contentWidth, vm);
+            currentY += PrestigeBarHeight;
+        }
+
+        currentY += SectionSpacing;
+        DrawFavorBalance(drawList, contentX, currentY, vm.SpendableFavor);
+    }
+
+    private static void DrawDeityRow(
+        ImDrawListPtr drawList, float x, float y, float width, DeityRankSlice slice)
+    {
+        var prefix = DomainPrefix(slice.Domain);
+        var label = slice.IsMaxRank
+            ? $"{prefix} {slice.RankName} (MAX)"
+            : $"{prefix} {slice.RankName} ({slice.TotalFavorEarned:N0}/{slice.FavorRequiredForNext:N0})";
+
         ProgressBarRenderer.DrawProgressBar(
             drawList,
-            x, y, width, ProgressBarHeight,
-            progress,
-            fillColor,
+            x, y, width, DeityBarHeight,
+            slice.Progress,
+            DomainColor(slice.Domain),
             ColorPalette.DarkBrown,
-            labelText,
-            showGlow: progress > 0.8f);
+            label,
+            showGlow: slice.Progress > 0.8f);
+
+        if (slice.IsPatron)
+        {
+            var min = new Vector2(x - 1, y - 1);
+            var max = new Vector2(x + width + 1, y + DeityBarHeight + 1);
+            var border = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
+            drawList.AddRect(min, max, border, 4f, ImDrawFlags.None, PatronBorderThickness);
+        }
     }
 
-    /// <summary>
-    ///     Draw the spendable favor balance row
-    /// </summary>
-    private static void DrawFavorBalance(
-        ImDrawListPtr drawList,
-        float x,
-        float y,
-        int spendableFavor)
+    private static void DrawPrestigeRow(
+        ImDrawListPtr drawList, float x, float y, float width, RankProgressHudViewModel vm)
     {
-        // Draw coin icon (simple circle as placeholder)
-        var iconRadius = 6f;
-        var iconCenterX = x + iconRadius;
-        var iconCenterY = y + iconRadius;
-        var coinColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        drawList.AddCircleFilled(new Vector2(iconCenterX, iconCenterY), iconRadius, coinColor);
+        var label = vm.IsPrestigeMaxRank
+            ? $"+ {vm.PrestigeRankName} (MAX)"
+            : $"+ {vm.PrestigeRankName} ({vm.CurrentPrestige:N0}/{vm.PrestigeRequiredForNext:N0})";
 
-        // Draw favor amount text
+        ProgressBarRenderer.DrawProgressBar(
+            drawList,
+            x, y, width, PrestigeBarHeight,
+            vm.PrestigeProgress,
+            new Vector4(0.6f, 0.4f, 0.8f, 1.0f),
+            ColorPalette.DarkBrown,
+            label,
+            showGlow: vm.PrestigeProgress > 0.8f);
+    }
+
+    private static void DrawFavorBalance(ImDrawListPtr drawList, float x, float y, int spendableFavor)
+    {
+        const float iconRadius = 6f;
+        var iconCenter = new Vector2(x + iconRadius, y + iconRadius);
+        var coinColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
+        drawList.AddCircleFilled(iconCenter, iconRadius, coinColor);
+
         var textX = x + (iconRadius * 2) + 6f;
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
-        var favorText = $"{spendableFavor:N0}";
-        drawList.AddText(ImGui.GetFont(), FavorFontSize, new Vector2(textX, y), textColor, favorText);
+        drawList.AddText(ImGui.GetFont(), FavorFontSize, new Vector2(textX, y), textColor, $"{spendableFavor:N0}");
     }
+
+    private static string DomainPrefix(DeityDomain domain) => domain switch
+    {
+        DeityDomain.Craft => "C",
+        DeityDomain.Wild => "W",
+        DeityDomain.Conquest => "Q",
+        DeityDomain.Harvest => "H",
+        DeityDomain.Stone => "S",
+        _ => "?"
+    };
+
+    private static Vector4 DomainColor(DeityDomain domain) => domain switch
+    {
+        DeityDomain.Craft => new Vector4(0.85f, 0.55f, 0.20f, 1.0f),
+        DeityDomain.Wild => new Vector4(0.30f, 0.70f, 0.35f, 1.0f),
+        DeityDomain.Conquest => new Vector4(0.80f, 0.25f, 0.25f, 1.0f),
+        DeityDomain.Harvest => new Vector4(0.95f, 0.80f, 0.30f, 1.0f),
+        DeityDomain.Stone => new Vector4(0.55f, 0.55f, 0.60f, 1.0f),
+        _ => ColorPalette.Grey
+    };
 }

@@ -226,6 +226,15 @@ public partial class GuiDialog
     }
 
     /// <summary>
+    ///     Keybind handler - toggle HUD collapse-to-patron view
+    /// </summary>
+    private bool OnToggleHudCollapse(KeyCombination keyCombination)
+    {
+        _state.HudState.CollapsedToPatron = !_state.HudState.CollapsedToPatron;
+        return true;
+    }
+
+    /// <summary>
     ///     Handle religion list received from server
     /// </summary>
     private void OnReligionListReceived(ReligionListResponsePacket packet)
