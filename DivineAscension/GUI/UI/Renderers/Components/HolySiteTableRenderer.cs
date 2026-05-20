@@ -16,22 +16,19 @@ namespace DivineAscension.GUI.UI.Renderers.Components;
 
 /// <summary>
 ///     Renders a table view for holy site browsing with fixed header and scrollable rows.
+///     Width derives from the view model; columns split the available width evenly.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class HolySiteTableRenderer
 {
-    // Table dimensions
-    private const float TableWidth = 1368f;
-    private const float ColumnWidth = 273.6f;
+    private const int ColumnCount = 5;
+    private const float MinColumnWidth = 120f;
     private const float HeaderHeight = 27f;
     private const float RowHeight = 80f;
     private const float RowSpacing = 8f;
     private const float ScrollbarWidth = 16f;
     private const float IconSize = 48f;
 
-    /// <summary>
-    ///     Pure renderer for holy site table. Emits events instead of mutating state.
-    /// </summary>
     public static HolySiteTableRenderResult Draw(
         HolySiteTableViewModel viewModel,
         ImDrawListPtr drawList)
@@ -45,34 +42,33 @@ internal static class HolySiteTableRenderer
         var selectedSiteUID = viewModel.SelectedSiteUID;
         var tableHeight = viewModel.Height;
 
-        // Draw table background container
-        DrawTableBackground(drawList, x, y, TableWidth, tableHeight);
+        // Responsive sizing — width comes from the view model (= the content
+        // rect handed in by MainLayoutCoordinator).
+        var tableWidth = MathF.Max(viewModel.Width, MinColumnWidth * ColumnCount);
+        var columnWidth = MathF.Max(MinColumnWidth, (tableWidth - ScrollbarWidth) / ColumnCount);
 
-        // Loading state
+        DrawTableBackground(drawList, x, y, tableWidth, tableHeight);
+
         if (isLoading)
         {
-            DrawLoadingState(drawList, x, y, tableHeight);
+            DrawLoadingState(drawList, x, y, tableWidth, tableHeight);
             return new HolySiteTableRenderResult(events, tableHeight);
         }
 
-        // Draw fixed header row
-        DrawTableHeader(drawList, x, y);
+        DrawTableHeader(drawList, x, y, columnWidth);
 
-        // No sites state
         if (sites.Count == 0)
         {
-            DrawEmptyState(drawList, x, y + HeaderHeight, tableHeight);
+            DrawEmptyState(drawList, x, y + HeaderHeight, tableWidth, tableHeight - HeaderHeight);
             return new HolySiteTableRenderResult(events, tableHeight);
         }
 
-        // Calculate scroll limits
         var contentHeight = sites.Count * (RowHeight + RowSpacing);
         var visibleHeight = tableHeight - HeaderHeight;
         var maxScroll = Math.Max(0f, contentHeight - visibleHeight);
 
-        // Handle mouse wheel scrolling
         var mousePos = ImGui.GetMousePos();
-        var isMouseOver = mousePos.X >= x && mousePos.X <= x + TableWidth &&
+        var isMouseOver = mousePos.X >= x && mousePos.X <= x + tableWidth &&
                           mousePos.Y >= y + HeaderHeight && mousePos.Y <= y + tableHeight;
         if (isMouseOver)
         {
@@ -88,25 +84,22 @@ internal static class HolySiteTableRenderer
             }
         }
 
-        // Set clipping region for rows (below header)
         var rowStart = new Vector2(x, y + HeaderHeight);
-        var rowEnd = new Vector2(x + TableWidth, y + tableHeight);
+        var rowEnd = new Vector2(x + tableWidth, y + tableHeight);
         drawList.PushClipRect(rowStart, rowEnd, true);
 
-        // Draw visible rows with culling optimization
         var rowY = y + HeaderHeight - scrollY;
         for (var i = 0; i < sites.Count; i++)
         {
             var site = sites[i];
 
-            // Skip if not visible
             if (rowY + RowHeight < y + HeaderHeight || rowY > y + tableHeight)
             {
                 rowY += RowHeight + RowSpacing;
                 continue;
             }
 
-            var clickedUID = DrawTableRow(drawList, site, x, rowY, selectedSiteUID);
+            var clickedUID = DrawTableRow(drawList, site, x, rowY, tableWidth, columnWidth, selectedSiteUID);
             if (clickedUID != null)
             {
                 selectedSiteUID = clickedUID;
@@ -118,19 +111,15 @@ internal static class HolySiteTableRenderer
 
         drawList.PopClipRect();
 
-        // Draw scrollbar if needed
         if (contentHeight > visibleHeight)
         {
-            Scrollbar.Draw(drawList, x + TableWidth - ScrollbarWidth, y + HeaderHeight,
+            Scrollbar.Draw(drawList, x + tableWidth - ScrollbarWidth, y + HeaderHeight,
                 ScrollbarWidth, visibleHeight, scrollY, maxScroll);
         }
 
         return new HolySiteTableRenderResult(events, tableHeight);
     }
 
-    /// <summary>
-    ///     Draw the table background container
-    /// </summary>
     private static void DrawTableBackground(ImDrawListPtr drawList, float x, float y, float width, float height)
     {
         var start = new Vector2(x, y);
@@ -139,16 +128,12 @@ internal static class HolySiteTableRenderer
         drawList.AddRectFilled(start, end, bgColor, 4f);
     }
 
-    /// <summary>
-    ///     Draw the fixed table header with column labels
-    /// </summary>
-    private static void DrawTableHeader(ImDrawListPtr drawList, float x, float y)
+    private static void DrawTableHeader(ImDrawListPtr drawList, float x, float y, float columnWidth)
     {
         var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
         const float fontSize = TableHeader;
         const float padding = 12f;
 
-        // Column labels
         var columns = new[]
         {
             LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_TABLE_NAME),
@@ -160,42 +145,38 @@ internal static class HolySiteTableRenderer
 
         for (var i = 0; i < columns.Length; i++)
         {
-            var colX = x + i * ColumnWidth;
+            var colX = x + i * columnWidth;
 
             if (i == 0)
             {
-                // Name column: offset header to align with text area after icon
                 var textAreaX = colX + padding + IconSize + padding;
-                var textAreaWidth = ColumnWidth - IconSize - padding * 3;
+                var textAreaWidth = columnWidth - IconSize - padding * 3;
                 DrawCenteredText(drawList, columns[i], textAreaX, y + 8f, textAreaWidth, headerColor, fontSize);
             }
             else
             {
-                DrawCenteredText(drawList, columns[i], colX, y + 8f, ColumnWidth, headerColor, fontSize);
+                DrawCenteredText(drawList, columns[i], colX, y + 8f, columnWidth, headerColor, fontSize);
             }
         }
     }
 
-    /// <summary>
-    ///     Draw a single table row with 5 columns
-    /// </summary>
-    /// <returns>Site UID if row was clicked, null otherwise</returns>
     private static string? DrawTableRow(
         ImDrawListPtr drawList,
         HolySiteResponsePacket.HolySiteInfo site,
         float x,
         float y,
+        float tableWidth,
+        float columnWidth,
         string? selectedSiteUID)
     {
         var rowStart = new Vector2(x, y);
-        var rowEnd = new Vector2(x + TableWidth, y + RowHeight);
+        var rowEnd = new Vector2(x + tableWidth, y + RowHeight);
 
         var mousePos = ImGui.GetMousePos();
-        var isHovering = mousePos.X >= x && mousePos.X <= x + TableWidth &&
+        var isHovering = mousePos.X >= x && mousePos.X <= x + tableWidth &&
                          mousePos.Y >= y && mousePos.Y <= y + RowHeight;
         var isSelected = selectedSiteUID == site.SiteUID;
 
-        // Determine background color based on state
         Vector4 bgColor;
         if (isSelected)
         {
@@ -211,58 +192,42 @@ internal static class HolySiteTableRenderer
             bgColor = ColorPalette.Background;
         }
 
-        // Draw row background
         var bgColorU32 = ImGui.ColorConvertFloat4ToU32(bgColor);
         drawList.AddRectFilled(rowStart, rowEnd, bgColorU32, 4f);
 
-        // Draw row border (2px solid)
         var borderColor = ImGui.ColorConvertFloat4ToU32(isSelected ? ColorPalette.Gold : ColorPalette.DarkBrown);
         drawList.AddRect(rowStart, rowEnd, borderColor, 4f, ImDrawFlags.None, 2f);
 
-        // Handle click
         string? clickedUID = null;
         if (isHovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
         {
             clickedUID = site.SiteUID;
         }
 
-        // Column 1: Name (deity icon + site name)
-        DrawNameColumn(drawList, site, x, y);
-
-        // Column 2: Tier
-        DrawTierColumn(drawList, site, x + ColumnWidth, y);
-
-        // Column 3: Rituals Completed
-        DrawRitualsColumn(drawList, site, x + ColumnWidth * 2, y);
-
-        // Column 4: Prayer Multiplier
-        DrawPrayerColumn(drawList, site, x + ColumnWidth * 3, y);
-
-        // Column 5: Description
-        DrawDescriptionColumn(drawList, site, x + ColumnWidth * 4, y);
+        DrawNameColumn(drawList, site, x, y, columnWidth);
+        DrawTierColumn(drawList, site, x + columnWidth, y, columnWidth);
+        DrawRitualsColumn(drawList, site, x + columnWidth * 2, y, columnWidth);
+        DrawPrayerColumn(drawList, site, x + columnWidth * 3, y, columnWidth);
+        DrawDescriptionColumn(drawList, site, x + columnWidth * 4, y, columnWidth);
 
         return clickedUID;
     }
 
-    /// <summary>
-    ///     Draw Name column: Deity icon (48x48) on left + site name centered
-    /// </summary>
     private static void DrawNameColumn(
         ImDrawListPtr drawList,
         HolySiteResponsePacket.HolySiteInfo site,
         float colX,
-        float rowY)
+        float rowY,
+        float columnWidth)
     {
         const float padding = 12f;
 
-        // Draw deity icon
         var iconX = colX + padding;
         var iconY = rowY + (RowHeight - IconSize) / 2f;
         DrawDeityIcon(drawList, site.Domain, iconX, iconY);
 
-        // Draw site name (centered in remaining space)
         var textX = iconX + IconSize + padding;
-        var textWidth = ColumnWidth - IconSize - padding * 3;
+        var textWidth = columnWidth - IconSize - padding * 3;
         var nameText = site.SiteName;
         var textSize = ImGui.CalcTextSize(nameText);
         var textPosX = textX + (textWidth - textSize.X) / 2f;
@@ -272,70 +237,61 @@ internal static class HolySiteTableRenderer
         drawList.AddText(ImGui.GetFont(), Body, new Vector2(textPosX, textPosY), nameColor, nameText);
     }
 
-    /// <summary>
-    ///     Draw Tier column: Tier number centered
-    /// </summary>
     private static void DrawTierColumn(
         ImDrawListPtr drawList,
         HolySiteResponsePacket.HolySiteInfo site,
         float colX,
-        float rowY)
+        float rowY,
+        float columnWidth)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         const float fontSize = Body;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
-        DrawCenteredText(drawList, site.Tier.ToString(), colX, centerY, ColumnWidth, textColor, fontSize);
+        DrawCenteredText(drawList, site.Tier.ToString(), colX, centerY, columnWidth, textColor, fontSize);
     }
 
-    /// <summary>
-    ///     Draw Rituals column: Rituals completed number centered
-    /// </summary>
     private static void DrawRitualsColumn(
         ImDrawListPtr drawList,
         HolySiteResponsePacket.HolySiteInfo site,
         float colX,
-        float rowY)
+        float rowY,
+        float columnWidth)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         const float fontSize = Body;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
-        DrawCenteredText(drawList, site.RitualsCompleted.ToString(), colX, centerY, ColumnWidth, textColor, fontSize);
+        DrawCenteredText(drawList, site.RitualsCompleted.ToString(), colX, centerY, columnWidth, textColor, fontSize);
     }
 
-    /// <summary>
-    ///     Draw Prayer column: Prayer multiplier centered
-    /// </summary>
     private static void DrawPrayerColumn(
         ImDrawListPtr drawList,
         HolySiteResponsePacket.HolySiteInfo site,
         float colX,
-        float rowY)
+        float rowY,
+        float columnWidth)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         const float fontSize = Body;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
         var multiplierText = $"{site.PrayerMultiplier:F2}x";
-        DrawCenteredText(drawList, multiplierText, colX, centerY, ColumnWidth, textColor, fontSize);
+        DrawCenteredText(drawList, multiplierText, colX, centerY, columnWidth, textColor, fontSize);
     }
 
-    /// <summary>
-    ///     Draw Description column: Truncated description text
-    /// </summary>
     private static void DrawDescriptionColumn(
         ImDrawListPtr drawList,
         HolySiteResponsePacket.HolySiteInfo site,
         float colX,
-        float rowY)
+        float rowY,
+        float columnWidth)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         const float fontSize = Secondary;
         const float padding = 8f;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
-        // Truncate description if too long
         var description = site.Description;
         if (string.IsNullOrWhiteSpace(description))
         {
@@ -343,12 +299,11 @@ internal static class HolySiteTableRenderer
         }
         else
         {
-            var maxWidth = ColumnWidth - padding * 2;
+            var maxWidth = columnWidth - padding * 2;
             var textSize = ImGui.CalcTextSize(description);
             var scale = fontSize / ImGui.GetFont().FontSize;
             var scaledWidth = textSize.X * scale;
 
-            // Truncate with ellipsis if too long
             if (scaledWidth > maxWidth)
             {
                 while (description.Length > 0)
@@ -366,12 +321,9 @@ internal static class HolySiteTableRenderer
             }
         }
 
-        DrawCenteredText(drawList, description, colX, centerY, ColumnWidth, textColor, fontSize);
+        DrawCenteredText(drawList, description, colX, centerY, columnWidth, textColor, fontSize);
     }
 
-    /// <summary>
-    ///     Draw deity icon with border (48x48px)
-    /// </summary>
     private static void DrawDeityIcon(ImDrawListPtr drawList, string deityName, float x, float y)
     {
         var deityType = DomainHelper.ParseDeityType(deityName);
@@ -382,27 +334,21 @@ internal static class HolySiteTableRenderer
 
         if (deityTextureId != IntPtr.Zero)
         {
-            // Draw icon texture
             var tintColor = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
             drawList.AddImage(deityTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColor);
         }
         else
         {
-            // Fallback: Colored circle
             var deityColor = DomainHelper.GetDeityColor(deityName);
             var iconCenter = new Vector2(x + IconSize / 2f, y + IconSize / 2f);
             var iconColorU32 = ImGui.ColorConvertFloat4ToU32(deityColor);
             drawList.AddCircleFilled(iconCenter, IconSize / 2f, iconColorU32, 16);
         }
 
-        // Draw border (2px solid)
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
         drawList.AddRect(iconMin, iconMax, borderColor, 4f, ImDrawFlags.None, 2f);
     }
 
-    /// <summary>
-    ///     Helper: Draw center-aligned text in a column
-    /// </summary>
     private static void DrawCenteredText(
         ImDrawListPtr drawList,
         string text,
@@ -412,7 +358,6 @@ internal static class HolySiteTableRenderer
         uint color,
         float fontSize)
     {
-        // Calculate text size scaled to match the actual render font size
         var defaultFontSize = ImGui.GetFont().FontSize;
         var baseTextSize = ImGui.CalcTextSize(text);
         var scale = fontSize / defaultFontSize;
@@ -421,31 +366,25 @@ internal static class HolySiteTableRenderer
         drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(textX, colY), color, text);
     }
 
-    /// <summary>
-    ///     Draw loading state
-    /// </summary>
-    private static void DrawLoadingState(ImDrawListPtr drawList, float x, float y, float tableHeight)
+    private static void DrawLoadingState(ImDrawListPtr drawList, float x, float y, float width, float height)
     {
         var loadingText = LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_BROWSE_LOADING);
         var loadingSize = ImGui.CalcTextSize(loadingText);
         var loadingPos = new Vector2(
-            x + (TableWidth - loadingSize.X) / 2f,
-            y + (tableHeight - loadingSize.Y) / 2f
+            x + (width - loadingSize.X) / 2f,
+            y + (height - loadingSize.Y) / 2f
         );
         var loadingColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         drawList.AddText(loadingPos, loadingColor, loadingText);
     }
 
-    /// <summary>
-    ///     Draw empty state (no holy sites)
-    /// </summary>
-    private static void DrawEmptyState(ImDrawListPtr drawList, float x, float y, float tableHeight)
+    private static void DrawEmptyState(ImDrawListPtr drawList, float x, float y, float width, float height)
     {
         var emptyText = LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_BROWSE_NO_SITES);
         var emptySize = ImGui.CalcTextSize(emptyText);
         var emptyPos = new Vector2(
-            x + (TableWidth - emptySize.X) / 2f,
-            y + (tableHeight - HeaderHeight - emptySize.Y) / 2f
+            x + (width - emptySize.X) / 2f,
+            y + (height - emptySize.Y) / 2f
         );
         var emptyColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         drawList.AddText(emptyPos, emptyColor, emptyText);
