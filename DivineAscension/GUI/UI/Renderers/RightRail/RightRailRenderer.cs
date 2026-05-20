@@ -17,8 +17,9 @@ namespace DivineAscension.GUI.UI.Renderers.RightRail;
 /// <summary>
 ///     Vertical 340 px column: religion + civilization status (via
 ///     <see cref="ReligionHeaderRenderer" />), then a scrollable notification
-///     feed styled as a stack of letters. Owns the outer panel chrome and
-///     delegates status content to the header renderer.
+///     feed styled as a stack of letters. Paints a flat panel fill that
+///     matches the sidebar's <c>TableBackground</c> so both columns read as
+///     a single spread rather than two framed widgets.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class RightRailRenderer
@@ -34,13 +35,13 @@ internal static class RightRailRenderer
 
         var drawList = ImGui.GetWindowDrawList();
 
-        // Outer panel chrome.
-        var bg = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-        var border = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.5f);
-        var topLeft = new Vector2(rect.X, rect.Y);
-        var botRight = new Vector2(rect.Right, rect.Bottom);
-        drawList.AddRectFilled(topLeft, botRight, bg, 4f);
-        drawList.AddRect(topLeft, botRight, border, 4f, ImDrawFlags.None, 2f);
+        // Flat fill matching the sidebar's TableBackground. No border, no
+        // rounding — keeps both columns reading as one spread.
+        var bg = ImGui.ColorConvertFloat4ToU32(ColorPalette.TableBackground);
+        drawList.AddRectFilled(
+            new Vector2(rect.X, rect.Y),
+            new Vector2(rect.Right, rect.Bottom),
+            bg);
 
         // Status block (deity + civ identity).
         var headerVm = WithBounds(vm.Header, rect.X + Padding, rect.Y + Padding,
