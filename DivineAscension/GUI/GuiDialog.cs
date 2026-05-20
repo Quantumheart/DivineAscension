@@ -95,6 +95,11 @@ public partial class GuiDialog : ModSystem
             HotkeyType.GUIOrOtherControls, shiftPressed: true);
         _inputService.SetHotKeyHandler("divineascensionblessings", OnToggleDialog);
 
+        // Collapse rank HUD to patron-only (Shift+H)
+        _inputService.RegisterHotKey("divineascensionhudcollapse", "Collapse Rank HUD to Patron", GlKeys.H,
+            HotkeyType.GUIOrOtherControls, shiftPressed: true);
+        _inputService.SetHotKeyHandler("divineascensionhudcollapse", OnToggleHudCollapse);
+
         // Initialize icon loaders
         DeityIconLoader.Initialize(_capi);
         GuiIconLoader.Initialize(_capi);
@@ -331,7 +336,8 @@ public partial class GuiDialog : ModSystem
         // Build view model from current state
         var vm = _manager.ReligionStateManager.BuildHudViewModel(
             _viewport.Size.X,
-            _viewport.Size.Y);
+            _viewport.Size.Y,
+            _state.HudState);
 
         // If player doesn't have a religion, don't show HUD
         if (!vm.IsVisible)
@@ -342,7 +348,7 @@ public partial class GuiDialog : ModSystem
         // Debug: Log first time HUD is drawn
         if (!_hudDrawnOnce)
         {
-            _logger?.Debug($"[DivineAscension] HUD drawing - Screen: {_viewport.Size.X}x{_viewport.Size.Y}, Favor: {vm.SpendableFavor}, Rank: {vm.FavorRankName}");
+            _logger?.Debug($"[DivineAscension] HUD drawing - Screen: {_viewport.Size.X}x{_viewport.Size.Y}, Favor: {vm.SpendableFavor}, Patron: {vm.PatronDomain}");
             _hudDrawnOnce = true;
         }
 
