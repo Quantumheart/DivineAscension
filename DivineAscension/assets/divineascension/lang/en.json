@@ -26,6 +26,8 @@
   "divineascension:ui.religion.name.error.too_long": "Religion name must be less than 32 characters",
   "divineascension:ui.religion.name.error.profanity": "Name contains inappropriate content: \"{0}\"",
   "divineascension:ui.religion.domain.label": "Domain:",
+  "divineascension:ui.religion.patron.heading": "Choose your patron deity.",
+  "divineascension:ui.religion.patron.explainer": "All deities are worshipped in your temple, but your patron grants faster favor accrual and exclusive capstone blessings.",
   "divineascension:ui.religion.deity_name.label": "Deity Name:",
   "divineascension:ui.religion.deity_name.placeholder": "Name your deity (e.g. Forge Lord, The Huntress)",
   "divineascension:ui.religion.deity_name.error.too_short": "Deity name must be at least 2 characters",

@@ -46,6 +46,8 @@ public static class LocalizationKeys
     public const string UI_RELIGION_NAME_ERROR_TOO_LONG = "divineascension:ui.religion.name.error.too_long";
     public const string UI_RELIGION_NAME_ERROR_PROFANITY = "divineascension:ui.religion.name.error.profanity";
     public const string UI_RELIGION_DOMAIN_LABEL = "divineascension:ui.religion.domain.label";
+    public const string UI_RELIGION_PATRON_HEADING = "divineascension:ui.religion.patron.heading";
+    public const string UI_RELIGION_PATRON_EXPLAINER = "divineascension:ui.religion.patron.explainer";
     public const string UI_RELIGION_DEITY_NAME_LABEL = "divineascension:ui.religion.deity_name.label";
     public const string UI_RELIGION_DEITY_NAME_PLACEHOLDER = "divineascension:ui.religion.deity_name.placeholder";
 

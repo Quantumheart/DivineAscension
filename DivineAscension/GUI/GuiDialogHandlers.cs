@@ -103,18 +103,19 @@ public partial class GuiDialog
 
         var playerBlessings = packet.PlayerBlessings.Select(p => ToModel(p, BlessingKind.Player)).ToList();
         var religionBlessings = packet.ReligionBlessings.Select(p => ToModel(p, BlessingKind.Religion)).ToList();
-        // Pre-Phase-5 single-tree UI still renders one deity; filter to patron.
-        var patronPlayerBlessings = playerBlessings.Where(b => b.Domain == patron).ToList();
-        var patronReligionBlessings = religionBlessings.Where(b => b.Domain == patron).ToList();
 
-        // Load blessing states into manager (single-tree UI consumes patron deity only for now)
-        _manager.BlessingStateManager.LoadBlessingStates(patronPlayerBlessings, patronReligionBlessings);
+        // Phase 5b: load all five deities; UI switches via deity selector.
+        _manager.BlessingStateManager.LoadBlessingStates(playerBlessings, religionBlessings);
+        _manager.BlessingStateManager.SetActiveDeity(
+            patron != DeityDomain.None ? patron : DeityDomain.Craft);
 
-        // Preload blessing textures for the patron deity domain to prevent stuttering on first render
-        var allBlessings = patronPlayerBlessings.Concat(patronReligionBlessings).ToList();
+        // Preload blessing textures for every deity to prevent stuttering when switching tabs.
+        var allBlessings = playerBlessings.Concat(religionBlessings).ToList();
+        foreach (var domain in new[] { DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest, DeityDomain.Harvest, DeityDomain.Stone })
+            BlessingIconLoader.PreloadDeityTextures(
+                allBlessings.Where(b => b.Domain == domain).ToList(), domain);
         _logger?.Debug(
-            $"[DivineAscension] Preloading {allBlessings.Count} blessing textures for {patron}...");
-        BlessingIconLoader.PreloadDeityTextures(allBlessings, patron);
+            $"[DivineAscension] Preloaded blessing textures for all five deities ({allBlessings.Count} blessings total).");
 
         // Mark unlocked blessings
         foreach (var blessingId in packet.UnlockedPlayerBlessings)
@@ -141,7 +142,7 @@ public partial class GuiDialog
 
         _state.IsReady = true;
         _logger?.Notification(
-            $"[DivineAscension] Loaded {patronPlayerBlessings.Count} player blessings and {patronReligionBlessings.Count} religion blessings for {patron}");
+            $"[DivineAscension] Loaded {playerBlessings.Count} player + {religionBlessings.Count} religion blessings across all five deities; active={patron}");
 
         // Ensure HUD is visible now that we have religion data
         EnsureHudVisible();
