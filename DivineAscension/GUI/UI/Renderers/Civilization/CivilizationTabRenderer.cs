@@ -10,8 +10,8 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
 /// <summary>
 ///     Pure renderer for the Civilization tab error banner.
-///     Sub-tab navigation now lives in the sidebar (Phase 3b refactor) — this
-///     renderer is responsible only for the per-context error banner.
+///     Sub-tab navigation lives in the sidebar — this renderer is responsible
+///     only for the per-context error banner.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class CivilizationTabRenderer
@@ -28,21 +28,21 @@ internal static class CivilizationTabRenderer
         // Error banner (LastActionError has priority)
         var bannerMessage = vm.LastActionError;
         var showRetry = false;
-        var effectiveTab = vm.CurrentSubTab;
+        var effectiveNav = vm.CurrentNav;
 
         if (bannerMessage == null)
-            switch (vm.CurrentSubTab)
+            switch (vm.CurrentNav)
             {
-                case CivilizationSubTab.Browse:
+                case SidebarNavId.CivilizationBrowse:
                     // If viewing details, prioritize details error
                     bannerMessage = vm.IsViewingDetails ? null : vm.BrowseError;
-                    showRetry = bannerMessage != null; // allow retry for fetch errors
+                    showRetry = bannerMessage != null;
                     break;
-                case CivilizationSubTab.Info:
+                case SidebarNavId.CivilizationInfo:
                     bannerMessage = vm.InfoError;
                     showRetry = bannerMessage != null;
                     break;
-                case CivilizationSubTab.Invites:
+                case SidebarNavId.CivilizationInvites:
                     bannerMessage = vm.InvitesError;
                     showRetry = bannerMessage != null;
                     break;
@@ -59,11 +59,11 @@ internal static class CivilizationTabRenderer
                 if (vm.LastActionError != null)
                     events.Add(new SubTabEvent.DismissActionError());
                 else
-                    events.Add(new SubTabEvent.DismissContextError(effectiveTab));
+                    events.Add(new SubTabEvent.DismissContextError(effectiveNav));
             }
 
             if (retryClicked)
-                events.Add(new SubTabEvent.RetryRequested(effectiveTab));
+                events.Add(new SubTabEvent.RetryRequested(effectiveNav));
         }
 
         return new CivilizationTabRendererResult(events, renderedHeight);

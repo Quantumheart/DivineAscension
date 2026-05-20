@@ -3,16 +3,11 @@ using DivineAscension.GUI.State.Religion;
 namespace DivineAscension.GUI.State;
 
 /// <summary>
-///     State container for the Religion tab in BlessingDialog
-///     Follows the same pattern as CivilizationState
+///     State container for the Religion tab in BlessingDialog. Sub-tab nav
+///     state lives on the sidebar (<see cref="SidebarState.CurrentNav" />).
 /// </summary>
 public class ReligionTabState
 {
-    // Tab navigation
-    public SubTab CurrentSubTab { get; set; } // 0=Browse, 1=Religion Info, 2=Activity, 3=Create, 4=Activity, 5=Roles
-
-    // Error handling
-
     public CreateState CreateState { get; } = new();
 
     public BrowseState BrowseState { get; } = new();
@@ -27,19 +22,13 @@ public class ReligionTabState
 
     public ErrorState ErrorState { get; } = new ErrorState();
 
-    /// <summary>
-    ///     Reset all state to default values
-    /// </summary>
     public void Reset()
     {
-        CurrentSubTab = SubTab.Browse;
         BrowseState.Reset();
         InfoState.Reset();
         InvitesState.Reset();
         RolesState.Reset();
         CreateState.Reset();
-
-        // _activityState.ActivityLog.Clear();
         ActivityState.Reset();
         ErrorState.Reset();
     }

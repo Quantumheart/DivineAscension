@@ -708,201 +708,107 @@ public class CivilizationStateManagerTests
     #region ProcessTabEvents Tests
 
     [Fact]
-    public void ProcessTabEvents_TabChanged_ToBrowse_UpdatesCurrentSubTab()
-    {
-        // Arrange
-        var events = new List<SubTabEvent>
-        {
-            new SubTabEvent.TabChanged(CivilizationSubTab.Browse)
-        };
-
-        // Act
-        _sut.ProcessTabEvents(events);
-
-        // Assert - We can't directly verify state but we can ensure no errors occurred
-        Assert.NotNull(_sut);
-    }
-
-    [Fact]
-    public void ProcessTabEvents_TabChanged_ToInfo_RequestsCivilizationInfo()
-    {
-        // Arrange
-        var events = new List<SubTabEvent>
-        {
-            new SubTabEvent.TabChanged(CivilizationSubTab.Info)
-        };
-        _mockApi.Setup(d => d.Logger.Warning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
-        _sut.CurrentCivilizationId = "12345";
-        // Act
-        _sut.ProcessTabEvents(events);
-
-        // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationInfo(string.Empty), Times.Once);
-    }
-
-    [Fact]
-    public void ProcessTabEvents_TabChanged_ToInvites_RequestsCivilizationInfo()
-    {
-        // Arrange
-        var events = new List<SubTabEvent>
-        {
-            new SubTabEvent.TabChanged(CivilizationSubTab.Invites)
-        };
-        _mockApi.Setup(d => d.Logger.Warning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
-        _sut.UserHasReligion = true;
-
-        // Act
-        _sut.ProcessTabEvents(events);
-
-        // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationInfo(string.Empty), Times.Once);
-    }
-
-    [Fact]
-    public void ProcessTabEvents_TabChanged_ToCreate_DoesNotRequestInfo()
-    {
-        // Arrange
-        var events = new List<SubTabEvent>
-        {
-            new SubTabEvent.TabChanged(CivilizationSubTab.Create)
-        };
-        _mockApi.Setup(d => d.Logger.Warning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
-
-        // Act
-        _sut.ProcessTabEvents(events);
-
-        // Assert
-        _mockUiService.Verify(u => u.RequestCivilizationInfo(It.IsAny<string>()), Times.Never);
-    }
-
-    [Fact]
     public void ProcessTabEvents_DismissActionError_DoesNotThrow()
     {
-        // Arrange
         var events = new List<SubTabEvent>
         {
             new SubTabEvent.DismissActionError()
         };
 
-        // Act
         _sut.ProcessTabEvents(events);
 
-        // Assert - We can't directly verify state but we can ensure no errors occurred
         Assert.NotNull(_sut);
     }
 
     [Fact]
     public void ProcessTabEvents_DismissContextError_ForBrowse_DoesNotThrow()
     {
-        // Arrange
         var events = new List<SubTabEvent>
         {
-            new SubTabEvent.DismissContextError(CivilizationSubTab.Browse)
+            new SubTabEvent.DismissContextError(SidebarNavId.CivilizationBrowse)
         };
 
-        // Act
         _sut.ProcessTabEvents(events);
 
-        // Assert
         Assert.NotNull(_sut);
     }
 
     [Fact]
     public void ProcessTabEvents_DismissContextError_ForMyCiv_DoesNotThrow()
     {
-        // Arrange
         var events = new List<SubTabEvent>
         {
-            new SubTabEvent.DismissContextError(CivilizationSubTab.Info)
+            new SubTabEvent.DismissContextError(SidebarNavId.CivilizationInfo)
         };
 
-        // Act
         _sut.ProcessTabEvents(events);
 
-        // Assert
         Assert.NotNull(_sut);
     }
 
     [Fact]
     public void ProcessTabEvents_DismissContextError_ForInvites_DoesNotThrow()
     {
-        // Arrange
         var events = new List<SubTabEvent>
         {
-            new SubTabEvent.DismissContextError(CivilizationSubTab.Invites)
+            new SubTabEvent.DismissContextError(SidebarNavId.CivilizationInvites)
         };
 
-        // Act
         _sut.ProcessTabEvents(events);
 
-        // Assert
         Assert.NotNull(_sut);
     }
 
     [Fact]
     public void ProcessTabEvents_RetryRequested_ForBrowse_RequestsCivilizationList()
     {
-        // Arrange
         var events = new List<SubTabEvent>
         {
-            new SubTabEvent.RetryRequested(CivilizationSubTab.Browse)
+            new SubTabEvent.RetryRequested(SidebarNavId.CivilizationBrowse)
         };
 
-        // Act
         _sut.ProcessTabEvents(events);
 
-        // Assert
         _mockUiService.Verify(u => u.RequestCivilizationList(string.Empty), Times.Once);
     }
 
     [Fact]
     public void ProcessTabEvents_RetryRequested_ForMyCiv_RequestsCivilizationInfo()
     {
-        // Arrange
         var events = new List<SubTabEvent>
         {
-            new SubTabEvent.RetryRequested(CivilizationSubTab.Info)
+            new SubTabEvent.RetryRequested(SidebarNavId.CivilizationInfo)
         };
 
-        // Act
         _sut.ProcessTabEvents(events);
 
-        // Assert
         _mockUiService.Verify(u => u.RequestCivilizationInfo(string.Empty), Times.Once);
     }
 
     [Fact]
     public void ProcessTabEvents_RetryRequested_ForInvites_RequestsCivilizationInfo()
     {
-        // Arrange
         var events = new List<SubTabEvent>
         {
-            new SubTabEvent.RetryRequested(CivilizationSubTab.Invites)
+            new SubTabEvent.RetryRequested(SidebarNavId.CivilizationInvites)
         };
 
-        // Act
         _sut.ProcessTabEvents(events);
 
-        // Assert
         _mockUiService.Verify(u => u.RequestCivilizationInfo(string.Empty), Times.Once);
     }
 
     [Fact]
     public void ProcessTabEvents_MultipleEvents_ProcessesAllInOrder()
     {
-        // Arrange
         var events = new List<SubTabEvent>
         {
             new SubTabEvent.DismissActionError(),
-            new SubTabEvent.TabChanged(CivilizationSubTab.Info),
+            new SubTabEvent.RetryRequested(SidebarNavId.CivilizationInfo),
         };
-        _sut.CurrentCivilizationId = "12345";
-        _mockApi.Setup(d => d.Logger.Warning(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
 
-        // Act
         _sut.ProcessTabEvents(events);
 
-        // Assert
         _mockUiService.Verify(u => u.RequestCivilizationInfo(string.Empty), Times.Once);
     }
 

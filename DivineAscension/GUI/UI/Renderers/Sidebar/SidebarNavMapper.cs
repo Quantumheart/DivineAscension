@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using DivineAscension.Constants;
 using DivineAscension.GUI.State;
-using DivineAscension.GUI.State.Religion;
 using DivineAscension.Services;
 
 namespace DivineAscension.GUI.UI.Renderers.Sidebar;
@@ -53,44 +52,13 @@ public static class SidebarNavMapper
 
     /// <summary>
     ///     Commit a sidebar click. <see cref="SidebarState.CurrentNav" /> is the
-    ///     single source of truth for the active destination; rendering reads it
-    ///     directly via <see cref="ToReligionSubTab" /> / <see cref="ToCivilizationSubTab" />.
+    ///     single source of truth for the active destination; the layout
+    ///     coordinator dispatches content based on it directly.
     /// </summary>
     public static void Apply(SidebarNavId nav, GuiDialogState state)
     {
         state.Sidebar.CurrentNav = nav;
     }
-
-    /// <summary>
-    ///     Map a Religion-area nav id to its <see cref="SubTab" />. Returns
-    ///     <c>null</c> for non-Religion ids.
-    /// </summary>
-    public static SubTab? ToReligionSubTab(SidebarNavId nav) => nav switch
-    {
-        SidebarNavId.ReligionBrowse => SubTab.Browse,
-        SidebarNavId.ReligionInfo => SubTab.Info,
-        SidebarNavId.ReligionActivity => SubTab.Activity,
-        SidebarNavId.ReligionRoles => SubTab.Roles,
-        SidebarNavId.ReligionInvites => SubTab.Invites,
-        SidebarNavId.ReligionCreate => SubTab.Create,
-        _ => null
-    };
-
-    /// <summary>
-    ///     Map a Civilization-area nav id to its <see cref="CivilizationSubTab" />.
-    ///     Returns <c>null</c> for non-Civilization ids.
-    /// </summary>
-    public static CivilizationSubTab? ToCivilizationSubTab(SidebarNavId nav) => nav switch
-    {
-        SidebarNavId.CivilizationBrowse => CivilizationSubTab.Browse,
-        SidebarNavId.CivilizationInfo => CivilizationSubTab.Info,
-        SidebarNavId.CivilizationInvites => CivilizationSubTab.Invites,
-        SidebarNavId.CivilizationCreate => CivilizationSubTab.Create,
-        SidebarNavId.CivilizationDiplomacy => CivilizationSubTab.Diplomacy,
-        SidebarNavId.CivilizationHolySites => CivilizationSubTab.HolySites,
-        SidebarNavId.CivilizationMilestones => CivilizationSubTab.Milestones,
-        _ => null
-    };
 
     /// <summary>
     ///     Convenience adapter — production builds the context off the live

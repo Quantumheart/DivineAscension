@@ -3,12 +3,12 @@ using DivineAscension.GUI.State.Civilization;
 namespace DivineAscension.GUI.State;
 
 /// <summary>
-///     Holds all client-side state for the Civilization tab within the BlessingDialog.
+///     Holds all client-side state for the Civilization tab within the
+///     BlessingDialog. Sub-tab nav state lives on the sidebar
+///     (<see cref="SidebarState.CurrentNav" />).
 /// </summary>
 public class CivilizationTabState
 {
-    public CivilizationSubTab CurrentSubTab { get; set; } = CivilizationSubTab.Browse;
-
     public BrowseState BrowseState { get; } = new();
 
     public DetailState DetailState { get; } = new();
@@ -41,7 +41,6 @@ public class CivilizationTabState
     /// </summary>
     public void Reset()
     {
-        CurrentSubTab = 0;
         BrowseState.Reset();
         DetailState.Reset();
         InfoState.Reset();
@@ -60,15 +59,4 @@ public class CivilizationTabState
         ShowDisbandConfirm = false;
         KickConfirmReligionId = null;
     }
-}
-
-public enum CivilizationSubTab
-{
-    Browse,
-    Info,
-    Invites,
-    Create,
-    Diplomacy,
-    HolySites,
-    Milestones
 }

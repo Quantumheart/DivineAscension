@@ -173,21 +173,22 @@ public partial class GuiDialog
         _manager!.Reset();
         _state.IsReady = true; // Keep dialog ready so it doesn't close
 
-        // AUTO-CORRECT TAB: If current tab becomes invalid, switch to Browse
+        // AUTO-CORRECT NAV: If the current sidebar destination becomes invalid
+        // for the new religion state, snap back to Browse.
         var hasReligion = packet.HasReligion;
-        var currentTab = _manager.ReligionStateManager.State.CurrentSubTab;
-        var shouldSwitchTab = currentTab switch
+        var currentNav = _state.Sidebar.CurrentNav;
+        var shouldSwitchTab = currentNav switch
         {
-            SubTab.Info or SubTab.Activity or SubTab.Roles => !hasReligion, // These require religion
-            SubTab.Invites or SubTab.Create => hasReligion, // These require NO religion
+            SidebarNavId.ReligionInfo or SidebarNavId.ReligionActivity or SidebarNavId.ReligionRoles => !hasReligion,
+            SidebarNavId.ReligionInvites or SidebarNavId.ReligionCreate => hasReligion,
             _ => false
         };
 
         if (shouldSwitchTab)
         {
             _logger?.Debug(
-                $"[DivineAscension] Switching tab from {currentTab} to Browse due to religion state change");
-            _manager.ReligionStateManager.State.CurrentSubTab = SubTab.Browse;
+                $"[DivineAscension] Switching nav from {currentNav} to ReligionBrowse due to religion state change");
+            _state.Sidebar.CurrentNav = SidebarNavId.ReligionBrowse;
         }
 
         // Request fresh data from server (will show "No Religion" state)
@@ -266,25 +267,26 @@ public partial class GuiDialog
                 _logger?.Debug("[DivineAscension] Resetting blessing dialog after leaving religion");
                 _manager!.Reset();
 
-                // AUTO-CORRECT TAB: Switch away from member-only tabs
-                var currentTab = _manager.ReligionStateManager.State.CurrentSubTab;
-                if (currentTab is SubTab.Info or SubTab.Activity or SubTab.Roles)
+                // AUTO-CORRECT NAV: snap away from member-only destinations.
+                var currentNav = _state.Sidebar.CurrentNav;
+                if (currentNav is SidebarNavId.ReligionInfo or SidebarNavId.ReligionActivity
+                    or SidebarNavId.ReligionRoles)
                 {
                     _logger?.Debug(
-                        $"[DivineAscension] Switching tab from {currentTab} to Browse after leaving religion");
-                    _manager.ReligionStateManager.State.CurrentSubTab = SubTab.Browse;
+                        $"[DivineAscension] Switching nav from {currentNav} to ReligionBrowse after leaving religion");
+                    _state.Sidebar.CurrentNav = SidebarNavId.ReligionBrowse;
                 }
             }
 
-            // If joining/creating religion, switch to Info to show new religion
+            // If joining/creating religion, switch to Info to show the new religion.
             if (packet.Action is "join" or "create" or "accept")
             {
-                var currentTab = _manager!.ReligionStateManager.State.CurrentSubTab;
-                if (currentTab is SubTab.Invites or SubTab.Create)
+                var currentNav = _state.Sidebar.CurrentNav;
+                if (currentNav is SidebarNavId.ReligionInvites or SidebarNavId.ReligionCreate)
                 {
                     _logger?.Debug(
-                        $"[DivineAscension] Switching tab from {currentTab} to Info after joining religion");
-                    _manager.ReligionStateManager.State.CurrentSubTab = SubTab.Info;
+                        $"[DivineAscension] Switching nav from {currentNav} to ReligionInfo after joining religion");
+                    _state.Sidebar.CurrentNav = SidebarNavId.ReligionInfo;
                 }
             }
 
@@ -647,11 +649,36 @@ public partial class GuiDialog
         _logger?.Debug(
             $"[DivineAscension] Civilization action completed: Success={packet.Success}, Message={packet.Message}");
 
-        // Show result message to user
         _capi?.ShowChatMessage(packet.Message);
 
-        // Delegate to StateManager for state updates and side effects
         _manager!.CivilizationManager.OnCivilizationActionCompleted(packet);
+
+        // AUTO-CORRECT NAV: snap the sidebar to a sensible destination after
+        // join/leave/disband etc. The manager focuses on data; nav is the
+        // dialog's concern.
+        if (packet.Success)
+        {
+            var currentNav = _state.Sidebar.CurrentNav;
+            switch (packet.Action?.ToLowerInvariant())
+            {
+                case "leave" or "disband":
+                    if (currentNav is SidebarNavId.CivilizationInfo)
+                    {
+                        _logger?.Debug(
+                            $"[DivineAscension] Switching nav from {currentNav} to CivilizationBrowse after leaving civilization");
+                        _state.Sidebar.CurrentNav = SidebarNavId.CivilizationBrowse;
+                    }
+                    break;
+                case "join" or "create" or "accept":
+                    if (currentNav is SidebarNavId.CivilizationInvites or SidebarNavId.CivilizationCreate)
+                    {
+                        _logger?.Debug(
+                            $"[DivineAscension] Switching nav from {currentNav} to CivilizationInfo after joining civilization");
+                        _state.Sidebar.CurrentNav = SidebarNavId.CivilizationInfo;
+                    }
+                    break;
+            }
+        }
     }
 
     /// <summary>

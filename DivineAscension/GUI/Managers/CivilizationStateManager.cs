@@ -56,11 +56,6 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     /// </summary>
     public InviteState InviteState => State.InviteState;
 
-    /// <summary>
-    ///     Public accessor for current sub-tab (for network client access)
-    /// </summary>
-    public CivilizationSubTab CurrentSubTab => State.CurrentSubTab;
-
     public string CurrentCivilizationId { get; set; } = string.Empty;
 
     public List<CivilizationInfoResponsePacket.MemberReligion>? CivilizationMemberReligions { get; set; } = new();
@@ -448,13 +443,15 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     }
 
     /// <summary>
-    ///     Main EDA orchestrator for Civilization tab: builds ViewModels, calls renderers, processes events
+    ///     Main EDA orchestrator for Civilization tab: builds ViewModels, calls
+    ///     renderers, processes events. Nav state is owned by the sidebar;
+    ///     <paramref name="nav"/> is one of the Civilization* values from
+    ///     <see cref="SidebarNavId"/>.
     /// </summary>
-    internal void DrawCivilizationTab(CivilizationSubTab activeSubTab, float x, float y, float width, float height)
+    internal void DrawCivilizationTab(SidebarNavId nav, float x, float y, float width, float height)
     {
-        // Build tab ViewModel from sidebar-driven sub-tab
         var tabVm = new CivilizationTabViewModel(
-            activeSubTab,
+            nav,
             State.LastActionError,
             State.BrowseState.ErrorMsg,
             State.InfoState.ErrorMsg,
@@ -470,34 +467,33 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         var drawList = ImGui.GetWindowDrawList();
         var tabResult = CivilizationTabRenderer.Draw(tabVm, drawList);
 
-        // Process tab events
         ProcessTabEvents(tabResult.Events);
 
         // Route to sub-renderers
         var contentY = y + tabResult.RendererHeight;
         var contentHeight = height - tabResult.RendererHeight;
 
-        switch (activeSubTab)
+        switch (nav)
         {
-            case CivilizationSubTab.Browse:
+            case SidebarNavId.CivilizationBrowse:
                 DrawCivilizationBrowse(x, contentY, width, contentHeight);
                 break;
-            case CivilizationSubTab.Info:
+            case SidebarNavId.CivilizationInfo:
                 DrawCivilizationInfo(x, contentY, width, contentHeight);
                 break;
-            case CivilizationSubTab.Invites:
+            case SidebarNavId.CivilizationInvites:
                 DrawCivilizationInvites(x, contentY, width, contentHeight);
                 break;
-            case CivilizationSubTab.Create:
+            case SidebarNavId.CivilizationCreate:
                 DrawCivilizationCreate(x, contentY, width, contentHeight);
                 break;
-            case CivilizationSubTab.Diplomacy:
+            case SidebarNavId.CivilizationDiplomacy:
                 DrawCivilizationDiplomacy(x, contentY, width, contentHeight);
                 break;
-            case CivilizationSubTab.HolySites:
+            case SidebarNavId.CivilizationHolySites:
                 DrawCivilizationHolySites(x, contentY, width, contentHeight);
                 break;
-            case CivilizationSubTab.Milestones:
+            case SidebarNavId.CivilizationMilestones:
                 DrawCivilizationMilestones(x, contentY, width, contentHeight);
                 break;
         }
@@ -876,84 +872,26 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         foreach (var evt in events)
             switch (evt)
             {
-                case SubTabEvent.TabChanged tc:
-                    // Validate that the requested tab is visible for current religion/civilization state
-                    var isTabVisible = tc.NewSubTab switch
-                    {
-                        CivilizationSubTab.Browse => true,
-                        CivilizationSubTab.Info => HasCivilization(),
-                        CivilizationSubTab.Invites => UserHasReligion && !HasCivilization(),
-                        CivilizationSubTab.Create => UserHasReligion && !HasCivilization(),
-                        CivilizationSubTab.Diplomacy => HasCivilization(),
-                        CivilizationSubTab.HolySites => HasCivilization(),
-                        CivilizationSubTab.Milestones => HasCivilization(),
-                        _ => false
-                    };
-
-                    if (!isTabVisible)
-                    {
-                        _coreClientApi.Logger.Warning(
-                            $"[DivineAscension] Attempted to switch to hidden tab {tc.NewSubTab} (HasReligion={UserHasReligion}, HasCivilization={HasCivilization()}). Ignoring.");
-                        break; // Don't process the tab change
-                    }
-
-                    State.CurrentSubTab = tc.NewSubTab;
-                    // Clear transient action error on tab change
-                    State.LastActionError = null;
-
-                    // Clear context-specific errors when switching into a tab
-                    switch (tc.NewSubTab)
-                    {
-                        case CivilizationSubTab.Browse:
-                            if (State.DetailState.ViewingCivilizationId != null)
-                                State.DetailState.ErrorMsg = null;
-                            else
-                                State.BrowseState.ErrorMsg = null;
-                            break;
-                        case CivilizationSubTab.Info:
-                            State.InfoState.ErrorMsg = null;
-                            RequestCivilizationInfo();
-                            break;
-                        case CivilizationSubTab.Invites:
-                            State.InviteState.ErrorMsg = null;
-                            RequestCivilizationInfo();
-                            break;
-                        case CivilizationSubTab.Diplomacy:
-                            State.DiplomacyState.ErrorMessage = null;
-                            RequestDiplomacyInfo();
-                            break;
-                        case CivilizationSubTab.HolySites:
-                            State.HolySitesState.Browse.ErrorMsg = null;
-                            RequestCivilizationHolySites();
-                            break;
-                        case CivilizationSubTab.Milestones:
-                            State.MilestoneState.ErrorMsg = null;
-                            RequestMilestoneProgress();
-                            break;
-                    }
-
-                    break;
-
                 case SubTabEvent.DismissActionError:
                     State.LastActionError = null;
                     break;
 
                 case SubTabEvent.DismissContextError dce:
-                    switch (dce.SubTab)
+                    switch (dce.Nav)
                     {
-                        case CivilizationSubTab.Browse:
+                        case SidebarNavId.CivilizationBrowse:
                             if (State.DetailState.ViewingCivilizationId != null)
                                 State.DetailState.ErrorMsg = null;
                             else
                                 State.BrowseState.ErrorMsg = null;
                             break;
-                        case CivilizationSubTab.Info:
+                        case SidebarNavId.CivilizationInfo:
                             State.InfoState.ErrorMsg = null;
                             break;
-                        case CivilizationSubTab.Invites:
+                        case SidebarNavId.CivilizationInvites:
                             State.InviteState.ErrorMsg = null;
                             break;
-                        case CivilizationSubTab.Diplomacy:
+                        case SidebarNavId.CivilizationDiplomacy:
                             State.DiplomacyState.ErrorMessage = null;
                             break;
                     }
@@ -961,19 +899,19 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     break;
 
                 case SubTabEvent.RetryRequested rr:
-                    switch (rr.SubTab)
+                    switch (rr.Nav)
                     {
-                        case CivilizationSubTab.Browse:
+                        case SidebarNavId.CivilizationBrowse:
                             if (State.DetailState.ViewingCivilizationId != null)
                                 RequestCivilizationInfo(State.DetailState.ViewingCivilizationId);
                             else
                                 RequestCivilizationList(State.BrowseState.DeityFilter);
                             break;
-                        case CivilizationSubTab.Info:
-                        case CivilizationSubTab.Invites:
+                        case SidebarNavId.CivilizationInfo:
+                        case SidebarNavId.CivilizationInvites:
                             RequestCivilizationInfo();
                             break;
-                        case CivilizationSubTab.Diplomacy:
+                        case SidebarNavId.CivilizationDiplomacy:
                             RequestDiplomacyInfo();
                             break;
                     }
@@ -1530,32 +1468,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         {
             _soundManager.PlayClick();
 
-            // AUTO-CORRECT TAB: Switch to appropriate tab based on action
-            var currentTab = State.CurrentSubTab;
-            switch (packet.Action?.ToLowerInvariant())
-            {
-                case "leave" or "disband":
-                    // Leaving civilization - switch to Browse
-                    if (currentTab is CivilizationSubTab.Info)
-                    {
-                        _coreClientApi.Logger.Debug(
-                            $"[DivineAscension] Switching tab from {currentTab} to Browse after leaving civilization");
-                        State.CurrentSubTab = CivilizationSubTab.Browse;
-                    }
-
-                    break;
-
-                case "join" or "create" or "accept":
-                    // Joining/creating civilization - switch to Info to show new civilization
-                    if (currentTab is CivilizationSubTab.Invites or CivilizationSubTab.Create)
-                    {
-                        _coreClientApi.Logger.Debug(
-                            $"[DivineAscension] Switching tab from {currentTab} to Info after joining civilization");
-                        State.CurrentSubTab = CivilizationSubTab.Info;
-                    }
-
-                    break;
-            }
+            // Nav redirect after join/leave/etc. is handled at the dialog level
+            // (GuiDialogHandlers.OnCivilizationActionCompleted) so it can update
+            // the sidebar nav. This method handles only data refreshes.
 
             RequestCivilizationList(State.BrowseState.DeityFilter);
             RequestCivilizationInfo();

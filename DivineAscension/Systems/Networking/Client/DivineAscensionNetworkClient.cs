@@ -448,8 +448,10 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
                         isInvolved);
                 }
 
-                // Refresh diplomacy data if tab is open and player is involved
-                if (isInvolved && civManager.CurrentSubTab == CivilizationSubTab.Diplomacy)
+                // Refresh diplomacy data if the diplomacy view is open and the player is involved.
+                var dialog = _modLoaderService?.GetModSystem<GuiDialog>();
+                var onDiplomacy = dialog?.State.Sidebar.CurrentNav == SidebarNavId.CivilizationDiplomacy;
+                if (isInvolved && onDiplomacy)
                 {
                     civManager.RequestDiplomacyInfo();
                 }

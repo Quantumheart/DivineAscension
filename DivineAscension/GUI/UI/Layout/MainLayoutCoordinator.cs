@@ -190,16 +190,25 @@ internal static class MainLayoutCoordinator
         if (content.W <= 0f || content.H <= 0f) return;
 
         var nav = state.Sidebar.CurrentNav;
-        if (SidebarNavMapper.ToReligionSubTab(nav) is { } religionSub)
+        switch (nav)
         {
-            manager.ReligionStateManager.DrawReligionTab(religionSub, content.X, content.Y, content.W, content.H);
-            return;
-        }
-
-        if (SidebarNavMapper.ToCivilizationSubTab(nav) is { } civSub)
-        {
-            manager.CivilizationManager.DrawCivilizationTab(civSub, content.X, content.Y, content.W, content.H);
-            return;
+            case SidebarNavId.ReligionBrowse:
+            case SidebarNavId.ReligionInfo:
+            case SidebarNavId.ReligionActivity:
+            case SidebarNavId.ReligionRoles:
+            case SidebarNavId.ReligionInvites:
+            case SidebarNavId.ReligionCreate:
+                manager.ReligionStateManager.DrawReligionTab(nav, content.X, content.Y, content.W, content.H);
+                return;
+            case SidebarNavId.CivilizationBrowse:
+            case SidebarNavId.CivilizationInfo:
+            case SidebarNavId.CivilizationInvites:
+            case SidebarNavId.CivilizationCreate:
+            case SidebarNavId.CivilizationDiplomacy:
+            case SidebarNavId.CivilizationHolySites:
+            case SidebarNavId.CivilizationMilestones:
+                manager.CivilizationManager.DrawCivilizationTab(nav, content.X, content.Y, content.W, content.H);
+                return;
         }
 
         if (nav == SidebarNavId.Blessings)

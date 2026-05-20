@@ -1,9 +1,10 @@
+using DivineAscension.GUI.State;
 using DivineAscension.GUI.State.Religion;
 
 namespace DivineAscension.GUI.Models.Religion.Tab;
 
 public readonly struct ReligionTabViewModel(
-    SubTab currentSubTab,
+    SidebarNavId currentNav,
     ErrorState errorState,
     bool hasReligion,
     float x,
@@ -11,7 +12,7 @@ public readonly struct ReligionTabViewModel(
     float width,
     float height)
 {
-    public SubTab CurrentSubTab { get; } = currentSubTab;
+    public SidebarNavId CurrentNav { get; } = currentNav;
     public ErrorState ErrorState { get; } = errorState;
     public bool HasReligion { get; } = hasReligion;
     public float X { get; } = x;
