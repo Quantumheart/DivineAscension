@@ -25,6 +25,17 @@ internal static class DiplomacyTabRenderer
     private const float LabelSize = Body;
     private const float TableRowHeight = 24f;
 
+    // Column widths as fractions of the pane width. Replaces the previous
+    // fixed pixel anchors (220/420/560/700/820) which required ~960px of
+    // pane width and overflowed the right-most columns once the
+    // master/detail refactor narrowed the content area.
+    private const float ColCivilizationFrac = 0.24f;
+    private const float ColStatusFrac       = 0.20f;
+    private const float ColEstablishedFrac  = 0.14f;
+    private const float ColExpiresFrac      = 0.14f;
+    private const float ColViolationsFrac   = 0.12f;
+    // Actions consumes the remainder (~0.16) so the columns always sum to vm.Width.
+
     public static DiplomacyTabRendererResult Draw(
         DiplomacyTabViewModel vm,
         ImDrawListPtr drawList)
@@ -168,13 +179,16 @@ internal static class DiplomacyTabRenderer
             return currentY + 20f;
         }
 
-        // Table headers (widened columns for better spacing and readability)
-        var col1 = vm.X; // Civilization
-        var col2 = vm.X + 220f; // Status - 220px spacing
-        var col3 = vm.X + 420f; // Established - 200px spacing (was 100px)
-        var col4 = vm.X + 560f; // Expires - 140px spacing (was 100px)
-        var col5 = vm.X + 700f; // Violations - 140px spacing
-        var col6 = vm.X + 820f; // Actions - 120px spacing
+        // Table headers — column anchors scale with vm.Width so the table
+        // fits any pane size without overflowing the right edge.
+        var w = vm.Width;
+        var col1 = vm.X;                                                                   // Civilization
+        var col2 = vm.X + w * ColCivilizationFrac;                                         // Status
+        var col3 = col2 + w * ColStatusFrac;                                               // Established
+        var col4 = col3 + w * ColEstablishedFrac;                                          // Expires
+        var col5 = col4 + w * ColExpiresFrac;                                              // Violations
+        var col6 = col5 + w * ColViolationsFrac;                                           // Actions
+        var violationsColWidth = col6 - col5;
 
         // Draw headers with clipping to prevent overlap
         drawList.PushClipRect(new Vector2(col1, currentY), new Vector2(col2 - 10f, currentY + TableRowHeight));
@@ -271,7 +285,7 @@ internal static class DiplomacyTabRenderer
                 var violationColor = rel.ViolationCount >= 2 ? ColorPalette.Red : ColorPalette.White;
                 var violationsText = $"{rel.ViolationCount}/{DiplomacyConstants.MaxViolations}";
                 var violationsTextSize = ImGui.CalcTextSize(violationsText);
-                var violationsX = col5 + (140f - violationsTextSize.X) / 2f; // Center within column
+                var violationsX = col5 + (violationsColWidth - violationsTextSize.X) / 2f; // Center within column
                 drawList.PushClipRect(new Vector2(col5, currentY), new Vector2(col6 - 10f, currentY + TableRowHeight));
                 drawList.AddText(ImGui.GetFont(), LabelSize, new Vector2(violationsX, currentY),
                     ImGui.ColorConvertFloat4ToU32(violationColor), violationsText);
