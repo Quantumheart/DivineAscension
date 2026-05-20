@@ -18,15 +18,31 @@ namespace DivineAscension.GUI.UI.Renderers.Sidebar;
 [ExcludeFromCodeCoverage]
 internal static class SidebarRenderer
 {
-    private const string IconDirectory = "GUI";
     private const float ToggleStripHeight = 28f;
     private const float GroupHeaderHeight = 22f;
-    private const float ItemHeight = 28f;
+    private const float ItemHeight = 24f;
     private const float ItemIndent = 12f;
-    private const float ItemIconSize = 18f;
-    private const float ItemIconPadding = 6f;
+    private const float ChapterChevronSize = 9f;
+    private const float ChapterChevronPadding = 6f;
+    private const float ItemBulletHalfSize = 3f;
+    private const float ItemBulletPadding = 6f;
+    private const float ItemVerseGap = 8f;
     private const float CollapsedStripIconSize = 32f;
-    private const float CollapsedIconPadding = 4f;
+
+    private static readonly string[] LowerRomanVerse =
+    {
+        "i.", "ii.", "iii.", "iv.", "v.", "vi.", "vii.", "viii.", "ix.", "x."
+    };
+
+    private static readonly string[] UpperRomanChapter =
+    {
+        "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"
+    };
+
+    private static readonly string[] LowerRomanVerseBare =
+    {
+        "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"
+    };
 
     public static IReadOnlyList<SidebarEvent> Draw(UiRect rect, SidebarViewModel vm)
     {
@@ -56,11 +72,28 @@ internal static class SidebarRenderer
 
     private static void DrawHideToggle(SidebarViewModel vm, List<SidebarEvent> events)
     {
-        var label = vm.IsCollapsed ? ">>" : "<<";
-        if (ImGui.Button($"{label}##da-sidebar-toggle", new Vector2(-1f, ToggleStripHeight)))
+        var cursor = ImGui.GetCursorScreenPos();
+        var availWidth = ImGui.GetContentRegionAvail().X;
+        if (availWidth <= 0f) availWidth = ToggleStripHeight;
+
+        if (ImGui.Button("##da-sidebar-toggle", new Vector2(-1f, ToggleStripHeight)))
         {
             events.Add(new SidebarEvent.SidebarToggled());
         }
+
+        // Double-chevron painted over the button face. Collapsed → points
+        // right (»), expanded → points left («). Primitive triangles keep
+        // it consistent with the rest of the codex chrome.
+        var drawList = ImGui.GetWindowDrawList();
+        var direction = vm.IsCollapsed
+            ? ChromeRenderer.ChevronDirection.Right
+            : ChromeRenderer.ChevronDirection.Left;
+        const float chevronSize = 9f;
+        const float chevronStride = 7f;
+        var cy = cursor.Y + ToggleStripHeight / 2f;
+        var cx = cursor.X + availWidth / 2f;
+        ChromeRenderer.DrawChevron(drawList, cx - chevronStride / 2f, cy, chevronSize, direction);
+        ChromeRenderer.DrawChevron(drawList, cx + chevronStride / 2f, cy, chevronSize, direction);
     }
 
     private static void DrawGroups(SidebarViewModel vm, List<SidebarEvent> events)
@@ -70,26 +103,42 @@ internal static class SidebarRenderer
             DrawGroupHeader(group, events);
             if (group.IsCollapsed) continue;
 
-            foreach (var item in group.Items)
+            for (var i = 0; i < group.Items.Count; i++)
             {
-                DrawItem(item, events);
+                DrawItem(group.Items[i], i, events);
             }
         }
     }
 
     private static void DrawGroupHeader(SidebarGroupViewModel group, List<SidebarEvent> events)
     {
-        var chevron = group.IsCollapsed ? "+" : "-";
-        ImGui.PushStyleColor(ImGuiCol.Text, ColorPalette.Gold);
-        if (ImGui.Selectable($"{chevron} {group.Label}##da-sidebar-grp-{group.Key}", false,
+        var cursor = ImGui.GetCursorScreenPos();
+        var drawList = ImGui.GetWindowDrawList();
+
+        // Empty-label Selectable owns the click area; chevron + label painted
+        // on top so the chevron stays a primitive (font-coverage independent).
+        if (ImGui.Selectable($"##da-sidebar-grp-{group.Key}", false,
                 ImGuiSelectableFlags.None, new Vector2(0, GroupHeaderHeight)))
         {
             events.Add(new SidebarEvent.GroupToggled(group.Key));
         }
-        ImGui.PopStyleColor();
+
+        var chevronX = cursor.X + ChapterChevronPadding + ChapterChevronSize / 2f;
+        var chevronY = cursor.Y + GroupHeaderHeight / 2f;
+        var chapterDirection = group.IsCollapsed
+            ? ChromeRenderer.ChevronDirection.Right
+            : ChromeRenderer.ChevronDirection.Down;
+        ChromeRenderer.DrawChevron(drawList, chevronX, chevronY, ChapterChevronSize,
+            chapterDirection, ColorPalette.Gold);
+
+        var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
+        var fontSize = ImGui.GetFontSize();
+        var textX = chevronX + ChapterChevronSize / 2f + ChapterChevronPadding;
+        var textY = cursor.Y + (GroupHeaderHeight - fontSize) / 2f;
+        drawList.AddText(new Vector2(textX, textY), textColor, group.Label);
     }
 
-    private static void DrawItem(SidebarItemViewModel item, List<SidebarEvent> events)
+    private static void DrawItem(SidebarItemViewModel item, int verseIndex, List<SidebarEvent> events)
     {
         ImGui.Indent(ItemIndent);
 
@@ -134,37 +183,39 @@ internal static class SidebarRenderer
 
         if (clicked) events.Add(new SidebarEvent.ItemClicked(item.Id));
 
-        // Icon on the left.
-        var iconX = cursor.X + ItemIconPadding;
-        var iconY = cursor.Y + (ItemHeight - ItemIconSize) / 2f;
-        DrawItemIcon(drawList, item.IconName, iconX, iconY, ItemIconSize, item.IsDisabled);
+        // Diamond bullet (`✦` stand-in) leads each chapter verse.
+        var bulletCx = cursor.X + ItemBulletPadding + ItemBulletHalfSize;
+        var bulletCy = cursor.Y + ItemHeight / 2f;
+        var bulletColor = item.IsDisabled
+            ? ColorPalette.Gold * 0.4f
+            : ColorPalette.Gold;
+        ChromeRenderer.DrawDiamond(drawList, bulletCx, bulletCy, ItemBulletHalfSize, bulletColor);
 
-        // Label after the icon. Vertical center against text height.
+        // Lowercase Roman verse numeral (i. ii. iii. ...), then label.
+        var fontSize = ImGui.GetFontSize();
+        var textY = cursor.Y + (ItemHeight - fontSize) / 2f;
+        var verseColor = ImGui.ColorConvertFloat4ToU32(item.IsDisabled
+            ? ColorPalette.Gold * 0.4f
+            : ColorPalette.Gold * 0.75f);
         var textColor = ImGui.ColorConvertFloat4ToU32(item.IsDisabled
             ? ColorPalette.Grey
             : ColorPalette.White);
-        var fontSize = ImGui.GetFontSize();
-        var textX = iconX + ItemIconSize + ItemIconPadding;
-        var textY = cursor.Y + (ItemHeight - fontSize) / 2f;
+
+        var verse = verseIndex >= 0 && verseIndex < LowerRomanVerse.Length
+            ? LowerRomanVerse[verseIndex]
+            : string.Empty;
+        var verseX = bulletCx + ItemBulletHalfSize + ItemBulletPadding;
+        var verseWidth = 0f;
+        if (verse.Length > 0)
+        {
+            drawList.AddText(new Vector2(verseX, textY), verseColor, verse);
+            verseWidth = ImGui.CalcTextSize(verse).X;
+        }
+
+        var textX = verseX + verseWidth + (verseWidth > 0f ? ItemVerseGap : 0f);
         drawList.AddText(new Vector2(textX, textY), textColor, label);
 
         ImGui.Unindent(ItemIndent);
-    }
-
-    private static void DrawItemIcon(ImDrawListPtr drawList, string iconName, float x, float y,
-        float iconSize, bool isDisabled)
-    {
-        if (string.IsNullOrEmpty(iconName)) return;
-        var textureId = GuiIconLoader.GetTextureId(IconDirectory, iconName);
-        if (textureId == IntPtr.Zero) return;
-
-        var tint = ImGui.ColorConvertFloat4ToU32(isDisabled
-            ? new Vector4(1f, 1f, 1f, 0.5f)
-            : new Vector4(1f, 1f, 1f, 1f));
-        drawList.AddImage(textureId,
-            new Vector2(x, y),
-            new Vector2(x + iconSize, y + iconSize),
-            Vector2.Zero, Vector2.One, tint);
     }
 
     private static void DrawCollapsedStrip(SidebarViewModel vm, List<SidebarEvent> events)
@@ -172,14 +223,38 @@ internal static class SidebarRenderer
         var drawList = ImGui.GetWindowDrawList();
         var size = new Vector2(CollapsedStripIconSize, CollapsedStripIconSize);
 
-        foreach (var group in vm.Groups)
+        for (var g = 0; g < vm.Groups.Count; g++)
         {
-            foreach (var item in group.Items)
+            var group = vm.Groups[g];
+            var chapter = g >= 0 && g < UpperRomanChapter.Length
+                ? UpperRomanChapter[g]
+                : (g + 1).ToString();
+
+            // Slim chapter divider above every group except the first — keeps
+            // the chapter boundaries visible when only verse numerals show.
+            if (g > 0)
             {
+                var dividerOrigin = ImGui.GetCursorScreenPos();
+                var dividerWidth = ImGui.GetContentRegionAvail().X;
+                if (dividerWidth > 0f)
+                {
+                    ChromeRenderer.DrawDivider(drawList, dividerOrigin.X,
+                        dividerOrigin.Y + 4f, dividerWidth);
+                }
+                ImGui.Dummy(new Vector2(0f, 12f));
+            }
+
+            for (var i = 0; i < group.Items.Count; i++)
+            {
+                var item = group.Items[i];
+                var verse = i >= 0 && i < LowerRomanVerseBare.Length
+                    ? LowerRomanVerseBare[i]
+                    : (i + 1).ToString();
+                var stamp = verse;
+                var tooltipStamp = $"{chapter}.{verse}";
+
                 var rowOrigin = ImGui.GetCursorScreenPos();
 
-                // Hit-test selectable spans the icon's bounding box; the icon
-                // overlay is drawn afterwards via drawList so it paints on top.
                 var flags = item.IsDisabled
                     ? ImGuiSelectableFlags.Disabled
                     : ImGuiSelectableFlags.None;
@@ -191,39 +266,42 @@ internal static class SidebarRenderer
 
                 var isHovered = ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled);
 
-                // Overlay the icon on top of the selectable.
-                if (!string.IsNullOrEmpty(item.IconName))
-                {
-                    var textureId = GuiIconLoader.GetTextureId(IconDirectory, item.IconName);
-                    if (textureId != IntPtr.Zero)
-                    {
-                        var iconMin = new Vector2(rowOrigin.X + CollapsedIconPadding,
-                            rowOrigin.Y + CollapsedIconPadding);
-                        var iconMax = new Vector2(
-                            rowOrigin.X + CollapsedStripIconSize - CollapsedIconPadding,
-                            rowOrigin.Y + CollapsedStripIconSize - CollapsedIconPadding);
-                        var tint = ImGui.ColorConvertFloat4ToU32(item.IsDisabled
-                            ? new Vector4(1f, 1f, 1f, 0.4f)
-                            : new Vector4(1f, 1f, 1f, 1f));
-                        drawList.AddImage(textureId, iconMin, iconMax,
-                            Vector2.Zero, Vector2.One, tint);
+                // Chapter.verse stamp centered in the cell. Mirrors the
+                // expanded ledger's contents-page numbering so the collapsed
+                // rail still reads as the same book.
+                var stampColor = ImGui.ColorConvertFloat4ToU32(item.IsDisabled
+                    ? ColorPalette.Gold * 0.4f
+                    : ColorPalette.Gold);
+                var stampSize = ImGui.CalcTextSize(stamp);
+                var stampPos = new Vector2(
+                    rowOrigin.X + (CollapsedStripIconSize - stampSize.X) / 2f,
+                    rowOrigin.Y + (CollapsedStripIconSize - stampSize.Y) / 2f);
+                drawList.AddText(stampPos, stampColor, stamp);
 
-                        if (item.IsActive)
-                        {
-                            var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-                            drawList.AddRect(
-                                new Vector2(rowOrigin.X, rowOrigin.Y),
-                                new Vector2(rowOrigin.X + CollapsedStripIconSize,
-                                    rowOrigin.Y + CollapsedStripIconSize),
-                                borderColor, 2f, ImDrawFlags.None, 1.5f);
-                        }
-                    }
+                if (item.IsActive)
+                {
+                    var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
+                    drawList.AddRect(
+                        new Vector2(rowOrigin.X, rowOrigin.Y),
+                        new Vector2(rowOrigin.X + CollapsedStripIconSize,
+                            rowOrigin.Y + CollapsedStripIconSize),
+                        borderColor, 2f, ImDrawFlags.None, 1.5f);
+                }
+
+                if (item.Badge > 0)
+                {
+                    // Small diamond in the top-right corner signals unread
+                    // letters / pending work — matches the chapter bullet style.
+                    ChromeRenderer.DrawDiamond(drawList,
+                        rowOrigin.X + CollapsedStripIconSize - 5f,
+                        rowOrigin.Y + 5f,
+                        3f, ColorPalette.Gold);
                 }
 
                 if (isHovered)
                 {
                     using var _ = ChromeRenderer.BeginStyledTooltip();
-                    ImGui.TextUnformatted(item.Label);
+                    ImGui.TextUnformatted($"{tooltipStamp}  {item.Label}");
                     if (item.Badge > 0)
                     {
                         ImGui.TextUnformatted($"({item.Badge})");

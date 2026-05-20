@@ -70,6 +70,48 @@ internal static class ChromeRenderer
         drawList.AddQuadFilled(top, right, bottom, left, color);
     }
 
+    /// <summary>Direction a <see cref="DrawChevron" /> triangle points.</summary>
+    public enum ChevronDirection { Right, Down, Left, Up }
+
+    /// <summary>
+    ///     Paint a small filled triangle as a disclosure chevron. Painted as
+    ///     primitives so it renders without Geometric-Shapes glyph coverage in
+    ///     the loaded font.
+    /// </summary>
+    public static void DrawChevron(ImDrawListPtr drawList, float cx, float cy, float size,
+        ChevronDirection direction, Vector4? colorOverride = null)
+    {
+        if (size <= 0f) return;
+        var color = ImGui.ColorConvertFloat4ToU32(colorOverride ?? ColorPalette.Gold);
+        var half = size / 2f;
+        Vector2 a, b, c;
+        switch (direction)
+        {
+            case ChevronDirection.Down:
+                a = new Vector2(cx - half, cy - half / 2f);
+                b = new Vector2(cx + half, cy - half / 2f);
+                c = new Vector2(cx, cy + half / 2f);
+                break;
+            case ChevronDirection.Up:
+                a = new Vector2(cx - half, cy + half / 2f);
+                b = new Vector2(cx + half, cy + half / 2f);
+                c = new Vector2(cx, cy - half / 2f);
+                break;
+            case ChevronDirection.Left:
+                a = new Vector2(cx + half / 2f, cy - half);
+                b = new Vector2(cx - half / 2f, cy);
+                c = new Vector2(cx + half / 2f, cy + half);
+                break;
+            case ChevronDirection.Right:
+            default:
+                a = new Vector2(cx - half / 2f, cy - half);
+                b = new Vector2(cx + half / 2f, cy);
+                c = new Vector2(cx - half / 2f, cy + half);
+                break;
+        }
+        drawList.AddTriangleFilled(a, b, c, color);
+    }
+
     /// <summary>
     ///     Paint a slim horizontal divider with a single centered diamond
     ///     ornament: <c>──── ◆ ────</c>. Lines flank the diamond on a shared
