@@ -92,6 +92,9 @@ public class DivineAscensionModSystem : ModSystem
         // Initialize profanity filter service
         ProfanityFilterService.Instance.Initialize(api);
 
+        // Hook Cinzel into VSImGui's font atlas before AssetsLoaded fires.
+        DivineAscension.Services.UI.CinzelFontService.Register(api);
+
         // Register Harmony Patches
         if (_harmony == null)
         {
