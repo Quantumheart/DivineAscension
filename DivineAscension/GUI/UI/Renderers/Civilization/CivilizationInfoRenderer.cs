@@ -10,6 +10,7 @@ using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Components.Overlays;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network.Civilization;
@@ -78,46 +79,46 @@ internal static class CivilizationInfoRenderer
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), rankText);
         currentY += Math.Max(iconSize + 4f, 32f);
 
-        // Info grid
-        var leftCol = vm.X;
-        var rightCol = vm.X + vm.Width / 2f;
+        // Ornamental divider under the civilization header.
+        ChromeRenderer.DrawDivider(drawList, vm.X, currentY, vm.Width);
+        currentY += 20f;
 
-        // Founded date
-        TextRenderer.DrawLabel(drawList,
+        // Founded · · · · · 2026-03-14
+        ChromeRenderer.DrawLeader(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_FOUNDED),
-            leftCol, currentY, Body, ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), Body, new Vector2(leftCol + 120f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White), createdDate.ToString("yyyy-MM-dd"));
+            createdDate.ToString("yyyy-MM-dd"),
+            vm.X, currentY, vm.Width);
+        currentY += 22f;
 
-        // Member count
-        TextRenderer.DrawLabel(drawList,
+        // Members · · · · · 3/4
+        ChromeRenderer.DrawLeader(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_MEMBERS),
-            rightCol, currentY, Body, ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), Body, new Vector2(rightCol + 80f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White), $"{vm.MemberReligions?.Count ?? 0}/4");
+            $"{vm.MemberReligions?.Count ?? 0}/4",
+            vm.X, currentY, vm.Width);
+        currentY += 22f;
 
-        currentY += 20f;
-
-        // Civilization founder (player name)
-        TextRenderer.DrawLabel(drawList,
+        // Founder · · · · · <name>
+        ChromeRenderer.DrawLeader(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_FOUNDER),
-            leftCol, currentY, Body, ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), Body, new Vector2(leftCol + 120f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), vm.FounderName);
+            vm.FounderName,
+            vm.X, currentY, vm.Width,
+            valueColor: ColorPalette.Gold);
+        currentY += 22f;
 
-        currentY += 20f;
-
-        // Founding religion
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_FOUNDING_RELIGION),
-            leftCol, currentY, Body, ColorPalette.Grey);
+        // Founding religion · · · · · <religion>
         var founderReligionName =
             vm.MemberReligions?.FirstOrDefault(m => m.ReligionId == founderReligionUID)?.ReligionName ??
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_UNKNOWN_RELIGION);
-        drawList.AddText(ImGui.GetFont(), Body, new Vector2(leftCol + 120f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), founderReligionName);
-
+        ChromeRenderer.DrawLeader(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_FOUNDING_RELIGION),
+            founderReligionName,
+            vm.X, currentY, vm.Width,
+            valueColor: ColorPalette.Gold);
         currentY += 28f;
+
+        // Divider before the Description section.
+        ChromeRenderer.DrawDivider(drawList, vm.X, currentY, vm.Width);
+        currentY += 18f;
 
         // Description section
         TextRenderer.DrawLabel(drawList,
