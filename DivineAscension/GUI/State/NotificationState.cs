@@ -5,6 +5,8 @@ namespace DivineAscension.GUI.State;
 
 public class NotificationState
 {
+    public const int HistoryCap = 50;
+
     public bool IsVisible { get; set; }
     public NotificationType Type { get; set; }
     public string RankName { get; set; } = string.Empty;
@@ -13,6 +15,13 @@ public class NotificationState
     public float DisplayDuration { get; set; } = 8f;
     public float ElapsedTime { get; set; }
     public Queue<PendingNotification> PendingNotifications { get; set; } = new();
+
+    /// <summary>
+    ///     Ring-style history of every notification that has been queued. Capped at
+    ///     <see cref="HistoryCap" /> entries (oldest evicted). Surfaced by the
+    ///     right-rail notification feed in Phase 3.
+    /// </summary>
+    public List<NotificationHistoryEntry> History { get; } = new();
 
     public void Reset()
     {
@@ -24,6 +33,7 @@ public class NotificationState
         DisplayDuration = 8f;
         ElapsedTime = 0f;
         PendingNotifications.Clear();
+        History.Clear();
     }
 }
 

@@ -31,6 +31,14 @@ public class NotificationManager(ISoundManager soundManager) : INotificationMana
     {
         var notification = new PendingNotification(type, rankName, rankDescription, deity);
 
+        // Push into persistent history (capped, ring-style). Every queued toast
+        // lands in history without retrofitting individual callers.
+        State.History.Add(new NotificationHistoryEntry(type, rankName, rankDescription, deity, DateTime.UtcNow));
+        while (State.History.Count > NotificationState.HistoryCap)
+        {
+            State.History.RemoveAt(0);
+        }
+
         // If queue is at max size, remove the oldest notification
         if (State.PendingNotifications.Count >= MaxQueueSize)
         {
@@ -44,6 +52,26 @@ public class NotificationManager(ISoundManager soundManager) : INotificationMana
         {
             ShowNextNotification();
         }
+    }
+
+    /// <summary>
+    ///     Marks the history entry at <paramref name="index" /> as read. Out-of-range
+    ///     indices are a no-op so callers can fire without bounds checks.
+    /// </summary>
+    public void MarkRead(int index)
+    {
+        if (index < 0 || index >= State.History.Count) return;
+        var entry = State.History[index];
+        if (entry.Read) return;
+        State.History[index] = entry with { Read = true };
+    }
+
+    /// <summary>
+    ///     Clears the notification history. Does not affect the live toast queue.
+    /// </summary>
+    public void ClearHistory()
+    {
+        State.History.Clear();
     }
 
     /// <summary>
@@ -176,4 +204,6 @@ public interface INotificationManager
     void Update(float deltaTime);
     void DismissCurrentNotification();
     void OnViewBlessingsClicked(Action openCallback, Action setTabCallback);
+    void MarkRead(int index);
+    void ClearHistory();
 }
