@@ -40,22 +40,26 @@ public static class CinzelFontService
         if (_registered) return;
         if (api.Side != EnumAppSide.Client) return;
 
-        var cacheDir = Path.Combine(GamePaths.Cache, "divineascension", "fonts");
-        try
-        {
-            Directory.CreateDirectory(cacheDir);
-        }
-        catch (Exception ex)
-        {
-            api.Logger.Error($"[DivineAscension] Could not create font cache dir '{cacheDir}': {ex.Message}");
-            return;
-        }
-
-        var regularPath = ExtractFontToCache(api, RegularAssetPath, cacheDir, $"{RegularName}.ttf");
-        var boldPath = ExtractFontToCache(api, BoldAssetPath, cacheDir, $"{BoldName}.ttf");
-
+        // VS forbids asset reads until AssetsLoaded, but VSImGui fires
+        // BeforeFontsLoaded during its own AssetsLoaded — so do the
+        // extraction lazily inside the callback, where asset access is
+        // guaranteed to be legal.
         FontManager.BeforeFontsLoaded += (fonts, _) =>
         {
+            var cacheDir = Path.Combine(GamePaths.Cache, "divineascension", "fonts");
+            try
+            {
+                Directory.CreateDirectory(cacheDir);
+            }
+            catch (Exception ex)
+            {
+                api.Logger.Error($"[DivineAscension] Could not create font cache dir '{cacheDir}': {ex.Message}");
+                return;
+            }
+
+            var regularPath = ExtractFontToCache(api, RegularAssetPath, cacheDir, $"{RegularName}.ttf");
+            var boldPath = ExtractFontToCache(api, BoldAssetPath, cacheDir, $"{BoldName}.ttf");
+
             if (regularPath != null) fonts.Add(regularPath);
             if (boldPath != null) fonts.Add(boldPath);
         };
