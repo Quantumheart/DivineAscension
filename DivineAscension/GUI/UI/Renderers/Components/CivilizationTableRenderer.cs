@@ -16,16 +16,19 @@ namespace DivineAscension.GUI.UI.Renderers.Components;
 
 /// <summary>
 ///     Renders a table view for civilization browsing with variable-height rows.
-///     Rows expand based on wrapped description text.
+///     Width derives from the view model and is split proportionally between
+///     Name (30%), Religions (15%) and Description (55%) of the available inner
+///     space (table width minus scrollbar).
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class CivilizationTableRenderer
 {
-    // Table dimensions
-    private const float TableWidth = 1368f;
-    private const float NameColumnWidth = 400f;
-    private const float ReligionsColumnWidth = 200f;
-    private const float DescriptionColumnWidth = 768f;
+    private const float NameWeight = 0.30f;
+    private const float ReligionsWeight = 0.15f;
+    private const float DescriptionWeight = 0.55f;
+    private const float MinNameColumnWidth = 160f;
+    private const float MinReligionsColumnWidth = 80f;
+    private const float MinDescriptionColumnWidth = 240f;
     private const float HeaderHeight = 27f;
     private const float MinRowHeight = 80f;
     private const float RowPaddingVertical = 12f;
@@ -39,9 +42,6 @@ internal static class CivilizationTableRenderer
     private const float HeaderFontSize = 16f;
     private const float DescriptionPaddingHorizontal = 12f;
 
-    /// <summary>
-    ///     Pure renderer for civilization table. Emits events instead of mutating state.
-    /// </summary>
     public static CivilizationTableRenderResult Draw(
         CivilizationTableViewModel viewModel,
         ImDrawListPtr drawList)
@@ -55,31 +55,36 @@ internal static class CivilizationTableRenderer
         var selectedCivId = viewModel.SelectedCivId;
         var tableHeight = viewModel.Height;
 
-        // Draw table background container
-        DrawTableBackground(drawList, x, y, TableWidth, tableHeight);
+        // Responsive sizing — split available width between columns by weight,
+        // each clamped to a usable minimum.
+        var minTableWidth = MinNameColumnWidth + MinReligionsColumnWidth + MinDescriptionColumnWidth + ScrollbarWidth;
+        var tableWidth = MathF.Max(viewModel.Width, minTableWidth);
+        var inner = tableWidth - ScrollbarWidth;
+        var nameColumnWidth = MathF.Max(MinNameColumnWidth, inner * NameWeight);
+        var religionsColumnWidth = MathF.Max(MinReligionsColumnWidth, inner * ReligionsWeight);
+        var descriptionColumnWidth = MathF.Max(MinDescriptionColumnWidth,
+            inner - nameColumnWidth - religionsColumnWidth);
 
-        // Loading state
+        DrawTableBackground(drawList, x, y, tableWidth, tableHeight);
+
         if (isLoading)
         {
-            DrawLoadingState(drawList, x, y, TableWidth, tableHeight);
+            DrawLoadingState(drawList, x, y, tableWidth, tableHeight);
             return new CivilizationTableRenderResult(events, tableHeight);
         }
 
-        // Draw fixed header row
-        DrawTableHeader(drawList, x, y);
+        DrawTableHeader(drawList, x, y, tableWidth, nameColumnWidth, religionsColumnWidth);
 
-        // No civilizations state
         if (civilizations.Count == 0)
         {
-            DrawEmptyState(drawList, x, y + HeaderHeight, TableWidth, tableHeight - HeaderHeight);
+            DrawEmptyState(drawList, x, y + HeaderHeight, tableWidth, tableHeight - HeaderHeight);
             return new CivilizationTableRenderResult(events, tableHeight);
         }
 
         // Pre-calculate all row heights (needed for scroll calculation)
         var rowHeights =
-            CalculateAllRowHeights(civilizations, DescriptionColumnWidth - DescriptionPaddingHorizontal * 2f);
+            CalculateAllRowHeights(civilizations, descriptionColumnWidth - DescriptionPaddingHorizontal * 2f);
 
-        // Calculate content height (sum of all row heights + spacing)
         var contentHeight = 0f;
         for (var i = 0; i < rowHeights.Count; i++)
         {
@@ -91,9 +96,8 @@ internal static class CivilizationTableRenderer
         var visibleHeight = tableHeight - HeaderHeight;
         var maxScroll = Math.Max(0f, contentHeight - visibleHeight);
 
-        // Handle mouse wheel scrolling
         var mousePos = ImGui.GetMousePos();
-        var isMouseOver = mousePos.X >= x && mousePos.X <= x + TableWidth &&
+        var isMouseOver = mousePos.X >= x && mousePos.X <= x + tableWidth &&
                           mousePos.Y >= y + HeaderHeight && mousePos.Y <= y + tableHeight;
         if (isMouseOver)
         {
@@ -109,26 +113,24 @@ internal static class CivilizationTableRenderer
             }
         }
 
-        // Set clipping region for rows (below header)
         var rowStart = new Vector2(x, y + HeaderHeight);
-        var rowEnd = new Vector2(x + TableWidth, y + tableHeight);
+        var rowEnd = new Vector2(x + tableWidth, y + tableHeight);
         drawList.PushClipRect(rowStart, rowEnd, true);
 
-        // Draw visible rows with position-based culling
         var currentY = y + HeaderHeight - scrollY;
         for (var i = 0; i < civilizations.Count; i++)
         {
             var civ = civilizations[i];
             var rowHeight = rowHeights[i];
 
-            // Culling: skip if row completely outside visible area
             if (currentY + rowHeight < y + HeaderHeight || currentY > y + tableHeight)
             {
                 currentY += rowHeight + RowSpacing;
                 continue;
             }
 
-            var clickedCivId = DrawTableRow(drawList, civ, x, currentY, rowHeight, selectedCivId);
+            var clickedCivId = DrawTableRow(drawList, civ, x, currentY, rowHeight,
+                tableWidth, nameColumnWidth, religionsColumnWidth, descriptionColumnWidth, selectedCivId);
             if (clickedCivId != null)
             {
                 selectedCivId = clickedCivId;
@@ -140,19 +142,15 @@ internal static class CivilizationTableRenderer
 
         drawList.PopClipRect();
 
-        // Draw scrollbar if needed
         if (contentHeight > visibleHeight)
         {
-            Scrollbar.Draw(drawList, x + TableWidth - ScrollbarWidth, y + HeaderHeight,
+            Scrollbar.Draw(drawList, x + tableWidth - ScrollbarWidth, y + HeaderHeight,
                 ScrollbarWidth, visibleHeight, scrollY, maxScroll);
         }
 
         return new CivilizationTableRenderResult(events, tableHeight);
     }
 
-    /// <summary>
-    ///     Pre-calculate heights for all rows based on wrapped description text
-    /// </summary>
     private static List<float> CalculateAllRowHeights(
         IReadOnlyList<CivilizationListResponsePacket.CivilizationInfo> civilizations,
         float descriptionWidth)
@@ -166,26 +164,18 @@ internal static class CivilizationTableRenderer
         return heights;
     }
 
-    /// <summary>
-    ///     Calculate height for a single row based on wrapped description text
-    /// </summary>
     private static float CalculateRowHeight(string description, float descriptionWidth)
     {
         if (string.IsNullOrEmpty(description))
             return MinRowHeight;
 
-        // Calculate wrapped text height using ImGui
         var wrappedSize = ImGui.CalcTextSize(description, descriptionWidth);
         var textHeight = wrappedSize.Y;
 
-        // Row height = text height + padding, but at least MinRowHeight
         var calculatedHeight = textHeight + (RowPaddingVertical * 2f);
         return Math.Max(MinRowHeight, calculatedHeight);
     }
 
-    /// <summary>
-    ///     Draw the table background container
-    /// </summary>
     private static void DrawTableBackground(ImDrawListPtr drawList, float x, float y, float width, float height)
     {
         var start = new Vector2(x, y);
@@ -194,69 +184,65 @@ internal static class CivilizationTableRenderer
         drawList.AddRectFilled(start, end, bgColor, 4f);
     }
 
-    /// <summary>
-    ///     Draw the fixed table header with column labels
-    /// </summary>
-    private static void DrawTableHeader(ImDrawListPtr drawList, float x, float y)
+    private static void DrawTableHeader(ImDrawListPtr drawList, float x, float y,
+        float tableWidth, float nameColumnWidth, float religionsColumnWidth)
     {
         var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
 
-        // Header background
         drawList.AddRectFilled(
             new Vector2(x, y),
-            new Vector2(x + TableWidth, y + HeaderHeight),
+            new Vector2(x + tableWidth, y + HeaderHeight),
             headerColor);
 
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
 
         // Column 1: "Name" (aligned with name area after icon)
         var col1X = x;
-        var nameHeaderX = col1X + 12f + CivIconSize + 8f; // After icon space
+        var nameHeaderX = col1X + 12f + CivIconSize + 8f;
         drawList.AddText(ImGui.GetFont(), HeaderFontSize,
             new Vector2(nameHeaderX, y + (HeaderHeight - HeaderFontSize) / 2f),
             textColor,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_HEADER_NAME));
 
         // Column 2: "Religions" (centered)
-        var col2X = x + NameColumnWidth;
+        var col2X = x + nameColumnWidth;
         var religionsHeader =
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_HEADER_RELIGIONS);
         var religionsSize = ImGui.CalcTextSize(religionsHeader);
-        var religionsCenterX = col2X + (ReligionsColumnWidth - religionsSize.X) / 2f;
+        var religionsCenterX = col2X + (religionsColumnWidth - religionsSize.X) / 2f;
         drawList.AddText(ImGui.GetFont(), HeaderFontSize,
             new Vector2(religionsCenterX, y + (HeaderHeight - HeaderFontSize) / 2f),
             textColor,
             religionsHeader);
 
         // Column 3: "Description" (left-aligned)
-        var col3X = x + NameColumnWidth + ReligionsColumnWidth;
+        var col3X = x + nameColumnWidth + religionsColumnWidth;
         drawList.AddText(ImGui.GetFont(), HeaderFontSize,
             new Vector2(col3X + DescriptionPaddingHorizontal, y + (HeaderHeight - HeaderFontSize) / 2f),
             textColor,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_HEADER_DESCRIPTION));
     }
 
-    /// <summary>
-    ///     Draw a single table row with 3 columns and variable height
-    /// </summary>
-    /// <returns>Civilization ID if row was clicked, null otherwise</returns>
     private static string? DrawTableRow(
         ImDrawListPtr drawList,
         CivilizationListResponsePacket.CivilizationInfo civ,
         float x,
         float y,
         float rowHeight,
+        float tableWidth,
+        float nameColumnWidth,
+        float religionsColumnWidth,
+        float descriptionColumnWidth,
         string? selectedCivId)
     {
         var rowStart = new Vector2(x, y);
-        var rowEnd = new Vector2(x + TableWidth, y + rowHeight);
+        var rowEnd = new Vector2(x + tableWidth, y + rowHeight);
 
         var mousePos = ImGui.GetMousePos();
-        var isHovering = mousePos.X >= x && mousePos.X <= x + TableWidth &&
+        var isHovering = mousePos.X >= x && mousePos.X <= x + tableWidth &&
                          mousePos.Y >= y && mousePos.Y <= y + rowHeight;
         var isSelected = selectedCivId == civ.CivId;
 
-        // Determine background color based on state
         Vector4 bgColor;
         if (isSelected)
         {
@@ -272,36 +258,25 @@ internal static class CivilizationTableRenderer
             bgColor = ColorPalette.Background;
         }
 
-        // Draw row background
         var bgColorU32 = ImGui.ColorConvertFloat4ToU32(bgColor);
         drawList.AddRectFilled(rowStart, rowEnd, bgColorU32, 4f);
 
-        // Draw row border
         var borderColor = ImGui.ColorConvertFloat4ToU32(isSelected ? ColorPalette.Gold : ColorPalette.DarkBrown);
         drawList.AddRect(rowStart, rowEnd, borderColor, 4f, ImDrawFlags.None, 2f);
 
-        // Handle click
         string? clickedCivId = null;
         if (isHovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
         {
             clickedCivId = civ.CivId;
         }
 
-        // Column 1: Name (icon + text)
         DrawNameColumn(drawList, civ, x, y, rowHeight);
-
-        // Column 2: Religions (deity icons)
-        DrawReligionsColumn(drawList, civ, x + NameColumnWidth, y, rowHeight);
-
-        // Column 3: Description (wrapped text)
-        DrawDescriptionColumn(drawList, civ, x + NameColumnWidth + ReligionsColumnWidth, y, rowHeight);
+        DrawReligionsColumn(drawList, civ, x + nameColumnWidth, y, religionsColumnWidth);
+        DrawDescriptionColumn(drawList, civ, x + nameColumnWidth + religionsColumnWidth, y, descriptionColumnWidth);
 
         return clickedCivId;
     }
 
-    /// <summary>
-    ///     Draw Name column: Civilization icon (28x28) + name
-    /// </summary>
     private static void DrawNameColumn(
         ImDrawListPtr drawList,
         CivilizationListResponsePacket.CivilizationInfo civ,
@@ -311,12 +286,10 @@ internal static class CivilizationTableRenderer
     {
         const float padding = 12f;
 
-        // Draw civilization icon (vertically centered)
         var iconX = colX + padding;
         var iconY = rowY + (rowHeight - CivIconSize) / 2f;
         DrawCivIcon(drawList, civ.Icon, iconX, iconY);
 
-        // Draw civilization name (left-aligned after icon)
         var textX = iconX + CivIconSize + 8f;
         var textY = rowY + (rowHeight - NameFontSize) / 2f;
         var nameColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
@@ -326,35 +299,30 @@ internal static class CivilizationTableRenderer
             civ.Name);
     }
 
-    /// <summary>
-    ///     Draw Religions column: Deity icons showing diversity
-    /// </summary>
     private static void DrawReligionsColumn(
         ImDrawListPtr drawList,
         CivilizationListResponsePacket.CivilizationInfo civ,
         float colX,
         float rowY,
-        float rowHeight)
+        float columnWidth)
     {
         if (civ.MemberDeities == null || civ.MemberDeities.Count == 0)
             return;
 
-        // Start position (with padding, vertically centered for first row)
         var iconX = colX + 8f;
         var iconY = rowY + RowPaddingVertical;
 
-        // Draw deity icons, wrapping if needed
         var currentX = iconX;
         var currentY = iconY;
         const float iconTotalWidth = DeityIconSize + DeityIconSpacing;
 
         foreach (var deityName in civ.MemberDeities)
         {
-            // Check if we need to wrap to next row
-            if (currentX + DeityIconSize > colX + ReligionsColumnWidth - 8f)
+            // Wrap to next row when we'd overflow the column.
+            if (currentX + DeityIconSize > colX + columnWidth - 8f)
             {
                 currentX = iconX;
-                currentY += DeityIconSize + 4f; // Move to next row
+                currentY += DeityIconSize + 4f;
             }
 
             if (Enum.TryParse<DeityDomain>(deityName, out var deityType))
@@ -373,26 +341,22 @@ internal static class CivilizationTableRenderer
         }
     }
 
-    /// <summary>
-    ///     Draw Description column: Wrapped text
-    /// </summary>
     private static void DrawDescriptionColumn(
         ImDrawListPtr drawList,
         CivilizationListResponsePacket.CivilizationInfo civ,
         float colX,
         float rowY,
-        float rowHeight)
+        float columnWidth)
     {
         if (string.IsNullOrEmpty(civ.Description))
             return;
 
         var textX = colX + DescriptionPaddingHorizontal;
         var textY = rowY + RowPaddingVertical;
-        var textWidth = DescriptionColumnWidth - DescriptionPaddingHorizontal * 2f;
+        var textWidth = columnWidth - DescriptionPaddingHorizontal * 2f;
 
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
 
-        // Push text wrap width for multi-line rendering
         ImGui.PushTextWrapPos(textX + textWidth);
         drawList.AddText(ImGui.GetFont(), DescriptionFontSize,
             new Vector2(textX, textY),
@@ -401,9 +365,6 @@ internal static class CivilizationTableRenderer
         ImGui.PopTextWrapPos();
     }
 
-    /// <summary>
-    ///     Draw civilization icon with border
-    /// </summary>
     private static void DrawCivIcon(ImDrawListPtr drawList, string iconName, float x, float y)
     {
         var iconTextureId = CivilizationIconLoader.GetIconTextureId(iconName);
@@ -415,13 +376,11 @@ internal static class CivilizationTableRenderer
             var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
             drawList.AddImage(iconTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
 
-            // Icon border
             var iconBorderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.5f);
             drawList.AddRect(iconMin, iconMax, iconBorderColor, 3f, ImDrawFlags.None, 1f);
         }
         else
         {
-            // Fallback: draw colored circle
             var center = new Vector2(x + CivIconSize / 2f, y + CivIconSize / 2f);
             var radius = CivIconSize / 2f;
             var fallbackColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown);
@@ -430,9 +389,6 @@ internal static class CivilizationTableRenderer
         }
     }
 
-    /// <summary>
-    ///     Draw loading state message
-    /// </summary>
     private static void DrawLoadingState(ImDrawListPtr drawList, float x, float y, float width, float height)
     {
         var loadingText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_LOADING);
@@ -444,9 +400,6 @@ internal static class CivilizationTableRenderer
         drawList.AddText(textPos, textColor, loadingText);
     }
 
-    /// <summary>
-    ///     Draw empty state message (no civilizations)
-    /// </summary>
     private static void DrawEmptyState(ImDrawListPtr drawList, float x, float y, float width, float height)
     {
         var emptyText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_NO_CIVS);

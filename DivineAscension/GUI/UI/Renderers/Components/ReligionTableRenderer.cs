@@ -16,15 +16,14 @@ namespace DivineAscension.GUI.UI.Renderers.Components;
 
 /// <summary>
 ///     Renders a table view for religion browsing with fixed header and scrollable rows.
-///     Follows UX specifications from GitHub issue #77.
+///     Width + height derive from the supplied <c>ReligionTableViewModel</c>; column
+///     widths divide the available horizontal space evenly (minus the scrollbar).
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class ReligionTableRenderer
 {
-    // Table dimensions from UX spec
-    private const float TableWidth = 1368f;
-    private const float TableHeight = 590f;
-    private const float ColumnWidth = 270f;
+    private const int ColumnCount = 5;
+    private const float MinColumnWidth = 120f;
     private const float HeaderHeight = 27f;
     private const float RowHeight = 80f;
     private const float RowSpacing = 8f;
@@ -46,35 +45,41 @@ internal static class ReligionTableRenderer
         var scrollY = viewModel.ScrollY;
         var selectedReligionUID = viewModel.SelectedReligionUID;
 
+        // Responsive table sizing — width and height come from the view model
+        // (which inherits the content rect handed in by MainLayoutCoordinator).
+        var tableWidth = MathF.Max(viewModel.Width, MinColumnWidth * ColumnCount);
+        var tableHeight = MathF.Max(viewModel.Height, HeaderHeight + RowHeight);
+        var columnWidth = MathF.Max(MinColumnWidth, (tableWidth - ScrollbarWidth) / ColumnCount);
+
         // Draw table background container
-        DrawTableBackground(drawList, x, y, TableWidth, TableHeight);
+        DrawTableBackground(drawList, x, y, tableWidth, tableHeight);
 
         // Loading state
         if (isLoading)
         {
-            DrawLoadingState(drawList, x, y);
-            return new ReligionTableRenderResult(events, TableHeight);
+            DrawLoadingState(drawList, x, y, tableWidth, tableHeight);
+            return new ReligionTableRenderResult(events, tableHeight);
         }
 
         // Draw fixed header row
-        DrawTableHeader(drawList, x, y);
+        DrawTableHeader(drawList, x, y, columnWidth);
 
         // No religions state
         if (religions.Count == 0)
         {
-            DrawEmptyState(drawList, x, y + HeaderHeight);
-            return new ReligionTableRenderResult(events, TableHeight);
+            DrawEmptyState(drawList, x, y + HeaderHeight, tableWidth, tableHeight - HeaderHeight);
+            return new ReligionTableRenderResult(events, tableHeight);
         }
 
         // Calculate scroll limits
         var contentHeight = religions.Count * (RowHeight + RowSpacing);
-        var visibleHeight = TableHeight - HeaderHeight;
+        var visibleHeight = tableHeight - HeaderHeight;
         var maxScroll = Math.Max(0f, contentHeight - visibleHeight);
 
         // Handle mouse wheel scrolling
         var mousePos = ImGui.GetMousePos();
-        var isMouseOver = mousePos.X >= x && mousePos.X <= x + TableWidth &&
-                          mousePos.Y >= y + HeaderHeight && mousePos.Y <= y + TableHeight;
+        var isMouseOver = mousePos.X >= x && mousePos.X <= x + tableWidth &&
+                          mousePos.Y >= y + HeaderHeight && mousePos.Y <= y + tableHeight;
         if (isMouseOver)
         {
             var wheel = ImGui.GetIO().MouseWheel;
@@ -91,7 +96,7 @@ internal static class ReligionTableRenderer
 
         // Set clipping region for rows (below header)
         var rowStart = new Vector2(x, y + HeaderHeight);
-        var rowEnd = new Vector2(x + TableWidth, y + TableHeight);
+        var rowEnd = new Vector2(x + tableWidth, y + tableHeight);
         drawList.PushClipRect(rowStart, rowEnd, true);
 
         // Draw visible rows with culling optimization
@@ -101,13 +106,13 @@ internal static class ReligionTableRenderer
             var religion = religions[i];
 
             // Skip if not visible
-            if (rowY + RowHeight < y + HeaderHeight || rowY > y + TableHeight)
+            if (rowY + RowHeight < y + HeaderHeight || rowY > y + tableHeight)
             {
                 rowY += RowHeight + RowSpacing;
                 continue;
             }
 
-            var clickedUID = DrawTableRow(drawList, religion, x, rowY, selectedReligionUID);
+            var clickedUID = DrawTableRow(drawList, religion, x, rowY, tableWidth, columnWidth, selectedReligionUID);
             if (clickedUID != null)
             {
                 selectedReligionUID = clickedUID;
@@ -122,16 +127,13 @@ internal static class ReligionTableRenderer
         // Draw scrollbar if needed
         if (contentHeight > visibleHeight)
         {
-            Scrollbar.Draw(drawList, x + TableWidth - ScrollbarWidth, y + HeaderHeight,
+            Scrollbar.Draw(drawList, x + tableWidth - ScrollbarWidth, y + HeaderHeight,
                 ScrollbarWidth, visibleHeight, scrollY, maxScroll);
         }
 
-        return new ReligionTableRenderResult(events, TableHeight);
+        return new ReligionTableRenderResult(events, tableHeight);
     }
 
-    /// <summary>
-    ///     Draw the table background container
-    /// </summary>
     private static void DrawTableBackground(ImDrawListPtr drawList, float x, float y, float width, float height)
     {
         var start = new Vector2(x, y);
@@ -140,16 +142,12 @@ internal static class ReligionTableRenderer
         drawList.AddRectFilled(start, end, bgColor, 4f);
     }
 
-    /// <summary>
-    ///     Draw the fixed table header with column labels
-    /// </summary>
-    private static void DrawTableHeader(ImDrawListPtr drawList, float x, float y)
+    private static void DrawTableHeader(ImDrawListPtr drawList, float x, float y, float columnWidth)
     {
         var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
         const float fontSize = TableHeader;
         const float padding = 12f;
 
-        // Column labels
         var columns = new[]
         {
             LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_NAME),
@@ -161,42 +159,39 @@ internal static class ReligionTableRenderer
 
         for (var i = 0; i < columns.Length; i++)
         {
-            var colX = x + i * ColumnWidth;
+            var colX = x + i * columnWidth;
 
             if (i == 0)
             {
                 // Name column: offset header to align with text area after icon
                 var textAreaX = colX + padding + IconSize + padding;
-                var textAreaWidth = ColumnWidth - IconSize - padding * 3;
+                var textAreaWidth = columnWidth - IconSize - padding * 3;
                 DrawCenteredText(drawList, columns[i], textAreaX, y + 8f, textAreaWidth, headerColor, fontSize);
             }
             else
             {
-                DrawCenteredText(drawList, columns[i], colX, y + 8f, ColumnWidth, headerColor, fontSize);
+                DrawCenteredText(drawList, columns[i], colX, y + 8f, columnWidth, headerColor, fontSize);
             }
         }
     }
 
-    /// <summary>
-    ///     Draw a single table row with 5 columns
-    /// </summary>
-    /// <returns>Religion UID if row was clicked, null otherwise</returns>
     private static string? DrawTableRow(
         ImDrawListPtr drawList,
         ReligionListResponsePacket.ReligionInfo religion,
         float x,
         float y,
+        float tableWidth,
+        float columnWidth,
         string? selectedReligionUID)
     {
         var rowStart = new Vector2(x, y);
-        var rowEnd = new Vector2(x + TableWidth, y + RowHeight);
+        var rowEnd = new Vector2(x + tableWidth, y + RowHeight);
 
         var mousePos = ImGui.GetMousePos();
-        var isHovering = mousePos.X >= x && mousePos.X <= x + TableWidth &&
+        var isHovering = mousePos.X >= x && mousePos.X <= x + tableWidth &&
                          mousePos.Y >= y && mousePos.Y <= y + RowHeight;
         var isSelected = selectedReligionUID == religion.ReligionUID;
 
-        // Determine background color based on state
         Vector4 bgColor;
         if (isSelected)
         {
@@ -212,58 +207,42 @@ internal static class ReligionTableRenderer
             bgColor = ColorPalette.Background;
         }
 
-        // Draw row background
         var bgColorU32 = ImGui.ColorConvertFloat4ToU32(bgColor);
         drawList.AddRectFilled(rowStart, rowEnd, bgColorU32, 4f);
 
-        // Draw row border (2px solid #3D2E20)
         var borderColor = ImGui.ColorConvertFloat4ToU32(isSelected ? ColorPalette.Gold : ColorPalette.DarkBrown);
         drawList.AddRect(rowStart, rowEnd, borderColor, 4f, ImDrawFlags.None, 2f);
 
-        // Handle click
         string? clickedUID = null;
         if (isHovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
         {
             clickedUID = religion.ReligionUID;
         }
 
-        // Column 1: Name (deity icon + religion name)
-        DrawNameColumn(drawList, religion, x, y);
-
-        // Column 2: Deity (deity name + title)
-        DrawDeityColumn(drawList, religion, x + ColumnWidth, y);
-
-        // Column 3: Prestige
-        DrawPrestigeColumn(drawList, religion, x + ColumnWidth * 2, y);
-
-        // Column 4: Members
-        DrawMembersColumn(drawList, religion, x + ColumnWidth * 3, y);
-
-        // Column 5: Public
-        DrawPublicColumn(drawList, religion, x + ColumnWidth * 4, y);
+        DrawNameColumn(drawList, religion, x, y, columnWidth);
+        DrawDeityColumn(drawList, religion, x + columnWidth, y, columnWidth);
+        DrawPrestigeColumn(drawList, religion, x + columnWidth * 2, y, columnWidth);
+        DrawMembersColumn(drawList, religion, x + columnWidth * 3, y, columnWidth);
+        DrawPublicColumn(drawList, religion, x + columnWidth * 4, y, columnWidth);
 
         return clickedUID;
     }
 
-    /// <summary>
-    ///     Draw Name column: Deity icon (48x48) on left + religion name centered
-    /// </summary>
     private static void DrawNameColumn(
         ImDrawListPtr drawList,
         ReligionListResponsePacket.ReligionInfo religion,
         float colX,
-        float rowY)
+        float rowY,
+        float columnWidth)
     {
         const float padding = 12f;
 
-        // Draw deity icon
         var iconX = colX + padding;
         var iconY = rowY + (RowHeight - IconSize) / 2f;
         DrawDeityIcon(drawList, religion.Domain, iconX, iconY);
 
-        // Draw religion name (centered in remaining space)
         var textX = iconX + IconSize + padding;
-        var textWidth = ColumnWidth - IconSize - padding * 3;
+        var textWidth = columnWidth - IconSize - padding * 3;
         var nameText = religion.ReligionName;
         var textSize = ImGui.CalcTextSize(nameText);
         var textPosX = textX + (textWidth - textSize.X) / 2f;
@@ -273,63 +252,55 @@ internal static class ReligionTableRenderer
         drawList.AddText(ImGui.GetFont(), Body, new Vector2(textPosX, textPosY), nameColor, nameText);
     }
 
-    /// <summary>
-    ///     Draw Deity column: Deity name centered
-    /// </summary>
     private static void DrawDeityColumn(
         ImDrawListPtr drawList,
         ReligionListResponsePacket.ReligionInfo religion,
         float colX,
-        float rowY)
+        float rowY,
+        float columnWidth)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         const float fontSize = Body;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
-        DrawCenteredText(drawList, religion.DeityName, colX, centerY, ColumnWidth, textColor, fontSize);
+        DrawCenteredText(drawList, religion.DeityName, colX, centerY, columnWidth, textColor, fontSize);
     }
 
-    /// <summary>
-    ///     Draw Prestige column: Prestige rank name centered
-    /// </summary>
     private static void DrawPrestigeColumn(
         ImDrawListPtr drawList,
         ReligionListResponsePacket.ReligionInfo religion,
         float colX,
-        float rowY)
+        float rowY,
+        float columnWidth)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         const float fontSize = Body;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
-        DrawCenteredText(drawList, religion.PrestigeRank, colX, centerY, ColumnWidth, textColor, fontSize);
+        DrawCenteredText(drawList, religion.PrestigeRank, colX, centerY, columnWidth, textColor, fontSize);
     }
 
-    /// <summary>
-    ///     Draw Members column: Member count centered
-    /// </summary>
     private static void DrawMembersColumn(
         ImDrawListPtr drawList,
         ReligionListResponsePacket.ReligionInfo religion,
         float colX,
-        float rowY)
+        float rowY,
+        float columnWidth)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         const float fontSize = Body;
         var centerY = rowY + (RowHeight - fontSize) / 2f;
 
         var memberText = religion.MemberCount.ToString();
-        DrawCenteredText(drawList, memberText, colX, centerY, ColumnWidth, textColor, fontSize);
+        DrawCenteredText(drawList, memberText, colX, centerY, columnWidth, textColor, fontSize);
     }
 
-    /// <summary>
-    ///     Draw Public column: "Yes" or "No" centered
-    /// </summary>
     private static void DrawPublicColumn(
         ImDrawListPtr drawList,
         ReligionListResponsePacket.ReligionInfo religion,
         float colX,
-        float rowY)
+        float rowY,
+        float columnWidth)
     {
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         const float fontSize = Body;
@@ -338,12 +309,9 @@ internal static class ReligionTableRenderer
         var publicText = religion.IsPublic
             ? LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_PUBLIC)
             : LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_PRIVATE);
-        DrawCenteredText(drawList, publicText, colX, centerY, ColumnWidth, textColor, fontSize);
+        DrawCenteredText(drawList, publicText, colX, centerY, columnWidth, textColor, fontSize);
     }
 
-    /// <summary>
-    ///     Draw deity icon with border (48x48px)
-    /// </summary>
     private static void DrawDeityIcon(ImDrawListPtr drawList, string deityName, float x, float y)
     {
         var deityType = DomainHelper.ParseDeityType(deityName);
@@ -354,27 +322,21 @@ internal static class ReligionTableRenderer
 
         if (deityTextureId != IntPtr.Zero)
         {
-            // Draw icon texture
             var tintColor = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
             drawList.AddImage(deityTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColor);
         }
         else
         {
-            // Fallback: Colored circle
             var deityColor = DomainHelper.GetDeityColor(deityName);
             var iconCenter = new Vector2(x + IconSize / 2f, y + IconSize / 2f);
             var iconColorU32 = ImGui.ColorConvertFloat4ToU32(deityColor);
             drawList.AddCircleFilled(iconCenter, IconSize / 2f, iconColorU32, 16);
         }
 
-        // Draw border (2px solid #3D2E20)
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
         drawList.AddRect(iconMin, iconMax, borderColor, 4f, ImDrawFlags.None, 2f);
     }
 
-    /// <summary>
-    ///     Helper: Draw center-aligned text in a column
-    /// </summary>
     private static void DrawCenteredText(
         ImDrawListPtr drawList,
         string text,
@@ -384,7 +346,6 @@ internal static class ReligionTableRenderer
         uint color,
         float fontSize)
     {
-        // Calculate text size scaled to match the actual render font size
         var defaultFontSize = ImGui.GetFont().FontSize;
         var baseTextSize = ImGui.CalcTextSize(text);
         var scale = fontSize / defaultFontSize;
@@ -393,31 +354,25 @@ internal static class ReligionTableRenderer
         drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(textX, colY), color, text);
     }
 
-    /// <summary>
-    ///     Draw loading state
-    /// </summary>
-    private static void DrawLoadingState(ImDrawListPtr drawList, float x, float y)
+    private static void DrawLoadingState(ImDrawListPtr drawList, float x, float y, float width, float height)
     {
         var loadingText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_BROWSE_LOADING);
         var loadingSize = ImGui.CalcTextSize(loadingText);
         var loadingPos = new Vector2(
-            x + (TableWidth - loadingSize.X) / 2f,
-            y + (TableHeight - loadingSize.Y) / 2f
+            x + (width - loadingSize.X) / 2f,
+            y + (height - loadingSize.Y) / 2f
         );
         var loadingColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         drawList.AddText(loadingPos, loadingColor, loadingText);
     }
 
-    /// <summary>
-    ///     Draw empty state (no religions)
-    /// </summary>
-    private static void DrawEmptyState(ImDrawListPtr drawList, float x, float y)
+    private static void DrawEmptyState(ImDrawListPtr drawList, float x, float y, float width, float height)
     {
         var emptyText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_BROWSE_NO_RELIGIONS);
         var emptySize = ImGui.CalcTextSize(emptyText);
         var emptyPos = new Vector2(
-            x + (TableWidth - emptySize.X) / 2f,
-            y + (TableHeight - HeaderHeight - emptySize.Y) / 2f
+            x + (width - emptySize.X) / 2f,
+            y + (height - emptySize.Y) / 2f
         );
         var emptyColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         drawList.AddText(emptyPos, emptyColor, emptyText);
