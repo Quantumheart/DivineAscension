@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.GUI.Events.RightRail;
 using DivineAscension.GUI.Models.Religion.Header;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI.Renderers.RightRail;
@@ -56,8 +57,9 @@ internal static class MainLayoutCoordinator
         ApplySidebarEvents(sidebarEvents, manager, state);
 
         // --- Right rail ---
-        var railVm = BuildRailViewModel(manager, rail);
-        RightRailRenderer.Draw(rail, railVm);
+        var railVm = BuildRailViewModel(manager, state, rail);
+        var railEvents = RightRailRenderer.Draw(rail, railVm);
+        ApplyRailEvents(railEvents, manager, state);
 
         // --- Content dispatch (driven by Sidebar.CurrentNav).
         DispatchContent(manager, state, content, windowWidth, windowHeight, deltaTime);
@@ -157,7 +159,8 @@ internal static class MainLayoutCoordinator
         }
     }
 
-    private static RightRailViewModel BuildRailViewModel(GuiDialogManager manager, UiRect rail)
+    private static RightRailViewModel BuildRailViewModel(GuiDialogManager manager,
+        GuiDialogState state, UiRect rail)
     {
         var notifications = manager.NotificationManager.State.History;
         var civMembers = manager.CivilizationManager.CivilizationMemberReligions
@@ -181,7 +184,27 @@ internal static class MainLayoutCoordinator
             rail.Y,
             rail.W);
 
-        return new RightRailViewModel(header, notifications, ShowUnreadOnly: false);
+        return new RightRailViewModel(header, notifications, state.RightRail.ShowUnreadOnly);
+    }
+
+    private static void ApplyRailEvents(IReadOnlyList<RightRailEvent> events,
+        GuiDialogManager manager, GuiDialogState state)
+    {
+        foreach (var ev in events)
+        {
+            switch (ev)
+            {
+                case RightRailEvent.MarkNotificationRead mark:
+                    manager.NotificationManager.MarkRead(mark.Index);
+                    break;
+                case RightRailEvent.ClearNotificationHistory:
+                    manager.NotificationManager.ClearHistory();
+                    break;
+                case RightRailEvent.SetUnreadOnly toggle:
+                    state.RightRail.ShowUnreadOnly = toggle.Enabled;
+                    break;
+            }
+        }
     }
 
     private static void DispatchContent(GuiDialogManager manager, GuiDialogState state,

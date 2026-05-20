@@ -287,6 +287,16 @@ public static class LocalizationKeys
 
     #endregion
 
+    #region Right Rail Notification Feed
+
+    public const string RIGHT_RAIL_NOTIFICATIONS_TITLE = "divineascension:ui.rightrail.notifications.title";
+    public const string RIGHT_RAIL_NOTIFICATIONS_EMPTY = "divineascension:ui.rightrail.notifications.empty";
+    public const string RIGHT_RAIL_NOTIFICATIONS_EMPTY_UNREAD = "divineascension:ui.rightrail.notifications.empty_unread";
+    public const string RIGHT_RAIL_NOTIFICATIONS_CLEAR = "divineascension:ui.rightrail.notifications.clear";
+    public const string RIGHT_RAIL_NOTIFICATIONS_UNREAD_ONLY = "divineascension:ui.rightrail.notifications.unread_only";
+
+    #endregion
+
     #region Civilization - Holy Sites
 
     public const string UI_CIVILIZATION_HOLYSITES_TITLE = "divineascension:ui.civilization.holysites.title";
