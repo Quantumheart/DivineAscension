@@ -70,12 +70,15 @@ internal static class BlessingTabRenderer
             vm.ReligionPrestige);
         BlessingInfoRenderer.Draw(infoVm);
 
-        var buttonY = vm.WindowHeight - actionButtonHeight - actionButtonPadding;
-        var buttonX = vm.WindowWidth - actionButtonPadding;
+        // Action buttons anchor to the bottom-right of the content rect (not the
+        // whole window). vm.X / vm.Y are already absolute screen-space coords now
+        // that the layout coordinator hands renderers a content-only rect.
+        var buttonX = vm.X + vm.Width - actionButtonPadding;
+        var buttonY = vm.Y + vm.Height - actionButtonHeight - actionButtonPadding;
         var actionsVm = new BlessingActionsViewModel(
             vm.SelectedBlessingState,
-            ImGui.GetWindowPos().X + buttonX,
-            ImGui.GetWindowPos().Y + buttonY,
+            buttonX,
+            buttonY,
             vm.PlayerFavor,
             vm.ReligionPrestige
         );

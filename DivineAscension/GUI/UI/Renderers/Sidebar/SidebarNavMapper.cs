@@ -32,7 +32,8 @@ public static class SidebarNavMapper
         int ReligionInviteCount,
         int CivilizationInviteCount,
         SidebarNavId CurrentNav,
-        IReadOnlyDictionary<string, bool>? CollapsedGroups
+        IReadOnlyDictionary<string, bool>? CollapsedGroups,
+        bool IsSidebarCollapsed = false
     );
 
     /// <summary>
@@ -49,8 +50,7 @@ public static class SidebarNavMapper
             BuildPersonalGroup(ctx)
         };
 
-        var sidebarCollapsed = false;
-        return new SidebarViewModel(sidebarCollapsed, ctx.CurrentNav, groups);
+        return new SidebarViewModel(ctx.IsSidebarCollapsed, ctx.CurrentNav, groups);
     }
 
     /// <summary>
@@ -135,7 +135,8 @@ public static class SidebarNavMapper
             religionInvites,
             civInvites,
             sidebar.CurrentNav,
-            sidebar.CollapsedGroups);
+            sidebar.CollapsedGroups,
+            sidebar.IsCollapsed);
     }
 
     private static SidebarGroupViewModel BuildReligionGroup(Context ctx)
