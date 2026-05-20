@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
@@ -16,18 +17,21 @@ namespace DivineAscension.GUI.UI.Renderers.Sidebar;
 [ExcludeFromCodeCoverage]
 internal static class SidebarRenderer
 {
+    private const string IconDirectory = "GUI";
     private const float ToggleStripHeight = 28f;
     private const float GroupHeaderHeight = 22f;
     private const float ItemHeight = 28f;
     private const float ItemIndent = 12f;
-    private const float CollapsedStripIconSize = 24f;
+    private const float ItemIconSize = 18f;
+    private const float ItemIconPadding = 6f;
+    private const float CollapsedStripIconSize = 32f;
+    private const float CollapsedIconPadding = 4f;
 
     public static IReadOnlyList<SidebarEvent> Draw(UiRect rect, SidebarViewModel vm)
     {
         var events = new List<SidebarEvent>();
         if (rect.W <= 0f || rect.H <= 0f) return events;
 
-        // Anchor a child window to the passed rect so widget cursor coords align.
         ImGui.SetCursorScreenPos(new Vector2(rect.X, rect.Y));
         ImGui.PushStyleColor(ImGuiCol.ChildBg, ColorPalette.TableBackground);
         ImGui.BeginChild("##da-sidebar", new Vector2(rect.W, rect.H), false,
@@ -86,17 +90,22 @@ internal static class SidebarRenderer
 
     private static void DrawItem(SidebarItemViewModel item, List<SidebarEvent> events)
     {
-        // Indent everything inside a group.
         ImGui.Indent(ItemIndent);
 
         var label = item.Badge > 0
             ? $"{item.Label}  ({item.Badge})"
             : item.Label;
+        // Padding to leave room for the icon we draw below.
+        var paddedLabel = $"   {label}";
+
+        var cursor = ImGui.GetCursorScreenPos();
+        var rowWidth = MathF.Max(0f, ImGui.GetContentRegionAvail().X);
+        var drawList = ImGui.GetWindowDrawList();
 
         if (item.IsDisabled)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, ColorPalette.Grey);
-            ImGui.Selectable($"{label}##da-sidebar-item-{item.Id}", false,
+            ImGui.Selectable($"{paddedLabel}##da-sidebar-item-{item.Id}", false,
                 ImGuiSelectableFlags.Disabled, new Vector2(0, ItemHeight));
             ImGui.PopStyleColor();
 
@@ -115,7 +124,7 @@ internal static class SidebarRenderer
                 ImGui.PushStyleColor(ImGuiCol.Header, ColorPalette.Darken(ColorPalette.Gold, 0.6f));
             }
 
-            if (ImGui.Selectable($"{label}##da-sidebar-item-{item.Id}", item.IsActive,
+            if (ImGui.Selectable($"{paddedLabel}##da-sidebar-item-{item.Id}", item.IsActive,
                     ImGuiSelectableFlags.None, new Vector2(0, ItemHeight)))
             {
                 events.Add(new SidebarEvent.ItemClicked(item.Id));
@@ -127,30 +136,91 @@ internal static class SidebarRenderer
             }
         }
 
+        // Overlay the icon on the left of the row.
+        DrawItemIcon(drawList, item.IconName, cursor, ItemIconSize, item.IsDisabled);
+
         ImGui.Unindent(ItemIndent);
+    }
+
+    private static void DrawItemIcon(ImDrawListPtr drawList, string iconName, Vector2 rowOrigin,
+        float iconSize, bool isDisabled)
+    {
+        if (string.IsNullOrEmpty(iconName)) return;
+        var textureId = GuiIconLoader.GetTextureId(IconDirectory, iconName);
+        if (textureId == IntPtr.Zero) return;
+
+        var iconY = rowOrigin.Y + (ItemHeight - iconSize) / 2f;
+        var iconX = rowOrigin.X + ItemIconPadding;
+        var tint = ImGui.ColorConvertFloat4ToU32(isDisabled
+            ? new Vector4(1f, 1f, 1f, 0.5f)
+            : new Vector4(1f, 1f, 1f, 1f));
+        drawList.AddImage(textureId,
+            new Vector2(iconX, iconY),
+            new Vector2(iconX + iconSize, iconY + iconSize),
+            Vector2.Zero, Vector2.One, tint);
     }
 
     private static void DrawCollapsedStrip(SidebarViewModel vm, List<SidebarEvent> events)
     {
-        // 40px strip: one square per enabled item, icon-only with tooltip on hover.
+        var drawList = ImGui.GetWindowDrawList();
+        var size = new Vector2(CollapsedStripIconSize, CollapsedStripIconSize);
+
         foreach (var group in vm.Groups)
         {
             foreach (var item in group.Items)
             {
-                var size = new Vector2(CollapsedStripIconSize, CollapsedStripIconSize);
-                if (ImGui.Selectable($"##da-strip-{item.Id}", item.IsActive,
-                        item.IsDisabled
-                            ? ImGuiSelectableFlags.Disabled
-                            : ImGuiSelectableFlags.None,
-                        size))
+                var rowOrigin = ImGui.GetCursorScreenPos();
+
+                // Hit-test selectable spans the icon's bounding box; the icon
+                // overlay is drawn afterwards via drawList so it paints on top.
+                var flags = item.IsDisabled
+                    ? ImGuiSelectableFlags.Disabled
+                    : ImGuiSelectableFlags.None;
+
+                if (ImGui.Selectable($"##da-strip-{item.Id}", item.IsActive, flags, size))
                 {
                     if (!item.IsDisabled) events.Add(new SidebarEvent.ItemClicked(item.Id));
                 }
 
-                if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+                var isHovered = ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled);
+
+                // Overlay the icon on top of the selectable.
+                if (!string.IsNullOrEmpty(item.IconName))
+                {
+                    var textureId = GuiIconLoader.GetTextureId(IconDirectory, item.IconName);
+                    if (textureId != IntPtr.Zero)
+                    {
+                        var iconMin = new Vector2(rowOrigin.X + CollapsedIconPadding,
+                            rowOrigin.Y + CollapsedIconPadding);
+                        var iconMax = new Vector2(
+                            rowOrigin.X + CollapsedStripIconSize - CollapsedIconPadding,
+                            rowOrigin.Y + CollapsedStripIconSize - CollapsedIconPadding);
+                        var tint = ImGui.ColorConvertFloat4ToU32(item.IsDisabled
+                            ? new Vector4(1f, 1f, 1f, 0.4f)
+                            : new Vector4(1f, 1f, 1f, 1f));
+                        drawList.AddImage(textureId, iconMin, iconMax,
+                            Vector2.Zero, Vector2.One, tint);
+
+                        if (item.IsActive)
+                        {
+                            var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
+                            drawList.AddRect(
+                                new Vector2(rowOrigin.X, rowOrigin.Y),
+                                new Vector2(rowOrigin.X + CollapsedStripIconSize,
+                                    rowOrigin.Y + CollapsedStripIconSize),
+                                borderColor, 2f, ImDrawFlags.None, 1.5f);
+                        }
+                    }
+                }
+
+                if (isHovered)
                 {
                     ImGui.BeginTooltip();
                     ImGui.TextUnformatted(item.Label);
+                    if (item.Badge > 0)
+                    {
+                        ImGui.TextUnformatted($"({item.Badge})");
+                    }
                     if (item.IsDisabled && !string.IsNullOrEmpty(item.DisabledTooltipKey))
                     {
                         ImGui.Separator();
