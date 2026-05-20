@@ -188,6 +188,19 @@ public partial class GuiDialog : ModSystem
         _divineAscensionModSystem!.UiService.RequestCivilizationList(string.Empty);
         _divineAscensionModSystem!.UiService.RequestCivilizationInfo(string.Empty);
 
+        // Old top-tab UI fired RequestPlayerReligionInfo whenever the Religion
+        // tab was clicked; the sidebar layout (Phase 3b) has no equivalent
+        // click on open, so fire it once here so Info / Activity / Roles can
+        // render without waiting for the user to nav away and back.
+        if (_manager != null)
+        {
+            if (_manager.HasReligion())
+                _manager.ReligionStateManager.State.InfoState.Loading = true;
+            else
+                _manager.ReligionStateManager.State.InvitesState.Loading = true;
+            _manager.ReligionStateManager.RequestPlayerReligionInfo();
+        }
+
         _state.IsOpen = true;
         _imguiModSystem?.Show();
     }
