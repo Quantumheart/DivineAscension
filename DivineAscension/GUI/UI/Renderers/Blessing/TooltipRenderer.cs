@@ -213,6 +213,36 @@ internal static class TooltipRenderer
             hasRequirements = true;
         }
 
+        // Capstone lock (RequiresPatron blessing on non-patron deity)
+        if (data.RequiresPatron && data.IsNonPatron)
+        {
+            lines.Add(new TooltipLine
+            {
+                Text = $"Only available to followers of {data.Domain}",
+                Color = ColorPalette.Red,
+                FontSize = Body,
+                SpacingAfter = LINE_SPACING
+            });
+            hasRequirements = true;
+        }
+
+        // Cost line — show base / adjusted multiplier on non-patron blessings
+        if (data.BaseCost > 0)
+        {
+            var costUnit = data.Kind == BlessingKind.Religion ? "prestige" : "favor";
+            var costText = data.IsNonPatron
+                ? $"Cost: {data.AdjustedCost} {costUnit} (base {data.BaseCost} x 1.5)"
+                : $"Cost: {data.BaseCost} {costUnit}";
+            lines.Add(new TooltipLine
+            {
+                Text = costText,
+                Color = data.IsNonPatron ? ColorPalette.Yellow : ColorPalette.Gold,
+                FontSize = Body,
+                SpacingAfter = LINE_SPACING
+            });
+            hasRequirements = true;
+        }
+
         // Add spacing after requirements
         if (hasRequirements && lines.Count > 0)
             lines[lines.Count - 1].SpacingAfter = SECTION_SPACING;

@@ -150,7 +150,14 @@ internal static class MainDialogRenderer
                     windowHeight,
                     deltaTime,
                     manager.ReligionStateManager.CurrentFavor,
-                    manager.ReligionStateManager.CurrentPrestige);
+                    manager.ReligionStateManager.CurrentPrestige,
+                    manager.ReligionStateManager.CurrentReligionDomain,
+                    manager.ReligionStateManager.FavorRanksByDeity,
+                    manager.ReligionStateManager.TotalFavorEarnedByDeity,
+                    manager.ReligionStateManager.DiscipleThreshold,
+                    manager.ReligionStateManager.ZealotThreshold,
+                    manager.ReligionStateManager.ChampionThreshold,
+                    manager.ReligionStateManager.AvatarThreshold);
                 break;
             case MainDialogTab.Civilization: // Civilization
                 manager.CivilizationManager.DrawCivilizationTab(windowPos.X + x, windowPos.Y + y, width, contentHeight);

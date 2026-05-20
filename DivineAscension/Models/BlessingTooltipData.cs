@@ -78,11 +78,37 @@ public class BlessingTooltipData
     public string UnlockBlockReason { get; set; } = string.Empty;
 
     /// <summary>
+    ///     Base cost in favor (player blessings) or prestige (religion blessings).
+    /// </summary>
+    public int BaseCost { get; set; }
+
+    /// <summary>
+    ///     Cost after the 1.5× non-patron multiplier is applied (or BaseCost when patron).
+    /// </summary>
+    public int AdjustedCost { get; set; }
+
+    /// <summary>
+    ///     True when the blessing's domain differs from the religion's patron domain.
+    /// </summary>
+    public bool IsNonPatron { get; set; }
+
+    /// <summary>
+    ///     True for capstones (<see cref="Blessing.RequiresPatron"/>) gated to the patron deity.
+    /// </summary>
+    public bool RequiresPatron { get; set; }
+
+    /// <summary>
+    ///     Deity this blessing belongs to. Used by the capstone-lock message.
+    /// </summary>
+    public DeityDomain Domain { get; set; } = DeityDomain.None;
+
+    /// <summary>
     ///     Create tooltip data from a Blessing and BlessingNodeState
     /// </summary>
     public static BlessingTooltipData FromBlessingAndState(Blessing blessing, BlessingNodeState state,
         Dictionary<string, Blessing>? blessingRegistry = null)
     {
+        var adjustedCost = (int)System.Math.Ceiling(blessing.Cost * state.NonPatronCostMultiplier);
         var tooltip = new BlessingTooltipData
         {
             Name = blessing.Name,
@@ -91,7 +117,12 @@ public class BlessingTooltipData
             Kind = blessing.Kind,
             Tier = state.Tier,
             IsUnlocked = state.IsUnlocked,
-            CanUnlock = state.CanUnlock
+            CanUnlock = state.CanUnlock,
+            BaseCost = blessing.Cost,
+            AdjustedCost = adjustedCost,
+            IsNonPatron = state.NonPatronCostMultiplier > 1.0f,
+            RequiresPatron = blessing.RequiresPatron,
+            Domain = blessing.Domain
         };
 
         // Add requirement text based on blessing kind

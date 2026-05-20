@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DivineAscension.GUI.Events.Blessing;
 using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Models.Blessing.Tab;
+using DivineAscension.Systems;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI.Renderers.Blessing;
 using DivineAscension.Models;
@@ -17,6 +18,11 @@ namespace DivineAscension.GUI.Managers;
 /// </summary>
 public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISoundManager soundManager)
 {
+    private static readonly DeityDomain[] AllDeities =
+    {
+        DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest, DeityDomain.Harvest, DeityDomain.Stone
+    };
+
     private readonly ICoreClientAPI _coreClientApi = api ?? throw new ArgumentNullException(nameof(api));
 
     private readonly ISoundManager
@@ -26,22 +32,40 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
 
     public BlessingTabState State { get; } = new();
 
-    /// <summary>
-    ///     Branches the player has committed to, keyed by domain (as int)
-    /// </summary>
     private Dictionary<int, string> _committedBranches = new();
-
-    /// <summary>
-    ///     Branches that are locked out due to exclusive branch choices, keyed by domain (as int)
-    /// </summary>
     private Dictionary<int, List<string>> _lockedBranches = new();
 
     /// <summary>
-    ///     Draws the blessings tab and processes all events
+    ///     Player blessings for the currently active deity tab. Empty dict if none loaded.
     /// </summary>
+    public IReadOnlyDictionary<string, BlessingNodeState> ActivePlayerBlessings =>
+        State.PlayerBlessingStatesByDeity.TryGetValue(State.ActiveDeity, out var d)
+            ? d
+            : EmptyStates;
+
+    /// <summary>
+    ///     Religion blessings for the currently active deity tab. Empty dict if none loaded.
+    /// </summary>
+    public IReadOnlyDictionary<string, BlessingNodeState> ActiveReligionBlessings =>
+        State.ReligionBlessingStatesByDeity.TryGetValue(State.ActiveDeity, out var d)
+            ? d
+            : EmptyStates;
+
+    private static readonly Dictionary<string, BlessingNodeState> EmptyStates = new();
+
     public void DrawBlessingsTab(float windowPosX, float windowPosY, float width, float contentHeight, int windowWidth,
-        int windowHeight, float deltaTime, int playerFavor, int religionPrestige)
+        int windowHeight, float deltaTime, int playerFavor, int religionPrestige, DeityDomain patronDomain,
+        Dictionary<DeityDomain, int>? favorRanksByDeity = null,
+        Dictionary<DeityDomain, int>? totalFavorEarnedByDeity = null,
+        int discipleThreshold = 500, int zealotThreshold = 2000,
+        int championThreshold = 5000, int avatarThreshold = 10000)
     {
+        var summaries = BuildDeitySummaries(
+            patronDomain,
+            favorRanksByDeity ?? new Dictionary<DeityDomain, int>(),
+            totalFavorEarnedByDeity ?? new Dictionary<DeityDomain, int>(),
+            discipleThreshold, zealotThreshold, championThreshold, avatarThreshold);
+
         var vm = new BlessingTabViewModel(
             windowPosX,
             windowPosY,
@@ -52,12 +76,15 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             deltaTime,
             State.TreeState.SelectedBlessingId,
             GetSelectedBlessingState(),
-            State.PlayerBlessingStates,
-            State.ReligionBlessingStates,
+            ActivePlayerBlessings,
+            ActiveReligionBlessings,
             State.TreeState.PlayerScrollState,
             State.TreeState.ReligionScrollState,
             playerFavor,
-            religionPrestige
+            religionPrestige,
+            State.ActiveDeity,
+            patronDomain,
+            summaries
         );
 
         var result = BlessingTabRenderer.DrawBlessingsTab(vm);
@@ -65,43 +92,41 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         ProcessBlessingTabEvents(result);
     }
 
-    /// <summary>
-    ///     Processes all blessing tab events (side effects: state updates, sounds, network requests)
-    /// </summary>
     internal void ProcessBlessingTabEvents(BlessingTabRenderResult result)
     {
-        // Update hovering state from result
         State.TreeState.HoveringBlessingId = result.HoveringBlessingId;
 
-        // Process tree events
+        if (result.RequestedActiveDeity is { } newActive && newActive != State.ActiveDeity)
+        {
+            State.ActiveDeity = newActive;
+            State.TreeState.SelectedBlessingId = null;
+            State.TreeState.PlayerScrollState.Reset();
+            State.TreeState.ReligionScrollState.Reset();
+            _soundManager.PlayClick();
+        }
+
         foreach (var ev in result.TreeEvents)
             switch (ev)
             {
                 case TreeEvent.Selected e:
-                    // Update state
                     State.TreeState.SelectedBlessingId = e.BlessingId;
-                    // Play sound
                     _soundManager.PlayClick();
                     break;
 
-                case TreeEvent.Hovered e:
-                    // State already updated from result.HoveringBlessingId
+                case TreeEvent.Hovered:
                     break;
 
                 case TreeEvent.PlayerTreeScrollChanged e:
-                    // Update state
                     State.TreeState.PlayerScrollState.X = e.ScrollX;
                     State.TreeState.PlayerScrollState.Y = e.ScrollY;
                     break;
 
                 case TreeEvent.ReligionTreeScrollChanged e:
-                    // Update state
                     State.TreeState.ReligionScrollState.X = e.ScrollX;
                     State.TreeState.ReligionScrollState.Y = e.ScrollY;
                     break;
             }
 
-        // Process action events
         foreach (var ev in result.ActionsEvents)
             switch (ev)
             {
@@ -116,9 +141,6 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     }
 
 
-    /// <summary>
-    ///     Handles blessing unlock request
-    /// </summary>
     private void HandleUnlockClicked()
     {
         if (State.TreeState.SelectedBlessingId == null) return;
@@ -126,14 +148,12 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         if (selectedState == null || !selectedState.CanUnlock || selectedState.IsUnlocked)
             return;
 
-        // Client-side validation
         if (string.IsNullOrEmpty(selectedState.Blessing.BlessingId))
         {
             _coreClientApi.ShowChatMessage("Error: Invalid blessing ID");
             return;
         }
 
-        // Play click sound
         _soundManager.PlayClick();
 
         _uiService.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
@@ -141,36 +161,53 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
 
     private BlessingNodeState? GetBlessingState(string blessingId)
     {
-        return State.PlayerBlessingStates.TryGetValue(blessingId, out var playerState)
-            ? playerState
-            : State.ReligionBlessingStates.GetValueOrDefault(blessingId);
+        foreach (var dict in State.PlayerBlessingStatesByDeity.Values)
+            if (dict.TryGetValue(blessingId, out var s)) return s;
+        foreach (var dict in State.ReligionBlessingStatesByDeity.Values)
+            if (dict.TryGetValue(blessingId, out var s)) return s;
+        return null;
     }
 
-    /// <summary>
-    ///     Get a selected blessing's state (if any)
-    /// </summary>
     public BlessingNodeState? GetSelectedBlessingState()
     {
         if (string.IsNullOrEmpty(State.TreeState.SelectedBlessingId)) return null;
-
         return GetBlessingState(State.TreeState.SelectedBlessingId);
     }
 
+    /// <summary>
+    ///     Load blessings for all five deities. `playerBlessings` and `religionBlessings`
+    ///     should already contain entries for every deity — server populates them in
+    ///     <see cref="DivineAscension.Network.BlessingDataResponsePacket"/> after #240.
+    /// </summary>
     public void LoadBlessingStates(List<Blessing> playerBlessings, List<Blessing> religionBlessings)
     {
-        State.PlayerBlessingStates.Clear();
-        State.ReligionBlessingStates.Clear();
+        State.PlayerBlessingStatesByDeity.Clear();
+        State.ReligionBlessingStatesByDeity.Clear();
+
+        foreach (var domain in AllDeities)
+        {
+            State.PlayerBlessingStatesByDeity[domain] = new Dictionary<string, BlessingNodeState>();
+            State.ReligionBlessingStatesByDeity[domain] = new Dictionary<string, BlessingNodeState>();
+        }
 
         foreach (var blessing in playerBlessings)
         {
-            var state = new BlessingNodeState(blessing);
-            State.PlayerBlessingStates[blessing.BlessingId] = state;
+            if (!State.PlayerBlessingStatesByDeity.TryGetValue(blessing.Domain, out var bucket))
+            {
+                bucket = new Dictionary<string, BlessingNodeState>();
+                State.PlayerBlessingStatesByDeity[blessing.Domain] = bucket;
+            }
+            bucket[blessing.BlessingId] = new BlessingNodeState(blessing);
         }
 
         foreach (var blessing in religionBlessings)
         {
-            var state = new BlessingNodeState(blessing);
-            State.ReligionBlessingStates[blessing.BlessingId] = state;
+            if (!State.ReligionBlessingStatesByDeity.TryGetValue(blessing.Domain, out var bucket))
+            {
+                bucket = new Dictionary<string, BlessingNodeState>();
+                State.ReligionBlessingStatesByDeity[blessing.Domain] = bucket;
+            }
+            bucket[blessing.BlessingId] = new BlessingNodeState(blessing);
         }
     }
 
@@ -189,59 +226,44 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         int currentPrestigeRank,
         DeityDomain patronDomain)
     {
-        // Update CanUnlock status for all player blessings
-        foreach (var state in State.PlayerBlessingStates.Values)
-        {
-            // Check branch lock status
-            var branchLocked = IsBranchLocked(state.Blessing.Domain, state.Blessing.Branch);
-            state.IsBranchLocked = branchLocked;
-            state.LockedByBranch = branchLocked ? GetCommittedBranch(state.Blessing.Domain) : null;
+        foreach (var bucket in State.PlayerBlessingStatesByDeity.Values)
+            foreach (var state in bucket.Values)
+            {
+                var branchLocked = IsBranchLocked(state.Blessing.Domain, state.Blessing.Branch);
+                state.IsBranchLocked = branchLocked;
+                state.LockedByBranch = branchLocked ? GetCommittedBranch(state.Blessing.Domain) : null;
+                state.NonPatronCostMultiplier = state.Blessing.Domain == patronDomain ? 1.0f : 1.5f;
+                state.CanUnlock = CanUnlockBlessing(state, favorRanksByDeity, currentPrestigeRank, patronDomain);
+                state.UpdateVisualState();
+            }
 
-            state.NonPatronCostMultiplier = state.Blessing.Domain == patronDomain ? 1.0f : 1.5f;
-            state.CanUnlock = CanUnlockBlessing(state, favorRanksByDeity, currentPrestigeRank, patronDomain);
-            state.UpdateVisualState();
-        }
-
-        // Update CanUnlock status for all religion blessings (no branch restrictions)
-        foreach (var state in State.ReligionBlessingStates.Values)
-        {
-            state.IsBranchLocked = false;
-            state.LockedByBranch = null;
-            state.NonPatronCostMultiplier = state.Blessing.Domain == patronDomain ? 1.0f : 1.5f;
-            state.CanUnlock = CanUnlockBlessing(state, favorRanksByDeity, currentPrestigeRank, patronDomain);
-            state.UpdateVisualState();
-        }
+        foreach (var bucket in State.ReligionBlessingStatesByDeity.Values)
+            foreach (var state in bucket.Values)
+            {
+                state.IsBranchLocked = false;
+                state.LockedByBranch = null;
+                state.NonPatronCostMultiplier = state.Blessing.Domain == patronDomain ? 1.0f : 1.5f;
+                state.CanUnlock = CanUnlockBlessing(state, favorRanksByDeity, currentPrestigeRank, patronDomain);
+                state.UpdateVisualState();
+            }
     }
 
-    /// <summary>
-    ///     Check if a blessing can be unlocked based on prerequisites and rank requirements.
-    ///     Client-side validation only — server is authoritative.
-    /// </summary>
     private bool CanUnlockBlessing(
         BlessingNodeState state,
         Dictionary<DeityDomain, int> favorRanksByDeity,
         int currentPrestigeRank,
         DeityDomain patronDomain)
     {
-        // Already unlocked
         if (state.IsUnlocked) return false;
-
-        // Branch is locked (for player blessings only)
         if (state.IsBranchLocked) return false;
-
-        // Patron capstone gate: capstones (RequiresPatron) require religion's patron to match blessing domain
         if (state.Blessing.RequiresPatron && patronDomain != state.Blessing.Domain) return false;
 
-        // Check prerequisites
         if (state.Blessing.PrerequisiteBlessings is { Count: > 0 })
         {
-            // Capstone blessings (branch == null) use OR logic - at least one prerequisite must be unlocked
-            // Regular blessings use AND logic - all prerequisites must be unlocked
             var isCapstone = string.IsNullOrEmpty(state.Blessing.Branch);
 
             if (isCapstone)
             {
-                // OR logic: at least one prerequisite must be unlocked
                 var anyUnlocked = false;
                 foreach (var prereqId in state.Blessing.PrerequisiteBlessings)
                 {
@@ -256,7 +278,6 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             }
             else
             {
-                // AND logic: all prerequisites must be unlocked
                 foreach (var prereqId in state.Blessing.PrerequisiteBlessings)
                 {
                     var prereqState = GetBlessingState(prereqId);
@@ -265,51 +286,93 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             }
         }
 
-        // Check rank requirements based on the blessing kind
         if (state.Blessing.Kind == BlessingKind.Player)
         {
-            // Player blessings require per-deity favor rank for the blessing's domain
             var domainRank = favorRanksByDeity.GetValueOrDefault(state.Blessing.Domain);
             if (state.Blessing.RequiredFavorRank > domainRank) return false;
         }
         else if (state.Blessing.Kind == BlessingKind.Religion)
         {
-            // Religion blessings require prestige rank
             if (state.Blessing.RequiredPrestigeRank > currentPrestigeRank) return false;
         }
 
-        return true; // All requirements met
+        return true;
     }
 
-    /// <summary>
-    ///     Clear blessing selection
-    /// </summary>
+    private List<DeityBlessingSummary> BuildDeitySummaries(
+        DeityDomain patronDomain,
+        Dictionary<DeityDomain, int> favorRanksByDeity,
+        Dictionary<DeityDomain, int> totalFavorEarnedByDeity,
+        int discipleThreshold, int zealotThreshold, int championThreshold, int avatarThreshold)
+    {
+        var list = new List<DeityBlessingSummary>(AllDeities.Length);
+        foreach (var domain in AllDeities)
+        {
+            var rank = favorRanksByDeity.GetValueOrDefault(domain);
+            var totalFavor = totalFavorEarnedByDeity.GetValueOrDefault(domain);
+            var requiredForNext = RankRequirements.GetRequiredFavorForNextRank(
+                rank, discipleThreshold, zealotThreshold, championThreshold, avatarThreshold);
+            var playerBucket = State.PlayerBlessingStatesByDeity.GetValueOrDefault(domain);
+            var religionBucket = State.ReligionBlessingStatesByDeity.GetValueOrDefault(domain);
+            var unlockedPlayer = 0;
+            var totalPlayer = 0;
+            if (playerBucket != null)
+                foreach (var s in playerBucket.Values)
+                {
+                    totalPlayer++;
+                    if (s.IsUnlocked) unlockedPlayer++;
+                }
+            var unlockedReligion = 0;
+            var totalReligion = 0;
+            if (religionBucket != null)
+                foreach (var s in religionBucket.Values)
+                {
+                    totalReligion++;
+                    if (s.IsUnlocked) unlockedReligion++;
+                }
+
+            list.Add(new DeityBlessingSummary(
+                Domain: domain,
+                FavorRank: rank,
+                TotalFavorEarned: totalFavor,
+                FavorRequiredForNext: requiredForNext,
+                IsMaxRank: rank >= 4,
+                UnlockedPlayer: unlockedPlayer,
+                TotalPlayer: totalPlayer,
+                UnlockedReligion: unlockedReligion,
+                TotalReligion: totalReligion,
+                IsPatron: patronDomain != DeityDomain.None && domain == patronDomain,
+                IsActive: domain == State.ActiveDeity));
+        }
+        return list;
+    }
+
+    public void SetActiveDeity(DeityDomain domain)
+    {
+        if (State.ActiveDeity == domain) return;
+        State.ActiveDeity = domain;
+        State.TreeState.SelectedBlessingId = null;
+        State.TreeState.PlayerScrollState.Reset();
+        State.TreeState.ReligionScrollState.Reset();
+    }
+
     public void ClearSelection()
     {
         State.TreeState.SelectedBlessingId = null;
     }
 
 
-    /// <summary>
-    ///     Select a blessing (for displaying details)
-    /// </summary>
     public void SelectBlessing(string blessingId)
     {
         State.TreeState.SelectedBlessingId = blessingId;
     }
 
-    /// <summary>
-    ///     Sets the branch state received from the server
-    /// </summary>
     public void SetBranchState(Dictionary<int, string> committedBranches, Dictionary<int, List<string>> lockedBranches)
     {
         _committedBranches = committedBranches ?? new Dictionary<int, string>();
         _lockedBranches = lockedBranches ?? new Dictionary<int, List<string>>();
     }
 
-    /// <summary>
-    ///     Check if a branch is locked for a given domain
-    /// </summary>
     private bool IsBranchLocked(DeityDomain domain, string? branch)
     {
         if (string.IsNullOrEmpty(branch))
@@ -319,9 +382,6 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         return _lockedBranches.TryGetValue(domainKey, out var locked) && locked.Contains(branch);
     }
 
-    /// <summary>
-    ///     Get the committed branch for a domain (if any)
-    /// </summary>
     private string? GetCommittedBranch(DeityDomain domain)
     {
         return _committedBranches.GetValueOrDefault((int)domain);

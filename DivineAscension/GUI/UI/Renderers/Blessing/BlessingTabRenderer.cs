@@ -7,6 +7,7 @@ using DivineAscension.GUI.Models.Blessing.Tab;
 using DivineAscension.GUI.Models.Blessing.Tree;
 using DivineAscension.GUI.UI.Renderers.Blessing.Info;
 using DivineAscension.Models;
+using DivineAscension.Models.Enum;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing;
@@ -20,18 +21,25 @@ internal static class BlessingTabRenderer
         const float padding = 16f;
         const float actionButtonHeight = 36f;
         const float actionButtonPadding = 16f;
+        const float strapSpacing = 8f;
 
-        // Track hovering state
         string? hoveringBlessingId = null;
 
-        // Blessing Tree (split view)
-        var treeHeight = vm.Height - infoPanelHeight - padding;
+        var topY = vm.Y;
+        CrossDeitySummaryRenderer.Draw(vm.X, topY, vm.Width, vm.DeitySummaries);
+        topY += CrossDeitySummaryRenderer.Height + strapSpacing;
+
+        var requestedDeity = DeitySelectorRenderer.Draw(vm.X, topY, vm.ActiveDeity, vm.PatronDomain);
+        topY += DeitySelectorRenderer.Height + strapSpacing;
+
+        var consumedTop = topY - vm.Y;
+        var treeHeight = vm.Height - infoPanelHeight - padding - consumedTop;
         var treeVm = new BlessingTreeViewModel(
             vm.PlayerTreeScrollState,
             vm.ReligionTreeScrollState,
             vm.PlayerBlessingStates,
             vm.ReligionBlessingStates,
-            vm.X, vm.Y, vm.Width, treeHeight,
+            vm.X, topY, vm.Width, treeHeight,
             vm.DeltaTime,
             vm.SelectedBlessingId,
             vm.PlayerFavor,
@@ -40,20 +48,16 @@ internal static class BlessingTabRenderer
 
         var treeResult = BlessingTreeRenderer.Draw(treeVm);
 
-        // Extract hovering state from tree events
         foreach (var ev in treeResult.Events)
             if (ev is TreeEvent.Hovered hovered)
                 hoveringBlessingId = hovered.BlessingId;
 
-        // Info Panel
-        var infoY = vm.Y + treeHeight + padding;
+        var infoY = topY + treeHeight + padding;
         var combinedStates = new Dictionary<string, BlessingNodeState>();
         foreach (var kv in vm.PlayerBlessingStates)
-            if (!combinedStates.ContainsKey(kv.Key))
-                combinedStates[kv.Key] = kv.Value;
+            combinedStates.TryAdd(kv.Key, kv.Value);
         foreach (var kv in vm.ReligionBlessingStates)
-            if (!combinedStates.ContainsKey(kv.Key))
-                combinedStates[kv.Key] = kv.Value;
+            combinedStates.TryAdd(kv.Key, kv.Value);
 
         var infoVm = new BlessingInfoViewModel(
             vm.SelectedBlessingState,
@@ -64,9 +68,8 @@ internal static class BlessingTabRenderer
             infoPanelHeight,
             vm.PlayerFavor,
             vm.ReligionPrestige);
-        var infoResult = BlessingInfoRenderer.Draw(infoVm);
+        BlessingInfoRenderer.Draw(infoVm);
 
-        // Action Buttons (overlay bottom-right)
         var buttonY = vm.WindowHeight - actionButtonHeight - actionButtonPadding;
         var buttonX = vm.WindowWidth - actionButtonPadding;
         var actionsVm = new BlessingActionsViewModel(
@@ -79,7 +82,6 @@ internal static class BlessingTabRenderer
 
         var actionsResult = BlessingActionsRenderer.Draw(actionsVm);
 
-        // Tooltips (side effect - rendering only, no state changes)
         if (!string.IsNullOrEmpty(hoveringBlessingId))
         {
             vm.PlayerBlessingStates.TryGetValue(hoveringBlessingId!, out var hoverPlayerState);
@@ -89,11 +91,9 @@ internal static class BlessingTabRenderer
             {
                 var allBlessings = new Dictionary<string, DivineAscension.Models.Blessing>();
                 foreach (var s in vm.PlayerBlessingStates.Values)
-                    if (!allBlessings.ContainsKey(s.Blessing.BlessingId))
-                        allBlessings[s.Blessing.BlessingId] = s.Blessing;
+                    allBlessings.TryAdd(s.Blessing.BlessingId, s.Blessing);
                 foreach (var s in vm.ReligionBlessingStates.Values)
-                    if (!allBlessings.ContainsKey(s.Blessing.BlessingId))
-                        allBlessings[s.Blessing.BlessingId] = s.Blessing;
+                    allBlessings.TryAdd(s.Blessing.BlessingId, s.Blessing);
 
                 var tooltipData = BlessingTooltipData.FromBlessingAndState(
                     hoveringState.Blessing,
@@ -106,12 +106,13 @@ internal static class BlessingTabRenderer
             }
         }
 
-        // Return result with all events
         return new BlessingTabRenderResult(
             treeResult.Events,
             actionsResult.Events,
             hoveringBlessingId,
-            vm.Height
+            vm.Height,
+            requestedDeity
         );
     }
+
 }

@@ -184,9 +184,13 @@ internal static class ReligionCreateRenderer
     private static string? DrawDomainGroup(ReligionCreateViewModel viewModel, ImDrawListPtr drawList, float formX,
         float fieldWidth, List<CreateEvent> events, ref float currentY)
     {
-        TextRenderer.DrawLabel(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DOMAIN_LABEL),
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_PATRON_HEADING),
             formX, currentY);
-        currentY += 25f;
+        currentY += 22f;
+        var explainer = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_PATRON_EXPLAINER);
+        TextRenderer.DrawInfoText(drawList, explainer, formX, currentY, fieldWidth);
+        currentY += TextRenderer.MeasureWrappedHeight(explainer, fieldWidth) + 6f;
 
         var currentDomainIndex = viewModel.GetCurrentDomainIndex();
 
