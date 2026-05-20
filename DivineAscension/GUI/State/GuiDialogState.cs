@@ -6,11 +6,6 @@ namespace DivineAscension.GUI.State;
 public class GuiDialogState
 {
     /// <summary>
-    ///     Index of the main tab in BlessingDialog (0=Blessings, 1=Religion, 2=Civilization)
-    /// </summary>
-    public MainDialogTab CurrentMainTab { get; set; }
-
-    /// <summary>
     ///     Whether the dialog is currently open
     /// </summary>
     public bool IsOpen { get; set; }
@@ -74,7 +69,6 @@ public class GuiDialogState
         IsOpen = false;
         IsReady = false;
         RequestClose = false;
-        CurrentMainTab = MainDialogTab.Religion;
         WindowPosX = 0f;
         WindowPosY = 0f;
         WindowWidth = 0f;
@@ -84,11 +78,4 @@ public class GuiDialogState
         Sidebar.Reset();
         RightRail.Reset();
     }
-}
-
-public enum MainDialogTab
-{
-    Religion = 0,
-    Blessings = 1,
-    Civilization = 2
 }

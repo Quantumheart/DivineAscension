@@ -13,8 +13,7 @@ namespace DivineAscension.GUI.UI.Layout;
 /// <summary>
 ///     Top-level dispatcher for the dialog body. Splits the window into three
 ///     rects — sidebar | content | rightRail — and feeds each to its renderer.
-///     The legacy <c>CurrentMainTab</c> / <c>CurrentSubTab</c> fields are kept
-///     in sync by <see cref="SidebarNavMapper.Apply" /> until Phase 4 retires them.
+///     Content dispatch reads <see cref="SidebarState.CurrentNav" /> directly.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class MainLayoutCoordinator
@@ -65,8 +64,7 @@ internal static class MainLayoutCoordinator
         var railVm = BuildRailViewModel(manager, rail);
         RightRailRenderer.Draw(rail, railVm);
 
-        // --- Content dispatch (still driven by the legacy CurrentMainTab,
-        //     which SidebarNavMapper.Apply keeps in sync with CurrentNav).
+        // --- Content dispatch (driven by Sidebar.CurrentNav).
         DispatchContent(manager, state, content, windowWidth, windowHeight, deltaTime);
     }
 
@@ -78,19 +76,8 @@ internal static class MainLayoutCoordinator
             switch (ev)
             {
                 case SidebarEvent.ItemClicked itemClicked:
-                    var previousMainTab = state.CurrentMainTab;
-                    SidebarNavMapper.Apply(itemClicked.Id, state,
-                        manager.ReligionStateManager.State,
-                        manager.CivilizationManager.State);
-                    if (state.CurrentMainTab != previousMainTab)
-                    {
-                        // Mirror the old top-tab click-load: kicks off the
-                        // server requests so the new content has data to draw.
-                        RefreshTabData(state.CurrentMainTab, manager);
-                    }
-                    // Mirror the old SubTabEvent.TabChanged handlers in each
-                    // manager — every nav click re-fires the per-destination
-                    // data request and clears the matching context error.
+                    SidebarNavMapper.Apply(itemClicked.Id, state);
+                    // Per-destination data request + matching context-error clear.
                     RefreshSidebarDestinationData(itemClicked.Id, manager);
                     break;
                 case SidebarEvent.GroupToggled group:
@@ -101,29 +88,6 @@ internal static class MainLayoutCoordinator
                     state.Sidebar.IsCollapsed = !state.Sidebar.IsCollapsed;
                     break;
             }
-        }
-    }
-
-    private static void RefreshTabData(MainDialogTab tab, GuiDialogManager manager)
-    {
-        switch (tab)
-        {
-            case MainDialogTab.Religion:
-                manager.ReligionStateManager.State.BrowseState.IsBrowseLoading = true;
-                manager.ReligionStateManager.RequestReligionList(
-                    manager.ReligionStateManager.State.BrowseState.DeityFilter);
-                if (manager.HasReligion())
-                    manager.ReligionStateManager.State.InfoState.Loading = true;
-                else
-                    manager.ReligionStateManager.State.InvitesState.Loading = true;
-                manager.ReligionStateManager.RequestPlayerReligionInfo();
-                break;
-            case MainDialogTab.Civilization:
-                manager.CivilizationManager.RequestCivilizationList(
-                    manager.CivTabState.BrowseState.DeityFilter);
-                manager.CivilizationManager.RequestCivilizationInfo();
-                manager.ReligionStateManager.RequestPlayerReligionInfo();
-                break;
         }
     }
 
@@ -230,28 +194,33 @@ internal static class MainLayoutCoordinator
     {
         if (content.W <= 0f || content.H <= 0f) return;
 
-        switch (state.CurrentMainTab)
+        var nav = state.Sidebar.CurrentNav;
+        if (SidebarNavMapper.ToReligionSubTab(nav) is { } religionSub)
         {
-            case MainDialogTab.Religion:
-                manager.ReligionStateManager.DrawReligionTab(content.X, content.Y, content.W, content.H);
-                break;
-            case MainDialogTab.Blessings:
-                manager.BlessingStateManager.DrawBlessingsTab(
-                    content.X, content.Y, content.W, content.H,
-                    windowWidth, windowHeight, deltaTime,
-                    manager.ReligionStateManager.CurrentFavor,
-                    manager.ReligionStateManager.CurrentPrestige,
-                    manager.ReligionStateManager.CurrentReligionDomain,
-                    manager.ReligionStateManager.FavorRanksByDeity,
-                    manager.ReligionStateManager.TotalFavorEarnedByDeity,
-                    manager.ReligionStateManager.DiscipleThreshold,
-                    manager.ReligionStateManager.ZealotThreshold,
-                    manager.ReligionStateManager.ChampionThreshold,
-                    manager.ReligionStateManager.AvatarThreshold);
-                break;
-            case MainDialogTab.Civilization:
-                manager.CivilizationManager.DrawCivilizationTab(content.X, content.Y, content.W, content.H);
-                break;
+            manager.ReligionStateManager.DrawReligionTab(religionSub, content.X, content.Y, content.W, content.H);
+            return;
+        }
+
+        if (SidebarNavMapper.ToCivilizationSubTab(nav) is { } civSub)
+        {
+            manager.CivilizationManager.DrawCivilizationTab(civSub, content.X, content.Y, content.W, content.H);
+            return;
+        }
+
+        if (nav == SidebarNavId.Blessings)
+        {
+            manager.BlessingStateManager.DrawBlessingsTab(
+                content.X, content.Y, content.W, content.H,
+                windowWidth, windowHeight, deltaTime,
+                manager.ReligionStateManager.CurrentFavor,
+                manager.ReligionStateManager.CurrentPrestige,
+                manager.ReligionStateManager.CurrentReligionDomain,
+                manager.ReligionStateManager.FavorRanksByDeity,
+                manager.ReligionStateManager.TotalFavorEarnedByDeity,
+                manager.ReligionStateManager.DiscipleThreshold,
+                manager.ReligionStateManager.ZealotThreshold,
+                manager.ReligionStateManager.ChampionThreshold,
+                manager.ReligionStateManager.AvatarThreshold);
         }
     }
 }
