@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using DivineAscension.Constants;
@@ -34,15 +35,46 @@ internal static class ReligionInfoHeaderRenderer
         var currentY = y;
 
         // === RELIGION HEADER ===
-        TextRenderer.DrawLabel(drawList, viewModel.ReligionName, x, currentY, PageTitle, ColorPalette.Gold);
-        currentY += 32f;
+        // Mirror the CivilizationInfo layout: deity icon at left, religion
+        // name (white, SectionHeader) next to it, then a gold bracket tag
+        // showing the prestige rank tier.
+        const float iconSize = 32f;
+        var deityDomain = DomainHelper.ParseDeityType(viewModel.Deity);
+        var iconTextureId = DeityIconLoader.GetDeityTextureId(deityDomain);
+        if (iconTextureId != IntPtr.Zero)
+        {
+            var iconMin = new Vector2(x, currentY);
+            var iconMax = new Vector2(x + iconSize, currentY + iconSize);
+            var tint = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
+            drawList.AddImage(iconTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tint);
 
-        // Ornamental divider under the religion title.
+            var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
+            drawList.AddRect(iconMin, iconMax, borderColor, 4f, ImDrawFlags.None, 1f);
+        }
+
+        TextRenderer.DrawLabel(drawList, viewModel.ReligionName,
+            x + iconSize + 12f, currentY + 4f, SectionHeader, ColorPalette.White);
+
+        // Approximate the scaled name width and place the bracket tag after it.
+        var nameWidthScaled = ImGui.CalcTextSize(viewModel.ReligionName).X
+                              * (SectionHeader / SubsectionLabel);
+        if (!string.IsNullOrEmpty(viewModel.PrestigeRank))
+        {
+            var rankText = $"[{viewModel.PrestigeRank}]";
+            drawList.AddText(ImGui.GetFont(), SubsectionLabel,
+                new Vector2(x + iconSize + 12f + nameWidthScaled + 8f, currentY + 6f),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), rankText);
+        }
+        currentY += Math.Max(iconSize + 4f, 32f);
+
+        // Ornamental divider under the header.
         ChromeRenderer.DrawDivider(drawList, x, currentY, width);
         currentY += 20f;
 
-        // Deity row keeps its inline Edit button affordance for founders, so
-        // it doesn't fold into a clean leader. The remaining stat rows do.
+        // Deity · · · · · Hroth (Wild) — leader row, matching the rest.
+        // Edit affordance for founders moves to its own row underneath when
+        // not actively editing, so the leader's right-aligned value stays
+        // clean. Editing flow drops below.
         if (viewModel.IsEditingDeityName)
         {
             TextRenderer.DrawLabel(drawList,
@@ -56,28 +88,25 @@ internal static class ReligionInfoHeaderRenderer
                 ? $"{viewModel.DeityName} ({viewModel.Deity})"
                 : viewModel.Deity;
 
-            TextRenderer.DrawLabel(drawList,
+            ChromeRenderer.DrawLeader(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DEITY_LABEL),
-                x, currentY, Body, ColorPalette.Grey);
-            drawList.AddText(ImGui.GetFont(), Body, new Vector2(x + 80f, currentY),
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.White), deityDisplay);
+                deityDisplay,
+                x, currentY, width);
+            currentY += 22f;
 
             if (viewModel.IsFounder)
             {
-                var textWidth = ImGui.CalcTextSize(deityDisplay).X;
-                const float buttonWidth = 40f;
-                const float buttonHeight = 18f;
-                const float buttonPadding = 8f;
-                var buttonX = x + 80f + textWidth + buttonPadding;
-
-                if (ButtonRenderer.DrawButton(drawList, "Edit", buttonX, currentY - 2f, buttonWidth, buttonHeight,
+                const float editButtonWidth = 60f;
+                const float editButtonHeight = 20f;
+                if (ButtonRenderer.DrawButton(drawList, "Edit",
+                        x + width - editButtonWidth, currentY,
+                        editButtonWidth, editButtonHeight,
                         isPrimary: false, enabled: true))
                 {
                     events.Add(new InfoEvent.EditDeityNameOpen());
                 }
+                currentY += editButtonHeight + 4f;
             }
-
-            currentY += 24f;
         }
 
         // Members · · · · · 12
