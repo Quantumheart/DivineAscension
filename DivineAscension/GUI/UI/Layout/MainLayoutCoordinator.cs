@@ -88,19 +88,10 @@ internal static class MainLayoutCoordinator
                         // server requests so the new content has data to draw.
                         RefreshTabData(state.CurrentMainTab, manager);
                     }
-                    // Browse always re-fires the list request, even on same
-                    // main tab — the old sub-tab strip did this on every click.
-                    if (itemClicked.Id == SidebarNavId.ReligionBrowse)
-                    {
-                        manager.ReligionStateManager.State.BrowseState.IsBrowseLoading = true;
-                        manager.ReligionStateManager.RequestReligionList(
-                            manager.ReligionStateManager.State.BrowseState.DeityFilter);
-                    }
-                    else if (itemClicked.Id == SidebarNavId.CivilizationBrowse)
-                    {
-                        manager.CivilizationManager.RequestCivilizationList(
-                            manager.CivilizationManager.State.BrowseState.DeityFilter);
-                    }
+                    // Mirror the old SubTabEvent.TabChanged handlers in each
+                    // manager — every nav click re-fires the per-destination
+                    // data request and clears the matching context error.
+                    RefreshSidebarDestinationData(itemClicked.Id, manager);
                     break;
                 case SidebarEvent.GroupToggled group:
                     var groups = state.Sidebar.CollapsedGroups;
@@ -132,6 +123,77 @@ internal static class MainLayoutCoordinator
                     manager.CivTabState.BrowseState.DeityFilter);
                 manager.CivilizationManager.RequestCivilizationInfo();
                 manager.ReligionStateManager.RequestPlayerReligionInfo();
+                break;
+        }
+    }
+
+    /// <summary>
+    ///     Per-destination data refresh — mirrors the bodies of the legacy
+    ///     <c>SubTabEvent.TabChanged</c> handlers in
+    ///     <c>ReligionStateManager</c> / <c>CivilizationStateManager</c>. Fires
+    ///     the appropriate request and clears the matching context error so
+    ///     each sub-view has fresh data when the user navs in.
+    /// </summary>
+    private static void RefreshSidebarDestinationData(SidebarNavId id, GuiDialogManager manager)
+    {
+        var religion = manager.ReligionStateManager;
+        var civ = manager.CivilizationManager;
+        switch (id)
+        {
+            case SidebarNavId.ReligionBrowse:
+                religion.State.ErrorState.BrowseError = null;
+                religion.State.BrowseState.IsBrowseLoading = true;
+                religion.RequestReligionList(religion.State.BrowseState.DeityFilter);
+                break;
+            case SidebarNavId.ReligionInfo:
+                religion.State.ErrorState.InfoError = null;
+                religion.State.InfoState.Loading = true;
+                religion.RequestPlayerReligionInfo();
+                break;
+            case SidebarNavId.ReligionActivity:
+                religion.State.ErrorState.ActivityError = null;
+                // Activity log loads via RequestPlayerReligionInfo's response handler
+                // path; refresh that to pull the latest activity rows alongside.
+                religion.RequestPlayerReligionInfo();
+                break;
+            case SidebarNavId.ReligionRoles:
+                religion.RequestReligionRoles();
+                break;
+            case SidebarNavId.ReligionInvites:
+                religion.State.InvitesState.InvitesError = null;
+                religion.State.InvitesState.Loading = true;
+                religion.RequestPlayerReligionInfo();
+                break;
+            case SidebarNavId.ReligionCreate:
+                religion.State.ErrorState.CreateError = null;
+                religion.RequestPlayerReligionInfo();
+                break;
+            case SidebarNavId.CivilizationBrowse:
+                if (civ.State.DetailState.ViewingCivilizationId != null)
+                    civ.State.DetailState.ErrorMsg = null;
+                else
+                    civ.State.BrowseState.ErrorMsg = null;
+                civ.RequestCivilizationList(civ.State.BrowseState.DeityFilter);
+                break;
+            case SidebarNavId.CivilizationInfo:
+                civ.State.InfoState.ErrorMsg = null;
+                civ.RequestCivilizationInfo();
+                break;
+            case SidebarNavId.CivilizationInvites:
+                civ.State.InviteState.ErrorMsg = null;
+                civ.RequestCivilizationInfo();
+                break;
+            case SidebarNavId.CivilizationDiplomacy:
+                civ.State.DiplomacyState.ErrorMessage = null;
+                civ.RequestDiplomacyInfo();
+                break;
+            case SidebarNavId.CivilizationHolySites:
+                civ.State.HolySitesState.Browse.ErrorMsg = null;
+                civ.RequestCivilizationHolySites();
+                break;
+            case SidebarNavId.CivilizationMilestones:
+                civ.State.MilestoneState.ErrorMsg = null;
+                civ.RequestMilestoneProgress();
                 break;
         }
     }
