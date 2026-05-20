@@ -25,6 +25,9 @@ internal static class ColorPalette
     public static readonly Vector4
         TableBackground = new(0.141f, 0.106f, 0.078f, 1.0f); // #241B14 - Table container background
 
+    // Parchment content pane (issue #286)
+    public static readonly Vector4 Parchment = new(0.957f, 0.894f, 0.757f, 0.35f); // #F4E4C1 @ 35% - cream multiply overlay
+
     // State Colors
     public static readonly Vector4 Red = new(0.8f, 0.2f, 0.2f, 1.0f); // Error/Danger
     public static readonly Vector4 Green = new(0.2f, 0.8f, 0.2f, 1.0f); // Success
