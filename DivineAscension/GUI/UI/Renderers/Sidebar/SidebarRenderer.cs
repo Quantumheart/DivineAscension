@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.GUI.UI.Layout;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Services;
 using ImGuiNET;
@@ -111,9 +112,8 @@ internal static class SidebarRenderer
             if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)
                 && !string.IsNullOrEmpty(item.DisabledTooltipKey))
             {
-                ImGui.BeginTooltip();
+                using var _ = ChromeRenderer.BeginStyledTooltip();
                 ImGui.TextUnformatted(LocalizationService.Instance.Get(item.DisabledTooltipKey!));
-                ImGui.EndTooltip();
             }
         }
         else
@@ -222,7 +222,7 @@ internal static class SidebarRenderer
 
                 if (isHovered)
                 {
-                    ImGui.BeginTooltip();
+                    using var _ = ChromeRenderer.BeginStyledTooltip();
                     ImGui.TextUnformatted(item.Label);
                     if (item.Badge > 0)
                     {
@@ -233,7 +233,6 @@ internal static class SidebarRenderer
                         ImGui.Separator();
                         ImGui.TextUnformatted(LocalizationService.Instance.Get(item.DisabledTooltipKey!));
                     }
-                    ImGui.EndTooltip();
                 }
             }
         }
