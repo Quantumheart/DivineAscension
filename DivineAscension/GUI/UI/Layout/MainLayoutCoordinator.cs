@@ -78,9 +78,16 @@ internal static class MainLayoutCoordinator
             switch (ev)
             {
                 case SidebarEvent.ItemClicked itemClicked:
+                    var previousMainTab = state.CurrentMainTab;
                     SidebarNavMapper.Apply(itemClicked.Id, state,
                         manager.ReligionStateManager.State,
                         manager.CivilizationManager.State);
+                    if (state.CurrentMainTab != previousMainTab)
+                    {
+                        // Mirror the old top-tab click-load: kicks off the
+                        // server requests so the new content has data to draw.
+                        RefreshTabData(state.CurrentMainTab, manager);
+                    }
                     break;
                 case SidebarEvent.GroupToggled group:
                     var groups = state.Sidebar.CollapsedGroups;
@@ -90,6 +97,29 @@ internal static class MainLayoutCoordinator
                     state.Sidebar.IsCollapsed = !state.Sidebar.IsCollapsed;
                     break;
             }
+        }
+    }
+
+    private static void RefreshTabData(MainDialogTab tab, GuiDialogManager manager)
+    {
+        switch (tab)
+        {
+            case MainDialogTab.Religion:
+                manager.ReligionStateManager.State.BrowseState.IsBrowseLoading = true;
+                manager.ReligionStateManager.RequestReligionList(
+                    manager.ReligionStateManager.State.BrowseState.DeityFilter);
+                if (manager.HasReligion())
+                    manager.ReligionStateManager.State.InfoState.Loading = true;
+                else
+                    manager.ReligionStateManager.State.InvitesState.Loading = true;
+                manager.ReligionStateManager.RequestPlayerReligionInfo();
+                break;
+            case MainDialogTab.Civilization:
+                manager.CivilizationManager.RequestCivilizationList(
+                    manager.CivTabState.BrowseState.DeityFilter);
+                manager.CivilizationManager.RequestCivilizationInfo();
+                manager.ReligionStateManager.RequestPlayerReligionInfo();
+                break;
         }
     }
 
