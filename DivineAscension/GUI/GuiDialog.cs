@@ -112,6 +112,7 @@ public partial class GuiDialog : ModSystem
         GuiIconLoader.Initialize(_capi);
         CivilizationIconLoader.Initialize(_capi);
         BlessingIconLoader.Initialize(_capi);
+        ParchmentTexture.Initialize(_capi);
 
         // Preload textures to prevent stuttering on first GUI open
         PreloadTextures();
@@ -571,6 +572,9 @@ public partial class GuiDialog : ModSystem
             GuiIconLoader.GetTextureId("gui", iconName);
         }
 
+        // Parchment background for the content pane.
+        ParchmentTexture.GetTextureId();
+
         // Note: Blessing icons cannot be preloaded here because we don't have blessing data yet
         // They will be preloaded in OnBlessingDataReceived after blessing data is received
 
@@ -664,6 +668,7 @@ public partial class GuiDialog : ModSystem
         GuiIconLoader.Dispose();
         CivilizationIconLoader.Dispose();
         BlessingIconLoader.Dispose();
+        ParchmentTexture.Dispose();
 
         _logger?.Notification("[DivineAscension] Blessing Dialog disposed");
     }
