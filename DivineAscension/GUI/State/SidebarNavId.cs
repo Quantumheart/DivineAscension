@@ -13,11 +13,13 @@ public enum SidebarNavId
     ReligionRoles,
     ReligionInvites,
     ReligionCreate,
+    ReligionBrowse,
     Blessings,
     CivilizationInfo,
     CivilizationInvites,
     CivilizationCreate,
     CivilizationDiplomacy,
     CivilizationHolySites,
-    CivilizationMilestones
+    CivilizationMilestones,
+    CivilizationBrowse
 }

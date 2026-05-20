@@ -88,6 +88,19 @@ internal static class MainLayoutCoordinator
                         // server requests so the new content has data to draw.
                         RefreshTabData(state.CurrentMainTab, manager);
                     }
+                    // Browse always re-fires the list request, even on same
+                    // main tab — the old sub-tab strip did this on every click.
+                    if (itemClicked.Id == SidebarNavId.ReligionBrowse)
+                    {
+                        manager.ReligionStateManager.State.BrowseState.IsBrowseLoading = true;
+                        manager.ReligionStateManager.RequestReligionList(
+                            manager.ReligionStateManager.State.BrowseState.DeityFilter);
+                    }
+                    else if (itemClicked.Id == SidebarNavId.CivilizationBrowse)
+                    {
+                        manager.CivilizationManager.RequestCivilizationList(
+                            manager.CivilizationManager.State.BrowseState.DeityFilter);
+                    }
                     break;
                 case SidebarEvent.GroupToggled group:
                     var groups = state.Sidebar.CollapsedGroups;

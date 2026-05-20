@@ -64,6 +64,10 @@ public static class SidebarNavMapper
         state.Sidebar.CurrentNav = nav;
         switch (nav)
         {
+            case SidebarNavId.ReligionBrowse:
+                state.CurrentMainTab = MainDialogTab.Religion;
+                religion.CurrentSubTab = SubTab.Browse;
+                break;
             case SidebarNavId.ReligionInfo:
                 state.CurrentMainTab = MainDialogTab.Religion;
                 religion.CurrentSubTab = SubTab.Info;
@@ -86,6 +90,10 @@ public static class SidebarNavMapper
                 break;
             case SidebarNavId.Blessings:
                 state.CurrentMainTab = MainDialogTab.Blessings;
+                break;
+            case SidebarNavId.CivilizationBrowse:
+                state.CurrentMainTab = MainDialogTab.Civilization;
+                civilization.CurrentSubTab = CivilizationSubTab.Browse;
                 break;
             case SidebarNavId.CivilizationInfo:
                 state.CurrentMainTab = MainDialogTab.Civilization;
@@ -141,8 +149,12 @@ public static class SidebarNavMapper
 
     private static SidebarGroupViewModel BuildReligionGroup(Context ctx)
     {
-        var items = new List<SidebarItemViewModel>(5)
+        var items = new List<SidebarItemViewModel>(6)
         {
+            // Browse — always reachable; renders the religion list.
+            Item(SidebarNavId.ReligionBrowse,
+                LocalizationKeys.UI_RELIGION_TAB_BROWSE, "browse",
+                ctx, isDisabled: false, disabledKey: null),
             // Info — needs a religion to make sense.
             Item(SidebarNavId.ReligionInfo,
                 LocalizationKeys.UI_RELIGION_TAB_INFO, "info",
@@ -177,8 +189,12 @@ public static class SidebarNavMapper
 
     private static SidebarGroupViewModel BuildCivilizationGroup(Context ctx)
     {
-        var items = new List<SidebarItemViewModel>(6)
+        var items = new List<SidebarItemViewModel>(7)
         {
+            // Browse — always reachable.
+            Item(SidebarNavId.CivilizationBrowse,
+                LocalizationKeys.UI_CIVILIZATION_TAB_BROWSE, "browse",
+                ctx, isDisabled: false, disabledKey: null),
             Item(SidebarNavId.CivilizationInfo,
                 LocalizationKeys.UI_CIVILIZATION_TAB_INFO, "info",
                 ctx, !ctx.HasCivilization, LocalizationKeys.SIDEBAR_DISABLED_NEED_CIVILIZATION),
