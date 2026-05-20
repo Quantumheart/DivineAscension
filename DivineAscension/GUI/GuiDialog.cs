@@ -452,6 +452,13 @@ public partial class GuiDialog : ModSystem
 
         // Set window background color (Issue #71: Use ColorPalette.Background)
         ImGui.PushStyleColor(ImGuiCol.WindowBg, ColorPalette.Background);
+        // Make ImGui's native resize grip visible (it ships nearly invisible against
+        // our dark background). Also drives the resize cursor on hover.
+        ImGui.PushStyleColor(ImGuiCol.ResizeGrip,
+            ColorPalette.WithAlpha(ColorPalette.BorderColor, 0.6f));
+        ImGui.PushStyleColor(ImGuiCol.ResizeGripHovered,
+            ColorPalette.WithAlpha(ColorPalette.Gold, 0.85f));
+        ImGui.PushStyleColor(ImGuiCol.ResizeGripActive, ColorPalette.Gold);
 
         ImGui.Begin("DivineAscension Blessing Dialog", flags);
 
@@ -480,7 +487,7 @@ public partial class GuiDialog : ModSystem
         );
 
         ImGui.End();
-        ImGui.PopStyleColor(); // Pop window background color
+        ImGui.PopStyleColor(4); // WindowBg + 3 ResizeGrip variants
         ImGui.PopStyleVar(4); // Pop all 4 style vars
     }
 
@@ -531,6 +538,35 @@ public partial class GuiDialog : ModSystem
         // Draw main window border (Issue #71: Use ColorPalette.BorderColor #59422f, 4px width)
         var frameColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor);
         drawList.AddRect(pos, new Vector2(pos.X + width, pos.Y + height), frameColor, 0, ImDrawFlags.None, 4);
+
+        // Resize affordance: three diagonal strokes in the bottom-right corner.
+        // Pairs with the brightened ImGuiCol.ResizeGrip so the resize area is
+        // visible even before hover.
+        DrawResizeHandleGlyph(drawList, pos, width, height);
+    }
+
+    /// <summary>
+    ///     Three diagonal strokes inset from the bottom-right corner, indicating
+    ///     the window can be dragged to resize.
+    /// </summary>
+    private static void DrawResizeHandleGlyph(ImDrawListPtr drawList, Vector2 pos, int width, int height)
+    {
+        const float inset = 6f;
+        const float stroke = 1.5f;
+        var color = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.Gold, 0.85f));
+        var cornerX = pos.X + width - inset;
+        var cornerY = pos.Y + height - inset;
+
+        // Three nested diagonals at 4/8/12 px lengths, parallel to the corner.
+        for (var i = 0; i < 3; i++)
+        {
+            var len = 4f + i * 4f;
+            drawList.AddLine(
+                new Vector2(cornerX - len, cornerY),
+                new Vector2(cornerX, cornerY - len),
+                color,
+                stroke);
+        }
     }
 
     public override void Dispose()
