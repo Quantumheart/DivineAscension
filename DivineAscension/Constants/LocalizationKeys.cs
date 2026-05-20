@@ -272,6 +272,21 @@ public static class LocalizationKeys
 
     #endregion
 
+    #region Sidebar Nav (Phase 3 UI refactor)
+
+    public const string SIDEBAR_GROUP_RELIGION = "divineascension:ui.sidebar.group.religion";
+    public const string SIDEBAR_GROUP_CIVILIZATION = "divineascension:ui.sidebar.group.civilization";
+    public const string SIDEBAR_GROUP_PERSONAL = "divineascension:ui.sidebar.group.personal";
+
+    public const string SIDEBAR_DISABLED_NEED_RELIGION = "divineascension:ui.sidebar.disabled.need_religion";
+    public const string SIDEBAR_DISABLED_NEED_CIVILIZATION = "divineascension:ui.sidebar.disabled.need_civilization";
+    public const string SIDEBAR_DISABLED_NEED_INVITE = "divineascension:ui.sidebar.disabled.need_invite";
+    public const string SIDEBAR_DISABLED_FOUNDER_ONLY = "divineascension:ui.sidebar.disabled.founder_only";
+    public const string SIDEBAR_DISABLED_ALREADY_IN_RELIGION = "divineascension:ui.sidebar.disabled.already_in_religion";
+    public const string SIDEBAR_DISABLED_ALREADY_IN_CIVILIZATION = "divineascension:ui.sidebar.disabled.already_in_civilization";
+
+    #endregion
+
     #region Civilization - Holy Sites
 
     public const string UI_CIVILIZATION_HOLYSITES_TITLE = "divineascension:ui.civilization.holysites.title";
