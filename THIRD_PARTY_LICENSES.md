@@ -17,3 +17,16 @@ terms under which they are redistributed.
   work (*Bridgeman Art Library v. Corel Corp.*, 36 F. Supp. 2d 191
   (S.D.N.Y. 1999)), which is therefore ineligible for a new copyright in the
   United States.
+
+## Fonts
+
+### `assets/divineascension/textures/gui/codex/fonts/cinzel-regular.ttf`
+### `assets/divineascension/textures/gui/codex/fonts/cinzel-bold.ttf`
+
+- **Family:** Cinzel — Natanael Gama / The Cinzel Project Authors
+  (https://github.com/NDISCOVER/Cinzel).
+- **Source:** Google Fonts (https://fonts.google.com/specimen/Cinzel).
+- **License:** SIL Open Font License, Version 1.1
+  (https://openfontlicense.org). Full text bundled alongside the font files
+  as `cinzel-ofl.txt`.
+- **Attribution:** "Copyright 2020 The Cinzel Project Authors".
