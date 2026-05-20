@@ -44,7 +44,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     // UI-only detail adapter (fake or real). Null when not used.
     internal ICivilizationDetailProvider? CivilizationDetailProvider { get; set; }
 
-    private CivilizationTabState State { get; } = new();
+    public CivilizationTabState State { get; } = new();
 
     /// <summary>
     ///     Public accessor for diplomacy state (for network client access)

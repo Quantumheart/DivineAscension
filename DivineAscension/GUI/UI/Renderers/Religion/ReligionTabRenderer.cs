@@ -1,21 +1,19 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Tab;
 using DivineAscension.GUI.State.Religion;
 using DivineAscension.GUI.UI.Components.Banners;
-using DivineAscension.GUI.UI.Components.Buttons;
-using DivineAscension.GUI.UI.Utilities;
-using DivineAscension.Services;
 using ImGuiNET;
 using Vintagestory.API.Client;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
-///     Pure renderer for the Religion tab header and error banner.
-///     Accepts a view model and emits UI events. Does not mutate state or perform side effects.
+///     Pure renderer for the Religion tab error banner.
+///     Sub-tab navigation now lives in the sidebar (Phase 3b refactor) — this
+///     renderer is responsible only for the per-context error banner that sits
+///     at the top of the content pane.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class ReligionTabRenderer
@@ -27,60 +25,11 @@ internal static class ReligionTabRenderer
     {
         var events = new List<SubTabEvent>();
 
-        // Sub-tab header metrics
         var x = viewModel.X;
         var y = viewModel.Y;
         var width = viewModel.Width;
-        const float tabH = 36f;
-
-        // Tab buttons: Conditionally render based on religion membership (Issue #71: 130px width, 4px spacing)
-        const float tabWidth = 130f;
-        const float spacing = 4f;
-
-        // Track dynamic X position for visible tabs (avoids gaps when tabs are hidden)
-        float currentX = x;
-
-        void DrawTabButton(string label, SubTab tab, string directory = "", string iconName = "")
-        {
-            var isActive = viewModel.CurrentSubTab == tab;
-            var clicked = ButtonRenderer.DrawButton(drawList, label, currentX, y, tabWidth, tabH,
-                isActive, true,
-                isActive ? ColorPalette.Gold * 0.7f : ColorPalette.DarkBrown * 0.6f, directory, iconName);
-            if (clicked && tab != viewModel.CurrentSubTab)
-            {
-                events.Add(new SubTabEvent.TabChanged(tab));
-            }
-
-            currentX += tabWidth + spacing; // Advance position for next visible tab
-        }
-
-        // Always show Browse (neutral for all states)
-        DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_BROWSE), SubTab.Browse, "GUI",
-            "browse");
-
-        // Conditional tabs based on religion membership
-        if (viewModel.ShowInfoTab)
-            DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_INFO), SubTab.Info, "GUI",
-                "info");
-
-        if (viewModel.ShowActivityTab)
-            DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_ACTIVITY), SubTab.Activity,
-                "GUI", "activity");
-
-        if (viewModel.ShowRolesTab)
-            DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_ROLES), SubTab.Roles, "GUI",
-                "roles");
-
-        if (viewModel.ShowInvitesTab)
-            DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_INVITES), SubTab.Invites,
-                "GUI", "invites");
-
-        if (viewModel.ShowCreateTab)
-            DrawTabButton(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_CREATE), SubTab.Create,
-                "GUI", "create");
-
-        var contentY = y + tabH + 10f;
-        var renderedHeight = tabH + 10f;
+        var contentY = y;
+        var renderedHeight = 0f;
 
         // Error banner (LastActionError has priority)
         var bannerMessage = viewModel.ErrorState.LastActionError;
