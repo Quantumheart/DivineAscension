@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Systems;
 using ImGuiNET;
@@ -16,10 +17,12 @@ namespace DivineAscension.GUI.UI.Layout;
 [ExcludeFromCodeCoverage]
 internal static class TitleStripRenderer
 {
-    private const string TitleText = "✦ Divine Ascension ✦";
+    private const string TitleText = "Divine Ascension";
     private const float Padding = 12f;
     private const float CloseButtonSize = 24f;
     private const float IdentityGap = 12f;
+    private const float OrnamentHalfSize = 5f;
+    private const float OrnamentGap = 8f;
     private const string Ellipsis = "…";
     private const string IdentitySeparator = " · ";
 
@@ -48,12 +51,24 @@ internal static class TitleStripRenderer
         var closeX = rect.Right - Padding - CloseButtonSize;
         var closeClicked = ButtonRenderer.DrawCloseButton(drawList, closeX, closeY, CloseButtonSize);
 
-        // Left: app title in gold.
+        // Left: a flanking diamond, then the app title in gold, then a
+        // second flanking diamond. Diamonds are drawn primitives rather than
+        // ✦ glyphs because ImGui's default font ranges don't include
+        // Dingbats — text glyphs would render as `?`.
         var titleSize = ImGui.CalcTextSize(TitleText);
         var titleY = rect.Y + (rect.H - titleSize.Y) / 2f;
         var titleColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
+
+        var ornamentCenterY = rect.Y + rect.H / 2f;
+        var leftOrnamentCx = rect.X + Padding + OrnamentHalfSize;
+        var titleX = leftOrnamentCx + OrnamentHalfSize + OrnamentGap;
+        ChromeRenderer.DrawDiamond(drawList, leftOrnamentCx, ornamentCenterY, OrnamentHalfSize);
         drawList.AddText(ImGui.GetFont(), SubsectionLabel,
-            new Vector2(rect.X + Padding, titleY), titleColor, TitleText);
+            new Vector2(titleX, titleY), titleColor, TitleText);
+        var rightOrnamentCx = titleX + titleSize.X + OrnamentGap + OrnamentHalfSize;
+        ChromeRenderer.DrawDiamond(drawList, rightOrnamentCx, ornamentCenterY, OrnamentHalfSize);
+
+        var titleRightEdge = rightOrnamentCx + OrnamentHalfSize;
 
         // Right: identity line (deity name + favor rank), only when the
         // player has a religion. Sits to the left of the close button with a
@@ -61,7 +76,7 @@ internal static class TitleStripRenderer
         if (manager.HasReligion())
         {
             DrawIdentity(drawList, rect, manager,
-                leftBoundary: rect.X + Padding + titleSize.X + IdentityGap,
+                leftBoundary: titleRightEdge + IdentityGap,
                 rightBoundary: closeX - IdentityGap);
         }
 
