@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.GUI.Models.Religion.Header;
 using DivineAscension.GUI.State;
-using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Renderers.RightRail;
 using DivineAscension.GUI.UI.Renderers.Sidebar;
 using DivineAscension.Network.Civilization;
@@ -23,8 +22,6 @@ internal static class MainLayoutCoordinator
     private const float SidebarCollapsedWidth = 40f;
     private const float RailWidth = 340f;
     private const float Gap = 8f;
-    private const float CloseButtonSize = 24f;
-    private const float CloseButtonInset = 12f;
     private const float TopChromeHeight = 32f;
 
     public static void Draw(
@@ -36,20 +33,18 @@ internal static class MainLayoutCoordinator
     {
         var windowPos = ImGui.GetWindowPos();
         var outer = new UiRect(windowPos.X, windowPos.Y, windowWidth, windowHeight);
-        var drawList = ImGui.GetWindowDrawList();
 
-        // Top-right close button sits outside any child region so it stays
-        // clickable regardless of sidebar/rail layout.
-        var closeX = outer.Right - CloseButtonInset - CloseButtonSize;
-        var closeY = outer.Y + CloseButtonInset;
-        if (ButtonRenderer.DrawCloseButton(drawList, closeX, closeY, CloseButtonSize))
+        // Title strip occupies the top chrome band of the inset outer rect and
+        // hosts the close button on its right edge. Stays visible regardless of
+        // sidebar collapsed state because it lives above the column split.
+        var inner = outer.Inset(OuterPadding);
+        var titleStrip = new UiRect(inner.X, inner.Y, inner.W, TopChromeHeight);
+        if (TitleStripRenderer.Draw(titleStrip, manager))
         {
             state.RequestClose = true;
         }
 
-        // Reserve a strip at the top for chrome (close button + future top bar),
-        // then split the remainder into the three columns.
-        var body = outer.Inset(OuterPadding).Cut(TopChromeHeight, 0f);
+        var body = inner.Cut(TopChromeHeight, 0f);
         var sidebarW = state.Sidebar.IsCollapsed ? SidebarCollapsedWidth : SidebarWidth;
         var (sidebar, afterSidebar) = body.SplitLeft(sidebarW, Gap);
         var (content, rail) = afterSidebar.SplitRight(RailWidth, Gap);
