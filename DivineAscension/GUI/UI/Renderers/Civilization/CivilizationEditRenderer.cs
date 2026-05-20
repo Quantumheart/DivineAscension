@@ -29,9 +29,34 @@ internal static class CivilizationEditRenderer
             overlayColor
         );
 
-        // Dialog box dimensions
-        var dialogWidth = 500f;
-        var dialogHeight = 450f;
+        // Dialog box dimensions — height sized to fit the icon picker grid
+        // plus the surrounding labels + preview + buttons. The previous fixed
+        // 450f wasn't tall enough for the current icon count, so the button
+        // row drew on top of the bottom grid rows.
+        const float dialogWidth = 500f;
+        const int pickerColumns = 4;
+        const float pickerIconSize = 40f;
+        const float pickerSpacing = 8f;
+        const float previewHeightEstimate = 14f + 8f + 48f + 8f + 14f; // label+gap+icon+gap+name
+        var availableIconsForMeasure = CivilizationIconLoader.GetAvailableIcons();
+        var pickerRows = (int)System.Math.Ceiling(availableIconsForMeasure.Count / (double)pickerColumns);
+        var pickerHeightEstimate = pickerRows * pickerIconSize + System.Math.Max(0, pickerRows - 1) * pickerSpacing;
+
+        // Section heights match the currentY increments below:
+        //   20 top pad
+        // + 40 title row
+        // + 30 civ-name row
+        // + 25 'Current Icon:' label
+        // + previewHeight + 20 gap
+        // + 25 'Select New Icon:' label
+        // + pickerHeight + 20 gap
+        // + 60 button strip
+        // + 20 bottom pad
+        var dialogHeight = 20f + 40f + 30f + 25f + previewHeightEstimate + 20f
+                           + 25f + pickerHeightEstimate + 20f + 60f + 20f;
+        // Clamp to the available overlay so dialogs never escape the dialog.
+        dialogHeight = System.MathF.Min(dialogHeight, System.MathF.Max(300f, vm.Height - 40f));
+
         var dialogX = vm.X + (vm.Width - dialogWidth) / 2;
         var dialogY = vm.Y + (vm.Height - dialogHeight) / 2;
 
