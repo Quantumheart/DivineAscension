@@ -6,19 +6,39 @@ using ImGuiNET;
 namespace DivineAscension.GUI.UI.Renderers.Utilities;
 
 /// <summary>
-///     Shared codex-chrome helpers for ornamental dividers and dotted-leader
-///     stat lines. Pure drawList primitives — no state, no events.
+///     Shared codex-chrome helpers for ornamental dividers, drawn diamonds,
+///     and dotted-leader stat lines. Pure drawList primitives — no state, no
+///     events. Diamonds are painted as quads rather than text glyphs because
+///     ImGui's default font ranges exclude the Dingbats codepoints we'd
+///     otherwise reach for (`✦` etc. would render as `?`).
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class ChromeRenderer
 {
-    private const string DividerOrnament = "✦"; // ✦ BLACK FOUR POINTED STAR
-    private const string LeaderDot = "·";
+    private const string LeaderDot = "·"; // Middle dot — U+00B7, inside Latin-1.
 
     /// <summary>
-    ///     Paint a slim horizontal divider with a single centered ornament:
-    ///     <c>─── ✦ ───</c>. Lines flank the glyph; the glyph is drawn on the
-    ///     same baseline as the lines so they read as one unit.
+    ///     Paint a small filled rhombus centered at (<paramref name="cx" />,
+    ///     <paramref name="cy" />). <paramref name="halfSize" /> is the
+    ///     half-extent along each axis (so the diamond spans
+    ///     <c>2 * halfSize</c> in width and height).
+    /// </summary>
+    public static void DrawDiamond(ImDrawListPtr drawList, float cx, float cy, float halfSize,
+        Vector4? colorOverride = null)
+    {
+        if (halfSize <= 0f) return;
+        var color = ImGui.ColorConvertFloat4ToU32(colorOverride ?? ColorPalette.Gold);
+        var top = new Vector2(cx, cy - halfSize);
+        var right = new Vector2(cx + halfSize, cy);
+        var bottom = new Vector2(cx, cy + halfSize);
+        var left = new Vector2(cx - halfSize, cy);
+        drawList.AddQuadFilled(top, right, bottom, left, color);
+    }
+
+    /// <summary>
+    ///     Paint a slim horizontal divider with a single centered diamond
+    ///     ornament: <c>──── ◆ ────</c>. Lines flank the diamond on a shared
+    ///     vertical baseline.
     /// </summary>
     public static void DrawDivider(ImDrawListPtr drawList, float x, float y, float width,
         Vector4? colorOverride = null)
@@ -28,16 +48,13 @@ internal static class ChromeRenderer
         var color = colorOverride ?? ColorPalette.Gold * 0.55f;
         var colorU32 = ImGui.ColorConvertFloat4ToU32(color);
 
-        var ornamentSize = ImGui.CalcTextSize(DividerOrnament);
-        // Vertical anchor: centre the ornament glyph on the line; the line
-        // sits at the glyph's vertical midpoint.
-        var lineY = y + ornamentSize.Y / 2f;
-
+        const float diamondHalfSize = 4f;
         const float sideGap = 8f;
-        var halfOrnamentWidth = ornamentSize.X / 2f;
         var centerX = x + width / 2f;
-        var leftLineEnd = centerX - halfOrnamentWidth - sideGap;
-        var rightLineStart = centerX + halfOrnamentWidth + sideGap;
+        var lineY = y + diamondHalfSize; // baseline through the diamond's centre
+
+        var leftLineEnd = centerX - diamondHalfSize - sideGap;
+        var rightLineStart = centerX + diamondHalfSize + sideGap;
 
         if (leftLineEnd > x)
         {
@@ -49,14 +66,13 @@ internal static class ChromeRenderer
                 new Vector2(x + width, lineY), colorU32, 1f);
         }
 
-        var ornamentX = centerX - halfOrnamentWidth;
-        drawList.AddText(new Vector2(ornamentX, y), colorU32, DividerOrnament);
+        DrawDiamond(drawList, centerX, lineY, diamondHalfSize, color);
     }
 
     /// <summary>
     ///     Paint a leader row: <c>Label · · · · · · Value</c> spanning
-    ///     <paramref name="width" />, with the dot run sized to exactly fill
-    ///     the gap between the label end and the right-aligned value.
+    ///     <paramref name="width" />, with the dot run sized to fill the gap
+    ///     between the label end and the right-aligned value.
     /// </summary>
     public static void DrawLeader(ImDrawListPtr drawList, string label, string value,
         float x, float y, float width,
@@ -81,8 +97,6 @@ internal static class ChromeRenderer
         var dotWidth = ImGui.CalcTextSize(LeaderDot).X;
         if (dotWidth <= 0f) return;
 
-        // Use spaced dots ("·") for a leader rather than a solid run; computed
-        // count uses 2x the dot width so the dots breathe.
         var step = dotWidth * 2f;
         var dotCount = (int)(leadersWidth / step);
         if (dotCount <= 0) return;
