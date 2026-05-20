@@ -35,17 +35,6 @@ internal static class SidebarRenderer
 
         ImGui.SetCursorScreenPos(new Vector2(rect.X, rect.Y));
         ImGui.PushStyleColor(ImGuiCol.ChildBg, ColorPalette.TableBackground);
-
-        // Override ImGui's default blue hover / active highlights so sidebar
-        // Selectables and Buttons flash warm gold instead of stock blue when
-        // hovered or clicked.
-        var hover = ColorPalette.Gold * 0.25f;
-        var active = ColorPalette.Gold * 0.45f;
-        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, hover);
-        ImGui.PushStyleColor(ImGuiCol.HeaderActive, active);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, hover);
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, active);
-
         ImGui.BeginChild("##da-sidebar", new Vector2(rect.W, rect.H), false,
             ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
 
@@ -61,7 +50,7 @@ internal static class SidebarRenderer
         }
 
         ImGui.EndChild();
-        ImGui.PopStyleColor(5);
+        ImGui.PopStyleColor();
         return events;
     }
 

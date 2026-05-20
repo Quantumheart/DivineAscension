@@ -5,6 +5,7 @@ using DivineAscension.GUI.Models.Religion.Header;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI.Renderers.RightRail;
 using DivineAscension.GUI.UI.Renderers.Sidebar;
+using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network.Civilization;
 using ImGuiNET;
 
@@ -35,6 +36,21 @@ internal static class MainLayoutCoordinator
         var windowPos = ImGui.GetWindowPos();
         var outer = new UiRect(windowPos.X, windowPos.Y, windowWidth, windowHeight);
 
+        // Override ImGui's default cool-toned hover / active / check colors
+        // so every Selectable, Button, and Checkbox inside the dialog flashes
+        // warm gold instead of the stock blueish defaults. Applied once at
+        // the layout root so nested renderers don't have to repeat the push.
+        var hover = ColorPalette.Gold * 0.25f;
+        var active = ColorPalette.Gold * 0.45f;
+        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, hover);
+        ImGui.PushStyleColor(ImGuiCol.HeaderActive, active);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, hover);
+        ImGui.PushStyleColor(ImGuiCol.ButtonActive, active);
+        ImGui.PushStyleColor(ImGuiCol.FrameBg, ColorPalette.DarkBrown);
+        ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, hover);
+        ImGui.PushStyleColor(ImGuiCol.FrameBgActive, active);
+        ImGui.PushStyleColor(ImGuiCol.CheckMark, ColorPalette.Gold);
+
         // Title strip occupies the top chrome band of the inset outer rect and
         // hosts the close button on its right edge. Stays visible regardless of
         // sidebar collapsed state because it lives above the column split.
@@ -63,6 +79,8 @@ internal static class MainLayoutCoordinator
 
         // --- Content dispatch (driven by Sidebar.CurrentNav).
         DispatchContent(manager, state, content, windowWidth, windowHeight, deltaTime);
+
+        ImGui.PopStyleColor(8);
     }
 
     private static void ApplySidebarEvents(IReadOnlyList<SidebarEvent> events,
