@@ -80,16 +80,22 @@ public class DivineAscensionModSystem : ModSystem
 
     public string ModName => "divineascension";
 
+    // VSImGui's StartPre calls TryOpen → LoadFonts → FontManager.Load()
+    // synchronously, firing BeforeFontsLoaded before any later phase. We
+    // must subscribe before that, so run our StartPre first via
+    // ExecuteOrder = -1.0 and pre-load cimgui ourselves inside the
+    // service (FontManager's cctor touches ImGui.GetIO()).
+    public override double ExecuteOrder() => -1.0;
+
+    public override void StartPre(ICoreAPI api)
+    {
+        base.StartPre(api);
+        DivineAscension.Services.UI.CinzelFontService.Register(api);
+    }
+
     public override void Start(ICoreAPI api)
     {
         base.Start(api);
-
-        // Hook Cinzel into VSImGui's font atlas. Subscribe in Start — by
-        // this point VSImGui's StartPre has loaded the cimgui native, so
-        // touching FontManager (whose cctor calls ImGui.GetIO()) is safe.
-        // VSImGui's FontManager.Load() fires later via dialog open, so
-        // the subscription is in time.
-        DivineAscension.Services.UI.CinzelFontService.Register(api);
         // Initialize logging service FIRST (before any logging occurs)
         var loggingConfig = LoggingConfig.Default(); // or LoggingConfig.Silent()
         LoggingService.Instance.Initialize(api.Logger, loggingConfig);
