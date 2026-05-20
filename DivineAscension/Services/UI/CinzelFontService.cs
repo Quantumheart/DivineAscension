@@ -39,6 +39,7 @@ public static class CinzelFontService
     {
         if (_registered) return;
         if (api.Side != EnumAppSide.Client) return;
+        api.Logger.Notification("[DivineAscension] CinzelFontService.Register: subscribing to BeforeFontsLoaded");
 
         // VS forbids asset reads until AssetsLoaded, but VSImGui fires
         // BeforeFontsLoaded during its own AssetsLoaded — so do the
