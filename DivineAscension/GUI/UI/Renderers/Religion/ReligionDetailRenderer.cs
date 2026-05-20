@@ -90,14 +90,18 @@ internal static class ReligionDetailRenderer
         var startY = currentY;
         var font = ImGui.GetFont();
 
-        // Fixed column positions per CSS spec (each column is 270px wide)
-        const float columnWidth = 270f;
-        const float nameColumnLeft = 291f;
-        const float deityColumnLeft = 565f;
-        const float prestigeColumnLeft = 839f;
-        const float publicColumnLeft = 1113f;
+        // Responsive 4-column grid. An icon column (fixed-ish width) sits on
+        // the left, the remaining width is split evenly between Name, Deity,
+        // Prestige and Public. Centers used for text alignment below.
+        const float iconColumnWidth = 120f;
+        var dataWidth = MathF.Max(vm.Width - iconColumnWidth, 200f);
+        var columnWidth = dataWidth / 4f;
 
-        // Calculate column centers for text alignment
+        var nameColumnLeft = iconColumnWidth;
+        var deityColumnLeft = iconColumnWidth + columnWidth;
+        var prestigeColumnLeft = iconColumnWidth + columnWidth * 2f;
+        var publicColumnLeft = iconColumnWidth + columnWidth * 3f;
+
         var nameCenter = vm.X + nameColumnLeft + (columnWidth / 2f);
         var deityCenter = vm.X + deityColumnLeft + (columnWidth / 2f);
         var prestigeCenter = vm.X + prestigeColumnLeft + (columnWidth / 2f);
@@ -130,10 +134,9 @@ internal static class ReligionDetailRenderer
 
         currentY += 32f;
 
-        // Deity icon - fixed position per CSS spec (left: 109px from container start)
-        const float iconSize = 85f;
-        const float iconLeftOffset = 97; // From CSS spec
-        var iconX = vm.X + iconLeftOffset;
+        // Deity icon — centered inside the icon column, sized to fit.
+        var iconSize = MathF.Min(85f, iconColumnWidth - 16f);
+        var iconX = vm.X + (iconColumnWidth - iconSize) / 2f;
         var iconY = currentY;
 
         if (Enum.TryParse<DeityDomain>(vm.Deity, out var deityType))
@@ -226,10 +229,13 @@ internal static class ReligionDetailRenderer
         var headerColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.239f, 0.180f, 0.125f, 1f)); // #3D2E20
         var valueColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.573f, 0.502f, 0.416f, 1f)); // #92806A
 
-        const float columnWidth = 270f;
-        const float descColumnLeft = 291f;
-        // Description header (centered like Name header)
-        var descCenter = vm.X + descColumnLeft + (columnWidth / 2f);
+        // Description spans the full content width, with horizontal padding.
+        const float horizontalPadding = 16f;
+        var descLeft = vm.X + horizontalPadding;
+        var descWidth = MathF.Max(vm.Width - horizontalPadding * 2f, 100f);
+        var descCenter = vm.X + vm.Width / 2f;
+
+        // Header centered above the description block.
         var descHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_DESCRIPTION);
         var descHeaderWidth = ImGui.CalcTextSize(descHeader).X;
         drawList.AddText(font, TableHeader, new Vector2(descCenter - descHeaderWidth / 2f, currentY), headerColor,
@@ -237,17 +243,18 @@ internal static class ReligionDetailRenderer
 
         currentY += 28f;
 
-        // Description text (left-aligned from column 1, with reasonable max width)
-        var maxWidth = 544; // Span 2 columns worth of width
         var lineHeight = 20f;
 
-        // Simple wrapping: use ImGui text wrapping by drawing text blocks
         ImGui.PushFont(ImGui.GetFont());
-        var descLines = WrapText(vm.Description, maxWidth, font, Body);
+        var descLines = WrapText(vm.Description, descWidth, font, Body);
 
         foreach (var line in descLines)
         {
-            drawList.AddText(font, Body, new Vector2(descCenter, currentY), valueColor, line);
+            // Center each wrapped line for symmetry with the header.
+            var lineWidth = ImGui.CalcTextSize(line).X;
+            drawList.AddText(font, Body,
+                new Vector2(descCenter - lineWidth / 2f, currentY),
+                valueColor, line);
             currentY += lineHeight;
         }
 
