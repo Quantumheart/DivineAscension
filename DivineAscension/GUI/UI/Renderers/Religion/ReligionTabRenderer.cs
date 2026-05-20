@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Tab;
-using DivineAscension.GUI.State.Religion;
+using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI.Components.Banners;
 using ImGuiNET;
 using Vintagestory.API.Client;
@@ -11,9 +11,9 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
 ///     Pure renderer for the Religion tab error banner.
-///     Sub-tab navigation now lives in the sidebar (Phase 3b refactor) — this
-///     renderer is responsible only for the per-context error banner that sits
-///     at the top of the content pane.
+///     Sub-tab navigation lives in the sidebar — this renderer is responsible
+///     only for the per-context error banner that sits at the top of the
+///     content pane.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class ReligionTabRenderer
@@ -34,23 +34,23 @@ internal static class ReligionTabRenderer
         // Error banner (LastActionError has priority)
         var bannerMessage = viewModel.ErrorState.LastActionError;
         var showRetry = false;
-        var effectiveTab = viewModel.CurrentSubTab;
+        var effectiveNav = viewModel.CurrentNav;
 
         if (bannerMessage == null)
         {
-            switch (viewModel.CurrentSubTab)
+            switch (viewModel.CurrentNav)
             {
-                case SubTab.Browse:
+                case SidebarNavId.ReligionBrowse:
                     bannerMessage = viewModel.ErrorState.BrowseError;
                     showRetry = bannerMessage != null;
                     break;
-                case SubTab.Info:
+                case SidebarNavId.ReligionInfo:
                     bannerMessage = viewModel.ErrorState.InfoError;
                     showRetry = bannerMessage != null;
                     break;
-                case SubTab.Create:
+                case SidebarNavId.ReligionCreate:
                     bannerMessage = viewModel.ErrorState.CreateError;
-                    showRetry = false; // No retry for create errors
+                    showRetry = false;
                     break;
             }
         }
@@ -69,13 +69,13 @@ internal static class ReligionTabRenderer
                 }
                 else
                 {
-                    events.Add(new SubTabEvent.DismissContextError(effectiveTab));
+                    events.Add(new SubTabEvent.DismissContextError(effectiveNav));
                 }
             }
 
             if (retryClicked)
             {
-                events.Add(new SubTabEvent.RetryRequested(effectiveTab));
+                events.Add(new SubTabEvent.RetryRequested(effectiveNav));
             }
         }
 

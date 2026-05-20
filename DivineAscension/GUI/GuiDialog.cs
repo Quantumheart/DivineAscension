@@ -60,6 +60,13 @@ public partial class GuiDialog : ModSystem
     /// </summary>
     public GuiDialogManager? DialogManager => _manager;
 
+    /// <summary>
+    ///     Public accessor for dialog state. Network handlers read the active
+    ///     sidebar destination via <c>State.Sidebar.CurrentNav</c> when they
+    ///     need to decide whether to push fresh data to an open view.
+    /// </summary>
+    public GuiDialogState State => _state;
+
     public override bool ShouldLoad(EnumAppSide forSide)
     {
         return forSide == EnumAppSide.Client;
@@ -113,6 +120,12 @@ public partial class GuiDialog : ModSystem
         _divineAscensionModSystem = _modLoaderService.GetModSystem<DivineAscensionModSystem>();
         _soundManager = new SoundManager(_capi);
         _manager = new GuiDialogManager(_capi, _divineAscensionModSystem!.UiService, _soundManager);
+
+        // In-content actions (e.g. "Create new religion" from Browse) need to
+        // move the sidebar; wire the callback so the manager can request it
+        // without holding a reference to the dialog state.
+        _manager.ReligionStateManager.NavRedirectRequested = nav => _state.Sidebar.CurrentNav = nav;
+
         if (_divineAscensionModSystem?.NetworkClient != null)
         {
             _divineAscensionModSystem.NetworkClient.BlessingUnlocked += OnBlessingUnlockedFromServer;

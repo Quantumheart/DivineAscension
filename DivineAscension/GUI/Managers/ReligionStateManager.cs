@@ -46,6 +46,13 @@ public class ReligionStateManager : IReligionStateManager
     internal IReligionProvider? ReligionsProvider { get; private set; }
     internal IReligionDetailProvider? ReligionDetailProvider { get; private set; }
 
+    /// <summary>
+    ///     Wired by the dialog to forward nav-redirect requests to the sidebar.
+    ///     Invoked when an in-content action (e.g. "Create new religion" button)
+    ///     needs to move the user to a different sidebar destination.
+    /// </summary>
+    public Action<SidebarNavId>? NavRedirectRequested { get; set; }
+
     public ReligionTabState State { get; } = new();
     public string? CurrentReligionUID { get; set; }
     public DeityDomain CurrentReligionDomain { get; set; }
@@ -641,14 +648,14 @@ public class ReligionStateManager : IReligionStateManager
     }
 
     /// <summary>
-    /// Draws the Religion tab header + error banner via pure renderer and routes to active sub-tab.
-    /// This is the EDA orchestration point: builds the tab ViewModel, calls renderer, handles events, then draws sub-tab.
+    /// Draws the Religion tab error banner via pure renderer and routes to active sub-tab.
+    /// Nav state is owned by the sidebar; <paramref name="nav"/> is one of the
+    /// Religion* values from <see cref="SidebarNavId"/>.
     /// </summary>
-    public void DrawReligionTab(SubTab activeSubTab, float x, float y, float width, float height)
+    public void DrawReligionTab(SidebarNavId nav, float x, float y, float width, float height)
     {
-        // Build view model from sidebar-driven sub-tab
         var tabVm = new ReligionTabViewModel(
-            currentSubTab: activeSubTab,
+            currentNav: nav,
             errorState: State.ErrorState,
             hasReligion: HasReligion(),
             x: x,
@@ -664,87 +671,33 @@ public class ReligionStateManager : IReligionStateManager
         {
             switch (ev)
             {
-                case SubTabEvent.TabChanged(var sub):
-                    // Validate that the requested tab is visible for current religion state
-                    var isTabVisible = sub switch
-                    {
-                        SubTab.Browse => true,
-                        SubTab.Info => HasReligion(),
-                        SubTab.Activity => HasReligion(),
-                        SubTab.Roles => HasReligion(),
-                        SubTab.Invites => !HasReligion(),
-                        SubTab.Create => !HasReligion(),
-                        _ => false
-                    };
-
-                    if (!isTabVisible)
-                    {
-                        _coreClientApi.Logger.Warning(
-                            $"[DivineAscension] Attempted to switch to hidden tab {sub} (HasReligion={HasReligion()}). Ignoring.");
-                        break; // Don't process the tab change
-                    }
-
-                    State.CurrentSubTab = sub;
-                    // Clear transient action error on tab change
-                    State.ErrorState.LastActionError = null;
-                    // Clear context-specific errors and possibly trigger loads
-                    switch (sub)
-                    {
-                        case SubTab.Browse:
-                            RequestReligionList(State.BrowseState.DeityFilter);
-                            State.ErrorState.BrowseError = null;
-                            break;
-                        case SubTab.Info:
-                            RequestPlayerReligionInfo();
-                            State.ErrorState.InfoError = null;
-                            break;
-                        case SubTab.Activity:
-                            State.ErrorState.ActivityError = null;
-                            break;
-                        case SubTab.Invites:
-                            State.InvitesState.InvitesError = null;
-                            State.InvitesState.Loading = true;
-                            RequestPlayerReligionInfo();
-                            break;
-                        case SubTab.Create:
-                            State.ErrorState.CreateError = null;
-                            RequestPlayerReligionInfo();
-                            break;
-                        case SubTab.Roles:
-                            RequestReligionRoles();
-                            break;
-                    }
-
-                    break;
                 case SubTabEvent.DismissActionError:
                     State.ErrorState.LastActionError = null;
                     break;
-                case SubTabEvent.DismissContextError(var subTab):
-                    switch (subTab)
+                case SubTabEvent.DismissContextError(var dismissed):
+                    switch (dismissed)
                     {
-                        case SubTab.Browse:
+                        case SidebarNavId.ReligionBrowse:
                             State.ErrorState.BrowseError = null;
                             break;
-                        case SubTab.Info:
+                        case SidebarNavId.ReligionInfo:
                             State.ErrorState.InfoError = null;
                             break;
-                        case SubTab.Create:
+                        case SidebarNavId.ReligionCreate:
                             State.ErrorState.CreateError = null;
                             break;
                     }
-
                     break;
-                case SubTabEvent.RetryRequested(var subTab):
-                    switch (subTab)
+                case SubTabEvent.RetryRequested(var retried):
+                    switch (retried)
                     {
-                        case SubTab.Browse:
+                        case SidebarNavId.ReligionBrowse:
                             RequestReligionList(State.BrowseState.DeityFilter);
                             break;
-                        case SubTab.Info:
+                        case SidebarNavId.ReligionInfo:
                             RequestPlayerReligionInfo();
                             break;
                     }
-
                     break;
             }
         }
@@ -753,24 +706,24 @@ public class ReligionStateManager : IReligionStateManager
         var contentY = y + tabResult.RenderedHeight;
         var contentHeight = height - tabResult.RenderedHeight;
 
-        switch (activeSubTab)
+        switch (nav)
         {
-            case SubTab.Browse:
+            case SidebarNavId.ReligionBrowse:
                 DrawReligionBrowse(x, contentY, width, contentHeight);
                 break;
-            case SubTab.Info:
+            case SidebarNavId.ReligionInfo:
                 DrawReligionInfo(x, contentY, width, contentHeight);
                 break;
-            case SubTab.Activity:
+            case SidebarNavId.ReligionActivity:
                 DrawReligionActivity(x, contentY, width, contentHeight);
                 break;
-            case SubTab.Invites:
+            case SidebarNavId.ReligionInvites:
                 DrawReligionInvites(x, contentY, width, contentHeight);
                 break;
-            case SubTab.Create:
+            case SidebarNavId.ReligionCreate:
                 DrawReligionCreate(x, contentY, width, contentHeight);
                 break;
-            case SubTab.Roles:
+            case SidebarNavId.ReligionRoles:
                 DrawReligionRoles(x, contentY, width, contentHeight);
                 break;
         }
@@ -1114,8 +1067,8 @@ public class ReligionStateManager : IReligionStateManager
         State.CreateState.IsPublic = true;
         State.ErrorState.CreateError = null;
 
-        // Switch to My Religion tab to see the new religion
-        State.CurrentSubTab = SubTab.Info;
+        // Switch to My Religion sidebar destination to see the new religion
+        NavRedirectRequested?.Invoke(SidebarNavId.ReligionInfo);
         RequestPlayerReligionInfo();
     }
 
@@ -1159,8 +1112,7 @@ public class ReligionStateManager : IReligionStateManager
                     break;
 
                 case BrowseEvent.CreateClicked:
-                    // Switch to Create sub-tab
-                    State.CurrentSubTab = SubTab.Create;
+                    NavRedirectRequested?.Invoke(SidebarNavId.ReligionCreate);
                     _soundManager.PlayClick();
                     break;
 

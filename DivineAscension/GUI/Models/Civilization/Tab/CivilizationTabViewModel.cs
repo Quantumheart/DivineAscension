@@ -3,7 +3,7 @@ using DivineAscension.GUI.State;
 namespace DivineAscension.GUI.Models.Civilization.Tab;
 
 public readonly struct CivilizationTabViewModel(
-    CivilizationSubTab currentSubTab,
+    SidebarNavId currentNav,
     string? lastActionError,
     string? browseError,
     string? infoError,
@@ -16,7 +16,7 @@ public readonly struct CivilizationTabViewModel(
     float width,
     float height)
 {
-    public CivilizationSubTab CurrentSubTab { get; } = currentSubTab;
+    public SidebarNavId CurrentNav { get; } = currentNav;
     public string? LastActionError { get; } = lastActionError;
     public string? BrowseError { get; } = browseError;
     public string? InfoError { get; } = infoError;
@@ -29,11 +29,10 @@ public readonly struct CivilizationTabViewModel(
     public float Width { get; } = width;
     public float Height { get; } = height;
 
-    // Helper methods (no side effects) - Tab visibility based on religion/civilization membership
-    public bool ShowInfoTab => HasCivilization; // Only show if user is in a civilization
-    public bool ShowInvitesTab => HasReligion && !HasCivilization; // Only show if has religion but not in civilization
-    public bool ShowCreateTab => HasReligion && !HasCivilization; // Only show if user has religion but no civilization
-    public bool ShowDiplomacyTab => HasCivilization; // Only show if user is in a civilization
-    public bool ShowHolySitesTab => HasCivilization; // Only show if user is in a civilization
-    public bool ShowMilestonesTab => HasCivilization; // Only show if user is in a civilization
+    public bool ShowInfoTab => HasCivilization;
+    public bool ShowInvitesTab => HasReligion && !HasCivilization;
+    public bool ShowCreateTab => HasReligion && !HasCivilization;
+    public bool ShowDiplomacyTab => HasCivilization;
+    public bool ShowHolySitesTab => HasCivilization;
+    public bool ShowMilestonesTab => HasCivilization;
 }

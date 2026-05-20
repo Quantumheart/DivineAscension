@@ -199,8 +199,8 @@ internal static class ReligionCreateRenderer
             .Select(d => d.ToLower())
             .ToArray();
 
-        // Draw domain selection as tabs with icons and hover tracking
-        var (newDomainIndex, hoveredIndex) = TabControl.DrawWithHover(
+        // Draw domain selection as an icon button group with hover tracking
+        var (newDomainIndex, hoveredIndex) = IconButtonGroup.DrawWithHover(
             drawList,
             formX,
             currentY,

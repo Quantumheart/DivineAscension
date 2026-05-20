@@ -222,23 +222,4 @@ public class SidebarNavMapperTests
         Assert.Equal(SidebarNavId.CivilizationMilestones, state.Sidebar.CurrentNav);
     }
 
-    [Fact]
-    public void ToReligionSubTab_MapsReligionNavs()
-    {
-        Assert.Equal(SubTab.Browse, SidebarNavMapper.ToReligionSubTab(SidebarNavId.ReligionBrowse));
-        Assert.Equal(SubTab.Info, SidebarNavMapper.ToReligionSubTab(SidebarNavId.ReligionInfo));
-        Assert.Equal(SubTab.Roles, SidebarNavMapper.ToReligionSubTab(SidebarNavId.ReligionRoles));
-        Assert.Null(SidebarNavMapper.ToReligionSubTab(SidebarNavId.Blessings));
-        Assert.Null(SidebarNavMapper.ToReligionSubTab(SidebarNavId.CivilizationInfo));
-    }
-
-    [Fact]
-    public void ToCivilizationSubTab_MapsCivilizationNavs()
-    {
-        Assert.Equal(CivilizationSubTab.Browse, SidebarNavMapper.ToCivilizationSubTab(SidebarNavId.CivilizationBrowse));
-        Assert.Equal(CivilizationSubTab.Milestones, SidebarNavMapper.ToCivilizationSubTab(SidebarNavId.CivilizationMilestones));
-        Assert.Equal(CivilizationSubTab.HolySites, SidebarNavMapper.ToCivilizationSubTab(SidebarNavId.CivilizationHolySites));
-        Assert.Null(SidebarNavMapper.ToCivilizationSubTab(SidebarNavId.Blessings));
-        Assert.Null(SidebarNavMapper.ToCivilizationSubTab(SidebarNavId.ReligionInfo));
-    }
 }
