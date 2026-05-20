@@ -219,7 +219,7 @@ public partial class GuiDialog
         else
         {
             // Default to Blessings tab when opening via hotkey
-            _state.CurrentMainTab = MainDialogTab.Blessings;
+            _state.Sidebar.CurrentNav = SidebarNavId.Blessings;
             Open();
         }
 

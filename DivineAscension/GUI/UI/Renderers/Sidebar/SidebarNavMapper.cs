@@ -9,9 +9,7 @@ namespace DivineAscension.GUI.UI.Renderers.Sidebar;
 /// <summary>
 ///     Pure mapping from manager-derived flags + counts into a
 ///     <see cref="SidebarViewModel" />, plus an <see cref="Apply" /> helper
-///     that translates clicks into the legacy
-///     <c>CurrentMainTab</c> / <c>CurrentSubTab</c> writes the existing
-///     state managers still consume until Phase 4 retires those fields.
+///     that commits a sidebar click to <see cref="SidebarState.CurrentNav" />.
 /// </summary>
 public static class SidebarNavMapper
 {
@@ -54,73 +52,45 @@ public static class SidebarNavMapper
     }
 
     /// <summary>
-    ///     Project the active <see cref="SidebarNavId" /> back onto the legacy
-    ///     <c>MainDialogTab</c> + sub-tab fields so the existing state managers
-    ///     keep rendering until Phase 4 cuts them.
+    ///     Commit a sidebar click. <see cref="SidebarState.CurrentNav" /> is the
+    ///     single source of truth for the active destination; rendering reads it
+    ///     directly via <see cref="ToReligionSubTab" /> / <see cref="ToCivilizationSubTab" />.
     /// </summary>
-    public static void Apply(SidebarNavId nav, GuiDialogState state, ReligionTabState religion,
-        CivilizationTabState civilization)
+    public static void Apply(SidebarNavId nav, GuiDialogState state)
     {
         state.Sidebar.CurrentNav = nav;
-        switch (nav)
-        {
-            case SidebarNavId.ReligionBrowse:
-                state.CurrentMainTab = MainDialogTab.Religion;
-                religion.CurrentSubTab = SubTab.Browse;
-                break;
-            case SidebarNavId.ReligionInfo:
-                state.CurrentMainTab = MainDialogTab.Religion;
-                religion.CurrentSubTab = SubTab.Info;
-                break;
-            case SidebarNavId.ReligionActivity:
-                state.CurrentMainTab = MainDialogTab.Religion;
-                religion.CurrentSubTab = SubTab.Activity;
-                break;
-            case SidebarNavId.ReligionRoles:
-                state.CurrentMainTab = MainDialogTab.Religion;
-                religion.CurrentSubTab = SubTab.Roles;
-                break;
-            case SidebarNavId.ReligionInvites:
-                state.CurrentMainTab = MainDialogTab.Religion;
-                religion.CurrentSubTab = SubTab.Invites;
-                break;
-            case SidebarNavId.ReligionCreate:
-                state.CurrentMainTab = MainDialogTab.Religion;
-                religion.CurrentSubTab = SubTab.Create;
-                break;
-            case SidebarNavId.Blessings:
-                state.CurrentMainTab = MainDialogTab.Blessings;
-                break;
-            case SidebarNavId.CivilizationBrowse:
-                state.CurrentMainTab = MainDialogTab.Civilization;
-                civilization.CurrentSubTab = CivilizationSubTab.Browse;
-                break;
-            case SidebarNavId.CivilizationInfo:
-                state.CurrentMainTab = MainDialogTab.Civilization;
-                civilization.CurrentSubTab = CivilizationSubTab.Info;
-                break;
-            case SidebarNavId.CivilizationInvites:
-                state.CurrentMainTab = MainDialogTab.Civilization;
-                civilization.CurrentSubTab = CivilizationSubTab.Invites;
-                break;
-            case SidebarNavId.CivilizationCreate:
-                state.CurrentMainTab = MainDialogTab.Civilization;
-                civilization.CurrentSubTab = CivilizationSubTab.Create;
-                break;
-            case SidebarNavId.CivilizationDiplomacy:
-                state.CurrentMainTab = MainDialogTab.Civilization;
-                civilization.CurrentSubTab = CivilizationSubTab.Diplomacy;
-                break;
-            case SidebarNavId.CivilizationHolySites:
-                state.CurrentMainTab = MainDialogTab.Civilization;
-                civilization.CurrentSubTab = CivilizationSubTab.HolySites;
-                break;
-            case SidebarNavId.CivilizationMilestones:
-                state.CurrentMainTab = MainDialogTab.Civilization;
-                civilization.CurrentSubTab = CivilizationSubTab.Milestones;
-                break;
-        }
     }
+
+    /// <summary>
+    ///     Map a Religion-area nav id to its <see cref="SubTab" />. Returns
+    ///     <c>null</c> for non-Religion ids.
+    /// </summary>
+    public static SubTab? ToReligionSubTab(SidebarNavId nav) => nav switch
+    {
+        SidebarNavId.ReligionBrowse => SubTab.Browse,
+        SidebarNavId.ReligionInfo => SubTab.Info,
+        SidebarNavId.ReligionActivity => SubTab.Activity,
+        SidebarNavId.ReligionRoles => SubTab.Roles,
+        SidebarNavId.ReligionInvites => SubTab.Invites,
+        SidebarNavId.ReligionCreate => SubTab.Create,
+        _ => null
+    };
+
+    /// <summary>
+    ///     Map a Civilization-area nav id to its <see cref="CivilizationSubTab" />.
+    ///     Returns <c>null</c> for non-Civilization ids.
+    /// </summary>
+    public static CivilizationSubTab? ToCivilizationSubTab(SidebarNavId nav) => nav switch
+    {
+        SidebarNavId.CivilizationBrowse => CivilizationSubTab.Browse,
+        SidebarNavId.CivilizationInfo => CivilizationSubTab.Info,
+        SidebarNavId.CivilizationInvites => CivilizationSubTab.Invites,
+        SidebarNavId.CivilizationCreate => CivilizationSubTab.Create,
+        SidebarNavId.CivilizationDiplomacy => CivilizationSubTab.Diplomacy,
+        SidebarNavId.CivilizationHolySites => CivilizationSubTab.HolySites,
+        SidebarNavId.CivilizationMilestones => CivilizationSubTab.Milestones,
+        _ => null
+    };
 
     /// <summary>
     ///     Convenience adapter — production builds the context off the live

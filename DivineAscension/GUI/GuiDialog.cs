@@ -316,7 +316,7 @@ public partial class GuiDialog : ModSystem
         if (viewBlessingsClicked)
         {
             // Set the tab BEFORE opening the dialog to ensure it opens on the correct tab
-            _state.CurrentMainTab = MainDialogTab.Blessings;
+            _state.Sidebar.CurrentNav = SidebarNavId.Blessings;
 
             _manager.NotificationManager.OnViewBlessingsClicked(
                 () =>
@@ -326,7 +326,7 @@ public partial class GuiDialog : ModSystem
                 () =>
                 {
                     // Tab already set above, but this ensures it's set if dialog was already open
-                    _state.CurrentMainTab = MainDialogTab.Blessings;
+                    _state.Sidebar.CurrentNav = SidebarNavId.Blessings;
                 }
             );
         }

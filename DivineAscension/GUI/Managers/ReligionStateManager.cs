@@ -644,43 +644,17 @@ public class ReligionStateManager : IReligionStateManager
     /// Draws the Religion tab header + error banner via pure renderer and routes to active sub-tab.
     /// This is the EDA orchestration point: builds the tab ViewModel, calls renderer, handles events, then draws sub-tab.
     /// </summary>
-    public void DrawReligionTab(float x, float y, float width, float height)
+    public void DrawReligionTab(SubTab activeSubTab, float x, float y, float width, float height)
     {
-        // Build view model from state
+        // Build view model from sidebar-driven sub-tab
         var tabVm = new ReligionTabViewModel(
-            currentSubTab: State.CurrentSubTab,
+            currentSubTab: activeSubTab,
             errorState: State.ErrorState,
             hasReligion: HasReligion(),
             x: x,
             y: y,
             width: width,
             height: height);
-
-        // AUTO-CORRECTION: Ensure active tab is valid for current religion state
-        var isCurrentTabValid = State.CurrentSubTab switch
-        {
-            SubTab.Browse => true, // Always visible
-            SubTab.Info => tabVm.ShowInfoTab,
-            SubTab.Activity => tabVm.ShowActivityTab,
-            SubTab.Roles => tabVm.ShowRolesTab,
-            SubTab.Invites => tabVm.ShowInvitesTab,
-            SubTab.Create => tabVm.ShowCreateTab,
-            _ => false
-        };
-
-        if (!isCurrentTabValid)
-        {
-            _coreClientApi.Logger.Debug(
-                $"[DivineAscension] Auto-switching from {State.CurrentSubTab} to Browse (tab now hidden for HasReligion={HasReligion()})");
-            State.CurrentSubTab = SubTab.Browse;
-
-            // Rebuild ViewModel with corrected tab
-            tabVm = new ReligionTabViewModel(
-                currentSubTab: State.CurrentSubTab,
-                errorState: State.ErrorState,
-                hasReligion: HasReligion(),
-                x: x, y: y, width: width, height: height);
-        }
 
         var drawList = ImGui.GetWindowDrawList();
         var tabResult = ReligionTabRenderer.Draw(tabVm, drawList, _coreClientApi);
@@ -779,7 +753,7 @@ public class ReligionStateManager : IReligionStateManager
         var contentY = y + tabResult.RenderedHeight;
         var contentHeight = height - tabResult.RenderedHeight;
 
-        switch (State.CurrentSubTab)
+        switch (activeSubTab)
         {
             case SubTab.Browse:
                 DrawReligionBrowse(x, contentY, width, contentHeight);

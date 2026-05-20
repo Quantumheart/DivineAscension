@@ -450,11 +450,11 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     /// <summary>
     ///     Main EDA orchestrator for Civilization tab: builds ViewModels, calls renderers, processes events
     /// </summary>
-    internal void DrawCivilizationTab(float x, float y, float width, float height)
+    internal void DrawCivilizationTab(CivilizationSubTab activeSubTab, float x, float y, float width, float height)
     {
-        // Build tab ViewModel from state
+        // Build tab ViewModel from sidebar-driven sub-tab
         var tabVm = new CivilizationTabViewModel(
-            State.CurrentSubTab,
+            activeSubTab,
             State.LastActionError,
             State.BrowseState.ErrorMsg,
             State.InfoState.ErrorMsg,
@@ -467,38 +467,6 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             width,
             height);
 
-        // AUTO-CORRECTION: Ensure active tab is valid for current religion/civilization state
-        var isCurrentTabValid = State.CurrentSubTab switch
-        {
-            CivilizationSubTab.Browse => true, // Always visible
-            CivilizationSubTab.Info => tabVm.ShowInfoTab,
-            CivilizationSubTab.Invites => tabVm.ShowInvitesTab,
-            CivilizationSubTab.Create => tabVm.ShowCreateTab,
-            CivilizationSubTab.Diplomacy => tabVm.ShowDiplomacyTab,
-            CivilizationSubTab.HolySites => tabVm.ShowHolySitesTab,
-            CivilizationSubTab.Milestones => tabVm.ShowMilestonesTab,
-            _ => false
-        };
-
-        if (!isCurrentTabValid)
-        {
-            _coreClientApi.Logger.Debug(
-                $"[DivineAscension] Auto-switching from {State.CurrentSubTab} to Browse (tab now hidden for HasReligion={UserHasReligion}, HasCivilization={HasCivilization()})");
-            State.CurrentSubTab = CivilizationSubTab.Browse;
-
-            // Rebuild ViewModel with corrected tab
-            tabVm = new CivilizationTabViewModel(
-                State.CurrentSubTab,
-                State.LastActionError,
-                State.BrowseState.ErrorMsg,
-                State.InfoState.ErrorMsg,
-                State.InviteState.ErrorMsg,
-                !string.IsNullOrEmpty(State.DetailState.ViewingCivilizationId),
-                UserHasReligion,
-                HasCivilization(),
-                x, y, width, height);
-        }
-
         var drawList = ImGui.GetWindowDrawList();
         var tabResult = CivilizationTabRenderer.Draw(tabVm, drawList);
 
@@ -509,7 +477,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         var contentY = y + tabResult.RendererHeight;
         var contentHeight = height - tabResult.RendererHeight;
 
-        switch (State.CurrentSubTab)
+        switch (activeSubTab)
         {
             case CivilizationSubTab.Browse:
                 DrawCivilizationBrowse(x, contentY, width, contentHeight);

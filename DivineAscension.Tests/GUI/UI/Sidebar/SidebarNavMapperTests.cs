@@ -193,41 +193,52 @@ public class SidebarNavMapperTests
     }
 
     [Fact]
-    public void Apply_BlessingsNav_SwitchesMainTabAndClearsSubTab()
+    public void Apply_BlessingsNav_SetsCurrentNav()
     {
-        var state = new GuiDialogState { CurrentMainTab = MainDialogTab.Religion };
-        var religion = new ReligionTabState();
-        var civ = new CivilizationTabState();
+        var state = new GuiDialogState();
 
-        SidebarNavMapper.Apply(SidebarNavId.Blessings, state, religion, civ);
+        SidebarNavMapper.Apply(SidebarNavId.Blessings, state);
 
-        Assert.Equal(MainDialogTab.Blessings, state.CurrentMainTab);
         Assert.Equal(SidebarNavId.Blessings, state.Sidebar.CurrentNav);
     }
 
     [Fact]
-    public void Apply_ReligionRoles_SetsMainTabAndSubTab()
+    public void Apply_ReligionRoles_SetsCurrentNav()
     {
         var state = new GuiDialogState();
-        var religion = new ReligionTabState();
-        var civ = new CivilizationTabState();
 
-        SidebarNavMapper.Apply(SidebarNavId.ReligionRoles, state, religion, civ);
+        SidebarNavMapper.Apply(SidebarNavId.ReligionRoles, state);
 
-        Assert.Equal(MainDialogTab.Religion, state.CurrentMainTab);
-        Assert.Equal(SubTab.Roles, religion.CurrentSubTab);
+        Assert.Equal(SidebarNavId.ReligionRoles, state.Sidebar.CurrentNav);
     }
 
     [Fact]
-    public void Apply_CivilizationMilestones_SetsMainTabAndSubTab()
+    public void Apply_CivilizationMilestones_SetsCurrentNav()
     {
         var state = new GuiDialogState();
-        var religion = new ReligionTabState();
-        var civ = new CivilizationTabState();
 
-        SidebarNavMapper.Apply(SidebarNavId.CivilizationMilestones, state, religion, civ);
+        SidebarNavMapper.Apply(SidebarNavId.CivilizationMilestones, state);
 
-        Assert.Equal(MainDialogTab.Civilization, state.CurrentMainTab);
-        Assert.Equal(CivilizationSubTab.Milestones, civ.CurrentSubTab);
+        Assert.Equal(SidebarNavId.CivilizationMilestones, state.Sidebar.CurrentNav);
+    }
+
+    [Fact]
+    public void ToReligionSubTab_MapsReligionNavs()
+    {
+        Assert.Equal(SubTab.Browse, SidebarNavMapper.ToReligionSubTab(SidebarNavId.ReligionBrowse));
+        Assert.Equal(SubTab.Info, SidebarNavMapper.ToReligionSubTab(SidebarNavId.ReligionInfo));
+        Assert.Equal(SubTab.Roles, SidebarNavMapper.ToReligionSubTab(SidebarNavId.ReligionRoles));
+        Assert.Null(SidebarNavMapper.ToReligionSubTab(SidebarNavId.Blessings));
+        Assert.Null(SidebarNavMapper.ToReligionSubTab(SidebarNavId.CivilizationInfo));
+    }
+
+    [Fact]
+    public void ToCivilizationSubTab_MapsCivilizationNavs()
+    {
+        Assert.Equal(CivilizationSubTab.Browse, SidebarNavMapper.ToCivilizationSubTab(SidebarNavId.CivilizationBrowse));
+        Assert.Equal(CivilizationSubTab.Milestones, SidebarNavMapper.ToCivilizationSubTab(SidebarNavId.CivilizationMilestones));
+        Assert.Equal(CivilizationSubTab.HolySites, SidebarNavMapper.ToCivilizationSubTab(SidebarNavId.CivilizationHolySites));
+        Assert.Null(SidebarNavMapper.ToCivilizationSubTab(SidebarNavId.Blessings));
+        Assert.Null(SidebarNavMapper.ToCivilizationSubTab(SidebarNavId.ReligionInfo));
     }
 }
