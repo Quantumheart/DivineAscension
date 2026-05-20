@@ -445,6 +445,14 @@ public partial class GuiDialog : ModSystem
             _viewport.Pos.Y + (_viewport.Size.Y - initialH) / 2
         ), ImGuiCond.FirstUseEver);
 
+        // Clamp interactive resize to the game window. Min keeps the dialog
+        // usable; max prevents drag-resizing off-screen and out of bounds.
+        const float minW = 800f;
+        const float minH = 500f;
+        var maxW = MathF.Max(minW, (float)window.OuterWidth - 32f);
+        var maxH = MathF.Max(minH, (float)window.OuterHeight - 32f);
+        ImGui.SetNextWindowSizeConstraints(new Vector2(minW, minH), new Vector2(maxW, maxH));
+
         var flags = ImGuiWindowFlags.NoTitleBar |
                     ImGuiWindowFlags.NoMove |
                     ImGuiWindowFlags.NoScrollbar |
