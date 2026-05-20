@@ -438,13 +438,6 @@ public partial class GuiDialog : ModSystem
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
 
-        // Size + center on first open only — afterwards ImGui keeps user resizes.
-        ImGui.SetNextWindowSize(new Vector2(initialW, initialH), ImGuiCond.FirstUseEver);
-        ImGui.SetNextWindowPos(new Vector2(
-            _viewport.Pos.X + (_viewport.Size.X - initialW) / 2,
-            _viewport.Pos.Y + (_viewport.Size.Y - initialH) / 2
-        ), ImGuiCond.FirstUseEver);
-
         // Clamp interactive resize to the game window. Min keeps the dialog
         // usable; max prevents drag-resizing off-screen and out of bounds.
         const float minW = 800f;
@@ -453,10 +446,37 @@ public partial class GuiDialog : ModSystem
         var maxH = MathF.Max(minH, (float)window.OuterHeight - 32f);
         ImGui.SetNextWindowSizeConstraints(new Vector2(minW, minH), new Vector2(maxW, maxH));
 
+        // Detect if the live dialog has drifted outside the game window — can
+        // happen when the user shrinks the game window mid-session, or when an
+        // imgui.ini from a different display layout is loaded. When violated,
+        // promote SetNextWindowSize/Pos to ImGuiCond.Always so the dialog snaps
+        // back inside.
+        var sizeOob = _state.WindowWidth > 0f &&
+                      (_state.WindowWidth > maxW || _state.WindowHeight > maxH);
+        var posOob = _state.WindowWidth > 0f &&
+                     (_state.WindowPosX < _viewport.Pos.X
+                      || _state.WindowPosY < _viewport.Pos.Y
+                      || _state.WindowPosX + _state.WindowWidth > _viewport.Pos.X + _viewport.Size.X
+                      || _state.WindowPosY + _state.WindowHeight > _viewport.Pos.Y + _viewport.Size.Y);
+        var sizeCond = sizeOob ? ImGuiCond.Always : ImGuiCond.FirstUseEver;
+        var posCond = (sizeOob || posOob) ? ImGuiCond.Always : ImGuiCond.FirstUseEver;
+
+        // Size + center on first open only (or forced when out-of-bounds).
+        ImGui.SetNextWindowSize(new Vector2(initialW, initialH), sizeCond);
+        ImGui.SetNextWindowPos(new Vector2(
+            _viewport.Pos.X + (_viewport.Size.X - initialW) / 2,
+            _viewport.Pos.Y + (_viewport.Size.Y - initialH) / 2
+        ), posCond);
+
+        // NoSavedSettings stops ImGui from writing this dialog's size/pos into
+        // imgui.ini. Our UiPrefs is the single source of truth for persisted
+        // size, so a stale imgui.ini from a previous monitor layout never
+        // overrides the clamped FirstUseEver values.
         var flags = ImGuiWindowFlags.NoTitleBar |
                     ImGuiWindowFlags.NoMove |
                     ImGuiWindowFlags.NoScrollbar |
-                    ImGuiWindowFlags.NoScrollWithMouse;
+                    ImGuiWindowFlags.NoScrollWithMouse |
+                    ImGuiWindowFlags.NoSavedSettings;
 
         // Set window background color (Issue #71: Use ColorPalette.Background)
         ImGui.PushStyleColor(ImGuiCol.WindowBg, ColorPalette.Background);
