@@ -182,16 +182,6 @@ public class DivineAscensionModSystem : ModSystem
             .RegisterMessageType<MilestoneUnlockedPacket>();
     }
 
-    public override void AssetsLoaded(ICoreAPI api)
-    {
-        base.AssetsLoaded(api);
-
-        // Load Cinzel into ImGui's font atlas now: VSImGui's StartPre has
-        // created the ImGui context, asset reads are legal, and the first
-        // frame (which bakes the atlas to GPU) hasn't rendered yet.
-        DivineAscension.Services.UI.CinzelFontService.LoadDirectly(api);
-    }
-
     public override void AssetsFinalize(ICoreAPI api)
     {
         base.AssetsFinalize(api);
