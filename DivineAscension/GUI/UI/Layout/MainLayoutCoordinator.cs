@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.GUI.Events.EdgeBookmarks;
 using DivineAscension.GUI.Events.PlayerInfo;
 using DivineAscension.GUI.Models.PlayerInfo;
 using DivineAscension.GUI.Models.Religion.Header;
 using DivineAscension.GUI.State;
+using DivineAscension.GUI.UI.Renderers.EdgeBookmarks;
 using DivineAscension.GUI.UI.Renderers.PlayerInfo;
 using DivineAscension.GUI.UI.Renderers.Sidebar;
 using DivineAscension.GUI.UI.Utilities;
@@ -26,6 +28,11 @@ internal static class MainLayoutCoordinator
     private const float OuterPadding = 16f;
     private const float SidebarWidth = 240f;
     private const float SidebarCollapsedWidth = 40f;
+    private const float BookmarkColumnWidth = 28f;
+    private const float BookmarkGap = 4f;
+    // Keep the ribbon tips a hair inside the window edge so they tab off the
+    // book without being clipped by the ImGui window clip rect.
+    private const float FrameMargin = 2f;
     private const float Gap = 8f;
     private const float TopChromeHeight = 32f;
     private const float PageFooterGap = 6f;
@@ -85,7 +92,18 @@ internal static class MainLayoutCoordinator
 
         var body = inner.Cut(TopChromeHeight, 0f);
         var sidebarW = state.Sidebar.IsCollapsed ? SidebarCollapsedWidth : SidebarWidth;
-        var (sidebar, content) = body.SplitLeft(sidebarW, Gap);
+        var (sidebar, afterSidebar) = body.SplitLeft(sidebarW, Gap);
+        // Bookmark ribbons tab off the book's outer right edge: anchor the column
+        // in the window's outer margin (a hair inside the frame so they aren't
+        // clipped) and shrink content to leave a clean gap before them. (The
+        // former right rail is now the PlayerInfo content destination.)
+        var bookmarks = new UiRect(
+            outer.Right - FrameMargin - BookmarkColumnWidth,
+            afterSidebar.Y,
+            BookmarkColumnWidth,
+            afterSidebar.H);
+        var contentW = bookmarks.X - BookmarkGap - afterSidebar.X;
+        var content = afterSidebar with { W = contentW < 0f ? 0f : contentW };
 
         // --- Sidebar ---
         var sidebarCtx = SidebarNavMapper.ContextFromManager(manager, state.Sidebar);
@@ -102,6 +120,15 @@ internal static class MainLayoutCoordinator
         var contentBody = hasFooter
             ? content.Cut(0f, PageTurnFooterRenderer.FooterHeight + PageFooterGap)
             : content;
+
+        // --- Edge bookmarks ---
+        var bookmarkCtx = new EdgeBookmarkMapper.Context(
+            manager.HasReligion(),
+            manager.HasCivilization(),
+            state.Sidebar.CurrentNav);
+        var bookmarkStack = EdgeBookmarkMapper.BuildViewModel(bookmarkCtx);
+        var bookmarkEvents = EdgeBookmarkRenderer.Draw(bookmarks, bookmarkStack);
+        ApplyBookmarkEvents(bookmarkEvents, manager, state);
 
         // --- Content dispatch (driven by Sidebar.CurrentNav).
         DispatchContent(manager, state, contentBody, windowWidth, windowHeight, deltaTime);
@@ -305,6 +332,19 @@ internal static class MainLayoutCoordinator
                 case PlayerInfoEvent.ScrollChanged scroll:
                     state.PlayerInfo.ScrollY = scroll.ScrollY;
                     break;
+            }
+        }
+    }
+
+    private static void ApplyBookmarkEvents(IReadOnlyList<EdgeBookmarkEvent> events,
+        GuiDialogManager manager, GuiDialogState state)
+    {
+        foreach (var ev in events)
+        {
+            if (ev is EdgeBookmarkEvent.Jump jump)
+            {
+                SidebarNavMapper.Apply(jump.Target, state);
+                RefreshSidebarDestinationData(jump.Target, manager);
             }
         }
     }
