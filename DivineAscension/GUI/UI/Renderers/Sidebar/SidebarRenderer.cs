@@ -95,19 +95,18 @@ internal static class SidebarRenderer
         var label = item.Badge > 0
             ? $"{item.Label}  ({item.Badge})"
             : item.Label;
-        // Padding to leave room for the icon we draw below.
-        var paddedLabel = $"   {label}";
 
         var cursor = ImGui.GetCursorScreenPos();
-        var rowWidth = MathF.Max(0f, ImGui.GetContentRegionAvail().X);
         var drawList = ImGui.GetWindowDrawList();
 
+        // Empty-label Selectable owns hit detection + active/hover background.
+        // Icon and text are painted on top via drawList so the icon doesn't
+        // collide with ImGui's text positioning.
+        var clicked = false;
         if (item.IsDisabled)
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, ColorPalette.Grey);
-            ImGui.Selectable($"{paddedLabel}##da-sidebar-item-{item.Id}", false,
+            ImGui.Selectable($"##da-sidebar-item-{item.Id}", false,
                 ImGuiSelectableFlags.Disabled, new Vector2(0, ItemHeight));
-            ImGui.PopStyleColor();
 
             if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)
                 && !string.IsNullOrEmpty(item.DisabledTooltipKey))
@@ -124,11 +123,8 @@ internal static class SidebarRenderer
                 ImGui.PushStyleColor(ImGuiCol.Header, ColorPalette.Darken(ColorPalette.Gold, 0.6f));
             }
 
-            if (ImGui.Selectable($"{paddedLabel}##da-sidebar-item-{item.Id}", item.IsActive,
-                    ImGuiSelectableFlags.None, new Vector2(0, ItemHeight)))
-            {
-                events.Add(new SidebarEvent.ItemClicked(item.Id));
-            }
+            clicked = ImGui.Selectable($"##da-sidebar-item-{item.Id}", item.IsActive,
+                ImGuiSelectableFlags.None, new Vector2(0, ItemHeight));
 
             if (item.IsActive)
             {
@@ -136,27 +132,38 @@ internal static class SidebarRenderer
             }
         }
 
-        // Overlay the icon on the left of the row.
-        DrawItemIcon(drawList, item.IconName, cursor, ItemIconSize, item.IsDisabled);
+        if (clicked) events.Add(new SidebarEvent.ItemClicked(item.Id));
+
+        // Icon on the left.
+        var iconX = cursor.X + ItemIconPadding;
+        var iconY = cursor.Y + (ItemHeight - ItemIconSize) / 2f;
+        DrawItemIcon(drawList, item.IconName, iconX, iconY, ItemIconSize, item.IsDisabled);
+
+        // Label after the icon. Vertical center against text height.
+        var textColor = ImGui.ColorConvertFloat4ToU32(item.IsDisabled
+            ? ColorPalette.Grey
+            : ColorPalette.White);
+        var fontSize = ImGui.GetFontSize();
+        var textX = iconX + ItemIconSize + ItemIconPadding;
+        var textY = cursor.Y + (ItemHeight - fontSize) / 2f;
+        drawList.AddText(new Vector2(textX, textY), textColor, label);
 
         ImGui.Unindent(ItemIndent);
     }
 
-    private static void DrawItemIcon(ImDrawListPtr drawList, string iconName, Vector2 rowOrigin,
+    private static void DrawItemIcon(ImDrawListPtr drawList, string iconName, float x, float y,
         float iconSize, bool isDisabled)
     {
         if (string.IsNullOrEmpty(iconName)) return;
         var textureId = GuiIconLoader.GetTextureId(IconDirectory, iconName);
         if (textureId == IntPtr.Zero) return;
 
-        var iconY = rowOrigin.Y + (ItemHeight - iconSize) / 2f;
-        var iconX = rowOrigin.X + ItemIconPadding;
         var tint = ImGui.ColorConvertFloat4ToU32(isDisabled
             ? new Vector4(1f, 1f, 1f, 0.5f)
             : new Vector4(1f, 1f, 1f, 1f));
         drawList.AddImage(textureId,
-            new Vector2(iconX, iconY),
-            new Vector2(iconX + iconSize, iconY + iconSize),
+            new Vector2(x, y),
+            new Vector2(x + iconSize, y + iconSize),
             Vector2.Zero, Vector2.One, tint);
     }
 
