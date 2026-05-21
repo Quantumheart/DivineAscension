@@ -27,7 +27,7 @@ internal static class CivilizationInvitesRenderer
         var currentY = vm.Y;
 
         currentY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_TITLE),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_INVITES),
             vm.X, currentY, vm.Width);
 
         // Help text explaining where to send invites

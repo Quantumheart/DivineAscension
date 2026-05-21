@@ -55,7 +55,8 @@ internal static class CivilizationInfoRenderer
 
         var iconTextureId = CivilizationIconLoader.GetIconTextureId(vm.Icon);
         var rankName = RankRequirements.GetCivilizationRankName(vm.Rank);
-        currentY = PaneHeaderRenderer.Draw(drawList, vm.CivName,
+        currentY = PaneHeaderRenderer.Draw(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_INFO),
             vm.X, currentY, vm.Width, iconTextureId, rankName);
 
         // Founded · · · · · 2026-03-14

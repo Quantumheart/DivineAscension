@@ -26,7 +26,7 @@ internal static class CivilizationCreateRenderer
         var currentY = vm.Y;
 
         currentY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_TITLE),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_CREATE),
             vm.X, currentY, vm.Width);
         currentY += 12f;
 
