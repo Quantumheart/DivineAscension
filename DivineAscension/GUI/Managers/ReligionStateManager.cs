@@ -542,6 +542,9 @@ public class ReligionStateManager : IReligionStateManager
             bannedPlayers: religion?.BannedPlayers,
             prestige: prestigeProgress.CurrentPrestige,
             prestigeRank: RankRequirements.GetPrestigeRankName(prestigeProgress.CurrentRank),
+            prestigeRankIndex: prestigeProgress.CurrentRank,
+            prestigeRequired: prestigeProgress.RequiredPrestige,
+            isMaxPrestigeRank: prestigeProgress.IsMaxRank,
             isPublic: religion?.IsPublic ?? true,
             descriptionText: State.InfoState.Description ?? religion?.Description ?? string.Empty,
             invitePlayerName: State.InfoState.InvitePlayerName ?? string.Empty,
@@ -554,6 +557,7 @@ public class ReligionStateManager : IReligionStateManager
             editDeityNameValue: State.InfoState.EditDeityNameValue,
             isSavingDeityName: State.InfoState.IsSavingDeityName,
             deityNameError: State.InfoState.DeityNameError,
+            isEditingDescription: State.InfoState.IsEditingDescription,
             x: x, y: y, width: width, height: height,
             scrollY: State.InfoState.MyReligionScrollY,
             memberScrollY: State.InfoState.MemberScrollY,
@@ -764,6 +768,17 @@ public class ReligionStateManager : IReligionStateManager
                         State.InfoState.Description = sd.Text;
                     }
 
+                    State.InfoState.IsEditingDescription = false;
+                    break;
+
+                case InfoEvent.EditDescriptionOpen:
+                    State.InfoState.IsEditingDescription = true;
+                    State.InfoState.Description = info?.Description ?? string.Empty;
+                    break;
+
+                case InfoEvent.EditDescriptionCancel:
+                    State.InfoState.IsEditingDescription = false;
+                    State.InfoState.Description = info?.Description ?? string.Empty;
                     break;
 
                 // Invite flow

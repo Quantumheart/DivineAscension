@@ -23,9 +23,12 @@ public readonly struct ReligionInfoViewModel(
     string? description,
     IReadOnlyList<PlayerReligionInfoResponsePacket.MemberInfo> members,
     IReadOnlyList<PlayerReligionInfoResponsePacket.BanInfo>? bannedPlayers,
-    // Optional prestige snapshot (renderer may compute separately)
+    // Prestige snapshot
     int prestige,
     string prestigeRank,
+    int prestigeRankIndex,
+    int prestigeRequired,
+    bool isMaxPrestigeRank,
     bool isPublic,
     // UI state for form inputs and dialogs
     string descriptionText,
@@ -40,6 +43,8 @@ public readonly struct ReligionInfoViewModel(
     string editDeityNameValue,
     bool isSavingDeityName,
     string? deityNameError,
+    // Description editing state
+    bool isEditingDescription,
     // Layout & scrolling
     float x,
     float y,
@@ -49,27 +54,20 @@ public readonly struct ReligionInfoViewModel(
     float memberScrollY,
     float banListScrollY)
 {
-    // Core data
     public bool IsLoading { get; } = isLoading;
     public bool HasReligion { get; } = hasReligion;
     public string ReligionUID { get; } = religionUID;
     public string ReligionName { get; } = religionName;
 
-    /// <summary>
-    ///     The domain (Craft, Wild, Harvest, Stone)
-    /// </summary>
+    /// <summary>The domain (Craft, Wild, Harvest, Stone)</summary>
     public string Deity { get; } = deity;
 
-    /// <summary>
-    ///     The custom deity name for this religion
-    /// </summary>
+    /// <summary>The custom deity name for this religion</summary>
     public string DeityName { get; } = deityName;
 
     public string FounderUID { get; } = founderUID;
     public string FounderName { get; } = founderName;
-
     public string CurrentPlayerUID { get; } = currentPlayerUID;
-
     public bool IsFounder { get; } = isFounder;
     public string? Description { get; } = description;
     public IReadOnlyList<PlayerReligionInfoResponsePacket.MemberInfo> Members { get; } = members;
@@ -77,12 +75,13 @@ public readonly struct ReligionInfoViewModel(
     public IReadOnlyList<PlayerReligionInfoResponsePacket.BanInfo> BannedPlayers { get; } =
         bannedPlayers ?? Array.Empty<PlayerReligionInfoResponsePacket.BanInfo>();
 
-    // Prestige snapshot (optional for display)
     public int Prestige { get; } = prestige;
     public string PrestigeRank { get; } = prestigeRank;
+    public int PrestigeRankIndex { get; } = prestigeRankIndex;
+    public int PrestigeRequired { get; } = prestigeRequired;
+    public bool IsMaxPrestigeRank { get; } = isMaxPrestigeRank;
     public bool IsPublic { get; } = isPublic;
 
-    // UI state for form inputs and dialogs
     public string DescriptionText { get; } = descriptionText;
     public string InvitePlayerName { get; } = invitePlayerName;
     public bool ShowDisbandConfirm { get; } = showDisbandConfirm;
@@ -91,13 +90,13 @@ public readonly struct ReligionInfoViewModel(
     public string? BanConfirmPlayerUID { get; } = banConfirmPlayerUID;
     public string? BanConfirmPlayerName { get; } = banConfirmPlayerName;
 
-    // Deity name editing state
     public bool IsEditingDeityName { get; } = isEditingDeityName;
     public string EditDeityNameValue { get; } = editDeityNameValue;
     public bool IsSavingDeityName { get; } = isSavingDeityName;
     public string? DeityNameError { get; } = deityNameError;
 
-    // Layout & scrolling
+    public bool IsEditingDescription { get; } = isEditingDescription;
+
     public float X { get; } = x;
     public float Y { get; } = y;
     public float Width { get; } = width;
@@ -106,10 +105,14 @@ public readonly struct ReligionInfoViewModel(
     public float MemberScrollY { get; } = memberScrollY;
     public float BanListScrollY { get; } = banListScrollY;
 
-    // Presentation helpers
     public int MemberCount => Members.Count;
     public bool HasMembers => Members.Count > 0;
     public bool HasBannedPlayers => BannedPlayers.Count > 0;
+
+    public float PrestigeProgressPercentage =>
+        IsMaxPrestigeRank
+            ? 1f
+            : PrestigeRequired > 0 ? Math.Clamp((float)Prestige / PrestigeRequired, 0f, 1f) : 0f;
 
     /// <summary>
     /// Checks if the description text has been changed from the original
@@ -129,56 +132,48 @@ public readonly struct ReligionInfoViewModel(
         return string.IsNullOrWhiteSpace(FounderName) ? FounderUID : FounderName;
     }
 
-    /// <summary>
-    /// Copy with updated overall scroll position for the tab content.
-    /// </summary>
     public ReligionInfoViewModel WithScroll(float newScrollY) => new(
         IsLoading, HasReligion, ReligionUID, ReligionName, Deity, DeityName, FounderUID, FounderName, CurrentPlayerUID,
         IsFounder, Description,
-        Members, BannedPlayers, Prestige, PrestigeRank, IsPublic,
+        Members, BannedPlayers, Prestige, PrestigeRank, PrestigeRankIndex, PrestigeRequired, IsMaxPrestigeRank, IsPublic,
         DescriptionText, InvitePlayerName, ShowDisbandConfirm,
         KickConfirmPlayerUID, KickConfirmPlayerName, BanConfirmPlayerUID, BanConfirmPlayerName,
         IsEditingDeityName, EditDeityNameValue, IsSavingDeityName, DeityNameError,
+        IsEditingDescription,
         X, Y, Width, Height,
         newScrollY, MemberScrollY, BanListScrollY);
 
-    /// <summary>
-    /// Copy with updated member list scroll position.
-    /// </summary>
     public ReligionInfoViewModel WithMemberScroll(float newMemberScrollY) => new(
         IsLoading, HasReligion, ReligionUID, ReligionName, Deity, DeityName, FounderUID, FounderName, CurrentPlayerUID,
         IsFounder, Description,
-        Members, BannedPlayers, Prestige, PrestigeRank, IsPublic,
+        Members, BannedPlayers, Prestige, PrestigeRank, PrestigeRankIndex, PrestigeRequired, IsMaxPrestigeRank, IsPublic,
         DescriptionText, InvitePlayerName, ShowDisbandConfirm,
         KickConfirmPlayerUID, KickConfirmPlayerName, BanConfirmPlayerUID, BanConfirmPlayerName,
         IsEditingDeityName, EditDeityNameValue, IsSavingDeityName, DeityNameError,
+        IsEditingDescription,
         X, Y, Width, Height,
         ScrollY, newMemberScrollY, BanListScrollY);
 
-    /// <summary>
-    /// Copy with updated banned list scroll position.
-    /// </summary>
     public ReligionInfoViewModel WithBanListScroll(float newBanListScrollY) => new(
         IsLoading, HasReligion, ReligionUID, ReligionName, Deity, DeityName, FounderUID, FounderName, CurrentPlayerUID,
         IsFounder, Description,
-        Members, BannedPlayers, Prestige, PrestigeRank, IsPublic,
+        Members, BannedPlayers, Prestige, PrestigeRank, PrestigeRankIndex, PrestigeRequired, IsMaxPrestigeRank, IsPublic,
         DescriptionText, InvitePlayerName, ShowDisbandConfirm,
         KickConfirmPlayerUID, KickConfirmPlayerName, BanConfirmPlayerUID, BanConfirmPlayerName,
         IsEditingDeityName, EditDeityNameValue, IsSavingDeityName, DeityNameError,
+        IsEditingDescription,
         X, Y, Width, Height,
         ScrollY, MemberScrollY, newBanListScrollY);
 
-    /// <summary>
-    /// Convenience factory for empty/loading state when no religion data is available yet.
-    /// </summary>
     public static ReligionInfoViewModel Loading(float x = 0, float y = 0, float width = 0, float height = 0) => new(
         true, false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty,
         false, string.Empty,
         Array.Empty<PlayerReligionInfoResponsePacket.MemberInfo>(),
         Array.Empty<PlayerReligionInfoResponsePacket.BanInfo>(),
-        0, string.Empty, true,
+        0, string.Empty, 0, 0, false, true,
         string.Empty, string.Empty, false, null, null, null, null,
         false, string.Empty, false, null,
+        false,
         x, y, width, height,
         0, 0, 0);
 }

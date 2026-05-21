@@ -5,11 +5,11 @@ using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Info;
-using DivineAscension.GUI.Models.Religion.Member;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Components.Overlays;
 using DivineAscension.GUI.UI.Renderers.Components;
 using DivineAscension.GUI.UI.Renderers.Religion.Info;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network;
 using DivineAscension.Services;
@@ -19,22 +19,23 @@ using static DivineAscension.GUI.UI.Utilities.FontSizes;
 namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
-/// Pure renderer for managing player's own religion
-/// Takes an immutable view model, returns events representing user interactions
-/// Migrates functionality from ReligionManagementOverlay
+/// Pure renderer for the "This Order" ledger chapter (#309). Order title and
+/// stat block at the top, prose Of the Order's Purpose section in the middle,
+/// founder-only Stricken from the Ledger section below (collapsed when
+/// empty), and Leave / Disband footer actions. Roster and Invite live on the
+/// sibling II.ii chapter.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class ReligionInfoRenderer
 {
-    // Layout dimensions (mirror ReligionBrowseRenderer so the two panes feel related)
     private const float TopPadding = 8f;
+    private const float DividerHeight = 18f;
+    private const float DividerYPadding = 6f;
     private const float SectionLabelHeight = 22f;
-    private const float SectionSpacing = 15f;
+    private const float FooterTopPadding = 12f;
+    private const float ScrollbarWidth = 16f;
+    private const float BanListHeight = 120f;
 
-    /// <summary>
-    /// Renders the religion info/management tab
-    /// Pure function: ViewModel + DrawList → RenderResult
-    /// </summary>
     public static ReligionInfoRenderResult Draw(
         ReligionInfoViewModel viewModel,
         ImDrawListPtr drawList)
@@ -44,9 +45,7 @@ internal static class ReligionInfoRenderer
         var y = viewModel.Y;
         var width = viewModel.Width;
         var height = viewModel.Height;
-        var currentY = y + TopPadding;
 
-        // Loading state
         if (viewModel.IsLoading)
         {
             DrawCenteredStateText(drawList,
@@ -63,12 +62,9 @@ internal static class ReligionInfoRenderer
             return new ReligionInfoRenderResult(events, height);
         }
 
-        // Prepare top-level scroll for long content in My Religion tab
-        const float scrollbarWidth = 16f;
-        var contentHeightEstimate = ComputeContentHeight(viewModel.IsFounder);
+        var contentHeightEstimate = ComputeContentHeight(viewModel);
         var maxScroll = MathF.Max(0f, contentHeightEstimate - height);
 
-        // Mouse wheel scroll when hovering the tab content
         var mousePos = ImGui.GetMousePos();
         var isHover = mousePos.X >= x && mousePos.X <= x + width && mousePos.Y >= y && mousePos.Y <= y + height;
         var scrollY = viewModel.ScrollY;
@@ -86,122 +82,78 @@ internal static class ReligionInfoRenderer
             }
         }
 
-        // Clip to visible area and offset drawing by scroll
         drawList.PushClipRect(new Vector2(x, y), new Vector2(x + width, y + height), true);
-        currentY = y + TopPadding - scrollY;
+        var currentY = y + TopPadding - scrollY;
 
-        // === HEADER AND INFO GRID ===
+        // === HEADER, INTRO, STAT BLOCK ===
         currentY = ReligionInfoHeaderRenderer.Draw(viewModel, drawList, x, currentY, width, events);
 
-        // === DESCRIPTION SECTION ===
+        currentY = DrawDivider(drawList, x, currentY, width);
+
+        // === OF THE ORDER'S PURPOSE ===
         currentY = ReligionInfoDescriptionRenderer.Draw(viewModel, drawList, x, currentY, width, events);
 
-        // === MEMBER LIST SECTION ===
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MEMBERS_LABEL),
-            x, currentY, SubsectionLabel, ColorPalette.Gold);
-        currentY += SectionLabelHeight;
-
-        const float memberListHeight = 180f;
-        var memberScrollY = DrawMemberList(
-            drawList, viewModel, x, currentY, width, memberListHeight, events);
-        if (Math.Abs(memberScrollY - viewModel.MemberScrollY) > 0.001f)
-        {
-            events.Add(new InfoEvent.MemberScrollChanged(memberScrollY));
-        }
-
-        currentY += memberListHeight + SectionSpacing;
-
-        // === BANNED PLAYERS SECTION (founder only) ===
+        // === STRICKEN FROM THE LEDGER (founder-only) ===
         if (viewModel.IsFounder)
         {
-            TextRenderer.DrawLabel(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_BANNED_LABEL),
-                x, currentY, SubsectionLabel, ColorPalette.Gold);
-            currentY += SectionLabelHeight;
-
-            const float banListHeight = 120f;
-            var banListScrollY = DrawBanList(
-                drawList, viewModel, x, currentY, width, banListHeight, events);
-            if (Math.Abs(banListScrollY - viewModel.BanListScrollY) > 0.001f)
-            {
-                events.Add(new InfoEvent.BanListScrollChanged(banListScrollY));
-            }
-
-            currentY += banListHeight + SectionSpacing;
+            currentY = DrawDivider(drawList, x, currentY, width);
+            currentY = DrawStrickenSection(viewModel, drawList, x, currentY, width, events);
         }
 
-        // === INVITE SECTION (founder only) ===
-        currentY = ReligionInfoInviteRenderer.Draw(viewModel, drawList, x, currentY, width, events);
+        // === FOOTER ACTIONS ===
+        currentY += FooterTopPadding;
+        currentY = ReligionInfoActionsRenderer.Draw(viewModel, drawList, x, currentY, width, events);
 
-        // === ACTION BUTTONS ===
-        currentY = ReligionInfoActionsRenderer.Draw(viewModel, drawList, x, currentY, events);
-
-        // End of scrollable content
         drawList.PopClipRect();
 
-        // Draw scrollbar if needed
         if (contentHeightEstimate > height)
-            Scrollbar.Draw(drawList, x + width - scrollbarWidth, y, scrollbarWidth, height, scrollY, maxScroll);
+            Scrollbar.Draw(drawList, x + width - ScrollbarWidth, y, ScrollbarWidth, height, scrollY, maxScroll);
 
-        // === CONFIRMATION OVERLAYS ===
-        // Disband confirmation
         if (viewModel.ShowDisbandConfirm)
-            DrawDisbandConfirmation(drawList, events);
+            DrawDisbandConfirmation(events);
 
-        // Ban confirmation
         if (viewModel.BanConfirmPlayerUID != null)
-            DrawBanConfirmation(drawList, viewModel.BanConfirmPlayerName ?? viewModel.BanConfirmPlayerUID,
+            DrawBanConfirmation(viewModel.BanConfirmPlayerName ?? viewModel.BanConfirmPlayerUID,
                 viewModel.BanConfirmPlayerUID, events);
 
         return new ReligionInfoRenderResult(events, height);
     }
 
-    private static float DrawMemberList(
-        ImDrawListPtr drawList,
+    private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var dividerY = y + DividerYPadding;
+        ChromeRenderer.DrawDivider(drawList, x, dividerY, width);
+        return y + DividerHeight;
+    }
+
+    private static float DrawStrickenSection(
         ReligionInfoViewModel viewModel,
-        float x, float y, float width, float height,
+        ImDrawListPtr drawList,
+        float x, float y, float width,
         List<InfoEvent> events)
     {
-        // Build VM for member list component
-        var mlVm = new MemberListViewModel(
-            x: x,
-            y: y,
-            width: width,
-            height: height,
-            scrollY: viewModel.MemberScrollY,
-            members: viewModel.Members,
-            viewModel.CurrentPlayerUID);
+        var currentY = y;
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_STRICKEN_HEADING),
+            x, currentY, SubsectionLabel, ColorPalette.Gold);
+        currentY += SectionLabelHeight;
 
-        var result = MemberListRenderer.Draw(mlVm, drawList);
-
-        // Translate events
-        var newScrollY = viewModel.MemberScrollY;
-        foreach (var ev in result.Events)
+        if (!viewModel.HasBannedPlayers)
         {
-            switch (ev)
-            {
-                case MemberListEvent.ScrollChanged(var s):
-                    newScrollY = s;
-                    break;
-                case MemberListEvent.KickClicked(var uid):
-                {
-                    var member = FindMemberByUid(viewModel.Members, uid);
-                    var memberName = member?.PlayerName ?? uid;
-                    events.Add(new InfoEvent.KickOpen(uid, memberName));
-                    break;
-                }
-                case MemberListEvent.BanClicked(var uid):
-                {
-                    var member = FindMemberByUid(viewModel.Members, uid);
-                    var memberName = member?.PlayerName ?? uid;
-                    events.Add(new InfoEvent.BanOpen(uid, memberName));
-                    break;
-                }
-            }
+            // Collapsed-when-empty: single italic-feeling line, no panel reserved.
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_STRICKEN_EMPTY),
+                x, currentY, width, Secondary, ColorPalette.Grey);
+            currentY += 22f;
+            return currentY;
         }
 
-        return newScrollY;
+        var banListScrollY = DrawBanList(drawList, viewModel, x, currentY, width, BanListHeight, events);
+        if (Math.Abs(banListScrollY - viewModel.BanListScrollY) > 0.001f)
+            events.Add(new InfoEvent.BanListScrollChanged(banListScrollY));
+
+        currentY += BanListHeight + 8f;
+        return currentY;
     }
 
     private static float DrawBanList(
@@ -212,72 +164,42 @@ internal static class ReligionInfoRenderer
     {
         return BanListRenderer.Draw(
             drawList,
-            null!, // API not needed for pure rendering - will be refactored later
+            null!, // API not needed for pure rendering
             x, y, width, height,
             new List<PlayerReligionInfoResponsePacket.BanInfo>(viewModel.BannedPlayers),
             viewModel.BanListScrollY,
-            // Unban callback
-            playerUid => { events.Add(new InfoEvent.UnbanClicked(playerUid)); }
-        );
+            playerUid => { events.Add(new InfoEvent.UnbanClicked(playerUid)); });
     }
 
-    private static PlayerReligionInfoResponsePacket.MemberInfo? FindMemberByUid(
-        IReadOnlyList<PlayerReligionInfoResponsePacket.MemberInfo> members,
-        string memberUid)
-    {
-        foreach (var member in members)
-        {
-            if (member.PlayerUID == memberUid)
-                return member;
-        }
-
-        return null;
-    }
-
-    private static float ComputeContentHeight(bool isFounder)
+    private static float ComputeContentHeight(ReligionInfoViewModel viewModel)
     {
         var h = 0f;
-        // Header
-        h += 32f;
-        // Info grid rows
-        h += 22f;
-        h += 28f;
-        // Description section
-        if (isFounder)
-        {
-            h += 22f; // label
-            h += 80f; // box
-            h += 5f; // spacing
-            h += 40f; // save button
-        }
+        // Pane header (icon row + divider below)
+        h += PaneHeaderRenderer.TotalHeight;
+        // Prose intro (~2 lines)
+        h += 36f;
+        // Stat block: deity / founder / members / prestige
+        h += 22f * 4 + 8f;
+        if (viewModel.IsEditingDeityName) h += 80f;
+
+        // Divider
+        h += DividerHeight;
+
+        // Description block
+        if (viewModel.IsFounder && viewModel.IsEditingDescription)
+            h += 22f + 80f + 6f + 26f + 8f;
         else
+            h += 22f + 40f;
+
+        if (viewModel.IsFounder)
         {
-            h += 22f; // label
-            h += 40f; // text approx
+            h += DividerHeight;
+            h += 22f; // stricken heading
+            h += viewModel.HasBannedPlayers ? BanListHeight + 8f : 22f;
         }
 
-        // Members list
-        h += 25f; // label
-        h += 180f; // list
-        h += 15f; // spacing
-        // Banned players
-        if (isFounder)
-        {
-            h += 25f; // label
-            h += 120f; // list
-            h += 15f; // spacing
-        }
-
-        // Invite section
-        if (isFounder)
-        {
-            h += 22f; // label
-            h += 40f; // input+button
-        }
-
-        // Action buttons row
-        h += 40f;
-
+        // Footer
+        h += FooterTopPadding + 34f + 6f;
         return h;
     }
 
@@ -290,9 +212,7 @@ internal static class ReligionInfoRenderer
         drawList.AddText(pos, color, text);
     }
 
-    private static void DrawDisbandConfirmation(
-        ImDrawListPtr drawList,
-        List<InfoEvent> events)
+    private static void DrawDisbandConfirmation(List<InfoEvent> events)
     {
         ConfirmOverlay.Draw(
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DISBAND_TITLE),
@@ -304,27 +224,7 @@ internal static class ReligionInfoRenderer
         if (cancelled) events.Add(new InfoEvent.DisbandCancel());
     }
 
-    private static void DrawKickConfirmation(
-        ImDrawListPtr drawList,
-        string playerName,
-        string playerUid,
-        List<InfoEvent> events)
-    {
-        ConfirmOverlay.Draw(
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_KICK_TITLE),
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_KICK_MESSAGE, playerName),
-            out var confirmed, out var cancelled,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_KICK_CONFIRM));
-
-        if (confirmed) events.Add(new InfoEvent.KickConfirm(playerUid));
-        if (cancelled) events.Add(new InfoEvent.KickCancel());
-    }
-
-    private static void DrawBanConfirmation(
-        ImDrawListPtr drawList,
-        string playerName,
-        string playerUid,
-        List<InfoEvent> events)
+    private static void DrawBanConfirmation(string playerName, string playerUid, List<InfoEvent> events)
     {
         ConfirmOverlay.Draw(
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_BAN_TITLE),
