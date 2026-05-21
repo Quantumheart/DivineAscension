@@ -1,64 +1,198 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Blessing;
 using DivineAscension.GUI.Models.Blessing.Actions;
 using DivineAscension.GUI.Models.Blessing.Info;
 using DivineAscension.GUI.Models.Blessing.Tab;
 using DivineAscension.GUI.Models.Blessing.Tree;
+using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Renderers.Blessing.Info;
+using DivineAscension.GUI.UI.Renderers.Utilities;
+using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
+/// <summary>
+///     III.ii — The Blessings, rendered as a scrollable ledger chapter. Personal blessings
+///     only — the religion-side tree migrated to I.iii — Vows of the Order in #335. Title
+///     strip, prose intro, dotted-leader cross-domain summary, patron sub-heading, deity
+///     sub-index, personal tree pane, selected-blessing detail with Read more affordance,
+///     and an [Inscribe] action.
+/// </summary>
 [ExcludeFromCodeCoverage]
 internal static class BlessingTabRenderer
 {
+    private const float Padding = 16f;
+    private const float SectionLabelHeight = 22f;
+    private const float LeaderRowHeight = 22f;
+    private const float DividerSpacing = 18f;
+    private const float ScrollbarWidth = 16f;
+    private const float TreePaneHeight = 340f;
+    private const float InfoPanelHeight = 220f;
+    private const float ActionButtonHeight = 36f;
+
     internal static BlessingTabRenderResult DrawBlessingsTab(BlessingTabViewModel vm)
     {
-        const float infoPanelHeight = 200f;
-        const float padding = 16f;
-        const float actionButtonHeight = 36f;
-        const float actionButtonPadding = 16f;
-        const float strapSpacing = 8f;
-
         string? hoveringBlessingId = null;
 
-        var topY = vm.Y;
-        CrossDeitySummaryRenderer.Draw(vm.X, topY, vm.Width, vm.DeitySummaries);
-        topY += CrossDeitySummaryRenderer.Height + strapSpacing;
+        var drawList = ImGui.GetWindowDrawList();
+        // Reserve scrollbar gutter (shared with sibling chapter pages) so every divider,
+        // leader row, and ornament lines up cross-pane.
+        var contentWidth = vm.Width - ChapterStripRenderer.ScrollbarGutter;
 
-        var requestedDeity = DeitySelectorRenderer.Draw(vm.X, topY, vm.ActiveDeity, vm.PatronDomain);
-        topY += DeitySelectorRenderer.Height + strapSpacing;
+        var contentHeight = ComputeContentHeight(vm.DeitySummaries.Count, contentWidth);
+        var maxScroll = MathF.Max(0f, contentHeight - vm.Height);
 
-        var consumedTop = topY - vm.Y;
-        var treeHeight = vm.Height - infoPanelHeight - padding - consumedTop;
+        // --- Mouse wheel scroll — only when hovering content outside the tree panel
+        //     (tree has its own ImGui child scroll for pan/zoom).
+        var mousePos = ImGui.GetMousePos();
+        var paneHover = mousePos.X >= vm.X && mousePos.X <= vm.X + vm.Width
+                                          && mousePos.Y >= vm.Y && mousePos.Y <= vm.Y + vm.Height;
+        var scrollY = vm.BlessingsPageScrollY;
+        float? requestedPageScrollY = null;
+
+        // Approximate tree rect for wheel-exclusion. Mirrors the body layout below.
+        var preTreeOffset = HeaderHeight() + IntroHeight(vm, contentWidth) + 8f + DividerSpacing
+                            + SectionLabelHeight + vm.DeitySummaries.Count * LeaderRowHeight + 4f
+                            + DividerSpacing + LeaderRowHeight + 4f
+                            + DeitySelectorRenderer.Height + 6f + DividerSpacing;
+        var treeScreenTop = vm.Y + preTreeOffset - scrollY;
+        var overTree = mousePos.X >= vm.X && mousePos.X <= vm.X + contentWidth
+                                          && mousePos.Y >= treeScreenTop
+                                          && mousePos.Y <= treeScreenTop + TreePaneHeight;
+
+        if (paneHover && !overTree && maxScroll > 0f)
+        {
+            var wheel = ImGui.GetIO().MouseWheel;
+            if (wheel != 0f)
+            {
+                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                if (MathF.Abs(newScrollY - scrollY) > 0.001f)
+                {
+                    scrollY = newScrollY;
+                    requestedPageScrollY = newScrollY;
+                }
+            }
+        }
+
+        drawList.PushClipRect(new Vector2(vm.X, vm.Y),
+            new Vector2(vm.X + vm.Width, vm.Y + vm.Height), true);
+
+        // --- Title strip (shared chapter chrome). Use the religion-set deity name when
+        // available; fall back to the patron domain name; if there's no patron at all,
+        // fall back to the currently-viewed deity from the sub-index.
+        var hasPatron = vm.PatronDomain != DeityDomain.None;
+        var headingName = hasPatron
+            ? (string.IsNullOrEmpty(vm.PatronDeityName) ? vm.PatronDomain.ToString() : vm.PatronDeityName!)
+            : vm.ActiveDeity.ToString();
+        var strip = ChapterStripRenderer.Draw(drawList, vm.X, vm.Y, vm.Width, scrollY,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_TITLE),
+            rightTitle: hasPatron ? headingName : null);
+        var topY = strip.BodyY;
+
+        // --- Prose intro.
+        var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_INTRO);
+        var introWidth = contentWidth - Padding * 2;
+        var introHeight = TextRenderer.MeasureWrappedHeight(intro, introWidth, Secondary);
+        TextRenderer.DrawInfoText(drawList, intro, vm.X + Padding, topY, introWidth, Secondary,
+            ColorPalette.White);
+        topY += introHeight + 8f;
+
+        ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
+        topY += DividerSpacing;
+
+        // --- Across the Domains.
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_ACROSS_DOMAINS),
+            vm.X + Padding, topY, SubsectionLabel, ColorPalette.White);
+        topY += SectionLabelHeight;
+
+        foreach (var summary in vm.DeitySummaries)
+        {
+            var inscribed = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_INSCRIBED_ROW,
+                summary.UnlockedPlayer, summary.TotalPlayer);
+            ChromeRenderer.DrawLeader(drawList,
+                summary.Domain.ToString(), inscribed,
+                vm.X + Padding, topY, contentWidth - Padding * 2,
+                labelColor: summary.IsPatron ? ColorPalette.Gold : ColorPalette.White,
+                valueColor: summary.IsPatron ? ColorPalette.Gold : ColorPalette.White);
+            topY += LeaderRowHeight;
+        }
+
+        topY += 4f;
+        ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
+        topY += DividerSpacing;
+
+        // --- "Of {Patron}" — bare heading, no parenthetical annotation (issue #335).
+        var patronHeading = LocalizationService.Instance.Get(
+            LocalizationKeys.UI_BLESSING_PAGE_PATRON_HEADING, headingName);
+        TextRenderer.DrawLabel(drawList, patronHeading,
+            vm.X + Padding, topY, SubsectionLabel, ColorPalette.Gold);
+        topY += LeaderRowHeight + 4f;
+
+        // --- Deity sub-index (selector strip, glyph primitives) — horizontally centered.
+        var stripX = vm.X + (contentWidth - DeitySelectorRenderer.StripWidth) * 0.5f;
+        var requestedDeity = DeitySelectorRenderer.Draw(stripX, topY, vm.ActiveDeity, vm.PatronDomain);
+        topY += DeitySelectorRenderer.Height + 6f;
+
+        ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
+        topY += DividerSpacing;
+
+        // --- Tree pane (personal only). Favor balance header stays at the top of the pane.
+        var balanceText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_FAVOR_BALANCE,
+            vm.PlayerFavor);
         var treeVm = new BlessingTreeViewModel(
             vm.PlayerTreeScrollState,
-            vm.ReligionTreeScrollState,
             vm.PlayerBlessingStates,
-            vm.ReligionBlessingStates,
-            vm.X, topY, vm.Width, treeHeight,
+            vm.X, topY, contentWidth, TreePaneHeight,
             vm.DeltaTime,
             vm.SelectedBlessingId,
-            vm.PlayerFavor,
-            vm.ReligionPrestige
+            PanelId: "blessing_tree_player",
+            PanelLabel: LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_TREE_PLAYER_PANEL),
+            BalanceText: balanceText,
+            ShowBalanceHeader: true
         );
+        var treeResult = BlessingTreeRenderer.Draw(treeVm);
 
-        // III.ii — Blessings hosts only the personal tree. The religion-side tree
-        // moved to I.iii — Vows of the Order. The Selected/Info/Actions panels
-        // below scope to PlayerBlessingStates so a selection lingering from the
-        // Vows page can't drive an action on this one.
-        var treeResult = BlessingTreeRenderer.Draw(treeVm, BlessingKind.Player);
-
+        // Translate the kind-neutral ScrollChanged into the player-side variant the manager
+        // expects. Selected/Hovered events pass through unchanged.
+        var treeEvents = new List<TreeEvent>(treeResult.Events.Count);
         foreach (var ev in treeResult.Events)
-            if (ev is TreeEvent.Hovered hovered)
-                hoveringBlessingId = hovered.BlessingId;
+        {
+            switch (ev)
+            {
+                case TreeEvent.Hovered hovered:
+                    hoveringBlessingId = hovered.BlessingId;
+                    treeEvents.Add(hovered);
+                    break;
+                case TreeEvent.ScrollChanged sc:
+                    treeEvents.Add(new TreeEvent.PlayerTreeScrollChanged(sc.ScrollX, sc.ScrollY));
+                    break;
+                default:
+                    treeEvents.Add(ev);
+                    break;
+            }
+        }
 
-        var infoY = topY + treeHeight + padding;
+        topY += TreePaneHeight + 6f;
+        ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
+        topY += DividerSpacing;
+
+        // --- "Of the Selected Blessing" sub-heading + info pane (player blessings only).
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_SELECTED_HEADING),
+            vm.X + Padding, topY, SubsectionLabel, ColorPalette.White);
+        topY += SectionLabelHeight;
+
         var playerOnlyStates = new Dictionary<string, BlessingNodeState>(vm.PlayerBlessingStates);
-
         var personalSelected = vm.SelectedBlessingState != null
                                && vm.SelectedBlessingState.Blessing.Kind == BlessingKind.Player
             ? vm.SelectedBlessingState
@@ -67,30 +201,38 @@ internal static class BlessingTabRenderer
         var infoVm = new BlessingInfoViewModel(
             personalSelected,
             playerOnlyStates,
-            vm.X,
-            infoY,
-            vm.Width,
-            infoPanelHeight,
-            vm.PlayerFavor,
-            vm.ReligionPrestige);
-        BlessingInfoRenderer.Draw(infoVm);
-
-        // Action buttons anchor to the bottom-right of the content rect (not the
-        // whole window). vm.X / vm.Y are already absolute screen-space coords now
-        // that the layout coordinator hands renderers a content-only rect.
-        var buttonX = vm.X + vm.Width - actionButtonPadding;
-        var buttonY = vm.Y + vm.Height - actionButtonHeight - actionButtonPadding;
-        var actionsVm = new BlessingActionsViewModel(
-            personalSelected,
-            buttonX,
-            buttonY,
+            vm.X, topY,
+            contentWidth, InfoPanelHeight,
             vm.PlayerFavor,
             vm.ReligionPrestige,
+            vm.IsDescriptionExpanded);
+        var infoResult = BlessingInfoRenderer.Draw(infoVm);
+        topY += InfoPanelHeight + 10f;
+
+        // --- Footer: [Inscribe] action, right-aligned. Non-founder gate is irrelevant here
+        // (founder-gating applies to communal vows on I.iii Vows of the Order).
+        var buttonX = vm.X + contentWidth;
+        var buttonY = topY;
+        var actionsVm = new BlessingActionsViewModel(
+            personalSelected,
+            buttonX, buttonY,
+            vm.PlayerFavor, vm.ReligionPrestige,
             isReligionFounder: false
         );
-
         var actionsResult = BlessingActionsRenderer.Draw(actionsVm);
 
+        drawList.PopClipRect();
+
+        // --- Scrollbar (outside the clip rect so it always paints).
+        if (maxScroll > 0f)
+        {
+            Scrollbar.Draw(drawList,
+                vm.X + vm.Width - ScrollbarWidth, vm.Y,
+                ScrollbarWidth, vm.Height,
+                scrollY, maxScroll);
+        }
+
+        // --- Hover tooltip — player blessings only.
         if (!string.IsNullOrEmpty(hoveringBlessingId)
             && vm.PlayerBlessingStates.TryGetValue(hoveringBlessingId!, out var hoveringState)
             && hoveringState != null)
@@ -105,17 +247,50 @@ internal static class BlessingTabRenderer
                 allBlessings
             );
 
-            var mousePos = ImGui.GetMousePos();
-            TooltipRenderer.Draw(tooltipData, mousePos.X, mousePos.Y, vm.WindowWidth, vm.WindowHeight);
+            var mp = ImGui.GetMousePos();
+            TooltipRenderer.Draw(tooltipData, mp.X, mp.Y, vm.WindowWidth, vm.WindowHeight);
         }
 
         return new BlessingTabRenderResult(
-            treeResult.Events,
+            treeEvents,
             actionsResult.Events,
             hoveringBlessingId,
             vm.Height,
-            requestedDeity
-        );
+            requestedDeity,
+            requestedVowsScrollY: null,
+            requestedPageScrollY: requestedPageScrollY,
+            infoEvents: infoResult.Events);
     }
 
+    private static float HeaderHeight() =>
+        ChapterStripRenderer.TopPadding + PaneHeaderRenderer.TotalHeight;
+
+    private static float IntroHeight(BlessingTabViewModel vm, float contentWidth)
+    {
+        var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_INTRO);
+        return TextRenderer.MeasureWrappedHeight(intro, contentWidth - Padding * 2, Secondary);
+    }
+
+    private static float ComputeContentHeight(int summaryRows, float contentWidth)
+    {
+        var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_INTRO);
+        var introH = TextRenderer.MeasureWrappedHeight(intro, contentWidth - Padding * 2, Secondary);
+
+        var h = 0f;
+        h += PaneHeaderRenderer.TotalHeight;
+        h += introH + 8f;
+        h += DividerSpacing;
+        h += SectionLabelHeight;
+        h += summaryRows * LeaderRowHeight;
+        h += 4f + DividerSpacing;
+        h += LeaderRowHeight + 4f;
+        h += DeitySelectorRenderer.Height + 6f;
+        h += DividerSpacing;
+        h += TreePaneHeight + 6f;
+        h += DividerSpacing;
+        h += SectionLabelHeight;
+        h += InfoPanelHeight + 10f;
+        h += ActionButtonHeight + 8f;
+        return h;
+    }
 }

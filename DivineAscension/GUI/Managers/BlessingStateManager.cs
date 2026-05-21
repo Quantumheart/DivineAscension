@@ -84,7 +84,13 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             religionPrestige,
             State.ActiveDeity,
             patronDomain,
-            summaries
+            summaries,
+            prestigeNextThreshold: 0,
+            patronDeityName: null,
+            isReligionFounder: false,
+            vowsPageScrollY: 0f,
+            blessingsPageScrollY: State.BlessingsPageScrollY,
+            isDescriptionExpanded: State.InfoState.IsDescriptionExpanded
         );
 
         var result = BlessingTabRenderer.DrawBlessingsTab(vm);
@@ -134,7 +140,9 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             prestigeNextThreshold,
             patronDeityName,
             isReligionFounder,
-            State.VowsPageScrollY
+            State.VowsPageScrollY,
+            blessingsPageScrollY: 0f,
+            isDescriptionExpanded: State.InfoState.IsDescriptionExpanded
         );
 
         var result = BlessingVowsTabRenderer.Draw(vm);
@@ -146,8 +154,11 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     {
         State.TreeState.HoveringBlessingId = result.HoveringBlessingId;
 
-        if (result.RequestedVowsScrollY is { } scrollY)
-            State.VowsPageScrollY = scrollY;
+        if (result.RequestedVowsScrollY is { } vowsScrollY)
+            State.VowsPageScrollY = vowsScrollY;
+
+        if (result.RequestedPageScrollY is { } pageScrollY)
+            State.BlessingsPageScrollY = pageScrollY;
 
         if (result.RequestedActiveDeity is { } newActive && newActive != State.ActiveDeity)
         {
@@ -155,6 +166,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             State.TreeState.SelectedBlessingId = null;
             State.TreeState.PlayerScrollState.Reset();
             State.TreeState.ReligionScrollState.Reset();
+            State.InfoState.IsDescriptionExpanded = false;
             _soundManager.PlayClick();
         }
 
@@ -162,6 +174,8 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             switch (ev)
             {
                 case TreeEvent.Selected e:
+                    if (State.TreeState.SelectedBlessingId != e.BlessingId)
+                        State.InfoState.IsDescriptionExpanded = false;
                     State.TreeState.SelectedBlessingId = e.BlessingId;
                     _soundManager.PlayClick();
                     break;
@@ -177,6 +191,15 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
                 case TreeEvent.ReligionTreeScrollChanged e:
                     State.TreeState.ReligionScrollState.X = e.ScrollX;
                     State.TreeState.ReligionScrollState.Y = e.ScrollY;
+                    break;
+            }
+
+        foreach (var ev in result.InfoEvents)
+            switch (ev)
+            {
+                case InfoEvent.DescriptionExpansionToggled:
+                    State.InfoState.IsDescriptionExpanded = !State.InfoState.IsDescriptionExpanded;
+                    _soundManager.PlayClick();
                     break;
             }
 

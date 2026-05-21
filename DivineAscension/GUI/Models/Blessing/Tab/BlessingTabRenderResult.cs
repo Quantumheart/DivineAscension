@@ -13,7 +13,9 @@ public readonly struct BlessingTabRenderResult(
     string? hoveringBlessingId,
     float renderedHeight,
     DeityDomain? requestedActiveDeity = null,
-    float? requestedVowsScrollY = null)
+    float? requestedVowsScrollY = null,
+    float? requestedPageScrollY = null,
+    IReadOnlyList<InfoEvent>? infoEvents = null)
 {
     public IReadOnlyList<TreeEvent> TreeEvents { get; } = treeEvents;
     public IReadOnlyList<ActionsEvent> ActionsEvents { get; } = actionsEvents;
@@ -31,4 +33,15 @@ public readonly struct BlessingTabRenderResult(
     ///     new value to <see cref="State.BlessingTabState.VowsPageScrollY"/>.
     /// </summary>
     public float? RequestedVowsScrollY { get; } = requestedVowsScrollY;
+
+    /// <summary>
+    ///     Non-null when the III.ii Blessings page wheel-scrolled this frame. Manager commits
+    ///     the new value to <see cref="State.BlessingTabState.BlessingsPageScrollY"/>.
+    /// </summary>
+    public float? RequestedPageScrollY { get; } = requestedPageScrollY;
+
+    /// <summary>
+    ///     Events emitted by the blessing info pane (e.g. Read more toggled).
+    /// </summary>
+    public IReadOnlyList<InfoEvent> InfoEvents { get; } = infoEvents ?? System.Array.Empty<InfoEvent>();
 }

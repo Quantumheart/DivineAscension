@@ -305,7 +305,16 @@ public static class LocalizationKeys
     public const string UI_BLESSING_REQUIREMENTS = "divineascension:ui.blessing.requirements";
     public const string UI_BLESSING_EFFECTS = "divineascension:ui.blessing.effects";
     public const string UI_BLESSING_UNLOCK_BUTTON = "divineascension:ui.blessing.unlock";
+    public const string UI_BLESSING_INSCRIBE_BUTTON = "divineascension:ui.blessing.inscribe";
     public const string UI_BLESSING_SWEAR_BUTTON = "divineascension:ui.blessing.swear";
+    public const string UI_BLESSING_READ_MORE = "divineascension:ui.blessing.read_more";
+    public const string UI_BLESSING_READ_LESS = "divineascension:ui.blessing.read_less";
+    public const string UI_BLESSING_PAGE_TITLE = "divineascension:ui.blessing.page.title";
+    public const string UI_BLESSING_PAGE_INTRO = "divineascension:ui.blessing.page.intro";
+    public const string UI_BLESSING_PAGE_ACROSS_DOMAINS = "divineascension:ui.blessing.page.across_domains";
+    public const string UI_BLESSING_PAGE_INSCRIBED_ROW = "divineascension:ui.blessing.page.inscribed_row";
+    public const string UI_BLESSING_PAGE_PATRON_HEADING = "divineascension:ui.blessing.page.patron_heading";
+    public const string UI_BLESSING_PAGE_SELECTED_HEADING = "divineascension:ui.blessing.page.selected_heading";
     public const string UI_BLESSING_FAVOR_RANK_REQUIREMENT = "divineascension:ui.blessing.favor_rank_requirement";
     public const string UI_BLESSING_PRESTIGE_RANK_REQUIREMENT = "divineascension:ui.blessing.prestige_rank_requirement";
     public const string UI_BLESSING_UNLOCK_REQUIREMENT = "divineascension:ui.blessing.unlock_requirement";

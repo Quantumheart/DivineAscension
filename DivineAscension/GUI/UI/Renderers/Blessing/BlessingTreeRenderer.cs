@@ -6,9 +6,7 @@ using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Blessing;
 using DivineAscension.GUI.Models.Blessing.Tree;
-using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
-using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using ImGuiNET;
 using static DivineAscension.GUI.UI.Utilities.FontSizes;
@@ -16,92 +14,66 @@ using static DivineAscension.GUI.UI.Utilities.FontSizes;
 namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
 /// <summary>
-///     Renders a single blessing tree panel. III.ii — Blessings calls it with
-///     <see cref="BlessingKind.Player"/> for the personal tree; I.iii — Vows of
-///     the Order calls it with <see cref="BlessingKind.Religion"/> for the
-///     communal tree. The panel scrolls independently and emits the matching
-///     <see cref="TreeEvent.PlayerTreeScrollChanged"/> /
-///     <see cref="TreeEvent.ReligionTreeScrollChanged"/> variant so the host
-///     state manager can persist scroll across deity switches.
+///     Renders a single blessing tree panel. The renderer is kind-agnostic — III.ii Blessings
+///     hosts it for the personal tree and I.iii Vows of the Order hosts it for the communal
+///     tree. Each host passes the appropriate states dictionary, scroll state, and balance
+///     header text. The renderer emits the kind-neutral
+///     <see cref="TreeEvent.ScrollChanged"/> event when the panel scrolls; hosts translate
+///     that into <see cref="TreeEvent.PlayerTreeScrollChanged"/> or
+///     <see cref="TreeEvent.ReligionTreeScrollChanged"/> before forwarding to the state
+///     manager so scroll position persists per page.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class BlessingTreeRenderer
 {
-    // Color constants
     private static readonly Vector4 ColorDivider = new(0.573f, 0.502f, 0.416f, 1.0f); // #92806a
     private static readonly Vector4 ColorLabel = new(0.996f, 0.682f, 0.204f, 1.0f); // #feae34 gold
 
-    /// <summary>
-    ///     Draw a single blessing tree panel. <paramref name="kind"/> selects which
-    ///     state dict / scroll state / balance label is shown and which scroll
-    ///     event variant is emitted. Set <paramref name="showBalanceHeader"/> to
-    ///     <c>false</c> when the host page already displays the balance (e.g. the
-    ///     "Prestige · {N} / {M}" line on I.iii — Vows of the Order).
-    /// </summary>
-    public static BlessingTreeRendererResult Draw(BlessingTreeViewModel vm, BlessingKind kind,
-        bool showBalanceHeader = true)
+    public static BlessingTreeRendererResult Draw(BlessingTreeViewModel vm)
     {
         const float labelHeight = 30f;
-        var treeAreaHeight = showBalanceHeader ? vm.Height - labelHeight : vm.Height;
+        var treeAreaHeight = vm.ShowBalanceHeader ? vm.Height - labelHeight : vm.Height;
 
         var drawList = ImGui.GetWindowDrawList();
 
-        var isPlayer = kind == BlessingKind.Player;
-        var states = isPlayer ? vm.PlayerBlessingStates : vm.ReligionBlessingStates;
-        var scroll = isPlayer ? vm.PlayerTreeScroll : vm.ReligionTreeScroll;
-        var panelId = isPlayer ? "blessing_tree_player" : "blessing_tree_religion";
-
-        if (showBalanceHeader)
+        if (vm.ShowBalanceHeader)
         {
-            var labelKey = isPlayer
-                ? LocalizationKeys.UI_BLESSING_TREE_PLAYER_PANEL
-                : LocalizationKeys.UI_BLESSING_TREE_RELIGION_PANEL;
-            var balanceText = isPlayer
-                ? LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_FAVOR_BALANCE, vm.PlayerFavor)
-                : LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PRESTIGE_BALANCE, vm.ReligionPrestige);
-            DrawPanelLabel(drawList,
-                LocalizationService.Instance.Get(labelKey),
-                vm.X, vm.Y, vm.Width, balanceText);
+            DrawPanelLabel(drawList, vm.PanelLabel, vm.X, vm.Y, vm.Width, vm.BalanceText);
         }
 
         var panel = DrawTreePanel(drawList,
-            vm.X, showBalanceHeader ? vm.Y + labelHeight : vm.Y, vm.Width, treeAreaHeight,
-            states,
+            vm.X, vm.ShowBalanceHeader ? vm.Y + labelHeight : vm.Y, vm.Width, treeAreaHeight,
+            vm.BlessingStates,
             vm.DeltaTime,
-            scroll.X,
-            scroll.Y,
+            vm.TreeScroll.X,
+            vm.TreeScroll.Y,
             vm.SelectedBlessingId,
-            panelId
+            vm.PanelId
         );
 
-        var events = new List<TreeEvent>(3);
-
-        events.Add(new TreeEvent.Hovered(panel.HoveringBlessingId));
+        var events = new List<TreeEvent>(3)
+        {
+            new TreeEvent.Hovered(panel.HoveringBlessingId)
+        };
 
         if (!string.IsNullOrEmpty(panel.ClickedBlessingId))
             events.Add(new TreeEvent.Selected(panel.ClickedBlessingId!));
 
-        if (!NearlyEqual(scroll.X, panel.ScrollX) ||
-            !NearlyEqual(scroll.Y, panel.ScrollY))
+        if (!NearlyEqual(vm.TreeScroll.X, panel.ScrollX) ||
+            !NearlyEqual(vm.TreeScroll.Y, panel.ScrollY))
         {
-            events.Add(isPlayer
-                ? new TreeEvent.PlayerTreeScrollChanged(panel.ScrollX, panel.ScrollY)
-                : new TreeEvent.ReligionTreeScrollChanged(panel.ScrollX, panel.ScrollY));
+            events.Add(new TreeEvent.ScrollChanged(panel.ScrollX, panel.ScrollY));
         }
 
         return new BlessingTreeRendererResult(events, vm.Height);
     }
 
-    /// <summary>
-    ///     Draw panel label header with optional currency display
-    /// </summary>
     private static void DrawPanelLabel(ImDrawListPtr drawList, string label, float x, float y, float width,
         string? currencyText = null)
     {
         const float labelHeight = 30f;
         const float padding = 8f;
 
-        // Draw background
         var bgStart = new Vector2(x, y);
         var bgEnd = new Vector2(x + width, y + labelHeight);
         var bgColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.16f, 0.12f, 0.09f, 0.8f));
@@ -111,7 +83,6 @@ internal static class BlessingTreeRenderer
 
         if (string.IsNullOrEmpty(currencyText))
         {
-            // Draw text (centered)
             var textSize = ImGui.CalcTextSize(label);
             var textPos = new Vector2(
                 x + (width - textSize.X) / 2,
@@ -121,7 +92,6 @@ internal static class BlessingTreeRenderer
         }
         else
         {
-            // Draw label on the left
             var labelSize = ImGui.CalcTextSize(label);
             var labelPos = new Vector2(
                 x + padding,
@@ -129,7 +99,6 @@ internal static class BlessingTreeRenderer
             );
             drawList.AddText(ImGui.GetFont(), TableHeader, labelPos, textColor, label);
 
-            // Draw currency on the right
             var currencySize = ImGui.CalcTextSize(currencyText);
             var currencyPos = new Vector2(
                 x + width - currencySize.X - padding,
@@ -139,9 +108,6 @@ internal static class BlessingTreeRenderer
         }
     }
 
-    /// <summary>
-    ///     Draw a single tree panel with scrolling
-    /// </summary>
     private static (float ScrollX, float ScrollY, string? HoveringBlessingId, string? ClickedBlessingId) DrawTreePanel(
         ImDrawListPtr drawList,
         float x, float y, float width, float height,
@@ -153,7 +119,6 @@ internal static class BlessingTreeRenderer
     {
         const float padding = 16f;
 
-        // If no blessings, show placeholder
         if (blessingStates.Count == 0)
         {
             var emptyText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_TREE_NO_BLESSINGS);
@@ -167,43 +132,33 @@ internal static class BlessingTreeRenderer
             return (prevScrollX, prevScrollY, null, null);
         }
 
-        // Calculate layout if not already done
         if (blessingStates.Values.First().PositionX == 0 && blessingStates.Values.First().PositionY == 0)
             BlessingTreeLayout.CalculateLayout(blessingStates.ToDictionary(k => k.Key, v => v.Value),
                 width - padding * 2);
 
-        // Get total tree dimensions
         var dict = blessingStates.ToDictionary(k => k.Key, v => v.Value);
         var totalHeight = BlessingTreeLayout.GetTotalHeight(dict);
         var totalWidth = BlessingTreeLayout.GetTotalWidth(dict);
 
-        // Create scrollable area using ImGui child window with stable ID
         ImGui.SetCursorScreenPos(new Vector2(x, y));
 
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(padding, padding));
         ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(0.1f, 0.08f, 0.06f, 0.5f));
 
-        // Enable scrolling with mouse wheel - border=true enables scrollbar
         ImGui.BeginChild(panelId, new Vector2(width, height), true,
             ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
-        // Reserve scroll space FIRST so ImGui knows the content size before we draw
-        // This ensures scrollbars work correctly for content drawn via DrawList
         ImGui.Dummy(new Vector2(totalWidth + padding * 2, totalHeight + padding * 2));
 
-        // Get mouse position (in screen space)
         var mousePos = ImGui.GetMousePos();
-        var childWindowPos = ImGui.GetWindowPos(); // Position of child window in screen space
+        var childWindowPos = ImGui.GetWindowPos();
 
-        // Get scroll position
         var scrollX = ImGui.GetScrollX();
         var scrollY = ImGui.GetScrollY();
 
-        // Calculate drawing offset (accounts for scroll)
         var drawOffsetX = childWindowPos.X + padding - scrollX;
         var drawOffsetY = childWindowPos.Y + padding - scrollY;
 
-        // Draw connection lines first (behind nodes)
         foreach (var state in blessingStates.Values)
             if (state.Blessing.PrerequisiteBlessings is { Count: > 0 })
                 foreach (var prereqId in state.Blessing.PrerequisiteBlessings)
@@ -213,7 +168,6 @@ internal static class BlessingTreeRenderer
                             drawOffsetX, drawOffsetY
                         );
 
-        // Draw blessing nodes
         string? hoveringBlessingId = null;
         string? clickedBlessingId = null;
         foreach (var state in blessingStates.Values)
@@ -222,18 +176,16 @@ internal static class BlessingTreeRenderer
             var isHovering = BlessingNodeRenderer.DrawNode(
                 state,
                 drawOffsetX, drawOffsetY,
-                mousePos.X, mousePos.Y, // Pass screen-space mouse coordinates
+                mousePos.X, mousePos.Y,
                 deltaTime,
                 isSelected
             );
 
-            // Handle hover
             if (isHovering)
             {
                 hoveringBlessingId = state.Blessing.BlessingId;
                 ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
-                // Handle click
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
                     clickedBlessingId = state.Blessing.BlessingId;
@@ -249,6 +201,6 @@ internal static class BlessingTreeRenderer
 
     private static bool NearlyEqual(float a, float b)
     {
-        return Math.Abs(a - b) < 0.5f; // small threshold to avoid spamming events
+        return Math.Abs(a - b) < 0.5f;
     }
 }

@@ -29,7 +29,9 @@ public readonly struct BlessingTabViewModel(
     int prestigeNextThreshold = 0,
     string? patronDeityName = null,
     bool isReligionFounder = false,
-    float vowsPageScrollY = 0f
+    float vowsPageScrollY = 0f,
+    float blessingsPageScrollY = 0f,
+    bool isDescriptionExpanded = false
 )
 {
     public float X { get; } = x;
@@ -63,4 +65,13 @@ public readonly struct BlessingTabViewModel(
 
     /// <summary>Vertical scroll position for the Vows page chapter (I.iii).</summary>
     public float VowsPageScrollY { get; } = vowsPageScrollY;
+
+    /// <summary>Vertical scroll position for the III.ii Blessings page chapter.</summary>
+    public float BlessingsPageScrollY { get; } = blessingsPageScrollY;
+
+    /// <summary>
+    ///     Whether the selected blessing's description block is expanded past its truncated
+    ///     preview on the info pane.
+    /// </summary>
+    public bool IsDescriptionExpanded { get; } = isDescriptionExpanded;
 }
