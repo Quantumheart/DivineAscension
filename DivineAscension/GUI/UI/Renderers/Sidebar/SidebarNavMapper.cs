@@ -93,7 +93,7 @@ public static class SidebarNavMapper
 
     private static SidebarGroupViewModel BuildReligionGroup(Context ctx)
     {
-        var items = new List<SidebarItemViewModel>(6)
+        var items = new List<SidebarItemViewModel>(7)
         {
             // Browse — always reachable; renders the religion list.
             Item(SidebarNavId.ReligionBrowse,
@@ -102,6 +102,10 @@ public static class SidebarNavMapper
             // Info — needs a religion to make sense.
             Item(SidebarNavId.ReligionInfo,
                 LocalizationKeys.UI_RELIGION_TAB_INFO, "info",
+                ctx, !ctx.HasReligion, LocalizationKeys.SIDEBAR_DISABLED_NEED_RELIGION),
+            // Vows — communal blessing tree; viewable by any member, founder-gated at the unlock action.
+            Item(SidebarNavId.ReligionVows,
+                LocalizationKeys.UI_RELIGION_TAB_VOWS, "meditation",
                 ctx, !ctx.HasReligion, LocalizationKeys.SIDEBAR_DISABLED_NEED_RELIGION),
             // Activity log — same gate.
             Item(SidebarNavId.ReligionActivity,

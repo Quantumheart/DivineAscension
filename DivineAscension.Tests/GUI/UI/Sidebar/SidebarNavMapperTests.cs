@@ -195,6 +195,46 @@ public class SidebarNavMapperTests
     }
 
     [Fact]
+    public void Vows_RequiresReligion_DisabledWithNeedReligionTooltipWhenAbsent()
+    {
+        var vm = SidebarNavMapper.BuildViewModel(Ctx());
+
+        var vows = Find(vm, SidebarNavId.ReligionVows);
+        Assert.True(vows.IsDisabled);
+        Assert.Equal(LocalizationKeys.SIDEBAR_DISABLED_NEED_RELIGION, vows.DisabledTooltipKey);
+    }
+
+    [Fact]
+    public void Vows_EnabledForAnyMember_NotFounderGatedInSidebar()
+    {
+        var vm = SidebarNavMapper.BuildViewModel(
+            Ctx(hasReligion: true, isReligionFounder: false));
+
+        var vows = Find(vm, SidebarNavId.ReligionVows);
+        Assert.False(vows.IsDisabled);
+    }
+
+    [Fact]
+    public void Vows_AppearsBetweenInfoAndActivity_InReligionGroup()
+    {
+        var vm = SidebarNavMapper.BuildViewModel(
+            Ctx(hasReligion: true, isReligionFounder: true));
+
+        var religionGroup = vm.Groups.First(g => g.Key == SidebarNavMapper.GroupReligionKey);
+        var ids = religionGroup.Items.Select(i => i.Id).ToList();
+
+        var infoIdx = ids.IndexOf(SidebarNavId.ReligionInfo);
+        var vowsIdx = ids.IndexOf(SidebarNavId.ReligionVows);
+        var activityIdx = ids.IndexOf(SidebarNavId.ReligionActivity);
+
+        Assert.True(infoIdx >= 0);
+        Assert.True(vowsIdx >= 0);
+        Assert.True(activityIdx >= 0);
+        Assert.True(infoIdx < vowsIdx, "Vows should follow Info in sidebar order.");
+        Assert.True(vowsIdx < activityIdx, "Vows should precede Activity in sidebar order.");
+    }
+
+    [Fact]
     public void Apply_BlessingsNav_SetsCurrentNav()
     {
         var state = new GuiDialogState();

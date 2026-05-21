@@ -46,22 +46,27 @@ internal static class BlessingTabRenderer
             vm.ReligionPrestige
         );
 
-        var treeResult = BlessingTreeRenderer.Draw(treeVm);
+        // III.ii — Blessings hosts only the personal tree. The religion-side tree
+        // moved to I.iii — Vows of the Order. The Selected/Info/Actions panels
+        // below scope to PlayerBlessingStates so a selection lingering from the
+        // Vows page can't drive an action on this one.
+        var treeResult = BlessingTreeRenderer.Draw(treeVm, BlessingKind.Player);
 
         foreach (var ev in treeResult.Events)
             if (ev is TreeEvent.Hovered hovered)
                 hoveringBlessingId = hovered.BlessingId;
 
         var infoY = topY + treeHeight + padding;
-        var combinedStates = new Dictionary<string, BlessingNodeState>();
-        foreach (var kv in vm.PlayerBlessingStates)
-            combinedStates.TryAdd(kv.Key, kv.Value);
-        foreach (var kv in vm.ReligionBlessingStates)
-            combinedStates.TryAdd(kv.Key, kv.Value);
+        var playerOnlyStates = new Dictionary<string, BlessingNodeState>(vm.PlayerBlessingStates);
+
+        var personalSelected = vm.SelectedBlessingState != null
+                               && vm.SelectedBlessingState.Blessing.Kind == BlessingKind.Player
+            ? vm.SelectedBlessingState
+            : null;
 
         var infoVm = new BlessingInfoViewModel(
-            vm.SelectedBlessingState,
-            combinedStates,
+            personalSelected,
+            playerOnlyStates,
             vm.X,
             infoY,
             vm.Width,
@@ -76,37 +81,32 @@ internal static class BlessingTabRenderer
         var buttonX = vm.X + vm.Width - actionButtonPadding;
         var buttonY = vm.Y + vm.Height - actionButtonHeight - actionButtonPadding;
         var actionsVm = new BlessingActionsViewModel(
-            vm.SelectedBlessingState,
+            personalSelected,
             buttonX,
             buttonY,
             vm.PlayerFavor,
-            vm.ReligionPrestige
+            vm.ReligionPrestige,
+            isReligionFounder: false
         );
 
         var actionsResult = BlessingActionsRenderer.Draw(actionsVm);
 
-        if (!string.IsNullOrEmpty(hoveringBlessingId))
+        if (!string.IsNullOrEmpty(hoveringBlessingId)
+            && vm.PlayerBlessingStates.TryGetValue(hoveringBlessingId!, out var hoveringState)
+            && hoveringState != null)
         {
-            vm.PlayerBlessingStates.TryGetValue(hoveringBlessingId!, out var hoverPlayerState);
-            vm.ReligionBlessingStates.TryGetValue(hoveringBlessingId!, out var hoverReligionState);
-            var hoveringState = hoverPlayerState ?? hoverReligionState;
-            if (hoveringState != null)
-            {
-                var allBlessings = new Dictionary<string, DivineAscension.Models.Blessing>();
-                foreach (var s in vm.PlayerBlessingStates.Values)
-                    allBlessings.TryAdd(s.Blessing.BlessingId, s.Blessing);
-                foreach (var s in vm.ReligionBlessingStates.Values)
-                    allBlessings.TryAdd(s.Blessing.BlessingId, s.Blessing);
+            var allBlessings = new Dictionary<string, DivineAscension.Models.Blessing>();
+            foreach (var s in vm.PlayerBlessingStates.Values)
+                allBlessings.TryAdd(s.Blessing.BlessingId, s.Blessing);
 
-                var tooltipData = BlessingTooltipData.FromBlessingAndState(
-                    hoveringState.Blessing,
-                    hoveringState,
-                    allBlessings
-                );
+            var tooltipData = BlessingTooltipData.FromBlessingAndState(
+                hoveringState.Blessing,
+                hoveringState,
+                allBlessings
+            );
 
-                var mousePos = ImGui.GetMousePos();
-                TooltipRenderer.Draw(tooltipData, mousePos.X, mousePos.Y, vm.WindowWidth, vm.WindowHeight);
-            }
+            var mousePos = ImGui.GetMousePos();
+            TooltipRenderer.Draw(tooltipData, mousePos.X, mousePos.Y, vm.WindowWidth, vm.WindowHeight);
         }
 
         return new BlessingTabRenderResult(

@@ -42,13 +42,23 @@ internal static class BlessingActionsRenderer
         {
             var unlockButtonX = viewModel.X - ButtonWidth - ButtonSpacing;
             var canUnlock = selectedState.CanUnlock;
+            var isReligionKind = selectedState.Blessing.Kind == BlessingKind.Religion;
 
-            // Build button text with cost if applicable
-            var baseText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNLOCK_BUTTON);
+            // Religion-kind unlocks are bound vows on behalf of the whole order;
+            // non-founders see the button disabled with a tooltip (server enforces
+            // the actual permission — this is the UI mirror).
+            var founderGateBlocks = isReligionKind && !viewModel.IsReligionFounder;
+
+            // Manuscript voice: communal vows are "Swear"-n; personal blessings
+            // keep the existing "Unlock" verb (will be renamed in #335).
+            var baseTextKey = isReligionKind
+                ? LocalizationKeys.UI_BLESSING_SWEAR_BUTTON
+                : LocalizationKeys.UI_BLESSING_UNLOCK_BUTTON;
+            var baseText = LocalizationService.Instance.Get(baseTextKey);
             string buttonText;
             if (selectedState.Blessing.Cost > 0)
             {
-                // Show cost on button (e.g., "Unlock (400)")
+                // Show cost on button (e.g., "Unlock (400)" / "Swear (400)")
                 buttonText = $"{baseText} ({selectedState.Blessing.Cost})";
             }
             else
@@ -60,12 +70,12 @@ internal static class BlessingActionsRenderer
             var canAfford = true;
             if (selectedState.Blessing.Cost > 0)
             {
-                canAfford = selectedState.Blessing.Kind == BlessingKind.Player
-                    ? viewModel.PlayerFavor >= selectedState.Blessing.Cost
-                    : viewModel.ReligionPrestige >= selectedState.Blessing.Cost;
+                canAfford = isReligionKind
+                    ? viewModel.ReligionPrestige >= selectedState.Blessing.Cost
+                    : viewModel.PlayerFavor >= selectedState.Blessing.Cost;
             }
 
-            var isEnabled = canUnlock && canAfford;
+            var isEnabled = canUnlock && canAfford && !founderGateBlocks;
             var buttonColor = isEnabled ? ColorButtonActive : ColorButtonDisabled;
             var textColor = isEnabled ? ColorPalette.White : ColorPalette.DisabledGray;
 

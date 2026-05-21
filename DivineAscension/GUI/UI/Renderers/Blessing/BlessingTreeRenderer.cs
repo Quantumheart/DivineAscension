@@ -8,6 +8,7 @@ using DivineAscension.GUI.Events.Blessing;
 using DivineAscension.GUI.Models.Blessing.Tree;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
+using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using ImGuiNET;
 using static DivineAscension.GUI.UI.Utilities.FontSizes;
@@ -15,10 +16,13 @@ using static DivineAscension.GUI.UI.Utilities.FontSizes;
 namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
 /// <summary>
-///     Renders the split-panel blessing tree view
-///     Left panel: Player blessings (50% width)
-///     Right panel: Religion blessings (50% width)
-///     Both panels are independently scrollable
+///     Renders a single blessing tree panel. III.ii — Blessings calls it with
+///     <see cref="BlessingKind.Player"/> for the personal tree; I.iii — Vows of
+///     the Order calls it with <see cref="BlessingKind.Religion"/> for the
+///     communal tree. The panel scrolls independently and emits the matching
+///     <see cref="TreeEvent.PlayerTreeScrollChanged"/> /
+///     <see cref="TreeEvent.ReligionTreeScrollChanged"/> variant so the host
+///     state manager can persist scroll across deity switches.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class BlessingTreeRenderer
@@ -28,88 +32,62 @@ internal static class BlessingTreeRenderer
     private static readonly Vector4 ColorLabel = new(0.996f, 0.682f, 0.204f, 1.0f); // #feae34 gold
 
     /// <summary>
-    ///     Draw the split-panel blessing tree using EDA: returns events instead of mutating state.
+    ///     Draw a single blessing tree panel. <paramref name="kind"/> selects which
+    ///     state dict / scroll state / balance label is shown and which scroll
+    ///     event variant is emitted. Set <paramref name="showBalanceHeader"/> to
+    ///     <c>false</c> when the host page already displays the balance (e.g. the
+    ///     "Prestige · {N} / {M}" line on I.iii — Vows of the Order).
     /// </summary>
-    public static BlessingTreeRendererResult Draw(BlessingTreeViewModel vm)
+    public static BlessingTreeRendererResult Draw(BlessingTreeViewModel vm, BlessingKind kind,
+        bool showBalanceHeader = true)
     {
         const float labelHeight = 30f;
-        const float dividerWidth = 2f;
-
-        // Calculate panel dimensions
-        var panelWidth = (vm.Width - dividerWidth) / 2f;
-        var treeAreaHeight = vm.Height - labelHeight;
+        var treeAreaHeight = showBalanceHeader ? vm.Height - labelHeight : vm.Height;
 
         var drawList = ImGui.GetWindowDrawList();
 
-        // === LEFT PANEL: Player Blessings ===
-        var leftX = vm.X;
-        var leftY = vm.Y;
+        var isPlayer = kind == BlessingKind.Player;
+        var states = isPlayer ? vm.PlayerBlessingStates : vm.ReligionBlessingStates;
+        var scroll = isPlayer ? vm.PlayerTreeScroll : vm.ReligionTreeScroll;
+        var panelId = isPlayer ? "blessing_tree_player" : "blessing_tree_religion";
 
-        // Draw label with favor balance
-        var favorText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_FAVOR_BALANCE, vm.PlayerFavor);
-        DrawPanelLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_TREE_PLAYER_PANEL),
-            leftX, leftY, panelWidth, favorText);
+        if (showBalanceHeader)
+        {
+            var labelKey = isPlayer
+                ? LocalizationKeys.UI_BLESSING_TREE_PLAYER_PANEL
+                : LocalizationKeys.UI_BLESSING_TREE_RELIGION_PANEL;
+            var balanceText = isPlayer
+                ? LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_FAVOR_BALANCE, vm.PlayerFavor)
+                : LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PRESTIGE_BALANCE, vm.ReligionPrestige);
+            DrawPanelLabel(drawList,
+                LocalizationService.Instance.Get(labelKey),
+                vm.X, vm.Y, vm.Width, balanceText);
+        }
 
-        // Draw tree area (use local variables for scroll offsets)
-        var treeY = leftY + labelHeight;
-        var leftPanel = DrawTreePanel(drawList,
-            leftX, treeY, panelWidth, treeAreaHeight,
-            vm.PlayerBlessingStates,
+        var panel = DrawTreePanel(drawList,
+            vm.X, showBalanceHeader ? vm.Y + labelHeight : vm.Y, vm.Width, treeAreaHeight,
+            states,
             vm.DeltaTime,
-            vm.PlayerTreeScroll.X,
-            vm.PlayerTreeScroll.Y,
+            scroll.X,
+            scroll.Y,
             vm.SelectedBlessingId,
-            "blessing_tree_player"
+            panelId
         );
 
-        // === CENTER DIVIDER ===
-        var dividerX = vm.X + panelWidth;
-        var dividerTop = new Vector2(dividerX, vm.Y);
-        var dividerBottom = new Vector2(dividerX, vm.Y + vm.Height);
-        var dividerColor = ImGui.ColorConvertFloat4ToU32(ColorDivider);
-        drawList.AddLine(dividerTop, dividerBottom, dividerColor, dividerWidth);
+        var events = new List<TreeEvent>(3);
 
-        // === RIGHT PANEL: Religion Blessings ===
-        var rightX = dividerX + dividerWidth;
-        var rightY = vm.Y;
+        events.Add(new TreeEvent.Hovered(panel.HoveringBlessingId));
 
-        // Draw label with prestige balance
-        var prestigeText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PRESTIGE_BALANCE, vm.ReligionPrestige);
-        DrawPanelLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_TREE_RELIGION_PANEL),
-            rightX, rightY, panelWidth, prestigeText);
+        if (!string.IsNullOrEmpty(panel.ClickedBlessingId))
+            events.Add(new TreeEvent.Selected(panel.ClickedBlessingId!));
 
-        // Draw tree area (use local variables for scroll offsets)
-        var rightPanel = DrawTreePanel(drawList,
-            rightX, treeY, panelWidth, treeAreaHeight,
-            vm.ReligionBlessingStates,
-            vm.DeltaTime,
-            vm.ReligionTreeScroll.X,
-            vm.ReligionTreeScroll.Y,
-            vm.SelectedBlessingId,
-            "blessing_tree_religion"
-        );
-
-        // Build events
-        var events = new List<TreeEvent>(4);
-
-        // Hover
-        var hovering = leftPanel.HoveringBlessingId ?? rightPanel.HoveringBlessingId;
-        events.Add(new TreeEvent.Hovered(hovering));
-
-        // Selection
-        var clicked = leftPanel.ClickedBlessingId ?? rightPanel.ClickedBlessingId;
-        if (!string.IsNullOrEmpty(clicked))
-            events.Add(new TreeEvent.Selected(clicked!));
-
-        // Scroll changes
-        if (!NearlyEqual(vm.PlayerTreeScroll.X, leftPanel.ScrollX) ||
-            !NearlyEqual(vm.PlayerTreeScroll.Y, leftPanel.ScrollY))
-            events.Add(new TreeEvent.PlayerTreeScrollChanged(leftPanel.ScrollX, leftPanel.ScrollY));
-        if (!NearlyEqual(vm.ReligionTreeScroll.X, rightPanel.ScrollX) ||
-            !NearlyEqual(vm.ReligionTreeScroll.Y, rightPanel.ScrollY))
-            events.Add(new TreeEvent.ReligionTreeScrollChanged(rightPanel.ScrollX, rightPanel.ScrollY));
+        if (!NearlyEqual(scroll.X, panel.ScrollX) ||
+            !NearlyEqual(scroll.Y, panel.ScrollY))
+        {
+            events.Add(isPlayer
+                ? new TreeEvent.PlayerTreeScrollChanged(panel.ScrollX, panel.ScrollY)
+                : new TreeEvent.ReligionTreeScrollChanged(panel.ScrollX, panel.ScrollY));
+        }
 
         return new BlessingTreeRendererResult(events, vm.Height);
     }

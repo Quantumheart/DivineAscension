@@ -25,7 +25,10 @@ public readonly struct BlessingTabViewModel(
     int religionPrestige,
     DeityDomain activeDeity,
     DeityDomain patronDomain,
-    IReadOnlyList<DeityBlessingSummary> deitySummaries
+    IReadOnlyList<DeityBlessingSummary> deitySummaries,
+    int prestigeNextThreshold = 0,
+    string? patronDeityName = null,
+    bool isReligionFounder = false
 )
 {
     public float X { get; } = x;
@@ -47,4 +50,13 @@ public readonly struct BlessingTabViewModel(
     public DeityDomain ActiveDeity { get; } = activeDeity;
     public DeityDomain PatronDomain { get; } = patronDomain;
     public IReadOnlyList<DeityBlessingSummary> DeitySummaries { get; } = deitySummaries;
+
+    /// <summary>Total prestige required for the next prestige rank, for the right-aligned "{N} / {M}" balance on Vows.</summary>
+    public int PrestigeNextThreshold { get; } = prestigeNextThreshold;
+
+    /// <summary>Display name of the patron deity (e.g. "Stone"). Drives the "Of {Patron}" sub-heading on Vows.</summary>
+    public string? PatronDeityName { get; } = patronDeityName;
+
+    /// <summary>Whether the viewing player founded the religion; gates the [Swear] action on Vows.</summary>
+    public bool IsReligionFounder { get; } = isReligionFounder;
 }

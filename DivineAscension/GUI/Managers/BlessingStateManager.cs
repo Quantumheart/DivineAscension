@@ -92,6 +92,55 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         ProcessBlessingTabEvents(result);
     }
 
+    /// <summary>
+    ///     I.iii — Vows of the Order. Draws the religion (communal) blessing tree
+    ///     migrated off III.ii. <paramref name="isReligionFounder"/> gates the
+    ///     [Swear] action; <paramref name="prestigeNextThreshold"/> drives the
+    ///     right-aligned "Prestige · {N} / {M}" balance under the patron heading.
+    /// </summary>
+    public void DrawVowsTab(float windowPosX, float windowPosY, float width, float contentHeight, int windowWidth,
+        int windowHeight, float deltaTime, int playerFavor, int religionPrestige, DeityDomain patronDomain,
+        bool isReligionFounder, string? patronDeityName, int prestigeNextThreshold,
+        Dictionary<DeityDomain, int>? favorRanksByDeity = null,
+        Dictionary<DeityDomain, int>? totalFavorEarnedByDeity = null,
+        int discipleThreshold = 500, int zealotThreshold = 2000,
+        int championThreshold = 5000, int avatarThreshold = 10000)
+    {
+        var summaries = BuildDeitySummaries(
+            patronDomain,
+            favorRanksByDeity ?? new Dictionary<DeityDomain, int>(),
+            totalFavorEarnedByDeity ?? new Dictionary<DeityDomain, int>(),
+            discipleThreshold, zealotThreshold, championThreshold, avatarThreshold);
+
+        var vm = new BlessingTabViewModel(
+            windowPosX,
+            windowPosY,
+            width,
+            contentHeight,
+            windowWidth,
+            windowHeight,
+            deltaTime,
+            State.TreeState.SelectedBlessingId,
+            GetSelectedBlessingState(),
+            ActivePlayerBlessings,
+            ActiveReligionBlessings,
+            State.TreeState.PlayerScrollState,
+            State.TreeState.ReligionScrollState,
+            playerFavor,
+            religionPrestige,
+            State.ActiveDeity,
+            patronDomain,
+            summaries,
+            prestigeNextThreshold,
+            patronDeityName,
+            isReligionFounder
+        );
+
+        var result = BlessingVowsTabRenderer.Draw(vm);
+
+        ProcessBlessingTabEvents(result);
+    }
+
     internal void ProcessBlessingTabEvents(BlessingTabRenderResult result)
     {
         State.TreeState.HoveringBlessingId = result.HoveringBlessingId;
