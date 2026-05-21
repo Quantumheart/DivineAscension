@@ -15,36 +15,45 @@ public class ColorPaletteTests
     [Fact]
     public void PrimaryColors_HaveCorrectValues()
     {
-        // Assert
-        Assert.Equal(new Vector4(0.996f, 0.682f, 0.204f, 1.0f), ColorPalette.Gold);
-        Assert.Equal(new Vector4(0.9f, 0.9f, 0.9f, 1.0f), ColorPalette.White);
-        Assert.Equal(new Vector4(0.573f, 0.502f, 0.416f, 1.0f), ColorPalette.Grey);
+        // Iron Gall manuscript palette — gold leaf, iron-gall ink (primary text),
+        // sepia ink (secondary text).
+        Assert.Equal(new Vector4(0.722f, 0.525f, 0.180f, 1.0f), ColorPalette.Gold);
+        Assert.Equal(new Vector4(0.176f, 0.141f, 0.094f, 1.0f), ColorPalette.White);
+        Assert.Equal(new Vector4(0.420f, 0.337f, 0.220f, 1.0f), ColorPalette.Grey);
     }
 
     [Fact]
     public void BackgroundColors_HaveCorrectValues()
     {
-        // Assert
-        Assert.Equal(new Vector4(0.24f, 0.18f, 0.13f, 1.0f), ColorPalette.DarkBrown);
-        Assert.Equal(new Vector4(0.35f, 0.26f, 0.19f, 1.0f), ColorPalette.LightBrown);
-        Assert.Equal(new Vector4(0.161f, 0.118f, 0.086f, 1f), ColorPalette.Background);
+        // Parchment page + sepia panel + folded-edge inset.
+        Assert.Equal(new Vector4(0.361f, 0.271f, 0.157f, 1.0f), ColorPalette.DarkBrown);
+        Assert.Equal(new Vector4(0.478f, 0.361f, 0.220f, 1.0f), ColorPalette.LightBrown);
+        Assert.Equal(new Vector4(0.937f, 0.894f, 0.800f, 1.0f), ColorPalette.Background);
     }
 
     [Fact]
     public void StateColors_HaveCorrectValues()
     {
-        // Assert
-        Assert.Equal(new Vector4(0.8f, 0.2f, 0.2f, 1.0f), ColorPalette.Red);
-        Assert.Equal(new Vector4(0.2f, 0.8f, 0.2f, 1.0f), ColorPalette.Green);
-        Assert.Equal(new Vector4(0.8f, 0.8f, 0.2f, 1.0f), ColorPalette.Yellow);
+        // Manuscript accent inks: vermilion rubric, verdigris green, ochre warning.
+        Assert.Equal(new Vector4(0.612f, 0.165f, 0.122f, 1.0f), ColorPalette.Red);
+        Assert.Equal(new Vector4(0.310f, 0.431f, 0.231f, 1.0f), ColorPalette.Green);
+        Assert.Equal(new Vector4(0.710f, 0.522f, 0.169f, 1.0f), ColorPalette.Yellow);
+    }
+
+    [Fact]
+    public void ManuscriptAccentInks_HaveCorrectValues()
+    {
+        Assert.Equal(new Vector4(0.180f, 0.290f, 0.431f, 1.0f), ColorPalette.Lapis);
+        Assert.Equal(new Vector4(0.612f, 0.165f, 0.122f, 1.0f), ColorPalette.Vermilion);
+        Assert.Equal(new Vector4(0.310f, 0.431f, 0.231f, 1.0f), ColorPalette.Verdigris);
     }
 
     [Fact]
     public void OverlayColors_HaveCorrectValues()
     {
-        // Assert
-        Assert.Equal(new Vector4(0f, 0f, 0f, 0.8f), ColorPalette.BlackOverlay);
-        Assert.Equal(new Vector4(0f, 0f, 0f, 0.7f), ColorPalette.BlackOverlayLight);
+        // Warm dark overlays — modal dims read as a dimmed page, not a cold black wash.
+        Assert.Equal(new Vector4(0.18f, 0.13f, 0.08f, 0.8f), ColorPalette.BlackOverlay);
+        Assert.Equal(new Vector4(0.18f, 0.13f, 0.08f, 0.7f), ColorPalette.BlackOverlayLight);
     }
 
     #endregion
@@ -221,9 +230,9 @@ public class ColorPaletteTests
         modified = ColorPalette.WithAlpha(modified, 0.5f);
 
         // Assert
-        Assert.Equal(0.8f * 0.996f, modified.X, precision: 5);
-        Assert.Equal(0.8f * 0.682f, modified.Y, precision: 5);
-        Assert.Equal(0.8f * 0.204f, modified.Z, precision: 5);
+        Assert.Equal(0.8f * 0.722f, modified.X, precision: 5);
+        Assert.Equal(0.8f * 0.525f, modified.Y, precision: 5);
+        Assert.Equal(0.8f * 0.180f, modified.Z, precision: 5);
         Assert.Equal(0.5f, modified.W);
     }
 

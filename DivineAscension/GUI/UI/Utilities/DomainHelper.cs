@@ -24,18 +24,21 @@ internal static class DomainHelper
     public static string[] DeityNames => DomainNames;
 
     /// <summary>
-    ///     Get the thematic color for a domain (by name string)
+    ///     Get the thematic color for a domain (by name string). Tints are
+    ///     earthed so each domain reads as a manuscript ink rather than a
+    ///     saturated UI colour — they sit on the parchment page next to
+    ///     the gold / lapis / vermilion accent inks without clashing.
     /// </summary>
     public static Vector4 GetDomainColor(string domain)
     {
         return domain switch
         {
-            "Craft" => new Vector4(0.8f, 0.2f, 0.2f, 1.0f), // Red - Forge & Craft
-            "Wild" => new Vector4(0.4f, 0.8f, 0.3f, 1.0f), // Green - Hunt & Wild
-            "Conquest" => new Vector4(0.6f, 0.1f, 0.3f, 1.0f), // Crimson - Domination & Victory
-            "Harvest" => new Vector4(0.9f, 0.9f, 0.6f, 1.0f), // Light yellow - Agriculture & Light
-            "Stone" => new Vector4(0.5f, 0.4f, 0.2f, 1.0f), // Brown - Earth & Stone
-            _ => new Vector4(0.5f, 0.5f, 0.5f, 1.0f) // Grey - Unknown
+            "Craft" => new Vector4(0.698f, 0.416f, 0.165f, 1.0f), // #B26A2A copper — Forge & Craft
+            "Wild" => new Vector4(0.361f, 0.431f, 0.165f, 1.0f), // #5C6E2A olive — Hunt & Wild
+            "Conquest" => new Vector4(0.557f, 0.180f, 0.122f, 1.0f), // #8E2E1F dried-blood red — Domination & Victory
+            "Harvest" => new Vector4(0.627f, 0.463f, 0.157f, 1.0f), // #A07628 wheat ochre — Agriculture & Light
+            "Stone" => new Vector4(0.369f, 0.329f, 0.282f, 1.0f), // #5E5448 warm slate — Earth & Stone
+            _ => new Vector4(0.659f, 0.580f, 0.447f, 1.0f) // #A89472 faded ink — Unknown
         };
     }
 
@@ -55,18 +58,19 @@ internal static class DomainHelper
     public static DeityDomain ParseDeityType(string domainName) => ParseDomain(domainName);
 
     /// <summary>
-    ///     Get the thematic color for a domain (by enum)
+    ///     Get the thematic color for a domain (by enum). See
+    ///     <see cref="GetDomainColor(string)" /> for the manuscript-ink rationale.
     /// </summary>
     public static Vector4 GetDeityColor(DeityDomain domain)
     {
         return domain switch
         {
-            DeityDomain.Craft => new Vector4(0.8f, 0.2f, 0.2f, 1.0f), // Red - Forge & Craft
-            DeityDomain.Wild => new Vector4(0.4f, 0.8f, 0.3f, 1.0f), // Green - Hunt & Wild
-            DeityDomain.Conquest => new Vector4(0.6f, 0.1f, 0.3f, 1.0f), // Crimson - Domination & Victory
-            DeityDomain.Harvest => new Vector4(0.9f, 0.9f, 0.6f, 1.0f), // Light yellow - Agriculture & Light
-            DeityDomain.Stone => new Vector4(0.5f, 0.4f, 0.2f, 1.0f), // Brown - Earth & Stone
-            _ => new Vector4(0.5f, 0.5f, 0.5f, 1.0f) // Grey - Unknown
+            DeityDomain.Craft => new Vector4(0.698f, 0.416f, 0.165f, 1.0f), // #B26A2A copper
+            DeityDomain.Wild => new Vector4(0.361f, 0.431f, 0.165f, 1.0f), // #5C6E2A olive
+            DeityDomain.Conquest => new Vector4(0.557f, 0.180f, 0.122f, 1.0f), // #8E2E1F dried-blood red
+            DeityDomain.Harvest => new Vector4(0.627f, 0.463f, 0.157f, 1.0f), // #A07628 wheat ochre
+            DeityDomain.Stone => new Vector4(0.369f, 0.329f, 0.282f, 1.0f), // #5E5448 warm slate
+            _ => new Vector4(0.659f, 0.580f, 0.447f, 1.0f) // #A89472 faded ink
         };
     }
 

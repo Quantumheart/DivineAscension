@@ -109,25 +109,27 @@ internal static class ReligionInvitesRenderer
             4f);
 
         // === CARD CONTENT ===
+        // Card body is dark sepia (LightBrown), so all text inside is light cream.
         TextRenderer.DrawLabel(
             drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_CARD_TITLE),
             x + 12f,
             y + 8f,
-            16f);
+            16f,
+            ColorPalette.LightText);
 
         drawList.AddText(
             ImGui.GetFont(),
             14f,
             new Vector2(x + 14f, y + 30f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.MutedText),
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_RELIGION_LABEL, invite.ReligionName));
 
         drawList.AddText(
             ImGui.GetFont(),
             14f,
             new Vector2(x + 14f, y + 48f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.MutedText),
             invite.FormattedExpiration);
 
         // === ACTION BUTTONS ===

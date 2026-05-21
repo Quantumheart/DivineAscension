@@ -189,7 +189,7 @@ internal static class TextInput
         style.Colors[(int)ImGuiCol.FrameBg] = ColorPalette.DarkBrown * 0.7f;
         style.Colors[(int)ImGuiCol.FrameBgHovered] = ColorPalette.DarkBrown * 0.8f;
         style.Colors[(int)ImGuiCol.FrameBgActive] = ColorPalette.DarkBrown * 0.9f;
-        style.Colors[(int)ImGuiCol.Text] = ColorPalette.White;
+        style.Colors[(int)ImGuiCol.Text] = ColorPalette.LightText;
         style.Colors[(int)ImGuiCol.Border] = ColorPalette.Grey * 0.5f;
 
         // Push frame size to match requested dimensions
@@ -252,7 +252,7 @@ internal static class TextInput
         style.Colors[(int)ImGuiCol.FrameBg] = ColorPalette.DarkBrown * 0.7f;
         style.Colors[(int)ImGuiCol.FrameBgHovered] = ColorPalette.DarkBrown * 0.8f;
         style.Colors[(int)ImGuiCol.FrameBgActive] = ColorPalette.DarkBrown * 0.9f;
-        style.Colors[(int)ImGuiCol.Text] = ColorPalette.White;
+        style.Colors[(int)ImGuiCol.Text] = ColorPalette.LightText;
         style.Colors[(int)ImGuiCol.Border] = ColorPalette.Grey * 0.5f;
 
         // Use ImGui's native multiline text input with manual clipboard callback

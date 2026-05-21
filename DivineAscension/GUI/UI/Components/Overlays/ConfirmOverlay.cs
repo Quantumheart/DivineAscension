@@ -90,7 +90,7 @@ internal static class ConfirmOverlay
         var curY = dlgY + padding;
 
         // Title
-        TextRenderer.DrawLabel(drawList, title, curX, curY, 18f, ColorPalette.White);
+        TextRenderer.DrawLabel(drawList, title, curX, curY, 18f, ColorPalette.LightText);
         curY += titleSize.Y + 8f;
 
         // Message (word-wrapped)

@@ -60,7 +60,7 @@ internal static class Dropdown
         ImGui.SetWindowFontScale(1f);
 
         var textPos = new Vector2(x + 12f, y + (height - scaledTextSize.Y) / 2);
-        var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
+        var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText);
 
         ImGui.SetWindowFontScale(fontScale);
         drawList.AddText(textPos, textColor, selectedText);
@@ -220,7 +220,11 @@ internal static class Dropdown
             ImGui.SetWindowFontScale(1f);
 
             var itemTextPos = new Vector2(x + 12f, itemY + (itemHeight - itemTextSize.Y) / 2);
-            var itemTextColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
+            // Menu items have a parchment-coloured background until hovered/selected,
+            // at which point they switch to dark sepia. Flip the text colour to match.
+            var itemOnDark = isItemHovering || i == selectedIndex;
+            var itemTextColor = ImGui.ColorConvertFloat4ToU32(
+                itemOnDark ? ColorPalette.LightText : ColorPalette.White);
 
             ImGui.SetWindowFontScale(fontScale);
             drawList.AddText(itemTextPos, itemTextColor, items[i]);
