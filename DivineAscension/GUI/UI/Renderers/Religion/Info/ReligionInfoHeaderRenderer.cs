@@ -36,7 +36,8 @@ internal static class ReligionInfoHeaderRenderer
         var iconTextureId = DeityIconLoader.GetDeityTextureId(deityDomain);
         var currentY = PaneHeaderRenderer.Draw(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_INFO),
-            x, y, width, iconTextureId, viewModel.PrestigeRank);
+            x, y, width, iconTextureId, viewModel.PrestigeRank,
+            rightTitle: viewModel.ReligionName);
 
         // Deity · · · · · Hroth (Wild) — leader row, matching the rest.
         // Edit affordance for founders moves to its own row underneath when

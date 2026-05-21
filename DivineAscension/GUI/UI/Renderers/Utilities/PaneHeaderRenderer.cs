@@ -30,7 +30,8 @@ internal static class PaneHeaderRenderer
         float x, float y, float width,
         IntPtr iconTextureId = default,
         string? rankTag = null,
-        Vector4? rankColor = null)
+        Vector4? rankColor = null,
+        string? rightTitle = null)
     {
         var hasIcon = iconTextureId != IntPtr.Zero;
         var titleX = hasIcon ? x + IconSize + 12f : x;
@@ -56,6 +57,17 @@ internal static class PaneHeaderRenderer
             drawList.AddText(ImGui.GetFont(), FontSizes.SubsectionLabel,
                 new Vector2(titleX + nameWidthScaled + 8f, y + 6f),
                 ImGui.ColorConvertFloat4ToU32(rankColor ?? ColorPalette.Gold), rankText);
+        }
+
+        if (!string.IsNullOrEmpty(rightTitle))
+        {
+            // Right-aligned entity name at the same baseline as the title.
+            var rightScale = FontSizes.PageTitle / FontSizes.SubsectionLabel;
+            var rightWidth = ImGui.CalcTextSize(rightTitle).X * rightScale;
+            var rightX = x + width - rightWidth;
+            drawList.AddText(ImGui.GetFont(), FontSizes.PageTitle,
+                new Vector2(rightX, y + 4f),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), rightTitle);
         }
 
         var dividerY = y + RowHeight;
