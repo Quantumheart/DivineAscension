@@ -412,14 +412,32 @@ public class ReligionStateManager : IReligionStateManager
         var details = State.BrowseState.DetailState.ViewingReligionDetails;
         var canJoin = !HasReligion();
 
+        // Prestige rank name is a string on the wire; derive the index +
+        // next-rank threshold here so the renderer can paint a progress bar
+        // without knowing the rank order. Uses configured thresholds when
+        // available so the bar matches the player's actual progression.
+        var prestigeRankIndex = PrestigeRankIndexFromName(details?.PrestigeRank);
+        var prestigeRequired = RankRequirements.GetRequiredPrestigeForNextRank(
+            prestigeRankIndex,
+            EstablishedThreshold,
+            RenownedThreshold,
+            LegendaryThreshold,
+            MythicThreshold);
+        var isMaxPrestigeRank = prestigeRankIndex >= 4;
+
         var vm = new ReligionDetailViewModel(
             State.BrowseState.DetailState.IsLoading,
             State.BrowseState.DetailState.ViewingReligionUID ?? string.Empty,
             details?.ReligionName ?? string.Empty,
             details?.Domain ?? string.Empty,
             details?.DeityName ?? string.Empty,
+            details?.FounderUID ?? string.Empty,
+            details?.FounderName ?? string.Empty,
             details?.PrestigeRank ?? string.Empty,
+            prestigeRankIndex,
             details?.Prestige ?? 0,
+            prestigeRequired,
+            isMaxPrestigeRank,
             details?.IsPublic ?? true,
             details?.Description ?? string.Empty,
             details?.Members ?? new List<ReligionDetailResponsePacket.MemberInfo>(),
@@ -506,6 +524,16 @@ public class ReligionStateManager : IReligionStateManager
         // Default: request from server
         _uiService.RequestReligionDetail(religionUID);
     }
+
+    private static int PrestigeRankIndexFromName(string? rankName) => rankName switch
+    {
+        "Fledgling" => 0,
+        "Established" => 1,
+        "Renowned" => 2,
+        "Legendary" => 3,
+        "Mythic" => 4,
+        _ => 0,
+    };
 
     /// <summary>
     ///     Update religion detail state from network response
