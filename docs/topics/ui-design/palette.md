@@ -234,8 +234,10 @@ exhaustive index:
 | `Lapis` | `ReligionHeaderRenderer` prestige bar + civ name |
 | `Vermilion` | `ReligionHeaderRenderer` Founder badge, `ErrorBannerRenderer` |
 | `Verdigris` | `BlessingNodeRenderer` (intended, currently inline), `CivilizationMilestoneRenderer` completion state, `HolySiteDetailRenderer` |
-| `White` (= ink) | Default text colour everywhere via `TextRenderer.DrawLabel`, all page content renderers |
-| `LightText` | Button labels, tooltip body, banner messages, title-strip identity name, modal titles, dropdown selected face, card-body text |
+| `White` (= ink) | Default text colour everywhere via `TextRenderer.DrawLabel`, all page content renderers, Vows of the Order sub-headings (`BlessingVowsTabRenderer`) |
+| `LightText` | Button labels, tooltip body (`TooltipRenderer`), banner messages, title-strip identity name, modal titles, dropdown selected face, card-body text, Selected Vow info panel title / body / sub-headings (`BlessingInfoSection*`) |
+| `MutedText` | Tooltip category line, Selected Vow info panel meta line (`BlessingInfoSectionHeader`) |
+| `SuccessGreen` / `ErrorRed` | Status badges and met / unmet requirements on dark surfaces — tooltip (`TooltipRenderer`), Selected Vow info panel (`BlessingInfoSectionHeader` AVAILABLE / LOCKED chip, `BlessingInfoSectionStats` effect deltas, `BlessingInfoSectionRequirements` prereq lines). Use these over the muted `Verdigris` / `Vermilion` whenever the badge needs to pop on `DarkBrown`. |
 
 ---
 
