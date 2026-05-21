@@ -147,6 +147,51 @@ internal static class ChromeRenderer
     }
 
     /// <summary>
+    ///     Paint a section divider with multiple evenly spaced diamonds:
+    ///     <c>──── ◆ ──── ◆ ──── ◆ ────</c>. Used at section boundaries
+    ///     where a single-diamond divider isn't enough visual weight (e.g.
+    ///     above and below the Letters page's letter list).
+    /// </summary>
+    public static void DrawMultiDiamondDivider(ImDrawListPtr drawList, float x, float y, float width,
+        int diamondCount, Vector4? colorOverride = null)
+    {
+        if (width <= 0f || diamondCount <= 0) return;
+        if (diamondCount == 1)
+        {
+            DrawDivider(drawList, x, y, width, colorOverride);
+            return;
+        }
+
+        var color = colorOverride ?? ColorPalette.Gold * 0.55f;
+        var colorU32 = ImGui.ColorConvertFloat4ToU32(color);
+
+        const float diamondHalfSize = 4f;
+        const float sideGap = 8f;
+        var lineY = y + diamondHalfSize;
+
+        // Diamonds at fraction (i+1)/(N+1) of the width — even spacing,
+        // leaving a half-segment of line at each end.
+        for (var i = 0; i < diamondCount; i++)
+        {
+            var cx = x + width * (i + 1) / (diamondCount + 1);
+            DrawDiamond(drawList, cx, lineY, diamondHalfSize, color);
+        }
+
+        // Line segments fill the gaps between diamonds (and at each end).
+        var prevEnd = x;
+        for (var i = 0; i < diamondCount; i++)
+        {
+            var cx = x + width * (i + 1) / (diamondCount + 1);
+            var segEnd = cx - diamondHalfSize - sideGap;
+            if (segEnd > prevEnd)
+                drawList.AddLine(new Vector2(prevEnd, lineY), new Vector2(segEnd, lineY), colorU32, 1f);
+            prevEnd = cx + diamondHalfSize + sideGap;
+        }
+        if (prevEnd < x + width)
+            drawList.AddLine(new Vector2(prevEnd, lineY), new Vector2(x + width, lineY), colorU32, 1f);
+    }
+
+    /// <summary>
     ///     Paint a small pencil glyph (✎ U+270E) as primitives so it renders
     ///     in fonts without Dingbats coverage. Diagonal body from upper-right
     ///     to lower-left, triangular graphite tip at the lower-left end, and
@@ -198,6 +243,31 @@ internal static class ChromeRenderer
 
         // Pommel cap.
         drawList.AddCircleFilled(new Vector2(cx, cy - half), MathF.Max(1.5f, half * 0.18f), color);
+    }
+
+    /// <summary>
+    ///     Paint a sealed-envelope glyph (✉ U+2709) as primitives so it
+    ///     renders without Misc-Symbols coverage. Rectangle body with two
+    ///     diagonal lines meeting at the top centre to suggest the flap.
+    /// </summary>
+    public static void DrawEnvelope(ImDrawListPtr drawList, float cx, float cy, float size,
+        Vector4? colorOverride = null)
+    {
+        if (size <= 0f) return;
+        var color = ImGui.ColorConvertFloat4ToU32(colorOverride ?? ColorPalette.Gold);
+
+        // Body — slightly wider than tall, like a real letter.
+        var halfW = size * 0.55f;
+        var halfH = size * 0.40f;
+        var min = new Vector2(cx - halfW, cy - halfH);
+        var max = new Vector2(cx + halfW, cy + halfH);
+        drawList.AddRect(min, max, color, 1f, ImDrawFlags.None, 1.5f);
+
+        // Flap — two diagonals from the top corners meeting at the top centre,
+        // dipping slightly below the upper edge so the seam is visible.
+        var topCentre = new Vector2(cx, cy - halfH * 0.05f);
+        drawList.AddLine(min, topCentre, color, 1.5f);
+        drawList.AddLine(new Vector2(max.X, min.Y), topCentre, color, 1.5f);
     }
 
     /// <summary>

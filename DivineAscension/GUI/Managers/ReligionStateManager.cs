@@ -1008,15 +1008,31 @@ public class ReligionStateManager : IReligionStateManager
 
     /// <summary>
     /// Convert network packet data to view model data
+    /// Resolves the deity domain from the cached browse list when available
+    /// so the renderer can paint a domain glyph next to each envelope.
     /// </summary>
     private IReadOnlyList<InviteData> ConvertToInviteData(
         List<PlayerReligionInfoResponsePacket.ReligionInviteInfo> packetInvites)
     {
+        var domainByReligionId = State.BrowseState.AllReligions
+            .GroupBy(r => r.ReligionUID)
+            .ToDictionary(g => g.Key, g => g.First().Domain);
+
         return packetInvites
-            .Select(i => new InviteData(
-                inviteId: i.InviteId,
-                religionName: i.ReligionName,
-                expiresAt: i.ExpiresAt))
+            .Select(i =>
+            {
+                var domain = DeityDomain.None;
+                if (domainByReligionId.TryGetValue(i.ReligionId, out var domainName)
+                    && Enum.TryParse<DeityDomain>(domainName, true, out var parsed))
+                {
+                    domain = parsed;
+                }
+                return new InviteData(
+                    inviteId: i.InviteId,
+                    religionName: i.ReligionName,
+                    expiresAt: i.ExpiresAt,
+                    domain: domain);
+            })
             .ToList();
     }
 

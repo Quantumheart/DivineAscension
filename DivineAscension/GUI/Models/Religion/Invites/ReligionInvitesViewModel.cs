@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.Models.Enum;
 
 namespace DivineAscension.GUI.Models.Religion.Invites;
 
@@ -46,11 +47,20 @@ public readonly struct ReligionInvitesViewModel(
 public readonly struct InviteData(
     string inviteId,
     string religionName,
-    DateTime expiresAt)
+    DateTime expiresAt,
+    DeityDomain domain = DeityDomain.None)
 {
     public string InviteId { get; } = inviteId;
     public string ReligionName { get; } = religionName;
     public DateTime ExpiresAt { get; } = expiresAt;
+
+    /// <summary>
+    ///     Deity domain of the inviting religion, resolved on the client
+    ///     from the cached religion list. <see cref="DeityDomain.None" />
+    ///     when the list hasn't been loaded yet — the renderer falls back
+    ///     to a generic glyph in that case.
+    /// </summary>
+    public DeityDomain Domain { get; } = domain;
 
     public string FormattedExpiration => $"Expires: {ExpiresAt:yyyy-MM-dd HH:mm}";
 }

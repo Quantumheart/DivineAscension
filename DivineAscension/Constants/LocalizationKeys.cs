@@ -164,6 +164,12 @@ public static class LocalizationKeys
     public const string UI_RELIGION_INVITES_ACCEPT = "divineascension:ui.religion.invites.accept";
     public const string UI_RELIGION_INVITES_DECLINE = "divineascension:ui.religion.invites.decline";
     public const string UI_RELIGION_INVITES_LOADING = "divineascension:ui.religion.invites.loading";
+    public const string UI_RELIGION_INVITES_CHAPTER_TITLE = "divineascension:ui.religion.invites.chapter.title";
+    public const string UI_RELIGION_INVITES_INTRO = "divineascension:ui.religion.invites.intro";
+    public const string UI_RELIGION_INVITES_LETTER_FROM = "divineascension:ui.religion.invites.letter.from";
+    public const string UI_RELIGION_INVITES_QUOTE_DEFAULT = "divineascension:ui.religion.invites.quote.default";
+    public const string UI_RELIGION_INVITES_REFUSE = "divineascension:ui.religion.invites.refuse";
+    public const string UI_RELIGION_INVITES_FOOTER_CLOSING = "divineascension:ui.religion.invites.footer.closing";
 
     #endregion
 
