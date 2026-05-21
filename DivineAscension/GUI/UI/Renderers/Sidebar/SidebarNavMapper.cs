@@ -28,6 +28,7 @@ public static class SidebarNavMapper
         bool IsReligionFounder,
         int ReligionInviteCount,
         int CivilizationInviteCount,
+        int UnreadNotificationCount,
         SidebarNavId CurrentNav,
         IReadOnlyDictionary<string, bool>? CollapsedGroups,
         bool IsSidebarCollapsed = false
@@ -72,6 +73,10 @@ public static class SidebarNavMapper
         var religionInvites = manager.ReligionStateManager.State.InvitesState.MyInvites?.Count ?? 0;
         var civInvites = manager.CivilizationManager.InviteState.MyInvites?.Count ?? 0;
         var isReligionFounder = manager.ReligionStateManager.State.InfoState.MyReligionInfo?.IsFounder ?? false;
+        var unread = 0;
+        var history = manager.NotificationManager.State.History;
+        for (var i = 0; i < history.Count; i++)
+            if (!history[i].Read) unread++;
 
         return new Context(
             hasReligion,
@@ -80,6 +85,7 @@ public static class SidebarNavMapper
             isReligionFounder,
             religionInvites,
             civInvites,
+            unread,
             sidebar.CurrentNav,
             sidebar.CollapsedGroups,
             sidebar.IsCollapsed);
@@ -169,8 +175,13 @@ public static class SidebarNavMapper
 
     private static SidebarGroupViewModel BuildPersonalGroup(Context ctx)
     {
-        var items = new List<SidebarItemViewModel>(1)
+        var items = new List<SidebarItemViewModel>(2)
         {
+            // "You" — player identity readout + notification feed; always reachable.
+            Item(SidebarNavId.PlayerInfo,
+                LocalizationKeys.UI_TAB_PLAYER_INFO, "info",
+                ctx, isDisabled: false, disabledKey: null,
+                badge: ctx.UnreadNotificationCount),
             // Blessings is always reachable; the per-deity gating happens inside
             // the content pane via DeitySelectorRenderer.
             Item(SidebarNavId.Blessings,

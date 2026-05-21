@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using DivineAscension.GUI.Events.RightRail;
+using DivineAscension.GUI.Events.PlayerInfo;
+using DivineAscension.GUI.Models.PlayerInfo;
 using DivineAscension.GUI.Models.Religion.Header;
 using DivineAscension.GUI.State;
-using DivineAscension.GUI.UI.Renderers.RightRail;
+using DivineAscension.GUI.UI.Renderers.PlayerInfo;
 using DivineAscension.GUI.UI.Renderers.Sidebar;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network.Civilization;
@@ -12,9 +13,11 @@ using ImGuiNET;
 namespace DivineAscension.GUI.UI.Layout;
 
 /// <summary>
-///     Top-level dispatcher for the dialog body. Splits the window into three
-///     rects — sidebar | content | rightRail — and feeds each to its renderer.
+///     Top-level dispatcher for the dialog body. Splits the window into two
+///     rects — sidebar | content — and feeds each to its renderer.
 ///     Content dispatch reads <see cref="SidebarState.CurrentNav" /> directly.
+///     The former right rail now lives as the <c>SidebarNavId.PlayerInfo</c>
+///     content destination.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class MainLayoutCoordinator
@@ -22,7 +25,6 @@ internal static class MainLayoutCoordinator
     private const float OuterPadding = 16f;
     private const float SidebarWidth = 240f;
     private const float SidebarCollapsedWidth = 40f;
-    private const float RailWidth = 340f;
     private const float Gap = 8f;
     private const float TopChromeHeight = 32f;
 
@@ -63,19 +65,13 @@ internal static class MainLayoutCoordinator
 
         var body = inner.Cut(TopChromeHeight, 0f);
         var sidebarW = state.Sidebar.IsCollapsed ? SidebarCollapsedWidth : SidebarWidth;
-        var (sidebar, afterSidebar) = body.SplitLeft(sidebarW, Gap);
-        var (content, rail) = afterSidebar.SplitRight(RailWidth, Gap);
+        var (sidebar, content) = body.SplitLeft(sidebarW, Gap);
 
         // --- Sidebar ---
         var sidebarCtx = SidebarNavMapper.ContextFromManager(manager, state.Sidebar);
         var sidebarVm = SidebarNavMapper.BuildViewModel(sidebarCtx);
         var sidebarEvents = SidebarRenderer.Draw(sidebar, sidebarVm);
         ApplySidebarEvents(sidebarEvents, manager, state);
-
-        // --- Right rail ---
-        var railVm = BuildRailViewModel(manager, state, rail);
-        var railEvents = RightRailRenderer.Draw(rail, railVm);
-        ApplyRailEvents(railEvents, manager, state);
 
         // --- Content dispatch (driven by Sidebar.CurrentNav).
         DispatchContent(manager, state, content, windowWidth, windowHeight, deltaTime);
@@ -177,8 +173,8 @@ internal static class MainLayoutCoordinator
         }
     }
 
-    private static RightRailViewModel BuildRailViewModel(GuiDialogManager manager,
-        GuiDialogState state, UiRect rail)
+    private static PlayerInfoViewModel BuildPlayerInfoViewModel(GuiDialogManager manager,
+        GuiDialogState state, UiRect content)
     {
         var notifications = manager.NotificationManager.State.History;
         var civMembers = manager.CivilizationManager.CivilizationMemberReligions
@@ -198,28 +194,30 @@ internal static class MainLayoutCoordinator
             manager.IsCivilizationFounder,
             manager.CivilizationManager.CivilizationIcon,
             manager.CivilizationManager.CivilizationRank,
-            rail.X,
-            rail.Y,
-            rail.W);
+            // Bounds get overwritten by PlayerInfoRenderer; leave as content rect.
+            content.X,
+            content.Y,
+            content.W);
 
-        return new RightRailViewModel(header, notifications, state.RightRail.ShowUnreadOnly);
+        return new PlayerInfoViewModel(header, notifications, state.PlayerInfo.ShowUnreadOnly,
+            content.X, content.Y, content.W, content.H);
     }
 
-    private static void ApplyRailEvents(IReadOnlyList<RightRailEvent> events,
+    private static void ApplyPlayerInfoEvents(IReadOnlyList<PlayerInfoEvent> events,
         GuiDialogManager manager, GuiDialogState state)
     {
         foreach (var ev in events)
         {
             switch (ev)
             {
-                case RightRailEvent.MarkNotificationRead mark:
+                case PlayerInfoEvent.MarkNotificationRead mark:
                     manager.NotificationManager.MarkRead(mark.Index);
                     break;
-                case RightRailEvent.ClearNotificationHistory:
+                case PlayerInfoEvent.ClearNotificationHistory:
                     manager.NotificationManager.ClearHistory();
                     break;
-                case RightRailEvent.SetUnreadOnly toggle:
-                    state.RightRail.ShowUnreadOnly = toggle.Enabled;
+                case PlayerInfoEvent.SetUnreadOnly toggle:
+                    state.PlayerInfo.ShowUnreadOnly = toggle.Enabled;
                     break;
             }
         }
@@ -250,6 +248,14 @@ internal static class MainLayoutCoordinator
             case SidebarNavId.CivilizationMilestones:
                 manager.CivilizationManager.DrawCivilizationTab(nav, content.X, content.Y, content.W, content.H);
                 return;
+        }
+
+        if (nav == SidebarNavId.PlayerInfo)
+        {
+            var vm = BuildPlayerInfoViewModel(manager, state, content);
+            var events = PlayerInfoRenderer.Draw(vm);
+            ApplyPlayerInfoEvents(events, manager, state);
+            return;
         }
 
         if (nav == SidebarNavId.Blessings)

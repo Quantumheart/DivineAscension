@@ -65,8 +65,8 @@ public class GuiDialogStateTests
         state.Sidebar.IsCollapsed = true;
         state.Sidebar.CurrentNav = SidebarNavId.CivilizationDiplomacy;
         state.Sidebar.CollapsedGroups["g"] = true;
-        state.RightRail.ScrollY = 42f;
-        state.RightRail.ShowUnreadOnly = true;
+        state.PlayerInfo.ScrollY = 42f;
+        state.PlayerInfo.ShowUnreadOnly = true;
         state.WindowWidth = 1234f;
         state.WindowHeight = 567f;
 
@@ -81,8 +81,8 @@ public class GuiDialogStateTests
         Assert.False(state.Sidebar.IsCollapsed);
         Assert.Equal(SidebarNavId.ReligionInfo, state.Sidebar.CurrentNav);
         Assert.Empty(state.Sidebar.CollapsedGroups);
-        Assert.Equal(0f, state.RightRail.ScrollY);
-        Assert.False(state.RightRail.ShowUnreadOnly);
+        Assert.Equal(0f, state.PlayerInfo.ScrollY);
+        Assert.False(state.PlayerInfo.ShowUnreadOnly);
         Assert.Equal(0f, state.WindowWidth);
         Assert.Equal(0f, state.WindowHeight);
     }

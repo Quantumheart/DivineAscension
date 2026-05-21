@@ -18,6 +18,7 @@ public class SidebarNavMapperTests
         bool isReligionFounder = false,
         int religionInvites = 0,
         int civInvites = 0,
+        int unreadNotifications = 0,
         SidebarNavId currentNav = SidebarNavId.ReligionInfo,
         IReadOnlyDictionary<string, bool>? collapsed = null)
     {
@@ -28,6 +29,7 @@ public class SidebarNavMapperTests
             isReligionFounder,
             religionInvites,
             civInvites,
+            unreadNotifications,
             currentNav,
             collapsed);
     }
