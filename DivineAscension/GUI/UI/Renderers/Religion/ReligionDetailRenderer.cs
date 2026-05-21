@@ -33,8 +33,9 @@ internal static class ReligionDetailRenderer
     private const float TopPadding = 8f;
     private const float NavRowHeight = 32f;
     private const float NavRowBottomPadding = 12f;
-    private const float NavBackWidth = 180f;
+    private const float NavBackWidth = 36f;
     private const float NavJoinWidth = 130f;
+    private const float BackGlyphSize = 14f;
     private const float DividerHeight = 18f;
     private const float DividerYPadding = 6f;
     private const float StatRowHeight = 22f;
@@ -52,41 +53,42 @@ internal static class ReligionDetailRenderer
     {
         var events = new List<DetailEvent>();
         var currentY = vm.Y + TopPadding;
+        var contentWidth = vm.Width - ChapterStripRenderer.ScrollbarGutter;
 
-        // Nav row sits above the chapter frame: ◂ Close on the left, Join on
+        // Nav row sits above the chapter frame: ◂ back on the left, Join on
         // the right when joinable. Always rendered (even while loading) so
         // the viewer can back out without waiting on the detail packet.
-        currentY = DrawNavRow(vm, drawList, events, currentY);
+        currentY = DrawNavRow(vm, drawList, events, currentY, contentWidth);
 
         if (vm.IsLoading)
         {
             TextRenderer.DrawInfoText(
                 drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_LOADING),
-                vm.X, currentY + 8f, vm.Width);
+                vm.X, currentY + 8f, contentWidth);
             return new ReligionDetailRendererResult(events, vm.Height);
         }
 
         // === LEDGER CHAPTER HEADER ===
-        currentY = DrawChapterHeader(vm, drawList, currentY);
+        (currentY, contentWidth) = DrawChapterHeader(vm, drawList, currentY);
 
         // === PROSE INTRO ===
-        currentY = DrawProseIntro(vm, drawList, currentY);
+        currentY = DrawProseIntro(vm, drawList, currentY, contentWidth);
 
         // === STAT BLOCK ===
-        currentY = DrawStatBlock(vm, drawList, currentY);
+        currentY = DrawStatBlock(vm, drawList, currentY, contentWidth);
 
         // === DIVIDER ===
-        currentY = DrawDivider(drawList, vm.X, currentY, vm.Width);
+        currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
 
         // === OF THE ORDER'S PURPOSE ===
-        currentY = DrawPurposeProse(vm, drawList, currentY);
+        currentY = DrawPurposeProse(vm, drawList, currentY, contentWidth);
 
         // === DIVIDER ===
-        currentY = DrawDivider(drawList, vm.X, currentY, vm.Width);
+        currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
 
         // === SOULS OF THE ORDER (read-only roster) ===
-        DrawSoulsSection(vm, drawList, currentY, events);
+        DrawSoulsSection(vm, drawList, currentY, contentWidth, events);
 
         return new ReligionDetailRendererResult(events, vm.Height);
     }
@@ -95,20 +97,30 @@ internal static class ReligionDetailRenderer
         ReligionDetailViewModel vm,
         ImDrawListPtr drawList,
         List<DetailEvent> events,
-        float y)
+        float y,
+        float contentWidth)
     {
-        if (ButtonRenderer.DrawButton(
-                drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_BACK),
+        // Empty-label button + left-chevron primitive painted over it. The
+        // bundled font has no Geometric-Shapes glyph coverage so `◂` would
+        // render as `?`; the chevron is a primitive in the same chrome kit
+        // as the other ledger ornaments (palette §5: cream ink on the dark
+        // button surface).
+        if (ButtonRenderer.DrawButton(drawList, string.Empty,
                 vm.X, y, NavBackWidth, NavRowHeight,
-                directoryPath: "GUI", iconName: "back"))
+                isPrimary: false, enabled: true))
         {
             events.Add(new DetailEvent.BackToBrowseClicked());
         }
+        ChromeRenderer.DrawChevron(drawList,
+            vm.X + NavBackWidth / 2f,
+            y + NavRowHeight / 2f,
+            BackGlyphSize,
+            ChromeRenderer.ChevronDirection.Left,
+            ColorPalette.LightText);
 
         if (vm.CanJoin && !vm.IsLoading)
         {
-            var joinX = vm.X + vm.Width - NavJoinWidth;
+            var joinX = vm.X + contentWidth - NavJoinWidth;
             if (ButtonRenderer.DrawButton(
                     drawList,
                     LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTION_JOIN),
@@ -122,32 +134,23 @@ internal static class ReligionDetailRenderer
         return y + NavRowHeight + NavRowBottomPadding;
     }
 
-    private static float DrawChapterHeader(
+    private static (float bodyY, float contentWidth) DrawChapterHeader(
         ReligionDetailViewModel vm,
         ImDrawListPtr drawList,
         float y)
     {
         var deityDomain = DomainHelper.ParseDeityType(vm.Deity);
-
-        // Religion name reads as the illuminated chapter title (gold, page-
-        // title size). The domain glyph is painted left-of-title in the same
-        // 32-square frame the "This Order" chapter uses, so detail pages
-        // sit in the same visual register as the player's own.
-        return PaneHeaderRenderer.Draw(
-            drawList,
+        var strip = ChapterStripRenderer.Draw(drawList, vm.X, y, vm.Width, 0f,
             vm.ReligionName,
-            vm.X, y, vm.Width,
-            iconPainter: (dl, min, max) =>
-            {
-                DomainGlyphRenderer.Draw(dl, deityDomain, min, max);
-            },
-            titleColor: ColorPalette.Gold);
+            rightGlyph: deityDomain);
+        return (strip.BodyY, strip.ContentWidth);
     }
 
     private static float DrawProseIntro(
         ReligionDetailViewModel vm,
         ImDrawListPtr drawList,
-        float y)
+        float y,
+        float width)
     {
         var founder = vm.GetFounderDisplayName();
         var founded = string.IsNullOrWhiteSpace(founder)
@@ -161,15 +164,16 @@ internal static class ReligionDetailRenderer
             : LocalizationService.Instance.Get(soulsKey, vm.MemberCount);
         var prose = string.IsNullOrEmpty(founded) ? souls : $"{founded} {souls}";
 
-        TextRenderer.DrawInfoText(drawList, prose, vm.X, y, vm.Width, Body, ColorPalette.White);
-        var height = TextRenderer.MeasureWrappedHeight(prose, vm.Width, Body);
+        TextRenderer.DrawInfoText(drawList, prose, vm.X, y, width, Body, ColorPalette.White);
+        var height = TextRenderer.MeasureWrappedHeight(prose, width, Body);
         return y + (height > 0 ? height : Body + LinePadding) + ProseBottomSpacing;
     }
 
     private static float DrawStatBlock(
         ReligionDetailViewModel vm,
         ImDrawListPtr drawList,
-        float y)
+        float y,
+        float width)
     {
         var currentY = y;
 
@@ -180,14 +184,14 @@ internal static class ReligionDetailRenderer
         ChromeRenderer.DrawLeader(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DEITY_LABEL),
             deityDisplay,
-            vm.X, currentY, vm.Width);
+            vm.X, currentY, width);
         currentY += StatRowHeight;
 
         // Founder row — rubric red ink mirrors #309.
         ChromeRenderer.DrawLeader(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_FOUNDER_LABEL),
             vm.GetFounderDisplayName(),
-            vm.X, currentY, vm.Width,
+            vm.X, currentY, width,
             valueColor: ColorPalette.Vermilion);
         currentY += StatRowHeight;
 
@@ -195,11 +199,11 @@ internal static class ReligionDetailRenderer
         ChromeRenderer.DrawLeader(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MEMBERS_COUNT),
             vm.MemberCount.ToString(),
-            vm.X, currentY, vm.Width);
+            vm.X, currentY, width);
         currentY += StatRowHeight;
 
         // Prestige row with progress bar in the dot-leader gap.
-        currentY = DrawPrestigeRow(vm, drawList, vm.X, currentY, vm.Width);
+        currentY = DrawPrestigeRow(vm, drawList, vm.X, currentY, width);
 
         return currentY + StatBlockBottomSpacing;
     }
@@ -261,7 +265,8 @@ internal static class ReligionDetailRenderer
     private static float DrawPurposeProse(
         ReligionDetailViewModel vm,
         ImDrawListPtr drawList,
-        float y)
+        float y,
+        float width)
     {
         var currentY = y;
         var heading = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_DESCRIPTION);
@@ -273,8 +278,8 @@ internal static class ReligionDetailRenderer
             ? vm.Description
             : LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_DESCRIPTION_EMPTY);
         var proseColor = hasDescription ? ColorPalette.White : ColorPalette.Grey;
-        TextRenderer.DrawInfoText(drawList, prose, vm.X, currentY, vm.Width, Secondary, proseColor);
-        var height = TextRenderer.MeasureWrappedHeight(prose, vm.Width);
+        TextRenderer.DrawInfoText(drawList, prose, vm.X, currentY, width, Secondary, proseColor);
+        var height = TextRenderer.MeasureWrappedHeight(prose, width);
         return currentY + (height > 0 ? height : Secondary + LinePadding) + SectionBottomSpacing;
     }
 
@@ -282,6 +287,7 @@ internal static class ReligionDetailRenderer
         ReligionDetailViewModel vm,
         ImDrawListPtr drawList,
         float y,
+        float width,
         List<DetailEvent> events)
     {
         var currentY = y;
@@ -297,7 +303,7 @@ internal static class ReligionDetailRenderer
             drawList,
             vm.X,
             currentY,
-            vm.Width,
+            width,
             listHeight,
             members,
             MemberRowHeight,
