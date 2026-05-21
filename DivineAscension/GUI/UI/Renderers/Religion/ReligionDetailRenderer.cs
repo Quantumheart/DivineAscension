@@ -4,303 +4,293 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
-using DivineAscension.Extensions;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Detail;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Renderers.Components;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
-using DivineAscension.Models.Enum;
 using DivineAscension.Network;
 using DivineAscension.Services;
-using DivineAscension.Systems;
 using ImGuiNET;
 using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
-///     Renders detailed view of a religion (from browse)
+///     Renders the detail chapter of another Order, opened from the "Other
+///     Orders" browse page (#314). Follows the ledger framing of the "This
+///     Order" chapter (#309): serif title strip with a per-domain primitive
+///     glyph, prose intro, dotted-leader stat block (with Lapis prestige
+///     bar), prose description, and a read-only roster styled as ledger
+///     rows. No kick / ban / invite affordances — the viewer is not a
+///     member of this Order.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class ReligionDetailRenderer
 {
+    private const float TopPadding = 8f;
+    private const float NavRowHeight = 32f;
+    private const float NavRowBottomPadding = 12f;
+    private const float NavBackWidth = 180f;
+    private const float NavJoinWidth = 130f;
+    private const float DividerHeight = 18f;
+    private const float DividerYPadding = 6f;
+    private const float StatRowHeight = 22f;
+    private const float StatBlockBottomSpacing = 8f;
+    private const float ProseBottomSpacing = 12f;
+    private const float PrestigeBarHeight = 12f;
+    private const float PrestigeBarMaxWidth = 180f;
+    private const float MemberRowHeight = 26f;
+    private const float MemberRowGap = 2f;
+    private const float SectionBottomSpacing = 8f;
+
     public static ReligionDetailRendererResult Draw(
         ReligionDetailViewModel vm,
         ImDrawListPtr drawList)
     {
         var events = new List<DetailEvent>();
-        var currentY = vm.Y;
+        var currentY = vm.Y + TopPadding;
 
-        // Loading state
+        // Nav row sits above the chapter frame: ◂ Close on the left, Join on
+        // the right when joinable. Always rendered (even while loading) so
+        // the viewer can back out without waiting on the detail packet.
+        currentY = DrawNavRow(vm, drawList, events, currentY);
+
         if (vm.IsLoading)
         {
-            TextRenderer.DrawInfoText(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_LOADING), vm.X, currentY + 8f,
-                vm.Width);
+            TextRenderer.DrawInfoText(
+                drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_LOADING),
+                vm.X, currentY + 8f, vm.Width);
             return new ReligionDetailRendererResult(events, vm.Height);
         }
 
-        // Back button (top left)
-        if (ButtonRenderer.DrawButton(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_BACK), vm.X, currentY, 160f, 32f,
-                directoryPath: "GUI", iconName: "back"))
-            events.Add(new DetailEvent.BackToBrowseClicked());
+        // === LEDGER CHAPTER HEADER ===
+        currentY = DrawChapterHeader(vm, drawList, currentY);
 
-        // Join button (top right) - only if player can join
-        if (vm.CanJoin)
-        {
-            var joinButtonX = vm.X + vm.Width - 130f - 16f;
-            if (ButtonRenderer.DrawButton(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTION_JOIN), joinButtonX, currentY,
-                    130f, 36f,
-                    isPrimary: true))
-                events.Add(new DetailEvent.JoinClicked(vm.ReligionUID));
-        }
+        // === PROSE INTRO ===
+        currentY = DrawProseIntro(vm, drawList, currentY);
 
-        currentY += Spacing.BackButtonRow;
+        // === STAT BLOCK ===
+        currentY = DrawStatBlock(vm, drawList, currentY);
 
-        // Draw background panel per CSS spec (#241B14, 4px border radius)
-        var backgroundY = currentY;
-        var backgroundHeight = vm.Height - (currentY - vm.Y) - 8f;
-        drawList.AddRectFilled(
-            new Vector2(vm.X, backgroundY),
-            new Vector2(vm.X + vm.Width, backgroundY + backgroundHeight),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.TableBackground), // #241B14
-            4f // 4px border radius per CSS
-        );
+        // === DIVIDER ===
+        currentY = DrawDivider(drawList, vm.X, currentY, vm.Width);
 
-        // Info grid section - Column headers: Name | Deity | Prestige | Public
-        DrawInfoGrid(vm, drawList, ref currentY);
+        // === OF THE ORDER'S PURPOSE ===
+        currentY = DrawPurposeProse(vm, drawList, currentY);
 
-        // Description section
-        if (!string.IsNullOrEmpty(vm.Description))
-        {
-            DrawDescriptionSection(vm, drawList, ref currentY);
-        }
+        // === DIVIDER ===
+        currentY = DrawDivider(drawList, vm.X, currentY, vm.Width);
 
-        // Members section
-        DrawMembersSection(vm, drawList, ref currentY, events);
+        // === SOULS OF THE ORDER (read-only roster) ===
+        DrawSoulsSection(vm, drawList, currentY, events);
 
         return new ReligionDetailRendererResult(events, vm.Height);
     }
 
-    private static void DrawInfoGrid(ReligionDetailViewModel vm, ImDrawListPtr drawList, ref float currentY)
+    private static float DrawNavRow(
+        ReligionDetailViewModel vm,
+        ImDrawListPtr drawList,
+        List<DetailEvent> events,
+        float y)
     {
-        var startY = currentY;
-        var font = ImGui.GetFont();
-
-        // Responsive 4-column grid. An icon column (fixed-ish width) sits on
-        // the left, the remaining width is split evenly between Name, Deity,
-        // Prestige and Public. Centers used for text alignment below.
-        const float iconColumnWidth = 120f;
-        var dataWidth = MathF.Max(vm.Width - iconColumnWidth, 200f);
-        var columnWidth = dataWidth / 4f;
-
-        var nameColumnLeft = iconColumnWidth;
-        var deityColumnLeft = iconColumnWidth + columnWidth;
-        var prestigeColumnLeft = iconColumnWidth + columnWidth * 2f;
-        var publicColumnLeft = iconColumnWidth + columnWidth * 3f;
-
-        var nameCenter = vm.X + nameColumnLeft + (columnWidth / 2f);
-        var deityCenter = vm.X + deityColumnLeft + (columnWidth / 2f);
-        var prestigeCenter = vm.X + prestigeColumnLeft + (columnWidth / 2f);
-        var publicCenter = vm.X + publicColumnLeft + (columnWidth / 2f);
-        // Column headers - centered using exact text measurements
-        var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-
-        // Name header (centered in 270px column at 291px)
-        var nameHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_NAME);
-        var nameHeaderWidth = ImGui.CalcTextSize(nameHeader).X;
-        drawList.AddText(font, TableHeader, new Vector2(nameCenter - nameHeaderWidth / 2f, currentY), headerColor, nameHeader);
-
-        // Deity header
-        var deityHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_DOMAIN);
-        var deityHeaderWidth = ImGui.CalcTextSize(deityHeader).X;
-        drawList.AddText(font, TableHeader, new Vector2(deityCenter - deityHeaderWidth / 2f, currentY), headerColor,
-            deityHeader);
-
-        // Prestige header
-        var prestigeHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_PRESTIGE);
-        var prestigeHeaderWidth = ImGui.CalcTextSize(prestigeHeader).X;
-        drawList.AddText(font, TableHeader, new Vector2(prestigeCenter - prestigeHeaderWidth / 2f, currentY), headerColor,
-            prestigeHeader);
-
-        // Public header
-        var publicHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_PUBLIC);
-        var publicHeaderWidth = ImGui.CalcTextSize(publicHeader).X;
-        drawList.AddText(font, TableHeader, new Vector2(publicCenter - publicHeaderWidth / 2f, currentY), headerColor,
-            publicHeader);
-
-        currentY += Spacing.Block;
-
-        // Deity icon — centered inside the icon column, sized to fit.
-        var iconSize = MathF.Min(85f, iconColumnWidth - 16f);
-        var iconX = vm.X + (iconColumnWidth - iconSize) / 2f;
-        var iconY = currentY;
-
-        if (Enum.TryParse<DeityDomain>(vm.Deity, out var deityType))
+        if (ButtonRenderer.DrawButton(
+                drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_BACK),
+                vm.X, y, NavBackWidth, NavRowHeight,
+                directoryPath: "GUI", iconName: "back"))
         {
-            var deityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
-            if (deityTextureId != IntPtr.Zero)
-            {
-                var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-                // Draw border (2px)
-                drawList.AddRect(
-                    new Vector2(iconX - 1f, iconY - 1f),
-                    new Vector2(iconX + iconSize + 1f, iconY + iconSize + 1f),
-                    borderColor, 4f, ImDrawFlags.None, 2f);
+            events.Add(new DetailEvent.BackToBrowseClicked());
+        }
 
-                // Draw icon
-                drawList.AddImage(deityTextureId,
-                    new Vector2(iconX, iconY),
-                    new Vector2(iconX + iconSize, iconY + iconSize),
-                    Vector2.Zero, Vector2.One,
-                    ImGui.ColorConvertFloat4ToU32(Vector4.One));
+        if (vm.CanJoin && !vm.IsLoading)
+        {
+            var joinX = vm.X + vm.Width - NavJoinWidth;
+            if (ButtonRenderer.DrawButton(
+                    drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTION_JOIN),
+                    joinX, y, NavJoinWidth, NavRowHeight + 4f,
+                    isPrimary: true))
+            {
+                events.Add(new DetailEvent.JoinClicked(vm.ReligionUID));
             }
         }
 
-        // Religion name - in Name column (centered in 270px column at 291px)
-        var nameColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        var nameApproxWidth = vm.ReligionName.Length * 6.5f;
-
-        // Name vertically aligned with icon center
-        var nameY = iconY + (iconSize - 16f) / 2f;
-        drawList.AddText(font, Body,
-            new Vector2(nameCenter - nameApproxWidth / 2f, nameY),
-            nameColor, vm.ReligionName);
-
-        // Values centered in their columns (vertically centered with icon)
-        var valueColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-        var deityValueY = iconY + (iconSize - 16f) / 2f;
-
-        // Deity name with full title (multi-line if needed)
-        // Use custom deity name if available, otherwise fall back to domain-based display
-        var deityDisplayName = !string.IsNullOrWhiteSpace(vm.DeityName)
-            ? vm.DeityName
-            : GetDomainDisplayTitle(deityType);
-        var deityLines = deityDisplayName.Split('\n');
-        var deityStartY = deityValueY - (deityLines.Length > 1 ? 8f : 0f); // Adjust if multi-line
-
-        foreach (var line in deityLines)
-        {
-            var lineApproxWidth = line.Length * 6.5f;
-            drawList.AddText(font, Body,
-                new Vector2(deityCenter - lineApproxWidth / 2f, deityStartY),
-                valueColor, line);
-            deityStartY += 16f; // Line height
-        }
-
-        // Prestige rank with progress (format: "Fledgling Prestige (149/500)")
-        var prestigeRankNum = GetPrestigeRankNumber(vm.PrestigeRank);
-        var requiredPrestige = RankRequirements.GetRequiredPrestigeForNextRank(prestigeRankNum);
-        var localizedRankName = GetLocalizedPrestigeRankName(vm.PrestigeRank);
-        var prestigeLabel = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_PRESTIGE);
-        var prestigeDisplay = requiredPrestige > 0
-            ? $"{localizedRankName} {prestigeLabel}\n({vm.Prestige}/{requiredPrestige})"
-            : $"{localizedRankName} {prestigeLabel}\n(MAX)";
-        var prestigeLines = prestigeDisplay.Split('\n');
-        var prestigeStartY = deityValueY - (prestigeLines.Length > 1 ? 8f : 0f); // Adjust if multi-line
-
-        foreach (var line in prestigeLines)
-        {
-            var lineApproxWidth = line.Length * 6.5f;
-            drawList.AddText(font, Body,
-                new Vector2(prestigeCenter - lineApproxWidth / 2f, prestigeStartY),
-                valueColor, line);
-            prestigeStartY += 16f; // Line height
-        }
-
-        // Public/Private (show as Yes/No per spec)
-        var publicText = vm.IsPublic
-            ? LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_PUBLIC)
-            : LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_PRIVATE);
-        var publicApproxWidth = publicText.Length * 6.5f;
-        drawList.AddText(font, Body,
-            new Vector2(publicCenter - publicApproxWidth / 2f, deityValueY),
-            valueColor, publicText);
-
-        currentY = iconY + iconSize + Spacing.Block;
+        return y + NavRowHeight + NavRowBottomPadding;
     }
 
-    private static void DrawDescriptionSection(ReligionDetailViewModel vm, ImDrawListPtr drawList, ref float currentY)
+    private static float DrawChapterHeader(
+        ReligionDetailViewModel vm,
+        ImDrawListPtr drawList,
+        float y)
     {
-        var font = ImGui.GetFont();
-        var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-        var valueColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
+        var deityDomain = DomainHelper.ParseDeityType(vm.Deity);
 
-        // Description spans the full content width, with horizontal padding.
-        var descLeft = vm.X + Spacing.ContentPadding;
-        var descWidth = MathF.Max(vm.Width - Spacing.ContentPadding * 2f, 100f);
-        var descCenter = vm.X + vm.Width / 2f;
-
-        // Header centered above the description block.
-        var descHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_DESCRIPTION);
-        var descHeaderWidth = ImGui.CalcTextSize(descHeader).X;
-        drawList.AddText(font, TableHeader, new Vector2(descCenter - descHeaderWidth / 2f, currentY), headerColor,
-            descHeader);
-
-        currentY += Spacing.HeaderToContent;
-
-        var lineHeight = Body + LinePadding;
-        var descLines = WrapText(vm.Description, descWidth, font, Body);
-
-        foreach (var line in descLines)
-        {
-            // Center each wrapped line for symmetry with the header.
-            var lineWidth = ImGui.CalcTextSize(line).X;
-            drawList.AddText(font, Body,
-                new Vector2(descCenter - lineWidth / 2f, currentY),
-                valueColor, line);
-            currentY += lineHeight;
-        }
-
-        currentY += Spacing.Comfortable; // Extra spacing after description
+        // Religion name reads as the illuminated chapter title (gold, page-
+        // title size). The domain glyph is painted left-of-title in the same
+        // 32-square frame the "This Order" chapter uses, so detail pages
+        // sit in the same visual register as the player's own.
+        return PaneHeaderRenderer.Draw(
+            drawList,
+            vm.ReligionName,
+            vm.X, y, vm.Width,
+            iconPainter: (dl, min, max) =>
+            {
+                DomainGlyphRenderer.Draw(dl, deityDomain, min, max);
+            },
+            titleColor: ColorPalette.Gold);
     }
 
-    private static List<string> WrapText(string text, float maxWidth, ImFontPtr font, float fontSize)
+    private static float DrawProseIntro(
+        ReligionDetailViewModel vm,
+        ImDrawListPtr drawList,
+        float y)
     {
-        var lines = new List<string>();
-        var words = text.Split(' ');
-        var currentLine = "";
+        var founder = vm.GetFounderDisplayName();
+        var founded = string.IsNullOrWhiteSpace(founder)
+            ? string.Empty
+            : LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_INTRO_FOUNDED_BY, founder);
+        var soulsKey = vm.MemberCount == 1
+            ? LocalizationKeys.UI_RELIGION_INFO_INTRO_SOULS_ONE
+            : LocalizationKeys.UI_RELIGION_INFO_INTRO_SOULS;
+        var souls = vm.MemberCount == 1
+            ? LocalizationService.Instance.Get(soulsKey)
+            : LocalizationService.Instance.Get(soulsKey, vm.MemberCount);
+        var prose = string.IsNullOrEmpty(founded) ? souls : $"{founded} {souls}";
 
-        foreach (var word in words)
-        {
-            var testLine = string.IsNullOrEmpty(currentLine) ? word : currentLine + " " + word;
-            // Simple approximation: assume each character is roughly fontSize * 0.5f wide
-            var estimatedWidth = testLine.Length * fontSize * 0.5f;
-
-            if (estimatedWidth > maxWidth && !string.IsNullOrEmpty(currentLine))
-            {
-                lines.Add(currentLine);
-                currentLine = word;
-            }
-            else
-            {
-                currentLine = testLine;
-            }
-        }
-
-        if (!string.IsNullOrEmpty(currentLine))
-            lines.Add(currentLine);
-
-        return lines;
+        TextRenderer.DrawInfoText(drawList, prose, vm.X, y, vm.Width, Body, ColorPalette.White);
+        var height = TextRenderer.MeasureWrappedHeight(prose, vm.Width, Body);
+        return y + (height > 0 ? height : Body + LinePadding) + ProseBottomSpacing;
     }
 
-    private static void DrawMembersSection(ReligionDetailViewModel vm, ImDrawListPtr drawList, ref float currentY,
+    private static float DrawStatBlock(
+        ReligionDetailViewModel vm,
+        ImDrawListPtr drawList,
+        float y)
+    {
+        var currentY = y;
+
+        // Deity row — custom name (Domain) when set, else the bare domain.
+        var deityDisplay = !string.IsNullOrWhiteSpace(vm.DeityName)
+            ? $"{vm.DeityName} ({vm.Deity})"
+            : vm.Deity;
+        ChromeRenderer.DrawLeader(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_DEITY_LABEL),
+            deityDisplay,
+            vm.X, currentY, vm.Width);
+        currentY += StatRowHeight;
+
+        // Founder row — rubric red ink mirrors #309.
+        ChromeRenderer.DrawLeader(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_FOUNDER_LABEL),
+            vm.GetFounderDisplayName(),
+            vm.X, currentY, vm.Width,
+            valueColor: ColorPalette.Vermilion);
+        currentY += StatRowHeight;
+
+        // Members row.
+        ChromeRenderer.DrawLeader(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MEMBERS_COUNT),
+            vm.MemberCount.ToString(),
+            vm.X, currentY, vm.Width);
+        currentY += StatRowHeight;
+
+        // Prestige row with progress bar in the dot-leader gap.
+        currentY = DrawPrestigeRow(vm, drawList, vm.X, currentY, vm.Width);
+
+        return currentY + StatBlockBottomSpacing;
+    }
+
+    private static float DrawPrestigeRow(
+        ReligionDetailViewModel vm,
+        ImDrawListPtr drawList,
+        float x, float y, float width)
+    {
+        var label = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_PRESTIGE_LABEL);
+        var rankName = vm.PrestigeRank;
+        var numeral = ToRoman(Math.Max(1, vm.PrestigeRankIndex + 1));
+
+        var labelCol = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
+        var rankCol = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
+        var numeralCol = ImGui.ColorConvertFloat4ToU32(ColorPalette.Lapis);
+
+        var labelSize = ImGui.CalcTextSize(label);
+        drawList.AddText(new Vector2(x, y), labelCol, label);
+
+        var rankSize = ImGui.CalcTextSize(rankName);
+        var rankX = x + labelSize.X + 6f;
+        drawList.AddText(new Vector2(rankX, y), rankCol, rankName);
+
+        var numeralSize = ImGui.CalcTextSize(numeral);
+        var numeralX = x + width - numeralSize.X;
+        drawList.AddText(new Vector2(numeralX, y), numeralCol, numeral);
+
+        const float padding = 6f;
+        var barLeft = rankX + rankSize.X + padding;
+        var barRight = numeralX - padding;
+        var availableBarWidth = barRight - barLeft;
+        if (availableBarWidth > 24f)
+        {
+            var barWidth = MathF.Min(availableBarWidth, PrestigeBarMaxWidth);
+            var barX = barRight - barWidth;
+            var barY = y + (numeralSize.Y - PrestigeBarHeight) / 2f;
+            ProgressBarRenderer.DrawProgressBar(drawList, barX, barY, barWidth, PrestigeBarHeight,
+                vm.PrestigeProgressPercentage,
+                ColorPalette.Lapis, ColorPalette.TableBackground,
+                vm.IsMaxPrestigeRank
+                    ? string.Empty
+                    : $"{vm.Prestige}/{vm.PrestigeRequired}");
+        }
+
+        return y + StatRowHeight;
+    }
+
+    private static string ToRoman(int n) => n switch
+    {
+        1 => "I",
+        2 => "II",
+        3 => "III",
+        4 => "IV",
+        5 => "V",
+        _ => n.ToString(),
+    };
+
+    private static float DrawPurposeProse(
+        ReligionDetailViewModel vm,
+        ImDrawListPtr drawList,
+        float y)
+    {
+        var currentY = y;
+        var heading = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_DESCRIPTION);
+        TextRenderer.DrawLabel(drawList, heading, vm.X, currentY, SubsectionLabel, ColorPalette.Gold);
+        currentY += StatRowHeight;
+
+        var hasDescription = !string.IsNullOrWhiteSpace(vm.Description);
+        var prose = hasDescription
+            ? vm.Description
+            : LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_DESCRIPTION_EMPTY);
+        var proseColor = hasDescription ? ColorPalette.White : ColorPalette.Grey;
+        TextRenderer.DrawInfoText(drawList, prose, vm.X, currentY, vm.Width, Secondary, proseColor);
+        var height = TextRenderer.MeasureWrappedHeight(prose, vm.Width);
+        return currentY + (height > 0 ? height : Secondary + LinePadding) + SectionBottomSpacing;
+    }
+
+    private static void DrawSoulsSection(
+        ReligionDetailViewModel vm,
+        ImDrawListPtr drawList,
+        float y,
         List<DetailEvent> events)
     {
-        var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-        var font = ImGui.GetFont();
+        var currentY = y;
+        var heading = LocalizationService.Instance.Get(
+            LocalizationKeys.UI_RELIGION_DETAIL_MEMBERS, vm.MemberCount);
+        TextRenderer.DrawLabel(drawList, heading, vm.X, currentY, SubsectionLabel, ColorPalette.Gold);
+        currentY += StatRowHeight;
 
-        // Members header
-        var headerText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_MEMBERS, vm.MemberCount);
-        drawList.AddText(font, TableHeader, new Vector2(vm.X + Spacing.ContentPadding, currentY), headerColor, headerText);
-
-        currentY += Spacing.HeaderToContent;
-
-        // Member list (scrollable)
-        var listHeight = vm.Height - (currentY - vm.Y) - Spacing.Comfortable;
+        var listHeight = MathF.Max(vm.Height - (currentY - vm.Y) - SectionBottomSpacing, MemberRowHeight);
         var members = vm.Members?.ToList() ?? new List<ReligionDetailResponsePacket.MemberInfo>();
 
         var newScrollY = ScrollableList.Draw<ReligionDetailResponsePacket.MemberInfo>(
@@ -310,110 +300,51 @@ internal static class ReligionDetailRenderer
             vm.Width,
             listHeight,
             members,
-            36f, // Item height
-            Spacing.ListItemGap,
+            MemberRowHeight,
+            MemberRowGap,
             vm.MemberScrollY,
-            (member, cx, cy, cw, ch) => DrawMemberRow(member, cx, cy, cw, ch, drawList),
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_NO_MEMBERS)
+            (member, cx, cy, cw, ch) => DrawSoulRow(member, cx, cy, cw, ch, drawList),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_NO_MEMBERS),
+            backgroundColor: new Vector4(0f, 0f, 0f, 0f) // transparent — rows sit directly on the vellum page
         );
 
-        // Emit scroll event if changed
         if (Math.Abs(newScrollY - vm.MemberScrollY) > 0.001f)
             events.Add(new DetailEvent.MemberScrollChanged(newScrollY));
-
-        currentY += listHeight;
     }
 
-    private static void DrawMemberRow(ReligionDetailResponsePacket.MemberInfo member, float x, float y, float width,
-        float height, ImDrawListPtr drawList)
+    private static void DrawSoulRow(
+        ReligionDetailResponsePacket.MemberInfo member,
+        float x, float y, float width, float height,
+        ImDrawListPtr drawList)
     {
-        var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Background);
-        var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-        var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
+        // ✦ Name · · · · · · · · · · · · · · · · · · · Rank
+        //
+        // Diamond marker is painted as a primitive (Dingbats glyphs don't
+        // render in the loaded font). DrawLeader then paints the row with a
+        // dot-leader run filling the gap between name and favor rank.
+        const float diamondLeftPadding = 4f;
+        const float diamondHalfSize = 3.5f;
+        const float diamondToLabelGap = 10f;
 
-        // Background
-        drawList.AddRectFilled(
-            new Vector2(x, y),
-            new Vector2(x + width, y + height),
-            bgColor);
+        var centerY = y + height / 2f;
+        ChromeRenderer.DrawDiamond(drawList,
+            x + diamondLeftPadding + diamondHalfSize, centerY,
+            diamondHalfSize,
+            ColorPalette.Gold * 0.6f);
 
-        // Border
-        drawList.AddRect(
-            new Vector2(x, y),
-            new Vector2(x + width, y + height),
-            borderColor, 0f, ImDrawFlags.None, 2f);
-
-        var font = ImGui.GetFont();
-
-        // Member name (left-aligned)
-        drawList.AddText(font, Body,
-            new Vector2(x + 16f, y + (height - 16f) / 2f),
-            textColor, member.PlayerName);
-
-        // Favor rank (right-aligned - approximate positioning)
-        var rankApproxWidth = member.FavorRank.Length * 7f; // Rough approximation
-        drawList.AddText(font, Body,
-            new Vector2(x + width - 16f - rankApproxWidth, y + (height - 16f) / 2f),
-            textColor, member.FavorRank);
+        var leaderX = x + diamondLeftPadding + diamondHalfSize * 2f + diamondToLabelGap;
+        var leaderWidth = MathF.Max(width - (leaderX - x) - 8f, 40f);
+        var rowY = centerY - Body * 0.5f;
+        ChromeRenderer.DrawLeader(drawList,
+            member.PlayerName,
+            member.FavorRank,
+            leaderX, rowY, leaderWidth);
     }
 
-    /// <summary>
-    ///     Get display name for a deity with full title (multi-line format)
-    /// </summary>
-    private static string GetDomainDisplayTitle(DeityDomain deity)
+    private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
     {
-        var name = deity.ToLocalizedString();
-        var title = deity switch
-        {
-            DeityDomain.Craft => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_CRAFT_TITLE),
-            DeityDomain.Wild => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_WILD_TITLE),
-            DeityDomain.Harvest => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_HARVEST_TITLE),
-            DeityDomain.Stone => LocalizationService.Instance.Get(LocalizationKeys.DOMAIN_STONE_TITLE),
-            _ => ""
-        };
-
-        return string.IsNullOrEmpty(title) ? name : $"{name}\n{title}";
-    }
-
-    /// <summary>
-    ///     Get display name for a custom-named deity with domain title (multi-line format)
-    ///     Format: "CustomName\nDomain of X" (e.g., "Ironforge\nDomain of the Forge & Craft")
-    /// </summary>
-    private static string GetDeityDisplayNameWithCustomName(string customName, DeityDomain deity)
-    {
-        var title = DomainHelper.GetDeityTitle(deity);
-        return $"{customName}\n{title}";
-    }
-
-    /// <summary>
-    ///     Convert prestige rank name to rank number
-    /// </summary>
-    private static int GetPrestigeRankNumber(string rankName)
-    {
-        return rankName switch
-        {
-            "Fledgling" => 0,
-            "Established" => 1,
-            "Renowned" => 2,
-            "Legendary" => 3,
-            "Mythic" => 4,
-            _ => 0
-        };
-    }
-
-    /// <summary>
-    ///     Get localized prestige rank name from string
-    /// </summary>
-    private static string GetLocalizedPrestigeRankName(string rankName)
-    {
-        return rankName switch
-        {
-            "Fledgling" => LocalizationService.Instance.Get(LocalizationKeys.RANK_PRESTIGE_FLEDGLING),
-            "Established" => LocalizationService.Instance.Get(LocalizationKeys.RANK_PRESTIGE_ESTABLISHED),
-            "Renowned" => LocalizationService.Instance.Get(LocalizationKeys.RANK_PRESTIGE_RENOWNED),
-            "Legendary" => LocalizationService.Instance.Get(LocalizationKeys.RANK_PRESTIGE_LEGENDARY),
-            "Mythic" => LocalizationService.Instance.Get(LocalizationKeys.RANK_PRESTIGE_MYTHIC),
-            _ => rankName
-        };
+        var dividerY = y + DividerYPadding;
+        ChromeRenderer.DrawDivider(drawList, x, dividerY, width);
+        return y + DividerHeight;
     }
 }

@@ -91,11 +91,8 @@ public static class LocalizationKeys
 
     public const string UI_RELIGION_DETAIL_LOADING = "divineascension:ui.religion.detail.loading";
     public const string UI_RELIGION_DETAIL_BACK = "divineascension:ui.religion.detail.back";
-    public const string UI_RELIGION_DETAIL_NAME = "divineascension:ui.religion.detail.name";
-    public const string UI_RELIGION_DETAIL_DEITY = "divineascension:ui.religion.detail.deity";
-    public const string UI_RELIGION_DETAIL_PRESTIGE = "divineascension:ui.religion.detail.prestige";
-    public const string UI_RELIGION_DETAIL_PUBLIC = "divineascension:ui.religion.detail.public";
     public const string UI_RELIGION_DETAIL_DESCRIPTION = "divineascension:ui.religion.detail.description";
+    public const string UI_RELIGION_DETAIL_DESCRIPTION_EMPTY = "divineascension:ui.religion.detail.description_empty";
     public const string UI_RELIGION_DETAIL_MEMBERS = "divineascension:ui.religion.detail.members";
     public const string UI_RELIGION_DETAIL_NO_MEMBERS = "divineascension:ui.religion.detail.no_members";
 
