@@ -1,18 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.Linq;
 using System.Numerics;
-using System.Text.RegularExpressions;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Activity;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Renderers.Religion.Activity;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
-using DivineAscension.Network;
 using DivineAscension.Services;
 using ImGuiNET;
 using static DivineAscension.GUI.UI.Utilities.FontSizes;
@@ -20,330 +17,169 @@ using static DivineAscension.GUI.UI.Utilities.FontSizes;
 namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
-///     Renderer for religion activity feed showing member contributions
+/// Ledger-chapter renderer for the Annals (I.iii). Chapter strip with refresh
+/// glyph, prose intro, deity filter sub-index, ornamental dividers above and
+/// below the day-grouped feed, and a closing "No further deeds are recorded."
+/// line. Entries are grouped by real-world calendar day — TimestampTicks is
+/// UTC wall-clock time and stays the source of truth (issue #316 spec note).
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class ReligionActivityRenderer
 {
-    private const float ENTRY_HEIGHT = 80f;
-    private const float ENTRY_PADDING = 12f;
-    private const float ICON_SIZE = 48f;
+    private const float DividerHeight = 18f;
+    private const float DividerYPadding = 6f;
+    private const float ScrollbarWidth = 16f;
+    private const float ClosingLineHeight = 24f;
+    private const float ClosingLineTopSpacing = 6f;
+    private const float RefreshGlyphSize = 22f;
+    private const float RefreshGlyphGap = 6f;
 
     public static ReligionActivityRenderResult Draw(ReligionActivityViewModel viewModel)
     {
         var events = new List<ActivityEvent>();
         var drawList = ImGui.GetWindowDrawList();
+        var x = viewModel.X;
+        var y = viewModel.Y;
+        var width = viewModel.Width;
+        var height = viewModel.Height;
 
-        // Loading state
         if (viewModel.IsLoading)
         {
-            DrawLoadingState(viewModel, drawList);
-            return new ReligionActivityRenderResult(events, viewModel.Height);
+            DrawCenteredStateText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTIVITY_LOADING),
+                x, y, width, height, ColorPalette.Grey);
+            return new ReligionActivityRenderResult(events, height);
         }
 
-        // Error state
         if (!string.IsNullOrEmpty(viewModel.ErrorMessage))
         {
-            DrawErrorState(viewModel, drawList);
-            return new ReligionActivityRenderResult(events, viewModel.Height);
+            DrawCenteredStateText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTIVITY_ERROR),
+                x, y, width, height, ColorPalette.Vermilion);
+            return new ReligionActivityRenderResult(events, height);
         }
 
-        // Empty state
-        if (viewModel.Entries.Count == 0)
+        var contentHeightEstimate = ComputeContentHeight(viewModel);
+        var maxScroll = MathF.Max(0f, contentHeightEstimate - height);
+
+        var mousePos = ImGui.GetMousePos();
+        var isHover = mousePos.X >= x && mousePos.X <= x + width && mousePos.Y >= y && mousePos.Y <= y + height;
+        var scrollY = viewModel.ScrollY;
+        if (isHover && maxScroll > 0f)
         {
-            DrawEmptyState(viewModel, drawList);
-            return new ReligionActivityRenderResult(events, viewModel.Height);
+            var wheel = ImGui.GetIO().MouseWheel;
+            if (wheel != 0)
+            {
+                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                if (Math.Abs(newScrollY - scrollY) > 0.001f)
+                {
+                    scrollY = newScrollY;
+                    events.Add(new ActivityEvent.ScrollChanged(newScrollY));
+                }
+            }
         }
 
-        // Header with refresh button
-        var contentY = DrawHeader(viewModel, drawList, out var refreshClicked);
-        if (refreshClicked)
-        {
-            events.Add(new ActivityEvent.RefreshRequested());
-        }
+        drawList.PushClipRect(new Vector2(x, y), new Vector2(x + width, y + height), true);
 
-        // Activity feed with scrolling
-        var contentHeight = viewModel.Y + viewModel.Height - contentY;
-
-        DrawActivityFeed(viewModel, contentY, contentHeight, events);
-
-        return new ReligionActivityRenderResult(events, viewModel.Height);
-    }
-
-    private static float DrawHeader(ReligionActivityViewModel viewModel,
-        ImDrawListPtr drawList, out bool refreshClicked)
-    {
-        refreshClicked = false;
-
-        // Refresh button right-aligned, painted on top of the title strip.
-        const float buttonWidth = 100f;
-        const float buttonHeight = 30f;
-        var buttonY = viewModel.Y + ChapterStripRenderer.TopPadding + 3f;
-        var buttonX = viewModel.X + viewModel.Width
-                      - ChapterStripRenderer.ScrollbarGutter - buttonWidth;
-        var refreshText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTIVITY_REFRESH);
-
-        if (ButtonRenderer.DrawButton(
-                drawList,
-                refreshText,
-                buttonX,
-                buttonY,
-                buttonWidth,
-                buttonHeight,
-                isPrimary: false))
-        {
-            refreshClicked = true;
-        }
-
-        var strip = ChapterStripRenderer.Draw(drawList, viewModel.X, viewModel.Y, viewModel.Width, 0f,
+        // === CHAPTER STRIP + REFRESH GLYPH ===
+        var strip = ChapterStripRenderer.Draw(drawList, x, y, width, scrollY,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_ACTIVITY));
-        return strip.BodyY;
-    }
+        var contentWidth = strip.ContentWidth;
 
-    private static void DrawActivityFeed(ReligionActivityViewModel viewModel,
-        float contentY, float contentHeight, List<ActivityEvent> events)
-    {
-        const float scrollbarWidth = 12f;
-        const float scrollbarPadding = 4f;
+        if (DrawRefreshGlyph(drawList, x, y, contentWidth, scrollY))
+            events.Add(new ActivityEvent.RefreshRequested());
 
-        // Calculate total content height
-        var totalContentHeight = viewModel.Entries.Count * (ENTRY_HEIGHT + ENTRY_PADDING);
-        var maxScroll = Math.Max(0f, totalContentHeight - contentHeight);
+        var currentY = strip.BodyY;
 
-        // Scrollable region (without built-in scrollbar)
-        var scrollRegionStart = new Vector2(viewModel.X, contentY);
-        var scrollRegionSize = new Vector2(viewModel.Width - scrollbarWidth - scrollbarPadding, contentHeight);
+        // === INTRO ===
+        currentY = ReligionActivityHeaderRenderer.Draw(viewModel, drawList, x, currentY, contentWidth);
 
-        ImGui.SetCursorScreenPos(scrollRegionStart);
-        ImGui.BeginChild("ActivityScroll", scrollRegionSize, false,
-            ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
+        currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
-        // Get child window drawlist and position
-        var childDrawList = ImGui.GetWindowDrawList();
-        var childPos = ImGui.GetCursorScreenPos();
+        // === DAY-GROUPED FEED ===
+        currentY = ReligionActivityFeedRenderer.Draw(viewModel, drawList, x, currentY, contentWidth);
 
-        // Draw entries with manual scroll offset
-        var currentY = -viewModel.ScrollY;
+        currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
-        foreach (var entry in viewModel.Entries)
+        // === CLOSING LINE ===
+        currentY += ClosingLineTopSpacing;
+        DrawClosingLine(drawList, x, currentY, contentWidth);
+
+        drawList.PopClipRect();
+
+        if (maxScroll > 0f)
         {
-            var entryY = childPos.Y + currentY;
-
-            // Only draw if visible (culling for performance)
-            if (entryY + ENTRY_HEIGHT >= contentY && entryY <= contentY + contentHeight)
-            {
-                DrawActivityEntry(entry, childPos.X + 10f, entryY,
-                    viewModel.Width - scrollbarWidth - scrollbarPadding - 20f, childDrawList);
-            }
-
-            currentY += ENTRY_HEIGHT + ENTRY_PADDING;
-        }
-
-        ImGui.EndChild();
-
-        // Draw custom scrollbar
-        if (maxScroll > 0)
-        {
-            var scrollbarX = viewModel.X + viewModel.Width - scrollbarWidth;
-            var drawList = ImGui.GetWindowDrawList();
-
-            Scrollbar.Draw(
-                drawList,
-                scrollbarX,
-                contentY,
-                scrollbarWidth,
-                contentHeight,
-                viewModel.ScrollY,
-                maxScroll
-            );
-
-            // Handle mouse wheel scrolling
-            var mousePos = ImGui.GetMousePos();
-            var newScrollY = Scrollbar.HandleMouseWheel(
-                viewModel.ScrollY,
-                maxScroll,
-                mousePos.X,
-                mousePos.Y,
-                viewModel.X,
-                contentY,
-                viewModel.Width,
-                contentHeight
-            );
-
-            // Handle scrollbar dragging
-            newScrollY = Scrollbar.HandleDragging(
-                newScrollY,
-                maxScroll,
-                scrollbarX,
-                contentY,
-                scrollbarWidth,
-                contentHeight
-            );
-
-            // Track scroll changes
-            if (Math.Abs(newScrollY - viewModel.ScrollY) > 0.01f)
-            {
+            var newScrollY = Scrollbar.HandleDragging(scrollY, maxScroll,
+                x + width - ScrollbarWidth, y, ScrollbarWidth, height);
+            if (Math.Abs(newScrollY - scrollY) > 0.001f)
                 events.Add(new ActivityEvent.ScrollChanged(newScrollY));
-            }
+            Scrollbar.Draw(drawList, x + width - ScrollbarWidth, y, ScrollbarWidth, height, scrollY, maxScroll);
         }
+
+        return new ReligionActivityRenderResult(events, height);
     }
 
-    private static void DrawActivityEntry(ActivityLogResponsePacket.ActivityEntry entry,
-        float x, float y, float width,
-        ImDrawListPtr drawList)
+    private static bool DrawRefreshGlyph(ImDrawListPtr drawList,
+        float x, float paneY, float contentWidth, float scrollY)
     {
-        var entryPos = new Vector2(x, y);
+        var stripY = paneY + ChapterStripRenderer.TopPadding - scrollY;
+        var glyphX = x + contentWidth - RefreshGlyphSize - RefreshGlyphGap;
+        var glyphY = stripY + 6f;
 
-        // Background
-        drawList.AddRectFilled(entryPos,
-            new Vector2(x + width, y + ENTRY_HEIGHT),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.4f), 8f);
+        var clicked = ButtonRenderer.DrawButton(drawList, string.Empty,
+            glyphX, glyphY, RefreshGlyphSize, RefreshGlyphSize,
+            isPrimary: false, enabled: true);
 
-        // Border
-        drawList.AddRect(entryPos,
-            new Vector2(x + width, y + ENTRY_HEIGHT),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.3f), 8f,
-            ImDrawFlags.None, 1f);
+        ChromeRenderer.DrawRefreshArrow(drawList,
+            glyphX + RefreshGlyphSize / 2f,
+            glyphY + RefreshGlyphSize / 2f,
+            RefreshGlyphSize - 6f,
+            ColorPalette.LightText);
 
-        // Deity icon (left) - position center so left edge is at x + 15f
-        var iconCenterX = x + 15f + (ICON_SIZE / 2f);
-        var iconCenterY = y + (ENTRY_HEIGHT / 2f);
-        DrawDeityIcon(entry.DeityDomain, iconCenterX, iconCenterY, drawList);
+        return clicked;
+    }
 
-        // Text content (right of icon)
-        var textX = x + 15f + ICON_SIZE + 15f;
-        var textY = y + 12f;
+    private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var dividerY = y + DividerYPadding;
+        ChromeRenderer.DrawDivider(drawList, x, dividerY, width);
+        return y + DividerHeight;
+    }
 
-        // Player name
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel,
-            new Vector2(textX, textY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
-            entry.PlayerName);
-
-        // Action description
-        var actionText = FormatActionText(entry.ActionType, entry.FavorAmount, entry.PrestigeAmount);
-        drawList.AddText(ImGui.GetFont(), Secondary,
-            new Vector2(textX, textY + 20f),
+    private static void DrawClosingLine(ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var text = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTIVITY_FOOTER_CLOSING);
+        var size = ImGui.CalcTextSize(text);
+        var textX = x + (width - size.X) / 2f;
+        drawList.AddText(ImGui.GetFont(), Body, new Vector2(textX, y),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
-            actionText);
-
-        // Timestamp (bottom right)
-        var timestamp = new DateTime(entry.TimestampTicks);
-        var timeText = FormatTimestamp(timestamp);
-        var timeTextSize = ImGui.CalcTextSize(timeText);
-        drawList.AddText(ImGui.GetFont(), Small,
-            new Vector2(x + width - timeTextSize.X - 15f, y + ENTRY_HEIGHT - 25f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey * 0.7f),
-            timeText);
+            text);
     }
 
-    private static void DrawDeityIcon(string domain, float x, float y, ImDrawListPtr drawList)
+    private static float ComputeContentHeight(ReligionActivityViewModel viewModel)
     {
-        // Parse domain string to enum
-        var deityType = DomainHelper.ParseDeityType(domain);
-        var deityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
-
-        // Calculate icon bounds (centered on x, y)
-        var iconMin = new Vector2(x - ICON_SIZE / 2f, y - ICON_SIZE / 2f);
-        var iconMax = new Vector2(x + ICON_SIZE / 2f, y + ICON_SIZE / 2f);
-
-        if (deityTextureId != IntPtr.Zero)
-        {
-            // Draw deity icon texture (no tint - full color)
-            var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
-            drawList.AddImage(deityTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
-
-            // Add subtle border around icon for visual cohesion
-            var deityColor = DomainHelper.GetDeityColor(domain);
-            var iconBorderColor = ImGui.ColorConvertFloat4ToU32(deityColor * 0.8f);
-            drawList.AddRect(iconMin, iconMax, iconBorderColor, 4f, ImDrawFlags.None, 2f);
-        }
-        else
-        {
-            // Fallback: Use placeholder colored circle if texture not available
-            var deityColor = DomainHelper.GetDeityColor(domain);
-            drawList.AddCircleFilled(new Vector2(x, y), ICON_SIZE / 2f,
-                ImGui.ColorConvertFloat4ToU32(deityColor));
-
-            // Domain initial letter
-            var letter = domain.Length > 0 ? domain[0].ToString() : "?";
-            var textSize = ImGui.CalcTextSize(letter);
-            drawList.AddText(ImGui.GetFont(), PageTitle,
-                new Vector2(x - textSize.X / 2f, y - textSize.Y / 2f),
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.White), letter);
-        }
+        var h = 0f;
+        // Chapter strip (title + divider below).
+        h += PaneHeaderRenderer.TotalHeight;
+        // Prose intro.
+        h += ReligionActivityHeaderRenderer.IntroLineHeight + ReligionActivityHeaderRenderer.IntroBottomSpacing;
+        // Top divider.
+        h += DividerHeight;
+        // Feed.
+        h += ReligionActivityFeedRenderer.MeasureHeight(viewModel);
+        // Bottom divider.
+        h += DividerHeight;
+        // Closing line.
+        h += ClosingLineTopSpacing + ClosingLineHeight;
+        return h;
     }
 
-    private static string FormatActionText(string actionType, int favor, int prestige)
+    private static void DrawCenteredStateText(
+        ImDrawListPtr drawList, string text, float x, float y, float width, float height, Vector4 color)
     {
-        // Clean up the action text with regex
-        // 1. Replace hyphens and underscores with spaces
-        var cleaned = Regex.Replace(actionType, @"[-_]", " ");
-
-        // 2. Remove common suffixes (adult, male, female, etc.) - keep it concise
-        cleaned = Regex.Replace(cleaned, @"\s+(adult|male|female|baby|young)(?=\s|$)", "", RegexOptions.IgnoreCase);
-
-        // 3. Capitalize first letter of each word
-        cleaned = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(cleaned.ToLower());
-
-        // 4. Limit length to keep UI clean (show first 3-4 words)
-        var words = cleaned.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (words.Length > 4)
-        {
-            cleaned = string.Join(" ", words.Take(4)) + "...";
-        }
-
-        return $"{cleaned} +{favor} favor, +{prestige} prestige";
-    }
-
-    private static string FormatTimestamp(DateTime timestamp)
-    {
-        var elapsed = DateTime.UtcNow - timestamp;
-
-        if (elapsed.TotalMinutes < 1) return "Just now";
-        if (elapsed.TotalMinutes < 60) return $"{(int)elapsed.TotalMinutes}m ago";
-        if (elapsed.TotalHours < 24) return $"{(int)elapsed.TotalHours}h ago";
-        if (elapsed.TotalDays < 7) return $"{(int)elapsed.TotalDays}d ago";
-
-        return timestamp.ToString("MMM dd");
-    }
-
-    private static void DrawLoadingState(ReligionActivityViewModel viewModel, ImDrawListPtr drawList)
-    {
-        var text = "Loading activity...";
-        var textSize = ImGui.CalcTextSize(text);
-        var textPos = new Vector2(
-            viewModel.X + viewModel.Width / 2f - textSize.X / 2f,
-            viewModel.Y + viewModel.Height / 2f - textSize.Y / 2f
-        );
-
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), text);
-    }
-
-    private static void DrawEmptyState(ReligionActivityViewModel viewModel, ImDrawListPtr drawList)
-    {
-        var text = "No recent activity";
-        var textSize = ImGui.CalcTextSize(text);
-        var textPos = new Vector2(
-            viewModel.X + viewModel.Width / 2f - textSize.X / 2f,
-            viewModel.Y + viewModel.Height / 2f - textSize.Y / 2f
-        );
-
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), text);
-    }
-
-    private static void DrawErrorState(ReligionActivityViewModel viewModel, ImDrawListPtr drawList)
-    {
-        var text = $"Error: {viewModel.ErrorMessage}";
-        var textSize = ImGui.CalcTextSize(text);
-        var textPos = new Vector2(
-            viewModel.X + viewModel.Width / 2f - textSize.X / 2f,
-            viewModel.Y + viewModel.Height / 2f - textSize.Y / 2f
-        );
-
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Red), text);
+        var size = ImGui.CalcTextSize(text);
+        var pos = new Vector2(x + (width - size.X) / 2f, y + (height - size.Y) / 2f);
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, pos,
+            ImGui.ColorConvertFloat4ToU32(color), text);
     }
 }
