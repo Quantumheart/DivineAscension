@@ -21,7 +21,7 @@ internal static class BlessingInfoSectionStats
         var drawList = ImGui.GetWindowDrawList();
 
         currentY += 8f;
-        var statsTitleColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
+        var statsTitleColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText);
         drawList.AddText(ImGui.GetFont(), TableHeader, new Vector2(vm.X + padding, currentY), statsTitleColorU32,
             LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_EFFECTS));
         currentY += 22f;
@@ -29,7 +29,7 @@ internal static class BlessingInfoSectionStats
         foreach (var stat in selectedState.Blessing.StatModifiers)
         {
             var statText = BlessingInfoTextUtils.FormatStatModifier(stat.Key, stat.Value);
-            var statColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.Green);
+            var statColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.SuccessGreen);
             drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(vm.X + padding + 8, currentY), statColorU32,
                 statText);
             currentY += 18f;

@@ -20,20 +20,21 @@ internal static class BlessingInfoSectionHeader
         var (statusText, statusColor) = selectedState.VisualState switch
         {
             BlessingNodeVisualState.Unlocked => ("UNLOCKED", ColorPalette.Gold),
-            BlessingNodeVisualState.Unlockable => ("AVAILABLE", ColorPalette.Green),
-            _ => ("LOCKED", ColorPalette.Red),
+            BlessingNodeVisualState.Unlockable => ("AVAILABLE", ColorPalette.SuccessGreen),
+            _ => ("LOCKED", ColorPalette.ErrorRed),
         };
 
         currentY = PaneHeaderRenderer.Draw(drawList,
             selectedState.Blessing.Name,
             vm.X + padding, currentY, vm.Width - padding * 2,
-            rankTag: statusText, rankColor: statusColor);
+            rankTag: statusText, rankColor: statusColor,
+            titleColor: ColorPalette.LightText);
 
         // Category and kind metadata, drawn below the divider as supplementary
         // info (the status badge moved into the header's rank slot above).
         var metaText =
             $"{selectedState.Blessing.Category} | {selectedState.Blessing.Kind} Blessing | Tier {selectedState.Tier}";
-        var metaColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
+        var metaColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.MutedText);
         drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(vm.X + padding, currentY), metaColorU32, metaText);
         currentY += 20f;
 
