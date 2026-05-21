@@ -57,7 +57,8 @@ internal static class CivilizationInfoRenderer
         var rankName = RankRequirements.GetCivilizationRankName(vm.Rank);
         currentY = PaneHeaderRenderer.Draw(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_INFO),
-            vm.X, currentY, vm.Width, iconTextureId, rankName);
+            vm.X, currentY, vm.Width, iconTextureId, rankName,
+            rightTitle: vm.CivName);
 
         // Founded · · · · · 2026-03-14
         ChromeRenderer.DrawLeader(drawList,
