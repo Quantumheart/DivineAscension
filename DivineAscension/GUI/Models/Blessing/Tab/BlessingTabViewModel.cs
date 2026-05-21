@@ -28,7 +28,8 @@ public readonly struct BlessingTabViewModel(
     IReadOnlyList<DeityBlessingSummary> deitySummaries,
     int prestigeNextThreshold = 0,
     string? patronDeityName = null,
-    bool isReligionFounder = false
+    bool isReligionFounder = false,
+    float vowsPageScrollY = 0f
 )
 {
     public float X { get; } = x;
@@ -59,4 +60,7 @@ public readonly struct BlessingTabViewModel(
 
     /// <summary>Whether the viewing player founded the religion; gates the [Swear] action on Vows.</summary>
     public bool IsReligionFounder { get; } = isReligionFounder;
+
+    /// <summary>Vertical scroll position for the Vows page chapter (I.iii).</summary>
+    public float VowsPageScrollY { get; } = vowsPageScrollY;
 }

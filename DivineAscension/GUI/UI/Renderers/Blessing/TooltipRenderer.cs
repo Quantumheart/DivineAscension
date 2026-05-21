@@ -98,7 +98,7 @@ internal static class TooltipRenderer
                 tooltipX + tooltipWidth - TOOLTIP_PADDING - lockTextSize.X,
                 tooltipY + TOOLTIP_PADDING
             );
-            var lockColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Red);
+            var lockColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.ErrorRed);
             drawList.AddText(ImGui.GetFont(), SubsectionLabel, lockPos, lockColor, lockText);
         }
         else if (tooltipData.IsUnlocked)
@@ -110,7 +110,7 @@ internal static class TooltipRenderer
                 tooltipX + tooltipWidth - TOOLTIP_PADDING - unlockTextSize.X,
                 tooltipY + TOOLTIP_PADDING
             );
-            var unlockColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Green);
+            var unlockColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.SuccessGreen);
             drawList.AddText(ImGui.GetFont(), SubsectionLabel, unlockPos, unlockColor, unlockText);
         }
 
@@ -137,11 +137,11 @@ internal static class TooltipRenderer
     {
         var lines = new List<TooltipLine>();
 
-        // Title (blessing name) - Gold, larger font
+        // Title (blessing name) — cream on dark sepia (palette §5).
         lines.Add(new TooltipLine
         {
             Text = data.Name,
-            Color = ColorPalette.Gold,
+            Color = ColorPalette.LightText,
             FontSize = SectionHeader,
             IsBold = true,
             SpacingAfter = TITLE_TO_SUBTEXT
@@ -156,7 +156,7 @@ internal static class TooltipRenderer
         lines.Add(new TooltipLine
         {
             Text = categoryText,
-            Color = ColorPalette.Grey,
+            Color = ColorPalette.MutedText,
             FontSize = Secondary,
             SpacingAfter = SECTION_SPACING
         });
@@ -168,7 +168,7 @@ internal static class TooltipRenderer
         if (!string.IsNullOrEmpty(data.RequiredFavorRank))
         {
             // Green if requirements met (unlocked or can unlock), red if not met
-            var rankColor = (data.IsUnlocked || data.CanUnlock) ? ColorPalette.Green : ColorPalette.Red;
+            var rankColor = (data.IsUnlocked || data.CanUnlock) ? ColorPalette.SuccessGreen : ColorPalette.ErrorRed;
             lines.Add(new TooltipLine
             {
                 Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_FAVOR_RANK,
@@ -182,7 +182,7 @@ internal static class TooltipRenderer
         else if (!string.IsNullOrEmpty(data.RequiredPrestigeRank))
         {
             // Green if requirements met (unlocked or can unlock), red if not met
-            var rankColor = (data.IsUnlocked || data.CanUnlock) ? ColorPalette.Green : ColorPalette.Red;
+            var rankColor = (data.IsUnlocked || data.CanUnlock) ? ColorPalette.SuccessGreen : ColorPalette.ErrorRed;
             lines.Add(new TooltipLine
             {
                 Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_PRESTIGE_RANK,
@@ -200,7 +200,7 @@ internal static class TooltipRenderer
             foreach (var prereq in data.PrerequisiteNames)
             {
                 // Green if requirements met (unlocked or can unlock), red if not met
-                var prereqColor = (data.IsUnlocked || data.CanUnlock) ? ColorPalette.Green : ColorPalette.Red;
+                var prereqColor = (data.IsUnlocked || data.CanUnlock) ? ColorPalette.SuccessGreen : ColorPalette.ErrorRed;
                 lines.Add(new TooltipLine
                 {
                     Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_BLESSING, prereq),
@@ -219,7 +219,7 @@ internal static class TooltipRenderer
             lines.Add(new TooltipLine
             {
                 Text = $"Only available to followers of {data.Domain}",
-                Color = ColorPalette.Red,
+                Color = ColorPalette.ErrorRed,
                 FontSize = Body,
                 SpacingAfter = LINE_SPACING
             });
@@ -236,7 +236,7 @@ internal static class TooltipRenderer
             lines.Add(new TooltipLine
             {
                 Text = costText,
-                Color = data.IsNonPatron ? ColorPalette.Yellow : ColorPalette.Gold,
+                Color = data.IsNonPatron ? ColorPalette.Yellow : ColorPalette.LightText,
                 FontSize = Body,
                 SpacingAfter = LINE_SPACING
             });
@@ -255,7 +255,7 @@ internal static class TooltipRenderer
                 lines.Add(new TooltipLine
                 {
                     Text = wrappedLine,
-                    Color = ColorPalette.White,
+                    Color = ColorPalette.LightText,
                     FontSize = SubsectionLabel,
                     SpacingAfter = LINE_SPACING
                 });
@@ -275,7 +275,7 @@ internal static class TooltipRenderer
                     lines.Add(new TooltipLine
                     {
                         Text = wrappedLine,
-                        Color = ColorPalette.White,
+                        Color = ColorPalette.LightText,
                         FontSize = Body,
                         SpacingAfter = LINE_SPACING
                     });
@@ -292,7 +292,7 @@ internal static class TooltipRenderer
             lines.Add(new TooltipLine
             {
                 Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_CLICK_TO_UNLOCK),
-                Color = ColorPalette.Green,
+                Color = ColorPalette.SuccessGreen,
                 FontSize = Body,
                 SpacingAfter = 0
             });

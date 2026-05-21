@@ -25,6 +25,9 @@ public class BlessingTabState
     /// </summary>
     public DeityDomain ActiveDeity { get; set; } = DeityDomain.Craft;
 
+    /// <summary>Vertical scroll position of the Vows page (I.iii).</summary>
+    public float VowsPageScrollY { get; set; }
+
     /// <summary>
     ///     Flattened view across every deity. Convenience for tests and lookups that don't
     ///     care which deity bucket a blessing came from. On id collisions across deities,
@@ -52,6 +55,7 @@ public class BlessingTabState
         PlayerBlessingStatesByDeity.Clear();
         ReligionBlessingStatesByDeity.Clear();
         ActiveDeity = DeityDomain.Craft;
+        VowsPageScrollY = 0f;
     }
 }
 

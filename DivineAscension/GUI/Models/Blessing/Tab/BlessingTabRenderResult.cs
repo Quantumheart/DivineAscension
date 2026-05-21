@@ -12,7 +12,8 @@ public readonly struct BlessingTabRenderResult(
     IReadOnlyList<ActionsEvent> actionsEvents,
     string? hoveringBlessingId,
     float renderedHeight,
-    DeityDomain? requestedActiveDeity = null)
+    DeityDomain? requestedActiveDeity = null,
+    float? requestedVowsScrollY = null)
 {
     public IReadOnlyList<TreeEvent> TreeEvents { get; } = treeEvents;
     public IReadOnlyList<ActionsEvent> ActionsEvents { get; } = actionsEvents;
@@ -24,4 +25,10 @@ public readonly struct BlessingTabRenderResult(
     ///     and resets tree-state on consumption.
     /// </summary>
     public DeityDomain? RequestedActiveDeity { get; } = requestedActiveDeity;
+
+    /// <summary>
+    ///     Non-null when the Vows page wheel-scrolled this frame. Manager commits the
+    ///     new value to <see cref="State.BlessingTabState.VowsPageScrollY"/>.
+    /// </summary>
+    public float? RequestedVowsScrollY { get; } = requestedVowsScrollY;
 }
