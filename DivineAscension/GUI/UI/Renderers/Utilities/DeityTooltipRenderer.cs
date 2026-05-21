@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
@@ -39,13 +38,12 @@ internal static class DeityTooltipRenderer
         if (deityInfo == null) return;
 
         var deityType = DomainHelper.ParseDeityType(deityName);
-        var deityColor = DomainHelper.GetDeityColor(deityType);
-        var iconTextureId = DeityIconLoader.GetDeityTextureId(deityType);
+        var deityTitle = DomainHelper.GetDeityTitle(deityType);
 
         var drawList = ImGui.GetForegroundDrawList();
 
         // Calculate dimensions
-        var lines = BuildTooltipLines(deityInfo, deityColor);
+        var lines = BuildTooltipLines(deityInfo, deityTitle);
         var contentHeight = CalculateHeight(lines);
         var tooltipHeight = contentHeight + TOOLTIP_PADDING * 2;
 
@@ -57,14 +55,6 @@ internal static class DeityTooltipRenderer
         // Draw background and border
         DrawBackground(drawList, tooltipX, tooltipY, TOOLTIP_MAX_WIDTH, tooltipHeight);
 
-        // Draw icon in top-right corner (32x32)
-        if (iconTextureId != IntPtr.Zero)
-        {
-            DrawIcon(drawList, iconTextureId,
-                tooltipX + TOOLTIP_MAX_WIDTH - 32f - TOOLTIP_PADDING,
-                tooltipY + TOOLTIP_PADDING);
-        }
-
         // Draw text content
         DrawContent(drawList, lines, tooltipX, tooltipY);
     }
@@ -72,18 +62,21 @@ internal static class DeityTooltipRenderer
     /// <summary>
     /// Build formatted lines for tooltip content
     /// </summary>
-    private static List<TooltipLine> BuildTooltipLines(DomainInfo info, Vector4 deityColor)
+    private static List<TooltipLine> BuildTooltipLines(DomainInfo info, string deityTitle)
     {
         var lines = new List<TooltipLine>();
 
-        // Deity name in deity color, bold, SectionHeader
-        lines.Add(new TooltipLine(info.Name, deityColor, SectionHeader, true, SECTION_SPACING));
+        // Domain name — gold title, matches the religion browse tooltip.
+        lines.Add(new TooltipLine(info.Name, ColorPalette.Gold, TableHeader, true, LINE_SPACING));
 
-        // Description wrapped, white, Body (reserve space for icon on right)
-        var wrappedDesc = WrapText(info.Description, TOOLTIP_MAX_WIDTH - TOOLTIP_PADDING * 2 - 40f, Body);
+        // Subtitle "of the {Title}" — cream ink on dark surface (palette §7).
+        lines.Add(new TooltipLine(deityTitle, ColorPalette.LightText, Body, false, SECTION_SPACING));
+
+        // Description wrapped, cream ink, Body.
+        var wrappedDesc = WrapText(info.Description, TOOLTIP_MAX_WIDTH - TOOLTIP_PADDING * 2, Body);
         foreach (var line in wrappedDesc)
         {
-            lines.Add(new TooltipLine(line, ColorPalette.White, Body, false, LINE_SPACING));
+            lines.Add(new TooltipLine(line, ColorPalette.LightText, Body, false, LINE_SPACING));
         }
 
         return lines;
@@ -152,19 +145,6 @@ internal static class DeityTooltipRenderer
         // Gold border
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
         drawList.AddRect(bgStart, bgEnd, borderColor, 4f, ImDrawFlags.None, 2f);
-    }
-
-    /// <summary>
-    /// Draw deity icon
-    /// </summary>
-    private static void DrawIcon(ImDrawListPtr drawList, IntPtr textureId, float x, float y)
-    {
-        const float iconSize = 32f;
-        var iconMin = new Vector2(x, y);
-        var iconMax = new Vector2(x + iconSize, y + iconSize);
-
-        var tintColor = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
-        drawList.AddImage(textureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColor);
     }
 
     /// <summary>
