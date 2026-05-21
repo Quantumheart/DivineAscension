@@ -27,7 +27,6 @@ internal static class ReligionRolesBrowseRenderer
 {
     private const float RoleCardHeight = 160f;
     private const float RoleCardSpacing = 12f;
-    private const float ScrollbarWidth = 16f;
 
     /// <summary>
     ///     Renders the roles browse view (role cards list).
@@ -91,14 +90,14 @@ internal static class ReligionRolesBrowseRenderer
             }
         }
 
-        // Clip to visible area and offset drawing by scroll
+        // Clip to visible area
         drawList.PushClipRect(new Vector2(x, y), new Vector2(x + width, y + height), true);
-        currentY = y - scrollY;
 
         // Header
-        currentY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_ROLES),
-            x, currentY, width - ScrollbarWidth);
+        var strip = ChapterStripRenderer.Draw(drawList, x, y, width, scrollY,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_ROLES));
+        var contentWidth = strip.ContentWidth;
+        currentY = strip.BodyY;
 
         // Create Role button (if player can manage roles)
         if (viewModel.CanManageRoles())
@@ -114,7 +113,7 @@ internal static class ReligionRolesBrowseRenderer
         var roles = viewModel.Roles.OrderBy(r => r.DisplayOrder).ThenBy(r => r.RoleName).ToList();
         foreach (var role in roles)
         {
-            currentY = DrawRoleCard(drawList, viewModel, role, x, currentY, width - ScrollbarWidth, events);
+            currentY = DrawRoleCard(drawList, viewModel, role, x, currentY, contentWidth, events);
             currentY += RoleCardSpacing;
         }
 

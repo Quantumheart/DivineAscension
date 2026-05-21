@@ -23,12 +23,10 @@ internal static class CivilizationCreateRenderer
         ImDrawListPtr drawList)
     {
         var events = new List<CreateEvent>();
-        var currentY = vm.Y;
 
-        currentY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_CREATE),
-            vm.X, currentY, vm.Width);
-        currentY += 12f;
+        var strip = ChapterStripRenderer.Draw(drawList, vm.X, vm.Y, vm.Width, 0f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_CREATE));
+        var currentY = strip.BodyY + 12f;
 
         // Requirements
         TextRenderer.DrawLabel(drawList,

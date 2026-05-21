@@ -24,7 +24,6 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 internal static class CivilizationHolySitesRenderer
 {
     // Layout constants
-    private const float TopPadding = 10f;
     private const float HeaderHeight = 40f;
     private const float RefreshButtonWidth = 100f;
     private const float RefreshButtonHeight = 30f;
@@ -43,10 +42,9 @@ internal static class CivilizationHolySitesRenderer
         ImDrawListPtr drawList)
     {
         var events = new List<HolySitesEvent>();
-        var currentY = viewModel.Y + TopPadding;
 
         // === HEADER WITH REFRESH BUTTON ===
-        currentY += DrawHeader(viewModel, drawList, currentY, events);
+        var currentY = DrawHeader(viewModel, drawList, events);
 
         // === LOADING STATE ===
         if (viewModel.IsLoading)
@@ -79,24 +77,24 @@ internal static class CivilizationHolySitesRenderer
     private static float DrawHeader(
         CivilizationHolySitesViewModel viewModel,
         ImDrawListPtr drawList,
-        float y,
         List<HolySitesEvent> events)
     {
-        // Refresh button (drawn on the same row as the title, right-aligned)
-        var buttonX = viewModel.X + viewModel.Width - RefreshButtonWidth;
+        // Refresh button (drawn on the same row as the title, right-aligned,
+        // painted on top of the title strip after the strip draws).
+        var buttonY = viewModel.Y + ChapterStripRenderer.TopPadding + 3f;
+        var buttonX = viewModel.X + viewModel.Width
+                      - ChapterStripRenderer.ScrollbarGutter - RefreshButtonWidth;
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_REFRESH),
-                buttonX, y + 3f, RefreshButtonWidth, RefreshButtonHeight,
+                buttonX, buttonY, RefreshButtonWidth, RefreshButtonHeight,
                 false, !viewModel.IsLoading))
         {
             events.Add(new HolySitesEvent.RefreshClicked());
         }
 
-        // Title + ornamental divider; return the height the helper consumed.
-        var contentStartY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_HOLYSITES),
-            viewModel.X, y, viewModel.Width);
-        return contentStartY - y;
+        var strip = ChapterStripRenderer.Draw(drawList, viewModel.X, viewModel.Y, viewModel.Width, 0f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_HOLYSITES));
+        return strip.BodyY;
     }
 
     private static void DrawLoadingState(

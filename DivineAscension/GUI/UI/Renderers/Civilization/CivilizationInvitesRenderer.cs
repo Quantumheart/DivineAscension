@@ -24,11 +24,10 @@ internal static class CivilizationInvitesRenderer
         ImDrawListPtr drawList)
     {
         var events = new List<InvitesEvent>();
-        var currentY = vm.Y;
 
-        currentY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_INVITES),
-            vm.X, currentY, vm.Width);
+        var strip = ChapterStripRenderer.Draw(drawList, vm.X, vm.Y, vm.Width, 0f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_INVITES));
+        var currentY = strip.BodyY;
 
         // Help text explaining where to send invites
         TextRenderer.DrawInfoText(drawList,

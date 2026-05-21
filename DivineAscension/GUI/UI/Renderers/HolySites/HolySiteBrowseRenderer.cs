@@ -22,7 +22,6 @@ namespace DivineAscension.GUI.UI.Renderers.HolySites;
 internal static class HolySiteBrowseRenderer
 {
     // Layout dimensions
-    private const float TopPadding = 8f;
     private const float RefreshButtonWidth = 100f;
     private const float RefreshButtonHeight = 30f;
 
@@ -34,10 +33,9 @@ internal static class HolySiteBrowseRenderer
         ImDrawListPtr drawList)
     {
         var events = new List<BrowseEvent>();
-        var currentY = viewModel.Y + TopPadding;
 
         // === HEADER CONTROLS ===
-        currentY = DrawHeaderControls(viewModel, currentY, drawList, events);
+        var currentY = DrawHeaderControls(viewModel, drawList, events);
 
         // === HOLY SITES TABLE ===
         var tableHeight = viewModel.Height - (currentY - viewModel.Y);
@@ -89,24 +87,24 @@ internal static class HolySiteBrowseRenderer
     /// </summary>
     private static float DrawHeaderControls(
         HolySiteBrowseViewModel vm,
-        float y,
         ImDrawListPtr drawList,
         List<BrowseEvent> events)
     {
-        // Refresh button (drawn on the same row as the title, right-aligned)
-        var refreshButtonX = vm.X + vm.Width - RefreshButtonWidth;
+        // Refresh button right-aligned, painted on top of the title strip.
+        var buttonY = vm.Y + ChapterStripRenderer.TopPadding + 3f;
+        var buttonX = vm.X + vm.Width
+                      - ChapterStripRenderer.ScrollbarGutter - RefreshButtonWidth;
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_BROWSE_REFRESH),
-                refreshButtonX, y + 3f, RefreshButtonWidth, RefreshButtonHeight,
+                buttonX, buttonY, RefreshButtonWidth, RefreshButtonHeight,
                 false, !vm.IsLoading))
         {
             events.Add(new BrowseEvent.RefreshClicked());
         }
 
-        // Title + ornamental divider
-        return PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_BROWSE_TITLE),
-            vm.X, y, vm.Width);
+        var strip = ChapterStripRenderer.Draw(drawList, vm.X, vm.Y, vm.Width, 0f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_HOLYSITES_BROWSE_TITLE));
+        return strip.BodyY;
     }
 
     /// <summary>

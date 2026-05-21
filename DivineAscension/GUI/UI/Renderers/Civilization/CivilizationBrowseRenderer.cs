@@ -22,7 +22,6 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 internal static class CivilizationBrowseRenderer
 {
     // Layout dimensions
-    private const float TopPadding = 8f;
     private const float FilterLabelWidth = 120f;
     private const float DropdownWidth = 200f;
     private const float DropdownHeight = 30f;
@@ -46,12 +45,11 @@ internal static class CivilizationBrowseRenderer
         ImDrawListPtr drawList)
     {
         var events = new List<BrowseEvent>();
-        var currentY = vm.Y + TopPadding;
 
-        // === PANE HEADER ===
-        currentY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_BROWSE),
-            vm.X, currentY, vm.Width);
+        // === SHARED CHAPTER STRIP ===
+        var strip = ChapterStripRenderer.Draw(drawList, vm.X, vm.Y, vm.Width, 0f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_BROWSE));
+        var currentY = strip.BodyY;
 
         var filterControlsY = currentY;  // Store filter controls Y position for dropdown menu
 

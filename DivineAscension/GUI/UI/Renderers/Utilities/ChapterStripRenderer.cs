@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.GUI.UI.Components.Buttons;
@@ -54,7 +55,10 @@ internal static class ChapterStripRenderer
         string title,
         string? rightTitle = null,
         DeityDomain? rightGlyph = null,
-        bool showPencil = false)
+        bool showPencil = false,
+        IntPtr iconTextureId = default,
+        string? rankTag = null,
+        Vector4? rankColor = null)
     {
         var stripY = paneY + TopPadding - scrollY;
         var contentWidth = paneWidth - ScrollbarGutter;
@@ -66,7 +70,8 @@ internal static class ChapterStripRenderer
 
         // Title + divider — divider spans full contentWidth so it lines up
         // with every section divider drawn at the same width below.
-        var bodyY = PaneHeaderRenderer.Draw(drawList, title, x, stripY, contentWidth);
+        var bodyY = PaneHeaderRenderer.Draw(drawList, title, x, stripY, contentWidth,
+            iconTextureId: iconTextureId, rankTag: rankTag, rankColor: rankColor);
 
         if (!string.IsNullOrEmpty(rightTitle))
         {

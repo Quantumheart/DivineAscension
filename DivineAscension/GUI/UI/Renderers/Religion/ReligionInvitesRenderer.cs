@@ -30,12 +30,11 @@ internal static class ReligionInvitesRenderer
         ImDrawListPtr drawList)
     {
         var events = new List<InvitesEvent>();
-        var currentY = viewModel.Y;
 
         // === HEADER ===
-        currentY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_INVITES),
-            viewModel.X, currentY, viewModel.Width);
+        var strip = ChapterStripRenderer.Draw(drawList, viewModel.X, viewModel.Y, viewModel.Width, 0f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_INVITES));
+        var currentY = strip.BodyY;
 
         // === HELP TEXT ===
         TextRenderer.DrawInfoText(
