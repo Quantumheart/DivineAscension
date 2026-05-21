@@ -1,11 +1,9 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Create;
-using DivineAscension.GUI.UI.Components;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Renderers.Components;
@@ -18,85 +16,87 @@ using static DivineAscension.GUI.UI.Utilities.FontSizes;
 namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
-/// Pure renderer for creating a new religion
-/// Takes an immutable view model, returns events representing user interactions
-/// Migrates functionality from CreateReligionOverlay
+/// Pure renderer for the "Found an Order" ledger chapter (I.vi, #322). Serif
+/// chapter title with prose intro, manuscript-phrased name fields, domain
+/// tab row, public/private vow toggle whose label swaps with state, and a
+/// right-aligned "Inscribe the Founding Vow" action. Ornamental dividers
+/// segment Names / Domain / Visibility / Vow.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class ReligionCreateRenderer
 {
-    /// <summary>
-    /// Renders the religion creation form
-    /// Pure function: ViewModel + DrawList → RenderResult
-    /// </summary>
+    private const float FormWidth = 500f;
+    private const float DividerHeight = 18f;
+    private const float DividerYPadding = 6f;
+    private const float SectionLabelHeight = 22f;
+    private const float FieldRowHeight = 40f;
+    private const float InputHeight = 32f;
+    private const float FooterTopPadding = 12f;
+
     public static ReligionCreateRenderResult Draw(
         ReligionCreateViewModel viewModel,
         ImDrawListPtr drawList)
     {
         var events = new List<CreateEvent>();
-        var currentY = viewModel.Y;
 
-        // Center the form
-        const float formWidth = 500f;
-        var formX = viewModel.X + (viewModel.Width - formWidth) / 2;
-        const float padding = 20f;
+        // === CHAPTER TITLE STRIP — shared codex chrome ===
+        var selectedDomain = DomainHelper.ParseDeityType(viewModel.Domain);
+        var strip = ChapterStripRenderer.Draw(drawList,
+            viewModel.X, viewModel.Y, viewModel.Width, scrollY: 0f,
+            title: LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CREATE_TITLE),
+            rightGlyph: selectedDomain);
+        var currentY = strip.BodyY;
+        var contentWidth = strip.ContentWidth;
 
-        // === HEADER ===
-        currentY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_CREATE),
-            formX, currentY, formWidth);
-        currentY += padding;
+        // Centered form column inside the chapter content width.
+        var formX = viewModel.X + (contentWidth - FormWidth) / 2f;
 
-        // === FORM FIELDS ===
-        const float fieldWidth = formWidth;
+        // === PROSE INTRO ===
+        var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CREATE_INTRO);
+        TextRenderer.DrawInfoText(drawList, intro, formX, currentY, FormWidth, Body, ColorPalette.White);
+        currentY += TextRenderer.MeasureWrappedHeight(intro, FormWidth, Body) + 8f;
 
-        // Religion Name
-        currentY = DrawReligionNameGroup(viewModel, drawList, formX, currentY, fieldWidth, events);
+        currentY = DrawDivider(drawList, formX, currentY, FormWidth);
 
-        // Deity Name Input
-        currentY = DrawDeityNameGroup(viewModel, drawList, formX, currentY, fieldWidth, events);
+        // === NAMES ===
+        currentY = DrawReligionNameGroup(viewModel, drawList, formX, currentY, FormWidth, events);
+        currentY = DrawDeityNameGroup(viewModel, drawList, formX, currentY, FormWidth, events);
 
-        // Domain Selection (tab-based approach with icons and tooltips)
-        var hoveredDomainName = DrawDomainGroup(viewModel, drawList, formX, fieldWidth, events, ref currentY);
+        currentY = DrawDivider(drawList, formX, currentY, FormWidth);
 
+        // === DOMAIN ===
+        var hoveredDomainName = DrawDomainGroup(viewModel, drawList, formX, FormWidth, events, ref currentY);
 
-        // Public/Private Toggle
-        var newIsPublic = CheckboxRenderer.DrawCheckbox(
-            drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_PUBLIC_CHECKBOX),
-            formX,
-            currentY,
-            viewModel.IsPublic);
+        currentY = DrawDivider(drawList, formX, currentY, FormWidth);
 
-        // Emit event if public/private changed
+        // === VISIBILITY VOW ===
+        var vowLabel = LocalizationService.Instance.Get(viewModel.IsPublic
+            ? LocalizationKeys.UI_RELIGION_PUBLIC_VOW
+            : LocalizationKeys.UI_RELIGION_PRIVATE_VOW);
+        var newIsPublic = CheckboxRenderer.DrawCheckbox(drawList, vowLabel, formX, currentY, viewModel.IsPublic);
         if (newIsPublic != viewModel.IsPublic)
-        {
             events.Add(new CreateEvent.IsPublicChanged(newIsPublic));
-        }
+        currentY += 32f;
 
-        currentY += 35f;
-
-        // Info text
-        TextRenderer.DrawInfoText(drawList, viewModel.InfoText, formX, currentY, fieldWidth);
-        currentY += 50f;
-
-        // Error message
+        // Error message (if any) before the vow button.
         if (!string.IsNullOrEmpty(viewModel.ErrorMessage))
         {
             TextRenderer.DrawErrorText(drawList, viewModel.ErrorMessage, formX, currentY);
-            currentY += 30f;
+            currentY += 26f;
         }
 
-        // === CREATE BUTTON (centered) ===
-        const float buttonWidth = 160f;
-        const float buttonHeight = 36f;
-        var createButtonX = formX + (formWidth - buttonWidth) / 2;
+        currentY = DrawDivider(drawList, formX, currentY, FormWidth);
 
-        // Draw a Create button
+        // === VOW BUTTON (right-aligned) ===
+        currentY += FooterTopPadding;
+        const float buttonWidth = 220f;
+        const float buttonHeight = 36f;
+        var buttonX = formX + FormWidth - buttonWidth;
+
         if (ButtonRenderer.DrawButton(
                 drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CREATE_BUTTON),
-                createButtonX,
+                buttonX,
                 currentY,
                 buttonWidth,
                 buttonHeight,
@@ -106,9 +106,8 @@ internal static class ReligionCreateRenderer
             events.Add(new CreateEvent.SubmitClicked());
         }
 
-        currentY += buttonHeight;
+        currentY += buttonHeight + 6f;
 
-        // Render domain tooltip if hovering over a domain tab
         if (!string.IsNullOrEmpty(hoveredDomainName))
         {
             var mousePos = ImGui.GetMousePos();
@@ -123,48 +122,99 @@ internal static class ReligionCreateRenderer
         return new ReligionCreateRenderResult(events, currentY - viewModel.Y);
     }
 
-    private static float DrawDeityNameGroup(ReligionCreateViewModel viewModel, ImDrawListPtr drawList, float formX,
-        float currentY, float fieldWidth, List<CreateEvent> events)
+    private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var dividerY = y + DividerYPadding;
+        ChromeRenderer.DrawDivider(drawList, x, dividerY, width);
+        return y + DividerHeight;
+    }
+
+    private static float DrawReligionNameGroup(
+        ReligionCreateViewModel viewModel, ImDrawListPtr drawList,
+        float formX, float currentY, float fieldWidth, List<CreateEvent> events)
+    {
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_LABEL),
+            formX, currentY, SubsectionLabel, ColorPalette.Gold);
+        currentY += SectionLabelHeight;
+
+        var newReligionName = TextInput.Draw(
+            drawList,
+            "##createReligionName",
+            viewModel.ReligionName,
+            formX, currentY, fieldWidth, InputHeight,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_PLACEHOLDER),
+            32);
+
+        if (newReligionName != viewModel.ReligionName)
+            events.Add(new CreateEvent.NameChanged(newReligionName));
+
+        currentY += FieldRowHeight;
+
+        if (!string.IsNullOrWhiteSpace(viewModel.ReligionName))
+        {
+            if (viewModel.ReligionName.Length < 3)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_TOO_SHORT),
+                    formX, currentY);
+                currentY += 25f;
+            }
+            else if (viewModel.ReligionName.Length > 32)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_TOO_LONG),
+                    formX, currentY);
+                currentY += 25f;
+            }
+            else if (viewModel.ReligionNameHasProfanity)
+            {
+                TextRenderer.DrawErrorText(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_PROFANITY,
+                        viewModel.ReligionNameProfanityWord ?? ""), formX, currentY);
+                currentY += 25f;
+            }
+        }
+
+        return currentY;
+    }
+
+    private static float DrawDeityNameGroup(
+        ReligionCreateViewModel viewModel, ImDrawListPtr drawList,
+        float formX, float currentY, float fieldWidth, List<CreateEvent> events)
     {
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_LABEL),
-            formX, currentY);
-        currentY += 25f;
+            formX, currentY, SubsectionLabel, ColorPalette.Gold);
+        currentY += SectionLabelHeight;
 
         var newDeityName = TextInput.Draw(
             drawList,
             "##createDeityName",
             viewModel.DeityName,
-            formX,
-            currentY,
-            fieldWidth,
-            32f,
+            formX, currentY, fieldWidth, InputHeight,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_PLACEHOLDER),
             48);
 
-        // Emit event if deity name changed
         if (newDeityName != viewModel.DeityName)
-        {
             events.Add(new CreateEvent.DeityNameChanged(newDeityName));
-        }
 
-        currentY += 40f;
+        currentY += FieldRowHeight;
 
-        // Deity name validation feedback
         if (!string.IsNullOrWhiteSpace(viewModel.DeityName))
         {
             if (viewModel.DeityName.Length < 2)
             {
                 TextRenderer.DrawErrorText(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_ERROR_TOO_SHORT), formX,
-                    currentY);
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_ERROR_TOO_SHORT),
+                    formX, currentY);
                 currentY += 25f;
             }
             else if (viewModel.DeityName.Length > 48)
             {
                 TextRenderer.DrawErrorText(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_ERROR_TOO_LONG), formX,
-                    currentY);
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DEITY_NAME_ERROR_TOO_LONG),
+                    formX, currentY);
                 currentY += 25f;
             }
             else if (viewModel.DeityNameHasProfanity)
@@ -179,107 +229,72 @@ internal static class ReligionCreateRenderer
         return currentY;
     }
 
-    private static string? DrawDomainGroup(ReligionCreateViewModel viewModel, ImDrawListPtr drawList, float formX,
-        float fieldWidth, List<CreateEvent> events, ref float currentY)
+    private static string? DrawDomainGroup(
+        ReligionCreateViewModel viewModel, ImDrawListPtr drawList,
+        float formX, float fieldWidth, List<CreateEvent> events, ref float currentY)
     {
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_PATRON_HEADING),
-            formX, currentY);
-        currentY += 22f;
-        var explainer = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_PATRON_EXPLAINER);
-        TextRenderer.DrawInfoText(drawList, explainer, formX, currentY, fieldWidth);
-        currentY += TextRenderer.MeasureWrappedHeight(explainer, fieldWidth) + 6f;
+            formX, currentY, SubsectionLabel, ColorPalette.Gold);
+        currentY += SectionLabelHeight + 4f;
 
         var currentDomainIndex = viewModel.GetCurrentDomainIndex();
+        var domains = viewModel.AvailableDomains;
+        var count = domains.Length;
+        if (count == 0) return null;
 
-        // Prepare domain icon names for tabs (lowercase for icon loader)
-        var domainIconNames = viewModel.AvailableDomains
-            .Select(d => d.ToLower())
-            .ToArray();
+        const float buttonHeight = 36f;
+        const float spacing = 6f;
+        var buttonWidth = (fieldWidth - spacing * (count - 1)) / count;
 
-        // Draw domain selection as an icon button group with hover tracking
-        var (newDomainIndex, hoveredIndex) = IconButtonGroup.DrawWithHover(
-            drawList,
-            formX,
-            currentY,
-            fieldWidth,
-            32f,
-            viewModel.AvailableDomains,
-            currentDomainIndex,
-            4f,
-            "deities", // Icon directory
-            domainIconNames);
-
-        // Emit event if domain changed
-        if (newDomainIndex != currentDomainIndex)
-        {
-            var newDomain = viewModel.AvailableDomains[newDomainIndex];
-            events.Add(new CreateEvent.DeityChanged(newDomain));
-        }
-
-        // Track hovered domain for tooltip rendering
         string? hoveredDomainName = null;
-        if (hoveredIndex >= 0 && hoveredIndex < viewModel.AvailableDomains.Length)
+        for (var i = 0; i < count; i++)
         {
-            hoveredDomainName = viewModel.AvailableDomains[hoveredIndex];
+            var bx = formX + i * (buttonWidth + spacing);
+            var domainName = domains[i];
+            var isSelected = i == currentDomainIndex;
+            var (clicked, hovering) = DrawDomainButton(drawList, domainName, bx, currentY, buttonWidth, buttonHeight, isSelected);
+            if (clicked && !isSelected)
+                events.Add(new CreateEvent.DeityChanged(domainName));
+            if (hovering)
+                hoveredDomainName = domainName;
         }
 
-        currentY += 40f;
+        currentY += buttonHeight + 4f;
         return hoveredDomainName;
     }
 
-    private static float DrawReligionNameGroup(ReligionCreateViewModel viewModel, ImDrawListPtr drawList, float formX,
-        float currentY, float fieldWidth, List<CreateEvent> events)
+    private static (bool clicked, bool hovering) DrawDomainButton(
+        ImDrawListPtr drawList, string domainName,
+        float x, float y, float width, float height, bool isSelected)
     {
-        TextRenderer.DrawLabel(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_LABEL),
-            formX, currentY);
-        currentY += 25f;
+        var topLeft = new Vector2(x, y);
+        var bottomRight = new Vector2(x + width, y + height);
 
-        var newReligionName = TextInput.Draw(
-            drawList,
-            "##createReligionName",
-            viewModel.ReligionName,
-            formX,
-            currentY,
-            fieldWidth,
-            32f,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_PLACEHOLDER),
-            32);
+        var mousePos = ImGui.GetMousePos();
+        var hovering = mousePos.X >= x && mousePos.X <= x + width &&
+                       mousePos.Y >= y && mousePos.Y <= y + height;
 
-        // Emit event if name changed
-        if (newReligionName != viewModel.ReligionName)
-        {
-            events.Add(new CreateEvent.NameChanged(newReligionName));
-        }
+        var bgColor = isSelected
+            ? ColorPalette.Gold * 0.4f
+            : hovering
+                ? ColorPalette.LightBrown
+                : ColorPalette.DarkBrown;
+        if (hovering && !isSelected) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
-        currentY += 40f;
+        drawList.AddRectFilled(topLeft, bottomRight, ImGui.ColorConvertFloat4ToU32(bgColor), 4f);
+        drawList.AddRect(topLeft, bottomRight,
+            ImGui.ColorConvertFloat4ToU32(isSelected ? ColorPalette.Gold : ColorPalette.BorderColor),
+            4f, ImDrawFlags.None, 2f);
 
-        // Validation feedback
-        if (!string.IsNullOrWhiteSpace(viewModel.ReligionName))
-        {
-            if (viewModel.ReligionName.Length < 3)
-            {
-                TextRenderer.DrawErrorText(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_TOO_SHORT), formX,
-                    currentY);
-                currentY += 25f;
-            }
-            else if (viewModel.ReligionName.Length > 32)
-            {
-                TextRenderer.DrawErrorText(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_TOO_LONG), formX,
-                    currentY);
-                currentY += 25f;
-            }
-            else if (viewModel.ReligionNameHasProfanity)
-            {
-                TextRenderer.DrawErrorText(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_PROFANITY,
-                        viewModel.ReligionNameProfanityWord ?? ""), formX, currentY);
-                currentY += 25f;
-            }
-        }
+        // Glyph centered in the button — tooltip provides the domain name on hover.
+        var glyphSize = height * 0.7f;
+        var glyphMin = new Vector2(x + (width - glyphSize) / 2f, y + (height - glyphSize) / 2f);
+        var glyphMax = new Vector2(glyphMin.X + glyphSize, glyphMin.Y + glyphSize);
+        var domain = DomainHelper.ParseDeityType(domainName);
+        DomainGlyphRenderer.Draw(drawList, domain, glyphMin, glyphMax, ColorPalette.LightText);
 
-        return currentY;
+        var clicked = hovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
+        return (clicked, hovering);
     }
 }

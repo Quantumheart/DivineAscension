@@ -58,7 +58,9 @@ public static class LocalizationKeys
         "divineascension:ui.religion.deity_name.error.too_short";
 
     public const string UI_RELIGION_DEITY_NAME_ERROR_TOO_LONG = "divineascension:ui.religion.deity_name.error.too_long";
-    public const string UI_RELIGION_PUBLIC_CHECKBOX = "divineascension:ui.religion.public.checkbox";
+    public const string UI_RELIGION_CREATE_INTRO = "divineascension:ui.religion.create.intro";
+    public const string UI_RELIGION_PUBLIC_VOW = "divineascension:ui.religion.public.vow";
+    public const string UI_RELIGION_PRIVATE_VOW = "divineascension:ui.religion.private.vow";
     public const string UI_RELIGION_CREATE_BUTTON = "divineascension:ui.religion.create.button";
 
     #endregion
