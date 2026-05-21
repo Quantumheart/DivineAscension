@@ -26,6 +26,7 @@ internal static class ReligionHeaderRenderer
     private const float Padding = 12f;
     private const float IconSize = 40f;
     private const float ProgressBarHeight = 12f;
+    private const float ProgressBarMaxWidth = 480f;
     private const float RowSpacing = 6f;
     private const float BlockSpacing = 10f;
 
@@ -111,12 +112,16 @@ internal static class ReligionHeaderRenderer
             $"{memberInfo}{roleInfo}");
         cursorY += 18f;
 
+        // Progress bars cap at a comfortable reading width so the label stays
+        // legible on wider content panes.
+        var barWidth = MathF.Min(width, ProgressBarMaxWidth);
+
         // Favor progress
         var favor = vm.PlayerFavorProgress;
         var favorLabel = favor.IsMaxRank
             ? $"{RankRequirements.GetFavorRankName(favor.CurrentRank)} (MAX)"
             : $"{RankRequirements.GetFavorRankName(favor.CurrentRank)} ({favor.CurrentFavor}/{favor.RequiredFavor})";
-        ProgressBarRenderer.DrawProgressBar(drawList, x, cursorY, width, ProgressBarHeight,
+        ProgressBarRenderer.DrawProgressBar(drawList, x, cursorY, barWidth, ProgressBarHeight,
             favor.ProgressPercentage, ColorPalette.Gold, ColorPalette.DarkBrown,
             favorLabel, favor.ProgressPercentage > 0.8f);
         cursorY += ProgressBarHeight + 6f;
@@ -128,7 +133,7 @@ internal static class ReligionHeaderRenderer
         var prestigeLabel = prestige.IsMaxRank
             ? $"{RankRequirements.GetPrestigeRankName(prestige.CurrentRank)} (MAX)"
             : $"{RankRequirements.GetPrestigeRankName(prestige.CurrentRank)} ({prestige.CurrentPrestige}/{prestige.RequiredPrestige})";
-        ProgressBarRenderer.DrawProgressBar(drawList, x, cursorY, width, ProgressBarHeight,
+        ProgressBarRenderer.DrawProgressBar(drawList, x, cursorY, barWidth, ProgressBarHeight,
             prestige.ProgressPercentage, ColorPalette.Lapis,
             ColorPalette.DarkBrown, prestigeLabel, prestige.ProgressPercentage > 0.8f);
         cursorY += ProgressBarHeight + 2f;
