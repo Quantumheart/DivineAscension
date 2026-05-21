@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
@@ -7,7 +8,9 @@ using DivineAscension.GUI.Models.Blessing.Actions;
 using DivineAscension.GUI.Models.Blessing.Info;
 using DivineAscension.GUI.Models.Blessing.Tab;
 using DivineAscension.GUI.Models.Blessing.Tree;
+using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Renderers.Blessing.Info;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
@@ -18,102 +21,143 @@ using static DivineAscension.GUI.UI.Utilities.FontSizes;
 namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
 /// <summary>
-///     I.iii — Vows of the Order. Hosts the religion-side blessing tree
-///     (migrated off III.ii — Blessings, see #336). The page renders as a
-///     single-panel tree with a serif title, prose intro, dotted-leader
-///     cross-domain summary ("sworn"), and the [Swear] unlock action which is
-///     founder-gated on the UI side (server enforces).
+///     I.iii — Vows of the Order, rendered as a scrollable ledger chapter.
+///     Title strip, prose intro, dotted-leader cross-domain summary,
+///     patron sub-heading with prestige balance, deity selector, communal
+///     tree pane, selected-vow detail, founder-gated [Swear] footer.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class BlessingVowsTabRenderer
 {
-    private const float TitleHeight = 28f;
-    private const float IntroHeight = 36f;
-    private const float SummaryRowHeight = 18f;
-    private const float SummaryGap = 14f;
-    private const float PatronHeadingHeight = 22f;
-    private const float StrapSpacing = 8f;
-    private const float DividerHeight = 14f;
     private const float Padding = 16f;
+    private const float SectionLabelHeight = 22f;
+    private const float LeaderRowHeight = 22f;
+    private const float DividerSpacing = 18f;
+    private const float ScrollbarWidth = 14f;
+    private const float TreePaneHeight = 360f;
+    private const float InfoPanelHeight = 220f;
+    private const float ActionButtonHeight = 36f;
 
     internal static BlessingTabRenderResult Draw(BlessingTabViewModel vm)
     {
-        const float infoPanelHeight = 200f;
-        const float actionButtonHeight = 36f;
-        const float actionButtonPadding = 16f;
-
         string? hoveringBlessingId = null;
 
         var drawList = ImGui.GetWindowDrawList();
-        var topY = vm.Y;
+        // Reserve space on the right for the scrollbar so content doesn't slide under it.
+        var contentWidth = vm.Width - ScrollbarWidth - 4f;
 
-        // Title — serif voice ("VOWS OF THE ORDER"). Font swap is unresolved (#336
-        // notes Cinzel is off the table); use the standard PageTitle size here so
-        // the typography PR can wire the chosen serif into one place.
-        DrawCenteredText(drawList,
+        var contentHeight = ComputeContentHeight(vm.DeitySummaries.Count, contentWidth);
+        var maxScroll = MathF.Max(0f, contentHeight - vm.Height);
+
+        // --- Mouse wheel scroll — only when hovering content outside the tree panel
+        //     (tree has its own ImGui child scroll for pan/zoom).
+        var mousePos = ImGui.GetMousePos();
+        var paneHover = mousePos.X >= vm.X && mousePos.X <= vm.X + vm.Width
+                                          && mousePos.Y >= vm.Y && mousePos.Y <= vm.Y + vm.Height;
+        var scrollY = vm.VowsPageScrollY;
+        float? requestedScrollY = null;
+
+        // Approximate tree rect for wheel-exclusion. Real position depends on cumulative
+        // section heights — pre-compute the same way the body does below.
+        var preTreeOffset = HeaderHeight() + IntroHeight(vm, contentWidth) + 8f + DividerSpacing
+                            + SectionLabelHeight + vm.DeitySummaries.Count * LeaderRowHeight + 4f
+                            + DividerSpacing + LeaderRowHeight + 4f
+                            + DeitySelectorRenderer.Height + 6f + DividerSpacing;
+        var treeScreenTop = vm.Y + preTreeOffset - scrollY;
+        var overTree = mousePos.X >= vm.X && mousePos.X <= vm.X + contentWidth
+                                          && mousePos.Y >= treeScreenTop
+                                          && mousePos.Y <= treeScreenTop + TreePaneHeight;
+
+        if (paneHover && !overTree && maxScroll > 0f)
+        {
+            var wheel = ImGui.GetIO().MouseWheel;
+            if (wheel != 0f)
+            {
+                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                if (MathF.Abs(newScrollY - scrollY) > 0.001f)
+                {
+                    scrollY = newScrollY;
+                    requestedScrollY = newScrollY;
+                }
+            }
+        }
+
+        // Clip to pane and offset by scroll for all drawList primitives.
+        drawList.PushClipRect(new Vector2(vm.X, vm.Y),
+            new Vector2(vm.X + vm.Width, vm.Y + vm.Height), true);
+
+        var topY = vm.Y - scrollY;
+
+        // --- Title strip.
+        var rightTitle = string.IsNullOrEmpty(vm.PatronDeityName)
+            ? vm.PatronDomain.ToString()
+            : vm.PatronDeityName!;
+        topY = PaneHeaderRenderer.Draw(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_VOWS_TITLE),
-            vm.X, topY, vm.Width, TitleHeight, PageTitle, ColorPalette.Gold);
-        topY += TitleHeight + 4f;
+            vm.X, topY, contentWidth,
+            iconTextureId: default,
+            rightTitle: rightTitle);
 
-        // Prose intro — wrapped under the title.
-        DrawWrappedText(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_VOWS_INTRO),
-            vm.X + Padding, topY, vm.Width - Padding * 2, Secondary, ColorPalette.White);
-        topY += IntroHeight;
+        // --- Prose intro.
+        var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_VOWS_INTRO);
+        var introWidth = contentWidth - Padding * 2;
+        var introHeight = TextRenderer.MeasureWrappedHeight(intro, introWidth, Secondary);
+        TextRenderer.DrawInfoText(drawList, intro, vm.X + Padding, topY, introWidth, Secondary,
+            ColorPalette.White);
+        topY += introHeight + 8f;
 
-        DrawOrnamentalDivider(drawList, vm.X, topY, vm.Width);
-        topY += DividerHeight;
+        ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
+        topY += DividerSpacing;
 
-        // Across the Domains — dotted-leader rows, religion-only counts.
-        DrawText(drawList,
+        // --- Across the Domains.
+        TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_VOWS_ACROSS_DOMAINS),
-            vm.X + Padding, topY, SectionHeader, ColorPalette.Gold);
-        topY += SectionHeader + 6f;
+            vm.X + Padding, topY, SubsectionLabel, ColorPalette.White);
+        topY += SectionLabelHeight;
 
         foreach (var summary in vm.DeitySummaries)
         {
-            DrawDottedLeaderRow(drawList, vm.X + Padding, topY, vm.Width - Padding * 2, summary);
-            topY += SummaryRowHeight;
+            var sworn = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_VOWS_SWORN_ROW,
+                summary.UnlockedReligion, summary.TotalReligion);
+            ChromeRenderer.DrawLeader(drawList,
+                summary.Domain.ToString(), sworn,
+                vm.X + Padding, topY, contentWidth - Padding * 2,
+                labelColor: summary.IsPatron ? ColorPalette.Gold : ColorPalette.White,
+                valueColor: summary.IsPatron ? ColorPalette.Gold : ColorPalette.White);
+            topY += LeaderRowHeight;
         }
-        topY += SummaryGap;
 
-        DrawOrnamentalDivider(drawList, vm.X, topY, vm.Width);
-        topY += DividerHeight;
+        topY += 4f;
+        ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
+        topY += DividerSpacing;
 
-        // Patron sub-heading + right-aligned prestige balance.
-        var patronName = string.IsNullOrEmpty(vm.PatronDeityName)
-            ? vm.PatronDomain.ToString()
-            : vm.PatronDeityName!;
+        // --- "Of {Patron}" + right-aligned prestige balance.
         var patronHeading = LocalizationService.Instance.Get(
-            LocalizationKeys.UI_BLESSING_VOWS_PATRON_HEADING, patronName);
-        DrawText(drawList, patronHeading, vm.X + Padding, topY, TableHeader, ColorPalette.Gold);
-
+            LocalizationKeys.UI_BLESSING_VOWS_PATRON_HEADING, rightTitle);
         var prestigeBalance = LocalizationService.Instance.Get(
             LocalizationKeys.UI_BLESSING_VOWS_PRESTIGE_BALANCE,
             vm.ReligionPrestige,
             vm.PrestigeNextThreshold > 0 ? vm.PrestigeNextThreshold : vm.ReligionPrestige);
-        DrawRightAlignedText(drawList, prestigeBalance,
-            vm.X + Padding, topY, vm.Width - Padding * 2, TableHeader, ColorPalette.Gold);
-        topY += PatronHeadingHeight + 4f;
+        ChromeRenderer.DrawLeader(drawList, patronHeading, prestigeBalance,
+            vm.X + Padding, topY, contentWidth - Padding * 2,
+            labelColor: ColorPalette.Gold, valueColor: ColorPalette.White);
+        topY += LeaderRowHeight + 4f;
 
-        // Deity sub-index.
-        var requestedDeity = DeitySelectorRenderer.Draw(vm.X + Padding, topY, vm.ActiveDeity, vm.PatronDomain);
-        topY += DeitySelectorRenderer.Height + StrapSpacing;
+        // --- Deity sub-index (selector strip, glyph primitives) — horizontally centered.
+        var stripX = vm.X + (contentWidth - DeitySelectorRenderer.StripWidth) * 0.5f;
+        var requestedDeity = DeitySelectorRenderer.Draw(stripX, topY, vm.ActiveDeity, vm.PatronDomain);
+        topY += DeitySelectorRenderer.Height + 6f;
 
-        DrawOrnamentalDivider(drawList, vm.X, topY, vm.Width);
-        topY += DividerHeight;
+        ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
+        topY += DividerSpacing;
 
-        // Tree pane (single panel, religion-only).
-        var consumedTop = topY - vm.Y;
-        var treeHeight = vm.Height - infoPanelHeight - Padding - consumedTop - DividerHeight - 8f;
-        if (treeHeight < 80f) treeHeight = 80f;
-
+        // --- Tree pane.
         var treeVm = new BlessingTreeViewModel(
             vm.PlayerTreeScrollState,
             vm.ReligionTreeScrollState,
             vm.PlayerBlessingStates,
             vm.ReligionBlessingStates,
-            vm.X, topY, vm.Width, treeHeight,
+            vm.X, topY, contentWidth, TreePaneHeight,
             vm.DeltaTime,
             vm.SelectedBlessingId,
             vm.PlayerFavor,
@@ -125,14 +169,15 @@ internal static class BlessingVowsTabRenderer
             if (ev is TreeEvent.Hovered hovered)
                 hoveringBlessingId = hovered.BlessingId;
 
-        var infoY = topY + treeHeight + 4f;
-        DrawOrnamentalDivider(drawList, vm.X, infoY, vm.Width);
-        infoY += DividerHeight;
+        topY += TreePaneHeight + 6f;
+        ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
+        topY += DividerSpacing;
 
-        // Info pane — heading + reused BlessingInfoRenderer over religion-only states.
-        DrawText(drawList,
+        // --- "Of the Selected Vow" sub-heading + reused info pane.
+        TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_VOWS_SELECTED_HEADING),
-            vm.X + Padding, infoY, TableHeader, ColorPalette.Gold);
+            vm.X + Padding, topY, SubsectionLabel, ColorPalette.White);
+        topY += SectionLabelHeight;
 
         var religionOnlyStates = new Dictionary<string, BlessingNodeState>(vm.ReligionBlessingStates);
         var communalSelected = vm.SelectedBlessingState != null
@@ -143,15 +188,16 @@ internal static class BlessingVowsTabRenderer
         var infoVm = new BlessingInfoViewModel(
             communalSelected,
             religionOnlyStates,
-            vm.X, infoY + TableHeader + 4f,
-            vm.Width, infoPanelHeight - TableHeader - 4f,
+            vm.X, topY,
+            contentWidth, InfoPanelHeight,
             vm.PlayerFavor,
             vm.ReligionPrestige);
         BlessingInfoRenderer.Draw(infoVm);
+        topY += InfoPanelHeight + 10f;
 
-        // Actions — [Swear], founder-gated.
-        var buttonX = vm.X + vm.Width - actionButtonPadding;
-        var buttonY = vm.Y + vm.Height - actionButtonHeight - actionButtonPadding;
+        // --- Footer: [Swear] action, right-aligned, founder-gated server-side.
+        var buttonX = vm.X + contentWidth;
+        var buttonY = topY;
         var actionsVm = new BlessingActionsViewModel(
             communalSelected,
             buttonX, buttonY,
@@ -160,7 +206,18 @@ internal static class BlessingVowsTabRenderer
         );
         var actionsResult = BlessingActionsRenderer.Draw(actionsVm);
 
-        // Hover tooltip — religion-only state.
+        drawList.PopClipRect();
+
+        // --- Scrollbar (outside the clip rect so it always paints).
+        if (maxScroll > 0f)
+        {
+            Scrollbar.Draw(drawList,
+                vm.X + vm.Width - ScrollbarWidth, vm.Y,
+                ScrollbarWidth, vm.Height,
+                scrollY, maxScroll);
+        }
+
+        // --- Hover tooltip — religion-only state.
         if (!string.IsNullOrEmpty(hoveringBlessingId)
             && vm.ReligionBlessingStates.TryGetValue(hoveringBlessingId!, out var hoveringState)
             && hoveringState != null)
@@ -175,8 +232,8 @@ internal static class BlessingVowsTabRenderer
                 allBlessings
             );
 
-            var mousePos = ImGui.GetMousePos();
-            TooltipRenderer.Draw(tooltipData, mousePos.X, mousePos.Y, vm.WindowWidth, vm.WindowHeight);
+            var mp = ImGui.GetMousePos();
+            TooltipRenderer.Draw(tooltipData, mp.X, mp.Y, vm.WindowWidth, vm.WindowHeight);
         }
 
         return new BlessingTabRenderResult(
@@ -184,79 +241,38 @@ internal static class BlessingVowsTabRenderer
             actionsResult.Events,
             hoveringBlessingId,
             vm.Height,
-            requestedDeity);
+            requestedDeity,
+            requestedScrollY);
     }
 
-    private static void DrawCenteredText(ImDrawListPtr drawList, string text,
-        float x, float y, float width, float height, float fontSize, Vector4 color)
+    private static float HeaderHeight() => PaneHeaderRenderer.TotalHeight;
+
+    private static float IntroHeight(BlessingTabViewModel vm, float contentWidth)
     {
-        var size = ImGui.CalcTextSize(text);
-        var pos = new Vector2(x + (width - size.X) / 2f, y + (height - size.Y) / 2f);
-        drawList.AddText(ImGui.GetFont(), fontSize, pos, ImGui.ColorConvertFloat4ToU32(color), text);
+        var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_VOWS_INTRO);
+        return TextRenderer.MeasureWrappedHeight(intro, contentWidth - Padding * 2, Secondary);
     }
 
-    private static void DrawText(ImDrawListPtr drawList, string text, float x, float y,
-        float fontSize, Vector4 color)
+    private static float ComputeContentHeight(int summaryRows, float contentWidth)
     {
-        drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(x, y),
-            ImGui.ColorConvertFloat4ToU32(color), text);
-    }
+        var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_VOWS_INTRO);
+        var introH = TextRenderer.MeasureWrappedHeight(intro, contentWidth - Padding * 2, Secondary);
 
-    private static void DrawRightAlignedText(ImDrawListPtr drawList, string text,
-        float x, float y, float width, float fontSize, Vector4 color)
-    {
-        var size = ImGui.CalcTextSize(text);
-        drawList.AddText(ImGui.GetFont(), fontSize,
-            new Vector2(x + width - size.X, y),
-            ImGui.ColorConvertFloat4ToU32(color), text);
-    }
-
-    private static void DrawWrappedText(ImDrawListPtr drawList, string text,
-        float x, float y, float width, float fontSize, Vector4 color)
-    {
-        // Simple single-line draw with cap to avoid pulling in a wrap helper;
-        // the intro line fits on one row at typical dialog widths. If it
-        // exceeds the width ImGui will clip — acceptable for this MVP page.
-        drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(x, y),
-            ImGui.ColorConvertFloat4ToU32(color), text);
-    }
-
-    private static void DrawOrnamentalDivider(ImDrawListPtr drawList, float x, float y, float width)
-    {
-        var color = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.Gold, 0.5f));
-        var glyph = "─── ✦ ─── ✦ ─── ✦ ───";
-        var size = ImGui.CalcTextSize(glyph);
-        var pos = new Vector2(x + (width - size.X) / 2f, y + 2f);
-        drawList.AddText(ImGui.GetFont(), Secondary, pos, color, glyph);
-    }
-
-    private static void DrawDottedLeaderRow(ImDrawListPtr drawList,
-        float x, float y, float width, DeityBlessingSummary summary)
-    {
-        var domainLabel = summary.Domain.ToString();
-        var rightText = LocalizationService.Instance.Get(
-            LocalizationKeys.UI_BLESSING_VOWS_SWORN_ROW,
-            summary.UnlockedReligion,
-            summary.TotalReligion);
-        var textColor = ImGui.ColorConvertFloat4ToU32(
-            summary.IsPatron ? ColorPalette.Gold : ColorPalette.White);
-
-        var leftSize = ImGui.CalcTextSize(domainLabel);
-        var rightSize = ImGui.CalcTextSize(rightText);
-        drawList.AddText(ImGui.GetFont(), Body, new Vector2(x, y), textColor, domainLabel);
-        drawList.AddText(ImGui.GetFont(), Body,
-            new Vector2(x + width - rightSize.X, y), textColor, rightText);
-
-        // Dotted leader between the two ends. Iron Gall secondary ink so the
-        // dots read as page-marginalia rather than ornament (palette §2).
-        var dotsStart = x + leftSize.X + 8f;
-        var dotsEnd = x + width - rightSize.X - 8f;
-        if (dotsEnd > dotsStart)
-        {
-            var dotColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-            const float dotSpacing = 6f;
-            for (var dx = dotsStart; dx < dotsEnd; dx += dotSpacing)
-                drawList.AddCircleFilled(new Vector2(dx, y + Body / 2f), 1.0f, dotColor, 6);
-        }
+        var h = 0f;
+        h += PaneHeaderRenderer.TotalHeight;
+        h += introH + 8f;
+        h += DividerSpacing;
+        h += SectionLabelHeight;
+        h += summaryRows * LeaderRowHeight;
+        h += 4f + DividerSpacing;
+        h += LeaderRowHeight + 4f;
+        h += DeitySelectorRenderer.Height + 6f;
+        h += DividerSpacing;
+        h += TreePaneHeight + 6f;
+        h += DividerSpacing;
+        h += SectionLabelHeight;
+        h += InfoPanelHeight + 10f;
+        h += ActionButtonHeight + 8f;
+        return h;
     }
 }

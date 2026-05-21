@@ -133,7 +133,8 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             summaries,
             prestigeNextThreshold,
             patronDeityName,
-            isReligionFounder
+            isReligionFounder,
+            State.VowsPageScrollY
         );
 
         var result = BlessingVowsTabRenderer.Draw(vm);
@@ -144,6 +145,9 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     internal void ProcessBlessingTabEvents(BlessingTabRenderResult result)
     {
         State.TreeState.HoveringBlessingId = result.HoveringBlessingId;
+
+        if (result.RequestedVowsScrollY is { } scrollY)
+            State.VowsPageScrollY = scrollY;
 
         if (result.RequestedActiveDeity is { } newActive && newActive != State.ActiveDeity)
         {

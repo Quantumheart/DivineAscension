@@ -1,6 +1,6 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
 using ImGuiNET;
@@ -20,6 +20,8 @@ internal static class DeitySelectorRenderer
     private const float PatronBorderThickness = 2.5f;
     private const float ActiveBorderThickness = 2f;
     public const float Height = TabSize + 4f;
+    public const int TabCount = 5;
+    public const float StripWidth = TabCount * TabSize + (TabCount - 1) * TabSpacing;
 
     private static readonly DeityDomain[] Order =
     {
@@ -53,22 +55,10 @@ internal static class DeitySelectorRenderer
                 hovered ? ColorPalette.LightBrown : ColorPalette.DarkBrown);
             drawList.AddRectFilled(min, max, bgColor, 4f);
 
-            var textureId = DeityIconLoader.GetDeityTextureId(domain);
-            if (textureId != IntPtr.Zero)
-            {
-                const float pad = 6f;
-                var imgMin = new Vector2(min.X + pad, min.Y + pad);
-                var imgMax = new Vector2(max.X - pad, max.Y - pad);
-                drawList.AddImage(textureId, imgMin, imgMax,
-                    Vector2.Zero, Vector2.One,
-                    ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)));
-            }
-            else
-            {
-                var center = new Vector2((min.X + max.X) / 2f, (min.Y + max.Y) / 2f);
-                var fallback = ImGui.ColorConvertFloat4ToU32(DomainHelper.GetDeityColor(domain));
-                drawList.AddCircleFilled(center, TabSize / 3f, fallback, 16);
-            }
+            const float pad = 10f;
+            var glyphMin = new Vector2(min.X + pad, min.Y + pad);
+            var glyphMax = new Vector2(max.X - pad, max.Y - pad);
+            DomainGlyphRenderer.Draw(drawList, domain, glyphMin, glyphMax, ColorPalette.LightText);
 
             if (isPatron)
             {
