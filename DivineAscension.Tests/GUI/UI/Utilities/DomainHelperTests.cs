@@ -29,11 +29,11 @@ public class DomainHelperTests
     #region GetDeityColor (string) Tests
 
     [Theory]
-    [InlineData("Craft", 0.8f, 0.2f, 0.2f)] // Red - Forge & Craft
-    [InlineData("Wild", 0.4f, 0.8f, 0.3f)] // Green - Hunt & Wild
-    [InlineData("Conquest", 0.6f, 0.1f, 0.3f)] // Crimson - Domination & Victory
-    [InlineData("Harvest", 0.9f, 0.9f, 0.6f)] // Light yellow - Agriculture & Light
-    [InlineData("Stone", 0.5f, 0.4f, 0.2f)] // Brown - Earth & Stone
+    [InlineData("Craft", 0.698f, 0.416f, 0.165f)] // #B26A2A copper — Forge & Craft
+    [InlineData("Wild", 0.361f, 0.431f, 0.165f)] // #5C6E2A olive — Hunt & Wild
+    [InlineData("Conquest", 0.557f, 0.180f, 0.122f)] // #8E2E1F dried-blood red — Domination & Victory
+    [InlineData("Harvest", 0.627f, 0.463f, 0.157f)] // #A07628 wheat ochre — Agriculture & Light
+    [InlineData("Stone", 0.369f, 0.329f, 0.282f)] // #5E5448 warm slate — Earth & Stone
     public void GetDeityColor_String_ReturnsCorrectColor(string domain, float r, float g, float b)
     {
         // Act
@@ -47,15 +47,15 @@ public class DomainHelperTests
     }
 
     [Fact]
-    public void GetDeityColor_String_UnknownDomain_ReturnsGrey()
+    public void GetDeityColor_String_UnknownDomain_ReturnsFadedInk()
     {
         // Act
         var color = DomainHelper.GetDeityColor("UnknownDomain");
 
-        // Assert
-        Assert.Equal(0.5f, color.X);
-        Assert.Equal(0.5f, color.Y);
-        Assert.Equal(0.5f, color.Z);
+        // Assert — #A89472 faded ink
+        Assert.Equal(0.659f, color.X);
+        Assert.Equal(0.580f, color.Y);
+        Assert.Equal(0.447f, color.Z);
         Assert.Equal(1.0f, color.W);
     }
 
@@ -64,11 +64,11 @@ public class DomainHelperTests
     #region GetDeityColor (DeityDomain) Tests
 
     [Theory]
-    [InlineData(DeityDomain.Craft, 0.8f, 0.2f, 0.2f)]
-    [InlineData(DeityDomain.Wild, 0.4f, 0.8f, 0.3f)]
-    [InlineData(DeityDomain.Conquest, 0.6f, 0.1f, 0.3f)]
-    [InlineData(DeityDomain.Harvest, 0.9f, 0.9f, 0.6f)]
-    [InlineData(DeityDomain.Stone, 0.5f, 0.4f, 0.2f)]
+    [InlineData(DeityDomain.Craft, 0.698f, 0.416f, 0.165f)]
+    [InlineData(DeityDomain.Wild, 0.361f, 0.431f, 0.165f)]
+    [InlineData(DeityDomain.Conquest, 0.557f, 0.180f, 0.122f)]
+    [InlineData(DeityDomain.Harvest, 0.627f, 0.463f, 0.157f)]
+    [InlineData(DeityDomain.Stone, 0.369f, 0.329f, 0.282f)]
     public void GetDeityColor_Enum_ReturnsCorrectColor(DeityDomain deity, float r, float g, float b)
     {
         // Act
@@ -82,15 +82,15 @@ public class DomainHelperTests
     }
 
     [Fact]
-    public void GetDeityColor_Enum_NoneType_ReturnsGrey()
+    public void GetDeityColor_Enum_NoneType_ReturnsFadedInk()
     {
         // Act
         var color = DomainHelper.GetDeityColor(DeityDomain.None);
 
-        // Assert
-        Assert.Equal(0.5f, color.X);
-        Assert.Equal(0.5f, color.Y);
-        Assert.Equal(0.5f, color.Z);
+        // Assert — #A89472 faded ink
+        Assert.Equal(0.659f, color.X);
+        Assert.Equal(0.580f, color.Y);
+        Assert.Equal(0.447f, color.Z);
         Assert.Equal(1.0f, color.W);
     }
 

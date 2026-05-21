@@ -53,12 +53,12 @@ internal static class ErrorBannerRenderer
         var iconCenter = new Vector2(x + 16f, y + height / 2f);
         drawList.AddCircleFilled(iconCenter, 10f, ImGui.ColorConvertFloat4ToU32(ColorPalette.Red * 0.8f));
         var exPos = new Vector2(iconCenter.X - 3.5f, iconCenter.Y - 7f);
-        drawList.AddText(exPos, ImGui.ColorConvertFloat4ToU32(ColorPalette.White), "!");
+        drawList.AddText(exPos, ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText), "!");
 
         // Message text
         var textX = x + 36f;
         var textY = y + (height - ImGui.CalcTextSize(message).Y) / 2f;
-        drawList.AddText(new Vector2(textX, textY), ImGui.ColorConvertFloat4ToU32(ColorPalette.White), message);
+        drawList.AddText(new Vector2(textX, textY), ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText), message);
 
         // Action buttons on the right
         var btnW = 86f;

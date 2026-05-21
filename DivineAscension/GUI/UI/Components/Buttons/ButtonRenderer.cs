@@ -109,7 +109,7 @@ internal static class ButtonRenderer
             }
 
             var textPos = new Vector2(textX, y + (height - textSize.Y) / 2);
-            var textColor = ImGui.ColorConvertFloat4ToU32(enabled ? ColorPalette.White : ColorPalette.Grey * 0.7f);
+            var textColor = ImGui.ColorConvertFloat4ToU32(enabled ? ColorPalette.LightText : ColorPalette.DisabledGray);
             drawList.AddText(textPos, textColor, text);
         }
 
@@ -137,7 +137,7 @@ internal static class ButtonRenderer
         var bgColorU32 = ImGui.ColorConvertFloat4ToU32(bgColor);
         drawList.AddRectFilled(buttonStart, buttonEnd, bgColorU32, 4f);
 
-        var xColor = ImGui.ColorConvertFloat4ToU32(isHovering ? ColorPalette.White : ColorPalette.Grey);
+        var xColor = ImGui.ColorConvertFloat4ToU32(isHovering ? ColorPalette.LightText : ColorPalette.DisabledGray);
         var xPadding = size * 0.25f;
         drawList.AddLine(new Vector2(x + xPadding, y + xPadding),
             new Vector2(x + size - xPadding, y + size - xPadding), xColor, 2f);
@@ -187,7 +187,7 @@ internal static class ButtonRenderer
 
         var textSize = ImGui.CalcTextSize(text);
         var textPos = new Vector2(x + (width - textSize.X) / 2, y + (height - textSize.Y) / 2);
-        var textColor = ImGui.ColorConvertFloat4ToU32(isHovering ? ColorPalette.White : ColorPalette.Grey);
+        var textColor = ImGui.ColorConvertFloat4ToU32(isHovering ? ColorPalette.LightText : ColorPalette.DisabledGray);
         drawList.AddText(textPos, textColor, text);
 
         if (isHovering) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
@@ -270,7 +270,7 @@ internal static class ButtonRenderer
 
         var textSize = ImGui.CalcTextSize(icon);
         var textPos = new Vector2(x + (width - textSize.X) / 2, y + (height - textSize.Y) / 2);
-        var textColor = ImGui.ColorConvertFloat4ToU32(enabled ? ColorPalette.White : ColorPalette.Grey * 0.5f);
+        var textColor = ImGui.ColorConvertFloat4ToU32(enabled ? ColorPalette.LightText : ColorPalette.DisabledGray);
         drawList.AddText(textPos, textColor, icon);
 
         return enabled && isHovering && ImGui.IsMouseReleased(ImGuiMouseButton.Left);

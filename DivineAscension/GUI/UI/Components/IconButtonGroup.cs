@@ -122,7 +122,7 @@ public static class IconButtonGroup
         }
 
         var textPos = new Vector2(textX, y + (height - textSize.Y) / 2);
-        var textColor = ImGui.ColorConvertFloat4ToU32(isSelected ? ColorPalette.White : ColorPalette.Grey);
+        var textColor = ImGui.ColorConvertFloat4ToU32(isSelected ? ColorPalette.LightText : ColorPalette.MutedText);
         drawList.AddText(textPos, textColor, text);
 
         var clicked = !isSelected && isHovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left);

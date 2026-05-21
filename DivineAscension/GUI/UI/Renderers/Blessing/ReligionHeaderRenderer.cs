@@ -121,13 +121,15 @@ internal static class ReligionHeaderRenderer
             favorLabel, favor.ProgressPercentage > 0.8f);
         cursorY += ProgressBarHeight + 6f;
 
-        // Prestige progress
+        // Prestige progress — lapis bar so prestige reads as the "second ink"
+        // alongside the gold favor bar (gold leaf + lapis blue = the classic
+        // two-accent system in real illuminated manuscripts).
         var prestige = vm.ReligionPrestigeProgress;
         var prestigeLabel = prestige.IsMaxRank
             ? $"{RankRequirements.GetPrestigeRankName(prestige.CurrentRank)} (MAX)"
             : $"{RankRequirements.GetPrestigeRankName(prestige.CurrentRank)} ({prestige.CurrentPrestige}/{prestige.RequiredPrestige})";
         ProgressBarRenderer.DrawProgressBar(drawList, x, cursorY, width, ProgressBarHeight,
-            prestige.ProgressPercentage, new Vector4(0.48f, 0.41f, 0.93f, 1f),
+            prestige.ProgressPercentage, ColorPalette.Lapis,
             ColorPalette.DarkBrown, prestigeLabel, prestige.ProgressPercentage > 0.8f);
         cursorY += ProgressBarHeight + 2f;
 
@@ -167,8 +169,10 @@ internal static class ReligionHeaderRenderer
         var civName = vm.CurrentCivilizationName
             ?? LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNKNOWN_CIVILIZATION);
         var rankName = RankRequirements.GetCivilizationRankName(vm.CivilizationRank);
+        // Civilization name in lapis — the second accent ink. Pairs with the
+        // gold-leaf religion name above to give the rail a clear two-ink hierarchy.
         drawList.AddText(ImGui.GetFont(), SectionHeader, new Vector2(textX, y),
-            ImGui.ColorConvertFloat4ToU32(new Vector4(0.5f, 0.8f, 1f, 1f)), civName);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Lapis), civName);
         drawList.AddText(ImGui.GetFont(), Body, new Vector2(textX, y + 22f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.8f), $"[{rankName}]");
 
@@ -203,8 +207,10 @@ internal static class ReligionHeaderRenderer
 
         if (vm.IsCivilizationFounder)
         {
+            // Founder rubric — vermilion ink, the historical "rubrum" used to
+            // mark titles and people of rank. TODO: localize this label.
             drawList.AddText(ImGui.GetFont(), Secondary, new Vector2(x, cursorY),
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), "*** Founder ***");
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Vermilion), "Founder");
             cursorY += 18f;
         }
 

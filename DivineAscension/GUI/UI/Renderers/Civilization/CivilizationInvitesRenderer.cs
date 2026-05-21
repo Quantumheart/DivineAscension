@@ -83,14 +83,15 @@ internal static class CivilizationInvitesRenderer
         drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width, y + height),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown), 4f);
 
+        // Card body is dark sepia, so all text inside is light cream.
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_CARD_TITLE), x + 12f, y + 8f,
-            TableHeader);
+            TableHeader, ColorPalette.LightText);
         drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x + 14f, y + 30f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.MutedText),
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_CARD_FROM, invite.ReligionName));
         drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x + 14f, y + 48f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.MutedText),
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_CARD_EXPIRES,
                 invite.ExpiresAt.ToString("yyyy-MM-dd HH:mm")));
 

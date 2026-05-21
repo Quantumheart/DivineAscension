@@ -132,8 +132,8 @@ internal static class TitleStripRenderer
         // Right-align against the close button.
         var textX = rightBoundary - combinedSize.X;
 
-        var whiteColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
-        var greyColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
+        var whiteColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText);
+        var greyColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.MutedText);
 
         if (!string.IsNullOrEmpty(deityFits))
         {

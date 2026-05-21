@@ -155,8 +155,8 @@ internal static class ReligionRolesBrowseRenderer
         var contentX = x + padding;
         var contentWidth = width - padding * 2;
 
-        // Role name header
-        var roleNameColor = role.IsProtected ? ColorPalette.Gold : ColorPalette.White;
+        // Role name header — card body is dark sepia, so use LightText for legibility.
+        var roleNameColor = role.IsProtected ? ColorPalette.Gold : ColorPalette.LightText;
         TextRenderer.DrawLabel(drawList, role.RoleName, contentX, currentY, SubsectionLabel, roleNameColor);
 
         // Member count badge
@@ -172,7 +172,7 @@ internal static class ReligionRolesBrowseRenderer
         var badgeRectEnd = new Vector2(badgeX + badgeSize.X + 4f, badgeY + badgeSize.Y + 2f);
         drawList.AddRectFilled(badgeRect, badgeRectEnd, ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown * 0.5f),
             2f);
-        drawList.AddText(new Vector2(badgeX, badgeY), ImGui.ColorConvertFloat4ToU32(ColorPalette.White), badge);
+        drawList.AddText(new Vector2(badgeX, badgeY), ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText), badge);
 
         currentY += 24f;
 
@@ -283,10 +283,10 @@ internal static class ReligionRolesBrowseRenderer
             currentY, 15f, ColorPalette.Gold);
         currentY += 30f;
 
-        // Role name input
+        // Role name input — dialog body is dark sepia, label needs LightText.
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_NAME_LABEL), dlgX + padding, currentY,
-            Body, ColorPalette.White);
+            Body, ColorPalette.LightText);
         currentY += 20f;
 
         // Actual text input using ImGui
@@ -373,7 +373,7 @@ internal static class ReligionRolesBrowseRenderer
         {
             TextRenderer.DrawLabel(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_NAME_LABEL), dlgX + padding,
-                currentY, Body, ColorPalette.White);
+                currentY, Body, ColorPalette.LightText);
             currentY += 20f;
 
             var inputX = dlgX + padding;
@@ -425,9 +425,9 @@ internal static class ReligionRolesBrowseRenderer
             if (isHovering && ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                 events.Add(new RolesBrowseEvent.EditRolePermissionToggled(perm, !isEnabled));
 
-            // Label
+            // Label — checkbox row sits on dark dialog body, so use LightText.
             drawList.AddText(new Vector2(checkboxX + checkboxSize + 8f, currentY),
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.White), displayName);
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText), displayName);
 
             currentY += 22f;
         }

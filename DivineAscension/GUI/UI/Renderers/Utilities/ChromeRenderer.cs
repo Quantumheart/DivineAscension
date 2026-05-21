@@ -29,7 +29,7 @@ internal static class ChromeRenderer
     {
         ImGui.PushStyleColor(ImGuiCol.PopupBg, ColorPalette.DarkBrown);
         ImGui.PushStyleColor(ImGuiCol.Border, ColorPalette.Gold * 0.6f);
-        ImGui.PushStyleColor(ImGuiCol.Text, ColorPalette.White);
+        ImGui.PushStyleColor(ImGuiCol.Text, ColorPalette.LightText);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 2f);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 4f);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10f, 6f));
