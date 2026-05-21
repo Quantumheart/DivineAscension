@@ -160,14 +160,18 @@ internal static class ReligionHeaderRenderer
         }
 
         var iconPos = new Vector2(x, y);
+        var iconMax = new Vector2(iconPos.X + IconSize, iconPos.Y + IconSize);
         var civTexture = CivilizationIconLoader.GetIconTextureId(vm.CivilizationIcon ?? "default");
-        drawList.AddImage(civTexture, iconPos,
-            new Vector2(iconPos.X + IconSize, iconPos.Y + IconSize),
+        // Lapis-tinted backing tile + matching border to mirror the religion
+        // deity-tile pattern above. Lapis is the civilization accent ink —
+        // pairs with the civ name rendered below.
+        drawList.AddRectFilled(iconPos, iconMax,
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Lapis * 0.8f), 4f);
+        drawList.AddImage(civTexture, iconPos, iconMax,
             Vector2.Zero, Vector2.One,
             ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)));
-        drawList.AddRect(iconPos,
-            new Vector2(iconPos.X + IconSize, iconPos.Y + IconSize),
-            ImGui.ColorConvertFloat4ToU32(new Vector4(0.8f, 0.8f, 0.8f, 1f)),
+        drawList.AddRect(iconPos, iconMax,
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Lapis * 0.8f),
             4f, ImDrawFlags.None, 2f);
 
         var textX = x + IconSize + 8f;
