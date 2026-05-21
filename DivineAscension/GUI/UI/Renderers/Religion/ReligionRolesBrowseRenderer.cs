@@ -97,7 +97,7 @@ internal static class ReligionRolesBrowseRenderer
 
         // Header
         currentY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_TITLE),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_ROLES),
             x, currentY, width - ScrollbarWidth);
 
         // Create Role button (if player can manage roles)

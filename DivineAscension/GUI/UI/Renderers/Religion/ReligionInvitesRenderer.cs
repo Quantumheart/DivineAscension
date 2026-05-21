@@ -34,7 +34,7 @@ internal static class ReligionInvitesRenderer
 
         // === HEADER ===
         currentY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_TITLE),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_INVITES),
             viewModel.X, currentY, viewModel.Width);
 
         // === HELP TEXT ===
