@@ -33,7 +33,7 @@ internal static class BlessingVowsTabRenderer
     private const float SectionLabelHeight = 22f;
     private const float LeaderRowHeight = 22f;
     private const float DividerSpacing = 18f;
-    private const float ScrollbarWidth = 14f;
+    private const float ScrollbarWidth = 16f;
     private const float TreePaneHeight = 360f;
     private const float InfoPanelHeight = 220f;
     private const float ActionButtonHeight = 36f;
@@ -43,8 +43,9 @@ internal static class BlessingVowsTabRenderer
         string? hoveringBlessingId = null;
 
         var drawList = ImGui.GetWindowDrawList();
-        // Reserve space on the right for the scrollbar so content doesn't slide under it.
-        var contentWidth = vm.Width - ScrollbarWidth - 4f;
+        // Reserve scrollbar gutter (shared with sibling chapter pages) so
+        // every divider, leader row, and ornament lines up cross-pane.
+        var contentWidth = vm.Width - ChapterStripRenderer.ScrollbarGutter;
 
         var contentHeight = ComputeContentHeight(vm.DeitySummaries.Count, contentWidth);
         var maxScroll = MathF.Max(0f, contentHeight - vm.Height);
@@ -86,17 +87,14 @@ internal static class BlessingVowsTabRenderer
         drawList.PushClipRect(new Vector2(vm.X, vm.Y),
             new Vector2(vm.X + vm.Width, vm.Y + vm.Height), true);
 
-        var topY = vm.Y - scrollY;
-
-        // --- Title strip.
+        // --- Title strip (shared chapter chrome).
         var rightTitle = string.IsNullOrEmpty(vm.PatronDeityName)
             ? vm.PatronDomain.ToString()
             : vm.PatronDeityName!;
-        topY = PaneHeaderRenderer.Draw(drawList,
+        var strip = ChapterStripRenderer.Draw(drawList, vm.X, vm.Y, vm.Width, scrollY,
             LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_VOWS_TITLE),
-            vm.X, topY, contentWidth,
-            iconTextureId: default,
             rightTitle: rightTitle);
+        var topY = strip.BodyY;
 
         // --- Prose intro.
         var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_VOWS_INTRO);
@@ -245,7 +243,8 @@ internal static class BlessingVowsTabRenderer
             requestedScrollY);
     }
 
-    private static float HeaderHeight() => PaneHeaderRenderer.TotalHeight;
+    private static float HeaderHeight() =>
+        ChapterStripRenderer.TopPadding + PaneHeaderRenderer.TotalHeight;
 
     private static float IntroHeight(BlessingTabViewModel vm, float contentWidth)
     {

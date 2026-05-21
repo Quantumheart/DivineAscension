@@ -28,7 +28,6 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 [ExcludeFromCodeCoverage]
 internal static class ReligionInfoRenderer
 {
-    private const float TopPadding = 8f;
     private const float DividerHeight = 18f;
     private const float DividerYPadding = 6f;
     private const float SectionLabelHeight = 22f;
@@ -83,26 +82,37 @@ internal static class ReligionInfoRenderer
         }
 
         drawList.PushClipRect(new Vector2(x, y), new Vector2(x + width, y + height), true);
-        var currentY = y + TopPadding - scrollY;
 
-        // === HEADER, INTRO, STAT BLOCK ===
-        currentY = ReligionInfoHeaderRenderer.Draw(viewModel, drawList, x, currentY, width, events);
+        // === SHARED CHAPTER STRIP ===
+        var deityDomain = DomainHelper.ParseDeityType(viewModel.Deity);
+        var strip = ChapterStripRenderer.Draw(drawList, x, y, width, scrollY,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_INFO),
+            rightTitle: viewModel.ReligionName,
+            rightGlyph: deityDomain,
+            showPencil: viewModel.IsFounder && !viewModel.IsEditingDeityName);
+        if (strip.PencilClicked)
+            events.Add(new InfoEvent.EditDeityNameOpen());
+        var contentWidth = strip.ContentWidth;
+        var currentY = strip.BodyY;
 
-        currentY = DrawDivider(drawList, x, currentY, width);
+        // === PROSE INTRO + STAT BLOCK ===
+        currentY = ReligionInfoHeaderRenderer.Draw(viewModel, drawList, x, currentY, contentWidth, events);
+
+        currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
         // === OF THE ORDER'S PURPOSE ===
-        currentY = ReligionInfoDescriptionRenderer.Draw(viewModel, drawList, x, currentY, width, events);
+        currentY = ReligionInfoDescriptionRenderer.Draw(viewModel, drawList, x, currentY, contentWidth, events);
 
         // === STRICKEN FROM THE LEDGER (founder-only) ===
         if (viewModel.IsFounder)
         {
-            currentY = DrawDivider(drawList, x, currentY, width);
-            currentY = DrawStrickenSection(viewModel, drawList, x, currentY, width, events);
+            currentY = DrawDivider(drawList, x, currentY, contentWidth);
+            currentY = DrawStrickenSection(viewModel, drawList, x, currentY, contentWidth, events);
         }
 
         // === FOOTER ACTIONS ===
         currentY += FooterTopPadding;
-        currentY = ReligionInfoActionsRenderer.Draw(viewModel, drawList, x, currentY, width, events);
+        currentY = ReligionInfoActionsRenderer.Draw(viewModel, drawList, x, currentY, contentWidth, events);
 
         drawList.PopClipRect();
 
