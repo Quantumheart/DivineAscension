@@ -47,11 +47,6 @@ public class GuiDialogState
     public string? PreviousPrestigeRank { get; set; }
 
     /// <summary>
-    ///     State for the rank progress HUD overlay
-    /// </summary>
-    public RankProgressHudState HudState { get; set; } = new();
-
-    /// <summary>
     ///     Sidebar nav state (Phase 1 scaffold; wired in Phase 3).
     /// </summary>
     public SidebarState Sidebar { get; } = new();
@@ -74,7 +69,6 @@ public class GuiDialogState
         WindowWidth = 0f;
         WindowHeight = 0f;
         NotificationState?.Reset();
-        HudState.Reset();
         Sidebar.Reset();
         RightRail.Reset();
     }

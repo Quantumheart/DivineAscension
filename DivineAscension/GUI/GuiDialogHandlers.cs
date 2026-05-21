@@ -143,9 +143,6 @@ public partial class GuiDialog
         _state.IsReady = true;
         _logger?.Notification(
             $"[DivineAscension] Loaded {playerBlessings.Count} player + {religionBlessings.Count} religion blessings across all five deities; active={patron}");
-
-        // Ensure HUD is visible now that we have religion data
-        EnsureHudVisible();
     }
 
     /// <summary>
@@ -224,15 +221,6 @@ public partial class GuiDialog
             Open();
         }
 
-        return true;
-    }
-
-    /// <summary>
-    ///     Keybind handler - toggle HUD collapse-to-patron view
-    /// </summary>
-    private bool OnToggleHudCollapse(KeyCombination keyCombination)
-    {
-        _state.HudState.CollapsedToPatron = !_state.HudState.CollapsedToPatron;
         return true;
     }
 
@@ -558,9 +546,6 @@ public partial class GuiDialog
                 BuildFavorRanksByDeity(),
                 _manager.ReligionStateManager.CurrentPrestigeRank,
                 _manager.ReligionStateManager.CurrentReligionDomain);
-
-        // Ensure HUD is visible when player has religion data
-        EnsureHudVisible();
     }
 
     /// <summary>
