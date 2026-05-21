@@ -23,6 +23,7 @@ public static class LocalizationKeys
     public const string UI_TAB_RELIGION = "divineascension:ui.tab.religion";
     public const string UI_TAB_BLESSINGS = "divineascension:ui.tab.blessings";
     public const string UI_TAB_CIVILIZATION = "divineascension:ui.tab.civilization";
+    public const string UI_TAB_PLAYER_INFO = "divineascension:ui.tab.playerinfo";
 
     #endregion
 

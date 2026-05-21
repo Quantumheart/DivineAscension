@@ -14,6 +14,7 @@ public enum SidebarNavId
     ReligionInvites,
     ReligionCreate,
     ReligionBrowse,
+    PlayerInfo,
     Blessings,
     CivilizationInfo,
     CivilizationInvites,

@@ -2,14 +2,18 @@ using System.Collections.Generic;
 using DivineAscension.GUI.Models.Religion.Header;
 using DivineAscension.GUI.State;
 
-namespace DivineAscension.GUI.UI.Renderers.RightRail;
+namespace DivineAscension.GUI.Models.PlayerInfo;
 
 /// <summary>
-///     Right-rail composition: religion + civilization status (via
+///     "You" content page composition: religion + civilization status (via
 ///     <see cref="ReligionHeaderViewModel" />) plus the notification feed.
 /// </summary>
-public sealed record RightRailViewModel(
+public sealed record PlayerInfoViewModel(
     ReligionHeaderViewModel Header,
     IReadOnlyList<NotificationHistoryEntry> Notifications,
-    bool ShowUnreadOnly
+    bool ShowUnreadOnly,
+    float X,
+    float Y,
+    float Width,
+    float Height
 );

@@ -57,9 +57,10 @@ public class GuiDialogState
     public SidebarState Sidebar { get; } = new();
 
     /// <summary>
-    ///     Right-rail state (Phase 1 scaffold; wired in Phase 3).
+    ///     "You" content page state — notification feed scroll + unread-only
+    ///     filter toggle. Previously lived as the right rail.
     /// </summary>
-    public RightRailState RightRail { get; } = new();
+    public PlayerInfoState PlayerInfo { get; } = new();
 
     /// <summary>
     ///     Initialize/reset all state to defaults
@@ -76,6 +77,6 @@ public class GuiDialogState
         NotificationState?.Reset();
         HudState.Reset();
         Sidebar.Reset();
-        RightRail.Reset();
+        PlayerInfo.Reset();
     }
 }
