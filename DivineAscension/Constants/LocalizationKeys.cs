@@ -175,6 +175,11 @@ public static class LocalizationKeys
     public const string UI_RELIGION_ACTIVITY_EMPTY = "divineascension:ui.religion.activity.empty";
     public const string UI_RELIGION_ACTIVITY_ERROR = "divineascension:ui.religion.activity.error";
     public const string UI_RELIGION_ACTIVITY_REFRESH = "divineascension:ui.religion.activity.refresh";
+    public const string UI_RELIGION_ACTIVITY_INTRO = "divineascension:ui.religion.activity.intro";
+    public const string UI_RELIGION_ACTIVITY_DAY_TODAY = "divineascension:ui.religion.activity.day.today";
+    public const string UI_RELIGION_ACTIVITY_DAY_YESTERDAY = "divineascension:ui.religion.activity.day.yesterday";
+    public const string UI_RELIGION_ACTIVITY_ENTRY_LINE = "divineascension:ui.religion.activity.entry.line";
+    public const string UI_RELIGION_ACTIVITY_FOOTER_CLOSING = "divineascension:ui.religion.activity.footer.closing";
 
     #endregion
 

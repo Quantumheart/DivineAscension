@@ -201,6 +201,48 @@ internal static class ChromeRenderer
     }
 
     /// <summary>
+    ///     Paint a refresh arrow glyph (↻ U+21BB) as primitives so it renders
+    ///     without Arrows-block coverage in the loaded font. Three-quarter
+    ///     circular arc opening toward the upper-right with a small triangular
+    ///     arrowhead at the end of the arc.
+    /// </summary>
+    public static void DrawRefreshArrow(ImDrawListPtr drawList, float cx, float cy, float size,
+        Vector4? colorOverride = null)
+    {
+        if (size <= 0f) return;
+        var color = ImGui.ColorConvertFloat4ToU32(colorOverride ?? ColorPalette.Gold);
+        var radius = size * 0.4f;
+
+        // Arc from ~30° (upper-right) sweeping counter-clockwise ~270° to the
+        // right side, leaving a gap in the upper-right for the arrowhead.
+        const int segments = 24;
+        const float arcStart = -MathF.PI * 0.10f;       // just above 3-o'clock
+        const float arcEnd = MathF.PI * 1.55f;          // ~280° sweep
+        Vector2 prev = default;
+        for (var i = 0; i <= segments; i++)
+        {
+            var t = i / (float)segments;
+            var theta = arcStart + (arcEnd - arcStart) * t;
+            var p = new Vector2(cx + radius * MathF.Cos(theta), cy + radius * MathF.Sin(theta));
+            if (i > 0) drawList.AddLine(prev, p, color, 2f);
+            prev = p;
+        }
+
+        // Arrowhead at arc start — small triangle pointing tangent to the circle.
+        var tipAngle = arcStart;
+        var tipBase = new Vector2(cx + radius * MathF.Cos(tipAngle), cy + radius * MathF.Sin(tipAngle));
+        var headLen = size * 0.18f;
+        var ax = tipBase.X + headLen * MathF.Cos(tipAngle + MathF.PI / 2f);
+        var ay = tipBase.Y + headLen * MathF.Sin(tipAngle + MathF.PI / 2f);
+        var bx = tipBase.X + headLen * MathF.Cos(tipAngle - MathF.PI / 2f);
+        var by = tipBase.Y + headLen * MathF.Sin(tipAngle - MathF.PI / 2f);
+        var tip = new Vector2(
+            tipBase.X + headLen * 1.2f * MathF.Cos(tipAngle),
+            tipBase.Y + headLen * 1.2f * MathF.Sin(tipAngle));
+        drawList.AddTriangleFilled(new Vector2(ax, ay), new Vector2(bx, by), tip, color);
+    }
+
+    /// <summary>
     ///     Paint a leader row: <c>Label · · · · · · Value</c> spanning
     ///     <paramref name="width" />, with the dot run sized to fill the gap
     ///     between the label end and the right-aligned value.

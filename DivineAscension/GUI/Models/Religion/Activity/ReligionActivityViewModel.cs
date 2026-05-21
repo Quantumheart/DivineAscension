@@ -16,7 +16,8 @@ public readonly struct ReligionActivityViewModel
 
     public ReligionActivityViewModel(float x, float y, float width, float height,
         List<ActivityLogResponsePacket.ActivityEntry> entries,
-        float scrollY, bool isLoading, string? errorMessage = null)
+        float scrollY, bool isLoading,
+        string? errorMessage = null)
     {
         X = x;
         Y = y;
