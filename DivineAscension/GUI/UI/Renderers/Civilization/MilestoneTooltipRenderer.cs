@@ -53,7 +53,7 @@ internal static class MilestoneTooltipRenderer
     {
         var lines = new List<TooltipLine>();
         var goldColor = ColorPalette.Gold;
-        var greenColor = new Vector4(0.3f, 0.9f, 0.3f, 1f);
+        var greenColor = ColorPalette.SuccessGreen;
         var contentWidth = TOOLTIP_MAX_WIDTH - TOOLTIP_PADDING * 2;
 
         // Title in gold

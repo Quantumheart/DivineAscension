@@ -4,6 +4,7 @@ using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Blessing;
 using DivineAscension.GUI.Models.Blessing.Actions;
+using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using ImGuiNET;
@@ -23,14 +24,10 @@ internal static class BlessingActionsRenderer
 
     private const float CornerRadius = 4f;
 
-    // Color constants
-    private static readonly Vector4 ColorButtonNormal = new(0.24f, 0.18f, 0.13f, 1.0f); // #3d2e20
-    private static readonly Vector4 ColorButtonHover = new(0.35f, 0.26f, 0.19f, 1.0f); // Lighter brown
+    // Color constants — button-specific colors only.
+    // Shared semantic colors come from ColorPalette (Gold, White, DisabledGray, DarkBrown, LightBrown).
     private static readonly Vector4 ColorButtonActive = new(0.478f, 0.776f, 0.184f, 1.0f); // #7ac62f lime
     private static readonly Vector4 ColorButtonDisabled = new(0.2f, 0.15f, 0.11f, 0.6f); // Dark, semi-transparent
-    private static readonly Vector4 ColorTextNormal = new(0.9f, 0.9f, 0.9f, 1.0f);
-    private static readonly Vector4 ColorTextDisabled = new(0.5f, 0.5f, 0.5f, 1.0f);
-    private static readonly Vector4 ColorGold = new(0.996f, 0.682f, 0.204f, 1.0f); // #feae34
 
     /// <summary>
     ///     Draw action buttons using EDA style. Emits events based on user interaction.
@@ -70,7 +67,7 @@ internal static class BlessingActionsRenderer
 
             var isEnabled = canUnlock && canAfford;
             var buttonColor = isEnabled ? ColorButtonActive : ColorButtonDisabled;
-            var textColor = isEnabled ? ColorTextNormal : ColorTextDisabled;
+            var textColor = isEnabled ? ColorPalette.White : ColorPalette.DisabledGray;
 
             var clicked = DrawButton(buttonText, unlockButtonX, viewModel.Y, ButtonWidth, ButtonHeight,
                 buttonColor, textColor, isEnabled);
@@ -130,7 +127,7 @@ internal static class BlessingActionsRenderer
         else if (isHovering)
         {
             // Hover state
-            currentColor = ColorButtonHover;
+            currentColor = ColorPalette.LightBrown;
             ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
         }
         else
@@ -144,7 +141,7 @@ internal static class BlessingActionsRenderer
         drawList.AddRectFilled(buttonStart, buttonEnd, bgColor, CornerRadius);
 
         // Draw border (gold for active buttons)
-        var borderColor = enabled ? ColorGold : new Vector4(0.4f, 0.3f, 0.2f, 1.0f);
+        var borderColor = enabled ? ColorPalette.Gold : new Vector4(0.4f, 0.3f, 0.2f, 1.0f);
         var borderColorU32 = ImGui.ColorConvertFloat4ToU32(borderColor);
         drawList.AddRect(buttonStart, buttonEnd, borderColorU32, CornerRadius, ImDrawFlags.None, 2f);
 

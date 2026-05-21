@@ -2,6 +2,7 @@ using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.Extensions;
+using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using ImGuiNET;
@@ -25,7 +26,7 @@ internal static class BlessingInfoTextUtils
             if (testSize.X > maxWidth && !string.IsNullOrEmpty(currentLine))
             {
                 drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(x, currentY), color, currentLine);
-                currentY += fontSize + 4f;
+                currentY += fontSize + FontSizes.LinePadding;
                 currentLine = word;
             }
             else

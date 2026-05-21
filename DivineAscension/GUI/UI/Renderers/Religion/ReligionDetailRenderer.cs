@@ -58,7 +58,7 @@ internal static class ReligionDetailRenderer
                 events.Add(new DetailEvent.JoinClicked(vm.ReligionUID));
         }
 
-        currentY += 44f;
+        currentY += Spacing.BackButtonRow;
 
         // Draw background panel per CSS spec (#241B14, 4px border radius)
         var backgroundY = currentY;
@@ -107,7 +107,7 @@ internal static class ReligionDetailRenderer
         var prestigeCenter = vm.X + prestigeColumnLeft + (columnWidth / 2f);
         var publicCenter = vm.X + publicColumnLeft + (columnWidth / 2f);
         // Column headers - centered using exact text measurements
-        var headerColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.239f, 0.180f, 0.125f, 1f)); // #3D2E20
+        var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
 
         // Name header (centered in 270px column at 291px)
         var nameHeader = LocalizationService.Instance.Get(LocalizationKeys.UI_TABLE_NAME);
@@ -132,7 +132,7 @@ internal static class ReligionDetailRenderer
         drawList.AddText(font, TableHeader, new Vector2(publicCenter - publicHeaderWidth / 2f, currentY), headerColor,
             publicHeader);
 
-        currentY += 32f;
+        currentY += Spacing.Block;
 
         // Deity icon — centered inside the icon column, sized to fit.
         var iconSize = MathF.Min(85f, iconColumnWidth - 16f);
@@ -144,7 +144,7 @@ internal static class ReligionDetailRenderer
             var deityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
             if (deityTextureId != IntPtr.Zero)
             {
-                var borderColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.239f, 0.180f, 0.125f, 1f)); // #3D2E20
+                var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
                 // Draw border (2px)
                 drawList.AddRect(
                     new Vector2(iconX - 1f, iconY - 1f),
@@ -161,7 +161,7 @@ internal static class ReligionDetailRenderer
         }
 
         // Religion name - in Name column (centered in 270px column at 291px)
-        var nameColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.996f, 0.682f, 0.204f, 1f)); // #FEAE34
+        var nameColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
         var nameApproxWidth = vm.ReligionName.Length * 6.5f;
 
         // Name vertically aligned with icon center
@@ -171,7 +171,7 @@ internal static class ReligionDetailRenderer
             nameColor, vm.ReligionName);
 
         // Values centered in their columns (vertically centered with icon)
-        var valueColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.573f, 0.502f, 0.416f, 1f)); // #92806A
+        var valueColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
         var deityValueY = iconY + (iconSize - 16f) / 2f;
 
         // Deity name with full title (multi-line if needed)
@@ -220,19 +220,18 @@ internal static class ReligionDetailRenderer
             new Vector2(publicCenter - publicApproxWidth / 2f, deityValueY),
             valueColor, publicText);
 
-        currentY = iconY + iconSize + 32f;
+        currentY = iconY + iconSize + Spacing.Block;
     }
 
     private static void DrawDescriptionSection(ReligionDetailViewModel vm, ImDrawListPtr drawList, ref float currentY)
     {
         var font = ImGui.GetFont();
-        var headerColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.239f, 0.180f, 0.125f, 1f)); // #3D2E20
-        var valueColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.573f, 0.502f, 0.416f, 1f)); // #92806A
+        var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
+        var valueColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
 
         // Description spans the full content width, with horizontal padding.
-        const float horizontalPadding = 16f;
-        var descLeft = vm.X + horizontalPadding;
-        var descWidth = MathF.Max(vm.Width - horizontalPadding * 2f, 100f);
+        var descLeft = vm.X + Spacing.ContentPadding;
+        var descWidth = MathF.Max(vm.Width - Spacing.ContentPadding * 2f, 100f);
         var descCenter = vm.X + vm.Width / 2f;
 
         // Header centered above the description block.
@@ -241,11 +240,9 @@ internal static class ReligionDetailRenderer
         drawList.AddText(font, TableHeader, new Vector2(descCenter - descHeaderWidth / 2f, currentY), headerColor,
             descHeader);
 
-        currentY += 28f;
+        currentY += Spacing.HeaderToContent;
 
-        var lineHeight = 20f;
-
-        ImGui.PushFont(ImGui.GetFont());
+        var lineHeight = Body + LinePadding;
         var descLines = WrapText(vm.Description, descWidth, font, Body);
 
         foreach (var line in descLines)
@@ -258,8 +255,7 @@ internal static class ReligionDetailRenderer
             currentY += lineHeight;
         }
 
-        ImGui.PopFont();
-        currentY += 16f; // Extra spacing after description
+        currentY += Spacing.Comfortable; // Extra spacing after description
     }
 
     private static List<string> WrapText(string text, float maxWidth, ImFontPtr font, float fontSize)
@@ -294,17 +290,17 @@ internal static class ReligionDetailRenderer
     private static void DrawMembersSection(ReligionDetailViewModel vm, ImDrawListPtr drawList, ref float currentY,
         List<DetailEvent> events)
     {
-        var headerColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.239f, 0.180f, 0.125f, 1f)); // #3D2E20
+        var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
         var font = ImGui.GetFont();
 
         // Members header
         var headerText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_MEMBERS, vm.MemberCount);
-        drawList.AddText(font, TableHeader, new Vector2(vm.X + 16, currentY), headerColor, headerText);
+        drawList.AddText(font, TableHeader, new Vector2(vm.X + Spacing.ContentPadding, currentY), headerColor, headerText);
 
-        currentY += 28f;
+        currentY += Spacing.HeaderToContent;
 
         // Member list (scrollable)
-        var listHeight = vm.Height - (currentY - vm.Y) - 16f;
+        var listHeight = vm.Height - (currentY - vm.Y) - Spacing.Comfortable;
         var members = vm.Members?.ToList() ?? new List<ReligionDetailResponsePacket.MemberInfo>();
 
         var newScrollY = ScrollableList.Draw<ReligionDetailResponsePacket.MemberInfo>(
@@ -315,7 +311,7 @@ internal static class ReligionDetailRenderer
             listHeight,
             members,
             36f, // Item height
-            8f, // Item spacing
+            Spacing.ListItemGap,
             vm.MemberScrollY,
             (member, cx, cy, cw, ch) => DrawMemberRow(member, cx, cy, cw, ch, drawList),
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_DETAIL_NO_MEMBERS)
@@ -331,9 +327,9 @@ internal static class ReligionDetailRenderer
     private static void DrawMemberRow(ReligionDetailResponsePacket.MemberInfo member, float x, float y, float width,
         float height, ImDrawListPtr drawList)
     {
-        var bgColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.161f, 0.118f, 0.086f, 1f)); // #291E16
-        var borderColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.239f, 0.180f, 0.125f, 1f)); // #3D2E20
-        var textColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.573f, 0.502f, 0.416f, 1f)); // #92806A
+        var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Background);
+        var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
+        var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
 
         // Background
         drawList.AddRectFilled(

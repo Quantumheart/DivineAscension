@@ -32,4 +32,11 @@ internal static class FontSizes
 
     /// <summary>Tier labels, very small text</summary>
     public const float Compact = 14f;
+
+    /// <summary>Densely packed summary text (cross-deity counts, micro badges)</summary>
+    public const float Micro = 12f;
+
+    // Spacing helpers
+    /// <summary>Pixels added between wrapped text lines (line-height = fontSize + LinePadding).</summary>
+    public const float LinePadding = 6f;
 }

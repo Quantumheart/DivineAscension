@@ -30,6 +30,15 @@ internal static class ColorPalette
     public static readonly Vector4 Green = new(0.2f, 0.8f, 0.2f, 1.0f); // Success
     public static readonly Vector4 Yellow = new(0.8f, 0.8f, 0.2f, 1.0f); // Warning
 
+    // Brighter status variants used for badges, active indicators, completed states
+    public static readonly Vector4 SuccessGreen = new(0.3f, 0.9f, 0.3f, 1.0f);
+    public static readonly Vector4 ErrorRed = new(1.0f, 0.3f, 0.3f, 1.0f);
+
+    // Neutral text variants
+    public static readonly Vector4 LightText = new(0.8f, 0.8f, 0.8f, 1.0f); // Body copy on dark bg
+    public static readonly Vector4 DisabledGray = new(0.5f, 0.5f, 0.5f, 1.0f); // Disabled labels
+    public static readonly Vector4 MutedText = new(0.4f, 0.4f, 0.4f, 1.0f); // Hints, secondary captions
+
     // Opacity Variants
     public static readonly Vector4 BlackOverlay = new(0f, 0f, 0f, 0.8f); // Modal background
     public static readonly Vector4 BlackOverlayLight = new(0f, 0f, 0f, 0.7f); // Lighter overlay
