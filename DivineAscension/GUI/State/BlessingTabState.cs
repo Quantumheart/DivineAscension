@@ -28,6 +28,9 @@ public class BlessingTabState
     /// <summary>Vertical scroll position of the Vows page (I.iii).</summary>
     public float VowsPageScrollY { get; set; }
 
+    /// <summary>Vertical scroll position of the III.ii Blessings page.</summary>
+    public float BlessingsPageScrollY { get; set; }
+
     /// <summary>
     ///     Flattened view across every deity. Convenience for tests and lookups that don't
     ///     care which deity bucket a blessing came from. On id collisions across deities,
@@ -56,6 +59,7 @@ public class BlessingTabState
         ReligionBlessingStatesByDeity.Clear();
         ActiveDeity = DeityDomain.Craft;
         VowsPageScrollY = 0f;
+        BlessingsPageScrollY = 0f;
     }
 }
 
@@ -78,8 +82,15 @@ public class BlessingTreeState
 
 public class BlessingInfoState
 {
+    /// <summary>
+    ///     Whether the selected blessing's description block is expanded past its truncated
+    ///     preview. Toggled by the "Read more ▾" / "Read less ▴" affordance and reset to
+    ///     <c>false</c> whenever a different blessing is selected.
+    /// </summary>
+    public bool IsDescriptionExpanded { get; set; }
+
     public void Reset()
     {
-        // No state currently - info panel is display-only
+        IsDescriptionExpanded = false;
     }
 }

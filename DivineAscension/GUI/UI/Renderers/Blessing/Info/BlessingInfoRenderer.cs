@@ -25,16 +25,14 @@ internal static class BlessingInfoRenderer
     public static BlessingInfoRenderResult Draw(BlessingInfoViewModel vm)
     {
         var drawList = ImGui.GetWindowDrawList();
+        var events = new List<InfoEvent>(1);
 
-        // Section: Background
         BlessingInfoSectionBackground.Draw(vm);
 
-        // Selected blessing state
         var selectedState = vm.SelectedBlessingState;
 
         if (selectedState == null)
         {
-            // No blessing selected - show prompt
             var promptText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_SELECT_TO_VIEW);
             var textSize = ImGui.CalcTextSize(promptText);
             var textPos = new Vector2(
@@ -47,23 +45,20 @@ internal static class BlessingInfoRenderer
             return BlessingInfoRenderResult.Empty(vm.Height);
         }
 
-        // Blessing selected - draw detailed info
         const float padding = 16f;
         var currentY = vm.Y + padding;
         var contentWidth = vm.Width - padding * 2;
 
-        // Section: Header/meta
         currentY = BlessingInfoSectionHeader.Draw(selectedState, vm, currentY, padding);
 
-        // Description (word-wrapped)
-        currentY = BlessingInfoSectionDescription.Draw(selectedState, vm.X, currentY, padding, contentWidth);
+        currentY = BlessingInfoSectionDescription.Draw(selectedState, vm.X, currentY, padding, contentWidth,
+            vm.IsDescriptionExpanded, out var toggleEvent);
+        if (toggleEvent != null) events.Add(toggleEvent);
 
-        // Requirements section (check if space available)
         currentY = BlessingInfoSectionRequirements.Draw(selectedState, vm, currentY, padding, contentWidth);
 
-        // Stats section (if space available)
         currentY = BlessingInfoSectionStats.Draw(selectedState, vm, currentY, padding);
 
-        return new BlessingInfoRenderResult(new List<InfoEvent>(0), vm.Height);
+        return new BlessingInfoRenderResult(events, vm.Height);
     }
 }

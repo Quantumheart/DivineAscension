@@ -49,16 +49,16 @@ internal static class BlessingActionsRenderer
             // the actual permission — this is the UI mirror).
             var founderGateBlocks = isReligionKind && !viewModel.IsReligionFounder;
 
-            // Manuscript voice: communal vows are "Swear"-n; personal blessings
-            // keep the existing "Unlock" verb (will be renamed in #335).
+            // Manuscript voice: communal vows are "Swear"-n; personal blessings are
+            // "Inscribe"-d into the chapter (issue #335).
             var baseTextKey = isReligionKind
                 ? LocalizationKeys.UI_BLESSING_SWEAR_BUTTON
-                : LocalizationKeys.UI_BLESSING_UNLOCK_BUTTON;
+                : LocalizationKeys.UI_BLESSING_INSCRIBE_BUTTON;
             var baseText = LocalizationService.Instance.Get(baseTextKey);
             string buttonText;
             if (selectedState.Blessing.Cost > 0)
             {
-                // Show cost on button (e.g., "Unlock (400)" / "Swear (400)")
+                // Show cost on button (e.g., "Inscribe (400)" / "Swear (400)")
                 buttonText = $"{baseText} ({selectedState.Blessing.Cost})";
             }
             else

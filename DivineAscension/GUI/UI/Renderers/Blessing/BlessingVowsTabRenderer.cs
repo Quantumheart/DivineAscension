@@ -151,21 +151,37 @@ internal static class BlessingVowsTabRenderer
 
         // --- Tree pane.
         var treeVm = new BlessingTreeViewModel(
-            vm.PlayerTreeScrollState,
             vm.ReligionTreeScrollState,
-            vm.PlayerBlessingStates,
             vm.ReligionBlessingStates,
             vm.X, topY, contentWidth, TreePaneHeight,
             vm.DeltaTime,
             vm.SelectedBlessingId,
-            vm.PlayerFavor,
-            vm.ReligionPrestige
+            PanelId: "blessing_tree_religion",
+            PanelLabel: string.Empty,
+            BalanceText: string.Empty,
+            ShowBalanceHeader: false
         );
-        var treeResult = BlessingTreeRenderer.Draw(treeVm, BlessingKind.Religion, showBalanceHeader: false);
+        var treeResult = BlessingTreeRenderer.Draw(treeVm);
 
+        // Translate the kind-neutral ScrollChanged into the religion-side variant the manager
+        // expects. Selected/Hovered pass through unchanged.
+        var treeEvents = new List<TreeEvent>(treeResult.Events.Count);
         foreach (var ev in treeResult.Events)
-            if (ev is TreeEvent.Hovered hovered)
-                hoveringBlessingId = hovered.BlessingId;
+        {
+            switch (ev)
+            {
+                case TreeEvent.Hovered hovered:
+                    hoveringBlessingId = hovered.BlessingId;
+                    treeEvents.Add(hovered);
+                    break;
+                case TreeEvent.ScrollChanged sc:
+                    treeEvents.Add(new TreeEvent.ReligionTreeScrollChanged(sc.ScrollX, sc.ScrollY));
+                    break;
+                default:
+                    treeEvents.Add(ev);
+                    break;
+            }
+        }
 
         topY += TreePaneHeight + 6f;
         ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
@@ -189,8 +205,9 @@ internal static class BlessingVowsTabRenderer
             vm.X, topY,
             contentWidth, InfoPanelHeight,
             vm.PlayerFavor,
-            vm.ReligionPrestige);
-        BlessingInfoRenderer.Draw(infoVm);
+            vm.ReligionPrestige,
+            vm.IsDescriptionExpanded);
+        var infoResult = BlessingInfoRenderer.Draw(infoVm);
         topY += InfoPanelHeight + 10f;
 
         // --- Footer: [Swear] action, right-aligned, founder-gated server-side.
@@ -235,12 +252,14 @@ internal static class BlessingVowsTabRenderer
         }
 
         return new BlessingTabRenderResult(
-            treeResult.Events,
+            treeEvents,
             actionsResult.Events,
             hoveringBlessingId,
             vm.Height,
             requestedDeity,
-            requestedScrollY);
+            requestedVowsScrollY: requestedScrollY,
+            requestedPageScrollY: null,
+            infoEvents: infoResult.Events);
     }
 
     private static float HeaderHeight() =>

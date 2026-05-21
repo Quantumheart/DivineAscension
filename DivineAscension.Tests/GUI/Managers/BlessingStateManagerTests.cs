@@ -174,6 +174,94 @@ public class BlessingStateManagerTests
         Assert.Equal(5f, _sut.State.TreeState.ReligionScrollState.Y);
     }
 
+    [Fact]
+    public void ProcessBlessingTabEvents_OnRequestedPageScrollY_UpdatesBlessingsPageScrollY()
+    {
+        // Arrange
+        var result = new BlessingTabRenderResult(
+            new List<TreeEvent>(),
+            new List<ActionsEvent>(),
+            null,
+            100f,
+            requestedActiveDeity: null,
+            requestedVowsScrollY: null,
+            requestedPageScrollY: 42.5f);
+
+        // Act
+        _sut.ProcessBlessingTabEvents(result);
+
+        // Assert — wheel-scroll on III.ii commits to the blessings-page scroll, not vows.
+        Assert.Equal(42.5f, _sut.State.BlessingsPageScrollY);
+        Assert.Equal(0f, _sut.State.VowsPageScrollY);
+    }
+
+    [Fact]
+    public void ProcessBlessingTabEvents_OnDescriptionExpansionToggled_TogglesInfoState()
+    {
+        // Arrange — starts collapsed.
+        Assert.False(_sut.State.InfoState.IsDescriptionExpanded);
+
+        var result = new BlessingTabRenderResult(
+            new List<TreeEvent>(),
+            new List<ActionsEvent>(),
+            null,
+            100f,
+            infoEvents: new List<InfoEvent> { new InfoEvent.DescriptionExpansionToggled() });
+
+        // Act — first toggle expands.
+        _sut.ProcessBlessingTabEvents(result);
+        Assert.True(_sut.State.InfoState.IsDescriptionExpanded);
+
+        // Act — second toggle collapses.
+        _sut.ProcessBlessingTabEvents(result);
+        Assert.False(_sut.State.InfoState.IsDescriptionExpanded);
+    }
+
+    [Fact]
+    public void ProcessBlessingTabEvents_OnSelectingDifferentBlessing_ResetsDescriptionExpansion()
+    {
+        // Arrange — start with one blessing selected and description expanded.
+        var blessing = CreateBlessing("bless-1", BlessingKind.Player);
+        _sut.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
+        _sut.State.TreeState.SelectedBlessingId = "bless-1";
+        _sut.State.InfoState.IsDescriptionExpanded = true;
+
+        var result = new BlessingTabRenderResult(
+            new List<TreeEvent> { new TreeEvent.Selected("bless-2") },
+            new List<ActionsEvent>(),
+            null,
+            100f);
+
+        // Act
+        _sut.ProcessBlessingTabEvents(result);
+
+        // Assert — selecting a different blessing collapses the description back to preview.
+        Assert.Equal("bless-2", _sut.State.TreeState.SelectedBlessingId);
+        Assert.False(_sut.State.InfoState.IsDescriptionExpanded);
+    }
+
+    [Fact]
+    public void ProcessBlessingTabEvents_OnSelectingSameBlessing_KeepsDescriptionExpansion()
+    {
+        // Arrange — same blessing already selected and expanded.
+        var blessing = CreateBlessing("bless-1", BlessingKind.Player);
+        _sut.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
+        _sut.State.TreeState.SelectedBlessingId = "bless-1";
+        _sut.State.InfoState.IsDescriptionExpanded = true;
+
+        var result = new BlessingTabRenderResult(
+            new List<TreeEvent> { new TreeEvent.Selected("bless-1") },
+            new List<ActionsEvent>(),
+            null,
+            100f);
+
+        // Act
+        _sut.ProcessBlessingTabEvents(result);
+
+        // Assert — selecting the same blessing must not flip the toggle.
+        Assert.True(_sut.State.InfoState.IsDescriptionExpanded);
+    }
+
     #endregion
 
     #region HandleUnlockClicked via ActionsEvent
