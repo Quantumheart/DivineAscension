@@ -21,7 +21,7 @@ namespace DivineAscension.GUI.UI.Renderers.PlayerInfo;
 internal static class PlayerInfoRenderer
 {
     private const float TopPadding = 8f;
-    private const float IdentityToFeedGap = 20f;
+    private const float IdentityToFeedGap = 40f;
 
     public static IReadOnlyList<PlayerInfoEvent> Draw(PlayerInfoViewModel vm)
     {

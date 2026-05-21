@@ -23,8 +23,8 @@ namespace DivineAscension.GUI.UI.Renderers.PlayerInfo;
 [ExcludeFromCodeCoverage]
 internal static class NotificationFeedRenderer
 {
-    private const float HeaderHeight = 22f;
-    private const float HeaderBottomGap = 4f;
+    private const float HeaderHeight = 27f;
+    private const float InnerPadding = 12f;
 
     public static void Draw(
         float x, float y, float width, float height,
@@ -32,39 +32,58 @@ internal static class NotificationFeedRenderer
         bool showUnreadOnly,
         List<PlayerInfoEvent> events)
     {
-        DrawHeader(x, y, width, showUnreadOnly, events);
+        // Panel backdrop — matches the Religion / Civilization table style so
+        // the feed reads as the same kind of container as a browse table.
+        var drawList = ImGui.GetWindowDrawList();
+        var bg = ImGui.ColorConvertFloat4ToU32(ColorPalette.TableBackground);
+        drawList.AddRectFilled(
+            new Vector2(x, y),
+            new Vector2(x + width, y + height),
+            bg, 4f);
 
-        var listTop = y + HeaderHeight + HeaderBottomGap;
-        var listHeight = y + height - listTop;
+        DrawHeader(x + InnerPadding, y + 4f, width - InnerPadding * 2f, showUnreadOnly, events);
+
+        var listTop = y + HeaderHeight;
+        var listHeight = y + height - listTop - InnerPadding;
         if (listHeight <= 0f) return;
 
-        ImGui.SetCursorScreenPos(new Vector2(x, listTop));
-        ImGui.BeginChild("##da-playerinfo-feed", new Vector2(width, listHeight), false,
+        var visibleCount = 0;
+        for (var i = 0; i < notifications.Count; i++)
+            if (!showUnreadOnly || !notifications[i].Read) visibleCount++;
+
+        if (visibleCount == 0)
+        {
+            var key = showUnreadOnly
+                ? LocalizationKeys.RIGHT_RAIL_NOTIFICATIONS_EMPTY_UNREAD
+                : LocalizationKeys.RIGHT_RAIL_NOTIFICATIONS_EMPTY;
+            DrawCenteredEmptyState(drawList,
+                LocalizationService.Instance.Get(key),
+                x, listTop, width, listHeight);
+            return;
+        }
+
+        ImGui.SetCursorScreenPos(new Vector2(x + InnerPadding, listTop));
+        ImGui.BeginChild("##da-playerinfo-feed",
+            new Vector2(width - InnerPadding * 2f, listHeight), false,
             ImGuiWindowFlags.None);
 
         var rowWidth = ImGui.GetContentRegionAvail().X;
-        var visible = 0;
-
-        // Newest-first.
         for (var i = notifications.Count - 1; i >= 0; i--)
         {
             var entry = notifications[i];
             if (showUnreadOnly && entry.Read) continue;
             DrawNotificationRow(i, entry, rowWidth, events);
-            visible++;
-        }
-
-        if (visible == 0)
-        {
-            var key = showUnreadOnly
-                ? LocalizationKeys.RIGHT_RAIL_NOTIFICATIONS_EMPTY_UNREAD
-                : LocalizationKeys.RIGHT_RAIL_NOTIFICATIONS_EMPTY;
-            ImGui.PushStyleColor(ImGuiCol.Text, ColorPalette.Grey);
-            ImGui.TextWrapped(LocalizationService.Instance.Get(key));
-            ImGui.PopStyleColor();
         }
 
         ImGui.EndChild();
+    }
+
+    private static void DrawCenteredEmptyState(ImDrawListPtr drawList, string text,
+        float x, float y, float width, float height)
+    {
+        var size = ImGui.CalcTextSize(text);
+        var pos = new Vector2(x + (width - size.X) / 2f, y + (height - size.Y) / 2f);
+        drawList.AddText(pos, ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), text);
     }
 
     private static void DrawHeader(float x, float y, float width, bool showUnreadOnly,
