@@ -290,6 +290,26 @@ internal static class MainLayoutCoordinator
             case SidebarNavId.ReligionCreate:
                 manager.ReligionStateManager.DrawReligionTab(nav, content.X, content.Y, content.W, content.H);
                 return;
+            case SidebarNavId.ReligionVows:
+            {
+                var prestigeProgress = manager.ReligionStateManager.GetReligionPrestigeProgress();
+                manager.BlessingStateManager.DrawVowsTab(
+                    content.X, content.Y, content.W, content.H,
+                    windowWidth, windowHeight, deltaTime,
+                    manager.ReligionStateManager.CurrentFavor,
+                    manager.ReligionStateManager.CurrentPrestige,
+                    manager.ReligionStateManager.CurrentReligionDomain,
+                    manager.ReligionStateManager.State.InfoState.MyReligionInfo?.IsFounder ?? false,
+                    manager.ReligionStateManager.CurrentDeityName,
+                    prestigeProgress.RequiredPrestige,
+                    manager.ReligionStateManager.FavorRanksByDeity,
+                    manager.ReligionStateManager.TotalFavorEarnedByDeity,
+                    manager.ReligionStateManager.DiscipleThreshold,
+                    manager.ReligionStateManager.ZealotThreshold,
+                    manager.ReligionStateManager.ChampionThreshold,
+                    manager.ReligionStateManager.AvatarThreshold);
+                return;
+            }
             case SidebarNavId.CivilizationBrowse:
             case SidebarNavId.CivilizationInfo:
             case SidebarNavId.CivilizationInvites:

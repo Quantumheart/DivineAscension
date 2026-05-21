@@ -31,6 +31,7 @@ public static class LocalizationKeys
 
     public const string UI_RELIGION_TAB_BROWSE = "divineascension:ui.religion.tab.browse";
     public const string UI_RELIGION_TAB_INFO = "divineascension:ui.religion.tab.info";
+    public const string UI_RELIGION_TAB_VOWS = "divineascension:ui.religion.tab.vows";
     public const string UI_RELIGION_TAB_ACTIVITY = "divineascension:ui.religion.tab.activity";
     public const string UI_RELIGION_TAB_ROLES = "divineascension:ui.religion.tab.roles";
     public const string UI_RELIGION_TAB_INVITES = "divineascension:ui.religion.tab.invites";
@@ -242,12 +243,21 @@ public static class LocalizationKeys
     public const string UI_BLESSING_REQUIREMENTS = "divineascension:ui.blessing.requirements";
     public const string UI_BLESSING_EFFECTS = "divineascension:ui.blessing.effects";
     public const string UI_BLESSING_UNLOCK_BUTTON = "divineascension:ui.blessing.unlock";
+    public const string UI_BLESSING_SWEAR_BUTTON = "divineascension:ui.blessing.swear";
     public const string UI_BLESSING_FAVOR_RANK_REQUIREMENT = "divineascension:ui.blessing.favor_rank_requirement";
     public const string UI_BLESSING_PRESTIGE_RANK_REQUIREMENT = "divineascension:ui.blessing.prestige_rank_requirement";
     public const string UI_BLESSING_UNLOCK_REQUIREMENT = "divineascension:ui.blessing.unlock_requirement";
     public const string UI_BLESSING_TREE_PLAYER_PANEL = "divineascension:ui.blessing.tree.player_panel";
     public const string UI_BLESSING_TREE_RELIGION_PANEL = "divineascension:ui.blessing.tree.religion_panel";
     public const string UI_BLESSING_TREE_NO_BLESSINGS = "divineascension:ui.blessing.tree.no_blessings";
+    public const string UI_BLESSING_VOWS_TITLE = "divineascension:ui.blessing.vows.title";
+    public const string UI_BLESSING_VOWS_INTRO = "divineascension:ui.blessing.vows.intro";
+    public const string UI_BLESSING_VOWS_ACROSS_DOMAINS = "divineascension:ui.blessing.vows.across_domains";
+    public const string UI_BLESSING_VOWS_SWORN_ROW = "divineascension:ui.blessing.vows.sworn_row";
+    public const string UI_BLESSING_VOWS_PATRON_HEADING = "divineascension:ui.blessing.vows.patron_heading";
+    public const string UI_BLESSING_VOWS_PRESTIGE_BALANCE = "divineascension:ui.blessing.vows.prestige_balance";
+    public const string UI_BLESSING_VOWS_SELECTED_HEADING = "divineascension:ui.blessing.vows.selected_heading";
+    public const string SIDEBAR_DISABLED_SWEAR_FOUNDER_ONLY = "divineascension:ui.blessing.swear.disabled_founder_only";
     public const string UI_BLESSING_UNKNOWN_RELIGION = "divineascension:ui.blessing.unknown_religion";
     public const string UI_BLESSING_UNKNOWN_CIVILIZATION = "divineascension:ui.blessing.unknown_civilization";
     public const string UI_BLESSING_RELIGIONS_COUNT = "divineascension:ui.blessing.religions_count";
