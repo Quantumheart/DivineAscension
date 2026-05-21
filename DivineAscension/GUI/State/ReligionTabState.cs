@@ -14,6 +14,8 @@ public class ReligionTabState
 
     public InfoState InfoState { get; } = new InfoState();
 
+    public RosterState RosterState { get; } = new RosterState();
+
     public ActivityState ActivityState { get; } = new ActivityState();
 
     public InvitesState InvitesState { get; } = new InvitesState();
@@ -26,6 +28,7 @@ public class ReligionTabState
     {
         BrowseState.Reset();
         InfoState.Reset();
+        RosterState.Reset();
         InvitesState.Reset();
         RolesState.Reset();
         CreateState.Reset();

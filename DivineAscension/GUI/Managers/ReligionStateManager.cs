@@ -10,6 +10,7 @@ using DivineAscension.GUI.Models.Religion.Detail;
 using DivineAscension.GUI.Models.Religion.Info;
 using DivineAscension.GUI.Models.Religion.Invites;
 using DivineAscension.GUI.Models.Religion.Roles;
+using DivineAscension.GUI.Models.Religion.Roster;
 using DivineAscension.GUI.Models.Religion.Tab;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.State.Religion;
@@ -573,6 +574,103 @@ public class ReligionStateManager : IReligionStateManager
     }
 
     /// <summary>
+    /// Draws the Roster chapter (II.ii — #313). Reuses the same
+    /// PlayerReligionInfoResponsePacket data as <see cref="DrawReligionInfo"/>.
+    /// </summary>
+    internal void DrawReligionRoster(float x, float y, float width, float height)
+    {
+        var religion = State.InfoState.MyReligionInfo;
+        var roster = State.RosterState;
+
+        var vm = new ReligionRosterViewModel(
+            isLoading: State.InfoState.Loading,
+            hasReligion: religion != null && religion.HasReligion,
+            religionUID: religion?.ReligionUID ?? string.Empty,
+            religionName: religion?.ReligionName ?? string.Empty,
+            currentPlayerUID: _coreClientApi.World.Player?.PlayerUID ?? string.Empty,
+            isFounder: religion?.IsFounder ?? false,
+            members: religion?.Members ?? new List<PlayerReligionInfoResponsePacket.MemberInfo>(),
+            expandedMemberUID: roster.ExpandedMemberUID,
+            invitePlayerName: roster.InvitePlayerName,
+            strikeConfirmPlayerUID: roster.StrikeConfirmPlayerUID,
+            strikeConfirmPlayerName: roster.StrikeConfirmPlayerName,
+            x: x, y: y, width: width, height: height,
+            scrollY: roster.ScrollY);
+
+        var drawList = ImGui.GetWindowDrawList();
+        var result = ReligionRosterRenderer.Draw(vm, drawList);
+
+        ProcessRosterEvents(result.Events);
+    }
+
+    private void ProcessRosterEvents(IReadOnlyList<RosterEvent> events)
+    {
+        if (events == null || events.Count == 0) return;
+
+        var religionId = State.InfoState.MyReligionInfo?.ReligionUID;
+        var roster = State.RosterState;
+
+        foreach (var ev in events)
+        {
+            switch (ev)
+            {
+                case RosterEvent.ScrollChanged sc:
+                    roster.ScrollY = sc.NewScrollY;
+                    break;
+
+                case RosterEvent.RowToggled rt:
+                    roster.ExpandedMemberUID =
+                        roster.ExpandedMemberUID == rt.PlayerUID ? null : rt.PlayerUID;
+                    break;
+
+                case RosterEvent.KickClicked kc:
+                    if (!string.IsNullOrWhiteSpace(religionId))
+                    {
+                        _soundManager.PlayClick();
+                        RequestReligionAction("kick", religionId, kc.PlayerUID);
+                    }
+                    roster.ExpandedMemberUID = null;
+                    break;
+
+                case RosterEvent.StrikeClicked sk:
+                    roster.StrikeConfirmPlayerUID = sk.PlayerUID;
+                    roster.StrikeConfirmPlayerName = sk.PlayerName;
+                    break;
+                case RosterEvent.StrikeCancel:
+                    roster.StrikeConfirmPlayerUID = null;
+                    roster.StrikeConfirmPlayerName = null;
+                    break;
+                case RosterEvent.StrikeConfirm sc:
+                    if (!string.IsNullOrWhiteSpace(religionId))
+                    {
+                        _soundManager.PlayClick();
+                        RequestReligionAction("ban", religionId, sc.PlayerUID);
+                    }
+                    roster.StrikeConfirmPlayerUID = null;
+                    roster.StrikeConfirmPlayerName = null;
+                    roster.ExpandedMemberUID = null;
+                    break;
+
+                case RosterEvent.InviteNameChanged inc:
+                    roster.InvitePlayerName = inc.Text;
+                    break;
+                case RosterEvent.InviteClicked ic:
+                    if (!string.IsNullOrWhiteSpace(ic.PlayerName) && !string.IsNullOrWhiteSpace(religionId))
+                    {
+                        _soundManager.PlayClick();
+                        RequestReligionAction("invite", religionId, ic.PlayerName);
+                        roster.InvitePlayerName = string.Empty;
+                    }
+                    break;
+
+                case RosterEvent.KickCancel:
+                    // Reserved for symmetry; kick currently executes immediately.
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
     /// Draws the Religion tab error banner via pure renderer and routes to active sub-tab.
     /// Nav state is owned by the sidebar; <paramref name="nav"/> is one of the
     /// Religion* values from <see cref="SidebarNavId"/>.
@@ -606,6 +704,7 @@ public class ReligionStateManager : IReligionStateManager
                             State.ErrorState.BrowseError = null;
                             break;
                         case SidebarNavId.ReligionInfo:
+                        case SidebarNavId.ReligionRoster:
                             State.ErrorState.InfoError = null;
                             break;
                         case SidebarNavId.ReligionCreate:
@@ -620,6 +719,7 @@ public class ReligionStateManager : IReligionStateManager
                             RequestReligionList(State.BrowseState.DeityFilter);
                             break;
                         case SidebarNavId.ReligionInfo:
+                        case SidebarNavId.ReligionRoster:
                             RequestPlayerReligionInfo();
                             break;
                     }
@@ -638,6 +738,9 @@ public class ReligionStateManager : IReligionStateManager
                 break;
             case SidebarNavId.ReligionInfo:
                 DrawReligionInfo(x, contentY, width, contentHeight);
+                break;
+            case SidebarNavId.ReligionRoster:
+                DrawReligionRoster(x, contentY, width, contentHeight);
                 break;
             case SidebarNavId.ReligionActivity:
                 DrawReligionActivity(x, contentY, width, contentHeight);

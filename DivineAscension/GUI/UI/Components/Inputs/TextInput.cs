@@ -183,6 +183,7 @@ internal static class TextInput
         var prevFrameBgHovered = style.Colors[(int)ImGuiCol.FrameBgHovered];
         var prevFrameBgActive = style.Colors[(int)ImGuiCol.FrameBgActive];
         var prevText = style.Colors[(int)ImGuiCol.Text];
+        var prevTextDisabled = style.Colors[(int)ImGuiCol.TextDisabled];
         var prevBorder = style.Colors[(int)ImGuiCol.Border];
 
         // Set custom colors to match DivineAscension theme
@@ -190,6 +191,7 @@ internal static class TextInput
         style.Colors[(int)ImGuiCol.FrameBgHovered] = ColorPalette.DarkBrown * 0.8f;
         style.Colors[(int)ImGuiCol.FrameBgActive] = ColorPalette.DarkBrown * 0.9f;
         style.Colors[(int)ImGuiCol.Text] = ColorPalette.LightText;
+        style.Colors[(int)ImGuiCol.TextDisabled] = ColorPalette.LightText * 0.7f;
         style.Colors[(int)ImGuiCol.Border] = ColorPalette.Grey * 0.5f;
 
         // Push frame size to match requested dimensions
@@ -210,6 +212,7 @@ internal static class TextInput
         style.Colors[(int)ImGuiCol.FrameBgHovered] = prevFrameBgHovered;
         style.Colors[(int)ImGuiCol.FrameBgActive] = prevFrameBgActive;
         style.Colors[(int)ImGuiCol.Text] = prevText;
+        style.Colors[(int)ImGuiCol.TextDisabled] = prevTextDisabled;
         style.Colors[(int)ImGuiCol.Border] = prevBorder;
 
         return buffer;
@@ -246,6 +249,7 @@ internal static class TextInput
         var prevFrameBgHovered = style.Colors[(int)ImGuiCol.FrameBgHovered];
         var prevFrameBgActive = style.Colors[(int)ImGuiCol.FrameBgActive];
         var prevText = style.Colors[(int)ImGuiCol.Text];
+        var prevTextDisabled = style.Colors[(int)ImGuiCol.TextDisabled];
         var prevBorder = style.Colors[(int)ImGuiCol.Border];
 
         // Set custom colors to match DivineAscension theme
@@ -253,6 +257,7 @@ internal static class TextInput
         style.Colors[(int)ImGuiCol.FrameBgHovered] = ColorPalette.DarkBrown * 0.8f;
         style.Colors[(int)ImGuiCol.FrameBgActive] = ColorPalette.DarkBrown * 0.9f;
         style.Colors[(int)ImGuiCol.Text] = ColorPalette.LightText;
+        style.Colors[(int)ImGuiCol.TextDisabled] = ColorPalette.LightText * 0.7f;
         style.Colors[(int)ImGuiCol.Border] = ColorPalette.Grey * 0.5f;
 
         // Use ImGui's native multiline text input with manual clipboard callback
@@ -268,6 +273,7 @@ internal static class TextInput
         style.Colors[(int)ImGuiCol.FrameBgHovered] = prevFrameBgHovered;
         style.Colors[(int)ImGuiCol.FrameBgActive] = prevFrameBgActive;
         style.Colors[(int)ImGuiCol.Text] = prevText;
+        style.Colors[(int)ImGuiCol.TextDisabled] = prevTextDisabled;
         style.Colors[(int)ImGuiCol.Border] = prevBorder;
 
         return buffer;

@@ -176,7 +176,7 @@ public partial class GuiDialog
         var currentNav = _state.Sidebar.CurrentNav;
         var shouldSwitchTab = currentNav switch
         {
-            SidebarNavId.ReligionInfo or SidebarNavId.ReligionActivity or SidebarNavId.ReligionRoles => !hasReligion,
+            SidebarNavId.ReligionInfo or SidebarNavId.ReligionRoster or SidebarNavId.ReligionActivity or SidebarNavId.ReligionRoles => !hasReligion,
             SidebarNavId.ReligionInvites or SidebarNavId.ReligionCreate => hasReligion,
             _ => false
         };

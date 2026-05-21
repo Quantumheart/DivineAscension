@@ -31,6 +31,7 @@ public static class LocalizationKeys
 
     public const string UI_RELIGION_TAB_BROWSE = "divineascension:ui.religion.tab.browse";
     public const string UI_RELIGION_TAB_INFO = "divineascension:ui.religion.tab.info";
+    public const string UI_RELIGION_TAB_ROSTER = "divineascension:ui.religion.tab.roster";
     public const string UI_RELIGION_TAB_VOWS = "divineascension:ui.religion.tab.vows";
     public const string UI_RELIGION_TAB_ACTIVITY = "divineascension:ui.religion.tab.activity";
     public const string UI_RELIGION_TAB_ROLES = "divineascension:ui.religion.tab.roles";
@@ -216,6 +217,22 @@ public static class LocalizationKeys
     public const string UI_RELIGION_INFO_INTRO_SOULS_ONE = "divineascension:ui.religion.info.intro.souls_one";
     public const string UI_RELIGION_INFO_PRESTIGE_MAX = "divineascension:ui.religion.info.prestige.max";
     public const string UI_RELIGION_ACTION_DISBAND_LEDGER = "divineascension:ui.religion.action.disband_ledger";
+
+    // Roster chapter (II.ii — issue #313).
+    public const string UI_RELIGION_ROSTER_TITLE = "divineascension:ui.religion.roster.title";
+    public const string UI_RELIGION_ROSTER_INTRO = "divineascension:ui.religion.roster.intro";
+    public const string UI_RELIGION_ROSTER_INTRO_ONE = "divineascension:ui.religion.roster.intro_one";
+    public const string UI_RELIGION_ROSTER_COUNTER = "divineascension:ui.religion.roster.counter";
+    public const string UI_RELIGION_ROSTER_EMPTY = "divineascension:ui.religion.roster.empty";
+    public const string UI_RELIGION_ROSTER_FOUNDER_TAG = "divineascension:ui.religion.roster.founder_tag";
+    public const string UI_RELIGION_ROSTER_INVITE_LABEL = "divineascension:ui.religion.roster.invite.label";
+    public const string UI_RELIGION_ROSTER_INVITE_PLACEHOLDER = "divineascension:ui.religion.roster.invite.placeholder";
+    public const string UI_RELIGION_ROSTER_INVITE_BUTTON = "divineascension:ui.religion.roster.invite.button";
+    public const string UI_RELIGION_ROSTER_KICK_BUTTON = "divineascension:ui.religion.roster.kick.button";
+    public const string UI_RELIGION_ROSTER_STRIKE_BUTTON = "divineascension:ui.religion.roster.strike.button";
+    public const string UI_RELIGION_ROSTER_STRIKE_TITLE = "divineascension:ui.religion.roster.strike.title";
+    public const string UI_RELIGION_ROSTER_STRIKE_MESSAGE = "divineascension:ui.religion.roster.strike.message";
+    public const string UI_RELIGION_ROSTER_STRIKE_CONFIRM = "divineascension:ui.religion.roster.strike.confirm";
 
     #endregion
 
