@@ -94,7 +94,7 @@ internal static class CivilizationHolySitesRenderer
 
         // Title + ornamental divider; return the height the helper consumed.
         var contentStartY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_TITLE),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_HOLYSITES),
             viewModel.X, y, viewModel.Width);
         return contentStartY - y;
     }

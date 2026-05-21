@@ -34,7 +34,8 @@ internal static class ReligionInfoHeaderRenderer
     {
         var deityDomain = DomainHelper.ParseDeityType(viewModel.Deity);
         var iconTextureId = DeityIconLoader.GetDeityTextureId(deityDomain);
-        var currentY = PaneHeaderRenderer.Draw(drawList, viewModel.ReligionName,
+        var currentY = PaneHeaderRenderer.Draw(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_INFO),
             x, y, width, iconTextureId, viewModel.PrestigeRank);
 
         // Deity · · · · · Hroth (Wild) — leader row, matching the rest.

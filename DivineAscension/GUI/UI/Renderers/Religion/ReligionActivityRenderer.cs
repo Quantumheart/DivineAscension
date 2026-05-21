@@ -96,7 +96,7 @@ internal static class ReligionActivityRenderer
 
         // Title + ornamental divider
         return PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTIVITY_TITLE),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_ACTIVITY),
             viewModel.X, headerY, viewModel.Width);
     }
 

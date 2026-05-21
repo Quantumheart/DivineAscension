@@ -109,7 +109,7 @@ internal static class CivilizationMilestoneRenderer
         // so the caller's accumulator advances by exactly that much.
         var headerStartY = y;
         var contentStartY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_TITLE),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_MILESTONES),
             viewModel.X, y, viewModel.Width);
         return contentStartY - headerStartY;
     }

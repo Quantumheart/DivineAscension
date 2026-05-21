@@ -43,7 +43,7 @@ internal static class ReligionCreateRenderer
 
         // === HEADER ===
         currentY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CREATE_TITLE),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_CREATE),
             formX, currentY, formWidth);
         currentY += padding;
 
