@@ -27,6 +27,7 @@ internal static class MainLayoutCoordinator
     private const float SidebarCollapsedWidth = 40f;
     private const float Gap = 8f;
     private const float TopChromeHeight = 32f;
+    private const float PageFooterGap = 6f;
 
     public static void Draw(
         GuiDialogManager manager,
@@ -73,10 +74,60 @@ internal static class MainLayoutCoordinator
         var sidebarEvents = SidebarRenderer.Draw(sidebar, sidebarVm);
         ApplySidebarEvents(sidebarEvents, manager, state);
 
+        // Reserve a footer strip at the bottom of the content rect for the
+        // page-turn affordance. The dispatched content draws into the
+        // remaining region above it.
+        var pagePosition = PageTurnNavigator.Compute(sidebarVm);
+        var hasFooter = pagePosition.Total > 1 && content.H > PageTurnFooterRenderer.FooterHeight + PageFooterGap;
+        var contentBody = hasFooter
+            ? content.Cut(0f, PageTurnFooterRenderer.FooterHeight + PageFooterGap)
+            : content;
+
         // --- Content dispatch (driven by Sidebar.CurrentNav).
-        DispatchContent(manager, state, content, windowWidth, windowHeight, deltaTime);
+        DispatchContent(manager, state, contentBody, windowWidth, windowHeight, deltaTime);
+
+        if (hasFooter)
+        {
+            var footerRect = new UiRect(
+                content.X,
+                content.Bottom - PageTurnFooterRenderer.FooterHeight,
+                content.W,
+                PageTurnFooterRenderer.FooterHeight);
+            var footerEvents = PageTurnFooterRenderer.Draw(footerRect, content, pagePosition);
+            ApplySidebarEvents(footerEvents, manager, state);
+        }
+
+        ApplyPageTurnKeyboard(pagePosition, manager, state);
 
         ImGui.PopStyleColor(8);
+    }
+
+    /// <summary>
+    ///     Left/right arrow keys flip pages when no text widget or other
+    ///     arrow-consuming item is active. Mirrors the click path by emitting
+    ///     an <see cref="SidebarEvent.ItemClicked" /> so the page-turn and
+    ///     sidebar-click routes stay single-path.
+    /// </summary>
+    private static void ApplyPageTurnKeyboard(PageTurnNavigator.PagePosition pos,
+        GuiDialogManager manager, GuiDialogState state)
+    {
+        // WantCaptureKeyboard is true whenever an ImGui window has focus, which
+        // includes our dialog itself — guard only against active text inputs and
+        // items currently being interacted with (sliders, drags, list nav).
+        var io = ImGui.GetIO();
+        if (io.WantTextInput) return;
+        if (ImGui.IsAnyItemActive()) return;
+
+        if (ImGui.IsKeyPressed(ImGuiKey.LeftArrow) && pos.Previous.HasValue)
+        {
+            SidebarNavMapper.Apply(pos.Previous.Value, state);
+            RefreshSidebarDestinationData(pos.Previous.Value, manager);
+        }
+        else if (ImGui.IsKeyPressed(ImGuiKey.RightArrow) && pos.Next.HasValue)
+        {
+            SidebarNavMapper.Apply(pos.Next.Value, state);
+            RefreshSidebarDestinationData(pos.Next.Value, manager);
+        }
     }
 
     private static void ApplySidebarEvents(IReadOnlyList<SidebarEvent> events,
