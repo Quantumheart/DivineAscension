@@ -14,6 +14,7 @@ using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
 
@@ -25,6 +26,11 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 [ExcludeFromCodeCoverage]
 internal static class ReligionInfoRenderer
 {
+    // Layout dimensions (mirror ReligionBrowseRenderer so the two panes feel related)
+    private const float TopPadding = 8f;
+    private const float SectionLabelHeight = 22f;
+    private const float SectionSpacing = 15f;
+
     /// <summary>
     /// Renders the religion info/management tab
     /// Pure function: ViewModel + DrawList → RenderResult
@@ -38,22 +44,22 @@ internal static class ReligionInfoRenderer
         var y = viewModel.Y;
         var width = viewModel.Width;
         var height = viewModel.Height;
-        var currentY = y;
+        var currentY = y + TopPadding;
 
         // Loading state
         if (viewModel.IsLoading)
         {
-            TextRenderer.DrawInfoText(drawList,
+            DrawCenteredStateText(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_LOADING),
-                x, currentY + 8f, width);
+                x, y, width, height);
             return new ReligionInfoRenderResult(events, height);
         }
 
         if (!viewModel.HasReligion)
         {
-            TextRenderer.DrawInfoText(drawList,
+            DrawCenteredStateText(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_NO_RELIGION),
-                x, currentY + 8f, width);
+                x, y, width, height);
             return new ReligionInfoRenderResult(events, height);
         }
 
@@ -82,7 +88,7 @@ internal static class ReligionInfoRenderer
 
         // Clip to visible area and offset drawing by scroll
         drawList.PushClipRect(new Vector2(x, y), new Vector2(x + width, y + height), true);
-        currentY = y - scrollY;
+        currentY = y + TopPadding - scrollY;
 
         // === HEADER AND INFO GRID ===
         currentY = ReligionInfoHeaderRenderer.Draw(viewModel, drawList, x, currentY, width, events);
@@ -93,8 +99,8 @@ internal static class ReligionInfoRenderer
         // === MEMBER LIST SECTION ===
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MEMBERS_LABEL),
-            x, currentY, 15f, ColorPalette.Gold);
-        currentY += 25f;
+            x, currentY, SubsectionLabel, ColorPalette.Gold);
+        currentY += SectionLabelHeight;
 
         const float memberListHeight = 180f;
         var memberScrollY = DrawMemberList(
@@ -104,15 +110,15 @@ internal static class ReligionInfoRenderer
             events.Add(new InfoEvent.MemberScrollChanged(memberScrollY));
         }
 
-        currentY += memberListHeight + 15f;
+        currentY += memberListHeight + SectionSpacing;
 
         // === BANNED PLAYERS SECTION (founder only) ===
         if (viewModel.IsFounder)
         {
             TextRenderer.DrawLabel(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_BANNED_LABEL),
-                x, currentY, 15f, ColorPalette.Gold);
-            currentY += 25f;
+                x, currentY, SubsectionLabel, ColorPalette.Gold);
+            currentY += SectionLabelHeight;
 
             const float banListHeight = 120f;
             var banListScrollY = DrawBanList(
@@ -122,7 +128,7 @@ internal static class ReligionInfoRenderer
                 events.Add(new InfoEvent.BanListScrollChanged(banListScrollY));
             }
 
-            currentY += banListHeight + 15f;
+            currentY += banListHeight + SectionSpacing;
         }
 
         // === INVITE SECTION (founder only) ===
@@ -273,6 +279,15 @@ internal static class ReligionInfoRenderer
         h += 40f;
 
         return h;
+    }
+
+    private static void DrawCenteredStateText(
+        ImDrawListPtr drawList, string text, float x, float y, float width, float height)
+    {
+        var size = ImGui.CalcTextSize(text);
+        var pos = new Vector2(x + (width - size.X) / 2f, y + (height - size.Y) / 2f);
+        var color = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
+        drawList.AddText(pos, color, text);
     }
 
     private static void DrawDisbandConfirmation(
