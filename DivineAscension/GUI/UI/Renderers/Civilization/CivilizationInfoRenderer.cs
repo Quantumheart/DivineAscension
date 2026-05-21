@@ -32,7 +32,7 @@ internal static class CivilizationInfoRenderer
         DateTime createdDate)
     {
         var events = new List<InfoEvent>();
-        var currentY = vm.Y;
+        var currentY = vm.Y + ChapterStripRenderer.TopPadding;
 
         var overlayOpen = vm.ShowDisbandConfirm || vm.IsKickConfirmOpen;
 
@@ -55,10 +55,12 @@ internal static class CivilizationInfoRenderer
 
         var iconTextureId = CivilizationIconLoader.GetIconTextureId(vm.Icon);
         var rankName = RankRequirements.GetCivilizationRankName(vm.Rank);
-        currentY = PaneHeaderRenderer.Draw(drawList,
+        var strip = ChapterStripRenderer.Draw(drawList, vm.X, vm.Y, vm.Width, 0f,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_INFO),
-            vm.X, currentY, vm.Width, iconTextureId, rankName,
-            rightTitle: vm.CivName);
+            rightTitle: vm.CivName,
+            iconTextureId: iconTextureId,
+            rankTag: rankName);
+        currentY = strip.BodyY;
 
         // Founded · · · · · 2026-03-14
         ChromeRenderer.DrawLeader(drawList,

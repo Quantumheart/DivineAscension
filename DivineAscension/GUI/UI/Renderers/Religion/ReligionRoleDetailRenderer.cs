@@ -45,10 +45,10 @@ internal static class ReligionRoleDetailRenderer
             events.Add(new RoleDetailEvent.BackToRolesClicked());
         currentY += 42f;
 
-        // Title
-        currentY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_TITLE, viewModel.ViewingRoleName),
-            x, currentY, width);
+        // Title — shared chapter strip, positioned below the Back button.
+        var strip = ChapterStripRenderer.Draw(drawList, x, currentY, width, 0f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_TITLE, viewModel.ViewingRoleName));
+        currentY = strip.BodyY;
 
         // Get members with this role
         var membersWithRole = viewModel.GetMembersWithRole();

@@ -26,7 +26,6 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 internal static class CivilizationMilestoneRenderer
 {
     // Layout constants
-    private const float TopPadding = 10f;
     private const float HeaderHeight = 40f;
     private const float RefreshButtonWidth = 100f;
     private const float RefreshButtonHeight = 30f;
@@ -48,10 +47,9 @@ internal static class CivilizationMilestoneRenderer
         ImDrawListPtr drawList)
     {
         var events = new List<MilestoneEvent>();
-        var currentY = viewModel.Y + TopPadding;
 
         // === HEADER WITH REFRESH BUTTON ===
-        currentY += DrawHeader(viewModel, drawList, currentY, events);
+        var currentY = DrawHeader(viewModel, drawList, events);
 
         // === LOADING STATE ===
         if (viewModel.IsLoading)
@@ -92,26 +90,23 @@ internal static class CivilizationMilestoneRenderer
     private static float DrawHeader(
         CivilizationMilestoneViewModel viewModel,
         ImDrawListPtr drawList,
-        float y,
         List<MilestoneEvent> events)
     {
-        // Refresh button (drawn on the same row as the title, right-aligned)
-        var buttonX = viewModel.X + viewModel.Width - RefreshButtonWidth;
+        // Refresh button right-aligned, painted on top of the title strip.
+        var buttonY = viewModel.Y + ChapterStripRenderer.TopPadding + 3f;
+        var buttonX = viewModel.X + viewModel.Width
+                      - ChapterStripRenderer.ScrollbarGutter - RefreshButtonWidth;
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_REFRESH),
-                buttonX, y + 3f, RefreshButtonWidth, RefreshButtonHeight,
+                buttonX, buttonY, RefreshButtonWidth, RefreshButtonHeight,
                 false, !viewModel.IsLoading))
         {
             events.Add(new MilestoneEvent.RefreshClicked());
         }
 
-        // Title + ornamental divider; return the height the helper consumed
-        // so the caller's accumulator advances by exactly that much.
-        var headerStartY = y;
-        var contentStartY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_MILESTONES),
-            viewModel.X, y, viewModel.Width);
-        return contentStartY - headerStartY;
+        var strip = ChapterStripRenderer.Draw(drawList, viewModel.X, viewModel.Y, viewModel.Width, 0f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_MILESTONES));
+        return strip.BodyY;
     }
 
     private static void DrawLoadingState(

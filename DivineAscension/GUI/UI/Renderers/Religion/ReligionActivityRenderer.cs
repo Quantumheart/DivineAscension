@@ -74,19 +74,20 @@ internal static class ReligionActivityRenderer
         ImDrawListPtr drawList, out bool refreshClicked)
     {
         refreshClicked = false;
-        var headerY = viewModel.Y + 10f;
 
-        // Refresh button (drawn on the same row as the title, right-aligned)
+        // Refresh button right-aligned, painted on top of the title strip.
         const float buttonWidth = 100f;
         const float buttonHeight = 30f;
-        var buttonX = viewModel.X + viewModel.Width - buttonWidth;
+        var buttonY = viewModel.Y + ChapterStripRenderer.TopPadding + 3f;
+        var buttonX = viewModel.X + viewModel.Width
+                      - ChapterStripRenderer.ScrollbarGutter - buttonWidth;
         var refreshText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTIVITY_REFRESH);
 
         if (ButtonRenderer.DrawButton(
                 drawList,
                 refreshText,
                 buttonX,
-                headerY + 3f,
+                buttonY,
                 buttonWidth,
                 buttonHeight,
                 isPrimary: false))
@@ -94,10 +95,9 @@ internal static class ReligionActivityRenderer
             refreshClicked = true;
         }
 
-        // Title + ornamental divider
-        return PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_ACTIVITY),
-            viewModel.X, headerY, viewModel.Width);
+        var strip = ChapterStripRenderer.Draw(drawList, viewModel.X, viewModel.Y, viewModel.Width, 0f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_ACTIVITY));
+        return strip.BodyY;
     }
 
     private static void DrawActivityFeed(ReligionActivityViewModel viewModel,

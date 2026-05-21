@@ -20,7 +20,6 @@ namespace DivineAscension.GUI.UI.Renderers.PlayerInfo;
 [ExcludeFromCodeCoverage]
 internal static class PlayerInfoRenderer
 {
-    private const float TopPadding = 8f;
     private const float IdentityToFeedGap = 40f;
 
     public static IReadOnlyList<PlayerInfoEvent> Draw(PlayerInfoViewModel vm)
@@ -29,12 +28,11 @@ internal static class PlayerInfoRenderer
         if (vm.Width <= 0f || vm.Height <= 0f) return events;
 
         var drawList = ImGui.GetWindowDrawList();
-        var currentY = vm.Y + TopPadding;
 
         // === PANE HEADER ===
-        currentY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_TAB_PLAYER_INFO),
-            vm.X, currentY, vm.Width);
+        var strip = ChapterStripRenderer.Draw(drawList, vm.X, vm.Y, vm.Width, 0f,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_TAB_PLAYER_INFO));
+        var currentY = strip.BodyY;
 
         // === IDENTITY CARD ===
         var headerBounded = WithBounds(vm.Header, vm.X, currentY, vm.Width);
