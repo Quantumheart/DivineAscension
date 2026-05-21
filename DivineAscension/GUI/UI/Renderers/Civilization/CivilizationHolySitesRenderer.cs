@@ -7,6 +7,7 @@ using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.HolySites;
 using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network.HolySite;
 using DivineAscension.Services;
@@ -81,26 +82,21 @@ internal static class CivilizationHolySitesRenderer
         float y,
         List<HolySitesEvent> events)
     {
-        // Title
-        var titleText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_TITLE);
-        drawList.AddText(ImGui.GetFont(), SectionHeader,
-            new Vector2(viewModel.X + 20f, y),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
-            titleText);
-
-        // Refresh button (right-aligned)
-        var buttonX = viewModel.X + viewModel.Width - RefreshButtonWidth - 20f;
-        var buttonY = y - 5f;
-
+        // Refresh button (drawn on the same row as the title, right-aligned)
+        var buttonX = viewModel.X + viewModel.Width - RefreshButtonWidth;
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_REFRESH),
-                buttonX, buttonY, RefreshButtonWidth, RefreshButtonHeight,
+                buttonX, y + 3f, RefreshButtonWidth, RefreshButtonHeight,
                 false, !viewModel.IsLoading))
         {
             events.Add(new HolySitesEvent.RefreshClicked());
         }
 
-        return HeaderHeight;
+        // Title + ornamental divider; return the height the helper consumed.
+        var contentStartY = PaneHeaderRenderer.Draw(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_TITLE),
+            viewModel.X, y, viewModel.Width);
+        return contentStartY - y;
     }
 
     private static void DrawLoadingState(

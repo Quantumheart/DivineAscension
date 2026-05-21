@@ -7,6 +7,7 @@ using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Invites;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Services;
 using ImGuiNET;
@@ -32,14 +33,9 @@ internal static class ReligionInvitesRenderer
         var currentY = viewModel.Y;
 
         // === HEADER ===
-        TextRenderer.DrawLabel(
-            drawList,
+        currentY = PaneHeaderRenderer.Draw(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_TITLE),
-            viewModel.X,
-            currentY,
-            18f,
-            ColorPalette.White);
-        currentY += 26f;
+            viewModel.X, currentY, viewModel.Width);
 
         // === HELP TEXT ===
         TextRenderer.DrawInfoText(

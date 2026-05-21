@@ -7,6 +7,7 @@ using DivineAscension.GUI.Models.Civilization.Table;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Renderers.Components;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Services;
 using ImGuiNET;
@@ -46,6 +47,12 @@ internal static class CivilizationBrowseRenderer
     {
         var events = new List<BrowseEvent>();
         var currentY = vm.Y + TopPadding;
+
+        // === PANE HEADER ===
+        currentY = PaneHeaderRenderer.Draw(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_BROWSE),
+            vm.X, currentY, vm.Width);
+
         var filterControlsY = currentY;  // Store filter controls Y position for dropdown menu
 
         // === FILTER CONTROLS ===

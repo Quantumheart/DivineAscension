@@ -7,6 +7,7 @@ using DivineAscension.GUI.Models.Civilization.Create;
 using DivineAscension.GUI.UI.Components;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Services;
 using ImGuiNET;
@@ -24,10 +25,10 @@ internal static class CivilizationCreateRenderer
         var events = new List<CreateEvent>();
         var currentY = vm.Y;
 
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_TITLE), vm.X, currentY, SectionHeader,
-            ColorPalette.White);
-        currentY += 32f;
+        currentY = PaneHeaderRenderer.Draw(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_TITLE),
+            vm.X, currentY, vm.Width);
+        currentY += 12f;
 
         // Requirements
         TextRenderer.DrawLabel(drawList,

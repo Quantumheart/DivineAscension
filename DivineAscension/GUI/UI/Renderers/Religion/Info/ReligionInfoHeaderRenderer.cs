@@ -32,44 +32,10 @@ internal static class ReligionInfoHeaderRenderer
         float width,
         List<InfoEvent> events)
     {
-        var currentY = y;
-
-        // === RELIGION HEADER ===
-        // Mirror the CivilizationInfo layout: deity icon at left, religion
-        // name (white, SectionHeader) next to it, then a gold bracket tag
-        // showing the prestige rank tier.
-        const float iconSize = 32f;
         var deityDomain = DomainHelper.ParseDeityType(viewModel.Deity);
         var iconTextureId = DeityIconLoader.GetDeityTextureId(deityDomain);
-        if (iconTextureId != IntPtr.Zero)
-        {
-            var iconMin = new Vector2(x, currentY);
-            var iconMax = new Vector2(x + iconSize, currentY + iconSize);
-            var tint = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
-            drawList.AddImage(iconTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tint);
-
-            var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
-            drawList.AddRect(iconMin, iconMax, borderColor, 4f, ImDrawFlags.None, 1f);
-        }
-
-        TextRenderer.DrawLabel(drawList, viewModel.ReligionName,
-            x + iconSize + 12f, currentY + 4f, PageTitle, ColorPalette.White);
-
-        // Approximate the scaled name width and place the bracket tag after it.
-        var nameWidthScaled = ImGui.CalcTextSize(viewModel.ReligionName).X
-                              * (PageTitle / SubsectionLabel);
-        if (!string.IsNullOrEmpty(viewModel.PrestigeRank))
-        {
-            var rankText = $"[{viewModel.PrestigeRank}]";
-            drawList.AddText(ImGui.GetFont(), SubsectionLabel,
-                new Vector2(x + iconSize + 12f + nameWidthScaled + 8f, currentY + 6f),
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), rankText);
-        }
-        currentY += Math.Max(iconSize + 4f, 32f);
-
-        // Ornamental divider under the header.
-        ChromeRenderer.DrawDivider(drawList, x, currentY, width);
-        currentY += 20f;
+        var currentY = PaneHeaderRenderer.Draw(drawList, viewModel.ReligionName,
+            x, y, width, iconTextureId, viewModel.PrestigeRank);
 
         // Deity · · · · · Hroth (Wild) — leader row, matching the rest.
         // Edit affordance for founders moves to its own row underneath when

@@ -42,12 +42,10 @@ internal static class ReligionCreateRenderer
         const float padding = 20f;
 
         // === HEADER ===
-        var headerText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CREATE_TITLE);
-        var headerSize = ImGui.CalcTextSize(headerText);
-        var headerPos = new Vector2(formX, currentY);
-        var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        drawList.AddText(ImGui.GetFont(), PageTitle, headerPos, headerColor, headerText);
-        currentY += headerSize.Y + padding;
+        currentY = PaneHeaderRenderer.Draw(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CREATE_TITLE),
+            formX, currentY, formWidth);
+        currentY += padding;
 
         // === FORM FIELDS ===
         const float fieldWidth = formWidth;

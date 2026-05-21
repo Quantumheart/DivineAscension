@@ -7,6 +7,7 @@ using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.Invites;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Services;
@@ -25,10 +26,9 @@ internal static class CivilizationInvitesRenderer
         var events = new List<InvitesEvent>();
         var currentY = vm.Y;
 
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_TITLE), vm.X, currentY, SectionHeader,
-            ColorPalette.White);
-        currentY += 26f;
+        currentY = PaneHeaderRenderer.Draw(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_TITLE),
+            vm.X, currentY, vm.Width);
 
         // Help text explaining where to send invites
         TextRenderer.DrawInfoText(drawList,

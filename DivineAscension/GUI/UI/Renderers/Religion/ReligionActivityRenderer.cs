@@ -10,6 +10,7 @@ using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Activity;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network;
 using DivineAscension.Services;
@@ -55,15 +56,14 @@ internal static class ReligionActivityRenderer
         }
 
         // Header with refresh button
-        var headerHeight = DrawHeader(viewModel, drawList, out var refreshClicked);
+        var contentY = DrawHeader(viewModel, drawList, out var refreshClicked);
         if (refreshClicked)
         {
             events.Add(new ActivityEvent.RefreshRequested());
         }
 
         // Activity feed with scrolling
-        var contentY = viewModel.Y + headerHeight + 20f;
-        var contentHeight = viewModel.Height - headerHeight - 20f;
+        var contentHeight = viewModel.Y + viewModel.Height - contentY;
 
         DrawActivityFeed(viewModel, contentY, contentHeight, events);
 
@@ -76,23 +76,17 @@ internal static class ReligionActivityRenderer
         refreshClicked = false;
         var headerY = viewModel.Y + 10f;
 
-        // Title
-        var titleText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTIVITY_TITLE);
-        drawList.AddText(ImGui.GetFont(), SectionHeader,
-            new Vector2(viewModel.X + 20f, headerY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), titleText);
-
-        // Refresh button
-        var buttonWidth = 100f;
-        var buttonHeight = 30f;
-        var buttonX = viewModel.X + viewModel.Width - buttonWidth - 20f;
+        // Refresh button (drawn on the same row as the title, right-aligned)
+        const float buttonWidth = 100f;
+        const float buttonHeight = 30f;
+        var buttonX = viewModel.X + viewModel.Width - buttonWidth;
         var refreshText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTIVITY_REFRESH);
 
         if (ButtonRenderer.DrawButton(
                 drawList,
                 refreshText,
                 buttonX,
-                headerY,
+                headerY + 3f,
                 buttonWidth,
                 buttonHeight,
                 isPrimary: false))
@@ -100,7 +94,10 @@ internal static class ReligionActivityRenderer
             refreshClicked = true;
         }
 
-        return 50f; // Header height
+        // Title + ornamental divider
+        return PaneHeaderRenderer.Draw(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ACTIVITY_TITLE),
+            viewModel.X, headerY, viewModel.Width);
     }
 
     private static void DrawActivityFeed(ReligionActivityViewModel viewModel,

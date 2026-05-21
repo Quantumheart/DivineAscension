@@ -9,6 +9,7 @@ using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Roles;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Overlays;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
 using DivineAscension.Services;
@@ -95,10 +96,9 @@ internal static class ReligionRolesBrowseRenderer
         currentY = y - scrollY;
 
         // Header
-        TextRenderer.DrawLabel(drawList,
+        currentY = PaneHeaderRenderer.Draw(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLES_TITLE),
-            x, currentY, TableHeader, ColorPalette.Gold);
-        currentY += 30f;
+            x, currentY, width - ScrollbarWidth);
 
         // Create Role button (if player can manage roles)
         if (viewModel.CanManageRoles())
@@ -473,7 +473,7 @@ internal static class ReligionRolesBrowseRenderer
 
     private static float ComputeContentHeight(ReligionRolesBrowseViewModel viewModel)
     {
-        var height = 80f; // Header + padding
+        var height = PaneHeaderRenderer.TotalHeight + 8f; // Header + padding
 
         if (viewModel.CanManageRoles()) height += 42f; // Create button
 
