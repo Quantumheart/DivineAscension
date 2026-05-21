@@ -172,6 +172,7 @@ internal static class MainLayoutCoordinator
                 religion.RequestReligionList(religion.State.BrowseState.DeityFilter);
                 break;
             case SidebarNavId.ReligionInfo:
+            case SidebarNavId.ReligionRoster:
                 religion.State.ErrorState.InfoError = null;
                 religion.State.InfoState.Loading = true;
                 religion.RequestPlayerReligionInfo();
@@ -284,6 +285,7 @@ internal static class MainLayoutCoordinator
         {
             case SidebarNavId.ReligionBrowse:
             case SidebarNavId.ReligionInfo:
+            case SidebarNavId.ReligionRoster:
             case SidebarNavId.ReligionActivity:
             case SidebarNavId.ReligionRoles:
             case SidebarNavId.ReligionInvites:

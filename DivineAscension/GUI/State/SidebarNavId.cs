@@ -9,6 +9,7 @@ namespace DivineAscension.GUI.State;
 public enum SidebarNavId
 {
     ReligionInfo = 0,
+    ReligionRoster,
     ReligionActivity,
     ReligionRoles,
     ReligionInvites,

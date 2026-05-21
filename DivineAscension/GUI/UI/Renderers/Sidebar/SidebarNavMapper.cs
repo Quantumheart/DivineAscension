@@ -103,6 +103,10 @@ public static class SidebarNavMapper
             Item(SidebarNavId.ReligionInfo,
                 LocalizationKeys.UI_RELIGION_TAB_INFO, "info",
                 ctx, !ctx.HasReligion, LocalizationKeys.SIDEBAR_DISABLED_NEED_RELIGION),
+            // Roster — same gate.
+            Item(SidebarNavId.ReligionRoster,
+                LocalizationKeys.UI_RELIGION_TAB_ROSTER, "info",
+                ctx, !ctx.HasReligion, LocalizationKeys.SIDEBAR_DISABLED_NEED_RELIGION),
             // Vows — communal blessing tree; viewable by any member, founder-gated at the unlock action.
             Item(SidebarNavId.ReligionVows,
                 LocalizationKeys.UI_RELIGION_TAB_VOWS, "meditation",
