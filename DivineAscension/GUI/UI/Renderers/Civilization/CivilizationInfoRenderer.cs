@@ -53,35 +53,10 @@ internal static class CivilizationInfoRenderer
             return new CivilizationInfoRendererResult(events, vm.Height);
         }
 
-        // Header with icon
-        const float iconSize = 32f;
         var iconTextureId = CivilizationIconLoader.GetIconTextureId(vm.Icon);
-
-        if (iconTextureId != IntPtr.Zero)
-        {
-            // Draw icon
-            var iconMin = new Vector2(vm.X, currentY);
-            var iconMax = new Vector2(vm.X + iconSize, currentY + iconSize);
-            var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
-            drawList.AddImage(iconTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
-
-            // Draw icon border
-            var iconBorderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
-            drawList.AddRect(iconMin, iconMax, iconBorderColor, 4f, ImDrawFlags.None, 1f);
-        }
-
-        // Draw civilization name next to icon with rank
-        TextRenderer.DrawLabel(drawList, vm.CivName, vm.X + iconSize + 12f, currentY + 4f, SectionHeader, ColorPalette.White);
-        var civNameWidth = ImGui.CalcTextSize(vm.CivName).X * (SectionHeader / SubsectionLabel); // Approximate scaled width
         var rankName = RankRequirements.GetCivilizationRankName(vm.Rank);
-        var rankText = $"[{rankName}]";
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(vm.X + iconSize + 12f + civNameWidth + 8f, currentY + 6f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), rankText);
-        currentY += Math.Max(iconSize + 4f, 32f);
-
-        // Ornamental divider under the civilization header.
-        ChromeRenderer.DrawDivider(drawList, vm.X, currentY, vm.Width);
-        currentY += 20f;
+        currentY = PaneHeaderRenderer.Draw(drawList, vm.CivName,
+            vm.X, currentY, vm.Width, iconTextureId, rankName);
 
         // Founded · · · · · 2026-03-14
         ChromeRenderer.DrawLeader(drawList,

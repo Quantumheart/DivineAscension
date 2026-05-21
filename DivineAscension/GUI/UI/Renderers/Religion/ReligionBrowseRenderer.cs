@@ -7,6 +7,7 @@ using DivineAscension.GUI.Models.Religion.Table;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Renderers.Components;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Services;
 using ImGuiNET;
@@ -40,6 +41,12 @@ internal static class ReligionBrowseRenderer
     {
         var events = new List<BrowseEvent>();
         var currentY = viewModel.Y + TopPadding;
+
+        // === PANE HEADER ===
+        currentY = PaneHeaderRenderer.Draw(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_BROWSE),
+            viewModel.X, currentY, viewModel.Width);
+
         var filterControlsY = currentY;
 
         // === FILTER CONTROLS ===

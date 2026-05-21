@@ -8,6 +8,7 @@ using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.Milestones;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network;
 using DivineAscension.Services;
@@ -94,26 +95,23 @@ internal static class CivilizationMilestoneRenderer
         float y,
         List<MilestoneEvent> events)
     {
-        // Title
-        var titleText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_TITLE);
-        drawList.AddText(ImGui.GetFont(), SectionHeader,
-            new Vector2(viewModel.X + 20f, y),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
-            titleText);
-
-        // Refresh button (right-aligned)
-        var buttonX = viewModel.X + viewModel.Width - RefreshButtonWidth - 20f;
-        var buttonY = y - 5f;
-
+        // Refresh button (drawn on the same row as the title, right-aligned)
+        var buttonX = viewModel.X + viewModel.Width - RefreshButtonWidth;
         if (ButtonRenderer.DrawButton(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_REFRESH),
-                buttonX, buttonY, RefreshButtonWidth, RefreshButtonHeight,
+                buttonX, y + 3f, RefreshButtonWidth, RefreshButtonHeight,
                 false, !viewModel.IsLoading))
         {
             events.Add(new MilestoneEvent.RefreshClicked());
         }
 
-        return HeaderHeight;
+        // Title + ornamental divider; return the height the helper consumed
+        // so the caller's accumulator advances by exactly that much.
+        var headerStartY = y;
+        var contentStartY = PaneHeaderRenderer.Draw(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_TITLE),
+            viewModel.X, y, viewModel.Width);
+        return contentStartY - headerStartY;
     }
 
     private static void DrawLoadingState(

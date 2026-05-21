@@ -6,6 +6,7 @@ using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.Edit;
 using DivineAscension.GUI.UI.Components;
 using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Services;
 using ImGuiNET;
@@ -44,7 +45,7 @@ internal static class CivilizationEditRenderer
 
         // Section heights match the currentY increments below:
         //   20 top pad
-        // + 40 title row
+        // + PaneHeaderRenderer.TotalHeight title row (icon-less header + ornamental divider)
         // + 30 civ-name row
         // + 25 'Current Icon:' label
         // + previewHeight + 20 gap
@@ -52,7 +53,7 @@ internal static class CivilizationEditRenderer
         // + pickerHeight + 20 gap
         // + 60 button strip
         // + 20 bottom pad
-        var dialogHeight = 20f + 40f + 30f + 25f + previewHeightEstimate + 20f
+        var dialogHeight = 20f + PaneHeaderRenderer.TotalHeight + 30f + 25f + previewHeightEstimate + 20f
                            + 25f + pickerHeightEstimate + 20f + 60f + 20f;
         // Clamp to the available overlay so dialogs never escape the dialog.
         dialogHeight = System.MathF.Min(dialogHeight, System.MathF.Max(300f, vm.Height - 40f));
@@ -75,9 +76,9 @@ internal static class CivilizationEditRenderer
         var contentWidth = dialogWidth - 40f;
 
         // Title
-        TextRenderer.DrawLabel(drawList, LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_EDIT_TITLE),
-            contentX, currentY, 18f, ColorPalette.White);
-        currentY += 40f;
+        currentY = PaneHeaderRenderer.Draw(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_EDIT_TITLE),
+            contentX, currentY, contentWidth);
 
         // Civilization name
         TextRenderer.DrawLabel(drawList,

@@ -7,6 +7,7 @@ using DivineAscension.GUI.Models.Religion.Roles;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Components.Overlays;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
 using DivineAscension.Services;
@@ -45,10 +46,9 @@ internal static class ReligionRoleDetailRenderer
         currentY += 42f;
 
         // Title
-        TextRenderer.DrawLabel(drawList,
+        currentY = PaneHeaderRenderer.Draw(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_ROLE_DETAIL_TITLE, viewModel.ViewingRoleName),
-            x, currentY, SectionHeader, ColorPalette.Gold);
-        currentY += 30f;
+            x, currentY, width);
 
         // Get members with this role
         var membersWithRole = viewModel.GetMembersWithRole();
@@ -117,7 +117,7 @@ internal static class ReligionRoleDetailRenderer
             var memberUID = openDropdownMemberUID;
             var dropdownX = x + width - dropdownWidth;
             var memberIndex = membersWithRole.IndexOf(memberUID);
-            var dropdownY = y + 42f + 30f + memberIndex * 32f;
+            var dropdownY = y + 42f + PaneHeaderRenderer.TotalHeight + memberIndex * 32f;
             var memberRoleUID = viewModel.MemberRoles.GetValueOrDefault(memberUID);
             var currentRoleIndex = memberRoleUID != null
                 ? assignableRoles.ToList().FindIndex(r => r.RoleUID == memberRoleUID)
