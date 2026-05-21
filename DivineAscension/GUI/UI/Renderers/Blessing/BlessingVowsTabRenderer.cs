@@ -247,13 +247,13 @@ internal static class BlessingVowsTabRenderer
         drawList.AddText(ImGui.GetFont(), Body,
             new Vector2(x + width - rightSize.X, y), textColor, rightText);
 
-        // Dotted leader between the two ends.
+        // Dotted leader between the two ends. Iron Gall secondary ink so the
+        // dots read as page-marginalia rather than ornament (palette §2).
         var dotsStart = x + leftSize.X + 8f;
         var dotsEnd = x + width - rightSize.X - 8f;
         if (dotsEnd > dotsStart)
         {
-            var dotColor = ImGui.ColorConvertFloat4ToU32(
-                ColorPalette.WithAlpha(ColorPalette.White, 0.5f));
+            var dotColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
             const float dotSpacing = 6f;
             for (var dx = dotsStart; dx < dotsEnd; dx += dotSpacing)
                 drawList.AddCircleFilled(new Vector2(dx, y + Body / 2f), 1.0f, dotColor, 6);
