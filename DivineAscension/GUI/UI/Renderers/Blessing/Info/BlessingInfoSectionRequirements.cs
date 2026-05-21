@@ -25,9 +25,9 @@ internal static class BlessingInfoSectionRequirements
 
         currentY += 8f;
         var reqTitleColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(vm.X + padding, currentY), reqTitleColorU32,
+        drawList.AddText(ImGui.GetFont(), TableHeader, new Vector2(vm.X + padding, currentY), reqTitleColorU32,
             LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIREMENTS));
-        currentY += 18f;
+        currentY += 22f;
 
         // Check if we have space for requirements
         if (currentY < vm.Y + vm.Height - 40f)

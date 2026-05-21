@@ -4,6 +4,7 @@ using System.Numerics;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
@@ -74,7 +75,7 @@ internal static class DeitySelectorRenderer
                 var patronBorder = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
                 drawList.AddRect(min, max, patronBorder, 4f, ImDrawFlags.None, PatronBorderThickness);
                 var star = "*";
-                drawList.AddText(ImGui.GetFont(), 14f,
+                drawList.AddText(ImGui.GetFont(), Secondary,
                     new Vector2(max.X - 12f, min.Y + 2f),
                     patronBorder, star);
             }

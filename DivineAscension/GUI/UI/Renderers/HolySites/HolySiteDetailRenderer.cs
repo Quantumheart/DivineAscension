@@ -81,7 +81,7 @@ internal static class HolySiteDetailRenderer
             events.Add(new DetailEvent.MarkClicked());
         }
 
-        currentY += 44f;
+        currentY += Spacing.BackButtonRow;
 
         // Draw background panel
         var backgroundY = currentY;
@@ -316,7 +316,7 @@ internal static class HolySiteDetailRenderer
 
         // Checkbox background (green if complete, dark gray if not)
         var bgColor = step.IsComplete
-            ? ImGui.ColorConvertFloat4ToU32(new Vector4(0.2f, 0.8f, 0.2f, 0.9f))
+            ? ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.Green, 0.9f))
             : ImGui.ColorConvertFloat4ToU32(new Vector4(0.2f, 0.2f, 0.2f, 0.8f));
 
         drawList.AddRectFilled(
@@ -328,7 +328,7 @@ internal static class HolySiteDetailRenderer
         drawList.AddRect(
             new Vector2(x, y),
             new Vector2(x + checkboxSize, y + checkboxSize),
-            ImGui.ColorConvertFloat4ToU32(new Vector4(0.4f, 0.4f, 0.4f, 1f)),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.MutedText),
             3f, ImDrawFlags.None, 1.5f);
 
         // Checkmark (if complete)
@@ -359,7 +359,7 @@ internal static class HolySiteDetailRenderer
             var contributorsText = "  Contributors: " + string.Join(", ",
                 step.TopContributors.Take(3).Select(c => $"{c.PlayerName} ({c.Quantity})"));
             drawList.AddText(ImGui.GetFont(), Small, new Vector2(textX, y),
-                ImGui.ColorConvertFloat4ToU32(new Vector4(0.6f, 0.6f, 0.6f, 1f)),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.DisabledGray),
                 contributorsText);
             y += 16f;
         }
@@ -392,13 +392,13 @@ internal static class HolySiteDetailRenderer
 
         // "Undiscovered Step" text
         var textX = x + iconSize + 10f;
-        var textColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.5f, 0.5f, 0.5f, 1f)); // Gray
+        var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DisabledGray);
         drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(textX, y), textColor, "??? Undiscovered Step");
         y += 20f;
 
         // Hint text
         var hintText = "  Offer sacred items to discover this step";
-        var hintColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.4f, 0.4f, 0.4f, 1f));
+        var hintColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.MutedText);
         drawList.AddText(ImGui.GetFont(), Small, new Vector2(textX, y), hintColor, hintText);
         y += 16f;
     }

@@ -6,6 +6,7 @@ using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing;
 
@@ -44,21 +45,21 @@ internal static class CrossDeitySummaryRenderer
 
             var label = $"{DomainShort(s.Domain)} {RankRequirements.GetFavorRankName(s.FavorRank)}";
             var labelSize = ImGui.CalcTextSize(label);
-            drawList.AddText(ImGui.GetFont(), 12f,
+            drawList.AddText(ImGui.GetFont(), Micro,
                 new Vector2(colX + (colWidth - labelSize.X) / 2f, colTop),
                 s.IsPatron ? gold : textColor,
                 label);
 
             var counts = $"P {s.UnlockedPlayer}/{s.TotalPlayer}  R {s.UnlockedReligion}/{s.TotalReligion}";
             var countsSize = ImGui.CalcTextSize(counts);
-            drawList.AddText(ImGui.GetFont(), 12f,
+            drawList.AddText(ImGui.GetFont(), Micro,
                 new Vector2(colX + (colWidth - countsSize.X) / 2f, colTop + 16f),
                 textColor,
                 counts);
 
             if (s.IsPatron)
             {
-                drawList.AddText(ImGui.GetFont(), 12f,
+                drawList.AddText(ImGui.GetFont(), Micro,
                     new Vector2(colX + 2f, colTop), gold, "*");
             }
         }

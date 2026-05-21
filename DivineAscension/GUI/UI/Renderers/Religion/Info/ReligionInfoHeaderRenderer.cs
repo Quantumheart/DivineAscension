@@ -53,11 +53,11 @@ internal static class ReligionInfoHeaderRenderer
         }
 
         TextRenderer.DrawLabel(drawList, viewModel.ReligionName,
-            x + iconSize + 12f, currentY + 4f, SectionHeader, ColorPalette.White);
+            x + iconSize + 12f, currentY + 4f, PageTitle, ColorPalette.White);
 
         // Approximate the scaled name width and place the bracket tag after it.
         var nameWidthScaled = ImGui.CalcTextSize(viewModel.ReligionName).X
-                              * (SectionHeader / SubsectionLabel);
+                              * (PageTitle / SubsectionLabel);
         if (!string.IsNullOrEmpty(viewModel.PrestigeRank))
         {
             var rankText = $"[{viewModel.PrestigeRank}]";

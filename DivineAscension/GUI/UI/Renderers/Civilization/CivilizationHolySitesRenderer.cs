@@ -322,7 +322,7 @@ internal static class CivilizationHolySitesRenderer
         var currentY = y + SiteItemPadding;
 
         // Site name (larger font)
-        drawList.AddText(ImGui.GetFont(), TableHeader - 1f,
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel,
             new Vector2(currentX, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
             site.SiteName);
@@ -334,7 +334,7 @@ internal static class CivilizationHolySitesRenderer
             .Replace("{0}", site.Tier.ToString());
         drawList.AddText(ImGui.GetFont(), Secondary,
             new Vector2(currentX, currentY),
-            ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 0.84f, 0f, 1f)), // Gold color
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold),
             tierText);
 
         // Volume

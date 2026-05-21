@@ -46,7 +46,7 @@ internal static class CivilizationDetailRenderer
                 vm.X, currentY, 160f, 32f, directoryPath: "GUI", iconName: "back"))
             events.Add(new DetailEvent.BackToBrowseClicked());
 
-        currentY += 44f;
+        currentY += Spacing.BackButtonRow;
 
         // Civilization header with rank
         TextRenderer.DrawLabel(drawList, vm.CivName, vm.X, currentY, PageTitle, ColorPalette.White);
@@ -55,7 +55,7 @@ internal static class CivilizationDetailRenderer
         var rankText = $"[{rankName}]";
         drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(vm.X + civNameWidth + 12f, currentY + 3f),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), rankText);
-        currentY += 32f;
+        currentY += Spacing.Block;
 
         // Info grid
         var leftCol = vm.X;
@@ -75,7 +75,7 @@ internal static class CivilizationDetailRenderer
         drawList.AddText(ImGui.GetFont(), Body, new Vector2(rightCol + 80f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.White), $"{vm.MemberCount}/4");
 
-        currentY += 24f;
+        currentY += Spacing.Section;
 
         // Civilization founder (player name)
         TextRenderer.DrawLabel(drawList,
@@ -84,7 +84,7 @@ internal static class CivilizationDetailRenderer
         drawList.AddText(ImGui.GetFont(), Body, new Vector2(leftCol + 120f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), vm.FounderName);
 
-        currentY += 24f;
+        currentY += Spacing.Section;
 
         // Founding religion
         TextRenderer.DrawLabel(drawList,
@@ -93,16 +93,16 @@ internal static class CivilizationDetailRenderer
         drawList.AddText(ImGui.GetFont(), Body, new Vector2(leftCol + 120f, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), vm.FounderReligionName);
 
-        currentY += 32f;
+        currentY += Spacing.Block;
 
         // Description section (if present)
         if (!string.IsNullOrEmpty(vm.Description))
         {
-            currentY += 8f;
+            currentY += Spacing.Tight;
             TextRenderer.DrawLabel(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_DESCRIPTION),
-                vm.X, currentY, SubsectionLabel, ColorPalette.Grey);
-            currentY += 22f;
+                vm.X, currentY, TableHeader, ColorPalette.Grey);
+            currentY += Spacing.HeaderToContent;
 
             TextRenderer.DrawInfoText(drawList, vm.Description, vm.X, currentY, vm.Width * 0.9f);
             currentY += 60f;
@@ -111,13 +111,13 @@ internal static class CivilizationDetailRenderer
         // Divider line
         drawList.AddLine(new Vector2(vm.X, currentY), new Vector2(vm.X + vm.Width, currentY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey * 0.5f), 1f);
-        currentY += 16f;
+        currentY += Spacing.Comfortable;
 
         // Member religions section
         TextRenderer.DrawLabel(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_MEMBER_RELIGIONS),
             vm.X, currentY, TableHeader, ColorPalette.White);
-        currentY += 28f;
+        currentY += Spacing.HeaderToContent;
 
         // Member list (scrollable)
         var listHeight = vm.Height - (currentY - vm.Y) - 80f;
@@ -131,7 +131,7 @@ internal static class CivilizationDetailRenderer
             listHeight,
             membersList,
             60f,
-            8f,
+            Spacing.ListItemGap,
             vm.MemberScrollY,
             (member, cx, cy, cw, ch) => DrawMemberRow(member, cx, cy, cw, ch, drawList, vm.FounderReligionName),
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_NO_MEMBERS)
@@ -189,7 +189,7 @@ internal static class CivilizationDetailRenderer
         }
 
         // Religion name
-        TextRenderer.DrawLabel(drawList, member.ReligionName, x + 40f, y + 8f, 15f);
+        TextRenderer.DrawLabel(drawList, member.ReligionName, x + 40f, y + 8f, Body);
 
         // Sub info - includes deity, member count, and religion founder name
         var subText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_MEMBER_CARD_INFO,
