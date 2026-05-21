@@ -81,19 +81,17 @@ internal static class SidebarRenderer
             events.Add(new SidebarEvent.SidebarToggled());
         }
 
-        // Double-chevron painted over the button face. Collapsed → points
-        // right (»), expanded → points left («). Primitive triangles keep
+        // Single chevron painted over the button face. Collapsed → points
+        // right (>), expanded → points left (<). Primitive triangle keeps
         // it consistent with the rest of the codex chrome.
         var drawList = ImGui.GetWindowDrawList();
         var direction = vm.IsCollapsed
             ? ChromeRenderer.ChevronDirection.Right
             : ChromeRenderer.ChevronDirection.Left;
         const float chevronSize = 9f;
-        const float chevronStride = 7f;
         var cy = cursor.Y + ToggleStripHeight / 2f;
         var cx = cursor.X + availWidth / 2f;
-        ChromeRenderer.DrawChevron(drawList, cx - chevronStride / 2f, cy, chevronSize, direction);
-        ChromeRenderer.DrawChevron(drawList, cx + chevronStride / 2f, cy, chevronSize, direction);
+        ChromeRenderer.DrawChevron(drawList, cx, cy, chevronSize, direction);
     }
 
     private static void DrawGroups(SidebarViewModel vm, List<SidebarEvent> events)
