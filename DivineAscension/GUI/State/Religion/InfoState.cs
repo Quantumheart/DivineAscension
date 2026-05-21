@@ -23,6 +23,8 @@ public class InfoState
     public bool IsSavingDeityName { get; set; }
     public string? DeityNameError { get; set; }
 
+    public bool IsEditingDescription { get; set; }
+
     public void Reset()
     {
         MyReligionInfo = null;
@@ -41,5 +43,6 @@ public class InfoState
         EditDeityNameValue = string.Empty;
         IsSavingDeityName = false;
         DeityNameError = null;
+        IsEditingDescription = false;
     }
 }

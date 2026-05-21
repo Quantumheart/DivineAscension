@@ -13,9 +13,7 @@ namespace DivineAscension.GUI.UI.Renderers.Sidebar;
 /// <summary>
 ///     Paints the page-turn affordance at the bottom of the right-page content
 ///     rect: a back/forward button pair on the same row, then a centered
-///     <c>─── page N of M ───</c> indicator below. Also defines invisible hit
-///     regions along the left and right edges of the page (the "gutter") so
-///     clicking the page margin flips. All routes emit the same
+///     <c>─── page N of M ───</c> indicator below. Emits the same
 ///     <see cref="SidebarEvent.ItemClicked" /> the sidebar uses, so navigation
 ///     stays single-pathed.
 /// </summary>
@@ -23,7 +21,6 @@ namespace DivineAscension.GUI.UI.Renderers.Sidebar;
 internal static class PageTurnFooterRenderer
 {
     public const float FooterHeight = 56f;
-    public const float GutterWidth = 14f;
 
     private const float ButtonWidth = 140f;
     private const float ButtonHeight = 26f;
@@ -34,14 +31,15 @@ internal static class PageTurnFooterRenderer
     private const float IndicatorLineGap = 8f;
 
     /// <summary>
-    ///     Draw the page-turn footer and gutter hit zones.
+    ///     Draw the page-turn footer.
     /// </summary>
     /// <param name="footer">Strip allocated for buttons + indicator (bottom of the page).</param>
-    /// <param name="pageRect">Full page content rect; gutters live along its left/right edges.</param>
+    /// <param name="pageRect">Full page content rect (unused; retained for call-site compatibility).</param>
     /// <param name="position">Current page position in the flattened enabled-page sequence.</param>
     public static IReadOnlyList<SidebarEvent> Draw(UiRect footer, UiRect pageRect,
         PageTurnNavigator.PagePosition position)
     {
+        _ = pageRect;
         var events = new List<SidebarEvent>();
         if (footer.W <= 0f || footer.H <= 0f) return events;
 
@@ -49,7 +47,6 @@ internal static class PageTurnFooterRenderer
 
         DrawButtonRow(footer, position, events);
         DrawPageIndicator(drawList, footer, position);
-        DrawGutterHits(drawList, footer, pageRect, position, events);
 
         return events;
     }
@@ -174,49 +171,4 @@ internal static class PageTurnFooterRenderer
         }
     }
 
-    private static void DrawGutterHits(ImDrawListPtr drawList, UiRect footer, UiRect pageRect,
-        PageTurnNavigator.PagePosition pos, List<SidebarEvent> events)
-    {
-        // Gutters span the page content above the footer so a margin click in
-        // the body reads as "turn the page". Mouse interaction is manual
-        // (HoveringRect + IsAnyItemHovered guard) so ImGui widgets inside the
-        // content area keep priority — only true-margin clicks flip.
-        var gutterTop = pageRect.Y;
-        var gutterBottom = footer.Y;
-        if (gutterBottom <= gutterTop) return;
-
-        var leftRectMin = new Vector2(pageRect.X, gutterTop);
-        var leftRectMax = new Vector2(pageRect.X + GutterWidth, gutterBottom);
-        var rightRectMin = new Vector2(pageRect.Right - GutterWidth, gutterTop);
-        var rightRectMax = new Vector2(pageRect.Right, gutterBottom);
-
-        var leftHover = pos.Previous.HasValue
-                        && ImGui.IsMouseHoveringRect(leftRectMin, leftRectMax)
-                        && !ImGui.IsAnyItemHovered();
-        var rightHover = pos.Next.HasValue
-                         && ImGui.IsMouseHoveringRect(rightRectMin, rightRectMax)
-                         && !ImGui.IsAnyItemHovered();
-
-        if (leftHover)
-        {
-            var hoverColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.Gold, 0.08f));
-            drawList.AddRectFilled(leftRectMin, leftRectMax, hoverColor);
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-            {
-                events.Add(new SidebarEvent.ItemClicked(pos.Previous!.Value));
-            }
-        }
-
-        if (rightHover)
-        {
-            var hoverColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.Gold, 0.08f));
-            drawList.AddRectFilled(rightRectMin, rightRectMax, hoverColor);
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-            {
-                events.Add(new SidebarEvent.ItemClicked(pos.Next!.Value));
-            }
-        }
-    }
 }

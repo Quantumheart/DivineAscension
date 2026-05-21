@@ -147,6 +147,60 @@ internal static class ChromeRenderer
     }
 
     /// <summary>
+    ///     Paint a small pencil glyph (✎ U+270E) as primitives so it renders
+    ///     in fonts without Dingbats coverage. Diagonal body from upper-right
+    ///     to lower-left, triangular graphite tip at the lower-left end, and
+    ///     a square ferrule at the upper-right end.
+    /// </summary>
+    public static void DrawPencil(ImDrawListPtr drawList, float cx, float cy, float size,
+        Vector4? colorOverride = null)
+    {
+        if (size <= 0f) return;
+        var color = ImGui.ColorConvertFloat4ToU32(colorOverride ?? ColorPalette.Gold);
+        var half = size / 2f;
+
+        // Body line: upper-right → lower-left diagonal.
+        var bodyStart = new Vector2(cx + half * 0.7f, cy - half * 0.7f);
+        var bodyEnd = new Vector2(cx - half * 0.3f, cy + half * 0.3f);
+        drawList.AddLine(bodyStart, bodyEnd, color, 2f);
+
+        // Graphite tip — small triangle pointing further down-left.
+        var tipA = new Vector2(cx - half * 0.3f, cy + half * 0.3f);
+        var tipB = new Vector2(cx - half * 0.1f, cy + half * 0.55f);
+        var tipC = new Vector2(cx - half * 0.55f, cy + half * 0.1f);
+        drawList.AddTriangleFilled(tipA, tipB, tipC, color);
+
+        // Ferrule — short cross-line at the eraser end.
+        var ferruleA = new Vector2(cx + half * 0.4f, cy - half * 0.85f);
+        var ferruleB = new Vector2(cx + half * 0.85f, cy - half * 0.4f);
+        drawList.AddLine(ferruleA, ferruleB, color, 2f);
+    }
+
+    /// <summary>
+    ///     Paint a dagger glyph († U+2020) as primitives so it renders in
+    ///     fonts without that codepoint. Vertical blade, short cross-guard
+    ///     near the top, and a small filled pommel at the top end.
+    /// </summary>
+    public static void DrawDagger(ImDrawListPtr drawList, float cx, float cy, float size,
+        Vector4? colorOverride = null)
+    {
+        if (size <= 0f) return;
+        var color = ImGui.ColorConvertFloat4ToU32(colorOverride ?? ColorPalette.Gold);
+        var half = size / 2f;
+
+        // Blade — full vertical line.
+        drawList.AddLine(new Vector2(cx, cy - half), new Vector2(cx, cy + half), color, 2f);
+
+        // Cross-guard a third of the way down.
+        var guardY = cy - half * 0.35f;
+        drawList.AddLine(new Vector2(cx - half * 0.45f, guardY),
+            new Vector2(cx + half * 0.45f, guardY), color, 2f);
+
+        // Pommel cap.
+        drawList.AddCircleFilled(new Vector2(cx, cy - half), MathF.Max(1.5f, half * 0.18f), color);
+    }
+
+    /// <summary>
     ///     Paint a leader row: <c>Label · · · · · · Value</c> spanning
     ///     <paramref name="width" />, with the dot run sized to fill the gap
     ///     between the label end and the right-aligned value.

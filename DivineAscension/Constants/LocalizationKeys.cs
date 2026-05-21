@@ -205,6 +205,17 @@ public static class LocalizationKeys
     public const string UI_RELIGION_INFO_INVITE_PLACEHOLDER = "divineascension:ui.religion.info.invite.placeholder";
     public const string UI_RELIGION_INFO_INVITE_BUTTON = "divineascension:ui.religion.info.invite.button";
 
+    // Ledger chrome strings introduced for the "This Order" chapter rewrite (#309).
+    public const string UI_RELIGION_INFO_PURPOSE_HEADING = "divineascension:ui.religion.info.purpose.heading";
+    public const string UI_RELIGION_INFO_PURPOSE_EMPTY = "divineascension:ui.religion.info.purpose.empty";
+    public const string UI_RELIGION_INFO_STRICKEN_HEADING = "divineascension:ui.religion.info.stricken.heading";
+    public const string UI_RELIGION_INFO_STRICKEN_EMPTY = "divineascension:ui.religion.info.stricken.empty";
+    public const string UI_RELIGION_INFO_INTRO_FOUNDED_BY = "divineascension:ui.religion.info.intro.founded_by";
+    public const string UI_RELIGION_INFO_INTRO_SOULS = "divineascension:ui.religion.info.intro.souls";
+    public const string UI_RELIGION_INFO_INTRO_SOULS_ONE = "divineascension:ui.religion.info.intro.souls_one";
+    public const string UI_RELIGION_INFO_PRESTIGE_MAX = "divineascension:ui.religion.info.prestige.max";
+    public const string UI_RELIGION_ACTION_DISBAND_LEDGER = "divineascension:ui.religion.action.disband_ledger";
+
     #endregion
 
     #region Religion - Actions

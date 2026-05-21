@@ -18,6 +18,10 @@ public abstract record InfoEvent
 
     public record SaveDescriptionClicked(string Text) : InfoEvent;
 
+    public record EditDescriptionOpen : InfoEvent;
+
+    public record EditDescriptionCancel : InfoEvent;
+
     // Invites
     public record InviteNameChanged(string Text) : InfoEvent;
 

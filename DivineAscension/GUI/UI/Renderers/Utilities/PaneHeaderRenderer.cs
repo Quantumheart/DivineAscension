@@ -31,17 +31,25 @@ internal static class PaneHeaderRenderer
         IntPtr iconTextureId = default,
         string? rankTag = null,
         Vector4? rankColor = null,
-        string? rightTitle = null)
+        string? rightTitle = null,
+        Action<ImDrawListPtr, Vector2, Vector2>? iconPainter = null)
     {
-        var hasIcon = iconTextureId != IntPtr.Zero;
+        var hasIcon = iconTextureId != IntPtr.Zero || iconPainter != null;
         var titleX = hasIcon ? x + IconSize + 12f : x;
 
         if (hasIcon)
         {
             var iconMin = new Vector2(x, y);
             var iconMax = new Vector2(x + IconSize, y + IconSize);
-            var tint = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
-            drawList.AddImage(iconTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tint);
+            if (iconPainter != null)
+            {
+                iconPainter(drawList, iconMin, iconMax);
+            }
+            else
+            {
+                var tint = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
+                drawList.AddImage(iconTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tint);
+            }
             var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
             drawList.AddRect(iconMin, iconMax, borderColor, 4f, ImDrawFlags.None, 1f);
         }
