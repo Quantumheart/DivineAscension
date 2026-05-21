@@ -286,6 +286,10 @@ public static class LocalizationKeys
     public const string SIDEBAR_DISABLED_ALREADY_IN_RELIGION = "divineascension:ui.sidebar.disabled.already_in_religion";
     public const string SIDEBAR_DISABLED_ALREADY_IN_CIVILIZATION = "divineascension:ui.sidebar.disabled.already_in_civilization";
 
+    public const string SIDEBAR_PAGE_TURN_PREVIOUS = "divineascension:ui.sidebar.page_turn.previous";
+    public const string SIDEBAR_PAGE_TURN_NEXT = "divineascension:ui.sidebar.page_turn.next";
+    public const string SIDEBAR_PAGE_TURN_INDICATOR = "divineascension:ui.sidebar.page_turn.indicator";
+
     #endregion
 
     #region Right Rail Notification Feed
