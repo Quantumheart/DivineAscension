@@ -62,13 +62,24 @@ internal static class ProgressBarRenderer
         var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.5f);
         drawList.AddRect(bgMin, bgMax, borderColor, 4f, ImDrawFlags.None, 1f);
 
-        // Label text (centered)
+        // Label text — drawn twice with clipping so each half reads against
+        // whatever background sits behind it. Dark ink on the gold fill,
+        // light cream on the dark-brown empty portion.
         var textSize = ImGui.CalcTextSize(labelText);
         var textPos = new Vector2(
             x + (width - textSize.X) / 2,
             y + (height - textSize.Y) / 2
         );
-        var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
-        drawList.AddText(textPos, textColor, labelText);
+        var fillEnd = x + width * Math.Clamp(percentage, 0f, 1f);
+        var darkInk = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
+        var lightInk = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText);
+
+        drawList.PushClipRect(bgMin, new Vector2(fillEnd, bgMax.Y), true);
+        drawList.AddText(textPos, darkInk, labelText);
+        drawList.PopClipRect();
+
+        drawList.PushClipRect(new Vector2(fillEnd, bgMin.Y), bgMax, true);
+        drawList.AddText(textPos, lightInk, labelText);
+        drawList.PopClipRect();
     }
 }
