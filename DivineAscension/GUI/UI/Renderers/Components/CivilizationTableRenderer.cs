@@ -11,6 +11,7 @@ using DivineAscension.Models.Enum;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Components;
 
@@ -34,13 +35,11 @@ internal static class CivilizationTableRenderer
     private const float RowPaddingVertical = 12f;
     private const float RowSpacing = 8f;
     private const float ScrollbarWidth = 16f;
-    private const float CivIconSize = 40f;
+    private const float CivIconSize = 48f;
     private const float DeityIconSize = 12f;
     private const float DeityIconSpacing = 4f;
-    private const float DescriptionFontSize = 12f;
-    private const float NameFontSize = 14f;
-    private const float HeaderFontSize = 16f;
     private const float DescriptionPaddingHorizontal = 12f;
+    private const float NamePadding = 12f;
 
     public static CivilizationTableRenderResult Draw(
         CivilizationTableViewModel viewModel,
@@ -73,7 +72,7 @@ internal static class CivilizationTableRenderer
             return new CivilizationTableRenderResult(events, tableHeight);
         }
 
-        DrawTableHeader(drawList, x, y, tableWidth, nameColumnWidth, religionsColumnWidth);
+        DrawTableHeader(drawList, x, y, tableWidth, nameColumnWidth, religionsColumnWidth, descriptionColumnWidth);
 
         if (civilizations.Count == 0)
         {
@@ -185,42 +184,27 @@ internal static class CivilizationTableRenderer
     }
 
     private static void DrawTableHeader(ImDrawListPtr drawList, float x, float y,
-        float tableWidth, float nameColumnWidth, float religionsColumnWidth)
+        float tableWidth, float nameColumnWidth, float religionsColumnWidth, float descriptionColumnWidth)
     {
         var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
+        const float fontSize = TableHeader;
 
-        drawList.AddRectFilled(
-            new Vector2(x, y),
-            new Vector2(x + tableWidth, y + HeaderHeight),
-            headerColor);
+        // Column 1: "Name" — center over the text area after the icon (matches religion table)
+        var nameTextAreaX = x + NamePadding + CivIconSize + NamePadding;
+        var nameTextAreaWidth = nameColumnWidth - CivIconSize - NamePadding * 3;
+        DrawCenteredText(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_HEADER_NAME),
+            nameTextAreaX, y + 8f, nameTextAreaWidth, headerColor, fontSize);
 
-        var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
+        // Column 2: "Religions" — centered
+        DrawCenteredText(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_HEADER_RELIGIONS),
+            x + nameColumnWidth, y + 8f, religionsColumnWidth, headerColor, fontSize);
 
-        // Column 1: "Name" (aligned with name area after icon)
-        var col1X = x;
-        var nameHeaderX = col1X + 12f + CivIconSize + 8f;
-        drawList.AddText(ImGui.GetFont(), HeaderFontSize,
-            new Vector2(nameHeaderX, y + (HeaderHeight - HeaderFontSize) / 2f),
-            textColor,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_HEADER_NAME));
-
-        // Column 2: "Religions" (centered)
-        var col2X = x + nameColumnWidth;
-        var religionsHeader =
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_HEADER_RELIGIONS);
-        var religionsSize = ImGui.CalcTextSize(religionsHeader);
-        var religionsCenterX = col2X + (religionsColumnWidth - religionsSize.X) / 2f;
-        drawList.AddText(ImGui.GetFont(), HeaderFontSize,
-            new Vector2(religionsCenterX, y + (HeaderHeight - HeaderFontSize) / 2f),
-            textColor,
-            religionsHeader);
-
-        // Column 3: "Description" (left-aligned)
-        var col3X = x + nameColumnWidth + religionsColumnWidth;
-        drawList.AddText(ImGui.GetFont(), HeaderFontSize,
-            new Vector2(col3X + DescriptionPaddingHorizontal, y + (HeaderHeight - HeaderFontSize) / 2f),
-            textColor,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_HEADER_DESCRIPTION));
+        // Column 3: "Description" — centered like other table headers
+        DrawCenteredText(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_HEADER_DESCRIPTION),
+            x + nameColumnWidth + religionsColumnWidth, y + 8f, descriptionColumnWidth, headerColor, fontSize);
     }
 
     private static string? DrawTableRow(
@@ -270,7 +254,7 @@ internal static class CivilizationTableRenderer
             clickedCivId = civ.CivId;
         }
 
-        DrawNameColumn(drawList, civ, x, y, rowHeight);
+        DrawNameColumn(drawList, civ, x, y, rowHeight, nameColumnWidth);
         DrawReligionsColumn(drawList, civ, x + nameColumnWidth, y, religionsColumnWidth);
         DrawDescriptionColumn(drawList, civ, x + nameColumnWidth + religionsColumnWidth, y, descriptionColumnWidth);
 
@@ -282,21 +266,23 @@ internal static class CivilizationTableRenderer
         CivilizationListResponsePacket.CivilizationInfo civ,
         float colX,
         float rowY,
-        float rowHeight)
+        float rowHeight,
+        float columnWidth)
     {
-        const float padding = 12f;
-
-        var iconX = colX + padding;
+        var iconX = colX + NamePadding;
         var iconY = rowY + (rowHeight - CivIconSize) / 2f;
         DrawCivIcon(drawList, civ.Icon, iconX, iconY);
 
-        var textX = iconX + CivIconSize + 8f;
-        var textY = rowY + (rowHeight - NameFontSize) / 2f;
+        var textX = iconX + CivIconSize + NamePadding;
+        var textWidth = columnWidth - CivIconSize - NamePadding * 3;
+        var textSize = ImGui.CalcTextSize(civ.Name);
+        var scale = Body / ImGui.GetFont().FontSize;
+        var scaledWidth = textSize.X * scale;
+        var textPosX = textX + (textWidth - scaledWidth) / 2f;
+        var textPosY = rowY + (rowHeight - Body) / 2f;
+
         var nameColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        drawList.AddText(ImGui.GetFont(), NameFontSize,
-            new Vector2(textX, textY),
-            nameColor,
-            civ.Name);
+        drawList.AddText(ImGui.GetFont(), Body, new Vector2(textPosX, textPosY), nameColor, civ.Name);
     }
 
     private static void DrawReligionsColumn(
@@ -358,7 +344,7 @@ internal static class CivilizationTableRenderer
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
 
         ImGui.PushTextWrapPos(textX + textWidth);
-        drawList.AddText(ImGui.GetFont(), DescriptionFontSize,
+        drawList.AddText(ImGui.GetFont(), Secondary,
             new Vector2(textX, textY),
             textColor,
             civ.Description);
@@ -368,25 +354,40 @@ internal static class CivilizationTableRenderer
     private static void DrawCivIcon(ImDrawListPtr drawList, string iconName, float x, float y)
     {
         var iconTextureId = CivilizationIconLoader.GetIconTextureId(iconName);
+        var iconMin = new Vector2(x, y);
+        var iconMax = new Vector2(x + CivIconSize, y + CivIconSize);
 
         if (iconTextureId != IntPtr.Zero)
         {
-            var iconMin = new Vector2(x, y);
-            var iconMax = new Vector2(x + CivIconSize, y + CivIconSize);
             var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
             drawList.AddImage(iconTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
-
-            var iconBorderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.5f);
-            drawList.AddRect(iconMin, iconMax, iconBorderColor, 3f, ImDrawFlags.None, 1f);
         }
         else
         {
             var center = new Vector2(x + CivIconSize / 2f, y + CivIconSize / 2f);
-            var radius = CivIconSize / 2f;
             var fallbackColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown);
-            drawList.AddCircleFilled(center, radius, fallbackColor);
-            drawList.AddCircle(center, radius, ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown), 0, 2f);
+            drawList.AddCircleFilled(center, CivIconSize / 2f, fallbackColor, 16);
         }
+
+        var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
+        drawList.AddRect(iconMin, iconMax, borderColor, 4f, ImDrawFlags.None, 2f);
+    }
+
+    private static void DrawCenteredText(
+        ImDrawListPtr drawList,
+        string text,
+        float colX,
+        float colY,
+        float colWidth,
+        uint color,
+        float fontSize)
+    {
+        var defaultFontSize = ImGui.GetFont().FontSize;
+        var baseTextSize = ImGui.CalcTextSize(text);
+        var scale = fontSize / defaultFontSize;
+        var scaledWidth = baseTextSize.X * scale;
+        var textX = colX + (colWidth - scaledWidth) / 2f;
+        drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(textX, colY), color, text);
     }
 
     private static void DrawLoadingState(ImDrawListPtr drawList, float x, float y, float width, float height)
