@@ -24,7 +24,7 @@ internal static class BlessingInfoSectionRequirements
         var drawList = ImGui.GetWindowDrawList();
 
         currentY += 8f;
-        var reqTitleColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
+        var reqTitleColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText);
         drawList.AddText(ImGui.GetFont(), TableHeader, new Vector2(vm.X + padding, currentY), reqTitleColorU32,
             LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIREMENTS));
         currentY += 22f;
@@ -39,7 +39,7 @@ internal static class BlessingInfoSectionRequirements
                 : LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PRESTIGE_RANK_REQUIREMENT,
                     ((PrestigeRank)selectedState.Blessing.RequiredPrestigeRank).ToLocalizedString());
 
-            var descriptionColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
+            var descriptionColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText);
             drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(vm.X + padding + 8, currentY), descriptionColorU32,
                 rankReq);
             currentY += 18f;
@@ -78,7 +78,7 @@ internal static class BlessingInfoSectionRequirements
                         }
                     }
 
-                    var prereqColor = prereqState?.IsUnlocked ?? false ? ColorPalette.Green : ColorPalette.Red;
+                    var prereqColor = prereqState?.IsUnlocked ?? false ? ColorPalette.SuccessGreen : ColorPalette.ErrorRed;
                     var prereqColorU32 = ImGui.ColorConvertFloat4ToU32(prereqColor);
 
                     drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(vm.X + padding + 8, currentY),

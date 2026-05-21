@@ -12,7 +12,7 @@ internal static class BlessingInfoSectionDescription
     public static float Draw(BlessingNodeState selectedState, float x,
         float currentY, float padding, float contentWidth)
     {
-        var descriptionColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
+        var descriptionColorU32 = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText);
         BlessingInfoTextUtils.DrawWrappedText(selectedState.Blessing.Description,
             x + padding, currentY, contentWidth, descriptionColorU32, SubsectionLabel);
         currentY += 20f; // Small margin after description

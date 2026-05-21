@@ -32,7 +32,8 @@ internal static class PaneHeaderRenderer
         string? rankTag = null,
         Vector4? rankColor = null,
         string? rightTitle = null,
-        Action<ImDrawListPtr, Vector2, Vector2>? iconPainter = null)
+        Action<ImDrawListPtr, Vector2, Vector2>? iconPainter = null,
+        Vector4? titleColor = null)
     {
         var hasIcon = iconTextureId != IntPtr.Zero || iconPainter != null;
         var titleX = hasIcon ? x + IconSize + 12f : x;
@@ -54,7 +55,7 @@ internal static class PaneHeaderRenderer
             drawList.AddRect(iconMin, iconMax, borderColor, 4f, ImDrawFlags.None, 1f);
         }
 
-        TextRenderer.DrawLabel(drawList, title, titleX, y + 4f, FontSizes.PageTitle, ColorPalette.White);
+        TextRenderer.DrawLabel(drawList, title, titleX, y + 4f, FontSizes.PageTitle, titleColor ?? ColorPalette.White);
 
         if (!string.IsNullOrEmpty(rankTag))
         {
