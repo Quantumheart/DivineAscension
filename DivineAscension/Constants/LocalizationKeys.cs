@@ -132,6 +132,36 @@ public static class LocalizationKeys
     public const string UI_RELIGION_ROLES_DELETE_CONFIRM_BUTTON =
         "divineascension:ui.religion.roles.delete_confirm.button";
 
+    // Vestments chapter (I.iv) — #318
+    public const string UI_RELIGION_ROLES_CHAPTER_INTRO = "divineascension:ui.religion.roles.chapter_intro";
+    public const string UI_RELIGION_ROLES_BADGE_PROTECTED = "divineascension:ui.religion.roles.badge.protected";
+    public const string UI_RELIGION_ROLES_BADGE_DEFAULT = "divineascension:ui.religion.roles.badge.default";
+    public const string UI_RELIGION_ROLES_WEAR_COUNT = "divineascension:ui.religion.roles.wear_count";
+    public const string UI_RELIGION_ROLES_FOUNDER_SUMMARY = "divineascension:ui.religion.roles.founder_summary";
+    public const string UI_RELIGION_ROLES_SUMMARY_NONE = "divineascension:ui.religion.roles.summary.none";
+    public const string UI_RELIGION_ROLES_SUMMARY_PREFIX = "divineascension:ui.religion.roles.summary.prefix";
+    public const string UI_RELIGION_ROLES_SUMMARY_AND = "divineascension:ui.religion.roles.summary.and";
+    public const string UI_RELIGION_ROLES_SUMMARY_OVERFLOW = "divineascension:ui.religion.roles.summary.overflow";
+    public const string UI_RELIGION_ROLES_INSCRIBE_LABEL = "divineascension:ui.religion.roles.inscribe.label";
+    public const string UI_RELIGION_ROLES_INSCRIBE_PLACEHOLDER =
+        "divineascension:ui.religion.roles.inscribe.placeholder";
+    public const string UI_RELIGION_ROLES_INSCRIBE_BUTTON = "divineascension:ui.religion.roles.inscribe.button";
+    public const string UI_RELIGION_ROLES_STRIKE_BUTTON = "divineascension:ui.religion.roles.strike.button";
+
+    public const string UI_RELIGION_ROLES_PHRASE_INVITE = "divineascension:ui.religion.roles.phrase.invite";
+    public const string UI_RELIGION_ROLES_PHRASE_MANAGE_INVITES =
+        "divineascension:ui.religion.roles.phrase.manage_invites";
+    public const string UI_RELIGION_ROLES_PHRASE_STRIKE = "divineascension:ui.religion.roles.phrase.strike";
+    public const string UI_RELIGION_ROLES_PHRASE_CAST_OUT = "divineascension:ui.religion.roles.phrase.cast_out";
+    public const string UI_RELIGION_ROLES_PHRASE_INSCRIBE = "divineascension:ui.religion.roles.phrase.inscribe";
+    public const string UI_RELIGION_ROLES_PHRASE_TAILOR = "divineascension:ui.religion.roles.phrase.tailor";
+    public const string UI_RELIGION_ROLES_PHRASE_VEIL = "divineascension:ui.religion.roles.phrase.veil";
+    public const string UI_RELIGION_ROLES_PHRASE_READ_ROLL = "divineascension:ui.religion.roles.phrase.read_roll";
+    public const string UI_RELIGION_ROLES_PHRASE_READ_STRIKES =
+        "divineascension:ui.religion.roles.phrase.read_strikes";
+    public const string UI_RELIGION_ROLES_PHRASE_NAME_HEIR = "divineascension:ui.religion.roles.phrase.name_heir";
+    public const string UI_RELIGION_ROLES_PHRASE_DISSOLVE = "divineascension:ui.religion.roles.phrase.dissolve";
+
     #endregion
 
     #region Religion - Role Detail
