@@ -366,8 +366,8 @@ public static class ReligionListRenderer
             }
             else if (i == 1)
             {
-                // Deity subtitle
-                textColor = ColorPalette.White;
+                // Deity subtitle — on-dark surface, palette §7 cream ink.
+                textColor = ColorPalette.LightText;
                 fontSize = Body;
             }
             else if (line.StartsWith(
@@ -378,14 +378,14 @@ public static class ReligionListRenderer
                          LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_LIST_PRESTIGE_LABEL)) ||
                      line.StartsWith(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_LIST_STATUS_LABEL)))
             {
-                // Section headers
-                textColor = ColorPalette.Grey;
+                // Section headers — muted cream on dark surface.
+                textColor = ColorPalette.MutedText;
                 fontSize = Secondary;
             }
             else
             {
-                // Regular text
-                textColor = ColorPalette.White;
+                // Body lines — cream ink on dark surface.
+                textColor = ColorPalette.LightText;
                 fontSize = Body;
             }
 

@@ -26,8 +26,6 @@ internal static class ReligionInfoHeaderRenderer
     private const float StatBlockBottomSpacing = 6f;
     private const float ProseLineHeight = 18f;
     private const float ProseBottomSpacing = 12f;
-    private const float EditGlyphWidth = 22f;
-    private const float EditGlyphHeight = 22f;
     private const float PrestigeBarHeight = 12f;
     private const float PrestigeBarMaxWidth = 180f;
 
@@ -39,59 +37,10 @@ internal static class ReligionInfoHeaderRenderer
         float width,
         List<InfoEvent> events)
     {
-        var deityDomain = DomainHelper.ParseDeityType(viewModel.Deity);
-
-        // Title row layout: `This Order ......... Hammer Test [glyph] [✎]`.
-        // The domain glyph sits on the right end of the title strip (just
-        // inside the founder edit pencil) so the order's identity reads as
-        // a single right-anchored block. Rank tag is intentionally omitted
-        // from the chapter header — it's covered by the prestige stat row
-        // below.
-        const float glyphGap = 8f;
-        const float pencilGap = 8f;
-        var pencilReservation = viewModel.IsFounder && !viewModel.IsEditingDeityName
-            ? EditGlyphWidth + pencilGap
-            : 0f;
-        var glyphReservation = PaneHeaderRenderer.IconSize + glyphGap;
-        var headerWidth = width - pencilReservation - glyphReservation;
-
-        var currentY = PaneHeaderRenderer.Draw(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_INFO),
-            x, y, headerWidth, iconTextureId: System.IntPtr.Zero,
-            rightTitle: viewModel.ReligionName);
-
-        // Domain glyph in a 32-square slot to the right of the order name.
-        // Painted on top of the title strip in the same gold-bordered frame
-        // the left-icon variant uses.
-        var glyphMinX = x + width - pencilReservation - PaneHeaderRenderer.IconSize;
-        var glyphMin = new Vector2(glyphMinX, y);
-        var glyphMax = new Vector2(glyphMinX + PaneHeaderRenderer.IconSize,
-            y + PaneHeaderRenderer.IconSize);
-        DomainGlyphRenderer.Draw(drawList, deityDomain, glyphMin, glyphMax);
-        var glyphBorder = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
-        drawList.AddRect(glyphMin, glyphMax, glyphBorder, 4f, ImDrawFlags.None, 1f);
-
-        if (viewModel.IsFounder && !viewModel.IsEditingDeityName)
-        {
-            // Founder edit pencil anchored at the far right edge.
-            var glyphX = x + width - EditGlyphWidth;
-            var glyphY = y + 6f;
-            if (ButtonRenderer.DrawButton(drawList, string.Empty,
-                    glyphX, glyphY,
-                    EditGlyphWidth, EditGlyphHeight,
-                    isPrimary: false, enabled: true))
-            {
-                events.Add(new InfoEvent.EditDeityNameOpen());
-            }
-            ChromeRenderer.DrawPencil(drawList,
-                glyphX + EditGlyphWidth / 2f,
-                glyphY + EditGlyphHeight / 2f,
-                EditGlyphHeight - 8f,
-                ColorPalette.LightText);
-        }
-
-        // Prose intro — replaces loose Founder/Founded rows above the grid.
-        currentY = DrawProseIntro(viewModel, drawList, x, currentY, width);
+        // Title strip / right-side ornaments / pencil button are owned by the
+        // shared ChapterStripRenderer; this method renders only prose intro
+        // and the dotted-leader stat block below it.
+        var currentY = DrawProseIntro(viewModel, drawList, x, y, width);
 
         // Stat block
         if (viewModel.IsEditingDeityName)

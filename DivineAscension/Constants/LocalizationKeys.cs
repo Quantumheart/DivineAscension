@@ -70,6 +70,15 @@ public static class LocalizationKeys
     public const string UI_RELIGION_BROWSE_REFRESH = "divineascension:ui.religion.browse.refresh";
     public const string UI_RELIGION_BROWSE_NO_RELIGIONS = "divineascension:ui.religion.browse.no_religions";
     public const string UI_RELIGION_BROWSE_LOADING = "divineascension:ui.religion.browse.loading";
+    public const string UI_RELIGION_BROWSE_CHAPTER_TITLE = "divineascension:ui.religion.browse.chapter_title";
+    public const string UI_RELIGION_BROWSE_INTRO_ONE = "divineascension:ui.religion.browse.intro_one";
+    public const string UI_RELIGION_BROWSE_INTRO_MANY = "divineascension:ui.religion.browse.intro_many";
+    public const string UI_RELIGION_BROWSE_FILTER_BY_DEITY = "divineascension:ui.religion.browse.filter_by_deity";
+    public const string UI_RELIGION_BROWSE_SOULS_ONE = "divineascension:ui.religion.browse.souls_one";
+    public const string UI_RELIGION_BROWSE_SOULS_MANY = "divineascension:ui.religion.browse.souls_many";
+    public const string UI_RELIGION_BROWSE_COUNTER_ONE = "divineascension:ui.religion.browse.counter_one";
+    public const string UI_RELIGION_BROWSE_COUNTER_MANY = "divineascension:ui.religion.browse.counter_many";
+    public const string UI_RELIGION_BROWSE_EMPTY_CHAPTER = "divineascension:ui.religion.browse.empty_chapter";
     public const string UI_RELIGION_LIST_INFO_SHORT = "divineascension:ui.religion.list.info.short";
     public const string UI_RELIGION_LIST_MEMBERS_LABEL = "divineascension:ui.religion.list.members_label";
     public const string UI_RELIGION_LIST_PRESTIGE_LABEL = "divineascension:ui.religion.list.prestige_label";
