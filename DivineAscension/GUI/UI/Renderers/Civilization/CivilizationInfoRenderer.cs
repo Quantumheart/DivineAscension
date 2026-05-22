@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
@@ -10,247 +9,314 @@ using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Components.Overlays;
+using DivineAscension.GUI.UI.Renderers.Civilization.Info;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
-using DivineAscension.Models.Enum;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Services;
-using DivineAscension.Systems;
 using ImGuiNET;
 using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
+/// <summary>
+/// Pure renderer for the "This Realm" ledger chapter (#310). Sibling of
+/// <see cref="Religion.ReligionInfoRenderer"/>. Title strip + prose intro +
+/// dotted-leader stat block + founder-editable purpose prose + banner-orders
+/// list + founder-only invite block + Leave / Disband footer.
+/// </summary>
 [ExcludeFromCodeCoverage]
 internal static class CivilizationInfoRenderer
 {
+    private const float DividerHeight = 18f;
+    private const float DividerYPadding = 6f;
+    private const float SectionLabelHeight = 22f;
+    private const float OrderRowHeight = 22f;
+    private const float InviteInputHeight = 30f;
+    private const float InviteButtonWidth = 130f;
+    private const float InviteButtonHeight = 32f;
+    private const float LetterRowHeight = 22f;
+    private const float FooterTopPadding = 12f;
+    private const float ScrollbarWidth = 16f;
+    private const float DiamondHalfSize = 3.5f;
+    private const float DiamondLeftPadding = 4f;
+    private const float DiamondLabelGap = 10f;
+
     public static CivilizationInfoRendererResult Draw(
         CivilizationInfoViewModel vm,
-        ImDrawListPtr drawList,
-        IReadOnlyList<CivilizationInfoResponsePacket.PendingInvite>? pendingInvites,
-        string? founderReligionUID,
-        DateTime createdDate)
+        ImDrawListPtr drawList)
     {
         var events = new List<InfoEvent>();
-        var currentY = vm.Y + ChapterStripRenderer.TopPadding;
+        var x = vm.X;
+        var y = vm.Y;
+        var width = vm.Width;
+        var height = vm.Height;
 
-        var overlayOpen = vm.ShowDisbandConfirm || vm.IsKickConfirmOpen;
-
-        // Loading state for My Civilization tab
         if (vm.IsLoading)
         {
-            TextRenderer.DrawInfoText(drawList,
+            DrawCenteredStateText(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_LOADING),
-                vm.X, currentY + 8f, vm.Width);
-            return new CivilizationInfoRendererResult(events, vm.Height);
+                x, y, width, height);
+            return new CivilizationInfoRendererResult(events, height);
         }
 
         if (!vm.HasCivilization)
         {
-            TextRenderer.DrawInfoText(drawList,
+            DrawCenteredStateText(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_NOT_IN_CIV),
-                vm.X, currentY + 8f, vm.Width);
-            return new CivilizationInfoRendererResult(events, vm.Height);
+                x, y, width, height);
+            return new CivilizationInfoRendererResult(events, height);
         }
 
-        var iconTextureId = CivilizationIconLoader.GetIconTextureId(vm.Icon);
-        var rankName = RankRequirements.GetCivilizationRankName(vm.Rank);
-        var strip = ChapterStripRenderer.Draw(drawList, vm.X, vm.Y, vm.Width, 0f,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_INFO),
-            rightTitle: vm.CivName,
-            iconTextureId: iconTextureId,
-            rankTag: rankName);
-        currentY = strip.BodyY;
+        var overlayOpen = vm.ShowDisbandConfirm || vm.IsKickConfirmOpen;
 
-        // Founded · · · · · 2026-03-14
-        ChromeRenderer.DrawLeader(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_FOUNDED),
-            createdDate.ToString("yyyy-MM-dd"),
-            vm.X, currentY, vm.Width);
-        currentY += 22f;
+        var contentHeightEstimate = ComputeContentHeight(vm);
+        var maxScroll = MathF.Max(0f, contentHeightEstimate - height);
 
-        // Members · · · · · 3/4
-        ChromeRenderer.DrawLeader(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_MEMBERS),
-            $"{vm.MemberReligions?.Count ?? 0}/4",
-            vm.X, currentY, vm.Width);
-        currentY += 22f;
-
-        // Founder · · · · · <name>
-        ChromeRenderer.DrawLeader(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_FOUNDER),
-            vm.FounderName,
-            vm.X, currentY, vm.Width,
-            valueColor: ColorPalette.Gold);
-        currentY += 22f;
-
-        // Founding religion · · · · · <religion>
-        var founderReligionName =
-            vm.MemberReligions?.FirstOrDefault(m => m.ReligionId == founderReligionUID)?.ReligionName ??
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_UNKNOWN_RELIGION);
-        ChromeRenderer.DrawLeader(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_FOUNDING_RELIGION),
-            founderReligionName,
-            vm.X, currentY, vm.Width,
-            valueColor: ColorPalette.Gold);
-        currentY += 28f;
-
-        // Divider before the Description section.
-        ChromeRenderer.DrawDivider(drawList, vm.X, currentY, vm.Width);
-        currentY += 18f;
-
-        // Description section
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_DESCRIPTION_LABEL),
-            vm.X, currentY, SubsectionLabel, ColorPalette.Grey);
-        currentY += 22f;
-
-        if (vm.IsFounder)
+        var mousePos = ImGui.GetMousePos();
+        var isHover = mousePos.X >= x && mousePos.X <= x + width && mousePos.Y >= y && mousePos.Y <= y + height;
+        var scrollY = vm.ScrollY;
+        if (isHover)
         {
-            // Editable description for founder
-            var newDescription = TextInput.DrawMultiline(drawList, "##civDescription", vm.DescriptionText,
-                vm.X, currentY,
-                vm.Width * 0.7f, 80f, 200);
-
-            if (newDescription != vm.DescriptionText)
-                events.Add(new InfoEvent.DescriptionChanged(newDescription));
-
-            currentY += 90f;
-
-            // Save description button (only visible when there are changes)
-            if (vm.HasDescriptionChanges)
+            var wheel = ImGui.GetIO().MouseWheel;
+            if (wheel != 0)
             {
-                if (ButtonRenderer.DrawButton(drawList,
-                        LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_SAVE_DESCRIPTION_BUTTON),
-                        vm.X, currentY, 160f, 30f, true, !overlayOpen))
-                    events.Add(new InfoEvent.SaveDescriptionClicked());
-
-                currentY += 40f;
-            }
-        }
-        else if (!string.IsNullOrEmpty(vm.Description))
-        {
-            // Read-only description for non-founders
-            TextRenderer.DrawInfoText(drawList, vm.Description, vm.X, currentY, vm.Width * 0.9f);
-            currentY += 60f;
-        }
-
-        currentY += 10f;
-
-        // Members section title
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_MEMBER_RELIGIONS),
-            vm.X, currentY, SubsectionLabel, ColorPalette.Grey);
-        currentY += 22f;
-
-        // Members list
-        var membersList = vm.MemberReligions?.ToList() ?? new List<CivilizationInfoResponsePacket.MemberReligion>();
-        var membersListHeight = vm.Height * 0.45f;
-
-        var newMemberScrollY = ScrollableList.Draw(
-            drawList,
-            vm.X,
-            currentY,
-            vm.Width,
-            membersListHeight,
-            membersList,
-            64f,
-            6f,
-            vm.MemberScrollY,
-            (member, cx, cy, cw, ch) => DrawMemberCard(member, cx, cy, cw, ch, drawList, vm, founderReligionUID, events)
-        );
-
-        // Emit scroll event if changed
-        if (newMemberScrollY != vm.MemberScrollY)
-            events.Add(new InfoEvent.MemberScrollChanged(newMemberScrollY));
-
-        currentY += membersListHeight + 10f;
-
-        // Invite input and pending invites (only for founder)
-        if (vm.IsFounder)
-        {
-            TextRenderer.DrawLabel(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_INVITE_LABEL),
-                vm.X, currentY);
-            currentY += 22f;
-
-            // Text input
-            var newInviteReligionName = TextInput.Draw(
-                drawList,
-                "##inviteReligion",
-                vm.InviteReligionName,
-                vm.X,
-                currentY,
-                vm.Width * 0.6f,
-                30f,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_INVITE_PLACEHOLDER),
-                64
-            );
-
-            if (newInviteReligionName != vm.InviteReligionName)
-                events.Add(new InfoEvent.InviteReligionNameChanged(newInviteReligionName));
-
-            // Send invite button
-            var inviteButtonX = vm.X + vm.Width * 0.6f + 10f;
-            var canInvite = !overlayOpen && vm.CanInvite && !vm.IsLoading;
-            if (ButtonRenderer.DrawButton(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_INVITE_BUTTON),
-                    inviteButtonX, currentY - 2f, 140f, 32f, true, canInvite))
-                events.Add(new InfoEvent.InviteReligionClicked(vm.InviteReligionName));
-
-            currentY += 40f;
-
-            // Pending invites list (may be loading)
-            if (vm.IsLoading)
-            {
-                TextRenderer.DrawInfoText(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_INVITATIONS_LOADING),
-                    vm.X, currentY + 8f, vm.Width);
-                currentY += 30f;
-            }
-            else if (pendingInvites != null && pendingInvites.Count > 0)
-            {
-                TextRenderer.DrawLabel(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_PENDING_INVITATIONS),
-                    vm.X, currentY, SubsectionLabel, ColorPalette.Grey);
-                currentY += 22f;
-
-                // Simple list of pending invites
-                foreach (var invite in pendingInvites)
+                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                if (Math.Abs(newScrollY - scrollY) > 0.001f)
                 {
-                    DrawInviteRow(invite, vm.X, currentY, vm.Width, 26f, drawList);
-                    currentY += 30f;
+                    scrollY = newScrollY;
+                    events.Add(new InfoEvent.ScrollChanged(newScrollY));
                 }
             }
         }
 
-        // Footer actions
-        currentY += 10f;
-        var leaveEnabled = !overlayOpen;
-        if (leaveEnabled && ButtonRenderer.DrawActionButton(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_LEAVE_BUTTON),
-                vm.X, currentY, 180f, 34f))
-            events.Add(new InfoEvent.LeaveClicked());
+        drawList.PushClipRect(new Vector2(x, y), new Vector2(x + width, y + height), true);
+
+        var strip = ChapterStripRenderer.Draw(drawList, x, y, width, scrollY,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_CHAPTER_TITLE),
+            rightTitle: vm.CivName,
+            showPencil: vm.IsFounder && !vm.IsEditingDescription);
+        if (strip.PencilClicked)
+            events.Add(new InfoEvent.EditIconClicked());
+        var contentWidth = strip.ContentWidth;
+        var currentY = strip.BodyY;
+
+        currentY = CivilizationInfoHeaderRenderer.Draw(vm, drawList, x, currentY, contentWidth);
+
+        currentY = DrawDivider(drawList, x, currentY, contentWidth);
+
+        currentY = CivilizationInfoDescriptionRenderer.Draw(vm, drawList, x, currentY, contentWidth, events);
+
+        currentY = DrawDivider(drawList, x, currentY, contentWidth);
+
+        currentY = DrawBannerOrders(vm, drawList, x, currentY, contentWidth);
 
         if (vm.IsFounder)
         {
-            var editIconEnabled = !overlayOpen;
-            if (editIconEnabled && ButtonRenderer.DrawButton(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_EDIT_ICON_BUTTON),
-                    vm.X + 190f, currentY, 120f, 34f))
-                events.Add(new InfoEvent.EditIconClicked());
-
-            var disbandEnabled = !overlayOpen;
-            if (disbandEnabled && ButtonRenderer.DrawActionButton(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_DISBAND_BUTTON),
-                    vm.X + 320f, currentY, 200f, 34f, true))
-                events.Add(new InfoEvent.DisbandOpened());
+            currentY = DrawDivider(drawList, x, currentY, contentWidth);
+            currentY = DrawInviteSection(vm, drawList, x, currentY, contentWidth, overlayOpen, events);
         }
 
-        // Draw confirmation overlays (modal)
-        currentY += 40f;
+        currentY += FooterTopPadding;
+        currentY = CivilizationInfoActionsRenderer.Draw(vm, drawList, x, currentY, contentWidth, overlayOpen, events);
 
-        // Disband confirmation
+        drawList.PopClipRect();
+
+        if (contentHeightEstimate > height)
+            Scrollbar.Draw(drawList, x + width - ScrollbarWidth, y, ScrollbarWidth, height, scrollY, maxScroll);
+
+        DrawOverlays(vm, events);
+
+        return new CivilizationInfoRendererResult(events, height);
+    }
+
+    private static float DrawBannerOrders(
+        CivilizationInfoViewModel vm,
+        ImDrawListPtr drawList,
+        float x, float y, float width)
+    {
+        var currentY = y;
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_BANNER_ORDERS_HEADING),
+            x, currentY, SubsectionLabel, ColorPalette.Gold);
+        currentY += SectionLabelHeight;
+
+        if (vm.MemberCount == 0)
+        {
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_BANNER_ORDERS_EMPTY),
+                x, currentY, width, Secondary, ColorPalette.Grey);
+            currentY += OrderRowHeight;
+            return currentY;
+        }
+
+        foreach (var member in vm.MemberReligions)
+        {
+            DrawOrderRow(drawList, member.ReligionName, x, currentY);
+            currentY += OrderRowHeight;
+        }
+
+        return currentY + 4f;
+    }
+
+    private static void DrawOrderRow(ImDrawListPtr drawList, string name, float x, float y)
+    {
+        var centerY = y + OrderRowHeight / 2f;
+        ChromeRenderer.DrawDiamond(drawList,
+            x + DiamondLeftPadding + DiamondHalfSize, centerY,
+            DiamondHalfSize,
+            ColorPalette.Gold * 0.6f);
+
+        var textX = x + DiamondLeftPadding + DiamondHalfSize * 2f + DiamondLabelGap;
+        drawList.AddText(new Vector2(textX, centerY - Body * 0.5f),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
+            name);
+    }
+
+    private static float DrawInviteSection(
+        CivilizationInfoViewModel vm,
+        ImDrawListPtr drawList,
+        float x, float y, float width,
+        bool overlayOpen,
+        List<InfoEvent> events)
+    {
+        var currentY = y;
+
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_BID_LABEL),
+            x, currentY, SubsectionLabel, ColorPalette.Grey);
+        currentY += SectionLabelHeight;
+
+        var inputWidth = width - InviteButtonWidth - 10f;
+        if (inputWidth < 120f) inputWidth = MathF.Max(120f, width - 10f);
+
+        var newInvite = TextInput.Draw(
+            drawList,
+            "##inviteReligion",
+            vm.InviteReligionName,
+            x,
+            currentY,
+            inputWidth,
+            InviteInputHeight,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_INVITE_PLACEHOLDER),
+            64);
+        if (newInvite != vm.InviteReligionName)
+            events.Add(new InfoEvent.InviteReligionNameChanged(newInvite));
+
+        var canInvite = !overlayOpen && vm.CanInvite && !vm.IsLoading;
+        var inviteButtonX = x + inputWidth + 10f;
+        if (ButtonRenderer.DrawButton(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_INVITE_BUTTON),
+                inviteButtonX, currentY, InviteButtonWidth, InviteButtonHeight,
+                isPrimary: true, enabled: canInvite))
+        {
+            events.Add(new InfoEvent.InviteReligionClicked(vm.InviteReligionName));
+        }
+
+        currentY += InviteInputHeight + 10f;
+
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_LETTERS_HEADING),
+            x, currentY, SubsectionLabel, ColorPalette.Grey);
+        currentY += SectionLabelHeight;
+
+        if (!vm.HasPendingInvites)
+        {
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_LETTERS_EMPTY),
+                x, currentY, width, Secondary, ColorPalette.Grey);
+            currentY += LetterRowHeight;
+            return currentY;
+        }
+
+        var awaiting = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_LETTERS_AWAITING);
+        foreach (var invite in vm.PendingInvites)
+        {
+            DrawLetterRow(drawList, invite, awaiting, x, currentY, width);
+            currentY += LetterRowHeight;
+        }
+
+        return currentY + 4f;
+    }
+
+    private static void DrawLetterRow(
+        ImDrawListPtr drawList,
+        CivilizationInfoResponsePacket.PendingInvite invite,
+        string awaiting,
+        float x, float y, float width)
+    {
+        var centerY = y + LetterRowHeight / 2f;
+        ChromeRenderer.DrawDiamond(drawList,
+            x + DiamondLeftPadding + DiamondHalfSize, centerY,
+            DiamondHalfSize,
+            ColorPalette.Gold * 0.4f);
+
+        var leaderX = x + DiamondLeftPadding + DiamondHalfSize * 2f + DiamondLabelGap;
+        var leaderWidth = MathF.Max(width - (leaderX - x) - 8f, 40f);
+        var rowY = centerY - Body * 0.5f;
+        ChromeRenderer.DrawLeader(drawList,
+            invite.ReligionName,
+            awaiting,
+            leaderX, rowY, leaderWidth);
+    }
+
+    private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var dividerY = y + DividerYPadding;
+        ChromeRenderer.DrawDivider(drawList, x, dividerY, width);
+        return y + DividerHeight;
+    }
+
+    private static float ComputeContentHeight(CivilizationInfoViewModel vm)
+    {
+        var h = 0f;
+        h += PaneHeaderRenderer.TotalHeight;
+        // Prose intro
+        h += Body + LinePadding + 12f;
+        // Stat block (3 rows)
+        h += OrderRowHeight * 3 + 8f;
+
+        h += DividerHeight;
+
+        // Description
+        if (vm.IsFounder && vm.IsEditingDescription)
+            h += SectionLabelHeight + 80f + 6f + 26f + 8f;
+        else
+            h += SectionLabelHeight + Secondary + LinePadding + 8f;
+
+        h += DividerHeight;
+
+        // Banner orders
+        h += SectionLabelHeight;
+        h += vm.MemberCount == 0 ? OrderRowHeight : OrderRowHeight * vm.MemberCount + 4f;
+
+        // Invite block (founder only)
+        if (vm.IsFounder)
+        {
+            h += DividerHeight;
+            h += SectionLabelHeight + InviteInputHeight + 10f;
+            h += SectionLabelHeight;
+            h += vm.HasPendingInvites
+                ? LetterRowHeight * vm.PendingInvites.Count + 4f
+                : LetterRowHeight;
+        }
+
+        // Footer
+        h += FooterTopPadding + 34f + 6f;
+        return h;
+    }
+
+    private static void DrawCenteredStateText(
+        ImDrawListPtr drawList, string text, float x, float y, float width, float height)
+    {
+        var size = ImGui.CalcTextSize(text);
+        var pos = new Vector2(x + (width - size.X) / 2f, y + (height - size.Y) / 2f);
+        var color = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
+        drawList.AddText(pos, color, text);
+    }
+
+    private static void DrawOverlays(CivilizationInfoViewModel vm, List<InfoEvent> events)
+    {
         if (vm.ShowDisbandConfirm)
         {
             ConfirmOverlay.Draw(
@@ -264,12 +330,20 @@ internal static class CivilizationInfoRenderer
             if (canceled) events.Add(new InfoEvent.DisbandCancel());
         }
 
-        // Kick confirmation
         if (vm.IsKickConfirmOpen)
         {
             var targetId = vm.KickConfirmReligionId!;
-            var targetName = vm.MemberReligions?.FirstOrDefault(m => m.ReligionId == targetId)?.ReligionName ??
-                             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_UNKNOWN_RELIGION);
+            var targetName = string.Empty;
+            foreach (var m in vm.MemberReligions)
+            {
+                if (m.ReligionId == targetId)
+                {
+                    targetName = m.ReligionName;
+                    break;
+                }
+            }
+            if (string.IsNullOrEmpty(targetName))
+                targetName = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_UNKNOWN_RELIGION);
 
             ConfirmOverlay.Draw(
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_KICK_CONFIRM_TITLE),
@@ -282,74 +356,5 @@ internal static class CivilizationInfoRenderer
             if (confirmed) events.Add(new InfoEvent.KickConfirm(targetName));
             if (canceled) events.Add(new InfoEvent.KickCancel());
         }
-
-        return new CivilizationInfoRendererResult(events, currentY - vm.Y);
-    }
-
-    private static void DrawMemberCard(
-        CivilizationInfoResponsePacket.MemberReligion member,
-        float x,
-        float y,
-        float width,
-        float height,
-        ImDrawListPtr drawList,
-        CivilizationInfoViewModel vm,
-        string? founderReligionUID,
-        List<InfoEvent> events)
-    {
-        // Background
-        drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width, y + height),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown), 4f);
-
-        // Deity icon
-        const float deityIconSize = 16f;
-        if (Enum.TryParse<DeityDomain>(member.Domain, out var deityType))
-        {
-            var deityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
-            var iconX = x + 12f - deityIconSize / 2f;
-            var iconY = y + height / 2f - deityIconSize / 2f;
-            drawList.AddImage(deityTextureId,
-                new Vector2(iconX, iconY),
-                new Vector2(iconX + deityIconSize, iconY + deityIconSize),
-                Vector2.Zero, Vector2.One,
-                ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)));
-        }
-
-        // Texts
-        TextRenderer.DrawLabel(drawList, member.ReligionName, x + 32f, y + 10f, TableHeader);
-        var deityLabel = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_RELIGION_CARD_DEITY);
-        var membersLabel =
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_RELIGION_CARD_MEMBERS);
-        var subText = $"{deityLabel} {member.Domain}  |  {membersLabel} {member.MemberCount}";
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x + 32f, y + 34f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), subText);
-
-        // Kick button for founder only and not the civilization founder religion
-        var isCivFounderReligion = founderReligionUID == member.ReligionId;
-        if (vm.IsFounder && !isCivFounderReligion)
-        {
-            var kickEnabled = !vm.IsLoading && !vm.IsKickConfirmOpen && !vm.ShowDisbandConfirm;
-            if (kickEnabled && ButtonRenderer.DrawSmallButton(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_KICK_BUTTON),
-                    x + width - 80f, y + (height - 26f) / 2f, 70f, 26f, ColorPalette.Red * 0.7f))
-                events.Add(new InfoEvent.KickOpen(member.ReligionId, member.ReligionName));
-        }
-    }
-
-    private static void DrawInviteRow(
-        CivilizationInfoResponsePacket.PendingInvite invite,
-        float x,
-        float y,
-        float width,
-        float height,
-        ImDrawListPtr drawList)
-    {
-        // Row background
-        drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width, y + height),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.6f), 3f);
-        // Texts
-        var expiresLabel = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_INVITE_EXPIRES);
-        var text = $"{invite.ReligionName} ({expiresLabel} {invite.ExpiresAt:yyyy-MM-dd})";
-        drawList.AddText(new Vector2(x + 8f, y + 6f), ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), text);
     }
 }

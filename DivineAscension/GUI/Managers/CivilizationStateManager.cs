@@ -581,6 +581,23 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         var civ = State.InfoState.Info;
 
         // Build ViewModel
+        var memberReligions = civ?.MemberReligions
+                              ?? new List<CivilizationInfoResponsePacket.MemberReligion>();
+        var founderReligionName = string.Empty;
+        if (!string.IsNullOrEmpty(CivilizationFounderReligionUID))
+        {
+            foreach (var m in memberReligions)
+            {
+                if (m.ReligionId == CivilizationFounderReligionUID)
+                {
+                    founderReligionName = m.ReligionName;
+                    break;
+                }
+            }
+        }
+        if (string.IsNullOrEmpty(founderReligionName))
+            founderReligionName = civ?.FounderReligionName ?? string.Empty;
+
         var vm = new CivilizationInfoViewModel(
             State.InfoState.IsLoading,
             civ != null,
@@ -589,10 +606,14 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             civ?.Icon ?? "default",
             civ?.Description ?? string.Empty,
             State.InfoState.DescriptionText,
+            State.InfoState.IsEditingDescription,
             civ?.FounderName ?? string.Empty,
+            founderReligionName,
+            civ?.CreatedDate ?? DateTime.MinValue,
             UserIsCivilizationFounder,
             civ?.Rank ?? 0,
-            civ?.MemberReligions ?? new List<CivilizationInfoResponsePacket.MemberReligion>(),
+            memberReligions,
+            civ?.PendingInvites ?? new List<CivilizationInfoResponsePacket.PendingInvite>(),
             State.InfoState.InviteReligionName ?? string.Empty,
             State.ShowDisbandConfirm,
             State.KickConfirmReligionId,
@@ -605,8 +626,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
         // Render
         var drawList = ImGui.GetWindowDrawList();
-        var result = CivilizationInfoRenderer.Draw(vm, drawList, civ?.PendingInvites,
-            CivilizationFounderReligionUID, civ?.CreatedDate ?? DateTime.MinValue);
+        var result = CivilizationInfoRenderer.Draw(vm, drawList);
 
         // Process events
         ProcessInfoEvents(result.Events);
@@ -1016,12 +1036,23 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     State.InfoState.DescriptionText = dc.newDescription;
                     break;
 
+                case InfoEvent.EditDescriptionOpen:
+                    State.InfoState.IsEditingDescription = true;
+                    State.InfoState.DescriptionText = civ?.Description ?? string.Empty;
+                    break;
+
+                case InfoEvent.EditDescriptionCancel:
+                    State.InfoState.IsEditingDescription = false;
+                    State.InfoState.DescriptionText = civ?.Description ?? string.Empty;
+                    break;
+
                 case InfoEvent.SaveDescriptionClicked:
                     if (!string.IsNullOrWhiteSpace(civId))
                     {
                         RequestCivilizationAction("setdescription", civId, "", "", "", State.InfoState.DescriptionText);
                     }
 
+                    State.InfoState.IsEditingDescription = false;
                     break;
 
                 case InfoEvent.LeaveClicked:
