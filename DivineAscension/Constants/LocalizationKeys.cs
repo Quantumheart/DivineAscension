@@ -435,6 +435,17 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_BROWSE_HEADER_DESCRIPTION =
         "divineascension:ui.civilization.browse.header.description";
 
+    public const string UI_CIVILIZATION_BROWSE_CHAPTER_TITLE =
+        "divineascension:ui.civilization.browse.chapter_title";
+
+    public const string UI_CIVILIZATION_BROWSE_INTRO_ONE = "divineascension:ui.civilization.browse.intro_one";
+    public const string UI_CIVILIZATION_BROWSE_INTRO_MANY = "divineascension:ui.civilization.browse.intro_many";
+    public const string UI_CIVILIZATION_BROWSE_ORDERS_ONE = "divineascension:ui.civilization.browse.orders_one";
+    public const string UI_CIVILIZATION_BROWSE_ORDERS_MANY = "divineascension:ui.civilization.browse.orders_many";
+    public const string UI_CIVILIZATION_BROWSE_COUNTER_ONE = "divineascension:ui.civilization.browse.counter_one";
+    public const string UI_CIVILIZATION_BROWSE_COUNTER_MANY = "divineascension:ui.civilization.browse.counter_many";
+    public const string UI_CIVILIZATION_BROWSE_EMPTY_CHAPTER = "divineascension:ui.civilization.browse.empty_chapter";
+
     #endregion
 
     #region Civilization - Detail
