@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Models.Enum;
@@ -13,6 +14,8 @@ public class SoundManager : ISoundManager
     private readonly ICoreClientAPI _api;
     private readonly ILoggerWrapper? _logger;
     private const float SoundRange = 8f;
+    private const long WritingSuppressPageTurnMs = 600;
+    private long _lastWritingTickMs = long.MinValue;
 
     private static readonly Dictionary<SoundType, string> SoundPaths = new()
     {
@@ -54,6 +57,14 @@ public class SoundManager : ISoundManager
             _logger?.Warning($"Sound {sound} not found in SoundPaths dictionary");
             return;
         }
+
+        // Suppress page-turn if a writing sound just played (save/unlock often triggers nav change).
+        if (sound == SoundType.PageTurn &&
+            Environment.TickCount64 - _lastWritingTickMs < WritingSuppressPageTurnMs)
+            return;
+
+        if (sound == SoundType.Writing)
+            _lastWritingTickMs = Environment.TickCount64;
 
         _api.World.PlaySoundAt(
             new AssetLocation(path),
