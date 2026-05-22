@@ -120,8 +120,7 @@ public class BlessingStateManagerTests
         // Arrange
         var result = new BlessingTabRenderResult(
             new List<TreeEvent>(),
-            new List<ActionsEvent>(),
-            "hovered-id",
+"hovered-id",
             100f);
 
         // Act
@@ -141,8 +140,7 @@ public class BlessingStateManagerTests
             {
                 new TreeEvent.PlayerTreeScrollChanged(3.25f, -1.5f)
             },
-            new List<ActionsEvent>(),
-            null,
+null,
             100f);
 
         // Act
@@ -162,8 +160,7 @@ public class BlessingStateManagerTests
             {
                 new TreeEvent.ReligionTreeScrollChanged(-2f, 5f)
             },
-            new List<ActionsEvent>(),
-            null,
+null,
             100f);
 
         // Act
@@ -180,8 +177,7 @@ public class BlessingStateManagerTests
         // Arrange
         var result = new BlessingTabRenderResult(
             new List<TreeEvent>(),
-            new List<ActionsEvent>(),
-            null,
+null,
             100f,
             requestedActiveDeity: null,
             requestedVowsScrollY: null,
@@ -196,28 +192,6 @@ public class BlessingStateManagerTests
     }
 
     [Fact]
-    public void ProcessBlessingTabEvents_OnDescriptionExpansionToggled_TogglesInfoState()
-    {
-        // Arrange — starts collapsed.
-        Assert.False(_sut.State.InfoState.IsDescriptionExpanded);
-
-        var result = new BlessingTabRenderResult(
-            new List<TreeEvent>(),
-            new List<ActionsEvent>(),
-            null,
-            100f,
-            infoEvents: new List<InfoEvent> { new InfoEvent.DescriptionExpansionToggled() });
-
-        // Act — first toggle expands.
-        _sut.ProcessBlessingTabEvents(result);
-        Assert.True(_sut.State.InfoState.IsDescriptionExpanded);
-
-        // Act — second toggle collapses.
-        _sut.ProcessBlessingTabEvents(result);
-        Assert.False(_sut.State.InfoState.IsDescriptionExpanded);
-    }
-
-    [Fact]
     public void ProcessBlessingTabEvents_OnSelectingDifferentBlessing_ResetsDescriptionExpansion()
     {
         // Arrange — start with one blessing selected and description expanded.
@@ -228,8 +202,7 @@ public class BlessingStateManagerTests
 
         var result = new BlessingTabRenderResult(
             new List<TreeEvent> { new TreeEvent.Selected("bless-2") },
-            new List<ActionsEvent>(),
-            null,
+null,
             100f);
 
         // Act
@@ -251,8 +224,7 @@ public class BlessingStateManagerTests
 
         var result = new BlessingTabRenderResult(
             new List<TreeEvent> { new TreeEvent.Selected("bless-1") },
-            new List<ActionsEvent>(),
-            null,
+null,
             100f);
 
         // Act
@@ -264,81 +236,63 @@ public class BlessingStateManagerTests
 
     #endregion
 
-    #region HandleUnlockClicked via ActionsEvent
+    #region HandleUnlockClicked via TreeEvent.DoubleClicked
 
     [Fact]
-    public void UnlockClicked_WithNoSelection_DoesNothing()
+    public void DoubleClicked_OnInvalidBlessingId_ShowsChatError_AndNoRequest()
     {
-        // Arrange - no SelectedBlessingId
-        var result = new BlessingTabRenderResult(
-            new List<TreeEvent>(),
-            new List<ActionsEvent> { new ActionsEvent.UnlockClicked() },
-            null,
-            100f);
-
-        // Act
-        _sut.ProcessBlessingTabEvents(result);
-
-        // Assert
-        _mockUiService.Verify(u => u.RequestBlessingUnlock(It.IsAny<string>()), Times.Never);
-        _mockApi.Verify(a => a.ShowChatMessage(It.IsAny<string>()), Times.Never);
-    }
-
-    [Fact]
-    public void UnlockClicked_WithInvalidBlessingId_ShowsChatError_AndNoSoundOrRequest()
-    {
-        // Arrange
         var invalid = CreateBlessing(string.Empty, BlessingKind.Player);
         _sut.LoadBlessingStates(new List<Blessing> { invalid }, new List<Blessing>());
-        _sut.State.TreeState.SelectedBlessingId = string.Empty; // select the invalid one
-        // Make it eligible so HandleUnlockClicked proceeds to client-side validation
         _sut.State.PlayerBlessingStates[string.Empty].CanUnlock = true;
         _sut.State.PlayerBlessingStates[string.Empty].IsUnlocked = false;
 
         var result = new BlessingTabRenderResult(
-            new List<TreeEvent>(),
-            new List<ActionsEvent> { new ActionsEvent.UnlockClicked() },
+            new List<TreeEvent> { new TreeEvent.DoubleClicked(string.Empty) },
             null,
             100f);
 
-        // Act
         _sut.ProcessBlessingTabEvents(result);
 
-        // Assert
         _mockApi.Verify(a => a.ShowChatMessage(It.Is<string>(s => s.Contains("Invalid blessing ID"))), Times.Once);
         _mockUiService.Verify(u => u.RequestBlessingUnlock(It.IsAny<string>()), Times.Never);
-        _mockWorld.Verify(w => w.PlaySoundAt(
-            It.IsAny<AssetLocation>(),
-            It.IsAny<Entity>(),
-            It.IsAny<IPlayer?>(),
-            It.IsAny<bool>(),
-            It.IsAny<float>(),
-            It.IsAny<float>()
-        ), Times.Never);
     }
 
     [Fact]
-    public void UnlockClicked_WithValidSelection_PlaysClickAndSendsRequest()
+    public void DoubleClicked_OnUnlockablePlayerBlessing_SendsRequest()
     {
-        // Arrange
         var blessing = CreateBlessing("bless-1", BlessingKind.Player);
         _sut.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
-        _sut.State.TreeState.SelectedBlessingId = "bless-1";
         var node = _sut.State.PlayerBlessingStates["bless-1"];
         node.CanUnlock = true;
         node.IsUnlocked = false;
 
         var result = new BlessingTabRenderResult(
-            new List<TreeEvent>(),
-            new List<ActionsEvent> { new ActionsEvent.UnlockClicked() },
+            new List<TreeEvent> { new TreeEvent.DoubleClicked("bless-1") },
             null,
             100f);
 
-        // Act
         _sut.ProcessBlessingTabEvents(result);
 
-        // Assert
         _mockUiService.Verify(u => u.RequestBlessingUnlock("bless-1"), Times.Once);
+    }
+
+    [Fact]
+    public void DoubleClicked_OnLockedBlessing_DoesNotSendRequest()
+    {
+        var blessing = CreateBlessing("bless-1", BlessingKind.Player);
+        _sut.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
+        var node = _sut.State.PlayerBlessingStates["bless-1"];
+        node.CanUnlock = false;
+        node.IsUnlocked = false;
+
+        var result = new BlessingTabRenderResult(
+            new List<TreeEvent> { new TreeEvent.DoubleClicked("bless-1") },
+            null,
+            100f);
+
+        _sut.ProcessBlessingTabEvents(result);
+
+        _mockUiService.Verify(u => u.RequestBlessingUnlock(It.IsAny<string>()), Times.Never);
     }
 
     #endregion

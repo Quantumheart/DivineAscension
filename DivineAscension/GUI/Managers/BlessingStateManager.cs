@@ -35,6 +35,10 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     private Dictionary<int, string> _committedBranches = new();
     private Dictionary<int, List<string>> _lockedBranches = new();
 
+    // Latched from the most recent DrawVowsTab call so vow unlock requests
+    // (DoubleClicked events) can gate on founder status without re-plumbing.
+    private bool _isReligionFounder;
+
     /// <summary>
     ///     Player blessings for the currently active deity tab. Empty dict if none loaded.
     /// </summary>
@@ -145,6 +149,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             isDescriptionExpanded: State.InfoState.IsDescriptionExpanded
         );
 
+        _isReligionFounder = isReligionFounder;
         var result = BlessingVowsTabRenderer.Draw(vm);
 
         ProcessBlessingTabEvents(result);
@@ -199,26 +204,6 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
                     break;
             }
 
-        foreach (var ev in result.InfoEvents)
-            switch (ev)
-            {
-                case InfoEvent.DescriptionExpansionToggled:
-                    State.InfoState.IsDescriptionExpanded = !State.InfoState.IsDescriptionExpanded;
-                    _soundManager.PlayClick();
-                    break;
-            }
-
-        foreach (var ev in result.ActionsEvents)
-            switch (ev)
-            {
-                case ActionsEvent.UnlockClicked:
-                    HandleUnlockClicked();
-                    break;
-
-                case ActionsEvent.UnlockBlockedClicked:
-                    _soundManager.PlayError();
-                    break;
-            }
     }
 
 
@@ -227,6 +212,15 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         if (State.TreeState.SelectedBlessingId == null) return;
         var selectedState = GetBlessingState(State.TreeState.SelectedBlessingId);
         if (selectedState == null || selectedState.IsUnlocked) return;
+
+        // Religion-side vows are founder-gated client-side; the server enforces
+        // the same gate, but the early bail avoids a wasted round-trip + sound.
+        if (selectedState.Blessing.Kind == BlessingKind.Religion && !_isReligionFounder)
+        {
+            _soundManager.PlayError();
+            return;
+        }
+
         if (!selectedState.CanUnlock)
         {
             _soundManager.PlayError();
