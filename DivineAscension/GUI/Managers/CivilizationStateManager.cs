@@ -741,7 +741,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             currentRank,
             State.DiplomacyState.ConfirmWarCivId,
             State.DiplomacyState.IsCivDropdownOpen,
-            State.DiplomacyState.IsTypeDropdownOpen);
+            State.DiplomacyState.IsTypeDropdownOpen,
+            CurrentCivilizationName,
+            State.DiplomacyState.RelationshipsScrollY);
 
         // Render
         var drawList = ImGui.GetWindowDrawList();
@@ -1246,6 +1248,10 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
                 case DiplomacyEvent.DismissError:
                     State.DiplomacyState.ErrorMessage = null;
+                    break;
+
+                case DiplomacyEvent.ScrollChanged sc:
+                    State.DiplomacyState.RelationshipsScrollY = sc.NewScrollY;
                     break;
             }
     }
