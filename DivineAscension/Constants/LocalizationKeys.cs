@@ -642,6 +642,38 @@ public static class LocalizationKeys
     public const string UI_DIPLOMACY_UNKNOWN_CIV = "divineascension:ui.diplomacy.unknown_civ";
     public const string UI_DIPLOMACY_PROPOSAL_TO = "divineascension:ui.diplomacy.proposal_to";
 
+    // Ledger chapter (#329) strings — replace the table layout with prose
+    // headers, status sentences, grievance phrasings, manuscript verbs, and
+    // the propose-page pointer.
+    public const string UI_DIPLOMACY_CHAPTER_TITLE = "divineascension:ui.diplomacy.chapter.title";
+    public const string UI_DIPLOMACY_CHAPTER_INTRO = "divineascension:ui.diplomacy.chapter.intro";
+    public const string UI_DIPLOMACY_CHAPTER_INTRO_NO_REALM = "divineascension:ui.diplomacy.chapter.intro_no_realm";
+    public const string UI_DIPLOMACY_STANDING_HEADING = "divineascension:ui.diplomacy.standing.heading";
+    public const string UI_DIPLOMACY_STANDING_EMPTY = "divineascension:ui.diplomacy.standing.empty";
+    public const string UI_DIPLOMACY_PENDING_HEADING = "divineascension:ui.diplomacy.pending.heading";
+    public const string UI_DIPLOMACY_PENDING_EMPTY = "divineascension:ui.diplomacy.pending.empty";
+    public const string UI_DIPLOMACY_SENTENCE_ALLIANCE = "divineascension:ui.diplomacy.sentence.alliance";
+    public const string UI_DIPLOMACY_SENTENCE_NAP = "divineascension:ui.diplomacy.sentence.nap";
+    public const string UI_DIPLOMACY_SENTENCE_WAR = "divineascension:ui.diplomacy.sentence.war";
+    public const string UI_DIPLOMACY_SWORN_ON = "divineascension:ui.diplomacy.sworn_on";
+    public const string UI_DIPLOMACY_EXPIRES_ON = "divineascension:ui.diplomacy.expires_on";
+    public const string UI_DIPLOMACY_PERMANENT_LINE = "divineascension:ui.diplomacy.permanent_line";
+    public const string UI_DIPLOMACY_GRIEVANCES_0 = "divineascension:ui.diplomacy.grievances_0";
+    public const string UI_DIPLOMACY_GRIEVANCES_1 = "divineascension:ui.diplomacy.grievances_1";
+    public const string UI_DIPLOMACY_GRIEVANCES_2 = "divineascension:ui.diplomacy.grievances_2";
+    public const string UI_DIPLOMACY_GRIEVANCES_3 = "divineascension:ui.diplomacy.grievances_3";
+    public const string UI_DIPLOMACY_BREAK_COUNTDOWN = "divineascension:ui.diplomacy.break_countdown";
+    public const string UI_DIPLOMACY_SUE_FOR_PEACE_BUTTON = "divineascension:ui.diplomacy.sue_for_peace_button";
+    public const string UI_DIPLOMACY_SCHEDULE_BREAK_VERB = "divineascension:ui.diplomacy.schedule_break_verb";
+    public const string UI_DIPLOMACY_RECALL_BUTTON = "divineascension:ui.diplomacy.recall_button";
+    public const string UI_DIPLOMACY_PROPOSAL_OFFER_ALLIANCE = "divineascension:ui.diplomacy.proposal.offer_alliance";
+    public const string UI_DIPLOMACY_PROPOSAL_OFFER_NAP = "divineascension:ui.diplomacy.proposal.offer_nap";
+    public const string UI_DIPLOMACY_PROPOSAL_OFFER_PEACE = "divineascension:ui.diplomacy.proposal.offer_peace";
+    public const string UI_DIPLOMACY_ACCEPT_VERB = "divineascension:ui.diplomacy.accept_verb";
+    public const string UI_DIPLOMACY_REFUSE_VERB = "divineascension:ui.diplomacy.refuse_verb";
+    public const string UI_DIPLOMACY_TURN_PAGE_HINT = "divineascension:ui.diplomacy.turn_page_hint";
+    public const string UI_DIPLOMACY_TURN_PAGE_LABEL = "divineascension:ui.diplomacy.turn_page_label";
+
     #endregion
 
     #region Common UI Components
