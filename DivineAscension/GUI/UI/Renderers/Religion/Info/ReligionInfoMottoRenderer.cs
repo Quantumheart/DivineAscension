@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
@@ -107,26 +108,29 @@ internal static class ReligionInfoMottoRenderer
             if (hasMotto)
             {
                 // Paint primitive curly-quote glyphs flanking the motto since
-                // the font lacks U+201C/U+201D coverage. Indent prose by a
-                // glyph's width so wrapping accounts for the marks.
+                // the font lacks U+201C/U+201D coverage. Motto is single-line
+                // (80-char cap), so the close quote hugs the text end.
                 const float glyphSize = 14f;
                 const float glyphGap = 6f;
                 var textIndent = glyphSize + glyphGap;
                 var openCx = x + glyphSize / 2f;
-                var openCy = currentY + glyphSize / 2f;
-                ChromeRenderer.DrawQuoteMark(drawList, openCx, openCy, glyphSize, closing: false,
+                var glyphCy = currentY + glyphSize / 2f;
+                ChromeRenderer.DrawQuoteMark(drawList, openCx, glyphCy, glyphSize, closing: false,
                     colorOverride: ColorPalette.Grey);
 
-                TextRenderer.DrawInfoText(drawList, prose, x + textIndent, currentY,
+                var textX = x + textIndent;
+                var textWidth = ImGui.CalcTextSize(prose).X;
+                TextRenderer.DrawInfoText(drawList, prose, textX, currentY,
                     width - textIndent * 2f, Secondary, proseColor);
-                var textHeight = TextRenderer.MeasureWrappedHeight(prose, width - textIndent * 2f);
-                var renderedHeight = textHeight > 0 ? textHeight : 20f;
 
-                var closeCx = x + width - glyphSize / 2f;
-                var closeCy = currentY + renderedHeight - glyphSize / 2f;
-                ChromeRenderer.DrawQuoteMark(drawList, closeCx, closeCy, glyphSize, closing: true,
+                var closeCx = textX + textWidth + glyphGap + glyphSize / 2f;
+                // Clamp to the section's right edge in case a long motto wraps.
+                closeCx = MathF.Min(closeCx, x + width - glyphSize / 2f);
+                ChromeRenderer.DrawQuoteMark(drawList, closeCx, glyphCy, glyphSize, closing: true,
                     colorOverride: ColorPalette.Grey);
-                currentY += renderedHeight + SectionBottomSpacing;
+
+                var textHeight = TextRenderer.MeasureWrappedHeight(prose, width - textIndent * 2f);
+                currentY += (textHeight > 0 ? textHeight : 20f) + SectionBottomSpacing;
             }
             else
             {
