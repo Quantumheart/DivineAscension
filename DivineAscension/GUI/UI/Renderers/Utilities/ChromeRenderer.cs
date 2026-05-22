@@ -188,32 +188,77 @@ internal static class ChromeRenderer
 
     /// <summary>
     ///     Paint a small pencil glyph (✎ U+270E) as primitives so it renders
-    ///     in fonts without Dingbats coverage. Diagonal body from upper-right
-    ///     to lower-left, triangular graphite tip at the lower-left end, and
-    ///     a square ferrule at the upper-right end.
+    ///     in fonts without Dingbats coverage. Diagonal filled shaft from
+    ///     upper-right to lower-left, triangular graphite tip continuing past
+    ///     the shoulder, ferrule band near the eraser end, eraser cap at the
+    ///     tail. Drawn at 45° around (cx, cy).
     /// </summary>
     public static void DrawPencil(ImDrawListPtr drawList, float cx, float cy, float size,
         Vector4? colorOverride = null)
     {
         if (size <= 0f) return;
-        var color = ImGui.ColorConvertFloat4ToU32(colorOverride ?? ColorPalette.Gold);
-        var half = size / 2f;
+        var bodyVec = colorOverride ?? ColorPalette.Gold;
+        var body = ImGui.ColorConvertFloat4ToU32(bodyVec);
+        var trim = ImGui.ColorConvertFloat4ToU32(bodyVec * 0.55f);
+        var lead = ImGui.ColorConvertFloat4ToU32(new Vector4(0.05f, 0.05f, 0.05f, bodyVec.W));
 
-        // Body line: upper-right → lower-left diagonal.
-        var bodyStart = new Vector2(cx + half * 0.7f, cy - half * 0.7f);
-        var bodyEnd = new Vector2(cx - half * 0.3f, cy + half * 0.3f);
-        drawList.AddLine(bodyStart, bodyEnd, color, 2f);
+        // Shaft axis: upper-right → lower-left at 45°.
+        const float inv = 0.70710677f; // 1/sqrt(2)
+        var d = new Vector2(-inv, inv);  // toward tip
+        var n = new Vector2(inv, inv);   // perpendicular (right-of-axis)
 
-        // Graphite tip — small triangle pointing further down-left.
-        var tipA = new Vector2(cx - half * 0.3f, cy + half * 0.3f);
-        var tipB = new Vector2(cx - half * 0.1f, cy + half * 0.55f);
-        var tipC = new Vector2(cx - half * 0.55f, cy + half * 0.1f);
-        drawList.AddTriangleFilled(tipA, tipB, tipC, color);
+        var w = size * 0.18f;             // half-width of shaft
+        var tail = new Vector2(cx, cy) - d * (size * 0.45f);
+        var shoulder = new Vector2(cx, cy) + d * (size * 0.20f);
+        var tipPoint = new Vector2(cx, cy) + d * (size * 0.50f);
+        var ferruleEdge = tail + d * (size * 0.22f);
+        var eraserEnd = tail - d * (size * 0.04f);
 
-        // Ferrule — short cross-line at the eraser end.
-        var ferruleA = new Vector2(cx + half * 0.4f, cy - half * 0.85f);
-        var ferruleB = new Vector2(cx + half * 0.85f, cy - half * 0.4f);
-        drawList.AddLine(ferruleA, ferruleB, color, 2f);
+        // Eraser cap (lighter trim block) at the tail end.
+        drawList.AddQuadFilled(
+            eraserEnd + n * w,
+            eraserEnd - n * w,
+            ferruleEdge - n * w,
+            ferruleEdge + n * w,
+            trim);
+
+        // Wood shaft — main filled quad from ferrule edge to the shoulder.
+        drawList.AddQuadFilled(
+            ferruleEdge + n * w,
+            ferruleEdge - n * w,
+            shoulder - n * w,
+            shoulder + n * w,
+            body);
+
+        // Ferrule band — short darker stripe straddling the shaft / eraser join.
+        var bandHalf = size * 0.05f;
+        var bandA = ferruleEdge - d * bandHalf;
+        var bandB = ferruleEdge + d * bandHalf;
+        drawList.AddQuadFilled(
+            bandA + n * w,
+            bandA - n * w,
+            bandB - n * w,
+            bandB + n * w,
+            trim);
+
+        // Wooden tip taper — triangle from shoulder to the lead point.
+        drawList.AddTriangleFilled(
+            shoulder + n * w,
+            shoulder - n * w,
+            tipPoint,
+            body);
+
+        // Graphite point — small dark triangle at the very tip.
+        var leadBase = new Vector2(cx, cy) + d * (size * 0.40f);
+        drawList.AddTriangleFilled(
+            leadBase + n * (w * 0.45f),
+            leadBase - n * (w * 0.45f),
+            tipPoint,
+            lead);
+
+        // Outline along the shaft so it reads at small sizes.
+        drawList.AddLine(ferruleEdge + n * w, shoulder + n * w, trim, 1f);
+        drawList.AddLine(ferruleEdge - n * w, shoulder - n * w, trim, 1f);
     }
 
     /// <summary>
