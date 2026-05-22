@@ -47,8 +47,7 @@ internal static class PaneHeaderRenderer
         // cap. Hidden if the title is empty or starts with whitespace.
         var displayTitle = title;
         var dropCapPresent = dropCapColor.HasValue
-                             && !string.IsNullOrWhiteSpace(title)
-                             && !hasIcon;
+                             && !string.IsNullOrWhiteSpace(title);
         if (dropCapPresent)
         {
             var letter = char.ToUpperInvariant(title[0]);

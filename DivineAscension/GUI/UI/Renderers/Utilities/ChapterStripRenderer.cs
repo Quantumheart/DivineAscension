@@ -70,16 +70,15 @@ internal static class ChapterStripRenderer
             : 0f;
 
         // Title + divider — divider spans full contentWidth so it lines up
-        // with every section divider drawn at the same width below. When the
-        // pane has a right-side domain glyph and no left-icon (i.e. an entity
-        // chapter rather than an identity chapter), lead with a drop cap
-        // tinted in the domain's ink so the page opens like an illuminated
-        // codex spread. Caller can also pass an explicit drop-cap color to
-        // override.
+        // with every section divider drawn at the same width below. Every
+        // chapter pane opens with an illuminated drop cap; the colour comes
+        // from the right-side domain glyph when there is one, falls back to
+        // the chrome gold for non-deity chapters (browse, identity, letters,
+        // chronicles…), and yields to an explicit caller override.
         var effectiveDropCap = dropCapColor
-            ?? (iconTextureId == IntPtr.Zero && rightGlyph.HasValue
+            ?? (rightGlyph.HasValue
                 ? DomainHelper.GetDeityColor(rightGlyph.Value)
-                : (Vector4?)null);
+                : ColorPalette.Gold);
 
         var bodyY = PaneHeaderRenderer.Draw(drawList, title, x, stripY, contentWidth,
             iconTextureId: iconTextureId, rankTag: rankTag, rankColor: rankColor,
