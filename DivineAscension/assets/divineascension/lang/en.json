@@ -479,8 +479,6 @@
   "divineascension:ui.diplomacy.proposal.offer_peace": "{0} offer peace.",
   "divineascension:ui.diplomacy.accept_verb": "Accept",
   "divineascension:ui.diplomacy.refuse_verb": "Refuse",
-  "divineascension:ui.diplomacy.turn_page_hint": "To propose a new accord, turn to the next page.",
-  "divineascension:ui.diplomacy.turn_page_label": "Turn page",
   "divineascension:ui.propose_accord.chapter.title": "Propose an Accord",
   "divineascension:ui.propose_accord.intro": "Send word to another Realm. Mark its name and the manner of the pact you would set between you.",
   "divineascension:ui.propose_accord.no_civilization": "Your religion must stand within a Realm to send word to another.",

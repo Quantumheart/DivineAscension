@@ -755,8 +755,6 @@ public static class LocalizationKeys
     public const string UI_DIPLOMACY_PROPOSAL_OFFER_PEACE = "divineascension:ui.diplomacy.proposal.offer_peace";
     public const string UI_DIPLOMACY_ACCEPT_VERB = "divineascension:ui.diplomacy.accept_verb";
     public const string UI_DIPLOMACY_REFUSE_VERB = "divineascension:ui.diplomacy.refuse_verb";
-    public const string UI_DIPLOMACY_TURN_PAGE_HINT = "divineascension:ui.diplomacy.turn_page_hint";
-    public const string UI_DIPLOMACY_TURN_PAGE_LABEL = "divineascension:ui.diplomacy.turn_page_label";
 
     // Propose Accord chapter (#330) — sibling page lifted from the Accords
     // chapter's old inline form.
