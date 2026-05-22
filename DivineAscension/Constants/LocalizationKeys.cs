@@ -475,6 +475,26 @@ public static class LocalizationKeys
 
     public const string UI_CIVILIZATION_DETAIL_DESCRIPTION = "divineascension:ui.civilization.detail.description";
 
+    public const string UI_CIVILIZATION_DETAIL_DESCRIPTION_EMPTY =
+        "divineascension:ui.civilization.detail.description_empty";
+
+    public const string UI_CIVILIZATION_DETAIL_INTRO_FOUNDED =
+        "divineascension:ui.civilization.detail.intro.founded";
+
+    public const string UI_CIVILIZATION_DETAIL_INTRO_BANNER =
+        "divineascension:ui.civilization.detail.intro.banner";
+
+    public const string UI_CIVILIZATION_DETAIL_INTRO_BANNER_ONE =
+        "divineascension:ui.civilization.detail.intro.banner_one";
+
+    public const string UI_CIVILIZATION_DETAIL_FOUNDING_ORDER =
+        "divineascension:ui.civilization.detail.founding_order";
+
+    public const string UI_CIVILIZATION_DETAIL_MEMBER_ORDERS =
+        "divineascension:ui.civilization.detail.member_orders";
+
+    public const string UI_CIVILIZATION_ACTION_JOIN = "divineascension:ui.civilization.action.join";
+
     #endregion
 
     #region Civilization - Create

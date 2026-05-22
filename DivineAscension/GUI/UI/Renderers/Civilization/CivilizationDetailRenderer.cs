@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
@@ -8,198 +9,254 @@ using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.Detail;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
-using DivineAscension.Models.Enum;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Services;
-using DivineAscension.Systems;
 using ImGuiNET;
 using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
 /// <summary>
-///     Renders a detailed view of any civilization's public information.
-///     Used when clicking "View Details" from the Browse tab.
+///     Renders the Realm detail chapter opened from II.i Other Realms (#325).
+///     Sibling of <see cref="Religion.ReligionDetailRenderer" /> (#315). Ledger
+///     framing: serif title strip, prose intro, dotted-leader stat block,
+///     prose history, and a read-only Member Orders roster.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class CivilizationDetailRenderer
 {
+    private const float TopPadding = 8f;
+    private const float NavRowHeight = 32f;
+    private const float NavRowBottomPadding = 12f;
+    private const float NavBackWidth = 36f;
+    private const float NavJoinWidth = 130f;
+    private const float BackGlyphSize = 14f;
+    private const float DividerHeight = 18f;
+    private const float DividerYPadding = 6f;
+    private const float StatRowHeight = 22f;
+    private const float StatBlockBottomSpacing = 8f;
+    private const float ProseBottomSpacing = 12f;
+    private const float MemberRowHeight = 26f;
+    private const float MemberRowGap = 2f;
+    private const float SectionBottomSpacing = 8f;
+
     public static CivilizationDetailRendererResult Draw(
         CivilizationDetailViewModel vm,
         ImDrawListPtr drawList)
     {
         var events = new List<DetailEvent>();
-        var currentY = vm.Y;
+        var currentY = vm.Y + TopPadding;
+        var contentWidth = vm.Width - ChapterStripRenderer.ScrollbarGutter;
+
+        currentY = DrawNavRow(vm, drawList, events, currentY, contentWidth);
 
         if (vm.IsLoading)
         {
             TextRenderer.DrawInfoText(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_LOADING),
-                vm.X, currentY + 8f, vm.Width);
+                vm.X, currentY + 8f, contentWidth, Body, ColorPalette.Grey);
             return new CivilizationDetailRendererResult(events, vm.Height);
         }
 
-        // Back button
-        if (ButtonRenderer.DrawButton(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_BACK),
-                vm.X, currentY, 160f, 32f, directoryPath: "GUI", iconName: "back"))
-            events.Add(new DetailEvent.BackToBrowseClicked());
+        var strip = ChapterStripRenderer.Draw(drawList, vm.X, currentY, vm.Width, 0f, vm.CivName);
+        contentWidth = strip.ContentWidth;
+        currentY = strip.BodyY;
 
-        currentY += Spacing.BackButtonRow;
-
-        // Civilization header with rank
-        TextRenderer.DrawLabel(drawList, vm.CivName, vm.X, currentY, PageTitle, ColorPalette.White);
-        var civNameWidth = ImGui.CalcTextSize(vm.CivName).X * (PageTitle / SubsectionLabel); // Approximate scaled width
-        var rankName = RankRequirements.GetCivilizationRankName(vm.Rank);
-        var rankText = $"[{rankName}]";
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(vm.X + civNameWidth + 12f, currentY + 3f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), rankText);
-        currentY += Spacing.Block;
-
-        // Info grid
-        var leftCol = vm.X;
-        var rightCol = vm.X + vm.Width / 2f;
-
-        // Founded date
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_FOUNDED),
-            leftCol, currentY, Body, ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), Body, new Vector2(leftCol + 120f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White), vm.CreatedDate.ToString("yyyy-MM-dd"));
-
-        // Member count
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_MEMBERS),
-            rightCol, currentY, Body, ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), Body, new Vector2(rightCol + 80f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White), $"{vm.MemberCount}/4");
-
-        currentY += Spacing.Section;
-
-        // Civilization founder (player name)
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_FOUNDER),
-            leftCol, currentY, Body, ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), Body, new Vector2(leftCol + 120f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), vm.FounderName);
-
-        currentY += Spacing.Section;
-
-        // Founding religion
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_FOUNDING_RELIGION),
-            leftCol, currentY, Body, ColorPalette.Grey);
-        drawList.AddText(ImGui.GetFont(), Body, new Vector2(leftCol + 120f, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), vm.FounderReligionName);
-
-        currentY += Spacing.Block;
-
-        // Description section (if present)
-        if (!string.IsNullOrEmpty(vm.Description))
-        {
-            currentY += Spacing.Tight;
-            TextRenderer.DrawLabel(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_DESCRIPTION),
-                vm.X, currentY, TableHeader, ColorPalette.Grey);
-            currentY += Spacing.HeaderToContent;
-
-            TextRenderer.DrawInfoText(drawList, vm.Description, vm.X, currentY, vm.Width * 0.9f);
-            currentY += 60f;
-        }
-
-        // Divider line
-        drawList.AddLine(new Vector2(vm.X, currentY), new Vector2(vm.X + vm.Width, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey * 0.5f), 1f);
-        currentY += Spacing.Comfortable;
-
-        // Member religions section
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_MEMBER_RELIGIONS),
-            vm.X, currentY, TableHeader, ColorPalette.White);
-        currentY += Spacing.HeaderToContent;
-
-        // Member list (scrollable)
-        var listHeight = vm.Height - (currentY - vm.Y) - 80f;
-        var membersList = vm.MemberReligions?.ToList() ?? new List<CivilizationInfoResponsePacket.MemberReligion>();
-
-        var newScrollY = ScrollableList.Draw(
-            drawList,
-            vm.X,
-            currentY,
-            vm.Width,
-            listHeight,
-            membersList,
-            60f,
-            Spacing.ListItemGap,
-            vm.MemberScrollY,
-            (member, cx, cy, cw, ch) => DrawMemberRow(member, cx, cy, cw, ch, drawList, vm.FounderReligionName),
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_NO_MEMBERS)
-        );
-
-        // Emit scroll event if changed
-        if (newScrollY != vm.MemberScrollY)
-            events.Add(new DetailEvent.MemberScrollChanged(newScrollY));
-
-        currentY += listHeight + 16f;
-
-        // Join/Request info
-        if (vm.CanRequestToJoin)
-            TextRenderer.DrawInfoText(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_CAN_RECEIVE_INVITE), vm.X,
-                currentY, vm.Width);
-        else if (vm.IsFull)
-            TextRenderer.DrawInfoText(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_FULL), vm.X, currentY,
-                vm.Width);
-        else
-            TextRenderer.DrawInfoText(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_ALREADY_MEMBER), vm.X,
-                currentY,
-                vm.Width);
+        currentY = DrawProseIntro(vm, drawList, currentY, contentWidth);
+        currentY = DrawStatBlock(vm, drawList, currentY, contentWidth);
+        currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
+        currentY = DrawHistoryProse(vm, drawList, currentY, contentWidth);
+        currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
+        DrawMembersSection(vm, drawList, currentY, contentWidth, events);
 
         return new CivilizationDetailRendererResult(events, vm.Height);
     }
 
-    private static void DrawMemberRow(
-        CivilizationInfoResponsePacket.MemberReligion member,
-        float x,
-        float y,
-        float width,
-        float height,
+    private static float DrawNavRow(
+        CivilizationDetailViewModel vm,
         ImDrawListPtr drawList,
-        string founderReligionName)
+        List<DetailEvent> events,
+        float y,
+        float contentWidth)
     {
-        // Background
-        drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width, y + height),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown), 4f);
-
-        // Deity icon
-        const float deityIconSize = 20f;
-        if (Enum.TryParse<DeityDomain>(member.Domain, out var deityType))
+        if (ButtonRenderer.DrawButton(drawList, string.Empty,
+                vm.X, y, NavBackWidth, NavRowHeight,
+                isPrimary: false, enabled: true))
         {
-            var deityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
-            var iconX = x + 16f - deityIconSize / 2f;
-            var iconY = y + height / 2f - deityIconSize / 2f;
-            drawList.AddImage(deityTextureId,
-                new Vector2(iconX, iconY),
-                new Vector2(iconX + deityIconSize, iconY + deityIconSize),
-                Vector2.Zero, Vector2.One,
-                ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)));
+            events.Add(new DetailEvent.BackToBrowseClicked());
+        }
+        ChromeRenderer.DrawChevron(drawList,
+            vm.X + NavBackWidth / 2f,
+            y + NavRowHeight / 2f,
+            BackGlyphSize,
+            ChromeRenderer.ChevronDirection.Left,
+            ColorPalette.LightText);
+
+        if (vm.CanRequestToJoin)
+        {
+            var joinX = vm.X + contentWidth - NavJoinWidth;
+            if (ButtonRenderer.DrawButton(drawList,
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_ACTION_JOIN),
+                    joinX, y, NavJoinWidth, NavRowHeight + 4f,
+                    isPrimary: true))
+            {
+                events.Add(new DetailEvent.RequestToJoinClicked(vm.CivId));
+            }
         }
 
-        // Religion name
-        TextRenderer.DrawLabel(drawList, member.ReligionName, x + 40f, y + 8f, Body);
+        return y + NavRowHeight + NavRowBottomPadding;
+    }
 
-        // Sub info - includes deity, member count, and religion founder name
-        var subText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_MEMBER_CARD_INFO,
-            member.Domain, member.MemberCount, member.FounderName);
-        drawList.AddText(ImGui.GetFont(), Body, new Vector2(x + 40f, y + 32f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), subText);
+    private static float DrawProseIntro(
+        CivilizationDetailViewModel vm,
+        ImDrawListPtr drawList,
+        float y,
+        float width)
+    {
+        var founder = string.IsNullOrWhiteSpace(vm.FounderName) ? vm.FounderName : vm.FounderName;
+        var month = vm.CreatedDate == DateTime.MinValue
+            ? string.Empty
+            : vm.CreatedDate.ToString("MMMM", CultureInfo.InvariantCulture);
 
-        // Founder badge (for the civilization's founding religion)
-        if (member.ReligionName == founderReligionName)
-            drawList.AddText(ImGui.GetFont(), Body, new Vector2(x + width - 120f, y + (height - 16f) / 2f),
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), "* Founder *");
+        var founded = string.IsNullOrEmpty(month) || string.IsNullOrWhiteSpace(founder)
+            ? string.Empty
+            : LocalizationService.Instance.Get(
+                LocalizationKeys.UI_CIVILIZATION_DETAIL_INTRO_FOUNDED, month, founder);
+
+        var bannerKey = vm.MemberCount == 1
+            ? LocalizationKeys.UI_CIVILIZATION_DETAIL_INTRO_BANNER_ONE
+            : LocalizationKeys.UI_CIVILIZATION_DETAIL_INTRO_BANNER;
+        var banner = vm.MemberCount == 1
+            ? LocalizationService.Instance.Get(bannerKey)
+            : LocalizationService.Instance.Get(bannerKey, vm.MemberCount);
+
+        var prose = string.IsNullOrEmpty(founded) ? banner : $"{founded} {banner}";
+
+        TextRenderer.DrawInfoText(drawList, prose, vm.X, y, width, Body, ColorPalette.White);
+        var height = TextRenderer.MeasureWrappedHeight(prose, width, Body);
+        return y + (height > 0 ? height : Body + LinePadding) + ProseBottomSpacing;
+    }
+
+    private static float DrawStatBlock(
+        CivilizationDetailViewModel vm,
+        ImDrawListPtr drawList,
+        float y,
+        float width)
+    {
+        var currentY = y;
+
+        ChromeRenderer.DrawLeader(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_FOUNDER),
+            string.IsNullOrWhiteSpace(vm.FounderName) ? "—" : vm.FounderName,
+            vm.X, currentY, width,
+            valueColor: ColorPalette.Vermilion);
+        currentY += StatRowHeight;
+
+        ChromeRenderer.DrawLeader(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_FOUNDING_ORDER),
+            string.IsNullOrWhiteSpace(vm.FounderReligionName) ? "—" : vm.FounderReligionName,
+            vm.X, currentY, width);
+        currentY += StatRowHeight;
+
+        ChromeRenderer.DrawLeader(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_MEMBER_ORDERS,
+                vm.MemberCount),
+            $"{vm.MemberCount}/4",
+            vm.X, currentY, width);
+        currentY += StatRowHeight;
+
+        return currentY + StatBlockBottomSpacing;
+    }
+
+    private static float DrawHistoryProse(
+        CivilizationDetailViewModel vm,
+        ImDrawListPtr drawList,
+        float y,
+        float width)
+    {
+        var currentY = y;
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_DESCRIPTION),
+            vm.X, currentY, SubsectionLabel, ColorPalette.Gold);
+        currentY += StatRowHeight;
+
+        var hasDescription = !string.IsNullOrWhiteSpace(vm.Description);
+        var prose = hasDescription
+            ? vm.Description
+            : LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_DESCRIPTION_EMPTY);
+        var proseColor = hasDescription ? ColorPalette.White : ColorPalette.Grey;
+        TextRenderer.DrawInfoText(drawList, prose, vm.X, currentY, width, Secondary, proseColor);
+        var height = TextRenderer.MeasureWrappedHeight(prose, width);
+        return currentY + (height > 0 ? height : Secondary + LinePadding) + SectionBottomSpacing;
+    }
+
+    private static void DrawMembersSection(
+        CivilizationDetailViewModel vm,
+        ImDrawListPtr drawList,
+        float y,
+        float width,
+        List<DetailEvent> events)
+    {
+        var currentY = y;
+        var heading = LocalizationService.Instance.Get(
+            LocalizationKeys.UI_CIVILIZATION_DETAIL_MEMBER_ORDERS, vm.MemberCount);
+        TextRenderer.DrawLabel(drawList, heading, vm.X, currentY, SubsectionLabel, ColorPalette.Gold);
+        currentY += StatRowHeight;
+
+        var listHeight = MathF.Max(vm.Height - (currentY - vm.Y) - SectionBottomSpacing, MemberRowHeight);
+        var members = vm.MemberReligions?.ToList()
+                      ?? new List<CivilizationInfoResponsePacket.MemberReligion>();
+
+        var newScrollY = ScrollableList.Draw<CivilizationInfoResponsePacket.MemberReligion>(
+            drawList,
+            vm.X,
+            currentY,
+            width,
+            listHeight,
+            members,
+            MemberRowHeight,
+            MemberRowGap,
+            vm.MemberScrollY,
+            (member, cx, cy, cw, ch) => DrawMemberRow(member, cx, cy, cw, ch, drawList),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_NO_MEMBERS),
+            backgroundColor: new Vector4(0f, 0f, 0f, 0f)
+        );
+
+        if (Math.Abs(newScrollY - vm.MemberScrollY) > 0.001f)
+            events.Add(new DetailEvent.MemberScrollChanged(newScrollY));
+    }
+
+    private static void DrawMemberRow(
+        CivilizationInfoResponsePacket.MemberReligion member,
+        float x, float y, float width, float height,
+        ImDrawListPtr drawList)
+    {
+        // ✦ <OrderName> · · · · · <Deity>
+        const float diamondLeftPadding = 4f;
+        const float diamondHalfSize = 3.5f;
+        const float diamondToLabelGap = 10f;
+
+        var centerY = y + height / 2f;
+        ChromeRenderer.DrawDiamond(drawList,
+            x + diamondLeftPadding + diamondHalfSize, centerY,
+            diamondHalfSize,
+            ColorPalette.Gold * 0.6f);
+
+        var leaderX = x + diamondLeftPadding + diamondHalfSize * 2f + diamondToLabelGap;
+        var leaderWidth = MathF.Max(width - (leaderX - x) - 8f, 40f);
+        var rowY = centerY - Body * 0.5f;
+        ChromeRenderer.DrawLeader(drawList,
+            member.ReligionName,
+            member.Domain,
+            leaderX, rowY, leaderWidth);
+    }
+
+    private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var dividerY = y + DividerYPadding;
+        ChromeRenderer.DrawDivider(drawList, x, dividerY, width);
+        return y + DividerHeight;
     }
 }
