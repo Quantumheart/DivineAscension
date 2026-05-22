@@ -1602,7 +1602,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     {
         if (packet.Success)
         {
-            _soundManager.PlayClick();
+            _soundManager.PlaySuccess();
 
             // Nav redirect after join/leave/etc. is handled at the dialog level
             // (GuiDialogHandlers.OnCivilizationActionCompleted) so it can update
