@@ -450,7 +450,9 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
 
                 // Refresh diplomacy data if the diplomacy view is open and the player is involved.
                 var dialog = _modLoaderService?.GetModSystem<GuiDialog>();
-                var onDiplomacy = dialog?.State.Sidebar.CurrentNav == SidebarNavId.CivilizationDiplomacy;
+                var currentNav = dialog?.State.Sidebar.CurrentNav;
+                var onDiplomacy = currentNav is SidebarNavId.CivilizationDiplomacy
+                    or SidebarNavId.CivilizationProposeAccord;
                 if (isInvolved && onDiplomacy)
                 {
                     civManager.RequestDiplomacyInfo();

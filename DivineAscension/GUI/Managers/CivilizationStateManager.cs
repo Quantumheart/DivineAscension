@@ -20,6 +20,7 @@ using DivineAscension.GUI.UI.Adapters.Civilizations;
 using DivineAscension.GUI.UI.Renderers.Civilization;
 using DivineAscension.GUI.UI.Renderers.HolySites;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models.Enum;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
@@ -490,6 +491,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             case SidebarNavId.CivilizationDiplomacy:
                 DrawCivilizationDiplomacy(x, contentY, width, contentHeight);
                 break;
+            case SidebarNavId.CivilizationProposeAccord:
+                DrawCivilizationProposeAccord(x, contentY, width, contentHeight);
+                break;
             case SidebarNavId.CivilizationHolySites:
                 DrawCivilizationHolySites(x, contentY, width, contentHeight);
                 break;
@@ -750,6 +754,45 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         var result = DiplomacyTabRenderer.Draw(vm, drawList);
 
         // Process events
+        ProcessDiplomacyEvents(result.Events);
+    }
+
+    [ExcludeFromCodeCoverage]
+    private void DrawCivilizationProposeAccord(float x, float y, float width, float height)
+    {
+        // Available recipients: any civ that isn't ours and isn't already in
+        // a standing accord with us. Mirrors the old inline form's filter.
+        var existingPartnerIds = new HashSet<string>(
+            State.DiplomacyState.ActiveRelationships.Select(r => r.OtherCivId));
+        var availableCivs = State.BrowseState.AllCivilizations
+            .Where(c => c.CivId != CurrentCivilizationId && !existingPartnerIds.Contains(c.CivId))
+            .Select(c => new CivilizationInfo(c.CivId, c.Name))
+            .ToList();
+
+        var selectedType = State.DiplomacyState.SelectedProposalType;
+        var requiredRank = selectedType == DiplomaticStatus.NonAggressionPact
+            ? DiplomacyConstants.NonAggressionPactRequiredRank
+            : DiplomacyConstants.AllianceRequiredRank;
+        var requiredRankName = selectedType == DiplomaticStatus.NonAggressionPact
+            ? DiplomacyConstants.NonAggressionPactRankName
+            : DiplomacyConstants.AllianceRankName;
+
+        var vm = new ProposeAccordViewModel(
+            x, y, width, height,
+            HasCivilization(),
+            UserIsCivilizationFounder,
+            State.DiplomacyState.ErrorMessage,
+            availableCivs,
+            State.DiplomacyState.SelectedCivId,
+            selectedType,
+            UserPrestigeRank,
+            requiredRank,
+            requiredRankName,
+            State.DiplomacyState.IsCivDropdownOpen,
+            State.DiplomacyState.IsTypeDropdownOpen);
+
+        var drawList = ImGui.GetWindowDrawList();
+        var result = ProposeAccordRenderer.Draw(vm, drawList);
         ProcessDiplomacyEvents(result.Events);
     }
 
