@@ -565,32 +565,12 @@ public partial class GuiDialog
 
         _logger?.Debug($"[DivineAscension] Blessing unlocked from server: {blessingId}");
 
-        // Play unlock success sound
+        // Play unlock success sound (writing). Fires regardless of domain — the
+        // sound is now domain-agnostic since #381.
+        _soundManager!.PlaySuccess();
+
         if (_manager != null)
         {
-            switch (_manager.ReligionStateManager.CurrentReligionDomain)
-            {
-                case DeityDomain.None:
-                    break;
-                case DeityDomain.Craft:
-                    _soundManager!.PlayDeityUnlock(DeityDomain.Craft);
-                    break;
-                case DeityDomain.Wild:
-                    _soundManager!.PlayDeityUnlock(DeityDomain.Wild);
-                    break;
-                case DeityDomain.Harvest:
-                    _soundManager!.PlayDeityUnlock(DeityDomain.Harvest);
-                    break;
-                case DeityDomain.Stone:
-                    _soundManager!.PlayDeityUnlock(DeityDomain.Stone);
-                    break;
-                case DeityDomain.Conquest:
-                    _soundManager!.PlayDeityUnlock(DeityDomain.Conquest);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
             // Update manager state
             _manager?.BlessingStateManager.SetBlessingUnlocked(blessingId, true);
 
