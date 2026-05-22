@@ -14,6 +14,7 @@ public class InfoState : IState
     public bool IsEditingCapital { get; set; }
     public string CapitalNameText { get; set; } = string.Empty;
     public string CapitalBindingText { get; set; } = string.Empty;
+    public bool IsCapitalSiteDropdownOpen { get; set; }
     public bool IsLoading { get; set; }
     public string? ErrorMsg { get; set; }
 
@@ -28,6 +29,7 @@ public class InfoState : IState
         IsEditingCapital = false;
         CapitalNameText = string.Empty;
         CapitalBindingText = string.Empty;
+        IsCapitalSiteDropdownOpen = false;
         IsLoading = false;
         ErrorMsg = null;
     }

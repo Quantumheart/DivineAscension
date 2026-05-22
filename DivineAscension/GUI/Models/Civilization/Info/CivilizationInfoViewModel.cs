@@ -26,6 +26,7 @@ public readonly struct CivilizationInfoViewModel(
     bool isEditingCapital,
     string capitalNameText,
     string capitalBindingText,
+    bool isCapitalSiteDropdownOpen,
     IReadOnlyDictionary<string, List<HolySiteResponsePacket.HolySiteInfo>> eligibleCapitalSites,
     IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> memberReligions,
     IReadOnlyList<CivilizationInfoResponsePacket.PendingInvite> pendingInvites,
@@ -60,6 +61,7 @@ public readonly struct CivilizationInfoViewModel(
     public bool IsEditingCapital { get; } = isEditingCapital;
     public string CapitalNameText { get; } = capitalNameText;
     public string CapitalBindingText { get; } = capitalBindingText;
+    public bool IsCapitalSiteDropdownOpen { get; } = isCapitalSiteDropdownOpen;
 
     public IReadOnlyDictionary<string, List<HolySiteResponsePacket.HolySiteInfo>> EligibleCapitalSites { get; } =
         eligibleCapitalSites;

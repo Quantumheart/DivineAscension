@@ -28,6 +28,8 @@ public abstract record InfoEvent
 
     public sealed record SaveCapitalClicked : InfoEvent;
 
+    public sealed record ToggleCapitalSiteDropdown(bool isOpen) : InfoEvent;
+
     public sealed record LeaveClicked : InfoEvent;
 
     public sealed record EditIconClicked : InfoEvent;

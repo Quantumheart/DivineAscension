@@ -661,6 +661,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             State.InfoState.IsEditingCapital,
             State.InfoState.CapitalNameText,
             State.InfoState.CapitalBindingText,
+            State.InfoState.IsCapitalSiteDropdownOpen,
             State.HolySitesState.Browse.SitesByReligion,
             memberReligions,
             civ?.PendingInvites ?? new List<CivilizationInfoResponsePacket.PendingInvite>(),
@@ -1164,6 +1165,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
                 case InfoEvent.EditCapitalCancel:
                     State.InfoState.IsEditingCapital = false;
+                    State.InfoState.IsCapitalSiteDropdownOpen = false;
                     State.InfoState.CapitalNameText = civ?.CapitalName ?? string.Empty;
                     State.InfoState.CapitalBindingText = civ?.CapitalHolySiteId ?? string.Empty;
                     break;
@@ -1176,6 +1178,10 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     State.InfoState.CapitalBindingText = cbc.siteId ?? string.Empty;
                     break;
 
+                case InfoEvent.ToggleCapitalSiteDropdown tcd:
+                    State.InfoState.IsCapitalSiteDropdownOpen = tcd.isOpen;
+                    break;
+
                 case InfoEvent.SaveCapitalClicked:
                     if (!string.IsNullOrWhiteSpace(civId))
                     {
@@ -1184,6 +1190,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     }
 
                     State.InfoState.IsEditingCapital = false;
+                    State.InfoState.IsCapitalSiteDropdownOpen = false;
                     break;
 
                 case InfoEvent.LeaveClicked:
