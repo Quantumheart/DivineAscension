@@ -140,7 +140,10 @@ public static class TextRenderer
                 continue;
             }
 
-            var words = paragraph.Split(' ');
+            // RemoveEmptyEntries collapses runs of spaces (indented prose,
+            // double-spaces) so we never pass "" into ImGui.CalcTextSize,
+            // which throws ArgumentNullException inside its UTF8 binding.
+            var words = paragraph.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var currentLine = "";
 
             foreach (var word in words)
@@ -191,7 +194,10 @@ public static class TextRenderer
                 continue;
             }
 
-            var words = paragraph.Split(' ');
+            // RemoveEmptyEntries collapses runs of spaces (indented prose,
+            // double-spaces) so we never pass "" into ImGui.CalcTextSize,
+            // which throws ArgumentNullException inside its UTF8 binding.
+            var words = paragraph.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var currentLine = "";
 
             foreach (var word in words)
