@@ -1,166 +1,153 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Invites;
-using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Renderers.Religion.Letters;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
-/// Pure renderer for religion invitations list
-/// Takes immutable view model, returns events representing user interactions
+/// Ledger-chapter renderer for the Letters (I.v). Chapter strip, prose intro,
+/// section dividers above and below the letter list, each letter painted as
+/// an envelope + domain glyph row (sender, default quote, Accept / Refuse),
+/// and a closing "No further letters lie unopened." line that is shown even
+/// when there are zero letters.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class ReligionInvitesRenderer
 {
-    /// <summary>
-    /// Renders the invites list
-    /// Pure function: ViewModel + DrawList → RenderResult
-    /// </summary>
+    private const float DividerHeight = 18f;
+    private const float DividerYPadding = 6f;
+    private const float ScrollbarWidth = 16f;
+    private const float ClosingLineHeight = 24f;
+    private const float ClosingLineTopSpacing = 6f;
+
     public static ReligionInvitesRenderResult Draw(
         ReligionInvitesViewModel viewModel,
         ImDrawListPtr drawList)
     {
         var events = new List<InvitesEvent>();
+        var x = viewModel.X;
+        var y = viewModel.Y;
+        var width = viewModel.Width;
+        var height = viewModel.Height;
 
-        // === HEADER ===
-        var strip = ChapterStripRenderer.Draw(drawList, viewModel.X, viewModel.Y, viewModel.Width, 0f,
+        if (viewModel.IsLoading && !viewModel.HasInvites)
+        {
+            DrawCenteredStateText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_LOADING),
+                x, y, width, height, ColorPalette.Grey);
+            return new ReligionInvitesRenderResult(events, height);
+        }
+
+        var contentHeightEstimate = ComputeContentHeight(viewModel);
+        var maxScroll = MathF.Max(0f, contentHeightEstimate - height);
+
+        var mousePos = ImGui.GetMousePos();
+        var isHover = mousePos.X >= x && mousePos.X <= x + width
+                                      && mousePos.Y >= y && mousePos.Y <= y + height;
+        var scrollY = viewModel.ScrollY;
+        if (isHover && maxScroll > 0f)
+        {
+            var wheel = ImGui.GetIO().MouseWheel;
+            if (wheel != 0)
+            {
+                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                if (Math.Abs(newScrollY - scrollY) > 0.001f)
+                {
+                    scrollY = newScrollY;
+                    events.Add(new InvitesEvent.ScrollChanged(newScrollY));
+                }
+            }
+        }
+
+        drawList.PushClipRect(new Vector2(x, y), new Vector2(x + width, y + height), true);
+
+        // === CHAPTER STRIP ===
+        var strip = ChapterStripRenderer.Draw(drawList, x, y, width, scrollY,
             LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_INVITES));
+        var contentWidth = strip.ContentWidth;
         var currentY = strip.BodyY;
 
-        // === HELP TEXT ===
-        TextRenderer.DrawInfoText(
-            drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_SUBTITLE),
-            viewModel.X,
-            currentY,
-            viewModel.Width);
-        currentY += 32f;
+        // === INTRO ===
+        currentY = ReligionLettersHeaderRenderer.Draw(drawList, x, currentY, contentWidth);
 
-        // === EMPTY STATE ===
-        if (!viewModel.HasInvites)
+        if (viewModel.HasInvites)
         {
-            TextRenderer.DrawInfoText(
-                drawList,
-                viewModel.EmptyStateMessage,
-                viewModel.X,
-                currentY + 8f,
-                viewModel.Width);
-
-            return new ReligionInvitesRenderResult(events, viewModel.Height);
+            currentY = DrawDivider(drawList, x, currentY, contentWidth);
+            currentY = ReligionLettersListRenderer.Draw(drawList, viewModel, x, currentY, contentWidth, events);
+            currentY = DrawDivider(drawList, x, currentY, contentWidth);
+        }
+        else
+        {
+            currentY = DrawDivider(drawList, x, currentY, contentWidth);
         }
 
-        // === SCROLLABLE LIST ===
-        var listHeight = viewModel.Height - (currentY - viewModel.Y);
+        // === CLOSING LINE ===
+        currentY += ClosingLineTopSpacing;
+        DrawClosingLine(drawList, x, currentY, contentWidth);
 
-        // Convert IReadOnlyList to List for ScrollableList.Draw
-        var invitesList = viewModel.Invites.ToList();
+        drawList.PopClipRect();
 
-        var newScrollY = ScrollableList.Draw(
-            drawList,
-            viewModel.X,
-            currentY,
-            viewModel.Width,
-            listHeight,
-            invitesList,
-            80f, // itemHeight
-            10f, // itemSpacing
-            viewModel.ScrollY,
-            (invite, cx, cy, cw, ch) =>
-                DrawInviteCard(invite, cx, cy, cw, ch, drawList, viewModel.IsLoading, events),
-            loadingText: viewModel.IsLoading
-                ? LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_LOADING)
-                : null
-        );
-
-        // Emit scroll event if changed
-        if (newScrollY != viewModel.ScrollY)
+        if (maxScroll > 0f)
         {
-            events.Add(new InvitesEvent.ScrollChanged(newScrollY));
+            var newScrollY = Scrollbar.HandleDragging(scrollY, maxScroll,
+                x + width - ScrollbarWidth, y, ScrollbarWidth, height);
+            if (Math.Abs(newScrollY - scrollY) > 0.001f)
+                events.Add(new InvitesEvent.ScrollChanged(newScrollY));
+            Scrollbar.Draw(drawList, x + width - ScrollbarWidth, y, ScrollbarWidth, height, scrollY, maxScroll);
         }
 
-        return new ReligionInvitesRenderResult(events, viewModel.Height);
+        return new ReligionInvitesRenderResult(events, height);
     }
 
-    /// <summary>
-    /// Draws a single invite card
-    /// </summary>
-    private static void DrawInviteCard(
-        InviteData invite,
-        float x, float y, float width, float height,
-        ImDrawListPtr drawList,
-        bool isLoading,
-        List<InvitesEvent> events)
+    private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
     {
-        // === CARD BACKGROUND ===
-        drawList.AddRectFilled(
-            new Vector2(x, y),
-            new Vector2(x + width, y + height),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown),
-            4f);
+        var dividerY = y + DividerYPadding;
+        ChromeRenderer.DrawDivider(drawList, x, dividerY, width);
+        return y + DividerHeight;
+    }
 
-        // === CARD CONTENT ===
-        // Card body is dark sepia (LightBrown), so all text inside is light cream.
-        TextRenderer.DrawLabel(
-            drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_CARD_TITLE),
-            x + 12f,
-            y + 8f,
-            16f,
-            ColorPalette.LightText);
+    private static void DrawClosingLine(ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var text = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_FOOTER_CLOSING);
+        var size = ImGui.CalcTextSize(text);
+        var textX = x + (width - size.X) / 2f;
+        drawList.AddText(ImGui.GetFont(), Body, new Vector2(textX, y),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
+            text);
+    }
 
-        drawList.AddText(
-            ImGui.GetFont(),
-            14f,
-            new Vector2(x + 14f, y + 30f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.MutedText),
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_RELIGION_LABEL, invite.ReligionName));
-
-        drawList.AddText(
-            ImGui.GetFont(),
-            14f,
-            new Vector2(x + 14f, y + 48f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.MutedText),
-            invite.FormattedExpiration);
-
-        // === ACTION BUTTONS ===
-        var buttonsEnabled = !isLoading;
-        var buttonY = y + height - 32f;
-
-        // Accept button
-        if (ButtonRenderer.DrawButton(
-                drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_ACCEPT),
-                x + width - 180f,
-                buttonY,
-                80f,
-                28f,
-                true,
-                buttonsEnabled))
+    private static float ComputeContentHeight(ReligionInvitesViewModel viewModel)
+    {
+        var h = 0f;
+        h += PaneHeaderRenderer.TotalHeight;
+        h += ReligionLettersHeaderRenderer.IntroLineHeight + ReligionLettersHeaderRenderer.IntroBottomSpacing;
+        h += DividerHeight;
+        if (viewModel.HasInvites)
         {
-            events.Add(new InvitesEvent.AcceptInviteClicked(invite.InviteId));
+            h += ReligionLettersListRenderer.MeasureHeight(viewModel);
+            h += DividerHeight;
         }
+        h += ClosingLineTopSpacing + ClosingLineHeight;
+        return h;
+    }
 
-        // Decline button
-        if (ButtonRenderer.DrawButton(
-                drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_DECLINE),
-                x + width - 90f,
-                buttonY,
-                80f,
-                28f,
-                false,
-                buttonsEnabled))
-        {
-            events.Add(new InvitesEvent.DeclineInviteClicked(invite.InviteId));
-        }
+    private static void DrawCenteredStateText(
+        ImDrawListPtr drawList, string text, float x, float y, float width, float height, Vector4 color)
+    {
+        var size = ImGui.CalcTextSize(text);
+        var pos = new Vector2(x + (width - size.X) / 2f, y + (height - size.Y) / 2f);
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, pos,
+            ImGui.ColorConvertFloat4ToU32(color), text);
     }
 }

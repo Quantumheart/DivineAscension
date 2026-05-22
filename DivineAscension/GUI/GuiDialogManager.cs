@@ -4,6 +4,7 @@ using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Managers;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI.Adapters.Civilizations;
+using DivineAscension.GUI.UI.Adapters.ReligionInvites;
 using DivineAscension.GUI.UI.Adapters.ReligionMembers;
 using DivineAscension.GUI.UI.Adapters.Religions;
 using DivineAscension.Models.Enum;
@@ -39,6 +40,11 @@ public class GuiDialogManager : IBlessingDialogManager
         ReligionStateManager.ReligionsProvider!.ConfigureDevSeed(500, 20251204);
         ReligionStateManager.UseReligionDetailProvider(new FakeReligionDetailProvider(fakeReligionProvider));
         ReligionStateManager.RefreshReligionsFromProvider();
+
+        // Fake Letters (religion invites) for styling the Letters chapter without a server.
+        var fakeInvitesProvider = new FakeReligionInvitesProvider();
+        fakeInvitesProvider.ConfigureDevSeed(4, 20260521);
+        ReligionStateManager.UseInvitesProvider(fakeInvitesProvider);
 
         // Initialize civilization fake providers
         var fakeCivProvider = new FakeCivilizationProvider();
