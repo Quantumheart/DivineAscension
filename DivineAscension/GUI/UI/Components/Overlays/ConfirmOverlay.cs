@@ -36,10 +36,10 @@ internal static class ConfirmOverlay
         var winPos = ImGui.GetWindowPos();
         var winSize = ImGui.GetWindowSize();
 
-        // 1) Backdrop
+        // 1) Backdrop — palette §4 modal dim.
         var backdropStart = winPos;
         var backdropEnd = new Vector2(winPos.X + winSize.X, winPos.Y + winSize.Y);
-        var backdropColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.7f);
+        var backdropColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.BlackOverlay);
         drawList.AddRectFilled(backdropStart, backdropEnd, backdropColor);
 
         // 2) Dialog box
@@ -81,7 +81,10 @@ internal static class ConfirmOverlay
         var dlgY = winPos.Y + (winSize.Y - dialogHeight) / 2f;
         var dlgStart = new Vector2(dlgX, dlgY);
         var dlgEnd = new Vector2(dlgX + effectiveDialogWidth, dlgY + dialogHeight);
-        var dlgBg = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown * 0.95f);
+        // Deep-sepia popup surface to match the tooltip / title-strip
+        // convention (palette §1). Light surface here would clash with the
+        // cream text used for titles + body.
+        var dlgBg = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
         var dlgBorder = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
         drawList.AddRectFilled(dlgStart, dlgEnd, dlgBg, 6f);
         drawList.AddRect(dlgStart, dlgEnd, dlgBorder, 6f, ImDrawFlags.None, 1.5f);
@@ -93,8 +96,8 @@ internal static class ConfirmOverlay
         TextRenderer.DrawLabel(drawList, title, curX, curY, 18f, ColorPalette.LightText);
         curY += titleSize.Y + 8f;
 
-        // Message (word-wrapped)
-        TextRenderer.DrawInfoText(drawList, message, curX, curY, messageWidth, 13f);
+        // Message (word-wrapped) — dark surface, so cream ink (palette §5).
+        TextRenderer.DrawInfoText(drawList, message, curX, curY, messageWidth, 13f, ColorPalette.LightText);
         curY += wrappedMsgHeight;
 
         // Buttons
