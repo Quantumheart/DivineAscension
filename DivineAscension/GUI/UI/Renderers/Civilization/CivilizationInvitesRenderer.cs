@@ -1,21 +1,27 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
+using DivineAscension.GUI.Events.Letters;
 using DivineAscension.GUI.Models.Civilization.Invites;
-using DivineAscension.GUI.UI.Components.Buttons;
-using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.Models.Letters;
+using DivineAscension.GUI.UI.Renderers.Components;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
-using DivineAscension.Network.Civilization;
 using DivineAscension.Services;
 using ImGuiNET;
-using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
+/// <summary>
+///     Thin adapter that maps the civilization invite view model into the
+///     shared <see cref="LettersRenderer" /> and translates its events back
+///     into civilization-scoped <see cref="InvitesEvent" />s. Realms aren't
+///     deity-aligned, so each letter's glyph is a heraldic banner rather
+///     than a deity-domain mark.
+/// </summary>
 [ExcludeFromCodeCoverage]
 internal static class CivilizationInvitesRenderer
 {
@@ -23,89 +29,53 @@ internal static class CivilizationInvitesRenderer
         CivilizationInvitesViewModel vm,
         ImDrawListPtr drawList)
     {
-        var events = new List<InvitesEvent>();
+        var letters = new List<LetterEntry>(vm.Invites?.Count ?? 0);
+        if (vm.Invites != null)
+            foreach (var invite in vm.Invites)
+            {
+                // Inviting civilization's name is carried in ReligionName for
+                // realm-targeting invites (see CivilizationNetworkHandler).
+                var sender = LocalizationService.Instance.Get(
+                    LocalizationKeys.UI_CIVILIZATION_INVITES_FROM, invite.ReligionName);
+                letters.Add(new LetterEntry(
+                    Id: invite.InviteId,
+                    SenderText: sender,
+                    GlyphPainter: DrawBannerGlyph,
+                    QuoteLine: LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_QUOTE)));
+            }
 
-        var strip = ChapterStripRenderer.Draw(drawList, vm.X, vm.Y, vm.Width, 0f,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_INVITES));
-        var currentY = strip.BodyY;
+        var lettersVm = new LettersViewModel(
+            letters: letters,
+            title: LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_TITLE),
+            intro: LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_INTRO),
+            closingLine: LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_FOOTER_CLOSING),
+            acceptLabel: LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_ACCEPT_BUTTON),
+            refuseLabel: LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_DECLINE_BUTTON),
+            loadingText: LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_LOADING),
+            isLoading: vm.IsLoading,
+            scrollY: vm.ScrollY,
+            x: vm.X, y: vm.Y, width: vm.Width, height: vm.Height);
 
-        // Help text explaining where to send invites
-        TextRenderer.DrawInfoText(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_DESCRIPTION),
-            vm.X, currentY, vm.Width);
-        currentY += 32f;
+        var lettersResult = LettersRenderer.Draw(drawList, lettersVm);
 
-        if (!vm.HasInvites)
-        {
-            TextRenderer.DrawInfoText(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_NO_INVITATIONS), vm.X,
-                currentY + 8f, vm.Width);
-            return new CivilizationInvitesRendererResult(events, vm.Height);
-        }
+        var events = new List<InvitesEvent>(lettersResult.Events.Count);
+        foreach (var evt in lettersResult.Events)
+            events.Add(evt switch
+            {
+                LettersEvent.AcceptClicked a => new InvitesEvent.AcceptInviteClicked(a.Id),
+                LettersEvent.RefuseClicked r => new InvitesEvent.DeclineInviteClicked(r.Id),
+                LettersEvent.ScrollChanged s => new InvitesEvent.ScrollChanged(s.NewScrollY),
+                _ => (InvitesEvent)null!
+            });
 
-        var listHeight = vm.Height - (currentY - vm.Y);
-        var invitesList = vm.Invites.ToList();
-
-        var newScrollY = ScrollableList.Draw(
-            drawList,
-            vm.X,
-            currentY,
-            vm.Width,
-            listHeight,
-            invitesList,
-            80f,
-            10f,
-            vm.ScrollY,
-            (invite, cx, cy, cw, ch) => DrawInviteCard(invite, cx, cy, cw, ch, drawList, vm.IsLoading, events),
-            loadingText: vm.IsLoading
-                ? LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_LOADING)
-                : null
-        );
-
-        // Emit scroll event if changed
-        if (newScrollY != vm.ScrollY)
-            events.Add(new InvitesEvent.ScrollChanged(newScrollY));
-
-        return new CivilizationInvitesRendererResult(events, vm.Height);
+        return new CivilizationInvitesRendererResult(events, lettersResult.RenderedHeight);
     }
 
-    private static void DrawInviteCard(
-        CivilizationInfoResponsePacket.PendingInvite invite,
-        float x,
-        float y,
-        float width,
-        float height,
-        ImDrawListPtr drawList,
-        bool isLoading,
-        List<InvitesEvent> events)
+    private static void DrawBannerGlyph(ImDrawListPtr drawList, Vector2 min, Vector2 max)
     {
-        drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width, y + height),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown), 4f);
-
-        // Card body is dark sepia, so all text inside is light cream.
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_CARD_TITLE), x + 12f, y + 8f,
-            TableHeader, ColorPalette.LightText);
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x + 14f, y + 30f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.MutedText),
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_CARD_FROM, invite.ReligionName));
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(x + 14f, y + 48f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.MutedText),
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_CARD_EXPIRES,
-                invite.ExpiresAt.ToString("yyyy-MM-dd HH:mm")));
-
-        var enabled = !isLoading;
-
-        // Accept button
-        if (ButtonRenderer.DrawButton(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_ACCEPT_BUTTON),
-                x + width - 180f, y + height - 32f, 80f, 28f, true, enabled))
-            events.Add(new InvitesEvent.AcceptInviteClicked(invite.InviteId));
-
-        // Decline button
-        if (ButtonRenderer.DrawButton(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INVITES_DECLINE_BUTTON),
-                x + width - 90f, y + height - 32f, 80f, 28f, false, enabled))
-            events.Add(new InvitesEvent.DeclineInviteClicked(invite.InviteId));
+        var cx = (min.X + max.X) * 0.5f;
+        var cy = (min.Y + max.Y) * 0.5f;
+        var size = MathF.Min(max.X - min.X, max.Y - min.Y);
+        ChromeRenderer.DrawBanner(drawList, cx, cy, size, ColorPalette.White);
     }
 }

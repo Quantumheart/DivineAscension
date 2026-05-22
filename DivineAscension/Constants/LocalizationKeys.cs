@@ -586,15 +586,14 @@ public static class LocalizationKeys
 
     // Civilization invites
     public const string UI_CIVILIZATION_INVITES_TITLE = "divineascension:ui.civilization.invites.title";
-    public const string UI_CIVILIZATION_INVITES_DESCRIPTION = "divineascension:ui.civilization.invites.description";
+    public const string UI_CIVILIZATION_INVITES_INTRO = "divineascension:ui.civilization.invites.intro";
+    public const string UI_CIVILIZATION_INVITES_QUOTE = "divineascension:ui.civilization.invites.quote";
+    public const string UI_CIVILIZATION_INVITES_FROM = "divineascension:ui.civilization.invites.from";
 
-    public const string UI_CIVILIZATION_INVITES_NO_INVITATIONS =
-        "divineascension:ui.civilization.invites.no_invitations";
+    public const string UI_CIVILIZATION_INVITES_FOOTER_CLOSING =
+        "divineascension:ui.civilization.invites.footer.closing";
 
     public const string UI_CIVILIZATION_INVITES_LOADING = "divineascension:ui.civilization.invites.loading";
-    public const string UI_CIVILIZATION_INVITES_CARD_TITLE = "divineascension:ui.civilization.invites.card.title";
-    public const string UI_CIVILIZATION_INVITES_CARD_FROM = "divineascension:ui.civilization.invites.card.from";
-    public const string UI_CIVILIZATION_INVITES_CARD_EXPIRES = "divineascension:ui.civilization.invites.card.expires";
     public const string UI_CIVILIZATION_INVITES_ACCEPT_BUTTON = "divineascension:ui.civilization.invites.accept";
     public const string UI_CIVILIZATION_INVITES_DECLINE_BUTTON = "divineascension:ui.civilization.invites.decline";
 
