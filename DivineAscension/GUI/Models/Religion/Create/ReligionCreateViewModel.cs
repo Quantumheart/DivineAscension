@@ -18,7 +18,9 @@ public readonly struct ReligionCreateViewModel(
     float x,
     float y,
     float width,
-    float height)
+    float height,
+    string motto = "",
+    string? mottoProfanityWord = null)
 {
     public string ReligionName { get; } = religionName;
 
@@ -31,6 +33,11 @@ public readonly struct ReligionCreateViewModel(
     /// The custom name for the deity this religion worships
     /// </summary>
     public string DeityName { get; } = deityName;
+
+    /// <summary>
+    /// Optional motto/creed at creation (#361)
+    /// </summary>
+    public string Motto { get; } = motto;
 
     public bool IsPublic { get; } = isPublic;
     public string[] AvailableDomains { get; } = availableDomains;
@@ -45,6 +52,11 @@ public readonly struct ReligionCreateViewModel(
     /// Profanity word found in deity name, if any
     /// </summary>
     public string? DeityNameProfanityWord { get; } = deityNameProfanityWord;
+
+    /// <summary>
+    /// Profanity word found in motto, if any
+    /// </summary>
+    public string? MottoProfanityWord { get; } = mottoProfanityWord;
 
     // Layout
     public float X { get; } = x;
@@ -63,9 +75,19 @@ public readonly struct ReligionCreateViewModel(
     public bool DeityNameHasProfanity => !string.IsNullOrEmpty(DeityNameProfanityWord);
 
     /// <summary>
+    /// Indicates if the motto contains profanity
+    /// </summary>
+    public bool MottoHasProfanity => !string.IsNullOrEmpty(MottoProfanityWord);
+
+    /// <summary>
     /// Indicates if any field contains profanity
     /// </summary>
-    public bool HasProfanity => ReligionNameHasProfanity || DeityNameHasProfanity;
+    public bool HasProfanity => ReligionNameHasProfanity || DeityNameHasProfanity || MottoHasProfanity;
+
+    /// <summary>
+    /// Indicates the motto exceeds the max length
+    /// </summary>
+    public bool MottoTooLong => !string.IsNullOrEmpty(Motto) && Motto.Length > 80;
 
     /// <summary>
     /// Gets the index of the currently selected domain in the available domains array
@@ -86,6 +108,7 @@ public readonly struct ReligionCreateViewModel(
         && !string.IsNullOrWhiteSpace(DeityName)
         && DeityName.Length >= 2
         && DeityName.Length <= 48
+        && !MottoTooLong
         && !HasProfanity;
 
     /// <summary>

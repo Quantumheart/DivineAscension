@@ -12,12 +12,14 @@ public class CreateReligionRequestPacket
     {
     }
 
-    public CreateReligionRequestPacket(string religionName, string domain, string deityName, bool isPublic)
+    public CreateReligionRequestPacket(string religionName, string domain, string deityName, bool isPublic,
+        string motto = "")
     {
         ReligionName = religionName;
         Domain = domain;
         DeityName = deityName;
         IsPublic = isPublic;
+        Motto = motto;
     }
 
     [ProtoMember(1)] public string ReligionName { get; set; } = string.Empty;
@@ -35,4 +37,10 @@ public class CreateReligionRequestPacket
     /// </summary>
     [ProtoMember(4)]
     public string DeityName { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Optional motto/creed (~80 chars).
+    /// </summary>
+    [ProtoMember(5)]
+    public string Motto { get; set; } = string.Empty;
 }

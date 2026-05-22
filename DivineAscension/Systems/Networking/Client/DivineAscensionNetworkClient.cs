@@ -622,7 +622,8 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     /// <summary>
     ///     Request to create a new religion
     /// </summary>
-    public void RequestCreateReligion(string religionName, string domain, string deityName, bool isPublic)
+    public void RequestCreateReligion(string religionName, string domain, string deityName, bool isPublic,
+        string motto = "")
     {
         if (_clientChannel == null)
         {
@@ -630,7 +631,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
             return;
         }
 
-        var request = new CreateReligionRequestPacket(religionName, domain, deityName, isPublic);
+        var request = new CreateReligionRequestPacket(religionName, domain, deityName, isPublic, motto);
         _clientChannel.SendPacket(request);
         _capi?.Logger.Debug(
             $"[DivineAscension] Sent create religion request: {religionName}, domain={domain}, deityName={deityName}");

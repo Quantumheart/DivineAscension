@@ -14,6 +14,9 @@ public abstract record CreateEvent
     // User toggled the Public/Private checkbox
     public record IsPublicChanged(bool IsPublic) : CreateEvent;
 
+    // User edited the optional motto input
+    public record MottoChanged(string NewMotto) : CreateEvent;
+
     // User clicked the Create Religion button
     public record SubmitClicked : CreateEvent;
 }

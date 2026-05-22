@@ -61,6 +61,7 @@ internal static class ReligionCreateRenderer
         // === NAMES ===
         currentY = DrawReligionNameGroup(viewModel, drawList, formX, currentY, FormWidth, events);
         currentY = DrawDeityNameGroup(viewModel, drawList, formX, currentY, FormWidth, events);
+        currentY = DrawMottoGroup(viewModel, drawList, formX, currentY, FormWidth, events);
 
         currentY = DrawDivider(drawList, formX, currentY, FormWidth);
 
@@ -224,6 +225,46 @@ internal static class ReligionCreateRenderer
                         viewModel.DeityNameProfanityWord ?? ""), formX, currentY);
                 currentY += 25f;
             }
+        }
+
+        return currentY;
+    }
+
+    private static float DrawMottoGroup(
+        ReligionCreateViewModel viewModel, ImDrawListPtr drawList,
+        float formX, float currentY, float fieldWidth, List<CreateEvent> events)
+    {
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MOTTO_HEADING),
+            formX, currentY, SubsectionLabel, ColorPalette.Gold);
+        currentY += SectionLabelHeight;
+
+        var newMotto = TextInput.Draw(
+            drawList,
+            "##createReligionMotto",
+            viewModel.Motto,
+            formX, currentY, fieldWidth, InputHeight,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MOTTO_PLACEHOLDER),
+            80);
+
+        if (newMotto != viewModel.Motto)
+            events.Add(new CreateEvent.MottoChanged(newMotto));
+
+        currentY += FieldRowHeight;
+
+        if (viewModel.MottoTooLong)
+        {
+            TextRenderer.DrawErrorText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_MOTTO_TOO_LONG),
+                formX, currentY);
+            currentY += 25f;
+        }
+        else if (viewModel.MottoHasProfanity)
+        {
+            TextRenderer.DrawErrorText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_NAME_ERROR_PROFANITY,
+                    viewModel.MottoProfanityWord ?? ""), formX, currentY);
+            currentY += 25f;
         }
 
         return currentY;

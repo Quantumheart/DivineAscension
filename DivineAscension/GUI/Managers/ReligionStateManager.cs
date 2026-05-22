@@ -310,16 +310,25 @@ public class ReligionStateManager : IReligionStateManager
             ProfanityFilterService.Instance.ContainsProfanity(State.CreateState.DeityName, out deityNameProfanityWord);
         }
 
+        // Check for profanity in motto
+        string? mottoProfanityWord = null;
+        if (!string.IsNullOrWhiteSpace(State.CreateState.Motto))
+        {
+            ProfanityFilterService.Instance.ContainsProfanity(State.CreateState.Motto, out mottoProfanityWord);
+        }
+
         // Build view model from state
         var viewModel = new ReligionCreateViewModel(
             religionName: State.CreateState.Name,
             domain: State.CreateState.Domain,
             deityName: State.CreateState.DeityName,
+            motto: State.CreateState.Motto,
             isPublic: State.CreateState.IsPublic,
             availableDomains: _availableDomains,
             errorMessage: State.ErrorState.CreateError,
             religionNameProfanityWord: religionNameProfanityWord,
             deityNameProfanityWord: deityNameProfanityWord,
+            mottoProfanityWord: mottoProfanityWord,
             x: x, y: y, width: width, height: height
         );
 
@@ -1167,6 +1176,10 @@ public class ReligionStateManager : IReligionStateManager
                     _soundManager.PlayClick();
                     break;
 
+                case CreateEvent.MottoChanged e:
+                    State.CreateState.Motto = e.NewMotto;
+                    break;
+
                 case CreateEvent.SubmitClicked:
                     HandleCreateReligionSubmit();
                     break;
@@ -1194,13 +1207,14 @@ public class ReligionStateManager : IReligionStateManager
 
         // Request creation
         RequestReligionCreate(State.CreateState.Name, State.CreateState.Domain, State.CreateState.DeityName,
-            State.CreateState.IsPublic);
+            State.CreateState.IsPublic, State.CreateState.Motto);
 
         // Clear form
         State.CreateState.Name = string.Empty;
         State.CreateState.Domain = nameof(DeityDomain.Craft);
         State.CreateState.DeityName = string.Empty;
         State.CreateState.IsPublic = true;
+        State.CreateState.Motto = string.Empty;
         State.ErrorState.CreateError = null;
 
         // Switch to My Religion sidebar destination to see the new religion
@@ -1208,9 +1222,10 @@ public class ReligionStateManager : IReligionStateManager
         RequestPlayerReligionInfo();
     }
 
-    private void RequestReligionCreate(string religionName, string domain, string deityName, bool isPublic)
+    private void RequestReligionCreate(string religionName, string domain, string deityName, bool isPublic,
+        string motto)
     {
-        _uiService.RequestCreateReligion(religionName, domain, deityName, isPublic);
+        _uiService.RequestCreateReligion(religionName, domain, deityName, isPublic, motto);
     }
 
     /// <summary>
