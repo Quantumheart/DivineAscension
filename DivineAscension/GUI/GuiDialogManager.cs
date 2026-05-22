@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Managers;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI.Adapters.Civilizations;
+using DivineAscension.GUI.UI.Adapters.Diplomacy;
 using DivineAscension.GUI.UI.Adapters.ReligionInvites;
 using DivineAscension.GUI.UI.Adapters.ReligionMembers;
 using DivineAscension.GUI.UI.Adapters.Religions;
@@ -52,6 +54,34 @@ public class GuiDialogManager : IBlessingDialogManager
         CivilizationManager.CivilizationProvider!.ConfigureDevSeed(25, 20251217);
         CivilizationManager.UseCivilizationDetailProvider(new FakeCivilizationDetailProvider(fakeCivProvider));
         CivilizationManager.RefreshCivilizationsFromProvider();
+
+        // Dev membership: park the player as founder of the first fake realm
+        // so HasCivilization() == true and the Accords / Propose chapters can
+        // render. Without this the diplomacy pages stop at the no-civilization
+        // empty state.
+        var devCiv = fakeCivProvider.GetCivilizations().FirstOrDefault();
+        if (devCiv != null)
+        {
+            CivilizationManager.UpdateCivilizationState(new CivilizationInfoResponsePacket.CivilizationDetails
+            {
+                CivId = devCiv.civId,
+                Name = devCiv.name,
+                FounderUID = devCiv.founderUID,
+                FounderReligionUID = devCiv.founderReligionUID,
+                Icon = devCiv.icon,
+                Description = devCiv.description,
+                IsFounder = true,
+                Rank = 3,
+                MemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(),
+                PendingInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(),
+            });
+        }
+
+        // Seeded diplomacy so Accords + Propose render without a server.
+        var fakeDiplomacyProvider = new FakeDiplomacyProvider();
+        fakeDiplomacyProvider.ConfigureDevSeed(20260522);
+        CivilizationManager.UseDiplomacyProvider(fakeDiplomacyProvider);
+        CivilizationManager.RequestDiplomacyInfo();
 #endif
     }
 

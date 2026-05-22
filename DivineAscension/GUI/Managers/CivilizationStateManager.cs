@@ -17,6 +17,7 @@ using DivineAscension.GUI.Models.Civilization.Tab;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.State.Civilization;
 using DivineAscension.GUI.UI.Adapters.Civilizations;
+using DivineAscension.GUI.UI.Adapters.Diplomacy;
 using DivineAscension.GUI.UI.Renderers.Civilization;
 using DivineAscension.GUI.UI.Renderers.HolySites;
 using DivineAscension.GUI.UI.Utilities;
@@ -44,6 +45,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
     // UI-only detail adapter (fake or real). Null when not used.
     internal ICivilizationDetailProvider? CivilizationDetailProvider { get; set; }
+
+    // UI-only diplomacy adapter (fake in dev). Null in release.
+    internal IDiplomacyProvider? DiplomacyProvider { get; private set; }
 
     public CivilizationTabState State { get; } = new();
 
@@ -105,6 +109,16 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     internal void UseCivilizationDetailProvider(ICivilizationDetailProvider provider)
     {
         CivilizationDetailProvider = provider;
+    }
+
+    /// <summary>
+    ///     Configure a UI-only diplomacy provider (fake in dev). When set,
+    ///     <see cref="RequestDiplomacyInfo" /> populates DiplomacyState from
+    ///     the provider instead of dispatching a packet to the server.
+    /// </summary>
+    internal void UseDiplomacyProvider(IDiplomacyProvider provider)
+    {
+        DiplomacyProvider = provider;
     }
 
     /// <summary>
@@ -307,6 +321,23 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
         State.DiplomacyState.IsLoading = true;
         State.DiplomacyState.ErrorMessage = null;
+
+        // Adapter short-circuit: dev fake provider populates state in-process
+        // so the Accords / Propose pages render seeded data without a server.
+        if (DiplomacyProvider != null)
+        {
+            var roster = State.BrowseState.AllCivilizations
+                .Where(c => c.CivId != CurrentCivilizationId)
+                .Select(c => (c.CivId, c.Name))
+                .ToList();
+            var packet = DiplomacyProvider.GetDiplomacyInfo(CurrentCivilizationId, roster);
+            State.DiplomacyState.ActiveRelationships = packet.Relationships;
+            State.DiplomacyState.IncomingProposals = packet.IncomingProposals;
+            State.DiplomacyState.OutgoingProposals = packet.OutgoingProposals;
+            State.DiplomacyState.IsLoading = false;
+            State.DiplomacyState.LastRefresh = DateTime.UtcNow;
+            return;
+        }
 
         _uiService.RequestDiplomacyInfo(CurrentCivilizationId);
         _coreClientApi.Logger.Debug(
