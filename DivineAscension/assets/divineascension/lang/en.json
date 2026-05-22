@@ -417,7 +417,7 @@
   "divineascension:ui.diplomacy.status.neutral": "Neutral",
   "divineascension:ui.diplomacy.unknown_civ": "Unknown",
   "divineascension:ui.diplomacy.proposal_to": "To {0}: {1} (expires in {2})",
-  "divineascension:ui.diplomacy.chapter.title": "THE ACCORDS",
+  "divineascension:ui.diplomacy.chapter.title": "The Accords",
   "divineascension:ui.diplomacy.chapter.intro": "Pacts and quarrels set between {0} and the other Realms of the land.",
   "divineascension:ui.diplomacy.chapter.intro_no_realm": "Pacts and quarrels set between this Realm and the others of the land.",
   "divineascension:ui.diplomacy.standing.heading": "Standing Accords",
