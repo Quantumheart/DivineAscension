@@ -183,43 +183,6 @@ internal static class BlessingTabRenderer
         }
 
         topY += TreePaneHeight + 6f;
-        ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
-        topY += DividerSpacing;
-
-        // --- "Of the Selected Blessing" sub-heading + info pane (player blessings only).
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_SELECTED_HEADING),
-            vm.X + Padding, topY, SubsectionLabel, ColorPalette.White);
-        topY += SectionLabelHeight;
-
-        var playerOnlyStates = new Dictionary<string, BlessingNodeState>(vm.PlayerBlessingStates);
-        var personalSelected = vm.SelectedBlessingState != null
-                               && vm.SelectedBlessingState.Blessing.Kind == BlessingKind.Player
-            ? vm.SelectedBlessingState
-            : null;
-
-        var infoVm = new BlessingInfoViewModel(
-            personalSelected,
-            playerOnlyStates,
-            vm.X, topY,
-            contentWidth, InfoPanelHeight,
-            vm.PlayerFavor,
-            vm.ReligionPrestige,
-            vm.IsDescriptionExpanded);
-        var infoResult = BlessingInfoRenderer.Draw(infoVm);
-        topY += InfoPanelHeight + 10f;
-
-        // --- Footer: [Inscribe] action, right-aligned. Non-founder gate is irrelevant here
-        // (founder-gating applies to communal vows on I.iii Vows of the Order).
-        var buttonX = vm.X + contentWidth;
-        var buttonY = topY;
-        var actionsVm = new BlessingActionsViewModel(
-            personalSelected,
-            buttonX, buttonY,
-            vm.PlayerFavor, vm.ReligionPrestige,
-            isReligionFounder: false
-        );
-        var actionsResult = BlessingActionsRenderer.Draw(actionsVm);
 
         drawList.PopClipRect();
 
@@ -253,13 +216,13 @@ internal static class BlessingTabRenderer
 
         return new BlessingTabRenderResult(
             treeEvents,
-            actionsResult.Events,
+            System.Array.Empty<ActionsEvent>(),
             hoveringBlessingId,
             vm.Height,
             requestedDeity,
             requestedVowsScrollY: null,
             requestedPageScrollY: requestedPageScrollY,
-            infoEvents: infoResult.Events);
+            infoEvents: System.Array.Empty<InfoEvent>());
     }
 
     private static float HeaderHeight() =>
@@ -287,10 +250,6 @@ internal static class BlessingTabRenderer
         h += DeitySelectorRenderer.Height + 6f;
         h += DividerSpacing;
         h += TreePaneHeight + 6f;
-        h += DividerSpacing;
-        h += SectionLabelHeight;
-        h += InfoPanelHeight + 10f;
-        h += ActionButtonHeight + 8f;
         return h;
     }
 }

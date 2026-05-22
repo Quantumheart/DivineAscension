@@ -177,6 +177,9 @@ internal static class BlessingVowsTabRenderer
                 case TreeEvent.ScrollChanged sc:
                     treeEvents.Add(new TreeEvent.ReligionTreeScrollChanged(sc.ScrollX, sc.ScrollY));
                     break;
+                case TreeEvent.DoubleClicked:
+                    // Vows-side unlock has founder-gated, communal-specific flow; ignore for now.
+                    break;
                 default:
                     treeEvents.Add(ev);
                     break;
