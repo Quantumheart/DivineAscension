@@ -1311,5 +1311,5 @@
   "divineascension:ui.civilization.info.ethos": "Ethos",
   "divineascension:ui.civilization.detail.ethos": "Ethos",
   "divineascension:ui.civilization.create.ethos.label": "Ethos",
-  "divineascension:ui.civilization.create.ethos.hint": "Chosen once, at founding. Tradition derives ethos from your patron's domain — overrule only with reason."
+  "divineascension:ui.civilization.create.ethos.hint": "Chosen once, at founding. Tradition derives ethos from your patron's domain. Overrule only with reason."
 }
