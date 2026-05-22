@@ -5,7 +5,6 @@ using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.Create;
-using DivineAscension.GUI.UI.Components;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Renderers.Utilities;
@@ -58,8 +57,10 @@ internal static class CivilizationCreateRenderer
         currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
         currentY = DrawDescriptionSection(drawList, vm, currentY, contentWidth, events);
 
-        currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
-        currentY = DrawSigilSection(drawList, vm, currentY, contentWidth, events);
+        // Sigil section hidden — current PNG picker does not match the ledger
+        // chrome the rest of the civ flow uses. Tracked in #385; the data path
+        // (Civilization.Icon, packet field, CivilizationIconLoader) is left
+        // intact so the section can return without a schema change.
 
         currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
         currentY = DrawEthosSection(drawList, vm, currentY, contentWidth, events);
@@ -167,32 +168,6 @@ internal static class CivilizationCreateRenderer
         if (message == null) return y;
         TextRenderer.DrawErrorText(drawList, message, vm.X, y);
         return y + ErrorRowHeight;
-    }
-
-    private static float DrawSigilSection(
-        ImDrawListPtr drawList,
-        CivilizationCreateViewModel vm,
-        float y,
-        float contentWidth,
-        List<CreateEvent> events)
-    {
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_ICON_LABEL),
-            vm.X, y, SubsectionLabel, ColorPalette.Gold);
-        var currentY = y + LabelHeight;
-
-        var (clickedIcon, pickerHeight) = IconPicker.Draw(
-            drawList,
-            CivilizationIconLoader.GetAvailableIcons(),
-            vm.SelectedIcon,
-            vm.X,
-            currentY,
-            contentWidth);
-
-        if (clickedIcon != null)
-            events.Add(new CreateEvent.IconSelected(clickedIcon));
-
-        return currentY + pickerHeight + SectionGap;
     }
 
     private static readonly CivilizationEthos[] EthosOrder =

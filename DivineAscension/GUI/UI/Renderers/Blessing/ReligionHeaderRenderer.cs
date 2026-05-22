@@ -159,21 +159,12 @@ internal static class ReligionHeaderRenderer
             return y + 22f;
         }
 
-        var iconPos = new Vector2(x, y);
-        var iconMax = new Vector2(iconPos.X + IconSize, iconPos.Y + IconSize);
-        var civTexture = CivilizationIconLoader.GetIconTextureId(vm.CivilizationIcon ?? "default");
-        // Lapis-tinted backing tile + matching border to mirror the religion
-        // deity-tile pattern above. Lapis is the civilization accent ink —
-        // pairs with the civ name rendered below.
-        drawList.AddRectFilled(iconPos, iconMax,
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Lapis * 0.8f), 4f);
-        drawList.AddImage(civTexture, iconPos, iconMax,
-            Vector2.Zero, Vector2.One,
-            ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f)));
-        drawList.AddRect(iconPos, iconMax,
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Lapis * 0.8f),
-            4f, ImDrawFlags.None, 2f);
-
+        // Civilization sigil hidden until the ledger redesign — see #385.
+        // The lapis-tinted tile + image draw that lived here is intentionally
+        // gone; CivilizationIconLoader and the asset PNGs stay so the sigil
+        // can return without a schema or loader change. The text below keeps
+        // the IconSize offset so the rail's two-row rhythm (deity row above
+        // + civ row here) is preserved.
         var textX = x + IconSize + 8f;
         var civName = vm.CurrentCivilizationName
             ?? LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNKNOWN_CIVILIZATION);
