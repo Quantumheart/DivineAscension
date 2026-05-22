@@ -59,6 +59,9 @@ internal static class BlessingTreeRenderer
         if (!string.IsNullOrEmpty(panel.ClickedBlessingId))
             events.Add(new TreeEvent.Selected(panel.ClickedBlessingId!));
 
+        if (!string.IsNullOrEmpty(panel.DoubleClickedBlessingId))
+            events.Add(new TreeEvent.DoubleClicked(panel.DoubleClickedBlessingId!));
+
         if (!NearlyEqual(vm.TreeScroll.X, panel.ScrollX) ||
             !NearlyEqual(vm.TreeScroll.Y, panel.ScrollY))
         {
@@ -108,7 +111,8 @@ internal static class BlessingTreeRenderer
         }
     }
 
-    private static (float ScrollX, float ScrollY, string? HoveringBlessingId, string? ClickedBlessingId) DrawTreePanel(
+    private static (float ScrollX, float ScrollY, string? HoveringBlessingId, string? ClickedBlessingId,
+        string? DoubleClickedBlessingId) DrawTreePanel(
         ImDrawListPtr drawList,
         float x, float y, float width, float height,
         IReadOnlyDictionary<string, BlessingNodeState> blessingStates,
@@ -129,7 +133,7 @@ internal static class BlessingTreeRenderer
             );
             var textColor = ImGui.ColorConvertFloat4ToU32(ColorDivider);
             drawList.AddText(textPos, textColor, emptyText);
-            return (prevScrollX, prevScrollY, null, null);
+            return (prevScrollX, prevScrollY, null, null, null);
         }
 
         if (blessingStates.Values.First().PositionX == 0 && blessingStates.Values.First().PositionY == 0)
@@ -170,6 +174,7 @@ internal static class BlessingTreeRenderer
 
         string? hoveringBlessingId = null;
         string? clickedBlessingId = null;
+        string? doubleClickedBlessingId = null;
         foreach (var state in blessingStates.Values)
         {
             var isSelected = selectedBlessingId == state.Blessing.BlessingId;
@@ -186,7 +191,11 @@ internal static class BlessingTreeRenderer
                 hoveringBlessingId = state.Blessing.BlessingId;
                 ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
-                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                {
+                    doubleClickedBlessingId = state.Blessing.BlessingId;
+                }
+                else if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
                     clickedBlessingId = state.Blessing.BlessingId;
                 }
@@ -196,7 +205,7 @@ internal static class BlessingTreeRenderer
         ImGui.EndChild();
         ImGui.PopStyleColor();
         ImGui.PopStyleVar();
-        return (scrollX, scrollY, hoveringBlessingId, clickedBlessingId);
+        return (scrollX, scrollY, hoveringBlessingId, clickedBlessingId, doubleClickedBlessingId);
     }
 
     private static bool NearlyEqual(float a, float b)

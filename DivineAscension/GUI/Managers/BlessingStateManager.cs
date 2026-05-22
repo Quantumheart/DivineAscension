@@ -180,6 +180,11 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
                     _soundManager.PlayClick();
                     break;
 
+                case TreeEvent.DoubleClicked e:
+                    State.TreeState.SelectedBlessingId = e.BlessingId;
+                    HandleUnlockClicked();
+                    break;
+
                 case TreeEvent.Hovered:
                     break;
 
@@ -221,8 +226,12 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     {
         if (State.TreeState.SelectedBlessingId == null) return;
         var selectedState = GetBlessingState(State.TreeState.SelectedBlessingId);
-        if (selectedState == null || !selectedState.CanUnlock || selectedState.IsUnlocked)
+        if (selectedState == null || selectedState.IsUnlocked) return;
+        if (!selectedState.CanUnlock)
+        {
+            _soundManager.PlayError();
             return;
+        }
 
         if (string.IsNullOrEmpty(selectedState.Blessing.BlessingId))
         {

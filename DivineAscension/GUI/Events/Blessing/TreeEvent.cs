@@ -23,6 +23,12 @@ public abstract record TreeEvent
     public sealed record Selected(string BlessingId) : TreeEvent;
 
     /// <summary>
+    ///     Emitted when a blessing node is double-clicked. Hosts that allow inline
+    ///     unlock (III.ii Blessings) treat this as an unlock request.
+    /// </summary>
+    public sealed record DoubleClicked(string BlessingId) : TreeEvent;
+
+    /// <summary>
     ///     Emitted when mouse hovers over a blessing
     /// </summary>
     public sealed record Hovered(string? BlessingId) : TreeEvent;
