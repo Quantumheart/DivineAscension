@@ -48,10 +48,17 @@ internal static class ConfirmOverlay
 
         // Compute an adaptive dialog width when caller passes a non-positive width or when the default looks too wide.
         // We consider: title width, message unwrapped width, and total buttons width, then clamp to sensible bounds and window size.
-        var btnW = 120f;
+        // Button widths size to the longer of their labels so "Yes, Declare War"
+        // and friends don't crowd the text against the border.
+        const float btnMinWidth = 120f;
+        const float btnHorizontalPadding = 28f;
+        var confirmTextWidth = ImGui.CalcTextSize(confirmLabel).X;
+        var cancelTextWidth = ImGui.CalcTextSize(cancelLabel).X;
+        var confirmBtnW = MathF.Max(btnMinWidth, confirmTextWidth + btnHorizontalPadding);
+        var cancelBtnW = MathF.Max(btnMinWidth, cancelTextWidth + btnHorizontalPadding);
         var btnH = 36f;
         var btnSpacing = 10f;
-        var totalButtonsWidth = btnW * 2f + btnSpacing;
+        var totalButtonsWidth = confirmBtnW + cancelBtnW + btnSpacing;
 
         var unwrappedMsgWidth = ImGui.CalcTextSize(message).X;
         var minWidth = 420f;
@@ -105,9 +112,11 @@ internal static class ConfirmOverlay
         // Anchor buttons to the bottom padding so vertical spacing looks consistent regardless of message height
         var btnY = dlgEnd.Y - padding - btnH;
 
-        if (ButtonRenderer.DrawButton(drawList, confirmLabel, btnStartX, btnY, btnW, btnH, true)) confirmed = true;
+        if (ButtonRenderer.DrawButton(drawList, confirmLabel, btnStartX, btnY, confirmBtnW, btnH, true))
+            confirmed = true;
 
-        if (ButtonRenderer.DrawButton(drawList, cancelLabel, btnStartX + btnW + btnSpacing, btnY, btnW, btnH))
+        if (ButtonRenderer.DrawButton(drawList, cancelLabel,
+                btnStartX + confirmBtnW + btnSpacing, btnY, cancelBtnW, btnH))
             canceled = true;
     }
 }
