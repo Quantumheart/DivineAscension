@@ -14,10 +14,12 @@ using DivineAscension.GUI.Models.Religion.Roster;
 using DivineAscension.GUI.Models.Religion.Tab;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.State.Religion;
+using DivineAscension.GUI.UI.Adapters.ReligionInvites;
 using DivineAscension.GUI.UI.Adapters.ReligionMembers;
 using DivineAscension.GUI.UI.Adapters.Religions;
 using DivineAscension.GUI.UI.Renderers.Components;
 using DivineAscension.GUI.UI.Renderers.Religion;
+using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network;
@@ -46,6 +48,7 @@ public class ReligionStateManager : IReligionStateManager
     internal IReligionMemberProvider? MembersProvider { get; set; }
     internal IReligionProvider? ReligionsProvider { get; private set; }
     internal IReligionDetailProvider? ReligionDetailProvider { get; private set; }
+    internal IReligionInvitesProvider? InvitesProvider { get; private set; }
 
     /// <summary>
     ///     Wired by the dialog to forward nav-redirect requests to the sidebar.
@@ -268,9 +271,12 @@ public class ReligionStateManager : IReligionStateManager
     /// </summary>
     public void DrawReligionInvites(float x, float y, float width, float height)
     {
-        // Build view model from state
+        // Build view model from state (or from a dev fake provider if wired).
+        var invites = InvitesProvider != null
+            ? InvitesProvider.GetInvites()
+            : ConvertToInviteData(State.InvitesState.MyInvites);
         var viewModel = new ReligionInvitesViewModel(
-            invites: ConvertToInviteData(State.InvitesState.MyInvites),
+            invites: invites,
             isLoading: State.InvitesState.Loading,
             scrollY: State.InvitesState.InvitesScrollY,
             x: x, y: y, width: width, height: height
@@ -348,6 +354,16 @@ public class ReligionStateManager : IReligionStateManager
     internal void UseReligionDetailProvider(IReligionDetailProvider provider)
     {
         ReligionDetailProvider = provider;
+    }
+
+    /// <summary>
+    ///     Configure a UI-only invites provider (fake or real). When set,
+    ///     <see cref="DrawReligionInvites" /> reads invites from the provider
+    ///     instead of <c>State.InvitesState.MyInvites</c>.
+    /// </summary>
+    internal void UseInvitesProvider(IReligionInvitesProvider provider)
+    {
+        InvitesProvider = provider;
     }
 
     /// <summary>
@@ -1044,7 +1060,8 @@ public class ReligionStateManager : IReligionStateManager
             .Select(i => new InviteData(
                 inviteId: i.InviteId,
                 religionName: i.ReligionName,
-                expiresAt: i.ExpiresAt))
+                expiresAt: i.ExpiresAt,
+                domain: DomainHelper.ParseDomain(i.DeityDomain)))
             .ToList();
     }
 

@@ -211,7 +211,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     InviteId = inv.InviteId,
                     ReligionId = inv.ReligionId,
                     ReligionName = rel?.ReligionName ?? inv.ReligionId,
-                    ExpiresAt = inv.ExpiresDate
+                    ExpiresAt = inv.ExpiresDate,
+                    DeityDomain = rel?.PatronDomain.ToString() ?? string.Empty
                 });
                 _logger.Debug(
                     $"[DivineAscension] - Invitation to {rel?.ReligionName ?? inv.ReligionId}, expires {inv.ExpiresDate}");

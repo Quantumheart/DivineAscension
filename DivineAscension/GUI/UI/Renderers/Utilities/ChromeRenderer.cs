@@ -201,6 +201,34 @@ internal static class ChromeRenderer
     }
 
     /// <summary>
+    ///     Paint a sealed-envelope glyph (✉ U+2709) as primitives so it
+    ///     renders without Dingbats coverage in the loaded font. A wide
+    ///     horizontal rectangle with the front flap drawn as two diagonals
+    ///     meeting at the top center.
+    /// </summary>
+    public static void DrawEnvelope(ImDrawListPtr drawList, float cx, float cy, float size,
+        Vector4? colorOverride = null)
+    {
+        if (size <= 0f) return;
+        var color = ImGui.ColorConvertFloat4ToU32(colorOverride ?? ColorPalette.Gold);
+        var halfW = size * 0.55f;
+        var halfH = size * 0.38f;
+
+        var topLeft = new Vector2(cx - halfW, cy - halfH);
+        var topRight = new Vector2(cx + halfW, cy - halfH);
+        var bottomLeft = new Vector2(cx - halfW, cy + halfH);
+        var bottomRight = new Vector2(cx + halfW, cy + halfH);
+
+        // Envelope body — outlined rectangle.
+        drawList.AddRect(topLeft, bottomRight, color, 1f, ImDrawFlags.None, 1.5f);
+
+        // Flap — two diagonals from the top corners to the top centre.
+        var apex = new Vector2(cx, cy);
+        drawList.AddLine(topLeft, apex, color, 1.5f);
+        drawList.AddLine(topRight, apex, color, 1.5f);
+    }
+
+    /// <summary>
     ///     Paint a refresh arrow glyph (↻ U+21BB) as primitives so it renders
     ///     without Arrows-block coverage in the loaded font. Three-quarter
     ///     circular arc opening toward the upper-right with a small triangular

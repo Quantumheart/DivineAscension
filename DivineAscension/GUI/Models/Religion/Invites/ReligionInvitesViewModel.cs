@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.Models.Enum;
 
 namespace DivineAscension.GUI.Models.Religion.Invites;
 
 /// <summary>
-/// Immutable view model for religion invites display
-/// Contains only the data needed to render the invites list
+/// Immutable view model for the Letters chapter (religion invites).
 /// </summary>
 public readonly struct ReligionInvitesViewModel(
     IReadOnlyList<InviteData> invites,
@@ -26,31 +26,22 @@ public readonly struct ReligionInvitesViewModel(
     public float Width { get; } = width;
     public float Height { get; } = height;
 
-    /// <summary>
-    /// Checks if there are any invites to display
-    /// </summary>
     public bool HasInvites => Invites.Count > 0;
-
-    /// <summary>
-    /// Gets display message for empty state
-    /// </summary>
-    public string EmptyStateMessage => IsLoading
-        ? "Loading invitations..."
-        : "No pending invitations.";
 }
 
 /// <summary>
-/// Simplified invite data for rendering
-/// Decouples from network packet structure
+/// Simplified invite data for rendering. Decoupled from the network packet.
 /// </summary>
 public readonly struct InviteData(
     string inviteId,
     string religionName,
-    DateTime expiresAt)
+    DateTime expiresAt,
+    DeityDomain domain)
 {
     public string InviteId { get; } = inviteId;
     public string ReligionName { get; } = religionName;
     public DateTime ExpiresAt { get; } = expiresAt;
+    public DeityDomain Domain { get; } = domain;
 
     public string FormattedExpiration => $"Expires: {ExpiresAt:yyyy-MM-dd HH:mm}";
 }
