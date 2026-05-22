@@ -299,10 +299,9 @@ public partial class GuiDialog : ModSystem
         // Update notification timer
         _manager.NotificationManager.Update(deltaSeconds);
 
-        // Get window bounds
-        var window = _capi!.Gui.WindowBounds;
-        var windowWidth = Math.Min(WindowBaseWidth, (int)window.OuterWidth - 128);
-        var windowHeight = Math.Min(WindowBaseHeight, (int)window.OuterHeight - 128);
+        // Toast anchors to the bottom-right of the full viewport.
+        var windowWidth = _viewport.Size.X;
+        var windowHeight = _viewport.Size.Y;
 
         // Create invisible fullscreen window to render notification overlay
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
@@ -311,10 +310,7 @@ public partial class GuiDialog : ModSystem
         ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0, 0, 0, 0)); // Fully transparent
 
         ImGui.SetNextWindowSize(new Vector2(windowWidth, windowHeight));
-        ImGui.SetNextWindowPos(new Vector2(
-            _viewport.Pos.X + (_viewport.Size.X - windowWidth) / 2,
-            _viewport.Pos.Y + (_viewport.Size.Y - windowHeight) / 2
-        ));
+        ImGui.SetNextWindowPos(new Vector2(_viewport.Pos.X, _viewport.Pos.Y));
 
         var flags = ImGuiWindowFlags.NoTitleBar |
                     ImGuiWindowFlags.NoResize |
@@ -362,8 +358,8 @@ public partial class GuiDialog : ModSystem
         ImGui.PopStyleColor();
         ImGui.PopStyleVar(3);
 
-        // Return GrabMouse to capture input while notification is visible
-        return CallbackGUIStatus.GrabMouse;
+        // Non-modal toast — don't grab mouse, let gameplay continue underneath.
+        return CallbackGUIStatus.Closed;
     }
 
     /// <summary>
