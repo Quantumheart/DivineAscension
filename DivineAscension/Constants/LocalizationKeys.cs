@@ -418,6 +418,17 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_MILESTONES_BONUS_CONQUEST = "divineascension:ui.civilization.milestones.bonuses.conquest";
     public const string UI_CIVILIZATION_MILESTONES_BONUS_HOLYSITES = "divineascension:ui.civilization.milestones.bonuses.holysites";
 
+    public const string UI_CIVILIZATION_MILESTONES_INTRO = "divineascension:ui.civilization.milestones.intro";
+    public const string UI_CIVILIZATION_MILESTONES_STANDING_HEADING = "divineascension:ui.civilization.milestones.standing.heading";
+    public const string UI_CIVILIZATION_MILESTONES_RANK_LABEL = "divineascension:ui.civilization.milestones.standing.rank_label";
+    public const string UI_CIVILIZATION_MILESTONES_DEEDS_LABEL = "divineascension:ui.civilization.milestones.standing.deeds_label";
+    public const string UI_CIVILIZATION_MILESTONES_DEEDS_VALUE = "divineascension:ui.civilization.milestones.standing.deeds_value";
+    public const string UI_CIVILIZATION_MILESTONES_BOONS_HEADING = "divineascension:ui.civilization.milestones.boons.heading";
+    public const string UI_CIVILIZATION_MILESTONES_BOONS_EMPTY = "divineascension:ui.civilization.milestones.boons.empty";
+    public const string UI_CIVILIZATION_MILESTONES_DEEDS_HEADING = "divineascension:ui.civilization.milestones.deeds.heading";
+    public const string UI_CIVILIZATION_MILESTONES_DEEDS_COUNT = "divineascension:ui.civilization.milestones.deeds.count";
+    public const string UI_CIVILIZATION_MILESTONES_DEEDS_SET_DOWN = "divineascension:ui.civilization.milestones.deeds.set_down";
+
     #endregion
 
     #region Civilization - Browse
