@@ -772,6 +772,10 @@ public static class LocalizationKeys
     public const string UI_PROPOSE_ACCORD_PREVIEW_NONE = "divineascension:ui.propose_accord.preview_none";
     public const string UI_PROPOSE_ACCORD_DESC_NAP = "divineascension:ui.propose_accord.desc.nap";
     public const string UI_PROPOSE_ACCORD_DESC_ALLIANCE = "divineascension:ui.propose_accord.desc.alliance";
+    public const string UI_PROPOSE_ACCORD_DESC_WAR = "divineascension:ui.propose_accord.desc.war";
+    public const string UI_PROPOSE_ACCORD_TYPE_WAR = "divineascension:ui.propose_accord.type.war";
+    public const string UI_PROPOSE_ACCORD_DECLARE_WAR_BUTTON = "divineascension:ui.propose_accord.declare_war_button";
+    public const string UI_PROPOSE_ACCORD_WAR_CONFIRM_TITLE = "divineascension:ui.propose_accord.war_confirm_title";
     public const string UI_PROPOSE_ACCORD_RANK_REQUIRED = "divineascension:ui.propose_accord.rank_required";
     public const string UI_PROPOSE_ACCORD_NO_REALMS = "divineascension:ui.propose_accord.no_realms";
     public const string UI_PROPOSE_ACCORD_SEND_BUTTON = "divineascension:ui.propose_accord.send_button";
