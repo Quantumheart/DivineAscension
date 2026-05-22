@@ -50,6 +50,16 @@ public class UiService(DivineAscensionNetworkClient networkClient)
         _networkClient.RequestEditDescription(religionUID, description);
     }
 
+    public void RequestEditMotto(string religionUID, string motto)
+    {
+        _networkClient.RequestEditMotto(religionUID, motto);
+    }
+
+    public void RequestEditFoundingMyth(string religionUID, string foundingMyth)
+    {
+        _networkClient.RequestEditFoundingMyth(religionUID, foundingMyth);
+    }
+
     public void RequestSetDeityName(string religionUID, string newDeityName)
     {
         _networkClient.SendSetDeityNameRequest(religionUID, newDeityName);

@@ -22,6 +22,18 @@ public abstract record InfoEvent
 
     public record EditDescriptionCancel : InfoEvent;
 
+    // Motto
+    public record MottoChanged(string Text) : InfoEvent;
+    public record SaveMottoClicked(string Text) : InfoEvent;
+    public record EditMottoOpen : InfoEvent;
+    public record EditMottoCancel : InfoEvent;
+
+    // Founding myth
+    public record FoundingMythChanged(string Text) : InfoEvent;
+    public record SaveFoundingMythClicked(string Text) : InfoEvent;
+    public record EditFoundingMythOpen : InfoEvent;
+    public record EditFoundingMythCancel : InfoEvent;
+
     // Invites
     public record InviteNameChanged(string Text) : InfoEvent;
 

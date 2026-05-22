@@ -98,10 +98,18 @@ internal static class ReligionInfoRenderer
         // === PROSE INTRO + STAT BLOCK ===
         currentY = ReligionInfoHeaderRenderer.Draw(viewModel, drawList, x, currentY, contentWidth, events);
 
+        // === CREED ===
+        currentY = ReligionInfoMottoRenderer.Draw(viewModel, drawList, x, currentY, contentWidth, events);
+
         currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
         // === OF THE ORDER'S PURPOSE ===
         currentY = ReligionInfoDescriptionRenderer.Draw(viewModel, drawList, x, currentY, contentWidth, events);
+
+        currentY = DrawDivider(drawList, x, currentY, contentWidth);
+
+        // === OF THE ORDER'S FOUNDING ===
+        currentY = ReligionInfoFoundingMythRenderer.Draw(viewModel, drawList, x, currentY, contentWidth, events);
 
         // === STRICKEN FROM THE LEDGER (founder-only) ===
         if (viewModel.IsFounder)
@@ -192,6 +200,12 @@ internal static class ReligionInfoRenderer
         h += 22f * 4 + 8f;
         if (viewModel.IsEditingDeityName) h += 80f;
 
+        // Motto block
+        if (viewModel.IsFounder && viewModel.IsEditingMotto)
+            h += 22f + 28f + 6f + 26f + 8f;
+        else
+            h += 22f + 28f;
+
         // Divider
         h += DividerHeight;
 
@@ -200,6 +214,15 @@ internal static class ReligionInfoRenderer
             h += 22f + 80f + 6f + 26f + 8f;
         else
             h += 22f + 40f;
+
+        // Divider
+        h += DividerHeight;
+
+        // Founding myth block
+        if (viewModel.IsFounder && viewModel.IsEditingFoundingMyth)
+            h += 22f + 200f + 6f + 26f + 8f;
+        else
+            h += 22f + 80f;
 
         if (viewModel.IsFounder)
         {

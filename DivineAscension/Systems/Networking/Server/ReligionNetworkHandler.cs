@@ -61,6 +61,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         _networkService.RegisterMessageHandler<ReligionActionRequestPacket>(OnReligionActionRequest);
         _networkService.RegisterMessageHandler<CreateReligionRequestPacket>(OnCreateReligionRequest);
         _networkService.RegisterMessageHandler<EditDescriptionRequestPacket>(OnEditDescriptionRequest);
+        _networkService.RegisterMessageHandler<EditMottoRequestPacket>(OnEditMottoRequest);
+        _networkService.RegisterMessageHandler<EditFoundingMythRequestPacket>(OnEditFoundingMythRequest);
         _networkService.RegisterMessageHandler<ReligionDetailRequestPacket>(OnReligionDetailRequest);
         _networkService.RegisterMessageHandler<SetDeityNameRequestPacket>(OnSetDeityNameRequest);
 
@@ -134,6 +136,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             response.PrestigeRank = religion.PrestigeRank.ToString();
             response.IsPublic = religion.IsPublic;
             response.Description = religion.Description;
+            response.Motto = religion.Motto;
+            response.FoundingMyth = religion.FoundingMyth;
             response.IsFounder = religion.FounderUID == fromPlayer.PlayerUID;
 
             // Build member list with player names and favor ranks
@@ -433,6 +437,90 @@ public class ReligionNetworkHandler : IServerNetworkHandler
 
         var response = new EditDescriptionResponsePacket(success, message);
         _networkService.SendToPlayer(fromPlayer, response);
+    }
+
+    private void OnEditMottoRequest(IServerPlayer fromPlayer, EditMottoRequestPacket packet)
+    {
+        string message;
+        var success = false;
+
+        try
+        {
+            var religion = _religionManager!.GetReligion(packet.ReligionUID);
+            var motto = packet.Motto ?? string.Empty;
+
+            if (religion == null)
+            {
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NOT_FOUND);
+            }
+            else if (religion.FounderUID != fromPlayer.PlayerUID)
+            {
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ONLY_FOUNDER_EDIT);
+            }
+            else if (motto.Length > 80)
+            {
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_MOTTO_TOO_LONG);
+            }
+            else if (ProfanityFilterService.Instance.ContainsProfanity(motto))
+            {
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_MOTTO_PROFANITY);
+            }
+            else
+            {
+                religion.Motto = motto;
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_MOTTO_UPDATED);
+                success = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_MOTTO_ERROR, ex.Message);
+            _logger.Error($"[DivineAscension] Motto edit error: {ex}");
+        }
+
+        _networkService.SendToPlayer(fromPlayer, new EditMottoResponsePacket(success, message));
+    }
+
+    private void OnEditFoundingMythRequest(IServerPlayer fromPlayer, EditFoundingMythRequestPacket packet)
+    {
+        string message;
+        var success = false;
+
+        try
+        {
+            var religion = _religionManager!.GetReligion(packet.ReligionUID);
+            var myth = packet.FoundingMyth ?? string.Empty;
+
+            if (religion == null)
+            {
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_NOT_FOUND);
+            }
+            else if (religion.FounderUID != fromPlayer.PlayerUID)
+            {
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_ONLY_FOUNDER_EDIT);
+            }
+            else if (myth.Length > 2000)
+            {
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_MYTH_TOO_LONG);
+            }
+            else if (ProfanityFilterService.Instance.ContainsProfanity(myth))
+            {
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_MYTH_PROFANITY);
+            }
+            else
+            {
+                religion.FoundingMyth = myth;
+                message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_MYTH_UPDATED);
+                success = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_MYTH_ERROR, ex.Message);
+            _logger.Error($"[DivineAscension] Founding myth edit error: {ex}");
+        }
+
+        _networkService.SendToPlayer(fromPlayer, new EditFoundingMythResponsePacket(success, message));
     }
 
     private void OnSetDeityNameRequest(IServerPlayer fromPlayer, SetDeityNameRequestPacket packet)

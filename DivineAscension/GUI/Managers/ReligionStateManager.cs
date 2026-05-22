@@ -583,6 +583,8 @@ public class ReligionStateManager : IReligionStateManager
             currentPlayerUID: _coreClientApi.World.Player?.PlayerUID ?? string.Empty,
             isFounder: religion?.IsFounder ?? false,
             description: religion?.Description,
+            motto: religion?.Motto,
+            foundingMyth: religion?.FoundingMyth,
             members: religion?.Members ?? new List<PlayerReligionInfoResponsePacket.MemberInfo>(),
             bannedPlayers: religion?.BannedPlayers,
             prestige: prestigeProgress.CurrentPrestige,
@@ -603,6 +605,10 @@ public class ReligionStateManager : IReligionStateManager
             isSavingDeityName: State.InfoState.IsSavingDeityName,
             deityNameError: State.InfoState.DeityNameError,
             isEditingDescription: State.InfoState.IsEditingDescription,
+            mottoText: State.InfoState.Motto ?? religion?.Motto ?? string.Empty,
+            isEditingMotto: State.InfoState.IsEditingMotto,
+            foundingMythText: State.InfoState.FoundingMyth ?? religion?.FoundingMyth ?? string.Empty,
+            isEditingFoundingMyth: State.InfoState.IsEditingFoundingMyth,
             x: x, y: y, width: width, height: height,
             scrollY: State.InfoState.MyReligionScrollY,
             memberScrollY: State.InfoState.MemberScrollY,
@@ -926,6 +932,52 @@ public class ReligionStateManager : IReligionStateManager
                 case InfoEvent.EditDescriptionCancel:
                     State.InfoState.IsEditingDescription = false;
                     State.InfoState.Description = info?.Description ?? string.Empty;
+                    break;
+
+                // Motto edit/save
+                case InfoEvent.MottoChanged mc:
+                    State.InfoState.Motto = mc.Text;
+                    break;
+                case InfoEvent.SaveMottoClicked sm:
+                    if (!string.IsNullOrWhiteSpace(religionId))
+                    {
+                        _uiService.RequestEditMotto(religionId, sm.Text);
+                        _soundManager.PlayClick();
+                        if (info != null) info.Motto = sm.Text;
+                        State.InfoState.Motto = sm.Text;
+                    }
+                    State.InfoState.IsEditingMotto = false;
+                    break;
+                case InfoEvent.EditMottoOpen:
+                    State.InfoState.IsEditingMotto = true;
+                    State.InfoState.Motto = info?.Motto ?? string.Empty;
+                    break;
+                case InfoEvent.EditMottoCancel:
+                    State.InfoState.IsEditingMotto = false;
+                    State.InfoState.Motto = info?.Motto ?? string.Empty;
+                    break;
+
+                // Founding myth edit/save
+                case InfoEvent.FoundingMythChanged fmc:
+                    State.InfoState.FoundingMyth = fmc.Text;
+                    break;
+                case InfoEvent.SaveFoundingMythClicked sfm:
+                    if (!string.IsNullOrWhiteSpace(religionId))
+                    {
+                        _uiService.RequestEditFoundingMyth(religionId, sfm.Text);
+                        _soundManager.PlayClick();
+                        if (info != null) info.FoundingMyth = sfm.Text;
+                        State.InfoState.FoundingMyth = sfm.Text;
+                    }
+                    State.InfoState.IsEditingFoundingMyth = false;
+                    break;
+                case InfoEvent.EditFoundingMythOpen:
+                    State.InfoState.IsEditingFoundingMyth = true;
+                    State.InfoState.FoundingMyth = info?.FoundingMyth ?? string.Empty;
+                    break;
+                case InfoEvent.EditFoundingMythCancel:
+                    State.InfoState.IsEditingFoundingMyth = false;
+                    State.InfoState.FoundingMyth = info?.FoundingMyth ?? string.Empty;
                     break;
 
                 // Invite flow
