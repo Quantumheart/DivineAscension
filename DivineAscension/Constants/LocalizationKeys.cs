@@ -517,6 +517,9 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_DETAIL_FOUNDING_ORDER =
         "divineascension:ui.civilization.detail.founding_order";
 
+    public const string UI_CIVILIZATION_DETAIL_ETHOS =
+        "divineascension:ui.civilization.detail.ethos";
+
     public const string UI_CIVILIZATION_DETAIL_MEMBER_ORDERS =
         "divineascension:ui.civilization.detail.member_orders";
 
@@ -548,6 +551,12 @@ public static class LocalizationKeys
         "divineascension:ui.civilization.name.error.profanity";
 
     public const string UI_CIVILIZATION_CREATE_ICON_LABEL = "divineascension:ui.civilization.create.icon.label";
+
+    public const string UI_CIVILIZATION_CREATE_ETHOS_LABEL =
+        "divineascension:ui.civilization.create.ethos.label";
+
+    public const string UI_CIVILIZATION_CREATE_ETHOS_HINT =
+        "divineascension:ui.civilization.create.ethos.hint";
 
     public const string UI_CIVILIZATION_CREATE_DESCRIPTION_LABEL =
         "divineascension:ui.civilization.create.description.label";
@@ -1880,6 +1889,28 @@ public static class LocalizationKeys
     public const string UI_PLAYER_INFO_ROW_REALM = "divineascension:ui.playerinfo.row.realm";
 
     public const string UI_PLAYER_INFO_UNSWORN_TITLE_WORD = "divineascension:ui.playerinfo.title.unsworn_word";
+
+    #endregion
+
+    #region Civilization Ethos & Epithet (#367)
+
+    // Ethos labels — five identity axes derived from founder religion's patron domain.
+    public const string CIVILIZATION_ETHOS_SOVEREIGN = "divineascension:civilization.ethos.sovereign";
+    public const string CIVILIZATION_ETHOS_MERCANTILE = "divineascension:civilization.ethos.mercantile";
+    public const string CIVILIZATION_ETHOS_MARTIAL = "divineascension:civilization.ethos.martial";
+    public const string CIVILIZATION_ETHOS_MYSTIC = "divineascension:civilization.ethos.mystic";
+    public const string CIVILIZATION_ETHOS_ASCETIC = "divineascension:civilization.ethos.ascetic";
+
+    // Founder epithets — resolved once at civ creation and stored on the civilization.
+    public const string CIVILIZATION_EPITHET_CRAFT = "divineascension:civilization.epithet.craft";
+    public const string CIVILIZATION_EPITHET_CONQUEST = "divineascension:civilization.epithet.conquest";
+    public const string CIVILIZATION_EPITHET_WILD = "divineascension:civilization.epithet.wild";
+    public const string CIVILIZATION_EPITHET_HARVEST = "divineascension:civilization.epithet.harvest";
+    public const string CIVILIZATION_EPITHET_STONE = "divineascension:civilization.epithet.stone";
+    public const string CIVILIZATION_EPITHET_DEFAULT = "divineascension:civilization.epithet.default";
+
+    // Header row labels for the civ info chapter.
+    public const string UI_CIVILIZATION_INFO_ETHOS = "divineascension:ui.civilization.info.ethos";
 
     #endregion
 }

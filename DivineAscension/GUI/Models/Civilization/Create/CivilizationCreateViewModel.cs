@@ -1,3 +1,5 @@
+using DivineAscension.Models.Enum;
+
 namespace DivineAscension.GUI.Models.Civilization.Create;
 
 public readonly struct CivilizationCreateViewModel(
@@ -12,11 +14,13 @@ public readonly struct CivilizationCreateViewModel(
     float x,
     float y,
     float width,
-    float height)
+    float height,
+    CivilizationEthos selectedEthos = CivilizationEthos.Sovereign)
 {
     public string CivilizationName { get; } = civilizationName;
     public string SelectedIcon { get; } = selectedIcon;
     public string Description { get; } = description;
+    public CivilizationEthos SelectedEthos { get; } = selectedEthos;
     public string? ErrorMessage { get; } = errorMessage;
     public bool UserIsReligionFounder { get; } = userIsReligionFounder;
     public bool UserInCivilization { get; } = userInCivilization;

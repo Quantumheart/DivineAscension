@@ -10,6 +10,7 @@ using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using ImGuiNET;
 using static DivineAscension.GUI.UI.Utilities.FontSizes;
@@ -59,6 +60,9 @@ internal static class CivilizationCreateRenderer
 
         currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
         currentY = DrawSigilSection(drawList, vm, currentY, contentWidth, events);
+
+        currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
+        currentY = DrawEthosSection(drawList, vm, currentY, contentWidth, events);
 
         currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
         currentY = DrawFoundingAction(drawList, vm, currentY, contentWidth, events);
@@ -190,6 +194,69 @@ internal static class CivilizationCreateRenderer
 
         return currentY + pickerHeight + SectionGap;
     }
+
+    private static readonly CivilizationEthos[] EthosOrder =
+    {
+        CivilizationEthos.Sovereign,
+        CivilizationEthos.Mercantile,
+        CivilizationEthos.Martial,
+        CivilizationEthos.Mystic,
+        CivilizationEthos.Ascetic
+    };
+
+    private const float EthosButtonHeight = 30f;
+    private const float EthosButtonGap = 6f;
+    private const float EthosHintTopPadding = 4f;
+
+    private static float DrawEthosSection(
+        ImDrawListPtr drawList,
+        CivilizationCreateViewModel vm,
+        float y,
+        float contentWidth,
+        List<CreateEvent> events)
+    {
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_ETHOS_LABEL),
+            vm.X, y, SubsectionLabel, ColorPalette.Gold);
+        var currentY = y + LabelHeight;
+
+        var totalGaps = EthosButtonGap * (EthosOrder.Length - 1);
+        var buttonWidth = MathF.Floor((contentWidth - totalGaps) / EthosOrder.Length);
+
+        for (var i = 0; i < EthosOrder.Length; i++)
+        {
+            var ethos = EthosOrder[i];
+            var buttonX = vm.X + i * (buttonWidth + EthosButtonGap);
+            var isSelected = ethos == vm.SelectedEthos;
+            var label = LocalizationService.Instance.Get(EthosLocKey(ethos));
+
+            if (ButtonRenderer.DrawButton(drawList, label,
+                    buttonX, currentY, buttonWidth, EthosButtonHeight,
+                    isPrimary: isSelected,
+                    enabled: vm.UserIsReligionFounder && !vm.UserInCivilization))
+            {
+                events.Add(new CreateEvent.EthosSelected(ethos));
+            }
+        }
+
+        currentY += EthosButtonHeight + EthosHintTopPadding;
+
+        var hint = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_ETHOS_HINT);
+        TextRenderer.DrawInfoText(drawList, hint, vm.X, currentY, contentWidth, Secondary, ColorPalette.Grey);
+        currentY += MathF.Max(TextRenderer.MeasureWrappedHeight(hint, contentWidth, Secondary),
+            Secondary + LinePadding);
+
+        return currentY + SectionGap;
+    }
+
+    private static string EthosLocKey(CivilizationEthos ethos) => ethos switch
+    {
+        CivilizationEthos.Mercantile => LocalizationKeys.CIVILIZATION_ETHOS_MERCANTILE,
+        CivilizationEthos.Martial => LocalizationKeys.CIVILIZATION_ETHOS_MARTIAL,
+        CivilizationEthos.Mystic => LocalizationKeys.CIVILIZATION_ETHOS_MYSTIC,
+        CivilizationEthos.Ascetic => LocalizationKeys.CIVILIZATION_ETHOS_ASCETIC,
+        _ => LocalizationKeys.CIVILIZATION_ETHOS_SOVEREIGN
+    };
 
     private static float DrawFoundingAction(
         ImDrawListPtr drawList,

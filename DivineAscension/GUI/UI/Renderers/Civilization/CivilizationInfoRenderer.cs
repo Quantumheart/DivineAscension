@@ -270,8 +270,8 @@ internal static class CivilizationInfoRenderer
         h += PaneHeaderRenderer.TotalHeight;
         // Prose intro
         h += Body + LinePadding + 12f;
-        // Stat block (3 rows)
-        h += OrderRowHeight * 3 + 8f;
+        // Stat block (4 rows: founded, founder+epithet, founding order, ethos)
+        h += OrderRowHeight * 4 + 8f;
 
         h += DividerHeight;
 

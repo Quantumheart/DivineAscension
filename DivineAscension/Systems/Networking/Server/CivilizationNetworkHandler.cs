@@ -179,6 +179,8 @@ public class CivilizationNetworkHandler(
             Description = civ.Description,
             IsFounder = civ.IsFounder(fromPlayer.PlayerUID),
             Rank = (int)civ.Rank,
+            Ethos = (int)civ.Ethos,
+            FounderEpithet = civ.FounderEpithet,
             MemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(),
             PendingInvites = new List<CivilizationInfoResponsePacket.PendingInvite>()
         };
@@ -278,8 +280,12 @@ public class CivilizationNetworkHandler(
                     }
 
                     var iconToUse = string.IsNullOrWhiteSpace(packet.Icon) ? "default" : packet.Icon;
+                    CivilizationEthos? ethosOverride = packet.Ethos >= 0 &&
+                                                       System.Enum.IsDefined(typeof(CivilizationEthos), packet.Ethos)
+                        ? (CivilizationEthos)packet.Ethos
+                        : null;
                     var newCiv = civilizationManager.CreateCivilization(packet.Name, fromPlayer.PlayerUID,
-                        religion.ReligionUID, iconToUse, packet.Description);
+                        religion.ReligionUID, iconToUse, packet.Description, ethosOverride);
                     if (newCiv != null)
                     {
                         response.Success = true;

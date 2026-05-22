@@ -18,6 +18,8 @@ public readonly struct CivilizationInfoViewModel(
     DateTime createdDate,
     bool isFounder,
     int rank,
+    int ethos,
+    string founderEpithet,
     IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> memberReligions,
     IReadOnlyList<CivilizationInfoResponsePacket.PendingInvite> pendingInvites,
     string inviteReligionName,
@@ -43,6 +45,8 @@ public readonly struct CivilizationInfoViewModel(
     public DateTime CreatedDate { get; } = createdDate;
     public bool IsFounder { get; } = isFounder;
     public int Rank { get; } = rank;
+    public int Ethos { get; } = ethos;
+    public string FounderEpithet { get; } = founderEpithet;
     public IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> MemberReligions { get; } = memberReligions;
     public IReadOnlyList<CivilizationInfoResponsePacket.PendingInvite> PendingInvites { get; } = pendingInvites;
     public string InviteReligionName { get; } = inviteReligionName;

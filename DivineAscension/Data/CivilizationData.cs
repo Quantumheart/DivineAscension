@@ -157,6 +157,23 @@ public class Civilization
     public HashSet<string> UnlockedBlessings { get; set; } = new();
 
     /// <summary>
+    ///     Narrative identity axis (Mercantile / Martial / Mystic / Ascetic / Sovereign).
+    ///     Derived once at founding from the founder religion's patron domain. Defaults
+    ///     to <see cref="CivilizationEthos.Sovereign" /> for legacy saves that pre-date
+    ///     this field.
+    /// </summary>
+    [ProtoMember(15)]
+    public CivilizationEthos Ethos { get; set; } = CivilizationEthos.Sovereign;
+
+    /// <summary>
+    ///     Founder epithet (e.g. "the Forge-Crowned"). Computed once at founding from
+    ///     the founder religion's patron domain and persisted; survives the founder
+    ///     later changing religion or leaving the civilization. Empty for legacy saves.
+    /// </summary>
+    [ProtoMember(16)]
+    public string FounderEpithet { get; set; } = string.Empty;
+
+    /// <summary>
     ///     Checks if the civilization has a valid number of member religions (1-4)
     /// </summary>
     public bool IsValid

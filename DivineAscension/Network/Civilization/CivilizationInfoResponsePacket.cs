@@ -62,6 +62,20 @@ public class CivilizationInfoResponsePacket
         /// </summary>
         [ProtoMember(13)]
         public int Rank { get; set; }
+
+        /// <summary>
+        ///     Narrative ethos derived at founding. Stored as int for proto-compat with
+        ///     <see cref="DivineAscension.Models.Enum.CivilizationEthos" />.
+        /// </summary>
+        [ProtoMember(14)]
+        public int Ethos { get; set; }
+
+        /// <summary>
+        ///     Localized founder epithet (e.g. "the Forge-Crowned"), resolved at founding
+        ///     and persisted on the civilization.
+        /// </summary>
+        [ProtoMember(15)]
+        public string FounderEpithet { get; set; } = string.Empty;
     }
 
     /// <summary>
