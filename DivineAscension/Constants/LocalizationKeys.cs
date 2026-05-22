@@ -467,13 +467,12 @@ public static class LocalizationKeys
 
     #region Civilization - Create
 
-    public const string UI_CIVILIZATION_CREATE_TITLE = "divineascension:ui.civilization.create.title";
-    public const string UI_CIVILIZATION_CREATE_REQUIREMENTS = "divineascension:ui.civilization.create.requirements";
-    public const string UI_CIVILIZATION_CREATE_REQ_FOUNDER = "divineascension:ui.civilization.create.req.founder";
-    public const string UI_CIVILIZATION_CREATE_REQ_NOT_IN_CIV = "divineascension:ui.civilization.create.req.not_in_civ";
+    // Found a Realm chapter (II.iv) — #328
+    public const string UI_CIVILIZATION_CREATE_CHAPTER_TITLE =
+        "divineascension:ui.civilization.create.chapter_title";
 
-    public const string UI_CIVILIZATION_CREATE_REQ_NAME_LENGTH =
-        "divineascension:ui.civilization.create.req.name_length";
+    public const string UI_CIVILIZATION_CREATE_CHAPTER_INTRO =
+        "divineascension:ui.civilization.create.chapter_intro";
 
     public const string UI_CIVILIZATION_CREATE_NAME_LABEL = "divineascension:ui.civilization.create.name.label";
 
@@ -504,8 +503,6 @@ public static class LocalizationKeys
         "divineascension:ui.civilization.description.error.profanity";
 
     public const string UI_CIVILIZATION_CREATE_BUTTON = "divineascension:ui.civilization.create.button";
-    public const string UI_CIVILIZATION_CREATE_CLEAR_BUTTON = "divineascension:ui.civilization.create.clear";
-    public const string UI_CIVILIZATION_CREATE_INFO_TEXT = "divineascension:ui.civilization.create.info_text";
 
     #endregion
 
