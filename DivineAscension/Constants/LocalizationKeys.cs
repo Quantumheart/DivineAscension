@@ -605,6 +605,58 @@ public static class LocalizationKeys
 
     public const string UI_CIVILIZATION_INFO_INVITE_EXPIRES = "divineascension:ui.civilization.info.invite.expires";
 
+    // This Realm chapter (II.ii) — #310
+    public const string UI_CIVILIZATION_INFO_CHAPTER_TITLE =
+        "divineascension:ui.civilization.info.chapter_title";
+
+    public const string UI_CIVILIZATION_INFO_INTRO_FOUNDED =
+        "divineascension:ui.civilization.info.intro.founded";
+
+    public const string UI_CIVILIZATION_INFO_INTRO_BANNER =
+        "divineascension:ui.civilization.info.intro.banner";
+
+    public const string UI_CIVILIZATION_INFO_INTRO_BANNER_ONE =
+        "divineascension:ui.civilization.info.intro.banner_one";
+
+    public const string UI_CIVILIZATION_INFO_FOUNDING_ORDER =
+        "divineascension:ui.civilization.info.founding_order";
+
+    public const string UI_CIVILIZATION_INFO_PURPOSE_HEADING =
+        "divineascension:ui.civilization.info.purpose.heading";
+
+    public const string UI_CIVILIZATION_INFO_PURPOSE_EMPTY =
+        "divineascension:ui.civilization.info.purpose.empty";
+
+    public const string UI_CIVILIZATION_INFO_BANNER_ORDERS_HEADING =
+        "divineascension:ui.civilization.info.banner_orders.heading";
+
+    public const string UI_CIVILIZATION_INFO_BANNER_ORDERS_EMPTY =
+        "divineascension:ui.civilization.info.banner_orders.empty";
+
+    public const string UI_CIVILIZATION_INFO_BID_LABEL =
+        "divineascension:ui.civilization.info.bid.label";
+
+    public const string UI_CIVILIZATION_INFO_LETTERS_HEADING =
+        "divineascension:ui.civilization.info.letters.heading";
+
+    public const string UI_CIVILIZATION_INFO_LETTERS_EMPTY =
+        "divineascension:ui.civilization.info.letters.empty";
+
+    public const string UI_CIVILIZATION_INFO_LETTERS_AWAITING =
+        "divineascension:ui.civilization.info.letters.awaiting";
+
+    public const string UI_CIVILIZATION_INFO_LEAVE_LEDGER =
+        "divineascension:ui.civilization.info.leave_ledger";
+
+    public const string UI_CIVILIZATION_INFO_DISBAND_LEDGER =
+        "divineascension:ui.civilization.info.disband_ledger";
+
+    public const string UI_CIVILIZATION_INFO_SAVE =
+        "divineascension:ui.civilization.info.save";
+
+    public const string UI_CIVILIZATION_INFO_CANCEL =
+        "divineascension:ui.civilization.info.cancel";
+
     // Civilization edit dialog
     public const string UI_CIVILIZATION_EDIT_TITLE = "divineascension:ui.civilization.edit.title";
     public const string UI_CIVILIZATION_EDIT_CIV_LABEL = "divineascension:ui.civilization.edit.civ_label";

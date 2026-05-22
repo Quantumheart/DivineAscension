@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using DivineAscension.Network.Civilization;
 
@@ -11,10 +12,14 @@ public readonly struct CivilizationInfoViewModel(
     string icon,
     string description,
     string descriptionText,
+    bool isEditingDescription,
     string founderName,
+    string founderReligionName,
+    DateTime createdDate,
     bool isFounder,
     int rank,
     IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> memberReligions,
+    IReadOnlyList<CivilizationInfoResponsePacket.PendingInvite> pendingInvites,
     string inviteReligionName,
     bool showDisbandConfirm,
     string? kickConfirmReligionId,
@@ -32,10 +37,14 @@ public readonly struct CivilizationInfoViewModel(
     public string Icon { get; } = icon;
     public string Description { get; } = description;
     public string DescriptionText { get; } = descriptionText;
+    public bool IsEditingDescription { get; } = isEditingDescription;
     public string FounderName { get; } = founderName;
+    public string FounderReligionName { get; } = founderReligionName;
+    public DateTime CreatedDate { get; } = createdDate;
     public bool IsFounder { get; } = isFounder;
     public int Rank { get; } = rank;
     public IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> MemberReligions { get; } = memberReligions;
+    public IReadOnlyList<CivilizationInfoResponsePacket.PendingInvite> PendingInvites { get; } = pendingInvites;
     public string InviteReligionName { get; } = inviteReligionName;
     public bool ShowDisbandConfirm { get; } = showDisbandConfirm;
     public string? KickConfirmReligionId { get; } = kickConfirmReligionId;
@@ -46,10 +55,12 @@ public readonly struct CivilizationInfoViewModel(
     public float Width { get; } = width;
     public float Height { get; } = height;
 
-    // Helper methods (no side effects)
+    public int MemberCount => MemberReligions?.Count ?? 0;
     public bool CanInvite => IsFounder && !string.IsNullOrWhiteSpace(InviteReligionName);
     public bool CanDisband => IsFounder && HasCivilization;
     public bool CanLeave => !IsFounder && HasCivilization;
     public bool IsKickConfirmOpen => !string.IsNullOrEmpty(KickConfirmReligionId);
     public bool HasDescriptionChanges => Description != DescriptionText;
+    public bool HasDescription => !string.IsNullOrWhiteSpace(Description);
+    public bool HasPendingInvites => PendingInvites is { Count: > 0 };
 }

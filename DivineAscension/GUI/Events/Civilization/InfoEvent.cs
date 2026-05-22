@@ -12,6 +12,10 @@ public abstract record InfoEvent
 
     public sealed record DescriptionChanged(string newDescription) : InfoEvent;
 
+    public sealed record EditDescriptionOpen : InfoEvent;
+
+    public sealed record EditDescriptionCancel : InfoEvent;
+
     public sealed record SaveDescriptionClicked : InfoEvent;
 
     public sealed record LeaveClicked : InfoEvent;
