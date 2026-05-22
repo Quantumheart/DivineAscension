@@ -270,19 +270,69 @@ internal static class ChromeRenderer
         Vector4? colorOverride = null)
     {
         if (size <= 0f) return;
-        var color = ImGui.ColorConvertFloat4ToU32(colorOverride ?? ColorPalette.Gold);
-        var half = size / 2f;
+        var bodyVec = colorOverride ?? ColorPalette.Gold;
+        var blade = ImGui.ColorConvertFloat4ToU32(bodyVec);
+        var trim = ImGui.ColorConvertFloat4ToU32(bodyVec * 0.6f);
 
-        // Blade — full vertical line.
-        drawList.AddLine(new Vector2(cx, cy - half), new Vector2(cx, cy + half), color, 2f);
+        // Vertical layout from -0.50 (pommel) to +0.50 (tip).
+        var pommelCy = cy - size * 0.42f;
+        var pommelR = MathF.Max(1.5f, size * 0.09f);
 
-        // Cross-guard a third of the way down.
-        var guardY = cy - half * 0.35f;
-        drawList.AddLine(new Vector2(cx - half * 0.45f, guardY),
-            new Vector2(cx + half * 0.45f, guardY), color, 2f);
+        var gripTop = cy - size * 0.36f;
+        var gripBot = cy - size * 0.28f;
+        var gripHalfW = size * 0.05f;
 
-        // Pommel cap.
-        drawList.AddCircleFilled(new Vector2(cx, cy - half), MathF.Max(1.5f, half * 0.18f), color);
+        var guardY = cy - size * 0.28f;
+        var guardHalfW = size * 0.28f;
+        var guardHalfH = size * 0.04f;
+
+        var bladeTopY = cy - size * 0.22f;
+        var bladeShoulderY = cy + size * 0.10f;
+        var tipY = cy + size * 0.50f;
+        var bladeTopHalfW = size * 0.09f;
+        var bladeShoulderHalfW = size * 0.06f;
+
+        // Grip — slim rectangle between pommel and guard.
+        drawList.AddRectFilled(
+            new Vector2(cx - gripHalfW, gripTop),
+            new Vector2(cx + gripHalfW, gripBot),
+            trim);
+
+        // Pommel — filled disc with a small highlight ring.
+        drawList.AddCircleFilled(new Vector2(cx, pommelCy), pommelR, trim);
+        drawList.AddCircle(new Vector2(cx, pommelCy), pommelR, blade, 0, 1f);
+
+        // Cross-guard — thick horizontal bar.
+        drawList.AddRectFilled(
+            new Vector2(cx - guardHalfW, guardY - guardHalfH),
+            new Vector2(cx + guardHalfW, guardY + guardHalfH),
+            trim);
+        // Guard centerline highlight.
+        drawList.AddLine(
+            new Vector2(cx - guardHalfW, guardY),
+            new Vector2(cx + guardHalfW, guardY),
+            blade, 1f);
+
+        // Blade upper body — tapered quad from guard down to the shoulder.
+        drawList.AddQuadFilled(
+            new Vector2(cx - bladeTopHalfW, bladeTopY),
+            new Vector2(cx + bladeTopHalfW, bladeTopY),
+            new Vector2(cx + bladeShoulderHalfW, bladeShoulderY),
+            new Vector2(cx - bladeShoulderHalfW, bladeShoulderY),
+            blade);
+
+        // Blade tip — triangle to the point.
+        drawList.AddTriangleFilled(
+            new Vector2(cx - bladeShoulderHalfW, bladeShoulderY),
+            new Vector2(cx + bladeShoulderHalfW, bladeShoulderY),
+            new Vector2(cx, tipY),
+            blade);
+
+        // Fuller — single vertical highlight line down the blade.
+        drawList.AddLine(
+            new Vector2(cx, bladeTopY + 1f),
+            new Vector2(cx, tipY - 1f),
+            trim, 1f);
     }
 
     /// <summary>
