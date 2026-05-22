@@ -267,6 +267,7 @@ internal static class MainLayoutCoordinator
             content.W);
 
         return new PlayerInfoViewModel(header, notifications, state.PlayerInfo.ShowUnreadOnly,
+            state.PlayerInfo.ScrollY,
             content.X, content.Y, content.W, content.H);
     }
 
@@ -285,6 +286,9 @@ internal static class MainLayoutCoordinator
                     break;
                 case PlayerInfoEvent.SetUnreadOnly toggle:
                     state.PlayerInfo.ShowUnreadOnly = toggle.Enabled;
+                    break;
+                case PlayerInfoEvent.ScrollChanged scroll:
+                    state.PlayerInfo.ScrollY = scroll.ScrollY;
                     break;
             }
         }
