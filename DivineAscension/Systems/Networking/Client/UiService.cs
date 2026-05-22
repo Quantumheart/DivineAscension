@@ -40,9 +40,10 @@ public class UiService(DivineAscensionNetworkClient networkClient)
         _networkClient.RequestReligionAction(action, religionUID, targetPlayerUID);
     }
 
-    public void RequestCreateReligion(string religionName, string domain, string deityName, bool isPublic)
+    public void RequestCreateReligion(string religionName, string domain, string deityName, bool isPublic,
+        string motto = "")
     {
-        _networkClient.RequestCreateReligion(religionName, domain, deityName, isPublic);
+        _networkClient.RequestCreateReligion(religionName, domain, deityName, isPublic, motto);
     }
 
     public void RequestEditDescription(string religionUID, string description)

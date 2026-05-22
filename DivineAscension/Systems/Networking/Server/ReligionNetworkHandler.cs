@@ -375,6 +375,13 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     packet.IsPublic
                 );
 
+                // Optional motto from creation form (#361). Length/profanity
+                // validated; silently drop on violation to avoid blocking
+                // creation on a flavor field.
+                var motto = packet.Motto ?? string.Empty;
+                if (motto.Length <= 80 && !ProfanityFilterService.Instance.ContainsProfanity(motto))
+                    newReligion.Motto = motto;
+
                 // Set up founder's player religion data (already added to Members via constructor)
                 _playerProgressionDataManager!.SetPlayerReligionData(fromPlayer.PlayerUID, newReligion.ReligionUID);
 

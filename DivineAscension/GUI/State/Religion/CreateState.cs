@@ -18,11 +18,17 @@ public class CreateState
 
     public bool IsPublic { get; set; } = true;
 
+    /// <summary>
+    ///     Optional motto/creed at creation (#361).
+    /// </summary>
+    public string Motto { get; set; } = string.Empty;
+
     public void Reset()
     {
         Name = string.Empty;
         Domain = nameof(DeityDomain.Craft);
         DeityName = string.Empty;
         IsPublic = false;
+        Motto = string.Empty;
     }
 }
