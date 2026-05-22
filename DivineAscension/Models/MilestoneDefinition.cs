@@ -50,6 +50,13 @@ public class MilestoneDefinition
     /// </summary>
     public MilestoneTemporaryBenefit? TemporaryBenefit { get; }
 
+    /// <summary>
+    ///     In-world chronicle-voice line emitted when this milestone fires. Consumed by
+    ///     the civilization chronicle (see issue #369). Empty for legacy milestones that
+    ///     have not yet been rewritten.
+    /// </summary>
+    public string ChronicleLine { get; }
+
     public MilestoneDefinition(
         string milestoneId,
         string name,
@@ -59,7 +66,8 @@ public class MilestoneDefinition
         int rankReward,
         int prestigePayout,
         MilestoneBenefit? permanentBenefit = null,
-        MilestoneTemporaryBenefit? temporaryBenefit = null)
+        MilestoneTemporaryBenefit? temporaryBenefit = null,
+        string chronicleLine = "")
     {
         MilestoneId = milestoneId;
         Name = name;
@@ -70,6 +78,7 @@ public class MilestoneDefinition
         PrestigePayout = prestigePayout;
         PermanentBenefit = permanentBenefit;
         TemporaryBenefit = temporaryBenefit;
+        ChronicleLine = chronicleLine ?? string.Empty;
     }
 }
 

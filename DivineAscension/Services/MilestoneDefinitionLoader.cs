@@ -163,7 +163,8 @@ public class MilestoneDefinitionLoader : IMilestoneDefinitionLoader
             dto.RankReward,
             dto.PrestigePayout,
             permanentBenefit,
-            temporaryBenefit
+            temporaryBenefit,
+            dto.ChronicleLine ?? string.Empty
         );
     }
 

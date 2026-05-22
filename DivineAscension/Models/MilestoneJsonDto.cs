@@ -67,6 +67,12 @@ public class MilestoneJsonDto
     ///     Temporary benefit configuration (optional)
     /// </summary>
     public MilestoneTemporaryBenefitDto? TemporaryBenefit { get; set; }
+
+    /// <summary>
+    ///     In-world chronicle-voice line emitted when this milestone fires. Optional;
+    ///     empty if the milestone has not yet been rewritten in chronicle voice.
+    /// </summary>
+    public string ChronicleLine { get; set; } = string.Empty;
 }
 
 /// <summary>
