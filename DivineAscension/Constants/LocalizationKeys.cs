@@ -351,6 +351,7 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_TAB_INVITES = "divineascension:ui.civilization.tab.invites";
     public const string UI_CIVILIZATION_TAB_CREATE = "divineascension:ui.civilization.tab.create";
     public const string UI_CIVILIZATION_TAB_DIPLOMACY = "divineascension:ui.civilization.tab.diplomacy";
+    public const string UI_CIVILIZATION_TAB_PROPOSE_ACCORD = "divineascension:ui.civilization.tab.propose_accord";
     public const string UI_CIVILIZATION_TAB_HOLYSITES = "divineascension:ui.civilization.tab.holysites";
     public const string UI_CIVILIZATION_TAB_MILESTONES = "divineascension:ui.civilization.tab.milestones";
 
@@ -756,6 +757,24 @@ public static class LocalizationKeys
     public const string UI_DIPLOMACY_REFUSE_VERB = "divineascension:ui.diplomacy.refuse_verb";
     public const string UI_DIPLOMACY_TURN_PAGE_HINT = "divineascension:ui.diplomacy.turn_page_hint";
     public const string UI_DIPLOMACY_TURN_PAGE_LABEL = "divineascension:ui.diplomacy.turn_page_label";
+
+    // Propose Accord chapter (#330) — sibling page lifted from the Accords
+    // chapter's old inline form.
+    public const string UI_PROPOSE_ACCORD_CHAPTER_TITLE = "divineascension:ui.propose_accord.chapter.title";
+    public const string UI_PROPOSE_ACCORD_INTRO = "divineascension:ui.propose_accord.intro";
+    public const string UI_PROPOSE_ACCORD_NO_CIVILIZATION = "divineascension:ui.propose_accord.no_civilization";
+    public const string UI_PROPOSE_ACCORD_NOT_FOUNDER = "divineascension:ui.propose_accord.not_founder";
+    public const string UI_PROPOSE_ACCORD_RECIPIENT_LABEL = "divineascension:ui.propose_accord.recipient_label";
+    public const string UI_PROPOSE_ACCORD_RECIPIENT_PLACEHOLDER = "divineascension:ui.propose_accord.recipient_placeholder";
+    public const string UI_PROPOSE_ACCORD_MANNER_LABEL = "divineascension:ui.propose_accord.manner_label";
+    public const string UI_PROPOSE_ACCORD_MANNER_PLACEHOLDER = "divineascension:ui.propose_accord.manner_placeholder";
+    public const string UI_PROPOSE_ACCORD_PREVIEW_HEADING = "divineascension:ui.propose_accord.preview_heading";
+    public const string UI_PROPOSE_ACCORD_PREVIEW_NONE = "divineascension:ui.propose_accord.preview_none";
+    public const string UI_PROPOSE_ACCORD_DESC_NAP = "divineascension:ui.propose_accord.desc.nap";
+    public const string UI_PROPOSE_ACCORD_DESC_ALLIANCE = "divineascension:ui.propose_accord.desc.alliance";
+    public const string UI_PROPOSE_ACCORD_RANK_REQUIRED = "divineascension:ui.propose_accord.rank_required";
+    public const string UI_PROPOSE_ACCORD_NO_REALMS = "divineascension:ui.propose_accord.no_realms";
+    public const string UI_PROPOSE_ACCORD_SEND_BUTTON = "divineascension:ui.propose_accord.send_button";
 
     #endregion
 

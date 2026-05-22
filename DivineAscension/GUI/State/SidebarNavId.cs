@@ -21,6 +21,7 @@ public enum SidebarNavId
     CivilizationInvites,
     CivilizationCreate,
     CivilizationDiplomacy,
+    CivilizationProposeAccord,
     CivilizationHolySites,
     CivilizationMilestones,
     CivilizationBrowse,

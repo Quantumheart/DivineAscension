@@ -211,8 +211,12 @@ internal static class MainLayoutCoordinator
                 civ.RequestCivilizationInfo();
                 break;
             case SidebarNavId.CivilizationDiplomacy:
+            case SidebarNavId.CivilizationProposeAccord:
                 civ.State.DiplomacyState.ErrorMessage = null;
                 civ.RequestDiplomacyInfo();
+                // Propose page also reads the civ list for the recipient dropdown,
+                // so refresh that whenever either accord page is opened.
+                civ.RequestCivilizationList(civ.State.BrowseState.DeityFilter);
                 break;
             case SidebarNavId.CivilizationHolySites:
                 civ.State.HolySitesState.Browse.ErrorMsg = null;
@@ -317,6 +321,7 @@ internal static class MainLayoutCoordinator
             case SidebarNavId.CivilizationInvites:
             case SidebarNavId.CivilizationCreate:
             case SidebarNavId.CivilizationDiplomacy:
+            case SidebarNavId.CivilizationProposeAccord:
             case SidebarNavId.CivilizationHolySites:
             case SidebarNavId.CivilizationMilestones:
                 manager.CivilizationManager.DrawCivilizationTab(nav, content.X, content.Y, content.W, content.H);

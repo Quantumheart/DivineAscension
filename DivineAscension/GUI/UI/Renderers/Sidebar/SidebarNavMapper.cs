@@ -167,6 +167,15 @@ public static class SidebarNavMapper
             Item(SidebarNavId.CivilizationDiplomacy,
                 LocalizationKeys.UI_CIVILIZATION_TAB_DIPLOMACY, "diplomacy",
                 ctx, !ctx.HasCivilization, LocalizationKeys.SIDEBAR_DISABLED_NEED_CIVILIZATION),
+            // Propose Accord — founder-only authoring page, sibling of Accords (#330).
+            // Disabled to non-founders; server still enforces founder gate.
+            Item(SidebarNavId.CivilizationProposeAccord,
+                LocalizationKeys.UI_CIVILIZATION_TAB_PROPOSE_ACCORD, "create",
+                ctx,
+                !ctx.HasCivilization || !ctx.IsCivilizationFounder,
+                !ctx.HasCivilization
+                    ? LocalizationKeys.SIDEBAR_DISABLED_NEED_CIVILIZATION
+                    : LocalizationKeys.SIDEBAR_DISABLED_FOUNDER_ONLY),
             Item(SidebarNavId.CivilizationHolySites,
                 LocalizationKeys.UI_CIVILIZATION_TAB_HOLYSITES, "holysite",
                 ctx, !ctx.HasCivilization, LocalizationKeys.SIDEBAR_DISABLED_NEED_CIVILIZATION),

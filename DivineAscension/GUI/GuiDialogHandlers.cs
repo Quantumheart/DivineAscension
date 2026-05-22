@@ -647,7 +647,11 @@ public partial class GuiDialog
             switch (packet.Action?.ToLowerInvariant())
             {
                 case "leave" or "disband":
-                    if (currentNav is SidebarNavId.CivilizationInfo)
+                    if (currentNav is SidebarNavId.CivilizationInfo
+                        or SidebarNavId.CivilizationDiplomacy
+                        or SidebarNavId.CivilizationProposeAccord
+                        or SidebarNavId.CivilizationHolySites
+                        or SidebarNavId.CivilizationMilestones)
                     {
                         _logger?.Debug(
                             $"[DivineAscension] Switching nav from {currentNav} to CivilizationBrowse after leaving civilization");
