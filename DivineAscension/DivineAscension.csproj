@@ -65,6 +65,15 @@
     </ItemGroup>
 
     <ItemGroup>
+        <EmbeddedResource Include="assets\divineascension\textures\gui\codex\fonts\cinzel-regular.ttf">
+            <LogicalName>DivineAscension.Fonts.cinzel-regular.ttf</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="assets\divineascension\textures\gui\codex\fonts\cinzel-bold.ttf">
+            <LogicalName>DivineAscension.Fonts.cinzel-bold.ttf</LogicalName>
+        </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
         <Folder Include="assets\"/>
     </ItemGroup>
 
