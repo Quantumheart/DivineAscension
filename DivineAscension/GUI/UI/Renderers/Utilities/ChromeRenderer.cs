@@ -398,35 +398,35 @@ internal static class ChromeRenderer
     {
         if (size <= 0f) return;
         var color = ImGui.ColorConvertFloat4ToU32(colorOverride ?? ColorPalette.Grey);
-        var radius = size * 0.22f;
-        var gap = size * 0.42f;
-        var tailLength = size * 0.55f;
+        // Slim manuscript comma: small head with a thin tapering tail.
+        var radius = size * 0.13f;
+        var gap = size * 0.32f;
+        var tailLength = size * 0.38f;
+        var tailEndWidth = size * 0.04f;
         var sign = closing ? -1f : 1f;
 
-        // Two filled discs side-by-side. Closing quote sits slightly higher
-        // so the comma tails curl up; opening sits slightly lower so they
-        // curl down.
         var leftCx = cx - gap / 2f;
         var rightCx = cx + gap / 2f;
-        var discY = cy - sign * size * 0.10f;
+        var discY = cy - sign * size * 0.08f;
 
-        // Comma tail per disc: triangle from the lower-outer edge of the
-        // disc curling toward the inner-bottom. For closing quote the tail
-        // points up-and-out instead.
+        // Thin curved-look tail: a slender quad from a narrow base just
+        // inside the disc to an even narrower point further out.
         void DrawCommaTail(float discCx)
         {
-            var baseLeft = new Vector2(discCx - radius * 0.4f, discY + sign * radius * 0.2f);
-            var baseRight = new Vector2(discCx + radius * 0.6f, discY - sign * radius * 0.2f);
-            var tip = new Vector2(discCx - radius * 0.2f, discY + sign * (radius + tailLength));
-            drawList.AddTriangleFilled(baseLeft, baseRight, tip, color);
+            var baseHalf = radius * 0.55f;
+            var basePoint = new Vector2(discCx + baseHalf * 0.2f, discY + sign * radius * 0.4f);
+            var baseInner = new Vector2(discCx - baseHalf, discY + sign * radius * 0.4f);
+            var tip = new Vector2(discCx - baseHalf * 1.4f, discY + sign * (radius + tailLength));
+            var tipInner = new Vector2(discCx - baseHalf * 1.4f + tailEndWidth, discY + sign * (radius + tailLength) - sign * tailEndWidth);
+            drawList.AddQuadFilled(basePoint, baseInner, tip, tipInner, color);
         }
 
         DrawCommaTail(leftCx);
         DrawCommaTail(rightCx);
 
-        // Discs on top of the tail so the join reads as one comma shape.
-        drawList.AddCircleFilled(new Vector2(leftCx, discY), radius, color, 10);
-        drawList.AddCircleFilled(new Vector2(rightCx, discY), radius, color, 10);
+        // Heads sit on top of the tails so the join reads as one shape.
+        drawList.AddCircleFilled(new Vector2(leftCx, discY), radius, color, 12);
+        drawList.AddCircleFilled(new Vector2(rightCx, discY), radius, color, 12);
     }
 
     public static void DrawEnvelope(ImDrawListPtr drawList, float cx, float cy, float size,
