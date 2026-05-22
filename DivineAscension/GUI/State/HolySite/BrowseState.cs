@@ -20,6 +20,11 @@ public class BrowseState : IState
     public Dictionary<string, List<HolySiteResponsePacket.HolySiteInfo>> SitesByReligion { get; set; } = new();
 
     /// <summary>
+    /// Religion UIDs whose Order sub-headers are currently expanded in the Hallows ledger.
+    /// </summary>
+    public HashSet<string> ExpandedReligions { get; set; } = new();
+
+    /// <summary>
     /// UID of the selected site in the browse table (for row highlighting)
     /// </summary>
     public string? SelectedSiteUID { get; set; }
@@ -43,6 +48,7 @@ public class BrowseState : IState
     {
         AllSites.Clear();
         SitesByReligion.Clear();
+        ExpandedReligions.Clear();
         SelectedSiteUID = null;
         ScrollY = 0f;
         IsLoading = false;

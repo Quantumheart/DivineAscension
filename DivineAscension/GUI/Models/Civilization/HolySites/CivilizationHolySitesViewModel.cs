@@ -8,6 +8,7 @@ public readonly struct CivilizationHolySitesViewModel(
     Dictionary<string, string> religionNames,
     Dictionary<string, string> religionDomains,
     HashSet<string> expandedReligions,
+    string civilizationName,
     bool isLoading,
     string? errorMsg,
     float scrollY,
@@ -20,6 +21,7 @@ public readonly struct CivilizationHolySitesViewModel(
     public Dictionary<string, string> ReligionNames { get; } = religionNames;
     public Dictionary<string, string> ReligionDomains { get; } = religionDomains;
     public HashSet<string> ExpandedReligions { get; } = expandedReligions;
+    public string CivilizationName { get; } = civilizationName;
     public bool IsLoading { get; } = isLoading;
     public string? ErrorMsg { get; } = errorMsg;
     public float ScrollY { get; } = scrollY;

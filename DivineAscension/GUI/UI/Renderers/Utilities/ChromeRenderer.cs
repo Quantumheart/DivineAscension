@@ -147,6 +147,46 @@ internal static class ChromeRenderer
     }
 
     /// <summary>
+    ///     Paint a triple-diamond divider (<c>──── ✦ ──── ✦ ──── ✦ ────</c>) as
+    ///     the louder section break between groups of dividers drawn by
+    ///     <see cref="DrawDivider" />. Used as the top/bottom rule around the
+    ///     Hallows Order list, separating it from the chapter intro and the
+    ///     closing footer.
+    /// </summary>
+    public static void DrawDividerOrnate(ImDrawListPtr drawList, float x, float y, float width,
+        Vector4? colorOverride = null)
+    {
+        if (width <= 0f) return;
+
+        var color = colorOverride ?? ColorPalette.Gold * 0.55f;
+        var colorU32 = ImGui.ColorConvertFloat4ToU32(color);
+
+        const float diamondHalfSize = 4f;
+        const float sideGap = 8f;
+        var lineY = y + diamondHalfSize;
+
+        // Three diamonds equally spaced across the strip.
+        var d0X = x + width * 0.25f;
+        var d1X = x + width * 0.50f;
+        var d2X = x + width * 0.75f;
+
+        void Segment(float startX, float endX)
+        {
+            if (endX > startX)
+                drawList.AddLine(new Vector2(startX, lineY), new Vector2(endX, lineY), colorU32, 1f);
+        }
+
+        Segment(x, d0X - diamondHalfSize - sideGap);
+        Segment(d0X + diamondHalfSize + sideGap, d1X - diamondHalfSize - sideGap);
+        Segment(d1X + diamondHalfSize + sideGap, d2X - diamondHalfSize - sideGap);
+        Segment(d2X + diamondHalfSize + sideGap, x + width);
+
+        DrawDiamond(drawList, d0X, lineY, diamondHalfSize, color);
+        DrawDiamond(drawList, d1X, lineY, diamondHalfSize, color);
+        DrawDiamond(drawList, d2X, lineY, diamondHalfSize, color);
+    }
+
+    /// <summary>
     ///     Paint a small pencil glyph (✎ U+270E) as primitives so it renders
     ///     in fonts without Dingbats coverage. Diagonal body from upper-right
     ///     to lower-left, triangular graphite tip at the lower-left end, and

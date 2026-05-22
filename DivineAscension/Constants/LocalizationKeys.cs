@@ -385,16 +385,15 @@ public static class LocalizationKeys
 
     #region Civilization - Holy Sites
 
-    public const string UI_CIVILIZATION_HOLYSITES_TITLE = "divineascension:ui.civilization.holysites.title";
-    public const string UI_CIVILIZATION_HOLYSITES_REFRESH = "divineascension:ui.civilization.holysites.refresh";
     public const string UI_CIVILIZATION_HOLYSITES_LOADING = "divineascension:ui.civilization.holysites.loading";
-    public const string UI_CIVILIZATION_HOLYSITES_EMPTY = "divineascension:ui.civilization.holysites.empty";
     public const string UI_CIVILIZATION_HOLYSITES_ERROR = "divineascension:ui.civilization.holysites.error";
-    public const string UI_CIVILIZATION_HOLYSITES_NOT_IN_CIV = "divineascension:ui.civilization.holysites.not_in_civ";
-    public const string UI_CIVILIZATION_HOLYSITES_SITE_COUNT = "divineascension:ui.civilization.holysites.site_count";
-    public const string UI_CIVILIZATION_HOLYSITES_TIER = "divineascension:ui.civilization.holysites.tier";
-    public const string UI_CIVILIZATION_HOLYSITES_VOLUME = "divineascension:ui.civilization.holysites.volume";
-    public const string UI_CIVILIZATION_HOLYSITES_MULTIPLIERS = "divineascension:ui.civilization.holysites.multipliers";
+
+    // Hallows chapter (II.vi) — #331
+    public const string UI_CIVILIZATION_HOLYSITES_INTRO = "divineascension:ui.civilization.holysites.intro";
+    public const string UI_CIVILIZATION_HOLYSITES_COUNT_ONE = "divineascension:ui.civilization.holysites.count_one";
+    public const string UI_CIVILIZATION_HOLYSITES_COUNT_MANY = "divineascension:ui.civilization.holysites.count_many";
+    public const string UI_CIVILIZATION_HOLYSITES_CLAIMED_ON = "divineascension:ui.civilization.holysites.claimed_on";
+    public const string UI_CIVILIZATION_HOLYSITES_FOOTER_CLOSING = "divineascension:ui.civilization.holysites.footer.closing";
 
     #endregion
 
@@ -1631,17 +1630,6 @@ public static class LocalizationKeys
     public const string HOLYSITE_NEARBY_ENTRY = "divineascension:holysite.nearby.entry";
     public const string HOLYSITE_NEARBY_EMPTY = "divineascension:holysite.nearby.empty";
     public const string HOLYSITE_NOT_IN_SITE = "divineascension:holysite.not_in_site";
-
-    // UI - Browse
-    public const string UI_HOLYSITES_BROWSE_TITLE = "divineascension:ui.holysites.browse.title";
-    public const string UI_HOLYSITES_BROWSE_REFRESH = "divineascension:ui.holysites.browse.refresh";
-    public const string UI_HOLYSITES_BROWSE_LOADING = "divineascension:ui.holysites.browse.loading";
-    public const string UI_HOLYSITES_BROWSE_NO_SITES = "divineascension:ui.holysites.browse.nosites";
-    public const string UI_HOLYSITES_TABLE_NAME = "divineascension:ui.holysites.table.name";
-    public const string UI_HOLYSITES_TABLE_TIER = "divineascension:ui.holysites.table.tier";
-    public const string UI_HOLYSITES_TABLE_RITUALS = "divineascension:ui.holysites.table.rituals";
-    public const string UI_HOLYSITES_TABLE_PRAYER = "divineascension:ui.holysites.table.prayer";
-    public const string UI_HOLYSITES_TABLE_DESCRIPTION = "divineascension:ui.holysites.table.description";
 
     // UI - Detail
     public const string UI_HOLYSITES_DETAIL_LOADING = "divineascension:ui.holysites.detail.loading";
