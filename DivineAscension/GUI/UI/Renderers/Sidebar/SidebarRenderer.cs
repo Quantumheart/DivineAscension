@@ -6,6 +6,7 @@ using DivineAscension.GUI.UI.Layout;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Services;
+using DivineAscension.Services.UI;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Sidebar;
@@ -21,6 +22,7 @@ internal static class SidebarRenderer
     private const float ToggleStripHeight = 28f;
     private const float GroupHeaderHeight = 22f;
     private const float ItemHeight = 24f;
+    private const int ChapterFontSize = 18;
     private const float ItemIndent = 12f;
     private const float ChapterChevronSize = 9f;
     private const float ChapterChevronPadding = 6f;
@@ -129,11 +131,16 @@ internal static class SidebarRenderer
         ChromeRenderer.DrawChevron(drawList, chevronX, chevronY, ChapterChevronSize,
             chapterDirection, ColorPalette.Gold);
 
+        // Chapter row uses Cinzel Regular at 18 (matches the default 18px so
+        // the chevron + label line stays vertically centred). Item labels
+        // below intentionally stay in the default font for legibility.
         var textColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        var fontSize = ImGui.GetFontSize();
+        var cinzelChapter = CinzelFontSystem.GetRegular(ChapterFontSize);
+        var labelFont = cinzelChapter ?? ImGui.GetFont();
+        var labelSize = cinzelChapter.HasValue ? ChapterFontSize : ImGui.GetFontSize();
         var textX = chevronX + ChapterChevronSize / 2f + ChapterChevronPadding;
-        var textY = cursor.Y + (GroupHeaderHeight - fontSize) / 2f;
-        drawList.AddText(new Vector2(textX, textY), textColor, group.Label);
+        var textY = cursor.Y + (GroupHeaderHeight - labelSize) / 2f;
+        drawList.AddText(labelFont, labelSize, new Vector2(textX, textY), textColor, group.Label);
     }
 
     private static void DrawItem(SidebarItemViewModel item, int verseIndex, List<SidebarEvent> events)

@@ -3,6 +3,7 @@ using System.Numerics;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services.UI;
 using DivineAscension.Systems;
 using ImGuiNET;
 using static DivineAscension.GUI.UI.Utilities.FontSizes;
@@ -25,6 +26,11 @@ internal static class TitleStripRenderer
     private const float OrnamentGap = 8f;
     private const string Ellipsis = "…";
     private const string IdentitySeparator = " · ";
+
+    // Cinzel Bold at 24px sits inside the 32px chrome strip with a 4px gutter
+    // top/bottom. Matches #287's ~28px target while staying inside the sizes
+    // VSImGui pre-bakes (6/8/10/14/18/24/30/36/48/60).
+    private const int TitleFontSize = 24;
 
     /// <summary>
     ///     Draw the title strip into <paramref name="rect" />. Returns true if
@@ -54,12 +60,30 @@ internal static class TitleStripRenderer
         // Left: a flanking diamond, then the app title in gold, then a
         // second flanking diamond. Diamonds are drawn primitives rather than
         // ✦ glyphs because ImGui's default font ranges don't include
-        // Dingbats — text glyphs would render as `?`. Measure the title at
-        // its actual render size (SubsectionLabel) so the right diamond
-        // doesn't drift outwards by the difference between the default font
-        // size and the size we draw at.
-        var renderScale = SubsectionLabel / ImGui.GetFontSize();
-        var titleSize = ImGui.CalcTextSize(TitleText) * renderScale;
+        // Dingbats — text glyphs would render as `?`. Title face is Cinzel
+        // Bold when the atlas baked it, default font otherwise — measure with
+        // the font we'll actually draw with so the right diamond hugs the
+        // glyph metrics rather than drifting.
+        var cinzelTitle = CinzelFontSystem.GetBold(TitleFontSize);
+        ImGuiNET.ImFontPtr titleFont;
+        float titleFontSize;
+        Vector2 titleSize;
+        if (cinzelTitle.HasValue)
+        {
+            titleFont = cinzelTitle.Value;
+            titleFontSize = TitleFontSize;
+            ImGui.PushFont(titleFont);
+            titleSize = ImGui.CalcTextSize(TitleText);
+            ImGui.PopFont();
+        }
+        else
+        {
+            titleFont = ImGui.GetFont();
+            titleFontSize = SubsectionLabel;
+            var renderScale = SubsectionLabel / ImGui.GetFontSize();
+            titleSize = ImGui.CalcTextSize(TitleText) * renderScale;
+        }
+
         var titleY = rect.Y + (rect.H - titleSize.Y) / 2f;
         var titleColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
 
@@ -67,7 +91,7 @@ internal static class TitleStripRenderer
         var leftOrnamentCx = rect.X + Padding + OrnamentHalfSize;
         var titleX = leftOrnamentCx + OrnamentHalfSize + OrnamentGap;
         ChromeRenderer.DrawDiamond(drawList, leftOrnamentCx, ornamentCenterY, OrnamentHalfSize);
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel,
+        drawList.AddText(titleFont, titleFontSize,
             new Vector2(titleX, titleY), titleColor, TitleText);
         var rightOrnamentCx = titleX + titleSize.X + OrnamentGap + OrnamentHalfSize;
         ChromeRenderer.DrawDiamond(drawList, rightOrnamentCx, ornamentCenterY, OrnamentHalfSize);
