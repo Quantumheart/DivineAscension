@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.GUI.UI.Utilities;
@@ -12,6 +13,16 @@ namespace DivineAscension.GUI.UI.Components.Inputs;
 [ExcludeFromCodeCoverage]
 internal static class Dropdown
 {
+    // Shared scroll state for the single open dropdown menu. Only one menu is
+    // open at a time across the dialog (clicking another closes the first), so
+    // a single anchor + offset suffices. Anchor is the menu's top-left so the
+    // offset resets the moment a different dropdown opens.
+    private static Vector2 _scrollAnchor;
+    private static float _scrollY;
+
+    private const float ScrollbarGutterWidth = 6f;
+    private const float ScrollbarTrackPadding = 2f;
+
     /// <summary>
     ///     Draw a dropdown button (without the menu)
     /// </summary>
@@ -101,6 +112,7 @@ internal static class Dropdown
     /// <param name="items">Array of menu items to display</param>
     /// <param name="selectedIndex">Currently selected index</param>
     /// <param name="itemHeight">Height of each menu item (default 40)</param>
+    /// <param name="maxVisibleItems">Cap on visible rows; menu becomes scrollable past this (default 8)</param>
     /// <returns>Tuple of (newSelectedIndex, shouldClose, clickConsumed)</returns>
     public static (int selectedIndex, bool shouldClose, bool clickConsumed) DrawMenuAndHandleInteraction(float x,
         float y,
@@ -108,29 +120,51 @@ internal static class Dropdown
         float height,
         string[] items,
         int selectedIndex,
-        float itemHeight = 40f)
+        float itemHeight = 40f,
+        int maxVisibleItems = 8)
     {
         var mousePos = ImGui.GetMousePos();
-        var menuHeight = items.Length * itemHeight;
-        var menuStart = new Vector2(x, y + height + 2f);
-        var menuEnd = new Vector2(x + width, y + height + 2f + menuHeight);
+        var menuTop = y + height + 2f;
+        var menuStart = new Vector2(x, menuTop);
+        var contentHeight = items.Length * itemHeight;
+        var visibleHeight = MathF.Min(items.Length, MathF.Max(1, maxVisibleItems)) * itemHeight;
+        var menuEnd = new Vector2(x + width, menuTop + visibleHeight);
+        var maxScroll = MathF.Max(0f, contentHeight - visibleHeight);
 
         var clickConsumed = false;
         var shouldClose = false;
         var newSelectedIndex = selectedIndex;
 
-        // Check if mouse is over the menu area
         var isMouseOverMenu = mousePos.X >= menuStart.X && mousePos.X <= menuEnd.X &&
                               mousePos.Y >= menuStart.Y && mousePos.Y <= menuEnd.Y;
 
-        // Handle item clicks
+        // Drive the shared scroll cache. Reset when the anchor moves (different
+        // dropdown opened) so each menu starts at the top.
+        if (_scrollAnchor != menuStart)
+        {
+            _scrollAnchor = menuStart;
+            _scrollY = 0f;
+        }
+        if (isMouseOverMenu && maxScroll > 0f)
+        {
+            var wheel = ImGui.GetIO().MouseWheel;
+            if (wheel != 0f)
+                _scrollY = Math.Clamp(_scrollY - wheel * itemHeight, 0f, maxScroll);
+        }
+        _scrollY = Math.Clamp(_scrollY, 0f, maxScroll);
+
+        // Handle item clicks against the scrolled, clipped row layout.
         for (var i = 0; i < items.Length; i++)
         {
-            var itemY = y + height + 2f + i * itemHeight;
-            var isItemHovering = mousePos.X >= x && mousePos.X <= x + width &&
-                                 mousePos.Y >= itemY && mousePos.Y <= itemY + itemHeight;
+            var itemY = menuTop + i * itemHeight - _scrollY;
+            var rowTop = itemY;
+            var rowBottom = itemY + itemHeight;
+            if (rowBottom <= menuTop || rowTop >= menuEnd.Y) continue;
 
-            // Handle item click
+            var isItemHovering = mousePos.X >= x && mousePos.X <= x + width &&
+                                 mousePos.Y >= MathF.Max(rowTop, menuTop) &&
+                                 mousePos.Y <= MathF.Min(rowBottom, menuEnd.Y);
+
             if (isItemHovering)
             {
                 ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
@@ -170,6 +204,7 @@ internal static class Dropdown
     /// <param name="selectedIndex">Currently selected index</param>
     /// <param name="itemHeight">Height of each menu item (default 40)</param>
     /// <param name="fontSize">Font size for the text (default FontSizes.Body)</param>
+    /// <param name="maxVisibleItems">Cap on visible rows; menu becomes scrollable past this (default 8)</param>
     public static void DrawMenuVisual(
         ImDrawListPtr drawList,
         float x,
@@ -179,32 +214,41 @@ internal static class Dropdown
         string[] items,
         int selectedIndex,
         float itemHeight = 40f,
-        float fontSize = FontSizes.Body)
+        float fontSize = FontSizes.Body,
+        int maxVisibleItems = 8)
     {
         var mousePos = ImGui.GetMousePos();
-        var menuHeight = items.Length * itemHeight;
-        var menuStart = new Vector2(x, y + height + 2f);
-        var menuEnd = new Vector2(x + width, y + height + 2f + menuHeight);
+        var menuTop = y + height + 2f;
+        var menuStart = new Vector2(x, menuTop);
+        var contentHeight = items.Length * itemHeight;
+        var visibleHeight = MathF.Min(items.Length, MathF.Max(1, maxVisibleItems)) * itemHeight;
+        var menuEnd = new Vector2(x + width, menuTop + visibleHeight);
+        var maxScroll = MathF.Max(0f, contentHeight - visibleHeight);
+        var scrollY = _scrollAnchor == menuStart ? Math.Clamp(_scrollY, 0f, maxScroll) : 0f;
 
-        // Draw menu background
+        // Menu background + border (sized to the visible window, not the full
+        // content height — the rest scrolls inside).
         var menuBgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Background);
         drawList.AddRectFilled(menuStart, menuEnd, menuBgColor, 4f);
-
-        // Draw menu border
         var menuBorderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.7f);
         drawList.AddRect(menuStart, menuEnd, menuBorderColor, 4f, ImDrawFlags.None, 2f);
 
-        // Draw each item
+        // Clip rendering to the visible menu rect so off-screen items don't
+        // bleed outside the border when scrolled.
+        drawList.PushClipRect(menuStart, menuEnd, true);
+
         for (var i = 0; i < items.Length; i++)
         {
-            var itemY = y + height + 2f + i * itemHeight;
+            var itemY = menuTop + i * itemHeight - scrollY;
+            if (itemY + itemHeight <= menuTop || itemY >= menuEnd.Y) continue;
+
             var itemStart = new Vector2(x, itemY);
             var itemEnd = new Vector2(x + width, itemY + itemHeight);
 
             var isItemHovering = mousePos.X >= x && mousePos.X <= x + width &&
-                                 mousePos.Y >= itemY && mousePos.Y <= itemY + itemHeight;
+                                 mousePos.Y >= MathF.Max(itemY, menuTop) &&
+                                 mousePos.Y <= MathF.Min(itemY + itemHeight, menuEnd.Y);
 
-            // Draw item background if hovering or selected
             if (isItemHovering || i == selectedIndex)
             {
                 var itemBgColor = isItemHovering
@@ -213,15 +257,12 @@ internal static class Dropdown
                 drawList.AddRectFilled(itemStart, itemEnd, itemBgColor);
             }
 
-            // Draw item text with font scaling
             var fontScale = fontSize / FontSizes.Body;
             ImGui.SetWindowFontScale(fontScale);
             var itemTextSize = ImGui.CalcTextSize(items[i]);
             ImGui.SetWindowFontScale(1f);
 
             var itemTextPos = new Vector2(x + 12f, itemY + (itemHeight - itemTextSize.Y) / 2);
-            // Menu items have a parchment-coloured background until hovered/selected,
-            // at which point they switch to dark sepia. Flip the text colour to match.
             var itemOnDark = isItemHovering || i == selectedIndex;
             var itemTextColor = ImGui.ColorConvertFloat4ToU32(
                 itemOnDark ? ColorPalette.LightText : ColorPalette.White);
@@ -229,6 +270,27 @@ internal static class Dropdown
             ImGui.SetWindowFontScale(fontScale);
             drawList.AddText(itemTextPos, itemTextColor, items[i]);
             ImGui.SetWindowFontScale(1f);
+        }
+
+        drawList.PopClipRect();
+
+        // Scrollbar gutter on the right edge of the menu, drawn outside the
+        // clip so it sits on top of the border.
+        if (maxScroll > 0f)
+        {
+            var trackLeft = menuEnd.X - ScrollbarGutterWidth - ScrollbarTrackPadding;
+            var trackRight = menuEnd.X - ScrollbarTrackPadding;
+            var trackTop = menuTop + ScrollbarTrackPadding;
+            var trackBottom = menuEnd.Y - ScrollbarTrackPadding;
+            var trackHeight = trackBottom - trackTop;
+            var thumbHeight = MathF.Max(16f, trackHeight * (visibleHeight / contentHeight));
+            var thumbTop = trackTop + (trackHeight - thumbHeight) * (scrollY / maxScroll);
+
+            drawList.AddRectFilled(new Vector2(trackLeft, trackTop), new Vector2(trackRight, trackBottom),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.4f), 2f);
+            drawList.AddRectFilled(new Vector2(trackLeft, thumbTop),
+                new Vector2(trackRight, thumbTop + thumbHeight),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.7f), 2f);
         }
     }
 }
