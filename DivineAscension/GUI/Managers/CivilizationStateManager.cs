@@ -930,6 +930,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     {
         // Build milestone ViewModel
         var vm = new CivilizationMilestoneViewModel(
+            CurrentCivilizationName,
             State.MilestoneState.Rank,
             State.MilestoneState.Progress,
             State.MilestoneState.Bonuses,
@@ -938,17 +939,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             State.MilestoneState.ScrollY,
             x, y, width, height);
 
-        // Render with CivilizationMilestoneRenderer
         var drawList = ImGui.GetWindowDrawList();
         var result = CivilizationMilestoneRenderer.Draw(vm, drawList);
         ProcessMilestoneEvents(result.Events);
-
-        // Draw tooltip for hovered milestone
-        if (result.HoveredMilestone != null)
-        {
-            var mousePos = ImGui.GetMousePos();
-            MilestoneTooltipRenderer.Draw(result.HoveredMilestone, mousePos.X, mousePos.Y, width, height);
-        }
     }
 
     private void ProcessMilestoneEvents(IReadOnlyList<MilestoneEvent> events)

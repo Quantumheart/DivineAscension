@@ -8,6 +8,7 @@ using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.Milestones;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Lists;
+using DivineAscension.GUI.UI.Renderers.Components;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Network;
@@ -19,477 +20,353 @@ using static DivineAscension.GUI.UI.Utilities.FontSizes;
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
 /// <summary>
-///     Renderer for the Milestones sub-tab in the Civilization tab.
-///     Displays milestone progress and active bonuses.
+///     Pure renderer for the II.vii Chronicles ledger chapter (#332). Title
+///     strip + refresh glyph, prose intro, Standing leader rows, manuscript
+///     Boons of Standing, then a Deeds Recorded list sorted incomplete-first.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class CivilizationMilestoneRenderer
 {
-    // Layout constants
-    private const float HeaderHeight = 40f;
-    private const float RefreshButtonWidth = 100f;
-    private const float RefreshButtonHeight = 30f;
-    private const float SectionSpacing = 15f;
-    private const float RankSectionHeight = 60f;
-    private const float BonusSectionHeight = 120f;
-    private const float MilestoneItemHeight = 70f;
-    private const float MilestoneItemPadding = 5f;
-    private const float ProgressBarHeight = 16f;
-    private const float ScrollbarWidth = 12f;
-    private const float ScrollbarPadding = 4f;
+    private const float DividerHeight = 18f;
+    private const float DividerYPadding = 6f;
+    private const float SectionLabelHeight = 22f;
+    private const float StatRowHeight = 22f;
+    private const float ProseBottomSpacing = 12f;
+    private const float BoonLineHeight = 22f;
+    private const float DeedNameHeight = 22f;
+    private const float DeedProgressRowHeight = 22f;
+    private const float DeedItemSpacing = 10f;
+    private const float ProgressBarHeight = 12f;
+    private const float ProgressBarIndent = 22f;
+    private const float ProgressBarWidth = 160f;
+    private const float RefreshGlyphSize = 22f;
+    private const float ScrollbarWidth = 16f;
 
-    /// <summary>
-    ///     Pure renderer: builds visuals from view model and emits UI events.
-    ///     No state or side effects.
-    /// </summary>
     public static CivilizationMilestoneRenderResult Draw(
         CivilizationMilestoneViewModel viewModel,
         ImDrawListPtr drawList)
     {
         var events = new List<MilestoneEvent>();
+        var x = viewModel.X;
+        var y = viewModel.Y;
+        var width = viewModel.Width;
+        var height = viewModel.Height;
 
-        // === HEADER WITH REFRESH BUTTON ===
-        var currentY = DrawHeader(viewModel, drawList, events);
-
-        // === LOADING STATE ===
         if (viewModel.IsLoading)
         {
-            DrawLoadingState(viewModel, drawList, currentY);
-            return new CivilizationMilestoneRenderResult(events, viewModel.Height);
+            DrawCenteredStateText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_LOADING),
+                x, y, width, height, ColorPalette.Grey);
+            return new CivilizationMilestoneRenderResult(events, height);
         }
 
-        // === ERROR STATE ===
         if (!string.IsNullOrEmpty(viewModel.ErrorMsg))
         {
-            DrawErrorState(viewModel, drawList, currentY);
-            return new CivilizationMilestoneRenderResult(events, viewModel.Height);
+            var errText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_ERROR)
+                .Replace("{0}", viewModel.ErrorMsg!);
+            DrawCenteredStateText(drawList, errText, x, y, width, height, ColorPalette.ErrorRed);
+            return new CivilizationMilestoneRenderResult(events, height);
         }
 
-        // === EMPTY STATE ===
+        var contentHeightEstimate = ComputeContentHeight(viewModel);
+        var maxScroll = MathF.Max(0f, contentHeightEstimate - height);
+
+        var mousePos = ImGui.GetMousePos();
+        var isHover = mousePos.X >= x && mousePos.X <= x + width &&
+                      mousePos.Y >= y && mousePos.Y <= y + height;
+        var scrollY = viewModel.ScrollY;
+        if (isHover)
+        {
+            var wheel = ImGui.GetIO().MouseWheel;
+            if (wheel != 0)
+            {
+                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                if (Math.Abs(newScrollY - scrollY) > 0.001f)
+                {
+                    scrollY = newScrollY;
+                    events.Add(new MilestoneEvent.ScrollChanged(newScrollY));
+                }
+            }
+        }
+
+        drawList.PushClipRect(new Vector2(x, y), new Vector2(x + width, y + height), true);
+
+        var strip = ChapterStripRenderer.Draw(drawList, x, y, width, scrollY,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_MILESTONES));
+        var contentWidth = strip.ContentWidth;
+        var currentY = strip.BodyY;
+
+        // Refresh glyph button — painted on top of the strip at the right edge.
+        DrawRefreshButton(viewModel, drawList, x, y - scrollY, contentWidth, events);
+
         if (viewModel.Milestones.Count == 0)
         {
-            DrawEmptyState(viewModel, drawList, currentY);
-            return new CivilizationMilestoneRenderResult(events, viewModel.Height);
+            drawList.PopClipRect();
+            DrawCenteredStateText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_EMPTY),
+                x, currentY, width, height - (currentY - y), ColorPalette.Grey);
+            return new CivilizationMilestoneRenderResult(events, height);
         }
 
-        // === RANK DISPLAY ===
-        currentY += DrawRankSection(viewModel, drawList, currentY);
-        currentY += SectionSpacing;
+        currentY = DrawProseIntro(viewModel, drawList, x, currentY, contentWidth);
+        currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
-        // === BONUSES SECTION ===
-        currentY += DrawBonusesSection(viewModel, drawList, currentY);
-        currentY += SectionSpacing;
+        currentY = DrawStandingSection(viewModel, drawList, x, currentY, contentWidth);
+        currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
-        // === MILESTONES LIST ===
-        var contentHeight = viewModel.Height - (currentY - viewModel.Y);
-        var hoveredMilestone = DrawMilestonesList(viewModel, drawList, currentY, contentHeight, events);
+        currentY = DrawBoonsSection(viewModel, drawList, x, currentY, contentWidth);
+        currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
-        return new CivilizationMilestoneRenderResult(events, viewModel.Height, hoveredMilestone);
+        DrawDeedsSection(viewModel, drawList, x, currentY, contentWidth);
+
+        drawList.PopClipRect();
+
+        if (contentHeightEstimate > height)
+            Scrollbar.Draw(drawList, x + width - ScrollbarWidth, y, ScrollbarWidth, height, scrollY, maxScroll);
+
+        return new CivilizationMilestoneRenderResult(events, height);
     }
 
-    private static float DrawHeader(
+    private static void DrawRefreshButton(
         CivilizationMilestoneViewModel viewModel,
         ImDrawListPtr drawList,
+        float paneX,
+        float stripTopY,
+        float contentWidth,
         List<MilestoneEvent> events)
     {
-        // Refresh button right-aligned, painted on top of the title strip.
-        var buttonY = viewModel.Y + ChapterStripRenderer.TopPadding + 3f;
-        var buttonX = viewModel.X + viewModel.Width
-                      - ChapterStripRenderer.ScrollbarGutter - RefreshButtonWidth;
-        if (ButtonRenderer.DrawButton(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_REFRESH),
-                buttonX, buttonY, RefreshButtonWidth, RefreshButtonHeight,
-                false, !viewModel.IsLoading))
+        var bx = paneX + contentWidth - RefreshGlyphSize;
+        var by = stripTopY + ChapterStripRenderer.TopPadding + 6f;
+        if (ButtonRenderer.DrawButton(drawList, string.Empty,
+                bx, by, RefreshGlyphSize, RefreshGlyphSize,
+                isPrimary: false, enabled: !viewModel.IsLoading))
         {
             events.Add(new MilestoneEvent.RefreshClicked());
         }
-
-        var strip = ChapterStripRenderer.Draw(drawList, viewModel.X, viewModel.Y, viewModel.Width, 0f,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_MILESTONES));
-        return strip.BodyY;
+        ChromeRenderer.DrawRefreshArrow(drawList,
+            bx + RefreshGlyphSize / 2f,
+            by + RefreshGlyphSize / 2f,
+            RefreshGlyphSize - 6f,
+            ColorPalette.LightText);
     }
 
-    private static void DrawLoadingState(
+    private static float DrawProseIntro(
         CivilizationMilestoneViewModel viewModel,
         ImDrawListPtr drawList,
-        float contentStartY)
+        float x, float y, float width)
     {
-        var text = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_LOADING);
-        var textSize = ImGui.CalcTextSize(text);
-        var contentHeight = viewModel.Height - (contentStartY - viewModel.Y);
-        var textPos = new Vector2(
-            viewModel.X + viewModel.Width / 2f - textSize.X / 2f,
-            contentStartY + contentHeight / 2f - textSize.Y / 2f
-        );
+        var realm = string.IsNullOrWhiteSpace(viewModel.RealmName)
+            ? LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_TITLE)
+            : viewModel.RealmName;
+        var prose = LocalizationService.Instance.Get(
+            LocalizationKeys.UI_CIVILIZATION_MILESTONES_INTRO, realm);
 
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), text);
+        TextRenderer.DrawInfoText(drawList, prose, x, y, width, Body, ColorPalette.White);
+        var lines = TextRenderer.MeasureWrappedHeight(prose, width, Body);
+        return y + (lines > 0 ? lines : Body + 6f) + ProseBottomSpacing;
     }
 
-    private static void DrawEmptyState(
+    private static float DrawStandingSection(
         CivilizationMilestoneViewModel viewModel,
         ImDrawListPtr drawList,
-        float contentStartY)
+        float x, float y, float width)
     {
-        var text = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_EMPTY);
-        var textSize = ImGui.CalcTextSize(text);
-        var contentHeight = viewModel.Height - (contentStartY - viewModel.Y);
-        var textPos = new Vector2(
-            viewModel.X + viewModel.Width / 2f - textSize.X / 2f,
-            contentStartY + contentHeight / 2f - textSize.Y / 2f
-        );
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_STANDING_HEADING),
+            x, y, SubsectionLabel, ColorPalette.Gold);
+        var currentY = y + SectionLabelHeight;
 
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), text);
-    }
-
-    private static void DrawErrorState(
-        CivilizationMilestoneViewModel viewModel,
-        ImDrawListPtr drawList,
-        float contentStartY)
-    {
-        var text = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_ERROR)
-            .Replace("{0}", viewModel.ErrorMsg ?? "Unknown error");
-        var textSize = ImGui.CalcTextSize(text);
-        var contentHeight = viewModel.Height - (contentStartY - viewModel.Y);
-        var textPos = new Vector2(
-            viewModel.X + viewModel.Width / 2f - textSize.X / 2f,
-            contentStartY + contentHeight / 2f - textSize.Y / 2f
-        );
-
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.ErrorRed), text);
-    }
-
-    private static float DrawRankSection(
-        CivilizationMilestoneViewModel viewModel,
-        ImDrawListPtr drawList,
-        float startY)
-    {
-        var x = viewModel.X + 20f;
-        var width = viewModel.Width - 40f;
-
-        // Background
-        var bgRect = new Vector2(x, startY);
-        var bgRectEnd = new Vector2(x + width, startY + RankSectionHeight);
-        var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.DarkBrown, 0.9f));
-        drawList.AddRectFilled(bgRect, bgRectEnd, bgColor, 4f);
-
-        // Border
-        var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor);
-        drawList.AddRect(bgRect, bgRectEnd, borderColor, 4f, ImDrawFlags.None, 1f);
-
-        // Rank text (display rank name)
         var rankName = RankRequirements.GetCivilizationRankName(viewModel.Rank);
-        var rankText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_RANK)
-            .Replace("{0}", rankName);
-        var rankY = startY + (RankSectionHeight - ImGui.CalcTextSize(rankText).Y) / 2f;
-        drawList.AddText(ImGui.GetFont(), PageTitle,
-            new Vector2(x + 20f, rankY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold),
-            rankText);
+        ChromeRenderer.DrawLeader(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_RANK_LABEL),
+            rankName,
+            x, currentY, width);
+        currentY += StatRowHeight;
 
-        // Completed milestone count
-        var completedCount = viewModel.Milestones.Count(m => m.IsCompleted);
-        var totalCount = viewModel.Milestones.Count;
-        var progressText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_PROGRESS)
-            .Replace("{0}", completedCount.ToString())
-            .Replace("{1}", totalCount.ToString());
-        var progressSize = ImGui.CalcTextSize(progressText);
-        var progressX = x + width - progressSize.X - 20f;
-        var progressY = startY + (RankSectionHeight - progressSize.Y) / 2f;
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel,
-            new Vector2(progressX, progressY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
-            progressText);
+        var completed = viewModel.Milestones.Count(m => m.IsCompleted);
+        var total = viewModel.Milestones.Count;
+        var deedsValue = LocalizationService.Instance.Get(
+            LocalizationKeys.UI_CIVILIZATION_MILESTONES_DEEDS_VALUE, completed, total);
+        ChromeRenderer.DrawLeader(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_DEEDS_LABEL),
+            deedsValue,
+            x, currentY, width);
+        currentY += StatRowHeight;
 
-        return RankSectionHeight;
+        return currentY + 6f;
     }
 
-    private static float DrawBonusesSection(
+    private static float DrawBoonsSection(
         CivilizationMilestoneViewModel viewModel,
         ImDrawListPtr drawList,
-        float startY)
+        float x, float y, float width)
     {
-        var x = viewModel.X + 20f;
-        var width = viewModel.Width - 40f;
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_BOONS_HEADING),
+            x, y, SubsectionLabel, ColorPalette.Gold);
+        var currentY = y + SectionLabelHeight;
 
-        // Background
-        var bgRect = new Vector2(x, startY);
-        var bgRectEnd = new Vector2(x + width, startY + BonusSectionHeight);
-        var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.TableBackground, 0.95f));
-        drawList.AddRectFilled(bgRect, bgRectEnd, bgColor, 4f);
+        var phrases = MilestonePhrases.ActiveBonusPhrases(viewModel.Bonuses).ToList();
+        if (phrases.Count == 0)
+        {
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_BOONS_EMPTY),
+                x, currentY, width, Secondary, ColorPalette.Grey);
+            return currentY + BoonLineHeight + 6f;
+        }
 
-        // Border
-        var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.BorderColor, 0.5f));
-        drawList.AddRect(bgRect, bgRectEnd, borderColor, 4f, ImDrawFlags.None, 1f);
+        foreach (var phrase in phrases)
+        {
+            DrawDiamondBullet(drawList, x + 4f, currentY + Body / 2f - 1f);
+            drawList.AddText(ImGui.GetFont(), Body,
+                new Vector2(x + ProgressBarIndent, currentY),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
+                phrase);
+            currentY += BoonLineHeight;
+        }
 
-        // Title
-        var titleText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_BONUSES_TITLE);
-        drawList.AddText(ImGui.GetFont(), TableHeader,
-            new Vector2(x + 15f, startY + 10f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
-            titleText);
-
-        var bonuses = viewModel.Bonuses;
-        var bonusY = startY + 35f;
-        var columnWidth = (width - 30f) / 2f;
-
-        // Prestige multiplier
-        DrawBonusLine(drawList, x + 15f, bonusY,
-            LocalizationKeys.UI_CIVILIZATION_MILESTONES_BONUS_PRESTIGE,
-            $"+{(bonuses.PrestigeMultiplier - 1f) * 100:F0}%",
-            bonuses.PrestigeMultiplier > 1f);
-
-        // Favor multiplier
-        DrawBonusLine(drawList, x + 15f + columnWidth, bonusY,
-            LocalizationKeys.UI_CIVILIZATION_MILESTONES_BONUS_FAVOR,
-            $"+{(bonuses.FavorMultiplier - 1f) * 100:F0}%",
-            bonuses.FavorMultiplier > 1f);
-
-        bonusY += 25f;
-
-        // Conquest multiplier
-        DrawBonusLine(drawList, x + 15f, bonusY,
-            LocalizationKeys.UI_CIVILIZATION_MILESTONES_BONUS_CONQUEST,
-            $"+{(bonuses.ConquestMultiplier - 1f) * 100:F0}%",
-            bonuses.ConquestMultiplier > 1f);
-
-        // Holy site slots
-        DrawBonusLine(drawList, x + 15f + columnWidth, bonusY,
-            LocalizationKeys.UI_CIVILIZATION_MILESTONES_BONUS_HOLYSITES,
-            $"+{bonuses.BonusHolySiteSlots}",
-            bonuses.BonusHolySiteSlots > 0);
-
-        return BonusSectionHeight;
+        return currentY + 6f;
     }
 
-    private static void DrawBonusLine(
-        ImDrawListPtr drawList,
-        float x,
-        float y,
-        string labelKey,
-        string value,
-        bool isActive)
+    private static void DrawDiamondBullet(ImDrawListPtr drawList, float cx, float cy)
     {
-        var label = LocalizationService.Instance.Get(labelKey);
-        var color = isActive
-            ? ImGui.ColorConvertFloat4ToU32(ColorPalette.SuccessGreen)
-            : ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
-
-        drawList.AddText(ImGui.GetFont(), Body,
-            new Vector2(x, y),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
-            $"{label}: ");
-
-        var labelWidth = ImGui.CalcTextSize($"{label}: ").X;
-        drawList.AddText(ImGui.GetFont(), Body,
-            new Vector2(x + labelWidth, y),
-            color,
-            value);
+        ChromeRenderer.DrawDiamond(drawList, cx + 4f, cy, 4f, ColorPalette.Gold);
+        // Inner spark for the fleuron — small centre highlight.
+        drawList.AddCircleFilled(new Vector2(cx + 4f, cy), 1.2f,
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText));
     }
 
-    private static MilestoneProgressDto? DrawMilestonesList(
+    private static void DrawDeedsSection(
         CivilizationMilestoneViewModel viewModel,
         ImDrawListPtr drawList,
-        float startY,
-        float availableHeight,
-        List<MilestoneEvent> events)
+        float x, float y, float width)
     {
-        MilestoneProgressDto? hoveredMilestone = null;
-        var x = viewModel.X + 20f;
-        var width = viewModel.Width - 40f - ScrollbarWidth - ScrollbarPadding;
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_DEEDS_HEADING),
+            x, y, SubsectionLabel, ColorPalette.Gold);
+        var currentY = y + SectionLabelHeight;
 
-        // Sort milestones: completed last, then by progress percentage
-        var sortedMilestones = viewModel.Milestones
+        var sorted = viewModel.Milestones
             .OrderBy(m => m.IsCompleted)
-            .ThenByDescending(m => m.TargetValue > 0 ? (float)m.CurrentValue / m.TargetValue : 0)
+            .ThenByDescending(m => m.TargetValue > 0 ? (float)m.CurrentValue / m.TargetValue : 0f)
             .ToList();
 
-        // Calculate total content height
-        var totalContentHeight = MilestoneItemPadding + sortedMilestones.Count * (MilestoneItemHeight + MilestoneItemPadding);
-        var maxScroll = Math.Max(0f, totalContentHeight - availableHeight);
-
-        // Scrollable region (without built-in scrollbar)
-        var scrollRegionStart = new Vector2(x, startY);
-        var scrollRegionSize = new Vector2(width, availableHeight);
-
-        ImGui.SetCursorScreenPos(scrollRegionStart);
-        ImGui.BeginChild("MilestoneScroll", scrollRegionSize, false,
-            ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
-
-        // Get child window drawlist and position
-        var childDrawList = ImGui.GetWindowDrawList();
-        var childPos = ImGui.GetCursorScreenPos();
-
-        // Draw entries with manual scroll offset (top padding matches side padding)
-        var currentY = MilestoneItemPadding - viewModel.ScrollY;
-
-        foreach (var milestone in sortedMilestones)
+        foreach (var deed in sorted)
         {
-            var entryY = childPos.Y + currentY;
-
-            // Only draw if visible (culling for performance)
-            if (entryY + MilestoneItemHeight >= startY && entryY <= startY + availableHeight)
-            {
-                var isHovered = DrawMilestoneItem(childDrawList, childPos.X + 20f, entryY, width - 40f, milestone);
-                if (isHovered)
-                    hoveredMilestone = milestone;
-            }
-
-            currentY += MilestoneItemHeight + MilestoneItemPadding;
+            currentY = DrawDeedItem(drawList, deed, x, currentY, width);
         }
-
-        ImGui.EndChild();
-
-        // Draw custom scrollbar
-        if (maxScroll > 0)
-        {
-            var scrollbarX = viewModel.X + viewModel.Width - ScrollbarWidth - 20f;
-
-            Scrollbar.Draw(
-                drawList,
-                scrollbarX,
-                startY,
-                ScrollbarWidth,
-                availableHeight,
-                viewModel.ScrollY,
-                maxScroll
-            );
-
-            // Handle mouse wheel scrolling
-            var mousePos = ImGui.GetMousePos();
-            var newScrollY = Scrollbar.HandleMouseWheel(
-                viewModel.ScrollY,
-                maxScroll,
-                mousePos.X,
-                mousePos.Y,
-                viewModel.X,
-                startY,
-                viewModel.Width,
-                availableHeight
-            );
-
-            // Handle scrollbar dragging
-            newScrollY = Scrollbar.HandleDragging(
-                newScrollY,
-                maxScroll,
-                scrollbarX,
-                startY,
-                ScrollbarWidth,
-                availableHeight
-            );
-
-            // Track scroll changes
-            if (Math.Abs(newScrollY - viewModel.ScrollY) > 0.01f)
-            {
-                events.Add(new MilestoneEvent.ScrollChanged(newScrollY));
-            }
-        }
-
-        return hoveredMilestone;
     }
 
-    private static bool DrawMilestoneItem(
+    private static float DrawDeedItem(
         ImDrawListPtr drawList,
-        float x,
-        float y,
-        float width,
-        MilestoneProgressDto milestone)
+        MilestoneProgressDto deed,
+        float x, float y, float width)
     {
-        // Background
-        var itemRect = new Vector2(x, y);
-        var itemRectEnd = new Vector2(x + width, y + MilestoneItemHeight);
-        var bgColor = milestone.IsCompleted
-            ? ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(new Vector4(0.2f, 0.4f, 0.2f, 1f), 0.8f))
-            : ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.TableBackground, 0.95f));
-        drawList.AddRectFilled(itemRect, itemRectEnd, bgColor, 3f);
+        var markCx = x + 8f;
+        var markCy = y + DeedNameHeight / 2f;
+        if (deed.IsCompleted)
+            DrawCheckmark(drawList, markCx, markCy);
+        else
+            DrawOpenCircle(drawList, markCx, markCy);
 
-        // Border
-        var borderColor = milestone.IsCompleted
-            ? ImGui.ColorConvertFloat4ToU32(ColorPalette.Darken(ColorPalette.SuccessGreen, 0.78f))
-            : ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.BorderColor, 0.5f));
-        drawList.AddRect(itemRect, itemRectEnd, borderColor, 3f, ImDrawFlags.None, 1f);
-
-        var padding = 12f;
-        var currentX = x + padding;
-        var currentY = y + padding;
-
-        // Milestone name
-        var nameColor = milestone.IsCompleted
-            ? ImGui.ColorConvertFloat4ToU32(ColorPalette.Lighten(ColorPalette.SuccessGreen, 1.4f))
+        var nameColor = deed.IsCompleted
+            ? ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText)
             : ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
         drawList.AddText(ImGui.GetFont(), SubsectionLabel,
-            new Vector2(currentX, currentY),
-            nameColor,
-            milestone.MilestoneName);
+            new Vector2(x + ProgressBarIndent, y + 2f),
+            nameColor, deed.MilestoneName);
 
-        // Status badge
-        var statusText = milestone.IsCompleted
-            ? LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_COMPLETED)
-            : LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_MILESTONES_IN_PROGRESS);
-        var statusSize = ImGui.CalcTextSize(statusText);
-        var statusX = x + width - statusSize.X - padding;
-        var statusColor = milestone.IsCompleted
-            ? ImGui.ColorConvertFloat4ToU32(ColorPalette.SuccessGreen)
-            : ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-        drawList.AddText(ImGui.GetFont(), Secondary,
-            new Vector2(statusX, currentY),
-            statusColor,
-            statusText);
+        var currentY = y + DeedNameHeight;
 
-        currentY += 25f;
-
-        // Progress bar
-        var progressBarWidth = width - 2 * padding - 80f; // Leave room for text
-        var progressBarX = currentX;
-        var progressBarY = currentY;
-
-        // Progress bar background (match player progress bar style)
-        var progressBgRect = new Vector2(progressBarX, progressBarY);
-        var progressBgRectEnd = new Vector2(progressBarX + progressBarWidth, progressBarY + ProgressBarHeight);
-        drawList.AddRectFilled(progressBgRect, progressBgRectEnd,
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown), 4f);
-
-        // Progress bar fill (Gold for in-progress, brighter Gold for completed)
-        var progress = milestone.TargetValue > 0
-            ? Math.Min((float)milestone.CurrentValue / milestone.TargetValue, 1f)
-            : 0f;
-        if (progress > 0)
+        if (deed.IsCompleted)
         {
-            var fillWidth = progressBarWidth * progress;
-            var fillRect = new Vector2(progressBarX, progressBarY);
-            var fillRectEnd = new Vector2(progressBarX + fillWidth, progressBarY + ProgressBarHeight);
-            var fillColor = milestone.IsCompleted
-                ? ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 1.2f)
-                : ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
-            drawList.AddRectFilled(fillRect, fillRectEnd, fillColor, 4f);
+            var setDown = LocalizationService.Instance.Get(
+                LocalizationKeys.UI_CIVILIZATION_MILESTONES_DEEDS_SET_DOWN);
+            drawList.AddText(ImGui.GetFont(), Secondary,
+                new Vector2(x + ProgressBarIndent, currentY),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
+                setDown);
+            currentY += DeedProgressRowHeight;
+        }
+        else
+        {
+            var barX = x + ProgressBarIndent;
+            var barY = currentY + 4f;
+            var pct = deed.TargetValue > 0
+                ? Math.Clamp((float)deed.CurrentValue / deed.TargetValue, 0f, 1f)
+                : 0f;
+            ProgressBarRenderer.DrawProgressBar(drawList, barX, barY,
+                ProgressBarWidth, ProgressBarHeight, pct,
+                ColorPalette.Gold, ColorPalette.TableBackground, " ");
+
+            var verb = MilestonePhrases.GetVerbPhrase(deed.TriggerType);
+            var countText = LocalizationService.Instance.Get(
+                LocalizationKeys.UI_CIVILIZATION_MILESTONES_DEEDS_COUNT,
+                deed.CurrentValue, deed.TargetValue, verb);
+            drawList.AddText(ImGui.GetFont(), Secondary,
+                new Vector2(barX + ProgressBarWidth + 10f, currentY + 2f),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
+                countText);
+            currentY += DeedProgressRowHeight;
         }
 
-        // Progress bar border (match player progress bar style)
-        var progressBorderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.5f);
-        drawList.AddRect(progressBgRect, progressBgRectEnd, progressBorderColor, 4f, ImDrawFlags.None, 1f);
+        return currentY + DeedItemSpacing;
+    }
 
-        // Progress text
-        var progressText = $"{milestone.CurrentValue}/{milestone.TargetValue}";
-        var progressTextX = progressBarX + progressBarWidth + 10f;
-        var progressTextY = progressBarY + (ProgressBarHeight - ImGui.CalcTextSize(progressText).Y) / 2f;
-        drawList.AddText(ImGui.GetFont(), Secondary,
-            new Vector2(progressTextX, progressTextY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
-            progressText);
+    private static void DrawCheckmark(ImDrawListPtr drawList, float cx, float cy)
+    {
+        var color = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
+        var s = 5f;
+        var a = new Vector2(cx - s, cy);
+        var b = new Vector2(cx - 1f, cy + s - 1f);
+        var c = new Vector2(cx + s, cy - s + 1f);
+        drawList.AddLine(a, b, color, 1.8f);
+        drawList.AddLine(b, c, color, 1.8f);
+    }
 
-        // Hover detection
-        var mousePos = ImGui.GetMousePos();
-        var isHovered = mousePos.X >= itemRect.X && mousePos.X <= itemRectEnd.X &&
-                        mousePos.Y >= itemRect.Y && mousePos.Y <= itemRectEnd.Y;
+    private static void DrawOpenCircle(ImDrawListPtr drawList, float cx, float cy)
+    {
+        var color = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.7f);
+        drawList.AddCircle(new Vector2(cx, cy), 5f, color, 0, 1.4f);
+    }
 
-        if (isHovered)
-        {
-            var hoverColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.White, 0.08f));
-            drawList.AddRectFilled(itemRect, itemRectEnd, hoverColor, 3f);
-        }
+    private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var dividerY = y + DividerYPadding;
+        ChromeRenderer.DrawDividerOrnate(drawList, x, dividerY, width);
+        return y + DividerHeight;
+    }
 
-        return isHovered;
+    private static float ComputeContentHeight(CivilizationMilestoneViewModel viewModel)
+    {
+        var h = PaneHeaderRenderer.TotalHeight;
+
+        // Prose intro (~2 lines)
+        h += 36f + ProseBottomSpacing;
+
+        // Standing: heading + 2 leader rows + bottom pad
+        h += DividerHeight;
+        h += SectionLabelHeight + StatRowHeight * 2 + 6f;
+
+        // Boons: heading + N lines (or empty single line)
+        h += DividerHeight;
+        var boonCount = MilestonePhrases.ActiveBonusPhrases(viewModel.Bonuses).Count();
+        h += SectionLabelHeight + (boonCount > 0 ? boonCount * BoonLineHeight : BoonLineHeight) + 6f;
+
+        // Deeds: heading + per-item (name + progress/set-down row + spacing)
+        h += DividerHeight;
+        h += SectionLabelHeight;
+        h += viewModel.Milestones.Count * (DeedNameHeight + DeedProgressRowHeight + DeedItemSpacing);
+
+        return h;
+    }
+
+    private static void DrawCenteredStateText(
+        ImDrawListPtr drawList, string text,
+        float x, float y, float width, float height, Vector4 color)
+    {
+        var size = ImGui.CalcTextSize(text);
+        var pos = new Vector2(x + (width - size.X) / 2f, y + (height - size.Y) / 2f);
+        drawList.AddText(pos, ImGui.ColorConvertFloat4ToU32(color), text);
     }
 }
