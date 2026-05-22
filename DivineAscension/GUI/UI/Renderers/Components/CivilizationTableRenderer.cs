@@ -35,7 +35,10 @@ internal static class CivilizationTableRenderer
     private const float RowPaddingVertical = 12f;
     private const float RowSpacing = 8f;
     private const float ScrollbarWidth = 16f;
-    private const float CivIconSize = 48f;
+    // Civ sigil column hidden until the ledger redesign — see #385. Set to 0
+    // so the Name column reclaims the space; the loader and asset PNGs are
+    // intentionally left in place.
+    private const float CivIconSize = 0f;
     private const float DeityIconSize = 12f;
     private const float DeityIconSpacing = 4f;
     private const float DescriptionPaddingHorizontal = 12f;
@@ -189,9 +192,10 @@ internal static class CivilizationTableRenderer
         var headerColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
         const float fontSize = TableHeader;
 
-        // Column 1: "Name" — center over the text area after the icon (matches religion table)
-        var nameTextAreaX = x + NamePadding + CivIconSize + NamePadding;
-        var nameTextAreaWidth = nameColumnWidth - CivIconSize - NamePadding * 3;
+        // Column 1: "Name" — sigil column is hidden (see #385), so the name
+        // text area now spans the full Name column.
+        var nameTextAreaX = x + NamePadding;
+        var nameTextAreaWidth = nameColumnWidth - NamePadding * 2;
         DrawCenteredText(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_HEADER_NAME),
             nameTextAreaX, y + 8f, nameTextAreaWidth, headerColor, fontSize);
@@ -269,12 +273,11 @@ internal static class CivilizationTableRenderer
         float rowHeight,
         float columnWidth)
     {
-        var iconX = colX + NamePadding;
-        var iconY = rowY + (rowHeight - CivIconSize) / 2f;
-        DrawCivIcon(drawList, civ.Icon, iconX, iconY);
-
-        var textX = iconX + CivIconSize + NamePadding;
-        var textWidth = columnWidth - CivIconSize - NamePadding * 3;
+        // Sigil draw skipped — see #385. Layout retained for parity with the
+        // religion table (and so the sigil can return without re-shuffling
+        // the column geometry).
+        var textX = colX + NamePadding;
+        var textWidth = columnWidth - NamePadding * 2;
         var textSize = ImGui.CalcTextSize(civ.Name);
         var scale = Body / ImGui.GetFont().FontSize;
         var scaledWidth = textSize.X * scale;
@@ -351,29 +354,7 @@ internal static class CivilizationTableRenderer
         ImGui.PopTextWrapPos();
     }
 
-    private static void DrawCivIcon(ImDrawListPtr drawList, string iconName, float x, float y)
-    {
-        var iconTextureId = CivilizationIconLoader.GetIconTextureId(iconName);
-        var iconMin = new Vector2(x, y);
-        var iconMax = new Vector2(x + CivIconSize, y + CivIconSize);
-
-        if (iconTextureId != IntPtr.Zero)
-        {
-            var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
-            drawList.AddImage(iconTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
-        }
-        else
-        {
-            var center = new Vector2(x + CivIconSize / 2f, y + CivIconSize / 2f);
-            var fallbackColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightBrown);
-            drawList.AddCircleFilled(center, CivIconSize / 2f, fallbackColor, 16);
-        }
-
-        var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-        drawList.AddRect(iconMin, iconMax, borderColor, 4f, ImDrawFlags.None, 2f);
-    }
-
-    private static void DrawCenteredText(
+private static void DrawCenteredText(
         ImDrawListPtr drawList,
         string text,
         float colX,

@@ -1149,10 +1149,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     break;
 
                 case InfoEvent.EditIconClicked:
-                    State.EditState.IsOpen = true;
-                    State.EditState.CivId = civId;
-                    State.EditState.EditingIcon = civ?.Icon ?? "default";
-                    _soundManager.PlayClick();
+                    // Sigil edit dialog hidden until the ledger redesign — see #385.
+                    // Keep the event handler so any lingering button click is a no-op
+                    // instead of opening the legacy PNG-grid dialog.
                     break;
 
                 case InfoEvent.DisbandOpened:
