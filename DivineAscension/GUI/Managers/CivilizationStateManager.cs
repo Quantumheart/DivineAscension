@@ -538,7 +538,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
         // Render
         var drawList = ImGui.GetWindowDrawList();
-        var result = CivilizationBrowseRenderer.Draw(vm, State.BrowseState.IsDeityFilterOpen, drawList);
+        var result = CivilizationBrowseRenderer.Draw(vm, drawList);
 
         // Process events
         ProcessBrowseEvents(result.Events);
