@@ -58,7 +58,8 @@ internal static class ChapterStripRenderer
         bool showPencil = false,
         IntPtr iconTextureId = default,
         string? rankTag = null,
-        Vector4? rankColor = null)
+        Vector4? rankColor = null,
+        Vector4? dropCapColor = null)
     {
         var stripY = paneY + TopPadding - scrollY;
         var contentWidth = paneWidth - ScrollbarGutter;
@@ -69,20 +70,29 @@ internal static class ChapterStripRenderer
             : 0f;
 
         // Title + divider — divider spans full contentWidth so it lines up
-        // with every section divider drawn at the same width below.
+        // with every section divider drawn at the same width below. When the
+        // pane has a right-side domain glyph and no left-icon (i.e. an entity
+        // chapter rather than an identity chapter), lead with a drop cap
+        // tinted in the domain's ink so the page opens like an illuminated
+        // codex spread. Caller can also pass an explicit drop-cap color to
+        // override.
+        var effectiveDropCap = dropCapColor
+            ?? (iconTextureId == IntPtr.Zero && rightGlyph.HasValue
+                ? DomainHelper.GetDeityColor(rightGlyph.Value)
+                : (Vector4?)null);
+
         var bodyY = PaneHeaderRenderer.Draw(drawList, title, x, stripY, contentWidth,
-            iconTextureId: iconTextureId, rankTag: rankTag, rankColor: rankColor);
+            iconTextureId: iconTextureId, rankTag: rankTag, rankColor: rankColor,
+            dropCapColor: effectiveDropCap);
 
         if (!string.IsNullOrEmpty(rightTitle))
         {
-            var rightScale = FontSizes.PageTitle / FontSizes.SubsectionLabel;
-            var rightTextWidth = ImGui.CalcTextSize(rightTitle).X * rightScale;
+            var rightTextWidth = TextRenderer.MeasureSerifLabel(rightTitle, FontSizes.PageTitle);
             var anchorX = x + contentWidth - pencilReservation - glyphReservation;
             if (glyphReservation > 0f) anchorX -= GlyphGap;
             var rightX = anchorX - rightTextWidth;
-            drawList.AddText(ImGui.GetFont(), FontSizes.PageTitle,
-                new Vector2(rightX, stripY + 4f),
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), rightTitle);
+            TextRenderer.DrawSerifLabel(drawList, rightTitle, rightX, stripY + 4f,
+                FontSizes.PageTitle, ColorPalette.Gold);
         }
 
         if (rightGlyph.HasValue)

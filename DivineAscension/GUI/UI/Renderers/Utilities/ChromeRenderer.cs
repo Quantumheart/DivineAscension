@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Services.UI;
 using ImGuiNET;
 
 namespace DivineAscension.GUI.UI.Renderers.Utilities;
@@ -110,6 +111,51 @@ internal static class ChromeRenderer
                 break;
         }
         drawList.AddTriangleFilled(a, b, c, color);
+    }
+
+    /// <summary>
+    ///     Illuminated drop cap: a rounded square ornament filled with the
+    ///     given <paramref name="color" /> (dimmed) carrying <paramref name="letter" />
+    ///     in Cinzel Bold at the canonical 36px chapter size. Top-left corner
+    ///     of the ornament sits at (<paramref name="x" />, <paramref name="y" />)
+    ///     so callers can lay it flush with the chapter title baseline.
+    ///     Falls back to a plain large letter when Cinzel isn't loaded yet.
+    /// </summary>
+    public const float DropCapSize = 40f;
+    private const int DropCapFontSize = 36;
+
+    public static void DrawDropCap(ImDrawListPtr drawList, char letter, float x, float y,
+        Vector4 color)
+    {
+        var min = new Vector2(x, y);
+        var max = new Vector2(x + DropCapSize, y + DropCapSize);
+        var fillColor = ImGui.ColorConvertFloat4ToU32(new Vector4(color.X, color.Y, color.Z, 0.22f));
+        var borderColor = ImGui.ColorConvertFloat4ToU32(color * 0.7f);
+        drawList.AddRectFilled(min, max, fillColor, 4f);
+        drawList.AddRect(min, max, borderColor, 4f, ImDrawFlags.None, 1f);
+
+        var letterText = letter.ToString();
+        var letterColor = ImGui.ColorConvertFloat4ToU32(color);
+        var serif = CinzelFontSystem.GetBold(DropCapFontSize);
+        if (serif.HasValue)
+        {
+            var font = serif.Value;
+            ImGui.PushFont(font);
+            var glyphSize = ImGui.CalcTextSize(letterText);
+            ImGui.PopFont();
+            var glyphX = x + (DropCapSize - glyphSize.X) / 2f;
+            var glyphY = y + (DropCapSize - glyphSize.Y) / 2f;
+            drawList.AddText(font, font.FontSize, new Vector2(glyphX, glyphY), letterColor, letterText);
+        }
+        else
+        {
+            var defaultFont = ImGui.GetFont();
+            var renderScale = DropCapFontSize / ImGui.GetFontSize();
+            var glyphSize = ImGui.CalcTextSize(letterText) * renderScale;
+            var glyphX = x + (DropCapSize - glyphSize.X) / 2f;
+            var glyphY = y + (DropCapSize - glyphSize.Y) / 2f;
+            drawList.AddText(defaultFont, DropCapFontSize, new Vector2(glyphX, glyphY), letterColor, letterText);
+        }
     }
 
     /// <summary>

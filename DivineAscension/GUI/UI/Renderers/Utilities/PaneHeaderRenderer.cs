@@ -21,8 +21,10 @@ internal static class PaneHeaderRenderer
 {
     public const float IconSize = 32f;
     public const float RowHeight = 36f; // Math.Max(IconSize + 4f, 32f)
+    public const float DropCapRowHeight = 44f; // Math.Max(ChromeRenderer.DropCapSize + 4f, RowHeight)
     public const float DividerBelowSpacing = 20f;
     public const float TotalHeight = RowHeight + DividerBelowSpacing;
+    private const float DropCapGap = 12f;
 
     public static float Draw(
         ImDrawListPtr drawList,
@@ -33,10 +35,27 @@ internal static class PaneHeaderRenderer
         Vector4? rankColor = null,
         string? rightTitle = null,
         Action<ImDrawListPtr, Vector2, Vector2>? iconPainter = null,
-        Vector4? titleColor = null)
+        Vector4? titleColor = null,
+        Vector4? dropCapColor = null)
     {
         var hasIcon = iconTextureId != IntPtr.Zero || iconPainter != null;
         var titleX = hasIcon ? x + IconSize + 12f : x;
+
+        // Drop cap takes the lead position on the left when requested. Caller
+        // supplies the domain/deity color; we strip the first character from
+        // the rendered title and shift the rest right so it flows from the
+        // cap. Hidden if the title is empty or starts with whitespace.
+        var displayTitle = title;
+        var dropCapPresent = dropCapColor.HasValue
+                             && !string.IsNullOrWhiteSpace(title)
+                             && !hasIcon;
+        if (dropCapPresent)
+        {
+            var letter = char.ToUpperInvariant(title[0]);
+            ChromeRenderer.DrawDropCap(drawList, letter, titleX, y, dropCapColor!.Value);
+            titleX += ChromeRenderer.DropCapSize + DropCapGap;
+            displayTitle = title.Substring(1);
+        }
 
         if (hasIcon)
         {
@@ -55,31 +74,34 @@ internal static class PaneHeaderRenderer
             drawList.AddRect(iconMin, iconMax, borderColor, 4f, ImDrawFlags.None, 1f);
         }
 
-        TextRenderer.DrawLabel(drawList, title, titleX, y + 4f, FontSizes.PageTitle, titleColor ?? ColorPalette.White);
+        // Chapter title uses Cinzel Regular at the nearest baked size; rank
+        // tag stays in the default font (small annotation). The serif helper
+        // returns the actual rendered width so the rank tag lands flush with
+        // the title's right edge regardless of Cinzel vs default metrics.
+        // When a drop cap leads the row, the title baseline shifts down so
+        // small caps sit on the cap's optical midline.
+        var titleBaselineY = dropCapPresent ? y + 12f : y + 4f;
+        var titleWidth = TextRenderer.DrawSerifLabel(drawList, displayTitle, titleX, titleBaselineY,
+            FontSizes.PageTitle, titleColor ?? ColorPalette.White);
 
         if (!string.IsNullOrEmpty(rankTag))
         {
-            // CalcTextSize reports at the loaded font's base size (SubsectionLabel-equivalent);
-            // scale to match what we actually rendered the title at.
-            var nameWidthScaled = ImGui.CalcTextSize(title).X * (FontSizes.PageTitle / FontSizes.SubsectionLabel);
             var rankText = $"[{rankTag}]";
             drawList.AddText(ImGui.GetFont(), FontSizes.SubsectionLabel,
-                new Vector2(titleX + nameWidthScaled + 8f, y + 6f),
+                new Vector2(titleX + titleWidth + 8f, y + 6f),
                 ImGui.ColorConvertFloat4ToU32(rankColor ?? ColorPalette.Gold), rankText);
         }
 
         if (!string.IsNullOrEmpty(rightTitle))
         {
             // Right-aligned entity name at the same baseline as the title.
-            var rightScale = FontSizes.PageTitle / FontSizes.SubsectionLabel;
-            var rightWidth = ImGui.CalcTextSize(rightTitle).X * rightScale;
+            var rightWidth = TextRenderer.MeasureSerifLabel(rightTitle, FontSizes.PageTitle);
             var rightX = x + width - rightWidth;
-            drawList.AddText(ImGui.GetFont(), FontSizes.PageTitle,
-                new Vector2(rightX, y + 4f),
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), rightTitle);
+            TextRenderer.DrawSerifLabel(drawList, rightTitle, rightX, y + 4f,
+                FontSizes.PageTitle, ColorPalette.Gold);
         }
 
-        var dividerY = y + RowHeight;
+        var dividerY = y + (dropCapPresent ? DropCapRowHeight : RowHeight);
         ChromeRenderer.DrawDivider(drawList, x, dividerY, width);
         return dividerY + DividerBelowSpacing;
     }
