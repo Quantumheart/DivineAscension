@@ -38,8 +38,10 @@ internal static class ReligionInfoDescriptionRenderer
         float x,
         float y,
         float width,
-        List<InfoEvent> events)
+        List<InfoEvent> events,
+        float? bodyHeightOverride = null)
     {
+        var bodyHeight = bodyHeightOverride ?? ProseBodyHeight;
         var currentY = y;
 
         // Heading + (founder-only) edit glyph to the right.
@@ -115,11 +117,11 @@ internal static class ReligionInfoDescriptionRenderer
             // defensive guard against any wrap-estimate drift.
             drawList.PushClipRect(
                 new Vector2(x, currentY),
-                new Vector2(x + width, currentY + ProseBodyHeight),
+                new Vector2(x + width, currentY + bodyHeight),
                 true);
             TextRenderer.DrawInfoText(drawList, prose, x, currentY, width, Secondary, proseColor);
             drawList.PopClipRect();
-            currentY += ProseBodyHeight + SectionBottomSpacing;
+            currentY += bodyHeight + SectionBottomSpacing;
         }
 
         return currentY;

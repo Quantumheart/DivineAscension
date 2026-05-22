@@ -37,8 +37,10 @@ internal static class ReligionInfoFoundingMythRenderer
         float x,
         float y,
         float width,
-        List<InfoEvent> events)
+        List<InfoEvent> events,
+        float? bodyHeightOverride = null)
     {
+        var bodyHeight = bodyHeightOverride ?? ProseBodyHeight;
         var currentY = y;
 
         var heading = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MYTH_HEADING);
@@ -108,11 +110,11 @@ internal static class ReligionInfoFoundingMythRenderer
                 : ColorPalette.White;
             drawList.PushClipRect(
                 new Vector2(x, currentY),
-                new Vector2(x + width, currentY + ProseBodyHeight),
+                new Vector2(x + width, currentY + bodyHeight),
                 true);
             TextRenderer.DrawInfoText(drawList, prose, x, currentY, width, Secondary, proseColor);
             drawList.PopClipRect();
-            currentY += ProseBodyHeight + SectionBottomSpacing;
+            currentY += bodyHeight + SectionBottomSpacing;
         }
 
         return currentY;

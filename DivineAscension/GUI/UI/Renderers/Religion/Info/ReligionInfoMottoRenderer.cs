@@ -98,15 +98,42 @@ internal static class ReligionInfoMottoRenderer
         }
         else
         {
-            var prose = string.IsNullOrWhiteSpace(viewModel.Motto)
-                ? LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MOTTO_EMPTY)
-                : $"“{viewModel.Motto}”";
-            var proseColor = string.IsNullOrWhiteSpace(viewModel.Motto)
-                ? ColorPalette.Grey
-                : ColorPalette.White;
-            TextRenderer.DrawInfoText(drawList, prose, x, currentY, width, Secondary, proseColor);
-            var height = TextRenderer.MeasureWrappedHeight(prose, width);
-            currentY += (height > 0 ? height : 20f) + SectionBottomSpacing;
+            var hasMotto = !string.IsNullOrWhiteSpace(viewModel.Motto);
+            var prose = hasMotto
+                ? viewModel.Motto!
+                : LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_MOTTO_EMPTY);
+            var proseColor = hasMotto ? ColorPalette.White : ColorPalette.Grey;
+
+            if (hasMotto)
+            {
+                // Paint primitive curly-quote glyphs flanking the motto since
+                // the font lacks U+201C/U+201D coverage. Indent prose by a
+                // glyph's width so wrapping accounts for the marks.
+                const float glyphSize = 14f;
+                const float glyphGap = 6f;
+                var textIndent = glyphSize + glyphGap;
+                var openCx = x + glyphSize / 2f;
+                var openCy = currentY + glyphSize / 2f;
+                ChromeRenderer.DrawQuoteMark(drawList, openCx, openCy, glyphSize, closing: false,
+                    colorOverride: ColorPalette.Grey);
+
+                TextRenderer.DrawInfoText(drawList, prose, x + textIndent, currentY,
+                    width - textIndent * 2f, Secondary, proseColor);
+                var textHeight = TextRenderer.MeasureWrappedHeight(prose, width - textIndent * 2f);
+                var renderedHeight = textHeight > 0 ? textHeight : 20f;
+
+                var closeCx = x + width - glyphSize / 2f;
+                var closeCy = currentY + renderedHeight - glyphSize / 2f;
+                ChromeRenderer.DrawQuoteMark(drawList, closeCx, closeCy, glyphSize, closing: true,
+                    colorOverride: ColorPalette.Grey);
+                currentY += renderedHeight + SectionBottomSpacing;
+            }
+            else
+            {
+                TextRenderer.DrawInfoText(drawList, prose, x, currentY, width, Secondary, proseColor);
+                var textHeight = TextRenderer.MeasureWrappedHeight(prose, width);
+                currentY += (textHeight > 0 ? textHeight : 20f) + SectionBottomSpacing;
+            }
         }
 
         return currentY;
