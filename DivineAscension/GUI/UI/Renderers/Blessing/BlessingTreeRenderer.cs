@@ -147,9 +147,13 @@ internal static class BlessingTreeRenderer
         ImGui.SetCursorScreenPos(new Vector2(x, y));
 
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(padding, padding));
-        ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(0.1f, 0.08f, 0.06f, 0.5f));
+        ImGui.PushStyleVar(ImGuiStyleVar.ChildBorderSize, 0f);
+        // Transparent child: the parchment chapter background shows through. No
+        // dark child fill — that broke the codex feel and forced node colours
+        // to fight a dark surround.
+        ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(0f, 0f, 0f, 0f));
 
-        ImGui.BeginChild(panelId, new Vector2(width, height), true,
+        ImGui.BeginChild(panelId, new Vector2(width, height), false,
             ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 
         ImGui.Dummy(new Vector2(totalWidth + padding * 2, totalHeight + padding * 2));
@@ -204,7 +208,7 @@ internal static class BlessingTreeRenderer
 
         ImGui.EndChild();
         ImGui.PopStyleColor();
-        ImGui.PopStyleVar();
+        ImGui.PopStyleVar(2);
         return (scrollX, scrollY, hoveringBlessingId, clickedBlessingId, doubleClickedBlessingId);
     }
 
