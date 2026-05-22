@@ -6,6 +6,7 @@ using DivineAscension.API.Implementation;
 using DivineAscension.API.Interfaces;
 using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Managers;
+using DivineAscension.GUI.Models.Enum;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI;
 using DivineAscension.GUI.UI.Components.Overlays;
@@ -28,6 +29,10 @@ public partial class GuiDialog : ModSystem
     private const int CheckDataInterval = 1000; // Check for data every 1 second
     private const int WindowBaseWidth = 1400;
     private const int WindowBaseHeight = 900;
+    private const int PageTurnDebounceMs = 150;
+
+    private SidebarNavId _lastObservedNav;
+    private long _lastPageTurnTickMs;
 
     // State
     private readonly GuiDialogState _state = new();
@@ -209,6 +214,16 @@ public partial class GuiDialog : ModSystem
 
         _state.IsOpen = true;
         _imguiModSystem?.Show();
+        _lastObservedNav = _state.Sidebar.CurrentNav;
+        PlayPageTurn();
+    }
+
+    private void PlayPageTurn()
+    {
+        var now = Environment.TickCount64;
+        if (now - _lastPageTurnTickMs < PageTurnDebounceMs) return;
+        _lastPageTurnTickMs = now;
+        _soundManager?.Play(SoundType.PageTurn, SoundVolume.Quiet);
     }
 
     /// <summary>
@@ -250,6 +265,12 @@ public partial class GuiDialog : ModSystem
         {
             Close();
             return CallbackGUIStatus.Closed;
+        }
+
+        if (_state.Sidebar.CurrentNav != _lastObservedNav)
+        {
+            _lastObservedNav = _state.Sidebar.CurrentNav;
+            PlayPageTurn();
         }
 
         DrawWindow();
