@@ -11,6 +11,7 @@ using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models.Enum;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Services;
 using ImGuiNET;
@@ -147,9 +148,13 @@ internal static class CivilizationDetailRenderer
     {
         var currentY = y;
 
+        var founderValue = string.IsNullOrWhiteSpace(vm.FounderName) ? "—" : vm.FounderName;
+        if (!string.IsNullOrWhiteSpace(vm.FounderEpithet))
+            founderValue = $"{founderValue}, {vm.FounderEpithet}";
+
         ChromeRenderer.DrawLeader(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_FOUNDER),
-            string.IsNullOrWhiteSpace(vm.FounderName) ? "—" : vm.FounderName,
+            founderValue,
             vm.X, currentY, width,
             valueColor: ColorPalette.Vermilion);
         currentY += StatRowHeight;
@@ -157,6 +162,12 @@ internal static class CivilizationDetailRenderer
         ChromeRenderer.DrawLeader(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_FOUNDING_ORDER),
             string.IsNullOrWhiteSpace(vm.FounderReligionName) ? "—" : vm.FounderReligionName,
+            vm.X, currentY, width);
+        currentY += StatRowHeight;
+
+        ChromeRenderer.DrawLeader(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_ETHOS),
+            LocalizationService.Instance.Get(EthosLocKey((CivilizationEthos)vm.Ethos)),
             vm.X, currentY, width);
         currentY += StatRowHeight;
 
@@ -169,6 +180,15 @@ internal static class CivilizationDetailRenderer
 
         return currentY + StatBlockBottomSpacing;
     }
+
+    private static string EthosLocKey(CivilizationEthos ethos) => ethos switch
+    {
+        CivilizationEthos.Mercantile => LocalizationKeys.CIVILIZATION_ETHOS_MERCANTILE,
+        CivilizationEthos.Martial => LocalizationKeys.CIVILIZATION_ETHOS_MARTIAL,
+        CivilizationEthos.Mystic => LocalizationKeys.CIVILIZATION_ETHOS_MYSTIC,
+        CivilizationEthos.Ascetic => LocalizationKeys.CIVILIZATION_ETHOS_ASCETIC,
+        _ => LocalizationKeys.CIVILIZATION_ETHOS_SOVEREIGN
+    };
 
     private static float DrawHistoryProse(
         CivilizationDetailViewModel vm,

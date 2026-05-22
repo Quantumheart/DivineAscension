@@ -42,7 +42,7 @@ public interface ICivilizationManager
     /// <param name="description">Optional description for the civilization</param>
     /// <returns>The created civilization, or null if creation failed</returns>
     Civilization? CreateCivilization(string name, string founderUID, string founderReligionId, string icon = "default",
-        string description = "");
+        string description = "", CivilizationEthos? ethosOverride = null);
 
     /// <summary>
     ///     Invites a religion to join a civilization

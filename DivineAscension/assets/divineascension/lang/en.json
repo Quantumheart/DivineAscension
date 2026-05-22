@@ -1293,5 +1293,23 @@
   "divineascension:ui.playerinfo.row.deity": "Deity",
   "divineascension:ui.playerinfo.row.order": "Order",
   "divineascension:ui.playerinfo.row.vestment": "Vestment",
-  "divineascension:ui.playerinfo.row.realm": "Realm"
+  "divineascension:ui.playerinfo.row.realm": "Realm",
+
+  "divineascension:civilization.ethos.sovereign": "Sovereign",
+  "divineascension:civilization.ethos.mercantile": "Mercantile",
+  "divineascension:civilization.ethos.martial": "Martial",
+  "divineascension:civilization.ethos.mystic": "Mystic",
+  "divineascension:civilization.ethos.ascetic": "Ascetic",
+
+  "divineascension:civilization.epithet.craft": "the Forge-Crowned",
+  "divineascension:civilization.epithet.conquest": "the Iron-Handed",
+  "divineascension:civilization.epithet.wild": "the Storm-Voiced",
+  "divineascension:civilization.epithet.harvest": "the Grain-Bearer",
+  "divineascension:civilization.epithet.stone": "the Stone-Bearer",
+  "divineascension:civilization.epithet.default": "the Unmarked",
+
+  "divineascension:ui.civilization.info.ethos": "Ethos",
+  "divineascension:ui.civilization.detail.ethos": "Ethos",
+  "divineascension:ui.civilization.create.ethos.label": "Ethos",
+  "divineascension:ui.civilization.create.ethos.hint": "Chosen once, at founding. Tradition derives ethos from your patron's domain — overrule only with reason."
 }

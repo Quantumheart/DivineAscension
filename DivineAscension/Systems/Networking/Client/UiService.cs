@@ -117,9 +117,9 @@ public class UiService(DivineAscensionNetworkClient networkClient)
     }
 
     public void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "",
-        string icon = "", string description = "")
+        string icon = "", string description = "", int ethos = -1)
     {
-        _networkClient.RequestCivilizationAction(action, civId, targetId, name, icon, description);
+        _networkClient.RequestCivilizationAction(action, civId, targetId, name, icon, description, ethos);
     }
 
     public void RequestDiplomacyInfo(string civId)

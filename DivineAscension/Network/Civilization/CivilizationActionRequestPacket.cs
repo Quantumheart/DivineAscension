@@ -37,4 +37,13 @@ public class CivilizationActionRequestPacket
     [ProtoMember(5)] public string Icon { get; set; } = string.Empty; // Icon identifier (for create/updateicon actions)
 
     [ProtoMember(6)] public string Description { get; set; } = string.Empty; // Description (for create/setdescription actions)
+
+    /// <summary>
+    ///     Founder-picked ethos for the "create" action, stored as
+    ///     <see cref="DivineAscension.Models.Enum.CivilizationEthos" /> cast to int. A
+    ///     negative value (the default) means the server should derive ethos from the
+    ///     founder religion's patron domain. Zero is a valid explicit pick (Sovereign).
+    /// </summary>
+    [ProtoMember(7)]
+    public int Ethos { get; set; } = -1;
 }

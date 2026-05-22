@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
+using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
@@ -209,7 +210,7 @@ public class CivilizationManager : ICivilizationManager
     /// <param name="description">Optional description for the civilization</param>
     /// <returns>The created civilization, or null if creation failed</returns>
     public Civilization? CreateCivilization(string name, string founderUID, string founderReligionId,
-        string icon = "default", string description = "")
+        string icon = "default", string description = "", CivilizationEthos? ethosOverride = null)
     {
         lock (Lock)
         {
@@ -267,11 +268,14 @@ public class CivilizationManager : ICivilizationManager
 
                 // Create civilization
                 var civId = Guid.NewGuid().ToString();
+                var (derivedEthos, epithetKey) = CivilizationEthosDeriver.Derive(founderReligion.PatronDomain);
                 var civ = new Civilization(civId, name, founderUID, founderReligionId)
                 {
                     MemberCount = founderReligion.MemberUIDs.Count,
                     Icon = icon,
-                    Description = description
+                    Description = description,
+                    Ethos = ethosOverride ?? derivedEthos,
+                    FounderEpithet = LocalizationService.Instance.Get(epithetKey)
                 };
 
                 _data.AddCivilization(civ);

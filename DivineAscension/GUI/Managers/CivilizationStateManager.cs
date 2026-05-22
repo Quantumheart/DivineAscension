@@ -21,6 +21,7 @@ using DivineAscension.GUI.UI.Adapters.Diplomacy;
 using DivineAscension.GUI.UI.Renderers.Civilization;
 using DivineAscension.GUI.UI.Renderers.HolySites;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Services;
@@ -301,11 +302,11 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     ///     Request a civilization action (create, invite, accept, leave, kick, disband, updateicon, setdescription)
     /// </summary>
     public void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "",
-        string icon = "", string description = "")
+        string icon = "", string description = "", int ethos = -1)
     {
         // Clear transient action error; some actions will trigger refreshes
         State.LastActionError = null;
-        _uiService.RequestCivilizationAction(action, civId, targetId, name, icon, description);
+        _uiService.RequestCivilizationAction(action, civId, targetId, name, icon, description, ethos);
     }
 
     /// <summary>
@@ -592,6 +593,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             details?.FounderName ?? string.Empty,
             details?.FounderReligionName ?? string.Empty,
             details?.Rank ?? 0,
+            details?.Ethos ?? 0,
+            details?.FounderEpithet ?? string.Empty,
             details?.MemberReligions ?? new List<CivilizationInfoResponsePacket.MemberReligion>(),
             details?.CreatedDate ?? DateTime.MinValue,
             details?.Description ?? string.Empty,
@@ -647,6 +650,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             civ?.CreatedDate ?? DateTime.MinValue,
             UserIsCivilizationFounder,
             civ?.Rank ?? 0,
+            civ?.Ethos ?? 0,
+            civ?.FounderEpithet ?? string.Empty,
             memberReligions,
             civ?.PendingInvites ?? new List<CivilizationInfoResponsePacket.PendingInvite>(),
             State.InfoState.InviteReligionName ?? string.Empty,
@@ -733,6 +738,13 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 out profanityWordInDescription);
         }
 
+        // Default ethos is derived from the founder's patron domain; the founder may
+        // still override before submitting.
+        var defaultEthos = ChromeContext.PlayerPatronDomain.HasValue
+            ? CivilizationEthosDeriver.Derive(ChromeContext.PlayerPatronDomain.Value).Ethos
+            : CivilizationEthos.Sovereign;
+        var displayedEthos = State.CreateState.SelectedEthos ?? defaultEthos;
+
         // Build ViewModel
         var vm = new CivilizationCreateViewModel(
             State.CreateState.CreateCivName,
@@ -746,7 +758,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             x,
             y,
             width,
-            height);
+            height,
+            displayedEthos);
 
         // Render
         var drawList = ImGui.GetWindowDrawList();
@@ -1215,16 +1228,25 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     _soundManager.PlayClick();
                     break;
 
+                case CreateEvent.EthosSelected ethosSelected:
+                    State.CreateState.SelectedEthos = ethosSelected.ethos;
+                    _soundManager.PlayClick();
+                    break;
+
                 case CreateEvent.SubmitClicked:
                     if (!string.IsNullOrWhiteSpace(State.CreateState.CreateCivName) &&
                         State.CreateState.CreateCivName.Length >= 3 &&
                         State.CreateState.CreateCivName.Length <= 32)
                     {
+                        var pickedEthos = State.CreateState.SelectedEthos.HasValue
+                            ? (int)State.CreateState.SelectedEthos.Value
+                            : -1;
                         RequestCivilizationAction("create", "", "", State.CreateState.CreateCivName,
-                            State.CreateState.SelectedIcon, State.CreateState.CreateDescription);
+                            State.CreateState.SelectedIcon, State.CreateState.CreateDescription, pickedEthos);
                         State.CreateState.CreateCivName = string.Empty;
                         State.CreateState.SelectedIcon = "default";
                         State.CreateState.CreateDescription = string.Empty;
+                        State.CreateState.SelectedEthos = null;
                     }
                     else
                     {
@@ -1238,6 +1260,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     State.CreateState.CreateCivName = string.Empty;
                     State.CreateState.SelectedIcon = "default";
                     State.CreateState.CreateDescription = string.Empty;
+                    State.CreateState.SelectedEthos = null;
                     break;
             }
     }

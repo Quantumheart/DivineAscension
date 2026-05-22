@@ -5,6 +5,7 @@ using DivineAscension.Constants;
 using DivineAscension.GUI.Models.Civilization.Info;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using ImGuiNET;
 using static DivineAscension.GUI.UI.Utilities.FontSizes;
@@ -77,9 +78,13 @@ internal static class CivilizationInfoHeaderRenderer
             x, currentY, width);
         currentY += StatRowHeight;
 
+        var founderValue = string.IsNullOrWhiteSpace(vm.FounderName) ? "—" : vm.FounderName;
+        if (!string.IsNullOrWhiteSpace(vm.FounderEpithet))
+            founderValue = $"{founderValue}, {vm.FounderEpithet}";
+
         ChromeRenderer.DrawLeader(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_FOUNDER),
-            string.IsNullOrWhiteSpace(vm.FounderName) ? "—" : vm.FounderName,
+            founderValue,
             x, currentY, width,
             valueColor: ColorPalette.Vermilion);
         currentY += StatRowHeight;
@@ -90,6 +95,21 @@ internal static class CivilizationInfoHeaderRenderer
             x, currentY, width);
         currentY += StatRowHeight;
 
+        ChromeRenderer.DrawLeader(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_ETHOS),
+            LocalizationService.Instance.Get(EthosLocKey((CivilizationEthos)vm.Ethos)),
+            x, currentY, width);
+        currentY += StatRowHeight;
+
         return currentY + StatBlockBottomSpacing;
     }
+
+    private static string EthosLocKey(CivilizationEthos ethos) => ethos switch
+    {
+        CivilizationEthos.Mercantile => LocalizationKeys.CIVILIZATION_ETHOS_MERCANTILE,
+        CivilizationEthos.Martial => LocalizationKeys.CIVILIZATION_ETHOS_MARTIAL,
+        CivilizationEthos.Mystic => LocalizationKeys.CIVILIZATION_ETHOS_MYSTIC,
+        CivilizationEthos.Ascetic => LocalizationKeys.CIVILIZATION_ETHOS_ASCETIC,
+        _ => LocalizationKeys.CIVILIZATION_ETHOS_SOVEREIGN
+    };
 }

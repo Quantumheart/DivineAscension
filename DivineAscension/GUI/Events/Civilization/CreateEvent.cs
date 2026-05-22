@@ -8,6 +8,8 @@ public abstract record CreateEvent
 
     public sealed record IconSelected(string icon) : CreateEvent;
 
+    public sealed record EthosSelected(DivineAscension.Models.Enum.CivilizationEthos ethos) : CreateEvent;
+
     public sealed record SubmitClicked : CreateEvent;
 
     public sealed record ClearClicked : CreateEvent;

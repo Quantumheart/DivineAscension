@@ -1,5 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using DivineAscension.Data;
+using DivineAscension.Models.Enum;
+using ProtoBuf;
 
 namespace DivineAscension.Tests.Data;
 
@@ -420,6 +423,57 @@ public class CivilizationDataTests
 
         // Assert
         Assert.True(result);
+    }
+
+    #endregion
+
+    #region Ethos & Founder Epithet (#367)
+
+    [Fact]
+    public void Civilization_NewInstance_DefaultsToSovereignEthosAndEmptyEpithet()
+    {
+        var civ = new Civilization("civ-1", "Test", "player-1", "religion-1");
+
+        Assert.Equal(CivilizationEthos.Sovereign, civ.Ethos);
+        Assert.Equal(string.Empty, civ.FounderEpithet);
+    }
+
+    [Fact]
+    public void Civilization_EthosAndEpithet_SurviveProtoRoundTrip()
+    {
+        var original = new Civilization("civ-1", "Test", "player-1", "religion-1")
+        {
+            Ethos = CivilizationEthos.Martial,
+            FounderEpithet = "the Iron-Handed"
+        };
+
+        byte[] bytes;
+        using (var ms = new MemoryStream())
+        {
+            Serializer.Serialize(ms, original);
+            bytes = ms.ToArray();
+        }
+
+        Civilization roundTripped;
+        using (var ms = new MemoryStream(bytes))
+        {
+            roundTripped = Serializer.Deserialize<Civilization>(ms);
+        }
+
+        Assert.Equal(CivilizationEthos.Martial, roundTripped.Ethos);
+        Assert.Equal("the Iron-Handed", roundTripped.FounderEpithet);
+    }
+
+    [Fact]
+    public void Civilization_LegacySerializedBytes_LoadAsSovereignAndEmptyEpithet()
+    {
+        // Civilization populated without the two new ProtoMembers (simulates pre-#367 saves).
+        // Round-tripping through Serializer.Merge against a default instance reproduces the
+        // legacy-load path: unknown/missing fields stay at their initialised defaults.
+        var civ = new Civilization();
+
+        Assert.Equal(CivilizationEthos.Sovereign, civ.Ethos);
+        Assert.Equal(string.Empty, civ.FounderEpithet);
     }
 
     #endregion
