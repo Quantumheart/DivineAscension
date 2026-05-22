@@ -71,14 +71,20 @@ internal static class ChapterStripRenderer
 
         // Title + divider — divider spans full contentWidth so it lines up
         // with every section divider drawn at the same width below. Every
-        // chapter pane opens with an illuminated drop cap; the colour comes
-        // from the right-side domain glyph when there is one, falls back to
-        // the chrome gold for non-deity chapters (browse, identity, letters,
-        // chronicles…), and yields to an explicit caller override.
-        var effectiveDropCap = dropCapColor
-            ?? (rightGlyph.HasValue
-                ? DomainHelper.GetDeityColor(rightGlyph.Value)
-                : ColorPalette.Gold);
+        // chapter pane opens with an illuminated drop cap. Colour priority:
+        //   1. explicit dropCapColor from the caller,
+        //   2. the right-side domain glyph (page is about this domain),
+        //   3. the player's patron domain (player's own ink across their book),
+        //   4. chrome gold (player has no patron yet).
+        Vector4 effectiveDropCap;
+        if (dropCapColor.HasValue)
+            effectiveDropCap = dropCapColor.Value;
+        else if (rightGlyph.HasValue)
+            effectiveDropCap = DomainHelper.GetDeityColor(rightGlyph.Value);
+        else if (ChromeContext.PlayerPatronDomain.HasValue)
+            effectiveDropCap = DomainHelper.GetDeityColor(ChromeContext.PlayerPatronDomain.Value);
+        else
+            effectiveDropCap = ColorPalette.Gold;
 
         var bodyY = PaneHeaderRenderer.Draw(drawList, title, x, stripY, contentWidth,
             iconTextureId: iconTextureId, rankTag: rankTag, rankColor: rankColor,

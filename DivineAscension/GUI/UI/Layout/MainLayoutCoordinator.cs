@@ -7,6 +7,7 @@ using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI.Renderers.PlayerInfo;
 using DivineAscension.GUI.UI.Renderers.Sidebar;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models.Enum;
 using DivineAscension.Network.Civilization;
 using ImGuiNET;
 
@@ -36,6 +37,16 @@ internal static class MainLayoutCoordinator
         int windowHeight,
         float deltaTime)
     {
+        // Stamp ambient chrome state so pure renderers can tint chapter
+        // drop caps in the player's patron ink without holding a manager
+        // reference. Null when the player has no religion or hasn't been
+        // assigned a domain yet (drop cap then falls back to gold).
+        var patronDomain = manager.HasReligion()
+                           && manager.ReligionStateManager.CurrentReligionDomain != DeityDomain.None
+            ? manager.ReligionStateManager.CurrentReligionDomain
+            : (DeityDomain?)null;
+        ChromeContext.SetFrame(patronDomain);
+
         var windowPos = ImGui.GetWindowPos();
         var outer = new UiRect(windowPos.X, windowPos.Y, windowWidth, windowHeight);
 
