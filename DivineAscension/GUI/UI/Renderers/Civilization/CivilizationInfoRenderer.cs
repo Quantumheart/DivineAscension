@@ -100,6 +100,8 @@ internal static class CivilizationInfoRenderer
 
         currentY = CivilizationInfoHeaderRenderer.Draw(vm, drawList, x, currentY, contentWidth);
 
+        currentY = CivilizationInfoCapitalRenderer.Draw(vm, drawList, x, currentY, contentWidth, events);
+
         currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
         currentY = CivilizationInfoDescriptionRenderer.Draw(vm, drawList, x, currentY, contentWidth, events);
@@ -270,8 +272,8 @@ internal static class CivilizationInfoRenderer
         h += PaneHeaderRenderer.TotalHeight;
         // Prose intro
         h += Body + LinePadding + 12f;
-        // Stat block (4 rows: founded, founder+epithet, founding order, ethos)
-        h += OrderRowHeight * 4 + 8f;
+        // Stat block (5 rows: founded, founder+epithet, founding order, ethos, seat)
+        h += OrderRowHeight * 5 + 8f;
 
         h += DividerHeight;
 

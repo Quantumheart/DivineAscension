@@ -125,6 +125,9 @@ public static class DivineAscensionSystemInitializer
         // Subscribe to religion deletion events for cascading cleanup
         religionManager.OnReligionDeleted += holySiteManager.HandleReligionDeleted;
 
+        // Wire holy-site manager into civilization manager for capital cascades
+        civilizationManager.SetHolySiteManager(holySiteManager);
+
         // Initialize Holy Site Area Tracker (tracks player enter/exit events for holy sites)
         var holySiteAreaTracker = new HolySiteAreaTracker(
             eventService,

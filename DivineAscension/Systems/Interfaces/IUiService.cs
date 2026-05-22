@@ -35,7 +35,8 @@ public interface IUiService
     void RequestCivilizationInfo(string civId);
 
     void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "",
-        string icon = "", string description = "", int ethos = -1);
+        string icon = "", string description = "", int ethos = -1,
+        string capitalName = "", string holySiteId = "");
 
     // Diplomacy Operations
     void RequestDiplomacyInfo(string civId);

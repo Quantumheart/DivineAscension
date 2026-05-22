@@ -520,6 +520,9 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_DETAIL_ETHOS =
         "divineascension:ui.civilization.detail.ethos";
 
+    public const string UI_CIVILIZATION_DETAIL_SEAT =
+        "divineascension:ui.civilization.detail.seat";
+
     public const string UI_CIVILIZATION_DETAIL_MEMBER_ORDERS =
         "divineascension:ui.civilization.detail.member_orders";
 
@@ -1779,6 +1782,10 @@ public static class LocalizationKeys
     public const string NET_CIV_DESCRIPTION_UPDATE_FAILED = "divineascension:net.civ.description_update_failed";
     public const string NET_CIV_DESCRIPTION_TOO_LONG = "divineascension:net.civ.description_too_long";
     public const string NET_CIV_DESCRIPTION_PROFANITY = "divineascension:net.civ.description_profanity";
+    public const string NET_CIV_CAPITAL_UPDATED = "divineascension:net.civ.capital_updated";
+    public const string NET_CIV_CAPITAL_UPDATE_FAILED = "divineascension:net.civ.capital_update_failed";
+    public const string NET_CIV_CAPITAL_NAME_INVALID = "divineascension:net.civ.capital_name_invalid";
+    public const string NET_CIV_CAPITAL_NAME_PROFANITY = "divineascension:net.civ.capital_name_profanity";
     public const string NET_CIV_UNKNOWN_ACTION = "divineascension:net.civ.unknown_action";
     public const string NET_CIV_ERROR = "divineascension:net.civ.error";
 
@@ -1911,6 +1918,8 @@ public static class LocalizationKeys
 
     // Header row labels for the civ info chapter.
     public const string UI_CIVILIZATION_INFO_ETHOS = "divineascension:ui.civilization.info.ethos";
+    public const string UI_CIVILIZATION_INFO_SEAT = "divineascension:ui.civilization.info.seat";
+    public const string UI_CIVILIZATION_INFO_CAPITAL_NONE = "divineascension:ui.civilization.info.capital_none";
 
     #endregion
 }

@@ -302,11 +302,13 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     ///     Request a civilization action (create, invite, accept, leave, kick, disband, updateicon, setdescription)
     /// </summary>
     public void RequestCivilizationAction(string action, string civId = "", string targetId = "", string name = "",
-        string icon = "", string description = "", int ethos = -1)
+        string icon = "", string description = "", int ethos = -1,
+        string capitalName = "", string holySiteId = "")
     {
         // Clear transient action error; some actions will trigger refreshes
         State.LastActionError = null;
-        _uiService.RequestCivilizationAction(action, civId, targetId, name, icon, description, ethos);
+        _uiService.RequestCivilizationAction(action, civId, targetId, name, icon, description, ethos, capitalName,
+            holySiteId);
     }
 
     /// <summary>
@@ -598,6 +600,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             details?.MemberReligions ?? new List<CivilizationInfoResponsePacket.MemberReligion>(),
             details?.CreatedDate ?? DateTime.MinValue,
             details?.Description ?? string.Empty,
+            details?.CapitalName ?? string.Empty,
+            details?.CapitalHolySiteId ?? string.Empty,
             State.DetailState.MemberScrollY,
             !HasCivilization() && (details?.MemberReligions?.Count ?? 0) < 4,
             x,
@@ -652,6 +656,12 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             civ?.Rank ?? 0,
             civ?.Ethos ?? 0,
             civ?.FounderEpithet ?? string.Empty,
+            civ?.CapitalName ?? string.Empty,
+            civ?.CapitalHolySiteId ?? string.Empty,
+            State.InfoState.IsEditingCapital,
+            State.InfoState.CapitalNameText,
+            State.InfoState.CapitalBindingText,
+            State.HolySitesState.Browse.SitesByReligion,
             memberReligions,
             civ?.PendingInvites ?? new List<CivilizationInfoResponsePacket.PendingInvite>(),
             State.InfoState.InviteReligionName ?? string.Empty,
@@ -1141,6 +1151,39 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     }
 
                     State.InfoState.IsEditingDescription = false;
+                    break;
+
+                case InfoEvent.EditCapitalOpen:
+                    State.InfoState.IsEditingCapital = true;
+                    State.InfoState.CapitalNameText = civ?.CapitalName ?? string.Empty;
+                    State.InfoState.CapitalBindingText = civ?.CapitalHolySiteId ?? string.Empty;
+                    // Lazy-fetch eligible holy sites if not already loaded
+                    if (State.HolySitesState.Browse.SitesByReligion.Count == 0)
+                        RequestCivilizationHolySites();
+                    break;
+
+                case InfoEvent.EditCapitalCancel:
+                    State.InfoState.IsEditingCapital = false;
+                    State.InfoState.CapitalNameText = civ?.CapitalName ?? string.Empty;
+                    State.InfoState.CapitalBindingText = civ?.CapitalHolySiteId ?? string.Empty;
+                    break;
+
+                case InfoEvent.CapitalNameChanged cnc:
+                    State.InfoState.CapitalNameText = cnc.text;
+                    break;
+
+                case InfoEvent.CapitalBindingChanged cbc:
+                    State.InfoState.CapitalBindingText = cbc.siteId ?? string.Empty;
+                    break;
+
+                case InfoEvent.SaveCapitalClicked:
+                    if (!string.IsNullOrWhiteSpace(civId))
+                    {
+                        RequestCivilizationAction("setcapital", civId, "", "", "", "", -1,
+                            State.InfoState.CapitalNameText, State.InfoState.CapitalBindingText);
+                    }
+
+                    State.InfoState.IsEditingCapital = false;
                     break;
 
                 case InfoEvent.LeaveClicked:

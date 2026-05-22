@@ -76,6 +76,18 @@ public class CivilizationInfoResponsePacket
         /// </summary>
         [ProtoMember(15)]
         public string FounderEpithet { get; set; } = string.Empty;
+
+        /// <summary>
+        ///     Civilization capital display name.
+        /// </summary>
+        [ProtoMember(16)]
+        public string CapitalName { get; set; } = string.Empty;
+
+        /// <summary>
+        ///     Optional UID of the holy site bound as capital. Empty when unbound.
+        /// </summary>
+        [ProtoMember(17)]
+        public string CapitalHolySiteId { get; set; } = string.Empty;
     }
 
     /// <summary>

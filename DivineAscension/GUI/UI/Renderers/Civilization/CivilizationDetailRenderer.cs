@@ -172,6 +172,12 @@ internal static class CivilizationDetailRenderer
         currentY += StatRowHeight;
 
         ChromeRenderer.DrawLeader(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_SEAT),
+            string.IsNullOrWhiteSpace(vm.CapitalName) ? "—" : vm.CapitalName,
+            vm.X, currentY, width);
+        currentY += StatRowHeight;
+
+        ChromeRenderer.DrawLeader(drawList,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DETAIL_MEMBER_ORDERS,
                 vm.MemberCount),
             $"{vm.MemberCount}/4",

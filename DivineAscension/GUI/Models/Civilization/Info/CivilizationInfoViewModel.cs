@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DivineAscension.Network.Civilization;
+using DivineAscension.Network.HolySite;
 
 namespace DivineAscension.GUI.Models.Civilization.Info;
 
@@ -20,6 +21,12 @@ public readonly struct CivilizationInfoViewModel(
     int rank,
     int ethos,
     string founderEpithet,
+    string capitalName,
+    string capitalHolySiteId,
+    bool isEditingCapital,
+    string capitalNameText,
+    string capitalBindingText,
+    IReadOnlyDictionary<string, List<HolySiteResponsePacket.HolySiteInfo>> eligibleCapitalSites,
     IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> memberReligions,
     IReadOnlyList<CivilizationInfoResponsePacket.PendingInvite> pendingInvites,
     string inviteReligionName,
@@ -47,6 +54,18 @@ public readonly struct CivilizationInfoViewModel(
     public int Rank { get; } = rank;
     public int Ethos { get; } = ethos;
     public string FounderEpithet { get; } = founderEpithet;
+    public string CapitalName { get; } = capitalName;
+    public string CapitalHolySiteId { get; } = capitalHolySiteId;
+    public bool HasCapitalBinding => !string.IsNullOrEmpty(CapitalHolySiteId);
+    public bool IsEditingCapital { get; } = isEditingCapital;
+    public string CapitalNameText { get; } = capitalNameText;
+    public string CapitalBindingText { get; } = capitalBindingText;
+
+    public IReadOnlyDictionary<string, List<HolySiteResponsePacket.HolySiteInfo>> EligibleCapitalSites { get; } =
+        eligibleCapitalSites;
+
+    public bool HasCapitalChanges => CapitalName != CapitalNameText
+                                     || (CapitalHolySiteId ?? string.Empty) != (CapitalBindingText ?? string.Empty);
     public IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> MemberReligions { get; } = memberReligions;
     public IReadOnlyList<CivilizationInfoResponsePacket.PendingInvite> PendingInvites { get; } = pendingInvites;
     public string InviteReligionName { get; } = inviteReligionName;

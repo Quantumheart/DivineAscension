@@ -16,6 +16,8 @@ public readonly struct CivilizationDetailViewModel(
     IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> memberReligions,
     DateTime createdDate,
     string description,
+    string capitalName,
+    string capitalHolySiteId,
     float memberScrollY,
     bool canRequestToJoin,
     float x,
@@ -34,6 +36,9 @@ public readonly struct CivilizationDetailViewModel(
     public IReadOnlyList<CivilizationInfoResponsePacket.MemberReligion> MemberReligions { get; } = memberReligions;
     public DateTime CreatedDate { get; } = createdDate;
     public string Description { get; } = description;
+    public string CapitalName { get; } = capitalName;
+    public string CapitalHolySiteId { get; } = capitalHolySiteId;
+    public bool HasCapitalBinding => !string.IsNullOrEmpty(CapitalHolySiteId);
     public float MemberScrollY { get; } = memberScrollY;
     public bool CanRequestToJoin { get; } = canRequestToJoin;
     public float X { get; } = x;
