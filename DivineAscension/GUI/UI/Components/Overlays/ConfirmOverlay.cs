@@ -3,7 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
+using FontSizes = DivineAscension.GUI.UI.Utilities.FontSizes;
 using DivineAscension.Services;
 using ImGuiNET;
 
@@ -80,31 +82,34 @@ internal static class ConfirmOverlay
         var messageWidth = effectiveDialogWidth - padding * 2f;
         var wrappedMsgHeight = TextRenderer.MeasureWrappedHeight(message, messageWidth, 13f);
 
-        // Vertical rhythm: title + small gap + message + smaller gap + buttons, consistent padding top/bottom
-        var contentHeight = titleSize.Y + 8f + wrappedMsgHeight + 16f + btnH;
+        // Vertical rhythm: title + divider + message + gap + buttons.
+        const float dividerBandHeight = 6f + 16f;
+        var contentHeight = FontSizes.PageTitle + dividerBandHeight + wrappedMsgHeight + 16f + btnH;
         var dialogHeight = contentHeight + padding * 2f;
 
         var dlgX = winPos.X + (winSize.X - effectiveDialogWidth) / 2f;
         var dlgY = winPos.Y + (winSize.Y - dialogHeight) / 2f;
         var dlgStart = new Vector2(dlgX, dlgY);
         var dlgEnd = new Vector2(dlgX + effectiveDialogWidth, dlgY + dialogHeight);
-        // Deep-sepia popup surface to match the tooltip / title-strip
-        // convention (palette §1). Light surface here would clash with the
-        // cream text used for titles + body.
-        var dlgBg = ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown);
-        var dlgBorder = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f);
+        // Parchment mini-page with a faded-ink border, matching the role-edit
+        // dialog (`ReligionRolesBrowseRenderer.DrawEditDialog`) so all dialog
+        // overlays read as a smaller page laid atop the dimmed main page.
+        var dlgBg = ImGui.ColorConvertFloat4ToU32(ColorPalette.Background);
+        var dlgBorder = ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor);
         drawList.AddRectFilled(dlgStart, dlgEnd, dlgBg, 6f);
         drawList.AddRect(dlgStart, dlgEnd, dlgBorder, 6f, ImDrawFlags.None, 1.5f);
 
         var curX = dlgX + padding;
         var curY = dlgY + padding;
 
-        // Title
-        TextRenderer.DrawLabel(drawList, title, curX, curY, 18f, ColorPalette.LightText);
-        curY += titleSize.Y + 8f;
+        // Title — gold rubric on parchment, matching the role-edit dialog.
+        TextRenderer.DrawLabel(drawList, title, curX, curY, FontSizes.PageTitle, ColorPalette.Gold);
+        curY += FontSizes.PageTitle + 6f;
+        ChromeRenderer.DrawDivider(drawList, curX, curY, messageWidth);
+        curY += 16f;
 
-        // Message (word-wrapped) — dark surface, so cream ink (palette §5).
-        TextRenderer.DrawInfoText(drawList, message, curX, curY, messageWidth, 13f, ColorPalette.LightText);
+        // Message — ink on parchment (palette §5).
+        TextRenderer.DrawInfoText(drawList, message, curX, curY, messageWidth, 13f, ColorPalette.White);
         curY += wrappedMsgHeight;
 
         // Buttons
