@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
@@ -15,9 +16,25 @@ using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
+/// <summary>
+/// Pure renderer for the "Found a Realm" ledger chapter (II.iv, #328). Chapter
+/// title + prose intro, then Name / Description / Sigil / Action sections
+/// separated by ornamental dividers, ending in a single centred "Raise the
+/// Banner" button. The sidebar already provides the back path, so no cancel.
+/// </summary>
 [ExcludeFromCodeCoverage]
 internal static class CivilizationCreateRenderer
 {
+    private const float DividerSpacingTop = 8f;
+    private const float DividerSpacingBottom = 14f;
+    private const float SectionGap = 8f;
+    private const float LabelHeight = 22f;
+    private const float NameInputHeight = 30f;
+    private const float DescriptionInputHeight = 80f;
+    private const float ErrorRowHeight = 22f;
+    private const float ButtonWidth = 200f;
+    private const float ButtonHeight = 36f;
+
     public static CivilizationCreateRenderResult Draw(
         CivilizationCreateViewModel vm,
         ImDrawListPtr drawList)
@@ -25,149 +42,178 @@ internal static class CivilizationCreateRenderer
         var events = new List<CreateEvent>();
 
         var strip = ChapterStripRenderer.Draw(drawList, vm.X, vm.Y, vm.Width, 0f,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_CREATE));
-        var currentY = strip.BodyY + 12f;
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_CHAPTER_TITLE));
+        var contentWidth = strip.ContentWidth;
+        var currentY = strip.BodyY;
 
-        // Requirements
+        // Prose intro on parchment → iron-gall ink.
+        var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_CHAPTER_INTRO);
+        TextRenderer.DrawInfoText(drawList, intro, vm.X, currentY, contentWidth, Body, ColorPalette.White);
+        currentY += MathF.Max(TextRenderer.MeasureWrappedHeight(intro, contentWidth, Body), 20f) + 8f;
+
+        currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
+        currentY = DrawNameSection(drawList, vm, currentY, contentWidth, events);
+
+        currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
+        currentY = DrawDescriptionSection(drawList, vm, currentY, contentWidth, events);
+
+        currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
+        currentY = DrawSigilSection(drawList, vm, currentY, contentWidth, events);
+
+        currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
+        currentY = DrawFoundingAction(drawList, vm, currentY, contentWidth, events);
+
+        return new CivilizationCreateRenderResult(events, currentY - vm.Y);
+    }
+
+    private static float DrawNameSection(
+        ImDrawListPtr drawList,
+        CivilizationCreateViewModel vm,
+        float y,
+        float contentWidth,
+        List<CreateEvent> events)
+    {
         TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_REQUIREMENTS), vm.X, currentY, SubsectionLabel,
-            ColorPalette.Grey);
-        currentY += 22f;
-
-        var requirements = new[]
-        {
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_REQ_FOUNDER),
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_REQ_NOT_IN_CIV),
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_REQ_NAME_LENGTH)
-        };
-
-        foreach (var req in requirements)
-        {
-            // bullet
-            drawList.AddCircleFilled(new Vector2(vm.X + 8f, currentY + 7f), 2f,
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold));
-            drawList.AddText(ImGui.GetFont(), SubsectionLabel, new Vector2(vm.X + 16f, currentY),
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), req);
-            currentY += 18f;
-        }
-
-        currentY += 16f;
-
-        // Civilization name input
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_NAME_LABEL), vm.X, currentY);
-        currentY += 20f;
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_NAME_LABEL),
+            vm.X, y, SubsectionLabel, ColorPalette.Gold);
+        var currentY = y + LabelHeight;
 
         var newName = TextInput.Draw(drawList, "##createCivName", vm.CivilizationName,
-            vm.X, currentY,
-            vm.Width * 0.7f, 30f,
+            vm.X, currentY, contentWidth, NameInputHeight,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_NAME_PLACEHOLDER), 32);
 
         if (newName != vm.CivilizationName)
             events.Add(new CreateEvent.NameChanged(newName));
 
-        currentY += 40f;
+        currentY += NameInputHeight + 4f;
+        currentY = DrawNameValidation(drawList, vm, currentY);
 
-        // Validation feedback
-        if (!string.IsNullOrWhiteSpace(vm.CivilizationName))
+        return currentY + SectionGap;
+    }
+
+    private static float DrawNameValidation(
+        ImDrawListPtr drawList,
+        CivilizationCreateViewModel vm,
+        float y)
+    {
+        if (string.IsNullOrWhiteSpace(vm.CivilizationName)) return y;
+
+        string? message = null;
+        if (vm.CivilizationName.Length < 3)
         {
-            if (vm.CivilizationName.Length < 3)
-            {
-                TextRenderer.DrawErrorText(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_NAME_ERROR_TOO_SHORT),
-                    vm.X, currentY);
-                currentY += 25f;
-            }
-            else if (vm.CivilizationName.Length > 32)
-            {
-                TextRenderer.DrawErrorText(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_NAME_ERROR_TOO_LONG),
-                    vm.X, currentY);
-                currentY += 25f;
-            }
-            else if (vm.HasProfanity)
-            {
-                TextRenderer.DrawErrorText(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_NAME_ERROR_PROFANITY,
-                        vm.ProfanityMatchedWord ?? ""), vm.X, currentY);
-                currentY += 25f;
-            }
+            message = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_NAME_ERROR_TOO_SHORT);
+        }
+        else if (vm.CivilizationName.Length > 32)
+        {
+            message = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_NAME_ERROR_TOO_LONG);
+        }
+        else if (vm.HasProfanity)
+        {
+            message = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_NAME_ERROR_PROFANITY,
+                vm.ProfanityMatchedWord ?? string.Empty);
         }
 
-        // Description input (optional)
+        if (message == null) return y;
+        TextRenderer.DrawErrorText(drawList, message, vm.X, y);
+        return y + ErrorRowHeight;
+    }
+
+    private static float DrawDescriptionSection(
+        ImDrawListPtr drawList,
+        CivilizationCreateViewModel vm,
+        float y,
+        float contentWidth,
+        List<CreateEvent> events)
+    {
         TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_DESCRIPTION_LABEL), vm.X,
-            currentY);
-        currentY += 20f;
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_DESCRIPTION_LABEL),
+            vm.X, y, SubsectionLabel, ColorPalette.Gold);
+        var currentY = y + LabelHeight;
 
         var newDescription = TextInput.DrawMultiline(drawList, "##createCivDescription", vm.Description,
-            vm.X, currentY,
-            vm.Width * 0.7f, 80f, 200);
+            vm.X, currentY, contentWidth, DescriptionInputHeight, 200);
 
         if (newDescription != vm.Description)
             events.Add(new CreateEvent.DescriptionChanged(newDescription));
 
-        currentY += 90f;
+        currentY += DescriptionInputHeight + 4f;
+        currentY = DrawDescriptionValidation(drawList, vm, currentY);
 
-        // Description validation feedback
-        if (!string.IsNullOrEmpty(vm.Description))
+        return currentY + SectionGap;
+    }
+
+    private static float DrawDescriptionValidation(
+        ImDrawListPtr drawList,
+        CivilizationCreateViewModel vm,
+        float y)
+    {
+        if (string.IsNullOrEmpty(vm.Description)) return y;
+
+        string? message = null;
+        if (vm.Description.Length > 200)
         {
-            if (vm.Description.Length > 200)
-            {
-                TextRenderer.DrawErrorText(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DESCRIPTION_ERROR_TOO_LONG),
-                    vm.X, currentY);
-                currentY += 25f;
-            }
-            else if (vm.HasProfanityInDescription)
-            {
-                TextRenderer.DrawErrorText(drawList,
-                    LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DESCRIPTION_ERROR_PROFANITY,
-                        vm.ProfanityMatchedWordInDescription ?? ""), vm.X, currentY);
-                currentY += 25f;
-            }
+            message = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DESCRIPTION_ERROR_TOO_LONG);
+        }
+        else if (vm.HasProfanityInDescription)
+        {
+            message = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_DESCRIPTION_ERROR_PROFANITY,
+                vm.ProfanityMatchedWordInDescription ?? string.Empty);
         }
 
-        // Icon selection
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_ICON_LABEL), vm.X, currentY);
-        currentY += 20f;
+        if (message == null) return y;
+        TextRenderer.DrawErrorText(drawList, message, vm.X, y);
+        return y + ErrorRowHeight;
+    }
 
-        var availableIcons = CivilizationIconLoader.GetAvailableIcons();
+    private static float DrawSigilSection(
+        ImDrawListPtr drawList,
+        CivilizationCreateViewModel vm,
+        float y,
+        float contentWidth,
+        List<CreateEvent> events)
+    {
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_ICON_LABEL),
+            vm.X, y, SubsectionLabel, ColorPalette.Gold);
+        var currentY = y + LabelHeight;
+
         var (clickedIcon, pickerHeight) = IconPicker.Draw(
             drawList,
-            availableIcons,
+            CivilizationIconLoader.GetAvailableIcons(),
             vm.SelectedIcon,
             vm.X,
             currentY,
-            vm.Width * 0.7f // spacing
-        );
+            contentWidth);
 
         if (clickedIcon != null)
             events.Add(new CreateEvent.IconSelected(clickedIcon));
 
-        currentY += pickerHeight + 20f;
+        return currentY + pickerHeight + SectionGap;
+    }
 
-        // Create button
+    private static float DrawFoundingAction(
+        ImDrawListPtr drawList,
+        CivilizationCreateViewModel vm,
+        float y,
+        float contentWidth,
+        List<CreateEvent> events)
+    {
+        var buttonX = vm.X + (contentWidth - ButtonWidth) / 2f;
         if (ButtonRenderer.DrawButton(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_BUTTON), vm.X, currentY, 200f,
-                36f, isPrimary: true, enabled: vm.CanCreate))
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_BUTTON),
+                buttonX, y, ButtonWidth, ButtonHeight,
+                isPrimary: true, enabled: vm.CanCreate))
+        {
             events.Add(new CreateEvent.SubmitClicked());
+        }
 
-        // Clear button
-        if (ButtonRenderer.DrawButton(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_CLEAR_BUTTON), vm.X + 210f,
-                currentY, 80f, 36f))
-            events.Add(new CreateEvent.ClearClicked());
+        return y + ButtonHeight + 12f;
+    }
 
-        currentY += 50f;
-
-        // Info text
-        TextRenderer.DrawInfoText(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_CREATE_INFO_TEXT),
-            vm.X, currentY, vm.Width);
-        currentY += 40f;
-
-        return new CivilizationCreateRenderResult(events, currentY - vm.Y);
+    private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var dividerY = y + DividerSpacingTop;
+        ChromeRenderer.DrawDivider(drawList, x, dividerY, width);
+        return dividerY + DividerSpacingBottom;
     }
 }
