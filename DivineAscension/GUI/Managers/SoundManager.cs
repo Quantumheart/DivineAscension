@@ -24,7 +24,8 @@ public class SoundManager : ISoundManager
         { SoundType.UnlockWild, "divineascension:sounds/deities/Wild" },
         { SoundType.UnlockHarvest, "divineascension:sounds/deities/Harvest" },
         { SoundType.UnlockStone, "divineascension:sounds/deities/Stone" },
-        { SoundType.UnlockConquest, "divineascension:sounds/deities/Conquest" }
+        { SoundType.UnlockConquest, "divineascension:sounds/deities/Conquest" },
+        { SoundType.PageTurn, "divineascension:sounds/page-turn" }
     };
 
     private static readonly Dictionary<SoundVolume, float> VolumeValues = new()
