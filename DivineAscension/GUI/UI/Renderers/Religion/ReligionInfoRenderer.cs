@@ -209,20 +209,22 @@ internal static class ReligionInfoRenderer
         // Divider
         h += DividerHeight;
 
-        // Description block
+        // Description block — prose path reserves a fixed 80f frame
+        // (matches ReligionInfoDescriptionRenderer.ProseBodyHeight).
         if (viewModel.IsFounder && viewModel.IsEditingDescription)
             h += 22f + 80f + 6f + 26f + 8f;
         else
-            h += 22f + 40f;
+            h += 22f + 80f + 8f;
 
         // Divider
         h += DividerHeight;
 
-        // Founding myth block
+        // Founding myth block — prose path reserves a fixed 540f frame
+        // (matches ReligionInfoFoundingMythRenderer.ProseBodyHeight).
         if (viewModel.IsFounder && viewModel.IsEditingFoundingMyth)
             h += 22f + 200f + 6f + 26f + 8f;
         else
-            h += 22f + 80f;
+            h += 22f + 540f + 8f;
 
         if (viewModel.IsFounder)
         {

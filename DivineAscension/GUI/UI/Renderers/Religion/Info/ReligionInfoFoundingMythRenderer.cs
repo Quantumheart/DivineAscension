@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Info;
@@ -25,6 +26,10 @@ internal static class ReligionInfoFoundingMythRenderer
     private const float ButtonGap = 8f;
     private const float EditBoxHeight = 200f;
     private const float SectionBottomSpacing = 8f;
+    // Fixed reservation sized for the 2000-char myth cap (~34 wrapped
+    // lines × ~16px line height) so long stories don't shove the
+    // sections below up or down on each render.
+    private const float ProseBodyHeight = 540f;
 
     public static float Draw(
         ReligionInfoViewModel viewModel,
@@ -101,9 +106,13 @@ internal static class ReligionInfoFoundingMythRenderer
             var proseColor = string.IsNullOrWhiteSpace(viewModel.FoundingMyth)
                 ? ColorPalette.Grey
                 : ColorPalette.White;
+            drawList.PushClipRect(
+                new Vector2(x, currentY),
+                new Vector2(x + width, currentY + ProseBodyHeight),
+                true);
             TextRenderer.DrawInfoText(drawList, prose, x, currentY, width, Secondary, proseColor);
-            var height = TextRenderer.MeasureWrappedHeight(prose, width);
-            currentY += (height > 0 ? height : 20f) + SectionBottomSpacing;
+            drawList.PopClipRect();
+            currentY += ProseBodyHeight + SectionBottomSpacing;
         }
 
         return currentY;

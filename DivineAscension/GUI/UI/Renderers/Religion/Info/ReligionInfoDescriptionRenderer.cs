@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Info;
@@ -27,6 +28,9 @@ internal static class ReligionInfoDescriptionRenderer
     private const float ButtonGap = 8f;
     private const float EditBoxHeight = 80f;
     private const float SectionBottomSpacing = 8f;
+    // Fixed reservation sized for the 200-char description cap so the
+    // section's vertical footprint doesn't shift with text length.
+    private const float ProseBodyHeight = 80f;
 
     public static float Draw(
         ReligionInfoViewModel viewModel,
@@ -107,9 +111,15 @@ internal static class ReligionInfoDescriptionRenderer
             var proseColor = string.IsNullOrWhiteSpace(viewModel.Description)
                 ? ColorPalette.Grey
                 : ColorPalette.White;
+            // Reserve a fixed prose block sized for the cap; clip is a
+            // defensive guard against any wrap-estimate drift.
+            drawList.PushClipRect(
+                new Vector2(x, currentY),
+                new Vector2(x + width, currentY + ProseBodyHeight),
+                true);
             TextRenderer.DrawInfoText(drawList, prose, x, currentY, width, Secondary, proseColor);
-            var height = TextRenderer.MeasureWrappedHeight(prose, width);
-            currentY += (height > 0 ? height : 20f) + SectionBottomSpacing;
+            drawList.PopClipRect();
+            currentY += ProseBodyHeight + SectionBottomSpacing;
         }
 
         return currentY;
