@@ -100,7 +100,9 @@ internal static class CivilizationInfoRenderer
 
         currentY = CivilizationInfoHeaderRenderer.Draw(vm, drawList, x, currentY, contentWidth);
 
-        currentY = CivilizationInfoCapitalRenderer.Draw(vm, drawList, x, currentY, contentWidth, events);
+        var (afterCapitalY, capitalLayout) =
+            CivilizationInfoCapitalRenderer.Draw(vm, drawList, x, currentY, contentWidth, events);
+        currentY = afterCapitalY;
 
         currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
@@ -123,6 +125,9 @@ internal static class CivilizationInfoRenderer
 
         if (contentHeightEstimate > height)
             Scrollbar.Draw(drawList, x + width - ScrollbarWidth, y, ScrollbarWidth, height, scrollY, maxScroll);
+
+        // Capital binding dropdown menu — drawn after main content so it floats on top.
+        CivilizationInfoCapitalRenderer.DrawDropdownOverlay(vm, capitalLayout, events);
 
         DrawOverlays(vm, events);
 
