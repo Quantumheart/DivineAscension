@@ -229,6 +229,35 @@ internal static class ChromeRenderer
     }
 
     /// <summary>
+    ///     Paint a heraldic banner / standard glyph (⚐ U+2690) as primitives
+    ///     so it renders without Miscellaneous-Symbols coverage in the loaded
+    ///     font. Vertical staff with a triangular pennant flag attached to
+    ///     the upper half — used by the civilization Letters chapter where
+    ///     realms aren't deity-aligned and the deity-domain glyph wouldn't
+    ///     apply.
+    /// </summary>
+    public static void DrawBanner(ImDrawListPtr drawList, float cx, float cy, float size,
+        Vector4? colorOverride = null)
+    {
+        if (size <= 0f) return;
+        var color = ImGui.ColorConvertFloat4ToU32(colorOverride ?? ColorPalette.Gold);
+        var half = size / 2f;
+
+        // Staff — full vertical line slightly off-centre so the flag has
+        // room to swing out to the right of it.
+        var staffX = cx - half * 0.35f;
+        drawList.AddLine(new Vector2(staffX, cy - half),
+            new Vector2(staffX, cy + half), color, 2f);
+
+        // Pennant — triangle hanging from the staff's upper third, pointing
+        // out to the right.
+        var hoistTop = new Vector2(staffX, cy - half * 0.85f);
+        var hoistBottom = new Vector2(staffX, cy - half * 0.10f);
+        var fly = new Vector2(cx + half * 0.7f, cy - half * 0.48f);
+        drawList.AddTriangleFilled(hoistTop, hoistBottom, fly, color);
+    }
+
+    /// <summary>
     ///     Paint a refresh arrow glyph (↻ U+21BB) as primitives so it renders
     ///     without Arrows-block coverage in the loaded font. Three-quarter
     ///     circular arc opening toward the upper-right with a small triangular
