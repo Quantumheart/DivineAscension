@@ -768,7 +768,6 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     [ExcludeFromCodeCoverage]
     private void DrawHolySiteBrowse(float x, float y, float width, float height)
     {
-        // Build religion name and domain maps
         var religionNames = CivilizationMemberReligions?
             .ToDictionary(r => r.ReligionId, r => r.ReligionName)
             ?? new Dictionary<string, string>();
@@ -777,21 +776,20 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             .ToDictionary(r => r.ReligionId, r => r.Domain)
             ?? new Dictionary<string, string>();
 
-        // Build browse ViewModel
-        var vm = new DivineAscension.GUI.Models.HolySite.Browse.HolySiteBrowseViewModel(
-            x, y, width, height,
+        var vm = new CivilizationHolySitesViewModel(
             State.HolySitesState.Browse.SitesByReligion,
             religionNames,
             religionDomains,
-            State.HolySitesState.Browse.SelectedSiteUID,
+            State.HolySitesState.Browse.ExpandedReligions,
+            CurrentCivilizationName,
             State.HolySitesState.Browse.IsLoading,
             State.HolySitesState.Browse.ErrorMsg,
-            State.HolySitesState.Browse.ScrollY);
+            State.HolySitesState.Browse.ScrollY,
+            x, y, width, height);
 
-        // Render with HolySiteBrowseRenderer
         var drawList = ImGui.GetWindowDrawList();
-        var result = HolySiteBrowseRenderer.Draw(vm, drawList);
-        ProcessBrowseEvents(result.Events);
+        var result = CivilizationHolySitesRenderer.Draw(vm, drawList);
+        ProcessHolySitesEvents(result.Events);
     }
 
     [ExcludeFromCodeCoverage]
@@ -1252,26 +1250,29 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             }
     }
 
-    private void ProcessBrowseEvents(IReadOnlyList<Events.HolySite.BrowseEvent> events)
+    private void ProcessHolySitesEvents(IReadOnlyList<HolySitesEvent> events)
     {
         foreach (var evt in events)
         {
             switch (evt)
             {
-                case Events.HolySite.BrowseEvent.Selected selected:
-                    // Navigate to detail view
-                    State.HolySitesState.Browse.SelectedSiteUID = selected.SiteUID;
-                    State.HolySitesState.Browse.ScrollY = selected.ScrollY;
-                    State.HolySitesState.Detail.ViewingSiteUID = selected.SiteUID;
-                    RequestHolySiteDetail(selected.SiteUID);
-                    break;
-
-                case Events.HolySite.BrowseEvent.RefreshClicked:
+                case HolySitesEvent.RefreshClicked:
                     RequestCivilizationHolySites();
                     break;
 
-                case Events.HolySite.BrowseEvent.ScrollChanged scroll:
+                case HolySitesEvent.ScrollChanged scroll:
                     State.HolySitesState.Browse.ScrollY = scroll.NewScrollY;
+                    break;
+
+                case HolySitesEvent.ReligionToggled toggle:
+                    if (!State.HolySitesState.Browse.ExpandedReligions.Add(toggle.ReligionUID))
+                        State.HolySitesState.Browse.ExpandedReligions.Remove(toggle.ReligionUID);
+                    break;
+
+                case HolySitesEvent.SiteSelected selected:
+                    State.HolySitesState.Browse.SelectedSiteUID = selected.SiteUID;
+                    State.HolySitesState.Detail.ViewingSiteUID = selected.SiteUID;
+                    RequestHolySiteDetail(selected.SiteUID);
                     break;
             }
         }

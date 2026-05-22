@@ -72,6 +72,8 @@ public class HolySiteResponsePacket
         [ProtoMember(14)] public string FounderUID { get; set; } = string.Empty;
 
         [ProtoMember(15)] public string Description { get; set; } = string.Empty;
+
+        [ProtoMember(16)] public DateTime CreationDate { get; set; }
     }
 
     /// <summary>

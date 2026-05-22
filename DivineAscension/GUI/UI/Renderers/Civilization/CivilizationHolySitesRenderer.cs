@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.HolySites;
 using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models.Enum;
 using DivineAscension.Network.HolySite;
 using DivineAscension.Services;
 using ImGuiNET;
@@ -17,350 +20,368 @@ using static DivineAscension.GUI.UI.Utilities.FontSizes;
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
 /// <summary>
-///     Renderer for the Holy Sites sub-tab in the Civilization tab.
-///     Displays holy sites grouped by member religion.
+/// Ledger-chapter renderer for the Hallows (II.vi). Chapter strip with a
+/// refresh-glyph button, prose intro keyed to the civilization name,
+/// triple-diamond top/bottom rules around a list of collapsible Order
+/// sub-headers, and a closing "No further hallows have been claimed." line
+/// that is always present even when the list is empty.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class CivilizationHolySitesRenderer
 {
-    // Layout constants
-    private const float HeaderHeight = 40f;
-    private const float RefreshButtonWidth = 100f;
-    private const float RefreshButtonHeight = 30f;
-    private const float SectionSpacing = 15f;
-    private const float ReligionHeaderHeight = 48f;
-    private const float SiteItemHeight = 60f;
-    private const float SiteItemPadding = 10f;
-    private const float IndentSize = 20f;
+    private const float DividerHeight = 18f;
+    private const float DividerYPadding = 6f;
+    private const float ScrollbarWidth = 16f;
 
-    /// <summary>
-    ///     Pure renderer: builds visuals from view model and emits UI events.
-    ///     No state or side effects.
-    /// </summary>
+    private const float IntroLineHeight = 18f;
+    private const float IntroBottomSpacing = 10f;
+
+    private const float OrderHeaderHeight = 26f;
+    private const float OrderHeaderTopSpacing = 4f;
+    private const float OrderHeaderBottomSpacing = 6f;
+    private const float CaretSize = 12f;
+    private const float CaretToTextGap = 6f;
+    private const float OrderLeftPadding = 8f;
+
+    private const float SiteRowLeftPadding = 32f;
+    private const float SiteNameLineHeight = 20f;
+    private const float SiteClaimLineHeight = 18f;
+    private const float SiteRowBottomSpacing = 6f;
+    private const float SiteGlyphSize = 16f;
+    private const float SiteGlyphToTextGap = 8f;
+    private const float SiteClaimIndent = SiteGlyphSize + SiteGlyphToTextGap;
+
+    private const float PerOrderDividerHeight = 16f;
+    private const float ClosingLineHeight = 24f;
+    private const float ClosingLineTopSpacing = 6f;
+
+    private const float RefreshButtonSize = 22f;
+
     public static CivilizationHolySitesRenderResult Draw(
         CivilizationHolySitesViewModel viewModel,
         ImDrawListPtr drawList)
     {
         var events = new List<HolySitesEvent>();
+        var x = viewModel.X;
+        var y = viewModel.Y;
+        var width = viewModel.Width;
+        var height = viewModel.Height;
 
-        // === HEADER WITH REFRESH BUTTON ===
-        var currentY = DrawHeader(viewModel, drawList, events);
-
-        // === LOADING STATE ===
-        if (viewModel.IsLoading)
+        if (viewModel.IsLoading && viewModel.SitesByReligion.Count == 0)
         {
-            DrawLoadingState(viewModel, drawList, currentY);
-            return new CivilizationHolySitesRenderResult(events, viewModel.Height);
+            DrawCenteredStateText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_LOADING),
+                x, y, width, height, ColorPalette.Grey);
+            return new CivilizationHolySitesRenderResult(events, height);
         }
 
-        // === ERROR STATE ===
         if (!string.IsNullOrEmpty(viewModel.ErrorMsg))
         {
-            DrawErrorState(viewModel, drawList, currentY);
-            return new CivilizationHolySitesRenderResult(events, viewModel.Height);
+            var errorText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_ERROR)
+                .Replace("{0}", viewModel.ErrorMsg ?? string.Empty);
+            DrawCenteredStateText(drawList, errorText, x, y, width, height, ColorPalette.Vermilion);
+            return new CivilizationHolySitesRenderResult(events, height);
         }
 
-        // === EMPTY STATE ===
-        if (viewModel.SitesByReligion.Count == 0)
+        var contentHeightEstimate = ComputeContentHeight(viewModel);
+        var maxScroll = MathF.Max(0f, contentHeightEstimate - height);
+
+        var mousePos = ImGui.GetMousePos();
+        var isHover = mousePos.X >= x && mousePos.X <= x + width
+                                      && mousePos.Y >= y && mousePos.Y <= y + height;
+        var scrollY = viewModel.ScrollY;
+        if (isHover && maxScroll > 0f)
         {
-            DrawEmptyState(viewModel, drawList, currentY);
-            return new CivilizationHolySitesRenderResult(events, viewModel.Height);
+            var wheel = ImGui.GetIO().MouseWheel;
+            if (wheel != 0)
+            {
+                var newScrollY = Math.Clamp(scrollY - wheel * 30f, 0f, maxScroll);
+                if (Math.Abs(newScrollY - scrollY) > 0.001f)
+                {
+                    scrollY = newScrollY;
+                    events.Add(new HolySitesEvent.ScrollChanged(newScrollY));
+                }
+            }
         }
 
-        // === HOLY SITES GROUPED BY RELIGION ===
-        var contentHeight = viewModel.Height - (currentY - viewModel.Y);
-        DrawSitesGroupedByReligion(viewModel, drawList, currentY, contentHeight, events);
+        drawList.PushClipRect(new Vector2(x, y), new Vector2(x + width, y + height), true);
 
-        return new CivilizationHolySitesRenderResult(events, viewModel.Height);
+        DrawRefreshGlyph(drawList, x, y, width, scrollY, viewModel.IsLoading, events);
+
+        // === CHAPTER STRIP ===
+        var strip = ChapterStripRenderer.Draw(drawList, x, y, width, scrollY,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_HOLYSITES));
+        var contentWidth = strip.ContentWidth;
+        var currentY = strip.BodyY;
+
+        // === INTRO ===
+        currentY = DrawIntro(drawList, viewModel.CivilizationName, x, currentY, contentWidth);
+
+        // === TOP ORNATE RULE ===
+        currentY = DrawOrnateDivider(drawList, x, currentY, contentWidth);
+
+        // === ORDERS ===
+        currentY = DrawOrders(viewModel, drawList, x, currentY, contentWidth, events);
+
+        // === BOTTOM ORNATE RULE ===
+        currentY = DrawOrnateDivider(drawList, x, currentY, contentWidth);
+
+        // === CLOSING LINE ===
+        currentY += ClosingLineTopSpacing;
+        DrawClosingLine(drawList, x, currentY, contentWidth);
+
+        drawList.PopClipRect();
+
+        if (maxScroll > 0f)
+        {
+            var newScrollY = Scrollbar.HandleDragging(scrollY, maxScroll,
+                x + width - ScrollbarWidth, y, ScrollbarWidth, height);
+            if (Math.Abs(newScrollY - scrollY) > 0.001f)
+                events.Add(new HolySitesEvent.ScrollChanged(newScrollY));
+            Scrollbar.Draw(drawList, x + width - ScrollbarWidth, y, ScrollbarWidth, height, scrollY, maxScroll);
+        }
+
+        return new CivilizationHolySitesRenderResult(events, height);
     }
 
-    private static float DrawHeader(
-        CivilizationHolySitesViewModel viewModel,
+    private static void DrawRefreshGlyph(
         ImDrawListPtr drawList,
+        float x, float paneY, float width, float scrollY,
+        bool isLoading,
         List<HolySitesEvent> events)
     {
-        // Refresh button (drawn on the same row as the title, right-aligned,
-        // painted on top of the title strip after the strip draws).
-        var buttonY = viewModel.Y + ChapterStripRenderer.TopPadding + 3f;
-        var buttonX = viewModel.X + viewModel.Width
-                      - ChapterStripRenderer.ScrollbarGutter - RefreshButtonWidth;
-        if (ButtonRenderer.DrawButton(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_REFRESH),
-                buttonX, buttonY, RefreshButtonWidth, RefreshButtonHeight,
-                false, !viewModel.IsLoading))
+        var stripY = paneY + ChapterStripRenderer.TopPadding - scrollY;
+        var px = x + width - ChapterStripRenderer.ScrollbarGutter - RefreshButtonSize;
+        var py = stripY + 6f;
+
+        if (ButtonRenderer.DrawButton(drawList, string.Empty,
+                px, py, RefreshButtonSize, RefreshButtonSize,
+                isPrimary: false, enabled: !isLoading))
         {
             events.Add(new HolySitesEvent.RefreshClicked());
         }
 
-        var strip = ChapterStripRenderer.Draw(drawList, viewModel.X, viewModel.Y, viewModel.Width, 0f,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_TAB_HOLYSITES));
-        return strip.BodyY;
+        ChromeRenderer.DrawRefreshArrow(drawList,
+            px + RefreshButtonSize / 2f,
+            py + RefreshButtonSize / 2f,
+            RefreshButtonSize - 6f,
+            ColorPalette.LightText);
     }
 
-    private static void DrawLoadingState(
-        CivilizationHolySitesViewModel viewModel,
-        ImDrawListPtr drawList,
-        float contentStartY)
+    private static float DrawIntro(ImDrawListPtr drawList, string civilizationName,
+        float x, float y, float width)
     {
-        var text = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_LOADING);
-        var textSize = ImGui.CalcTextSize(text);
-        var contentHeight = viewModel.Height - (contentStartY - viewModel.Y);
-        var textPos = new Vector2(
-            viewModel.X + viewModel.Width / 2f - textSize.X / 2f,
-            contentStartY + contentHeight / 2f - textSize.Y / 2f
-        );
-
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), text);
+        var text = LocalizationService.Instance.Get(
+            LocalizationKeys.UI_CIVILIZATION_HOLYSITES_INTRO, civilizationName);
+        TextRenderer.DrawInfoText(drawList, text, x, y, width, Body, ColorPalette.White);
+        var introHeight = TextRenderer.MeasureWrappedHeight(text, width, Body);
+        return y + (introHeight > 0 ? introHeight : IntroLineHeight) + IntroBottomSpacing;
     }
 
-    private static void DrawEmptyState(
+    private static float DrawOrders(
         CivilizationHolySitesViewModel viewModel,
         ImDrawListPtr drawList,
-        float contentStartY)
-    {
-        var text = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_EMPTY);
-        var textSize = ImGui.CalcTextSize(text);
-        var contentHeight = viewModel.Height - (contentStartY - viewModel.Y);
-        var textPos = new Vector2(
-            viewModel.X + viewModel.Width / 2f - textSize.X / 2f,
-            contentStartY + contentHeight / 2f - textSize.Y / 2f
-        );
-
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), text);
-    }
-
-    private static void DrawErrorState(
-        CivilizationHolySitesViewModel viewModel,
-        ImDrawListPtr drawList,
-        float contentStartY)
-    {
-        var text = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_ERROR)
-            .Replace("{0}", viewModel.ErrorMsg ?? "Unknown error");
-        var textSize = ImGui.CalcTextSize(text);
-        var contentHeight = viewModel.Height - (contentStartY - viewModel.Y);
-        var textPos = new Vector2(
-            viewModel.X + viewModel.Width / 2f - textSize.X / 2f,
-            contentStartY + contentHeight / 2f - textSize.Y / 2f
-        );
-
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel, textPos,
-            ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 0.3f, 0.3f, 1f)), text);
-    }
-
-    private static void DrawSitesGroupedByReligion(
-        CivilizationHolySitesViewModel viewModel,
-        ImDrawListPtr drawList,
-        float startY,
-        float availableHeight,
+        float x, float y, float width,
         List<HolySitesEvent> events)
     {
-        var currentY = startY;
+        if (viewModel.SitesByReligion.Count == 0) return y;
 
-        // Sort religions by name for consistent display
         var sortedReligions = viewModel.SitesByReligion
-            .OrderBy(kvp => viewModel.ReligionNames.GetValueOrDefault(kvp.Key, "Unknown"))
+            .OrderBy(kvp => viewModel.ReligionNames.GetValueOrDefault(kvp.Key, "Unknown"),
+                StringComparer.CurrentCultureIgnoreCase)
             .ToList();
 
-        foreach (var (religionUID, sites) in sortedReligions)
+        var currentY = y;
+        for (var i = 0; i < sortedReligions.Count; i++)
         {
-            var religionName = viewModel.ReligionNames.GetValueOrDefault(religionUID, "Unknown Religion");
+            var (religionUID, sites) = sortedReligions[i];
+            var religionName = viewModel.ReligionNames.GetValueOrDefault(religionUID, "Unknown Order");
             var isExpanded = viewModel.ExpandedReligions.Contains(religionUID);
 
-            // Draw religion header (collapsible)
-            var headerClicked = DrawReligionHeader(viewModel, drawList, currentY, religionUID, religionName, sites.Count, isExpanded);
-            if (headerClicked)
-            {
-                events.Add(new HolySitesEvent.ReligionToggled(religionUID));
-            }
+            currentY = DrawOrderHeader(drawList, religionUID, religionName, sites.Count,
+                isExpanded, x, currentY, width, events);
 
-            currentY += ReligionHeaderHeight;
-
-            // Draw sites if expanded
             if (isExpanded)
             {
-                foreach (var site in sites)
-                {
-                    var siteClicked = DrawSiteItem(viewModel, drawList, currentY, site);
-                    if (siteClicked)
-                    {
-                        events.Add(new HolySitesEvent.SiteSelected(site.SiteUID));
-                    }
+                var domain = DomainHelper.ParseDeityType(
+                    viewModel.ReligionDomains.GetValueOrDefault(religionUID, string.Empty));
+                var sortedSites = sites
+                    .OrderBy(s => s.CreationDate)
+                    .ToList();
 
-                    currentY += SiteItemHeight;
+                foreach (var site in sortedSites)
+                {
+                    currentY = DrawSiteRow(drawList, site, domain, x, currentY, width, events);
                 }
             }
 
-            currentY += SectionSpacing;
-
-            // Check if we've exceeded available height
-            if (currentY - startY > availableHeight)
-            {
-                break;
-            }
+            if (i < sortedReligions.Count - 1)
+                currentY = DrawPerOrderDivider(drawList, x, currentY, width);
         }
+
+        return currentY;
     }
 
-    private static bool DrawReligionHeader(
-        CivilizationHolySitesViewModel viewModel,
+    private static float DrawOrderHeader(
         ImDrawListPtr drawList,
-        float y,
         string religionUID,
         string religionName,
         int siteCount,
-        bool isExpanded) // Used by caller to determine whether to render child sites
+        bool isExpanded,
+        float x, float y, float width,
+        List<HolySitesEvent> events)
     {
-        var x = viewModel.X + 20f;
-        var width = viewModel.Width - 40f;
-        var headerRect = new Vector2(x, y);
-        var headerRectEnd = new Vector2(x + width, y + ReligionHeaderHeight);
+        var rowY = y + OrderHeaderTopSpacing;
+        var rowMin = new Vector2(x, rowY);
+        var rowMax = new Vector2(x + width, rowY + OrderHeaderHeight);
 
-        // Background - use warm brown tone matching the rest of the UI
-        var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.DarkBrown, 0.9f));
-        drawList.AddRectFilled(headerRect, headerRectEnd, bgColor, 4f);
-
-        // Border
-        var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor);
-        drawList.AddRect(headerRect, headerRectEnd, borderColor, 4f, ImDrawFlags.None, 1f);
-
-        // Deity icon
-        const float deityIconSize = 32f;
-        var deityIconX = x + 12f;
-        var deityIconY = y + (ReligionHeaderHeight - deityIconSize) / 2f;
-
-        var domain = viewModel.ReligionDomains.GetValueOrDefault(religionUID, "");
-        if (!string.IsNullOrEmpty(domain))
-        {
-            var deityType = DomainHelper.ParseDeityType(domain);
-            var deityTextureId = DeityIconLoader.GetDeityTextureId(deityType);
-
-            if (deityTextureId != IntPtr.Zero)
-            {
-                // Draw deity icon
-                var iconMin = new Vector2(deityIconX, deityIconY);
-                var iconMax = new Vector2(deityIconX + deityIconSize, deityIconY + deityIconSize);
-                var tintColorU32 = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 1f, 1f, 1f));
-                drawList.AddImage(deityTextureId, iconMin, iconMax, Vector2.Zero, Vector2.One, tintColorU32);
-
-                // Add subtle border around icon
-                var deityColor = DomainHelper.GetDeityColor(domain);
-                var iconBorderColor = ImGui.ColorConvertFloat4ToU32(deityColor * 0.8f);
-                drawList.AddRect(iconMin, iconMax, iconBorderColor, 2f, ImDrawFlags.None, 1f);
-            }
-            else
-            {
-                // Fallback: colored circle
-                var iconCenter = new Vector2(deityIconX + deityIconSize / 2, deityIconY + deityIconSize / 2);
-                var deityColor = DomainHelper.GetDeityColor(domain);
-                var iconColorU32 = ImGui.ColorConvertFloat4ToU32(deityColor);
-                drawList.AddCircleFilled(iconCenter, deityIconSize / 2, iconColorU32, 12);
-            }
-        }
-
-        // Religion name - adjusted X position to account for deity icon
-        var nameX = deityIconX + deityIconSize + 12f;
-        var nameY = y + (ReligionHeaderHeight - ImGui.CalcTextSize(religionName).Y) / 2f;
-        drawList.AddText(ImGui.GetFont(), SectionHeader,
-            new Vector2(nameX, nameY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
-            religionName);
-
-        // Site count
-        var countText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_SITE_COUNT)
-            .Replace("{0}", siteCount.ToString());
-        var countSize = ImGui.CalcTextSize(countText);
-        var countX = x + width - countSize.X - 10f;
-        var countY = y + (ReligionHeaderHeight - countSize.Y) / 2f;
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel,
-            new Vector2(countX, countY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
-            countText);
-
-        // Check if clicked
         var mousePos = ImGui.GetMousePos();
-        var isHovered = mousePos.X >= headerRect.X && mousePos.X <= headerRectEnd.X &&
-                        mousePos.Y >= headerRect.Y && mousePos.Y <= headerRectEnd.Y;
-        var isClicked = isHovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
-
-        // Hover effect - use light brown matching the rest of the UI
+        var isHovered = mousePos.X >= rowMin.X && mousePos.X <= rowMax.X
+                                              && mousePos.Y >= rowMin.Y && mousePos.Y <= rowMax.Y;
         if (isHovered)
         {
-            var hoverColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.LightBrown, 0.4f));
-            drawList.AddRectFilled(headerRect, headerRectEnd, hoverColor, 4f);
+            var hoverColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.10f);
+            drawList.AddRectFilled(rowMin, rowMax, hoverColor, 2f);
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                events.Add(new HolySitesEvent.ReligionToggled(religionUID));
         }
 
-        return isClicked;
+        var caretCx = x + OrderLeftPadding + CaretSize / 2f;
+        var caretCy = rowY + OrderHeaderHeight / 2f;
+        ChromeRenderer.DrawChevron(drawList, caretCx, caretCy, CaretSize,
+            isExpanded ? ChromeRenderer.ChevronDirection.Down : ChromeRenderer.ChevronDirection.Right,
+            ColorPalette.Gold);
+
+        var textX = x + OrderLeftPadding + CaretSize + CaretToTextGap;
+        var textY = rowY + (OrderHeaderHeight - SubsectionLabel) / 2f;
+
+        var countText = LocalizationService.Instance.Get(
+            siteCount == 1
+                ? LocalizationKeys.UI_CIVILIZATION_HOLYSITES_COUNT_ONE
+                : LocalizationKeys.UI_CIVILIZATION_HOLYSITES_COUNT_MANY,
+            siteCount);
+
+        var leaderWidth = (x + width) - textX;
+        ChromeRenderer.DrawLeader(drawList, religionName, countText,
+            textX, textY, leaderWidth,
+            labelColor: ColorPalette.White,
+            valueColor: ColorPalette.Grey);
+
+        return rowY + OrderHeaderHeight + OrderHeaderBottomSpacing;
     }
 
-    private static bool DrawSiteItem(
-        CivilizationHolySitesViewModel viewModel,
+    private static float DrawSiteRow(
         ImDrawListPtr drawList,
-        float y,
-        HolySiteResponsePacket.HolySiteInfo site)
+        HolySiteResponsePacket.HolySiteInfo site,
+        DeityDomain domain,
+        float x, float y, float width,
+        List<HolySitesEvent> events)
     {
-        var x = viewModel.X + 20f + IndentSize;
-        var width = viewModel.Width - 40f - IndentSize;
-        var itemRect = new Vector2(x, y);
-        var itemRectEnd = new Vector2(x + width, y + SiteItemHeight);
+        var rowMin = new Vector2(x + SiteRowLeftPadding, y);
+        var rowMax = new Vector2(x + width,
+            y + SiteNameLineHeight + SiteClaimLineHeight + SiteRowBottomSpacing);
 
-        // Background - use darker brown tone matching table rows
-        var bgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.TableBackground, 0.95f));
-        drawList.AddRectFilled(itemRect, itemRectEnd, bgColor, 3f);
-
-        // Border
-        var borderColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.BorderColor, 0.5f));
-        drawList.AddRect(itemRect, itemRectEnd, borderColor, 3f, ImDrawFlags.None, 1f);
-
-        var currentX = x + SiteItemPadding;
-        var currentY = y + SiteItemPadding;
-
-        // Site name (larger font)
-        drawList.AddText(ImGui.GetFont(), SubsectionLabel,
-            new Vector2(currentX, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
-            site.SiteName);
-
-        currentY += 20f;
-
-        // Tier badge
-        var tierText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_TIER)
-            .Replace("{0}", site.Tier.ToString());
-        drawList.AddText(ImGui.GetFont(), Secondary,
-            new Vector2(currentX, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold),
-            tierText);
-
-        // Volume
-        var volumeX = currentX + 100f;
-        var volumeText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_VOLUME)
-            .Replace("{0}", site.Volume.ToString("N0"));
-        drawList.AddText(ImGui.GetFont(), Secondary,
-            new Vector2(volumeX, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
-            volumeText);
-
-        // Prayer Multiplier
-        var multiplierX = currentX + 250f;
-        var multiplierText = $"Prayer: {site.PrayerMultiplier:F1}x";
-        drawList.AddText(ImGui.GetFont(), Secondary,
-            new Vector2(multiplierX, currentY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
-            multiplierText);
-
-        // Check if clicked
         var mousePos = ImGui.GetMousePos();
-        var isHovered = mousePos.X >= itemRect.X && mousePos.X <= itemRectEnd.X &&
-                        mousePos.Y >= itemRect.Y && mousePos.Y <= itemRectEnd.Y;
-        var isClicked = isHovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
-
-        // Hover effect - use light brown matching the rest of the UI
+        var isHovered = mousePos.X >= rowMin.X && mousePos.X <= rowMax.X
+                                              && mousePos.Y >= rowMin.Y && mousePos.Y <= rowMax.Y;
         if (isHovered)
         {
-            var hoverColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.WithAlpha(ColorPalette.LightBrown, 0.3f));
-            drawList.AddRectFilled(itemRect, itemRectEnd, hoverColor, 3f);
+            var hoverColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.08f);
+            drawList.AddRectFilled(rowMin, rowMax, hoverColor, 2f);
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                events.Add(new HolySitesEvent.SiteSelected(site.SiteUID));
         }
 
-        return isClicked;
+        var glyphCy = y + SiteNameLineHeight / 2f;
+        var glyphMin = new Vector2(x + SiteRowLeftPadding, glyphCy - SiteGlyphSize / 2f);
+        var glyphMax = new Vector2(x + SiteRowLeftPadding + SiteGlyphSize, glyphCy + SiteGlyphSize / 2f);
+        DomainGlyphRenderer.Draw(drawList, domain, glyphMin, glyphMax);
+
+        var nameX = x + SiteRowLeftPadding + SiteGlyphSize + SiteGlyphToTextGap;
+        var nameY = y + (SiteNameLineHeight - Body) / 2f;
+        var coordsText = $"({site.CenterX}, {site.CenterY}, {site.CenterZ})";
+        var leaderWidth = (x + width) - nameX;
+        ChromeRenderer.DrawLeader(drawList, site.SiteName, coordsText,
+            nameX, nameY, leaderWidth,
+            labelColor: ColorPalette.White,
+            valueColor: ColorPalette.Grey);
+
+        var claimDate = site.CreationDate == default
+            ? string.Empty
+            : site.CreationDate.ToLocalTime().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        if (!string.IsNullOrEmpty(claimDate))
+        {
+            var claimText = LocalizationService.Instance.Get(
+                LocalizationKeys.UI_CIVILIZATION_HOLYSITES_CLAIMED_ON, claimDate);
+            drawList.AddText(ImGui.GetFont(), Secondary,
+                new Vector2(nameX + SiteClaimIndent, y + SiteNameLineHeight),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
+                claimText);
+        }
+
+        return rowMax.Y;
+    }
+
+    private static float DrawPerOrderDivider(ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var inset = width * 0.30f;
+        var dividerY = y + 4f;
+        ChromeRenderer.DrawDivider(drawList,
+            x + inset, dividerY, width - inset * 2f,
+            ColorPalette.Gold * 0.40f);
+        return y + PerOrderDividerHeight;
+    }
+
+    private static float DrawOrnateDivider(ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var dividerY = y + DividerYPadding;
+        ChromeRenderer.DrawDividerOrnate(drawList, x, dividerY, width);
+        return y + DividerHeight;
+    }
+
+    private static void DrawClosingLine(ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var text = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_HOLYSITES_FOOTER_CLOSING);
+        var size = ImGui.CalcTextSize(text);
+        var textX = x + (width - size.X) / 2f;
+        drawList.AddText(ImGui.GetFont(), Body, new Vector2(textX, y),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
+            text);
+    }
+
+    private static float ComputeContentHeight(CivilizationHolySitesViewModel viewModel)
+    {
+        var h = 0f;
+        h += PaneHeaderRenderer.TotalHeight;
+        h += IntroLineHeight + IntroBottomSpacing;
+        h += DividerHeight;
+        if (viewModel.SitesByReligion.Count > 0)
+        {
+            var orderCount = viewModel.SitesByReligion.Count;
+            h += orderCount * (OrderHeaderTopSpacing + OrderHeaderHeight + OrderHeaderBottomSpacing);
+            h += (orderCount - 1) * PerOrderDividerHeight;
+            foreach (var (uid, sites) in viewModel.SitesByReligion)
+            {
+                if (viewModel.ExpandedReligions.Contains(uid))
+                {
+                    h += sites.Count *
+                         (SiteNameLineHeight + SiteClaimLineHeight + SiteRowBottomSpacing);
+                }
+            }
+        }
+        h += DividerHeight;
+        h += ClosingLineTopSpacing + ClosingLineHeight;
+        return h;
+    }
+
+    private static void DrawCenteredStateText(
+        ImDrawListPtr drawList, string text, float x, float y, float width, float height, Vector4 color)
+    {
+        var size = ImGui.CalcTextSize(text);
+        var pos = new Vector2(x + (width - size.X) / 2f, y + (height - size.Y) / 2f);
+        drawList.AddText(ImGui.GetFont(), SubsectionLabel, pos,
+            ImGui.ColorConvertFloat4ToU32(color), text);
     }
 }
