@@ -124,31 +124,48 @@ public static class TextRenderer
         var defaultColor = new Vector4(0.8f, 0.8f, 0.8f, 1.0f);
         var textColor = ImGui.ColorConvertFloat4ToU32(color ?? defaultColor);
 
-        // Simple word wrap
-        var words = text.Split(' ');
-        var currentLine = "";
+        // Hard breaks first (\n from multiline input or pasted prose), then
+        // word-wrap each paragraph independently. \r is stripped so CRLF
+        // sources don't render a control-glyph or double-advance Y.
         var lineY = y;
-        var lineHeight = fontSize + 6f; // Spacing between lines
+        var lineHeight = fontSize + 6f;
+        var paragraphs = text.Replace("\r", string.Empty).Split('\n');
 
-        foreach (var word in words)
+        foreach (var paragraph in paragraphs)
         {
-            var testLine = string.IsNullOrEmpty(currentLine) ? word : $"{currentLine} {word}";
-            var testSize = ImGui.CalcTextSize(testLine);
+            if (paragraph.Length == 0)
+            {
+                // Empty line — preserve as a blank paragraph break.
+                lineY += lineHeight;
+                continue;
+            }
 
-            if (testSize.X > width && !string.IsNullOrEmpty(currentLine))
+            var words = paragraph.Split(' ');
+            var currentLine = "";
+
+            foreach (var word in words)
+            {
+                var testLine = string.IsNullOrEmpty(currentLine) ? word : $"{currentLine} {word}";
+                var testSize = ImGui.CalcTextSize(testLine);
+
+                if (testSize.X > width && !string.IsNullOrEmpty(currentLine))
+                {
+                    drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(x, lineY), textColor, currentLine);
+                    lineY += lineHeight;
+                    currentLine = word;
+                }
+                else
+                {
+                    currentLine = testLine;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(currentLine))
             {
                 drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(x, lineY), textColor, currentLine);
                 lineY += lineHeight;
-                currentLine = word;
-            }
-            else
-            {
-                currentLine = testLine;
             }
         }
-
-        if (!string.IsNullOrEmpty(currentLine))
-            drawList.AddText(ImGui.GetFont(), fontSize, new Vector2(x, lineY), textColor, currentLine);
     }
 
     /// <summary>
@@ -161,29 +178,40 @@ public static class TextRenderer
     /// <returns>Total height in pixels required to render the wrapped text</returns>
     public static float MeasureWrappedHeight(string text, float width, float fontSize = FontSizes.Secondary)
     {
-        // Mirror the wrapping logic to keep measurements consistent
-        var words = text.Split(' ');
-        var currentLine = "";
+        // Mirror DrawInfoText: hard breaks then per-paragraph word wrap.
         var lines = 0;
-        var lineHeight = fontSize + 6f; // keep spacing identical to DrawInfoText
+        var lineHeight = fontSize + 6f;
+        var paragraphs = text.Replace("\r", string.Empty).Split('\n');
 
-        foreach (var word in words)
+        foreach (var paragraph in paragraphs)
         {
-            var testLine = string.IsNullOrEmpty(currentLine) ? word : $"{currentLine} {word}";
-            var testSize = ImGui.CalcTextSize(testLine);
-
-            if (testSize.X > width && !string.IsNullOrEmpty(currentLine))
+            if (paragraph.Length == 0)
             {
                 lines++;
-                currentLine = word;
+                continue;
             }
-            else
-            {
-                currentLine = testLine;
-            }
-        }
 
-        if (!string.IsNullOrEmpty(currentLine)) lines++;
+            var words = paragraph.Split(' ');
+            var currentLine = "";
+
+            foreach (var word in words)
+            {
+                var testLine = string.IsNullOrEmpty(currentLine) ? word : $"{currentLine} {word}";
+                var testSize = ImGui.CalcTextSize(testLine);
+
+                if (testSize.X > width && !string.IsNullOrEmpty(currentLine))
+                {
+                    lines++;
+                    currentLine = word;
+                }
+                else
+                {
+                    currentLine = testLine;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(currentLine)) lines++;
+        }
 
         return lines <= 0 ? 0f : lines * lineHeight;
     }
