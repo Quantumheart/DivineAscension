@@ -33,6 +33,9 @@ public class HolySiteManager : IHolySiteManager
     /// <inheritdoc />
     public event Action<string, string>? OnHolySiteCreated;
 
+    /// <inheritdoc />
+    public event Action<string, string>? OnHolySiteRemoved;
+
     // Dependencies (API wrappers)
     private readonly ILoggerWrapper _logger;
     private readonly IPersistenceService _persistenceService;
@@ -362,6 +365,8 @@ public class HolySiteManager : IHolySiteManager
                 _logger.Notification($"[DivineAscension] Holy site '{site.SiteName}' deconsecrated");
 
                 SaveHolySites();
+
+                OnHolySiteRemoved?.Invoke(site.ReligionUID, siteUID);
 
                 return true;
             }
@@ -757,6 +762,8 @@ public class HolySiteManager : IHolySiteManager
                 if (sites.Count == 0)
                     _sitesByReligion.TryRemove(site.ReligionUID, out _);
             }
+
+            OnHolySiteRemoved?.Invoke(site.ReligionUID, siteUID);
 
             return true;
         }

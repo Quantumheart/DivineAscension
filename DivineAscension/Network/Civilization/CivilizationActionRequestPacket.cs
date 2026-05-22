@@ -25,7 +25,7 @@ public class CivilizationActionRequestPacket
 
     [ProtoMember(1)]
     public string Action { get; set; } =
-        string.Empty; // "create", "invite", "accept", "leave", "kick", "disband", "updateicon", "setdescription"
+        string.Empty; // "create", "invite", "accept", "leave", "kick", "disband", "updateicon", "setdescription", "setcapital"
 
     [ProtoMember(2)] public string CivId { get; set; } = string.Empty; // Civilization ID (for most actions)
 
@@ -46,4 +46,17 @@ public class CivilizationActionRequestPacket
     /// </summary>
     [ProtoMember(7)]
     public int Ethos { get; set; } = -1;
+
+    /// <summary>
+    ///     Capital display name for the "setcapital" action (1-64 chars after trim).
+    /// </summary>
+    [ProtoMember(8)]
+    public string CapitalName { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Optional holy site UID to bind as capital for "setcapital". Empty string means
+    ///     "unbind" — keep the name but clear any prior binding.
+    /// </summary>
+    [ProtoMember(9)]
+    public string HolySiteId { get; set; } = string.Empty;
 }

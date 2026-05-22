@@ -11,6 +11,9 @@ public class InfoState : IState
     public string InviteReligionName { get; set; } = string.Empty;
     public string DescriptionText { get; set; } = string.Empty;
     public bool IsEditingDescription { get; set; }
+    public bool IsEditingCapital { get; set; }
+    public string CapitalNameText { get; set; } = string.Empty;
+    public string CapitalBindingText { get; set; } = string.Empty;
     public bool IsLoading { get; set; }
     public string? ErrorMsg { get; set; }
 
@@ -22,6 +25,9 @@ public class InfoState : IState
         InviteReligionName = string.Empty;
         DescriptionText = string.Empty;
         IsEditingDescription = false;
+        IsEditingCapital = false;
+        CapitalNameText = string.Empty;
+        CapitalBindingText = string.Empty;
         IsLoading = false;
         ErrorMsg = null;
     }

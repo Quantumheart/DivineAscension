@@ -18,6 +18,16 @@ public abstract record InfoEvent
 
     public sealed record SaveDescriptionClicked : InfoEvent;
 
+    public sealed record EditCapitalOpen : InfoEvent;
+
+    public sealed record EditCapitalCancel : InfoEvent;
+
+    public sealed record CapitalNameChanged(string text) : InfoEvent;
+
+    public sealed record CapitalBindingChanged(string siteId) : InfoEvent;
+
+    public sealed record SaveCapitalClicked : InfoEvent;
+
     public sealed record LeaveClicked : InfoEvent;
 
     public sealed record EditIconClicked : InfoEvent;

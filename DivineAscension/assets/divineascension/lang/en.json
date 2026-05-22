@@ -1056,6 +1056,10 @@
   "divineascension:net.civ.description_update_failed": "Failed to update description. Only the founder can update the civilization description.",
   "divineascension:net.civ.description_too_long": "Description must be 200 characters or less.",
   "divineascension:net.civ.description_profanity": "Description contains inappropriate content.",
+  "divineascension:net.civ.capital_updated": "Capital updated.",
+  "divineascension:net.civ.capital_update_failed": "Failed to update capital. Only the founder can set the capital, and any bound holy site must belong to a member religion.",
+  "divineascension:net.civ.capital_name_invalid": "Capital name must be 1-64 characters.",
+  "divineascension:net.civ.capital_name_profanity": "Capital name contains inappropriate content.",
   "divineascension:net.civ.unknown_action": "Unknown action: {0}",
   "divineascension:net.civ.error": "An error occurred while processing your request.",
   "divineascension:cmd.blessing.error.must_be_in_religion": "You must join a religion to view blessings. Use /religion to get started.",
@@ -1309,7 +1313,10 @@
   "divineascension:civilization.epithet.default": "the Unmarked",
 
   "divineascension:ui.civilization.info.ethos": "Ethos",
+  "divineascension:ui.civilization.info.seat": "Seat",
+  "divineascension:ui.civilization.info.capital_none": "(no holy site bound)",
   "divineascension:ui.civilization.detail.ethos": "Ethos",
+  "divineascension:ui.civilization.detail.seat": "Seat",
   "divineascension:ui.civilization.create.ethos.label": "Ethos",
   "divineascension:ui.civilization.create.ethos.hint": "Chosen once, at founding. Tradition derives ethos from your patron's domain. Overrule only with reason."
 }

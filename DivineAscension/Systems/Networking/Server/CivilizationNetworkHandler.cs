@@ -181,6 +181,8 @@ public class CivilizationNetworkHandler(
             Rank = (int)civ.Rank,
             Ethos = (int)civ.Ethos,
             FounderEpithet = civ.FounderEpithet,
+            CapitalName = civ.CapitalName,
+            CapitalHolySiteId = civ.CapitalHolySiteId ?? string.Empty,
             MemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(),
             PendingInvites = new List<CivilizationInfoResponsePacket.PendingInvite>()
         };
@@ -484,6 +486,38 @@ public class CivilizationNetworkHandler(
                         : LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_DESCRIPTION_UPDATE_FAILED);
                     response.CivId = packet.CivId;
                     break;
+
+                case "setcapital":
+                {
+                    var trimmedCapital = (packet.CapitalName ?? string.Empty).Trim();
+                    if (trimmedCapital.Length == 0 || trimmedCapital.Length > 64)
+                    {
+                        response.Success = false;
+                        response.Message =
+                            LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_CAPITAL_NAME_INVALID);
+                        response.CivId = packet.CivId;
+                        break;
+                    }
+
+                    if (ProfanityFilterService.Instance.ContainsProfanity(trimmedCapital))
+                    {
+                        response.Success = false;
+                        response.Message =
+                            LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_CAPITAL_NAME_PROFANITY);
+                        response.CivId = packet.CivId;
+                        break;
+                    }
+
+                    var holySiteId = string.IsNullOrEmpty(packet.HolySiteId) ? null : packet.HolySiteId;
+                    success = civilizationManager.SetCapital(packet.CivId, fromPlayer.PlayerUID, trimmedCapital,
+                        holySiteId);
+                    response.Success = success;
+                    response.Message = success
+                        ? LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_CAPITAL_UPDATED)
+                        : LocalizationService.Instance.Get(LocalizationKeys.NET_CIV_CAPITAL_UPDATE_FAILED);
+                    response.CivId = packet.CivId;
+                    break;
+                }
 
                 default:
                     response.Success = false;

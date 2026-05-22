@@ -174,6 +174,22 @@ public class Civilization
     public string FounderEpithet { get; set; } = string.Empty;
 
     /// <summary>
+    ///     Display name of the civilization's seat. Auto-defaults to "{Name} Seat" at
+    ///     founding; founder may edit later. Empty for legacy saves — repair on load.
+    /// </summary>
+    [ProtoMember(17)]
+    public string CapitalName { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Optional binding to a holy site owned by one of the civ's member religions.
+    ///     Null means unbound. Cleared automatically when the site is destroyed or
+    ///     the owning religion leaves the civilization; <see cref="CapitalName" /> is
+    ///     preserved in both cascades.
+    /// </summary>
+    [ProtoMember(18)]
+    public string? CapitalHolySiteId { get; set; }
+
+    /// <summary>
     ///     Checks if the civilization has a valid number of member religions (1-4)
     /// </summary>
     public bool IsValid

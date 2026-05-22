@@ -101,6 +101,12 @@ internal static class CivilizationInfoHeaderRenderer
             x, currentY, width);
         currentY += StatRowHeight;
 
+        ChromeRenderer.DrawLeader(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_SEAT),
+            string.IsNullOrWhiteSpace(vm.CapitalName) ? "—" : vm.CapitalName,
+            x, currentY, width);
+        currentY += StatRowHeight;
+
         return currentY + StatBlockBottomSpacing;
     }
 

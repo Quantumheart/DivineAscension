@@ -18,6 +18,12 @@ public interface IHolySiteManager
     event Action<string, string>? OnHolySiteCreated;
 
     /// <summary>
+    /// Event fired when a holy site is removed (deconsecrated or owning religion deleted).
+    /// Parameters: religionUID, siteUID
+    /// </summary>
+    event Action<string, string>? OnHolySiteRemoved;
+
+    /// <summary>
     /// Initializes the manager and registers event handlers.
     /// </summary>
     void Initialize();

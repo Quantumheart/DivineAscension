@@ -93,6 +93,20 @@ public interface ICivilizationManager
     bool UpdateCivilizationDescription(string civId, string requestorUID, string description);
 
     /// <summary>
+    ///     Sets the civilization's capital — a display name plus optional binding to one
+    ///     holy site owned by a member religion. Founder-only.
+    /// </summary>
+    /// <param name="civId">ID of the civilization</param>
+    /// <param name="requestorUID">Player UID requesting the change (must be founder)</param>
+    /// <param name="capitalName">New capital name (1-64 chars after trim)</param>
+    /// <param name="holySiteId">
+    ///     Optional holy site to bind. Must be owned by one of the civ's member religions.
+    ///     Pass null to clear the binding while keeping the name.
+    /// </param>
+    /// <returns>True if applied, false on validation failure.</returns>
+    bool SetCapital(string civId, string requestorUID, string capitalName, string? holySiteId);
+
+    /// <summary>
     ///     Gets a civilization by ID
     /// </summary>
     Civilization? GetCivilization(string civId);

@@ -31,6 +31,10 @@ public class CivilizationManager : ICivilizationManager
     private readonly IWorldService _worldService;
     private CivilizationWorldData _data = new();
 
+    // Optional dependency wired after construction to break the circular init order
+    // between HolySiteManager and CivilizationManager. Used only for capital cascades.
+    private IHolySiteManager? _holySiteManager;
+
     /// <summary>
     ///     Lazy-initialized lock object for thread safety using Interlocked.CompareExchange
     /// </summary>
@@ -104,9 +108,40 @@ public class CivilizationManager : ICivilizationManager
         _eventService.UnsubscribeSaveGameLoaded(OnSaveGameLoaded);
         _eventService.UnsubscribeGameWorldSave(OnGameWorldSave);
         _religionManager.OnReligionDeleted -= HandleReligionDeleted;
+        if (_holySiteManager != null)
+            _holySiteManager.OnHolySiteRemoved -= HandleHolySiteRemoved;
         OnCivilizationDisbanded = null;
         OnReligionAdded = null;
         OnReligionRemoved = null;
+    }
+
+    /// <summary>
+    ///     Wires the holy-site manager dependency after construction so capital cascades
+    ///     can fire. Called from the system initializer once both managers exist.
+    /// </summary>
+    public void SetHolySiteManager(IHolySiteManager holySiteManager)
+    {
+        _holySiteManager = holySiteManager ?? throw new ArgumentNullException(nameof(holySiteManager));
+        _holySiteManager.OnHolySiteRemoved += HandleHolySiteRemoved;
+    }
+
+    /// <summary>
+    ///     Cascade hook: when a holy site is removed, null the binding on any civ whose
+    ///     capital points at it. Capital name is preserved.
+    /// </summary>
+    private void HandleHolySiteRemoved(string religionUID, string siteUID)
+    {
+        lock (Lock)
+        {
+            foreach (var civ in _data.Civilizations.Values)
+            {
+                if (civ.CapitalHolySiteId == siteUID)
+                {
+                    civ.CapitalHolySiteId = null;
+                    _logger.Debug($"[DivineAscension] Cleared capital binding on civ '{civ.Name}' — site {siteUID} removed");
+                }
+            }
+        }
     }
 
     #region Event Handlers
@@ -131,6 +166,8 @@ public class CivilizationManager : ICivilizationManager
                 // Check if the deleted religion was the founder's religion
                 var isFounderReligion = civ.FounderReligionUID == religionId;
                 var civIdForEvent = civ.CivId;
+
+                ClearCapitalIfOwnedByReligion(civ, religionId);
 
                 // Remove religion from civilization
                 _data.RemoveReligionFromCivilization(religionId);
@@ -275,7 +312,8 @@ public class CivilizationManager : ICivilizationManager
                     Icon = icon,
                     Description = description,
                     Ethos = ethosOverride ?? derivedEthos,
-                    FounderEpithet = LocalizationService.Instance.Get(epithetKey)
+                    FounderEpithet = LocalizationService.Instance.Get(epithetKey),
+                    CapitalName = $"{name} Seat"
                 };
 
                 _data.AddCivilization(civ);
@@ -573,6 +611,7 @@ public class CivilizationManager : ICivilizationManager
 
                 // Remove religion from civilization
                 var civIdForEvent = civ.CivId;
+                ClearCapitalIfOwnedByReligion(civ, religionId);
                 _data.RemoveReligionFromCivilization(religionId);
                 civ.MemberCount -= religion.MemberUIDs.Count;
 
@@ -648,6 +687,7 @@ public class CivilizationManager : ICivilizationManager
                 }
 
                 // Remove religion from civilization
+                ClearCapitalIfOwnedByReligion(civ, religionId);
                 _data.RemoveReligionFromCivilization(religionId);
                 civ.MemberCount -= religion.MemberUIDs.Count;
 
@@ -876,6 +916,78 @@ public class CivilizationManager : ICivilizationManager
         }
     }
 
+    /// <inheritdoc />
+    public bool SetCapital(string civId, string requestorUID, string capitalName, string? holySiteId)
+    {
+        lock (Lock)
+        {
+            try
+            {
+                var civ = _data.Civilizations.GetValueOrDefault(civId);
+                if (civ == null)
+                {
+                    _logger.Warning($"[DivineAscension] Civilization '{civId}' not found");
+                    return false;
+                }
+
+                if (!civ.IsFounder(requestorUID))
+                {
+                    _logger.Warning("[DivineAscension] Only civilization founder can set capital");
+                    return false;
+                }
+
+                var trimmed = (capitalName ?? string.Empty).Trim();
+                if (trimmed.Length == 0 || trimmed.Length > 64)
+                {
+                    _logger.Warning("[DivineAscension] Capital name must be 1-64 characters");
+                    return false;
+                }
+
+                if (!string.IsNullOrEmpty(holySiteId))
+                {
+                    var site = _holySiteManager?.GetHolySite(holySiteId);
+                    if (site == null)
+                    {
+                        _logger.Warning($"[DivineAscension] Holy site '{holySiteId}' not found");
+                        return false;
+                    }
+
+                    if (!civ.HasReligion(site.ReligionUID))
+                    {
+                        _logger.Warning("[DivineAscension] Holy site does not belong to a member religion");
+                        return false;
+                    }
+                }
+
+                civ.CapitalName = trimmed;
+                civ.CapitalHolySiteId = string.IsNullOrEmpty(holySiteId) ? null : holySiteId;
+
+                _logger.Notification($"[DivineAscension] Civilization '{civ.Name}' capital set to '{trimmed}'");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"[DivineAscension] Error setting capital: {ex.Message}");
+                return false;
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Cascade: when a religion leaves a civ, if it owned the civ's bound capital
+    ///     site, null the binding. Capital name is preserved. Must be called inside Lock.
+    /// </summary>
+    private void ClearCapitalIfOwnedByReligion(Civilization civ, string religionId)
+    {
+        if (civ.CapitalHolySiteId == null) return;
+        var site = _holySiteManager?.GetHolySite(civ.CapitalHolySiteId);
+        if (site != null && site.ReligionUID == religionId)
+        {
+            civ.CapitalHolySiteId = null;
+            _logger.Debug($"[DivineAscension] Cleared capital binding on civ '{civ.Name}' — religion {religionId} left");
+        }
+    }
+
     #endregion
 
     #region Query Methods
@@ -1055,6 +1167,11 @@ public class CivilizationManager : ICivilizationManager
                 if (loadedData != null)
                 {
                     _data = loadedData;
+                    foreach (var civ in _data.Civilizations.Values)
+                    {
+                        if (string.IsNullOrEmpty(civ.CapitalName))
+                            civ.CapitalName = $"{civ.Name} Seat";
+                    }
                     _logger.Notification($"[DivineAscension] Loaded {_data.Civilizations.Count} civilizations");
                 }
                 else
