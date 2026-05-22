@@ -103,13 +103,40 @@ internal static class ReligionInfoRenderer
 
         currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
+        // === DYNAMIC PROSE FRAMES ===
+        // Purpose and Myth reserve a frame sized for content but clamp to
+        // the available pane height so a shrunk window doesn't push the
+        // prose past the footer. Myth absorbs the squeeze first since it
+        // owns the bulk of the vertical budget.
+        var paneBottomY = y + height;
+        var actionsFooterReserve = FooterTopPadding + 34f + 6f;
+        var strickenReserve = viewModel.IsFounder
+            ? DividerHeight + 22f + (viewModel.HasBannedPlayers ? BanListHeight + 8f : 22f)
+            : 0f;
+        var dividerBetween = DividerHeight;
+        const float headingAndSpacing = 22f + 8f;
+        const float purposeMax = 80f;
+        const float mythMax = 540f;
+        // Remaining height for both prose bodies after fixed reservations.
+        var remainingForProse = paneBottomY - currentY
+            - headingAndSpacing       // purpose heading + spacing
+            - dividerBetween          // divider between purpose and myth
+            - headingAndSpacing       // myth heading + spacing
+            - strickenReserve
+            - actionsFooterReserve;
+        // Purpose keeps its small max unless the pane is so small it forces
+        // a share; floor at a readable 40px.
+        var purposeBody = MathF.Max(40f, MathF.Min(purposeMax, remainingForProse * 0.15f));
+        if (remainingForProse < purposeMax + 80f) purposeBody = MathF.Max(40f, remainingForProse * 0.25f);
+        var mythBody = MathF.Max(60f, MathF.Min(mythMax, remainingForProse - purposeBody));
+
         // === OF THE ORDER'S PURPOSE ===
-        currentY = ReligionInfoDescriptionRenderer.Draw(viewModel, drawList, x, currentY, contentWidth, events);
+        currentY = ReligionInfoDescriptionRenderer.Draw(viewModel, drawList, x, currentY, contentWidth, events, purposeBody);
 
         currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
         // === OF THE ORDER'S FOUNDING ===
-        currentY = ReligionInfoFoundingMythRenderer.Draw(viewModel, drawList, x, currentY, contentWidth, events);
+        currentY = ReligionInfoFoundingMythRenderer.Draw(viewModel, drawList, x, currentY, contentWidth, events, mythBody);
 
         // === STRICKEN FROM THE LEDGER (founder-only) ===
         if (viewModel.IsFounder)

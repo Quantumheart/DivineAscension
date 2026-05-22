@@ -387,6 +387,43 @@ internal static class ChromeRenderer
     ///     horizontal rectangle with the front flap drawn as two diagonals
     ///     meeting at the top center.
     /// </summary>
+    /// <summary>
+    ///     Paint a curly quote-mark pair as primitives so it renders without
+    ///     U+201C/U+201D coverage in the loaded font. Two small filled "comma"
+    ///     shapes (a tilted teardrop = disc + downward triangle tail).
+    ///     <paramref name="closing"/> flips vertically for the 99-style mark.
+    /// </summary>
+    public static void DrawQuoteMark(ImDrawListPtr drawList, float cx, float cy, float size,
+        bool closing, Vector4? colorOverride = null)
+    {
+        if (size <= 0f) return;
+        var color = ImGui.ColorConvertFloat4ToU32(colorOverride ?? ColorPalette.Grey);
+        var radius = size * 0.18f;
+        var gap = size * 0.45f;
+        var tailLength = size * 0.30f;
+        var tailWidth = size * 0.10f;
+        var sign = closing ? -1f : 1f;
+
+        // Two filled discs side-by-side at the top.
+        var leftCx = cx - gap / 2f;
+        var rightCx = cx + gap / 2f;
+        var discY = cy - sign * size * 0.05f;
+        drawList.AddCircleFilled(new Vector2(leftCx, discY), radius, color, 8);
+        drawList.AddCircleFilled(new Vector2(rightCx, discY), radius, color, 8);
+
+        // Tail triangles below each disc (above, when closing).
+        drawList.AddTriangleFilled(
+            new Vector2(leftCx - tailWidth, discY),
+            new Vector2(leftCx + tailWidth, discY),
+            new Vector2(leftCx - tailWidth * 0.2f, discY + sign * tailLength),
+            color);
+        drawList.AddTriangleFilled(
+            new Vector2(rightCx - tailWidth, discY),
+            new Vector2(rightCx + tailWidth, discY),
+            new Vector2(rightCx - tailWidth * 0.2f, discY + sign * tailLength),
+            color);
+    }
+
     public static void DrawEnvelope(ImDrawListPtr drawList, float cx, float cy, float size,
         Vector4? colorOverride = null)
     {
