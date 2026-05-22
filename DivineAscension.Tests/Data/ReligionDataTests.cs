@@ -27,6 +27,22 @@ public class ReligionDataTests
         Assert.Empty(religion.UnlockedBlessings);
         Assert.True(religion.IsPublic);
         Assert.Empty(religion.Description);
+        Assert.Empty(religion.Motto);
+        Assert.Empty(religion.FoundingMyth);
+    }
+
+    [Fact]
+    public void Motto_ShouldRoundTrip()
+    {
+        var religion = new ReligionData { Motto = "By hammer and hearth" };
+        Assert.Equal("By hammer and hearth", religion.Motto);
+    }
+
+    [Fact]
+    public void FoundingMyth_ShouldRoundTrip()
+    {
+        var religion = new ReligionData { FoundingMyth = "In the first age, the forge sang…" };
+        Assert.Equal("In the first age, the forge sang…", religion.FoundingMyth);
     }
 
     [Fact]

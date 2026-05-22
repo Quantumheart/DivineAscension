@@ -25,6 +25,12 @@ public class InfoState
 
     public bool IsEditingDescription { get; set; }
 
+    public string Motto { get; set; } = string.Empty;
+    public bool IsEditingMotto { get; set; }
+
+    public string FoundingMyth { get; set; } = string.Empty;
+    public bool IsEditingFoundingMyth { get; set; }
+
     public void Reset()
     {
         MyReligionInfo = null;
@@ -44,5 +50,9 @@ public class InfoState
         IsSavingDeityName = false;
         DeityNameError = null;
         IsEditingDescription = false;
+        Motto = string.Empty;
+        IsEditingMotto = false;
+        FoundingMyth = string.Empty;
+        IsEditingFoundingMyth = false;
     }
 }

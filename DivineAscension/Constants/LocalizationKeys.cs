@@ -255,6 +255,12 @@ public static class LocalizationKeys
     // Ledger chrome strings introduced for the "This Order" chapter rewrite (#309).
     public const string UI_RELIGION_INFO_PURPOSE_HEADING = "divineascension:ui.religion.info.purpose.heading";
     public const string UI_RELIGION_INFO_PURPOSE_EMPTY = "divineascension:ui.religion.info.purpose.empty";
+    public const string UI_RELIGION_INFO_MOTTO_HEADING = "divineascension:ui.religion.info.motto.heading";
+    public const string UI_RELIGION_INFO_MOTTO_EMPTY = "divineascension:ui.religion.info.motto.empty";
+    public const string UI_RELIGION_INFO_MOTTO_PLACEHOLDER = "divineascension:ui.religion.info.motto.placeholder";
+    public const string UI_RELIGION_INFO_MYTH_HEADING = "divineascension:ui.religion.info.myth.heading";
+    public const string UI_RELIGION_INFO_MYTH_EMPTY = "divineascension:ui.religion.info.myth.empty";
+    public const string UI_RELIGION_INFO_MYTH_PLACEHOLDER = "divineascension:ui.religion.info.myth.placeholder";
     public const string UI_RELIGION_INFO_STRICKEN_HEADING = "divineascension:ui.religion.info.stricken.heading";
     public const string UI_RELIGION_INFO_STRICKEN_EMPTY = "divineascension:ui.religion.info.stricken.empty";
     public const string UI_RELIGION_INFO_INTRO_FOUNDED_BY = "divineascension:ui.religion.info.intro.founded_by";
@@ -1683,6 +1689,14 @@ public static class LocalizationKeys
     public const string NET_RELIGION_DESC_TOO_LONG = "divineascension:net.religion.desc_too_long";
     public const string NET_RELIGION_DESC_UPDATED = "divineascension:net.religion.desc_updated";
     public const string NET_RELIGION_DESC_ERROR = "divineascension:net.religion.desc_error";
+    public const string NET_RELIGION_MOTTO_TOO_LONG = "divineascension:net.religion.motto_too_long";
+    public const string NET_RELIGION_MOTTO_PROFANITY = "divineascension:net.religion.motto_profanity";
+    public const string NET_RELIGION_MOTTO_UPDATED = "divineascension:net.religion.motto_updated";
+    public const string NET_RELIGION_MOTTO_ERROR = "divineascension:net.religion.motto_error";
+    public const string NET_RELIGION_MYTH_TOO_LONG = "divineascension:net.religion.myth_too_long";
+    public const string NET_RELIGION_MYTH_PROFANITY = "divineascension:net.religion.myth_profanity";
+    public const string NET_RELIGION_MYTH_UPDATED = "divineascension:net.religion.myth_updated";
+    public const string NET_RELIGION_MYTH_ERROR = "divineascension:net.religion.myth_error";
     public const string NET_RELIGION_NOT_MEMBER = "divineascension:net.religion.not_member";
     public const string NET_RELIGION_UNKNOWN_ACTION = "divineascension:net.religion.unknown_action";
     public const string NET_RELIGION_ERROR = "divineascension:net.religion.error";

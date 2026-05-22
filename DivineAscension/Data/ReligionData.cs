@@ -404,6 +404,19 @@ public class ReligionData
     public float AccumulatedFractionalPrestige { get; set; }
 
     /// <summary>
+    ///     Short one-line motto/creed (flavor, ~80 chars).
+    /// </summary>
+    [ProtoMember(21)]
+    public string Motto { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Long-form founding myth / origin story (flavor, ~2000 chars).
+    ///     Distinct from <see cref="Description"/> which is the manifesto/purpose.
+    /// </summary>
+    [ProtoMember(22)]
+    public string FoundingMyth { get; set; } = string.Empty;
+
+    /// <summary>
     ///     Adds a member to the religion with player name.
     ///     Thread-safe.
     /// </summary>

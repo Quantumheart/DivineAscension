@@ -48,6 +48,10 @@ public class PlayerReligionInfoResponsePacket
 
     [ProtoMember(13)] public List<ReligionInviteInfo> PendingInvites { get; set; } = new();
 
+    [ProtoMember(16)] public string Motto { get; set; } = string.Empty;
+
+    [ProtoMember(17)] public string FoundingMyth { get; set; } = string.Empty;
+
     [ProtoContract]
     public class MemberInfo
     {

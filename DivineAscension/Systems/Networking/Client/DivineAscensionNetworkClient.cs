@@ -55,6 +55,8 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _clientChannel.SetMessageHandler<ReligionActionResponsePacket>(OnReligionActionResponse);
         _clientChannel.SetMessageHandler<CreateReligionResponsePacket>(OnCreateReligionResponse);
         _clientChannel.SetMessageHandler<EditDescriptionResponsePacket>(OnEditDescriptionResponse);
+        _clientChannel.SetMessageHandler<EditMottoResponsePacket>(OnEditMottoResponse);
+        _clientChannel.SetMessageHandler<EditFoundingMythResponsePacket>(OnEditFoundingMythResponse);
         _clientChannel.SetMessageHandler<BlessingUnlockResponsePacket>(OnBlessingUnlockResponse);
         _clientChannel.SetMessageHandler<BlessingDataResponsePacket>(OnBlessingDataResponse);
         _clientChannel.SetMessageHandler<ReligionStateChangedPacket>(OnReligionStateChanged);
@@ -178,6 +180,22 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     }
 
     private void OnEditDescriptionResponse(EditDescriptionResponsePacket packet)
+    {
+        if (packet.Success)
+            _capi?.ShowChatMessage(packet.Message);
+        else
+            _capi?.ShowChatMessage($"Error: {packet.Message}");
+    }
+
+    private void OnEditMottoResponse(EditMottoResponsePacket packet)
+    {
+        if (packet.Success)
+            _capi?.ShowChatMessage(packet.Message);
+        else
+            _capi?.ShowChatMessage($"Error: {packet.Message}");
+    }
+
+    private void OnEditFoundingMythResponse(EditFoundingMythResponsePacket packet)
     {
         if (packet.Success)
             _capi?.ShowChatMessage(packet.Message);
@@ -648,6 +666,36 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         var request = new EditDescriptionRequestPacket(religionUID, description);
         _clientChannel.SendPacket(request);
         _capi?.Logger.Debug("[DivineAscension] Sent edit description request");
+    }
+
+    /// <summary>
+    ///     Request to edit religion motto/creed
+    /// </summary>
+    public void RequestEditMotto(string religionUID, string motto)
+    {
+        if (_clientChannel == null)
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot edit motto: client channel not initialized");
+            return;
+        }
+
+        _clientChannel.SendPacket(new EditMottoRequestPacket(religionUID, motto));
+        _capi?.Logger.Debug("[DivineAscension] Sent edit motto request");
+    }
+
+    /// <summary>
+    ///     Request to edit religion founding myth
+    /// </summary>
+    public void RequestEditFoundingMyth(string religionUID, string foundingMyth)
+    {
+        if (_clientChannel == null)
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot edit founding myth: client channel not initialized");
+            return;
+        }
+
+        _clientChannel.SendPacket(new EditFoundingMythRequestPacket(religionUID, foundingMyth));
+        _capi?.Logger.Debug("[DivineAscension] Sent edit founding myth request");
     }
 
     /// <summary>
