@@ -11,5 +11,6 @@ public enum SoundType
     UnlockHarvest,
     UnlockStone,
     UnlockConquest,
-    PageTurn
+    PageTurn,
+    Writing
 }

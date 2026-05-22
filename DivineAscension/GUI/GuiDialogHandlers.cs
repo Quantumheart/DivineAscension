@@ -245,8 +245,8 @@ public partial class GuiDialog
         {
             _capi?.ShowChatMessage(packet.Message);
 
-            // Play success sound
-            _soundManager!.PlayClick();
+            // Play writing sound on save (religion action completed by server)
+            _soundManager!.PlaySuccess();
 
 
             // If leaving religion, reset blessing dialog state immediately

@@ -25,7 +25,8 @@ public class SoundManager : ISoundManager
         { SoundType.UnlockHarvest, "divineascension:sounds/deities/Harvest" },
         { SoundType.UnlockStone, "divineascension:sounds/deities/Stone" },
         { SoundType.UnlockConquest, "divineascension:sounds/deities/Conquest" },
-        { SoundType.PageTurn, "divineascension:sounds/page-turn" }
+        { SoundType.PageTurn, "divineascension:sounds/page-turn" },
+        { SoundType.Writing, "divineascension:sounds/writing" }
     };
 
     private static readonly Dictionary<SoundVolume, float> VolumeValues = new()
@@ -66,7 +67,7 @@ public class SoundManager : ISoundManager
 
     public void PlayClick()
     {
-        Play(SoundType.Click);
+        // Click sound disconnected from UI; writing sound plays only on save/unlock via PlaySuccess/PlayDeityUnlock.
     }
 
     public void PlayError()
@@ -76,20 +77,12 @@ public class SoundManager : ISoundManager
 
     public void PlaySuccess()
     {
-        Play(SoundType.Unlock, SoundVolume.Loud);
+        Play(SoundType.Writing, SoundVolume.Normal);
     }
 
     public void PlayDeityUnlock(DeityDomain deity)
     {
-        var sound = deity switch
-        {
-            DeityDomain.Craft => SoundType.UnlockCraft,
-            DeityDomain.Wild => SoundType.UnlockWild,
-            DeityDomain.Harvest => SoundType.UnlockHarvest,
-            DeityDomain.Stone => SoundType.UnlockStone,
-            DeityDomain.Conquest => SoundType.UnlockConquest,
-            _ => SoundType.Unlock
-        };
-        Play(sound, SoundVolume.Loud);
+        _ = deity;
+        Play(SoundType.Writing, SoundVolume.Normal);
     }
 }
