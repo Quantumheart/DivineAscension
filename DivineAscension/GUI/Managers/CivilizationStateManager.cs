@@ -760,16 +760,23 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     [ExcludeFromCodeCoverage]
     private void DrawCivilizationProposeAccord(float x, float y, float width, float height)
     {
-        // Available recipients: any civ that isn't ours and isn't already in
-        // a standing accord with us. Mirrors the old inline form's filter.
-        var existingPartnerIds = new HashSet<string>(
-            State.DiplomacyState.ActiveRelationships.Select(r => r.OtherCivId));
+        var selectedType = State.DiplomacyState.SelectedProposalType;
+
+        // Recipient filter depends on the selected manner. War can target any
+        // civ we aren't already at war with (existing alliances/NAPs are valid
+        // targets — declaring war breaks them on the server). Pacts exclude
+        // any standing accord, since you can't sign two with the same realm.
+        var existingPartnerIds = State.DiplomacyState.ActiveRelationships
+            .Where(r => selectedType == DiplomaticStatus.War
+                ? r.Status == DiplomaticStatus.War
+                : true)
+            .Select(r => r.OtherCivId)
+            .ToHashSet();
         var availableCivs = State.BrowseState.AllCivilizations
             .Where(c => c.CivId != CurrentCivilizationId && !existingPartnerIds.Contains(c.CivId))
             .Select(c => new CivilizationInfo(c.CivId, c.Name))
             .ToList();
 
-        var selectedType = State.DiplomacyState.SelectedProposalType;
         var requiredRank = selectedType == DiplomaticStatus.NonAggressionPact
             ? DiplomacyConstants.NonAggressionPactRequiredRank
             : DiplomacyConstants.AllianceRequiredRank;
@@ -789,7 +796,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             requiredRank,
             requiredRankName,
             State.DiplomacyState.IsCivDropdownOpen,
-            State.DiplomacyState.IsTypeDropdownOpen);
+            State.DiplomacyState.IsTypeDropdownOpen,
+            State.DiplomacyState.ConfirmWarCivId);
 
         var drawList = ImGui.GetWindowDrawList();
         var result = ProposeAccordRenderer.Draw(vm, drawList);

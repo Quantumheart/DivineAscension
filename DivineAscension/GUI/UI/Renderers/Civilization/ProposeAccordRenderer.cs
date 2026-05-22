@@ -7,6 +7,7 @@ using DivineAscension.Constants;
 using DivineAscension.GUI.UI.Components.Banners;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
+using DivineAscension.GUI.UI.Components.Overlays;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models.Enum;
@@ -100,6 +101,23 @@ internal static class ProposeAccordRenderer
 
         drawList.PopClipRect();
 
+        // War confirmation modal — sits above the chapter content. Server is
+        // authoritative; this is just the friction step before firing the
+        // DeclareWar packet.
+        if (!string.IsNullOrEmpty(vm.ConfirmWarCivId))
+        {
+            var civName = vm.AvailableCivilizations.FirstOrDefault(c => c.CivId == vm.ConfirmWarCivId)?.Name
+                          ?? LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_UNKNOWN_CIV);
+            ConfirmOverlay.Draw(
+                LocalizationService.Instance.Get(LocalizationKeys.UI_PROPOSE_ACCORD_WAR_CONFIRM_TITLE),
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_CONFIRM_WAR_MESSAGE, civName),
+                out var confirmed, out var cancelled,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_YES_DECLARE_WAR));
+
+            if (confirmed) events.Add(new DiplomacyEvent.DeclareWar(vm.ConfirmWarCivId));
+            if (cancelled) events.Add(new DiplomacyEvent.CancelWarConfirmation());
+        }
+
         if (dropdownConsumedClick)
         {
             // Drop any selection / submit events the underlying buttons fired
@@ -185,14 +203,21 @@ internal static class ProposeAccordRenderer
         currentY += SectionHeadingHeight;
 
         var description = ProposalDescription(vm.SelectedProposalType);
-        var color = description is null ? ColorPalette.Grey : ColorPalette.White;
+        var color = description is null
+            ? ColorPalette.Grey
+            : vm.SelectedProposalType == DiplomaticStatus.War
+                ? ColorPalette.Red
+                : ColorPalette.White;
         var prose = description ?? LocalizationService.Instance.Get(LocalizationKeys.UI_PROPOSE_ACCORD_PREVIEW_NONE);
 
         TextRenderer.DrawInfoText(drawList, prose, x, currentY, width, Body, color);
         var measured = TextRenderer.MeasureWrappedHeight(prose, width, Body);
         currentY += (measured > 0 ? measured : ProseLineHeight) + ProseBottomSpacing;
 
-        if (description is not null && vm.RequiredRankForSelection > vm.CurrentRank)
+        // War has no rank gate — only NAP / Alliance do.
+        if (description is not null
+            && vm.SelectedProposalType != DiplomaticStatus.War
+            && vm.RequiredRankForSelection > vm.CurrentRank)
         {
             var rankLine = LocalizationService.Instance.Get(LocalizationKeys.UI_PROPOSE_ACCORD_RANK_REQUIRED,
                 vm.RequiredRankNameForSelection, vm.RequiredRankForSelection);
@@ -211,17 +236,25 @@ internal static class ProposeAccordRenderer
         List<DiplomacyEvent> events)
     {
         var currentY = y + SendButtonTopSpacing;
+        var isWar = vm.SelectedProposalType == DiplomaticStatus.War;
         var canSend = vm.AvailableCivilizations.Count > 0
                       && !string.IsNullOrEmpty(vm.SelectedCivId)
-                      && vm.RequiredRankForSelection <= vm.CurrentRank;
+                      && (isWar || vm.RequiredRankForSelection <= vm.CurrentRank);
+
+        var buttonLabel = LocalizationService.Instance.Get(isWar
+            ? LocalizationKeys.UI_PROPOSE_ACCORD_DECLARE_WAR_BUTTON
+            : LocalizationKeys.UI_PROPOSE_ACCORD_SEND_BUTTON);
 
         var buttonX = x + width - SendButtonWidth;
         if (ButtonRenderer.DrawButton(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_PROPOSE_ACCORD_SEND_BUTTON),
+                buttonLabel,
                 buttonX, currentY, SendButtonWidth, SendButtonHeight,
                 isPrimary: true, enabled: canSend))
         {
-            events.Add(new DiplomacyEvent.ProposeRelationship(vm.SelectedCivId, vm.SelectedProposalType));
+            if (isWar)
+                events.Add(new DiplomacyEvent.ShowWarConfirmation(vm.SelectedCivId));
+            else
+                events.Add(new DiplomacyEvent.ProposeRelationship(vm.SelectedCivId, vm.SelectedProposalType));
         }
 
         return currentY + SendButtonHeight + SendButtonBottomSpacing;
@@ -258,8 +291,15 @@ internal static class ProposeAccordRenderer
             {
                 ProposalTypeLabel(DiplomaticStatus.NonAggressionPact),
                 ProposalTypeLabel(DiplomaticStatus.Alliance),
+                ProposalTypeLabel(DiplomaticStatus.War),
             };
-            var typeIndex = vm.SelectedProposalType == DiplomaticStatus.NonAggressionPact ? 0 : 1;
+            var typeIndex = vm.SelectedProposalType switch
+            {
+                DiplomaticStatus.NonAggressionPact => 0,
+                DiplomaticStatus.Alliance => 1,
+                DiplomaticStatus.War => 2,
+                _ => 0,
+            };
 
             Dropdown.DrawMenuVisual(drawList, x, typeButtonY, DropdownWidth, DropdownHeight, items, typeIndex);
             var (newIndex, shouldClose, consumed) = Dropdown.DrawMenuAndHandleInteraction(
@@ -269,7 +309,13 @@ internal static class ProposeAccordRenderer
 
             if (newIndex != typeIndex)
             {
-                var newType = newIndex == 0 ? DiplomaticStatus.NonAggressionPact : DiplomaticStatus.Alliance;
+                var newType = newIndex switch
+                {
+                    0 => DiplomaticStatus.NonAggressionPact,
+                    1 => DiplomaticStatus.Alliance,
+                    2 => DiplomaticStatus.War,
+                    _ => DiplomaticStatus.NonAggressionPact,
+                };
                 events.Add(new DiplomacyEvent.SelectProposalType(newType));
             }
 
@@ -292,6 +338,8 @@ internal static class ProposeAccordRenderer
             LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_TYPE_ALLIANCE),
         DiplomaticStatus.NonAggressionPact =>
             LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_TYPE_NAP),
+        DiplomaticStatus.War =>
+            LocalizationService.Instance.Get(LocalizationKeys.UI_PROPOSE_ACCORD_TYPE_WAR),
         _ => LocalizationService.Instance.Get(LocalizationKeys.UI_PROPOSE_ACCORD_MANNER_PLACEHOLDER),
     };
 
@@ -301,6 +349,8 @@ internal static class ProposeAccordRenderer
             LocalizationService.Instance.Get(LocalizationKeys.UI_PROPOSE_ACCORD_DESC_ALLIANCE),
         DiplomaticStatus.NonAggressionPact =>
             LocalizationService.Instance.Get(LocalizationKeys.UI_PROPOSE_ACCORD_DESC_NAP),
+        DiplomaticStatus.War =>
+            LocalizationService.Instance.Get(LocalizationKeys.UI_PROPOSE_ACCORD_DESC_WAR),
         _ => null,
     };
 
@@ -329,7 +379,8 @@ public readonly struct ProposeAccordViewModel(
     int requiredRankForSelection,
     string requiredRankNameForSelection,
     bool isCivDropdownOpen,
-    bool isTypeDropdownOpen)
+    bool isTypeDropdownOpen,
+    string? confirmWarCivId)
 {
     public float X { get; } = x;
     public float Y { get; } = y;
@@ -346,6 +397,7 @@ public readonly struct ProposeAccordViewModel(
     public string RequiredRankNameForSelection { get; } = requiredRankNameForSelection;
     public bool IsCivDropdownOpen { get; } = isCivDropdownOpen;
     public bool IsTypeDropdownOpen { get; } = isTypeDropdownOpen;
+    public string? ConfirmWarCivId { get; } = confirmWarCivId;
 }
 
 // todo: migrate to correct path
