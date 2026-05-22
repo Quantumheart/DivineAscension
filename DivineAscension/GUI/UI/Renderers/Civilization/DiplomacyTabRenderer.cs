@@ -60,10 +60,6 @@ internal static class DiplomacyTabRenderer
     private const float ProposalRowHeight = 28f;
     private const float ProposalRowSpacing = 4f;
 
-    // Footer geometry.
-    private const float TurnPageGap = 8f;
-    private const float TurnPageChevronSize = 10f;
-
     public static DiplomacyTabRendererResult Draw(
         DiplomacyTabViewModel vm,
         ImDrawListPtr drawList)
@@ -136,10 +132,6 @@ internal static class DiplomacyTabRenderer
         currentY = DrawOrnateDivider(drawList, x, currentY, contentWidth);
 
         currentY = DrawPendingSection(drawList, vm, x, currentY, contentWidth, events);
-
-        currentY = DrawOrnateDivider(drawList, x, currentY, contentWidth);
-
-        DrawTurnPageFooter(drawList, x, currentY, contentWidth);
 
         drawList.PopClipRect();
 
@@ -384,29 +376,6 @@ internal static class DiplomacyTabRenderer
         return y + ProposalRowHeight;
     }
 
-    private static void DrawTurnPageFooter(
-        ImDrawListPtr drawList, float x, float y, float width)
-    {
-        var hint = LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_TURN_PAGE_HINT);
-        var label = LocalizationService.Instance.Get(LocalizationKeys.UI_DIPLOMACY_TURN_PAGE_LABEL);
-
-        drawList.AddText(ImGui.GetFont(), Body, new Vector2(x, y),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), hint);
-
-        var labelSize = ImGui.CalcTextSize(label);
-        var chevronCx = x + width - TurnPageChevronSize / 2f;
-        var labelX = chevronCx - TurnPageChevronSize / 2f - TurnPageGap - labelSize.X;
-        var textY = y;
-        drawList.AddText(ImGui.GetFont(), Body, new Vector2(labelX, textY),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), label);
-        ChromeRenderer.DrawChevron(drawList,
-            chevronCx,
-            textY + labelSize.Y / 2f,
-            TurnPageChevronSize,
-            ChromeRenderer.ChevronDirection.Right,
-            ColorPalette.Gold);
-    }
-
     private static float DrawOrnateDivider(ImDrawListPtr drawList, float x, float y, float width)
     {
         var dividerY = y + DividerYPadding;
@@ -560,10 +529,6 @@ internal static class DiplomacyTabRenderer
             h += vm.IncomingProposals.Count * (ProposalRowHeight + ProposalRowSpacing) + EntryBottomSpacing
                  - ProposalRowSpacing;
 
-        h += OrnateDividerHeight;
-
-        // Footer.
-        h += EntryLineHeight + 6f;
         return h;
     }
 
