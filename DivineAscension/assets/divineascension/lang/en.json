@@ -1265,5 +1265,19 @@
   "divineascension:patrol.tier.vigilant": "Vigilant",
   "divineascension:patrol.tier.dedicated": "Dedicated",
   "divineascension:patrol.tier.tireless": "Tireless",
-  "divineascension:patrol.tier.legendary": "Legendary"
+  "divineascension:patrol.tier.legendary": "Legendary",
+  "divineascension:ui.playerinfo.title.sworn": "Of you, {0}'s {1}",
+  "divineascension:ui.playerinfo.title.unsworn": "Of you, unsworn",
+  "divineascension:ui.playerinfo.title.unsworn_word": "Unsworn",
+  "divineascension:ui.playerinfo.intro.both": "{0} of {1}, sworn to {2} of {3} and bound beneath the banner of {4}.",
+  "divineascension:ui.playerinfo.intro.religion": "{0} of {1}, sworn to {2} of {3}.",
+  "divineascension:ui.playerinfo.intro.civilization": "Bound beneath the banner of {0}.",
+  "divineascension:ui.playerinfo.intro.neither": "You walk unsworn. The pages of the ledger await your name.",
+  "divineascension:ui.playerinfo.section.standing": "Of Your Standing",
+  "divineascension:ui.playerinfo.section.favor": "Of Your Favor",
+  "divineascension:ui.playerinfo.section.order_standing": "Of Your Order's Standing",
+  "divineascension:ui.playerinfo.row.deity": "Deity",
+  "divineascension:ui.playerinfo.row.order": "Order",
+  "divineascension:ui.playerinfo.row.vestment": "Vestment",
+  "divineascension:ui.playerinfo.row.realm": "Realm"
 }

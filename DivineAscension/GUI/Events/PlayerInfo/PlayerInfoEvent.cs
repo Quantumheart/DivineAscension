@@ -16,4 +16,7 @@ public abstract record PlayerInfoEvent
 
     /// <summary>User toggled the "unread only" filter in the feed header.</summary>
     public sealed record SetUnreadOnly(bool Enabled) : PlayerInfoEvent;
+
+    /// <summary>Mouse-wheel scroll on the chapter pane.</summary>
+    public sealed record ScrollChanged(float ScrollY) : PlayerInfoEvent;
 }

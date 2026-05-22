@@ -12,6 +12,7 @@ public sealed record PlayerInfoViewModel(
     ReligionHeaderViewModel Header,
     IReadOnlyList<NotificationHistoryEntry> Notifications,
     bool ShowUnreadOnly,
+    float ScrollY,
     float X,
     float Y,
     float Width,

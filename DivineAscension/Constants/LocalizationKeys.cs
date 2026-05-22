@@ -1845,4 +1845,27 @@ public static class LocalizationKeys
     public const string PRAYER_SUCCESS_NO_OFFERING = "divineascension:prayer.success.no_offering";
 
     #endregion
+
+    #region Player Info Chapter (#333)
+
+    public const string UI_PLAYER_INFO_TITLE_SWORN = "divineascension:ui.playerinfo.title.sworn";
+    public const string UI_PLAYER_INFO_TITLE_UNSWORN = "divineascension:ui.playerinfo.title.unsworn";
+
+    public const string UI_PLAYER_INFO_INTRO_BOTH = "divineascension:ui.playerinfo.intro.both";
+    public const string UI_PLAYER_INFO_INTRO_RELIGION = "divineascension:ui.playerinfo.intro.religion";
+    public const string UI_PLAYER_INFO_INTRO_CIVILIZATION = "divineascension:ui.playerinfo.intro.civilization";
+    public const string UI_PLAYER_INFO_INTRO_NEITHER = "divineascension:ui.playerinfo.intro.neither";
+
+    public const string UI_PLAYER_INFO_SECTION_STANDING = "divineascension:ui.playerinfo.section.standing";
+    public const string UI_PLAYER_INFO_SECTION_FAVOR = "divineascension:ui.playerinfo.section.favor";
+    public const string UI_PLAYER_INFO_SECTION_ORDER_STANDING = "divineascension:ui.playerinfo.section.order_standing";
+
+    public const string UI_PLAYER_INFO_ROW_DEITY = "divineascension:ui.playerinfo.row.deity";
+    public const string UI_PLAYER_INFO_ROW_ORDER = "divineascension:ui.playerinfo.row.order";
+    public const string UI_PLAYER_INFO_ROW_VESTMENT = "divineascension:ui.playerinfo.row.vestment";
+    public const string UI_PLAYER_INFO_ROW_REALM = "divineascension:ui.playerinfo.row.realm";
+
+    public const string UI_PLAYER_INFO_UNSWORN_TITLE_WORD = "divineascension:ui.playerinfo.title.unsworn_word";
+
+    #endregion
 }
