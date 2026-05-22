@@ -131,11 +131,14 @@ internal static class BlessingTabRenderer
         ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
         topY += DividerSpacing;
 
-        // --- "Of {Patron}" — bare heading, no parenthetical annotation (issue #335).
+        // --- "Of {Patron}" heading + right-aligned favor balance (matches vows page).
         var patronHeading = LocalizationService.Instance.Get(
             LocalizationKeys.UI_BLESSING_PAGE_PATRON_HEADING, headingName);
-        TextRenderer.DrawLabel(drawList, patronHeading,
-            vm.X + Padding, topY, SubsectionLabel, ColorPalette.Gold);
+        var favorBalance = LocalizationService.Instance.Get(
+            LocalizationKeys.UI_BLESSING_FAVOR_BALANCE, vm.PlayerFavor);
+        ChromeRenderer.DrawLeader(drawList, patronHeading, favorBalance,
+            vm.X + Padding, topY, contentWidth - Padding * 2,
+            labelColor: ColorPalette.Gold, valueColor: ColorPalette.White);
         topY += LeaderRowHeight + 4f;
 
         // --- Deity sub-index (selector strip, glyph primitives) — horizontally centered.
@@ -146,9 +149,8 @@ internal static class BlessingTabRenderer
         ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
         topY += DividerSpacing;
 
-        // --- Tree pane (personal only). Favor balance header stays at the top of the pane.
-        var balanceText = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_FAVOR_BALANCE,
-            vm.PlayerFavor);
+        // --- Tree pane (personal only). Favor balance moved into the patron-heading
+        // leader row above; no dark panel header on the tree itself.
         var treeVm = new BlessingTreeViewModel(
             vm.PlayerTreeScrollState,
             vm.PlayerBlessingStates,
@@ -156,9 +158,9 @@ internal static class BlessingTabRenderer
             vm.DeltaTime,
             vm.SelectedBlessingId,
             PanelId: "blessing_tree_player",
-            PanelLabel: LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_TREE_PLAYER_PANEL),
-            BalanceText: balanceText,
-            ShowBalanceHeader: true
+            PanelLabel: string.Empty,
+            BalanceText: string.Empty,
+            ShowBalanceHeader: false
         );
         var treeResult = BlessingTreeRenderer.Draw(treeVm);
 
