@@ -16,7 +16,15 @@ internal static class ReligionRosterHeaderRenderer
     {
         var loc = LocalizationService.Instance;
         var title = loc.Get(LocalizationKeys.UI_RELIGION_ROSTER_TITLE, vm.ReligionName);
-        var afterHeader = PaneHeaderRenderer.Draw(drawList, title, x, y, width);
+        // Roster is always your own order's roster, so the player's patron
+        // ink is the right ledger ink for the cap. Falls through to gold
+        // for players without a religion (visible via founder-preview
+        // paths).
+        var dropCapColor = ChromeContext.PlayerPatronDomain.HasValue
+            ? DomainHelper.GetDeityColor(ChromeContext.PlayerPatronDomain.Value)
+            : ColorPalette.Gold;
+        var afterHeader = PaneHeaderRenderer.Draw(drawList, title, x, y, width,
+            dropCapColor: dropCapColor);
 
         var introKey = vm.MemberCount == 1
             ? LocalizationKeys.UI_RELIGION_ROSTER_INTRO_ONE
