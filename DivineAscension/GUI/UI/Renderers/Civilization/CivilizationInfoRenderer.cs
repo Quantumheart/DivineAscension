@@ -94,10 +94,7 @@ internal static class CivilizationInfoRenderer
 
         var strip = ChapterStripRenderer.Draw(drawList, x, y, width, scrollY,
             LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_CHAPTER_TITLE),
-            rightTitle: vm.CivName,
-            showPencil: vm.IsFounder && !vm.IsEditingDescription);
-        if (strip.PencilClicked)
-            events.Add(new InfoEvent.EditIconClicked());
+            rightTitle: vm.CivName);
         var contentWidth = strip.ContentWidth;
         var currentY = strip.BodyY;
 
