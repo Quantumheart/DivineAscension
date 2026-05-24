@@ -1,5 +1,5 @@
 {
-  "ingredientPattern": "PPP,WBW,WWW",
+  "ingredientPattern": "_P_,_B_,_W_",
   "ingredients": {
     "P": {
       "type": "item",
@@ -11,16 +11,13 @@
     },
     "W": {
       "type": "block",
-      "code": "game:planks-oak"
+      "code": "game:planks-*"
     }
   },
   "width": 3,
   "height": 3,
   "output": {
     "type": "block",
-    "code": "game:clutter",
-    "attributes": {
-      "type": "bookshelves/lectern-large-book-closed"
-    }
+    "code": "divineascension:lectern-north"
   }
 }
