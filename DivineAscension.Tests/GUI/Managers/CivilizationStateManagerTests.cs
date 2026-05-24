@@ -374,7 +374,7 @@ public class CivilizationStateManagerTests
         _sut.OnCivilizationActionCompleted(packet);
 
         // Assert
-        _mockSoundManager.Verify(s => s.PlayClick(), Times.Once);
+        _mockSoundManager.Verify(s => s.PlaySuccess(), Times.Once);
         _mockUiService.Verify(u => u.RequestCivilizationList(It.IsAny<string>()), Times.Once);
         _mockUiService.Verify(u => u.RequestCivilizationInfo(string.Empty), Times.Once);
     }
@@ -440,7 +440,7 @@ public class CivilizationStateManagerTests
         Assert.Equal("civ-new", _sut.CurrentCivilizationId);
         Assert.Equal("Grand Alliance", _sut.CurrentCivilizationName);
         _mockUiService.Verify(u => u.RequestCivilizationAction("create", "", "", "Grand Alliance", "", ""), Times.Once);
-        _mockSoundManager.Verify(s => s.PlayClick(), Times.Once);
+        _mockSoundManager.Verify(s => s.PlaySuccess(), Times.Once);
     }
 
     [Fact]
@@ -505,7 +505,7 @@ public class CivilizationStateManagerTests
         // Assert
         Assert.False(_sut.HasCivilization());
         _mockUiService.Verify(u => u.RequestCivilizationAction("leave", "", "", "", "", ""), Times.Once);
-        _mockSoundManager.Verify(s => s.PlayClick(), Times.Once);
+        _mockSoundManager.Verify(s => s.PlaySuccess(), Times.Once);
     }
 
     [Fact]
