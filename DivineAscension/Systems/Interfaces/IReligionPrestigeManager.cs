@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using DivineAscension.Models.Enum;
 
@@ -8,6 +9,13 @@ namespace DivineAscension.Systems.Interfaces;
 /// </summary>
 public interface IReligionPrestigeManager
 {
+    /// <summary>
+    ///     Raised when a religion's prestige rank changes. Arguments: religionUID, oldRank, newRank.
+    ///     Subscribed by <c>PlayerDataNetworkHandler</c> so every member gets a refreshed
+    ///     <c>PlayerReligionDataPacket</c> (slot count may have changed via prestige bonus).
+    /// </summary>
+    event Action<string, PrestigeRank, PrestigeRank>? OnPrestigeRankChanged;
+
     /// <summary>
     ///     Sets the blessing registry and effect system (called after they're initialized)
     /// </summary>

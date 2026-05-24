@@ -845,6 +845,8 @@ public static class LocalizationKeys
 
     public const string UI_RANKUP_TITLE = "divineascension:ui.rankup.title";
     public const string UI_RANKUP_VIEW_BLESSINGS = "divineascension:ui.rankup.view_blessings";
+    public const string UI_RANKUP_SLOTS_TITLE = "divineascension:ui.rankup.slots.title";
+    public const string UI_RANKUP_SLOTS_DESCRIPTION = "divineascension:ui.rankup.slots.description";
 
     #endregion
 

@@ -547,6 +547,8 @@
   "divineascension:ui.common.never": "Never",
   "divineascension:ui.rankup.title": "Rank Up!",
   "divineascension:ui.rankup.view_blessings": "View Blessings (Shift+G)",
+  "divineascension:ui.rankup.slots.title": "Blessing slots: {0}",
+  "divineascension:ui.rankup.slots.description": "You can now hold {0} active blessings (+{1}).",
   "divineascension:ui.table.name": "Name",
   "divineascension:ui.table.deity_name": "Deity",
   "divineascension:ui.table.prestige": "Prestige",

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.Constants;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.State.Religion;
 using DivineAscension.GUI.UI.Utilities;
@@ -10,6 +11,7 @@ using DivineAscension.Models.Enum;
 using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Network.HolySite;
+using DivineAscension.Services;
 using Vintagestory.API.Client;
 
 namespace DivineAscension.GUI;
@@ -62,6 +64,7 @@ public partial class GuiDialog
             // Clear previous ranks when player has no religion
             _state.PreviousFavorRank = string.Empty;
             _state.PreviousPrestigeRank = string.Empty;
+            _state.PreviousMaxBlessingSlots = -1;
 
             // Dialog will only open when player presses the keybind (Shift+G)
 
@@ -162,6 +165,7 @@ public partial class GuiDialog
             _manager.NotificationManager.State.PendingNotifications.Clear();
             _state.PreviousFavorRank = string.Empty;
             _state.PreviousPrestigeRank = string.Empty;
+            _state.PreviousMaxBlessingSlots = -1;
             _logger?.Debug(
                 "[DivineAscension] Cleared notification queue and previous ranks due to religion state change");
         }
@@ -559,8 +563,30 @@ public partial class GuiDialog
                     _manager.ReligionStateManager.CurrentReligionDomain);
         }
 
+        // Check for blessing-slot increase (#445). Fires whenever the cap grows —
+        // typically alongside a favor or prestige rank-up that crossed a slot threshold,
+        // but also any future config-driven bump. Sentinel -1 suppresses the toast on
+        // the first packet for a session.
+        if (_state.PreviousMaxBlessingSlots >= 0 &&
+            packet.MaxBlessingSlots > _state.PreviousMaxBlessingSlots)
+        {
+            var gained = packet.MaxBlessingSlots - _state.PreviousMaxBlessingSlots;
+            _logger?.Notification(
+                $"[DivineAscension] Blessing slots increased: {_state.PreviousMaxBlessingSlots} → {packet.MaxBlessingSlots}");
+            var slotTitle = LocalizationService.Instance.Get(
+                LocalizationKeys.UI_RANKUP_SLOTS_TITLE, packet.MaxBlessingSlots);
+            var slotDescription = LocalizationService.Instance.Get(
+                LocalizationKeys.UI_RANKUP_SLOTS_DESCRIPTION, packet.MaxBlessingSlots, gained);
+            _manager.NotificationManager.QueueRankUpNotification(
+                NotificationType.BlessingSlotsIncreased,
+                slotTitle,
+                slotDescription,
+                _manager.ReligionStateManager.CurrentReligionDomain);
+        }
+
         _state.PreviousFavorRank = patronRankName;
         if (packet.PrestigeRank != null) _state.PreviousPrestigeRank = packet.PrestigeRank;
+        _state.PreviousMaxBlessingSlots = packet.MaxBlessingSlots;
 
         // Refresh blessing states in case new blessings became available
         // Only do this if dialog is open to avoid unnecessary processing

@@ -367,6 +367,7 @@ public static class DivineAscensionSystemInitializer
             networkService,
             playerReligionDataManager,
             religionManager,
+            religionPrestigeManager,
             gameBalanceConfig);
         playerDataHandler.RegisterHandlers();
 

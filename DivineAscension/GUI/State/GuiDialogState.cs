@@ -47,6 +47,13 @@ public class GuiDialogState
     public string? PreviousPrestigeRank { get; set; }
 
     /// <summary>
+    ///     Last seen <c>MaxBlessingSlots</c> from the server. -1 sentinel means "not yet
+    ///     observed" so the very first packet doesn't trigger a spurious slot-up toast.
+    ///     Compared against the incoming packet to drive the #445 slot-increase notification.
+    /// </summary>
+    public int PreviousMaxBlessingSlots { get; set; } = -1;
+
+    /// <summary>
     ///     Sidebar nav state (Phase 1 scaffold; wired in Phase 3).
     /// </summary>
     public SidebarState Sidebar { get; } = new();

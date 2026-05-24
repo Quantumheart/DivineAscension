@@ -4,5 +4,6 @@ public enum NotificationType
 {
     None,
     FavorRankUp,
-    PrestigeRankUp
+    PrestigeRankUp,
+    BlessingSlotsIncreased
 }
