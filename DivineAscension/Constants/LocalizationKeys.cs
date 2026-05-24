@@ -1663,6 +1663,8 @@ public static class LocalizationKeys
     public const string NET_BLESSING_UNLOCKED_NOTIFICATION = "divineascension:net.blessing.unlocked_notification";
     public const string NET_BLESSING_ERROR_UNLOCKING = "divineascension:net.blessing.error_unlocking";
 
+    public const string NET_BLESSING_UNLOCK_CAP_REACHED = "divineascension:net.blessing.unlock_cap_reached";
+
     #endregion
 
     #region Network Messages - Diplomacy

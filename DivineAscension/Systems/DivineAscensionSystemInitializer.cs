@@ -311,7 +311,7 @@ public static class DivineAscensionSystemInitializer
         // Create blessing loader for JSON-based blessing definitions
         IBlessingLoader blessingLoader =
             new BlessingLoader(api, LoggingService.Instance.CreateLogger("BlessingLoader"));
-        var blessingRegistry = new BlessingRegistry(api, blessingLoader);
+        var blessingRegistry = new BlessingRegistry(api, blessingLoader, gameBalanceConfig);
         blessingRegistry.Initialize();
 
         var blessingEffectSystem =

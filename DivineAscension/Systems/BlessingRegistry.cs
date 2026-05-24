@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.Configuration;
+using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Services.Interfaces;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Common;
@@ -17,6 +20,7 @@ public class BlessingRegistry : IBlessingRegistry
 {
     private readonly ICoreAPI _api;
     private readonly IBlessingLoader? _blessingLoader;
+    private readonly GameBalanceConfig _config;
     private readonly Dictionary<string, Blessing> _blessings = new();
 
     /// <summary>
@@ -24,10 +28,12 @@ public class BlessingRegistry : IBlessingRegistry
     /// </summary>
     /// <param name="api">The Vintage Story API</param>
     /// <param name="blessingLoader">The blessing loader for JSON assets</param>
-    public BlessingRegistry(ICoreAPI api, IBlessingLoader? blessingLoader = null)
+    /// <param name="config">Balance config used for blessing slot cap enforcement</param>
+    public BlessingRegistry(ICoreAPI api, IBlessingLoader? blessingLoader = null, GameBalanceConfig? config = null)
     {
         _api = api;
         _blessingLoader = blessingLoader;
+        _config = config ?? new GameBalanceConfig();
     }
 
     /// <summary>
@@ -142,10 +148,18 @@ public class BlessingRegistry : IBlessingRegistry
         // Check blessing type and corresponding requirements
         if (blessing.Kind == BlessingKind.Player)
         {
-            if (religionData == null) return (false, "Not in a religion");
-
             // Check if already unlocked
             if (playerData.IsBlessingUnlocked(blessing.BlessingId)) return (false, "Blessing already unlocked");
+
+            // Enforce active blessing slot cap. Calculator falls back to favor-only when no religion.
+            var maxUnlocks = BlessingSlotCalculator.GetMaxUnlocks(_config, playerFavorRank, religionData?.PrestigeRank);
+            var currentCount = playerData.UnlockedBlessings.Count;
+            if (currentCount >= maxUnlocks)
+                return (false,
+                    LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_UNLOCK_CAP_REACHED,
+                        currentCount, maxUnlocks));
+
+            if (religionData == null) return (false, "Not in a religion");
 
             // Check favor rank requirement
             if (playerFavorRank < (FavorRank)blessing.RequiredFavorRank)
