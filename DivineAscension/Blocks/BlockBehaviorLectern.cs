@@ -33,4 +33,16 @@ public class BlockBehaviorLectern : BlockBehavior
         handling = EnumHandling.PreventSubsequent;
         return true;
     }
+
+    /// <summary>
+    /// End the interaction immediately. Without this VS keeps the player in a
+    /// use-block hold loop until the right-click is released to it — and with
+    /// the menu open the release goes to ImGui, leaving the camera pinned.
+    /// </summary>
+    public override bool OnBlockInteractStep(float secondsUsed, IWorldAccessor world, IPlayer byPlayer,
+        BlockSelection blockSelection, ref EnumHandling handled)
+    {
+        handled = EnumHandling.PreventSubsequent;
+        return false;
+    }
 }
