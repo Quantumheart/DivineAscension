@@ -49,18 +49,19 @@ public class SoundManagerTests
     }
 
     [Fact]
-    public void PlayClick_PlaysClickAtNormalVolume()
+    public void PlayClick_IsNoOp()
     {
+        // Click sound intentionally disconnected from UI (see SoundManager.PlayClick).
         _sut.PlayClick();
 
         _mockWorld.Verify(w => w.PlaySoundAt(
-            It.Is<AssetLocation>(al => al.ToString() == "divineascension:sounds/click"),
-            _mockEntity.Object,
+            It.IsAny<AssetLocation>(),
+            It.IsAny<Entity>(),
             It.IsAny<IPlayer?>(),
-            false,
-            8f,
-            0.5f
-        ), Times.Once);
+            It.IsAny<bool>(),
+            It.IsAny<float>(),
+            It.IsAny<float>()
+        ), Times.Never);
     }
 
     [Fact]
@@ -79,36 +80,36 @@ public class SoundManagerTests
     }
 
     [Fact]
-    public void PlaySuccess_PlaysUnlockAtLoudVolume()
+    public void PlaySuccess_PlaysWritingAtNormalVolume()
     {
         _sut.PlaySuccess();
 
         _mockWorld.Verify(w => w.PlaySoundAt(
-            It.Is<AssetLocation>(al => al.ToString() == "divineascension:sounds/unlock"),
+            It.Is<AssetLocation>(al => al.ToString() == "divineascension:sounds/writing"),
             _mockEntity.Object,
             It.IsAny<IPlayer?>(),
             false,
             8f,
-            0.7f
+            0.5f
         ), Times.Once);
     }
 
     [Theory]
-    [InlineData(DeityDomain.Craft, "divineascension:sounds/deities/craft")]
-    [InlineData(DeityDomain.Wild, "divineascension:sounds/deities/wild")]
-    [InlineData(DeityDomain.Harvest, "divineascension:sounds/deities/harvest")]
-    [InlineData(DeityDomain.Stone, "divineascension:sounds/deities/stone")]
-    public void PlayDeityUnlock_MapsDeityToSpecificSound_AtLoudVolume(DeityDomain deity, string expectedPath)
+    [InlineData(DeityDomain.Craft)]
+    [InlineData(DeityDomain.Wild)]
+    [InlineData(DeityDomain.Harvest)]
+    [InlineData(DeityDomain.Stone)]
+    public void PlayDeityUnlock_PlaysWritingAtNormalVolume(DeityDomain deity)
     {
         _sut.PlayDeityUnlock(deity);
 
         _mockWorld.Verify(w => w.PlaySoundAt(
-            It.Is<AssetLocation>(al => string.Equals(al.ToString(), expectedPath, StringComparison.OrdinalIgnoreCase)),
+            It.Is<AssetLocation>(al => al.ToString() == "divineascension:sounds/writing"),
             _mockEntity.Object,
             It.IsAny<IPlayer?>(),
             false,
             8f,
-            0.7f
+            0.5f
         ), Times.Once);
     }
 
