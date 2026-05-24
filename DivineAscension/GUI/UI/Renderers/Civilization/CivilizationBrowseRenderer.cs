@@ -26,8 +26,12 @@ internal static class CivilizationBrowseRenderer
 {
     private const float ProseLineHeight = 18f;
     private const float ProseBottomSpacing = 12f;
-    private const float RefreshRowHeight = 26f;
-    private const float RefreshRowBottomSpacing = 8f;
+    private const float FilterRowHeight = 26f;
+    private const float FilterRowBottomSpacing = 8f;
+    private const float FilterChipGap = 10f;
+    private const float FilterChipPaddingX = 8f;
+    private const float ActiveMarkerSize = 4f;
+    private const float ActiveMarkerGap = 6f;
     private const float RefreshGlyphSize = 24f;
     private const float DividerHeight = 18f;
     private const float DividerYPadding = 6f;
@@ -90,7 +94,7 @@ internal static class CivilizationBrowseRenderer
         var currentY = strip.BodyY;
 
         currentY = DrawProseIntro(viewModel, drawList, x, currentY, contentWidth);
-        currentY = DrawRefreshRow(viewModel, drawList, x, currentY, contentWidth, events);
+        currentY = DrawFilterRow(viewModel, drawList, x, currentY, contentWidth, events);
         currentY = DrawDivider(drawList, x, currentY, contentWidth);
         currentY = DrawList(viewModel, drawList, x, currentY, contentWidth, events);
 
@@ -127,16 +131,95 @@ internal static class CivilizationBrowseRenderer
         return y + (lines > 0 ? lines : ProseLineHeight) + ProseBottomSpacing;
     }
 
-    private static float DrawRefreshRow(
+    private static float DrawFilterRow(
         CivilizationBrowseViewModel vm,
         ImDrawListPtr drawList,
         float x, float y, float width,
         List<BrowseEvent> events)
     {
+        // Accord-status sub-index (#324). Label + chip row + right-aligned
+        // refresh glyph, mirroring the Other Orders filter row.
+        var label = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_FILTER_BY_ACCORD);
+        var labelSize = ImGui.CalcTextSize(label);
+        var labelColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey);
+        var rowCenterY = y + FilterRowHeight / 2f;
+        drawList.AddText(new Vector2(x, rowCenterY - labelSize.Y / 2f), labelColor, label);
+
+        var cursor = x + labelSize.X + 16f;
+
         var refreshX = x + width - RefreshGlyphSize;
-        var refreshY = y + (RefreshRowHeight - RefreshGlyphSize) / 2f;
+        var refreshY = y + (FilterRowHeight - RefreshGlyphSize) / 2f;
+        var chipLimitX = refreshX - FilterChipGap;
+
+        var current = string.IsNullOrEmpty(vm.CurrentAccordFilter) ? "All" : vm.CurrentAccordFilter;
+        var mouse = ImGui.GetMousePos();
+
+        for (var i = 0; i < vm.AccordFilters.Length; i++)
+        {
+            var filter = vm.AccordFilters[i];
+            var isActive = filter == current;
+            var chipLabel = LocalizeAccordFilter(filter);
+            var chipSize = ImGui.CalcTextSize(chipLabel);
+
+            var markerWidth = isActive ? ActiveMarkerSize * 2f + ActiveMarkerGap : 0f;
+            var chipWidth = FilterChipPaddingX + markerWidth + chipSize.X + FilterChipPaddingX;
+            if (cursor + chipWidth > chipLimitX) break;
+
+            var chipMinY = y + (FilterRowHeight - chipSize.Y) / 2f - 2f;
+            var chipMaxY = chipMinY + chipSize.Y + 4f;
+            var chipMin = new Vector2(cursor, chipMinY);
+            var chipMax = new Vector2(cursor + chipWidth, chipMaxY);
+
+            var isHover = mouse.X >= chipMin.X && mouse.X <= chipMax.X &&
+                          mouse.Y >= chipMin.Y && mouse.Y <= chipMax.Y;
+
+            if (isActive)
+            {
+                var underlineColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.55f);
+                drawList.AddLine(
+                    new Vector2(chipMin.X + 2f, chipMaxY + 1f),
+                    new Vector2(chipMax.X - 2f, chipMaxY + 1f),
+                    underlineColor, 1f);
+            }
+
+            if (isHover) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+
+            var textX = cursor + FilterChipPaddingX;
+            if (isActive)
+            {
+                var markerCx = textX + ActiveMarkerSize;
+                var markerCy = (chipMin.Y + chipMax.Y) / 2f;
+                ChromeRenderer.DrawDiamond(drawList, markerCx, markerCy, ActiveMarkerSize, ColorPalette.Gold);
+                textX += ActiveMarkerSize * 2f + ActiveMarkerGap;
+            }
+
+            var textColor = isActive
+                ? ColorPalette.White
+                : (isHover ? ColorPalette.Gold : ColorPalette.Grey);
+            drawList.AddText(ImGui.GetFont(), Body,
+                new Vector2(textX, (chipMin.Y + chipMax.Y) / 2f - chipSize.Y / 2f),
+                ImGui.ColorConvertFloat4ToU32(textColor), chipLabel);
+
+            if (isHover && !isActive && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                events.Add(new BrowseEvent.AccordFilterChanged(filter));
+
+            cursor += chipWidth + FilterChipGap;
+        }
+
         DrawRefreshGlyph(drawList, refreshX, refreshY, RefreshGlyphSize, vm.IsLoading, events);
-        return y + RefreshRowHeight + RefreshRowBottomSpacing;
+        return y + FilterRowHeight + FilterRowBottomSpacing;
+    }
+
+    private static string LocalizeAccordFilter(string filter)
+    {
+        var key = filter switch
+        {
+            "Allies" => LocalizationKeys.UI_CIVILIZATION_BROWSE_ACCORD_ALLIES,
+            "Neutral" => LocalizationKeys.UI_CIVILIZATION_BROWSE_ACCORD_NEUTRAL,
+            "AtWar" => LocalizationKeys.UI_CIVILIZATION_BROWSE_ACCORD_AT_WAR,
+            _ => LocalizationKeys.UI_CIVILIZATION_BROWSE_ACCORD_ALL,
+        };
+        return LocalizationService.Instance.Get(key);
     }
 
     private static void DrawRefreshGlyph(
@@ -205,7 +288,11 @@ internal static class CivilizationBrowseRenderer
     {
         if (vm.Civilizations.Count == 0)
         {
-            var emptyText = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_EMPTY_CHAPTER);
+            var filterActive = !string.IsNullOrEmpty(vm.CurrentAccordFilter) && vm.CurrentAccordFilter != "All";
+            var emptyKey = filterActive
+                ? LocalizationKeys.UI_CIVILIZATION_BROWSE_EMPTY_FILTERED
+                : LocalizationKeys.UI_CIVILIZATION_BROWSE_EMPTY_CHAPTER;
+            var emptyText = LocalizationService.Instance.Get(emptyKey);
             TextRenderer.DrawInfoText(drawList, emptyText, x, y, width, Body, ColorPalette.Grey);
             var measured = TextRenderer.MeasureWrappedHeight(emptyText, width, Body);
             return y + (measured > 0 ? measured : ProseLineHeight) + 8f;
@@ -344,7 +431,7 @@ internal static class CivilizationBrowseRenderer
         var h = ChapterStripRenderer.TopPadding;
         h += PaneHeaderRenderer.TotalHeight;
         h += ProseLineHeight * 2f + ProseBottomSpacing;
-        h += RefreshRowHeight + RefreshRowBottomSpacing;
+        h += FilterRowHeight + FilterRowBottomSpacing;
         h += DividerHeight;
         if (vm.Civilizations.Count == 0)
         {

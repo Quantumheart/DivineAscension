@@ -7,6 +7,8 @@ namespace DivineAscension.GUI.Models.Civilization.Browse;
 public readonly struct CivilizationBrowseViewModel(
     string[] deityFilters,
     string currentDeityFilter,
+    string[] accordFilters,
+    string currentAccordFilter,
     IReadOnlyList<CivilizationListResponsePacket.CivilizationInfo> civilizations,
     bool isLoading,
     float scrollY,
@@ -20,6 +22,8 @@ public readonly struct CivilizationBrowseViewModel(
 {
     public string[] DeityFilters { get; } = deityFilters;
     public string CurrentDeityFilter { get; } = currentDeityFilter;
+    public string[] AccordFilters { get; } = accordFilters;
+    public string CurrentAccordFilter { get; } = currentAccordFilter;
     public IReadOnlyList<CivilizationListResponsePacket.CivilizationInfo> Civilizations { get; } = civilizations;
     public bool IsLoading { get; } = isLoading;
     public float ScrollY { get; } = scrollY;

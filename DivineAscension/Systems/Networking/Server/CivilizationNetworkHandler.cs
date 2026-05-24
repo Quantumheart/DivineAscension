@@ -27,12 +27,14 @@ public class CivilizationNetworkHandler(
     CivilizationManager civilizationManager,
     IReligionManager religionManager,
     INetworkService networkService,
-    ICooldownManager cooldownManager)
+    ICooldownManager cooldownManager,
+    IDiplomacyManager diplomacyManager)
     : IServerNetworkHandler
 {
     private readonly ILogger _logger = logger;
     private readonly ICoreServerAPI _sapi = sapi;
     private readonly INetworkService _networkService = networkService;
+    private readonly IDiplomacyManager _diplomacyManager = diplomacyManager;
 
     public void RegisterHandlers()
     {
@@ -58,6 +60,14 @@ public class CivilizationNetworkHandler(
         var civilizations = civilizationManager.GetAllCivilizations().ToList();
         var civInfoList = new List<CivilizationListResponsePacket.CivilizationInfo>();
 
+        // Viewer's civilization (for diplomatic-status badge). May be null when
+        // the requesting player has no religion or whose religion isn't in any civ.
+        var viewerReligion = religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+        var viewerCiv = viewerReligion != null
+            ? civilizationManager.GetCivilizationByReligion(viewerReligion.ReligionUID)
+            : null;
+        var viewerCivId = viewerCiv?.CivId;
+
         foreach (var civ in civilizations)
         {
             var religions = civilizationManager.GetCivReligions(civ.CivId);
@@ -74,6 +84,10 @@ public class CivilizationNetworkHandler(
                 if (!hasFilteredDeity) continue; // Skip this civilization if it doesn't have the filtered deity
             }
 
+            var statusToViewer = -1;
+            if (viewerCivId != null && viewerCivId != civ.CivId)
+                statusToViewer = (int)_diplomacyManager.GetDiplomaticStatus(viewerCivId, civ.CivId);
+
             civInfoList.Add(new CivilizationListResponsePacket.CivilizationInfo
             {
                 CivId = civ.CivId,
@@ -84,7 +98,8 @@ public class CivilizationNetworkHandler(
                 MemberDeities = deities,
                 MemberReligionNames = religionNames,
                 Icon = civ.Icon,
-                Description = civ.Description
+                Description = civ.Description,
+                StatusToViewer = statusToViewer
             });
         }
 

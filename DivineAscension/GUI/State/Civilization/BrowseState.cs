@@ -7,6 +7,7 @@ namespace DivineAscension.GUI.State.Civilization;
 public class BrowseState : IState
 {
     public string DeityFilter { get; set; } = string.Empty;
+    public string AccordFilter { get; set; } = string.Empty; // "", "Allies", "Neutral", "AtWar"
     public string SearchText { get; set; } = string.Empty;
     public List<CivilizationListResponsePacket.CivilizationInfo> AllCivilizations { get; set; } = new();
     public float BrowseScrollY { get; set; }
@@ -18,6 +19,7 @@ public class BrowseState : IState
     public void Reset()
     {
         DeityFilter = string.Empty;
+        AccordFilter = string.Empty;
         SearchText = string.Empty;
         AllCivilizations.Clear();
         BrowseScrollY = 0f;

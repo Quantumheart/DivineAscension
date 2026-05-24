@@ -559,11 +559,22 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             ? "All"
             : State.BrowseState.DeityFilter;
 
+        // Accord-status sub-index (#324). Bucket: All / Allies (Alliance+NAP) /
+        // Neutral / AtWar. Filter applied client-side against StatusToViewer
+        // already carried on each CivilizationInfo.
+        var accordFilters = new[] { "All", "Allies", "Neutral", "AtWar" };
+        var currentAccord = string.IsNullOrEmpty(State.BrowseState.AccordFilter)
+            ? "All"
+            : State.BrowseState.AccordFilter;
+        var filteredCivs = ApplyAccordFilter(State.BrowseState.AllCivilizations, currentAccord);
+
         // Build ViewModel
         var vm = new CivilizationBrowseViewModel(
             deities,
             effectiveFilter,
-            State.BrowseState.AllCivilizations,
+            accordFilters,
+            currentAccord,
+            filteredCivs,
             State.BrowseState.IsLoading,
             State.BrowseState.BrowseScrollY,
             State.BrowseState.SelectedCivId,
@@ -1047,6 +1058,13 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 case BrowseEvent.DeityFilterChanged dfc:
                     State.BrowseState.DeityFilter = dfc.newFilter == "All" ? string.Empty : dfc.newFilter;
                     RequestCivilizationList(State.BrowseState.DeityFilter);
+                    _soundManager.PlayClick();
+                    break;
+
+                case BrowseEvent.AccordFilterChanged afc:
+                    // Client-side filter — StatusToViewer rides on the existing list packet.
+                    State.BrowseState.AccordFilter = afc.newFilter == "All" ? string.Empty : afc.newFilter;
+                    State.BrowseState.BrowseScrollY = 0f;
                     _soundManager.PlayClick();
                     break;
 
@@ -1687,6 +1705,30 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     {
         CivilizationProvider?.Refresh();
         RequestCivilizationList(State.BrowseState.DeityFilter);
+    }
+
+    private static IReadOnlyList<CivilizationListResponsePacket.CivilizationInfo> ApplyAccordFilter(
+        IReadOnlyList<CivilizationListResponsePacket.CivilizationInfo> source,
+        string accord)
+    {
+        if (accord == "All" || string.IsNullOrEmpty(accord) || source.Count == 0)
+            return source;
+
+        // Status codes mirror DiplomaticStatus: 0=Neutral, 1=NAP, 2=Alliance, 3=War, -1=self/no-civ.
+        var result = new List<CivilizationListResponsePacket.CivilizationInfo>(source.Count);
+        foreach (var civ in source)
+        {
+            var s = civ.StatusToViewer;
+            var keep = accord switch
+            {
+                "Allies" => s == 1 || s == 2,
+                "Neutral" => s == 0,
+                "AtWar" => s == 3,
+                _ => true
+            };
+            if (keep) result.Add(civ);
+        }
+        return result;
     }
 
     #endregion

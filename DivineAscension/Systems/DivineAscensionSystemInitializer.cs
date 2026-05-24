@@ -385,7 +385,8 @@ public static class DivineAscensionSystemInitializer
             civilizationManager,
             religionManager,
             networkService,
-            cooldownManager);
+            cooldownManager,
+            diplomacyManager);
         civilizationHandler.RegisterHandlers();
 
         var diplomacyHandler = new DiplomacyNetworkHandler(

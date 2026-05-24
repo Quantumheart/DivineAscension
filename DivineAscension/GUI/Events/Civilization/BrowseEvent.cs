@@ -4,6 +4,8 @@ public abstract record BrowseEvent
 {
     public sealed record DeityFilterChanged(string newFilter) : BrowseEvent;
 
+    public sealed record AccordFilterChanged(string newFilter) : BrowseEvent;
+
     public sealed record ScrollChanged(float y) : BrowseEvent;
 
     public sealed record ViewDetailedsClicked(string civId) : BrowseEvent;

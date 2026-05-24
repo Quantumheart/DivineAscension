@@ -473,6 +473,15 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_BROWSE_COUNTER_MANY = "divineascension:ui.civilization.browse.counter_many";
     public const string UI_CIVILIZATION_BROWSE_EMPTY_CHAPTER = "divineascension:ui.civilization.browse.empty_chapter";
 
+    public const string UI_CIVILIZATION_BROWSE_FILTER_BY_ACCORD =
+        "divineascension:ui.civilization.browse.filter_by_accord";
+    public const string UI_CIVILIZATION_BROWSE_ACCORD_ALL = "divineascension:ui.civilization.browse.accord_all";
+    public const string UI_CIVILIZATION_BROWSE_ACCORD_ALLIES = "divineascension:ui.civilization.browse.accord_allies";
+    public const string UI_CIVILIZATION_BROWSE_ACCORD_NEUTRAL = "divineascension:ui.civilization.browse.accord_neutral";
+    public const string UI_CIVILIZATION_BROWSE_ACCORD_AT_WAR = "divineascension:ui.civilization.browse.accord_at_war";
+    public const string UI_CIVILIZATION_BROWSE_EMPTY_FILTERED =
+        "divineascension:ui.civilization.browse.empty_filtered";
+
     #endregion
 
     #region Civilization - Detail
