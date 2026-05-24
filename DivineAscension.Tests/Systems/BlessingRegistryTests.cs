@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Configuration;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services.Interfaces;
@@ -22,6 +23,8 @@ public class BlessingRegistryTests
 
     public BlessingRegistryTests()
     {
+        TestFixtures.InitializeLocalizationForTests();
+
         _mockAPI = TestFixtures.CreateMockCoreAPI();
         _mockLogger = new Mock<ILogger>();
         _mockAPI.Setup(a => a.Logger).Returns(_mockLogger.Object);
@@ -603,6 +606,126 @@ public class BlessingRegistryTests
         // Assert - should return true because cost check is skipped
         Assert.True(canUnlock);
         Assert.Equal("Can unlock", reason);
+    }
+
+    #endregion
+
+    #region CanUnlockBlessing Tests - Unlock Cap (#423.2)
+
+    /// <summary>
+    /// Helper: build a registry with a specific GameBalanceConfig so cap tests
+    /// can stay independent of the shared default-config _registry.
+    /// </summary>
+    private BlessingRegistry CreateRegistryWithConfig(GameBalanceConfig config)
+    {
+        return new BlessingRegistry(_mockAPI.Object, TestBlessingLoader.CreateWithSampleBlessings(), config);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_AtCap_ReturnsFalseWithCapReason()
+    {
+        // Initiate + Fledgling => 1 favor slot + 0 prestige bonus = 1 slot total.
+        // Player already has 1 unlocked blessing, attempting a second.
+        var config = new GameBalanceConfig();
+        var registry = CreateRegistryWithConfig(config);
+
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        playerData.UnlockBlessing("existing_blessing");
+
+        var blessing = TestFixtures.CreateTestBlessing("new_blessing", "New", DeityDomain.Craft, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Cost = 0;
+
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
+        religion.PrestigeRank = PrestigeRank.Fledgling;
+
+        var (canUnlock, reason) = registry.CanUnlockBlessing(
+            "player-uid", FavorRank.Initiate, playerData, religion, blessing);
+
+        Assert.False(canUnlock);
+        // Reason should reflect cap state (current/max) and point at unlearn (#425).
+        Assert.Contains("1/1", reason);
+        Assert.Contains("Unlearn", reason, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_UnderCap_AllowsUnlock()
+    {
+        // Disciple + Fledgling => 2 favor slots + 0 prestige bonus = 2 slots.
+        // Player has 1 unlocked, attempting a second (under cap).
+        var config = new GameBalanceConfig();
+        var registry = CreateRegistryWithConfig(config);
+
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        playerData.UnlockBlessing("existing_blessing");
+
+        var blessing = TestFixtures.CreateTestBlessing("new_blessing", "New", DeityDomain.Craft, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Cost = 0;
+
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
+        religion.PrestigeRank = PrestigeRank.Fledgling;
+
+        var (canUnlock, reason) = registry.CanUnlockBlessing(
+            "player-uid", FavorRank.Disciple, playerData, religion, blessing);
+
+        Assert.True(canUnlock);
+        Assert.Equal("Can unlock", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_PrestigeBonusSlotsCountTowardCap()
+    {
+        // Initiate + Renowned => 1 favor + 1 prestige bonus = 2 slots.
+        // Player already has 2 unlocked → cap reached.
+        var config = new GameBalanceConfig();
+        var registry = CreateRegistryWithConfig(config);
+
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        playerData.UnlockBlessing("existing_a");
+        playerData.UnlockBlessing("existing_b");
+
+        var blessing = TestFixtures.CreateTestBlessing("third", "Third", DeityDomain.Craft, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Cost = 0;
+
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
+        religion.PrestigeRank = PrestigeRank.Renowned;
+
+        var (canUnlock, reason) = registry.CanUnlockBlessing(
+            "player-uid", FavorRank.Initiate, playerData, religion, blessing);
+
+        // 2 unlocked, cap of 2 (1 favor + 1 prestige bonus) → rejected with cap reason.
+        Assert.False(canUnlock);
+        Assert.Contains("2/2", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_NonReligionPlayer_UsesFavorOnlyCap()
+    {
+        // No religion → calculator treats prestige rank as null → favor slots only.
+        // Disciple gives 2 slots regardless of any prestige bonus.
+        var config = new GameBalanceConfig
+        {
+            // Make prestige bonus large so we can prove it is NOT applied without religion.
+            RenownedBonusSlots = 5
+        };
+        var registry = CreateRegistryWithConfig(config);
+
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, religionUID: null);
+        playerData.UnlockBlessing("existing_a");
+        playerData.UnlockBlessing("existing_b");
+
+        var blessing = TestFixtures.CreateTestBlessing("third", "Third", DeityDomain.Craft, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Cost = 0;
+
+        var (canUnlock, reason) = registry.CanUnlockBlessing(
+            "player-uid", FavorRank.Disciple, playerData, religionData: null, blessing);
+
+        // 2 unlocked, cap of 2 (favor-only) → rejected with cap reason, NOT "Not in a religion".
+        Assert.False(canUnlock);
+        Assert.Contains("2/2", reason);
     }
 
     #endregion

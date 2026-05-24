@@ -957,6 +957,7 @@
   "divineascension:net.blessing.success_unlocked_for_religion": "Successfully unlocked {0} for all religion members!",
   "divineascension:net.blessing.unlocked_notification": "{0} has been unlocked!",
   "divineascension:net.blessing.error_unlocking": "Error unlocking blessing: {0}",
+  "divineascension:net.blessing.unlock_cap_reached": "Blessing slots full ({0}/{1}). Unlearn an existing blessing to free a slot.",
   "divineascension:net.diplomacy.must_be_in_religion": "You must be in a religion to use diplomacy.",
   "divineascension:net.diplomacy.religion_no_longer_exists": "Your religion no longer exists.",
   "divineascension:net.diplomacy.not_part_of_civilization": "Your religion is not part of a civilization.",
