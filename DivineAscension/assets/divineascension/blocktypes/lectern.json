@@ -1,0 +1,32 @@
+{
+  "code": "lectern",
+  "behaviors": [
+    { "name": "HorizontalOrientable" },
+    { "name": "DivineAscensionLectern" }
+  ],
+  "variantgroups": [
+    { "code": "side", "loadFromProperties": "abstract/horizontalorientation" }
+  ],
+  "creativeinventory": { "decorative": ["lectern-north"] },
+  "shapeByType": {
+    "*-north": { "base": "game:block/clutter/bookshelves/lectern-large-book-closed", "rotateY": 0 },
+    "*-east":  { "base": "game:block/clutter/bookshelves/lectern-large-book-closed", "rotateY": 270 },
+    "*-south": { "base": "game:block/clutter/bookshelves/lectern-large-book-closed", "rotateY": 180 },
+    "*-west":  { "base": "game:block/clutter/bookshelves/lectern-large-book-closed", "rotateY": 90 }
+  },
+  "textures": {
+    "oak": { "base": "game:block/wood/planks/oak1" },
+    "red-front": { "base": "game:item/lore/largebook/red-front" },
+    "red-back": { "base": "game:item/lore/largebook/red-back" },
+    "pages-aged": { "base": "game:item/lore/pages-aged" }
+  },
+  "collisionbox": { "x1": 0.188, "y1": 0, "z1": 0.375, "x2": 0.8125, "y2": 1.2248, "z2": 0.8561 },
+  "selectionbox": { "x1": 0.188, "y1": 0, "z1": 0.375, "x2": 0.8125, "y2": 1.2248, "z2": 0.8561 },
+  "sidesolid": { "all": false },
+  "sideopaque": { "all": false },
+  "lightAbsorption": 0,
+  "replaceable": 500,
+  "resistance": 1.5,
+  "blockmaterial": "Wood",
+  "heldTpIdleAnimation": "holdbothhandslarge"
+}

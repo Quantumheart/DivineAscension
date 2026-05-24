@@ -1320,5 +1320,13 @@
   "divineascension:ui.civilization.detail.ethos": "Ethos",
   "divineascension:ui.civilization.detail.seat": "Seat",
   "divineascension:ui.civilization.create.ethos.label": "Ethos",
-  "divineascension:ui.civilization.create.ethos.hint": "Chosen once, at founding. Tradition derives ethos from your patron's domain. Overrule only with reason."
+  "divineascension:ui.civilization.create.ethos.hint": "Chosen once, at founding. Tradition derives ethos from your patron's domain. Overrule only with reason.",
+  "block-lectern-north": "Lectern",
+  "block-lectern-east": "Lectern",
+  "block-lectern-south": "Lectern",
+  "block-lectern-west": "Lectern",
+  "blockdesc-lectern-north": "Right-click to open the codex.",
+  "blockdesc-lectern-east": "Right-click to open the codex.",
+  "blockdesc-lectern-south": "Right-click to open the codex.",
+  "blockdesc-lectern-west": "Right-click to open the codex."
 }
