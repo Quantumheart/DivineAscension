@@ -5,6 +5,7 @@ using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Models.Civilization.Browse;
+using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
@@ -26,6 +27,8 @@ internal static class CivilizationBrowseRenderer
 {
     private const float ProseLineHeight = 18f;
     private const float ProseBottomSpacing = 12f;
+    private const float SearchRowHeight = 26f;
+    private const float SearchRowBottomSpacing = 6f;
     private const float FilterRowHeight = 26f;
     private const float FilterRowBottomSpacing = 8f;
     private const float FilterChipGap = 10f;
@@ -94,6 +97,7 @@ internal static class CivilizationBrowseRenderer
         var currentY = strip.BodyY;
 
         currentY = DrawProseIntro(viewModel, drawList, x, currentY, contentWidth);
+        currentY = DrawSearchRow(viewModel, drawList, x, currentY, contentWidth, events);
         currentY = DrawFilterRow(viewModel, drawList, x, currentY, contentWidth, events);
         currentY = DrawDivider(drawList, x, currentY, contentWidth);
         currentY = DrawList(viewModel, drawList, x, currentY, contentWidth, events);
@@ -129,6 +133,20 @@ internal static class CivilizationBrowseRenderer
         TextRenderer.DrawInfoText(drawList, prose, x, y, width, Body, ColorPalette.White);
         var lines = TextRenderer.MeasureWrappedHeight(prose, width, Body);
         return y + (lines > 0 ? lines : ProseLineHeight) + ProseBottomSpacing;
+    }
+
+    private static float DrawSearchRow(
+        CivilizationBrowseViewModel vm,
+        ImDrawListPtr drawList,
+        float x, float y, float width,
+        List<BrowseEvent> events)
+    {
+        var placeholder = LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_BROWSE_SEARCH_PLACEHOLDER);
+        var updated = TextInput.Draw(drawList, "##civBrowseSearch", vm.SearchText ?? string.Empty,
+            x, y, width, SearchRowHeight, placeholder, maxLength: 64);
+        if (updated != (vm.SearchText ?? string.Empty))
+            events.Add(new BrowseEvent.SearchTextChanged(updated));
+        return y + SearchRowHeight + SearchRowBottomSpacing;
     }
 
     private static float DrawFilterRow(
@@ -288,8 +306,9 @@ internal static class CivilizationBrowseRenderer
     {
         if (vm.Civilizations.Count == 0)
         {
-            var filterActive = !string.IsNullOrEmpty(vm.CurrentAccordFilter) && vm.CurrentAccordFilter != "All";
-            var emptyKey = filterActive
+            var accordActive = !string.IsNullOrEmpty(vm.CurrentAccordFilter) && vm.CurrentAccordFilter != "All";
+            var searchActive = !string.IsNullOrWhiteSpace(vm.SearchText);
+            var emptyKey = (accordActive || searchActive)
                 ? LocalizationKeys.UI_CIVILIZATION_BROWSE_EMPTY_FILTERED
                 : LocalizationKeys.UI_CIVILIZATION_BROWSE_EMPTY_CHAPTER;
             var emptyText = LocalizationService.Instance.Get(emptyKey);
@@ -431,6 +450,7 @@ internal static class CivilizationBrowseRenderer
         var h = ChapterStripRenderer.TopPadding;
         h += PaneHeaderRenderer.TotalHeight;
         h += ProseLineHeight * 2f + ProseBottomSpacing;
+        h += SearchRowHeight + SearchRowBottomSpacing;
         h += FilterRowHeight + FilterRowBottomSpacing;
         h += DividerHeight;
         if (vm.Civilizations.Count == 0)

@@ -28,4 +28,7 @@ public abstract record BrowseEvent
 
     // User clicked the refresh button
     public record RefreshClicked : BrowseEvent;
+
+    // User typed in the typeahead search field
+    public record SearchTextChanged(string NewText) : BrowseEvent;
 }

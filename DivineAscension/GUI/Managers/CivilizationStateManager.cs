@@ -566,7 +566,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         var currentAccord = string.IsNullOrEmpty(State.BrowseState.AccordFilter)
             ? "All"
             : State.BrowseState.AccordFilter;
-        var filteredCivs = ApplyAccordFilter(State.BrowseState.AllCivilizations, currentAccord);
+        var filteredCivs = ApplyBrowseFilters(
+            State.BrowseState.AllCivilizations, currentAccord, State.BrowseState.SearchText);
 
         // Build ViewModel
         var vm = new CivilizationBrowseViewModel(
@@ -574,6 +575,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             effectiveFilter,
             accordFilters,
             currentAccord,
+            State.BrowseState.SearchText,
             filteredCivs,
             State.BrowseState.IsLoading,
             State.BrowseState.BrowseScrollY,
@@ -1066,6 +1068,14 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     State.BrowseState.AccordFilter = afc.newFilter == "All" ? string.Empty : afc.newFilter;
                     State.BrowseState.BrowseScrollY = 0f;
                     _soundManager.PlayClick();
+                    break;
+
+                case BrowseEvent.SearchTextChanged stc:
+                    if (State.BrowseState.SearchText != stc.newText)
+                    {
+                        State.BrowseState.SearchText = stc.newText;
+                        State.BrowseState.BrowseScrollY = 0f;
+                    }
                     break;
 
                 case BrowseEvent.ScrollChanged sc:
@@ -1707,26 +1717,37 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         RequestCivilizationList(State.BrowseState.DeityFilter);
     }
 
-    private static IReadOnlyList<CivilizationListResponsePacket.CivilizationInfo> ApplyAccordFilter(
+    private static IReadOnlyList<CivilizationListResponsePacket.CivilizationInfo> ApplyBrowseFilters(
         IReadOnlyList<CivilizationListResponsePacket.CivilizationInfo> source,
-        string accord)
+        string accord,
+        string searchText)
     {
-        if (accord == "All" || string.IsNullOrEmpty(accord) || source.Count == 0)
-            return source;
+        var accordActive = !(accord == "All" || string.IsNullOrEmpty(accord));
+        var query = (searchText ?? string.Empty).Trim();
+        var searchActive = query.Length > 0;
+        if (!accordActive && !searchActive) return source;
+        if (source.Count == 0) return source;
 
         // Status codes mirror DiplomaticStatus: 0=Neutral, 1=NAP, 2=Alliance, 3=War, -1=self/no-civ.
         var result = new List<CivilizationListResponsePacket.CivilizationInfo>(source.Count);
         foreach (var civ in source)
         {
-            var s = civ.StatusToViewer;
-            var keep = accord switch
+            if (accordActive)
             {
-                "Allies" => s == 1 || s == 2,
-                "Neutral" => s == 0,
-                "AtWar" => s == 3,
-                _ => true
-            };
-            if (keep) result.Add(civ);
+                var s = civ.StatusToViewer;
+                var keep = accord switch
+                {
+                    "Allies" => s == 1 || s == 2,
+                    "Neutral" => s == 0,
+                    "AtWar" => s == 3,
+                    _ => true
+                };
+                if (!keep) continue;
+            }
+            if (searchActive &&
+                civ.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0)
+                continue;
+            result.Add(civ);
         }
         return result;
     }

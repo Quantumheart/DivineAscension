@@ -9,6 +9,7 @@ public readonly struct CivilizationBrowseViewModel(
     string currentDeityFilter,
     string[] accordFilters,
     string currentAccordFilter,
+    string searchText,
     IReadOnlyList<CivilizationListResponsePacket.CivilizationInfo> civilizations,
     bool isLoading,
     float scrollY,
@@ -24,6 +25,7 @@ public readonly struct CivilizationBrowseViewModel(
     public string CurrentDeityFilter { get; } = currentDeityFilter;
     public string[] AccordFilters { get; } = accordFilters;
     public string CurrentAccordFilter { get; } = currentAccordFilter;
+    public string SearchText { get; } = searchText;
     public IReadOnlyList<CivilizationListResponsePacket.CivilizationInfo> Civilizations { get; } = civilizations;
     public bool IsLoading { get; } = isLoading;
     public float ScrollY { get; } = scrollY;
