@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using DivineAscension.Commands;
+using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
 using DivineAscension.Tests.Commands.Helpers;
 using DivineAscension.Tests.Helpers;
@@ -72,7 +73,8 @@ public class FavorCommandsTests : FavorCommandsTestHelpers
             null!,
             _playerReligionDataManager.Object,
             _religionManager.Object,
-            _messengerService.Object));
+            _messengerService.Object,
+            _gameBalanceConfig));
     }
 
     [Fact]
@@ -83,7 +85,8 @@ public class FavorCommandsTests : FavorCommandsTestHelpers
             _mockSapi.Object,
             null!,
             _religionManager.Object,
-            _messengerService.Object));
+            _messengerService.Object,
+            _gameBalanceConfig));
     }
 
     [Fact]
@@ -94,7 +97,19 @@ public class FavorCommandsTests : FavorCommandsTestHelpers
             _mockSapi.Object,
             _playerReligionDataManager.Object,
             null!,
-            _messengerService.Object));
+            _messengerService.Object,
+            _gameBalanceConfig));
+    }
+
+    [Fact]
+    public void Constructor_WithNullConfig_ThrowsException()
+    {
+        Assert.Throws<ArgumentNullException>(() => new FavorCommands(
+            _mockSapi.Object,
+            _playerReligionDataManager.Object,
+            _religionManager.Object,
+            _messengerService.Object,
+            null!));
     }
 
     #endregion
