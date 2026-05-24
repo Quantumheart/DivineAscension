@@ -206,6 +206,26 @@ public partial class GuiDialog
         }
     }
 
+#if DEBUG
+    /// <summary>
+    ///     Debug-only Shift+G handler. Opens to Blessings tab; bypasses the
+    ///     server-authoritative lectern check used in release builds.
+    /// </summary>
+    private bool OnToggleDialog(KeyCombination keyCombination)
+    {
+        if (_state.IsOpen)
+        {
+            Close();
+        }
+        else
+        {
+            _state.Sidebar.CurrentNav = SidebarNavId.Blessings;
+            Open();
+        }
+        return true;
+    }
+#endif
+
     /// <summary>
     ///     Server-driven open: fires when the player right-clicks a lectern and the
     ///     server validates the interaction (see LecternInteractionHandler).

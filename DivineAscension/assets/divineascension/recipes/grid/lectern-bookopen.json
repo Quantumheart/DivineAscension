@@ -1,0 +1,13 @@
+{
+  "ingredientPattern": "_B_,_W_",
+  "ingredients": {
+    "B": { "type": "item", "code": "game:book-normal-*" },
+    "W": { "type": "block", "code": "game:planks-*" }
+  },
+  "width": 3,
+  "height": 2,
+  "output": {
+    "type": "block",
+    "code": "divineascension:lectern-bookopen-north"
+  }
+}

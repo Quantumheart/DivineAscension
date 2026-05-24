@@ -5,14 +5,27 @@
     { "name": "DivineAscensionLectern" }
   ],
   "variantgroups": [
+    { "code": "style", "states": ["largeopen", "bookopen", "agedopen"] },
     { "code": "side", "loadFromProperties": "abstract/horizontalorientation" }
   ],
-  "creativeinventory": { "decorative": ["lectern-north"] },
+  "creativeinventory": {
+    "decorative": ["lectern-largeopen-north", "lectern-bookopen-north", "lectern-agedopen-north"]
+  },
   "shapeByType": {
-    "*-north": { "base": "game:block/clutter/bookshelves/lectern-large-book-closed", "rotateY": 0 },
-    "*-east":  { "base": "game:block/clutter/bookshelves/lectern-large-book-closed", "rotateY": 270 },
-    "*-south": { "base": "game:block/clutter/bookshelves/lectern-large-book-closed", "rotateY": 180 },
-    "*-west":  { "base": "game:block/clutter/bookshelves/lectern-large-book-closed", "rotateY": 90 }
+    "*-largeopen-north": { "base": "game:block/clutter/bookshelves/lectern-large-book-open", "rotateY": 0 },
+    "*-largeopen-east":  { "base": "game:block/clutter/bookshelves/lectern-large-book-open", "rotateY": 270 },
+    "*-largeopen-south": { "base": "game:block/clutter/bookshelves/lectern-large-book-open", "rotateY": 180 },
+    "*-largeopen-west":  { "base": "game:block/clutter/bookshelves/lectern-large-book-open", "rotateY": 90 },
+
+    "*-bookopen-north": { "base": "game:block/clutter/bookshelves/lecturn-book-open", "rotateY": 0 },
+    "*-bookopen-east":  { "base": "game:block/clutter/bookshelves/lecturn-book-open", "rotateY": 270 },
+    "*-bookopen-south": { "base": "game:block/clutter/bookshelves/lecturn-book-open", "rotateY": 180 },
+    "*-bookopen-west":  { "base": "game:block/clutter/bookshelves/lecturn-book-open", "rotateY": 90 },
+
+    "*-agedopen-north": { "base": "game:block/clutter/bookshelves/lecturn-aged-book-opened", "rotateY": 0 },
+    "*-agedopen-east":  { "base": "game:block/clutter/bookshelves/lecturn-aged-book-opened", "rotateY": 270 },
+    "*-agedopen-south": { "base": "game:block/clutter/bookshelves/lecturn-aged-book-opened", "rotateY": 180 },
+    "*-agedopen-west":  { "base": "game:block/clutter/bookshelves/lecturn-aged-book-opened", "rotateY": 90 }
   },
   "textures": {
     "oak": { "base": "game:block/wood/planks/oak1" },

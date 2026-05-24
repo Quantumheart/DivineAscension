@@ -103,7 +103,14 @@ public partial class GuiDialog : ModSystem
 
         // Menu access is now gated on lectern interaction — the server sends an
         // OpenMenuPacket after a player right-clicks a lectern. See
-        // LecternInteractionHandler. No global hotkey is registered.
+        // LecternInteractionHandler. No global hotkey is registered in release.
+#if DEBUG
+        // Dev convenience: Shift+G still opens/closes the dialog locally,
+        // bypassing the server-authoritative lectern check.
+        _inputService.RegisterHotKey("divineascensionblessings", "Show/Hide Blessing Dialog (debug)", GlKeys.G,
+            HotkeyType.GUIOrOtherControls, shiftPressed: true);
+        _inputService.SetHotKeyHandler("divineascensionblessings", OnToggleDialog);
+#endif
 
         // Initialize icon loaders
         DeityIconLoader.Initialize(_capi);
