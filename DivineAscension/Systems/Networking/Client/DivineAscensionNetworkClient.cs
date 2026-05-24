@@ -96,6 +96,9 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _clientChannel.SetMessageHandler<MilestoneProgressResponsePacket>(OnMilestoneProgressResponse);
         _clientChannel.SetMessageHandler<MilestoneUnlockedPacket>(OnMilestoneUnlockedBroadcast);
 
+        _clientChannel.SetMessageHandler<OpenMenuPacket>(OnOpenMenu);
+        _clientChannel.SetMessageHandler<CloseMenuPacket>(OnCloseMenu);
+
         _clientChannel.RegisterMessageType(typeof(PlayerReligionDataPacket));
     }
 
@@ -127,6 +130,8 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         HolySiteUpdated = null;
         MilestoneProgressReceived = null;
         MilestoneUnlocked = null;
+        OpenMenuRequested = null;
+        CloseMenuRequested = null;
     }
 
     #endregion
@@ -1176,6 +1181,26 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     ///     Event fired when a milestone is unlocked (broadcast from server)
     /// </summary>
     public event Action<MilestoneUnlockedPacket>? MilestoneUnlocked;
+
+    /// <summary>
+    ///     Server requested that the dialog open (player interacted with a lectern).
+    /// </summary>
+    public event Action<OpenMenuPacket>? OpenMenuRequested;
+
+    /// <summary>
+    ///     Server requested that the dialog close (player walked away from the lectern).
+    /// </summary>
+    public event Action<CloseMenuPacket>? CloseMenuRequested;
+
+    private void OnOpenMenu(OpenMenuPacket packet)
+    {
+        OpenMenuRequested?.Invoke(packet);
+    }
+
+    private void OnCloseMenu(CloseMenuPacket packet)
+    {
+        CloseMenuRequested?.Invoke(packet);
+    }
 
     #endregion
 }

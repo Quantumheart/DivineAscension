@@ -16,6 +16,7 @@ using DivineAscension.Network.HolySite;
 using DivineAscension.Services;
 using DivineAscension.Systems;
 using DivineAscension.Systems.Altar;
+using DivineAscension.Systems.Lectern;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Client;
 using DivineAscension.Systems.Networking.Server;
@@ -41,6 +42,8 @@ public class DivineAscensionModSystem : ModSystem
     private AltarEventEmitter? _altarEventEmitter;
     private AltarPlacementHandler? _altarPlacementHandler;
     private AltarPrayerHandler? _altarPrayerHandler;
+    private LecternEventEmitter? _lecternEventEmitter;
+    private LecternInteractionHandler? _lecternInteractionHandler;
     private BlessingNetworkHandler? _blessingNetworkHandler;
     private CivilizationManager? _civilizationManager;
     private CivilizationNetworkHandler? _civilizationNetworkHandler;
@@ -103,6 +106,7 @@ public class DivineAscensionModSystem : ModSystem
         // Register BlockBehavior classes
         // Required for JSON patching and client-server serialization
         api.RegisterBlockBehaviorClass("DivineAscensionAltar", typeof(BlockBehaviorAltar));
+        api.RegisterBlockBehaviorClass("DivineAscensionLectern", typeof(BlockBehaviorLectern));
         api.RegisterBlockBehaviorClass("DivineAscensionStone", typeof(BlockBehaviorStone));
         api.RegisterBlockBehaviorClass("DivineAscensionOre", typeof(BlockBehaviorOre));
         api.RegisterCollectibleBehaviorClass("ChiselTracking", typeof(CollectibleBehaviorChiselTracking));
@@ -183,7 +187,9 @@ public class DivineAscensionModSystem : ModSystem
             .RegisterMessageType<RitualResponsePacket>()
             .RegisterMessageType<MilestoneProgressRequestPacket>()
             .RegisterMessageType<MilestoneProgressResponsePacket>()
-            .RegisterMessageType<MilestoneUnlockedPacket>();
+            .RegisterMessageType<MilestoneUnlockedPacket>()
+            .RegisterMessageType<OpenMenuPacket>()
+            .RegisterMessageType<CloseMenuPacket>();
     }
 
     public override void AssetsFinalize(ICoreAPI api)
@@ -229,6 +235,8 @@ public class DivineAscensionModSystem : ModSystem
         _altarDestructionHandler = result.AltarDestructionHandler;
         _altarPrayerHandler = result.AltarPrayerHandler;
         _altarEventEmitter = result.AltarEventEmitter;
+        _lecternEventEmitter = result.LecternEventEmitter;
+        _lecternInteractionHandler = result.LecternInteractionHandler;
         _playerDataNetworkHandler = result.PlayerDataNetworkHandler;
         _blessingNetworkHandler = result.BlessingNetworkHandler;
         _religionNetworkHandler = result.ReligionNetworkHandler;
@@ -309,12 +317,14 @@ public class DivineAscensionModSystem : ModSystem
         _altarPlacementHandler?.Dispose();
         _altarDestructionHandler?.Dispose();
         _altarPrayerHandler?.Dispose();
+        _lecternInteractionHandler?.Dispose();
         _playerReligionDataManager?.Dispose();
         _religionManager?.Dispose();
         _civilizationManager?.Dispose();
 
         // Clear static events
         _altarEventEmitter?.ClearSubscribers();
+        _lecternEventEmitter?.ClearSubscribers();
         PitKilnPatches.ClearSubscribers();
         AnvilPatches.ClearSubscribers();
         CookingPatches.ClearSubscribers();
