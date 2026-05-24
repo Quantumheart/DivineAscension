@@ -144,9 +144,22 @@ internal static class BlessingNodeRenderer
         var color = toNode.IsUnlocked
             ? ColorPalette.Gold * 0.7f
             : (fromNode.IsUnlocked ? ColorPalette.Grey : ColorPalette.BorderColor * 0.7f);
+        var col32 = ImGui.ColorConvertFloat4ToU32(color);
 
-        drawList.AddLine(fromCenter, toCenter,
-            ImGui.ColorConvertFloat4ToU32(color), 1.25f);
+        // Same-lane (vertical) prereqs draw as a straight stroke. Cross-lane
+        // prereqs route as a short vertical-tangent bezier so the curve clears
+        // sibling seals instead of slicing through them.
+        if (Math.Abs(fromCenter.X - toCenter.X) < 0.5f)
+        {
+            drawList.AddLine(fromCenter, toCenter, col32, 1.25f);
+            return;
+        }
+
+        var dy = toCenter.Y - fromCenter.Y;
+        var tangent = Math.Max(24f, Math.Abs(dy) * 0.55f);
+        var cp1 = new Vector2(fromCenter.X, fromCenter.Y + tangent);
+        var cp2 = new Vector2(toCenter.X, toCenter.Y - tangent);
+        drawList.AddBezierCubic(fromCenter, cp1, cp2, toCenter, col32, 1.25f, 24);
     }
 
     private static (Vector4 Fill, Vector4 Rim, Vector4 IconTint, Vector4 Text) StyleFor(
