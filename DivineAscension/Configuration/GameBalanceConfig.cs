@@ -80,6 +80,45 @@ public class GameBalanceConfig
     /// <summary>Religion prestige required for Mythic rank (default: 50000)</summary>
     public int MythicThreshold { get; set; } = 50000;
 
+    // === BLESSING SLOTS ===
+
+    // Active blessing slots granted by favor rank.
+
+    /// <summary>Active blessing slots granted at Initiate favor rank (default: 1)</summary>
+    public int InitiateActiveBlessingSlots { get; set; } = 1;
+
+    /// <summary>Active blessing slots granted at Disciple favor rank (default: 2)</summary>
+    public int DiscipleActiveBlessingSlots { get; set; } = 2;
+
+    /// <summary>Active blessing slots granted at Zealot favor rank (default: 3)</summary>
+    public int ZealotActiveBlessingSlots { get; set; } = 3;
+
+    /// <summary>Active blessing slots granted at Champion favor rank (default: 4)</summary>
+    public int ChampionActiveBlessingSlots { get; set; } = 4;
+
+    /// <summary>Active blessing slots granted at Avatar favor rank (default: 5)</summary>
+    public int AvatarActiveBlessingSlots { get; set; } = 5;
+
+    // Bonus active blessing slots granted by religion prestige rank.
+
+    /// <summary>Bonus active blessing slots from Fledgling religion prestige (default: 0)</summary>
+    public int FledglingBonusSlots { get; set; } = 0;
+
+    /// <summary>Bonus active blessing slots from Established religion prestige (default: 0)</summary>
+    public int EstablishedBonusSlots { get; set; } = 0;
+
+    /// <summary>Bonus active blessing slots from Renowned religion prestige (default: 1)</summary>
+    public int RenownedBonusSlots { get; set; } = 1;
+
+    /// <summary>Bonus active blessing slots from Legendary religion prestige (default: 1)</summary>
+    public int LegendaryBonusSlots { get; set; } = 1;
+
+    /// <summary>Bonus active blessing slots from Mythic religion prestige (default: 2)</summary>
+    public int MythicBonusSlots { get; set; } = 2;
+
+    /// <summary>Hard cap on total active blessing slots (favor + prestige bonus).</summary>
+    public const int MaxTotalBlessingSlots = 8;
+
     // === PVP SYSTEM ===
 
     /// <summary>Base favor awarded for PvP kill (default: 10)</summary>
@@ -183,6 +222,57 @@ public class GameBalanceConfig
               HolySiteTier2Multiplier <= HolySiteTier3Multiplier))
         {
             throw new InvalidOperationException("Holy site tier multipliers must be ascending");
+        }
+
+        ValidateBlessingSlots();
+    }
+
+    private void ValidateBlessingSlots()
+    {
+        int[] favorSlots =
+        {
+            InitiateActiveBlessingSlots,
+            DiscipleActiveBlessingSlots,
+            ZealotActiveBlessingSlots,
+            ChampionActiveBlessingSlots,
+            AvatarActiveBlessingSlots
+        };
+
+        int[] prestigeBonus =
+        {
+            FledglingBonusSlots,
+            EstablishedBonusSlots,
+            RenownedBonusSlots,
+            LegendaryBonusSlots,
+            MythicBonusSlots
+        };
+
+        foreach (var slots in favorSlots)
+        {
+            if (slots < 0)
+            {
+                throw new InvalidOperationException("Active blessing slot counts must be >= 0");
+            }
+        }
+
+        foreach (var bonus in prestigeBonus)
+        {
+            if (bonus < 0)
+            {
+                throw new InvalidOperationException("Prestige bonus blessing slot counts must be >= 0");
+            }
+        }
+
+        foreach (var favor in favorSlots)
+        {
+            foreach (var bonus in prestigeBonus)
+            {
+                if (favor + bonus > MaxTotalBlessingSlots)
+                {
+                    throw new InvalidOperationException(
+                        $"Total active blessing slots (favor + prestige bonus) must not exceed {MaxTotalBlessingSlots}");
+                }
+            }
         }
     }
 }
