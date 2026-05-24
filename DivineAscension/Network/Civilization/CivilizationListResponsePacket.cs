@@ -43,5 +43,9 @@ public class CivilizationListResponsePacket
         [ProtoMember(8)] public string Icon { get; set; } = "default"; // Icon identifier for the civilization
 
         [ProtoMember(9)] public string Description { get; set; } = string.Empty; // Civilization description
+
+        // Diplomatic status relative to the requesting player's civilization.
+        // 0=Neutral, 1=NAP, 2=Alliance, 3=War, -1=self / viewer has no civ.
+        [ProtoMember(10)] public int StatusToViewer { get; set; } = -1;
     }
 }
