@@ -5,6 +5,7 @@ using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Browse;
+using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Renderers.Components;
@@ -265,30 +266,25 @@ internal static class ReligionBrowseRenderer
         float x, float y, float size, bool isLoading,
         List<BrowseEvent> events)
     {
-        var mouse = ImGui.GetMousePos();
-        var min = new Vector2(x, y);
-        var max = new Vector2(x + size, y + size);
-        var hover = mouse.X >= min.X && mouse.X <= max.X &&
-                    mouse.Y >= min.Y && mouse.Y <= max.Y;
+        // Empty-label ButtonRenderer.DrawButton for hit + frame (proven
+        // hit-test path used across panes); paint the ↻ primitive on top
+        // since bundled font lacks Dingbats coverage. Disabled state →
+        // enabled=false handles the dim/grey style automatically.
+        var clicked = ButtonRenderer.DrawButton(drawList, string.Empty,
+            x, y, size, size, isPrimary: false, enabled: !isLoading);
+        DrawRefreshPrimitive(drawList, x, y, size);
+        if (clicked) events.Add(new BrowseEvent.RefreshClicked());
+    }
 
-        Vector4 bg;
-        if (isLoading) bg = ColorPalette.DarkBrown * 0.5f;
-        else if (hover) bg = ColorPalette.DarkBrown * 1.2f;
-        else bg = ColorPalette.DarkBrown * 0.8f;
-
-        drawList.AddRectFilled(min, max, ImGui.ColorConvertFloat4ToU32(bg), 4f);
-        drawList.AddRect(min, max,
-            ImGui.ColorConvertFloat4ToU32(isLoading ? ColorPalette.BorderColor : ColorPalette.Gold * 0.7f),
-            4f, ImDrawFlags.None, 1.5f);
-
-        // Three-quarter arc + arrow head — primitive "↻".
+    private static void DrawRefreshPrimitive(ImDrawListPtr drawList, float x, float y, float size)
+    {
         var cx = x + size / 2f;
         var cy = y + size / 2f;
         var r = size * 0.30f;
         var ink = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText);
         const int segments = 16;
-        var arcStart = -MathF.PI / 2f; // top
-        var arcSweep = MathF.PI * 1.5f; // 270°
+        var arcStart = -MathF.PI / 2f;
+        var arcSweep = MathF.PI * 1.5f;
         Vector2 prev = default;
         for (var i = 0; i <= segments; i++)
         {
@@ -298,19 +294,11 @@ internal static class ReligionBrowseRenderer
             if (i > 0) drawList.AddLine(prev, p, ink, 1.5f);
             prev = p;
         }
-        // Arrowhead at arc end (a = arcStart + arcSweep).
         var endA = arcStart + arcSweep;
         var endP = new Vector2(cx + MathF.Cos(endA) * r, cy + MathF.Sin(endA) * r);
         var tipA = new Vector2(endP.X - r * 0.55f, endP.Y - r * 0.20f);
         var tipB = new Vector2(endP.X - r * 0.55f, endP.Y + r * 0.55f);
         drawList.AddTriangleFilled(endP, tipA, tipB, ink);
-
-        if (hover && !isLoading)
-        {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                events.Add(new BrowseEvent.RefreshClicked());
-        }
     }
 
     private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
