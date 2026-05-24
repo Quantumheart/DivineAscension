@@ -1,0 +1,26 @@
+{
+  "ingredientPattern": "PPP,WBW,WWW",
+  "ingredients": {
+    "P": {
+      "type": "item",
+      "code": "game:paper-parchment"
+    },
+    "B": {
+      "type": "item",
+      "code": "game:book-normal-*"
+    },
+    "W": {
+      "type": "block",
+      "code": "game:planks-oak"
+    }
+  },
+  "width": 3,
+  "height": 3,
+  "output": {
+    "type": "block",
+    "code": "game:clutter",
+    "attributes": {
+      "type": "bookshelves/lectern-large-book-closed"
+    }
+  }
+}

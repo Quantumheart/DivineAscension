@@ -101,10 +101,9 @@ public partial class GuiDialog : ModSystem
         // wl-paste on Wayland, causing focus issues when both systems access clipboard.
         // ImGuiClipboardHelper.SetupClipboardCallbacks(api);
 
-        // Register keybind (Shift+G to open)
-        _inputService.RegisterHotKey("divineascensionblessings", "Show/Hide Blessing Dialog", GlKeys.G,
-            HotkeyType.GUIOrOtherControls, shiftPressed: true);
-        _inputService.SetHotKeyHandler("divineascensionblessings", OnToggleDialog);
+        // Menu access is now gated on lectern interaction — the server sends an
+        // OpenMenuPacket after a player right-clicks a lectern. See
+        // LecternInteractionHandler. No global hotkey is registered.
 
         // Initialize icon loaders
         DeityIconLoader.Initialize(_capi);
@@ -150,6 +149,8 @@ public partial class GuiDialog : ModSystem
             _divineAscensionModSystem.NetworkClient.HolySiteDataReceived += OnHolySiteDataReceived;
             _divineAscensionModSystem.NetworkClient.HolySiteUpdated += OnHolySiteUpdated;
             _divineAscensionModSystem.NetworkClient.MilestoneProgressReceived += OnMilestoneProgressReceived;
+            _divineAscensionModSystem.NetworkClient.OpenMenuRequested += OnOpenMenuRequested;
+            _divineAscensionModSystem.NetworkClient.CloseMenuRequested += OnCloseMenuRequested;
         }
         else
         {
@@ -588,6 +589,8 @@ public partial class GuiDialog : ModSystem
             _divineAscensionModSystem.NetworkClient.AvailableDomainsReceived -= OnAvailableDomainsReceived;
             _divineAscensionModSystem.NetworkClient.HolySiteDataReceived -= OnHolySiteDataReceived;
             _divineAscensionModSystem.NetworkClient.MilestoneProgressReceived -= OnMilestoneProgressReceived;
+            _divineAscensionModSystem.NetworkClient.OpenMenuRequested -= OnOpenMenuRequested;
+            _divineAscensionModSystem.NetworkClient.CloseMenuRequested -= OnCloseMenuRequested;
         }
 
         // Dispose icon loaders

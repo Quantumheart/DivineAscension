@@ -13,6 +13,7 @@ using DivineAscension.Systems.Altar.Pipeline;
 using DivineAscension.Systems.Altar.Pipeline.Steps;
 using DivineAscension.Systems.BuffSystem;
 using DivineAscension.Systems.HolySite;
+using DivineAscension.Systems.Lectern;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Server;
 using DivineAscension.Systems.Patches;
@@ -112,6 +113,18 @@ public static class DivineAscensionSystemInitializer
         // Create AltarEventEmitter (service locator for BlockBehaviorAltar)
         var altarEventEmitter = new AltarEventEmitter();
         BlockBehaviorAltar.SetEventEmitter(altarEventEmitter);
+
+        // Create LecternEventEmitter (service locator for BlockBehaviorLectern)
+        var lecternEventEmitter = new LecternEventEmitter();
+        BlockBehaviorLectern.SetEventEmitter(lecternEventEmitter);
+
+        var lecternInteractionHandler = new LecternInteractionHandler(
+            lecternEventEmitter,
+            networkService,
+            eventService,
+            worldService,
+            LoggingService.Instance.CreateLogger("LecternInteractionHandler"));
+        lecternInteractionHandler.Initialize();
 
         // Initialize Holy Site Manager (depends on ReligionManager)
         var holySiteManager = new HolySiteManager(
@@ -474,6 +487,8 @@ public static class DivineAscensionSystemInitializer
             BlessingEffectSystem = blessingEffectSystem,
             RoleManager = roleManager,
             AltarEventEmitter = altarEventEmitter,
+            LecternEventEmitter = lecternEventEmitter,
+            LecternInteractionHandler = lecternInteractionHandler,
             RitualProgressManager = ritualProgressManager,
             FavorCommands = favorCommands,
             BlessingCommands = blessingCommands,
@@ -521,6 +536,8 @@ public class InitializationResult
     public BlessingEffectSystem BlessingEffectSystem { get; init; } = null!;
     public RoleManager RoleManager { get; init; } = null!;
     public AltarEventEmitter AltarEventEmitter { get; init; } = null!;
+    public LecternEventEmitter LecternEventEmitter { get; init; } = null!;
+    public LecternInteractionHandler LecternInteractionHandler { get; init; } = null!;
     public IRitualProgressManager RitualProgressManager { get; init; } = null!;
 
     // 6 Commands

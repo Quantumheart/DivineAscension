@@ -1,0 +1,11 @@
+[
+  {
+    "op": "addmerge",
+    "path": "/behaviors/-",
+    "value": {
+      "name": "DivineAscensionLectern"
+    },
+    "file": "game:blocktypes/clutter.json",
+    "side": "Server"
+  }
+]

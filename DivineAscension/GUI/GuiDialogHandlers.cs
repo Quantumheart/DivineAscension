@@ -207,21 +207,24 @@ public partial class GuiDialog
     }
 
     /// <summary>
-    ///     Keybind handler - toggle dialog open/close
-    ///     Opens to Blessings tab by default
+    ///     Server-driven open: fires when the player right-clicks a lectern and the
+    ///     server validates the interaction (see LecternInteractionHandler).
     /// </summary>
-    private bool OnToggleDialog(KeyCombination keyCombination)
+    private void OnOpenMenuRequested(OpenMenuPacket packet)
     {
-        if (_state.IsOpen)
-            Close();
-        else
-        {
-            // Default to Blessings tab when opening via hotkey
-            _state.Sidebar.CurrentNav = SidebarNavId.Blessings;
-            Open();
-        }
+        if (_state.IsOpen) return;
+        _state.Sidebar.CurrentNav = SidebarNavId.Blessings;
+        Open();
+    }
 
-        return true;
+    /// <summary>
+    ///     Server-driven close: fires when the player walks away from the lectern
+    ///     they opened the menu at.
+    /// </summary>
+    private void OnCloseMenuRequested(CloseMenuPacket packet)
+    {
+        if (!_state.IsOpen) return;
+        _state.RequestClose = true;
     }
 
     /// <summary>
