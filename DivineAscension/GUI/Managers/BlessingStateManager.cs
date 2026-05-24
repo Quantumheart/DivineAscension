@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Blessing;
 using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Models.Blessing.Tab;
@@ -8,6 +9,7 @@ using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI.Renderers.Blessing;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Vintagestory.API.Client;
 
@@ -31,6 +33,31 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     private readonly IUiService _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
 
     public BlessingTabState State { get; } = new();
+
+    /// <summary>
+    ///     Player's maximum personal-blessing unlock slots (favor rank + prestige bonus),
+    ///     synced from the server via <see cref="DivineAscension.Network.PlayerReligionDataPacket"/>.
+    ///     0 means "not yet known" — the cap is not enforced client-side until the server reports
+    ///     a value (the server is authoritative either way, see #444).
+    /// </summary>
+    public int MaxPlayerBlessingSlots { get; set; }
+
+    /// <summary>
+    ///     Count of unlocked personal (player-kind) blessings across every deity. This is the
+    ///     value compared against <see cref="MaxPlayerBlessingSlots"/> for the cap.
+    /// </summary>
+    public int UnlockedPlayerBlessingCount
+    {
+        get
+        {
+            var count = 0;
+            foreach (var bucket in State.PlayerBlessingStatesByDeity.Values)
+                foreach (var node in bucket.Values)
+                    if (node.IsUnlocked)
+                        count++;
+            return count;
+        }
+    }
 
     private Dictionary<int, string> _committedBranches = new();
     private Dictionary<int, List<string>> _lockedBranches = new();
@@ -90,7 +117,9 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             isReligionFounder: false,
             vowsPageScrollY: 0f,
             blessingsPageScrollY: State.BlessingsPageScrollY,
-            isDescriptionExpanded: State.InfoState.IsDescriptionExpanded
+            isDescriptionExpanded: State.InfoState.IsDescriptionExpanded,
+            unlockedPlayerCount: UnlockedPlayerBlessingCount,
+            maxBlessingSlots: MaxPlayerBlessingSlots
         );
 
         var result = BlessingTabRenderer.DrawBlessingsTab(vm);
@@ -229,6 +258,9 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         if (selectedState == null || selectedState.IsUnlocked) return;
         if (!selectedState.CanUnlock)
         {
+            if (selectedState.BlockedByCap)
+                _coreClientApi.ShowChatMessage(
+                    LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_TOOLTIP_SLOT_CAP));
             _soundManager.PlayError();
             return;
         }
@@ -311,6 +343,11 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         int currentPrestigeRank,
         DeityDomain patronDomain)
     {
+        // Cap gate (#446): once the player fills their personal unlock slots, every
+        // otherwise-eligible player blessing flips to blocked-by-cap. 0 = not yet synced,
+        // so the cap stays open until the server reports a value (server is authoritative).
+        var atCap = MaxPlayerBlessingSlots > 0 && UnlockedPlayerBlessingCount >= MaxPlayerBlessingSlots;
+
         foreach (var bucket in State.PlayerBlessingStatesByDeity.Values)
             foreach (var state in bucket.Values)
             {
@@ -318,7 +355,9 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
                 state.IsBranchLocked = branchLocked;
                 state.LockedByBranch = branchLocked ? GetCommittedBranch(state.Blessing.Domain) : null;
                 state.NonPatronCostMultiplier = state.Blessing.Domain == patronDomain ? 1.0f : 1.5f;
-                state.CanUnlock = CanUnlockBlessing(state, favorRanksByDeity, currentPrestigeRank, patronDomain);
+                var meetsRequirements = CanUnlockBlessing(state, favorRanksByDeity, currentPrestigeRank, patronDomain);
+                state.BlockedByCap = meetsRequirements && atCap;
+                state.CanUnlock = meetsRequirements && !atCap;
                 state.UpdateVisualState();
             }
 
@@ -327,6 +366,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             {
                 state.IsBranchLocked = false;
                 state.LockedByBranch = null;
+                state.BlockedByCap = false;
                 state.NonPatronCostMultiplier = state.Blessing.Domain == patronDomain ? 1.0f : 1.5f;
                 state.CanUnlock = CanUnlockBlessing(state, favorRanksByDeity, currentPrestigeRank, patronDomain);
                 state.UpdateVisualState();

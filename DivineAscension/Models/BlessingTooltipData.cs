@@ -78,6 +78,12 @@ public class BlessingTooltipData
     public string UnlockBlockReason { get; set; } = string.Empty;
 
     /// <summary>
+    ///     Whether the blessing is blocked only by the unlock-slot cap (requirements otherwise met).
+    ///     Drives the "slots full — unlearn to free a slot" tooltip line (#446).
+    /// </summary>
+    public bool BlockedByCap { get; set; }
+
+    /// <summary>
     ///     Base cost in favor (player blessings) or prestige (religion blessings).
     /// </summary>
     public int BaseCost { get; set; }
@@ -118,6 +124,7 @@ public class BlessingTooltipData
             Tier = state.Tier,
             IsUnlocked = state.IsUnlocked,
             CanUnlock = state.CanUnlock,
+            BlockedByCap = state.BlockedByCap,
             BaseCost = blessing.Cost,
             AdjustedCost = adjustedCost,
             IsNonPatron = state.NonPatronCostMultiplier > 1.0f,

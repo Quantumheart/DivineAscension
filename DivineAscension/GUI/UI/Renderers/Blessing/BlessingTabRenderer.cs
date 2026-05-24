@@ -62,7 +62,7 @@ internal static class BlessingTabRenderer
         // Approximate tree rect for wheel-exclusion. Mirrors the body layout below.
         var preTreeOffset = HeaderHeight() + IntroHeight(vm, contentWidth) + 8f + DividerSpacing
                             + SectionLabelHeight + vm.DeitySummaries.Count * LeaderRowHeight + 4f
-                            + DividerSpacing + LeaderRowHeight + 4f
+                            + DividerSpacing + LeaderRowHeight + LeaderRowHeight + 4f
                             + DeitySelectorRenderer.Height + 6f + DividerSpacing;
         var treeScreenTop = vm.Y + preTreeOffset - scrollY;
         var overTree = mousePos.X >= vm.X && mousePos.X <= vm.X + contentWidth
@@ -139,6 +139,18 @@ internal static class BlessingTabRenderer
         ChromeRenderer.DrawLeader(drawList, patronHeading, favorBalance,
             vm.X + Padding, topY, contentWidth - Padding * 2,
             labelColor: ColorPalette.Gold, valueColor: ColorPalette.White);
+        topY += LeaderRowHeight;
+
+        // --- Unlock-slot usage (#446). Global across domains: "Blessing Slots .... Unlocked: X / max".
+        // Value turns red at the cap to mirror the disabled unlock affordance.
+        var slotsHeading = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_SLOTS_HEADING);
+        var slotsValue = LocalizationService.Instance.Get(
+            LocalizationKeys.UI_BLESSING_PAGE_SLOTS, vm.UnlockedPlayerCount, vm.MaxBlessingSlots);
+        var atCap = vm.MaxBlessingSlots > 0 && vm.UnlockedPlayerCount >= vm.MaxBlessingSlots;
+        ChromeRenderer.DrawLeader(drawList, slotsHeading, slotsValue,
+            vm.X + Padding, topY, contentWidth - Padding * 2,
+            labelColor: ColorPalette.White,
+            valueColor: atCap ? ColorPalette.ErrorRed : ColorPalette.White);
         topY += LeaderRowHeight + 4f;
 
         // --- Deity sub-index (selector strip, glyph primitives) — horizontally centered.
@@ -248,7 +260,7 @@ internal static class BlessingTabRenderer
         h += SectionLabelHeight;
         h += summaryRows * LeaderRowHeight;
         h += 4f + DividerSpacing;
-        h += LeaderRowHeight + 4f;
+        h += LeaderRowHeight + LeaderRowHeight + 4f;
         h += DeitySelectorRenderer.Height + 6f;
         h += DividerSpacing;
         h += TreePaneHeight + 6f;

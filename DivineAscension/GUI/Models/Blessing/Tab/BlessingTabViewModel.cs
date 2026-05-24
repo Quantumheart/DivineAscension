@@ -31,7 +31,9 @@ public readonly struct BlessingTabViewModel(
     bool isReligionFounder = false,
     float vowsPageScrollY = 0f,
     float blessingsPageScrollY = 0f,
-    bool isDescriptionExpanded = false
+    bool isDescriptionExpanded = false,
+    int unlockedPlayerCount = 0,
+    int maxBlessingSlots = 0
 )
 {
     public float X { get; } = x;
@@ -74,4 +76,10 @@ public readonly struct BlessingTabViewModel(
     ///     preview on the info pane.
     /// </summary>
     public bool IsDescriptionExpanded { get; } = isDescriptionExpanded;
+
+    /// <summary>Count of unlocked personal blessings across all deities, for the "Unlocked: X / max" slot header (#446).</summary>
+    public int UnlockedPlayerCount { get; } = unlockedPlayerCount;
+
+    /// <summary>Maximum personal blessing unlock slots (favor rank + prestige bonus). 0 when not yet synced.</summary>
+    public int MaxBlessingSlots { get; } = maxBlessingSlots;
 }

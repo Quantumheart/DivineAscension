@@ -502,6 +502,9 @@ public partial class GuiDialog
         _manager.ReligionStateManager.CurrentPrestige = packet.Prestige;
         _manager.ReligionStateManager.TotalFavorEarned = patronTotal;
 
+        // Sync the unlock-slot cap so the blessing tree can show usage and gate at the cap (#446).
+        _manager.BlessingStateManager.MaxPlayerBlessingSlots = packet.MaxBlessingSlots;
+
         // Update per-deity dicts.
         _manager.ReligionStateManager.FavorByDeity = new Dictionary<DeityDomain, int>(packet.FavorByDeity);
         _manager.ReligionStateManager.TotalFavorEarnedByDeity =

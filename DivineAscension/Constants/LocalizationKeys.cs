@@ -324,6 +324,8 @@ public static class LocalizationKeys
     public const string UI_BLESSING_PAGE_INSCRIBED_ROW = "divineascension:ui.blessing.page.inscribed_row";
     public const string UI_BLESSING_PAGE_PATRON_HEADING = "divineascension:ui.blessing.page.patron_heading";
     public const string UI_BLESSING_PAGE_SELECTED_HEADING = "divineascension:ui.blessing.page.selected_heading";
+    public const string UI_BLESSING_PAGE_SLOTS_HEADING = "divineascension:ui.blessing.page.slots_heading";
+    public const string UI_BLESSING_PAGE_SLOTS = "divineascension:ui.blessing.page.slots";
     public const string UI_BLESSING_FAVOR_RANK_REQUIREMENT = "divineascension:ui.blessing.favor_rank_requirement";
     public const string UI_BLESSING_PRESTIGE_RANK_REQUIREMENT = "divineascension:ui.blessing.prestige_rank_requirement";
     public const string UI_BLESSING_UNLOCK_REQUIREMENT = "divineascension:ui.blessing.unlock_requirement";
@@ -359,6 +361,7 @@ public static class LocalizationKeys
     public const string UI_BLESSING_TOOLTIP_REQUIRES_UNLOCK = "divineascension:ui.blessing.tooltip.requires_unlock";
     public const string UI_BLESSING_TOOLTIP_CLICK_TO_UNLOCK = "divineascension:ui.blessing.tooltip.click_to_unlock";
     public const string UI_BLESSING_TOOLTIP_LOCKED = "divineascension:ui.blessing.tooltip.locked";
+    public const string UI_BLESSING_TOOLTIP_SLOT_CAP = "divineascension:ui.blessing.tooltip.slot_cap";
 
     #endregion
 
