@@ -58,6 +58,31 @@ public class FavorCommandRanksTests : FavorCommandsTestHelpers
     }
 
     [Fact]
+    public void OnListRanks_WithCustomThresholds_ReflectsConfiguredValues()
+    {
+        // Arrange — server admin tuned thresholds via GameBalanceConfig
+        _gameBalanceConfig.DiscipleThreshold = 750;
+        _gameBalanceConfig.ZealotThreshold = 3000;
+        _gameBalanceConfig.ChampionThreshold = 7500;
+        _gameBalanceConfig.AvatarThreshold = 15000;
+        _sut = InitializeMocksAndSut();
+
+        var mockPlayer = CreateMockPlayer("player-1", "TestPlayer");
+        var args = CreateCommandArgs(mockPlayer.Object);
+
+        // Act
+        var result = _sut!.OnListRanks(args);
+
+        // Assert
+        Assert.Equal(EnumCommandStatus.Success, result.Status);
+        Assert.Contains("750", result.StatusMessage);
+        Assert.Contains("3,000", result.StatusMessage);
+        Assert.Contains("7,500", result.StatusMessage);
+        Assert.Contains("15,000", result.StatusMessage);
+        Assert.DoesNotContain("10,000", result.StatusMessage); // old default Avatar
+    }
+
+    [Fact]
     public void OnListRanks_Always_ShowsBlessingsMessage()
     {
         // Arrange

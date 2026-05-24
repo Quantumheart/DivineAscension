@@ -317,7 +317,7 @@ public static class DivineAscensionSystemInitializer
         // CRITICAL: Must be called AFTER DiplomacyManager is initialized
         religionPrestigeManager.SetDiplomacyManager(diplomacyManager, civilizationManager);
 
-        var favorCommands = new FavorCommands(api, playerReligionDataManager, religionManager, messengerService);
+        var favorCommands = new FavorCommands(api, playerReligionDataManager, religionManager, messengerService, gameBalanceConfig);
         favorCommands.RegisterCommands();
 
         var blessingCommands = new BlessingCommands(api, blessingRegistry, playerReligionDataManager, religionManager,

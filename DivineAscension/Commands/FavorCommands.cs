@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Text;
 using DivineAscension.API.Interfaces;
+using DivineAscension.Configuration;
 using DivineAscension.Constants;
 using DivineAscension.Extensions;
 using DivineAscension.Models.Enum;
@@ -22,20 +23,31 @@ public class FavorCommands
     private readonly IReligionManager _religionManager;
     private readonly ICoreServerAPI _sapi;
     private readonly IPlayerMessengerService _messenger;
+    private readonly GameBalanceConfig _config;
 
     // ReSharper disable once ConvertToPrimaryConstructor
     public FavorCommands(
         ICoreServerAPI sapi,
         IPlayerProgressionDataManager playerReligionDataManager,
         IReligionManager religionManager,
-        IPlayerMessengerService messengerService)
+        IPlayerMessengerService messengerService,
+        GameBalanceConfig config)
     {
         _sapi = sapi ?? throw new ArgumentNullException(nameof(sapi));
         _playerProgressionDataManager = playerReligionDataManager ??
                                         throw new ArgumentNullException(nameof(playerReligionDataManager));
         _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
         _messenger = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+        _config = config ?? throw new ArgumentNullException(nameof(config));
     }
+
+    private int RequiredFavorForNextRank(int currentRank) =>
+        RankRequirements.GetRequiredFavorForNextRank(
+            currentRank,
+            _config.DiscipleThreshold,
+            _config.ZealotThreshold,
+            _config.ChampionThreshold,
+            _config.AvatarThreshold);
 
     /// <summary>
     ///     Registers all favor-related commands
@@ -246,7 +258,7 @@ public class FavorCommands
         {
             var nextRank = currentRank + 1;
             var nextRankName = RankRequirements.GetFavorRankName(nextRank);
-            var nextThreshold = RankRequirements.GetRequiredFavorForNextRank(currentRank);
+            var nextThreshold = RequiredFavorForNextRank(currentRank);
 
             sb.AppendLine(
                 $"{LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_LABEL_NEXT_RANK)} {nextRankName} ({nextThreshold:N0} total favor required)");
@@ -320,7 +332,7 @@ public class FavorCommands
         {
             var nextRank = currentRank + 1;
             var nextRankName = RankRequirements.GetFavorRankName(nextRank);
-            var nextThreshold = RankRequirements.GetRequiredFavorForNextRank(currentRank);
+            var nextThreshold = RequiredFavorForNextRank(currentRank);
             var remaining = nextThreshold - totalForDeity;
 
             sb.AppendLine();
@@ -378,7 +390,7 @@ public class FavorCommands
         for (var rank = 0; rank <= 4; rank++)
         {
             var rankName = RankRequirements.GetFavorRankName(rank);
-            var totalRequired = rank == 0 ? 0 : RankRequirements.GetRequiredFavorForNextRank(rank - 1);
+            var totalRequired = rank == 0 ? 0 : RequiredFavorForNextRank(rank - 1);
             sb.AppendLine(LocalizationService.Instance.Get(LocalizationKeys.CMD_FAVOR_FORMAT_RANK_REQUIREMENT, rankName,
                 totalRequired.ToString("N0")));
         }
