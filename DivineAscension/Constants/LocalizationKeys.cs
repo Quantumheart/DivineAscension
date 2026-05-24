@@ -672,6 +672,12 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_INFO_BANNER_ORDERS_EMPTY =
         "divineascension:ui.civilization.info.banner_orders.empty";
 
+    public const string UI_CIVILIZATION_INFO_BANNER_ORDER_VALUE_ONE =
+        "divineascension:ui.civilization.info.banner_orders.value_one";
+
+    public const string UI_CIVILIZATION_INFO_BANNER_ORDER_VALUE_MANY =
+        "divineascension:ui.civilization.info.banner_orders.value_many";
+
     public const string UI_CIVILIZATION_INFO_BID_LABEL =
         "divineascension:ui.civilization.info.bid.label";
 

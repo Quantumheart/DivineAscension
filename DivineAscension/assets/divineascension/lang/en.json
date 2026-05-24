@@ -414,6 +414,8 @@
   "divineascension:ui.civilization.info.purpose.empty": "No purpose has yet been set down in the ledger.",
   "divineascension:ui.civilization.info.banner_orders.heading": "Banner Orders",
   "divineascension:ui.civilization.info.banner_orders.empty": "No Orders walk beneath this banner.",
+  "divineascension:ui.civilization.info.banner_orders.value_one": "{0} · {1} soul",
+  "divineascension:ui.civilization.info.banner_orders.value_many": "{0} · {1} souls",
   "divineascension:ui.civilization.info.bid.label": "Bid an Order to your banner:",
   "divineascension:ui.civilization.info.letters.heading": "Letters sent, awaiting reply:",
   "divineascension:ui.civilization.info.letters.empty": "No letters await reply.",

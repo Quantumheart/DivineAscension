@@ -156,14 +156,17 @@ internal static class CivilizationInfoRenderer
 
         foreach (var member in vm.MemberReligions)
         {
-            DrawOrderRow(drawList, member.ReligionName, x, currentY);
+            DrawOrderRow(drawList, member, x, currentY, width);
             currentY += OrderRowHeight;
         }
 
         return currentY + 4f;
     }
 
-    private static void DrawOrderRow(ImDrawListPtr drawList, string name, float x, float y)
+    private static void DrawOrderRow(
+        ImDrawListPtr drawList,
+        CivilizationInfoResponsePacket.MemberReligion member,
+        float x, float y, float width)
     {
         var centerY = y + OrderRowHeight / 2f;
         ChromeRenderer.DrawDiamond(drawList,
@@ -171,10 +174,24 @@ internal static class CivilizationInfoRenderer
             DiamondHalfSize,
             ColorPalette.Gold * 0.6f);
 
-        var textX = x + DiamondLeftPadding + DiamondHalfSize * 2f + DiamondLabelGap;
-        drawList.AddText(new Vector2(textX, centerY - Body * 0.5f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
-            name);
+        var labelX = x + DiamondLeftPadding + DiamondHalfSize * 2f + DiamondLabelGap;
+        var rowY = centerY - Body * 0.5f;
+        var leaderWidth = MathF.Max(width - (labelX - x), 40f);
+
+        var deity = !string.IsNullOrWhiteSpace(member.DeityName)
+            ? member.DeityName
+            : member.Domain ?? string.Empty;
+
+        var valueKey = member.MemberCount == 1
+            ? LocalizationKeys.UI_CIVILIZATION_INFO_BANNER_ORDER_VALUE_ONE
+            : LocalizationKeys.UI_CIVILIZATION_INFO_BANNER_ORDER_VALUE_MANY;
+        var value = LocalizationService.Instance.Get(valueKey, deity, member.MemberCount);
+
+        ChromeRenderer.DrawLeader(drawList,
+            member.ReligionName ?? string.Empty,
+            value,
+            labelX, rowY, leaderWidth,
+            labelColor: ColorPalette.White);
     }
 
     private static float DrawInviteSection(
