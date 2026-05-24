@@ -7,6 +7,7 @@ namespace DivineAscension.GUI.Models.Religion.Browse;
 public readonly struct ReligionBrowseViewModel(
     string[] domainFilters,
     string currentDomainFilter,
+    string searchText,
     IReadOnlyList<ReligionListResponsePacket.ReligionInfo> religions,
     bool isLoading,
     float scrollY,
@@ -20,6 +21,7 @@ public readonly struct ReligionBrowseViewModel(
 {
     public string[] DomainFilters { get; } = domainFilters;
     public string CurrentDomainFilter { get; } = currentDomainFilter;
+    public string SearchText { get; } = searchText;
     public IReadOnlyList<ReligionListResponsePacket.ReligionInfo> Religions { get; } = religions;
     public bool IsLoading { get; } = isLoading;
     public float ScrollY { get; } = scrollY;

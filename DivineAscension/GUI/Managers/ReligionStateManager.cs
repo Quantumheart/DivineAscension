@@ -401,10 +401,13 @@ public class ReligionStateManager : IReligionStateManager
         var effectiveFilter =
             string.IsNullOrEmpty(State.BrowseState.DeityFilter) ? "All" : State.BrowseState.DeityFilter;
 
+        var filteredReligions = ApplyReligionSearch(State.BrowseState.AllReligions, State.BrowseState.SearchText);
+
         var viewModel = new ReligionBrowseViewModel(
             deityFilters,
             effectiveFilter,
-            State.BrowseState.AllReligions,
+            State.BrowseState.SearchText,
+            filteredReligions,
             State.BrowseState.IsBrowseLoading,
             State.BrowseState.BrowseScrollY,
             State.BrowseState.SelectedReligionUID,
@@ -1284,8 +1287,31 @@ public class ReligionStateManager : IReligionStateManager
                     RequestReligionList(State.BrowseState.DeityFilter);
                     _soundManager.PlayClick();
                     break;
+
+                case BrowseEvent.SearchTextChanged e:
+                    if (State.BrowseState.SearchText != e.NewText)
+                    {
+                        State.BrowseState.SearchText = e.NewText;
+                        State.BrowseState.BrowseScrollY = 0f;
+                    }
+                    break;
             }
         }
+    }
+
+    private static IReadOnlyList<ReligionListResponsePacket.ReligionInfo> ApplyReligionSearch(
+        IReadOnlyList<ReligionListResponsePacket.ReligionInfo> source,
+        string searchText)
+    {
+        var query = (searchText ?? string.Empty).Trim();
+        if (query.Length == 0 || source.Count == 0) return source;
+        var result = new List<ReligionListResponsePacket.ReligionInfo>(source.Count);
+        foreach (var r in source)
+        {
+            if (r.ReligionName.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
+                result.Add(r);
+        }
+        return result;
     }
 
     /// <summary>

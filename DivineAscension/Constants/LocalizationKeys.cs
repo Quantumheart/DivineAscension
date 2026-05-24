@@ -81,6 +81,9 @@ public static class LocalizationKeys
     public const string UI_RELIGION_BROWSE_COUNTER_ONE = "divineascension:ui.religion.browse.counter_one";
     public const string UI_RELIGION_BROWSE_COUNTER_MANY = "divineascension:ui.religion.browse.counter_many";
     public const string UI_RELIGION_BROWSE_EMPTY_CHAPTER = "divineascension:ui.religion.browse.empty_chapter";
+    public const string UI_RELIGION_BROWSE_EMPTY_FILTERED = "divineascension:ui.religion.browse.empty_filtered";
+    public const string UI_RELIGION_BROWSE_SEARCH_PLACEHOLDER =
+        "divineascension:ui.religion.browse.search_placeholder";
     public const string UI_RELIGION_LIST_INFO_SHORT = "divineascension:ui.religion.list.info.short";
     public const string UI_RELIGION_LIST_MEMBERS_LABEL = "divineascension:ui.religion.list.members_label";
     public const string UI_RELIGION_LIST_PRESTIGE_LABEL = "divineascension:ui.religion.list.prestige_label";
@@ -481,6 +484,8 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_BROWSE_ACCORD_AT_WAR = "divineascension:ui.civilization.browse.accord_at_war";
     public const string UI_CIVILIZATION_BROWSE_EMPTY_FILTERED =
         "divineascension:ui.civilization.browse.empty_filtered";
+    public const string UI_CIVILIZATION_BROWSE_SEARCH_PLACEHOLDER =
+        "divineascension:ui.civilization.browse.search_placeholder";
 
     #endregion
 

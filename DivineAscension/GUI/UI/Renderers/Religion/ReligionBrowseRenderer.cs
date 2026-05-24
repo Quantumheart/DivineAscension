@@ -5,6 +5,7 @@ using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Browse;
+using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Renderers.Components;
 using DivineAscension.GUI.UI.Renderers.Utilities;
@@ -29,6 +30,8 @@ internal static class ReligionBrowseRenderer
 {
     private const float ProseLineHeight = 18f;
     private const float ProseBottomSpacing = 12f;
+    private const float SearchRowHeight = 26f;
+    private const float SearchRowBottomSpacing = 6f;
     private const float FilterRowHeight = 26f;
     private const float FilterRowBottomSpacing = 8f;
     private const float FilterChipGap = 10f;
@@ -99,6 +102,9 @@ internal static class ReligionBrowseRenderer
         // === PROSE INTRO ===
         currentY = DrawProseIntro(viewModel, drawList, x, currentY, contentWidth);
 
+        // === TYPEAHEAD SEARCH ===
+        currentY = DrawSearchRow(viewModel, drawList, x, currentY, contentWidth, events);
+
         // === FILTER SUB-INDEX + REFRESH ===
         currentY = DrawFilterRow(viewModel, drawList, x, currentY, contentWidth, events);
 
@@ -147,6 +153,20 @@ internal static class ReligionBrowseRenderer
         TextRenderer.DrawInfoText(drawList, prose, x, y, width, Body, ColorPalette.White);
         var lines = TextRenderer.MeasureWrappedHeight(prose, width, Body);
         return y + (lines > 0 ? lines : ProseLineHeight) + ProseBottomSpacing;
+    }
+
+    private static float DrawSearchRow(
+        ReligionBrowseViewModel vm,
+        ImDrawListPtr drawList,
+        float x, float y, float width,
+        List<BrowseEvent> events)
+    {
+        var placeholder = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_BROWSE_SEARCH_PLACEHOLDER);
+        var updated = TextInput.Draw(drawList, "##religionBrowseSearch", vm.SearchText ?? string.Empty,
+            x, y, width, SearchRowHeight, placeholder, maxLength: 64);
+        if (updated != (vm.SearchText ?? string.Empty))
+            events.Add(new BrowseEvent.SearchTextChanged(updated));
+        return y + SearchRowHeight + SearchRowBottomSpacing;
     }
 
     private static float DrawFilterRow(
@@ -309,7 +329,11 @@ internal static class ReligionBrowseRenderer
     {
         if (vm.Religions.Count == 0)
         {
-            var emptyText = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_BROWSE_EMPTY_CHAPTER);
+            var searchActive = !string.IsNullOrWhiteSpace(vm.SearchText);
+            var emptyKey = searchActive
+                ? LocalizationKeys.UI_RELIGION_BROWSE_EMPTY_FILTERED
+                : LocalizationKeys.UI_RELIGION_BROWSE_EMPTY_CHAPTER;
+            var emptyText = LocalizationService.Instance.Get(emptyKey);
             TextRenderer.DrawInfoText(drawList, emptyText, x, y, width, Body, ColorPalette.Grey);
             var measured = TextRenderer.MeasureWrappedHeight(emptyText, width, Body);
             return y + (measured > 0 ? measured : ProseLineHeight) + 8f;
@@ -450,6 +474,7 @@ internal static class ReligionBrowseRenderer
         var h = ChapterStripRenderer.TopPadding;
         h += PaneHeaderRenderer.TotalHeight;
         h += ProseLineHeight * 2f + ProseBottomSpacing;
+        h += SearchRowHeight + SearchRowBottomSpacing;
         h += FilterRowHeight + FilterRowBottomSpacing;
         h += DividerHeight;
         if (vm.Religions.Count == 0)
