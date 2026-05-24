@@ -167,8 +167,10 @@ internal static class TooltipRenderer
         // Rank requirement
         if (!string.IsNullOrEmpty(data.RequiredFavorRank))
         {
-            // Green if requirements met (unlocked or can unlock), red if not met
-            var rankColor = (data.IsUnlocked || data.CanUnlock) ? ColorPalette.SuccessGreen : ColorPalette.ErrorRed;
+            // Green if requirements met (unlocked, can unlock, or only the slot cap blocks it), red if not met
+            var rankColor = (data.IsUnlocked || data.CanUnlock || data.BlockedByCap)
+                ? ColorPalette.SuccessGreen
+                : ColorPalette.ErrorRed;
             lines.Add(new TooltipLine
             {
                 Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_FAVOR_RANK,
@@ -181,8 +183,10 @@ internal static class TooltipRenderer
         }
         else if (!string.IsNullOrEmpty(data.RequiredPrestigeRank))
         {
-            // Green if requirements met (unlocked or can unlock), red if not met
-            var rankColor = (data.IsUnlocked || data.CanUnlock) ? ColorPalette.SuccessGreen : ColorPalette.ErrorRed;
+            // Green if requirements met (unlocked, can unlock, or only the slot cap blocks it), red if not met
+            var rankColor = (data.IsUnlocked || data.CanUnlock || data.BlockedByCap)
+                ? ColorPalette.SuccessGreen
+                : ColorPalette.ErrorRed;
             lines.Add(new TooltipLine
             {
                 Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_PRESTIGE_RANK,
@@ -199,8 +203,10 @@ internal static class TooltipRenderer
         {
             foreach (var prereq in data.PrerequisiteNames)
             {
-                // Green if requirements met (unlocked or can unlock), red if not met
-                var prereqColor = (data.IsUnlocked || data.CanUnlock) ? ColorPalette.SuccessGreen : ColorPalette.ErrorRed;
+                // Green if requirements met (unlocked, can unlock, or only the slot cap blocks it), red if not met
+                var prereqColor = (data.IsUnlocked || data.CanUnlock || data.BlockedByCap)
+                    ? ColorPalette.SuccessGreen
+                    : ColorPalette.ErrorRed;
                 lines.Add(new TooltipLine
                 {
                     Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_REQUIRES_BLESSING, prereq),
@@ -219,6 +225,19 @@ internal static class TooltipRenderer
             lines.Add(new TooltipLine
             {
                 Text = $"Only available to followers of {data.Domain}",
+                Color = ColorPalette.ErrorRed,
+                FontSize = Body,
+                SpacingAfter = LINE_SPACING
+            });
+            hasRequirements = true;
+        }
+
+        // Slot-cap block (#446): requirements met but no free unlock slot. Points the player at unlearn.
+        if (data.BlockedByCap)
+        {
+            lines.Add(new TooltipLine
+            {
+                Text = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_TOOLTIP_SLOT_CAP),
                 Color = ColorPalette.ErrorRed,
                 FontSize = Body,
                 SpacingAfter = LINE_SPACING

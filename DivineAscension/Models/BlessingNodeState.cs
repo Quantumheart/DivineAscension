@@ -34,6 +34,13 @@ public class BlessingNodeState
     public bool CanUnlock { get; set; }
 
     /// <summary>
+    ///     Whether the blessing meets every unlock requirement but is blocked solely because
+    ///     the player has reached their unlock-slot cap. Distinguishes a cap-block (unlearn to
+    ///     free a slot) from a requirement-block (rank/prereq) for tooltip messaging.
+    /// </summary>
+    public bool BlockedByCap { get; set; }
+
+    /// <summary>
     ///     Whether the blessing's branch is locked due to committing to an exclusive branch
     /// </summary>
     public bool IsBranchLocked { get; set; }

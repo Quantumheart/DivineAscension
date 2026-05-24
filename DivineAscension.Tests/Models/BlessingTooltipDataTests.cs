@@ -41,6 +41,17 @@ public class BlessingTooltipDataTests
         Assert.Contains(expectedContains, tooltip.FormattedStats[0]);
     }
 
+    [Fact]
+    public void FromBlessingAndState_PropagatesBlockedByCap()
+    {
+        var blessing = TestFixtures.CreateTestBlessing("test-blessing", "Test");
+        var state = new BlessingNodeState(blessing) { BlockedByCap = true };
+
+        var tooltip = BlessingTooltipData.FromBlessingAndState(blessing, state);
+
+        Assert.True(tooltip.BlockedByCap);
+    }
+
     #endregion
 
     #region Constructor and Property Tests
