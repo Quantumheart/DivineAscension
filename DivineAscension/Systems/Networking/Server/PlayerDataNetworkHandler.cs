@@ -28,6 +28,7 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
 
     private readonly IPlayerProgressionDataManager? _playerProgressionDataManager;
     private readonly IReligionManager? _religionManager;
+    private readonly IReligionPrestigeManager? _religionPrestigeManager;
     private readonly ILogger? _logger;
     private readonly IWorldService? _worldService;
     private readonly IEventService? _eventService;
@@ -44,6 +45,7 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
         INetworkService networkService,
         IPlayerProgressionDataManager playerProgressionDataManager,
         IReligionManager religionManager,
+        IReligionPrestigeManager religionPrestigeManager,
         GameBalanceConfig config)
     {
         _logger = logger;
@@ -52,10 +54,12 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
         _networkService = networkService;
         _playerProgressionDataManager = playerProgressionDataManager;
         _religionManager = religionManager;
+        _religionPrestigeManager = religionPrestigeManager;
         _config = config;
 
         // Subscribe to events
         _playerProgressionDataManager.OnPlayerDataChanged += OnPlayerDataChanged;
+        _religionPrestigeManager.OnPrestigeRankChanged += OnPrestigeRankChanged;
         _eventService!.OnPlayerJoin(OnPlayerJoin);
     }
 
@@ -68,6 +72,9 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
         // Unsubscribe from events
         if (_playerProgressionDataManager != null)
             _playerProgressionDataManager.OnPlayerDataChanged -= OnPlayerDataChanged;
+
+        if (_religionPrestigeManager != null)
+            _religionPrestigeManager.OnPrestigeRankChanged -= OnPrestigeRankChanged;
 
         if (_eventService != null)
             _eventService.UnsubscribePlayerJoin(OnPlayerJoin);
@@ -86,6 +93,24 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
     {
         var player = _worldService!.GetPlayerByUID(playerUID);
         if (player != null) SendPlayerDataToClient(player);
+    }
+
+    /// <summary>
+    ///     Religion prestige rank changed (#445): every member needs a refreshed packet
+    ///     so the client can detect any change in <c>MaxBlessingSlots</c> and toast.
+    /// </summary>
+    private void OnPrestigeRankChanged(string religionUID, PrestigeRank oldRank, PrestigeRank newRank)
+    {
+        if (_religionManager == null || _worldService == null) return;
+
+        var religion = _religionManager.GetReligion(religionUID);
+        if (religion == null) return;
+
+        foreach (var memberUID in religion.MemberUIDs)
+        {
+            var player = _worldService.GetPlayerByUID(memberUID);
+            if (player != null) SendPlayerDataToClient(player);
+        }
     }
 
     /// <summary>
@@ -115,6 +140,19 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
                 totalByDeity[domain] = playerReligionData.GetTotalFavorEarned(domain);
             }
 
+            // Effective slot cap: take the player's best favor rank across deities and add
+            // the religion's prestige bonus. Captures "best you can do" — favor rank-ups on
+            // any deity (or prestige rank-ups that grant bonus slots) raise this, which is
+            // what the client compares to drive the slot-up toast (#445).
+            var maxFavorRank = FavorRank.Initiate;
+            foreach (var domain in AllDeities)
+            {
+                var rank = _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID, domain);
+                if (rank > maxFavorRank) maxFavorRank = rank;
+            }
+            var maxBlessingSlots =
+                BlessingSlotCalculator.GetMaxUnlocks(_config, maxFavorRank, religionData.PrestigeRank);
+
             var packet = new PlayerReligionDataPacket(
                 religionData.ReligionName,
                 religionData.PatronDomain,
@@ -134,7 +172,8 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
                 EstablishedThreshold = _config.EstablishedThreshold,
                 RenownedThreshold = _config.RenownedThreshold,
                 LegendaryThreshold = _config.LegendaryThreshold,
-                MythicThreshold = _config.MythicThreshold
+                MythicThreshold = _config.MythicThreshold,
+                MaxBlessingSlots = maxBlessingSlots
             };
 
             _networkService.SendToPlayer(player, packet);

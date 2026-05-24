@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DivineAscension.API.Interfaces;
@@ -35,6 +36,9 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
         _religionManager = religionManager;
         _config = config;
     }
+
+    /// <inheritdoc />
+    public event Action<string, PrestigeRank, PrestigeRank>? OnPrestigeRankChanged;
 
     /// <summary>
     ///     Sets the blessing registry and effect system (called after they're initialized)
@@ -155,6 +159,10 @@ public class ReligionPrestigeManager : IReligionPrestigeManager
 
             // Check for new blessing unlocks
             CheckForNewBlessingUnlocks(religionUID, newRank);
+
+            // Notify listeners (PlayerDataNetworkHandler refreshes every member so their
+            // blessing-slot count reflects any prestige bonus crossed).
+            OnPrestigeRankChanged?.Invoke(religionUID, oldRank, newRank);
         }
     }
 

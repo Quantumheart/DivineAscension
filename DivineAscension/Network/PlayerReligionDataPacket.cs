@@ -78,4 +78,12 @@ public class PlayerReligionDataPacket
     /// </summary>
     [ProtoMember(19)]
     public Dictionary<DeityDomain, int> TotalFavorEarnedByDeity { get; set; } = new();
+
+    /// <summary>
+    ///     Maximum number of blessings the player may currently have unlocked
+    ///     (favor-rank slots + prestige bonus). Drives the active-slot cap from #444
+    ///     and the slot-up toast from #445.
+    /// </summary>
+    [ProtoMember(20)]
+    public int MaxBlessingSlots { get; set; }
 }
