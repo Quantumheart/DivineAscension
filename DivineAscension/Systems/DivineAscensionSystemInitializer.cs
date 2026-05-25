@@ -377,6 +377,7 @@ public static class DivineAscensionSystemInitializer
             playerReligionDataManager,
             religionManager,
             gameBalanceConfig);
+        blessingUnlearnService.Initialize(); // apostasy penalty: strip domain-locked on leave (#461)
 
         var blessingHandler = new BlessingNetworkHandler(
             logger,

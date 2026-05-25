@@ -49,4 +49,14 @@ public interface IBlessingUnlearnService
     ///     an empty list when the player does not own the target. Target is first.
     /// </summary>
     System.Collections.Generic.IReadOnlyList<string> ResolveUnlearnCascade(string playerUID, string blessingId);
+
+    /// <summary>
+    ///     Apostasy penalty (epic #425, slice 3 — #461): strips every owned domain-locked
+    ///     (<see cref="DivineAscension.Models.Blessing.RequiresPatron"/>) blessing and the
+    ///     prerequisite cascade beneath each, refunding <b>zero</b> favor. Generic blessings stay
+    ///     unless orphaned by a stripped domain-locked parent. Recomputes effects and notifies on
+    ///     change. System-triggered (player leaving a religion), so no cooldown is stamped.
+    ///     Returns the ids stripped (empty if the player owned no domain-locked blessings).
+    /// </summary>
+    System.Collections.Generic.IReadOnlyList<string> StripDomainLockedForApostasy(string playerUID);
 }
