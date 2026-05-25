@@ -59,6 +59,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _clientChannel.SetMessageHandler<EditFoundingMythResponsePacket>(OnEditFoundingMythResponse);
         _clientChannel.SetMessageHandler<BlessingUnlockResponsePacket>(OnBlessingUnlockResponse);
         _clientChannel.SetMessageHandler<UnlearnBlessingResponsePacket>(OnUnlearnBlessingResponse);
+        _clientChannel.SetMessageHandler<UnlearnReligionBlessingResponsePacket>(OnUnlearnReligionBlessingResponse);
         _clientChannel.SetMessageHandler<BlessingDataResponsePacket>(OnBlessingDataResponse);
         _clientChannel.SetMessageHandler<ReligionStateChangedPacket>(OnReligionStateChanged);
         _clientChannel.SetMessageHandler<CivilizationListResponsePacket>(OnCivilizationListResponse);
@@ -325,6 +326,25 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         // Fire on success and failure so the UI re-syncs node state either way. The packet
         // carries the full cascade (StruckBlessingIds) so the UI can re-lock every struck node.
         BlessingUnlearned?.Invoke(packet);
+    }
+
+    private void OnUnlearnReligionBlessingResponse(UnlearnReligionBlessingResponsePacket packet)
+    {
+        if (packet.Success)
+        {
+            _capi?.ShowChatMessage(packet.Message);
+            _capi?.Logger.Notification($"[DivineAscension] Religion blessing struck: {packet.BlessingId}");
+        }
+        else
+        {
+            _capi?.ShowChatMessage($"Error: {packet.Message}");
+            _capi?.Logger.Warning($"[DivineAscension] Failed to strike religion blessing: {packet.Message}");
+        }
+
+        // Fire on success and failure so the UI re-syncs node state either way. Members also
+        // receive a fresh BlessingDataResponsePacket from the server (handler broadcast), which
+        // refreshes the inscribe counter and tree.
+        ReligionBlessingUnlearned?.Invoke(packet);
     }
 
     private void OnBlessingDataResponse(BlessingDataResponsePacket packet)
@@ -626,6 +646,22 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         var request = new UnlearnBlessingRequestPacket(blessingId);
         _clientChannel.SendPacket(request);
         _capi?.Logger.Debug($"[DivineAscension] Sent unlearn request for blessing: {blessingId}");
+    }
+
+    /// <summary>
+    ///     Send a religion-blessing strike (unlearn) request to the server (founder-only, #484).
+    /// </summary>
+    public void RequestReligionBlessingUnlearn(string blessingId)
+    {
+        if (_clientChannel == null)
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot strike religion blessing: client channel not initialized");
+            return;
+        }
+
+        var request = new UnlearnReligionBlessingRequestPacket(blessingId);
+        _clientChannel.SendPacket(request);
+        _capi?.Logger.Debug($"[DivineAscension] Sent religion blessing strike request: {blessingId}");
     }
 
     /// <summary>
@@ -1103,6 +1139,9 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     ///     full response so the UI can re-lock every blessing in the struck cascade (#460).
     /// </summary>
     public event Action<UnlearnBlessingResponsePacket>? BlessingUnlearned;
+
+    /// <summary>Raised when the server responds to a religion-blessing strike request (#484).</summary>
+    public event Action<UnlearnReligionBlessingResponsePacket>? ReligionBlessingUnlearned;
 
     /// <summary>
     ///     Event fired when the player's religion state changes (disbanded, kicked, etc.)

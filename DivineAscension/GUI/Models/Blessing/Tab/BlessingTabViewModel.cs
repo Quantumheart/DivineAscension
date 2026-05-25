@@ -36,7 +36,9 @@ public readonly struct BlessingTabViewModel(
     BlessingNodeState? pendingUnlearnState = null,
     IReadOnlyList<string>? pendingUnlearnCascadeNames = null,
     int pendingUnlearnRefundTotal = 0,
-    bool freeRespecActive = false
+    bool freeRespecActive = false,
+    int religionBlessingSlotUsed = 0,
+    int religionBlessingSlotCap = 0
 )
 {
     public float X { get; } = x;
@@ -100,4 +102,11 @@ public readonly struct BlessingTabViewModel(
 
     /// <summary>True while the admin free-respec window is open — renders the banner (#462).</summary>
     public bool FreeRespecActive { get; } = freeRespecActive;
+
+    /// <summary>Count of religion blessings currently inscribed, for the "Inscribed: X/Y" row (#479).</summary>
+    public int ReligionBlessingSlotUsed { get; } = religionBlessingSlotUsed;
+
+    /// <summary>Maximum religion blessings that may be inscribed at the religion's prestige rank (#479).
+    /// 0 means "not yet synced" — the counter is hidden until the server reports a value.</summary>
+    public int ReligionBlessingSlotCap { get; } = religionBlessingSlotCap;
 }

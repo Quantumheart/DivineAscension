@@ -25,6 +25,11 @@ public class UiService(DivineAscensionNetworkClient networkClient)
         _networkClient.RequestBlessingUnlearn(blessingId);
     }
 
+    public void RequestReligionBlessingUnlearn(string blessingId)
+    {
+        _networkClient.RequestReligionBlessingUnlearn(blessingId);
+    }
+
     public void RequestAvailableDomains()
     {
         _networkClient.RequestAvailableDomains();

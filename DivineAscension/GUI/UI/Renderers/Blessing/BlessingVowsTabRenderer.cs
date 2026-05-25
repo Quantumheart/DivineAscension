@@ -44,7 +44,8 @@ internal static class BlessingVowsTabRenderer
         // every divider, leader row, and ornament lines up cross-pane.
         var contentWidth = vm.Width - ChapterStripRenderer.ScrollbarGutter;
 
-        var contentHeight = ComputeContentHeight(vm.DeitySummaries.Count, contentWidth);
+        var contentHeight = ComputeContentHeight(vm.DeitySummaries.Count, contentWidth,
+            vm.ReligionBlessingSlotCap > 0);
         var maxScroll = MathF.Max(0f, contentHeight - vm.Height);
 
         // --- Mouse wheel scroll — only when hovering content outside the tree panel
@@ -57,9 +58,10 @@ internal static class BlessingVowsTabRenderer
 
         // Approximate tree rect for wheel-exclusion. Real position depends on cumulative
         // section heights — pre-compute the same way the body does below.
+        var slotsRowHeight = vm.ReligionBlessingSlotCap > 0 ? LeaderRowHeight : 0f;
         var preTreeOffset = HeaderHeight() + IntroHeight(vm, contentWidth) + 8f + DividerSpacing
                             + SectionLabelHeight + vm.DeitySummaries.Count * LeaderRowHeight + 4f
-                            + DividerSpacing + LeaderRowHeight + 4f
+                            + DividerSpacing + LeaderRowHeight + 4f + slotsRowHeight
                             + DeitySelectorRenderer.Height + 6f + DividerSpacing;
         var treeScreenTop = vm.Y + preTreeOffset - scrollY;
         var overTree = mousePos.X >= vm.X && mousePos.X <= vm.X + contentWidth
@@ -137,6 +139,19 @@ internal static class BlessingVowsTabRenderer
             vm.X + Padding, topY, contentWidth - Padding * 2,
             labelColor: ColorPalette.Gold, valueColor: ColorPalette.White);
         topY += LeaderRowHeight + 4f;
+
+        // --- "Inscribed: X/Y" religion slot counter (#479). Hidden until the cap is synced
+        //     (cap 0 = unknown). Turns gold when the religion is at its inscribe cap.
+        if (vm.ReligionBlessingSlotCap > 0)
+        {
+            var atCap = vm.ReligionBlessingSlotUsed >= vm.ReligionBlessingSlotCap;
+            var slotsText = LocalizationService.Instance.Get(
+                LocalizationKeys.UI_BLESSING_VOWS_SLOTS_ROW,
+                vm.ReligionBlessingSlotUsed, vm.ReligionBlessingSlotCap);
+            TextRenderer.DrawLabel(drawList, slotsText, vm.X + Padding, topY, SubsectionLabel,
+                atCap ? ColorPalette.Gold : ColorPalette.White);
+            topY += LeaderRowHeight;
+        }
 
         // --- Deity sub-index (selector strip, glyph primitives) — horizontally centered.
         var stripX = vm.X + (contentWidth - DeitySelectorRenderer.StripWidth) * 0.5f;
@@ -224,6 +239,17 @@ internal static class BlessingVowsTabRenderer
             BlessingUnlockConfirmRenderer.Draw(vm.PendingUnlockState, confirmEvents);
             actionsEvents = confirmEvents;
         }
+        else if (vm.PendingUnlearnState != null)
+        {
+            // Founder strike confirm (#484), mirroring the Blessings page unlearn modal.
+            var confirmEvents = new List<ActionsEvent>(2);
+            BlessingUnlearnConfirmRenderer.Draw(
+                vm.PendingUnlearnState,
+                vm.PendingUnlearnCascadeNames,
+                vm.PendingUnlearnRefundTotal,
+                confirmEvents);
+            actionsEvents = confirmEvents;
+        }
 
         return new BlessingTabRenderResult(
             treeEvents,
@@ -244,7 +270,7 @@ internal static class BlessingVowsTabRenderer
         return TextRenderer.MeasureWrappedHeight(intro, contentWidth - Padding * 2, Secondary);
     }
 
-    private static float ComputeContentHeight(int summaryRows, float contentWidth)
+    private static float ComputeContentHeight(int summaryRows, float contentWidth, bool hasSlotsRow)
     {
         var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_VOWS_INTRO);
         var introH = TextRenderer.MeasureWrappedHeight(intro, contentWidth - Padding * 2, Secondary);
@@ -257,6 +283,7 @@ internal static class BlessingVowsTabRenderer
         h += summaryRows * LeaderRowHeight;
         h += 4f + DividerSpacing;
         h += LeaderRowHeight + 4f;
+        if (hasSlotsRow) h += LeaderRowHeight;
         h += DeitySelectorRenderer.Height + 6f;
         h += DividerSpacing;
         h += TreePaneHeight + 6f;

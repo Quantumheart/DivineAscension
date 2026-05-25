@@ -8,6 +8,7 @@ public interface IUiService
     void RequestBlessingData();
     void RequestBlessingUnlock(string blessingId);
     void RequestBlessingUnlearn(string blessingId);
+    void RequestReligionBlessingUnlearn(string blessingId);
 
     // Religion Operations
     void RequestAvailableDomains();
