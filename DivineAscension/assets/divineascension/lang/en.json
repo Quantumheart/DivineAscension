@@ -262,7 +262,7 @@
   "divineascension:ui.blessing.vows.patron_heading": "Of {0}",
   "divineascension:ui.blessing.vows.prestige_balance": "Prestige  ·  {0} / {1}",
   "divineascension:ui.blessing.vows.selected_heading": "Of the Selected Vow",
-  "divineascension:ui.blessing.vows.slots_row": "Inscribed: {0}/{1}",
+  "divineascension:ui.blessing.vows.slots_row": "Sworn: {0}/{1}",
   "divineascension:ui.blessing.confirm.religion_strike.title": "Strike Religion Blessing?",
   "divineascension:ui.blessing.confirm.religion_strike.message": "Strike \"{0}\" from the religion's chapter? The religion will reclaim half of the {1} prestige spent; the rest is forfeit. This frees an inscribe slot.",
   "divineascension:ui.blessing.confirm.religion_strike.cascade.message": "Striking \"{0}\" will also strike {1} dependent blessing(s) that rely on it. The religion will reclaim about {2} prestige in total; the rest is forfeit.",
