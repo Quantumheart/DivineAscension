@@ -33,7 +33,9 @@ public readonly struct BlessingTabViewModel(
     int unlockedPlayerCount = 0,
     int maxBlessingSlots = 0,
     BlessingNodeState? pendingUnlockState = null,
-    BlessingNodeState? pendingUnlearnState = null
+    BlessingNodeState? pendingUnlearnState = null,
+    IReadOnlyList<string>? pendingUnlearnCascadeNames = null,
+    int pendingUnlearnRefundTotal = 0
 )
 {
     public float X { get; } = x;
@@ -85,4 +87,13 @@ public readonly struct BlessingTabViewModel(
     ///     When set, the page renders a modal confirmation summarizing the favor reclaimed.
     /// </summary>
     public BlessingNodeState? PendingUnlearnState { get; } = pendingUnlearnState;
+
+    /// <summary>
+    ///     Names of every blessing in the pending unlearn cascade (#460), target first, or null
+    ///     when no unlearn dialog is open. Count > 1 means dependent children will also be struck.
+    /// </summary>
+    public IReadOnlyList<string>? PendingUnlearnCascadeNames { get; } = pendingUnlearnCascadeNames;
+
+    /// <summary>Total spendable favor the player will reclaim across the pending unlearn cascade (#460).</summary>
+    public int PendingUnlearnRefundTotal { get; } = pendingUnlearnRefundTotal;
 }

@@ -51,6 +51,13 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     public int MaxPlayerBlessingSlots { get; set; }
 
     /// <summary>
+    ///     Fraction of favor refunded on unlearn, synced from the server's GameBalanceConfig via
+    ///     <see cref="DivineAscension.Network.BlessingDataResponsePacket" /> (#460). Drives the
+    ///     total-refund preview in the cascade confirm dialog. Defaults to 0.5 until synced.
+    /// </summary>
+    public float UnlearnRefundPercent { get; set; } = 0.5f;
+
+    /// <summary>
     ///     Count of unlocked personal (player-kind) blessings across every deity. This is the
     ///     value compared against <see cref="MaxPlayerBlessingSlots"/> for the cap.
     /// </summary>
@@ -127,7 +134,9 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             unlockedPlayerCount: UnlockedPlayerBlessingCount,
             maxBlessingSlots: MaxPlayerBlessingSlots,
             pendingUnlockState: GetPendingUnlockState(),
-            pendingUnlearnState: GetPendingUnlearnState()
+            pendingUnlearnState: GetPendingUnlearnState(),
+            pendingUnlearnCascadeNames: GetPendingUnlearnPreview(out var unlearnRefundTotal),
+            pendingUnlearnRefundTotal: unlearnRefundTotal
         );
 
         var result = BlessingTabRenderer.DrawBlessingsTab(vm);
@@ -383,6 +392,45 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         return string.IsNullOrEmpty(State.PendingUnlearnBlessingId)
             ? null
             : GetBlessingState(State.PendingUnlearnBlessingId);
+    }
+
+    /// <summary>
+    ///     Previews the unlearn cascade for the pending blessing (#460): the ordered kill-list
+    ///     names (target first) and the estimated total favor refund. Returns null when no unlearn
+    ///     dialog is open. Uses the same <see cref="BlessingCascadeResolver" /> as the server, so the
+    ///     preview matches the authoritative strip; the refund estimate uses the synced percent.
+    /// </summary>
+    private IReadOnlyList<string>? GetPendingUnlearnPreview(out int totalRefund)
+    {
+        totalRefund = 0;
+        if (string.IsNullOrEmpty(State.PendingUnlearnBlessingId))
+            return null;
+
+        var nodesById = new Dictionary<string, BlessingNodeState>();
+        foreach (var bucket in State.PlayerBlessingStatesByDeity.Values)
+            foreach (var kv in bucket)
+                nodesById[kv.Key] = kv.Value;
+
+        var unlocked = new HashSet<string>();
+        foreach (var (id, node) in nodesById)
+            if (node.IsUnlocked)
+                unlocked.Add(id);
+
+        var cascade = BlessingCascadeResolver.Resolve(
+            State.PendingUnlearnBlessingId,
+            unlocked,
+            id => nodesById.TryGetValue(id, out var n) ? n.Blessing : null);
+
+        var names = new List<string>(cascade.Count);
+        foreach (var id in cascade)
+        {
+            if (!nodesById.TryGetValue(id, out var node)) continue;
+            names.Add(node.Blessing.Name);
+            var paidCost = (int)(node.Blessing.Cost * node.NonPatronCostMultiplier);
+            totalRefund += (int)(paidCost * UnlearnRefundPercent);
+        }
+
+        return names;
     }
 
     private BlessingNodeState? GetBlessingState(string blessingId)

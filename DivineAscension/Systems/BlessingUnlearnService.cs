@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using DivineAscension.Configuration;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
@@ -7,10 +9,11 @@ using DivineAscension.Systems.Interfaces;
 namespace DivineAscension.Systems;
 
 /// <summary>
-///     Core unlearn logic for a single owned personal blessing (epic #425, slice 1 — #459).
-///     Kept separate from the network handler so the refund/strip behaviour is unit-testable
-///     without a live server. No prerequisite cascade yet (that arrives in slice 2).
-///     The only cost of unlearning is the unrefunded portion of the favor paid — no cooldown.
+///     Core unlearn logic for an owned personal blessing and its prerequisite cascade
+///     (epic #425, slices 1 &amp; 2 — #459, #460). Kept separate from the network handler so the
+///     cascade/refund/strip behaviour is unit-testable without a live server. Unlearning a parent
+///     strips every dependent unlocked child (see <see cref="BlessingCascadeResolver" />) and
+///     refunds 50% of each blessing's cost. The unrefunded remainder is the only cost — no cooldown.
 /// </summary>
 public class BlessingUnlearnService : IBlessingUnlearnService
 {
@@ -56,25 +59,54 @@ public class BlessingUnlearnService : IBlessingUnlearnService
             if (!playerData.IsBlessingUnlocked(blessingId))
                 return new UnlearnResult(UnlearnOutcome.NotOwned, 0);
 
-            // Refund is based on the cost the player actually paid (patron multiplier applied
-            // when their religion's patron domain differs from the blessing's domain).
+            // Resolve the full cascade (target + dependent unlocked children) and strip it
+            // atomically. Refund 50% of the cost the player actually paid for each blessing —
+            // patron multiplier applied per blessing, refund credited to that blessing's domain.
+            var cascade = ResolveCascade(playerData, blessingId);
             var religion = _religionManager.GetPlayerReligion(playerUID);
-            var paidCost = religion != null
-                ? BlessingRegistry.AdjustedCost(blessing, religion)
-                : blessing.Cost;
-            var refund = (int)(paidCost * _config.UnlearnRefundPercent);
 
-            // Strip first so BlessingEffectSystem recomputes from the reduced unlocked set.
-            playerData.LockBlessing(blessingId);
+            var totalRefund = 0;
+            foreach (var id in cascade)
+            {
+                var member = _blessingRegistry.GetBlessing(id);
+                if (member == null)
+                    continue;
 
-            // Refund to spendable favor only — lifetime is untouched, so rank cannot flicker.
-            if (refund > 0)
-                playerData.AddSpendableFavor(blessing.Domain, refund);
+                var paidCost = religion != null
+                    ? BlessingRegistry.AdjustedCost(member, religion)
+                    : member.Cost;
+                var refund = (int)(paidCost * _config.UnlearnRefundPercent);
+
+                // Strip first so BlessingEffectSystem recomputes from the reduced unlocked set.
+                playerData.LockBlessing(id);
+
+                // Refund to spendable favor only — lifetime is untouched, so rank cannot flicker.
+                if (refund > 0)
+                {
+                    playerData.AddSpendableFavor(member.Domain, refund);
+                    totalRefund += refund;
+                }
+            }
 
             _blessingEffectSystem.RefreshPlayerBlessings(playerUID);
             _playerProgressionDataManager.NotifyPlayerDataChanged(playerUID);
 
-            return new UnlearnResult(UnlearnOutcome.Success, refund);
+            return new UnlearnResult(UnlearnOutcome.Success, totalRefund, cascade);
         }
+    }
+
+    public IReadOnlyList<string> ResolveUnlearnCascade(string playerUID, string blessingId)
+    {
+        var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(playerUID);
+        if (!playerData.IsBlessingUnlocked(blessingId))
+            return Array.Empty<string>();
+
+        return ResolveCascade(playerData, blessingId);
+    }
+
+    private List<string> ResolveCascade(PlayerProgressionData playerData, string blessingId)
+    {
+        var unlocked = new HashSet<string>(playerData.UnlockedBlessings);
+        return BlessingCascadeResolver.Resolve(blessingId, unlocked, _blessingRegistry.GetBlessing);
     }
 }

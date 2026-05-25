@@ -75,6 +75,14 @@ public class BlessingDataResponsePacket
     public Dictionary<DeityDomain, int> TotalFavorEarnedByDeity { get; set; } = new();
 
     /// <summary>
+    ///     Fraction of a blessing's favor cost refunded on unlearn (server's
+    ///     <c>GameBalanceConfig.UnlearnRefundPercent</c>). Lets the client preview the total
+    ///     refund in the cascade confirm dialog (#460) without a separate round-trip.
+    /// </summary>
+    [ProtoMember(20)]
+    public float UnlearnRefundPercent { get; set; } = 0.5f;
+
+    /// <summary>
     ///     Basic blessing information needed for UI display
     /// </summary>
     [ProtoContract]

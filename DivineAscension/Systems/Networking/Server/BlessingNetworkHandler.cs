@@ -37,6 +37,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
     private readonly IPlayerMessengerService _messengerService;
     private readonly IWorldService _worldService;
     private readonly IBlessingUnlearnService _unlearnService;
+    private readonly Configuration.GameBalanceConfig _gameBalanceConfig;
 
     public BlessingNetworkHandler(
         ILogger logger,
@@ -47,7 +48,8 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         INetworkService networkService,
         IPlayerMessengerService messengerService,
         IWorldService worldService,
-        IBlessingUnlearnService unlearnService)
+        IBlessingUnlearnService unlearnService,
+        Configuration.GameBalanceConfig gameBalanceConfig)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _blessingRegistry = blessingRegistry ?? throw new ArgumentNullException(nameof(blessingRegistry));
@@ -58,6 +60,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
         _unlearnService = unlearnService ?? throw new ArgumentNullException(nameof(unlearnService));
+        _gameBalanceConfig = gameBalanceConfig ?? throw new ArgumentNullException(nameof(gameBalanceConfig));
     }
 
     public void RegisterHandlers()
@@ -208,15 +211,17 @@ public class BlessingNetworkHandler : IServerNetworkHandler
     }
 
     /// <summary>
-    ///     Handle an unlearn request: removes a single owned personal blessing, refunds part of its
-    ///     favor cost to spendable favor, and stamps the global unlearn cooldown (epic #425 — #459).
-    ///     Server-authoritative — all eligibility is re-checked here regardless of client state.
+    ///     Handle an unlearn request: removes an owned personal blessing and its prerequisite
+    ///     cascade, refunding 50% of each blessing's favor cost to spendable favor (epic #425 —
+    ///     #459, #460). Server-authoritative — all eligibility is re-checked here regardless of
+    ///     client state.
     /// </summary>
     private void OnUnlearnBlessingRequest(IServerPlayer fromPlayer, UnlearnBlessingRequestPacket packet)
     {
         string message;
         var success = false;
         var refundedFavor = 0;
+        var struckIds = new List<string>();
 
         try
         {
@@ -229,8 +234,15 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                 case UnlearnOutcome.Success:
                     success = true;
                     refundedFavor = result.RefundedFavor;
-                    message = LocalizationService.Instance.Get(
-                        LocalizationKeys.NET_BLESSING_UNLEARN_SUCCESS, blessingName, result.RefundedFavor);
+                    if (result.StruckBlessingIds != null)
+                        struckIds.AddRange(result.StruckBlessingIds);
+                    // StruckCount includes the target; >1 means dependent children cascaded too.
+                    message = result.StruckCount > 1
+                        ? LocalizationService.Instance.Get(
+                            LocalizationKeys.NET_BLESSING_UNLEARN_CASCADE_SUCCESS,
+                            blessingName, result.StruckCount - 1, result.RefundedFavor)
+                        : LocalizationService.Instance.Get(
+                            LocalizationKeys.NET_BLESSING_UNLEARN_SUCCESS, blessingName, result.RefundedFavor);
                     break;
                 case UnlearnOutcome.NotOwned:
                     message = LocalizationService.Instance.Get(
@@ -252,7 +264,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
             _logger.Error($"[DivineAscension] Blessing unlearn error: {ex}");
         }
 
-        var response = new UnlearnBlessingResponsePacket(success, message, packet.BlessingId, refundedFavor);
+        var response = new UnlearnBlessingResponsePacket(success, message, packet.BlessingId, refundedFavor, struckIds);
         _networkService.SendToPlayer(fromPlayer, response);
     }
 
@@ -286,6 +298,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
             response.PatronName = religion.PatronName;
             response.PrestigeRank = (int)religion.PrestigeRank;
             response.CurrentPrestige = religion.Prestige;
+            response.UnlearnRefundPercent = _gameBalanceConfig.UnlearnRefundPercent;
 
             foreach (var domain in AllDeities)
             {

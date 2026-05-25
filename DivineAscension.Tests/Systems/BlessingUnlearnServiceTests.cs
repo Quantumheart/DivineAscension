@@ -125,4 +125,55 @@ public class BlessingUnlearnServiceTests
 
         Assert.Equal(UnlearnOutcome.BlessingNotFound, result.Outcome);
     }
+
+    [Fact]
+    public void UnlearnBlessing_CascadesToDependentChildren_StripsAll_AndSumsRefund()
+    {
+        // craft_blessing (Cost 100) is the prerequisite of a branch child (Cost 40, AND).
+        _registry.RegisterBlessing(new Blessing("craft_child", "Craft Child", DeityDomain.Craft)
+        {
+            Kind = BlessingKind.Player,
+            Cost = 40,
+            Branch = "branchA",
+            PrerequisiteBlessings = new List<string> { BlessingId }
+        });
+        _playerData.UnlockBlessing(BlessingId);
+        _playerData.UnlockBlessing("craft_child");
+
+        var result = _service.UnlearnBlessing(PlayerUid, BlessingId);
+
+        Assert.True(result.Success);
+        Assert.Equal(2, result.StruckCount);
+        Assert.Equal(70, result.RefundedFavor);                  // 100*0.5 + 40*0.5
+        Assert.Equal(70, _playerData.GetFavor(DeityDomain.Craft));
+        Assert.False(_playerData.IsBlessingUnlocked(BlessingId));
+        Assert.False(_playerData.IsBlessingUnlocked("craft_child")); // orphaned child cascaded
+    }
+
+    [Fact]
+    public void ResolveUnlearnCascade_ReturnsOrderedKillList_WithoutMutating()
+    {
+        _registry.RegisterBlessing(new Blessing("craft_child", "Craft Child", DeityDomain.Craft)
+        {
+            Kind = BlessingKind.Player,
+            Cost = 40,
+            Branch = "branchA",
+            PrerequisiteBlessings = new List<string> { BlessingId }
+        });
+        _playerData.UnlockBlessing(BlessingId);
+        _playerData.UnlockBlessing("craft_child");
+
+        var cascade = _service.ResolveUnlearnCascade(PlayerUid, BlessingId);
+
+        Assert.Equal(new[] { BlessingId, "craft_child" }, cascade);
+        // Pure query — nothing stripped.
+        Assert.True(_playerData.IsBlessingUnlocked(BlessingId));
+        Assert.True(_playerData.IsBlessingUnlocked("craft_child"));
+    }
+
+    [Fact]
+    public void ResolveUnlearnCascade_NotOwned_ReturnsEmpty()
+    {
+        Assert.Empty(_service.ResolveUnlearnCascade(PlayerUid, BlessingId));
+    }
 }

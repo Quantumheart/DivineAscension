@@ -323,6 +323,8 @@ public static class LocalizationKeys
     public const string UI_BLESSING_CONFIRM_SWEAR_MESSAGE = "divineascension:ui.blessing.confirm.swear.message";
     public const string UI_BLESSING_CONFIRM_UNLEARN_TITLE = "divineascension:ui.blessing.confirm.unlearn.title";
     public const string UI_BLESSING_CONFIRM_UNLEARN_MESSAGE = "divineascension:ui.blessing.confirm.unlearn.message";
+    public const string UI_BLESSING_CONFIRM_UNLEARN_CASCADE_MESSAGE = "divineascension:ui.blessing.confirm.unlearn.cascade.message";
+    public const string UI_BLESSING_CONFIRM_UNLEARN_CASCADE_LIST_HEADER = "divineascension:ui.blessing.confirm.unlearn.cascade.list_header";
     public const string UI_BLESSING_READ_MORE = "divineascension:ui.blessing.read_more";
     public const string UI_BLESSING_READ_LESS = "divineascension:ui.blessing.read_less";
     public const string UI_BLESSING_PAGE_TITLE = "divineascension:ui.blessing.page.title";
@@ -1692,6 +1694,7 @@ public static class LocalizationKeys
     public const string NET_BLESSING_UNLOCK_CAP_REACHED = "divineascension:net.blessing.unlock_cap_reached";
 
     public const string NET_BLESSING_UNLEARN_SUCCESS = "divineascension:net.blessing.unlearn_success";
+    public const string NET_BLESSING_UNLEARN_CASCADE_SUCCESS = "divineascension:net.blessing.unlearn_cascade_success";
     public const string NET_BLESSING_UNLEARN_NOT_OWNED = "divineascension:net.blessing.unlearn_not_owned";
     public const string NET_BLESSING_UNLEARN_NOT_PERSONAL = "divineascension:net.blessing.unlearn_not_personal";
     public const string NET_BLESSING_ERROR_UNLEARNING = "divineascension:net.blessing.error_unlearning";
