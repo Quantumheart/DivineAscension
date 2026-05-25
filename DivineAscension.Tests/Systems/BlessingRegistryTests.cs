@@ -343,7 +343,7 @@ public class BlessingRegistryTests
         var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, null, null);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, null, null);
 
         // Assert
         Assert.False(canUnlock);
@@ -358,7 +358,7 @@ public class BlessingRegistryTests
         var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Player);
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, null, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, null, blessing);
 
         // Assert
         Assert.False(canUnlock);
@@ -375,7 +375,7 @@ public class BlessingRegistryTests
         playerData.UnlockBlessing("test_blessing");
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         // Assert
         Assert.False(canUnlock);
@@ -392,7 +392,7 @@ public class BlessingRegistryTests
         blessing.RequiredFavorRank = 2; // Requires Zealot
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         // Assert
         Assert.False(canUnlock);
@@ -410,7 +410,7 @@ public class BlessingRegistryTests
         blessing.RequiresPatron = false;
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
 
-        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         Assert.True(canUnlock);
     }
@@ -425,7 +425,7 @@ public class BlessingRegistryTests
         blessing.RequiresPatron = true;
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
 
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         Assert.False(canUnlock);
         Assert.Contains("Capstone blessing requires patron deity: Wild", reason);
@@ -440,7 +440,7 @@ public class BlessingRegistryTests
         blessing.RequiresPatron = true;
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Wild, "player-uid");
 
-        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         Assert.True(canUnlock);
     }
@@ -457,7 +457,7 @@ public class BlessingRegistryTests
         blessing.Cost = 100;
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
 
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         Assert.False(canUnlock);
         Assert.Contains("Insufficient favor", reason);
@@ -476,7 +476,7 @@ public class BlessingRegistryTests
         blessing.Cost = 100;
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Wild, "player-uid");
 
-        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         Assert.True(canUnlock);
     }
@@ -499,7 +499,7 @@ public class BlessingRegistryTests
 
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         // Assert
         Assert.False(canUnlock);
@@ -518,7 +518,7 @@ public class BlessingRegistryTests
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Disciple, playerData, religion, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Disciple, FavorRank.Disciple, playerData, religion, blessing);
 
         // Assert
         Assert.True(canUnlock);
@@ -538,7 +538,7 @@ public class BlessingRegistryTests
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         // Assert
         Assert.False(canUnlock);
@@ -561,7 +561,7 @@ public class BlessingRegistryTests
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         // Assert
         Assert.True(canUnlock);
@@ -581,7 +581,7 @@ public class BlessingRegistryTests
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         // Assert
         Assert.True(canUnlock);
@@ -601,7 +601,7 @@ public class BlessingRegistryTests
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
 
         // Act - pass skipCostCheck: true
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing, skipCostCheck: true);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing, skipCostCheck: true);
 
         // Assert - should return true because cost check is skipped
         Assert.True(canUnlock);
@@ -640,7 +640,7 @@ public class BlessingRegistryTests
         religion.PrestigeRank = PrestigeRank.Fledgling;
 
         var (canUnlock, reason) = registry.CanUnlockBlessing(
-            "player-uid", FavorRank.Initiate, playerData, religion, blessing);
+            "player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         Assert.False(canUnlock);
         // Reason should reflect cap state (current/max) and point at unlearn (#425).
@@ -667,7 +667,7 @@ public class BlessingRegistryTests
         religion.PrestigeRank = PrestigeRank.Fledgling;
 
         var (canUnlock, reason) = registry.CanUnlockBlessing(
-            "player-uid", FavorRank.Disciple, playerData, religion, blessing);
+            "player-uid", FavorRank.Disciple, FavorRank.Disciple, playerData, religion, blessing);
 
         Assert.True(canUnlock);
         Assert.Equal("Can unlock", reason);
@@ -693,7 +693,7 @@ public class BlessingRegistryTests
         religion.PrestigeRank = PrestigeRank.Renowned;
 
         var (canUnlock, reason) = registry.CanUnlockBlessing(
-            "player-uid", FavorRank.Initiate, playerData, religion, blessing);
+            "player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         // 2 unlocked, cap of 2 (1 favor + 1 prestige bonus) → rejected with cap reason.
         Assert.False(canUnlock);
@@ -721,9 +721,40 @@ public class BlessingRegistryTests
         blessing.Cost = 0;
 
         var (canUnlock, reason) = registry.CanUnlockBlessing(
-            "player-uid", FavorRank.Disciple, playerData, religionData: null, blessing);
+            "player-uid", FavorRank.Disciple, FavorRank.Disciple, playerData, religionData: null, blessing);
 
         // 2 unlocked, cap of 2 (favor-only) → rejected with cap reason, NOT "Not in a religion".
+        Assert.False(canUnlock);
+        Assert.Contains("2/2", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_PlayerBlessing_SlotCapUsesPatronRank_NotBlessingDomainRank()
+    {
+        // Regression for #472: slot cap must derive from the patron-domain favor rank
+        // (slotCapFavorRank), not the blessing's own domain rank (playerFavorRank).
+        // Player: patron Craft = Initiate, incidental Wild = Disciple, prestige Renowned.
+        // Patron rank Initiate + Renowned bonus = 2 slots. With 2 unlocked → cap reached.
+        // A higher Wild rank must NOT inflate the cap to 3.
+        var config = new GameBalanceConfig();
+        var registry = CreateRegistryWithConfig(config);
+
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        playerData.UnlockBlessing("existing_a");
+        playerData.UnlockBlessing("existing_b");
+
+        var blessing = TestFixtures.CreateTestBlessing("third", "Third", DeityDomain.Wild, BlessingKind.Player);
+        blessing.RequiredFavorRank = 0;
+        blessing.Cost = 0;
+
+        var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
+        religion.PrestigeRank = PrestigeRank.Renowned;
+
+        // playerFavorRank (Wild) = Disciple would give 3 slots if it drove the cap;
+        // slotCapFavorRank (patron Craft) = Initiate gives 2.
+        var (canUnlock, reason) = registry.CanUnlockBlessing(
+            "player-uid", FavorRank.Disciple, FavorRank.Initiate, playerData, religion, blessing);
+
         Assert.False(canUnlock);
         Assert.Contains("2/2", reason);
     }
@@ -740,7 +771,7 @@ public class BlessingRegistryTests
         var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Craft, BlessingKind.Religion);
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, null, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, null, blessing);
 
         // Assert
         Assert.False(canUnlock);
@@ -759,7 +790,7 @@ public class BlessingRegistryTests
             TestFixtures.CreateTestBlessing("test_blessing", "Test", DeityDomain.Craft, BlessingKind.Religion);
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing);
 
         // Assert
         Assert.False(canUnlock);
@@ -778,7 +809,7 @@ public class BlessingRegistryTests
         blessing.RequiredPrestigeRank = 2; // Requires Renowned
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing);
 
         // Assert
         Assert.False(canUnlock);
@@ -794,7 +825,7 @@ public class BlessingRegistryTests
         var blessing = TestFixtures.CreateTestBlessing("test", "Test", DeityDomain.Wild, BlessingKind.Religion);
         blessing.RequiresPatron = false;
 
-        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing);
 
         Assert.True(canUnlock);
     }
@@ -807,7 +838,7 @@ public class BlessingRegistryTests
         var blessing = TestFixtures.CreateTestBlessing("pantheon_of_wild", "Pantheon of Wild", DeityDomain.Wild, BlessingKind.Religion);
         blessing.RequiresPatron = true;
 
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing);
 
         Assert.False(canUnlock);
         Assert.Contains("Capstone blessing requires patron deity: Wild", reason);
@@ -821,7 +852,7 @@ public class BlessingRegistryTests
         var blessing = TestFixtures.CreateTestBlessing("pantheon_of_wild", "Pantheon of Wild", DeityDomain.Wild, BlessingKind.Religion);
         blessing.RequiresPatron = true;
 
-        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing);
 
         Assert.True(canUnlock);
     }
@@ -838,7 +869,7 @@ public class BlessingRegistryTests
         blessing.RequiredPrestigeRank = 0;
         blessing.Cost = 400;
 
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing);
 
         Assert.False(canUnlock);
         Assert.Contains("Insufficient prestige", reason);
@@ -857,7 +888,7 @@ public class BlessingRegistryTests
         blessing.RequiredPrestigeRank = 1;
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing);
 
         // Assert
         Assert.True(canUnlock);
@@ -877,7 +908,7 @@ public class BlessingRegistryTests
         blessing.Cost = 500;
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing);
 
         // Assert
         Assert.False(canUnlock);
@@ -899,7 +930,7 @@ public class BlessingRegistryTests
         blessing.Cost = 500;
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing);
 
         // Assert
         Assert.True(canUnlock);
@@ -919,7 +950,7 @@ public class BlessingRegistryTests
         blessing.Cost = 0; // Free blessing
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing);
 
         // Assert
         Assert.True(canUnlock);
@@ -939,7 +970,7 @@ public class BlessingRegistryTests
         blessing.Cost = 500; // More than available prestige
 
         // Act - pass skipCostCheck: true
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religionData, blessing, skipCostCheck: true);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing, skipCostCheck: true);
 
         // Assert - should return true because cost check is skipped
         Assert.True(canUnlock);
@@ -966,7 +997,7 @@ public class BlessingRegistryTests
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         // Assert
         Assert.False(canUnlock);
@@ -990,7 +1021,7 @@ public class BlessingRegistryTests
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         // Assert
         Assert.True(canUnlock);
@@ -1013,7 +1044,7 @@ public class BlessingRegistryTests
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         // Assert
         Assert.True(canUnlock);
@@ -1036,7 +1067,7 @@ public class BlessingRegistryTests
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         // Assert
         Assert.True(canUnlock);
@@ -1059,7 +1090,7 @@ public class BlessingRegistryTests
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Wild, "player-uid");
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         // Assert - Should pass because branch lock is domain-specific
         Assert.True(canUnlock);
@@ -1082,7 +1113,7 @@ public class BlessingRegistryTests
         var religion = TestFixtures.CreateTestReligion("test-religion", "Test", DeityDomain.Craft, "player-uid");
 
         // Act
-        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, playerData, religion, blessing);
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religion, blessing);
 
         // Assert - Should pass because no branch is locked yet
         Assert.True(canUnlock);
