@@ -384,6 +384,14 @@ public static class DivineAscensionSystemInitializer
             freeRespecWindow);
         blessingUnlearnService.Initialize(); // apostasy penalty: strip domain-locked on leave (#461)
 
+        // Religion-blessing strike (#479, slice 5): founder-only unlearn + cascade + prestige refund.
+        var religionBlessingUnlearnService = new ReligionBlessingUnlearnService(
+            blessingRegistry,
+            blessingEffectSystem,
+            religionManager,
+            gameBalanceConfig,
+            freeRespecWindow);
+
         var blessingHandler = new BlessingNetworkHandler(
             logger,
             blessingRegistry,
@@ -394,6 +402,7 @@ public static class DivineAscensionSystemInitializer
             messengerService,
             worldService,
             blessingUnlearnService,
+            religionBlessingUnlearnService,
             gameBalanceConfig,
             freeRespecWindow);
         blessingHandler.RegisterHandlers();
