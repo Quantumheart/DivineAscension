@@ -266,7 +266,22 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     {
         if (State.TreeState.SelectedBlessingId == null) return;
         var selectedState = GetBlessingState(State.TreeState.SelectedBlessingId);
-        if (selectedState == null || selectedState.IsUnlocked) return;
+        if (selectedState == null) return;
+
+        // Double-clicking an owned personal blessing unlearns it (epic #425, slice 1 — #459).
+        // Religion vows aren't unlearnable here; the favor refund is the only cost (no cooldown).
+        // The confirm dialog with a kill list arrives with the cascade slice — dispatch directly.
+        if (selectedState.IsUnlocked)
+        {
+            if (selectedState.Blessing.Kind == BlessingKind.Player
+                && !string.IsNullOrEmpty(selectedState.Blessing.BlessingId))
+            {
+                _soundManager.PlayClick();
+                _uiService.RequestBlessingUnlearn(selectedState.Blessing.BlessingId);
+            }
+            return;
+        }
+
         if (!selectedState.CanUnlock)
         {
             if (selectedState.BlockedByCap)

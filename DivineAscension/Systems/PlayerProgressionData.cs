@@ -240,6 +240,22 @@ public class PlayerProgressionData
     }
 
     /// <summary>
+    ///     Adds favor to spendable balance only, without touching lifetime totals.
+    ///     Used for unlearn refunds so favor rank cannot flicker (epic #425, decision 1).
+    ///     Thread-safe.
+    /// </summary>
+    public void AddSpendableFavor(DeityDomain domain, int amount)
+    {
+        if (amount <= 0)
+            return;
+
+        lock (Lock)
+        {
+            FavorByDeity[domain] = FavorByDeity.GetValueOrDefault(domain) + amount;
+        }
+    }
+
+    /// <summary>
     ///     Unlocks a player blessing.
     ///     Thread-safe.
     /// </summary>

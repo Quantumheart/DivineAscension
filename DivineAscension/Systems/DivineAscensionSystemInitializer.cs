@@ -371,6 +371,13 @@ public static class DivineAscensionSystemInitializer
             gameBalanceConfig);
         playerDataHandler.RegisterHandlers();
 
+        var blessingUnlearnService = new BlessingUnlearnService(
+            blessingRegistry,
+            blessingEffectSystem,
+            playerReligionDataManager,
+            religionManager,
+            gameBalanceConfig);
+
         var blessingHandler = new BlessingNetworkHandler(
             logger,
             blessingRegistry,
@@ -379,7 +386,8 @@ public static class DivineAscensionSystemInitializer
             religionManager,
             networkService,
             messengerService,
-            worldService);
+            worldService,
+            blessingUnlearnService);
         blessingHandler.RegisterHandlers();
 
         var religionHandler = new ReligionNetworkHandler(

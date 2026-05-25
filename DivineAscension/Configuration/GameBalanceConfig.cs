@@ -119,6 +119,15 @@ public class GameBalanceConfig
     /// <summary>Hard cap on total active blessing slots (favor + prestige bonus).</summary>
     public const int MaxTotalBlessingSlots = 8;
 
+    // === BLESSING UNLEARN ===
+
+    /// <summary>
+    /// Fraction of a personal blessing's favor cost refunded to spendable favor when unlearned (default: 0.5).
+    /// Refund credits spendable favor only — lifetime favor is unchanged, so favor rank cannot flicker.
+    /// The unrefunded remainder is the sole cost of unlearning; there is no cooldown or other penalty.
+    /// </summary>
+    public float UnlearnRefundPercent { get; set; } = 0.5f;
+
     // === PVP SYSTEM ===
 
     /// <summary>Base favor awarded for PvP kill (default: 10)</summary>
@@ -225,6 +234,11 @@ public class GameBalanceConfig
         }
 
         ValidateBlessingSlots();
+
+        if (UnlearnRefundPercent < 0f || UnlearnRefundPercent > 1f)
+        {
+            throw new InvalidOperationException("UnlearnRefundPercent must be between 0 and 1");
+        }
     }
 
     private void ValidateBlessingSlots()

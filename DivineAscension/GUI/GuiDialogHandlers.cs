@@ -639,6 +639,33 @@ public partial class GuiDialog
     }
 
     /// <summary>
+    ///     Handle a blessing unlearn response from the server (epic #425, slice 1 — #459).
+    ///     On success, flips the node back to locked and recomputes prerequisites/glow; the
+    ///     refunded favor reaches the UI via the player-data-changed push the server sends.
+    /// </summary>
+    private void OnBlessingUnlearnedFromServer(string blessingId, bool success)
+    {
+        if (!success)
+        {
+            _logger?.Debug($"[DivineAscension] Blessing unlearn failed: {blessingId}");
+            _soundManager!.PlayError();
+            return;
+        }
+
+        _logger?.Debug($"[DivineAscension] Blessing unlearned from server: {blessingId}");
+        _soundManager!.PlaySuccess();
+
+        if (_manager != null)
+        {
+            _manager.BlessingStateManager.SetBlessingUnlocked(blessingId, false);
+            _manager.BlessingStateManager.RefreshAllBlessingStates(
+                BuildFavorRanksByDeity(),
+                _manager.ReligionStateManager.CurrentPrestigeRank,
+                _manager.ReligionStateManager.CurrentReligionDomain);
+        }
+    }
+
+    /// <summary>
     ///     Handle civilization list received from server
     /// </summary>
     private void OnCivilizationListReceived(CivilizationListResponsePacket packet)

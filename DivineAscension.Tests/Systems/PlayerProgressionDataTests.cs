@@ -180,6 +180,21 @@ public class PlayerProgressionDataTests
     }
 
     [Fact]
+    public void AddSpendableFavor_IncreasesCurrent_ButNotLifetime()
+    {
+        // Arrange
+        var data = new PlayerProgressionData("player-123");
+        data.AddFavor(DeityDomain.Craft, 100); // current 100, lifetime 100
+
+        // Act — unlearn refunds credit spendable favor only (epic #425, decision 1).
+        data.AddSpendableFavor(DeityDomain.Craft, 50);
+
+        // Assert
+        Assert.Equal(150, data.GetFavor(DeityDomain.Craft));
+        Assert.Equal(100, data.GetTotalFavorEarned(DeityDomain.Craft));
+    }
+
+    [Fact]
     public void AddFavor_WithNegativeAmount_DoesNothing()
     {
         // Arrange
