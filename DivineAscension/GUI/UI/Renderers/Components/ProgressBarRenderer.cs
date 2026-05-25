@@ -65,6 +65,11 @@ internal static class ProgressBarRenderer
         // Label text — drawn twice with clipping so each half reads against
         // whatever background sits behind it. Dark ink on the gold fill,
         // light cream on the dark-brown empty portion.
+        // Skip when empty: ImGui.CalcTextSize pins the empty span to a null
+        // pointer and UTF8Encoding.GetByteCount throws on it (e.g. the favor
+        // bar passes "" at max rank).
+        if (string.IsNullOrEmpty(labelText)) return;
+
         var textSize = ImGui.CalcTextSize(labelText);
         var textPos = new Vector2(
             x + (width - textSize.X) / 2,
