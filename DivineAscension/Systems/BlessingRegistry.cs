@@ -232,6 +232,16 @@ public class BlessingRegistry : IBlessingRegistry
         if (religionData.UnlockedBlessings.TryGetValue(blessing.BlessingId, out var unlocked) && unlocked)
             return (false, "Blessing already unlocked");
 
+        // Enforce religion inscribe-slot cap (#479). Ordered after the already-unlocked check so a
+        // re-attempt on an inscribed blessing still reports "already unlocked", not the cap message.
+        var maxReligionUnlocks =
+            ReligionBlessingSlotCalculator.GetMaxUnlocks(_config, religionData.PrestigeRank);
+        var currentReligionCount = religionData.UnlockedBlessings.Count(kv => kv.Value);
+        if (currentReligionCount >= maxReligionUnlocks)
+            return (false,
+                LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_RELIGION_SLOT_CAP_REACHED,
+                    currentReligionCount, maxReligionUnlocks));
+
         // Check prestige rank requirement
         if (religionData.PrestigeRank < (PrestigeRank)blessing.RequiredPrestigeRank)
         {

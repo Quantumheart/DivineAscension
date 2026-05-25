@@ -41,7 +41,9 @@ public class BlessingDataResponsePacketTests
             PatronDomain = DeityDomain.Harvest,
             PatronName = "PatronH",
             PrestigeRank = 3,
-            CurrentPrestige = 12345
+            CurrentPrestige = 12345,
+            ReligionBlessingSlotCap = 5,
+            ReligionBlessingSlotUsed = 3
         };
 
         for (var i = 0; i < AllDeities.Length; i++)
@@ -79,6 +81,8 @@ public class BlessingDataResponsePacketTests
         Assert.Equal(DeityDomain.Harvest, rt.PatronDomain);
         Assert.Equal("PatronH", rt.PatronName);
         Assert.Equal(3, rt.PrestigeRank);
+        Assert.Equal(5, rt.ReligionBlessingSlotCap);
+        Assert.Equal(3, rt.ReligionBlessingSlotUsed);
 
         foreach (var d in AllDeities)
         {
