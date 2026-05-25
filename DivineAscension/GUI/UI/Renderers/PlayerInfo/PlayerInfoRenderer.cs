@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.Extensions;
 using DivineAscension.GUI.Events.PlayerInfo;
 using DivineAscension.GUI.Models.PlayerInfo;
 using DivineAscension.GUI.Models.Religion.Header;
+using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Renderers.Components;
 using DivineAscension.GUI.UI.Renderers.Utilities;
@@ -43,6 +45,15 @@ internal static class PlayerInfoRenderer
     private const float ProgressBarHeight = 12f;
     private const float ScrollbarWidth = 16f;
 
+    // Recent Tidings — the player-scoped activity tail (#334).
+    private const int TidingsCap = 5;
+    private const float TidingsRowHeight = 22f;
+    private const float TidingsLeftPadding = 16f;
+    private const float TidingsGlyphSize = 14f;
+    private const float TidingsGlyphGap = 8f;
+    private const float TidingsFooterTopSpacing = 6f;
+    private const float TidingsFooterHeight = 20f;
+
     public static IReadOnlyList<PlayerInfoEvent> Draw(PlayerInfoViewModel vm)
     {
         var events = new List<PlayerInfoEvent>();
@@ -55,7 +66,7 @@ internal static class PlayerInfoRenderer
         var height = vm.Height;
         var header = vm.Header;
 
-        var contentHeightEstimate = ComputeContentHeight(header);
+        var contentHeightEstimate = ComputeContentHeight(header, vm.Notifications.Count);
         var maxScroll = MathF.Max(0f, contentHeightEstimate - height);
 
         var mousePos = ImGui.GetMousePos();
@@ -105,6 +116,10 @@ internal static class PlayerInfoRenderer
             currentY = DrawDivider(drawList, x, currentY, contentWidth);
             currentY = DrawOrderStandingSection(header, drawList, x, currentY, contentWidth);
         }
+
+        // === RECENT TIDINGS === (player-scoped activity tail, #334)
+        currentY = DrawDivider(drawList, x, currentY, contentWidth);
+        DrawRecentTidings(vm.Notifications, drawList, x, currentY, contentWidth);
 
         drawList.PopClipRect();
 
@@ -309,6 +324,82 @@ internal static class PlayerInfoRenderer
         };
     }
 
+    /// <summary>
+    ///     Recent Tidings — the player's own deeds tail (#334). Renders the last
+    ///     <see cref="TidingsCap" /> notification-history entries newest-first as
+    ///     ledger lines (domain glyph + prose), then a footer pointing older
+    ///     deeds to the Annals. Collapses to a single grey line when empty.
+    /// </summary>
+    private static float DrawRecentTidings(IReadOnlyList<NotificationHistoryEntry> notifications,
+        ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var currentY = y;
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_PLAYER_INFO_SECTION_TIDINGS),
+            x, currentY, SubsectionLabel, ColorPalette.Gold);
+        currentY += SectionLabelHeight;
+
+        if (notifications.Count == 0)
+        {
+            drawList.AddText(new Vector2(x, currentY),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
+                LocalizationService.Instance.Get(LocalizationKeys.UI_PLAYER_INFO_TIDINGS_EMPTY));
+            return currentY + TidingsRowHeight;
+        }
+
+        // History is appended oldest-first; show the newest TidingsCap, newest at top.
+        var recent = notifications
+            .Reverse()
+            .Take(TidingsCap)
+            .ToList();
+
+        foreach (var entry in recent)
+        {
+            DrawTidingRow(entry, drawList, x + TidingsLeftPadding, currentY, width - TidingsLeftPadding);
+            currentY += TidingsRowHeight;
+        }
+
+        // Footer: older deeds rest in the Order's Annals.
+        currentY += TidingsFooterTopSpacing;
+        drawList.AddText(new Vector2(x, currentY),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_PLAYER_INFO_TIDINGS_FOOTER));
+        return currentY + TidingsFooterHeight;
+    }
+
+    private static void DrawTidingRow(NotificationHistoryEntry entry,
+        ImDrawListPtr drawList, float x, float y, float width)
+    {
+        // Domain glyph — small ink mark to the left, matching the Annals feed (#316).
+        var glyphCy = y + TidingsRowHeight / 2f;
+        var glyphMin = new Vector2(x, glyphCy - TidingsGlyphSize / 2f);
+        var glyphMax = new Vector2(x + TidingsGlyphSize, glyphCy + TidingsGlyphSize / 2f);
+        DomainGlyphRenderer.Draw(drawList, entry.Deity, glyphMin, glyphMax, ColorPalette.White);
+
+        var textX = x + TidingsGlyphSize + TidingsGlyphGap;
+        var line = BuildTidingLine(entry);
+        drawList.PushClipRect(new Vector2(textX, y),
+            new Vector2(x + width, y + TidingsRowHeight), true);
+        drawList.AddText(new Vector2(textX, y + 2f),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.White), line);
+        drawList.PopClipRect();
+    }
+
+    /// <summary>
+    ///     Compose a tiding's prose line from existing entry data. Rank-ups read
+    ///     "You rose to <rank>."; other notifications fall back to their stored
+    ///     title verbatim. No invented fields.
+    /// </summary>
+    private static string BuildTidingLine(NotificationHistoryEntry entry)
+    {
+        return entry.Type switch
+        {
+            NotificationType.FavorRankUp or NotificationType.PrestigeRankUp =>
+                LocalizationService.Instance.Get(LocalizationKeys.UI_PLAYER_INFO_TIDINGS_ROSE, entry.Title),
+            _ => entry.Title,
+        };
+    }
+
     private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
     {
         var dividerY = y + DividerYPadding;
@@ -316,7 +407,7 @@ internal static class PlayerInfoRenderer
         return y + DividerHeight;
     }
 
-    private static float ComputeContentHeight(ReligionHeaderViewModel header)
+    private static float ComputeContentHeight(ReligionHeaderViewModel header, int tidingsCount)
     {
         var h = 0f;
         // Chapter strip (drop-cap row + divider below)
@@ -343,6 +434,18 @@ internal static class PlayerInfoRenderer
         {
             h += DividerHeight + SectionLabelHeight + ProgressRowHeight + StatBlockBottomSpacing;
             h += DividerHeight + SectionLabelHeight + ProgressRowHeight + StatBlockBottomSpacing;
+        }
+
+        // Recent Tidings: divider + heading + rows (or one empty-state row) + footer.
+        h += DividerHeight + SectionLabelHeight;
+        if (tidingsCount == 0)
+        {
+            h += TidingsRowHeight;
+        }
+        else
+        {
+            h += TidingsRowHeight * Math.Min(tidingsCount, TidingsCap);
+            h += TidingsFooterTopSpacing + TidingsFooterHeight;
         }
 
         return h;
