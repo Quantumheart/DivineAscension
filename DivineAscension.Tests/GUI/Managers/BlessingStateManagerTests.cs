@@ -307,6 +307,37 @@ public class BlessingStateManagerTests
     }
 
     [Fact]
+    public void WhileConfirmationOpen_BackgroundTreeAndDeityEventsAreIgnored()
+    {
+        // Arrange — stage a confirmation for bless-1.
+        var b1 = CreateBlessing("bless-1", BlessingKind.Player);
+        var b2 = CreateBlessing("bless-2", BlessingKind.Player);
+        _sut.LoadBlessingStates(new List<Blessing> { b1, b2 }, new List<Blessing>());
+        _sut.State.PlayerBlessingStates["bless-1"].CanUnlock = true;
+        _sut.State.PlayerBlessingStates["bless-2"].CanUnlock = true;
+        _sut.ProcessBlessingTabEvents(DoubleClick("bless-1"));
+        Assert.Equal("bless-1", _sut.State.PendingUnlockBlessingId);
+
+        // Act — clicks "behind" the modal: select another node, switch deity, double-click.
+        _sut.ProcessBlessingTabEvents(new BlessingTabRenderResult(
+            new List<TreeEvent>
+            {
+                new TreeEvent.Selected("bless-2"),
+                new TreeEvent.DoubleClicked("bless-2")
+            },
+            new List<ActionsEvent>(),
+            null,
+            100f,
+            requestedActiveDeity: DeityDomain.Wild));
+
+        // Assert — nothing behind the dialog took effect; the pending unlock is untouched.
+        Assert.Equal("bless-1", _sut.State.PendingUnlockBlessingId);
+        Assert.Equal("bless-1", _sut.State.TreeState.SelectedBlessingId);
+        Assert.Equal(DeityDomain.Craft, _sut.State.ActiveDeity);
+        _mockUiService.Verify(u => u.RequestBlessingUnlock(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
     public void UnlockConfirmed_WithNoPending_DoesNothing()
     {
         // Act — confirm with no staged unlock (e.g. stale event).
