@@ -95,6 +95,62 @@ public class BlessingUnlearnService : IBlessingUnlearnService
         }
     }
 
+    /// <summary>
+    ///     Subscribes the apostasy penalty to the player-leaves-religion event. Wired once at
+    ///     startup; the strip runs server-side whenever a player departs a religion.
+    /// </summary>
+    public void Initialize()
+    {
+        _playerProgressionDataManager.OnPlayerLeavesReligion += OnPlayerLeavesReligion;
+    }
+
+    private void OnPlayerLeavesReligion(Vintagestory.API.Server.IServerPlayer player, string religionUID)
+    {
+        if (player != null)
+            StripDomainLockedForApostasy(player.PlayerUID);
+    }
+
+    public IReadOnlyList<string> StripDomainLockedForApostasy(string playerUID)
+    {
+        var playerLock = _playerLocks.GetOrAdd(playerUID, _ => new object());
+        lock (playerLock)
+        {
+            var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(playerUID);
+            var working = new HashSet<string>(playerData.UnlockedBlessings);
+
+            // Domain-locked (RequiresPatron) blessings are forfeit on apostasy. Resolve each in
+            // a deterministic order; an earlier cascade may already have taken a later one.
+            var domainLocked = working
+                .Where(id => _blessingRegistry.GetBlessing(id)?.RequiresPatron == true)
+                .OrderBy(id => id, StringComparer.Ordinal)
+                .ToList();
+
+            var stripped = new List<string>();
+            foreach (var id in domainLocked)
+            {
+                if (!working.Contains(id))
+                    continue;
+
+                var cascade = BlessingCascadeResolver.Resolve(id, working, _blessingRegistry.GetBlessing);
+                foreach (var victim in cascade)
+                    if (working.Remove(victim))
+                    {
+                        // Zero refund — the apostasy penalty is forfeiture, not a refunded unlearn.
+                        playerData.LockBlessing(victim);
+                        stripped.Add(victim);
+                    }
+            }
+
+            if (stripped.Count > 0)
+            {
+                _blessingEffectSystem.RefreshPlayerBlessings(playerUID);
+                _playerProgressionDataManager.NotifyPlayerDataChanged(playerUID);
+            }
+
+            return stripped;
+        }
+    }
+
     public IReadOnlyList<string> ResolveUnlearnCascade(string playerUID, string blessingId)
     {
         var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(playerUID);

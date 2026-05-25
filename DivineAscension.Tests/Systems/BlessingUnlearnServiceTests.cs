@@ -176,4 +176,88 @@ public class BlessingUnlearnServiceTests
     {
         Assert.Empty(_service.ResolveUnlearnCascade(PlayerUid, BlessingId));
     }
+
+    // --- Apostasy penalty (epic #425, slice 3 — #461) ---------------------------------------
+
+    [Fact]
+    public void StripDomainLockedForApostasy_StripsDomainLocked_KeepsGeneric_ZeroRefund()
+    {
+        // BlessingId (craft_blessing) is generic; add a domain-locked capstone the player owns.
+        _registry.RegisterBlessing(new Blessing("craft_patron", "Craft Patron", DeityDomain.Craft)
+        {
+            Kind = BlessingKind.Player,
+            Cost = 200,
+            RequiresPatron = true
+        });
+        _playerData.AddFavor(DeityDomain.Craft, 300); // spendable 300, lifetime 300
+        _playerData.UnlockBlessing(BlessingId);        // generic — kept
+        _playerData.UnlockBlessing("craft_patron");    // domain-locked — stripped
+
+        var stripped = _service.StripDomainLockedForApostasy(PlayerUid);
+
+        Assert.Equal(new[] { "craft_patron" }, stripped);
+        Assert.False(_playerData.IsBlessingUnlocked("craft_patron"));
+        Assert.True(_playerData.IsBlessingUnlocked(BlessingId));                 // generic kept
+        Assert.Equal(300, _playerData.GetFavor(DeityDomain.Craft));             // zero refund
+        Assert.Equal(300, _playerData.GetTotalFavorEarned(DeityDomain.Craft));  // lifetime untouched
+    }
+
+    [Fact]
+    public void StripDomainLockedForApostasy_CascadesDependentsOfDomainLockedParent()
+    {
+        // Domain-locked parent with a generic branch child that depends solely on it; the child
+        // is orphaned and cascades even though it is not itself domain-locked.
+        _registry.RegisterBlessing(new Blessing("craft_patron", "Craft Patron", DeityDomain.Craft)
+        {
+            Kind = BlessingKind.Player,
+            Cost = 200,
+            RequiresPatron = true
+        });
+        _registry.RegisterBlessing(new Blessing("patron_child", "Patron Child", DeityDomain.Craft)
+        {
+            Kind = BlessingKind.Player,
+            Cost = 40,
+            Branch = "branchA",
+            PrerequisiteBlessings = new List<string> { "craft_patron" }
+        });
+        _playerData.UnlockBlessing("craft_patron");
+        _playerData.UnlockBlessing("patron_child");
+
+        var stripped = _service.StripDomainLockedForApostasy(PlayerUid);
+
+        Assert.Contains("craft_patron", stripped);
+        Assert.Contains("patron_child", stripped);
+        Assert.False(_playerData.IsBlessingUnlocked("craft_patron"));
+        Assert.False(_playerData.IsBlessingUnlocked("patron_child"));
+    }
+
+    [Fact]
+    public void StripDomainLockedForApostasy_RefreshesEffects_AndNotifies_OnlyWhenStripped()
+    {
+        _registry.RegisterBlessing(new Blessing("craft_patron", "Craft Patron", DeityDomain.Craft)
+        {
+            Kind = BlessingKind.Player,
+            Cost = 200,
+            RequiresPatron = true
+        });
+        _playerData.UnlockBlessing("craft_patron");
+
+        _service.StripDomainLockedForApostasy(PlayerUid);
+
+        _effectSystem.Verify(e => e.RefreshPlayerBlessings(PlayerUid), Times.Once);
+        _dataManager.Verify(m => m.NotifyPlayerDataChanged(PlayerUid), Times.Once);
+    }
+
+    [Fact]
+    public void StripDomainLockedForApostasy_NoDomainLockedOwned_NoSideEffects()
+    {
+        _playerData.UnlockBlessing(BlessingId); // generic only
+
+        var stripped = _service.StripDomainLockedForApostasy(PlayerUid);
+
+        Assert.Empty(stripped);
+        Assert.True(_playerData.IsBlessingUnlocked(BlessingId));
+        _effectSystem.Verify(e => e.RefreshPlayerBlessings(It.IsAny<string>()), Times.Never);
+        _dataManager.Verify(m => m.NotifyPlayerDataChanged(It.IsAny<string>()), Times.Never);
+    }
 }
