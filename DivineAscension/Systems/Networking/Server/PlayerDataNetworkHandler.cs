@@ -140,18 +140,13 @@ public class PlayerDataNetworkHandler : IServerNetworkHandler
                 totalByDeity[domain] = playerReligionData.GetTotalFavorEarned(domain);
             }
 
-            // Effective slot cap: take the player's best favor rank across deities and add
-            // the religion's prestige bonus. Captures "best you can do" — favor rank-ups on
-            // any deity (or prestige rank-ups that grant bonus slots) raise this, which is
-            // what the client compares to drive the slot-up toast (#445).
-            var maxFavorRank = FavorRank.Initiate;
-            foreach (var domain in AllDeities)
-            {
-                var rank = _playerProgressionDataManager.GetPlayerFavorRank(player.PlayerUID, domain);
-                if (rank > maxFavorRank) maxFavorRank = rank;
-            }
+            // Effective slot cap: the player's patron-domain favor rank plus the religion's
+            // prestige bonus. Patron rank is the canonical "player's favor rank" per design
+            // (#423) and must match the server-side unlock check in BlessingRegistry, else the
+            // header advertises slots the unlock path then refuses (#472).
+            var patronFavorRank = _playerProgressionDataManager.GetPlayerPatronFavorRank(player.PlayerUID);
             var maxBlessingSlots =
-                BlessingSlotCalculator.GetMaxUnlocks(_config, maxFavorRank, religionData.PrestigeRank);
+                BlessingSlotCalculator.GetMaxUnlocks(_config, patronFavorRank, religionData.PrestigeRank);
 
             var packet = new PlayerReligionDataPacket(
                 religionData.ReligionName,

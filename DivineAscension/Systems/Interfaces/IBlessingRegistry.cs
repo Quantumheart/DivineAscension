@@ -36,7 +36,8 @@ public interface IBlessingRegistry
     ///     Checks if a blessing can be unlocked by a player/religion
     /// </summary>
     /// <param name="playerUID">The player's UID</param>
-    /// <param name="playerFavorRank">The player's current favor rank</param>
+    /// <param name="playerFavorRank">The blessing-domain favor rank, gating the per-blessing favor requirement</param>
+    /// <param name="slotCapFavorRank">The patron-domain favor rank, driving the active slot-cap calculation</param>
     /// <param name="playerData">The player's progression data</param>
     /// <param name="religionData">The player's religion data (can be null)</param>
     /// <param name="blessing">The blessing to check</param>
@@ -44,6 +45,7 @@ public interface IBlessingRegistry
     /// <returns>A tuple of (canUnlock, reason)</returns>
     (bool canUnlock, string reason) CanUnlockBlessing(string playerUID,
         FavorRank playerFavorRank,
+        FavorRank slotCapFavorRank,
         PlayerProgressionData playerData,
         ReligionData? religionData,
         Blessing? blessing,

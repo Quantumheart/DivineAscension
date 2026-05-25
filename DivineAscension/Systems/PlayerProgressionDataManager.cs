@@ -293,6 +293,17 @@ public class PlayerProgressionDataManager : IPlayerProgressionDataManager
     }
 
     /// <summary>
+    ///     Favor rank for the player's patron domain — the canonical "player's favor rank"
+    ///     used for blessing slot-cap calculations. Returns Initiate if the player has no religion.
+    /// </summary>
+    public FavorRank GetPlayerPatronFavorRank(string playerUID)
+    {
+        var religion = _religionManager.GetPlayerReligion(playerUID);
+        if (religion == null) return FavorRank.Initiate;
+        return GetPlayerFavorRank(playerUID, religion.PatronDomain);
+    }
+
+    /// <summary>
     ///     [DEPRECATED] Gets the timestamp when the player is next allowed to pray (elapsed milliseconds).
     ///     Returns 0 if no cooldown is active or player data doesn't exist.
     ///     Use GetPrayerCooldownExpiryUtc instead.

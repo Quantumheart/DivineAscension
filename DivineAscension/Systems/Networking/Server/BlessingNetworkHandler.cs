@@ -106,9 +106,10 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                 var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(fromPlayer.PlayerUID);
                 var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
                 var playerFavorRank = _playerProgressionDataManager.GetPlayerFavorRank(fromPlayer.PlayerUID, blessing.Domain);
+                var slotCapFavorRank = _playerProgressionDataManager.GetPlayerPatronFavorRank(fromPlayer.PlayerUID);
 
                 // Skip cost check here - we'll handle it atomically below
-                var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(fromPlayer.PlayerUID, playerFavorRank, playerData, religion, blessing, skipCostCheck: true);
+                var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(fromPlayer.PlayerUID, playerFavorRank, slotCapFavorRank, playerData, religion, blessing, skipCostCheck: true);
                 if (!canUnlock)
                 {
                     message = reason;

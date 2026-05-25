@@ -522,9 +522,10 @@ public class BlessingCommands(
         var playerData = _playerProgressionDataManager.GetOrCreatePlayerData(playerUid);
         var religion = _religionManager.GetPlayerReligion(playerUid);
         var playerFavorRank = _playerProgressionDataManager.GetPlayerFavorRank(playerUid, blessing.Domain);
+        var slotCapFavorRank = _playerProgressionDataManager.GetPlayerPatronFavorRank(playerUid);
 
         // Skip cost check here - we'll handle it atomically below
-        var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(playerUid, playerFavorRank, playerData, religion, blessing, skipCostCheck: true);
+        var (canUnlock, reason) = _blessingRegistry.CanUnlockBlessing(playerUid, playerFavorRank, slotCapFavorRank, playerData, religion, blessing, skipCostCheck: true);
         if (!canUnlock)
             return TextCommandResult.Error(reason);
 
