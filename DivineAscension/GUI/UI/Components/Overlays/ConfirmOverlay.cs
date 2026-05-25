@@ -72,10 +72,15 @@ internal static class ConfirmOverlay
         var minWidth = 420f;
         var maxWidth = Math.Min(640f, winSize.X - 80f); // keep nice margins from window edges
 
+        // Wrap long messages at a comfortable reading measure instead of letting the unwrapped
+        // single-line width balloon the box to maxWidth (which left dead space on the right).
+        // Short messages still hug their own width; title and buttons remain hard floors.
+        const float preferredMessageWidth = 380f;
+
         var effectiveDialogWidth = dialogWidth;
         if (dialogWidth <= 0f || dialogWidth == 520f) // treat default as auto-size candidate
         {
-            var contentTarget = Math.Max(titleSize.X, unwrappedMsgWidth);
+            var contentTarget = Math.Max(titleSize.X, Math.Min(unwrappedMsgWidth, preferredMessageWidth));
             effectiveDialogWidth = Math.Clamp(contentTarget + padding * 2f, minWidth, maxWidth);
 
             // Ensure buttons fit comfortably
