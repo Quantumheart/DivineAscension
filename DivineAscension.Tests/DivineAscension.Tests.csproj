@@ -80,4 +80,11 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
+
+    <!-- Link UI sound assets so format-regression tests can inspect the shipped files -->
+    <ItemGroup>
+        <Content Include="..\DivineAscension\assets\divineascension\sounds\*.ogg" Link="TestAssets\sounds\%(Filename)%(Extension)">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
 </Project>
