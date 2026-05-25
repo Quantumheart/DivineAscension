@@ -13,7 +13,6 @@ public class SoundManager : ISoundManager
 {
     private readonly ICoreClientAPI _api;
     private readonly ILoggerWrapper? _logger;
-    private const float SoundRange = 8f;
     private const long WritingSuppressPageTurnMs = 600;
     private long _lastWritingTickMs = long.MinValue;
 
@@ -66,12 +65,12 @@ public class SoundManager : ISoundManager
         if (sound == SoundType.Writing)
             _lastWritingTickMs = Environment.TickCount64;
 
-        _api.World.PlaySoundAt(
+        // UI sounds are non-positional: Gui.PlaySound plays a 2D clip so it's
+        // always audible. World.PlaySoundAt would spatialize a mono source and
+        // attenuate it by distance/direction, which is wrong for menu feedback.
+        _api.Gui.PlaySound(
             new AssetLocation(path),
-            _api.World.Player.Entity,
-            null,
             false,
-            SoundRange,
             VolumeValues[volume]
         );
     }
