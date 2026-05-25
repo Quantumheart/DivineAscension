@@ -136,9 +136,9 @@ public partial class GuiDialog
         // Free-respec window banner state (#462).
         _manager.BlessingStateManager.FreeRespecActive = packet.FreeRespecActive;
 
-        // Religion blessing inscribe-slot cap + usage for the "Inscribed: X/Y" counter (#479).
+        // Religion blessing inscribe-slot cap for the "Sworn: X/Y" counter (#479). The used-count
+        // is derived client-side from the per-domain sworn state so it matches the domain rows.
         _manager.BlessingStateManager.ReligionBlessingSlotCap = packet.ReligionBlessingSlotCap;
-        _manager.BlessingStateManager.ReligionBlessingSlotUsed = packet.ReligionBlessingSlotUsed;
 
         _manager.BlessingStateManager.RefreshAllBlessingStates(
             BuildFavorRanksByDeity(),
@@ -181,7 +181,6 @@ public partial class GuiDialog
             // Clear it so the slot header hides and client-side gating falls back to server auth (#446).
             _manager.BlessingStateManager.MaxPlayerBlessingSlots = 0;
             _manager.BlessingStateManager.ReligionBlessingSlotCap = 0;
-            _manager.BlessingStateManager.ReligionBlessingSlotUsed = 0;
             _logger?.Debug(
                 "[DivineAscension] Cleared notification queue and previous ranks due to religion state change");
         }

@@ -71,9 +71,6 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     /// </summary>
     public int ReligionBlessingSlotCap { get; set; }
 
-    /// <summary>Count of religion blessings currently inscribed, synced from the server (#479).</summary>
-    public int ReligionBlessingSlotUsed { get; set; }
-
     /// <summary>
     ///     Count of unlocked personal (player-kind) blessings across every deity. This is the
     ///     value compared against <see cref="MaxPlayerBlessingSlots"/> for the cap.
@@ -212,7 +209,9 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             pendingUnlearnState: GetPendingUnlearnState(),
             pendingUnlearnCascadeNames: GetPendingUnlearnPreview(out var vowUnlearnRefundTotal),
             pendingUnlearnRefundTotal: vowUnlearnRefundTotal,
-            religionBlessingSlotUsed: ReligionBlessingSlotUsed,
+            // Count vowed blessings from the same per-domain state the "X of Y sworn" rows use, so
+            // the "Vowed: X/Y" counter always matches what's shown above it (#479).
+            religionBlessingSlotUsed: TotalUnlockedReligionBlessings(summaries),
             religionBlessingSlotCap: ReligionBlessingSlotCap
         );
 
@@ -631,6 +630,18 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         }
 
         return true;
+    }
+
+    /// <summary>
+    ///     Total religion blessings currently vowed across all domains — the sum of the per-domain
+    ///     "sworn" counts. Used for the "Vowed: X/Y" counter so it agrees with the domain rows (#479).
+    /// </summary>
+    private static int TotalUnlockedReligionBlessings(IReadOnlyList<DeityBlessingSummary> summaries)
+    {
+        var total = 0;
+        foreach (var s in summaries)
+            total += s.UnlockedReligion;
+        return total;
     }
 
     private List<DeityBlessingSummary> BuildDeitySummaries(
