@@ -83,6 +83,14 @@ public class BlessingDataResponsePacket
     public float UnlearnRefundPercent { get; set; } = 0.5f;
 
     /// <summary>
+    ///     True while an admin-opened free-respec window is active (epic #425, slice 4 — #462).
+    ///     Drives the "free respec" banner and, when set, <see cref="UnlearnRefundPercent"/> is
+    ///     reported as 1.0 so the cascade confirm dialog previews a full refund.
+    /// </summary>
+    [ProtoMember(21)]
+    public bool FreeRespecActive { get; set; }
+
+    /// <summary>
     ///     Basic blessing information needed for UI display
     /// </summary>
     [ProtoContract]

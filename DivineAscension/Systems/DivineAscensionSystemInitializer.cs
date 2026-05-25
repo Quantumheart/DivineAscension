@@ -333,8 +333,12 @@ public static class DivineAscensionSystemInitializer
         var favorCommands = new FavorCommands(api, playerReligionDataManager, religionManager, messengerService, gameBalanceConfig);
         favorCommands.RegisterCommands();
 
+        // Free-respec window: admin-opened state that flips unlearn refunds to 100% (#462).
+        // Constructed before the blessing command/unlearn service/handler that all depend on it.
+        var freeRespecWindow = new FreeRespecWindow();
+
         var blessingCommands = new BlessingCommands(api, blessingRegistry, playerReligionDataManager, religionManager,
-            blessingEffectSystem, networkService, messengerService);
+            blessingEffectSystem, networkService, messengerService, freeRespecWindow);
         blessingCommands.RegisterCommands();
 
         var roleManager = new RoleManager(religionManager);
@@ -376,7 +380,8 @@ public static class DivineAscensionSystemInitializer
             blessingEffectSystem,
             playerReligionDataManager,
             religionManager,
-            gameBalanceConfig);
+            gameBalanceConfig,
+            freeRespecWindow);
         blessingUnlearnService.Initialize(); // apostasy penalty: strip domain-locked on leave (#461)
 
         var blessingHandler = new BlessingNetworkHandler(
@@ -389,7 +394,8 @@ public static class DivineAscensionSystemInitializer
             messengerService,
             worldService,
             blessingUnlearnService,
-            gameBalanceConfig);
+            gameBalanceConfig,
+            freeRespecWindow);
         blessingHandler.RegisterHandlers();
 
         var religionHandler = new ReligionNetworkHandler(

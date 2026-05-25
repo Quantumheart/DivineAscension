@@ -28,6 +28,7 @@ public class BlessingUnlearnServiceTests
     private readonly Mock<IReligionManager> _religionManager = new();
     private readonly GameBalanceConfig _config = new(); // UnlearnRefundPercent defaults to 0.5
     private readonly PlayerProgressionData _playerData = new(PlayerUid);
+    private readonly FreeRespecWindow _freeRespecWindow = new(); // closed by default
     private readonly BlessingUnlearnService _service;
 
     public BlessingUnlearnServiceTests()
@@ -45,7 +46,8 @@ public class BlessingUnlearnServiceTests
         _religionManager.Setup(m => m.GetPlayerReligion(PlayerUid)).Returns((ReligionData?)null);
 
         _service = new BlessingUnlearnService(
-            _registry, _effectSystem.Object, _dataManager.Object, _religionManager.Object, _config);
+            _registry, _effectSystem.Object, _dataManager.Object, _religionManager.Object, _config,
+            _freeRespecWindow);
     }
 
     [Fact]
@@ -62,6 +64,35 @@ public class BlessingUnlearnServiceTests
         Assert.Equal(250, _playerData.GetFavor(DeityDomain.Craft));   // spendable refunded
         Assert.Equal(200, _playerData.GetTotalFavorEarned(DeityDomain.Craft)); // lifetime untouched
         Assert.False(_playerData.IsBlessingUnlocked(BlessingId));      // stripped from unlocked set
+    }
+
+    [Fact]
+    public void UnlearnBlessing_DuringFreeRespecWindow_RefundsFullCost()
+    {
+        _freeRespecWindow.SetActive(true);
+        _playerData.AddFavor(DeityDomain.Craft, 200);
+        _playerData.UnlockBlessing(BlessingId);
+
+        var result = _service.UnlearnBlessing(PlayerUid, BlessingId);
+
+        Assert.True(result.Success);
+        Assert.Equal(100, result.RefundedFavor);                      // 100 cost * 1.0 (full)
+        Assert.Equal(300, _playerData.GetFavor(DeityDomain.Craft));   // spendable refunded in full
+        Assert.Equal(200, _playerData.GetTotalFavorEarned(DeityDomain.Craft)); // lifetime untouched
+        Assert.False(_playerData.IsBlessingUnlocked(BlessingId));
+    }
+
+    [Fact]
+    public void UnlearnBlessing_AfterWindowCloses_RefundsHalfAgain()
+    {
+        _freeRespecWindow.SetActive(true);
+        _freeRespecWindow.SetActive(false); // window opened then closed → back to normal rules
+        _playerData.AddFavor(DeityDomain.Craft, 200);
+        _playerData.UnlockBlessing(BlessingId);
+
+        var result = _service.UnlearnBlessing(PlayerUid, BlessingId);
+
+        Assert.Equal(50, result.RefundedFavor); // 100 cost * 0.5
     }
 
     [Fact]

@@ -100,7 +100,8 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
             _religionManager.Object,
             _blessingEffectSystem.Object,
             _networkService.Object,
-            _messengerService.Object);
+            _messengerService.Object,
+            _freeRespecWindow.Object);
 
         // Act
         var result = sut.OnPlayer(args);
@@ -148,7 +149,8 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
             _religionManager.Object,
             _blessingEffectSystem.Object,
             _networkService.Object,
-            _messengerService.Object);
+            _messengerService.Object,
+            _freeRespecWindow.Object);
 
         // Act
         var result = sut.OnPlayer(args);
@@ -198,7 +200,8 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
             _religionManager.Object,
             mockBlessingEffectSystem.Object,
             _networkService.Object,
-            _messengerService.Object);
+            _messengerService.Object,
+            _freeRespecWindow.Object);
 
         // Act
         var result = sut.OnPlayer(args);
@@ -245,7 +248,8 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
             _religionManager.Object,
             _blessingEffectSystem.Object,
             _networkService.Object,
-            _messengerService.Object);
+            _messengerService.Object,
+            _freeRespecWindow.Object);
 
         // Act
         var result = sut.OnPlayer(args);
@@ -295,7 +299,8 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
             _religionManager.Object,
             _blessingEffectSystem.Object,
             _networkService.Object,
-            _messengerService.Object);
+            _messengerService.Object,
+            _freeRespecWindow.Object);
 
         // Act
         var result = sut.OnPlayer(args);
@@ -341,7 +346,8 @@ public class BlessingCommandPlayerTests : BlessingCommandsTestHelpers
             _religionManager.Object,
             mockBlessingEffectSystem.Object,
             _networkService.Object,
-            _messengerService.Object);
+            _messengerService.Object,
+            _freeRespecWindow.Object);
 
         // Act
         var result = sut.OnPlayer(args);

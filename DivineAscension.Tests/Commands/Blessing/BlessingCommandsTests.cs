@@ -27,7 +27,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _religionManager.Object,
             _blessingEffectSystem.Object,
             _networkService.Object,
-            _messengerService.Object));
+            _messengerService.Object,
+            _freeRespecWindow.Object));
     }
 
     [Fact]
@@ -40,7 +41,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _religionManager.Object,
             _blessingEffectSystem.Object,
             _networkService.Object,
-            _messengerService.Object));
+            _messengerService.Object,
+            _freeRespecWindow.Object));
     }
 
     [Fact]
@@ -53,7 +55,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _religionManager.Object,
             _blessingEffectSystem.Object,
             _networkService.Object,
-            _messengerService.Object));
+            _messengerService.Object,
+            _freeRespecWindow.Object));
     }
 
     [Fact]
@@ -66,7 +69,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             null,
             _blessingEffectSystem.Object,
             _networkService.Object,
-            _messengerService.Object));
+            _messengerService.Object,
+            _freeRespecWindow.Object));
     }
 
     [Fact]
@@ -79,7 +83,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _religionManager.Object,
             null,
             _networkService.Object,
-            _messengerService.Object));
+            _messengerService.Object,
+            _freeRespecWindow.Object));
     }
 
     [Fact]
@@ -93,7 +98,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _religionManager.Object,
             _blessingEffectSystem.Object,
             _networkService.Object,
-            _messengerService.Object);
+            _messengerService.Object,
+            _freeRespecWindow.Object);
 
         Assert.NotNull(commands);
     }
@@ -141,7 +147,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _religionManager.Object,
             _blessingEffectSystem.Object,
             mockNetworkService.Object,
-            mockMessengerService.Object);
+            mockMessengerService.Object,
+            _freeRespecWindow.Object);
 
         // Act & Assert - should not throw any exceptions
         var exception = Record.Exception(() => blessingCommands.RegisterCommands());
@@ -195,7 +202,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _religionManager.Object,
             _blessingEffectSystem.Object,
             mockNetworkService.Object,
-            mockMessengerService.Object);
+            mockMessengerService.Object,
+            _freeRespecWindow.Object);
 
         // Act
         blessingCommands.RegisterCommands();
@@ -216,8 +224,10 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
         mockCommandBuilder.Verify(b => b.BeginSubCommand("lock"), Times.Once); // Admin lock command
         mockCommandBuilder.Verify(b => b.BeginSubCommand("reset"), Times.Once); // Admin reset command
         mockCommandBuilder.Verify(b => b.BeginSubCommand("unlockall"), Times.Once); // Admin unlockall command
+        mockCommandBuilder.Verify(b => b.BeginSubCommand(BlessingCommandConstants.SubCommandRebalance),
+            Times.Once); // Free-respec window command (#462)
         mockCommandBuilder.Verify(b => b.EndSubCommand(),
-            Times.Exactly(12)); // 7 original + 4 admin subcommands + 1 admin group
+            Times.Exactly(13)); // 7 original + rebalance + 4 admin subcommands + 1 admin group
     }
 
     [Fact]
@@ -263,7 +273,8 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             _religionManager.Object,
             _blessingEffectSystem.Object,
             mockNetworkService.Object,
-            mockMessengerService.Object);
+            mockMessengerService.Object,
+            _freeRespecWindow.Object);
 
         // Act
         blessingCommands.RegisterCommands();
@@ -273,7 +284,7 @@ public class BlessingCommandsTests : BlessingCommandsTestHelpers
             "RequiresPlayer() should be called once during command registration");
         mockCommandBuilder.Verify(b => b.RequiresPrivilege(Privilege.chat), Times.Once,
             "RequiresPrivilege(Privilege.chat) should be called once during command registration");
-        mockCommandBuilder.Verify(b => b.RequiresPrivilege(Privilege.root), Times.Once,
-            "RequiresPrivilege(Privilege.root) should be called once for admin commands");
+        mockCommandBuilder.Verify(b => b.RequiresPrivilege(Privilege.root), Times.Exactly(2),
+            "RequiresPrivilege(Privilege.root) should gate both the admin group and rebalance (#462)");
     }
 }

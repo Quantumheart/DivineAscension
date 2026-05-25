@@ -133,6 +133,9 @@ public partial class GuiDialog
         // Sync the unlearn refund percent so the cascade confirm dialog can preview the total (#460).
         _manager.BlessingStateManager.UnlearnRefundPercent = packet.UnlearnRefundPercent;
 
+        // Free-respec window banner state (#462).
+        _manager.BlessingStateManager.FreeRespecActive = packet.FreeRespecActive;
+
         _manager.BlessingStateManager.RefreshAllBlessingStates(
             BuildFavorRanksByDeity(),
             _manager.ReligionStateManager.CurrentPrestigeRank,

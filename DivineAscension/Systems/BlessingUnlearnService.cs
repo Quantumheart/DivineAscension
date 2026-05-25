@@ -22,6 +22,7 @@ public class BlessingUnlearnService : IBlessingUnlearnService
     private readonly IPlayerProgressionDataManager _playerProgressionDataManager;
     private readonly IReligionManager _religionManager;
     private readonly GameBalanceConfig _config;
+    private readonly IFreeRespecWindow _freeRespecWindow;
 
     // Serializes unlearn ops per player so concurrent requests for the same player can't race on
     // the strip/refund of the same blessing.
@@ -32,13 +33,15 @@ public class BlessingUnlearnService : IBlessingUnlearnService
         IBlessingEffectSystem blessingEffectSystem,
         IPlayerProgressionDataManager playerProgressionDataManager,
         IReligionManager religionManager,
-        GameBalanceConfig config)
+        GameBalanceConfig config,
+        IFreeRespecWindow freeRespecWindow)
     {
         _blessingRegistry = blessingRegistry ?? throw new ArgumentNullException(nameof(blessingRegistry));
         _blessingEffectSystem = blessingEffectSystem ?? throw new ArgumentNullException(nameof(blessingEffectSystem));
         _playerProgressionDataManager = playerProgressionDataManager ?? throw new ArgumentNullException(nameof(playerProgressionDataManager));
         _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
         _config = config ?? throw new ArgumentNullException(nameof(config));
+        _freeRespecWindow = freeRespecWindow ?? throw new ArgumentNullException(nameof(freeRespecWindow));
     }
 
     public UnlearnResult UnlearnBlessing(string playerUID, string blessingId)
@@ -65,6 +68,10 @@ public class BlessingUnlearnService : IBlessingUnlearnService
             var cascade = ResolveCascade(playerData, blessingId);
             var religion = _religionManager.GetPlayerReligion(playerUID);
 
+            // During an admin-opened free-respec window, refund the full cost (100%); otherwise the
+            // normal partial refund applies (locked decision 7, #462).
+            var refundPercent = _freeRespecWindow.IsActive ? 1f : _config.UnlearnRefundPercent;
+
             var totalRefund = 0;
             foreach (var id in cascade)
             {
@@ -75,7 +82,7 @@ public class BlessingUnlearnService : IBlessingUnlearnService
                 var paidCost = religion != null
                     ? BlessingRegistry.AdjustedCost(member, religion)
                     : member.Cost;
-                var refund = (int)(paidCost * _config.UnlearnRefundPercent);
+                var refund = (int)(paidCost * refundPercent);
 
                 // Strip first so BlessingEffectSystem recomputes from the reduced unlocked set.
                 playerData.LockBlessing(id);

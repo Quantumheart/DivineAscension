@@ -58,6 +58,13 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     public float UnlearnRefundPercent { get; set; } = 0.5f;
 
     /// <summary>
+    ///     True while the server's admin-opened free-respec window is active (#462). Drives the
+    ///     "Free Respec" banner on the Blessings chapter; synced from
+    ///     <see cref="DivineAscension.Network.BlessingDataResponsePacket" />.
+    /// </summary>
+    public bool FreeRespecActive { get; set; }
+
+    /// <summary>
     ///     Count of unlocked personal (player-kind) blessings across every deity. This is the
     ///     value compared against <see cref="MaxPlayerBlessingSlots"/> for the cap.
     /// </summary>
@@ -136,7 +143,8 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             pendingUnlockState: GetPendingUnlockState(),
             pendingUnlearnState: GetPendingUnlearnState(),
             pendingUnlearnCascadeNames: GetPendingUnlearnPreview(out var unlearnRefundTotal),
-            pendingUnlearnRefundTotal: unlearnRefundTotal
+            pendingUnlearnRefundTotal: unlearnRefundTotal,
+            freeRespecActive: FreeRespecActive
         );
 
         var result = BlessingTabRenderer.DrawBlessingsTab(vm);
