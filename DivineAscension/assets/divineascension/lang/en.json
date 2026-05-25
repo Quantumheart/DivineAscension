@@ -1344,6 +1344,10 @@
   "divineascension:ui.playerinfo.row.order": "Order",
   "divineascension:ui.playerinfo.row.vestment": "Vestment",
   "divineascension:ui.playerinfo.row.realm": "Realm",
+  "divineascension:ui.playerinfo.section.tidings": "Recent Tidings",
+  "divineascension:ui.playerinfo.tidings.rose": "You rose to {0}.",
+  "divineascension:ui.playerinfo.tidings.empty": "No tidings yet. Your deeds will be recorded here.",
+  "divineascension:ui.playerinfo.tidings.footer": "Older tidings rest in the Annals.",
 
   "divineascension:civilization.ethos.sovereign": "Sovereign",
   "divineascension:civilization.ethos.mercantile": "Mercantile",

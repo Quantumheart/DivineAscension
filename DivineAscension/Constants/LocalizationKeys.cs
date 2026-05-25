@@ -1948,6 +1948,12 @@ public static class LocalizationKeys
 
     public const string UI_PLAYER_INFO_UNSWORN_TITLE_WORD = "divineascension:ui.playerinfo.title.unsworn_word";
 
+    // Recent Tidings — player-scoped activity tail (#334)
+    public const string UI_PLAYER_INFO_SECTION_TIDINGS = "divineascension:ui.playerinfo.section.tidings";
+    public const string UI_PLAYER_INFO_TIDINGS_ROSE = "divineascension:ui.playerinfo.tidings.rose";
+    public const string UI_PLAYER_INFO_TIDINGS_EMPTY = "divineascension:ui.playerinfo.tidings.empty";
+    public const string UI_PLAYER_INFO_TIDINGS_FOOTER = "divineascension:ui.playerinfo.tidings.footer";
+
     #endregion
 
     #region Civilization Ethos & Epithet (#367)
