@@ -268,8 +268,9 @@ public partial class GuiDialog : ModSystem
             return CallbackGUIStatus.Closed;
         }
 
-        // Allow ESC to close
-        if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+        // Allow ESC to close — unless a confirm modal is open, in which case Esc cancels
+        // the modal (ConfirmOverlay consumes it) and the dialog stays put (#455).
+        if (ImGui.IsKeyPressed(ImGuiKey.Escape) && !ModalInputGuard.IsBlocking)
         {
             Close();
             return CallbackGUIStatus.Closed;

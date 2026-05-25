@@ -45,23 +45,23 @@ public abstract record InfoEvent
     // Disband flow
     public record DisbandOpen : InfoEvent;
 
-    public record DisbandConfirm : InfoEvent;
+    public record DisbandConfirm : InfoEvent, IModalControlEvent;
 
-    public record DisbandCancel : InfoEvent;
+    public record DisbandCancel : InfoEvent, IModalControlEvent;
 
     // Kick flow
     public record KickOpen(string PlayerUID, string PlayerName) : InfoEvent;
 
-    public record KickConfirm(string PlayerUID) : InfoEvent;
+    public record KickConfirm(string PlayerUID) : InfoEvent, IModalControlEvent;
 
-    public record KickCancel : InfoEvent;
+    public record KickCancel : InfoEvent, IModalControlEvent;
 
     // Ban flow
     public record BanOpen(string PlayerUID, string PlayerName) : InfoEvent;
 
-    public record BanConfirm(string PlayerUID) : InfoEvent;
+    public record BanConfirm(string PlayerUID) : InfoEvent, IModalControlEvent;
 
-    public record BanCancel : InfoEvent;
+    public record BanCancel : InfoEvent, IModalControlEvent;
 
     // Unban
     public record UnbanClicked(string PlayerUID) : InfoEvent;

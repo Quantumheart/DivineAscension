@@ -667,7 +667,9 @@ public class ReligionStateManager : IReligionStateManager
 
     private void ProcessRosterEvents(IReadOnlyList<RosterEvent> events)
     {
-        if (events == null || events.Count == 0) return;
+        // Block roster background interaction behind an open kick/strike confirm (#455).
+        events = ModalInputGuard.FilterBackground(events);
+        if (events.Count == 0) return;
 
         var religionId = State.InfoState.MyReligionInfo?.ReligionUID;
         var roster = State.RosterState;
@@ -894,7 +896,10 @@ public class ReligionStateManager : IReligionStateManager
     /// </summary>
     private void ProcessInfoEvents(IReadOnlyList<InfoEvent>? events)
     {
-        if (events == null || events.Count == 0) return;
+        // While a confirm modal is up, drop click-through behind it (#455) — only the
+        // modal's own confirm/cancel (IModalControlEvent) survive the filter.
+        events = ModalInputGuard.FilterBackground(events);
+        if (events.Count == 0) return;
 
         // Cache commonly used references
         var info = State.InfoState.MyReligionInfo;
@@ -1426,7 +1431,9 @@ public class ReligionStateManager : IReligionStateManager
     /// </summary>
     private void ProcessRolesBrowseEvents(IReadOnlyList<RolesBrowseEvent>? events)
     {
-        if (events == null || events.Count == 0) return;
+        // Block role-card background interaction behind an open delete (Strike) confirm (#455).
+        events = ModalInputGuard.FilterBackground(events);
+        if (events.Count == 0) return;
 
         foreach (var ev in events)
             switch (ev)
@@ -1535,7 +1542,9 @@ public class ReligionStateManager : IReligionStateManager
     /// </summary>
     private void ProcessRoleDetailEvents(IReadOnlyList<RoleDetailEvent>? events)
     {
-        if (events == null || events.Count == 0) return;
+        // Block role-detail background interaction behind an open assign-role confirm (#455).
+        events = ModalInputGuard.FilterBackground(events);
+        if (events.Count == 0) return;
 
         foreach (var ev in events)
             switch (ev)

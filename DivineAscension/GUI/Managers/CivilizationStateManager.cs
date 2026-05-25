@@ -1132,6 +1132,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
     internal void ProcessInfoEvents(IReadOnlyList<InfoEvent> events)
     {
+        // Block civ info background interaction behind an open disband/kick confirm (#455).
+        events = ModalInputGuard.FilterBackground(events);
+
         var civ = State.InfoState.Info;
         var civId = civ?.CivId ?? string.Empty;
 
@@ -1374,6 +1377,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
 
     internal void ProcessDiplomacyEvents(IReadOnlyList<DiplomacyEvent> events)
     {
+        // Block diplomacy background interaction behind an open declare-war confirm (#455).
+        events = ModalInputGuard.FilterBackground(events);
+
         foreach (var evt in events)
             switch (evt)
             {

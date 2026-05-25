@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using DivineAscension.Constants;
+using DivineAscension.GUI.Events;
 using DivineAscension.GUI.UI.Components.Banners;
 using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Lists;
@@ -624,7 +625,7 @@ public abstract record DiplomacyEvent
 
     public record CancelBreak(string TargetCivId) : DiplomacyEvent;
 
-    public record DeclareWar(string TargetCivId) : DiplomacyEvent;
+    public record DeclareWar(string TargetCivId) : DiplomacyEvent, IModalControlEvent;
 
     public record DeclarePeace(string TargetCivId) : DiplomacyEvent;
 
@@ -634,7 +635,7 @@ public abstract record DiplomacyEvent
 
     public record ShowWarConfirmation(string CivId) : DiplomacyEvent;
 
-    public record CancelWarConfirmation() : DiplomacyEvent;
+    public record CancelWarConfirmation() : DiplomacyEvent, IModalControlEvent;
 
     public record ToggleCivDropdown(bool IsOpen) : DiplomacyEvent;
 

@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using DivineAscension.GUI.Events;
+
 namespace DivineAscension.GUI.UI.Utilities;
 
 /// <summary>
@@ -36,5 +39,26 @@ internal static class ModalInputGuard
     {
         _blockingThisFrame = _markedThisFrame;
         _markedThisFrame = false;
+    }
+
+    /// <summary>
+    ///     Drops a pane's background events while a modal is up, keeping only those marked
+    ///     <see cref="IModalControlEvent" /> (the modal's own confirm/cancel). When no modal is
+    ///     blocking, the list is returned untouched. Pane event processors call this at the top
+    ///     so click-through behind the dim backdrop has no effect, while the modal's buttons —
+    ///     which draw <em>after</em> this frame's <see cref="MarkOpen" /> and so are unaffected by
+    ///     the one-frame-lagged <see cref="IsBlocking" /> — keep working (#455).
+    /// </summary>
+    public static IReadOnlyList<T> FilterBackground<T>(IReadOnlyList<T>? events)
+    {
+        if (events == null || events.Count == 0 || !_blockingThisFrame)
+            return events ?? System.Array.Empty<T>();
+
+        var kept = new List<T>(events.Count);
+        foreach (var ev in events)
+            if (ev is IModalControlEvent)
+                kept.Add(ev);
+
+        return kept;
     }
 }

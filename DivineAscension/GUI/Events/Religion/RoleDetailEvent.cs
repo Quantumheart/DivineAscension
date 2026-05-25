@@ -21,7 +21,7 @@ public abstract record RoleDetailEvent
         string NewRoleUID,
         string NewRoleName) : RoleDetailEvent;
 
-    public record AssignRoleConfirm(string MemberUID, string NewRoleUID) : RoleDetailEvent;
+    public record AssignRoleConfirm(string MemberUID, string NewRoleUID) : RoleDetailEvent, IModalControlEvent;
 
-    public record AssignRoleCancel : RoleDetailEvent;
+    public record AssignRoleCancel : RoleDetailEvent, IModalControlEvent;
 }

@@ -36,13 +36,13 @@ public abstract record InfoEvent
 
     public sealed record DisbandOpened : InfoEvent;
 
-    public sealed record DisbandConfirmed : InfoEvent;
+    public sealed record DisbandConfirmed : InfoEvent, IModalControlEvent;
 
-    public sealed record DisbandCancel : InfoEvent;
+    public sealed record DisbandCancel : InfoEvent, IModalControlEvent;
 
     public sealed record KickOpen(string religionId, string religionName) : InfoEvent;
 
-    public sealed record KickConfirm(string religionName) : InfoEvent;
+    public sealed record KickConfirm(string religionName) : InfoEvent, IModalControlEvent;
 
-    public sealed record KickCancel : InfoEvent;
+    public sealed record KickCancel : InfoEvent, IModalControlEvent;
 }
