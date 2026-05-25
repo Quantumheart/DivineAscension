@@ -28,10 +28,8 @@ public readonly struct BlessingTabViewModel(
     IReadOnlyList<DeityBlessingSummary> deitySummaries,
     int prestigeNextThreshold = 0,
     string? patronDeityName = null,
-    bool isReligionFounder = false,
     float vowsPageScrollY = 0f,
     float blessingsPageScrollY = 0f,
-    bool isDescriptionExpanded = false,
     int unlockedPlayerCount = 0,
     int maxBlessingSlots = 0,
     BlessingNodeState? pendingUnlockState = null
@@ -63,20 +61,11 @@ public readonly struct BlessingTabViewModel(
     /// <summary>Display name of the patron deity (e.g. "Stone"). Drives the "Of {Patron}" sub-heading on Vows.</summary>
     public string? PatronDeityName { get; } = patronDeityName;
 
-    /// <summary>Whether the viewing player founded the religion; gates the [Swear] action on Vows.</summary>
-    public bool IsReligionFounder { get; } = isReligionFounder;
-
     /// <summary>Vertical scroll position for the Vows page chapter (I.iii).</summary>
     public float VowsPageScrollY { get; } = vowsPageScrollY;
 
     /// <summary>Vertical scroll position for the III.ii Blessings page chapter.</summary>
     public float BlessingsPageScrollY { get; } = blessingsPageScrollY;
-
-    /// <summary>
-    ///     Whether the selected blessing's description block is expanded past its truncated
-    ///     preview on the info pane.
-    /// </summary>
-    public bool IsDescriptionExpanded { get; } = isDescriptionExpanded;
 
     /// <summary>Count of unlocked personal blessings across all deities, for the "Unlocked: X / max" slot header (#446).</summary>
     public int UnlockedPlayerCount { get; } = unlockedPlayerCount;

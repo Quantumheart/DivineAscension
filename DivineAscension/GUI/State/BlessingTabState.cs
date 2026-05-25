@@ -7,7 +7,6 @@ namespace DivineAscension.GUI.State;
 public class BlessingTabState
 {
     public BlessingTreeState TreeState { get; } = new();
-    public BlessingInfoState InfoState { get; } = new();
 
     /// <summary>
     ///     Per-deity player blessing state. Outer key = deity, inner key = blessingId.
@@ -60,7 +59,6 @@ public class BlessingTabState
     public void Reset()
     {
         TreeState.Reset();
-        InfoState.Reset();
         PlayerBlessingStatesByDeity.Clear();
         ReligionBlessingStatesByDeity.Clear();
         ActiveDeity = DeityDomain.Craft;
@@ -84,20 +82,5 @@ public class BlessingTreeState
         HoveringBlessingId = null;
         PlayerScrollState.Reset();
         ReligionScrollState.Reset();
-    }
-}
-
-public class BlessingInfoState
-{
-    /// <summary>
-    ///     Whether the selected blessing's description block is expanded past its truncated
-    ///     preview. Toggled by the "Read more ▾" / "Read less ▴" affordance and reset to
-    ///     <c>false</c> whenever a different blessing is selected.
-    /// </summary>
-    public bool IsDescriptionExpanded { get; set; }
-
-    public void Reset()
-    {
-        IsDescriptionExpanded = false;
     }
 }

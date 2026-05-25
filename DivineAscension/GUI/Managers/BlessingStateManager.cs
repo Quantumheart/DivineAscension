@@ -32,6 +32,14 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
 
     private readonly IUiService _uiService = uiService ?? throw new ArgumentNullException(nameof(uiService));
 
+    /// <summary>
+    ///     Whether the viewing player founded their religion, captured from the most recent
+    ///     <see cref="DrawVowsTab"/> call. Mirrors the server's founder-only gate on swearing
+    ///     communal vows (#453) so a non-founder's double-click on a vow is rejected before a
+    ///     confirmation dialog or request is raised — the server stays authoritative.
+    /// </summary>
+    internal bool IsReligionFounder { get; set; }
+
     public BlessingTabState State { get; } = new();
 
     /// <summary>
@@ -114,10 +122,8 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             summaries,
             prestigeNextThreshold: 0,
             patronDeityName: null,
-            isReligionFounder: false,
             vowsPageScrollY: 0f,
             blessingsPageScrollY: State.BlessingsPageScrollY,
-            isDescriptionExpanded: State.InfoState.IsDescriptionExpanded,
             unlockedPlayerCount: UnlockedPlayerBlessingCount,
             maxBlessingSlots: MaxPlayerBlessingSlots,
             pendingUnlockState: GetPendingUnlockState()
@@ -130,9 +136,9 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
 
     /// <summary>
     ///     I.iii — Vows of the Order. Draws the religion (communal) blessing tree
-    ///     migrated off III.ii. <paramref name="isReligionFounder"/> gates the
-    ///     [Swear] action; <paramref name="prestigeNextThreshold"/> drives the
-    ///     right-aligned "Prestige · {N} / {M}" balance under the patron heading.
+    ///     migrated off III.ii. <paramref name="isReligionFounder"/> gates double-click
+    ///     unlocks of communal vows (#453); <paramref name="prestigeNextThreshold"/> drives
+    ///     the right-aligned "Prestige · {N} / {M}" balance under the patron heading.
     /// </summary>
     public void DrawVowsTab(float windowPosX, float windowPosY, float width, float contentHeight, int windowWidth,
         int windowHeight, float deltaTime, int playerFavor, int religionPrestige, DeityDomain patronDomain,
@@ -142,6 +148,9 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         int discipleThreshold = 500, int zealotThreshold = 2000,
         int championThreshold = 5000, int avatarThreshold = 10000)
     {
+        // Capture founder status for the double-click unlock gate (#453).
+        IsReligionFounder = isReligionFounder;
+
         var summaries = BuildDeitySummaries(
             patronDomain,
             favorRanksByDeity ?? new Dictionary<DeityDomain, int>(),
@@ -169,10 +178,8 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             summaries,
             prestigeNextThreshold,
             patronDeityName,
-            isReligionFounder,
             State.VowsPageScrollY,
             blessingsPageScrollY: 0f,
-            isDescriptionExpanded: State.InfoState.IsDescriptionExpanded,
             pendingUnlockState: GetPendingUnlockState()
         );
 
@@ -198,7 +205,6 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             State.TreeState.SelectedBlessingId = null;
             State.TreeState.PlayerScrollState.Reset();
             State.TreeState.ReligionScrollState.Reset();
-            State.InfoState.IsDescriptionExpanded = false;
             _soundManager.PlayClick();
         }
 
@@ -206,8 +212,6 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             switch (ev)
             {
                 case TreeEvent.Selected e:
-                    if (State.TreeState.SelectedBlessingId != e.BlessingId)
-                        State.InfoState.IsDescriptionExpanded = false;
                     State.TreeState.SelectedBlessingId = e.BlessingId;
                     _soundManager.PlayClick();
                     break;
@@ -231,32 +235,15 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
                     break;
             }
 
-        foreach (var ev in result.InfoEvents)
-            switch (ev)
-            {
-                case InfoEvent.DescriptionExpansionToggled:
-                    State.InfoState.IsDescriptionExpanded = !State.InfoState.IsDescriptionExpanded;
-                    _soundManager.PlayClick();
-                    break;
-            }
-
         foreach (var ev in result.ActionsEvents)
             switch (ev)
             {
-                case ActionsEvent.UnlockClicked:
-                    HandleUnlockClicked();
-                    break;
-
                 case ActionsEvent.UnlockConfirmed:
                     HandleUnlockConfirmed();
                     break;
 
                 case ActionsEvent.UnlockCanceled:
                     HandleUnlockCanceled();
-                    break;
-
-                case ActionsEvent.UnlockBlockedClicked:
-                    _soundManager.PlayError();
                     break;
             }
     }
@@ -284,6 +271,16 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         if (string.IsNullOrEmpty(selectedState.Blessing.BlessingId))
         {
             _coreClientApi.ShowChatMessage("Error: Invalid blessing ID");
+            return;
+        }
+
+        // Communal vows are founder-only — mirror the server gate so non-founders never
+        // reach the confirmation dialog or spend prestige (#453).
+        if (selectedState.Blessing.Kind == BlessingKind.Religion && !IsReligionFounder)
+        {
+            _coreClientApi.ShowChatMessage(
+                LocalizationService.Instance.Get(LocalizationKeys.SIDEBAR_DISABLED_SWEAR_FOUNDER_ONLY));
+            _soundManager.PlayError();
             return;
         }
 

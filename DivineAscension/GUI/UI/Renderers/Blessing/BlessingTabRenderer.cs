@@ -4,12 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Blessing;
-using DivineAscension.GUI.Models.Blessing.Actions;
-using DivineAscension.GUI.Models.Blessing.Info;
 using DivineAscension.GUI.Models.Blessing.Tab;
 using DivineAscension.GUI.Models.Blessing.Tree;
 using DivineAscension.GUI.UI.Components.Lists;
-using DivineAscension.GUI.UI.Renderers.Blessing.Info;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
@@ -24,8 +21,8 @@ namespace DivineAscension.GUI.UI.Renderers.Blessing;
 ///     III.ii — The Blessings, rendered as a scrollable ledger chapter. Personal blessings
 ///     only — the religion-side tree migrated to I.iii — Vows of the Order in #335. Title
 ///     strip, prose intro, dotted-leader cross-domain summary, patron sub-heading, deity
-///     sub-index, personal tree pane, selected-blessing detail with Read more affordance,
-///     and an [Inscribe] action.
+///     sub-index, and the personal tree pane. Unlock is by double-click (confirmed in the
+///     manager, #453); node details show on hover via the tooltip.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class BlessingTabRenderer
@@ -36,8 +33,6 @@ internal static class BlessingTabRenderer
     private const float DividerSpacing = 18f;
     private const float ScrollbarWidth = 16f;
     private const float TreePaneHeight = 340f;
-    private const float InfoPanelHeight = 220f;
-    private const float ActionButtonHeight = 36f;
 
     internal static BlessingTabRenderResult DrawBlessingsTab(BlessingTabViewModel vm)
     {
@@ -256,8 +251,7 @@ internal static class BlessingTabRenderer
             vm.Height,
             requestedDeity,
             requestedVowsScrollY: null,
-            requestedPageScrollY: requestedPageScrollY,
-            infoEvents: System.Array.Empty<InfoEvent>());
+            requestedPageScrollY: requestedPageScrollY);
     }
 
     private static float HeaderHeight() =>
