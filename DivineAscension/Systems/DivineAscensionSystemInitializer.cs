@@ -403,6 +403,7 @@ public static class DivineAscensionSystemInitializer
             worldService,
             blessingUnlearnService,
             religionBlessingUnlearnService,
+            religionPrestigeManager,
             gameBalanceConfig,
             freeRespecWindow);
         blessingHandler.RegisterHandlers();

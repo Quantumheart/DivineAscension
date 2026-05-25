@@ -38,6 +38,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
     private readonly IWorldService _worldService;
     private readonly IBlessingUnlearnService _unlearnService;
     private readonly IReligionBlessingUnlearnService _religionUnlearnService;
+    private readonly IReligionPrestigeManager _religionPrestigeManager;
     private readonly Configuration.GameBalanceConfig _gameBalanceConfig;
     private readonly IFreeRespecWindow _freeRespecWindow;
 
@@ -52,6 +53,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         IWorldService worldService,
         IBlessingUnlearnService unlearnService,
         IReligionBlessingUnlearnService religionUnlearnService,
+        IReligionPrestigeManager religionPrestigeManager,
         Configuration.GameBalanceConfig gameBalanceConfig,
         IFreeRespecWindow freeRespecWindow)
     {
@@ -65,6 +67,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
         _unlearnService = unlearnService ?? throw new ArgumentNullException(nameof(unlearnService));
         _religionUnlearnService = religionUnlearnService ?? throw new ArgumentNullException(nameof(religionUnlearnService));
+        _religionPrestigeManager = religionPrestigeManager ?? throw new ArgumentNullException(nameof(religionPrestigeManager));
         _gameBalanceConfig = gameBalanceConfig ?? throw new ArgumentNullException(nameof(gameBalanceConfig));
         _freeRespecWindow = freeRespecWindow ?? throw new ArgumentNullException(nameof(freeRespecWindow));
     }
@@ -80,17 +83,33 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         // Push fresh blessing data to everyone when the free-respec window opens/closes so the
         // banner and refund preview update live without a manual dialog reopen (#462).
         _freeRespecWindow.Changed += OnFreeRespecWindowChanged;
+
+        // Push fresh blessing data to a religion's members when it ranks up so the inscribe
+        // counter cap (Inscribed: X/Y) bumps live without reopening the dialog (#479, slice 4).
+        _religionPrestigeManager.OnPrestigeRankChanged += OnReligionPrestigeRankChanged;
     }
 
     public void Dispose()
     {
         _freeRespecWindow.Changed -= OnFreeRespecWindowChanged;
+        _religionPrestigeManager.OnPrestigeRankChanged -= OnReligionPrestigeRankChanged;
     }
 
     private void OnFreeRespecWindowChanged()
     {
         foreach (var player in _worldService.GetAllOnlinePlayers())
             SendBlessingData(player);
+    }
+
+    private void OnReligionPrestigeRankChanged(string religionUID, PrestigeRank oldRank, PrestigeRank newRank)
+    {
+        var religion = _religionManager.GetReligion(religionUID);
+        if (religion == null)
+            return;
+
+        foreach (var memberUid in religion.MemberUIDs)
+            if (_worldService.GetPlayerByUID(memberUid) is IServerPlayer member)
+                SendBlessingData(member);
     }
 
     private void OnBlessingUnlockRequest(IServerPlayer fromPlayer, BlessingUnlockRequestPacket packet)
