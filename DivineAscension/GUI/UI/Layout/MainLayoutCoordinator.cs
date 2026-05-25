@@ -47,11 +47,13 @@ internal static class MainLayoutCoordinator
             : (DeityDomain?)null;
         ChromeContext.SetFrame(patronDomain);
 
-        // While the blessing unlock confirmation is open it is modal (#453): the dim backdrop
-        // can't stop immediate-mode hit-testing, so suppress all dialog chrome (title close,
-        // sidebar nav, page turn) this frame. Only the confirm/cancel buttons drawn by the
-        // content stay live. Read at frame start — the dialog persists until resolved.
-        var modalOpen = manager.BlessingStateManager.State.PendingUnlockBlessingId != null;
+        // Any open ConfirmOverlay is modal: the dim backdrop can't stop immediate-mode
+        // hit-testing, so suppress all dialog chrome (title close, sidebar nav, page turn)
+        // this frame. Only the confirm/cancel buttons the modal itself draws stay live.
+        // BeginFrame rolls the previous frame's mark into IsBlocking; the modal persists
+        // across frames, so reading it here (before chrome draws) is correct (#453).
+        ModalInputGuard.BeginFrame();
+        var modalOpen = ModalInputGuard.IsBlocking;
 
         var windowPos = ImGui.GetWindowPos();
         var outer = new UiRect(windowPos.X, windowPos.Y, windowWidth, windowHeight);
