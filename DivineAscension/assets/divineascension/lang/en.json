@@ -246,6 +246,7 @@
   "divineascension:ui.blessing.confirm.unlearn.cascade.list_header": "The following will be struck:",
   "divineascension:ui.blessing.read_more": "Read more",
   "divineascension:ui.blessing.read_less": "Read less",
+  "divineascension:ui.dialog.loading": "Loading…",
   "divineascension:ui.blessing.page.title": "The Blessings",
   "divineascension:ui.blessing.page.intro": "The boons each Domain grants to those who serve. Choose your path through the tree.",
   "divineascension:ui.blessing.page.across_domains": "Across the Domains",

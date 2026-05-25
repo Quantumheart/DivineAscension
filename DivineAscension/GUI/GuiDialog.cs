@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.API.Implementation;
+using DivineAscension.Constants;
 using DivineAscension.API.Interfaces;
 using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Managers;
@@ -198,7 +199,14 @@ public partial class GuiDialog : ModSystem
 
         if (!_state.IsReady)
         {
-            // Request data from server
+            // Data race (#487): the open landed before blessing data arrived (common in the
+            // first ~1s after login). Queue the open, fire a data request now (the periodic
+            // tick keeps retrying with backoff), and echo "Loading…" so the click isn't silent.
+            _state.PendingOpen = true;
+            _divineAscensionModSystem?.NetworkClient?.RequestBlessingData();
+            _divineAscensionModSystem?.NetworkClient?.RequestAvailableDomains();
+            _logger?.Debug("[DivineAscension] Open requested before data ready — queued pending open, requested data.");
+            _capi?.ShowChatMessage(LocalizationService.Instance.Get(LocalizationKeys.UI_DIALOG_LOADING));
             return;
         }
 
