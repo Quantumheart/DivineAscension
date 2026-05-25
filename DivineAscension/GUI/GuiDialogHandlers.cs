@@ -130,6 +130,9 @@ public partial class GuiDialog
         // Set branch state from server (committed and locked branches)
         _manager.BlessingStateManager.SetBranchState(packet.CommittedBranches, packet.LockedBranches);
 
+        // Sync the unlearn refund percent so the cascade confirm dialog can preview the total (#460).
+        _manager.BlessingStateManager.UnlearnRefundPercent = packet.UnlearnRefundPercent;
+
         _manager.BlessingStateManager.RefreshAllBlessingStates(
             BuildFavorRanksByDeity(),
             _manager.ReligionStateManager.CurrentPrestigeRank,
@@ -643,21 +646,28 @@ public partial class GuiDialog
     ///     On success, flips the node back to locked and recomputes prerequisites/glow; the
     ///     refunded favor reaches the UI via the player-data-changed push the server sends.
     /// </summary>
-    private void OnBlessingUnlearnedFromServer(string blessingId, bool success)
+    private void OnBlessingUnlearnedFromServer(UnlearnBlessingResponsePacket packet)
     {
-        if (!success)
+        if (!packet.Success)
         {
-            _logger?.Debug($"[DivineAscension] Blessing unlearn failed: {blessingId}");
+            _logger?.Debug($"[DivineAscension] Blessing unlearn failed: {packet.BlessingId}");
             _soundManager!.PlayError();
             return;
         }
 
-        _logger?.Debug($"[DivineAscension] Blessing unlearned from server: {blessingId}");
+        _logger?.Debug(
+            $"[DivineAscension] Blessing unlearned from server: {packet.BlessingId} (+{packet.StruckBlessingIds.Count - 1} cascaded)");
         _soundManager!.PlaySuccess();
 
         if (_manager != null)
         {
-            _manager.BlessingStateManager.SetBlessingUnlocked(blessingId, false);
+            // Re-lock every blessing the server struck — the target and all cascaded dependents (#460).
+            var struck = packet.StruckBlessingIds.Count > 0
+                ? (IEnumerable<string>)packet.StruckBlessingIds
+                : new[] { packet.BlessingId };
+            foreach (var id in struck)
+                _manager.BlessingStateManager.SetBlessingUnlocked(id, false);
+
             _manager.BlessingStateManager.RefreshAllBlessingStates(
                 BuildFavorRanksByDeity(),
                 _manager.ReligionStateManager.CurrentPrestigeRank,

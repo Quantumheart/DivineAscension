@@ -387,7 +387,8 @@ public static class DivineAscensionSystemInitializer
             networkService,
             messengerService,
             worldService,
-            blessingUnlearnService);
+            blessingUnlearnService,
+            gameBalanceConfig);
         blessingHandler.RegisterHandlers();
 
         var religionHandler = new ReligionNetworkHandler(

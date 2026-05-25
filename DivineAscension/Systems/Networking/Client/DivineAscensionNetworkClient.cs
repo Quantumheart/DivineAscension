@@ -322,8 +322,9 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
             _capi?.Logger.Warning($"[DivineAscension] Failed to unlearn blessing: {packet.Message}");
         }
 
-        // Fire on success and failure so the UI re-syncs node state either way.
-        BlessingUnlearned?.Invoke(packet.BlessingId, packet.Success);
+        // Fire on success and failure so the UI re-syncs node state either way. The packet
+        // carries the full cascade (StruckBlessingIds) so the UI can re-lock every struck node.
+        BlessingUnlearned?.Invoke(packet);
     }
 
     private void OnBlessingDataResponse(BlessingDataResponsePacket packet)
@@ -1098,10 +1099,10 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     public event Action<string, bool>? BlessingUnlocked;
 
     /// <summary>
-    ///     Event fired when a blessing unlearn response is received from the server.
-    ///     Parameters: (blessingId, success)
+    ///     Event fired when a blessing unlearn response is received from the server. Carries the
+    ///     full response so the UI can re-lock every blessing in the struck cascade (#460).
     /// </summary>
-    public event Action<string, bool>? BlessingUnlearned;
+    public event Action<UnlearnBlessingResponsePacket>? BlessingUnlearned;
 
     /// <summary>
     ///     Event fired when the player's religion state changes (disbanded, kicked, etc.)

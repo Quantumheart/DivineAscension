@@ -247,7 +247,11 @@ internal static class BlessingTabRenderer
         {
             // Unlearn confirmation (#459) — same modal chrome as unlock; only one can be open.
             var confirmEvents = new List<ActionsEvent>(2);
-            BlessingUnlearnConfirmRenderer.Draw(vm.PendingUnlearnState, confirmEvents);
+            BlessingUnlearnConfirmRenderer.Draw(
+                vm.PendingUnlearnState,
+                vm.PendingUnlearnCascadeNames,
+                vm.PendingUnlearnRefundTotal,
+                confirmEvents);
             actionsEvents = confirmEvents;
         }
 
