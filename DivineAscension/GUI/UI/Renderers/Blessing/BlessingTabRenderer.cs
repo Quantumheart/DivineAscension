@@ -48,7 +48,12 @@ internal static class BlessingTabRenderer
         // leader row, and ornament lines up cross-pane.
         var contentWidth = vm.Width - ChapterStripRenderer.ScrollbarGutter;
 
-        var contentHeight = ComputeContentHeight(vm.DeitySummaries.Count, contentWidth);
+        // The slot-usage row only renders when the server has reported a real cap, i.e. while in a
+        // religion. Non-religion players (and ex-members) get no PlayerReligionDataPacket, so the
+        // value would be stale/zero — hide the row entirely rather than show "/ 0" (#446).
+        var showSlots = vm.MaxBlessingSlots > 0;
+
+        var contentHeight = ComputeContentHeight(vm.DeitySummaries.Count, contentWidth, showSlots);
         var maxScroll = MathF.Max(0f, contentHeight - vm.Height);
 
         // --- Mouse wheel scroll — only when hovering content outside the tree panel
@@ -62,7 +67,7 @@ internal static class BlessingTabRenderer
         // Approximate tree rect for wheel-exclusion. Mirrors the body layout below.
         var preTreeOffset = HeaderHeight() + IntroHeight(vm, contentWidth) + 8f + DividerSpacing
                             + SectionLabelHeight + vm.DeitySummaries.Count * LeaderRowHeight + 4f
-                            + DividerSpacing + LeaderRowHeight + LeaderRowHeight + 4f
+                            + DividerSpacing + LeaderRowHeight + (showSlots ? LeaderRowHeight : 0f) + 4f
                             + DeitySelectorRenderer.Height + 6f + DividerSpacing;
         var treeScreenTop = vm.Y + preTreeOffset - scrollY;
         var overTree = mousePos.X >= vm.X && mousePos.X <= vm.X + contentWidth
@@ -142,16 +147,21 @@ internal static class BlessingTabRenderer
         topY += LeaderRowHeight;
 
         // --- Unlock-slot usage (#446). Global across domains: "Blessing Slots .... Unlocked: X / max".
-        // Value turns red at the cap to mirror the disabled unlock affordance.
-        var slotsHeading = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_SLOTS_HEADING);
-        var slotsValue = LocalizationService.Instance.Get(
-            LocalizationKeys.UI_BLESSING_PAGE_SLOTS, vm.UnlockedPlayerCount, vm.MaxBlessingSlots);
-        var atCap = vm.MaxBlessingSlots > 0 && vm.UnlockedPlayerCount >= vm.MaxBlessingSlots;
-        ChromeRenderer.DrawLeader(drawList, slotsHeading, slotsValue,
-            vm.X + Padding, topY, contentWidth - Padding * 2,
-            labelColor: ColorPalette.White,
-            valueColor: atCap ? ColorPalette.ErrorRed : ColorPalette.White);
-        topY += LeaderRowHeight + 4f;
+        // Only shown in a religion (real cap); value turns red at the cap to mirror the gated unlock.
+        if (showSlots)
+        {
+            var slotsHeading = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_SLOTS_HEADING);
+            var slotsValue = LocalizationService.Instance.Get(
+                LocalizationKeys.UI_BLESSING_PAGE_SLOTS, vm.UnlockedPlayerCount, vm.MaxBlessingSlots);
+            var atCap = vm.UnlockedPlayerCount >= vm.MaxBlessingSlots;
+            ChromeRenderer.DrawLeader(drawList, slotsHeading, slotsValue,
+                vm.X + Padding, topY, contentWidth - Padding * 2,
+                labelColor: ColorPalette.White,
+                valueColor: atCap ? ColorPalette.ErrorRed : ColorPalette.White);
+            topY += LeaderRowHeight;
+        }
+
+        topY += 4f;
 
         // --- Deity sub-index (selector strip, glyph primitives) — horizontally centered.
         var stripX = vm.X + (contentWidth - DeitySelectorRenderer.StripWidth) * 0.5f;
@@ -248,7 +258,7 @@ internal static class BlessingTabRenderer
         return TextRenderer.MeasureWrappedHeight(intro, contentWidth - Padding * 2, Secondary);
     }
 
-    private static float ComputeContentHeight(int summaryRows, float contentWidth)
+    private static float ComputeContentHeight(int summaryRows, float contentWidth, bool showSlots)
     {
         var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_INTRO);
         var introH = TextRenderer.MeasureWrappedHeight(intro, contentWidth - Padding * 2, Secondary);
@@ -260,7 +270,7 @@ internal static class BlessingTabRenderer
         h += SectionLabelHeight;
         h += summaryRows * LeaderRowHeight;
         h += 4f + DividerSpacing;
-        h += LeaderRowHeight + LeaderRowHeight + 4f;
+        h += LeaderRowHeight + (showSlots ? LeaderRowHeight : 0f) + 4f;
         h += DeitySelectorRenderer.Height + 6f;
         h += DividerSpacing;
         h += TreePaneHeight + 6f;

@@ -166,6 +166,10 @@ public partial class GuiDialog
             _state.PreviousFavorRank = string.Empty;
             _state.PreviousPrestigeRank = string.Empty;
             _state.PreviousMaxBlessingSlots = -1;
+            // No PlayerReligionDataPacket is sent to non-religion players, so the slot cap would
+            // otherwise stay stale (e.g. an ex-member of a Mythic order keeping its bonus slots).
+            // Clear it so the slot header hides and client-side gating falls back to server auth (#446).
+            _manager.BlessingStateManager.MaxPlayerBlessingSlots = 0;
             _logger?.Debug(
                 "[DivineAscension] Cleared notification queue and previous ranks due to religion state change");
         }
