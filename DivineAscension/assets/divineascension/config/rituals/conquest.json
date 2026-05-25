@@ -112,7 +112,7 @@
               "displayName": "Ancient Armor Sets",
               "quantity": 4,
               "type": "Category",
-              "itemCodes": ["game:armor-plate-*", "game:armor-brigandine-*"]
+              "itemCodes": ["game:armor-*-plate-*", "game:armor-*-brigandine-*"]
             }
           ]
         }
