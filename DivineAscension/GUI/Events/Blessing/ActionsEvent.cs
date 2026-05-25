@@ -13,4 +13,14 @@ public abstract record ActionsEvent
     ///     Clears the pending unlock with no side effects.
     /// </summary>
     public sealed record UnlockCanceled : ActionsEvent;
+
+    /// <summary>
+    ///     Fired when the player confirms unlearning a blessing. Dispatches the unlearn request.
+    /// </summary>
+    public sealed record UnlearnConfirmed : ActionsEvent;
+
+    /// <summary>
+    ///     Fired when the player dismisses the unlearn confirmation dialog with no side effects.
+    /// </summary>
+    public sealed record UnlearnCanceled : ActionsEvent;
 }

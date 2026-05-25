@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DivineAscension.Configuration;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems;
@@ -29,7 +30,8 @@ public class CooldownManagerTests
         _fakeWorldService = new FakeWorldService();
         _config = new ModConfigData();
 
-        _cooldownManager = new CooldownManager(_mockLogger.Object, _fakeEventService, _fakeWorldService, _config);
+        _cooldownManager = new CooldownManager(_mockLogger.Object, _fakeEventService, _fakeWorldService, _config,
+            new GameBalanceConfig());
     }
 
     #region ClearPlayerCooldowns Tests
@@ -386,7 +388,8 @@ public class CooldownManagerTests
             ReligionDeletionCooldown = 120,
             MemberKickCooldown = 10
         };
-        var customManager = new CooldownManager(_mockLogger.Object, _fakeEventService, _fakeWorldService, customConfig);
+        var customManager = new CooldownManager(_mockLogger.Object, _fakeEventService, _fakeWorldService, customConfig,
+            new GameBalanceConfig());
 
         // Act & Assert
         Assert.Equal(120, customManager.GetCooldownDuration(CooldownType.ReligionDeletion));

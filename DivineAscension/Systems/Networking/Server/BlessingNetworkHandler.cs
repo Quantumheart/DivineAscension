@@ -9,6 +9,7 @@ using DivineAscension.Network;
 using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using DivineAscension.Systems.Networking.Interfaces;
+using DivineAscension.Utilities;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
@@ -36,6 +37,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
     private readonly INetworkService _networkService;
     private readonly IPlayerMessengerService _messengerService;
     private readonly IWorldService _worldService;
+    private readonly IPlayerProgressionService _progressionService;
 
     public BlessingNetworkHandler(
         ILogger logger,
@@ -45,7 +47,8 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         IReligionManager religionManager,
         INetworkService networkService,
         IPlayerMessengerService messengerService,
-        IWorldService worldService)
+        IWorldService worldService,
+        IPlayerProgressionService progressionService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _blessingRegistry = blessingRegistry ?? throw new ArgumentNullException(nameof(blessingRegistry));
@@ -55,12 +58,14 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         _networkService = networkService ?? throw new ArgumentNullException(nameof(networkService));
         _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
+        _progressionService = progressionService ?? throw new ArgumentNullException(nameof(progressionService));
     }
 
     public void RegisterHandlers()
     {
         // Register handlers for blessing system packets
         _networkService.RegisterMessageHandler<BlessingUnlockRequestPacket>(OnBlessingUnlockRequest);
+        _networkService.RegisterMessageHandler<BlessingUnlearnRequestPacket>(OnBlessingUnlearnRequest);
         _networkService.RegisterMessageHandler<BlessingDataRequestPacket>(OnBlessingDataRequest);
     }
 
@@ -203,6 +208,54 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         _networkService.SendToPlayer(fromPlayer, response);
     }
 
+    private void OnBlessingUnlearnRequest(IServerPlayer fromPlayer, BlessingUnlearnRequestPacket packet)
+    {
+        string message;
+        var success = false;
+
+        try
+        {
+            var result = _progressionService.UnlearnBlessing(fromPlayer.PlayerUID, packet.BlessingId);
+            var blessing = _blessingRegistry.GetBlessing(packet.BlessingId);
+            var blessingName = blessing?.Name ?? packet.BlessingId;
+
+            if (result.Success)
+            {
+                success = true;
+                message = LocalizationService.Instance.Get(
+                    LocalizationKeys.NET_BLESSING_UNLEARN_SUCCESS, blessingName, result.RefundedFavor);
+            }
+            else
+            {
+                message = result.Reason switch
+                {
+                    UnlearnFailureReason.BlessingNotFound =>
+                        LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_NOT_FOUND, packet.BlessingId),
+                    UnlearnFailureReason.NotOwned =>
+                        LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_UNLEARN_NOT_OWNED),
+                    UnlearnFailureReason.NotInReligion =>
+                        LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_MUST_BE_IN_RELIGION_PLAYER),
+                    UnlearnFailureReason.NotPlayerBlessing =>
+                        LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_UNLEARN_NOT_SUPPORTED),
+                    UnlearnFailureReason.OnCooldown =>
+                        LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_UNLEARN_COOLDOWN,
+                            CooldownTimeFormatter.FormatTimeRemaining(result.RemainingCooldownSeconds)),
+                    UnlearnFailureReason.InProgress =>
+                        LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_UNLEARN_IN_PROGRESS),
+                    _ => LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_FAILED_TO_UNLOCK)
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            message = LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_ERROR_UNLEARNING, ex.Message);
+            _logger.Error($"[DivineAscension] Blessing unlearn error: {ex}");
+        }
+
+        var response = new BlessingUnlearnResponsePacket(success, message, packet.BlessingId);
+        _networkService.SendToPlayer(fromPlayer, response);
+    }
+
     /// <summary>
     ///     Handle blessing data request from client
     /// </summary>
@@ -275,6 +328,9 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                 if (lockedBranches.Count > 0)
                     response.LockedBranches[(int)domain] = lockedBranches.ToList();
             }
+
+            response.UnlearnCooldownRemainingSeconds =
+                _progressionService.GetUnlearnCooldownRemainingSeconds(fromPlayer.PlayerUID);
 
             // Get unlocked player blessings
             response.UnlockedPlayerBlessings = playerData.UnlockedBlessings

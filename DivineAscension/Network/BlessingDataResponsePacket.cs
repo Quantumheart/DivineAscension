@@ -75,6 +75,13 @@ public class BlessingDataResponsePacket
     public Dictionary<DeityDomain, int> TotalFavorEarnedByDeity { get; set; } = new();
 
     /// <summary>
+    ///     Seconds remaining before the player may unlearn a blessing again (0 if not on cooldown).
+    ///     Lets the client grey out the unlearn affordance without a round-trip.
+    /// </summary>
+    [ProtoMember(20)]
+    public double UnlearnCooldownRemainingSeconds { get; set; }
+
+    /// <summary>
     ///     Basic blessing information needed for UI display
     /// </summary>
     [ProtoContract]

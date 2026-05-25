@@ -24,4 +24,22 @@ public interface IPlayerProgressionService
         int prestige,
         DeityDomain domain,
         string activityMessage);
+
+    /// <summary>
+    /// Late-binds the blessing systems needed for unlearn. Called after the blessing registry and
+    /// effect system are constructed (they are created later than this service in the init order).
+    /// </summary>
+    void SetBlessingSystems(IBlessingRegistry blessingRegistry, IBlessingEffectSystem blessingEffectSystem);
+
+    /// <summary>
+    /// Unlearns a single owned personal blessing for a player: strips it from the unlocked set,
+    /// refunds a fraction of the paid cost to spendable favor (lifetime unchanged), and stamps the
+    /// unlearn cooldown. Server-authoritative; rejects if not owned, not in a religion, or on cooldown.
+    /// </summary>
+    UnlearnResult UnlearnBlessing(string playerUID, string blessingId);
+
+    /// <summary>
+    /// Remaining seconds before the player may unlearn again (0 if not on cooldown).
+    /// </summary>
+    double GetUnlearnCooldownRemainingSeconds(string playerUID);
 }

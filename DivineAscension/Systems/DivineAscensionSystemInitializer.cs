@@ -59,7 +59,7 @@ public static class DivineAscensionSystemInitializer
         LocalizationService.Instance.InitializeServer(api);
 
         // Initialize cooldown manager (early to prevent griefing attacks)
-        var cooldownManager = new CooldownManager(logger, eventService, worldService, modConfig);
+        var cooldownManager = new CooldownManager(logger, eventService, worldService, modConfig, gameBalanceConfig);
         cooldownManager.Initialize();
 
         // Step 1: Clear any static event subscribers from previous loads
@@ -204,11 +204,17 @@ public static class DivineAscensionSystemInitializer
         // Initialize Buff Manager (must be before AltarPrayerHandler)
         var buffManager = new BuffManager(logger, worldService);
 
-        // Create progression service facade (encapsulates favor, prestige, and activity logging)
+        // Create progression service facade (encapsulates favor, prestige, activity logging, and
+        // the blessing unlearn operation). The blessing systems are late-bound below once built.
         IPlayerProgressionService progressionService = new PlayerProgressionService(
             favorSystem,
             religionPrestigeManager,
-            activityLogManager);
+            activityLogManager,
+            playerReligionDataManager,
+            religionManager,
+            cooldownManager,
+            gameBalanceConfig,
+            timeService);
 
         // Initialize Ritual Progress Manager (handles ritual tracking for holy site tier upgrades)
         var ritualProgressManager = new RitualProgressManager(
@@ -327,6 +333,9 @@ public static class DivineAscensionSystemInitializer
         // CRITICAL: Must be called AFTER BlessingEffectSystem is initialized
         religionPrestigeManager.SetBlessingSystems(blessingRegistry, blessingEffectSystem);
 
+        // Late-bind the blessing systems into the progression service for the unlearn op.
+        progressionService.SetBlessingSystems(blessingRegistry, blessingEffectSystem);
+
         // CRITICAL: Must be called AFTER DiplomacyManager is initialized
         religionPrestigeManager.SetDiplomacyManager(diplomacyManager, civilizationManager);
 
@@ -379,7 +388,8 @@ public static class DivineAscensionSystemInitializer
             religionManager,
             networkService,
             messengerService,
-            worldService);
+            worldService,
+            progressionService);
         blessingHandler.RegisterHandlers();
 
         var religionHandler = new ReligionNetworkHandler(

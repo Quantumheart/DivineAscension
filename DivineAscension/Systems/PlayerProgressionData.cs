@@ -90,7 +90,7 @@ public class PlayerProgressionData
     ///     Data version (internal bookkeeping only — Pantheon 2.0 no longer carries cross-version save migrations).
     /// </summary>
     [ProtoMember(104)]
-    public int DataVersion { get; set; } = 6;
+    public int DataVersion { get; set; } = 7;
 
     /// <summary>
     ///     Accumulated fractional favor per deity domain (not yet awarded) for passive generation.
@@ -168,6 +168,22 @@ public class PlayerProgressionData
         {
             FavorByDeity[domain] = FavorByDeity.GetValueOrDefault(domain) + amount;
             TotalFavorEarnedByDeity[domain] = TotalFavorEarnedByDeity.GetValueOrDefault(domain) + amount;
+        }
+    }
+
+    /// <summary>
+    ///     Adds spendable favor for a deity WITHOUT touching lifetime totals.
+    ///     Used for refunds (e.g. unlearning a blessing) so the player's favor rank cannot
+    ///     change as a side effect of getting favor back. Thread-safe.
+    /// </summary>
+    public void AddSpendableFavor(DeityDomain domain, int amount)
+    {
+        if (amount <= 0)
+            return;
+
+        lock (Lock)
+        {
+            FavorByDeity[domain] = FavorByDeity.GetValueOrDefault(domain) + amount;
         }
     }
 
@@ -359,6 +375,14 @@ public class PlayerProgressionData
     /// </summary>
     [ProtoMember(115)]
     public DateTime? LastPatrolCompletionTimeUtc { get; set; }
+
+    /// <summary>
+    ///     UTC timestamp when the player is next allowed to unlearn a blessing.
+    ///     Persisted (wall-clock) so the unlearn cooldown survives server restarts and
+    ///     cannot be bypassed by reconnecting (the in-memory CooldownManager stamp does not persist).
+    /// </summary>
+    [ProtoMember(116)]
+    public DateTime? NextUnlearnAllowedTimeUtc { get; set; }
 
     /// <summary>
     ///     Gets the committed branch for a domain (thread-safe).

@@ -243,6 +243,12 @@ internal static class BlessingTabRenderer
             BlessingUnlockConfirmRenderer.Draw(vm.PendingUnlockState, confirmEvents);
             actionsEvents = confirmEvents;
         }
+        else if (vm.PendingUnlearnState != null)
+        {
+            var confirmEvents = new List<ActionsEvent>(2);
+            BlessingUnlearnConfirmRenderer.Draw(vm.PendingUnlearnState, confirmEvents);
+            actionsEvents = confirmEvents;
+        }
 
         return new BlessingTabRenderResult(
             treeEvents,

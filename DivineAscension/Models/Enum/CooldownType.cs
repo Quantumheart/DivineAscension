@@ -53,5 +53,12 @@ public enum CooldownType
     ///     Prevents war declaration spam.
     ///     MEDIUM security mitigation.
     /// </summary>
-    WarDeclaration = 6
+    WarDeclaration = 6,
+
+    /// <summary>
+    ///     Blessing unlearn cooldown (configurable, default 24 hours).
+    ///     Gates how often a player may respec a blessing.
+    ///     Duration sourced from <see cref="DivineAscension.Configuration.GameBalanceConfig.UnlearnCooldownHours"/>.
+    /// </summary>
+    BlessingUnlearn = 7
 }

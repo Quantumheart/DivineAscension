@@ -32,7 +32,9 @@ public readonly struct BlessingTabViewModel(
     float blessingsPageScrollY = 0f,
     int unlockedPlayerCount = 0,
     int maxBlessingSlots = 0,
-    BlessingNodeState? pendingUnlockState = null
+    BlessingNodeState? pendingUnlockState = null,
+    BlessingNodeState? pendingUnlearnState = null,
+    double unlearnCooldownRemainingSeconds = 0
 )
 {
     public float X { get; } = x;
@@ -78,4 +80,13 @@ public readonly struct BlessingTabViewModel(
     ///     When set, the page renders a modal confirmation summarizing the favor/prestige spend.
     /// </summary>
     public BlessingNodeState? PendingUnlockState { get; } = pendingUnlockState;
+
+    /// <summary>
+    ///     The unlocked blessing awaiting unlearn confirmation, or null when no dialog is open.
+    ///     When set, the page renders a modal confirming the slot free-up and favor refund.
+    /// </summary>
+    public BlessingNodeState? PendingUnlearnState { get; } = pendingUnlearnState;
+
+    /// <summary>Seconds before the player may unlearn again (0 if available). Greys the confirm button.</summary>
+    public double UnlearnCooldownRemainingSeconds { get; } = unlearnCooldownRemainingSeconds;
 }

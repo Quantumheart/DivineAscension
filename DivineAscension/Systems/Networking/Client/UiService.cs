@@ -20,6 +20,11 @@ public class UiService(DivineAscensionNetworkClient networkClient)
         _networkClient.RequestBlessingUnlock(blessingId);
     }
 
+    public void RequestBlessingUnlearn(string blessingId)
+    {
+        _networkClient.RequestBlessingUnlearn(blessingId);
+    }
+
     public void RequestAvailableDomains()
     {
         _networkClient.RequestAvailableDomains();

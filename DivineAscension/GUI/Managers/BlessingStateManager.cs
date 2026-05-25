@@ -11,6 +11,7 @@ using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
+using DivineAscension.Utilities;
 using Vintagestory.API.Client;
 
 namespace DivineAscension.GUI.Managers;
@@ -49,6 +50,13 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     ///     a value (the server is authoritative either way, see #444).
     /// </summary>
     public int MaxPlayerBlessingSlots { get; set; }
+
+    /// <summary>
+    ///     Seconds remaining before the player may unlearn another blessing (0 when available),
+    ///     synced from the server via <see cref="DivineAscension.Network.BlessingDataResponsePacket"/>.
+    ///     While positive, the unlearn affordance is gated client-side; the server stays authoritative.
+    /// </summary>
+    public double UnlearnCooldownRemainingSeconds { get; set; }
 
     /// <summary>
     ///     Count of unlocked personal (player-kind) blessings across every deity. This is the
@@ -126,7 +134,9 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             blessingsPageScrollY: State.BlessingsPageScrollY,
             unlockedPlayerCount: UnlockedPlayerBlessingCount,
             maxBlessingSlots: MaxPlayerBlessingSlots,
-            pendingUnlockState: GetPendingUnlockState()
+            pendingUnlockState: GetPendingUnlockState(),
+            pendingUnlearnState: GetPendingUnlearnState(),
+            unlearnCooldownRemainingSeconds: UnlearnCooldownRemainingSeconds
         );
 
         var result = BlessingTabRenderer.DrawBlessingsTab(vm);
@@ -196,7 +206,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         // background interaction (scroll, deity switch, tree select/double-click) — clicks
         // behind the dim backdrop fall through in immediate mode, so we drop their effects
         // here and act only on the dialog's own confirm/cancel events below.
-        var modalOpen = State.PendingUnlockBlessingId != null;
+        var modalOpen = State.PendingUnlockBlessingId != null || State.PendingUnlearnBlessingId != null;
 
         if (!modalOpen)
         {
@@ -225,7 +235,13 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
 
                     case TreeEvent.DoubleClicked e:
                         State.TreeState.SelectedBlessingId = e.BlessingId;
-                        HandleUnlockClicked();
+                        // An unlocked personal blessing double-clicks into unlearn; everything
+                        // else falls through to the unlock flow.
+                        var dcState = GetBlessingState(e.BlessingId);
+                        if (dcState is { IsUnlocked: true, Blessing.Kind: BlessingKind.Player })
+                            HandleUnlearnClicked();
+                        else
+                            HandleUnlockClicked();
                         break;
 
                     case TreeEvent.Hovered:
@@ -252,6 +268,14 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
 
                 case ActionsEvent.UnlockCanceled:
                     HandleUnlockCanceled();
+                    break;
+
+                case ActionsEvent.UnlearnConfirmed:
+                    HandleUnlearnConfirmed();
+                    break;
+
+                case ActionsEvent.UnlearnCanceled:
+                    HandleUnlearnCanceled();
                     break;
             }
     }
@@ -326,6 +350,65 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         return string.IsNullOrEmpty(State.PendingUnlockBlessingId)
             ? null
             : GetBlessingState(State.PendingUnlockBlessingId);
+    }
+
+    /// <summary>
+    ///     Validates the selected blessing for unlearn and, if eligible, opens the unlearn
+    ///     confirmation dialog. While on cooldown the affordance is gated client-side with a
+    ///     remaining-time message (the server stays authoritative either way).
+    /// </summary>
+    private void HandleUnlearnClicked()
+    {
+        if (State.TreeState.SelectedBlessingId == null) return;
+        var selectedState = GetBlessingState(State.TreeState.SelectedBlessingId);
+        if (selectedState is not { IsUnlocked: true, Blessing.Kind: BlessingKind.Player }) return;
+
+        if (string.IsNullOrEmpty(selectedState.Blessing.BlessingId))
+        {
+            _coreClientApi.ShowChatMessage("Error: Invalid blessing ID");
+            return;
+        }
+
+        if (UnlearnCooldownRemainingSeconds > 0)
+        {
+            _coreClientApi.ShowChatMessage(LocalizationService.Instance.Get(
+                LocalizationKeys.UI_BLESSING_UNLEARN_COOLDOWN,
+                CooldownTimeFormatter.FormatTimeRemaining(UnlearnCooldownRemainingSeconds)));
+            _soundManager.PlayError();
+            return;
+        }
+
+        _soundManager.PlayClick();
+        State.PendingUnlearnBlessingId = selectedState.Blessing.BlessingId;
+    }
+
+    /// <summary>Dispatches the unlearn request for the blessing awaiting confirmation.</summary>
+    private void HandleUnlearnConfirmed()
+    {
+        var pendingId = State.PendingUnlearnBlessingId;
+        State.PendingUnlearnBlessingId = null;
+        if (string.IsNullOrEmpty(pendingId)) return;
+
+        var state = GetBlessingState(pendingId);
+        if (state is not { IsUnlocked: true, Blessing.Kind: BlessingKind.Player }) return;
+        if (UnlearnCooldownRemainingSeconds > 0) return;
+
+        _soundManager.PlayClick();
+        _uiService.RequestBlessingUnlearn(pendingId);
+    }
+
+    /// <summary>Dismisses the unlearn confirmation dialog with no side effects.</summary>
+    private void HandleUnlearnCanceled()
+    {
+        State.PendingUnlearnBlessingId = null;
+        _soundManager.PlayClick();
+    }
+
+    private BlessingNodeState? GetPendingUnlearnState()
+    {
+        return string.IsNullOrEmpty(State.PendingUnlearnBlessingId)
+            ? null
+            : GetBlessingState(State.PendingUnlearnBlessingId);
     }
 
     private BlessingNodeState? GetBlessingState(string blessingId)

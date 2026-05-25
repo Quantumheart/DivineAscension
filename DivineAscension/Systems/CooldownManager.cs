@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using DivineAscension.API.Interfaces;
+using DivineAscension.Configuration;
 using DivineAscension.Data;
 using DivineAscension.Models.Enum;
 using DivineAscension.Systems.Interfaces;
@@ -19,6 +20,7 @@ public class CooldownManager : ICooldownManager
 {
     private readonly object _cleanupLock = new();
     private readonly ModConfigData _config;
+    private readonly GameBalanceConfig _balanceConfig;
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<CooldownType, long>> _cooldowns = new();
     private readonly IEventService _eventService;
     private readonly ILogger _logger;
@@ -32,12 +34,15 @@ public class CooldownManager : ICooldownManager
     /// <param name="eventService">Event service for periodic callbacks</param>
     /// <param name="worldService">World service for player and time access</param>
     /// <param name="config">Mod configuration containing cooldown durations</param>
-    public CooldownManager(ILogger logger, IEventService eventService, IWorldService worldService, ModConfigData config)
+    /// <param name="balanceConfig">Balance configuration containing the unlearn cooldown duration</param>
+    public CooldownManager(ILogger logger, IEventService eventService, IWorldService worldService, ModConfigData config,
+        GameBalanceConfig balanceConfig)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
         _config = config ?? throw new ArgumentNullException(nameof(config));
+        _balanceConfig = balanceConfig ?? throw new ArgumentNullException(nameof(balanceConfig));
     }
 
     /// <summary>
@@ -216,6 +221,7 @@ public class CooldownManager : ICooldownManager
             CooldownType.ReligionCreation => _config.ReligionCreationCooldown,
             CooldownType.Proposal => _config.ProposalCooldown,
             CooldownType.WarDeclaration => _config.WarDeclarationCooldown,
+            CooldownType.BlessingUnlearn => (int)(_balanceConfig.UnlearnCooldownHours * 3600),
             _ => throw new ArgumentOutOfRangeException(nameof(cooldownType), cooldownType, "Unknown cooldown type")
         };
     }

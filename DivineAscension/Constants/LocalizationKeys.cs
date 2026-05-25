@@ -320,6 +320,10 @@ public static class LocalizationKeys
     public const string UI_BLESSING_CONFIRM_INSCRIBE_MESSAGE = "divineascension:ui.blessing.confirm.inscribe.message";
     public const string UI_BLESSING_CONFIRM_SWEAR_TITLE = "divineascension:ui.blessing.confirm.swear.title";
     public const string UI_BLESSING_CONFIRM_SWEAR_MESSAGE = "divineascension:ui.blessing.confirm.swear.message";
+    public const string UI_BLESSING_UNLEARN_BUTTON = "divineascension:ui.blessing.unlearn";
+    public const string UI_BLESSING_CONFIRM_UNLEARN_TITLE = "divineascension:ui.blessing.confirm.unlearn.title";
+    public const string UI_BLESSING_CONFIRM_UNLEARN_MESSAGE = "divineascension:ui.blessing.confirm.unlearn.message";
+    public const string UI_BLESSING_UNLEARN_COOLDOWN = "divineascension:ui.blessing.unlearn_cooldown";
     public const string UI_BLESSING_READ_MORE = "divineascension:ui.blessing.read_more";
     public const string UI_BLESSING_READ_LESS = "divineascension:ui.blessing.read_less";
     public const string UI_BLESSING_PAGE_TITLE = "divineascension:ui.blessing.page.title";
@@ -1687,6 +1691,13 @@ public static class LocalizationKeys
     public const string NET_BLESSING_ERROR_UNLOCKING = "divineascension:net.blessing.error_unlocking";
 
     public const string NET_BLESSING_UNLOCK_CAP_REACHED = "divineascension:net.blessing.unlock_cap_reached";
+
+    public const string NET_BLESSING_UNLEARN_SUCCESS = "divineascension:net.blessing.unlearn_success";
+    public const string NET_BLESSING_UNLEARN_NOT_OWNED = "divineascension:net.blessing.unlearn_not_owned";
+    public const string NET_BLESSING_UNLEARN_NOT_SUPPORTED = "divineascension:net.blessing.unlearn_not_supported";
+    public const string NET_BLESSING_UNLEARN_COOLDOWN = "divineascension:net.blessing.unlearn_cooldown";
+    public const string NET_BLESSING_UNLEARN_IN_PROGRESS = "divineascension:net.blessing.unlearn_in_progress";
+    public const string NET_BLESSING_ERROR_UNLEARNING = "divineascension:net.blessing.error_unlearning";
 
     #endregion
 

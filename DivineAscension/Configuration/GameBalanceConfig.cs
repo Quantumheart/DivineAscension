@@ -119,6 +119,14 @@ public class GameBalanceConfig
     /// <summary>Hard cap on total active blessing slots (favor + prestige bonus).</summary>
     public const int MaxTotalBlessingSlots = 8;
 
+    // === BLESSING UNLEARN ===
+
+    /// <summary>Fraction of a blessing's paid cost refunded to spendable favor on unlearn (default: 0.5)</summary>
+    public float UnlearnRefundPercent { get; set; } = 0.5f;
+
+    /// <summary>Cooldown in hours between blessing unlearn operations per player (default: 24)</summary>
+    public float UnlearnCooldownHours { get; set; } = 24f;
+
     // === PVP SYSTEM ===
 
     /// <summary>Base favor awarded for PvP kill (default: 10)</summary>
@@ -222,6 +230,16 @@ public class GameBalanceConfig
               HolySiteTier2Multiplier <= HolySiteTier3Multiplier))
         {
             throw new InvalidOperationException("Holy site tier multipliers must be ascending");
+        }
+
+        if (UnlearnRefundPercent < 0f || UnlearnRefundPercent > 1f)
+        {
+            throw new InvalidOperationException("UnlearnRefundPercent must be between 0 and 1");
+        }
+
+        if (UnlearnCooldownHours < 0f || UnlearnCooldownHours > 720f)
+        {
+            throw new InvalidOperationException("UnlearnCooldownHours must be between 0 and 720");
         }
 
         ValidateBlessingSlots();

@@ -130,6 +130,9 @@ public partial class GuiDialog
         // Set branch state from server (committed and locked branches)
         _manager.BlessingStateManager.SetBranchState(packet.CommittedBranches, packet.LockedBranches);
 
+        // Carry the unlearn cooldown so the client can gate the unlearn affordance.
+        _manager.BlessingStateManager.UnlearnCooldownRemainingSeconds = packet.UnlearnCooldownRemainingSeconds;
+
         _manager.BlessingStateManager.RefreshAllBlessingStates(
             BuildFavorRanksByDeity(),
             _manager.ReligionStateManager.CurrentPrestigeRank,
@@ -636,6 +639,25 @@ public partial class GuiDialog
                 _manager.ReligionStateManager.CurrentPrestigeRank,
                 _manager.ReligionStateManager.CurrentReligionDomain);
         }
+    }
+
+    /// <summary>
+    ///     Handle blessing unlearn response from server. On success, re-request blessing data so the
+    ///     freed slot, refunded favor, and new cooldown are all reflected at once.
+    /// </summary>
+    private void OnBlessingUnlearnedFromServer(string blessingId, bool success)
+    {
+        if (!success)
+        {
+            _logger?.Debug($"[DivineAscension] Blessing unlearn failed: {blessingId}");
+            _soundManager!.PlayError();
+            return;
+        }
+
+        _logger?.Debug($"[DivineAscension] Blessing unlearned from server: {blessingId}");
+        _soundManager!.PlaySuccess();
+
+        _divineAscensionModSystem?.NetworkClient?.RequestBlessingData();
     }
 
     /// <summary>
