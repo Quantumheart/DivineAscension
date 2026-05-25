@@ -119,7 +119,8 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             blessingsPageScrollY: State.BlessingsPageScrollY,
             isDescriptionExpanded: State.InfoState.IsDescriptionExpanded,
             unlockedPlayerCount: UnlockedPlayerBlessingCount,
-            maxBlessingSlots: MaxPlayerBlessingSlots
+            maxBlessingSlots: MaxPlayerBlessingSlots,
+            pendingUnlockState: GetPendingUnlockState()
         );
 
         var result = BlessingTabRenderer.DrawBlessingsTab(vm);
@@ -171,7 +172,8 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             isReligionFounder,
             State.VowsPageScrollY,
             blessingsPageScrollY: 0f,
-            isDescriptionExpanded: State.InfoState.IsDescriptionExpanded
+            isDescriptionExpanded: State.InfoState.IsDescriptionExpanded,
+            pendingUnlockState: GetPendingUnlockState()
         );
 
         var result = BlessingVowsTabRenderer.Draw(vm);
@@ -192,6 +194,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         if (result.RequestedActiveDeity is { } newActive && newActive != State.ActiveDeity)
         {
             State.ActiveDeity = newActive;
+            State.PendingUnlockBlessingId = null;
             State.TreeState.SelectedBlessingId = null;
             State.TreeState.PlayerScrollState.Reset();
             State.TreeState.ReligionScrollState.Reset();
@@ -244,6 +247,14 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
                     HandleUnlockClicked();
                     break;
 
+                case ActionsEvent.UnlockConfirmed:
+                    HandleUnlockConfirmed();
+                    break;
+
+                case ActionsEvent.UnlockCanceled:
+                    HandleUnlockCanceled();
+                    break;
+
                 case ActionsEvent.UnlockBlockedClicked:
                     _soundManager.PlayError();
                     break;
@@ -251,6 +262,11 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     }
 
 
+    /// <summary>
+    ///     Validates the selected blessing and, if eligible, opens the unlock confirmation
+    ///     dialog (#453) instead of dispatching immediately. The favor/prestige spend is only
+    ///     committed once the player confirms via <see cref="HandleUnlockConfirmed"/>.
+    /// </summary>
     private void HandleUnlockClicked()
     {
         if (State.TreeState.SelectedBlessingId == null) return;
@@ -273,7 +289,38 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
 
         _soundManager.PlayClick();
 
-        _uiService.RequestBlessingUnlock(selectedState.Blessing.BlessingId);
+        State.PendingUnlockBlessingId = selectedState.Blessing.BlessingId;
+    }
+
+    /// <summary>
+    ///     Dispatches the unlock request for the blessing awaiting confirmation (#453).
+    ///     Re-validates eligibility before sending — the server remains authoritative.
+    /// </summary>
+    private void HandleUnlockConfirmed()
+    {
+        var pendingId = State.PendingUnlockBlessingId;
+        State.PendingUnlockBlessingId = null;
+        if (string.IsNullOrEmpty(pendingId)) return;
+
+        var state = GetBlessingState(pendingId);
+        if (state == null || state.IsUnlocked || !state.CanUnlock) return;
+
+        _soundManager.PlayClick();
+        _uiService.RequestBlessingUnlock(pendingId);
+    }
+
+    /// <summary>Dismisses the unlock confirmation dialog (#453) with no side effects.</summary>
+    private void HandleUnlockCanceled()
+    {
+        State.PendingUnlockBlessingId = null;
+        _soundManager.PlayClick();
+    }
+
+    private BlessingNodeState? GetPendingUnlockState()
+    {
+        return string.IsNullOrEmpty(State.PendingUnlockBlessingId)
+            ? null
+            : GetBlessingState(State.PendingUnlockBlessingId);
     }
 
     private BlessingNodeState? GetBlessingState(string blessingId)

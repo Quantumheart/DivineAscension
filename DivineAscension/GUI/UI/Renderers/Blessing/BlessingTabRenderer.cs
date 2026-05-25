@@ -238,9 +238,20 @@ internal static class BlessingTabRenderer
             TooltipRenderer.Draw(tooltipData, mp.X, mp.Y, vm.WindowWidth, vm.WindowHeight);
         }
 
+        // --- Unlock confirmation modal (#453). Drawn last so the dim backdrop and dialog
+        // paint over the chapter content. The unlock request is only dispatched once the
+        // player confirms here.
+        IReadOnlyList<ActionsEvent> actionsEvents = System.Array.Empty<ActionsEvent>();
+        if (vm.PendingUnlockState != null)
+        {
+            var confirmEvents = new List<ActionsEvent>(2);
+            BlessingUnlockConfirmRenderer.Draw(vm.PendingUnlockState, confirmEvents);
+            actionsEvents = confirmEvents;
+        }
+
         return new BlessingTabRenderResult(
             treeEvents,
-            System.Array.Empty<ActionsEvent>(),
+            actionsEvents,
             hoveringBlessingId,
             vm.Height,
             requestedDeity,

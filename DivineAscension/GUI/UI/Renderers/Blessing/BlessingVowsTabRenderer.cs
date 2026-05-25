@@ -254,9 +254,21 @@ internal static class BlessingVowsTabRenderer
             TooltipRenderer.Draw(tooltipData, mp.X, mp.Y, vm.WindowWidth, vm.WindowHeight);
         }
 
+        // --- Unlock confirmation modal (#453). Drawn last (over scrollbar/tooltip) so the
+        // dim backdrop and dialog paint above the chapter; the Swear request only dispatches
+        // once the player confirms here.
+        var actionsEvents = actionsResult.Events;
+        if (vm.PendingUnlockState != null)
+        {
+            var confirmEvents = new List<ActionsEvent>(actionsResult.Events.Count + 2);
+            confirmEvents.AddRange(actionsResult.Events);
+            BlessingUnlockConfirmRenderer.Draw(vm.PendingUnlockState, confirmEvents);
+            actionsEvents = confirmEvents;
+        }
+
         return new BlessingTabRenderResult(
             treeEvents,
-            actionsResult.Events,
+            actionsEvents,
             hoveringBlessingId,
             vm.Height,
             requestedDeity,

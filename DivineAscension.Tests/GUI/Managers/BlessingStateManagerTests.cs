@@ -318,7 +318,7 @@ public class BlessingStateManagerTests
     }
 
     [Fact]
-    public void UnlockClicked_WithValidSelection_PlaysClickAndSendsRequest()
+    public void UnlockClicked_WithValidSelection_OpensConfirmation_DoesNotSendRequest()
     {
         // Arrange
         var blessing = CreateBlessing("bless-1", BlessingKind.Player);
@@ -337,8 +337,114 @@ public class BlessingStateManagerTests
         // Act
         _sut.ProcessBlessingTabEvents(result);
 
-        // Assert
+        // Assert — confirmation is staged, but no favor is spent until the player confirms (#453).
+        Assert.Equal("bless-1", _sut.State.PendingUnlockBlessingId);
+        _mockUiService.Verify(u => u.RequestBlessingUnlock(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public void UnlockConfirmed_AfterClick_SendsRequest_AndClearsPending()
+    {
+        // Arrange
+        var blessing = CreateBlessing("bless-1", BlessingKind.Player);
+        _sut.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
+        _sut.State.TreeState.SelectedBlessingId = "bless-1";
+        var node = _sut.State.PlayerBlessingStates["bless-1"];
+        node.CanUnlock = true;
+        node.IsUnlocked = false;
+
+        // Stage the confirmation first (Unlock click).
+        _sut.ProcessBlessingTabEvents(new BlessingTabRenderResult(
+            new List<TreeEvent>(),
+            new List<ActionsEvent> { new ActionsEvent.UnlockClicked() },
+            null,
+            100f));
+
+        // Act — player confirms.
+        _sut.ProcessBlessingTabEvents(new BlessingTabRenderResult(
+            new List<TreeEvent>(),
+            new List<ActionsEvent> { new ActionsEvent.UnlockConfirmed() },
+            null,
+            100f));
+
+        // Assert — request dispatched once and pending cleared.
         _mockUiService.Verify(u => u.RequestBlessingUnlock("bless-1"), Times.Once);
+        Assert.Null(_sut.State.PendingUnlockBlessingId);
+    }
+
+    [Fact]
+    public void UnlockCanceled_AfterClick_DoesNotSendRequest_AndClearsPending()
+    {
+        // Arrange
+        var blessing = CreateBlessing("bless-1", BlessingKind.Player);
+        _sut.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
+        _sut.State.TreeState.SelectedBlessingId = "bless-1";
+        var node = _sut.State.PlayerBlessingStates["bless-1"];
+        node.CanUnlock = true;
+        node.IsUnlocked = false;
+
+        // Stage the confirmation first (Unlock click).
+        _sut.ProcessBlessingTabEvents(new BlessingTabRenderResult(
+            new List<TreeEvent>(),
+            new List<ActionsEvent> { new ActionsEvent.UnlockClicked() },
+            null,
+            100f));
+
+        // Act — player cancels.
+        _sut.ProcessBlessingTabEvents(new BlessingTabRenderResult(
+            new List<TreeEvent>(),
+            new List<ActionsEvent> { new ActionsEvent.UnlockCanceled() },
+            null,
+            100f));
+
+        // Assert — nothing dispatched, pending cleared with no side effects.
+        _mockUiService.Verify(u => u.RequestBlessingUnlock(It.IsAny<string>()), Times.Never);
+        Assert.Null(_sut.State.PendingUnlockBlessingId);
+    }
+
+    [Fact]
+    public void UnlockConfirmed_WithNoPending_DoesNothing()
+    {
+        // Act — confirm with no staged unlock (e.g. stale event).
+        _sut.ProcessBlessingTabEvents(new BlessingTabRenderResult(
+            new List<TreeEvent>(),
+            new List<ActionsEvent> { new ActionsEvent.UnlockConfirmed() },
+            null,
+            100f));
+
+        // Assert
+        _mockUiService.Verify(u => u.RequestBlessingUnlock(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public void UnlockClicked_ReligionKind_StagesConfirmation_RequestSentOnConfirm()
+    {
+        // Arrange — religion-kind unlock binds a vow for the whole order, so it is also gated.
+        var vow = CreateBlessing("vow-1", BlessingKind.Religion);
+        _sut.LoadBlessingStates(new List<Blessing>(), new List<Blessing> { vow });
+        _sut.State.TreeState.SelectedBlessingId = "vow-1";
+        var node = _sut.State.ReligionBlessingStates["vow-1"];
+        node.CanUnlock = true;
+        node.IsUnlocked = false;
+
+        // Act — click stages, no request yet.
+        _sut.ProcessBlessingTabEvents(new BlessingTabRenderResult(
+            new List<TreeEvent>(),
+            new List<ActionsEvent> { new ActionsEvent.UnlockClicked() },
+            null,
+            100f));
+
+        Assert.Equal("vow-1", _sut.State.PendingUnlockBlessingId);
+        _mockUiService.Verify(u => u.RequestBlessingUnlock(It.IsAny<string>()), Times.Never);
+
+        // Confirm dispatches the vow.
+        _sut.ProcessBlessingTabEvents(new BlessingTabRenderResult(
+            new List<TreeEvent>(),
+            new List<ActionsEvent> { new ActionsEvent.UnlockConfirmed() },
+            null,
+            100f));
+
+        _mockUiService.Verify(u => u.RequestBlessingUnlock("vow-1"), Times.Once);
     }
 
     #endregion
