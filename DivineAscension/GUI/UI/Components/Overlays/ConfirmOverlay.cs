@@ -30,11 +30,17 @@ internal static class ConfirmOverlay
         confirmed = false;
         canceled = false;
 
+        // Flag this as a modal so the dialog chrome stops reacting to click-through this frame.
+        ModalInputGuard.MarkOpen();
+
         // Use localized defaults if not provided
         confirmLabel ??= LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_CONFIRM);
         cancelLabel ??= LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_CANCEL);
 
-        var drawList = ImGui.GetWindowDrawList();
+        // Draw on the viewport foreground list so the backdrop and dialog paint above
+        // everything — including tree nodes drawn inside ImGui child windows, whose draw
+        // lists otherwise composite over the parent window's list.
+        var drawList = ImGui.GetForegroundDrawList();
         var winPos = ImGui.GetWindowPos();
         var winSize = ImGui.GetWindowSize();
 
