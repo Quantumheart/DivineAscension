@@ -281,7 +281,10 @@ public static class LysaEffectHandlers
             var satiety = player.Entity.Stats.GetBlended(VintageStoryStats.CarcassCommunion);
             if (satiety <= 0) return;
 
-            player.Entity.GetBehavior<EntityBehaviorHunger>()?.ReceiveSaturation(satiety);
+            var hunger = player.Entity.GetBehavior<EntityBehaviorHunger>();
+            if (hunger == null) return;
+
+            hunger.Saturation = Math.Min(hunger.MaxSaturation, hunger.Saturation + satiety);
         }
     }
 }
