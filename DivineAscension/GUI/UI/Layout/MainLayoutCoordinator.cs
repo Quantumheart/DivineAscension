@@ -47,6 +47,12 @@ internal static class MainLayoutCoordinator
             : (DeityDomain?)null;
         ChromeContext.SetFrame(patronDomain);
 
+        // While the blessing unlock confirmation is open it is modal (#453): the dim backdrop
+        // can't stop immediate-mode hit-testing, so suppress all dialog chrome (title close,
+        // sidebar nav, page turn) this frame. Only the confirm/cancel buttons drawn by the
+        // content stay live. Read at frame start — the dialog persists until resolved.
+        var modalOpen = manager.BlessingStateManager.State.PendingUnlockBlessingId != null;
+
         var windowPos = ImGui.GetWindowPos();
         var outer = new UiRect(windowPos.X, windowPos.Y, windowWidth, windowHeight);
 
@@ -70,7 +76,7 @@ internal static class MainLayoutCoordinator
         // sidebar collapsed state because it lives above the column split.
         var inner = outer.Inset(OuterPadding);
         var titleStrip = new UiRect(inner.X, inner.Y, inner.W, TopChromeHeight);
-        if (TitleStripRenderer.Draw(titleStrip, manager))
+        if (TitleStripRenderer.Draw(titleStrip, manager) && !modalOpen)
         {
             state.RequestClose = true;
         }
@@ -83,7 +89,8 @@ internal static class MainLayoutCoordinator
         var sidebarCtx = SidebarNavMapper.ContextFromManager(manager, state.Sidebar);
         var sidebarVm = SidebarNavMapper.BuildViewModel(sidebarCtx);
         var sidebarEvents = SidebarRenderer.Draw(sidebar, sidebarVm);
-        ApplySidebarEvents(sidebarEvents, manager, state);
+        if (!modalOpen)
+            ApplySidebarEvents(sidebarEvents, manager, state);
 
         // Reserve a footer strip at the bottom of the content rect for the
         // page-turn affordance. The dispatched content draws into the
@@ -105,10 +112,12 @@ internal static class MainLayoutCoordinator
                 content.W,
                 PageTurnFooterRenderer.FooterHeight);
             var footerEvents = PageTurnFooterRenderer.Draw(footerRect, content, pagePosition);
-            ApplySidebarEvents(footerEvents, manager, state);
+            if (!modalOpen)
+                ApplySidebarEvents(footerEvents, manager, state);
         }
 
-        ApplyPageTurnKeyboard(pagePosition, manager, state);
+        if (!modalOpen)
+            ApplyPageTurnKeyboard(pagePosition, manager, state);
 
         ImGui.PopStyleColor(8);
     }

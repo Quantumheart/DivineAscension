@@ -192,48 +192,56 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     {
         State.TreeState.HoveringBlessingId = result.HoveringBlessingId;
 
-        if (result.RequestedVowsScrollY is { } vowsScrollY)
-            State.VowsPageScrollY = vowsScrollY;
+        // The unlock confirmation behaves as a modal (#453): while it's open, ignore every
+        // background interaction (scroll, deity switch, tree select/double-click) — clicks
+        // behind the dim backdrop fall through in immediate mode, so we drop their effects
+        // here and act only on the dialog's own confirm/cancel events below.
+        var modalOpen = State.PendingUnlockBlessingId != null;
 
-        if (result.RequestedPageScrollY is { } pageScrollY)
-            State.BlessingsPageScrollY = pageScrollY;
-
-        if (result.RequestedActiveDeity is { } newActive && newActive != State.ActiveDeity)
+        if (!modalOpen)
         {
-            State.ActiveDeity = newActive;
-            State.PendingUnlockBlessingId = null;
-            State.TreeState.SelectedBlessingId = null;
-            State.TreeState.PlayerScrollState.Reset();
-            State.TreeState.ReligionScrollState.Reset();
-            _soundManager.PlayClick();
-        }
+            if (result.RequestedVowsScrollY is { } vowsScrollY)
+                State.VowsPageScrollY = vowsScrollY;
 
-        foreach (var ev in result.TreeEvents)
-            switch (ev)
+            if (result.RequestedPageScrollY is { } pageScrollY)
+                State.BlessingsPageScrollY = pageScrollY;
+
+            if (result.RequestedActiveDeity is { } newActive && newActive != State.ActiveDeity)
             {
-                case TreeEvent.Selected e:
-                    State.TreeState.SelectedBlessingId = e.BlessingId;
-                    _soundManager.PlayClick();
-                    break;
-
-                case TreeEvent.DoubleClicked e:
-                    State.TreeState.SelectedBlessingId = e.BlessingId;
-                    HandleUnlockClicked();
-                    break;
-
-                case TreeEvent.Hovered:
-                    break;
-
-                case TreeEvent.PlayerTreeScrollChanged e:
-                    State.TreeState.PlayerScrollState.X = e.ScrollX;
-                    State.TreeState.PlayerScrollState.Y = e.ScrollY;
-                    break;
-
-                case TreeEvent.ReligionTreeScrollChanged e:
-                    State.TreeState.ReligionScrollState.X = e.ScrollX;
-                    State.TreeState.ReligionScrollState.Y = e.ScrollY;
-                    break;
+                State.ActiveDeity = newActive;
+                State.TreeState.SelectedBlessingId = null;
+                State.TreeState.PlayerScrollState.Reset();
+                State.TreeState.ReligionScrollState.Reset();
+                _soundManager.PlayClick();
             }
+
+            foreach (var ev in result.TreeEvents)
+                switch (ev)
+                {
+                    case TreeEvent.Selected e:
+                        State.TreeState.SelectedBlessingId = e.BlessingId;
+                        _soundManager.PlayClick();
+                        break;
+
+                    case TreeEvent.DoubleClicked e:
+                        State.TreeState.SelectedBlessingId = e.BlessingId;
+                        HandleUnlockClicked();
+                        break;
+
+                    case TreeEvent.Hovered:
+                        break;
+
+                    case TreeEvent.PlayerTreeScrollChanged e:
+                        State.TreeState.PlayerScrollState.X = e.ScrollX;
+                        State.TreeState.PlayerScrollState.Y = e.ScrollY;
+                        break;
+
+                    case TreeEvent.ReligionTreeScrollChanged e:
+                        State.TreeState.ReligionScrollState.X = e.ScrollX;
+                        State.TreeState.ReligionScrollState.Y = e.ScrollY;
+                        break;
+                }
+        }
 
         foreach (var ev in result.ActionsEvents)
             switch (ev)
