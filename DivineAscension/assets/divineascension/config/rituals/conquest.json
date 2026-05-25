@@ -25,7 +25,7 @@
               "displayName": "Weapons (Any Metal)",
               "quantity": 15,
               "type": "Category",
-              "itemCodes": ["game:sword-*", "game:spear-*", "game:bow-*"]
+              "itemCodes": ["game:blade-*", "game:spear-*", "game:bow-*"]
             }
           ]
         },
@@ -73,7 +73,7 @@
               "displayName": "Steel or Better Weapons",
               "quantity": 5,
               "type": "Category",
-              "itemCodes": ["game:sword-steel", "game:spear-steel", "game:bow-recurve"]
+              "itemCodes": ["game:blade-*-steel", "game:spear-*-steel", "game:bow-recurve"]
             }
           ]
         },
