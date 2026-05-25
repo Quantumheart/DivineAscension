@@ -250,6 +250,7 @@
   "divineascension:ui.blessing.page.intro": "The boons each Domain grants to those who serve. Choose your path through the tree.",
   "divineascension:ui.blessing.page.across_domains": "Across the Domains",
   "divineascension:ui.blessing.page.inscribed_row": "{0} of {1} inscribed",
+  "divineascension:ui.blessing.page.inscribed_row_favor": "{0} favor · {1} of {2} inscribed",
   "divineascension:ui.blessing.page.patron_heading": "Of {0}",
   "divineascension:ui.blessing.page.selected_heading": "Of the Selected Blessing",
   "divineascension:ui.blessing.page.slots_heading": "Blessing Slots",

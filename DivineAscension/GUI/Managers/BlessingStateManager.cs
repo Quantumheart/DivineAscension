@@ -104,6 +104,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
 
     public void DrawBlessingsTab(float windowPosX, float windowPosY, float width, float contentHeight, int windowWidth,
         int windowHeight, float deltaTime, int playerFavor, int religionPrestige, DeityDomain patronDomain,
+        Dictionary<DeityDomain, int>? favorByDeity = null,
         Dictionary<DeityDomain, int>? favorRanksByDeity = null,
         Dictionary<DeityDomain, int>? totalFavorEarnedByDeity = null,
         int discipleThreshold = 500, int zealotThreshold = 2000,
@@ -111,6 +112,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     {
         var summaries = BuildDeitySummaries(
             patronDomain,
+            favorByDeity ?? new Dictionary<DeityDomain, int>(),
             favorRanksByDeity ?? new Dictionary<DeityDomain, int>(),
             totalFavorEarnedByDeity ?? new Dictionary<DeityDomain, int>(),
             discipleThreshold, zealotThreshold, championThreshold, avatarThreshold);
@@ -161,6 +163,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     public void DrawVowsTab(float windowPosX, float windowPosY, float width, float contentHeight, int windowWidth,
         int windowHeight, float deltaTime, int playerFavor, int religionPrestige, DeityDomain patronDomain,
         bool isReligionFounder, string? patronDeityName, int prestigeNextThreshold,
+        Dictionary<DeityDomain, int>? favorByDeity = null,
         Dictionary<DeityDomain, int>? favorRanksByDeity = null,
         Dictionary<DeityDomain, int>? totalFavorEarnedByDeity = null,
         int discipleThreshold = 500, int zealotThreshold = 2000,
@@ -171,6 +174,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
 
         var summaries = BuildDeitySummaries(
             patronDomain,
+            favorByDeity ?? new Dictionary<DeityDomain, int>(),
             favorRanksByDeity ?? new Dictionary<DeityDomain, int>(),
             totalFavorEarnedByDeity ?? new Dictionary<DeityDomain, int>(),
             discipleThreshold, zealotThreshold, championThreshold, avatarThreshold);
@@ -591,6 +595,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
 
     private List<DeityBlessingSummary> BuildDeitySummaries(
         DeityDomain patronDomain,
+        Dictionary<DeityDomain, int> favorByDeity,
         Dictionary<DeityDomain, int> favorRanksByDeity,
         Dictionary<DeityDomain, int> totalFavorEarnedByDeity,
         int discipleThreshold, int zealotThreshold, int championThreshold, int avatarThreshold)
@@ -599,6 +604,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         foreach (var domain in AllDeities)
         {
             var rank = favorRanksByDeity.GetValueOrDefault(domain);
+            var currentFavor = favorByDeity.GetValueOrDefault(domain);
             var totalFavor = totalFavorEarnedByDeity.GetValueOrDefault(domain);
             var requiredForNext = RankRequirements.GetRequiredFavorForNextRank(
                 rank, discipleThreshold, zealotThreshold, championThreshold, avatarThreshold);
@@ -624,6 +630,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             list.Add(new DeityBlessingSummary(
                 Domain: domain,
                 FavorRank: rank,
+                CurrentFavor: currentFavor,
                 TotalFavorEarned: totalFavor,
                 FavorRequiredForNext: requiredForNext,
                 IsMaxRank: rank >= 4,

@@ -331,6 +331,7 @@ public static class LocalizationKeys
     public const string UI_BLESSING_PAGE_INTRO = "divineascension:ui.blessing.page.intro";
     public const string UI_BLESSING_PAGE_ACROSS_DOMAINS = "divineascension:ui.blessing.page.across_domains";
     public const string UI_BLESSING_PAGE_INSCRIBED_ROW = "divineascension:ui.blessing.page.inscribed_row";
+    public const string UI_BLESSING_PAGE_INSCRIBED_ROW_FAVOR = "divineascension:ui.blessing.page.inscribed_row_favor";
     public const string UI_BLESSING_PAGE_PATRON_HEADING = "divineascension:ui.blessing.page.patron_heading";
     public const string UI_BLESSING_PAGE_SELECTED_HEADING = "divineascension:ui.blessing.page.selected_heading";
     public const string UI_BLESSING_PAGE_SLOTS_HEADING = "divineascension:ui.blessing.page.slots_heading";

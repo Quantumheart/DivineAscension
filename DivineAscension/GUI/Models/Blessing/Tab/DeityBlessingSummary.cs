@@ -8,6 +8,7 @@ namespace DivineAscension.GUI.Models.Blessing.Tab;
 public readonly record struct DeityBlessingSummary(
     DeityDomain Domain,
     int FavorRank,
+    int CurrentFavor,
     int TotalFavorEarned,
     int FavorRequiredForNext,
     bool IsMaxRank,

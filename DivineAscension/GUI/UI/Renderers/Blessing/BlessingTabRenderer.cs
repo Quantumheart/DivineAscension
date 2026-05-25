@@ -129,8 +129,11 @@ internal static class BlessingTabRenderer
 
         foreach (var summary in vm.DeitySummaries)
         {
-            var inscribed = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_INSCRIBED_ROW,
-                summary.UnlockedPlayer, summary.TotalPlayer);
+            // Show per-domain spendable favor alongside the inscription count — favor is
+            // tracked separately per domain and gates cross-domain unlock costs (1.5x for
+            // non-patron domains), so the patron-only balance below isn't enough on its own.
+            var inscribed = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_INSCRIBED_ROW_FAVOR,
+                summary.CurrentFavor, summary.UnlockedPlayer, summary.TotalPlayer);
             ChromeRenderer.DrawLeader(drawList,
                 summary.Domain.ToString(), inscribed,
                 vm.X + Padding, topY, contentWidth - Padding * 2,
