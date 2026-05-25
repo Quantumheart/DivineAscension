@@ -25,6 +25,12 @@ public class BlessingTabState
     /// </summary>
     public DeityDomain ActiveDeity { get; set; } = DeityDomain.Craft;
 
+    /// <summary>
+    ///     Blessing id awaiting unlock confirmation (#453). Non-null while the confirmation
+    ///     dialog is open; the unlock request is only dispatched once the player confirms.
+    /// </summary>
+    public string? PendingUnlockBlessingId { get; set; }
+
     /// <summary>Vertical scroll position of the Vows page (I.iii).</summary>
     public float VowsPageScrollY { get; set; }
 
@@ -58,6 +64,7 @@ public class BlessingTabState
         PlayerBlessingStatesByDeity.Clear();
         ReligionBlessingStatesByDeity.Clear();
         ActiveDeity = DeityDomain.Craft;
+        PendingUnlockBlessingId = null;
         VowsPageScrollY = 0f;
         BlessingsPageScrollY = 0f;
     }

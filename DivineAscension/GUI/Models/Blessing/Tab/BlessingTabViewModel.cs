@@ -33,7 +33,8 @@ public readonly struct BlessingTabViewModel(
     float blessingsPageScrollY = 0f,
     bool isDescriptionExpanded = false,
     int unlockedPlayerCount = 0,
-    int maxBlessingSlots = 0
+    int maxBlessingSlots = 0,
+    BlessingNodeState? pendingUnlockState = null
 )
 {
     public float X { get; } = x;
@@ -82,4 +83,10 @@ public readonly struct BlessingTabViewModel(
 
     /// <summary>Maximum personal blessing unlock slots (favor rank + prestige bonus). 0 when not yet synced.</summary>
     public int MaxBlessingSlots { get; } = maxBlessingSlots;
+
+    /// <summary>
+    ///     The blessing awaiting unlock confirmation (#453), or null when no dialog is open.
+    ///     When set, the page renders a modal confirmation summarizing the favor/prestige spend.
+    /// </summary>
+    public BlessingNodeState? PendingUnlockState { get; } = pendingUnlockState;
 }

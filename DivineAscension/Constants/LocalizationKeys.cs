@@ -316,6 +316,10 @@ public static class LocalizationKeys
     public const string UI_BLESSING_UNLOCK_BUTTON = "divineascension:ui.blessing.unlock";
     public const string UI_BLESSING_INSCRIBE_BUTTON = "divineascension:ui.blessing.inscribe";
     public const string UI_BLESSING_SWEAR_BUTTON = "divineascension:ui.blessing.swear";
+    public const string UI_BLESSING_CONFIRM_INSCRIBE_TITLE = "divineascension:ui.blessing.confirm.inscribe.title";
+    public const string UI_BLESSING_CONFIRM_INSCRIBE_MESSAGE = "divineascension:ui.blessing.confirm.inscribe.message";
+    public const string UI_BLESSING_CONFIRM_SWEAR_TITLE = "divineascension:ui.blessing.confirm.swear.title";
+    public const string UI_BLESSING_CONFIRM_SWEAR_MESSAGE = "divineascension:ui.blessing.confirm.swear.message";
     public const string UI_BLESSING_READ_MORE = "divineascension:ui.blessing.read_more";
     public const string UI_BLESSING_READ_LESS = "divineascension:ui.blessing.read_less";
     public const string UI_BLESSING_PAGE_TITLE = "divineascension:ui.blessing.page.title";
