@@ -65,6 +65,16 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
     public bool FreeRespecActive { get; set; }
 
     /// <summary>
+    ///     Maximum religion blessings the religion may inscribe at its current prestige rank (#479),
+    ///     synced from <see cref="DivineAscension.Network.BlessingDataResponsePacket" />. 0 means
+    ///     "not yet known"; the server is authoritative either way.
+    /// </summary>
+    public int ReligionBlessingSlotCap { get; set; }
+
+    /// <summary>Count of religion blessings currently inscribed, synced from the server (#479).</summary>
+    public int ReligionBlessingSlotUsed { get; set; }
+
+    /// <summary>
     ///     Count of unlocked personal (player-kind) blessings across every deity. This is the
     ///     value compared against <see cref="MaxPlayerBlessingSlots"/> for the cap.
     /// </summary>
@@ -198,7 +208,12 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             patronDeityName,
             State.VowsPageScrollY,
             blessingsPageScrollY: 0f,
-            pendingUnlockState: GetPendingUnlockState()
+            pendingUnlockState: GetPendingUnlockState(),
+            pendingUnlearnState: GetPendingUnlearnState(),
+            pendingUnlearnCascadeNames: GetPendingUnlearnPreview(out var vowUnlearnRefundTotal),
+            pendingUnlearnRefundTotal: vowUnlearnRefundTotal,
+            religionBlessingSlotUsed: ReligionBlessingSlotUsed,
+            religionBlessingSlotCap: ReligionBlessingSlotCap
         );
 
         var result = BlessingVowsTabRenderer.Draw(vm);
@@ -294,19 +309,32 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         var selectedState = GetBlessingState(State.TreeState.SelectedBlessingId);
         if (selectedState == null) return;
 
-        // Double-clicking an owned personal blessing unlearns it (epic #425, slice 1 — #459).
-        // Religion vows aren't unlearnable here; the favor refund is the only cost (no cooldown).
-        // The confirm dialog with a kill list arrives with the cascade slice — dispatch directly.
+        // Double-clicking an owned blessing strikes it: personal blessings (#459) for anyone,
+        // religion vows (#484) for the founder only. The refund (favor/prestige) is the only cost
+        // — no cooldown. Both open the confirm dialog; the request dispatches on confirm.
         if (selectedState.IsUnlocked)
         {
-            if (selectedState.Blessing.Kind == BlessingKind.Player
-                && !string.IsNullOrEmpty(selectedState.Blessing.BlessingId))
+            if (string.IsNullOrEmpty(selectedState.Blessing.BlessingId))
+                return;
+
+            if (selectedState.Blessing.Kind == BlessingKind.Player)
             {
-                // Open the unlearn confirmation dialog instead of dispatching immediately —
-                // mirrors the unlock confirm flow (#453); request is sent on confirm (#459).
                 _soundManager.PlayClick();
                 State.PendingUnlearnBlessingId = selectedState.Blessing.BlessingId;
             }
+            else if (selectedState.Blessing.Kind == BlessingKind.Religion && IsReligionFounder)
+            {
+                // Founder-only — mirror the server gate so non-founders never reach the dialog.
+                _soundManager.PlayClick();
+                State.PendingUnlearnBlessingId = selectedState.Blessing.BlessingId;
+            }
+            else if (selectedState.Blessing.Kind == BlessingKind.Religion)
+            {
+                _coreClientApi.ShowChatMessage(
+                    LocalizationService.Instance.Get(LocalizationKeys.SIDEBAR_DISABLED_SWEAR_FOUNDER_ONLY));
+                _soundManager.PlayError();
+            }
+
             return;
         }
 
@@ -382,10 +410,19 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         if (string.IsNullOrEmpty(pendingId)) return;
 
         var state = GetBlessingState(pendingId);
-        if (state == null || !state.IsUnlocked || state.Blessing.Kind != BlessingKind.Player) return;
+        if (state == null || !state.IsUnlocked) return;
 
-        _soundManager.PlayClick();
-        _uiService.RequestBlessingUnlearn(pendingId);
+        // Route by kind: personal unlearn (#459) vs founder-only religion strike (#484).
+        if (state.Blessing.Kind == BlessingKind.Player)
+        {
+            _soundManager.PlayClick();
+            _uiService.RequestBlessingUnlearn(pendingId);
+        }
+        else if (state.Blessing.Kind == BlessingKind.Religion && IsReligionFounder)
+        {
+            _soundManager.PlayClick();
+            _uiService.RequestReligionBlessingUnlearn(pendingId);
+        }
     }
 
     /// <summary>Dismisses the unlearn confirmation dialog (#459) with no side effects.</summary>
@@ -414,8 +451,15 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         if (string.IsNullOrEmpty(State.PendingUnlearnBlessingId))
             return null;
 
+        // Resolve against the matching tree: religion vows cascade within the religion set,
+        // personal blessings within the player set (#484).
+        var pendingNode = GetBlessingState(State.PendingUnlearnBlessingId);
+        var sourceBuckets = pendingNode?.Blessing.Kind == BlessingKind.Religion
+            ? State.ReligionBlessingStatesByDeity.Values
+            : State.PlayerBlessingStatesByDeity.Values;
+
         var nodesById = new Dictionary<string, BlessingNodeState>();
-        foreach (var bucket in State.PlayerBlessingStatesByDeity.Values)
+        foreach (var bucket in sourceBuckets)
             foreach (var kv in bucket)
                 nodesById[kv.Key] = kv.Value;
 

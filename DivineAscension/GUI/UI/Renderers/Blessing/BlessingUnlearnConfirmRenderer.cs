@@ -4,6 +4,7 @@ using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Blessing;
 using DivineAscension.GUI.UI.Components.Overlays;
 using DivineAscension.Models;
+using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 
 namespace DivineAscension.GUI.UI.Renderers.Blessing;
@@ -24,7 +25,13 @@ internal static class BlessingUnlearnConfirmRenderer
         List<ActionsEvent> events)
     {
         var blessing = pending.Blessing;
-        var title = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_CONFIRM_UNLEARN_TITLE);
+        var isReligion = blessing.Kind == BlessingKind.Religion;
+
+        // Religion vows reclaim prestige and use founder-voiced strings (#484); personal blessings
+        // reclaim favor. Both share the cascade list header and Strike confirm label.
+        var title = isReligion
+            ? LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_CONFIRM_RELIGION_STRIKE_TITLE)
+            : LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_CONFIRM_UNLEARN_TITLE);
 
         // cascadeNames includes the target first; count > 1 means children cascade too.
         var isCascade = cascadeNames is { Count: > 1 };
@@ -33,9 +40,10 @@ internal static class BlessingUnlearnConfirmRenderer
         if (isCascade)
         {
             var dependents = cascadeNames!.Count - 1;
-            message = LocalizationService.Instance.Get(
-                          LocalizationKeys.UI_BLESSING_CONFIRM_UNLEARN_CASCADE_MESSAGE,
-                          blessing.Name, dependents, refundTotal)
+            var cascadeKey = isReligion
+                ? LocalizationKeys.UI_BLESSING_CONFIRM_RELIGION_STRIKE_CASCADE_MESSAGE
+                : LocalizationKeys.UI_BLESSING_CONFIRM_UNLEARN_CASCADE_MESSAGE;
+            message = LocalizationService.Instance.Get(cascadeKey, blessing.Name, dependents, refundTotal)
                       + " "
                       + LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_CONFIRM_UNLEARN_CASCADE_LIST_HEADER)
                       + " "
@@ -43,10 +51,12 @@ internal static class BlessingUnlearnConfirmRenderer
         }
         else
         {
-            // The favor the player actually paid (patron multiplier mirrors the server's AdjustedCost).
+            // The cost actually paid (patron multiplier mirrors the server's AdjustedCost).
             var paidCost = (int)(blessing.Cost * pending.NonPatronCostMultiplier);
-            message = LocalizationService.Instance.Get(
-                LocalizationKeys.UI_BLESSING_CONFIRM_UNLEARN_MESSAGE, blessing.Name, paidCost);
+            var messageKey = isReligion
+                ? LocalizationKeys.UI_BLESSING_CONFIRM_RELIGION_STRIKE_MESSAGE
+                : LocalizationKeys.UI_BLESSING_CONFIRM_UNLEARN_MESSAGE;
+            message = LocalizationService.Instance.Get(messageKey, blessing.Name, paidCost);
         }
 
         var confirmLabel = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_UNLEARN_BUTTON);
