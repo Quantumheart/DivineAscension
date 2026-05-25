@@ -28,7 +28,7 @@ public class ConquestRitualConfigTests
     [InlineData("game:armor-legs-brigandine-gold")]
     public void AncientArmorRequirement_MatchesRealVsArmorCodes(string armorCode)
     {
-        var requirement = LoadAncientArmorRequirement();
+        var requirement = LoadRequirement("ancient_armor");
         var matcher = new RitualMatcher();
 
         var matched = matcher.DoesItemMatchRequirement(CreateItemStack(armorCode), requirement);
@@ -41,13 +41,49 @@ public class ConquestRitualConfigTests
     [InlineData("game:armor-body-chain-leather")] // chain/scale are not "ancient" armor types
     public void AncientArmorRequirement_DoesNotMatchUnrelatedItems(string code)
     {
-        var requirement = LoadAncientArmorRequirement();
+        var requirement = LoadRequirement("ancient_armor");
         var matcher = new RitualMatcher();
 
         Assert.False(matcher.DoesItemMatchRequirement(CreateItemStack(code), requirement));
     }
 
-    private static RitualRequirement LoadAncientArmorRequirement()
+    // VS melee blades are blade-{type}-{metal}; there is no "sword" item (#467).
+    [Theory]
+    [InlineData("game:blade-longsword-steel")]
+    [InlineData("game:blade-arming-iron")]
+    [InlineData("game:blade-gladius-copper")]
+    [InlineData("game:spear-generic-copper")]
+    [InlineData("game:bow-recurve")]
+    public void WeaponsRequirement_MatchesRealVsWeaponCodes(string code)
+    {
+        var requirement = LoadRequirement("weapons");
+        var matched = new RitualMatcher().DoesItemMatchRequirement(CreateItemStack(code), requirement);
+
+        Assert.True(matched, $"Weapons requirement should match '{code}'.");
+    }
+
+    [Theory]
+    [InlineData("game:blade-longsword-steel")]
+    [InlineData("game:spear-boar-steel")]
+    [InlineData("game:bow-recurve")]
+    public void EliteWeaponsRequirement_MatchesSteelTierWeapons(string code)
+    {
+        var requirement = LoadRequirement("elite_weapons");
+        var matched = new RitualMatcher().DoesItemMatchRequirement(CreateItemStack(code), requirement);
+
+        Assert.True(matched, $"Elite weapons requirement should match '{code}'.");
+    }
+
+    [Theory]
+    [InlineData("game:blade-longsword-copper")] // not steel tier
+    [InlineData("game:spear-generic-iron")]      // not steel tier
+    public void EliteWeaponsRequirement_DoesNotMatchSubSteelWeapons(string code)
+    {
+        var requirement = LoadRequirement("elite_weapons");
+        Assert.False(new RitualMatcher().DoesItemMatchRequirement(CreateItemStack(code), requirement));
+    }
+
+    private static RitualRequirement LoadRequirement(string requirementId)
     {
         var path = Path.Combine(AppContext.BaseDirectory,
             "assets", "divineascension", "config", "rituals", "conquest.json");
@@ -60,7 +96,7 @@ public class ConquestRitualConfigTests
         var dto = fileDto!.Rituals
             .SelectMany(r => r.Steps)
             .SelectMany(s => s.Requirements)
-            .FirstOrDefault(req => req.RequirementId == "ancient_armor");
+            .FirstOrDefault(req => req.RequirementId == requirementId);
         Assert.NotNull(dto);
 
         Assert.True(Enum.TryParse<RequirementType>(dto!.Type, true, out var type));
