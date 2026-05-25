@@ -119,6 +119,27 @@ public class GameBalanceConfig
     /// <summary>Hard cap on total active blessing slots (favor + prestige bonus).</summary>
     public const int MaxTotalBlessingSlots = 8;
 
+    // === RELIGION BLESSING SLOTS ===
+
+    // Inscribe-slot cap on religion blessings, scaling with the religion's prestige rank (#479).
+    // Unlike personal slots these are not additive — the religion gets exactly this many slots at
+    // each rank. Mythic max stays below the reachable blessing count so the cap binds at every tier.
+
+    /// <summary>Religion blessing inscribe slots at Fledgling prestige rank (default: 2)</summary>
+    public int FledglingReligionBlessingSlots { get; set; } = 2;
+
+    /// <summary>Religion blessing inscribe slots at Established prestige rank (default: 3)</summary>
+    public int EstablishedReligionBlessingSlots { get; set; } = 3;
+
+    /// <summary>Religion blessing inscribe slots at Renowned prestige rank (default: 4)</summary>
+    public int RenownedReligionBlessingSlots { get; set; } = 4;
+
+    /// <summary>Religion blessing inscribe slots at Legendary prestige rank (default: 5)</summary>
+    public int LegendaryReligionBlessingSlots { get; set; } = 5;
+
+    /// <summary>Religion blessing inscribe slots at Mythic prestige rank (default: 6)</summary>
+    public int MythicReligionBlessingSlots { get; set; } = 6;
+
     // === BLESSING UNLEARN ===
 
     /// <summary>
@@ -234,6 +255,7 @@ public class GameBalanceConfig
         }
 
         ValidateBlessingSlots();
+        ValidateReligionBlessingSlots();
 
         if (UnlearnRefundPercent < 0f || UnlearnRefundPercent > 1f)
         {
@@ -286,6 +308,26 @@ public class GameBalanceConfig
                     throw new InvalidOperationException(
                         $"Total active blessing slots (favor + prestige bonus) must not exceed {MaxTotalBlessingSlots}");
                 }
+            }
+        }
+    }
+
+    private void ValidateReligionBlessingSlots()
+    {
+        int[] religionSlots =
+        {
+            FledglingReligionBlessingSlots,
+            EstablishedReligionBlessingSlots,
+            RenownedReligionBlessingSlots,
+            LegendaryReligionBlessingSlots,
+            MythicReligionBlessingSlots
+        };
+
+        foreach (var slots in religionSlots)
+        {
+            if (slots < 0)
+            {
+                throw new InvalidOperationException("Religion blessing slot counts must be >= 0");
             }
         }
     }
