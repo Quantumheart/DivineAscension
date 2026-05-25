@@ -14,8 +14,7 @@ public readonly struct BlessingTabRenderResult(
     float renderedHeight,
     DeityDomain? requestedActiveDeity = null,
     float? requestedVowsScrollY = null,
-    float? requestedPageScrollY = null,
-    IReadOnlyList<InfoEvent>? infoEvents = null)
+    float? requestedPageScrollY = null)
 {
     public IReadOnlyList<TreeEvent> TreeEvents { get; } = treeEvents;
     public IReadOnlyList<ActionsEvent> ActionsEvents { get; } = actionsEvents;
@@ -39,9 +38,4 @@ public readonly struct BlessingTabRenderResult(
     ///     the new value to <see cref="State.BlessingTabState.BlessingsPageScrollY"/>.
     /// </summary>
     public float? RequestedPageScrollY { get; } = requestedPageScrollY;
-
-    /// <summary>
-    ///     Events emitted by the blessing info pane (e.g. Read more toggled).
-    /// </summary>
-    public IReadOnlyList<InfoEvent> InfoEvents { get; } = infoEvents ?? System.Array.Empty<InfoEvent>();
 }

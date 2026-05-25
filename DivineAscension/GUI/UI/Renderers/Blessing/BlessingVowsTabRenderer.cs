@@ -4,12 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Blessing;
-using DivineAscension.GUI.Models.Blessing.Actions;
-using DivineAscension.GUI.Models.Blessing.Info;
 using DivineAscension.GUI.Models.Blessing.Tab;
 using DivineAscension.GUI.Models.Blessing.Tree;
 using DivineAscension.GUI.UI.Components.Lists;
-using DivineAscension.GUI.UI.Renderers.Blessing.Info;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
@@ -23,8 +20,10 @@ namespace DivineAscension.GUI.UI.Renderers.Blessing;
 /// <summary>
 ///     I.iii — Vows of the Order, rendered as a scrollable ledger chapter.
 ///     Title strip, prose intro, dotted-leader cross-domain summary,
-///     patron sub-heading with prestige balance, deity selector, communal
-///     tree pane, selected-vow detail, founder-gated [Swear] footer.
+///     patron sub-heading with prestige balance, deity selector, and the
+///     communal tree pane. Unlock is by double-click (founder-gated and
+///     confirmed in the manager), mirroring the Blessings page — no detail
+///     pane or action footer.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class BlessingVowsTabRenderer
@@ -35,8 +34,6 @@ internal static class BlessingVowsTabRenderer
     private const float DividerSpacing = 18f;
     private const float ScrollbarWidth = 16f;
     private const float TreePaneHeight = 360f;
-    private const float InfoPanelHeight = 220f;
-    private const float ActionButtonHeight = 36f;
 
     internal static BlessingTabRenderResult Draw(BlessingTabViewModel vm)
     {
@@ -177,52 +174,15 @@ internal static class BlessingVowsTabRenderer
                 case TreeEvent.ScrollChanged sc:
                     treeEvents.Add(new TreeEvent.ReligionTreeScrollChanged(sc.ScrollX, sc.ScrollY));
                     break;
-                case TreeEvent.DoubleClicked:
-                    // Vows-side unlock has founder-gated, communal-specific flow; ignore for now.
-                    break;
                 default:
+                    // Double-click unlocks the vow, mirroring the Blessings page; the
+                    // founder gate and confirmation live in the manager (#453).
                     treeEvents.Add(ev);
                     break;
             }
         }
 
         topY += TreePaneHeight + 6f;
-        ChromeRenderer.DrawDivider(drawList, vm.X, topY, contentWidth);
-        topY += DividerSpacing;
-
-        // --- "Of the Selected Vow" sub-heading + reused info pane.
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_VOWS_SELECTED_HEADING),
-            vm.X + Padding, topY, SubsectionLabel, ColorPalette.White);
-        topY += SectionLabelHeight;
-
-        var religionOnlyStates = new Dictionary<string, BlessingNodeState>(vm.ReligionBlessingStates);
-        var communalSelected = vm.SelectedBlessingState != null
-                               && vm.SelectedBlessingState.Blessing.Kind == BlessingKind.Religion
-            ? vm.SelectedBlessingState
-            : null;
-
-        var infoVm = new BlessingInfoViewModel(
-            communalSelected,
-            religionOnlyStates,
-            vm.X, topY,
-            contentWidth, InfoPanelHeight,
-            vm.PlayerFavor,
-            vm.ReligionPrestige,
-            vm.IsDescriptionExpanded);
-        var infoResult = BlessingInfoRenderer.Draw(infoVm);
-        topY += InfoPanelHeight + 10f;
-
-        // --- Footer: [Swear] action, right-aligned, founder-gated server-side.
-        var buttonX = vm.X + contentWidth;
-        var buttonY = topY;
-        var actionsVm = new BlessingActionsViewModel(
-            communalSelected,
-            buttonX, buttonY,
-            vm.PlayerFavor, vm.ReligionPrestige,
-            isReligionFounder: vm.IsReligionFounder
-        );
-        var actionsResult = BlessingActionsRenderer.Draw(actionsVm);
 
         drawList.PopClipRect();
 
@@ -255,13 +215,12 @@ internal static class BlessingVowsTabRenderer
         }
 
         // --- Unlock confirmation modal (#453). Drawn last (over scrollbar/tooltip) so the
-        // dim backdrop and dialog paint above the chapter; the Swear request only dispatches
+        // dim backdrop and dialog paint above the chapter; the unlock request only dispatches
         // once the player confirms here.
-        var actionsEvents = actionsResult.Events;
+        IReadOnlyList<ActionsEvent> actionsEvents = System.Array.Empty<ActionsEvent>();
         if (vm.PendingUnlockState != null)
         {
-            var confirmEvents = new List<ActionsEvent>(actionsResult.Events.Count + 2);
-            confirmEvents.AddRange(actionsResult.Events);
+            var confirmEvents = new List<ActionsEvent>(2);
             BlessingUnlockConfirmRenderer.Draw(vm.PendingUnlockState, confirmEvents);
             actionsEvents = confirmEvents;
         }
@@ -273,8 +232,7 @@ internal static class BlessingVowsTabRenderer
             vm.Height,
             requestedDeity,
             requestedVowsScrollY: requestedScrollY,
-            requestedPageScrollY: null,
-            infoEvents: infoResult.Events);
+            requestedPageScrollY: null);
     }
 
     private static float HeaderHeight() =>
@@ -302,10 +260,6 @@ internal static class BlessingVowsTabRenderer
         h += DeitySelectorRenderer.Height + 6f;
         h += DividerSpacing;
         h += TreePaneHeight + 6f;
-        h += DividerSpacing;
-        h += SectionLabelHeight;
-        h += InfoPanelHeight + 10f;
-        h += ActionButtonHeight + 8f;
         return h;
     }
 }

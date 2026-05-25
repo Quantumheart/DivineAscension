@@ -7,6 +7,7 @@ using DivineAscension.GUI.Managers;
 using DivineAscension.GUI.Models.Blessing.Tab;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
 using Moq;
 using Vintagestory.API.Client;
@@ -140,7 +141,7 @@ public class BlessingStateManagerSlotCapTests
     }
 
     [Fact]
-    public void UnlockClicked_WhenBlockedByCap_ShowsCapMessage_AndSendsNoRequest()
+    public void DoubleClick_WhenBlockedByCap_ShowsCapMessage_AndSendsNoRequest()
     {
         _sut.LoadBlessingStates(
             new List<Blessing> { CreatePlayerBlessing("p1"), CreatePlayerBlessing("p2") },
@@ -148,18 +149,20 @@ public class BlessingStateManagerSlotCapTests
         _sut.SetBlessingUnlocked("p1", true);
         _sut.MaxPlayerBlessingSlots = 1;
         Refresh();
-        _sut.State.TreeState.SelectedBlessingId = "p2";
 
         var result = new BlessingTabRenderResult(
-            new List<TreeEvent>(),
-            new List<ActionsEvent> { new ActionsEvent.UnlockClicked() },
+            new List<TreeEvent> { new TreeEvent.DoubleClicked("p2") },
+            new List<ActionsEvent>(),
             null,
             100f);
 
         _sut.ProcessBlessingTabEvents(result);
 
-        _mockApi.Verify(a => a.ShowChatMessage(
-            It.Is<string>(s => s.Contains(LocalizationKeys.UI_BLESSING_TOOLTIP_SLOT_CAP))), Times.Once);
+        // Resolve through the same service the manager uses, so the assertion holds whether or
+        // not the localization singleton has loaded en.json in this test run.
+        var capMessage = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_TOOLTIP_SLOT_CAP);
+        _mockApi.Verify(a => a.ShowChatMessage(capMessage), Times.Once);
         _mockUiService.Verify(u => u.RequestBlessingUnlock(It.IsAny<string>()), Times.Never);
+        Assert.Null(_sut.State.PendingUnlockBlessingId);
     }
 }
