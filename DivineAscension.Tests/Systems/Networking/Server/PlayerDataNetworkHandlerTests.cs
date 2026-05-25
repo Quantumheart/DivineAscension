@@ -92,14 +92,16 @@ public class PlayerDataNetworkHandlerTests
     }
 
     /// <summary>
-    ///     Slot count uses the player's highest favor rank across all five deities plus
-    ///     the religion's prestige bonus — captures "the best you can do" so the toast
-    ///     fires whenever any deity rank-up raises the cap.
+    ///     Slot count uses the player's <b>patron-domain</b> favor rank plus the religion's
+    ///     prestige bonus (#472) — the canonical "player's favor rank" that the server-side unlock
+    ///     check also uses, so the header never advertises slots the unlock path then refuses.
+    ///     Favor in a non-patron deity does not raise the cap.
     /// </summary>
     [Fact]
-    public void SendPlayerDataToClient_UsesHighestFavorRank_PlusPrestigeBonus()
+    public void SendPlayerDataToClient_UsesPatronFavorRank_PlusPrestigeBonus()
     {
-        // Arrange: Renowned religion (+1 bonus). Player is Avatar in Wild, Initiate elsewhere.
+        // Arrange: Renowned religion (+1 bonus), patron = Craft. Player is Avatar in the patron
+        // domain (Craft) but only Avatar-favored in Wild would NOT count — see the non-patron case.
         var religion = TestFixtures.CreateTestReligion(domain: DeityDomain.Craft, founderUID: "founder");
         religion.PrestigeRank = PrestigeRank.Renowned;
         _mockReligionManager.Setup(m => m.GetPlayerReligion("founder")).Returns(religion);
@@ -107,7 +109,7 @@ public class PlayerDataNetworkHandlerTests
 
         var player = _worldService.CreatePlayer("founder", "Founder");
         var data = _progression.GetOrCreatePlayerData("founder");
-        data.SetTotalFavorEarned(DeityDomain.Wild, _config.AvatarThreshold);
+        data.SetTotalFavorEarned(DeityDomain.Craft, _config.AvatarThreshold);
 
         // Act
         _handler.SendPlayerDataToClient(player);
@@ -116,6 +118,31 @@ public class PlayerDataNetworkHandlerTests
         var packet = _networkService.GetLastSentMessage<PlayerReligionDataPacket>();
         Assert.NotNull(packet);
         Assert.Equal(_config.AvatarActiveBlessingSlots + _config.RenownedBonusSlots,
+            packet!.MaxBlessingSlots);
+    }
+
+    /// <summary>
+    ///     Regression guard for #472: favor in a non-patron deity must NOT raise the slot cap.
+    ///     Avatar in Wild while Initiate in the Craft patron yields Initiate slots + prestige bonus.
+    /// </summary>
+    [Fact]
+    public void SendPlayerDataToClient_NonPatronFavor_DoesNotRaiseCap()
+    {
+        var religion = TestFixtures.CreateTestReligion(domain: DeityDomain.Craft, founderUID: "founder");
+        religion.PrestigeRank = PrestigeRank.Renowned;
+        _mockReligionManager.Setup(m => m.GetPlayerReligion("founder")).Returns(religion);
+        _mockReligionManager.Setup(m => m.GetReligion(religion.ReligionUID)).Returns(religion);
+
+        var player = _worldService.CreatePlayer("founder", "Founder");
+        var data = _progression.GetOrCreatePlayerData("founder");
+        data.SetTotalFavorEarned(DeityDomain.Wild, _config.AvatarThreshold); // non-patron — ignored
+
+        _handler.SendPlayerDataToClient(player);
+
+        var packet = _networkService.GetLastSentMessage<PlayerReligionDataPacket>();
+        Assert.NotNull(packet);
+        // Initiate (patron Craft, 1 slot) + Renowned bonus (1) = 2.
+        Assert.Equal(_config.InitiateActiveBlessingSlots + _config.RenownedBonusSlots,
             packet!.MaxBlessingSlots);
     }
 
