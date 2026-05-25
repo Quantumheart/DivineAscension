@@ -26,7 +26,8 @@ public class BlessingCommands(
     IReligionManager? religionManager,
     IBlessingEffectSystem? blessingEffectSystem,
     INetworkService? networkService,
-    IPlayerMessengerService? messengerService)
+    IPlayerMessengerService? messengerService,
+    IFreeRespecWindow? freeRespecWindow)
 {
     private readonly IBlessingEffectSystem _blessingEffectSystem =
         blessingEffectSystem ?? throw new ArgumentNullException($"{nameof(blessingEffectSystem)}");
@@ -47,6 +48,9 @@ public class BlessingCommands(
 
     private readonly IPlayerMessengerService _messenger =
         messengerService ?? throw new ArgumentNullException($"{nameof(messengerService)}");
+
+    private readonly IFreeRespecWindow _freeRespecWindow =
+        freeRespecWindow ?? throw new ArgumentNullException($"{nameof(freeRespecWindow)}");
 
     /// <summary>
     ///     Registers all blessing commands
@@ -88,6 +92,12 @@ public class BlessingCommands(
             .BeginSubCommand(BlessingCommandConstants.SubCommandActive)
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSINGS_ACTIVE_DESC))
             .HandleWith(OnActive)
+            .EndSubCommand()
+            .BeginSubCommand(BlessingCommandConstants.SubCommandRebalance)
+            .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSINGS_REBALANCE_DESC))
+            .RequiresPrivilege(Privilege.root)
+            .WithArgs(_sapi.ChatCommands.Parsers.OptionalWord("state"))
+            .HandleWith(OnRebalance)
             .EndSubCommand()
             .BeginSubCommand("admin")
             .WithDescription(LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSINGS_ADMIN_DESC))
@@ -1057,6 +1067,47 @@ public class BlessingCommands(
 
         return TextCommandResult.Success(LocalizationService.Instance.Get(
             LocalizationKeys.CMD_BLESSING_SUCCESS_ADMIN_UNLOCKALL, playerUnlocked, resolvedPlayer.PlayerName));
+    }
+
+    /// <summary>
+    ///     /blessings rebalance [on|off] - Opens or closes the free-respec window (epic #425,
+    ///     slice 4 — #462). While open, unlearning a personal blessing refunds 100% of its favor
+    ///     cost. With no argument the window is toggled. Broadcasts the change to all players.
+    /// </summary>
+    internal TextCommandResult OnRebalance(TextCommandCallingArgs args)
+    {
+        var stateArg = (args.Parsers.Count > 0 ? args[0] as string : null)?.ToLowerInvariant();
+
+        bool active;
+        switch (stateArg)
+        {
+            case "on" or "true" or "open":
+                _freeRespecWindow.SetActive(true);
+                active = true;
+                break;
+            case "off" or "false" or "close" or "closed":
+                _freeRespecWindow.SetActive(false);
+                active = false;
+                break;
+            case null or "":
+                active = _freeRespecWindow.Toggle();
+                break;
+            default:
+                return TextCommandResult.Error(
+                    LocalizationService.Instance.Get(LocalizationKeys.CMD_BLESSING_REBALANCE_USAGE));
+        }
+
+        // Announce to everyone so players know the window is open (or has closed).
+        _messenger.BroadcastMessage(
+            LocalizationService.Instance.Get(active
+                ? LocalizationKeys.CMD_BLESSING_REBALANCE_BROADCAST_ON
+                : LocalizationKeys.CMD_BLESSING_REBALANCE_BROADCAST_OFF),
+            EnumChatType.Notification);
+
+        return TextCommandResult.Success(
+            LocalizationService.Instance.Get(active
+                ? LocalizationKeys.CMD_BLESSING_REBALANCE_ENABLED
+                : LocalizationKeys.CMD_BLESSING_REBALANCE_DISABLED));
     }
 
     #endregion

@@ -21,6 +21,7 @@ public class BlessingCommandsTestHelpers
     protected Mock<IReligionManager> _religionManager;
     protected Mock<INetworkService> _networkService;
     protected Mock<IPlayerMessengerService> _messengerService;
+    protected Mock<IFreeRespecWindow> _freeRespecWindow;
     protected BlessingCommands? _sut;
 
     protected BlessingCommandsTestHelpers()
@@ -41,6 +42,7 @@ public class BlessingCommandsTestHelpers
         _blessingEffectSystem = new Mock<IBlessingEffectSystem>();
         _networkService = new Mock<INetworkService>();
         _messengerService = new Mock<IPlayerMessengerService>();
+        _freeRespecWindow = new Mock<IFreeRespecWindow>();
     }
 
     protected BlessingCommands InitializeMocksAndSut()
@@ -52,6 +54,7 @@ public class BlessingCommandsTestHelpers
             _religionManager.Object,
             _blessingEffectSystem.Object,
             _networkService.Object,
-            _messengerService.Object);
+            _messengerService.Object,
+            _freeRespecWindow.Object);
     }
 }

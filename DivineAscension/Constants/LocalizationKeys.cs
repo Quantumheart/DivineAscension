@@ -334,6 +334,7 @@ public static class LocalizationKeys
     public const string UI_BLESSING_PAGE_PATRON_HEADING = "divineascension:ui.blessing.page.patron_heading";
     public const string UI_BLESSING_PAGE_SELECTED_HEADING = "divineascension:ui.blessing.page.selected_heading";
     public const string UI_BLESSING_PAGE_SLOTS_HEADING = "divineascension:ui.blessing.page.slots_heading";
+    public const string UI_BLESSING_FREE_RESPEC_ACTIVE = "divineascension:ui.blessing.free_respec_active";
     public const string UI_BLESSING_PAGE_SLOTS = "divineascension:ui.blessing.page.slots";
     public const string UI_BLESSING_FAVOR_RANK_REQUIREMENT = "divineascension:ui.blessing.favor_rank_requirement";
     public const string UI_BLESSING_PRESTIGE_RANK_REQUIREMENT = "divineascension:ui.blessing.prestige_rank_requirement";
@@ -1090,6 +1091,14 @@ public static class LocalizationKeys
 
     // Additional keys used in code
     public const string CMD_BLESSINGS_ADMIN_DESC = "divineascension:cmd.blessings.admin.desc";
+
+    // Free-respec window (epic #425, slice 4 — #462)
+    public const string CMD_BLESSINGS_REBALANCE_DESC = "divineascension:cmd.blessings.rebalance.desc";
+    public const string CMD_BLESSING_REBALANCE_USAGE = "divineascension:cmd.blessing.rebalance.usage";
+    public const string CMD_BLESSING_REBALANCE_ENABLED = "divineascension:cmd.blessing.rebalance.enabled";
+    public const string CMD_BLESSING_REBALANCE_DISABLED = "divineascension:cmd.blessing.rebalance.disabled";
+    public const string CMD_BLESSING_REBALANCE_BROADCAST_ON = "divineascension:cmd.blessing.rebalance.broadcast_on";
+    public const string CMD_BLESSING_REBALANCE_BROADCAST_OFF = "divineascension:cmd.blessing.rebalance.broadcast_off";
     public const string CMD_BLESSING_ERROR_PLAYER_NOT_FOUND = "divineascension:cmd.blessing.error.player_not_found";
     public const string CMD_BLESSING_ERROR_NOT_IN_RELIGION = "divineascension:cmd.blessing.error.not_in_religion";
     public const string CMD_BLESSING_INFO_NO_PLAYER_UNLOCKED = "divineascension:cmd.blessing.info.no_player_unlocked";

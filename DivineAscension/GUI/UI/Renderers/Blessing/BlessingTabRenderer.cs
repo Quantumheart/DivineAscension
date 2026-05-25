@@ -33,6 +33,7 @@ internal static class BlessingTabRenderer
     private const float DividerSpacing = 18f;
     private const float ScrollbarWidth = 16f;
     private const float TreePaneHeight = 340f;
+    private const float BannerHeight = 26f;
 
     internal static BlessingTabRenderResult DrawBlessingsTab(BlessingTabViewModel vm)
     {
@@ -48,7 +49,7 @@ internal static class BlessingTabRenderer
         // value would be stale/zero — hide the row entirely rather than show "/ 0" (#446).
         var showSlots = vm.MaxBlessingSlots > 0;
 
-        var contentHeight = ComputeContentHeight(vm.DeitySummaries.Count, contentWidth, showSlots);
+        var contentHeight = ComputeContentHeight(vm.DeitySummaries.Count, contentWidth, showSlots, vm.FreeRespecActive);
         var maxScroll = MathF.Max(0f, contentHeight - vm.Height);
 
         // --- Mouse wheel scroll — only when hovering content outside the tree panel
@@ -60,7 +61,8 @@ internal static class BlessingTabRenderer
         float? requestedPageScrollY = null;
 
         // Approximate tree rect for wheel-exclusion. Mirrors the body layout below.
-        var preTreeOffset = HeaderHeight() + IntroHeight(vm, contentWidth) + 8f + DividerSpacing
+        var preTreeOffset = HeaderHeight() + (vm.FreeRespecActive ? BannerHeight : 0f)
+                            + IntroHeight(vm, contentWidth) + 8f + DividerSpacing
                             + SectionLabelHeight + vm.DeitySummaries.Count * LeaderRowHeight + 4f
                             + DividerSpacing + LeaderRowHeight + (showSlots ? LeaderRowHeight : 0f) + 4f
                             + DeitySelectorRenderer.Height + 6f + DividerSpacing;
@@ -97,6 +99,16 @@ internal static class BlessingTabRenderer
             LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_TITLE),
             rightTitle: hasPatron ? headingName : null);
         var topY = strip.BodyY;
+
+        // --- Free-respec banner (#462). Shown only while the admin window is open; gold to read
+        // as a boon. Folded into the scrollable body so all offsets below shift with it.
+        if (vm.FreeRespecActive)
+        {
+            TextRenderer.DrawLabel(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_FREE_RESPEC_ACTIVE),
+                vm.X + Padding, topY, SubsectionLabel, ColorPalette.Gold);
+            topY += BannerHeight;
+        }
 
         // --- Prose intro.
         var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_INTRO);
@@ -274,13 +286,14 @@ internal static class BlessingTabRenderer
         return TextRenderer.MeasureWrappedHeight(intro, contentWidth - Padding * 2, Secondary);
     }
 
-    private static float ComputeContentHeight(int summaryRows, float contentWidth, bool showSlots)
+    private static float ComputeContentHeight(int summaryRows, float contentWidth, bool showSlots, bool freeRespec)
     {
         var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_BLESSING_PAGE_INTRO);
         var introH = TextRenderer.MeasureWrappedHeight(intro, contentWidth - Padding * 2, Secondary);
 
         var h = 0f;
         h += PaneHeaderRenderer.TotalHeight;
+        h += freeRespec ? BannerHeight : 0f;
         h += introH + 8f;
         h += DividerSpacing;
         h += SectionLabelHeight;

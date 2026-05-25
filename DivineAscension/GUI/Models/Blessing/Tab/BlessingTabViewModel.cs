@@ -35,7 +35,8 @@ public readonly struct BlessingTabViewModel(
     BlessingNodeState? pendingUnlockState = null,
     BlessingNodeState? pendingUnlearnState = null,
     IReadOnlyList<string>? pendingUnlearnCascadeNames = null,
-    int pendingUnlearnRefundTotal = 0
+    int pendingUnlearnRefundTotal = 0,
+    bool freeRespecActive = false
 )
 {
     public float X { get; } = x;
@@ -96,4 +97,7 @@ public readonly struct BlessingTabViewModel(
 
     /// <summary>Total spendable favor the player will reclaim across the pending unlearn cascade (#460).</summary>
     public int PendingUnlearnRefundTotal { get; } = pendingUnlearnRefundTotal;
+
+    /// <summary>True while the admin free-respec window is open — renders the banner (#462).</summary>
+    public bool FreeRespecActive { get; } = freeRespecActive;
 }

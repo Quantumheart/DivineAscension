@@ -38,6 +38,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
     private readonly IWorldService _worldService;
     private readonly IBlessingUnlearnService _unlearnService;
     private readonly Configuration.GameBalanceConfig _gameBalanceConfig;
+    private readonly IFreeRespecWindow _freeRespecWindow;
 
     public BlessingNetworkHandler(
         ILogger logger,
@@ -49,7 +50,8 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         IPlayerMessengerService messengerService,
         IWorldService worldService,
         IBlessingUnlearnService unlearnService,
-        Configuration.GameBalanceConfig gameBalanceConfig)
+        Configuration.GameBalanceConfig gameBalanceConfig,
+        IFreeRespecWindow freeRespecWindow)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _blessingRegistry = blessingRegistry ?? throw new ArgumentNullException(nameof(blessingRegistry));
@@ -61,6 +63,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
         _unlearnService = unlearnService ?? throw new ArgumentNullException(nameof(unlearnService));
         _gameBalanceConfig = gameBalanceConfig ?? throw new ArgumentNullException(nameof(gameBalanceConfig));
+        _freeRespecWindow = freeRespecWindow ?? throw new ArgumentNullException(nameof(freeRespecWindow));
     }
 
     public void RegisterHandlers()
@@ -69,11 +72,21 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         _networkService.RegisterMessageHandler<BlessingUnlockRequestPacket>(OnBlessingUnlockRequest);
         _networkService.RegisterMessageHandler<UnlearnBlessingRequestPacket>(OnUnlearnBlessingRequest);
         _networkService.RegisterMessageHandler<BlessingDataRequestPacket>(OnBlessingDataRequest);
+
+        // Push fresh blessing data to everyone when the free-respec window opens/closes so the
+        // banner and refund preview update live without a manual dialog reopen (#462).
+        _freeRespecWindow.Changed += OnFreeRespecWindowChanged;
     }
 
     public void Dispose()
     {
-        // No resources to dispose
+        _freeRespecWindow.Changed -= OnFreeRespecWindowChanged;
+    }
+
+    private void OnFreeRespecWindowChanged()
+    {
+        foreach (var player in _worldService.GetAllOnlinePlayers())
+            SendBlessingData(player);
     }
 
     private void OnBlessingUnlockRequest(IServerPlayer fromPlayer, BlessingUnlockRequestPacket packet)
@@ -274,7 +287,15 @@ public class BlessingNetworkHandler : IServerNetworkHandler
     private void OnBlessingDataRequest(IServerPlayer fromPlayer, BlessingDataRequestPacket packet)
     {
         _logger.Debug($"[DivineAscension] Blessing data requested by {fromPlayer.PlayerName}");
+        SendBlessingData(fromPlayer);
+    }
 
+    /// <summary>
+    ///     Builds and sends the full blessing-data snapshot to one player. Shared by the
+    ///     client-request handler and the free-respec window push so both produce identical state.
+    /// </summary>
+    private void SendBlessingData(IServerPlayer fromPlayer)
+    {
         var response = new BlessingDataResponsePacket();
 
         try
@@ -298,7 +319,10 @@ public class BlessingNetworkHandler : IServerNetworkHandler
             response.PatronName = religion.PatronName;
             response.PrestigeRank = (int)religion.PrestigeRank;
             response.CurrentPrestige = religion.Prestige;
-            response.UnlearnRefundPercent = _gameBalanceConfig.UnlearnRefundPercent;
+            // While the free-respec window is open, refunds are 100% and the banner shows (#462).
+            response.FreeRespecActive = _freeRespecWindow.IsActive;
+            response.UnlearnRefundPercent =
+                _freeRespecWindow.IsActive ? 1f : _gameBalanceConfig.UnlearnRefundPercent;
 
             foreach (var domain in AllDeities)
             {

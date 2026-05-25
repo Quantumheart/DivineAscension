@@ -14,6 +14,7 @@ public static class BlessingCommandConstants
     public const string SubCommandTree = "tree";
     public const string SubCommandUnlock = "unlock";
     public const string SubCommandActive = "active";
+    public const string SubCommandRebalance = "rebalance";
 }
 
 // Parameter names
