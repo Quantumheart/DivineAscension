@@ -12,8 +12,17 @@ namespace DivineAscension.Tests.GUI.UI.Utilities;
 ///     <see cref="ModalInputGuard.MarkOpen" /> / <see cref="ModalInputGuard.BeginFrame" />.
 /// </summary>
 [ExcludeFromCodeCoverage]
-public class ModalInputGuardTests
+public class ModalInputGuardTests : System.IDisposable
 {
+    // The guard is process-global static. Roll it back to not-blocking after every test so a
+    // test that ends mid-modal can't leak "blocking" into FilterBackground consumers (the Civ/
+    // Religion state managers). Two BeginFrame() calls clear both the mark and the blocking flag.
+    public void Dispose()
+    {
+        ModalInputGuard.BeginFrame();
+        ModalInputGuard.BeginFrame();
+    }
+
     private record Background : ITestEvent;
 
     private record ModalControl : ITestEvent, IModalControlEvent;

@@ -307,6 +307,73 @@ public class BlessingStateManagerTests
     }
 
     [Fact]
+    public void DoubleClick_OnOwnedBlessing_OpensUnlearnConfirmation_DoesNotSendRequest()
+    {
+        // Arrange — an already-unlocked personal blessing.
+        var blessing = CreateBlessing("bless-1", BlessingKind.Player);
+        _sut.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
+        _sut.State.PlayerBlessingStates["bless-1"].IsUnlocked = true;
+
+        // Act
+        _sut.ProcessBlessingTabEvents(DoubleClick("bless-1"));
+
+        // Assert — unlearn confirmation staged; no unlearn dispatched until confirm (#459).
+        Assert.Equal("bless-1", _sut.State.PendingUnlearnBlessingId);
+        Assert.Null(_sut.State.PendingUnlockBlessingId);
+        _mockUiService.Verify(u => u.RequestBlessingUnlearn(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public void UnlearnConfirmed_AfterDoubleClick_SendsRequest_AndClearsPending()
+    {
+        // Arrange
+        var blessing = CreateBlessing("bless-1", BlessingKind.Player);
+        _sut.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
+        _sut.State.PlayerBlessingStates["bless-1"].IsUnlocked = true;
+        _sut.ProcessBlessingTabEvents(DoubleClick("bless-1"));
+
+        // Act — player confirms.
+        _sut.ProcessBlessingTabEvents(Actions(new ActionsEvent.UnlearnConfirmed()));
+
+        // Assert
+        _mockUiService.Verify(u => u.RequestBlessingUnlearn("bless-1"), Times.Once);
+        Assert.Null(_sut.State.PendingUnlearnBlessingId);
+    }
+
+    [Fact]
+    public void UnlearnCanceled_AfterDoubleClick_DoesNotSendRequest_AndClearsPending()
+    {
+        // Arrange
+        var blessing = CreateBlessing("bless-1", BlessingKind.Player);
+        _sut.LoadBlessingStates(new List<Blessing> { blessing }, new List<Blessing>());
+        _sut.State.PlayerBlessingStates["bless-1"].IsUnlocked = true;
+        _sut.ProcessBlessingTabEvents(DoubleClick("bless-1"));
+
+        // Act — player cancels.
+        _sut.ProcessBlessingTabEvents(Actions(new ActionsEvent.UnlearnCanceled()));
+
+        // Assert
+        _mockUiService.Verify(u => u.RequestBlessingUnlearn(It.IsAny<string>()), Times.Never);
+        Assert.Null(_sut.State.PendingUnlearnBlessingId);
+    }
+
+    [Fact]
+    public void DoubleClick_OnOwnedReligionBlessing_DoesNotOpenUnlearnConfirmation()
+    {
+        // Arrange — owned religion vow; unlearn is personal-only in slice 1.
+        var vow = CreateBlessing("vow-1", BlessingKind.Religion);
+        _sut.LoadBlessingStates(new List<Blessing>(), new List<Blessing> { vow });
+        _sut.State.ReligionBlessingStates["vow-1"].IsUnlocked = true;
+
+        // Act
+        _sut.ProcessBlessingTabEvents(DoubleClick("vow-1"));
+
+        // Assert
+        Assert.Null(_sut.State.PendingUnlearnBlessingId);
+        _mockUiService.Verify(u => u.RequestBlessingUnlearn(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
     public void WhileConfirmationOpen_BackgroundTreeAndDeityEventsAreIgnored()
     {
         // Arrange — stage a confirmation for bless-1.

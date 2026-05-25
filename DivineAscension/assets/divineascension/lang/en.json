@@ -240,6 +240,8 @@
   "divineascension:ui.blessing.confirm.inscribe.message": "Inscribe \"{0}\" into your chapter for {1} favor? This permanently spends your favor and cannot be undone.",
   "divineascension:ui.blessing.confirm.swear.title": "Swear Vow?",
   "divineascension:ui.blessing.confirm.swear.message": "Swear \"{0}\" on behalf of the entire Order for {1} prestige? This binds the vow for every member and cannot be undone.",
+  "divineascension:ui.blessing.confirm.unlearn.title": "Unlearn Blessing?",
+  "divineascension:ui.blessing.confirm.unlearn.message": "Unlearn \"{0}\"? You will reclaim half of the {1} favor you spent; the rest is forfeit. This frees the unlock slot.",
   "divineascension:ui.blessing.read_more": "Read more",
   "divineascension:ui.blessing.read_less": "Read less",
   "divineascension:ui.blessing.page.title": "The Blessings",

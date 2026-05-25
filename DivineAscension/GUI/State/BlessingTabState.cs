@@ -30,6 +30,13 @@ public class BlessingTabState
     /// </summary>
     public string? PendingUnlockBlessingId { get; set; }
 
+    /// <summary>
+    ///     Blessing id awaiting unlearn confirmation (#459). Non-null while the unlearn
+    ///     confirmation dialog is open; the unlearn request is only dispatched once the
+    ///     player confirms. Mirrors <see cref="PendingUnlockBlessingId" />.
+    /// </summary>
+    public string? PendingUnlearnBlessingId { get; set; }
+
     /// <summary>Vertical scroll position of the Vows page (I.iii).</summary>
     public float VowsPageScrollY { get; set; }
 
@@ -63,6 +70,7 @@ public class BlessingTabState
         ReligionBlessingStatesByDeity.Clear();
         ActiveDeity = DeityDomain.Craft;
         PendingUnlockBlessingId = null;
+        PendingUnlearnBlessingId = null;
         VowsPageScrollY = 0f;
         BlessingsPageScrollY = 0f;
     }

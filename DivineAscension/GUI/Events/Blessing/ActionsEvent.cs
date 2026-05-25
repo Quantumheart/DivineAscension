@@ -13,4 +13,16 @@ public abstract record ActionsEvent
     ///     Clears the pending unlock with no side effects.
     /// </summary>
     public sealed record UnlockCanceled : ActionsEvent;
+
+    /// <summary>
+    ///     Fired when the player confirms the unlearn in the confirmation dialog (#459).
+    ///     This is the event that actually dispatches the unlearn request to the server.
+    /// </summary>
+    public sealed record UnlearnConfirmed : ActionsEvent;
+
+    /// <summary>
+    ///     Fired when the player dismisses the unlearn confirmation dialog (#459).
+    ///     Clears the pending unlearn with no side effects.
+    /// </summary>
+    public sealed record UnlearnCanceled : ActionsEvent;
 }

@@ -126,7 +126,8 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             blessingsPageScrollY: State.BlessingsPageScrollY,
             unlockedPlayerCount: UnlockedPlayerBlessingCount,
             maxBlessingSlots: MaxPlayerBlessingSlots,
-            pendingUnlockState: GetPendingUnlockState()
+            pendingUnlockState: GetPendingUnlockState(),
+            pendingUnlearnState: GetPendingUnlearnState()
         );
 
         var result = BlessingTabRenderer.DrawBlessingsTab(vm);
@@ -196,7 +197,7 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         // background interaction (scroll, deity switch, tree select/double-click) — clicks
         // behind the dim backdrop fall through in immediate mode, so we drop their effects
         // here and act only on the dialog's own confirm/cancel events below.
-        var modalOpen = State.PendingUnlockBlessingId != null;
+        var modalOpen = State.PendingUnlockBlessingId != null || State.PendingUnlearnBlessingId != null;
 
         if (!modalOpen)
         {
@@ -253,6 +254,14 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
                 case ActionsEvent.UnlockCanceled:
                     HandleUnlockCanceled();
                     break;
+
+                case ActionsEvent.UnlearnConfirmed:
+                    HandleUnlearnConfirmed();
+                    break;
+
+                case ActionsEvent.UnlearnCanceled:
+                    HandleUnlearnCanceled();
+                    break;
             }
     }
 
@@ -276,8 +285,10 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
             if (selectedState.Blessing.Kind == BlessingKind.Player
                 && !string.IsNullOrEmpty(selectedState.Blessing.BlessingId))
             {
+                // Open the unlearn confirmation dialog instead of dispatching immediately —
+                // mirrors the unlock confirm flow (#453); request is sent on confirm (#459).
                 _soundManager.PlayClick();
-                _uiService.RequestBlessingUnlearn(selectedState.Blessing.BlessingId);
+                State.PendingUnlearnBlessingId = selectedState.Blessing.BlessingId;
             }
             return;
         }
@@ -341,6 +352,37 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
         return string.IsNullOrEmpty(State.PendingUnlockBlessingId)
             ? null
             : GetBlessingState(State.PendingUnlockBlessingId);
+    }
+
+    /// <summary>
+    ///     Dispatches the unlearn request for the blessing awaiting confirmation (#459).
+    ///     Re-validates ownership before sending — the server remains authoritative.
+    /// </summary>
+    private void HandleUnlearnConfirmed()
+    {
+        var pendingId = State.PendingUnlearnBlessingId;
+        State.PendingUnlearnBlessingId = null;
+        if (string.IsNullOrEmpty(pendingId)) return;
+
+        var state = GetBlessingState(pendingId);
+        if (state == null || !state.IsUnlocked || state.Blessing.Kind != BlessingKind.Player) return;
+
+        _soundManager.PlayClick();
+        _uiService.RequestBlessingUnlearn(pendingId);
+    }
+
+    /// <summary>Dismisses the unlearn confirmation dialog (#459) with no side effects.</summary>
+    private void HandleUnlearnCanceled()
+    {
+        State.PendingUnlearnBlessingId = null;
+        _soundManager.PlayClick();
+    }
+
+    private BlessingNodeState? GetPendingUnlearnState()
+    {
+        return string.IsNullOrEmpty(State.PendingUnlearnBlessingId)
+            ? null
+            : GetBlessingState(State.PendingUnlearnBlessingId);
     }
 
     private BlessingNodeState? GetBlessingState(string blessingId)
