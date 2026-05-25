@@ -314,6 +314,7 @@ public static class LocalizationKeys
     public const string UI_BLESSING_REQUIREMENTS = "divineascension:ui.blessing.requirements";
     public const string UI_BLESSING_EFFECTS = "divineascension:ui.blessing.effects";
     public const string UI_BLESSING_UNLOCK_BUTTON = "divineascension:ui.blessing.unlock";
+    public const string UI_BLESSING_UNLEARN_BUTTON = "divineascension:ui.blessing.unlearn";
     public const string UI_BLESSING_INSCRIBE_BUTTON = "divineascension:ui.blessing.inscribe";
     public const string UI_BLESSING_SWEAR_BUTTON = "divineascension:ui.blessing.swear";
     public const string UI_BLESSING_CONFIRM_INSCRIBE_TITLE = "divineascension:ui.blessing.confirm.inscribe.title";
@@ -1687,6 +1688,11 @@ public static class LocalizationKeys
     public const string NET_BLESSING_ERROR_UNLOCKING = "divineascension:net.blessing.error_unlocking";
 
     public const string NET_BLESSING_UNLOCK_CAP_REACHED = "divineascension:net.blessing.unlock_cap_reached";
+
+    public const string NET_BLESSING_UNLEARN_SUCCESS = "divineascension:net.blessing.unlearn_success";
+    public const string NET_BLESSING_UNLEARN_NOT_OWNED = "divineascension:net.blessing.unlearn_not_owned";
+    public const string NET_BLESSING_UNLEARN_NOT_PERSONAL = "divineascension:net.blessing.unlearn_not_personal";
+    public const string NET_BLESSING_ERROR_UNLEARNING = "divineascension:net.blessing.error_unlearning";
 
     #endregion
 

@@ -58,6 +58,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _clientChannel.SetMessageHandler<EditMottoResponsePacket>(OnEditMottoResponse);
         _clientChannel.SetMessageHandler<EditFoundingMythResponsePacket>(OnEditFoundingMythResponse);
         _clientChannel.SetMessageHandler<BlessingUnlockResponsePacket>(OnBlessingUnlockResponse);
+        _clientChannel.SetMessageHandler<UnlearnBlessingResponsePacket>(OnUnlearnBlessingResponse);
         _clientChannel.SetMessageHandler<BlessingDataResponsePacket>(OnBlessingDataResponse);
         _clientChannel.SetMessageHandler<ReligionStateChangedPacket>(OnReligionStateChanged);
         _clientChannel.SetMessageHandler<CivilizationListResponsePacket>(OnCivilizationListResponse);
@@ -108,6 +109,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         PlayerReligionDataUpdated = null;
         BlessingDataReceived = null;
         BlessingUnlocked = null;
+        BlessingUnlearned = null;
         ReligionStateChanged = null;
         ReligionListReceived = null;
         ReligionActionCompleted = null;
@@ -305,6 +307,23 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
             // Trigger event even on failure so UI can update
             BlessingUnlocked?.Invoke(packet.BlessingId, packet.Success);
         }
+    }
+
+    private void OnUnlearnBlessingResponse(UnlearnBlessingResponsePacket packet)
+    {
+        if (packet.Success)
+        {
+            _capi?.ShowChatMessage(packet.Message);
+            _capi?.Logger.Notification($"[DivineAscension] Blessing unlearned: {packet.BlessingId}");
+        }
+        else
+        {
+            _capi?.ShowChatMessage($"Error: {packet.Message}");
+            _capi?.Logger.Warning($"[DivineAscension] Failed to unlearn blessing: {packet.Message}");
+        }
+
+        // Fire on success and failure so the UI re-syncs node state either way.
+        BlessingUnlearned?.Invoke(packet.BlessingId, packet.Success);
     }
 
     private void OnBlessingDataResponse(BlessingDataResponsePacket packet)
@@ -590,6 +609,22 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         var request = new BlessingUnlockRequestPacket(blessingId);
         _clientChannel.SendPacket(request);
         _capi?.Logger.Debug($"[DivineAscension] Sent unlock request for blessing: {blessingId}");
+    }
+
+    /// <summary>
+    ///     Send a blessing unlearn request to the server
+    /// </summary>
+    public void RequestBlessingUnlearn(string blessingId)
+    {
+        if (_clientChannel == null)
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot unlearn blessing: client channel not initialized");
+            return;
+        }
+
+        var request = new UnlearnBlessingRequestPacket(blessingId);
+        _clientChannel.SendPacket(request);
+        _capi?.Logger.Debug($"[DivineAscension] Sent unlearn request for blessing: {blessingId}");
     }
 
     /// <summary>
@@ -1061,6 +1096,12 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     ///     Parameters: (blessingId, success)
     /// </summary>
     public event Action<string, bool>? BlessingUnlocked;
+
+    /// <summary>
+    ///     Event fired when a blessing unlearn response is received from the server.
+    ///     Parameters: (blessingId, success)
+    /// </summary>
+    public event Action<string, bool>? BlessingUnlearned;
 
     /// <summary>
     ///     Event fired when the player's religion state changes (disbanded, kicked, etc.)

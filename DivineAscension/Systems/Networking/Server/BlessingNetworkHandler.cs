@@ -36,6 +36,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
     private readonly INetworkService _networkService;
     private readonly IPlayerMessengerService _messengerService;
     private readonly IWorldService _worldService;
+    private readonly IBlessingUnlearnService _unlearnService;
 
     public BlessingNetworkHandler(
         ILogger logger,
@@ -45,7 +46,8 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         IReligionManager religionManager,
         INetworkService networkService,
         IPlayerMessengerService messengerService,
-        IWorldService worldService)
+        IWorldService worldService,
+        IBlessingUnlearnService unlearnService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _blessingRegistry = blessingRegistry ?? throw new ArgumentNullException(nameof(blessingRegistry));
@@ -55,12 +57,14 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         _networkService = networkService ?? throw new ArgumentNullException(nameof(networkService));
         _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
+        _unlearnService = unlearnService ?? throw new ArgumentNullException(nameof(unlearnService));
     }
 
     public void RegisterHandlers()
     {
         // Register handlers for blessing system packets
         _networkService.RegisterMessageHandler<BlessingUnlockRequestPacket>(OnBlessingUnlockRequest);
+        _networkService.RegisterMessageHandler<UnlearnBlessingRequestPacket>(OnUnlearnBlessingRequest);
         _networkService.RegisterMessageHandler<BlessingDataRequestPacket>(OnBlessingDataRequest);
     }
 
@@ -200,6 +204,55 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         }
 
         var response = new BlessingUnlockResponsePacket(success, message, packet.BlessingId);
+        _networkService.SendToPlayer(fromPlayer, response);
+    }
+
+    /// <summary>
+    ///     Handle an unlearn request: removes a single owned personal blessing, refunds part of its
+    ///     favor cost to spendable favor, and stamps the global unlearn cooldown (epic #425 — #459).
+    ///     Server-authoritative — all eligibility is re-checked here regardless of client state.
+    /// </summary>
+    private void OnUnlearnBlessingRequest(IServerPlayer fromPlayer, UnlearnBlessingRequestPacket packet)
+    {
+        string message;
+        var success = false;
+        var refundedFavor = 0;
+
+        try
+        {
+            var blessing = _blessingRegistry.GetBlessing(packet.BlessingId);
+            var result = _unlearnService.UnlearnBlessing(fromPlayer.PlayerUID, packet.BlessingId);
+            var blessingName = blessing?.Name ?? packet.BlessingId;
+
+            switch (result.Outcome)
+            {
+                case UnlearnOutcome.Success:
+                    success = true;
+                    refundedFavor = result.RefundedFavor;
+                    message = LocalizationService.Instance.Get(
+                        LocalizationKeys.NET_BLESSING_UNLEARN_SUCCESS, blessingName, result.RefundedFavor);
+                    break;
+                case UnlearnOutcome.NotOwned:
+                    message = LocalizationService.Instance.Get(
+                        LocalizationKeys.NET_BLESSING_UNLEARN_NOT_OWNED, blessingName);
+                    break;
+                case UnlearnOutcome.NotPlayerBlessing:
+                    message = LocalizationService.Instance.Get(
+                        LocalizationKeys.NET_BLESSING_UNLEARN_NOT_PERSONAL);
+                    break;
+                default: // BlessingNotFound
+                    message = LocalizationService.Instance.Get(
+                        LocalizationKeys.NET_BLESSING_NOT_FOUND, packet.BlessingId);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            message = LocalizationService.Instance.Get(LocalizationKeys.NET_BLESSING_ERROR_UNLEARNING, ex.Message);
+            _logger.Error($"[DivineAscension] Blessing unlearn error: {ex}");
+        }
+
+        var response = new UnlearnBlessingResponsePacket(success, message, packet.BlessingId, refundedFavor);
         _networkService.SendToPlayer(fromPlayer, response);
     }
 

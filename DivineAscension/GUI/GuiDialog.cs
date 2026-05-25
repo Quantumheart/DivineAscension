@@ -134,6 +134,7 @@ public partial class GuiDialog : ModSystem
         if (_divineAscensionModSystem?.NetworkClient != null)
         {
             _divineAscensionModSystem.NetworkClient.BlessingUnlocked += OnBlessingUnlockedFromServer;
+            _divineAscensionModSystem.NetworkClient.BlessingUnlearned += OnBlessingUnlearnedFromServer;
             _divineAscensionModSystem.NetworkClient.BlessingDataReceived += OnBlessingDataReceived;
             _divineAscensionModSystem.NetworkClient.ReligionStateChanged += OnReligionStateChanged;
             _divineAscensionModSystem.NetworkClient.ReligionListReceived += OnReligionListReceived;
@@ -582,6 +583,7 @@ public partial class GuiDialog : ModSystem
         if (_divineAscensionModSystem?.NetworkClient != null)
         {
             _divineAscensionModSystem.NetworkClient.BlessingUnlocked -= OnBlessingUnlockedFromServer;
+            _divineAscensionModSystem.NetworkClient.BlessingUnlearned -= OnBlessingUnlearnedFromServer;
             _divineAscensionModSystem.NetworkClient.BlessingDataReceived -= OnBlessingDataReceived;
             _divineAscensionModSystem.NetworkClient.ReligionStateChanged -= OnReligionStateChanged;
             _divineAscensionModSystem.NetworkClient.ReligionListReceived -= OnReligionListReceived;

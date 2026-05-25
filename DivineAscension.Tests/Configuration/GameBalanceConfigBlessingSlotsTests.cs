@@ -35,6 +35,24 @@ public class GameBalanceConfigBlessingSlotsTests
         Assert.Null(ex);
     }
 
+    [Fact]
+    public void UnlearnDefaults_MatchSpec()
+    {
+        var config = new GameBalanceConfig();
+
+        Assert.Equal(0.5f, config.UnlearnRefundPercent);
+    }
+
+    [Theory]
+    [InlineData(-0.1f)]
+    [InlineData(1.1f)]
+    public void Validate_RejectsOutOfRangeUnlearnRefundPercent(float percent)
+    {
+        var config = new GameBalanceConfig { UnlearnRefundPercent = percent };
+
+        Assert.Throws<InvalidOperationException>(() => config.Validate());
+    }
+
     [Theory]
     [InlineData(nameof(GameBalanceConfig.InitiateActiveBlessingSlots))]
     [InlineData(nameof(GameBalanceConfig.DiscipleActiveBlessingSlots))]
