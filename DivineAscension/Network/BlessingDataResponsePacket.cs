@@ -91,6 +91,19 @@ public class BlessingDataResponsePacket
     public bool FreeRespecActive { get; set; }
 
     /// <summary>
+    ///     Maximum religion blessings that may be inscribed at once, computed from the religion's
+    ///     prestige rank (#479, slice 2). Drives the "Inscribed: X/Y" counter and inscribe gate.
+    /// </summary>
+    [ProtoMember(22)]
+    public int ReligionBlessingSlotCap { get; set; }
+
+    /// <summary>
+    ///     Count of religion blessings currently inscribed (#479, slice 2).
+    /// </summary>
+    [ProtoMember(23)]
+    public int ReligionBlessingSlotUsed { get; set; }
+
+    /// <summary>
     ///     Basic blessing information needed for UI display
     /// </summary>
     [ProtoContract]

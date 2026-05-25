@@ -896,6 +896,85 @@ public class BlessingRegistryTests
     }
 
     [Fact]
+    public void CanUnlockBlessing_ReligionBlessing_AtSlotCap_ReturnsFalse()
+    {
+        // Fledgling cap is 2; inscribe two then attempt a third.
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
+        religionData.PrestigeRank = PrestigeRank.Fledgling;
+        religionData.UnlockBlessing("vow_a");
+        religionData.UnlockBlessing("vow_b");
+
+        var blessing = TestFixtures.CreateTestBlessing("vow_c", "Vow C", DeityDomain.Craft, BlessingKind.Religion);
+        blessing.RequiredPrestigeRank = 0;
+        blessing.Cost = 0;
+
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing);
+
+        Assert.False(canUnlock);
+        Assert.Contains("Religion blessing slots full (2/2)", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_ReligionBlessing_UnderSlotCap_ReturnsTrue()
+    {
+        // Fledgling cap is 2; one inscribed leaves room for one more.
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
+        religionData.PrestigeRank = PrestigeRank.Fledgling;
+        religionData.UnlockBlessing("vow_a");
+
+        var blessing = TestFixtures.CreateTestBlessing("vow_b", "Vow B", DeityDomain.Craft, BlessingKind.Religion);
+        blessing.RequiredPrestigeRank = 0;
+        blessing.Cost = 0;
+
+        var (canUnlock, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing);
+
+        Assert.True(canUnlock);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_ReligionBlessing_AlreadyUnlockedAtCap_ReportsAlreadyUnlocked_NotCap()
+    {
+        // At the cap, re-attempting an inscribed blessing must report "already unlocked", not the
+        // cap message — the already-unlocked check runs first.
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
+        religionData.PrestigeRank = PrestigeRank.Fledgling;
+        religionData.UnlockBlessing("vow_a");
+        religionData.UnlockBlessing("vow_b"); // at cap (2/2)
+
+        var blessing = TestFixtures.CreateTestBlessing("vow_a", "Vow A", DeityDomain.Craft, BlessingKind.Religion);
+
+        var (canUnlock, reason) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing);
+
+        Assert.False(canUnlock);
+        Assert.Equal("Blessing already unlocked", reason);
+    }
+
+    [Fact]
+    public void CanUnlockBlessing_ReligionBlessing_HigherPrestigeRankRaisesCap()
+    {
+        // Two inscribed blocks Fledgling (cap 2) but fits Renowned (cap 4).
+        var playerData = TestFixtures.CreateTestPlayerReligionData("player-uid", DeityDomain.Craft, "religion-uid");
+        var religionData = TestFixtures.CreateTestReligion("religion-uid", "Test Religion", DeityDomain.Craft);
+        religionData.UnlockBlessing("vow_a");
+        religionData.UnlockBlessing("vow_b");
+
+        var blessing = TestFixtures.CreateTestBlessing("vow_c", "Vow C", DeityDomain.Craft, BlessingKind.Religion);
+        blessing.RequiredPrestigeRank = 0;
+        blessing.Cost = 0;
+
+        religionData.PrestigeRank = PrestigeRank.Fledgling;
+        var (atFledgling, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing);
+        Assert.False(atFledgling);
+
+        religionData.PrestigeRank = PrestigeRank.Renowned;
+        var (atRenowned, _) = _registry.CanUnlockBlessing("player-uid", FavorRank.Initiate, FavorRank.Initiate, playerData, religionData, blessing);
+        Assert.True(atRenowned);
+    }
+
+    [Fact]
     public void CanUnlockBlessing_ReligionBlessing_InsufficientPrestige_ReturnsFalse()
     {
         // Arrange

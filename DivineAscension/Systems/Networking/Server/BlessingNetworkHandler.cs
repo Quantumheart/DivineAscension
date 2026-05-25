@@ -420,6 +420,11 @@ public class BlessingNetworkHandler : IServerNetworkHandler
             response.PatronName = religion.PatronName;
             response.PrestigeRank = (int)religion.PrestigeRank;
             response.CurrentPrestige = religion.Prestige;
+            // Religion inscribe-slot cap + usage (#479, slice 2) so the client can render the
+            // "Inscribed: X/Y" counter and gate the inscribe medallion.
+            response.ReligionBlessingSlotCap =
+                Configuration.ReligionBlessingSlotCalculator.GetMaxUnlocks(_gameBalanceConfig, religion.PrestigeRank);
+            response.ReligionBlessingSlotUsed = religion.UnlockedBlessings.Count(kv => kv.Value);
             // While the free-respec window is open, refunds are 100% and the banner shows (#462).
             response.FreeRespecActive = _freeRespecWindow.IsActive;
             response.UnlearnRefundPercent =
