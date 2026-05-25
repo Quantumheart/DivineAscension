@@ -32,19 +32,58 @@ public partial class GuiDialog
     }
 
     /// <summary>
-    ///     Periodically check if player religion data is available
+    ///     Backoff schedule (ms) between blessing-data requests while we wait for the
+    ///     server response. Previously the request fired exactly once and the tick was
+    ///     unregistered immediately — a single dropped packet left the dialog stuck
+    ///     closed until relog (#487). Now we keep retrying with growing gaps so we don't
+    ///     spam the server, and stop only once data lands (see <see cref="MarkReady"/>).
+    /// </summary>
+    private static readonly long[] DataRequestBackoffMs = { 1000, 2000, 5000 };
+
+    private int _dataRequestAttempts;
+    private long _nextDataRequestAtMs;
+
+    /// <summary>
+    ///     Periodically check if player religion data is available, re-requesting with
+    ///     backoff until the server responds.
     /// </summary>
     private void OnCheckDataAvailability(float dt)
     {
-        if (_state.IsReady) return;
+        if (_state.IsReady)
+        {
+            // Defensive: the response normally unregisters us via MarkReady(); ensure we
+            // never keep ticking once ready.
+            _capi?.Event.UnregisterGameTickListener(_checkDataId);
+            return;
+        }
 
-        // Request blessing data from server
+        var now = Environment.TickCount64;
+        if (now < _nextDataRequestAtMs) return;
+
         if (_divineAscensionModSystem != null)
         {
             _divineAscensionModSystem.NetworkClient?.RequestBlessingData();
             _divineAscensionModSystem.NetworkClient?.RequestAvailableDomains();
-            // Don't set _state.IsReady yet - wait for server response in OnBlessingDataReceived
-            _capi!.Event.UnregisterGameTickListener(_checkDataId);
+            // Don't set _state.IsReady yet - wait for server response in OnBlessingDataReceived.
+            var idx = Math.Min(_dataRequestAttempts, DataRequestBackoffMs.Length - 1);
+            _nextDataRequestAtMs = now + DataRequestBackoffMs[idx];
+            _dataRequestAttempts++;
+        }
+    }
+
+    /// <summary>
+    ///     Flip the dialog to ready, stop the data-availability retry tick, and replay a
+    ///     queued open (#487). Called from every spot that marks blessing data as loaded.
+    /// </summary>
+    private void MarkReady()
+    {
+        _state.IsReady = true;
+        _capi?.Event.UnregisterGameTickListener(_checkDataId);
+
+        if (_state.PendingOpen)
+        {
+            _state.PendingOpen = false;
+            Open();
         }
     }
 
@@ -59,14 +98,15 @@ public partial class GuiDialog
         {
             _logger?.Debug("[DivineAscension] Player has no religion - data ready for 'No Religion' state");
             _manager!.Reset();
-            _state.IsReady = true; // Set ready so dialog can open to show "No Religion" state
 
             // Clear previous ranks when player has no religion
             _state.PreviousFavorRank = string.Empty;
             _state.PreviousPrestigeRank = string.Empty;
             _state.PreviousMaxBlessingSlots = -1;
 
-            // Dialog will only open when player presses the keybind (Shift+G)
+            // Set ready so the dialog can open to the "No Religion" state, and replay a
+            // queued open if the player clicked a lectern / pressed Shift+G during the race.
+            MarkReady();
 
             return;
         }
@@ -149,7 +189,7 @@ public partial class GuiDialog
         _logger?.Debug(
             $"[DivineAscension] Initialized previous ranks: Favor={favorRankName}, Prestige={prestigeRankName}");
 
-        _state.IsReady = true;
+        MarkReady();
         _logger?.Notification(
             $"[DivineAscension] Loaded {playerBlessings.Count} player + {religionBlessings.Count} religion blessings across all five deities; active={patron}");
     }

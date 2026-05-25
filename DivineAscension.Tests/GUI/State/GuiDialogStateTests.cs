@@ -47,6 +47,34 @@ public class GuiDialogStateTests
         Assert.Equal(200.75f, state.WindowPosY);
     }
 
+    [Fact]
+    public void PendingOpen_DefaultsToFalse()
+    {
+        var state = new GuiDialogState();
+
+        Assert.False(state.PendingOpen);
+    }
+
+    [Fact]
+    public void PendingOpen_CanBeSetAndRetrieved()
+    {
+        var state = new GuiDialogState();
+
+        state.PendingOpen = true;
+
+        Assert.True(state.PendingOpen);
+    }
+
+    [Fact]
+    public void Reset_ClearsPendingOpen()
+    {
+        var state = new GuiDialogState { PendingOpen = true };
+
+        state.Reset();
+
+        Assert.False(state.PendingOpen);
+    }
+
     #endregion
 
     #region Reset Tests

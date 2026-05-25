@@ -21,6 +21,13 @@ public class GuiDialogState
     public bool RequestClose { get; set; }
 
     /// <summary>
+    ///     An open was attempted (lectern or Shift+G) before <see cref="IsReady"/>
+    ///     was set. The open is queued here and replayed once blessing data lands
+    ///     (#487), so a click during the post-login data race isn't dropped.
+    /// </summary>
+    public bool PendingOpen { get; set; }
+
+    /// <summary>
     ///     Current window X position
     /// </summary>
     public float WindowPosX { get; set; }
@@ -72,6 +79,7 @@ public class GuiDialogState
         IsOpen = false;
         IsReady = false;
         RequestClose = false;
+        PendingOpen = false;
         WindowPosX = 0f;
         WindowPosY = 0f;
         WindowWidth = 0f;

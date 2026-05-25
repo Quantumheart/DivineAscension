@@ -327,6 +327,7 @@ public static class LocalizationKeys
     public const string UI_BLESSING_CONFIRM_UNLEARN_CASCADE_LIST_HEADER = "divineascension:ui.blessing.confirm.unlearn.cascade.list_header";
     public const string UI_BLESSING_READ_MORE = "divineascension:ui.blessing.read_more";
     public const string UI_BLESSING_READ_LESS = "divineascension:ui.blessing.read_less";
+    public const string UI_DIALOG_LOADING = "divineascension:ui.dialog.loading";
     public const string UI_BLESSING_PAGE_TITLE = "divineascension:ui.blessing.page.title";
     public const string UI_BLESSING_PAGE_INTRO = "divineascension:ui.blessing.page.intro";
     public const string UI_BLESSING_PAGE_ACROSS_DOMAINS = "divineascension:ui.blessing.page.across_domains";
