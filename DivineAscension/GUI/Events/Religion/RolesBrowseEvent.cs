@@ -36,9 +36,9 @@ public abstract record RolesBrowseEvent
     // Role deletion
     public record DeleteRoleOpen(string RoleUID, string RoleName) : RolesBrowseEvent;
 
-    public record DeleteRoleConfirm(string RoleUID) : RolesBrowseEvent;
+    public record DeleteRoleConfirm(string RoleUID) : RolesBrowseEvent, IModalControlEvent;
 
-    public record DeleteRoleCancel : RolesBrowseEvent;
+    public record DeleteRoleCancel : RolesBrowseEvent, IModalControlEvent;
 
     // Refresh
     public record RefreshRequested : RolesBrowseEvent;

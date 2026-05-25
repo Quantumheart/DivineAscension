@@ -134,5 +134,10 @@ internal static class ConfirmOverlay
         if (ButtonRenderer.DrawButton(drawList, cancelLabel,
                 btnStartX + confirmBtnW + btnSpacing, btnY, cancelBtnW, btnH))
             canceled = true;
+
+        // Esc cancels the modal. GuiDialog suppresses its own close-on-Esc while a modal
+        // is blocking (see ProcessRender), so the key dismisses the overlay, not the dialog.
+        if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+            canceled = true;
     }
 }
