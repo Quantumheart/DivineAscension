@@ -159,6 +159,8 @@ public class DivineAscensionModSystem : ModSystem
             .RegisterMessageType<BlessingUnlockResponsePacket>()
             .RegisterMessageType<UnlearnBlessingRequestPacket>()
             .RegisterMessageType<UnlearnBlessingResponsePacket>()
+            .RegisterMessageType<UnlearnReligionBlessingRequestPacket>()
+            .RegisterMessageType<UnlearnReligionBlessingResponsePacket>()
             .RegisterMessageType<BlessingDataRequestPacket>()
             .RegisterMessageType<BlessingDataResponsePacket>()
             .RegisterMessageType<ReligionStateChangedPacket>()

@@ -37,6 +37,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
     private readonly IPlayerMessengerService _messengerService;
     private readonly IWorldService _worldService;
     private readonly IBlessingUnlearnService _unlearnService;
+    private readonly IReligionBlessingUnlearnService _religionUnlearnService;
     private readonly Configuration.GameBalanceConfig _gameBalanceConfig;
     private readonly IFreeRespecWindow _freeRespecWindow;
 
@@ -50,6 +51,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         IPlayerMessengerService messengerService,
         IWorldService worldService,
         IBlessingUnlearnService unlearnService,
+        IReligionBlessingUnlearnService religionUnlearnService,
         Configuration.GameBalanceConfig gameBalanceConfig,
         IFreeRespecWindow freeRespecWindow)
     {
@@ -62,6 +64,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
         _unlearnService = unlearnService ?? throw new ArgumentNullException(nameof(unlearnService));
+        _religionUnlearnService = religionUnlearnService ?? throw new ArgumentNullException(nameof(religionUnlearnService));
         _gameBalanceConfig = gameBalanceConfig ?? throw new ArgumentNullException(nameof(gameBalanceConfig));
         _freeRespecWindow = freeRespecWindow ?? throw new ArgumentNullException(nameof(freeRespecWindow));
     }
@@ -71,6 +74,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         // Register handlers for blessing system packets
         _networkService.RegisterMessageHandler<BlessingUnlockRequestPacket>(OnBlessingUnlockRequest);
         _networkService.RegisterMessageHandler<UnlearnBlessingRequestPacket>(OnUnlearnBlessingRequest);
+        _networkService.RegisterMessageHandler<UnlearnReligionBlessingRequestPacket>(OnUnlearnReligionBlessingRequest);
         _networkService.RegisterMessageHandler<BlessingDataRequestPacket>(OnBlessingDataRequest);
 
         // Push fresh blessing data to everyone when the free-respec window opens/closes so the
@@ -279,6 +283,102 @@ public class BlessingNetworkHandler : IServerNetworkHandler
         }
 
         var response = new UnlearnBlessingResponsePacket(success, message, packet.BlessingId, refundedFavor, struckIds);
+        _networkService.SendToPlayer(fromPlayer, response);
+    }
+
+    /// <summary>
+    ///     Handle a religion-blessing strike request: founder-only, removes an inscribed religion
+    ///     blessing and its prerequisite cascade, refunding a fraction of each blessing's prestige
+    ///     cost to the religion's spendable prestige (epic #479, slice 5 — #484). Server-authoritative:
+    ///     founder status and ownership are re-checked here regardless of client state. On success
+    ///     every member is notified and their blessing data refreshed so the inscribe counter updates.
+    /// </summary>
+    private void OnUnlearnReligionBlessingRequest(IServerPlayer fromPlayer, UnlearnReligionBlessingRequestPacket packet)
+    {
+        string message;
+        var success = false;
+        var refundedPrestige = 0;
+        var struckIds = new List<string>();
+
+        try
+        {
+            var blessing = _blessingRegistry.GetBlessing(packet.BlessingId);
+            var blessingName = blessing?.Name ?? packet.BlessingId;
+            var religion = _religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+
+            if (religion == null)
+            {
+                message = LocalizationService.Instance.Get(
+                    LocalizationKeys.NET_BLESSING_MUST_BE_IN_RELIGION_RELIGION);
+            }
+            else if (!religion.IsFounder(fromPlayer.PlayerUID))
+            {
+                message = LocalizationService.Instance.Get(
+                    LocalizationKeys.NET_RELIGION_BLESSING_STRIKE_NOT_FOUNDER);
+            }
+            else
+            {
+                var result = _religionUnlearnService.UnlearnReligionBlessing(religion.ReligionUID, packet.BlessingId);
+                switch (result.Outcome)
+                {
+                    case ReligionUnlearnOutcome.Success:
+                        success = true;
+                        refundedPrestige = result.RefundedPrestige;
+                        if (result.StruckBlessingIds != null)
+                            struckIds.AddRange(result.StruckBlessingIds);
+                        // StruckCount includes the target; >1 means dependent children cascaded too.
+                        message = result.StruckCount > 1
+                            ? LocalizationService.Instance.Get(
+                                LocalizationKeys.NET_RELIGION_BLESSING_STRIKE_CASCADE_SUCCESS,
+                                blessingName, result.StruckCount - 1, result.RefundedPrestige)
+                            : LocalizationService.Instance.Get(
+                                LocalizationKeys.NET_RELIGION_BLESSING_STRIKE_SUCCESS,
+                                blessingName, result.RefundedPrestige);
+
+                        // Notify every member and refresh their blessing data so the inscribe
+                        // counter and tree reflect the struck cascade live.
+                        foreach (var memberUid in religion.MemberUIDs)
+                        {
+                            _playerProgressionDataManager.NotifyPlayerDataChanged(memberUid);
+
+                            if (_worldService.GetPlayerByUID(memberUid) is IServerPlayer member)
+                            {
+                                SendBlessingData(member);
+                                _messengerService.SendMessage(
+                                    member,
+                                    LocalizationService.Instance.Get(
+                                        LocalizationKeys.NET_RELIGION_BLESSING_STRIKE_NOTIFICATION, blessingName),
+                                    EnumChatType.Notification);
+                            }
+                        }
+                        break;
+                    case ReligionUnlearnOutcome.NotOwned:
+                        message = LocalizationService.Instance.Get(
+                            LocalizationKeys.NET_RELIGION_BLESSING_STRIKE_NOT_OWNED, blessingName);
+                        break;
+                    case ReligionUnlearnOutcome.NotReligionBlessing:
+                        message = LocalizationService.Instance.Get(
+                            LocalizationKeys.NET_RELIGION_BLESSING_STRIKE_NOT_RELIGION);
+                        break;
+                    case ReligionUnlearnOutcome.ReligionNotFound:
+                        message = LocalizationService.Instance.Get(
+                            LocalizationKeys.NET_BLESSING_MUST_BE_IN_RELIGION_RELIGION);
+                        break;
+                    default: // BlessingNotFound
+                        message = LocalizationService.Instance.Get(
+                            LocalizationKeys.NET_BLESSING_NOT_FOUND, packet.BlessingId);
+                        break;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_BLESSING_STRIKE_ERROR, ex.Message);
+            _logger.Error($"[DivineAscension] Religion blessing strike error: {ex}");
+        }
+
+        var response = new UnlearnReligionBlessingResponsePacket(
+            success, message, packet.BlessingId, refundedPrestige, struckIds);
         _networkService.SendToPlayer(fromPlayer, response);
     }
 

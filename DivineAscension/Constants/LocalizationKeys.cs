@@ -349,6 +349,13 @@ public static class LocalizationKeys
     public const string UI_BLESSING_VOWS_PATRON_HEADING = "divineascension:ui.blessing.vows.patron_heading";
     public const string UI_BLESSING_VOWS_PRESTIGE_BALANCE = "divineascension:ui.blessing.vows.prestige_balance";
     public const string UI_BLESSING_VOWS_SELECTED_HEADING = "divineascension:ui.blessing.vows.selected_heading";
+    public const string UI_BLESSING_VOWS_SLOTS_ROW = "divineascension:ui.blessing.vows.slots_row";
+    public const string UI_BLESSING_CONFIRM_RELIGION_STRIKE_TITLE =
+        "divineascension:ui.blessing.confirm.religion_strike.title";
+    public const string UI_BLESSING_CONFIRM_RELIGION_STRIKE_MESSAGE =
+        "divineascension:ui.blessing.confirm.religion_strike.message";
+    public const string UI_BLESSING_CONFIRM_RELIGION_STRIKE_CASCADE_MESSAGE =
+        "divineascension:ui.blessing.confirm.religion_strike.cascade.message";
     public const string SIDEBAR_DISABLED_SWEAR_FOUNDER_ONLY = "divineascension:ui.blessing.swear.disabled_founder_only";
     public const string UI_BLESSING_UNKNOWN_RELIGION = "divineascension:ui.blessing.unknown_religion";
     public const string UI_BLESSING_UNKNOWN_CIVILIZATION = "divineascension:ui.blessing.unknown_civilization";
@@ -1707,6 +1714,26 @@ public static class LocalizationKeys
     public const string NET_BLESSING_UNLEARN_NOT_OWNED = "divineascension:net.blessing.unlearn_not_owned";
     public const string NET_BLESSING_UNLEARN_NOT_PERSONAL = "divineascension:net.blessing.unlearn_not_personal";
     public const string NET_BLESSING_ERROR_UNLEARNING = "divineascension:net.blessing.error_unlearning";
+
+    // Religion blessing slot cap (#479, slice 2)
+    public const string NET_BLESSING_RELIGION_SLOT_CAP_REACHED =
+        "divineascension:net.blessing.religion_slot_cap_reached";
+
+    // Religion blessing strike (#479, slice 5)
+    public const string NET_RELIGION_BLESSING_STRIKE_SUCCESS =
+        "divineascension:net.blessing.religion_strike_success";
+    public const string NET_RELIGION_BLESSING_STRIKE_CASCADE_SUCCESS =
+        "divineascension:net.blessing.religion_strike_cascade_success";
+    public const string NET_RELIGION_BLESSING_STRIKE_NOT_OWNED =
+        "divineascension:net.blessing.religion_strike_not_owned";
+    public const string NET_RELIGION_BLESSING_STRIKE_NOT_FOUNDER =
+        "divineascension:net.blessing.religion_strike_not_founder";
+    public const string NET_RELIGION_BLESSING_STRIKE_NOT_RELIGION =
+        "divineascension:net.blessing.religion_strike_not_religion";
+    public const string NET_RELIGION_BLESSING_STRIKE_NOTIFICATION =
+        "divineascension:net.blessing.religion_strike_notification";
+    public const string NET_RELIGION_BLESSING_STRIKE_ERROR =
+        "divineascension:net.blessing.religion_strike_error";
 
     #endregion
 

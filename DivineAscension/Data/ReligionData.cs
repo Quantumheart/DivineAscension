@@ -616,6 +616,23 @@ public class ReligionData
     }
 
     /// <summary>
+    ///     Refunds prestige when a religion blessing is struck (#479, slice 5). Credits spendable
+    ///     prestige only — <see cref="TotalPrestige"/> is untouched, so the prestige rank cannot
+    ///     flicker down. Mirrors the personal-side spendable-favor refund on unlearn.
+    ///     Thread-safe.
+    /// </summary>
+    public void RefundPrestige(int amount)
+    {
+        lock (Lock)
+        {
+            if (amount > 0)
+            {
+                Prestige += amount;
+            }
+        }
+    }
+
+    /// <summary>
     ///     Unlocks a blessing for this religion.
     ///     Thread-safe.
     /// </summary>
