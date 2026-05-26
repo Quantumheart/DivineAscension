@@ -78,13 +78,22 @@ internal static class ProgressBarRenderer
         var fillEnd = x + width * Math.Clamp(percentage, 0f, 1f);
         var darkInk = ImGui.ColorConvertFloat4ToU32(ColorPalette.White);
         var lightInk = ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText);
+        var onFill = PickInk(fillColor, darkInk, lightInk);
+        var onBg = PickInk(backgroundColor, darkInk, lightInk);
 
         drawList.PushClipRect(bgMin, new Vector2(fillEnd, bgMax.Y), true);
-        drawList.AddText(textPos, darkInk, labelText);
+        drawList.AddText(textPos, onFill, labelText);
         drawList.PopClipRect();
 
         drawList.PushClipRect(new Vector2(fillEnd, bgMin.Y), bgMax, true);
-        drawList.AddText(textPos, lightInk, labelText);
+        drawList.AddText(textPos, onBg, labelText);
         drawList.PopClipRect();
+    }
+
+    private static uint PickInk(Vector4 bg, uint darkInk, uint lightInk)
+    {
+        // Relative luminance (Rec. 709). Dark ink on light bg, cream on dark.
+        var luminance = 0.2126f * bg.X + 0.7152f * bg.Y + 0.0722f * bg.Z;
+        return luminance > 0.5f ? darkInk : lightInk;
     }
 }
