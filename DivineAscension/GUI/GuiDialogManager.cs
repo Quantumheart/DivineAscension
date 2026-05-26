@@ -4,6 +4,7 @@ using System.Linq;
 using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Managers;
 using DivineAscension.GUI.State;
+using DivineAscension.GUI.UI.Adapters.Bans;
 using DivineAscension.GUI.UI.Adapters.Civilizations;
 using DivineAscension.GUI.UI.Adapters.Diplomacy;
 using DivineAscension.GUI.UI.Adapters.ReligionInvites;
@@ -47,6 +48,11 @@ public class GuiDialogManager : IBlessingDialogManager
         var fakeInvitesProvider = new FakeReligionInvitesProvider();
         fakeInvitesProvider.ConfigureDevSeed(4, 20260521);
         ReligionStateManager.UseInvitesProvider(fakeInvitesProvider);
+
+        // Fake banned players for styling the Stricken-from-the-Ledger section of This Order.
+        var fakeBanListProvider = new FakeBanListProvider();
+        fakeBanListProvider.ConfigureDevSeed(5, 20260526);
+        ReligionStateManager.UseBanListProvider(fakeBanListProvider);
 
         // Initialize civilization fake providers
         var fakeCivProvider = new FakeCivilizationProvider();

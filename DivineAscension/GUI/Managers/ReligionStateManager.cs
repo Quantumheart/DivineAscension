@@ -13,7 +13,7 @@ using DivineAscension.GUI.Models.Religion.Roles;
 using DivineAscension.GUI.Models.Religion.Roster;
 using DivineAscension.GUI.Models.Religion.Tab;
 using DivineAscension.GUI.State;
-using DivineAscension.GUI.State.Religion;
+using DivineAscension.GUI.UI.Adapters.Bans;
 using DivineAscension.GUI.UI.Adapters.ReligionInvites;
 using DivineAscension.GUI.UI.Adapters.ReligionMembers;
 using DivineAscension.GUI.UI.Adapters.Religions;
@@ -37,6 +37,9 @@ public class ReligionStateManager : IReligionStateManager
     private readonly ISoundManager _soundManager;
     private readonly IUiService _uiService;
 
+    // Available domains (synced from server)
+    private string[] _availableDomains = { "Craft", "Wild", "Conquest", "Harvest", "Stone" };
+
     public ReligionStateManager(ICoreClientAPI coreClientApi, IUiService uiService, ISoundManager soundManager)
     {
         _coreClientApi = coreClientApi ?? throw new ArgumentNullException(nameof(coreClientApi));
@@ -49,6 +52,7 @@ public class ReligionStateManager : IReligionStateManager
     internal IReligionProvider? ReligionsProvider { get; private set; }
     internal IReligionDetailProvider? ReligionDetailProvider { get; private set; }
     internal IReligionInvitesProvider? InvitesProvider { get; private set; }
+    internal IBanListProvider? BanListProvider { get; private set; }
 
     /// <summary>
     ///     Wired by the dialog to forward nav-redirect requests to the sidebar.
@@ -56,6 +60,16 @@ public class ReligionStateManager : IReligionStateManager
     ///     needs to move the user to a different sidebar destination.
     /// </summary>
     public Action<SidebarNavId>? NavRedirectRequested { get; set; }
+
+    // Config thresholds (synced from server)
+    public int DiscipleThreshold { get; set; } = 500;
+    public int ZealotThreshold { get; set; } = 2000;
+    public int ChampionThreshold { get; set; } = 5000;
+    public int AvatarThreshold { get; set; } = 10000;
+    public int EstablishedThreshold { get; set; } = 2500;
+    public int RenownedThreshold { get; set; } = 10000;
+    public int LegendaryThreshold { get; set; } = 25000;
+    public int MythicThreshold { get; set; } = 50000;
 
     public ReligionTabState State { get; } = new();
     public string? CurrentReligionUID { get; set; }
@@ -74,19 +88,6 @@ public class ReligionStateManager : IReligionStateManager
     public Dictionary<DeityDomain, int> FavorRanksByDeity { get; set; } = new();
     public Dictionary<DeityDomain, int> TotalFavorEarnedByDeity { get; set; } = new();
 
-    // Available domains (synced from server)
-    private string[] _availableDomains = { "Craft", "Wild", "Conquest", "Harvest", "Stone" };
-
-    // Config thresholds (synced from server)
-    public int DiscipleThreshold { get; set; } = 500;
-    public int ZealotThreshold { get; set; } = 2000;
-    public int ChampionThreshold { get; set; } = 5000;
-    public int AvatarThreshold { get; set; } = 10000;
-    public int EstablishedThreshold { get; set; } = 2500;
-    public int RenownedThreshold { get; set; } = 10000;
-    public int LegendaryThreshold { get; set; } = 25000;
-    public int MythicThreshold { get; set; } = 50000;
-
     public void Initialize(string? id, DeityDomain domain, string? religionName, int favorRank = 0,
         int prestigeRank = 0)
     {
@@ -95,18 +96,6 @@ public class ReligionStateManager : IReligionStateManager
         CurrentReligionName = religionName;
         CurrentFavorRank = favorRank;
         CurrentPrestigeRank = prestigeRank;
-    }
-
-    /// <summary>
-    ///     Set available domains from server
-    /// </summary>
-    public void SetAvailableDomains(List<string> domains)
-    {
-        if (domains.Count > 0)
-        {
-            _availableDomains = domains.ToArray();
-            _coreClientApi.Logger.Debug($"[DivineAscension] Updated available domains: {string.Join(", ", _availableDomains)}");
-        }
     }
 
     public void Reset()
@@ -340,6 +329,19 @@ public class ReligionStateManager : IReligionStateManager
         ProcessCreateEvents(result.Events);
     }
 
+    /// <summary>
+    ///     Set available domains from server
+    /// </summary>
+    public void SetAvailableDomains(List<string> domains)
+    {
+        if (domains.Count > 0)
+        {
+            _availableDomains = domains.ToArray();
+            _coreClientApi.Logger.Debug(
+                $"[DivineAscension] Updated available domains: {string.Join(", ", _availableDomains)}");
+        }
+    }
+
     internal void RequestReligionRoles()
     {
         State.ErrorState.RolesError = null;
@@ -373,6 +375,16 @@ public class ReligionStateManager : IReligionStateManager
     internal void UseInvitesProvider(IReligionInvitesProvider provider)
     {
         InvitesProvider = provider;
+    }
+
+    /// <summary>
+    ///     Configure a UI-only banned-players provider (fake or real). When set,
+    ///     <see cref="DrawReligionInfo" /> reads the Stricken-from-the-Ledger
+    ///     rows from the provider instead of <c>MyReligionInfo.BannedPlayers</c>.
+    /// </summary>
+    internal void UseBanListProvider(IBanListProvider provider)
+    {
+        BanListProvider = provider;
     }
 
     /// <summary>
@@ -598,7 +610,9 @@ public class ReligionStateManager : IReligionStateManager
             motto: religion?.Motto,
             foundingMyth: religion?.FoundingMyth,
             members: religion?.Members ?? new List<PlayerReligionInfoResponsePacket.MemberInfo>(),
-            bannedPlayers: religion?.BannedPlayers,
+            bannedPlayers: BanListProvider != null
+                ? new List<PlayerReligionInfoResponsePacket.BanInfo>(BanListProvider.GetBannedPlayers())
+                : religion?.BannedPlayers,
             prestige: prestigeProgress.CurrentPrestige,
             prestigeRank: RankRequirements.GetPrestigeRankName(prestigeProgress.CurrentRank),
             prestigeRankIndex: prestigeProgress.CurrentRank,
@@ -693,6 +707,7 @@ public class ReligionStateManager : IReligionStateManager
                         _soundManager.PlayClick();
                         RequestReligionAction("kick", religionId, kc.PlayerUID);
                     }
+
                     roster.ExpandedMemberUID = null;
                     break;
 
@@ -710,6 +725,7 @@ public class ReligionStateManager : IReligionStateManager
                         _soundManager.PlayClick();
                         RequestReligionAction("ban", religionId, sc.PlayerUID);
                     }
+
                     roster.StrikeConfirmPlayerUID = null;
                     roster.StrikeConfirmPlayerName = null;
                     roster.ExpandedMemberUID = null;
@@ -725,6 +741,7 @@ public class ReligionStateManager : IReligionStateManager
                         RequestReligionAction("invite", religionId, ic.PlayerName);
                         roster.InvitePlayerName = string.Empty;
                     }
+
                     break;
 
                 case RosterEvent.KickCancel:
@@ -775,6 +792,7 @@ public class ReligionStateManager : IReligionStateManager
                             State.ErrorState.CreateError = null;
                             break;
                     }
+
                     break;
                 case SubTabEvent.RetryRequested(var retried):
                     switch (retried)
@@ -787,6 +805,7 @@ public class ReligionStateManager : IReligionStateManager
                             RequestPlayerReligionInfo();
                             break;
                     }
+
                     break;
             }
         }
@@ -963,6 +982,7 @@ public class ReligionStateManager : IReligionStateManager
                         if (info != null) info.Motto = sm.Text;
                         State.InfoState.Motto = sm.Text;
                     }
+
                     State.InfoState.IsEditingMotto = false;
                     break;
                 case InfoEvent.EditMottoOpen:
@@ -986,6 +1006,7 @@ public class ReligionStateManager : IReligionStateManager
                         if (info != null) info.FoundingMyth = sfm.Text;
                         State.InfoState.FoundingMyth = sfm.Text;
                     }
+
                     State.InfoState.IsEditingFoundingMyth = false;
                     break;
                 case InfoEvent.EditFoundingMythOpen:
@@ -1300,6 +1321,7 @@ public class ReligionStateManager : IReligionStateManager
                         State.BrowseState.SearchText = e.NewText;
                         State.BrowseState.BrowseScrollY = 0f;
                     }
+
                     break;
             }
         }
@@ -1317,6 +1339,7 @@ public class ReligionStateManager : IReligionStateManager
             if (r.ReligionName.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
                 result.Add(r);
         }
+
         return result;
     }
 
