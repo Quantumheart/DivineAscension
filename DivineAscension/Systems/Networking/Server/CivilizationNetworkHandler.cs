@@ -155,7 +155,7 @@ public class CivilizationNetworkHandler(
         LeaderboardMetric metric,
         IReadOnlyList<Data.Civilization> civilizations,
         string? viewerCivId,
-        Func<Data.Civilization, int> scoreOf)
+        System.Func<Data.Civilization, int> scoreOf)
     {
         var ranked = civilizations.OrderByDescending(scoreOf).ToList();
         var entries = new List<LeaderboardResponsePacket.LeaderboardEntry>(ranked.Count);
