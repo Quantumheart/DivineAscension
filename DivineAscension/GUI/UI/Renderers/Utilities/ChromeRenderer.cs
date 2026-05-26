@@ -401,6 +401,47 @@ internal static class ChromeRenderer
     }
 
     /// <summary>
+    ///     Paint a hallow glyph (⌂ U+2302 — a small house/shrine) as primitives
+    ///     so it renders in fonts without that codepoint. Triangular roof over a
+    ///     squared body with a doorway notch; used for the holy-site boon.
+    /// </summary>
+    public static void DrawHallow(ImDrawListPtr drawList, float cx, float cy, float size,
+        Vector4? colorOverride = null)
+    {
+        if (size <= 0f) return;
+        var bodyVec = colorOverride ?? ColorPalette.Gold;
+        var col = ImGui.ColorConvertFloat4ToU32(bodyVec);
+        var trim = ImGui.ColorConvertFloat4ToU32(bodyVec * 0.55f);
+
+        var halfW = size * 0.34f;
+        var roofTopY = cy - size * 0.46f;
+        var eavesY = cy - size * 0.06f;
+        var baseY = cy + size * 0.44f;
+
+        // Roof — filled triangle overhanging the body slightly.
+        drawList.AddTriangleFilled(
+            new Vector2(cx - halfW * 1.25f, eavesY),
+            new Vector2(cx + halfW * 1.25f, eavesY),
+            new Vector2(cx, roofTopY),
+            col);
+
+        // Body — filled square beneath the eaves.
+        drawList.AddRectFilled(
+            new Vector2(cx - halfW, eavesY),
+            new Vector2(cx + halfW, baseY),
+            col);
+
+        // Doorway — slim notch in the body, trimmed darker so it reads as an
+        // opening rather than a solid block.
+        var doorHalfW = halfW * 0.34f;
+        var doorTopY = eavesY + (baseY - eavesY) * 0.32f;
+        drawList.AddRectFilled(
+            new Vector2(cx - doorHalfW, doorTopY),
+            new Vector2(cx + doorHalfW, baseY),
+            trim);
+    }
+
+    /// <summary>
     ///     Paint a sealed-envelope glyph (✉ U+2709) as primitives so it
     ///     renders without Dingbats coverage in the loaded font. A wide
     ///     horizontal rectangle with the front flap drawn as two diagonals
