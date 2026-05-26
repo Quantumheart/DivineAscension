@@ -17,7 +17,7 @@ public class UiPrefsTests
         Assert.Equal(900, prefs.WindowHeight);
         Assert.False(prefs.SidebarCollapsed);
         Assert.Empty(prefs.CollapsedGroups);
-        Assert.Equal(SidebarNavId.ReligionInfo, prefs.LastNavId);
+        Assert.Equal(SidebarNavId.PlayerInfo, prefs.LastNavId);
     }
 
     [Fact]

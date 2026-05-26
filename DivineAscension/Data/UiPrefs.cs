@@ -19,5 +19,5 @@ public class UiPrefs
 
     [ProtoMember(4)] public Dictionary<string, bool> CollapsedGroups { get; set; } = new();
 
-    [ProtoMember(5)] public SidebarNavId LastNavId { get; set; } = SidebarNavId.ReligionInfo;
+    [ProtoMember(5)] public SidebarNavId LastNavId { get; set; } = SidebarNavId.PlayerInfo;
 }

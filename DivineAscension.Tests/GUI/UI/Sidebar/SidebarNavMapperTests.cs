@@ -235,6 +235,35 @@ public class SidebarNavMapperTests
     }
 
     [Fact]
+    public void ResolveRestoreNav_EnabledPage_IsRestored()
+    {
+        // CivilizationDiplomacy is enabled when the player has a civilization.
+        var nav = SidebarNavMapper.ResolveRestoreNav(
+            SidebarNavId.CivilizationDiplomacy,
+            Ctx(hasReligion: true, hasCivilization: true));
+
+        Assert.Equal(SidebarNavId.CivilizationDiplomacy, nav);
+    }
+
+    [Fact]
+    public void ResolveRestoreNav_DisabledPage_FallsBackToPlayerInfo()
+    {
+        // CivilizationDiplomacy is disabled with no civilization (e.g. player left it).
+        var nav = SidebarNavMapper.ResolveRestoreNav(
+            SidebarNavId.CivilizationDiplomacy,
+            Ctx());
+
+        Assert.Equal(SidebarNavId.PlayerInfo, nav);
+    }
+
+    [Fact]
+    public void ResolveRestoreNav_PlayerInfo_AlwaysRestored()
+    {
+        Assert.Equal(SidebarNavId.PlayerInfo,
+            SidebarNavMapper.ResolveRestoreNav(SidebarNavId.PlayerInfo, Ctx()));
+    }
+
+    [Fact]
     public void Apply_BlessingsNav_SetsCurrentNav()
     {
         var state = new GuiDialogState();

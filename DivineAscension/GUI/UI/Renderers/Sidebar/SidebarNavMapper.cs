@@ -62,6 +62,24 @@ public static class SidebarNavMapper
     }
 
     /// <summary>
+    ///     Resolve the nav id the codex should land on when reopened. Honours the
+    ///     player's last-visited page, but falls back to <see cref="SidebarNavId.PlayerInfo" />
+    ///     when that page is disabled for the current player — e.g. a Civilization
+    ///     page restored after they left the civilization (#474). PlayerInfo is
+    ///     always reachable.
+    /// </summary>
+    public static SidebarNavId ResolveRestoreNav(SidebarNavId desired, Context ctx)
+    {
+        var vm = BuildViewModel(ctx);
+        foreach (var group in vm.Groups)
+        foreach (var item in group.Items)
+            if (item.Id == desired)
+                return item.IsDisabled ? SidebarNavId.PlayerInfo : desired;
+
+        return SidebarNavId.PlayerInfo;
+    }
+
+    /// <summary>
     ///     Convenience adapter — production builds the context off the live
     ///     <c>GuiDialogManager</c>. Kept here so the mapper is the single place
     ///     that knows the manager surface; renderers only see the view model.

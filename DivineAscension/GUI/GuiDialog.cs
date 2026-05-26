@@ -252,12 +252,11 @@ public partial class GuiDialog : ModSystem
 
         _state.IsOpen = false;
 
-        // Persist the most recent window size captured during DrawWindow.
-        // Snapshot lives on _state; DrawWindow refreshes it each frame.
-        if (_state.WindowWidth > 0f && _state.WindowHeight > 0f)
-        {
-            _divineAscensionModSystem?.SaveUiPrefs((int)_state.WindowWidth, (int)_state.WindowHeight);
-        }
+        // Persist the most recent window size captured during DrawWindow (snapshot
+        // lives on _state; DrawWindow refreshes it each frame) and the page the
+        // player was on, so the codex reopens where they left off (#474).
+        _divineAscensionModSystem?.SaveUiPrefs(
+            (int)_state.WindowWidth, (int)_state.WindowHeight, _state.Sidebar.CurrentNav);
 
         _logger?.Debug("[DivineAscension] Blessing Dialog closed");
     }
