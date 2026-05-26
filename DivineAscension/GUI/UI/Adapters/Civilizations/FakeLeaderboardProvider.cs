@@ -105,7 +105,8 @@ internal sealed class FakeLeaderboardProvider : ILeaderboardProvider
     private static LeaderboardBoardVM BuildBoard(
         LeaderboardBoard board, IReadOnlyList<Realm> realms, Func<Realm, long> score)
     {
-        // Older realm wins score ties (tie-breaking is finalised in slice 4).
+        // Older realm wins score ties — matches the server rule (ThenBy CreatedDate
+        // ascending); here more EnduranceDays == older.
         var ordered = realms
             .OrderByDescending(score)
             .ThenByDescending(r => r.EnduranceDays)

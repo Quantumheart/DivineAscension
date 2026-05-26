@@ -447,7 +447,43 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         State.LeaderboardState.IsLoading = true;
         State.LeaderboardState.ErrorMsg = null;
 
+        // Adapter short-circuit: dev fake provider feeds the chapter in-process,
+        // so the boards render (with glyphs/bars) without a server. In Release the
+        // provider is null and the request falls through to the network.
+        if (LeaderboardProvider != null)
+        {
+            State.LeaderboardState.UpdateFromPacket(BuildLeaderboardPacket(LeaderboardProvider.GetLeaderboards()));
+            return;
+        }
+
         _uiService.RequestLeaderboard();
+    }
+
+    /// <summary>
+    ///     Map adapter board VMs → the network response packet so the fake
+    ///     provider and the real server source feed the renderer identically.
+    /// </summary>
+    private static LeaderboardResponsePacket BuildLeaderboardPacket(IReadOnlyList<LeaderboardBoardVM> boards)
+    {
+        var packetBoards = boards.Select(b => new LeaderboardResponsePacket.Board
+        {
+            Metric = (int)b.board,
+            ViewerPosition = b.viewerPosition,
+            Entries = b.entries.Select(e => new LeaderboardResponsePacket.LeaderboardEntry
+            {
+                Position = e.position,
+                CivId = e.civId,
+                Name = e.name,
+                TierLabel = e.tierLabel,
+                Score = (int)e.score,
+                Ethos = (int)e.ethos
+            }).ToList()
+        }).ToList();
+
+        return new LeaderboardResponsePacket(packetBoards)
+        {
+            TotalRealms = boards.FirstOrDefault()?.totalCount ?? 0
+        };
     }
 
     /// <summary>
@@ -1819,6 +1855,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     internal void RefreshLeaderboardFromProvider()
     {
         LeaderboardProvider?.Refresh();
+        RequestLeaderboard();
     }
 
     /// <summary>
