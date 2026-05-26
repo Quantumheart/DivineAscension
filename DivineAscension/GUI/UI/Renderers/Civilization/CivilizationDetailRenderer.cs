@@ -70,9 +70,9 @@ internal static class CivilizationDetailRenderer
         currentY = DrawStatBlock(vm, drawList, currentY, contentWidth);
         currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
         currentY = DrawHistoryProse(vm, drawList, currentY, contentWidth);
-        currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
+        currentY = DrawDivider(drawList, vm.X, currentY, contentWidth, ornate: true);
         currentY = DrawBoonsSection(vm, drawList, currentY, contentWidth);
-        currentY = DrawDivider(drawList, vm.X, currentY, contentWidth);
+        currentY = DrawDivider(drawList, vm.X, currentY, contentWidth, ornate: true);
         DrawMembersSection(vm, drawList, currentY, contentWidth, events);
 
         return new CivilizationDetailRendererResult(events, vm.Height);
@@ -247,22 +247,20 @@ internal static class CivilizationDetailRenderer
             return currentY + StatRowHeight + SectionBottomSpacing;
         }
 
-        const float diamondLeftPadding = 4f;
-        const float diamondHalfSize = 3.5f;
-        const float diamondToLabelGap = 10f;
-        foreach (var (labelKey, value) in leaders)
+        const float glyphLeftPadding = 4f;
+        const float glyphBox = 14f;
+        const float glyphToLabelGap = 8f;
+        var leaderX = vm.X + glyphLeftPadding + glyphBox + glyphToLabelGap;
+        var leaderWidth = MathF.Max(width - (leaderX - vm.X) - 8f, 40f);
+        var glyphCx = vm.X + glyphLeftPadding + glyphBox / 2f;
+
+        foreach (var boon in leaders)
         {
             var centerY = currentY + StatRowHeight / 2f;
-            ChromeRenderer.DrawDiamond(drawList,
-                vm.X + diamondLeftPadding + diamondHalfSize, centerY,
-                diamondHalfSize,
-                ColorPalette.Gold * 0.6f);
-
-            var leaderX = vm.X + diamondLeftPadding + diamondHalfSize * 2f + diamondToLabelGap;
-            var leaderWidth = MathF.Max(width - (leaderX - vm.X) - 8f, 40f);
+            DrawBoonGlyph(drawList, boon.Glyph, glyphCx, centerY, glyphBox);
             ChromeRenderer.DrawLeader(drawList,
-                LocalizationService.Instance.Get(labelKey),
-                value,
+                LocalizationService.Instance.Get(boon.LabelKey),
+                boon.Value,
                 leaderX, centerY - Body * 0.5f, leaderWidth,
                 valueColor: ColorPalette.Gold);
             currentY += StatRowHeight;
@@ -271,31 +269,63 @@ internal static class CivilizationDetailRenderer
         return currentY + SectionBottomSpacing;
     }
 
+    private static void DrawBoonGlyph(ImDrawListPtr drawList, BoonGlyph glyph,
+        float cx, float cy, float box)
+    {
+        switch (glyph)
+        {
+            case BoonGlyph.Swords:
+                DomainGlyphRenderer.Draw(drawList, DeityDomain.Conquest,
+                    new Vector2(cx - box / 2f, cy - box / 2f),
+                    new Vector2(cx + box / 2f, cy + box / 2f),
+                    ColorPalette.Gold);
+                break;
+            case BoonGlyph.Hallow:
+                ChromeRenderer.DrawHallow(drawList, cx, cy, box, ColorPalette.Gold);
+                break;
+            default:
+                // Fleuron — a gold diamond with a small centre spark, matching
+                // the Boons of Standing bullet on the Chronicles chapter.
+                ChromeRenderer.DrawDiamond(drawList, cx, cy, box * 0.32f, ColorPalette.Gold);
+                drawList.AddCircleFilled(new Vector2(cx, cy), 1.2f,
+                    ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText));
+                break;
+        }
+    }
+
+    private enum BoonGlyph
+    {
+        Fleuron,
+        Swords,
+        Hallow
+    }
+
     /// <summary>
-    ///     Active civic boons as (label key, value) leader rows, in display order.
-    ///     Inactive boons (multiplier == 1.0, slot count 0) are omitted. Multipliers
-    ///     render as percentages to match the PvP chat convention; hallow slots as a
-    ///     flat count.
+    ///     Active civic boons as (glyph, label key, value) leader rows, in display
+    ///     order. Inactive boons (multiplier == 1.0, slot count 0) are omitted.
+    ///     Multipliers render as percentages to match the PvP chat convention;
+    ///     hallow slots as a flat count.
     /// </summary>
-    private static IEnumerable<(string LabelKey, string Value)> ActiveBoonLeaders(CivilizationBonusesDto bonuses)
+    private static IEnumerable<(BoonGlyph Glyph, string LabelKey, string Value)> ActiveBoonLeaders(
+        CivilizationBonusesDto bonuses)
     {
         if (bonuses.FavorMultiplier > 1f)
-            yield return (LocalizationKeys.UI_CIVILIZATION_DETAIL_BOONS_FAVOR,
+            yield return (BoonGlyph.Fleuron, LocalizationKeys.UI_CIVILIZATION_DETAIL_BOONS_FAVOR,
                 LocalizationService.Instance.Get(
                     LocalizationKeys.UI_CIVILIZATION_DETAIL_BOONS_VALUE_PERCENT,
                     Percent(bonuses.FavorMultiplier)));
         if (bonuses.PrestigeMultiplier > 1f)
-            yield return (LocalizationKeys.UI_CIVILIZATION_DETAIL_BOONS_PRESTIGE,
+            yield return (BoonGlyph.Fleuron, LocalizationKeys.UI_CIVILIZATION_DETAIL_BOONS_PRESTIGE,
                 LocalizationService.Instance.Get(
                     LocalizationKeys.UI_CIVILIZATION_DETAIL_BOONS_VALUE_PERCENT,
                     Percent(bonuses.PrestigeMultiplier)));
         if (bonuses.ConquestMultiplier > 1f)
-            yield return (LocalizationKeys.UI_CIVILIZATION_DETAIL_BOONS_CONQUEST,
+            yield return (BoonGlyph.Swords, LocalizationKeys.UI_CIVILIZATION_DETAIL_BOONS_CONQUEST,
                 LocalizationService.Instance.Get(
                     LocalizationKeys.UI_CIVILIZATION_DETAIL_BOONS_VALUE_CONQUEST,
                     Percent(bonuses.ConquestMultiplier)));
         if (bonuses.BonusHolySiteSlots > 0)
-            yield return (LocalizationKeys.UI_CIVILIZATION_DETAIL_BOONS_HALLOWS,
+            yield return (BoonGlyph.Hallow, LocalizationKeys.UI_CIVILIZATION_DETAIL_BOONS_HALLOWS,
                 LocalizationService.Instance.Get(
                     LocalizationKeys.UI_CIVILIZATION_DETAIL_BOONS_VALUE_HALLOWS,
                     bonuses.BonusHolySiteSlots));
@@ -367,10 +397,14 @@ internal static class CivilizationDetailRenderer
             leaderX, rowY, leaderWidth);
     }
 
-    private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
+    private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width,
+        bool ornate = false)
     {
         var dividerY = y + DividerYPadding;
-        ChromeRenderer.DrawDivider(drawList, x, dividerY, width);
+        if (ornate)
+            ChromeRenderer.DrawDividerOrnate(drawList, x, dividerY, width);
+        else
+            ChromeRenderer.DrawDivider(drawList, x, dividerY, width);
         return y + DividerHeight;
     }
 }
