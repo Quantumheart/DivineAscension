@@ -50,6 +50,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     // UI-only diplomacy adapter (fake in dev). Null in release.
     internal IDiplomacyProvider? DiplomacyProvider { get; private set; }
 
+    // UI-only leaderboard adapter (fake in dev). Null in release.
+    internal ILeaderboardProvider? LeaderboardProvider { get; private set; }
+
     public CivilizationTabState State { get; } = new();
 
     /// <summary>
@@ -1721,6 +1724,36 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     {
         CivilizationProvider?.Refresh();
         RequestCivilizationList(State.BrowseState.DeityFilter);
+    }
+
+    /// <summary>
+    ///     Configure a UI-only leaderboard data provider (fake in dev). When set,
+    ///     the leaderboard draw path reads from it instead of the network. In Release
+    ///     it stays null and the real server/network branch (slice 1) is used.
+    /// </summary>
+    internal void UseLeaderboardProvider(ILeaderboardProvider provider)
+    {
+        LeaderboardProvider = provider;
+    }
+
+    /// <summary>
+    ///     Refresh the leaderboard from the configured provider (if any).
+    /// </summary>
+    internal void RefreshLeaderboardFromProvider()
+    {
+        LeaderboardProvider?.Refresh();
+    }
+
+    /// <summary>
+    ///     Source the Standing of Realms boards for the leaderboard chapter. The
+    ///     adapter seam: the dev fake provides seeded data; in Release the provider
+    ///     is null and slice 1's network-backed source plugs into the else branch.
+    /// </summary>
+    internal IReadOnlyList<LeaderboardBoardVM> GetLeaderboards()
+    {
+        return LeaderboardProvider != null
+            ? LeaderboardProvider.GetLeaderboards()
+            : Array.Empty<LeaderboardBoardVM>();
     }
 
     private static IReadOnlyList<CivilizationListResponsePacket.CivilizationInfo> ApplyBrowseFilters(
