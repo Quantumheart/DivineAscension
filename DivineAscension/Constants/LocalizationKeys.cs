@@ -718,6 +718,15 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_INFO_PURPOSE_EMPTY =
         "divineascension:ui.civilization.info.purpose.empty";
 
+    public const string UI_CIVILIZATION_INFO_BOONS_HEADING =
+        "divineascension:ui.civilization.info.boons.heading";
+
+    public const string UI_CIVILIZATION_INFO_BOONS_PROSE =
+        "divineascension:ui.civilization.info.boons.prose";
+
+    public const string UI_CIVILIZATION_INFO_BOONS_EMPTY =
+        "divineascension:ui.civilization.info.boons.empty";
+
     public const string UI_CIVILIZATION_INFO_BANNER_ORDERS_HEADING =
         "divineascension:ui.civilization.info.banner_orders.heading";
 

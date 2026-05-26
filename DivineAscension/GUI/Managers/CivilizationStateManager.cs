@@ -24,6 +24,7 @@ using DivineAscension.GUI.UI.Renderers.HolySites;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Services;
 using DivineAscension.Systems.Interfaces;
@@ -744,6 +745,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             State.InfoState.InviteReligionName ?? string.Empty,
             State.ShowDisbandConfirm,
             State.KickConfirmReligionId,
+            civ?.Bonuses ?? new CivilizationBonusesDto(),
             State.InfoState.ScrollY,
             State.InfoState.MemberScrollY,
             x,

@@ -32,6 +32,8 @@ internal static class CivilizationInfoRenderer
     private const float DividerYPadding = 6f;
     private const float SectionLabelHeight = 22f;
     private const float OrderRowHeight = 22f;
+    private const float BoonRowHeight = 22f;
+    private const float BoonProseHeight = 20f;
     private const float InviteInputHeight = 30f;
     private const float InviteButtonWidth = 130f;
     private const float InviteButtonHeight = 32f;
@@ -110,6 +112,10 @@ internal static class CivilizationInfoRenderer
 
         currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
+        currentY = DrawCivicBoons(vm, drawList, x, currentY, contentWidth);
+
+        currentY = DrawDivider(drawList, x, currentY, contentWidth);
+
         currentY = DrawBannerOrders(vm, drawList, x, currentY, contentWidth);
 
         if (vm.IsFounder)
@@ -132,6 +138,48 @@ internal static class CivilizationInfoRenderer
         DrawOverlays(vm, events);
 
         return new CivilizationInfoRendererResult(events, height);
+    }
+
+    private static float DrawCivicBoons(
+        CivilizationInfoViewModel vm,
+        ImDrawListPtr drawList,
+        float x, float y, float width)
+    {
+        var currentY = y;
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_BOONS_HEADING),
+            x, currentY, SubsectionLabel, ColorPalette.Gold);
+        currentY += SectionLabelHeight;
+
+        TextRenderer.DrawInfoText(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_BOONS_PROSE),
+            x, currentY, width, Secondary, ColorPalette.Grey);
+        currentY += BoonProseHeight;
+
+        var phrases = new List<BoonPhrase>(MilestonePhrases.ActiveBonusPhrases(vm.Bonuses));
+        if (phrases.Count == 0)
+        {
+            TextRenderer.DrawInfoText(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_INFO_BOONS_EMPTY),
+                x, currentY, width, Secondary, ColorPalette.Grey);
+            return currentY + BoonRowHeight + 4f;
+        }
+
+        foreach (var boon in phrases)
+        {
+            var centerY = currentY + BoonRowHeight / 2f;
+            ChromeRenderer.DrawDiamond(drawList,
+                x + DiamondLeftPadding + DiamondHalfSize, centerY,
+                DiamondHalfSize,
+                ColorPalette.Gold * 0.6f);
+
+            var labelX = x + DiamondLeftPadding + DiamondHalfSize * 2f + DiamondLabelGap;
+            TextRenderer.DrawLabel(drawList, boon.Value,
+                labelX, centerY - Body * 0.5f, Body, ColorPalette.Gold);
+            currentY += BoonRowHeight;
+        }
+
+        return currentY + 4f;
     }
 
     private static float DrawBannerOrders(
@@ -304,6 +352,14 @@ internal static class CivilizationInfoRenderer
             h += SectionLabelHeight + 80f + 6f + 26f + 8f;
         else
             h += SectionLabelHeight + Secondary + LinePadding + 8f;
+
+        h += DividerHeight;
+
+        // Civic boons
+        h += SectionLabelHeight + BoonProseHeight;
+        var boonCount = 0;
+        foreach (var _ in MilestonePhrases.ActiveBonusPhrases(vm.Bonuses)) boonCount++;
+        h += boonCount == 0 ? BoonRowHeight + 4f : BoonRowHeight * boonCount + 4f;
 
         h += DividerHeight;
 
