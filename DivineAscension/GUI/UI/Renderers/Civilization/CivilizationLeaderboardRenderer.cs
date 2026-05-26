@@ -183,11 +183,14 @@ internal static class CivilizationLeaderboardRenderer
         var glyphColor = isViewer ? ColorPalette.Gold : ColorPalette.Grey;
 
         // Pin gutter — bracket the viewer's realm so it reads as "you are here".
+        // Drawn as chevrons rather than glyphs: ▸/◂ aren't in the ImGui font.
         if (isViewer)
         {
-            drawList.AddText(font, Body, new Vector2(x, textY), nameColor, "▸"); // ▸
-            drawList.AddText(font, Body, new Vector2(x + width - ImGui.CalcTextSize("◂").X, textY),
-                nameColor, "◂"); // ◂
+            const float pinSize = 9f;
+            ChromeRenderer.DrawChevron(drawList, x + pinSize * 0.6f, rowMidY, pinSize,
+                ChromeRenderer.ChevronDirection.Right, ColorPalette.Gold);
+            ChromeRenderer.DrawChevron(drawList, x + width - pinSize * 0.6f, rowMidY, pinSize,
+                ChromeRenderer.ChevronDirection.Left, ColorPalette.Gold);
         }
 
         var leftX = x + RowMarkerWidth;
