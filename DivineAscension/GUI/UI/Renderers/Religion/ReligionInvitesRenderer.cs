@@ -26,6 +26,7 @@ internal static class ReligionInvitesRenderer
         ReligionInvitesViewModel viewModel,
         ImDrawListPtr drawList)
     {
+        var defaultQuote = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_QUOTE);
         var letters = new List<LetterEntry>(viewModel.Invites.Count);
         foreach (var invite in viewModel.Invites)
         {
@@ -36,7 +37,7 @@ internal static class ReligionInvitesRenderer
                 Id: invite.InviteId,
                 SenderText: sender,
                 GlyphPainter: (dl, min, max) => DomainGlyphRenderer.Draw(dl, domain, min, max, ColorPalette.White),
-                QuoteLine: LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INVITES_QUOTE)));
+                QuoteLine: invite.BuildQuoteLine(defaultQuote)));
         }
 
         var lettersVm = new LettersViewModel(

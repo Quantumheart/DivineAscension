@@ -28,6 +28,15 @@ internal sealed class FakeReligionInvitesProvider : IReligionInvitesProvider
         "Wardens of the Last Field"
     };
 
+    private static readonly string[] Descriptions =
+    {
+        "We temper iron and will alike; join us at the great anvil.",
+        "The wild remembers those who walk gently. Walk with us.",
+        "", // exercises the default-quote fallback
+        "Beneath the cairn our oaths are kept and our dead keep watch.",
+        "A long missive that runs well past the comfortable single line so the truncation and ellipsis behaviour can be reviewed in the styled preview without a server."
+    };
+
     private static readonly DeityDomain[] Domains =
     {
         DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest,
@@ -72,7 +81,8 @@ internal sealed class FakeReligionInvitesProvider : IReligionInvitesProvider
             var name = OrderNames[i % OrderNames.Length];
             var domain = Domains[rnd.Next(Domains.Length)];
             var expiresAt = DateTime.UtcNow.AddDays(rnd.Next(1, 14));
-            list.Add(new InviteData(inviteId, name, expiresAt, domain));
+            var description = Descriptions[i % Descriptions.Length];
+            list.Add(new InviteData(inviteId, name, expiresAt, domain, description));
         }
 
         _cache = list;

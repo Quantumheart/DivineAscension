@@ -98,5 +98,7 @@ public class PlayerReligionInfoResponsePacket
         [ProtoMember(4)] public DateTime ExpiresAt { get; set; }
 
         [ProtoMember(5)] public string DeityDomain { get; set; } = string.Empty;
+
+        [ProtoMember(6)] public string Description { get; set; } = string.Empty;
     }
 }
