@@ -1,7 +1,15 @@
 using System.Collections.Generic;
+using System.Globalization;
 using DivineAscension.Network;
 
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
+
+/// <summary>
+///     One active boon as shown under "Boons of Standing": a concrete value
+///     lead-in (e.g. "+15% favor") paired with the manuscript prose that
+///     describes it.
+/// </summary>
+internal readonly record struct BoonPhrase(string Value, string Prose);
 
 /// <summary>
 ///     Manuscript phrasing tables for the Chronicles ledger chapter. Verb
@@ -38,19 +46,34 @@ internal static class MilestonePhrases
     }
 
     /// <summary>
-    ///     Walks the bonus DTO and returns one manuscript sentence per active
-    ///     bonus, in display order. Inactive bonuses (multiplier == 1.0,
-    ///     slot count 0) are skipped.
+    ///     Walks the bonus DTO and returns one boon per active bonus, in
+    ///     display order, each carrying its concrete value alongside the
+    ///     manuscript prose. Inactive bonuses (multiplier == 1.0, slot count
+    ///     0) are skipped. Multipliers render as percentages to match the PvP
+    ///     chat convention ("[CIV +X%]"); holy-site slots as a flat count.
     /// </summary>
-    public static IEnumerable<string> ActiveBonusPhrases(CivilizationBonusesDto bonuses)
+    public static IEnumerable<BoonPhrase> ActiveBonusPhrases(CivilizationBonusesDto bonuses)
     {
         if (bonuses.PrestigeMultiplier > 1f)
-            yield return "Deeds are remembered in greater measure.";
+            yield return new BoonPhrase(
+                $"+{Percent(bonuses.PrestigeMultiplier)} prestige",
+                "Deeds are remembered in greater measure.");
         if (bonuses.FavorMultiplier > 1f)
-            yield return "Devotion is reckoned more keenly.";
+            yield return new BoonPhrase(
+                $"+{Percent(bonuses.FavorMultiplier)} favor",
+                "Devotion is reckoned more keenly.");
         if (bonuses.ConquestMultiplier > 1f)
-            yield return "The Realm's banners strike with greater wrath in war.";
+            yield return new BoonPhrase(
+                $"+{Percent(bonuses.ConquestMultiplier)} conquest (in war)",
+                "The Realm's banners strike with greater wrath in war.");
         if (bonuses.BonusHolySiteSlots > 0)
-            yield return "Hallows beyond the common count may be raised.";
+            yield return new BoonPhrase(
+                $"+{bonuses.BonusHolySiteSlots} {(bonuses.BonusHolySiteSlots == 1 ? "hallow" : "hallows")}",
+                "Hallows beyond the common count may be raised.");
+    }
+
+    private static string Percent(float multiplier)
+    {
+        return ((multiplier - 1f) * 100f).ToString("F0", CultureInfo.InvariantCulture) + "%";
     }
 }

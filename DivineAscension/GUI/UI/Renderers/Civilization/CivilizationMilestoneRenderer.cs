@@ -33,6 +33,7 @@ internal static class CivilizationMilestoneRenderer
     private const float StatRowHeight = 22f;
     private const float ProseBottomSpacing = 12f;
     private const float BoonLineHeight = 22f;
+    private const float BoonProseHeight = 20f;
     private const float DeedNameHeight = 22f;
     private const float DeedProgressRowHeight = 22f;
     private const float DeedItemSpacing = 10f;
@@ -215,14 +216,20 @@ internal static class CivilizationMilestoneRenderer
             return currentY + BoonLineHeight + 6f;
         }
 
-        foreach (var phrase in phrases)
+        foreach (var boon in phrases)
         {
             DrawDiamondBullet(drawList, x + 4f, currentY + Body / 2f - 1f);
             drawList.AddText(ImGui.GetFont(), Body,
                 new Vector2(x + ProgressBarIndent, currentY),
-                ImGui.ColorConvertFloat4ToU32(ColorPalette.White),
-                phrase);
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold),
+                boon.Value);
             currentY += BoonLineHeight;
+
+            drawList.AddText(ImGui.GetFont(), Secondary,
+                new Vector2(x + ProgressBarIndent, currentY),
+                ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey),
+                boon.Prose);
+            currentY += BoonProseHeight;
         }
 
         return currentY + 6f;
@@ -351,7 +358,9 @@ internal static class CivilizationMilestoneRenderer
         // Boons: heading + N lines (or empty single line)
         h += DividerHeight;
         var boonCount = MilestonePhrases.ActiveBonusPhrases(viewModel.Bonuses).Count();
-        h += SectionLabelHeight + (boonCount > 0 ? boonCount * BoonLineHeight : BoonLineHeight) + 6f;
+        h += SectionLabelHeight + (boonCount > 0
+            ? boonCount * (BoonLineHeight + BoonProseHeight)
+            : BoonLineHeight) + 6f;
 
         // Deeds: heading + per-item (name + progress/set-down row + spacing)
         h += DividerHeight;
