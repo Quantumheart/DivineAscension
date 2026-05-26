@@ -578,6 +578,37 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_DETAIL_MEMBER_ORDERS =
         "divineascension:ui.civilization.detail.member_orders";
 
+    // Civic Boons section on the Realm detail chapter (#495)
+    public const string UI_CIVILIZATION_DETAIL_BOONS_HEADING =
+        "divineascension:ui.civilization.detail.boons.heading";
+
+    public const string UI_CIVILIZATION_DETAIL_BOONS_INTRO =
+        "divineascension:ui.civilization.detail.boons.intro";
+
+    public const string UI_CIVILIZATION_DETAIL_BOONS_EMPTY =
+        "divineascension:ui.civilization.detail.boons.empty";
+
+    public const string UI_CIVILIZATION_DETAIL_BOONS_FAVOR =
+        "divineascension:ui.civilization.detail.boons.favor";
+
+    public const string UI_CIVILIZATION_DETAIL_BOONS_PRESTIGE =
+        "divineascension:ui.civilization.detail.boons.prestige";
+
+    public const string UI_CIVILIZATION_DETAIL_BOONS_CONQUEST =
+        "divineascension:ui.civilization.detail.boons.conquest";
+
+    public const string UI_CIVILIZATION_DETAIL_BOONS_HALLOWS =
+        "divineascension:ui.civilization.detail.boons.hallows";
+
+    public const string UI_CIVILIZATION_DETAIL_BOONS_VALUE_PERCENT =
+        "divineascension:ui.civilization.detail.boons.value_percent";
+
+    public const string UI_CIVILIZATION_DETAIL_BOONS_VALUE_CONQUEST =
+        "divineascension:ui.civilization.detail.boons.value_conquest";
+
+    public const string UI_CIVILIZATION_DETAIL_BOONS_VALUE_HALLOWS =
+        "divineascension:ui.civilization.detail.boons.value_hallows";
+
     public const string UI_CIVILIZATION_ACTION_JOIN = "divineascension:ui.civilization.action.join";
 
     #endregion
