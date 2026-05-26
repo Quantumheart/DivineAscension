@@ -28,13 +28,15 @@ public class CivilizationNetworkHandler(
     IReligionManager religionManager,
     INetworkService networkService,
     ICooldownManager cooldownManager,
-    IDiplomacyManager diplomacyManager)
+    IDiplomacyManager diplomacyManager,
+    ICivilizationMilestoneManager milestoneManager)
     : IServerNetworkHandler
 {
     private readonly ILogger _logger = logger;
     private readonly ICoreServerAPI _sapi = sapi;
     private readonly INetworkService _networkService = networkService;
     private readonly IDiplomacyManager _diplomacyManager = diplomacyManager;
+    private readonly ICivilizationMilestoneManager _milestoneManager = milestoneManager;
 
     public void RegisterHandlers()
     {
@@ -281,6 +283,7 @@ public class CivilizationNetworkHandler(
             FounderEpithet = civ.FounderEpithet,
             CapitalName = civ.CapitalName,
             CapitalHolySiteId = civ.CapitalHolySiteId ?? string.Empty,
+            Bonuses = BuildBonusesDto(civ.CivId),
             MemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(),
             PendingInvites = new List<CivilizationInfoResponsePacket.PendingInvite>()
         };
@@ -325,6 +328,18 @@ public class CivilizationNetworkHandler(
 
         var response = new CivilizationInfoResponsePacket(details);
         _networkService.SendToPlayer(fromPlayer, response);
+    }
+
+    private CivilizationBonusesDto BuildBonusesDto(string civId)
+    {
+        var bonuses = _milestoneManager.GetActiveBonuses(civId);
+        return new CivilizationBonusesDto
+        {
+            PrestigeMultiplier = bonuses.PrestigeMultiplier,
+            FavorMultiplier = bonuses.FavorMultiplier,
+            ConquestMultiplier = bonuses.ConquestMultiplier,
+            BonusHolySiteSlots = bonuses.BonusHolySiteSlots
+        };
     }
 
     /// <summary>

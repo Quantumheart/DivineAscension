@@ -88,6 +88,13 @@ public class CivilizationInfoResponsePacket
         /// </summary>
         [ProtoMember(17)]
         public string CapitalHolySiteId { get; set; } = string.Empty;
+
+        /// <summary>
+        ///     Active civic boons (favor / prestige / conquest multipliers and
+        ///     bonus holy-site slots) earned by the civilization's milestones.
+        /// </summary>
+        [ProtoMember(18)]
+        public CivilizationBonusesDto Bonuses { get; set; } = new();
     }
 
     /// <summary>

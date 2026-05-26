@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Network.HolySite;
 
@@ -33,6 +34,7 @@ public readonly struct CivilizationInfoViewModel(
     string inviteReligionName,
     bool showDisbandConfirm,
     string? kickConfirmReligionId,
+    CivilizationBonusesDto bonuses,
     float scrollY,
     float memberScrollY,
     float x,
@@ -73,6 +75,7 @@ public readonly struct CivilizationInfoViewModel(
     public string InviteReligionName { get; } = inviteReligionName;
     public bool ShowDisbandConfirm { get; } = showDisbandConfirm;
     public string? KickConfirmReligionId { get; } = kickConfirmReligionId;
+    public CivilizationBonusesDto Bonuses { get; } = bonuses;
     public float ScrollY { get; } = scrollY;
     public float MemberScrollY { get; } = memberScrollY;
     public float X { get; } = x;
