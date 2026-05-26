@@ -213,8 +213,10 @@ internal static class CivilizationLeaderboardRenderer
             : entry.Name;
         drawList.AddText(font, Body, new Vector2(nameX, textY), nameColor, name);
 
-        // Right block: score (right-aligned), bar, then tier label.
-        var rightEdge = x + width - (isViewer ? RowMarkerWidth : 0f);
+        // Right block: score (right-aligned), bar, then tier label. The pin
+        // gutter is reserved on every row so the columns line up whether or not
+        // the row is the viewer's.
+        var rightEdge = x + width - RowMarkerWidth;
         var scoreText = entry.Score.ToString();
         var scoreSize = ImGui.CalcTextSize(scoreText);
         var scoreX = rightEdge - scoreSize.X;
