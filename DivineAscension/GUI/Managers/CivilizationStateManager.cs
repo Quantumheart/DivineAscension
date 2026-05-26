@@ -1024,6 +1024,8 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     {
         var vm = new CivilizationLeaderboardViewModel(
             State.LeaderboardState.Entries,
+            State.LeaderboardState.ViewerPosition,
+            State.LeaderboardState.TotalRealms,
             State.LeaderboardState.IsLoading,
             State.LeaderboardState.ErrorMsg,
             State.LeaderboardState.ScrollY,

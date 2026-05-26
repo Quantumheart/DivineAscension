@@ -8,6 +8,8 @@ namespace DivineAscension.GUI.Models.Civilization.Leaderboard;
 /// </summary>
 public readonly struct CivilizationLeaderboardViewModel(
     List<LeaderboardResponsePacket.LeaderboardEntry> entries,
+    int viewerPosition,
+    int totalRealms,
     bool isLoading,
     string? errorMsg,
     float scrollY,
@@ -17,6 +19,12 @@ public readonly struct CivilizationLeaderboardViewModel(
     float height)
 {
     public List<LeaderboardResponsePacket.LeaderboardEntry> Entries { get; } = entries;
+
+    /// <summary>Viewer's own realm position (1-based), or 0 when they have no realm.</summary>
+    public int ViewerPosition { get; } = viewerPosition;
+
+    /// <summary>Total ranked realms, for the standing summary line.</summary>
+    public int TotalRealms { get; } = totalRealms;
 
     public bool IsLoading { get; } = isLoading;
 

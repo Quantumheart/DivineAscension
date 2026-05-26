@@ -122,7 +122,15 @@ public class CivilizationNetworkHandler(
             .OrderByDescending(c => (int)c.Rank)
             .ToList();
 
+        // Resolve the viewer's own realm (viewer → religion → civ). Null when the
+        // player belongs to no religion, or whose religion isn't in any civ.
+        var viewerReligion = religionManager.GetPlayerReligion(fromPlayer.PlayerUID);
+        var viewerCivId = viewerReligion != null
+            ? civilizationManager.GetCivilizationByReligion(viewerReligion.ReligionUID)?.CivId
+            : null;
+
         var entries = new List<LeaderboardResponsePacket.LeaderboardEntry>(ranked.Count);
+        var viewerPosition = 0;
         for (var i = 0; i < ranked.Count; i++)
         {
             var civ = ranked[i];
@@ -135,9 +143,16 @@ public class CivilizationNetworkHandler(
                 TierLabel = RankRequirements.GetCivilizationRankName(rankValue),
                 Score = rankValue
             });
+
+            if (viewerCivId != null && civ.CivId == viewerCivId)
+                viewerPosition = i + 1;
         }
 
-        _networkService.SendToPlayer(fromPlayer, new LeaderboardResponsePacket(entries));
+        _networkService.SendToPlayer(fromPlayer, new LeaderboardResponsePacket(entries)
+        {
+            ViewerPosition = viewerPosition,
+            TotalRealms = entries.Count
+        });
         _logger.Debug(
             $"[DivineAscension] Sent Standing leaderboard with {entries.Count} realms to {fromPlayer.PlayerName}");
     }

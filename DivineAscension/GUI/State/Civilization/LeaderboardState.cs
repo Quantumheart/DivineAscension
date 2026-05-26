@@ -13,6 +13,12 @@ public class LeaderboardState : IState
     /// <summary>Realms ranked by Standing, highest first.</summary>
     public List<LeaderboardResponsePacket.LeaderboardEntry> Entries { get; set; } = new();
 
+    /// <summary>Viewer's own realm position (1-based), or 0 when they have no realm.</summary>
+    public int ViewerPosition { get; set; }
+
+    /// <summary>Total ranked realms, for the standing summary line.</summary>
+    public int TotalRealms { get; set; }
+
     public bool IsLoading { get; set; }
 
     public string? ErrorMsg { get; set; }
@@ -22,6 +28,8 @@ public class LeaderboardState : IState
     public void UpdateFromPacket(LeaderboardResponsePacket packet)
     {
         Entries = packet.Entries;
+        ViewerPosition = packet.ViewerPosition;
+        TotalRealms = packet.TotalRealms;
         IsLoading = false;
         ErrorMsg = null;
     }
@@ -29,6 +37,8 @@ public class LeaderboardState : IState
     public void Reset()
     {
         Entries.Clear();
+        ViewerPosition = 0;
+        TotalRealms = 0;
         IsLoading = false;
         ErrorMsg = null;
         ScrollY = 0f;
