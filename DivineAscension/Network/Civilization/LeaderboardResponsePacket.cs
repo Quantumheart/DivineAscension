@@ -19,6 +19,15 @@ public class LeaderboardResponsePacket
 
     [ProtoMember(1)] public List<LeaderboardEntry> Entries { get; set; } = new();
 
+    /// <summary>
+    ///     The viewer's own realm position (1-based), or 0 when the viewer
+    ///     belongs to no civilization.
+    /// </summary>
+    [ProtoMember(2)] public int ViewerPosition { get; set; }
+
+    /// <summary>Total number of ranked realms (== <see cref="Entries" /> count).</summary>
+    [ProtoMember(3)] public int TotalRealms { get; set; }
+
     /// <summary>One ranked row: position, civilization, tier label, and score.</summary>
     [ProtoContract]
     public class LeaderboardEntry

@@ -18,8 +18,10 @@ namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
 /// <summary>
 ///     Pure renderer for the Standing of Realms leaderboard chapter (#497,
-///     slice 1). Title strip + refresh glyph, prose intro, then every realm
+///     #498). Title strip + refresh glyph, prose intro, then every realm
 ///     ranked by Standing as a plain row: position, name, tier label, score.
+///     The viewer's own realm is pinned/highlighted, and a closing summary
+///     line states where they stand among the rest.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class CivilizationLeaderboardRenderer
@@ -30,6 +32,7 @@ internal static class CivilizationLeaderboardRenderer
     private const float RowHeight = 24f;
     private const float RefreshGlyphSize = 22f;
     private const float ScrollbarWidth = 16f;
+    private const float SummaryTopSpacing = 6f;
 
     public static CivilizationLeaderboardRenderResult Draw(
         CivilizationLeaderboardViewModel viewModel,
@@ -101,13 +104,31 @@ internal static class CivilizationLeaderboardRenderer
 
         foreach (var entry in viewModel.Entries)
         {
-            var label = $"{entry.Position}.  {entry.Name}";
+            var isViewer = viewModel.ViewerPosition > 0 && entry.Position == viewModel.ViewerPosition;
             var value = LocalizationService.Instance.Get(
                 LocalizationKeys.UI_CIVILIZATION_LEADERBOARD_ROW_VALUE, entry.TierLabel, entry.Score);
-            ChromeRenderer.DrawLeader(drawList, label, value, x, currentY, contentWidth,
-                valueColor: ColorPalette.Gold);
+
+            if (isViewer)
+            {
+                // Pin and highlight the viewer's own realm so it's always findable.
+                var name = LocalizationService.Instance.Get(
+                    LocalizationKeys.UI_CIVILIZATION_LEADERBOARD_SELF_ROW, entry.Name);
+                var label = $"▸ {entry.Position}.  {name}";
+                ChromeRenderer.DrawLeader(drawList, label, $"{value}  ◂", x, currentY, contentWidth,
+                    labelColor: ColorPalette.Gold, valueColor: ColorPalette.Gold);
+            }
+            else
+            {
+                var label = $"{entry.Position}.  {entry.Name}";
+                ChromeRenderer.DrawLeader(drawList, label, value, x, currentY, contentWidth,
+                    valueColor: ColorPalette.Gold);
+            }
+
             currentY += RowHeight;
         }
+
+        currentY = DrawDivider(drawList, x, currentY, contentWidth);
+        DrawStandingSummary(viewModel, drawList, x, currentY, contentWidth);
 
         drawList.PopClipRect();
 
@@ -157,13 +178,55 @@ internal static class CivilizationLeaderboardRenderer
         return y + DividerHeight;
     }
 
+    /// <summary>
+    ///     The closing hook line: where the viewer's own realm stands among the
+    ///     rest, or a graceful no-realm variant for players who belong to none.
+    /// </summary>
+    private static void DrawStandingSummary(
+        CivilizationLeaderboardViewModel viewModel,
+        ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var text = viewModel.ViewerPosition > 0
+            ? LocalizationService.Instance.Get(
+                LocalizationKeys.UI_CIVILIZATION_LEADERBOARD_SUMMARY,
+                ToRoman(viewModel.ViewerPosition), ToRoman(viewModel.TotalRealms))
+            : LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_LEADERBOARD_SUMMARY_NONE);
+
+        TextRenderer.DrawInfoText(drawList, text, x, y + SummaryTopSpacing, width, Body, ColorPalette.Gold);
+    }
+
     private static float ComputeContentHeight(CivilizationLeaderboardViewModel viewModel)
     {
         var h = PaneHeaderRenderer.TotalHeight;
         h += 36f + ProseBottomSpacing; // prose intro (~2 lines)
         h += DividerHeight;
         h += viewModel.Entries.Count * RowHeight;
+        h += DividerHeight; // closing divider
+        h += SummaryTopSpacing + RowHeight; // standing summary line
         return h;
+    }
+
+    /// <summary>Roman numerals for the standing line (e.g. "IV among XII").</summary>
+    private static string ToRoman(int n)
+    {
+        if (n <= 0) return n.ToString();
+
+        var pairs = new (int Value, string Symbol)[]
+        {
+            (1000, "M"), (900, "CM"), (500, "D"), (400, "CD"),
+            (100, "C"), (90, "XC"), (50, "L"), (40, "XL"),
+            (10, "X"), (9, "IX"), (5, "V"), (4, "IV"), (1, "I")
+        };
+
+        var sb = new System.Text.StringBuilder();
+        foreach (var (value, symbol) in pairs)
+            while (n >= value)
+            {
+                sb.Append(symbol);
+                n -= value;
+            }
+
+        return sb.ToString();
     }
 
     private static void DrawCenteredStateText(
