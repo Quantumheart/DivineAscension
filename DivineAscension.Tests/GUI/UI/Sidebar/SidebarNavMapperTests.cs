@@ -179,6 +179,20 @@ public class SidebarNavMapperTests
     }
 
     [Fact]
+    public void Groups_AreOrdered_PersonalReligionCivilization()
+    {
+        var vm = SidebarNavMapper.BuildViewModel(Ctx());
+
+        var keys = vm.Groups.Select(g => g.Key).ToList();
+        Assert.Equal(new[]
+        {
+            SidebarNavMapper.GroupPersonalKey,
+            SidebarNavMapper.GroupReligionKey,
+            SidebarNavMapper.GroupCivilizationKey
+        }, keys);
+    }
+
+    [Fact]
     public void CollapsedGroups_FlowIntoGroupViewModel()
     {
         var collapsed = new Dictionary<string, bool>

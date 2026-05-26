@@ -43,9 +43,9 @@ public static class SidebarNavMapper
     {
         var groups = new List<SidebarGroupViewModel>(3)
         {
+            BuildPersonalGroup(ctx),
             BuildReligionGroup(ctx),
-            BuildCivilizationGroup(ctx),
-            BuildPersonalGroup(ctx)
+            BuildCivilizationGroup(ctx)
         };
 
         return new SidebarViewModel(ctx.IsSidebarCollapsed, ctx.CurrentNav, groups);
