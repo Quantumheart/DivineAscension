@@ -5,6 +5,8 @@ using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Roster;
+using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Components.Overlays;
 using DivineAscension.GUI.UI.Renderers.Religion.Roster;
@@ -18,9 +20,10 @@ namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
 /// Pure renderer for the Roster chapter (II.ii — issue #313). Sibling page to
-/// "This Order" (II.i). Header with order name + prose intro, dotted-leader
-/// member rows with inline founder-only kick/strike actions, founder-only
-/// invite block at the foot of the page.
+/// "This Order" (II.i). Header with order name + prose intro and a founder-only
+/// "+" to inscribe a new soul, dotted-leader member rows with inline
+/// founder-only kick/strike actions, and the founder-only Stricken from the
+/// Ledger section. Inviting happens in a modal Inscription of Souls dialog.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class ReligionRosterRenderer
@@ -29,7 +32,6 @@ internal static class ReligionRosterRenderer
     private const float DividerHeight = 18f;
     private const float DividerYPadding = 6f;
     private const float ScrollbarWidth = 16f;
-    private const float FooterTopPadding = 12f;
     private const float SectionLabelHeight = 22f;
 
     public static ReligionRosterRenderResult Draw(ReligionRosterViewModel vm, ImDrawListPtr drawList)
@@ -88,15 +90,11 @@ internal static class ReligionRosterRenderer
         // === ROWS + COUNTER ===
         currentY = ReligionRosterRowsRenderer.Draw(vm, drawList, x, currentY, contentWidth, events);
 
-        // === STRICKEN FROM THE LEDGER + INVITE BLOCK (founder only) ===
+        // === STRICKEN FROM THE LEDGER (founder only) ===
         if (vm.IsFounder)
         {
             currentY = DrawDivider(drawList, x, currentY, contentWidth);
             currentY = DrawStrickenSection(vm, drawList, x, currentY, contentWidth, events);
-
-            currentY = DrawDivider(drawList, x, currentY, contentWidth);
-            currentY += FooterTopPadding;
-            currentY = ReligionRosterInviteRenderer.Draw(vm, drawList, x, currentY, contentWidth, events);
         }
 
         drawList.PopClipRect();
@@ -104,11 +102,112 @@ internal static class ReligionRosterRenderer
         if (contentHeight > height)
             Scrollbar.Draw(drawList, x + width - ScrollbarWidth, y, ScrollbarWidth, height, scrollY, maxScroll);
 
+        // Founder-only "+" to inscribe a new soul — fixed at the chapter
+        // header's right edge so it stays reachable regardless of scroll. The
+        // field + submit live in a modal dialog (Inscription of Souls).
+        if (vm.IsFounder)
+            DrawAddButton(drawList, x, y, contentWidth, events);
+
+        if (vm.ShowInviteDialog)
+            DrawInviteDialog(vm, drawList, events);
+
         if (vm.StrikeConfirmPlayerUID != null)
             DrawStrikeConfirm(vm.StrikeConfirmPlayerName ?? vm.StrikeConfirmPlayerUID,
                 vm.StrikeConfirmPlayerUID, events);
 
         return new ReligionRosterRenderResult(events, height);
+    }
+
+    private const float AddButtonSize = 26f;
+
+    private static void DrawAddButton(
+        ImDrawListPtr drawList, float x, float y, float contentWidth, List<RosterEvent> events)
+    {
+        var bx = x + contentWidth - AddButtonSize;
+        var by = y + TopPadding + 2f;
+        if (ButtonRenderer.DrawButton(drawList, string.Empty, bx, by, AddButtonSize, AddButtonSize,
+                isPrimary: false, enabled: true))
+        {
+            events.Add(new RosterEvent.InviteDialogOpened());
+        }
+
+        ChromeRenderer.DrawPlus(drawList,
+            bx + AddButtonSize / 2f, by + AddButtonSize / 2f,
+            AddButtonSize - 12f, ColorPalette.LightText);
+    }
+
+    private static void DrawInviteDialog(
+        ReligionRosterViewModel vm, ImDrawListPtr drawList, List<RosterEvent> events)
+    {
+        // Block click-through to the roster behind the dim backdrop this frame.
+        ModalInputGuard.MarkOpen();
+        var loc = LocalizationService.Instance;
+
+        var winPos = ImGui.GetWindowPos();
+        var winSize = ImGui.GetWindowSize();
+
+        // Warm-dark page dim, per palette §4.
+        drawList.AddRectFilled(winPos, new Vector2(winPos.X + winSize.X, winPos.Y + winSize.Y),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.BlackOverlay));
+
+        const float dialogWidth = 460f;
+        const float dialogHeight = 220f;
+        var dlgX = winPos.X + (winSize.X - dialogWidth) / 2f;
+        var dlgY = winPos.Y + (winSize.Y - dialogHeight) / 2f;
+
+        // Parchment mini-page with a faded-ink border, matching the role-edit dialog.
+        drawList.AddRectFilled(new Vector2(dlgX, dlgY), new Vector2(dlgX + dialogWidth, dlgY + dialogHeight),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Background), 6f);
+        drawList.AddRect(new Vector2(dlgX, dlgY), new Vector2(dlgX + dialogWidth, dlgY + dialogHeight),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), 6f, ImDrawFlags.None, 1.5f);
+
+        const float padding = 18f;
+        var bodyWidth = dialogWidth - padding * 2f;
+        var curX = dlgX + padding;
+        var curY = dlgY + padding;
+
+        // Title — gold rubric, ornamental divider below.
+        TextRenderer.DrawLabel(drawList,
+            loc.Get(LocalizationKeys.UI_RELIGION_ROSTER_INVITE_TITLE),
+            curX, curY, PageTitle, ColorPalette.Gold);
+        curY += PageTitle + 6f;
+        ChromeRenderer.DrawDivider(drawList, curX, curY, bodyWidth);
+        curY += 16f;
+
+        // Prompt + name field.
+        TextRenderer.DrawInfoText(drawList,
+            loc.Get(LocalizationKeys.UI_RELIGION_ROSTER_INVITE_LABEL),
+            curX, curY, bodyWidth, Body, ColorPalette.White);
+        curY += 24f;
+
+        var newName = TextInput.Draw(drawList, "##rosterInvite", vm.InvitePlayerName,
+            curX, curY, bodyWidth, 32f,
+            loc.Get(LocalizationKeys.UI_RELIGION_ROSTER_INVITE_PLACEHOLDER));
+        if (newName != vm.InvitePlayerName)
+            events.Add(new RosterEvent.InviteNameChanged(newName));
+
+        // Footer: Cancel + Invite (right-aligned).
+        const float btnWidth = 120f;
+        const float btnHeight = 32f;
+        const float btnGap = 10f;
+        var btnY = dlgY + dialogHeight - padding - btnHeight;
+        var inviteX = dlgX + dialogWidth - padding - btnWidth;
+        var cancelX = inviteX - btnWidth - btnGap;
+
+        if (ButtonRenderer.DrawButton(drawList,
+                loc.Get(LocalizationKeys.UI_COMMON_CANCEL),
+                cancelX, btnY, btnWidth, btnHeight))
+            events.Add(new RosterEvent.InviteDialogCancel());
+
+        var canInvite = !string.IsNullOrWhiteSpace(vm.InvitePlayerName);
+        if (ButtonRenderer.DrawButton(drawList,
+                loc.Get(LocalizationKeys.UI_RELIGION_ROSTER_INVITE_BUTTON),
+                inviteX, btnY, btnWidth, btnHeight, isPrimary: true, enabled: canInvite)
+            && canInvite)
+            events.Add(new RosterEvent.InviteClicked(vm.InvitePlayerName.Trim()));
+
+        if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+            events.Add(new RosterEvent.InviteDialogCancel());
     }
 
     private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
@@ -166,8 +265,6 @@ internal static class ReligionRosterRenderer
             {
                 h += ReligionRosterStrickenRenderer.RowHeight;
             }
-            // Invite block
-            h += DividerHeight + FooterTopPadding + ReligionRosterInviteRenderer.TotalHeight;
         }
         return h;
     }

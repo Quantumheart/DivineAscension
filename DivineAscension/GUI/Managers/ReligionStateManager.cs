@@ -668,6 +668,7 @@ public class ReligionStateManager : IReligionStateManager
             expandedMemberUID: roster.ExpandedMemberUID,
             expandedBanUID: roster.ExpandedBanUID,
             invitePlayerName: roster.InvitePlayerName,
+            showInviteDialog: roster.ShowInviteDialog,
             strikeConfirmPlayerUID: roster.StrikeConfirmPlayerUID,
             strikeConfirmPlayerName: roster.StrikeConfirmPlayerName,
             x: x, y: y, width: width, height: height,
@@ -746,6 +747,15 @@ public class ReligionStateManager : IReligionStateManager
                     roster.ExpandedMemberUID = null;
                     break;
 
+                case RosterEvent.InviteDialogOpened:
+                    _soundManager.PlayClick();
+                    roster.ShowInviteDialog = true;
+                    roster.InvitePlayerName = string.Empty;
+                    break;
+                case RosterEvent.InviteDialogCancel:
+                    roster.ShowInviteDialog = false;
+                    roster.InvitePlayerName = string.Empty;
+                    break;
                 case RosterEvent.InviteNameChanged inc:
                     roster.InvitePlayerName = inc.Text;
                     break;
@@ -755,6 +765,7 @@ public class ReligionStateManager : IReligionStateManager
                         _soundManager.PlayClick();
                         RequestReligionAction("invite", religionId, ic.PlayerName);
                         roster.InvitePlayerName = string.Empty;
+                        roster.ShowInviteDialog = false;
                     }
 
                     break;

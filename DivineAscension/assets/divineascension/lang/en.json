@@ -207,6 +207,7 @@
   "divineascension:ui.religion.roster.counter": "{0} of {0} names",
   "divineascension:ui.religion.roster.empty": "No souls have been inscribed yet.",
   "divineascension:ui.religion.roster.founder_tag": "Founder",
+  "divineascension:ui.religion.roster.invite.title": "Inscription of Souls",
   "divineascension:ui.religion.roster.invite.label": "Inscribe a new soul:",
   "divineascension:ui.religion.roster.invite.placeholder": "Player name...",
   "divineascension:ui.religion.roster.invite.button": "Invite",
