@@ -679,6 +679,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             details?.Description ?? string.Empty,
             details?.CapitalName ?? string.Empty,
             details?.CapitalHolySiteId ?? string.Empty,
+            details?.Bonuses ?? new CivilizationBonusesDto(),
             State.DetailState.MemberScrollY,
             !HasCivilization() && (details?.MemberReligions?.Count ?? 0) < 4,
             x,

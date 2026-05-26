@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
 
 namespace DivineAscension.GUI.Models.Civilization.Detail;
@@ -18,6 +19,7 @@ public readonly struct CivilizationDetailViewModel(
     string description,
     string capitalName,
     string capitalHolySiteId,
+    CivilizationBonusesDto bonuses,
     float memberScrollY,
     bool canRequestToJoin,
     float x,
@@ -38,6 +40,7 @@ public readonly struct CivilizationDetailViewModel(
     public string Description { get; } = description;
     public string CapitalName { get; } = capitalName;
     public string CapitalHolySiteId { get; } = capitalHolySiteId;
+    public CivilizationBonusesDto Bonuses { get; } = bonuses;
     public bool HasCapitalBinding => !string.IsNullOrEmpty(CapitalHolySiteId);
     public float MemberScrollY { get; } = memberScrollY;
     public bool CanRequestToJoin { get; } = canRequestToJoin;
