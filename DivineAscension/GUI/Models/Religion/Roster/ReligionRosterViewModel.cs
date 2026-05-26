@@ -17,7 +17,9 @@ public readonly struct ReligionRosterViewModel(
     string currentPlayerUID,
     bool isFounder,
     IReadOnlyList<PlayerReligionInfoResponsePacket.MemberInfo> members,
+    IReadOnlyList<PlayerReligionInfoResponsePacket.BanInfo>? bannedPlayers,
     string? expandedMemberUID,
+    string? expandedBanUID,
     string invitePlayerName,
     string? strikeConfirmPlayerUID,
     string? strikeConfirmPlayerName,
@@ -34,7 +36,12 @@ public readonly struct ReligionRosterViewModel(
     public string CurrentPlayerUID { get; } = currentPlayerUID;
     public bool IsFounder { get; } = isFounder;
     public IReadOnlyList<PlayerReligionInfoResponsePacket.MemberInfo> Members { get; } = members;
+
+    public IReadOnlyList<PlayerReligionInfoResponsePacket.BanInfo> BannedPlayers { get; } =
+        bannedPlayers ?? Array.Empty<PlayerReligionInfoResponsePacket.BanInfo>();
+
     public string? ExpandedMemberUID { get; } = expandedMemberUID;
+    public string? ExpandedBanUID { get; } = expandedBanUID;
     public string InvitePlayerName { get; } = invitePlayerName;
     public string? StrikeConfirmPlayerUID { get; } = strikeConfirmPlayerUID;
     public string? StrikeConfirmPlayerName { get; } = strikeConfirmPlayerName;
@@ -47,10 +54,12 @@ public readonly struct ReligionRosterViewModel(
 
     public int MemberCount => Members.Count;
     public bool HasMembers => Members.Count > 0;
+    public bool HasBannedPlayers => BannedPlayers.Count > 0;
 
     public static ReligionRosterViewModel Loading(float x = 0, float y = 0, float width = 0, float height = 0) =>
         new(true, false, string.Empty, string.Empty, string.Empty, false,
             Array.Empty<PlayerReligionInfoResponsePacket.MemberInfo>(),
-            null, string.Empty, null, null,
+            Array.Empty<PlayerReligionInfoResponsePacket.BanInfo>(),
+            null, null, string.Empty, null, null,
             x, y, width, height, 0f);
 }

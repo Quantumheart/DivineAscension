@@ -7,7 +7,6 @@ public class InfoState
     public PlayerReligionInfoResponsePacket? MyReligionInfo { get; set; }
     public float MyReligionScrollY { get; set; }
     public float MemberScrollY { get; set; }
-    public float BanListScrollY { get; set; }
     public string InvitePlayerName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public bool Loading { get; set; }
@@ -36,7 +35,6 @@ public class InfoState
         MyReligionInfo = null;
         MyReligionScrollY = 0f;
         MemberScrollY = 0f;
-        BanListScrollY = 0f;
         InvitePlayerName = string.Empty;
         Description = string.Empty;
         Loading = false;

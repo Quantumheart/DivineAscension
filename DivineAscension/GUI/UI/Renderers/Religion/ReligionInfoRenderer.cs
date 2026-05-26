@@ -7,33 +7,28 @@ using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.Info;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Components.Overlays;
-using DivineAscension.GUI.UI.Renderers.Components;
 using DivineAscension.GUI.UI.Renderers.Religion.Info;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
-using DivineAscension.Network;
 using DivineAscension.Services;
 using ImGuiNET;
-using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
 /// Pure renderer for the "This Order" ledger chapter (#309). Order title and
-/// stat block at the top, prose Of the Order's Purpose section in the middle,
-/// founder-only Stricken from the Ledger section below (collapsed when
-/// empty), and Leave / Disband footer actions. Roster and Invite live on the
-/// sibling II.ii chapter.
+/// stat block at the top, prose Of the Order's Purpose and Of the Order's
+/// Founding sections in the middle, and Leave / Disband footer actions. Roster,
+/// Invite, and the founder-only Stricken from the Ledger list live on the
+/// sibling II.ii Roster chapter.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class ReligionInfoRenderer
 {
     private const float DividerHeight = 18f;
     private const float DividerYPadding = 6f;
-    private const float SectionLabelHeight = 22f;
     private const float FooterTopPadding = 12f;
     private const float ScrollbarWidth = 16f;
-    private const float BanListHeight = 120f;
 
     public static ReligionInfoRenderResult Draw(
         ReligionInfoViewModel viewModel,
@@ -110,9 +105,6 @@ internal static class ReligionInfoRenderer
         // owns the bulk of the vertical budget.
         var paneBottomY = y + height;
         var actionsFooterReserve = FooterTopPadding + 34f + 6f;
-        var strickenReserve = viewModel.IsFounder
-            ? DividerHeight + 22f + (viewModel.HasBannedPlayers ? BanListHeight + 8f : 22f)
-            : 0f;
         var dividerBetween = DividerHeight;
         const float headingAndSpacing = 22f + 8f;
         const float purposeMax = 80f;
@@ -122,7 +114,6 @@ internal static class ReligionInfoRenderer
             - headingAndSpacing       // purpose heading + spacing
             - dividerBetween          // divider between purpose and myth
             - headingAndSpacing       // myth heading + spacing
-            - strickenReserve
             - actionsFooterReserve;
         // Purpose keeps its small max unless the pane is so small it forces
         // a share; floor at a readable 40px.
@@ -137,13 +128,6 @@ internal static class ReligionInfoRenderer
 
         // === OF THE ORDER'S FOUNDING ===
         currentY = ReligionInfoFoundingMythRenderer.Draw(viewModel, drawList, x, currentY, contentWidth, events, mythBody);
-
-        // === STRICKEN FROM THE LEDGER (founder-only) ===
-        if (viewModel.IsFounder)
-        {
-            currentY = DrawDivider(drawList, x, currentY, contentWidth);
-            currentY = DrawStrickenSection(viewModel, drawList, x, currentY, contentWidth, events);
-        }
 
         // === FOOTER ACTIONS ===
         currentY += FooterTopPadding;
@@ -169,51 +153,6 @@ internal static class ReligionInfoRenderer
         var dividerY = y + DividerYPadding;
         ChromeRenderer.DrawDivider(drawList, x, dividerY, width);
         return y + DividerHeight;
-    }
-
-    private static float DrawStrickenSection(
-        ReligionInfoViewModel viewModel,
-        ImDrawListPtr drawList,
-        float x, float y, float width,
-        List<InfoEvent> events)
-    {
-        var currentY = y;
-        TextRenderer.DrawLabel(drawList,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_STRICKEN_HEADING),
-            x, currentY, SubsectionLabel, ColorPalette.Gold);
-        currentY += SectionLabelHeight;
-
-        if (!viewModel.HasBannedPlayers)
-        {
-            // Collapsed-when-empty: single italic-feeling line, no panel reserved.
-            TextRenderer.DrawInfoText(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_STRICKEN_EMPTY),
-                x, currentY, width, Secondary, ColorPalette.Grey);
-            currentY += 22f;
-            return currentY;
-        }
-
-        var banListScrollY = DrawBanList(drawList, viewModel, x, currentY, width, BanListHeight, events);
-        if (Math.Abs(banListScrollY - viewModel.BanListScrollY) > 0.001f)
-            events.Add(new InfoEvent.BanListScrollChanged(banListScrollY));
-
-        currentY += BanListHeight + 8f;
-        return currentY;
-    }
-
-    private static float DrawBanList(
-        ImDrawListPtr drawList,
-        ReligionInfoViewModel viewModel,
-        float x, float y, float width, float height,
-        List<InfoEvent> events)
-    {
-        return BanListRenderer.Draw(
-            drawList,
-            null!, // API not needed for pure rendering
-            x, y, width, height,
-            new List<PlayerReligionInfoResponsePacket.BanInfo>(viewModel.BannedPlayers),
-            viewModel.BanListScrollY,
-            playerUid => { events.Add(new InfoEvent.UnbanClicked(playerUid)); });
     }
 
     private static float ComputeContentHeight(ReligionInfoViewModel viewModel)
@@ -252,13 +191,6 @@ internal static class ReligionInfoRenderer
             h += 22f + 200f + 6f + 26f + 8f;
         else
             h += 22f + 540f + 8f;
-
-        if (viewModel.IsFounder)
-        {
-            h += DividerHeight;
-            h += 22f; // stricken heading
-            h += viewModel.HasBannedPlayers ? BanListHeight + 8f : 22f;
-        }
 
         // Footer
         h += FooterTopPadding + 34f + 6f;

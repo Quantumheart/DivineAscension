@@ -610,9 +610,6 @@ public class ReligionStateManager : IReligionStateManager
             motto: religion?.Motto,
             foundingMyth: religion?.FoundingMyth,
             members: religion?.Members ?? new List<PlayerReligionInfoResponsePacket.MemberInfo>(),
-            bannedPlayers: BanListProvider != null
-                ? new List<PlayerReligionInfoResponsePacket.BanInfo>(BanListProvider.GetBannedPlayers())
-                : religion?.BannedPlayers,
             prestige: prestigeProgress.CurrentPrestige,
             prestigeRank: RankRequirements.GetPrestigeRankName(prestigeProgress.CurrentRank),
             prestigeRankIndex: prestigeProgress.CurrentRank,
@@ -637,8 +634,7 @@ public class ReligionStateManager : IReligionStateManager
             isEditingFoundingMyth: State.InfoState.IsEditingFoundingMyth,
             x: x, y: y, width: width, height: height,
             scrollY: State.InfoState.MyReligionScrollY,
-            memberScrollY: State.InfoState.MemberScrollY,
-            banListScrollY: State.InfoState.BanListScrollY
+            memberScrollY: State.InfoState.MemberScrollY
         );
 
         // Render (pure function call)
@@ -666,7 +662,11 @@ public class ReligionStateManager : IReligionStateManager
             currentPlayerUID: _coreClientApi.World.Player?.PlayerUID ?? string.Empty,
             isFounder: religion?.IsFounder ?? false,
             members: religion?.Members ?? new List<PlayerReligionInfoResponsePacket.MemberInfo>(),
+            bannedPlayers: BanListProvider != null
+                ? new List<PlayerReligionInfoResponsePacket.BanInfo>(BanListProvider.GetBannedPlayers())
+                : religion?.BannedPlayers,
             expandedMemberUID: roster.ExpandedMemberUID,
+            expandedBanUID: roster.ExpandedBanUID,
             invitePlayerName: roster.InvitePlayerName,
             strikeConfirmPlayerUID: roster.StrikeConfirmPlayerUID,
             strikeConfirmPlayerName: roster.StrikeConfirmPlayerName,
@@ -694,6 +694,21 @@ public class ReligionStateManager : IReligionStateManager
             {
                 case RosterEvent.ScrollChanged sc:
                     roster.ScrollY = sc.NewScrollY;
+                    break;
+
+                case RosterEvent.BanRowToggled bt:
+                    roster.ExpandedBanUID =
+                        roster.ExpandedBanUID == bt.PlayerUID ? null : bt.PlayerUID;
+                    break;
+
+                case RosterEvent.UnbanClicked ub:
+                    if (!string.IsNullOrWhiteSpace(religionId))
+                    {
+                        _soundManager.PlayClick();
+                        RequestReligionAction("unban", religionId, ub.PlayerUID);
+                    }
+
+                    roster.ExpandedBanUID = null;
                     break;
 
                 case RosterEvent.RowToggled rt:
@@ -935,9 +950,6 @@ public class ReligionStateManager : IReligionStateManager
                 case InfoEvent.MemberScrollChanged ms:
                     State.InfoState.MemberScrollY = ms.NewScrollY;
                     break;
-                case InfoEvent.BanListScrollChanged bs:
-                    State.InfoState.BanListScrollY = bs.NewScrollY;
-                    break;
 
                 // Description edit/save
                 case InfoEvent.DescriptionChanged dc:
@@ -1097,16 +1109,6 @@ public class ReligionStateManager : IReligionStateManager
 
                     State.InfoState.BanConfirmPlayerUID = null;
                     State.InfoState.BanConfirmPlayerName = null;
-                    break;
-
-                // Unban
-                case InfoEvent.UnbanClicked ub:
-                    if (!string.IsNullOrWhiteSpace(religionId))
-                    {
-                        _soundManager.PlayClick();
-                        RequestReligionAction("unban", religionId, ub.PlayerUID);
-                    }
-
                     break;
 
                 // Deity name editing

@@ -11,8 +11,6 @@ public abstract record InfoEvent
 
     public record MemberScrollChanged(float NewScrollY) : InfoEvent;
 
-    public record BanListScrollChanged(float NewScrollY) : InfoEvent;
-
     // Description
     public record DescriptionChanged(string Text) : InfoEvent;
 
@@ -62,9 +60,6 @@ public abstract record InfoEvent
     public record BanConfirm(string PlayerUID) : InfoEvent, IModalControlEvent;
 
     public record BanCancel : InfoEvent, IModalControlEvent;
-
-    // Unban
-    public record UnbanClicked(string PlayerUID) : InfoEvent;
 
     // Deity name editing
     public record EditDeityNameOpen : InfoEvent;
