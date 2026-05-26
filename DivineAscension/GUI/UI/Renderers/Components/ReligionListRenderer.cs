@@ -296,8 +296,9 @@ public static class ReligionListRenderer
             lines.Add(""); // Empty line for spacing
             lines.Add(LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_LIST_DESCRIPTION_LABEL));
 
-            // Wrap description text
-            var wrappedDesc = WrapText(religion.Description, tooltipMaxWidth - tooltipPadding * 2, 13f);
+            // Wrap description text at the same size it is drawn (Body); a
+            // smaller measure size lets lines overflow and clip at the edge.
+            var wrappedDesc = WrapText(religion.Description, tooltipMaxWidth - tooltipPadding * 2, Body);
             lines.AddRange(wrappedDesc);
         }
 
