@@ -4,6 +4,7 @@ using System.Linq;
 using DivineAscension.Constants;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.State.Religion;
+using DivineAscension.GUI.UI.Renderers.Sidebar;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.GUI.Utilities;
 using DivineAscension.Models;
@@ -278,12 +279,27 @@ public partial class GuiDialog
         }
         else
         {
-            _state.Sidebar.CurrentNav = SidebarNavId.Blessings;
+            _state.Sidebar.CurrentNav = ResolveRestoreNav();
             Open();
         }
         return true;
     }
 #endif
+
+    /// <summary>
+    ///     Resolve the page the codex should land on: the player's last-visited
+    ///     page (<see cref="UiPrefs.LastNavId" />), falling back to
+    ///     <see cref="SidebarNavId.PlayerInfo" /> when that page is disabled for the
+    ///     current player (#474).
+    /// </summary>
+    private SidebarNavId ResolveRestoreNav()
+    {
+        var desired = _divineAscensionModSystem?.Config.UiPrefs.LastNavId ?? SidebarNavId.PlayerInfo;
+        if (_manager == null) return desired;
+
+        var ctx = SidebarNavMapper.ContextFromManager(_manager, _state.Sidebar);
+        return SidebarNavMapper.ResolveRestoreNav(desired, ctx);
+    }
 
     /// <summary>
     ///     Server-driven open: fires when the player right-clicks a lectern and the
@@ -292,7 +308,7 @@ public partial class GuiDialog
     private void OnOpenMenuRequested(OpenMenuPacket packet)
     {
         if (_state.IsOpen) return;
-        _state.Sidebar.CurrentNav = SidebarNavId.Blessings;
+        _state.Sidebar.CurrentNav = ResolveRestoreNav();
         Open();
     }
 

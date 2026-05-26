@@ -9,6 +9,7 @@ using DivineAscension.Commands;
 using DivineAscension.Configuration;
 using DivineAscension.Constants;
 using DivineAscension.Data;
+using DivineAscension.GUI.State;
 using DivineAscension.Network;
 using DivineAscension.Network.Civilization;
 using DivineAscension.Network.Diplomacy;
@@ -562,15 +563,21 @@ public class DivineAscensionModSystem : ModSystem
     }
 
     /// <summary>
-    ///     Persists the user's chosen dialog window size into <c>UiPrefs</c> and
-    ///     writes the mod config. Safe to call on the client; <c>SaveModConfig</c>
+    ///     Persists the user's chosen dialog window size and last-visited codex page
+    ///     into <c>UiPrefs</c> and writes the mod config. Window size is only updated
+    ///     when valid (&gt; 0); the nav id is always persisted so the codex reopens on
+    ///     the last page (#474). Safe to call on the client; <c>SaveModConfig</c>
     ///     silently no-ops if no server save-game is available.
     /// </summary>
-    public void SaveUiPrefs(int width, int height)
+    public void SaveUiPrefs(int width, int height, SidebarNavId lastNavId)
     {
-        if (width <= 0 || height <= 0) return;
-        _configData.UiPrefs.WindowWidth = width;
-        _configData.UiPrefs.WindowHeight = height;
+        _configData.UiPrefs.LastNavId = lastNavId;
+        if (width > 0 && height > 0)
+        {
+            _configData.UiPrefs.WindowWidth = width;
+            _configData.UiPrefs.WindowHeight = height;
+        }
+
         SaveModConfig();
     }
 
