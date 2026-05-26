@@ -112,15 +112,14 @@ public class CivilizationNetworkHandler(
 
     /// <summary>
     ///     Handle a Standing of Realms leaderboard request. Ranks every
-    ///     civilization by Standing (civilization rank), highest first, and
-    ///     returns the ordered list. Visible to all players, including those
-    ///     with no civilization — no membership gate.
+    ///     civilization across all four boards (Standing, Conquest, Endurance,
+    ///     Deeds), highest first, and returns them in one response so the client
+    ///     can switch boards without re-requesting. Visible to all players,
+    ///     including those with no civilization — no membership gate.
     /// </summary>
     private void OnLeaderboardRequest(IServerPlayer fromPlayer, LeaderboardRequestPacket packet)
     {
-        var ranked = civilizationManager.GetAllCivilizations()
-            .OrderByDescending(c => (int)c.Rank)
-            .ToList();
+        var civilizations = civilizationManager.GetAllCivilizations().ToList();
 
         // Resolve the viewer's own realm (viewer → religion → civ). Null when the
         // player belongs to no religion, or whose religion isn't in any civ.
@@ -129,32 +128,61 @@ public class CivilizationNetworkHandler(
             ? civilizationManager.GetCivilizationByReligion(viewerReligion.ReligionUID)?.CivId
             : null;
 
+        var now = DateTime.UtcNow;
+        var boards = new List<LeaderboardResponsePacket.Board>
+        {
+            BuildBoard(LeaderboardMetric.Standing, civilizations, viewerCivId, c => (int)c.Rank),
+            BuildBoard(LeaderboardMetric.Conquest, civilizations, viewerCivId, c => c.WarKillCount),
+            BuildBoard(LeaderboardMetric.Endurance, civilizations, viewerCivId,
+                c => (int)Math.Max(0, (now - c.CreatedDate).TotalDays)),
+            BuildBoard(LeaderboardMetric.Deeds, civilizations, viewerCivId, c => c.CompletedMilestones.Count)
+        };
+
+        _networkService.SendToPlayer(fromPlayer, new LeaderboardResponsePacket(boards)
+        {
+            TotalRealms = civilizations.Count
+        });
+        _logger.Debug(
+            $"[DivineAscension] Sent leaderboard ({boards.Count} boards, {civilizations.Count} realms) to {fromPlayer.PlayerName}");
+    }
+
+    /// <summary>
+    ///     Build one ranked board: orders all realms by <paramref name="scoreOf" />
+    ///     (highest first), labels each row with the realm's standing tier, and
+    ///     records the viewer's own position within the ordering.
+    /// </summary>
+    private static LeaderboardResponsePacket.Board BuildBoard(
+        LeaderboardMetric metric,
+        IReadOnlyList<Data.Civilization> civilizations,
+        string? viewerCivId,
+        Func<Data.Civilization, int> scoreOf)
+    {
+        var ranked = civilizations.OrderByDescending(scoreOf).ToList();
         var entries = new List<LeaderboardResponsePacket.LeaderboardEntry>(ranked.Count);
         var viewerPosition = 0;
+
         for (var i = 0; i < ranked.Count; i++)
         {
             var civ = ranked[i];
-            var rankValue = (int)civ.Rank;
             entries.Add(new LeaderboardResponsePacket.LeaderboardEntry
             {
                 Position = i + 1,
                 CivId = civ.CivId,
                 Name = civ.Name,
-                TierLabel = RankRequirements.GetCivilizationRankName(rankValue),
-                Score = rankValue
+                TierLabel = RankRequirements.GetCivilizationRankName((int)civ.Rank),
+                Score = scoreOf(civ)
             });
 
             if (viewerCivId != null && civ.CivId == viewerCivId)
                 viewerPosition = i + 1;
         }
 
-        _networkService.SendToPlayer(fromPlayer, new LeaderboardResponsePacket(entries)
+        return new LeaderboardResponsePacket.Board
         {
-            ViewerPosition = viewerPosition,
-            TotalRealms = entries.Count
-        });
-        _logger.Debug(
-            $"[DivineAscension] Sent Standing leaderboard with {entries.Count} realms to {fromPlayer.PlayerName}");
+            Metric = (int)metric,
+            Entries = entries,
+            ViewerPosition = viewerPosition
+        };
     }
 
     /// <summary>

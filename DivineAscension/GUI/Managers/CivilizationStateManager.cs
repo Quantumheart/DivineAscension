@@ -1022,12 +1022,23 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             }
     }
 
+    /// <summary>Selectable leaderboard boards, in display order (#499).</summary>
+    private static readonly LeaderboardMetric[] LeaderboardBoards =
+    {
+        LeaderboardMetric.Standing,
+        LeaderboardMetric.Conquest,
+        LeaderboardMetric.Endurance,
+        LeaderboardMetric.Deeds
+    };
+
     [ExcludeFromCodeCoverage]
     private void DrawCivilizationLeaderboard(float x, float y, float width, float height)
     {
         var vm = new CivilizationLeaderboardViewModel(
-            State.LeaderboardState.Entries,
-            State.LeaderboardState.ViewerPosition,
+            LeaderboardBoards,
+            State.LeaderboardState.SelectedBoard,
+            State.LeaderboardState.SelectedEntries,
+            State.LeaderboardState.SelectedViewerPosition,
             State.LeaderboardState.TotalRealms,
             State.LeaderboardState.IsLoading,
             State.LeaderboardState.ErrorMsg,
@@ -1049,6 +1060,17 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     break;
                 case LeaderboardEvent.ScrollChanged sc:
                     State.LeaderboardState.ScrollY = sc.NewScrollY;
+                    break;
+                case LeaderboardEvent.BoardSelected bs:
+                    if (State.LeaderboardState.SelectedBoard != bs.Board)
+                    {
+                        // All boards arrive in one response, so switching is purely
+                        // client-side — no re-request, just reset scroll and re-render.
+                        State.LeaderboardState.SelectedBoard = bs.Board;
+                        State.LeaderboardState.ScrollY = 0f;
+                        _soundManager.PlayClick();
+                    }
+
                     break;
             }
     }

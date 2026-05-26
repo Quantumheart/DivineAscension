@@ -591,7 +591,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     private void OnLeaderboardResponse(LeaderboardResponsePacket packet)
     {
         _capi?.Logger.Debug(
-            $"[DivineAscension] Received Standing leaderboard: {packet.Entries.Count} realms");
+            $"[DivineAscension] Received leaderboard: {packet.Boards.Count} boards, {packet.TotalRealms} realms");
 
         // Fire event for subscribers
         LeaderboardReceived?.Invoke(packet);

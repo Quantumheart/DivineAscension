@@ -1,12 +1,16 @@
 using System.Collections.Generic;
+using DivineAscension.Models.Enum;
 using DivineAscension.Network.Civilization;
 
 namespace DivineAscension.GUI.Models.Civilization.Leaderboard;
 
 /// <summary>
-///     ViewModel for the Standing of Realms leaderboard chapter (slice 1).
+///     ViewModel for the Standing of Realms leaderboard chapter. Carries the
+///     selected board's ordered entries plus the board selector state (#499).
 /// </summary>
 public readonly struct CivilizationLeaderboardViewModel(
+    IReadOnlyList<LeaderboardMetric> boards,
+    LeaderboardMetric selectedBoard,
     List<LeaderboardResponsePacket.LeaderboardEntry> entries,
     int viewerPosition,
     int totalRealms,
@@ -18,9 +22,15 @@ public readonly struct CivilizationLeaderboardViewModel(
     float width,
     float height)
 {
+    /// <summary>The selectable boards, in display order.</summary>
+    public IReadOnlyList<LeaderboardMetric> Boards { get; } = boards;
+
+    /// <summary>The board currently shown.</summary>
+    public LeaderboardMetric SelectedBoard { get; } = selectedBoard;
+
     public List<LeaderboardResponsePacket.LeaderboardEntry> Entries { get; } = entries;
 
-    /// <summary>Viewer's own realm position (1-based), or 0 when they have no realm.</summary>
+    /// <summary>Viewer's own realm position (1-based) in the selected board, or 0 when they have no realm.</summary>
     public int ViewerPosition { get; } = viewerPosition;
 
     /// <summary>Total ranked realms, for the standing summary line.</summary>
