@@ -479,6 +479,10 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_LEADERBOARD_SELF_ROW = "divineascension:ui.civilization.leaderboard.self_row";
     public const string UI_CIVILIZATION_LEADERBOARD_SUMMARY = "divineascension:ui.civilization.leaderboard.summary";
     public const string UI_CIVILIZATION_LEADERBOARD_SUMMARY_NONE = "divineascension:ui.civilization.leaderboard.summary_none";
+    public const string UI_CIVILIZATION_LEADERBOARD_BOARD_STANDING = "divineascension:ui.civilization.leaderboard.board.standing";
+    public const string UI_CIVILIZATION_LEADERBOARD_BOARD_CONQUEST = "divineascension:ui.civilization.leaderboard.board.conquest";
+    public const string UI_CIVILIZATION_LEADERBOARD_BOARD_ENDURANCE = "divineascension:ui.civilization.leaderboard.board.endurance";
+    public const string UI_CIVILIZATION_LEADERBOARD_BOARD_DEEDS = "divineascension:ui.civilization.leaderboard.board.deeds";
 
     #endregion
 

@@ -877,7 +877,7 @@ public partial class GuiDialog
     /// </summary>
     private void OnLeaderboardReceived(DivineAscension.Network.Civilization.LeaderboardResponsePacket packet)
     {
-        _logger?.Debug($"[DivineAscension] Received Standing leaderboard with {packet.Entries.Count} realms");
+        _logger?.Debug($"[DivineAscension] Received leaderboard with {packet.Boards.Count} boards, {packet.TotalRealms} realms");
 
         _manager!.CivilizationManager.UpdateLeaderboard(packet);
     }

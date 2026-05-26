@@ -10,6 +10,7 @@ using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Renderers.Components;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
+using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 using ImGuiNET;
 using static DivineAscension.GUI.UI.Utilities.FontSizes;
@@ -33,6 +34,10 @@ internal static class CivilizationLeaderboardRenderer
     private const float RefreshGlyphSize = 22f;
     private const float ScrollbarWidth = 16f;
     private const float SummaryTopSpacing = 6f;
+    private const float SelectorRowHeight = 28f;
+    private const float SelectorRowBottomSpacing = 6f;
+    private const float SelectorChipGap = 18f;
+    private const float SelectorChipPaddingX = 8f;
 
     public static CivilizationLeaderboardRenderResult Draw(
         CivilizationLeaderboardViewModel viewModel,
@@ -91,6 +96,7 @@ internal static class CivilizationLeaderboardRenderer
         DrawRefreshButton(viewModel, drawList, x, y - scrollY, contentWidth, events);
 
         currentY = DrawProseIntro(drawList, x, currentY, contentWidth);
+        currentY = DrawBoardSelector(viewModel, drawList, x, currentY, contentWidth, events);
         currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
         if (viewModel.Entries.Count == 0)
@@ -171,6 +177,74 @@ internal static class CivilizationLeaderboardRenderer
         return y + (lines > 0 ? lines : Body + 6f) + ProseBottomSpacing;
     }
 
+    /// <summary>
+    ///     The board selector row: each board as a clickable label, the active
+    ///     one bracketed in gold. Clicking an inactive board emits a
+    ///     <see cref="LeaderboardEvent.BoardSelected" />.
+    /// </summary>
+    private static float DrawBoardSelector(
+        CivilizationLeaderboardViewModel viewModel,
+        ImDrawListPtr drawList,
+        float x, float y, float width,
+        List<LeaderboardEvent> events)
+    {
+        var mouse = ImGui.GetMousePos();
+        var rowCenterY = y + SelectorRowHeight / 2f;
+        var cursor = x;
+        var font = ImGui.GetFont();
+
+        foreach (var board in viewModel.Boards)
+        {
+            var isActive = board == viewModel.SelectedBoard;
+            var label = BoardName(board);
+            var labelSize = ImGui.CalcTextSize(label);
+
+            var chipWidth = SelectorChipPaddingX + labelSize.X + SelectorChipPaddingX;
+            if (cursor + chipWidth > x + width) break;
+
+            var chipMinY = rowCenterY - labelSize.Y / 2f - 4f;
+            var chipMaxY = rowCenterY + labelSize.Y / 2f + 4f;
+            var chipMin = new Vector2(cursor, chipMinY);
+            var chipMax = new Vector2(cursor + chipWidth, chipMaxY);
+
+            var isHover = mouse.X >= chipMin.X && mouse.X <= chipMax.X &&
+                          mouse.Y >= chipMin.Y && mouse.Y <= chipMax.Y;
+
+            if (isActive)
+                drawList.AddRect(chipMin, chipMax,
+                    ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), 3f, ImDrawFlags.None, 1.5f);
+
+            if (isHover && !isActive) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+
+            var textColor = isActive
+                ? ColorPalette.Gold
+                : (isHover ? ColorPalette.Gold : ColorPalette.Grey);
+            drawList.AddText(font, Body,
+                new Vector2(cursor + SelectorChipPaddingX, rowCenterY - labelSize.Y / 2f),
+                ImGui.ColorConvertFloat4ToU32(textColor), label);
+
+            if (isHover && !isActive && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                events.Add(new LeaderboardEvent.BoardSelected(board));
+
+            cursor += chipWidth + SelectorChipGap;
+        }
+
+        return y + SelectorRowHeight + SelectorRowBottomSpacing;
+    }
+
+    private static string BoardName(LeaderboardMetric metric)
+    {
+        var key = metric switch
+        {
+            LeaderboardMetric.Standing => LocalizationKeys.UI_CIVILIZATION_LEADERBOARD_BOARD_STANDING,
+            LeaderboardMetric.Conquest => LocalizationKeys.UI_CIVILIZATION_LEADERBOARD_BOARD_CONQUEST,
+            LeaderboardMetric.Endurance => LocalizationKeys.UI_CIVILIZATION_LEADERBOARD_BOARD_ENDURANCE,
+            LeaderboardMetric.Deeds => LocalizationKeys.UI_CIVILIZATION_LEADERBOARD_BOARD_DEEDS,
+            _ => LocalizationKeys.UI_CIVILIZATION_LEADERBOARD_BOARD_STANDING
+        };
+        return LocalizationService.Instance.Get(key);
+    }
+
     private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
     {
         var dividerY = y + DividerYPadding;
@@ -199,6 +273,7 @@ internal static class CivilizationLeaderboardRenderer
     {
         var h = PaneHeaderRenderer.TotalHeight;
         h += 36f + ProseBottomSpacing; // prose intro (~2 lines)
+        h += SelectorRowHeight + SelectorRowBottomSpacing; // board selector
         h += DividerHeight;
         h += viewModel.Entries.Count * RowHeight;
         h += DividerHeight; // closing divider
