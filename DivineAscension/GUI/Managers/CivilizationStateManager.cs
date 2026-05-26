@@ -11,6 +11,7 @@ using DivineAscension.GUI.Models.Civilization.Detail;
 using DivineAscension.GUI.Models.Civilization.Edit;
 using DivineAscension.GUI.Models.Civilization.HolySites;
 using DivineAscension.GUI.Models.Civilization.Info;
+using DivineAscension.GUI.Models.Civilization.Leaderboard;
 using DivineAscension.GUI.Models.Civilization.Milestones;
 using DivineAscension.GUI.Models.Civilization.Invites;
 using DivineAscension.GUI.Models.Civilization.Tab;
@@ -435,6 +436,26 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
     }
 
     /// <summary>
+    ///     Request the Standing of Realms leaderboard. Available to all players,
+    ///     including those with no civilization.
+    /// </summary>
+    public void RequestLeaderboard()
+    {
+        State.LeaderboardState.IsLoading = true;
+        State.LeaderboardState.ErrorMsg = null;
+
+        _uiService.RequestLeaderboard();
+    }
+
+    /// <summary>
+    ///     Update leaderboard state from network response
+    /// </summary>
+    public void UpdateLeaderboard(DivineAscension.Network.Civilization.LeaderboardResponsePacket packet)
+    {
+        State.LeaderboardState.UpdateFromPacket(packet);
+    }
+
+    /// <summary>
     ///     Handle successful holy site update - exit editing mode and refresh detail view
     /// </summary>
     public void OnHolySiteUpdateSuccess(string siteUID)
@@ -533,6 +554,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                 break;
             case SidebarNavId.CivilizationMilestones:
                 DrawCivilizationMilestones(x, contentY, width, contentHeight);
+                break;
+            case SidebarNavId.CivilizationLeaderboard:
+                DrawCivilizationLeaderboard(x, contentY, width, contentHeight);
                 break;
         }
     }
@@ -991,6 +1015,35 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
                     break;
                 case MilestoneEvent.ScrollChanged sc:
                     State.MilestoneState.ScrollY = sc.NewScrollY;
+                    break;
+            }
+    }
+
+    [ExcludeFromCodeCoverage]
+    private void DrawCivilizationLeaderboard(float x, float y, float width, float height)
+    {
+        var vm = new CivilizationLeaderboardViewModel(
+            State.LeaderboardState.Entries,
+            State.LeaderboardState.IsLoading,
+            State.LeaderboardState.ErrorMsg,
+            State.LeaderboardState.ScrollY,
+            x, y, width, height);
+
+        var drawList = ImGui.GetWindowDrawList();
+        var result = CivilizationLeaderboardRenderer.Draw(vm, drawList);
+        ProcessLeaderboardEvents(result.Events);
+    }
+
+    private void ProcessLeaderboardEvents(IReadOnlyList<LeaderboardEvent> events)
+    {
+        foreach (var evt in events)
+            switch (evt)
+            {
+                case LeaderboardEvent.RefreshClicked:
+                    RequestLeaderboard();
+                    break;
+                case LeaderboardEvent.ScrollChanged sc:
+                    State.LeaderboardState.ScrollY = sc.NewScrollY;
                     break;
             }
     }

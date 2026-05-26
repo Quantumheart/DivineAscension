@@ -158,6 +158,7 @@ public partial class GuiDialog : ModSystem
             _divineAscensionModSystem.NetworkClient.HolySiteDataReceived += OnHolySiteDataReceived;
             _divineAscensionModSystem.NetworkClient.HolySiteUpdated += OnHolySiteUpdated;
             _divineAscensionModSystem.NetworkClient.MilestoneProgressReceived += OnMilestoneProgressReceived;
+            _divineAscensionModSystem.NetworkClient.LeaderboardReceived += OnLeaderboardReceived;
             _divineAscensionModSystem.NetworkClient.OpenMenuRequested += OnOpenMenuRequested;
             _divineAscensionModSystem.NetworkClient.CloseMenuRequested += OnCloseMenuRequested;
         }
@@ -606,6 +607,7 @@ public partial class GuiDialog : ModSystem
             _divineAscensionModSystem.NetworkClient.AvailableDomainsReceived -= OnAvailableDomainsReceived;
             _divineAscensionModSystem.NetworkClient.HolySiteDataReceived -= OnHolySiteDataReceived;
             _divineAscensionModSystem.NetworkClient.MilestoneProgressReceived -= OnMilestoneProgressReceived;
+            _divineAscensionModSystem.NetworkClient.LeaderboardReceived -= OnLeaderboardReceived;
             _divineAscensionModSystem.NetworkClient.OpenMenuRequested -= OnOpenMenuRequested;
             _divineAscensionModSystem.NetworkClient.CloseMenuRequested -= OnCloseMenuRequested;
         }

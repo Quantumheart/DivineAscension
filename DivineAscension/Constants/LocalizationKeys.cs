@@ -394,6 +394,7 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_TAB_PROPOSE_ACCORD = "divineascension:ui.civilization.tab.propose_accord";
     public const string UI_CIVILIZATION_TAB_HOLYSITES = "divineascension:ui.civilization.tab.holysites";
     public const string UI_CIVILIZATION_TAB_MILESTONES = "divineascension:ui.civilization.tab.milestones";
+    public const string UI_CIVILIZATION_TAB_LEADERBOARD = "divineascension:ui.civilization.tab.leaderboard";
 
     #endregion
 
@@ -468,6 +469,13 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_MILESTONES_DEEDS_HEADING = "divineascension:ui.civilization.milestones.deeds.heading";
     public const string UI_CIVILIZATION_MILESTONES_DEEDS_COUNT = "divineascension:ui.civilization.milestones.deeds.count";
     public const string UI_CIVILIZATION_MILESTONES_DEEDS_SET_DOWN = "divineascension:ui.civilization.milestones.deeds.set_down";
+
+    public const string UI_CIVILIZATION_LEADERBOARD_TITLE = "divineascension:ui.civilization.leaderboard.title";
+    public const string UI_CIVILIZATION_LEADERBOARD_INTRO = "divineascension:ui.civilization.leaderboard.intro";
+    public const string UI_CIVILIZATION_LEADERBOARD_LOADING = "divineascension:ui.civilization.leaderboard.loading";
+    public const string UI_CIVILIZATION_LEADERBOARD_ERROR = "divineascension:ui.civilization.leaderboard.error";
+    public const string UI_CIVILIZATION_LEADERBOARD_EMPTY = "divineascension:ui.civilization.leaderboard.empty";
+    public const string UI_CIVILIZATION_LEADERBOARD_ROW_VALUE = "divineascension:ui.civilization.leaderboard.row_value";
 
     #endregion
 
