@@ -82,6 +82,13 @@ public class GuiDialogManager : IBlessingDialogManager
         fakeDiplomacyProvider.ConfigureDevSeed(20260522);
         CivilizationManager.UseDiplomacyProvider(fakeDiplomacyProvider);
         CivilizationManager.RequestDiplomacyInfo();
+
+        // Seeded Standing of Realms leaderboard so the chapter can be styled across
+        // all four boards without a server, with a mid-table highlighted self-row.
+        var fakeLeaderboardProvider = new FakeLeaderboardProvider();
+        fakeLeaderboardProvider.ConfigureDevSeed(12, 20260526);
+        CivilizationManager.UseLeaderboardProvider(fakeLeaderboardProvider);
+        CivilizationManager.RefreshLeaderboardFromProvider();
 #endif
     }
 
