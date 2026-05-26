@@ -1130,7 +1130,8 @@ public class ReligionStateManager : IReligionStateManager
                 inviteId: i.InviteId,
                 religionName: i.ReligionName,
                 expiresAt: i.ExpiresAt,
-                domain: DomainHelper.ParseDomain(i.DeityDomain)))
+                domain: DomainHelper.ParseDomain(i.DeityDomain),
+                description: i.Description))
             .ToList();
     }
 
