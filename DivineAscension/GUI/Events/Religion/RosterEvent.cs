@@ -6,6 +6,10 @@ public abstract record RosterEvent
 
     public record RowToggled(string PlayerUID) : RosterEvent;
 
+    public record BanRowToggled(string PlayerUID) : RosterEvent;
+
+    public record UnbanClicked(string PlayerUID) : RosterEvent;
+
     public record KickClicked(string PlayerUID, string PlayerName) : RosterEvent;
     public record KickConfirm(string PlayerUID) : RosterEvent, IModalControlEvent;
     public record KickCancel : RosterEvent, IModalControlEvent;

@@ -49,7 +49,7 @@ public class GuiDialogManager : IBlessingDialogManager
         fakeInvitesProvider.ConfigureDevSeed(4, 20260521);
         ReligionStateManager.UseInvitesProvider(fakeInvitesProvider);
 
-        // Fake banned players for styling the Stricken-from-the-Ledger section of This Order.
+        // Fake banned players for styling the Stricken-from-the-Ledger section of the Roster.
         var fakeBanListProvider = new FakeBanListProvider();
         fakeBanListProvider.ConfigureDevSeed(5, 20260526);
         ReligionStateManager.UseBanListProvider(fakeBanListProvider);

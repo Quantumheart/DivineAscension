@@ -12,6 +12,7 @@ using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
 using DivineAscension.Services;
 using ImGuiNET;
+using static DivineAscension.GUI.UI.Utilities.FontSizes;
 
 namespace DivineAscension.GUI.UI.Renderers.Religion;
 
@@ -29,6 +30,7 @@ internal static class ReligionRosterRenderer
     private const float DividerYPadding = 6f;
     private const float ScrollbarWidth = 16f;
     private const float FooterTopPadding = 12f;
+    private const float SectionLabelHeight = 22f;
 
     public static ReligionRosterRenderResult Draw(ReligionRosterViewModel vm, ImDrawListPtr drawList)
     {
@@ -86,9 +88,12 @@ internal static class ReligionRosterRenderer
         // === ROWS + COUNTER ===
         currentY = ReligionRosterRowsRenderer.Draw(vm, drawList, x, currentY, contentWidth, events);
 
-        // === INVITE BLOCK (founder only) ===
+        // === STRICKEN FROM THE LEDGER + INVITE BLOCK (founder only) ===
         if (vm.IsFounder)
         {
+            currentY = DrawDivider(drawList, x, currentY, contentWidth);
+            currentY = DrawStrickenSection(vm, drawList, x, currentY, contentWidth, events);
+
             currentY = DrawDivider(drawList, x, currentY, contentWidth);
             currentY += FooterTopPadding;
             currentY = ReligionRosterInviteRenderer.Draw(vm, drawList, x, currentY, contentWidth, events);
@@ -113,6 +118,21 @@ internal static class ReligionRosterRenderer
         return y + DividerHeight;
     }
 
+    private static float DrawStrickenSection(
+        ReligionRosterViewModel vm,
+        ImDrawListPtr drawList,
+        float x, float y, float width,
+        List<RosterEvent> events)
+    {
+        var currentY = y;
+        TextRenderer.DrawLabel(drawList,
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_STRICKEN_HEADING),
+            x, currentY, SubsectionLabel, ColorPalette.Gold);
+        currentY += SectionLabelHeight;
+
+        return ReligionRosterStrickenRenderer.Draw(vm, drawList, x, currentY, width, events);
+    }
+
     private static float ComputeContentHeight(ReligionRosterViewModel vm)
     {
         var h = TopPadding;
@@ -133,6 +153,20 @@ internal static class ReligionRosterRenderer
         }
         if (vm.IsFounder)
         {
+            // Stricken from the Ledger section
+            h += DividerHeight;
+            h += SectionLabelHeight;
+            if (vm.HasBannedPlayers)
+            {
+                h += vm.BannedPlayers.Count * ReligionRosterStrickenRenderer.RowHeight;
+                if (vm.ExpandedBanUID != null)
+                    h += ReligionRosterStrickenRenderer.ActionStripHeight;
+            }
+            else
+            {
+                h += ReligionRosterStrickenRenderer.RowHeight;
+            }
+            // Invite block
             h += DividerHeight + FooterTopPadding + ReligionRosterInviteRenderer.TotalHeight;
         }
         return h;
