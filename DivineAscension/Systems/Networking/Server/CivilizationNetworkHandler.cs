@@ -42,6 +42,7 @@ public class CivilizationNetworkHandler(
         _networkService.RegisterMessageHandler<CivilizationListRequestPacket>(OnCivilizationListRequest);
         _networkService.RegisterMessageHandler<CivilizationInfoRequestPacket>(OnCivilizationInfoRequest);
         _networkService.RegisterMessageHandler<CivilizationActionRequestPacket>(OnCivilizationActionRequest);
+        _networkService.RegisterMessageHandler<LeaderboardRequestPacket>(OnLeaderboardRequest);
     }
 
     public void Dispose()
@@ -107,6 +108,38 @@ public class CivilizationNetworkHandler(
         _networkService.SendToPlayer(fromPlayer, response);
         _logger.Debug(
             $"[DivineAscension] Sent {civInfoList.Count} civilizations (out of {civilizations.Count} total) with filter '{packet.FilterDeity}'");
+    }
+
+    /// <summary>
+    ///     Handle a Standing of Realms leaderboard request. Ranks every
+    ///     civilization by Standing (civilization rank), highest first, and
+    ///     returns the ordered list. Visible to all players, including those
+    ///     with no civilization — no membership gate.
+    /// </summary>
+    private void OnLeaderboardRequest(IServerPlayer fromPlayer, LeaderboardRequestPacket packet)
+    {
+        var ranked = civilizationManager.GetAllCivilizations()
+            .OrderByDescending(c => (int)c.Rank)
+            .ToList();
+
+        var entries = new List<LeaderboardResponsePacket.LeaderboardEntry>(ranked.Count);
+        for (var i = 0; i < ranked.Count; i++)
+        {
+            var civ = ranked[i];
+            var rankValue = (int)civ.Rank;
+            entries.Add(new LeaderboardResponsePacket.LeaderboardEntry
+            {
+                Position = i + 1,
+                CivId = civ.CivId,
+                Name = civ.Name,
+                TierLabel = RankRequirements.GetCivilizationRankName(rankValue),
+                Score = rankValue
+            });
+        }
+
+        _networkService.SendToPlayer(fromPlayer, new LeaderboardResponsePacket(entries));
+        _logger.Debug(
+            $"[DivineAscension] Sent Standing leaderboard with {entries.Count} realms to {fromPlayer.PlayerName}");
     }
 
     /// <summary>

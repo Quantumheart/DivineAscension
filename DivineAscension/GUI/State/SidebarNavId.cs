@@ -25,5 +25,6 @@ public enum SidebarNavId
     CivilizationHolySites,
     CivilizationMilestones,
     CivilizationBrowse,
-    ReligionVows
+    ReligionVows,
+    CivilizationLeaderboard
 }

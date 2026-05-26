@@ -248,6 +248,10 @@ internal static class MainLayoutCoordinator
                 civ.State.MilestoneState.ErrorMsg = null;
                 civ.RequestMilestoneProgress();
                 break;
+            case SidebarNavId.CivilizationLeaderboard:
+                civ.State.LeaderboardState.ErrorMsg = null;
+                civ.RequestLeaderboard();
+                break;
         }
     }
 
@@ -351,6 +355,7 @@ internal static class MainLayoutCoordinator
             case SidebarNavId.CivilizationProposeAccord:
             case SidebarNavId.CivilizationHolySites:
             case SidebarNavId.CivilizationMilestones:
+            case SidebarNavId.CivilizationLeaderboard:
                 manager.CivilizationManager.DrawCivilizationTab(nav, content.X, content.Y, content.W, content.H);
                 return;
         }

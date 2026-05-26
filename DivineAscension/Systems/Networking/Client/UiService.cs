@@ -134,6 +134,11 @@ public class UiService(DivineAscensionNetworkClient networkClient)
             holySiteId);
     }
 
+    public void RequestLeaderboard()
+    {
+        _networkClient.RequestLeaderboard();
+    }
+
     public void RequestDiplomacyInfo(string civId)
     {
         _networkClient.RequestDiplomacyInfo(civId);

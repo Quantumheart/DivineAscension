@@ -27,6 +27,8 @@ public class CivilizationTabState
 
     public MilestoneState MilestoneState { get; } = new();
 
+    public LeaderboardState LeaderboardState { get; } = new();
+
     // Error messages (null = no error)
     public string? LastActionError { get; set; }
     public string? CreateError { get; set; }
@@ -50,6 +52,7 @@ public class CivilizationTabState
         DiplomacyState.Reset();
         HolySitesState.Reset();
         MilestoneState.Reset();
+        LeaderboardState.Reset();
 
         // Errors
         LastActionError = null;

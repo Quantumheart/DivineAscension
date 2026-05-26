@@ -871,4 +871,14 @@ public partial class GuiDialog
 
         _manager!.CivilizationManager.UpdateMilestoneProgress(packet);
     }
+
+    /// <summary>
+    ///     Handle Standing of Realms leaderboard received from server
+    /// </summary>
+    private void OnLeaderboardReceived(DivineAscension.Network.Civilization.LeaderboardResponsePacket packet)
+    {
+        _logger?.Debug($"[DivineAscension] Received Standing leaderboard with {packet.Entries.Count} realms");
+
+        _manager!.CivilizationManager.UpdateLeaderboard(packet);
+    }
 }

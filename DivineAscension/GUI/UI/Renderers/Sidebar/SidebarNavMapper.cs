@@ -159,11 +159,16 @@ public static class SidebarNavMapper
 
     private static SidebarGroupViewModel BuildCivilizationGroup(Context ctx)
     {
-        var items = new List<SidebarItemViewModel>(7)
+        var items = new List<SidebarItemViewModel>(9)
         {
             // Browse — always reachable.
             Item(SidebarNavId.CivilizationBrowse,
                 LocalizationKeys.UI_CIVILIZATION_TAB_BROWSE, "browse",
+                ctx, isDisabled: false, disabledKey: null),
+            // Standing of Realms leaderboard — visible to all players, even those
+            // with no civilization (you can survey the world stage from outside).
+            Item(SidebarNavId.CivilizationLeaderboard,
+                LocalizationKeys.UI_CIVILIZATION_TAB_LEADERBOARD, "achievement",
                 ctx, isDisabled: false, disabledKey: null),
             Item(SidebarNavId.CivilizationInfo,
                 LocalizationKeys.UI_CIVILIZATION_TAB_INFO, "info",

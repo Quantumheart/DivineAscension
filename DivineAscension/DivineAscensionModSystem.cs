@@ -171,6 +171,8 @@ public class DivineAscensionModSystem : ModSystem
             .RegisterMessageType<CivilizationInfoResponsePacket>()
             .RegisterMessageType<CivilizationActionRequestPacket>()
             .RegisterMessageType<CivilizationActionResponsePacket>()
+            .RegisterMessageType<LeaderboardRequestPacket>()
+            .RegisterMessageType<LeaderboardResponsePacket>()
             .RegisterMessageType<DiplomacyInfoRequestPacket>()
             .RegisterMessageType<DiplomacyInfoResponsePacket>()
             .RegisterMessageType<DiplomacyActionRequestPacket>()

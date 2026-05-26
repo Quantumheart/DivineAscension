@@ -40,6 +40,9 @@ public interface IUiService
         string icon = "", string description = "", int ethos = -1,
         string capitalName = "", string holySiteId = "");
 
+    // Leaderboard Operations
+    void RequestLeaderboard();
+
     // Diplomacy Operations
     void RequestDiplomacyInfo(string civId);
 

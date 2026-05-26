@@ -98,6 +98,9 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _clientChannel.SetMessageHandler<MilestoneProgressResponsePacket>(OnMilestoneProgressResponse);
         _clientChannel.SetMessageHandler<MilestoneUnlockedPacket>(OnMilestoneUnlockedBroadcast);
 
+        // Register handler for the Standing of Realms leaderboard response
+        _clientChannel.SetMessageHandler<LeaderboardResponsePacket>(OnLeaderboardResponse);
+
         _clientChannel.SetMessageHandler<OpenMenuPacket>(OnOpenMenu);
         _clientChannel.SetMessageHandler<CloseMenuPacket>(OnCloseMenu);
 
@@ -133,6 +136,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         HolySiteUpdated = null;
         MilestoneProgressReceived = null;
         MilestoneUnlocked = null;
+        LeaderboardReceived = null;
         OpenMenuRequested = null;
         CloseMenuRequested = null;
     }
@@ -584,6 +588,15 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         MilestoneProgressReceived?.Invoke(packet);
     }
 
+    private void OnLeaderboardResponse(LeaderboardResponsePacket packet)
+    {
+        _capi?.Logger.Debug(
+            $"[DivineAscension] Received Standing leaderboard: {packet.Entries.Count} realms");
+
+        // Fire event for subscribers
+        LeaderboardReceived?.Invoke(packet);
+    }
+
     private void OnMilestoneUnlockedBroadcast(MilestoneUnlockedPacket packet)
     {
         _capi?.Logger.Debug(
@@ -952,6 +965,21 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     }
 
     /// <summary>
+    ///     Request the Standing of Realms leaderboard from the server
+    /// </summary>
+    public void RequestLeaderboard()
+    {
+        if (_clientChannel == null)
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot request leaderboard: client channel not initialized");
+            return;
+        }
+
+        _clientChannel.SendPacket(new LeaderboardRequestPacket());
+        _capi?.Logger.Debug("[DivineAscension] Sent Standing leaderboard request");
+    }
+
+    /// <summary>
     ///     Request diplomacy information for a civilization
     /// </summary>
     public void RequestDiplomacyInfo(string civId)
@@ -1262,6 +1290,11 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     ///     Event fired when a milestone is unlocked (broadcast from server)
     /// </summary>
     public event Action<MilestoneUnlockedPacket>? MilestoneUnlocked;
+
+    /// <summary>
+    ///     Event fired when the Standing of Realms leaderboard is received from the server
+    /// </summary>
+    public event Action<LeaderboardResponsePacket>? LeaderboardReceived;
 
     /// <summary>
     ///     Server requested that the dialog open (player interacted with a lectern).
