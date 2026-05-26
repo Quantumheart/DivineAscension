@@ -148,8 +148,10 @@ public class CivilizationNetworkHandler(
 
     /// <summary>
     ///     Build one ranked board: orders all realms by <paramref name="scoreOf" />
-    ///     (highest first), labels each row with the realm's standing tier, and
-    ///     records the viewer's own position within the ordering.
+    ///     (highest first), breaking score ties in favour of the older realm
+    ///     (earlier <see cref="Data.Civilization.CreatedDate" />) so the ordering
+    ///     is deterministic. Labels each row with the realm's standing tier and
+    ///     ethos glyph, and records the viewer's own position within the ordering.
     /// </summary>
     private static LeaderboardResponsePacket.Board BuildBoard(
         LeaderboardMetric metric,
@@ -157,7 +159,11 @@ public class CivilizationNetworkHandler(
         string? viewerCivId,
         System.Func<Data.Civilization, int> scoreOf)
     {
-        var ranked = civilizations.OrderByDescending(scoreOf).ToList();
+        // Tie-break: older realm (earlier CreatedDate) wins equal scores.
+        var ranked = civilizations
+            .OrderByDescending(scoreOf)
+            .ThenBy(c => c.CreatedDate)
+            .ToList();
         var entries = new List<LeaderboardResponsePacket.LeaderboardEntry>(ranked.Count);
         var viewerPosition = 0;
 
@@ -170,7 +176,8 @@ public class CivilizationNetworkHandler(
                 CivId = civ.CivId,
                 Name = civ.Name,
                 TierLabel = RankRequirements.GetCivilizationRankName((int)civ.Rank),
-                Score = scoreOf(civ)
+                Score = scoreOf(civ),
+                Ethos = (int)civ.Ethos
             });
 
             if (viewerCivId != null && civ.CivId == viewerCivId)

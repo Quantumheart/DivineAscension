@@ -18,11 +18,12 @@ using static DivineAscension.GUI.UI.Utilities.FontSizes;
 namespace DivineAscension.GUI.UI.Renderers.Civilization;
 
 /// <summary>
-///     Pure renderer for the Standing of Realms leaderboard chapter (#497,
-///     #498). Title strip + refresh glyph, prose intro, then every realm
-///     ranked by Standing as a plain row: position, name, tier label, score.
-///     The viewer's own realm is pinned/highlighted, and a closing summary
-///     line states where they stand among the rest.
+///     Pure renderer for the Standing of Realms leaderboard chapter (#497–#500).
+///     Title strip + refresh glyph, prose intro, board selector, then every realm
+///     as a ranked row: Roman rank, heraldic ethos glyph, name, tier label, a
+///     proportional score bar, and the score. The viewer's own realm is pinned
+///     (<c>▸ … ◂</c>) and highlighted in gold in its true ranked position, and a
+///     closing summary line states where they stand among the rest.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class CivilizationLeaderboardRenderer
@@ -38,6 +39,13 @@ internal static class CivilizationLeaderboardRenderer
     private const float SelectorRowBottomSpacing = 6f;
     private const float SelectorChipGap = 18f;
     private const float SelectorChipPaddingX = 8f;
+    private const float RowMarkerWidth = 16f; // ▸/◂ pin gutter on the viewer row
+    private const float RowRankWidth = 46f;    // "VIII." rank column
+    private const float RowGlyphSize = 16f;    // heraldic ethos mark
+    private const float RowGlyphGap = 8f;
+    private const float RowBarWidth = 72f;
+    private const float RowBarHeight = 8f;
+    private const float RowColumnGap = 12f;
 
     public static CivilizationLeaderboardRenderResult Draw(
         CivilizationLeaderboardViewModel viewModel,
@@ -108,28 +116,17 @@ internal static class CivilizationLeaderboardRenderer
             return new CivilizationLeaderboardRenderResult(events, height);
         }
 
+        // Score bars are proportional to the board's top score. Entries arrive
+        // sorted highest-first, but guard against an empty/zero top all the same.
+        var maxScore = 0;
+        foreach (var e in viewModel.Entries)
+            if (e.Score > maxScore)
+                maxScore = e.Score;
+
         foreach (var entry in viewModel.Entries)
         {
             var isViewer = viewModel.ViewerPosition > 0 && entry.Position == viewModel.ViewerPosition;
-            var value = LocalizationService.Instance.Get(
-                LocalizationKeys.UI_CIVILIZATION_LEADERBOARD_ROW_VALUE, entry.TierLabel, entry.Score);
-
-            if (isViewer)
-            {
-                // Pin and highlight the viewer's own realm so it's always findable.
-                var name = LocalizationService.Instance.Get(
-                    LocalizationKeys.UI_CIVILIZATION_LEADERBOARD_SELF_ROW, entry.Name);
-                var label = $"▸ {entry.Position}.  {name}";
-                ChromeRenderer.DrawLeader(drawList, label, $"{value}  ◂", x, currentY, contentWidth,
-                    labelColor: ColorPalette.Gold, valueColor: ColorPalette.Gold);
-            }
-            else
-            {
-                var label = $"{entry.Position}.  {entry.Name}";
-                ChromeRenderer.DrawLeader(drawList, label, value, x, currentY, contentWidth,
-                    valueColor: ColorPalette.Gold);
-            }
-
+            DrawRow(drawList, entry, isViewer, maxScore, x, currentY, contentWidth);
             currentY += RowHeight;
         }
 
@@ -165,6 +162,86 @@ internal static class CivilizationLeaderboardRenderer
             by + RefreshGlyphSize / 2f,
             RefreshGlyphSize - 6f,
             ColorPalette.LightText);
+    }
+
+    /// <summary>
+    ///     One ranked row: pin gutter, Roman rank, ethos glyph, realm name on the
+    ///     left; tier label, proportional score bar, and score on the right. The
+    ///     viewer's own realm is bracketed (<c>▸ … ◂</c>), uppercased, and gold so
+    ///     it stays findable in its true ranked position.
+    /// </summary>
+    private static void DrawRow(
+        ImDrawListPtr drawList,
+        Network.Civilization.LeaderboardResponsePacket.LeaderboardEntry entry,
+        bool isViewer, int maxScore,
+        float x, float y, float width)
+    {
+        var font = ImGui.GetFont();
+        var rowMidY = y + RowHeight / 2f;
+        var textY = rowMidY - Body / 2f;
+        var nameColor = ImGui.ColorConvertFloat4ToU32(isViewer ? ColorPalette.Gold : ColorPalette.White);
+        var glyphColor = isViewer ? ColorPalette.Gold : ColorPalette.Grey;
+
+        // Pin gutter — bracket the viewer's realm so it reads as "you are here".
+        if (isViewer)
+        {
+            drawList.AddText(font, Body, new Vector2(x, textY), nameColor, "▸"); // ▸
+            drawList.AddText(font, Body, new Vector2(x + width - ImGui.CalcTextSize("◂").X, textY),
+                nameColor, "◂"); // ◂
+        }
+
+        var leftX = x + RowMarkerWidth;
+
+        // Roman rank.
+        drawList.AddText(font, Body, new Vector2(leftX, textY),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), $"{ToRoman(entry.Position)}.");
+
+        // Ethos glyph.
+        var glyphX = leftX + RowRankWidth;
+        EthosGlyphRenderer.Draw(drawList, (CivilizationEthos)entry.Ethos,
+            new Vector2(glyphX, rowMidY - RowGlyphSize / 2f),
+            new Vector2(glyphX + RowGlyphSize, rowMidY + RowGlyphSize / 2f),
+            glyphColor);
+
+        // Realm name (uppercased + prefixed for the viewer).
+        var nameX = glyphX + RowGlyphSize + RowGlyphGap;
+        var name = isViewer
+            ? LocalizationService.Instance.Get(LocalizationKeys.UI_CIVILIZATION_LEADERBOARD_SELF_ROW, entry.Name)
+            : entry.Name;
+        drawList.AddText(font, Body, new Vector2(nameX, textY), nameColor, name);
+
+        // Right block: score (right-aligned), bar, then tier label.
+        var rightEdge = x + width - (isViewer ? RowMarkerWidth : 0f);
+        var scoreText = entry.Score.ToString();
+        var scoreSize = ImGui.CalcTextSize(scoreText);
+        var scoreX = rightEdge - scoreSize.X;
+        drawList.AddText(font, Body, new Vector2(scoreX, textY),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold), scoreText);
+
+        var barRight = scoreX - RowColumnGap;
+        var barLeft = barRight - RowBarWidth;
+        DrawScoreBar(drawList, barLeft, rowMidY - RowBarHeight / 2f, RowBarWidth, RowBarHeight,
+            maxScore <= 0 ? 0f : (float)entry.Score / maxScore, isViewer);
+
+        // Tier label, right-aligned against the bar.
+        var tierSize = ImGui.CalcTextSize(entry.TierLabel);
+        drawList.AddText(font, Body, new Vector2(barLeft - RowColumnGap - tierSize.X, textY),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), entry.TierLabel);
+    }
+
+    /// <summary>A proportional score bar: faint track with a filled gold portion.</summary>
+    private static void DrawScoreBar(
+        ImDrawListPtr drawList, float x, float y, float width, float height, float fraction, bool isViewer)
+    {
+        fraction = Math.Clamp(fraction, 0f, 1f);
+        var trackCol = ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor);
+        var fillCol = ImGui.ColorConvertFloat4ToU32(isViewer ? ColorPalette.Gold : ColorPalette.Grey);
+
+        drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width, y + height),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor * 0.4f), 2f);
+        drawList.AddRect(new Vector2(x, y), new Vector2(x + width, y + height), trackCol, 2f);
+        if (fraction > 0f)
+            drawList.AddRectFilled(new Vector2(x, y), new Vector2(x + width * fraction, y + height), fillCol, 2f);
     }
 
     private static float DrawProseIntro(

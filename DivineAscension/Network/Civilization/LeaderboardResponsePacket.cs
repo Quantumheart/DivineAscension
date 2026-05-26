@@ -51,5 +51,8 @@ public class LeaderboardResponsePacket
         [ProtoMember(3)] public string Name { get; set; } = string.Empty;
         [ProtoMember(4)] public string TierLabel { get; set; } = string.Empty;
         [ProtoMember(5)] public int Score { get; set; }
+
+        /// <summary>The realm's <see cref="DivineAscension.Models.Enum.CivilizationEthos" />, drives the per-realm heraldic glyph.</summary>
+        [ProtoMember(6)] public int Ethos { get; set; }
     }
 }
