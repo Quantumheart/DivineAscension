@@ -4,6 +4,7 @@ public class RosterState
 {
     public float ScrollY { get; set; }
     public string InvitePlayerName { get; set; } = string.Empty;
+    public bool ShowInviteDialog { get; set; }
     public string? ExpandedMemberUID { get; set; }
     public string? ExpandedBanUID { get; set; }
     public string? KickConfirmPlayerUID { get; set; }
@@ -15,6 +16,7 @@ public class RosterState
     {
         ScrollY = 0f;
         InvitePlayerName = string.Empty;
+        ShowInviteDialog = false;
         ExpandedMemberUID = null;
         ExpandedBanUID = null;
         KickConfirmPlayerUID = null;

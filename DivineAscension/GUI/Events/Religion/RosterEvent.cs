@@ -18,6 +18,10 @@ public abstract record RosterEvent
     public record StrikeConfirm(string PlayerUID) : RosterEvent, IModalControlEvent;
     public record StrikeCancel : RosterEvent, IModalControlEvent;
 
-    public record InviteNameChanged(string Text) : RosterEvent;
-    public record InviteClicked(string PlayerName) : RosterEvent;
+    // Inscription of Souls dialog (invite). Opened from the + button in the
+    // roster header; the field + submit live in a modal overlay.
+    public record InviteDialogOpened : RosterEvent;
+    public record InviteDialogCancel : RosterEvent, IModalControlEvent;
+    public record InviteNameChanged(string Text) : RosterEvent, IModalControlEvent;
+    public record InviteClicked(string PlayerName) : RosterEvent, IModalControlEvent;
 }

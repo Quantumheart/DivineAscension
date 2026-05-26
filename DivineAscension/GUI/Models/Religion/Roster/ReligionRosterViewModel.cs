@@ -21,6 +21,7 @@ public readonly struct ReligionRosterViewModel(
     string? expandedMemberUID,
     string? expandedBanUID,
     string invitePlayerName,
+    bool showInviteDialog,
     string? strikeConfirmPlayerUID,
     string? strikeConfirmPlayerName,
     float x,
@@ -43,6 +44,7 @@ public readonly struct ReligionRosterViewModel(
     public string? ExpandedMemberUID { get; } = expandedMemberUID;
     public string? ExpandedBanUID { get; } = expandedBanUID;
     public string InvitePlayerName { get; } = invitePlayerName;
+    public bool ShowInviteDialog { get; } = showInviteDialog;
     public string? StrikeConfirmPlayerUID { get; } = strikeConfirmPlayerUID;
     public string? StrikeConfirmPlayerName { get; } = strikeConfirmPlayerName;
 
@@ -60,6 +62,6 @@ public readonly struct ReligionRosterViewModel(
         new(true, false, string.Empty, string.Empty, string.Empty, false,
             Array.Empty<PlayerReligionInfoResponsePacket.MemberInfo>(),
             Array.Empty<PlayerReligionInfoResponsePacket.BanInfo>(),
-            null, null, string.Empty, null, null,
+            null, null, string.Empty, false, null, null,
             x, y, width, height, 0f);
 }

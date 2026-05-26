@@ -308,6 +308,25 @@ internal static class ChromeRenderer
     }
 
     /// <summary>
+    ///     Paint a plus / + mark as two crossed bars so it renders without a
+    ///     font glyph. <paramref name="size" /> is the full arm-to-arm extent.
+    /// </summary>
+    public static void DrawPlus(ImDrawListPtr drawList, float cx, float cy, float size,
+        Vector4? colorOverride = null)
+    {
+        if (size <= 0f) return;
+        var col = ImGui.ColorConvertFloat4ToU32(colorOverride ?? ColorPalette.Gold);
+        var half = size / 2f;
+        var thick = MathF.Max(1.5f, size * 0.16f);
+        // Horizontal bar
+        drawList.AddRectFilled(new Vector2(cx - half, cy - thick / 2f),
+            new Vector2(cx + half, cy + thick / 2f), col, thick / 2f);
+        // Vertical bar
+        drawList.AddRectFilled(new Vector2(cx - thick / 2f, cy - half),
+            new Vector2(cx + thick / 2f, cy + half), col, thick / 2f);
+    }
+
+    /// <summary>
     ///     Paint a dagger glyph († U+2020) as primitives so it renders in
     ///     fonts without that codepoint. Vertical blade, short cross-guard
     ///     near the top, and a small filled pommel at the top end.

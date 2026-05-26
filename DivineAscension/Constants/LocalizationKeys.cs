@@ -279,6 +279,7 @@ public static class LocalizationKeys
     public const string UI_RELIGION_ROSTER_COUNTER = "divineascension:ui.religion.roster.counter";
     public const string UI_RELIGION_ROSTER_EMPTY = "divineascension:ui.religion.roster.empty";
     public const string UI_RELIGION_ROSTER_FOUNDER_TAG = "divineascension:ui.religion.roster.founder_tag";
+    public const string UI_RELIGION_ROSTER_INVITE_TITLE = "divineascension:ui.religion.roster.invite.title";
     public const string UI_RELIGION_ROSTER_INVITE_LABEL = "divineascension:ui.religion.roster.invite.label";
     public const string UI_RELIGION_ROSTER_INVITE_PLACEHOLDER = "divineascension:ui.religion.roster.invite.placeholder";
     public const string UI_RELIGION_ROSTER_INVITE_BUTTON = "divineascension:ui.religion.roster.invite.button";
