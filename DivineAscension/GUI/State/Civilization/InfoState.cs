@@ -8,6 +8,7 @@ public class InfoState : IState
     public CivilizationInfoResponsePacket.CivilizationDetails? Info { get; set; }
     public float ScrollY { get; set; }
     public float MemberScrollY { get; set; }
+    public float ChronicleScrollY { get; set; }
     public string InviteReligionName { get; set; } = string.Empty;
     public string DescriptionText { get; set; } = string.Empty;
     public bool IsEditingDescription { get; set; }
@@ -23,6 +24,7 @@ public class InfoState : IState
         Info = null;
         ScrollY = 0f;
         MemberScrollY = 0;
+        ChronicleScrollY = 0f;
         InviteReligionName = string.Empty;
         DescriptionText = string.Empty;
         IsEditingDescription = false;

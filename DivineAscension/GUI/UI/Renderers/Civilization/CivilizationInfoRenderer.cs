@@ -118,12 +118,6 @@ internal static class CivilizationInfoRenderer
 
         currentY = DrawBannerOrders(vm, drawList, x, currentY, contentWidth);
 
-        if (vm.HasChronicle)
-        {
-            currentY = DrawDivider(drawList, x, currentY, contentWidth);
-            currentY = CivilizationChronicleRenderer.Draw(vm, drawList, x, currentY, contentWidth);
-        }
-
         if (vm.IsFounder)
         {
             currentY = DrawDivider(drawList, x, currentY, contentWidth);
@@ -372,13 +366,6 @@ internal static class CivilizationInfoRenderer
         // Banner orders
         h += SectionLabelHeight;
         h += vm.MemberCount == 0 ? OrderRowHeight : OrderRowHeight * vm.MemberCount + 4f;
-
-        // Chronicle (collapse-when-empty)
-        if (vm.HasChronicle)
-        {
-            h += DividerHeight;
-            h += CivilizationChronicleRenderer.MeasureHeight(vm, vm.Width - ChapterStripRenderer.ScrollbarGutter);
-        }
 
         // Invite block (founder only)
         if (vm.IsFounder)

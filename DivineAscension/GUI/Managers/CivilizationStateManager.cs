@@ -6,6 +6,7 @@ using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Civilization;
 using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Models.Civilization.Browse;
+using DivineAscension.GUI.Models.Civilization.Chronicle;
 using DivineAscension.GUI.Models.Civilization.Create;
 using DivineAscension.GUI.Models.Civilization.Detail;
 using DivineAscension.GUI.Models.Civilization.Edit;
@@ -595,6 +596,9 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             case SidebarNavId.CivilizationMilestones:
                 DrawCivilizationMilestones(x, contentY, width, contentHeight);
                 break;
+            case SidebarNavId.CivilizationChronicle:
+                DrawCivilizationChronicle(x, contentY, width, contentHeight);
+                break;
             case SidebarNavId.CivilizationLeaderboard:
                 DrawCivilizationLeaderboard(x, contentY, width, contentHeight);
                 break;
@@ -747,7 +751,6 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             State.ShowDisbandConfirm,
             State.KickConfirmReligionId,
             civ?.Bonuses ?? new CivilizationBonusesDto(),
-            civ?.Chronicle ?? new List<CivilizationInfoResponsePacket.ChronicleEntryDto>(),
             State.InfoState.ScrollY,
             State.InfoState.MemberScrollY,
             x,
@@ -1046,6 +1049,30 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
         var drawList = ImGui.GetWindowDrawList();
         var result = CivilizationMilestoneRenderer.Draw(vm, drawList);
         ProcessMilestoneEvents(result.Events);
+    }
+
+    /// <summary>
+    /// Draws the Chronicle chapter (#369). Read-only ledger of significant events;
+    /// reuses the same CivilizationInfoResponsePacket data as the Info pane.
+    /// </summary>
+    private void DrawCivilizationChronicle(float x, float y, float width, float height)
+    {
+        var civ = State.InfoState.Info;
+
+        var vm = new CivilizationChronicleViewModel(
+            State.InfoState.IsLoading,
+            civ != null,
+            civ?.Name ?? string.Empty,
+            civ?.Chronicle ?? new List<CivilizationInfoResponsePacket.ChronicleEntryDto>(),
+            x, y, width, height,
+            State.InfoState.ChronicleScrollY);
+
+        var drawList = ImGui.GetWindowDrawList();
+        var result = CivilizationChronicleRenderer.Draw(vm, drawList);
+
+        foreach (var ev in result.Events)
+            if (ev is CivilizationChronicleEvent.ScrollChanged sc)
+                State.InfoState.ChronicleScrollY = sc.NewScrollY;
     }
 
     private void ProcessMilestoneEvents(IReadOnlyList<MilestoneEvent> events)

@@ -396,6 +396,7 @@ public static class LocalizationKeys
     public const string UI_CIVILIZATION_TAB_PROPOSE_ACCORD = "divineascension:ui.civilization.tab.propose_accord";
     public const string UI_CIVILIZATION_TAB_HOLYSITES = "divineascension:ui.civilization.tab.holysites";
     public const string UI_CIVILIZATION_TAB_MILESTONES = "divineascension:ui.civilization.tab.milestones";
+    public const string UI_CIVILIZATION_TAB_CHRONICLE = "divineascension:ui.civilization.tab.chronicle";
     public const string UI_CIVILIZATION_TAB_LEADERBOARD = "divineascension:ui.civilization.tab.leaderboard";
 
     #endregion
@@ -801,6 +802,16 @@ public static class LocalizationKeys
 
     public const string UI_CIVILIZATION_INFO_CHRONICLE_DAY =
         "divineascension:ui.civilization.info.chronicle.day";
+
+    // Civilization chronicle chapter (#369 promotion)
+    public const string UI_CIVILIZATION_CHRONICLE_INTRO =
+        "divineascension:ui.civilization.chronicle.intro";
+
+    public const string UI_CIVILIZATION_CHRONICLE_EMPTY =
+        "divineascension:ui.civilization.chronicle.empty";
+
+    public const string UI_CIVILIZATION_CHRONICLE_FOOTER_CLOSING =
+        "divineascension:ui.civilization.chronicle.footer.closing";
 
     // Chronicle voice lines (#369) — resolved and cached server-side when the event occurs
     public const string CHRONICLE_FOUNDED = "divineascension:chronicle.founded";
