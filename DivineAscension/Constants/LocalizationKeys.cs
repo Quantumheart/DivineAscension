@@ -830,6 +830,14 @@ public static class LocalizationKeys
     public const string UI_RELIGION_CHRONICLE_FOOTER_CLOSING =
         "divineascension:ui.religion.chronicle.footer.closing";
 
+    // Chronicle calendar date — shared by the civ + religion chronicles. The chronicle
+    // captures the in-game calendar date (year/month/day) at write time; entries from
+    // before that capture fall back to the "Day {0}" key.
+    public const string UI_CALENDAR_CHRONICLE_DATE = "divineascension:ui.calendar.chronicle.date";
+
+    /// <summary>Localized in-game month name for month <paramref name="month" /> (1..12).</summary>
+    public static string CalendarMonth(int month) => $"divineascension:ui.calendar.month.{month}";
+
     // Religion chronicle voice lines (#373) — resolved and cached server-side when the event occurs
     public const string CHRONICLE_RELIGION_FOUNDED = "divineascension:chronicle.religion.founded";
     public const string CHRONICLE_RELIGION_FIRST_HOLY_SITE = "divineascension:chronicle.religion.first_holy_site";
