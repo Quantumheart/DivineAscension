@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using DivineAscension.API.Interfaces;
+using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
@@ -113,6 +114,34 @@ public class CivilizationManager : ICivilizationManager
         OnCivilizationDisbanded = null;
         OnReligionAdded = null;
         OnReligionRemoved = null;
+    }
+
+    /// <inheritdoc />
+    public void RecordChronicleEntry(string civId, ChronicleKind kind, string line, string? relatedId = null)
+    {
+        lock (Lock)
+        {
+            _data.Civilizations.GetValueOrDefault(civId)?.AddChronicleEntry(BuildChronicleEntry(kind, line, relatedId));
+        }
+    }
+
+    /// <summary>
+    ///     Builds a chronicle entry, capturing the current in-game day. The calendar
+    ///     may be unavailable during early init (or in tests); day 0 is used then.
+    /// </summary>
+    private ChronicleEntry BuildChronicleEntry(ChronicleKind kind, string line, string? relatedId)
+    {
+        int inGameDay;
+        try
+        {
+            inGameDay = (int)(_worldService.Calendar?.TotalDays ?? 0);
+        }
+        catch
+        {
+            inGameDay = 0;
+        }
+
+        return new ChronicleEntry(kind, line, relatedId, DateTime.UtcNow, inGameDay);
     }
 
     /// <summary>
@@ -318,6 +347,13 @@ public class CivilizationManager : ICivilizationManager
 
                 _data.AddCivilization(civ);
 
+                var founderName = founderReligion.GetMemberName(founderUID) ?? founderUID;
+                var foundedLine = string.IsNullOrEmpty(civ.FounderEpithet)
+                    ? LocalizationService.Instance.Get(LocalizationKeys.CHRONICLE_FOUNDED, civ.Name, founderName)
+                    : LocalizationService.Instance.Get(LocalizationKeys.CHRONICLE_FOUNDED_EPITHET, civ.Name,
+                        founderName, civ.FounderEpithet);
+                civ.AddChronicleEntry(BuildChronicleEntry(ChronicleKind.Founded, foundedLine, null));
+
                 _logger.Notification($"[DivineAscension] Civilization '{name}' created by {founderUID}");
                 return civ;
             }
@@ -477,6 +513,10 @@ public class CivilizationManager : ICivilizationManager
                 _logger.Notification(
                     $"[DivineAscension] Religion '{religion.ReligionName}' joined civilization '{civ.Name}'");
 
+                civ.AddChronicleEntry(BuildChronicleEntry(ChronicleKind.ReligionJoined,
+                    LocalizationService.Instance.Get(LocalizationKeys.CHRONICLE_RELIGION_JOINED, religion.ReligionName),
+                    invite.ReligionId));
+
                 // Fire event for milestone tracking
                 OnReligionAdded?.Invoke(civ.CivId, invite.ReligionId);
 
@@ -618,6 +658,10 @@ public class CivilizationManager : ICivilizationManager
                 // Fire event for milestone tracking (before potential disband)
                 OnReligionRemoved?.Invoke(civIdForEvent, religionId);
 
+                civ.AddChronicleEntry(BuildChronicleEntry(ChronicleKind.ReligionLeft,
+                    LocalizationService.Instance.Get(LocalizationKeys.CHRONICLE_RELIGION_LEFT, religion.ReligionName),
+                    religionId));
+
                 // Check if civilization falls below minimum
                 if (civ.MemberReligionIds.Count < MIN_RELIGIONS)
                 {
@@ -694,6 +738,10 @@ public class CivilizationManager : ICivilizationManager
                 // Fire event for milestone tracking (before potential disband)
                 OnReligionRemoved?.Invoke(civId, religionId);
 
+                civ.AddChronicleEntry(BuildChronicleEntry(ChronicleKind.ReligionLeft,
+                    LocalizationService.Instance.Get(LocalizationKeys.CHRONICLE_RELIGION_LEFT, religion.ReligionName),
+                    religionId));
+
                 // Check if civilization falls below minimum
                 if (civ.MemberReligionIds.Count < MIN_RELIGIONS)
                 {
@@ -752,6 +800,9 @@ public class CivilizationManager : ICivilizationManager
             // Mark as disbanded
             civ.DisbandedDate = DateTime.UtcNow;
 
+            civ.AddChronicleEntry(BuildChronicleEntry(ChronicleKind.Disbanded,
+                LocalizationService.Instance.Get(LocalizationKeys.CHRONICLE_DISBANDED, civ.Name), null));
+
             // Remove all pending invites for this civilization
             _data.PendingInvites.RemoveAll(i => i.CivId == civId);
 
@@ -799,6 +850,9 @@ public class CivilizationManager : ICivilizationManager
 
             // Mark as disbanded
             civ.DisbandedDate = DateTime.UtcNow;
+
+            civ.AddChronicleEntry(BuildChronicleEntry(ChronicleKind.Disbanded,
+                LocalizationService.Instance.Get(LocalizationKeys.CHRONICLE_DISBANDED, civ.Name), null));
 
             // Remove all pending invites for this civilization
             _data.PendingInvites.RemoveAll(i => i.CivId == civId);

@@ -287,6 +287,18 @@ public class DiplomacyManager : IDiplomacyManager
             _logger.Notification(
                 $"{DiplomacyConstants.LogPrefix} {targetCiv.Name} accepted {proposal.ProposedStatus} with {proposerCiv?.Name}");
 
+            if (proposal.ProposedStatus == DiplomaticStatus.Alliance)
+            {
+                var proposerName = proposerCiv?.Name ??
+                                   LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_UNKNOWN);
+                _civilizationManager.RecordChronicleEntry(proposal.ProposerCivId, ChronicleKind.AllianceFormed,
+                    LocalizationService.Instance.Get(LocalizationKeys.CHRONICLE_ALLIANCE_FORMED, targetCiv.Name),
+                    proposal.TargetCivId);
+                _civilizationManager.RecordChronicleEntry(proposal.TargetCivId, ChronicleKind.AllianceFormed,
+                    LocalizationService.Instance.Get(LocalizationKeys.CHRONICLE_ALLIANCE_FORMED, proposerName),
+                    proposal.ProposerCivId);
+            }
+
             return (true, $"Diplomatic relationship established: {proposal.ProposedStatus}", relationshipId);
         }
     }
@@ -435,6 +447,13 @@ public class DiplomacyManager : IDiplomacyManager
             OnWarDeclared?.Invoke(declarerCivId, targetCivId);
             OnRelationshipEstablished?.Invoke(declarerCivId, targetCivId, DiplomaticStatus.War);
 
+            // Chronicle the declaration from both realms' perspectives (#369)
+            _civilizationManager.RecordChronicleEntry(declarerCivId, ChronicleKind.WarDeclared,
+                LocalizationService.Instance.Get(LocalizationKeys.CHRONICLE_WAR_DECLARED, targetCiv.Name), targetCivId);
+            _civilizationManager.RecordChronicleEntry(targetCivId, ChronicleKind.WarDeclared,
+                LocalizationService.Instance.Get(LocalizationKeys.CHRONICLE_WAR_RECEIVED, declarerCiv.Name),
+                declarerCivId);
+
             // Record cooldown after successful war declaration
             _cooldownManager.RecordOperation(founderUID, CooldownType.WarDeclaration);
 
@@ -466,6 +485,13 @@ public class DiplomacyManager : IDiplomacyManager
 
             var otherCiv = _civilizationManager.GetCivilization(otherCivId);
             _logger.Notification($"{DiplomacyConstants.LogPrefix} {civ.Name} declared peace with {otherCiv?.Name}");
+
+            var otherName = otherCiv?.Name ??
+                            LocalizationService.Instance.Get(LocalizationKeys.UI_COMMON_UNKNOWN);
+            _civilizationManager.RecordChronicleEntry(civId, ChronicleKind.PeaceSigned,
+                LocalizationService.Instance.Get(LocalizationKeys.CHRONICLE_PEACE_SIGNED, otherName), otherCivId);
+            _civilizationManager.RecordChronicleEntry(otherCivId, ChronicleKind.PeaceSigned,
+                LocalizationService.Instance.Get(LocalizationKeys.CHRONICLE_PEACE_SIGNED, civ.Name), civId);
 
             return (true, "Peace declared - relationship returned to Neutral");
         }
