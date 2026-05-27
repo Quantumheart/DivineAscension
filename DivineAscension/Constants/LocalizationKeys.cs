@@ -813,6 +813,22 @@ public static class LocalizationKeys
     public const string CHRONICLE_ALLIANCE_FORMED = "divineascension:chronicle.alliance_formed";
     public const string CHRONICLE_DISBANDED = "divineascension:chronicle.disbanded";
 
+    // Religion chronicle (#373)
+    public const string UI_RELIGION_INFO_CHRONICLE_HEADING =
+        "divineascension:ui.religion.info.chronicle.heading";
+
+    public const string UI_RELIGION_INFO_CHRONICLE_DAY =
+        "divineascension:ui.religion.info.chronicle.day";
+
+    // Religion chronicle voice lines (#373) — resolved and cached server-side when the event occurs
+    public const string CHRONICLE_RELIGION_FOUNDED = "divineascension:chronicle.religion.founded";
+    public const string CHRONICLE_RELIGION_FIRST_HOLY_SITE = "divineascension:chronicle.religion.first_holy_site";
+    public const string CHRONICLE_RELIGION_BLESSING_UNLOCKED = "divineascension:chronicle.religion.blessing_unlocked";
+    public const string CHRONICLE_RELIGION_FOUNDER_TRANSFERRED = "divineascension:chronicle.religion.founder_transferred";
+    public const string CHRONICLE_RELIGION_JOINED_CIVILIZATION = "divineascension:chronicle.religion.joined_civilization";
+    public const string CHRONICLE_RELIGION_LEFT_CIVILIZATION = "divineascension:chronicle.religion.left_civilization";
+    public const string CHRONICLE_RELIGION_DISBANDED = "divineascension:chronicle.religion.disbanded";
+
     // Civilization edit dialog
     public const string UI_CIVILIZATION_EDIT_TITLE = "divineascension:ui.civilization.edit.title";
     public const string UI_CIVILIZATION_EDIT_CIV_LABEL = "divineascension:ui.civilization.edit.civ_label";

@@ -26,6 +26,7 @@ public class ReligionManager : IReligionManager
     private readonly ConcurrentDictionary<string, string> _playerToReligionIndex = new();
     private readonly ConcurrentDictionary<string, ReligionData> _religions = new();
     private readonly IWorldService _worldService;
+    private readonly ReligionChronicler _chronicler;
     private ReligionWorldData _inviteData = new();
 
     public ReligionManager(
@@ -38,6 +39,7 @@ public class ReligionManager : IReligionManager
         _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
         _persistenceService = persistenceService ?? throw new ArgumentNullException(nameof(persistenceService));
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
+        _chronicler = new ReligionChronicler(_worldService);
     }
 
 
@@ -116,6 +118,9 @@ public class ReligionManager : IReligionManager
         // Store in dictionary (thread-safe)
         _religions[religionUID] = religion;
         _playerToReligionIndex.TryAdd(founderUID, religionUID);
+
+        // Chronicle: the founding is the first permanent entry (#373).
+        _chronicler.RecordFounded(religion);
 
         _logger.Notification(
             $"[DivineAscension] Religion created: {name} (Domain: {domain}, Deity: {deityName}, Founder: {founderName}, Public: {isPublic})");
@@ -290,6 +295,46 @@ public class ReligionManager : IReligionManager
     {
         return _religions.Values.FirstOrDefault(r =>
             r.ReligionName.Equals(name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <inheritdoc />
+    public void RecordFirstHolySite(string religionUID)
+    {
+        if (_religions.TryGetValue(religionUID, out var religion))
+        {
+            _chronicler.RecordFirstHolySite(religion);
+            SaveAllReligions();
+        }
+    }
+
+    /// <inheritdoc />
+    public void RecordBlessingUnlocked(string religionUID, string blessingName, string? blessingId)
+    {
+        if (_religions.TryGetValue(religionUID, out var religion))
+        {
+            _chronicler.RecordBlessingUnlocked(religion, blessingName, blessingId);
+            SaveAllReligions();
+        }
+    }
+
+    /// <inheritdoc />
+    public void RecordCivilizationJoined(string religionUID, string civName, string? civId)
+    {
+        if (_religions.TryGetValue(religionUID, out var religion))
+        {
+            _chronicler.RecordCivilizationJoined(religion, civName, civId);
+            SaveAllReligions();
+        }
+    }
+
+    /// <inheritdoc />
+    public void RecordCivilizationLeft(string religionUID, string civName, string? civId)
+    {
+        if (_religions.TryGetValue(religionUID, out var religion))
+        {
+            _chronicler.RecordCivilizationLeft(religion, civName, civId);
+            SaveAllReligions();
+        }
     }
 
     /// <summary>
@@ -536,6 +581,11 @@ public class ReligionManager : IReligionManager
                 $"[DivineAscension] Member count mismatch: expected {memberCount}, removed {removedCount}");
         }
 
+        // Chronicle the disbanding before removal (#373). Mirrors the civ chronicle:
+        // the closing entry is written even though the deleted religion no longer
+        // surfaces it, keeping the "exactly once" guarantee uniform across kinds.
+        _chronicler.RecordDisbanded(religion);
+
         // Delete the religion (thread-safe)
         _religions.TryRemove(religionUID, out _);
         SaveAllReligions();
@@ -779,6 +829,8 @@ public class ReligionManager : IReligionManager
             var newFounderName = religion.GetMemberName(newFounderUID);
             religion.UpdateFounderName(newFounderName);
             religion.AssignMemberRole(newFounderUID, RoleDefaults.FOUNDER_ROLE_ID);
+
+            _chronicler.RecordFounderTransferred(religion, newFounderName);
 
             _logger.Notification(
                 $"[DivineAscension] Religion {religion.ReligionName} founder transferred to {newFounderName}");

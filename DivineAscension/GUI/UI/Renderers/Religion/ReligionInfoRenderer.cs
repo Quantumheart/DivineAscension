@@ -129,6 +129,13 @@ internal static class ReligionInfoRenderer
         // === OF THE ORDER'S FOUNDING ===
         currentY = ReligionInfoFoundingMythRenderer.Draw(viewModel, drawList, x, currentY, contentWidth, events, mythBody);
 
+        // === CHRONICLE (#373) — collapses to nothing when empty ===
+        if (viewModel.HasChronicle)
+        {
+            currentY = DrawDivider(drawList, x, currentY, contentWidth);
+            currentY = ReligionChronicleRenderer.Draw(viewModel, drawList, x, currentY, contentWidth);
+        }
+
         // === FOOTER ACTIONS ===
         currentY += FooterTopPadding;
         currentY = ReligionInfoActionsRenderer.Draw(viewModel, drawList, x, currentY, contentWidth, events);
@@ -191,6 +198,11 @@ internal static class ReligionInfoRenderer
             h += 22f + 200f + 6f + 26f + 8f;
         else
             h += 22f + 540f + 8f;
+
+        // Chronicle (#373) — divider + measured entries; collapses when empty.
+        // Width approximated by the pane width (strip indent is negligible for scroll sizing).
+        if (viewModel.HasChronicle)
+            h += DividerHeight + ReligionChronicleRenderer.MeasureHeight(viewModel, viewModel.Width);
 
         // Footer
         h += FooterTopPadding + 34f + 6f;

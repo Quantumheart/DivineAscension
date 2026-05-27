@@ -242,6 +242,7 @@ internal sealed class CivilizationMembershipService
                 $"[DivineAscension] Religion '{religion.ReligionName}' joined civilization '{civ.Name}'");
 
             _chronicler.RecordReligionJoined(civ, religion.ReligionName, invite.ReligionId);
+            _religionManager.RecordCivilizationJoined(invite.ReligionId, civ.Name, civ.CivId);
 
             var events = new List<CivEvent> { CivEvent.ReligionAdded(civ.CivId, invite.ReligionId) };
             return MembershipResult.Ok(events);
@@ -361,6 +362,7 @@ internal sealed class CivilizationMembershipService
             events.Add(CivEvent.ReligionRemoved(civIdForEvent, religionId));
 
             _chronicler.RecordReligionLeft(civ, religion.ReligionName, religionId);
+            _religionManager.RecordCivilizationLeft(religionId, civ.Name, civ.CivId);
 
             if (civ.MemberReligionIds.Count < CivilizationValidator.MinReligions)
             {
@@ -428,6 +430,7 @@ internal sealed class CivilizationMembershipService
             events.Add(CivEvent.ReligionRemoved(civId, religionId));
 
             _chronicler.RecordReligionLeft(civ, religion.ReligionName, religionId);
+            _religionManager.RecordCivilizationLeft(religionId, civ.Name, civ.CivId);
 
             if (civ.MemberReligionIds.Count < CivilizationValidator.MinReligions)
             {

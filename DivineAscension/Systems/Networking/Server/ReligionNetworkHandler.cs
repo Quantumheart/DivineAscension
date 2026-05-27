@@ -140,6 +140,16 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             response.FoundingMyth = religion.FoundingMyth;
             response.IsFounder = religion.FounderUID == fromPlayer.PlayerUID;
 
+            // Chronicle, oldest-first for the ledger-chapter section (#373).
+            response.Chronicle = religion.Chronicle
+                .Select(e => new PlayerReligionInfoResponsePacket.ChronicleEntryDto
+                {
+                    InGameDay = e.InGameDay,
+                    Kind = (int)e.Kind,
+                    Line = e.Line
+                })
+                .ToList();
+
             // Build member list with player names and favor ranks
             foreach (var member in religion.Members)
             {

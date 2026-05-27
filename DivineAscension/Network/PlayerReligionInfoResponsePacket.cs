@@ -52,6 +52,32 @@ public class PlayerReligionInfoResponsePacket
 
     [ProtoMember(17)] public string FoundingMyth { get; set; } = string.Empty;
 
+    /// <summary>
+    ///     Chronicle of significant events, oldest-first, for the ledger-chapter
+    ///     chronicle section (#373).
+    /// </summary>
+    [ProtoMember(18)]
+    public List<ChronicleEntryDto> Chronicle { get; set; } = new();
+
+    /// <summary>
+    ///     A single chronicle entry sent to the client for display.
+    /// </summary>
+    [ProtoContract]
+    public class ChronicleEntryDto
+    {
+        /// <summary>In-game day the event occurred, for "Day N" presentation.</summary>
+        [ProtoMember(1)] public int InGameDay { get; set; }
+
+        /// <summary>
+        ///     Event category. Stored as int for proto-compat with
+        ///     <see cref="DivineAscension.Models.Enum.ChronicleKind" />.
+        /// </summary>
+        [ProtoMember(2)] public int Kind { get; set; }
+
+        /// <summary>The chronicle voice line, already resolved server-side.</summary>
+        [ProtoMember(3)] public string Line { get; set; } = string.Empty;
+    }
+
     [ProtoContract]
     public class MemberInfo
     {
