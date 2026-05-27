@@ -58,9 +58,11 @@ internal static class CivilizationChronicleRenderer
                 DiamondHalfSize,
                 ColorPalette.Gold * 0.6f);
 
+            // Entry prose sits on the parchment page → iron-gall ink (palette §2),
+            // not LightText (cream, for dark surfaces only).
             var text = ComposeLine(entry);
             TextRenderer.DrawInfoText(drawList, text, x + ProseIndent, currentY, proseWidth,
-                Secondary, ColorPalette.LightText);
+                Secondary, ColorPalette.White);
 
             currentY += TextRenderer.MeasureWrappedHeight(text, proseWidth, Secondary) + EntryGap;
         }
