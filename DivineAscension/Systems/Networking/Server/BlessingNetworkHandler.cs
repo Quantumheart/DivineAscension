@@ -212,6 +212,8 @@ public class BlessingNetworkHandler : IServerNetworkHandler
                             {
                                 religion.UnlockBlessing(packet.BlessingId);
                                 _blessingEffectSystem.RefreshReligionBlessings(religion.ReligionUID);
+                                _religionManager.RecordBlessingUnlocked(religion.ReligionUID, blessing.Name,
+                                    packet.BlessingId);
                                 message = LocalizationService.Instance.Get(
                                     LocalizationKeys.NET_BLESSING_SUCCESS_UNLOCKED_FOR_RELIGION, blessing.Name);
                                 success = true;

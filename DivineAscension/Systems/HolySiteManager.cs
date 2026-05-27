@@ -253,6 +253,10 @@ public class HolySiteManager : IHolySiteManager
                     site.AltarPosition = SerializableBlockPos.FromBlockPos(altarPosition);
                 }
 
+                // Detect whether this is the religion's first holy site before the
+                // index gains the new entry, for the chronicle (#373).
+                var isFirstSite = (_sitesByReligion.GetValueOrDefault(religionUID)?.Count ?? 0) == 0;
+
                 // Register the site in indexes
                 RegisterNewHolySite(site, religionUID);
 
@@ -264,6 +268,10 @@ public class HolySiteManager : IHolySiteManager
 
                 // Fire event for milestone tracking
                 OnHolySiteCreated?.Invoke(religionUID, site.SiteUID);
+
+                // Chronicle the religion's first consecration (#373).
+                if (isFirstSite)
+                    _religionManager.RecordFirstHolySite(religionUID);
 
                 return site;
             }

@@ -71,6 +71,27 @@ public interface IReligionManager : IDisposable
     ReligionData? GetReligionByName(string name);
 
     /// <summary>
+    ///     Records a "first holy site" chronicle entry for the religion (#373).
+    ///     Called by the holy-site manager when a religion consecrates its first site.
+    /// </summary>
+    void RecordFirstHolySite(string religionUID);
+
+    /// <summary>
+    ///     Records a "blessing unlocked" chronicle entry for the religion (#373).
+    /// </summary>
+    void RecordBlessingUnlocked(string religionUID, string blessingName, string? blessingId);
+
+    /// <summary>
+    ///     Records a "joined civilization" chronicle entry for the religion (#373).
+    /// </summary>
+    void RecordCivilizationJoined(string religionUID, string civName, string? civId);
+
+    /// <summary>
+    ///     Records a "left civilization" chronicle entry for the religion (#373).
+    /// </summary>
+    void RecordCivilizationLeft(string religionUID, string civName, string? civId);
+
+    /// <summary>
     ///     Gets the active deity for a player
     /// </summary>
     DeityDomain GetPlayerActiveDeityDomain(string playerId);

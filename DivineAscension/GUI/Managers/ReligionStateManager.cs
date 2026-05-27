@@ -634,7 +634,8 @@ public class ReligionStateManager : IReligionStateManager
             isEditingFoundingMyth: State.InfoState.IsEditingFoundingMyth,
             x: x, y: y, width: width, height: height,
             scrollY: State.InfoState.MyReligionScrollY,
-            memberScrollY: State.InfoState.MemberScrollY
+            memberScrollY: State.InfoState.MemberScrollY,
+            chronicle: religion?.Chronicle ?? new List<PlayerReligionInfoResponsePacket.ChronicleEntryDto>()
         );
 
         // Render (pure function call)

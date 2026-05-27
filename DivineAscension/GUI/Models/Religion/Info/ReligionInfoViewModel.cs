@@ -58,7 +58,9 @@ public readonly struct ReligionInfoViewModel(
     float width,
     float height,
     float scrollY,
-    float memberScrollY)
+    float memberScrollY,
+    // Chronicle (#373) — oldest-first, resolved server-side
+    IReadOnlyList<PlayerReligionInfoResponsePacket.ChronicleEntryDto> chronicle)
 {
     public bool IsLoading { get; } = isLoading;
     public bool HasReligion { get; } = hasReligion;
@@ -114,6 +116,9 @@ public readonly struct ReligionInfoViewModel(
     public float ScrollY { get; } = scrollY;
     public float MemberScrollY { get; } = memberScrollY;
 
+    public IReadOnlyList<PlayerReligionInfoResponsePacket.ChronicleEntryDto> Chronicle { get; } = chronicle;
+    public bool HasChronicle => Chronicle is { Count: > 0 };
+
     public int MemberCount => Members.Count;
     public bool HasMembers => Members.Count > 0;
 
@@ -164,7 +169,7 @@ public readonly struct ReligionInfoViewModel(
         IsEditingDescription,
         MottoText, IsEditingMotto, FoundingMythText, IsEditingFoundingMyth,
         X, Y, Width, Height,
-        newScrollY, MemberScrollY);
+        newScrollY, MemberScrollY, Chronicle);
 
     public ReligionInfoViewModel WithMemberScroll(float newMemberScrollY) => new(
         IsLoading, HasReligion, ReligionUID, ReligionName, Deity, DeityName, FounderUID, FounderName, CurrentPlayerUID,
@@ -176,7 +181,7 @@ public readonly struct ReligionInfoViewModel(
         IsEditingDescription,
         MottoText, IsEditingMotto, FoundingMythText, IsEditingFoundingMyth,
         X, Y, Width, Height,
-        ScrollY, newMemberScrollY);
+        ScrollY, newMemberScrollY, Chronicle);
 
     public static ReligionInfoViewModel Loading(float x = 0, float y = 0, float width = 0, float height = 0) => new(
         true, false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty,
@@ -188,5 +193,6 @@ public readonly struct ReligionInfoViewModel(
         false,
         string.Empty, false, string.Empty, false,
         x, y, width, height,
-        0, 0);
+        0, 0,
+        Array.Empty<PlayerReligionInfoResponsePacket.ChronicleEntryDto>());
 }
