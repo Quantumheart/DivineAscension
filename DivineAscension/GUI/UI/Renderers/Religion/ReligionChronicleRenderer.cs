@@ -92,38 +92,36 @@ internal static class ReligionChronicleRenderer
         var contentWidth = strip.ContentWidth;
         var currentY = strip.BodyY;
 
+        // === EMPTY STATE — strip + centered message, as the civ chapters do ===
+        if (!vm.HasChronicle)
+        {
+            drawList.PopClipRect();
+            DrawCentered(drawList,
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CHRONICLE_EMPTY),
+                x, currentY, width, height - (currentY - y));
+            return new ReligionChronicleRenderResult(events, height);
+        }
+
         // === PROSE INTRO ===
         currentY = DrawIntro(drawList, x, currentY, contentWidth);
 
         currentY = DrawDivider(drawList, x, currentY, contentWidth);
 
-        // === ENTRIES (oldest-first) or empty state ===
-        if (!vm.HasChronicle)
+        // === ENTRIES (oldest-first) ===
+        var proseWidth = contentWidth - ProseIndent;
+        foreach (var entry in vm.Chronicle)
         {
-            TextRenderer.DrawInfoText(drawList,
-                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CHRONICLE_EMPTY),
-                x, currentY, contentWidth, Secondary, ColorPalette.Grey);
-            currentY += TextRenderer.MeasureWrappedHeight(
-                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CHRONICLE_EMPTY),
-                contentWidth, Secondary) + EntryGap;
-        }
-        else
-        {
-            var proseWidth = contentWidth - ProseIndent;
-            foreach (var entry in vm.Chronicle)
-            {
-                var centerY = currentY + (Secondary + 6f) / 2f;
-                ChromeRenderer.DrawDiamond(drawList,
-                    x + DiamondLeftPadding + DiamondHalfSize, centerY,
-                    DiamondHalfSize,
-                    ColorPalette.Gold * 0.6f);
+            var centerY = currentY + (Secondary + 6f) / 2f;
+            ChromeRenderer.DrawDiamond(drawList,
+                x + DiamondLeftPadding + DiamondHalfSize, centerY,
+                DiamondHalfSize,
+                ColorPalette.Gold * 0.6f);
 
-                var text = ComposeLine(entry);
-                TextRenderer.DrawInfoText(drawList, text, x + ProseIndent, currentY, proseWidth,
-                    Secondary, ColorPalette.LightText);
+            var text = ComposeLine(entry);
+            TextRenderer.DrawInfoText(drawList, text, x + ProseIndent, currentY, proseWidth,
+                Secondary, ColorPalette.LightText);
 
-                currentY += TextRenderer.MeasureWrappedHeight(text, proseWidth, Secondary) + EntryGap;
-            }
+            currentY += TextRenderer.MeasureWrappedHeight(text, proseWidth, Secondary) + EntryGap;
         }
 
         currentY = DrawDivider(drawList, x, currentY, contentWidth);
@@ -168,21 +166,17 @@ internal static class ReligionChronicleRenderer
     {
         // Chapter strip body offset is what the strip reserves: pane header height.
         var h = PaneHeaderRenderer.TotalHeight;
+
+        // Empty state is a centered message with no scroll content.
+        if (!vm.HasChronicle)
+            return h;
+
         h += IntroLineHeight + IntroBottomSpacing;
         h += DividerHeight;
 
-        if (!vm.HasChronicle)
-        {
-            h += TextRenderer.MeasureWrappedHeight(
-                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CHRONICLE_EMPTY),
-                vm.Width - ScrollbarWidth, Secondary) + EntryGap;
-        }
-        else
-        {
-            var proseWidth = vm.Width - ScrollbarWidth - ProseIndent;
-            foreach (var entry in vm.Chronicle)
-                h += TextRenderer.MeasureWrappedHeight(ComposeLine(entry), proseWidth, Secondary) + EntryGap;
-        }
+        var proseWidth = vm.Width - ScrollbarWidth - ProseIndent;
+        foreach (var entry in vm.Chronicle)
+            h += TextRenderer.MeasureWrappedHeight(ComposeLine(entry), proseWidth, Secondary) + EntryGap;
 
         h += DividerHeight + ClosingLineTopSpacing + ClosingLineHeight;
         return h;
