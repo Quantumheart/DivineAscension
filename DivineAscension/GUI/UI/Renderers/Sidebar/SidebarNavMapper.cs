@@ -111,7 +111,7 @@ public static class SidebarNavMapper
 
     private static SidebarGroupViewModel BuildReligionGroup(Context ctx)
     {
-        var items = new List<SidebarItemViewModel>(7)
+        var items = new List<SidebarItemViewModel>(8)
         {
             // Browse — always reachable; renders the religion list.
             Item(SidebarNavId.ReligionBrowse,
@@ -132,6 +132,10 @@ public static class SidebarNavMapper
             // Activity log — same gate.
             Item(SidebarNavId.ReligionActivity,
                 LocalizationKeys.UI_RELIGION_TAB_ACTIVITY, "activity",
+                ctx, !ctx.HasReligion, LocalizationKeys.SIDEBAR_DISABLED_NEED_RELIGION),
+            // Chronicle — permanent narrative history; same gate (#373).
+            Item(SidebarNavId.ReligionChronicle,
+                LocalizationKeys.UI_RELIGION_TAB_CHRONICLE, "church",
                 ctx, !ctx.HasReligion, LocalizationKeys.SIDEBAR_DISABLED_NEED_RELIGION),
             // Roles — needs religion AND founder permission.
             Item(SidebarNavId.ReligionRoles,

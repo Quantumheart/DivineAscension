@@ -34,6 +34,7 @@ public static class LocalizationKeys
     public const string UI_RELIGION_TAB_ROSTER = "divineascension:ui.religion.tab.roster";
     public const string UI_RELIGION_TAB_VOWS = "divineascension:ui.religion.tab.vows";
     public const string UI_RELIGION_TAB_ACTIVITY = "divineascension:ui.religion.tab.activity";
+    public const string UI_RELIGION_TAB_CHRONICLE = "divineascension:ui.religion.tab.chronicle";
     public const string UI_RELIGION_TAB_ROLES = "divineascension:ui.religion.tab.roles";
     public const string UI_RELIGION_TAB_INVITES = "divineascension:ui.religion.tab.invites";
     public const string UI_RELIGION_TAB_CREATE = "divineascension:ui.religion.tab.create";
@@ -819,6 +820,9 @@ public static class LocalizationKeys
 
     public const string UI_RELIGION_INFO_CHRONICLE_DAY =
         "divineascension:ui.religion.info.chronicle.day";
+
+    public const string UI_RELIGION_CHRONICLE_EMPTY =
+        "divineascension:ui.religion.chronicle.empty";
 
     // Religion chronicle voice lines (#373) — resolved and cached server-side when the event occurs
     public const string CHRONICLE_RELIGION_FOUNDED = "divineascension:chronicle.religion.founded";

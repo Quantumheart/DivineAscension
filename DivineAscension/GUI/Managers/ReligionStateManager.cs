@@ -5,6 +5,7 @@ using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Models.Religion.Activity;
 using DivineAscension.GUI.Models.Religion.Browse;
+using DivineAscension.GUI.Models.Religion.Chronicle;
 using DivineAscension.GUI.Models.Religion.Create;
 using DivineAscension.GUI.Models.Religion.Detail;
 using DivineAscension.GUI.Models.Religion.Info;
@@ -634,8 +635,7 @@ public class ReligionStateManager : IReligionStateManager
             isEditingFoundingMyth: State.InfoState.IsEditingFoundingMyth,
             x: x, y: y, width: width, height: height,
             scrollY: State.InfoState.MyReligionScrollY,
-            memberScrollY: State.InfoState.MemberScrollY,
-            chronicle: religion?.Chronicle ?? new List<PlayerReligionInfoResponsePacket.ChronicleEntryDto>()
+            memberScrollY: State.InfoState.MemberScrollY
         );
 
         // Render (pure function call)
@@ -679,6 +679,36 @@ public class ReligionStateManager : IReligionStateManager
         var result = ReligionRosterRenderer.Draw(vm, drawList);
 
         ProcessRosterEvents(result.Events);
+    }
+
+    /// <summary>
+    /// Draws the Chronicle chapter (#373). Read-only ledger of significant events;
+    /// reuses the same PlayerReligionInfoResponsePacket data as the Info pane.
+    /// </summary>
+    internal void DrawReligionChronicle(float x, float y, float width, float height)
+    {
+        var religion = State.InfoState.MyReligionInfo;
+
+        // The chronicle rides on the player-religion info response; request it if we
+        // landed here before the Info pane loaded it.
+        if (religion == null && !State.InfoState.Loading)
+            RequestPlayerReligionInfo();
+
+        var vm = new ReligionChronicleViewModel(
+            isLoading: State.InfoState.Loading,
+            hasReligion: religion != null && religion.HasReligion,
+            religionName: religion?.ReligionName ?? string.Empty,
+            deity: religion?.Domain ?? string.Empty,
+            chronicle: religion?.Chronicle ?? new List<PlayerReligionInfoResponsePacket.ChronicleEntryDto>(),
+            x: x, y: y, width: width, height: height,
+            scrollY: State.InfoState.ChronicleScrollY);
+
+        var drawList = ImGui.GetWindowDrawList();
+        var result = ReligionChronicleRenderer.Draw(vm, drawList);
+
+        foreach (var ev in result.Events)
+            if (ev is ChronicleEvent.ScrollChanged sc)
+                State.InfoState.ChronicleScrollY = sc.NewScrollY;
     }
 
     private void ProcessRosterEvents(IReadOnlyList<RosterEvent> events)
@@ -813,6 +843,7 @@ public class ReligionStateManager : IReligionStateManager
                             break;
                         case SidebarNavId.ReligionInfo:
                         case SidebarNavId.ReligionRoster:
+                        case SidebarNavId.ReligionChronicle:
                             State.ErrorState.InfoError = null;
                             break;
                         case SidebarNavId.ReligionCreate:
@@ -829,6 +860,7 @@ public class ReligionStateManager : IReligionStateManager
                             break;
                         case SidebarNavId.ReligionInfo:
                         case SidebarNavId.ReligionRoster:
+                        case SidebarNavId.ReligionChronicle:
                             RequestPlayerReligionInfo();
                             break;
                     }
@@ -854,6 +886,9 @@ public class ReligionStateManager : IReligionStateManager
                 break;
             case SidebarNavId.ReligionActivity:
                 DrawReligionActivity(x, contentY, width, contentHeight);
+                break;
+            case SidebarNavId.ReligionChronicle:
+                DrawReligionChronicle(x, contentY, width, contentHeight);
                 break;
             case SidebarNavId.ReligionInvites:
                 DrawReligionInvites(x, contentY, width, contentHeight);
