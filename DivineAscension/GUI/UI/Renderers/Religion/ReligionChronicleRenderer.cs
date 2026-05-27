@@ -16,23 +16,26 @@ using static DivineAscension.GUI.UI.Utilities.FontSizes;
 namespace DivineAscension.GUI.UI.Renderers.Religion;
 
 /// <summary>
-/// Pure renderer for the Chronicle chapter (#373). Sibling page to "This Order"
-/// (II.i) and the Roster (II.ii). Chapter title strip with the order name and
-/// domain glyph, an ornamental divider, then dated prose entries oldest-first (a
-/// chronicle reads forward). Shows an italic-feeling empty line until the order's
-/// history begins. Read-only: scrolling is the only interaction.
+/// Ledger-chapter renderer for the Chronicle (II.iii). Sibling page to "This
+/// Order" (II.i), the Roster (II.ii) and the Annals. Chapter strip with the
+/// order name + domain glyph, a prose intro, an ornamental divider, dated prose
+/// entries oldest-first (a chronicle reads forward), a closing divider, and a
+/// centered closing line. Read-only: scrolling is the only interaction.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class ReligionChronicleRenderer
 {
-    private const float OrnateDividerHeight = 18f;
-    private const float OrnateDividerYPadding = 6f;
+    private const float DividerHeight = 18f;
+    private const float DividerYPadding = 6f;
+    private const float IntroBottomSpacing = 10f;
+    private const float IntroLineHeight = 18f;
     private const float DiamondHalfSize = 3.5f;
     private const float DiamondLeftPadding = 4f;
     private const float ProseIndent = 18f;
     private const float EntryGap = 8f;
     private const float ScrollbarWidth = 16f;
-    private const float EmptyTopPadding = 12f;
+    private const float ClosingLineHeight = 24f;
+    private const float ClosingLineTopSpacing = 6f;
 
     public static ReligionChronicleRenderResult Draw(ReligionChronicleViewModel vm, ImDrawListPtr drawList)
     {
@@ -64,7 +67,7 @@ internal static class ReligionChronicleRenderer
         var scrollY = vm.ScrollY;
         var mousePos = ImGui.GetMousePos();
         var isHover = mousePos.X >= x && mousePos.X <= x + width && mousePos.Y >= y && mousePos.Y <= y + height;
-        if (isHover)
+        if (isHover && maxScroll > 0f)
         {
             var wheel = ImGui.GetIO().MouseWheel;
             if (wheel != 0)
@@ -83,20 +86,26 @@ internal static class ReligionChronicleRenderer
         // === CHAPTER STRIP (title + order name + domain glyph) ===
         var deityDomain = DomainHelper.ParseDeityType(vm.Deity);
         var strip = ChapterStripRenderer.Draw(drawList, x, y, width, scrollY,
-            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_CHRONICLE_HEADING),
+            LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_TAB_CHRONICLE),
             rightTitle: vm.ReligionName,
             rightGlyph: deityDomain);
         var contentWidth = strip.ContentWidth;
         var currentY = strip.BodyY;
 
-        ChromeRenderer.DrawDividerOrnate(drawList, x, currentY + OrnateDividerYPadding, contentWidth);
-        currentY += OrnateDividerHeight;
+        // === PROSE INTRO ===
+        currentY = DrawIntro(drawList, x, currentY, contentWidth);
 
+        currentY = DrawDivider(drawList, x, currentY, contentWidth);
+
+        // === ENTRIES (oldest-first) or empty state ===
         if (!vm.HasChronicle)
         {
             TextRenderer.DrawInfoText(drawList,
                 LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CHRONICLE_EMPTY),
-                x, currentY + EmptyTopPadding, contentWidth, Secondary, ColorPalette.Grey);
+                x, currentY, contentWidth, Secondary, ColorPalette.Grey);
+            currentY += TextRenderer.MeasureWrappedHeight(
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CHRONICLE_EMPTY),
+                contentWidth, Secondary) + EntryGap;
         }
         else
         {
@@ -117,28 +126,66 @@ internal static class ReligionChronicleRenderer
             }
         }
 
+        currentY = DrawDivider(drawList, x, currentY, contentWidth);
+
+        // === CLOSING LINE ===
+        currentY += ClosingLineTopSpacing;
+        DrawClosingLine(drawList, x, currentY, contentWidth);
+
         drawList.PopClipRect();
 
-        if (contentHeight > height)
+        if (maxScroll > 0f)
             Scrollbar.Draw(drawList, x + width - ScrollbarWidth, y, ScrollbarWidth, height, scrollY, maxScroll);
 
         return new ReligionChronicleRenderResult(events, height);
     }
 
+    private static float DrawIntro(ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var intro = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CHRONICLE_INTRO);
+        TextRenderer.DrawInfoText(drawList, intro, x, y, width, Body, ColorPalette.White);
+        var introHeight = TextRenderer.MeasureWrappedHeight(intro, width, Body);
+        return y + (introHeight > 0 ? introHeight : IntroLineHeight) + IntroBottomSpacing;
+    }
+
+    private static float DrawDivider(ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var dividerY = y + DividerYPadding;
+        ChromeRenderer.DrawDivider(drawList, x, dividerY, width);
+        return y + DividerHeight;
+    }
+
+    private static void DrawClosingLine(ImDrawListPtr drawList, float x, float y, float width)
+    {
+        var text = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CHRONICLE_FOOTER_CLOSING);
+        var size = ImGui.CalcTextSize(text);
+        var textX = x + (width - size.X) / 2f;
+        drawList.AddText(ImGui.GetFont(), Body, new Vector2(textX, y),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), text);
+    }
+
     private static float ComputeContentHeight(ReligionChronicleViewModel vm)
     {
-        // Chapter strip body offset is unknown without drawing; approximate with the
-        // pane header height plus the ornate divider, which is what the strip reserves.
-        var h = PaneHeaderRenderer.TotalHeight + OrnateDividerHeight;
+        // Chapter strip body offset is what the strip reserves: pane header height.
+        var h = PaneHeaderRenderer.TotalHeight;
+        h += IntroLineHeight + IntroBottomSpacing;
+        h += DividerHeight;
 
         if (!vm.HasChronicle)
-            return h + EmptyTopPadding + Secondary + 8f;
+        {
+            h += TextRenderer.MeasureWrappedHeight(
+                LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_CHRONICLE_EMPTY),
+                vm.Width - ScrollbarWidth, Secondary) + EntryGap;
+        }
+        else
+        {
+            var proseWidth = vm.Width - ScrollbarWidth - ProseIndent;
+            foreach (var entry in vm.Chronicle)
+                h += TextRenderer.MeasureWrappedHeight(ComposeLine(entry), proseWidth, Secondary) + EntryGap;
+        }
 
-        var proseWidth = vm.Width - ScrollbarWidth - ProseIndent;
-        foreach (var entry in vm.Chronicle)
-            h += TextRenderer.MeasureWrappedHeight(ComposeLine(entry), proseWidth, Secondary) + EntryGap;
-
-        return h + 8f;
+        h += DividerHeight + ClosingLineTopSpacing + ClosingLineHeight;
+        return h;
     }
 
     private static string ComposeLine(PlayerReligionInfoResponsePacket.ChronicleEntryDto entry)
