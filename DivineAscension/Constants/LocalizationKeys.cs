@@ -824,6 +824,12 @@ public static class LocalizationKeys
     public const string UI_RELIGION_CHRONICLE_EMPTY =
         "divineascension:ui.religion.chronicle.empty";
 
+    public const string UI_RELIGION_CHRONICLE_INTRO =
+        "divineascension:ui.religion.chronicle.intro";
+
+    public const string UI_RELIGION_CHRONICLE_FOOTER_CLOSING =
+        "divineascension:ui.religion.chronicle.footer.closing";
+
     // Religion chronicle voice lines (#373) — resolved and cached server-side when the event occurs
     public const string CHRONICLE_RELIGION_FOUNDED = "divineascension:chronicle.religion.founded";
     public const string CHRONICLE_RELIGION_FIRST_HOLY_SITE = "divineascension:chronicle.religion.first_holy_site";

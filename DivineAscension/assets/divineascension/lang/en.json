@@ -504,6 +504,8 @@
   "divineascension:ui.religion.info.chronicle.heading": "Chronicle of the Order",
   "divineascension:ui.religion.info.chronicle.day": "Day {0}",
   "divineascension:ui.religion.chronicle.empty": "No deeds have yet been chronicled for this order.",
+  "divineascension:ui.religion.chronicle.intro": "The lasting deeds of the Order, set down deed by deed as they came to pass.",
+  "divineascension:ui.religion.chronicle.footer.closing": "Here the chronicle rests, awaiting deeds yet to come.",
   "divineascension:chronicle.religion.founded": "Thus was {0} founded under {2}, with {1} as its first faithful.",
   "divineascension:chronicle.religion.first_holy_site": "{0} consecrated its first holy ground.",
   "divineascension:chronicle.religion.blessing_unlocked": "The blessing of {0} was revealed to the faithful.",
