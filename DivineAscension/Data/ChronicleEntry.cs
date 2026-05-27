@@ -23,7 +23,8 @@ public class ChronicleEntry
     /// <summary>
     ///     Creates a new chronicle entry.
     /// </summary>
-    public ChronicleEntry(ChronicleKind kind, string line, string? relatedId, DateTime timestamp, int inGameDay)
+    public ChronicleEntry(ChronicleKind kind, string line, string? relatedId, DateTime timestamp, int inGameDay,
+        int year = 0, int month = 0, int dayOfMonth = 0)
     {
         EntryId = Guid.NewGuid().ToString();
         Kind = kind;
@@ -31,6 +32,9 @@ public class ChronicleEntry
         RelatedId = relatedId;
         Timestamp = timestamp;
         InGameDay = inGameDay;
+        Year = year;
+        Month = month;
+        DayOfMonth = dayOfMonth;
     }
 
     /// <summary>
@@ -69,4 +73,19 @@ public class ChronicleEntry
     /// </summary>
     [ProtoMember(6)]
     public string? RelatedId { get; set; }
+
+    /// <summary>
+    ///     In-game calendar year captured at write time. 0 for entries written before
+    ///     calendar capture existed — those fall back to "Day {InGameDay}" presentation.
+    /// </summary>
+    [ProtoMember(7)]
+    public int Year { get; set; }
+
+    /// <summary>In-game month (1..12) captured at write time. 0 when unknown.</summary>
+    [ProtoMember(8)]
+    public int Month { get; set; }
+
+    /// <summary>In-game day of the month (1-based) captured at write time. 0 when unknown.</summary>
+    [ProtoMember(9)]
+    public int DayOfMonth { get; set; }
 }

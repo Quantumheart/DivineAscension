@@ -128,6 +128,18 @@ public class CivilizationInfoResponsePacket
         /// </summary>
         [ProtoMember(3)]
         public string Line { get; set; } = string.Empty;
+
+        /// <summary>In-game calendar year; 0 for pre-capture entries (fall back to "Day N").</summary>
+        [ProtoMember(4)]
+        public int Year { get; set; }
+
+        /// <summary>In-game month (1..12); 0 when unknown.</summary>
+        [ProtoMember(5)]
+        public int Month { get; set; }
+
+        /// <summary>In-game day of month (1-based); 0 when unknown.</summary>
+        [ProtoMember(6)]
+        public int DayOfMonth { get; set; }
     }
 
     /// <summary>

@@ -291,7 +291,10 @@ public class CivilizationNetworkHandler(
                 {
                     InGameDay = e.InGameDay,
                     Kind = (int)e.Kind,
-                    Line = e.Line
+                    Line = e.Line,
+                    Year = e.Year,
+                    Month = e.Month,
+                    DayOfMonth = e.DayOfMonth
                 })
                 .ToList()
         };
