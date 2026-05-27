@@ -163,7 +163,7 @@ public static class SidebarNavMapper
 
     private static SidebarGroupViewModel BuildCivilizationGroup(Context ctx)
     {
-        var items = new List<SidebarItemViewModel>(9)
+        var items = new List<SidebarItemViewModel>(10)
         {
             // Browse — always reachable.
             Item(SidebarNavId.CivilizationBrowse,
@@ -208,6 +208,10 @@ public static class SidebarNavMapper
                 ctx, !ctx.HasCivilization, LocalizationKeys.SIDEBAR_DISABLED_NEED_CIVILIZATION),
             Item(SidebarNavId.CivilizationMilestones,
                 LocalizationKeys.UI_CIVILIZATION_TAB_MILESTONES, "achievement",
+                ctx, !ctx.HasCivilization, LocalizationKeys.SIDEBAR_DISABLED_NEED_CIVILIZATION),
+            // Chronicle — permanent narrative history of the realm; same gate.
+            Item(SidebarNavId.CivilizationChronicle,
+                LocalizationKeys.UI_CIVILIZATION_TAB_CHRONICLE, "activity",
                 ctx, !ctx.HasCivilization, LocalizationKeys.SIDEBAR_DISABLED_NEED_CIVILIZATION)
         };
 

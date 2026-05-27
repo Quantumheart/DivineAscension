@@ -226,6 +226,7 @@ internal static class MainLayoutCoordinator
                 civ.RequestCivilizationList(civ.State.BrowseState.DeityFilter);
                 break;
             case SidebarNavId.CivilizationInfo:
+            case SidebarNavId.CivilizationChronicle:
                 civ.State.InfoState.ErrorMsg = null;
                 civ.RequestCivilizationInfo();
                 break;
@@ -357,6 +358,7 @@ internal static class MainLayoutCoordinator
             case SidebarNavId.CivilizationProposeAccord:
             case SidebarNavId.CivilizationHolySites:
             case SidebarNavId.CivilizationMilestones:
+            case SidebarNavId.CivilizationChronicle:
             case SidebarNavId.CivilizationLeaderboard:
                 manager.CivilizationManager.DrawCivilizationTab(nav, content.X, content.Y, content.W, content.H);
                 return;
