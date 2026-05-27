@@ -35,6 +35,7 @@ public readonly struct CivilizationInfoViewModel(
     bool showDisbandConfirm,
     string? kickConfirmReligionId,
     CivilizationBonusesDto bonuses,
+    IReadOnlyList<CivilizationInfoResponsePacket.ChronicleEntryDto> chronicle,
     float scrollY,
     float memberScrollY,
     float x,
@@ -76,6 +77,8 @@ public readonly struct CivilizationInfoViewModel(
     public bool ShowDisbandConfirm { get; } = showDisbandConfirm;
     public string? KickConfirmReligionId { get; } = kickConfirmReligionId;
     public CivilizationBonusesDto Bonuses { get; } = bonuses;
+    public IReadOnlyList<CivilizationInfoResponsePacket.ChronicleEntryDto> Chronicle { get; } = chronicle;
+    public bool HasChronicle => Chronicle is { Count: > 0 };
     public float ScrollY { get; } = scrollY;
     public float MemberScrollY { get; } = memberScrollY;
     public float X { get; } = x;

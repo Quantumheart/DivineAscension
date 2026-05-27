@@ -328,6 +328,38 @@ public class CivilizationMilestoneManagerTests
     }
 
     [Fact]
+    public void CheckMilestones_TriggerMet_WritesMilestoneChronicleEntry()
+    {
+        // Arrange
+        var civId = "test-civ-1";
+        var civ = CreateTestCivilization(civId);
+        civ.AddReligion("religion-2");
+
+        var milestone = new MilestoneDefinition(
+            "first_alliance",
+            "First Alliance",
+            "Form your first alliance",
+            MilestoneType.Major,
+            new MilestoneTrigger(MilestoneTriggerType.ReligionCount, 2),
+            1,
+            0,
+            chronicleLine: "Two banners became one beneath a single crown.");
+
+        _mockCivilizationManager.Setup(c => c.GetCivilization(civId)).Returns(civ);
+        _mockMilestoneLoader.Setup(m => m.GetAllMilestones()).Returns(new List<MilestoneDefinition> { milestone });
+
+        // Act
+        _milestoneManager.CheckMilestones(civId);
+
+        // Assert
+        _mockCivilizationManager.Verify(c => c.RecordChronicleEntry(
+            civId,
+            ChronicleKind.MilestoneAwarded,
+            "Two banners became one beneath a single crown.",
+            "first_alliance"), Times.Once);
+    }
+
+    [Fact]
     public void CheckMilestones_TriggerNotMet_DoesNotUnlock()
     {
         // Arrange

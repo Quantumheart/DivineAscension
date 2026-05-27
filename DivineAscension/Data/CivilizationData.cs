@@ -190,6 +190,31 @@ public class Civilization
     public string? CapitalHolySiteId { get; set; }
 
     /// <summary>
+    ///     Backing field for the civilization's chronicle of significant events.
+    /// </summary>
+    [ProtoMember(19)]
+    private List<ChronicleEntry> _chronicle = new();
+
+    /// <summary>
+    ///     Chronological list of significant civilization events (oldest first).
+    ///     Thread-safe read-only snapshot.
+    /// </summary>
+    [ProtoIgnore]
+    public IReadOnlyList<ChronicleEntry> Chronicle
+    {
+        get { lock (Lock) { return _chronicle.ToList(); } }
+    }
+
+    /// <summary>
+    ///     Appends an entry to the civilization's chronicle.
+    /// </summary>
+    public void AddChronicleEntry(ChronicleEntry entry)
+    {
+        if (entry == null) return;
+        lock (Lock) { _chronicle.Add(entry); }
+    }
+
+    /// <summary>
     ///     Checks if the civilization has a valid number of member religions (1-4)
     /// </summary>
     public bool IsValid

@@ -285,7 +285,15 @@ public class CivilizationNetworkHandler(
             CapitalHolySiteId = civ.CapitalHolySiteId ?? string.Empty,
             Bonuses = BuildBonusesDto(civ.CivId),
             MemberReligions = new List<CivilizationInfoResponsePacket.MemberReligion>(),
-            PendingInvites = new List<CivilizationInfoResponsePacket.PendingInvite>()
+            PendingInvites = new List<CivilizationInfoResponsePacket.PendingInvite>(),
+            Chronicle = civ.Chronicle
+                .Select(e => new CivilizationInfoResponsePacket.ChronicleEntryDto
+                {
+                    InGameDay = e.InGameDay,
+                    Kind = (int)e.Kind,
+                    Line = e.Line
+                })
+                .ToList()
         };
 
         // Get member religion details

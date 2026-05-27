@@ -150,4 +150,10 @@ public interface ICivilizationManager
     ///     Updates member counts for all civilizations (should be called when religion membership changes)
     /// </summary>
     void UpdateMemberCounts();
+
+    /// <summary>
+    ///     Appends an entry to a civilization's chronicle. Used by collaborating
+    ///     systems (milestones, diplomacy) that observe significant events.
+    /// </summary>
+    void RecordChronicleEntry(string civId, ChronicleKind kind, string line, string? relatedId = null);
 }

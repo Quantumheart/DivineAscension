@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using DivineAscension.Constants;
 using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
@@ -361,6 +362,14 @@ public class CivilizationMilestoneManager : ICivilizationMilestoneManager
 
         // Mark as completed
         civ.CompletedMilestones.Add(milestone.MilestoneId);
+
+        // Record the achievement in the civilization's chronicle (#369). Prefer the
+        // milestone's authored chronicle line (#368); fall back to its display name.
+        var chronicleLine = !string.IsNullOrWhiteSpace(milestone.ChronicleLine)
+            ? milestone.ChronicleLine
+            : LocalizationService.Instance.Get(LocalizationKeys.CHRONICLE_MILESTONE_FALLBACK, milestone.Name);
+        _civilizationManager.RecordChronicleEntry(civ.CivId, ChronicleKind.MilestoneAwarded, chronicleLine,
+            milestone.MilestoneId);
 
         // Apply rank reward
         if (milestone.Type == MilestoneType.Major && milestone.RankReward > 0)

@@ -747,6 +747,7 @@ public class CivilizationStateManager(ICoreClientAPI coreClientApi, IUiService u
             State.ShowDisbandConfirm,
             State.KickConfirmReligionId,
             civ?.Bonuses ?? new CivilizationBonusesDto(),
+            civ?.Chronicle ?? new List<CivilizationInfoResponsePacket.ChronicleEntryDto>(),
             State.InfoState.ScrollY,
             State.InfoState.MemberScrollY,
             x,
