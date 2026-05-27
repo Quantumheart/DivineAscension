@@ -131,10 +131,12 @@ public class CivilizationManager : ICivilizationManager
     /// </summary>
     private ChronicleEntry BuildChronicleEntry(ChronicleKind kind, string line, string? relatedId)
     {
-        int inGameDay;
+        var inGameDay = 0;
         try
         {
-            inGameDay = (int)(_worldService.Calendar?.TotalDays ?? 0);
+            var calendar = _worldService.Calendar;
+            if (calendar != null && calendar.HoursPerDay > 0f)
+                inGameDay = (int)(calendar.TotalHours / calendar.HoursPerDay);
         }
         catch
         {
