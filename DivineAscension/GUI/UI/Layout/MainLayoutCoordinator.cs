@@ -195,6 +195,7 @@ internal static class MainLayoutCoordinator
                 break;
             case SidebarNavId.ReligionInfo:
             case SidebarNavId.ReligionRoster:
+            case SidebarNavId.ReligionChronicle:
                 religion.State.ErrorState.InfoError = null;
                 religion.State.InfoState.Loading = true;
                 religion.RequestPlayerReligionInfo();
@@ -321,6 +322,7 @@ internal static class MainLayoutCoordinator
             case SidebarNavId.ReligionInfo:
             case SidebarNavId.ReligionRoster:
             case SidebarNavId.ReligionActivity:
+            case SidebarNavId.ReligionChronicle:
             case SidebarNavId.ReligionRoles:
             case SidebarNavId.ReligionInvites:
             case SidebarNavId.ReligionCreate:
