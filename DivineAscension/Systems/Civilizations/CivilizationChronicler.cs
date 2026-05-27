@@ -28,18 +28,27 @@ internal sealed class CivilizationChronicler
     public ChronicleEntry BuildEntry(ChronicleKind kind, string line, string? relatedId)
     {
         var inGameDay = 0;
+        var year = 0;
+        var month = 0;
+        var dayOfMonth = 0;
         try
         {
             var calendar = _worldService.Calendar;
             if (calendar != null && calendar.HoursPerDay > 0f)
+            {
                 inGameDay = (int)(calendar.TotalHours / calendar.HoursPerDay);
+                year = calendar.Year;
+                month = calendar.Month;
+                if (calendar.DaysPerMonth > 0)
+                    dayOfMonth = calendar.DayOfYear % calendar.DaysPerMonth + 1;
+            }
         }
         catch
         {
             inGameDay = 0;
         }
 
-        return new ChronicleEntry(kind, line, relatedId, DateTime.UtcNow, inGameDay);
+        return new ChronicleEntry(kind, line, relatedId, DateTime.UtcNow, inGameDay, year, month, dayOfMonth);
     }
 
     /// <summary>
