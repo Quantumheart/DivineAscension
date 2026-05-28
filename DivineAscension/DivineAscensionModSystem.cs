@@ -110,6 +110,7 @@ public class DivineAscensionModSystem : ModSystem
         api.RegisterBlockBehaviorClass("DivineAscensionLectern", typeof(BlockBehaviorLectern));
         api.RegisterBlockBehaviorClass("DivineAscensionStone", typeof(BlockBehaviorStone));
         api.RegisterBlockBehaviorClass("DivineAscensionOre", typeof(BlockBehaviorOre));
+        api.RegisterBlockBehaviorClass("DivineAscensionBlessedCrop", typeof(BlockBehaviorBlessedCrop));
         api.RegisterCollectibleBehaviorClass("ChiselTracking", typeof(CollectibleBehaviorChiselTracking));
         api.Logger.Notification("[DivineAscension] Block and Collectible behavior classes registered");
 
