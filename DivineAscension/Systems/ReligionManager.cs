@@ -840,6 +840,7 @@ public class ReligionManager : IReligionManager
     private void SeedSacredCalendar(ReligionData religion)
     {
         var (month, day) = SacredCalendar.GetCurrentMonthDay(_worldService);
+        var year = SacredCalendar.GetCurrentYear(_worldService);
 
         religion.FoundingMonth = month;
         religion.FoundingDay = day;
@@ -847,9 +848,15 @@ public class ReligionManager : IReligionManager
         var feasts = new List<FeastDay>();
         if (month >= 1 && day >= 1)
         {
+            // Suppress the first-year Founding Day fire: "anniversary on the
+            // day of founding" is awkward, and the ticker condition
+            // `Year > LastFiredYear` makes this just a stamp at seed time.
             feasts.Add(new FeastDay(
                 Services.LocalizationService.Instance.Get(LocalizationKeys.FEAST_FOUNDING_NAME),
-                month, day, FeastKind.Founding));
+                month, day, FeastKind.Founding)
+            {
+                LastFiredYear = year
+            });
         }
 
         if (FeastDay.DomainHolyDay.TryGetValue(religion.PatronDomain, out var patron))

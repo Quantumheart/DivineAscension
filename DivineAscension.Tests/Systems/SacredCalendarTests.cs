@@ -56,6 +56,24 @@ public class SacredCalendarTests
     }
 
     [Fact]
+    public void Seeded_FoundingFeast_HasLastFiredYearStampedToSuppressFirstYear()
+    {
+        // With no calendar set, Year reads as 0 and Founding isn't seeded
+        // (month/day are also 0). Use TryMarkFeastFired symmetry instead:
+        // any Founding seeded for year Y must not fire again until Y+1.
+        var manager = NewManager();
+        var religion = manager.CreateReligion("Order", DeityDomain.Craft, "Forge", "founder", true);
+        religion.SetFeastDays(new[]
+        {
+            new FeastDay("Founding Day", 3, 7, FeastKind.Founding) { LastFiredYear = 1387 }
+        });
+
+        var feast = religion.FeastDays[0];
+        Assert.False(religion.TryMarkFeastFired(feast, 1387));
+        Assert.True(religion.TryMarkFeastFired(feast, 1388));
+    }
+
+    [Fact]
     public void TryMarkFeastFired_FiresOncePerYear()
     {
         var manager = NewManager();
