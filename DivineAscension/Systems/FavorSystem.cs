@@ -53,6 +53,7 @@ public class FavorSystem : IFavorSystem
     private SmeltingFavorTracker? _smeltingFavorTracker;
     private StoneFavorTracker? _stoneFavorTracker;
     private PatrolFavorTracker? _patrolFavorTracker;
+    private TraderTransactionFavorTracker? _traderTransactionFavorTracker;
 
     public FavorSystem(ILoggerWrapper logger,
         IEventService eventService,
@@ -157,6 +158,9 @@ public class FavorSystem : IFavorSystem
             _playerProgressionDataManager, this);
         _explorationFavorTracker.Initialize();
 
+        _traderTransactionFavorTracker = new TraderTransactionFavorTracker(_logger, _worldService, this);
+        _traderTransactionFavorTracker.Initialize();
+
         // Initialize patrol tracker only if dependencies were set
         if (_holySiteAreaTracker != null && _civilizationManager != null && _holySiteManager != null)
         {
@@ -172,11 +176,11 @@ public class FavorSystem : IFavorSystem
                 _messenger,
                 _eventService);
             _patrolFavorTracker.Initialize();
-            _logger.Notification("[DivineAscension] Initialized 12 favor trackers (including patrol)");
+            _logger.Notification("[DivineAscension] Initialized 13 favor trackers (including patrol)");
         }
         else
         {
-            _logger.Notification("[DivineAscension] Initialized 11 favor trackers (patrol disabled - missing dependencies)");
+            _logger.Notification("[DivineAscension] Initialized 12 favor trackers (patrol disabled - missing dependencies)");
         }
     }
 
@@ -195,6 +199,7 @@ public class FavorSystem : IFavorSystem
         _conquestFavorTracker?.Dispose();
         _ruinDiscoveryFavorTracker?.Dispose();
         _explorationFavorTracker?.Dispose();
+        _traderTransactionFavorTracker?.Dispose();
         _patrolFavorTracker?.Dispose();
     }
 
@@ -345,6 +350,11 @@ public class FavorSystem : IFavorSystem
                 actionLower.Contains("brick") ||
                 actionLower.Contains("clay") ||
                 actionLower.Contains("carving"),
+
+            DeityDomain.Caravan =>
+                actionLower.Contains("trade") ||
+                actionLower.Contains("discovered chunk") ||
+                actionLower.Contains("encountered trader"),
 
             _ => false
         };
