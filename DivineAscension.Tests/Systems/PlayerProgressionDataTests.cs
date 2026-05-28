@@ -34,7 +34,8 @@ public class PlayerProgressionDataTests
         Assert.Equal(0, data.GetFavor(DeityDomain.Craft));
         Assert.Equal(0, data.GetTotalFavorEarned(DeityDomain.Craft));
         Assert.Equal(0f, data.GetAccumulatedFractionalFavor(DeityDomain.Craft));
-        Assert.Equal(6, data.DataVersion); // v6: per-deity favor (Pantheon 2.0)
+        Assert.Equal(7, data.DataVersion); // v7: DiscoveredChunks (Caravan / Wayfaring)
+        Assert.Equal(0, data.DiscoveredChunkCount);
         Assert.Empty(data.UnlockedBlessings);
     }
 
@@ -382,6 +383,64 @@ public class PlayerProgressionDataTests
         Assert.Equal(789, roundTripped.GetFavor(DeityDomain.Conquest));
         Assert.Equal(123, roundTripped.GetTotalFavorEarned(DeityDomain.Craft));
         Assert.InRange(roundTripped.GetAccumulatedFractionalFavor(DeityDomain.Wild), 0.299f, 0.301f);
+    }
+
+    #endregion
+
+    #region DiscoveredChunks Tests
+
+    [Fact]
+    public void TryAddDiscoveredChunk_NewChunk_ReturnsTrueAndStores()
+    {
+        var data = new PlayerProgressionData("player-123");
+
+        Assert.True(data.TryAddDiscoveredChunk(42L));
+        Assert.True(data.HasDiscoveredChunk(42L));
+        Assert.Equal(1, data.DiscoveredChunkCount);
+    }
+
+    [Fact]
+    public void TryAddDiscoveredChunk_Duplicate_ReturnsFalse()
+    {
+        var data = new PlayerProgressionData("player-123");
+        data.TryAddDiscoveredChunk(42L);
+
+        Assert.False(data.TryAddDiscoveredChunk(42L));
+        Assert.Equal(1, data.DiscoveredChunkCount);
+    }
+
+    [Fact]
+    public void TryAddDiscoveredChunk_AtSoftCap_StopsAwarding()
+    {
+        var data = new PlayerProgressionData("player-123");
+        for (long i = 0; i < PlayerProgressionData.DiscoveredChunksSoftCap; i++)
+        {
+            data.TryAddDiscoveredChunk(i);
+        }
+
+        Assert.Equal(PlayerProgressionData.DiscoveredChunksSoftCap, data.DiscoveredChunkCount);
+        Assert.False(data.TryAddDiscoveredChunk(long.MaxValue));
+        Assert.False(data.HasDiscoveredChunk(long.MaxValue));
+        Assert.Equal(PlayerProgressionData.DiscoveredChunksSoftCap, data.DiscoveredChunkCount);
+    }
+
+    [Fact]
+    public void ProtoBuf_RoundTrip_PreservesDiscoveredChunks()
+    {
+        var data = new PlayerProgressionData("player-chunks");
+        data.TryAddDiscoveredChunk(1L);
+        data.TryAddDiscoveredChunk(1_000_000L);
+        data.TryAddDiscoveredChunk(-7L);
+
+        using var ms = new System.IO.MemoryStream();
+        ProtoBuf.Serializer.Serialize(ms, data);
+        ms.Position = 0;
+        var roundTripped = ProtoBuf.Serializer.Deserialize<PlayerProgressionData>(ms);
+
+        Assert.Equal(3, roundTripped.DiscoveredChunkCount);
+        Assert.True(roundTripped.HasDiscoveredChunk(1L));
+        Assert.True(roundTripped.HasDiscoveredChunk(1_000_000L));
+        Assert.True(roundTripped.HasDiscoveredChunk(-7L));
     }
 
     #endregion
