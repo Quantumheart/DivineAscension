@@ -12,7 +12,7 @@ public class NotificationState
     public string RankName { get; set; } = string.Empty;
     public string RankDescription { get; set; } = string.Empty;
     public DeityDomain DeityDomain { get; set; }
-    public float DisplayDuration { get; set; } = 8f;
+    public float DisplayDuration { get; set; } = 4f;
     public float ElapsedTime { get; set; }
     public Queue<PendingNotification> PendingNotifications { get; set; } = new();
 
@@ -30,7 +30,7 @@ public class NotificationState
         RankName = string.Empty;
         RankDescription = string.Empty;
         DeityDomain = DeityDomain.None;
-        DisplayDuration = 8f;
+        DisplayDuration = 4f;
         ElapsedTime = 0f;
         PendingNotifications.Clear();
         History.Clear();
