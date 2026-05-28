@@ -248,12 +248,15 @@ internal static class SacredCalendarRenderer
         var halfWidth = (bodyWidth - 16f) / 2f;
         var monthLabel = loc.Get(LocalizationKeys.UI_FEASTDAY_MONTH);
         var dayLabel = loc.Get(LocalizationKeys.UI_FEASTDAY_DAY);
+        var monthDisplay = month is >= 1 and <= 12
+            ? loc.Get(LocalizationKeys.CalendarMonth(month))
+            : month.ToString();
         var nextMonth = DrawStepper(drawList, events, curX, curY, halfWidth,
-            monthLabel, month, 1, monthMax, "##feastmonth");
+            monthLabel, month, monthDisplay, 1, monthMax);
         if (nextMonth != month) events.Add(new SacredCalendarEvent.AddMonthChanged(nextMonth));
 
         var nextDay = DrawStepper(drawList, events, curX + halfWidth + 16f, curY, halfWidth,
-            dayLabel, day, 1, dayMax, "##feastday");
+            dayLabel, day, day.ToString(), 1, dayMax);
         if (nextDay != day) events.Add(new SacredCalendarEvent.AddDayChanged(nextDay));
 
         // Footer: Cancel + Add, right-aligned, same metrics as InviteDialog.
@@ -286,16 +289,14 @@ internal static class SacredCalendarRenderer
     ///     diffs against the prior value to decide whether to emit an event.
     /// </summary>
     private static int DrawStepper(ImDrawListPtr drawList, List<SacredCalendarEvent> events,
-        float x, float y, float width, string label, int value, int min, int max, string idSuffix)
+        float x, float y, float width, string label, int value, string displayText, int min, int max)
     {
         const float rowHeight = 30f;
         const float btnW = 28f;
-        var labelW = 60f;
+        const float labelW = 60f;
 
-        // Label
         TextRenderer.DrawLabel(drawList, label, x, y + 6f, Body, ColorPalette.Grey);
 
-        // Value box centered between the buttons
         var fieldX = x + labelW;
         var fieldW = width - labelW - btnW * 2f - 8f;
         drawList.AddRectFilled(new Vector2(fieldX, y),
@@ -304,16 +305,18 @@ internal static class SacredCalendarRenderer
         drawList.AddRect(new Vector2(fieldX, y),
             new Vector2(fieldX + fieldW, y + rowHeight),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), 4f, ImDrawFlags.None, 1f);
-        var text = value.ToString();
-        var textSize = ImGui.CalcTextSize(text);
+        var textSize = ImGui.CalcTextSize(displayText);
         drawList.AddText(
             new Vector2(fieldX + (fieldW - textSize.X) / 2f, y + (rowHeight - textSize.Y) / 2f),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText), text);
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText), displayText);
 
         var next = value;
         var decX = fieldX + fieldW + 4f;
         var incX = decX + btnW + 4f;
-        if (ButtonRenderer.DrawButton(drawList, "−",
+        // ASCII hyphen — the bundled font lacks U+2212 (minus sign) and U+2013
+        // (en-dash), which both rendered as a "?" tofu glyph. Plain '-' is in
+        // every fallback so it draws correctly.
+        if (ButtonRenderer.DrawButton(drawList, "-",
                 decX, y, btnW, rowHeight, isPrimary: false, enabled: value > min))
         {
             next = Math.Max(min, value - 1);
@@ -323,7 +326,7 @@ internal static class SacredCalendarRenderer
         {
             next = Math.Min(max, value + 1);
         }
-        _ = idSuffix; // reserved for future ImGui-native ID disambiguation
+        _ = events;
         return next;
     }
 
