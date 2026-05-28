@@ -1062,6 +1062,14 @@ public static class LocalizationKeys
     #region Rank Up Notification
 
     public const string UI_RANKUP_TITLE = "divineascension:ui.rankup.title";
+
+    // Holiday-kept toast (transient, server-pushed on feast fire). Read-only:
+    // clicks dismiss only, never open the dialog. The chronicle and Letters
+    // page are the durable surfaces for the same information.
+    public const string UI_HOLIDAY_TOAST_TITLE = "divineascension:ui.holiday.toast.title";
+    public const string UI_HOLIDAY_TOAST_TITLE_CIV_FOUNDING = "divineascension:ui.holiday.toast.title.civ_founding";
+    public const string UI_HOLIDAY_TOAST_BODY_RELIGION = "divineascension:ui.holiday.toast.body.religion";
+    public const string UI_HOLIDAY_TOAST_BODY_CIV = "divineascension:ui.holiday.toast.body.civ";
     public const string UI_RANKUP_VIEW_BLESSINGS = "divineascension:ui.rankup.view_blessings";
     public const string UI_RANKUP_SLOTS_TITLE = "divineascension:ui.rankup.slots.title";
     public const string UI_RANKUP_SLOTS_DESCRIPTION = "divineascension:ui.rankup.slots.description";

@@ -517,6 +517,17 @@ public partial class GuiDialog
         _manager?.ReligionStateManager.OnFeastDayRemoveCompleted(packet);
     }
 
+    private void OnHolidayKeptToast(HolidayKeptToastPacket packet)
+    {
+        if (_manager == null) return;
+        var domain = DomainHelper.ParseDeityType(packet.Domain);
+        _manager.NotificationManager.QueueNotification(
+            NotificationType.HolidayKept,
+            packet.FeastName ?? string.Empty,
+            packet.Description ?? string.Empty,
+            domain);
+    }
+
     /// <summary>
     ///     Handle deity name change response
     /// </summary>

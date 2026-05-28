@@ -149,6 +149,7 @@ public class DivineAscensionModSystem : ModSystem
             .RegisterMessageType<AddFeastDayResponsePacket>()
             .RegisterMessageType<RemoveFeastDayRequestPacket>()
             .RegisterMessageType<RemoveFeastDayResponsePacket>()
+            .RegisterMessageType<HolidayKeptToastPacket>()
             .RegisterMessageType<ReligionRolesRequest>()
             .RegisterMessageType<ReligionRolesResponse>()
             .RegisterMessageType<CreateRoleRequest>()
