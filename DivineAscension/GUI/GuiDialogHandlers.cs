@@ -236,8 +236,8 @@ public partial class GuiDialog
         var currentNav = _state.Sidebar.CurrentNav;
         var shouldSwitchTab = currentNav switch
         {
-            SidebarNavId.ReligionInfo or SidebarNavId.ReligionRoster or SidebarNavId.ReligionActivity or SidebarNavId.ReligionChronicle or SidebarNavId.ReligionSacredCalendar or SidebarNavId.ReligionNotices or SidebarNavId.ReligionRoles => !hasReligion,
-            SidebarNavId.ReligionInvites or SidebarNavId.ReligionCreate => hasReligion,
+            SidebarNavId.ReligionInfo or SidebarNavId.ReligionRoster or SidebarNavId.ReligionActivity or SidebarNavId.ReligionChronicle or SidebarNavId.ReligionSacredCalendar or SidebarNavId.ReligionRoles => !hasReligion,
+            SidebarNavId.ReligionCreate => hasReligion,
             _ => false
         };
 
@@ -356,7 +356,7 @@ public partial class GuiDialog
                 // AUTO-CORRECT NAV: snap away from member-only destinations.
                 var currentNav = _state.Sidebar.CurrentNav;
                 if (currentNav is SidebarNavId.ReligionInfo or SidebarNavId.ReligionActivity
-                    or SidebarNavId.ReligionChronicle or SidebarNavId.ReligionSacredCalendar or SidebarNavId.ReligionNotices or SidebarNavId.ReligionRoles)
+                    or SidebarNavId.ReligionChronicle or SidebarNavId.ReligionSacredCalendar or SidebarNavId.ReligionRoles)
                 {
                     _logger?.Debug(
                         $"[DivineAscension] Switching nav from {currentNav} to ReligionBrowse after leaving religion");
@@ -368,7 +368,10 @@ public partial class GuiDialog
             if (packet.Action is "join" or "create" or "accept")
             {
                 var currentNav = _state.Sidebar.CurrentNav;
-                if (currentNav is SidebarNavId.ReligionInvites or SidebarNavId.ReligionCreate)
+                // Letters (was ReligionInvites) is intentionally NOT snapped away
+                // from: it stays put and now shows holiday notices for members
+                // instead of the pending-invites view it had when religion-less.
+                if (currentNav is SidebarNavId.ReligionCreate)
                 {
                     _logger?.Debug(
                         $"[DivineAscension] Switching nav from {currentNav} to ReligionInfo after joining religion");

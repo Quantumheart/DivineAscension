@@ -91,14 +91,16 @@ public class SidebarNavMapperTests
     }
 
     [Fact]
-    public void HasReligion_InvitesAndCreateBlockedAsAlreadyInReligion()
+    public void HasReligion_LettersStaysEnabledAndCreateBlocked()
     {
+        // Letters (the renamed/repurposed ReligionInvites slot) is always
+        // visible — content adapts from invites to holiday notices when
+        // the player has a religion. Create stays gated as before.
         var vm = SidebarNavMapper.BuildViewModel(
             Ctx(hasReligion: true, isReligionFounder: false));
 
-        var invites = Find(vm, SidebarNavId.ReligionInvites);
-        Assert.True(invites.IsDisabled);
-        Assert.Equal(LocalizationKeys.SIDEBAR_DISABLED_ALREADY_IN_RELIGION, invites.DisabledTooltipKey);
+        var letters = Find(vm, SidebarNavId.ReligionInvites);
+        Assert.False(letters.IsDisabled);
 
         var create = Find(vm, SidebarNavId.ReligionCreate);
         Assert.True(create.IsDisabled);
@@ -160,12 +162,19 @@ public class SidebarNavMapperTests
     [Fact]
     public void BadgeCounts_FlowFromContextToInviteItems()
     {
-        var vm = SidebarNavMapper.BuildViewModel(
-            Ctx(hasReligion: true, religionInvites: 3, civInvites: 5));
+        // Religion-less: invite count surfaces on the Letters badge.
+        var noReligion = SidebarNavMapper.BuildViewModel(
+            Ctx(hasReligion: false, religionInvites: 3, civInvites: 5));
+        Assert.Equal(3, Find(noReligion, SidebarNavId.ReligionInvites).Badge);
+        Assert.Equal(5, Find(noReligion, SidebarNavId.CivilizationInvites).Badge);
 
-        // Religion invites is disabled (already in religion) but badge still passes through.
-        Assert.Equal(3, Find(vm, SidebarNavId.ReligionInvites).Badge);
-        Assert.Equal(5, Find(vm, SidebarNavId.CivilizationInvites).Badge);
+        // In a religion: Letters now shows holiday notices, not invites,
+        // so the religion-invite badge is suppressed (would be misleading).
+        // Civilization invites are independent of religion membership.
+        var withReligion = SidebarNavMapper.BuildViewModel(
+            Ctx(hasReligion: true, religionInvites: 3, civInvites: 5));
+        Assert.Equal(0, Find(withReligion, SidebarNavId.ReligionInvites).Badge);
+        Assert.Equal(5, Find(withReligion, SidebarNavId.CivilizationInvites).Badge);
     }
 
     [Fact]

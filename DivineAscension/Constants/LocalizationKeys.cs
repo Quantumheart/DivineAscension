@@ -878,8 +878,9 @@ public static class LocalizationKeys
     public const string UI_SACREDCALENDAR_INDAYS = "divineascension:ui.sacredcalendar.indays";
     public const string UI_RELIGION_TAB_SACREDCALENDAR = "divineascension:ui.religion.tab.sacredcalendar";
 
-    // Holiday notices Letters page (slices 1+2)
-    public const string UI_RELIGION_TAB_NOTICES = "divineascension:ui.religion.tab.notices";
+    // Holiday notices Letters page (slices 1+2). The sidebar label reuses
+    // UI_RELIGION_TAB_INVITES — the page is the same destination, content
+    // adapts to whether the player is in a religion or not.
     public const string UI_NOTICES_TITLE = "divineascension:ui.notices.title";
     public const string UI_NOTICES_INTRO = "divineascension:ui.notices.intro";
     public const string UI_NOTICES_CLOSING = "divineascension:ui.notices.closing";

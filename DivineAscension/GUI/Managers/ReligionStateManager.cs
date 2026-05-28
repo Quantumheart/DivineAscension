@@ -261,6 +261,19 @@ public class ReligionStateManager : IReligionStateManager
     }
 
     /// <summary>
+    ///     Letters destination — always visible in the sidebar. Routes to
+    ///     pending-invites view for religion-less players, or to holiday
+    ///     notices for members. Same chapter chrome either way.
+    /// </summary>
+    public void DrawReligionLetters(float x, float y, float width, float height)
+    {
+        if (HasReligion())
+            DrawReligionNotices(x, y, width, height);
+        else
+            DrawReligionInvites(x, y, width, height);
+    }
+
+    /// <summary>
     /// Draws the religion invites tab using the refactored renderer
     /// Builds ViewModel, calls pure renderer, processes events
     /// </summary>
@@ -1094,11 +1107,8 @@ public class ReligionStateManager : IReligionStateManager
             case SidebarNavId.ReligionSacredCalendar:
                 DrawReligionSacredCalendar(x, contentY, width, contentHeight);
                 break;
-            case SidebarNavId.ReligionNotices:
-                DrawReligionNotices(x, contentY, width, contentHeight);
-                break;
             case SidebarNavId.ReligionInvites:
-                DrawReligionInvites(x, contentY, width, contentHeight);
+                DrawReligionLetters(x, contentY, width, contentHeight);
                 break;
             case SidebarNavId.ReligionCreate:
                 DrawReligionCreate(x, contentY, width, contentHeight);
