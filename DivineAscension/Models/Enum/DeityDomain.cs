@@ -10,5 +10,6 @@ public enum DeityDomain
     Wild = 2,
     Conquest = 3,
     Harvest = 4,
+    Caravan = 5,
     Stone = 7
 }

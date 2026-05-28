@@ -10,9 +10,9 @@ namespace DivineAscension.GUI.UI.Renderers.Utilities;
 /// <summary>
 ///     Paint a domain mark inside the rect <c>(min, max)</c> using drawList
 ///     primitives only — hammer (Craft), leaf (Wild), crossed swords
-///     (Conquest), wheat (Harvest), mountain (Stone). Used in place of the
-///     PNG deity icons so the chapter chrome reads as ink-on-vellum and
-///     stays glyph-coverage-independent.
+///     (Conquest), wheat (Harvest), mountain (Stone), compass-rose
+///     (Caravan). Used in place of the PNG deity icons so the chapter
+///     chrome reads as ink-on-vellum and stays glyph-coverage-independent.
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal static class DomainGlyphRenderer
@@ -48,6 +48,9 @@ internal static class DomainGlyphRenderer
                 return;
             case DeityDomain.Stone:
                 DrawMountain(drawList, cx, cy, s, color);
+                return;
+            case DeityDomain.Caravan:
+                DrawCompassRose(drawList, cx, cy, s, color);
                 return;
             default:
                 drawList.AddCircle(new Vector2(cx, cy), s * 0.3f, color, 16, 1.5f);
@@ -181,6 +184,48 @@ internal static class DomainGlyphRenderer
             drawList.AddLine(new Vector2(cx, y),
                 new Vector2(cx + spread, y - step * 0.5f), color, MathF.Max(1.2f, s * 0.03f));
         }
+    }
+
+    private static void DrawCompassRose(ImDrawListPtr drawList, float cx, float cy, float s, uint color)
+    {
+        // Four-pointed star with shorter inter-cardinal arms — reads as a
+        // compass rose at glyph scale. Each cardinal arm is a tall narrow
+        // diamond; diagonals are short kite-pairs. Pommel-style center dot.
+        var arm = s * 0.42f;
+        var half = MathF.Max(1.5f, s * 0.075f);
+        var diag = s * 0.22f;
+        var diagHalf = MathF.Max(1.5f, s * 0.05f);
+
+        // Cardinal arms: N, E, S, W as diamonds meeting at center.
+        drawList.AddTriangleFilled(
+            new Vector2(cx, cy - arm),
+            new Vector2(cx - half, cy),
+            new Vector2(cx + half, cy), color);
+        drawList.AddTriangleFilled(
+            new Vector2(cx, cy + arm),
+            new Vector2(cx - half, cy),
+            new Vector2(cx + half, cy), color);
+        drawList.AddTriangleFilled(
+            new Vector2(cx - arm, cy),
+            new Vector2(cx, cy - half),
+            new Vector2(cx, cy + half), color);
+        drawList.AddTriangleFilled(
+            new Vector2(cx + arm, cy),
+            new Vector2(cx, cy - half),
+            new Vector2(cx, cy + half), color);
+
+        // Inter-cardinal short arms — NE, SE, SW, NW.
+        const float invSqrt2 = 0.70710677f;
+        for (var sx = -1; sx <= 1; sx += 2)
+        for (var sy = -1; sy <= 1; sy += 2)
+        {
+            var tip = new Vector2(cx + sx * diag * invSqrt2, cy + sy * diag * invSqrt2);
+            var pLeft = new Vector2(cx - sy * diagHalf * invSqrt2, cy + sx * diagHalf * invSqrt2);
+            var pRight = new Vector2(cx + sy * diagHalf * invSqrt2, cy - sx * diagHalf * invSqrt2);
+            drawList.AddTriangleFilled(tip, pLeft, pRight, color);
+        }
+
+        drawList.AddCircleFilled(new Vector2(cx, cy), MathF.Max(1.5f, s * 0.06f), color);
     }
 
     private static void DrawMountain(ImDrawListPtr drawList, float cx, float cy, float s, uint color)

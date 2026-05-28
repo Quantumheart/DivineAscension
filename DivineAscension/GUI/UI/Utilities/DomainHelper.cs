@@ -11,11 +11,11 @@ namespace DivineAscension.GUI.UI.Utilities;
 internal static class DomainHelper
 {
     /// <summary>
-    ///     All domain names in order (5 domains)
+    ///     All domain names in order (6 domains)
     /// </summary>
     public static readonly string[] DomainNames =
     {
-        "Craft", "Wild", "Conquest", "Harvest", "Stone"
+        "Craft", "Wild", "Conquest", "Harvest", "Stone", "Caravan"
     };
 
     /// <summary>
@@ -38,6 +38,7 @@ internal static class DomainHelper
             "Conquest" => new Vector4(0.557f, 0.180f, 0.122f, 1.0f), // #8E2E1F dried-blood red — Domination & Victory
             "Harvest" => new Vector4(0.627f, 0.463f, 0.157f, 1.0f), // #A07628 wheat ochre — Agriculture & Light
             "Stone" => new Vector4(0.369f, 0.329f, 0.282f, 1.0f), // #5E5448 warm slate — Earth & Stone
+            "Caravan" => new Vector4(0.761f, 0.541f, 0.118f, 1.0f), // #C28A1E road ochre — Trade & Wayfaring
             _ => new Vector4(0.659f, 0.580f, 0.447f, 1.0f) // #A89472 faded ink — Unknown
         };
     }
@@ -70,6 +71,7 @@ internal static class DomainHelper
             DeityDomain.Conquest => new Vector4(0.557f, 0.180f, 0.122f, 1.0f), // #8E2E1F dried-blood red
             DeityDomain.Harvest => new Vector4(0.627f, 0.463f, 0.157f, 1.0f), // #A07628 wheat ochre
             DeityDomain.Stone => new Vector4(0.369f, 0.329f, 0.282f, 1.0f), // #5E5448 warm slate
+            DeityDomain.Caravan => new Vector4(0.761f, 0.541f, 0.118f, 1.0f), // #C28A1E road ochre
             _ => new Vector4(0.659f, 0.580f, 0.447f, 1.0f) // #A89472 faded ink
         };
     }
@@ -86,6 +88,7 @@ internal static class DomainHelper
             "Conquest" => "of Conquest",
             "Harvest" => "of the Harvest",
             "Stone" => "of the Stone",
+            "Caravan" => "of the Caravan",
             _ => "Unknown Domain"
         };
     }
@@ -102,6 +105,7 @@ internal static class DomainHelper
             DeityDomain.Conquest => "Domain of Conquest",
             DeityDomain.Harvest => "Domain of the Harvest",
             DeityDomain.Stone => "Domain of the Stone",
+            DeityDomain.Caravan => "Domain of the Caravan",
             _ => "Unknown Domain"
         };
     }
