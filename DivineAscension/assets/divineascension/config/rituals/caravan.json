@@ -1,0 +1,123 @@
+{
+  "domain": "Caravan",
+  "version": 1,
+  "rituals": [
+    {
+      "ritualId": "caravan_tier2_ritual",
+      "name": "Rite of the Open Road",
+      "sourceTier": 1,
+      "targetTier": 2,
+      "description": "Prove that this hearth has been earned at the stall and on the trail. Bear the spoils of many trades and many leagues back to the shrine.",
+      "steps": [
+        {
+          "stepId": "trader_proof",
+          "stepName": "Trader's Proof",
+          "requirements": [
+            {
+              "requirementId": "rusty_gears",
+              "displayName": "Rusty Gears",
+              "quantity": 100,
+              "type": "Exact",
+              "itemCodes": ["game:gear-rusty"]
+            }
+          ]
+        },
+        {
+          "stepId": "road_provisions",
+          "stepName": "Road Provisions",
+          "requirements": [
+            {
+              "requirementId": "salt",
+              "displayName": "Salt",
+              "quantity": 50,
+              "type": "Exact",
+              "itemCodes": ["game:salt"]
+            },
+            {
+              "requirementId": "linen_cloth",
+              "displayName": "Linen Cloth",
+              "quantity": 30,
+              "type": "Exact",
+              "itemCodes": ["game:cloth-linen"]
+            }
+          ]
+        },
+        {
+          "stepId": "barter_goods",
+          "stepName": "Barter Goods",
+          "requirements": [
+            {
+              "requirementId": "trade_breads",
+              "displayName": "Trail Breads (Any Type)",
+              "quantity": 80,
+              "type": "Category",
+              "itemCodes": ["game:bread-*"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ritualId": "caravan_tier3_ritual",
+      "name": "Pilgrimage Rite",
+      "sourceTier": 2,
+      "targetTier": 3,
+      "description": "Walk every road that bears your sign. Carry far-traded goods and the rarest temporal coin back to the shrine, that the road itself may be hallowed.",
+      "steps": [
+        {
+          "stepId": "temporal_tribute",
+          "stepName": "Temporal Tribute",
+          "requirements": [
+            {
+              "requirementId": "temporal_gears",
+              "displayName": "Temporal Gears",
+              "quantity": 20,
+              "type": "Exact",
+              "itemCodes": ["game:gear-temporal"]
+            }
+          ]
+        },
+        {
+          "stepId": "far_traded_goods",
+          "stepName": "Far-Traded Goods",
+          "requirements": [
+            {
+              "requirementId": "resin",
+              "displayName": "Resin",
+              "quantity": 40,
+              "type": "Exact",
+              "itemCodes": ["game:resin"]
+            },
+            {
+              "requirementId": "wool",
+              "displayName": "Wool",
+              "quantity": 60,
+              "type": "Exact",
+              "itemCodes": ["game:wool"]
+            }
+          ]
+        },
+        {
+          "stepId": "exotic_market",
+          "stepName": "Exotic Market",
+          "requirements": [
+            {
+              "requirementId": "cheeses",
+              "displayName": "Aged Cheeses",
+              "quantity": 30,
+              "type": "Category",
+              "itemCodes": ["game:cheese-*"]
+            },
+            {
+              "requirementId": "dried_fruits",
+              "displayName": "Dried Fruits (Any Type)",
+              "quantity": 80,
+              "type": "Category",
+              "itemCodes": ["game:driedfruit-*"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

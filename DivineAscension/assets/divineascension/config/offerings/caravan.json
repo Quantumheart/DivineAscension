@@ -1,0 +1,115 @@
+{
+  "domain": "Caravan",
+  "version": 1,
+  "offerings": [
+    {
+      "name": "Travel Rations",
+      "itemCodes": [
+        "game:driedfruit-blueberry",
+        "game:driedfruit-cherry",
+        "game:driedfruit-cranberry",
+        "game:driedfruit-pinkapple",
+        "game:driedfruit-redapple",
+        "game:driedfruit-yellowapple",
+        "game:curedmeat-vegetable"
+      ],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Trail-keeping food for the road"
+    },
+    {
+      "name": "Coarse Cordage",
+      "itemCodes": [
+        "game:flaxtwine",
+        "game:cloth-linen"
+      ],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Basic caravan gear — rope, cloth, packs"
+    },
+    {
+      "name": "Rusty Gear",
+      "itemCodes": ["game:gear-rusty"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Trader currency — base"
+    },
+    {
+      "name": "Honeycomb",
+      "itemCodes": ["game:honeycomb"],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Sweet barter good favored on the road"
+    },
+    {
+      "name": "Salt",
+      "itemCodes": ["game:salt"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "The currency of long routes"
+    },
+    {
+      "name": "Wool Yarn",
+      "itemCodes": ["game:wool"],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Caravan trade staple"
+    },
+    {
+      "name": "Cheese",
+      "itemCodes": [
+        "game:cheese-blue",
+        "game:cheese-cheddar"
+      ],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Cellared trade good"
+    },
+    {
+      "name": "Honeyed Comb Loaf",
+      "itemCodes": [
+        "game:bread-rye",
+        "game:bread-spelt",
+        "game:bread-flax",
+        "game:bread-rice",
+        "game:bread-sunflower",
+        "game:bread-cassava"
+      ],
+      "tier": 2,
+      "value": 5,
+      "minHolySiteTier": 2,
+      "description": "Hardened road bread"
+    },
+    {
+      "name": "Temporal Gear",
+      "itemCodes": ["game:gear-temporal"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Trader currency — exotic"
+    },
+    {
+      "name": "Linen Bolt",
+      "itemCodes": ["game:linen-normal"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 2,
+      "description": "Bolt of fine linen — exotic trade good"
+    },
+    {
+      "name": "Resin",
+      "itemCodes": ["game:resin"],
+      "tier": 3,
+      "value": 10,
+      "minHolySiteTier": 3,
+      "description": "Caravan caulking — far-traded"
+    }
+  ]
+}

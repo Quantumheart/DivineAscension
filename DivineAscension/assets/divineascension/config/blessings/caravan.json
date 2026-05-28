@@ -1,0 +1,206 @@
+{
+  "domain": "Caravan",
+  "version": 1,
+  "blessings": [
+    {
+      "blessingId": "caravan_first_step",
+      "name": "First Step",
+      "description": "Foundation for trade and wayfaring. -5% trader buy price, +5% trader sell price, +5% chunk-discovery favor.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "footprint",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": [],
+      "statModifiers": {
+        "traderBuyPriceMultiplier": -0.05,
+        "traderSellPriceMultiplier": 0.05,
+        "chunkDiscoveryFavorMultiplier": 0.05
+      },
+      "specialEffects": [],
+      "cost": 50,
+      "branch": null,
+      "exclusiveBranches": null
+    },
+    {
+      "blessingId": "caravan_haggler",
+      "name": "Haggler",
+      "description": "Sharpen your tongue at the stall. -10% trader buy price, +10% trader sell price. Trade path. Requires First Step.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "coin",
+      "requiredFavorRank": 1,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["caravan_first_step"],
+      "statModifiers": {
+        "traderBuyPriceMultiplier": -0.10,
+        "traderSellPriceMultiplier": 0.10
+      },
+      "specialEffects": [],
+      "cost": 150,
+      "branch": "Trade",
+      "exclusiveBranches": ["Wayfaring"]
+    },
+    {
+      "blessingId": "caravan_pathfinder",
+      "name": "Pathfinder",
+      "description": "Mile after mile, the road steadies your step. +5% movement speed, +15% chunk-discovery favor. Wayfaring path. Requires First Step.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "compass",
+      "requiredFavorRank": 1,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["caravan_first_step"],
+      "statModifiers": {
+        "walkspeed": 0.05,
+        "chunkDiscoveryFavorMultiplier": 0.15
+      },
+      "specialEffects": [],
+      "cost": 150,
+      "branch": "Wayfaring",
+      "exclusiveBranches": ["Trade"]
+    },
+    {
+      "blessingId": "caravan_master_trader",
+      "name": "Master Trader",
+      "description": "The markets know your seal. -20% trader buy price (total: -35%), +20% trader sell price (total: +35%). Requires Haggler.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "coin-stack",
+      "requiredFavorRank": 2,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["caravan_haggler"],
+      "statModifiers": {
+        "traderBuyPriceMultiplier": -0.20,
+        "traderSellPriceMultiplier": 0.20
+      },
+      "specialEffects": [],
+      "cost": 400,
+      "branch": "Trade",
+      "exclusiveBranches": ["Wayfaring"]
+    },
+    {
+      "blessingId": "caravan_pathwarden",
+      "name": "Pathwarden",
+      "description": "Cold winds and long marches no longer cost you. +10% movement speed (total: +15%), +15% temperature resistance, +20% chunk-discovery favor (total: +40%). Requires Pathfinder.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "wayfarer",
+      "requiredFavorRank": 2,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["caravan_pathfinder"],
+      "statModifiers": {
+        "walkspeed": 0.10,
+        "temperatureResistance": 0.15,
+        "chunkDiscoveryFavorMultiplier": 0.20
+      },
+      "specialEffects": [],
+      "cost": 400,
+      "branch": "Wayfaring",
+      "exclusiveBranches": ["Trade"]
+    },
+    {
+      "blessingId": "caravan_avatar_road",
+      "name": "Avatar of the Road",
+      "description": "Bear the open sky as a hearth. Grants a placeable Caravan Shrine that acts as a tier-1 altar. +5% movement speed, +10% chunk-discovery favor, -5% trader buy price. Requires Master Trader or Pathwarden.",
+      "kind": "Player",
+      "category": "Utility",
+      "iconName": "wagon",
+      "requiredFavorRank": 3,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": ["caravan_master_trader", "caravan_pathwarden"],
+      "statModifiers": {
+        "walkspeed": 0.05,
+        "chunkDiscoveryFavorMultiplier": 0.10,
+        "traderBuyPriceMultiplier": -0.05
+      },
+      "specialEffects": ["grants_caravan_shrine"],
+      "cost": 800,
+      "branch": null,
+      "exclusiveBranches": null,
+      "requiresPatron": true
+    },
+    {
+      "blessingId": "caravan_guild_circle",
+      "name": "Caravan Guild",
+      "description": "Your congregation walks together. -5% trader buy price, +5% trader sell price, +5% chunk-discovery favor for all members.",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "cycle",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 0,
+      "prerequisiteBlessings": [],
+      "statModifiers": {
+        "traderBuyPriceMultiplier": -0.05,
+        "traderSellPriceMultiplier": 0.05,
+        "chunkDiscoveryFavorMultiplier": 0.05
+      },
+      "specialEffects": [],
+      "cost": 500,
+      "branch": null,
+      "exclusiveBranches": null
+    },
+    {
+      "blessingId": "caravan_trade_league",
+      "name": "Trade League",
+      "description": "Sealed letters open every gate. -10% trader buy price, +10% trader sell price, +10% chunk-discovery favor for all. Requires Caravan Guild.",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "team-upgrade",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 1,
+      "prerequisiteBlessings": ["caravan_guild_circle"],
+      "statModifiers": {
+        "traderBuyPriceMultiplier": -0.10,
+        "traderSellPriceMultiplier": 0.10,
+        "chunkDiscoveryFavorMultiplier": 0.10
+      },
+      "specialEffects": [],
+      "cost": 1500,
+      "branch": null,
+      "exclusiveBranches": null
+    },
+    {
+      "blessingId": "caravan_road_hegemony",
+      "name": "Road Hegemony",
+      "description": "Every road bears your standard. -15% trader buy price, +15% trader sell price, +20% chunk-discovery favor, +5% movement speed for all. Requires Trade League.",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "wayfarer",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 2,
+      "prerequisiteBlessings": ["caravan_trade_league"],
+      "statModifiers": {
+        "traderBuyPriceMultiplier": -0.15,
+        "traderSellPriceMultiplier": 0.15,
+        "chunkDiscoveryFavorMultiplier": 0.20,
+        "walkspeed": 0.05
+      },
+      "specialEffects": [],
+      "cost": 4000,
+      "branch": null,
+      "exclusiveBranches": null
+    },
+    {
+      "blessingId": "caravan_pantheon_road",
+      "name": "Pantheon of the Road",
+      "description": "Your faith becomes the route between worlds. +5% movement speed, +10% chunk-discovery favor, +10% trader sell price for all. Requires Road Hegemony.",
+      "kind": "Religion",
+      "category": "Utility",
+      "iconName": "wagon",
+      "requiredFavorRank": 0,
+      "requiredPrestigeRank": 3,
+      "prerequisiteBlessings": ["caravan_road_hegemony"],
+      "statModifiers": {
+        "walkspeed": 0.05,
+        "chunkDiscoveryFavorMultiplier": 0.10,
+        "traderSellPriceMultiplier": 0.10
+      },
+      "specialEffects": [],
+      "cost": 8000,
+      "branch": null,
+      "exclusiveBranches": null,
+      "requiresPatron": true
+    }
+  ]
+}
