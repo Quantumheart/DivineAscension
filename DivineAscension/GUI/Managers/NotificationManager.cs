@@ -29,11 +29,21 @@ public class NotificationManager(ISoundManager soundManager) : INotificationMana
     public void QueueRankUpNotification(NotificationType type, string rankName, string rankDescription,
         DeityDomain deity)
     {
-        var notification = new PendingNotification(type, rankName, rankDescription, deity);
+        QueueNotification(type, rankName, rankDescription, deity);
+    }
+
+    /// <summary>
+    ///     Generic toast queue. Used for rank-up, blessing-slot, and holiday-kept
+    ///     notifications alike. Same FIFO + history capping as the rank-up path.
+    /// </summary>
+    public void QueueNotification(NotificationType type, string title, string description,
+        DeityDomain deity)
+    {
+        var notification = new PendingNotification(type, title, description, deity);
 
         // Push into persistent history (capped, ring-style). Every queued toast
         // lands in history without retrofitting individual callers.
-        State.History.Add(new NotificationHistoryEntry(type, rankName, rankDescription, deity, DateTime.UtcNow));
+        State.History.Add(new NotificationHistoryEntry(type, title, description, deity, DateTime.UtcNow));
         while (State.History.Count > NotificationState.HistoryCap)
         {
             State.History.RemoveAt(0);
@@ -200,6 +210,7 @@ public interface INotificationManager
     NotificationState State { get; }
     void SetShowImGuiCallback(Action showCallback);
     void QueueRankUpNotification(NotificationType type, string rankName, string rankDescription, DeityDomain deity);
+    void QueueNotification(NotificationType type, string title, string description, DeityDomain deity);
     void ShowNextNotification();
     void Update(float deltaTime);
     void DismissCurrentNotification();

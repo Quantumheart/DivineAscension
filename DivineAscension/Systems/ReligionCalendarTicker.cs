@@ -1,8 +1,11 @@
 using System;
+using System.Linq;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
+using DivineAscension.Data;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
+using DivineAscension.Network;
 using DivineAscension.Services;
 
 namespace DivineAscension.Systems;
@@ -25,6 +28,7 @@ public sealed class ReligionCalendarTicker
     private readonly IEventService _eventService;
     private readonly ILoggerWrapper _logger;
     private readonly IPlayerMessengerService _messengerService;
+    private readonly INetworkService _networkService;
     private readonly ReligionManager _religionManager;
     private readonly IWorldService _worldService;
 
@@ -33,13 +37,15 @@ public sealed class ReligionCalendarTicker
         IEventService eventService,
         IWorldService worldService,
         ReligionManager religionManager,
-        IPlayerMessengerService messengerService)
+        IPlayerMessengerService messengerService,
+        INetworkService networkService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
         _worldService = worldService ?? throw new ArgumentNullException(nameof(worldService));
         _religionManager = religionManager ?? throw new ArgumentNullException(nameof(religionManager));
         _messengerService = messengerService ?? throw new ArgumentNullException(nameof(messengerService));
+        _networkService = networkService ?? throw new ArgumentNullException(nameof(networkService));
     }
 
     public void Initialize()
@@ -76,12 +82,13 @@ public sealed class ReligionCalendarTicker
                 if (!religion.TryMarkFeastFired(feast, year)) continue;
 
                 _religionManager.RecordFeastDay(religion.ReligionUID, feast);
-                BroadcastFeast(religion.ReligionUID, feast);
+                BroadcastFeast(religion, feast);
+                PushToast(religion, feast);
             }
         }
     }
 
-    private void BroadcastFeast(string religionUID, FeastDay feast)
+    private void BroadcastFeast(ReligionData religion, FeastDay feast)
     {
         var key = feast.Kind switch
         {
@@ -89,7 +96,27 @@ public sealed class ReligionCalendarTicker
             FeastKind.PatronDomain => LocalizationKeys.FEAST_FIRED_BROADCAST_PATRON,
             _ => LocalizationKeys.FEAST_FIRED_BROADCAST_CUSTOM
         };
-        _messengerService.BroadcastToReligion(religionUID,
+        _messengerService.BroadcastToReligion(religion.ReligionUID,
             LocalizationService.Instance.Get(key, feast.Name));
+    }
+
+    /// <summary>
+    ///     Pushes a transient toast to every online member of the religion.
+    ///     The toast is informational — clicking it only dismisses; the
+    ///     chronicle and Letters page are the durable surfaces.
+    /// </summary>
+    private void PushToast(ReligionData religion, FeastDay feast)
+    {
+        var packet = new HolidayKeptToastPacket(
+            feastName: feast.Name,
+            description: LocalizationService.Instance.Get(
+                LocalizationKeys.UI_HOLIDAY_TOAST_BODY_RELIGION, religion.ReligionName),
+            domain: religion.PatronDomain.ToString());
+
+        foreach (var player in _worldService.GetAllOnlinePlayers()
+                     .Where(p => religion.MemberUIDs.Contains(p.PlayerUID)))
+        {
+            _networkService.SendToPlayer(player, packet);
+        }
     }
 }

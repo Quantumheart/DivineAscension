@@ -59,6 +59,7 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _clientChannel.SetMessageHandler<EditFoundingMythResponsePacket>(OnEditFoundingMythResponse);
         _clientChannel.SetMessageHandler<AddFeastDayResponsePacket>(OnAddFeastDayResponse);
         _clientChannel.SetMessageHandler<RemoveFeastDayResponsePacket>(OnRemoveFeastDayResponse);
+        _clientChannel.SetMessageHandler<HolidayKeptToastPacket>(OnHolidayKeptToast);
         _clientChannel.SetMessageHandler<BlessingUnlockResponsePacket>(OnBlessingUnlockResponse);
         _clientChannel.SetMessageHandler<UnlearnBlessingResponsePacket>(OnUnlearnBlessingResponse);
         _clientChannel.SetMessageHandler<UnlearnReligionBlessingResponsePacket>(OnUnlearnReligionBlessingResponse);
@@ -225,6 +226,11 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     private void OnRemoveFeastDayResponse(RemoveFeastDayResponsePacket packet)
     {
         FeastDayRemoveCompleted?.Invoke(packet);
+    }
+
+    private void OnHolidayKeptToast(HolidayKeptToastPacket packet)
+    {
+        HolidayKeptToastReceived?.Invoke(packet);
     }
 
     private void OnSetDeityNameResponse(SetDeityNameResponsePacket packet)
@@ -1239,6 +1245,9 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
 
     /// <summary>Fired when the server responds to a remove-custom-feast request (#422).</summary>
     public event Action<RemoveFeastDayResponsePacket>? FeastDayRemoveCompleted;
+
+    /// <summary>Fired when the server pushes a holiday-kept toast (per-member, on fire day).</summary>
+    public event Action<HolidayKeptToastPacket>? HolidayKeptToastReceived;
 
     /// <summary>
     ///     Event fired when civilization list is received from server

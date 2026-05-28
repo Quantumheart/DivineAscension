@@ -70,7 +70,10 @@ internal static class RankUpNotificationOverlay
         var textX = iconX + IconSize + Padding;
         var textY = panelY + Padding;
 
-        var titleText = LocalizationService.Instance.Get(LocalizationKeys.UI_RANKUP_TITLE);
+        var titleKey = state.Type == DivineAscension.Models.Enum.NotificationType.HolidayKept
+            ? LocalizationKeys.UI_HOLIDAY_TOAST_TITLE
+            : LocalizationKeys.UI_RANKUP_TITLE;
+        var titleText = LocalizationService.Instance.Get(titleKey);
         TextRenderer.DrawLabel(drawList, titleText, textX, textY, SubsectionLabel, ColorPalette.Gold);
         textY += SubsectionLabel + 4f;
 
@@ -86,7 +89,11 @@ internal static class RankUpNotificationOverlay
             if (mousePos.X >= panelX && mousePos.X <= panelX + PanelWidth &&
                 mousePos.Y >= panelY && mousePos.Y <= panelY + panelHeight)
             {
-                viewBlessingsClicked = true;
+                // Holiday toasts dismiss only — never open the dialog. The
+                // chronicle + Letters page are the destinations for that
+                // information, and the player can navigate there manually.
+                if (state.Type != DivineAscension.Models.Enum.NotificationType.HolidayKept)
+                    viewBlessingsClicked = true;
                 dismissed = true;
             }
         }
