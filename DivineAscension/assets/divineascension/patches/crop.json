@@ -16,6 +16,5 @@
   { "op": "addmerge", "path": "/behaviors/-", "value": { "name": "DivineAscensionBlessedCrop" }, "file": "game:blocktypes/plant/crop/spelt.json", "side": "Server" },
   { "op": "addmerge", "path": "/behaviors/-", "value": { "name": "DivineAscensionBlessedCrop" }, "file": "game:blocktypes/plant/crop/sunflower.json", "side": "Server" },
   { "op": "addmerge", "path": "/behaviors/-", "value": { "name": "DivineAscensionBlessedCrop" }, "file": "game:blocktypes/plant/crop/turnip.json", "side": "Server" },
-  { "op": "addmerge", "path": "/behaviors/-", "value": { "name": "DivineAscensionBlessedCrop" }, "file": "game:blocktypes/plant/pumpkin/motherplant.json", "side": "Server" },
   { "op": "addmerge", "path": "/behaviors/-", "value": { "name": "DivineAscensionBlessedCrop" }, "file": "game:blocktypes/plant/pumpkin/fruit.json", "side": "Server" }
 ]
