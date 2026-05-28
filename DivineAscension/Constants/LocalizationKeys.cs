@@ -833,6 +833,10 @@ public static class LocalizationKeys
     public const string CHRONICLE_ALLIANCE_FORMED = "divineascension:chronicle.alliance_formed";
     public const string CHRONICLE_DISBANDED = "divineascension:chronicle.disbanded";
 
+    // Civ Founding Day annual holiday
+    public const string CIV_FOUNDING_DAY_CHRONICLE = "divineascension:civ.foundingday.chronicle";
+    public const string CIV_FOUNDING_DAY_BROADCAST = "divineascension:civ.foundingday.broadcast";
+
     // Religion chronicle (#373)
     public const string UI_RELIGION_INFO_CHRONICLE_HEADING =
         "divineascension:ui.religion.info.chronicle.heading";

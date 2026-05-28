@@ -92,6 +92,8 @@ internal sealed class CivilizationMembershipService
 
             var civId = Guid.NewGuid().ToString();
             var (derivedEthos, epithetKey) = CivilizationEthosDeriver.Derive(founderReligion.PatronDomain);
+            var (foundingMonth, foundingDay) = SacredCalendar.GetCurrentMonthDay(_worldService);
+            var foundingYear = SacredCalendar.GetCurrentYear(_worldService);
             var civ = new Civilization(civId, name, founderUID, founderReligionId)
             {
                 MemberCount = founderReligion.MemberUIDs.Count,
@@ -99,7 +101,13 @@ internal sealed class CivilizationMembershipService
                 Description = description,
                 Ethos = ethosOverride ?? derivedEthos,
                 FounderEpithet = LocalizationService.Instance.Get(epithetKey),
-                CapitalName = $"{name} Seat"
+                CapitalName = $"{name} Seat",
+                FoundingMonth = foundingMonth,
+                FoundingDay = foundingDay,
+                // Suppress the first-year Founding Day fire — "anniversary on
+                // the day of founding" is awkward, and the ticker condition
+                // `Year > FoundingDayLastFiredYear` makes this just a stamp.
+                FoundingDayLastFiredYear = foundingYear
             };
 
             data.AddCivilization(civ);
