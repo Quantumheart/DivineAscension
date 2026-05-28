@@ -147,14 +147,17 @@ internal static class SacredCalendarRenderer
         if (maxScroll > 0f)
             Scrollbar.Draw(drawList, x + width - ScrollbarWidth, y, ScrollbarWidth, height, scrollY, maxScroll);
 
-        if (vm.LastErrorMessage != null)
-            DrawErrorBanner(vm, drawList, events, x, y, width);
-
         if (vm.RemoveConfirmFeastId.HasValue)
             DrawRemoveConfirm(vm, drawList, events, x, y, width, height);
 
         if (vm.AddDialogOpen)
             DrawAddDialog(vm, drawList, events);
+
+        // Banner draws last so it floats over the modal scrim — when an
+        // Inscribe attempt fails server-side the rejection text needs to be
+        // legible against the dimmed backdrop, not buried under it.
+        if (vm.LastErrorMessage != null)
+            DrawErrorBanner(vm, drawList, events, x, y, width);
 
         return new SacredCalendarRenderResult(events, height);
     }
