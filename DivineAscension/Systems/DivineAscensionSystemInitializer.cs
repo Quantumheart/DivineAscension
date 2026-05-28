@@ -74,6 +74,7 @@ public static class DivineAscensionSystemInitializer
         MushroomPatches.ClearSubscribers();
         SkinningPatches.ClearSubscribers();
         SkinningPatches.Initialize(api);
+        TraderPatches.ClearSubscribers();
         BlockBehaviorStone.ClearSubscribers();
         BlockBehaviorOre.ClearSubscribers();
         CollectibleBehaviorChiselTracking.ClearSubscribers();

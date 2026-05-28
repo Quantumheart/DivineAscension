@@ -347,6 +347,7 @@ public class DivineAscensionModSystem : ModSystem
         BlockCropPatches.ClearSubscribers();
         FlowerPatches.ClearSubscribers();
         MushroomPatches.ClearSubscribers();
+        TraderPatches.ClearSubscribers();
     }
 
     #region Server Networking
