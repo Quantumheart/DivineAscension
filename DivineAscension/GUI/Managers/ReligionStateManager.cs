@@ -12,6 +12,7 @@ using DivineAscension.GUI.Models.Religion.Info;
 using DivineAscension.GUI.Models.Religion.Invites;
 using DivineAscension.GUI.Models.Religion.Roles;
 using DivineAscension.GUI.Models.Religion.Roster;
+using DivineAscension.GUI.Models.Religion.SacredCalendar;
 using DivineAscension.GUI.Models.Religion.Tab;
 using DivineAscension.GUI.State;
 using DivineAscension.GUI.UI.Adapters.Bans;
@@ -711,6 +712,36 @@ public class ReligionStateManager : IReligionStateManager
                 State.InfoState.ChronicleScrollY = sc.NewScrollY;
     }
 
+    /// <summary>
+    ///     Draws the Sacred Calendar chapter (#375). Reuses the player-religion
+    ///     info response for its feast-day list; refreshes that if not loaded yet.
+    /// </summary>
+    internal void DrawReligionSacredCalendar(float x, float y, float width, float height)
+    {
+        var religion = State.InfoState.MyReligionInfo;
+        if (religion == null && !State.InfoState.Loading)
+            RequestPlayerReligionInfo();
+
+        var vm = new SacredCalendarViewModel(
+            isLoading: State.InfoState.Loading,
+            hasReligion: religion != null && religion.HasReligion,
+            religionName: religion?.ReligionName ?? string.Empty,
+            deity: religion?.Domain ?? string.Empty,
+            feasts: religion?.FeastDays ?? new List<PlayerReligionInfoResponsePacket.FeastDayDto>(),
+            daysPerMonth: religion?.DaysPerMonth ?? 0,
+            monthsPerYear: religion?.MonthsPerYear ?? 0,
+            currentMonth: religion?.CurrentMonth ?? 0,
+            currentDay: religion?.CurrentDay ?? 0,
+            x: x, y: y, width: width, height: height,
+            scrollY: State.InfoState.SacredCalendarScrollY);
+
+        var drawList = ImGui.GetWindowDrawList();
+        var result = SacredCalendarRenderer.Draw(vm, drawList);
+        foreach (var ev in result.Events)
+            if (ev is SacredCalendarEvent.ScrollChanged sc)
+                State.InfoState.SacredCalendarScrollY = sc.NewScrollY;
+    }
+
     private void ProcessRosterEvents(IReadOnlyList<RosterEvent> events)
     {
         // Block roster background interaction behind an open kick/strike confirm (#455).
@@ -844,6 +875,7 @@ public class ReligionStateManager : IReligionStateManager
                         case SidebarNavId.ReligionInfo:
                         case SidebarNavId.ReligionRoster:
                         case SidebarNavId.ReligionChronicle:
+                        case SidebarNavId.ReligionSacredCalendar:
                             State.ErrorState.InfoError = null;
                             break;
                         case SidebarNavId.ReligionCreate:
@@ -861,6 +893,7 @@ public class ReligionStateManager : IReligionStateManager
                         case SidebarNavId.ReligionInfo:
                         case SidebarNavId.ReligionRoster:
                         case SidebarNavId.ReligionChronicle:
+                        case SidebarNavId.ReligionSacredCalendar:
                             RequestPlayerReligionInfo();
                             break;
                     }
@@ -889,6 +922,9 @@ public class ReligionStateManager : IReligionStateManager
                 break;
             case SidebarNavId.ReligionChronicle:
                 DrawReligionChronicle(x, contentY, width, contentHeight);
+                break;
+            case SidebarNavId.ReligionSacredCalendar:
+                DrawReligionSacredCalendar(x, contentY, width, contentHeight);
                 break;
             case SidebarNavId.ReligionInvites:
                 DrawReligionInvites(x, contentY, width, contentHeight);

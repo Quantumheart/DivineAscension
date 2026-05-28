@@ -2,6 +2,7 @@ using System;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Constants;
 using DivineAscension.Data;
+using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
 
@@ -95,6 +96,19 @@ internal sealed class ReligionChronicler
         religion.AddChronicleEntry(BuildEntry(ChronicleKind.LeftCivilization,
             LocalizationService.Instance.Get(LocalizationKeys.CHRONICLE_RELIGION_LEFT_CIVILIZATION, civName),
             civId));
+    }
+
+    public void RecordFeastDay(ReligionData religion, FeastDay feast)
+    {
+        var key = feast.Kind switch
+        {
+            FeastKind.Founding => LocalizationKeys.FEAST_FIRED_CHRONICLE_FOUNDING,
+            FeastKind.PatronDomain => LocalizationKeys.FEAST_FIRED_CHRONICLE_PATRON,
+            _ => LocalizationKeys.FEAST_FIRED_CHRONICLE_CUSTOM
+        };
+        religion.AddChronicleEntry(BuildEntry(ChronicleKind.FeastDay,
+            LocalizationService.Instance.Get(key, feast.Name),
+            null));
     }
 
     public void RecordDisbanded(ReligionData religion)

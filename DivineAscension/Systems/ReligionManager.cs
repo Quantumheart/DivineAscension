@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using DivineAscension.API.Interfaces;
 using DivineAscension.Data;
+using DivineAscension.Constants;
 using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 using DivineAscension.Services;
@@ -114,6 +115,9 @@ public class ReligionManager : IReligionManager
         {
             [founderUID] = RoleDefaults.FOUNDER_ROLE_ID
         });
+
+        // Capture the in-game founding date and seed the sacred calendar (#375).
+        SeedSacredCalendar(religion);
 
         // Store in dictionary (thread-safe)
         _religions[religionUID] = religion;
@@ -323,6 +327,19 @@ public class ReligionManager : IReligionManager
         if (_religions.TryGetValue(religionUID, out var religion))
         {
             _chronicler.RecordCivilizationJoined(religion, civName, civId);
+            SaveAllReligions();
+        }
+    }
+
+    /// <summary>
+    ///     Appends a "feast kept" chronicle entry and persists. Used by
+    ///     <see cref="ReligionCalendarTicker"/> on the day of each feast (#375).
+    /// </summary>
+    public void RecordFeastDay(string religionUID, FeastDay feast)
+    {
+        if (_religions.TryGetValue(religionUID, out var religion))
+        {
+            _chronicler.RecordFeastDay(religion, feast);
             SaveAllReligions();
         }
     }
@@ -812,6 +829,49 @@ public class ReligionManager : IReligionManager
             _logger.Error($"[DivineAscension] Error repairing membership for {playerUID}: {ex.Message}");
             return false;
         }
+    }
+
+    /// <summary>
+    ///     Captures the in-game founding date and seeds the Founding + Patron
+    ///     feast days (#375). The calendar may be unavailable in early init or
+    ///     in tests; in that case the religion gets no auto feasts (breaking
+    ///     change: no migration).
+    /// </summary>
+    private void SeedSacredCalendar(ReligionData religion)
+    {
+        var (month, day) = SacredCalendar.GetCurrentMonthDay(_worldService);
+
+        religion.FoundingMonth = month;
+        religion.FoundingDay = day;
+
+        var feasts = new List<FeastDay>();
+        if (month >= 1 && day >= 1)
+        {
+            feasts.Add(new FeastDay(
+                Services.LocalizationService.Instance.Get(LocalizationKeys.FEAST_FOUNDING_NAME),
+                month, day, FeastKind.Founding));
+        }
+
+        if (FeastDay.DomainHolyDay.TryGetValue(religion.PatronDomain, out var patron))
+        {
+            var patronKey = religion.PatronDomain switch
+            {
+                DeityDomain.Craft => LocalizationKeys.FEAST_PATRON_CRAFT_NAME,
+                DeityDomain.Wild => LocalizationKeys.FEAST_PATRON_WILD_NAME,
+                DeityDomain.Conquest => LocalizationKeys.FEAST_PATRON_CONQUEST_NAME,
+                DeityDomain.Harvest => LocalizationKeys.FEAST_PATRON_HARVEST_NAME,
+                DeityDomain.Stone => LocalizationKeys.FEAST_PATRON_STONE_NAME,
+                _ => null
+            };
+            if (patronKey != null)
+            {
+                feasts.Add(new FeastDay(
+                    Services.LocalizationService.Instance.Get(patronKey),
+                    patron.Month, patron.Day, FeastKind.PatronDomain));
+            }
+        }
+
+        religion.SetFeastDays(feasts);
     }
 
     /// <summary>

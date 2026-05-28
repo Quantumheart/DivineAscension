@@ -140,6 +140,40 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             response.FoundingMyth = religion.FoundingMyth;
             response.IsFounder = religion.FounderUID == fromPlayer.PlayerUID;
 
+            // Sacred calendar feast days (#375) — order by days-until ascending
+            // so "today" rows float to the top.
+            var (curMonth, curDay) = SacredCalendar.GetCurrentMonthDay(_worldService);
+            var monthsPerYear = 12;
+            var daysPerMonth = 0;
+            try
+            {
+                var cal = _worldService.Calendar;
+                if (cal != null)
+                {
+                    daysPerMonth = cal.DaysPerMonth;
+                    if (cal.DaysPerYear > 0 && cal.DaysPerMonth > 0)
+                        monthsPerYear = cal.DaysPerYear / cal.DaysPerMonth;
+                }
+            }
+            catch { /* tests / early init */ }
+
+            response.DaysPerMonth = daysPerMonth;
+            response.MonthsPerYear = monthsPerYear;
+            response.CurrentMonth = curMonth;
+            response.CurrentDay = curDay;
+
+            response.FeastDays = religion.FeastDays
+                .Select(f => new PlayerReligionInfoResponsePacket.FeastDayDto
+                {
+                    Name = f.Name,
+                    Month = f.Month,
+                    Day = f.Day,
+                    Kind = (int)f.Kind,
+                    DaysUntil = DaysUntil(curMonth, curDay, f.Month, f.Day, daysPerMonth, monthsPerYear)
+                })
+                .OrderBy(f => f.DaysUntil)
+                .ToList();
+
             // Chronicle, oldest-first for the ledger-chapter section (#373).
             response.Chronicle = religion.Chronicle
                 .Select(e => new PlayerReligionInfoResponsePacket.ChronicleEntryDto
@@ -1426,4 +1460,24 @@ public class ReligionNetworkHandler : IServerNetworkHandler
     }
 
     #endregion
+
+    /// <summary>
+    ///     Days from (currentMonth, currentDay) until the next occurrence of
+    ///     (feastMonth, feastDay) — 0 if today, else 1..daysPerYear-1. Returns
+    ///     int.MaxValue when calendar metadata is unknown so empty-state
+    ///     orderings stay stable.
+    /// </summary>
+    private static int DaysUntil(int currentMonth, int currentDay, int feastMonth, int feastDay,
+        int daysPerMonth, int monthsPerYear)
+    {
+        if (daysPerMonth <= 0 || monthsPerYear <= 0) return int.MaxValue;
+        if (currentMonth <= 0 || currentDay <= 0) return int.MaxValue;
+
+        var today = (currentMonth - 1) * daysPerMonth + (currentDay - 1);
+        var feast = (feastMonth - 1) * daysPerMonth + (feastDay - 1);
+        var diff = feast - today;
+        var daysPerYear = monthsPerYear * daysPerMonth;
+        if (diff < 0) diff += daysPerYear;
+        return diff;
+    }
 }
