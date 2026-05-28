@@ -6,6 +6,7 @@ using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.SacredCalendar;
 using DivineAscension.GUI.UI.Components.Buttons;
+using DivineAscension.GUI.UI.Components.Inputs;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
@@ -147,84 +148,183 @@ internal static class SacredCalendarRenderer
         if (vm.RemoveConfirmFeastId.HasValue)
             DrawRemoveConfirm(vm, drawList, events, x, y, width, height);
 
+        if (vm.AddDialogOpen)
+            DrawAddDialog(vm, drawList, events);
+
         return new SacredCalendarRenderResult(events, height);
     }
 
+    /// <summary>
+    ///     Inline founder controls: the call-to-action button (or the cap /
+    ///     prestige-locked notice). The actual Add editor is a centered modal
+    ///     drawn later via <see cref="DrawAddDialog"/>, matching the
+    ///     <c>ReligionRosterRenderer</c> invite-dialog convention.
+    /// </summary>
     private static float DrawFounderControls(SacredCalendarViewModel vm, ImDrawListPtr drawList,
         List<SacredCalendarEvent> events, float x, float y, float width)
     {
         var loc = LocalizationService.Instance;
-        var currentY = y;
 
-        if (!vm.AddDialogOpen)
+        if (vm.AtCap)
         {
-            if (vm.AtCap)
-            {
-                TextRenderer.DrawInfoText(drawList, loc.Get(LocalizationKeys.UI_FEASTDAY_CAP),
-                    x, currentY, width, Secondary, ColorPalette.Grey);
-                return currentY + RowHeight;
-            }
-            if (vm.CustomCount >= vm.UnlockedSlots)
-            {
-                TextRenderer.DrawInfoText(drawList, loc.Get(LocalizationKeys.UI_FEASTDAY_LOCKED),
-                    x, currentY, width, Secondary, ColorPalette.Grey);
-                return currentY + RowHeight;
-            }
-            var addLabel = loc.Get(LocalizationKeys.UI_FEASTDAY_ADD);
-            if (ButtonRenderer.DrawButton(drawList, addLabel, x, currentY, 160f, 22f,
-                    isPrimary: true, enabled: true))
-            {
-                events.Add(new SacredCalendarEvent.AddDialogOpened());
-            }
-            return currentY + RowHeight + 4f;
+            TextRenderer.DrawInfoText(drawList, loc.Get(LocalizationKeys.UI_FEASTDAY_CAP),
+                x, y, width, Secondary, ColorPalette.Grey);
+            return y + RowHeight;
+        }
+        if (vm.CustomCount >= vm.UnlockedSlots)
+        {
+            TextRenderer.DrawInfoText(drawList, loc.Get(LocalizationKeys.UI_FEASTDAY_LOCKED),
+                x, y, width, Secondary, ColorPalette.Grey);
+            return y + RowHeight;
         }
 
-        // Inline editor: name field, month spinner, day spinner, Add/Cancel
-        var fieldHeight = 22f;
-        ImGui.SetCursorScreenPos(new Vector2(x, currentY));
-        ImGui.PushItemWidth(width - 8f);
-        var name = vm.AddName ?? string.Empty;
-        if (ImGui.InputTextWithHint("##feastname", loc.Get(LocalizationKeys.UI_FEASTDAY_NAME_PLACEHOLDER),
-                ref name, 32))
+        var addLabel = loc.Get(LocalizationKeys.UI_FEASTDAY_ADD);
+        if (ButtonRenderer.DrawButton(drawList, addLabel, x, y, 160f, 22f,
+                isPrimary: true, enabled: true))
         {
-            events.Add(new SacredCalendarEvent.AddNameChanged(name));
+            events.Add(new SacredCalendarEvent.AddDialogOpened());
         }
-        ImGui.PopItemWidth();
-        currentY += fieldHeight + 4f;
+        return y + RowHeight + 4f;
+    }
 
+    /// <summary>
+    ///     Centered parchment modal for adding a custom feast (#422). Mirrors
+    ///     <c>ReligionRosterRenderer.DrawInviteDialog</c>: dim backdrop,
+    ///     ChromeRenderer-styled box, gold-rubric title, divider, body fields,
+    ///     right-aligned Cancel + primary Add buttons. Escape cancels.
+    /// </summary>
+    private static void DrawAddDialog(SacredCalendarViewModel vm, ImDrawListPtr drawList,
+        List<SacredCalendarEvent> events)
+    {
+        ModalInputGuard.MarkOpen();
+        var loc = LocalizationService.Instance;
+
+        var winPos = ImGui.GetWindowPos();
+        var winSize = ImGui.GetWindowSize();
+
+        drawList.AddRectFilled(winPos, new Vector2(winPos.X + winSize.X, winPos.Y + winSize.Y),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.BlackOverlay));
+
+        const float dialogWidth = 460f;
+        const float dialogHeight = 260f;
+        var dlgX = winPos.X + (winSize.X - dialogWidth) / 2f;
+        var dlgY = winPos.Y + (winSize.Y - dialogHeight) / 2f;
+
+        drawList.AddRectFilled(new Vector2(dlgX, dlgY), new Vector2(dlgX + dialogWidth, dlgY + dialogHeight),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Background), 6f);
+        drawList.AddRect(new Vector2(dlgX, dlgY), new Vector2(dlgX + dialogWidth, dlgY + dialogHeight),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), 6f, ImDrawFlags.None, 1.5f);
+
+        const float padding = 18f;
+        var bodyWidth = dialogWidth - padding * 2f;
+        var curX = dlgX + padding;
+        var curY = dlgY + padding;
+
+        TextRenderer.DrawLabel(drawList,
+            loc.Get(LocalizationKeys.UI_FEASTDAY_ADD),
+            curX, curY, PageTitle, ColorPalette.Gold);
+        curY += PageTitle + 6f;
+        ChromeRenderer.DrawDivider(drawList, curX, curY, bodyWidth);
+        curY += 16f;
+
+        // Name field
+        TextRenderer.DrawInfoText(drawList,
+            loc.Get(LocalizationKeys.UI_FEASTDAY_NAME_PLACEHOLDER),
+            curX, curY, bodyWidth, Body, ColorPalette.White);
+        curY += 22f;
+        var newName = TextInput.Draw(drawList, "##feastname", vm.AddName ?? string.Empty,
+            curX, curY, bodyWidth, 32f,
+            loc.Get(LocalizationKeys.UI_FEASTDAY_NAME_PLACEHOLDER));
+        if (newName != (vm.AddName ?? string.Empty))
+            events.Add(new SacredCalendarEvent.AddNameChanged(newName));
+        curY += 40f;
+
+        // Month + Day steppers, side by side
         var monthMax = Math.Max(1, vm.MonthsPerYear);
         var dayMax = Math.Max(1, vm.DaysPerMonth);
-
-        ImGui.SetCursorScreenPos(new Vector2(x, currentY));
-        ImGui.PushItemWidth((width - 16f) / 2f);
         var month = Math.Clamp(vm.AddMonth, 1, monthMax);
-        if (ImGui.SliderInt($"{loc.Get(LocalizationKeys.UI_FEASTDAY_MONTH)}##feastmonth",
-                ref month, 1, monthMax))
-        {
-            events.Add(new SacredCalendarEvent.AddMonthChanged(month));
-        }
-        ImGui.SameLine(0f, 8f);
         var day = Math.Clamp(vm.AddDay, 1, dayMax);
-        if (ImGui.SliderInt($"{loc.Get(LocalizationKeys.UI_FEASTDAY_DAY)}##feastday",
-                ref day, 1, dayMax))
-        {
-            events.Add(new SacredCalendarEvent.AddDayChanged(day));
-        }
-        ImGui.PopItemWidth();
-        currentY += fieldHeight + 4f;
 
-        var canSubmit = !string.IsNullOrWhiteSpace(name);
-        if (ButtonRenderer.DrawButton(drawList, loc.Get(LocalizationKeys.UI_FEASTDAY_SUBMIT),
-                x, currentY, 80f, 22f, isPrimary: true, enabled: canSubmit))
-        {
-            events.Add(new SacredCalendarEvent.AddSubmitted(name.Trim(), month, day));
-        }
-        if (ButtonRenderer.DrawButton(drawList, loc.Get(LocalizationKeys.UI_FEASTDAY_CANCEL),
-                x + 88f, currentY, 80f, 22f, isPrimary: false, enabled: true))
-        {
+        var halfWidth = (bodyWidth - 16f) / 2f;
+        var monthLabel = loc.Get(LocalizationKeys.UI_FEASTDAY_MONTH);
+        var dayLabel = loc.Get(LocalizationKeys.UI_FEASTDAY_DAY);
+        var nextMonth = DrawStepper(drawList, events, curX, curY, halfWidth,
+            monthLabel, month, 1, monthMax, "##feastmonth");
+        if (nextMonth != month) events.Add(new SacredCalendarEvent.AddMonthChanged(nextMonth));
+
+        var nextDay = DrawStepper(drawList, events, curX + halfWidth + 16f, curY, halfWidth,
+            dayLabel, day, 1, dayMax, "##feastday");
+        if (nextDay != day) events.Add(new SacredCalendarEvent.AddDayChanged(nextDay));
+
+        // Footer: Cancel + Add, right-aligned, same metrics as InviteDialog.
+        const float btnWidth = 120f;
+        const float btnHeight = 32f;
+        const float btnGap = 10f;
+        var btnY = dlgY + dialogHeight - padding - btnHeight;
+        var addX = dlgX + dialogWidth - padding - btnWidth;
+        var cancelX = addX - btnWidth - btnGap;
+
+        if (ButtonRenderer.DrawButton(drawList,
+                loc.Get(LocalizationKeys.UI_FEASTDAY_CANCEL),
+                cancelX, btnY, btnWidth, btnHeight))
             events.Add(new SacredCalendarEvent.AddDialogCancel());
+
+        var canAdd = !string.IsNullOrWhiteSpace(vm.AddName);
+        if (ButtonRenderer.DrawButton(drawList,
+                loc.Get(LocalizationKeys.UI_FEASTDAY_SUBMIT),
+                addX, btnY, btnWidth, btnHeight, isPrimary: true, enabled: canAdd)
+            && canAdd)
+            events.Add(new SacredCalendarEvent.AddSubmitted((vm.AddName ?? string.Empty).Trim(), month, day));
+
+        if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+            events.Add(new SacredCalendarEvent.AddDialogCancel());
+    }
+
+    /// <summary>
+    ///     Stepper widget: <c>label  [−] value [+]</c> inside a parchment-toned
+    ///     row. Returns the desired value after this frame's click; caller
+    ///     diffs against the prior value to decide whether to emit an event.
+    /// </summary>
+    private static int DrawStepper(ImDrawListPtr drawList, List<SacredCalendarEvent> events,
+        float x, float y, float width, string label, int value, int min, int max, string idSuffix)
+    {
+        const float rowHeight = 30f;
+        const float btnW = 28f;
+        var labelW = 60f;
+
+        // Label
+        TextRenderer.DrawLabel(drawList, label, x, y + 6f, Body, ColorPalette.Grey);
+
+        // Value box centered between the buttons
+        var fieldX = x + labelW;
+        var fieldW = width - labelW - btnW * 2f - 8f;
+        drawList.AddRectFilled(new Vector2(fieldX, y),
+            new Vector2(fieldX + fieldW, y + rowHeight),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.DarkBrown * 0.7f), 4f);
+        drawList.AddRect(new Vector2(fieldX, y),
+            new Vector2(fieldX + fieldW, y + rowHeight),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), 4f, ImDrawFlags.None, 1f);
+        var text = value.ToString();
+        var textSize = ImGui.CalcTextSize(text);
+        drawList.AddText(
+            new Vector2(fieldX + (fieldW - textSize.X) / 2f, y + (rowHeight - textSize.Y) / 2f),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.LightText), text);
+
+        var next = value;
+        var decX = fieldX + fieldW + 4f;
+        var incX = decX + btnW + 4f;
+        if (ButtonRenderer.DrawButton(drawList, "−",
+                decX, y, btnW, rowHeight, isPrimary: false, enabled: value > min))
+        {
+            next = Math.Max(min, value - 1);
         }
-        return currentY + fieldHeight + 6f;
+        if (ButtonRenderer.DrawButton(drawList, "+",
+                incX, y, btnW, rowHeight, isPrimary: false, enabled: value < max))
+        {
+            next = Math.Min(max, value + 1);
+        }
+        _ = idSuffix; // reserved for future ImGui-native ID disambiguation
+        return next;
     }
 
     private static void DrawErrorBanner(SacredCalendarViewModel vm, ImDrawListPtr drawList,
@@ -239,34 +339,56 @@ internal static class SacredCalendarRenderer
     private static void DrawRemoveConfirm(SacredCalendarViewModel vm, ImDrawListPtr drawList,
         List<SacredCalendarEvent> events, float x, float y, float width, float height)
     {
+        ModalInputGuard.MarkOpen();
         var loc = LocalizationService.Instance;
-        var prompt = loc.Get(LocalizationKeys.UI_FEASTDAY_REMOVE_CONFIRM,
-            vm.RemoveConfirmFeastName ?? string.Empty);
 
-        var boxW = Math.Min(360f, width - 40f);
-        var boxH = 110f;
-        var boxX = x + (width - boxW) / 2f;
-        var boxY = y + (height - boxH) / 2f;
+        var winPos = ImGui.GetWindowPos();
+        var winSize = ImGui.GetWindowSize();
+        drawList.AddRectFilled(winPos, new Vector2(winPos.X + winSize.X, winPos.Y + winSize.Y),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.BlackOverlay));
 
-        drawList.AddRectFilled(new Vector2(boxX, boxY), new Vector2(boxX + boxW, boxY + boxH),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.TableBackground), 4f);
-        drawList.AddRect(new Vector2(boxX, boxY), new Vector2(boxX + boxW, boxY + boxH),
-            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f), 4f);
+        const float dialogWidth = 420f;
+        const float dialogHeight = 170f;
+        var dlgX = winPos.X + (winSize.X - dialogWidth) / 2f;
+        var dlgY = winPos.Y + (winSize.Y - dialogHeight) / 2f;
 
-        TextRenderer.DrawInfoText(drawList, prompt,
-            boxX + 12f, boxY + 12f, boxW - 24f, Body, ColorPalette.White);
+        drawList.AddRectFilled(new Vector2(dlgX, dlgY), new Vector2(dlgX + dialogWidth, dlgY + dialogHeight),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Background), 6f);
+        drawList.AddRect(new Vector2(dlgX, dlgY), new Vector2(dlgX + dialogWidth, dlgY + dialogHeight),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.BorderColor), 6f, ImDrawFlags.None, 1.5f);
 
-        var btnY = boxY + boxH - 32f;
-        if (ButtonRenderer.DrawButton(drawList, loc.Get(LocalizationKeys.UI_FEASTDAY_SUBMIT),
-                boxX + boxW - 176f, btnY, 80f, 22f, isPrimary: true, enabled: true))
-        {
-            events.Add(new SacredCalendarEvent.RemoveConfirmed(vm.RemoveConfirmFeastId!.Value));
-        }
-        if (ButtonRenderer.DrawButton(drawList, loc.Get(LocalizationKeys.UI_FEASTDAY_CANCEL),
-                boxX + boxW - 88f, btnY, 80f, 22f, isPrimary: false, enabled: true))
-        {
+        const float padding = 18f;
+        var bodyWidth = dialogWidth - padding * 2f;
+        var curX = dlgX + padding;
+        var curY = dlgY + padding;
+
+        TextRenderer.DrawLabel(drawList,
+            loc.Get(LocalizationKeys.UI_FEASTDAY_REMOVE_CONFIRM, vm.RemoveConfirmFeastName ?? string.Empty),
+            curX, curY, PageTitle, ColorPalette.Gold);
+        curY += PageTitle + 6f;
+        ChromeRenderer.DrawDivider(drawList, curX, curY, bodyWidth);
+
+        const float btnWidth = 120f;
+        const float btnHeight = 32f;
+        const float btnGap = 10f;
+        var btnY = dlgY + dialogHeight - padding - btnHeight;
+        var removeX = dlgX + dialogWidth - padding - btnWidth;
+        var cancelX = removeX - btnWidth - btnGap;
+
+        if (ButtonRenderer.DrawButton(drawList,
+                loc.Get(LocalizationKeys.UI_FEASTDAY_CANCEL),
+                cancelX, btnY, btnWidth, btnHeight))
             events.Add(new SacredCalendarEvent.RemoveCancel());
-        }
+
+        if (ButtonRenderer.DrawButton(drawList,
+                loc.Get(LocalizationKeys.UI_FEASTDAY_SUBMIT),
+                removeX, btnY, btnWidth, btnHeight, isPrimary: true, enabled: true))
+            events.Add(new SacredCalendarEvent.RemoveConfirmed(vm.RemoveConfirmFeastId!.Value));
+
+        if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+            events.Add(new SacredCalendarEvent.RemoveCancel());
+
+        _ = x; _ = y; _ = width; _ = height;
     }
 
     private static float DrawIntro(ImDrawListPtr drawList, float x, float y, float width)
