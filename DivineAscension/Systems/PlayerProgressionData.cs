@@ -90,7 +90,13 @@ public class PlayerProgressionData
     ///     Data version (internal bookkeeping only — Pantheon 2.0 no longer carries cross-version save migrations).
     /// </summary>
     [ProtoMember(104)]
-    public int DataVersion { get; set; } = 6;
+    public int DataVersion { get; set; } = 7;
+
+    /// <summary>
+    ///     Soft cap on tracked discovered chunks per player. Past this, <see cref="TryAddDiscoveredChunk"/>
+    ///     stops awarding to bound memory growth for explorers who roam tens of thousands of chunks.
+    /// </summary>
+    public const int DiscoveredChunksSoftCap = 1_000_000;
 
     /// <summary>
     ///     Accumulated fractional favor per deity domain (not yet awarded) for passive generation.
@@ -375,6 +381,54 @@ public class PlayerProgressionData
     /// </summary>
     [ProtoMember(115)]
     public DateTime? LastPatrolCompletionTimeUtc { get; set; }
+
+    /// <summary>
+    ///     Set of chunk keys the player has visited (packed long form from <c>ChunkPos.ToChunkIndex3D</c>).
+    ///     Drives the Wayfaring favor source for the Caravan domain. v6 saves load with an empty set
+    ///     (no retroactive rewards).
+    /// </summary>
+    [ProtoMember(116)] private HashSet<long> _discoveredChunks = new();
+
+    /// <summary>
+    ///     Count of discovered chunks (thread-safe).
+    /// </summary>
+    public int DiscoveredChunkCount
+    {
+        get
+        {
+            lock (Lock)
+            {
+                return _discoveredChunks.Count;
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Checks if the player has already visited a chunk (thread-safe).
+    /// </summary>
+    public bool HasDiscoveredChunk(long chunkKey)
+    {
+        lock (Lock)
+        {
+            return _discoveredChunks.Contains(chunkKey);
+        }
+    }
+
+    /// <summary>
+    ///     Records a chunk visit. Returns <c>true</c> if the chunk was newly added and the caller
+    ///     should award favor. Returns <c>false</c> if the chunk was already known, or if the soft
+    ///     cap (<see cref="DiscoveredChunksSoftCap"/>) has been reached. Thread-safe.
+    /// </summary>
+    public bool TryAddDiscoveredChunk(long chunkKey)
+    {
+        lock (Lock)
+        {
+            if (_discoveredChunks.Count >= DiscoveredChunksSoftCap)
+                return false;
+
+            return _discoveredChunks.Add(chunkKey);
+        }
+    }
 
     /// <summary>
     ///     Gets the committed branch for a domain (thread-safe).
