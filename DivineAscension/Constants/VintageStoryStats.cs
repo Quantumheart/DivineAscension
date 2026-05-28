@@ -90,10 +90,10 @@ public static class VintageStoryStats
     public const string ChunkDiscoveryFavorMultiplier = "chunkDiscoveryFavorMultiplier";
 
     // Caravan (Trade & Wayfaring) Stats — DA-specific, consumed by
-    // TraderTransactionFavorTracker (#429) and ExplorationFavorTracker (#431).
+    // TraderTransactionFavorTracker (#429). ChunkDiscoveryFavorMultiplier
+    // already declared above (consumed by ExplorationFavorTracker, #431).
     public const string TraderBuyPriceMultiplier = "traderBuyPriceMultiplier";
     public const string TraderSellPriceMultiplier = "traderSellPriceMultiplier";
-    public const string ChunkDiscoveryFavorMultiplier = "chunkDiscoveryFavorMultiplier";
 
     #region CombatOverhaul Compatible Stats
 
