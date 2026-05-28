@@ -48,6 +48,7 @@ public class FavorSystem : IFavorSystem
     private HuntingFavorTracker? _huntingFavorTracker;
     private MiningFavorTracker? _miningFavorTracker;
     private RuinDiscoveryFavorTracker? _ruinDiscoveryFavorTracker;
+    private ExplorationFavorTracker? _explorationFavorTracker;
     private SkinningFavorTracker? _skinningFavorTracker;
     private SmeltingFavorTracker? _smeltingFavorTracker;
     private StoneFavorTracker? _stoneFavorTracker;
@@ -152,6 +153,10 @@ public class FavorSystem : IFavorSystem
             _playerProgressionDataManager, this);
         _ruinDiscoveryFavorTracker.Initialize();
 
+        _explorationFavorTracker = new ExplorationFavorTracker(_logger, _eventService, _worldService,
+            _playerProgressionDataManager, this);
+        _explorationFavorTracker.Initialize();
+
         // Initialize patrol tracker only if dependencies were set
         if (_holySiteAreaTracker != null && _civilizationManager != null && _holySiteManager != null)
         {
@@ -167,11 +172,11 @@ public class FavorSystem : IFavorSystem
                 _messenger,
                 _eventService);
             _patrolFavorTracker.Initialize();
-            _logger.Notification("[DivineAscension] Initialized 11 favor trackers (including patrol)");
+            _logger.Notification("[DivineAscension] Initialized 12 favor trackers (including patrol)");
         }
         else
         {
-            _logger.Notification("[DivineAscension] Initialized 10 favor trackers (patrol disabled - missing dependencies)");
+            _logger.Notification("[DivineAscension] Initialized 11 favor trackers (patrol disabled - missing dependencies)");
         }
     }
 
@@ -189,6 +194,7 @@ public class FavorSystem : IFavorSystem
         _stoneFavorTracker?.Dispose();
         _conquestFavorTracker?.Dispose();
         _ruinDiscoveryFavorTracker?.Dispose();
+        _explorationFavorTracker?.Dispose();
         _patrolFavorTracker?.Dispose();
     }
 
