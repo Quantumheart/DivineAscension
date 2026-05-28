@@ -552,6 +552,7 @@
   "divineascension:ui.feastday.add.title": "Inscribe a feast day",
   "divineascension:ui.feastday.add.action": "Inscribe",
   "divineascension:ui.feastday.remove.confirm": "Strike '{0}' from the calendar?",
+  "divineascension:ui.feastday.remove.body": "The faithful will no longer keep this day. The slot is freed and may be inscribed anew once the rite has settled.",
   "divineascension:ui.feastday.remove.action": "Strike",
   "divineascension:ui.feastday.name.placeholder": "Feast name",
   "divineascension:ui.feastday.month": "Month",
