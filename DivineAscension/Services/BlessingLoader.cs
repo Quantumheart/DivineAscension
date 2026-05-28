@@ -17,7 +17,7 @@ namespace DivineAscension.Services;
 /// </summary>
 public class BlessingLoader : IBlessingLoader
 {
-    private static readonly string[] DomainFiles = { "craft", "wild", "conquest", "harvest", "stone" };
+    private static readonly string[] DomainFiles = { "craft", "wild", "conquest", "harvest", "stone", "caravan" };
 
     private readonly ICoreAPI _api;
     private readonly List<Blessing> _loadedBlessings = new();
@@ -348,6 +348,11 @@ public class BlessingLoader : IBlessingLoader
         VintageStoryStats.QuarterstaffProficiency,
         VintageStoryStats.SlingsProficiency,
         VintageStoryStats.SecondChanceCooldown,
-        VintageStoryStats.SecondChanceGracePeriod
+        VintageStoryStats.SecondChanceGracePeriod,
+
+        // Caravan Stats
+        VintageStoryStats.TraderBuyPriceMultiplier,
+        VintageStoryStats.TraderSellPriceMultiplier,
+        VintageStoryStats.ChunkDiscoveryFavorMultiplier
     };
 }
