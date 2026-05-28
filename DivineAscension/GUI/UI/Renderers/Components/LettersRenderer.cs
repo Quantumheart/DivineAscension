@@ -53,6 +53,13 @@ internal static class LettersRenderer
     private const float RowHeight =
         HeaderLineHeight + QuoteLineHeight + ButtonTopSpacing + ButtonHeight + ButtonBottomSpacing;
 
+    /// <summary>
+    ///     Row height for read-only / informational letters (no Accept/Refuse).
+    ///     Used by holiday-notice letters projected from the chronicle.
+    /// </summary>
+    private const float ReadOnlyRowHeight =
+        HeaderLineHeight + QuoteLineHeight + ButtonBottomSpacing;
+
     private const float SlimDividerHeight = 18f;
     private const float SlimDividerYPadding = 4f;
 
@@ -150,7 +157,7 @@ internal static class LettersRenderer
                 x + RowLeftPadding, currentY, width - RowLeftPadding,
                 vm.AcceptLabel, vm.RefuseLabel,
                 enabled, events);
-            currentY += RowHeight;
+            currentY += letter.ShowActions ? RowHeight : ReadOnlyRowHeight;
 
             if (i < vm.Letters.Count - 1)
                 currentY = DrawSlimDivider(drawList, x, currentY, width);
@@ -188,6 +195,8 @@ internal static class LettersRenderer
         drawList.AddText(ImGui.GetFont(), Body,
             new Vector2(textX, quoteY),
             ImGui.ColorConvertFloat4ToU32(ColorPalette.Grey), letter.QuoteLine);
+
+        if (!letter.ShowActions) return;
 
         var buttonY = quoteY + QuoteLineHeight + ButtonTopSpacing;
         if (ButtonRenderer.DrawButton(drawList, acceptLabel,
@@ -237,8 +246,10 @@ internal static class LettersRenderer
         h += DividerHeight;
         if (vm.HasLetters)
         {
-            var rows = vm.Letters.Count;
-            h += rows * RowHeight + (rows - 1) * SlimDividerHeight;
+            var rowsHeight = 0f;
+            foreach (var letter in vm.Letters)
+                rowsHeight += letter.ShowActions ? RowHeight : ReadOnlyRowHeight;
+            h += rowsHeight + (vm.Letters.Count - 1) * SlimDividerHeight;
             h += DividerHeight;
         }
         h += ClosingLineTopSpacing + ClosingLineHeight;

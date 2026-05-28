@@ -882,6 +882,18 @@ public static class LocalizationKeys
     public const string UI_SACREDCALENDAR_INDAYS = "divineascension:ui.sacredcalendar.indays";
     public const string UI_RELIGION_TAB_SACREDCALENDAR = "divineascension:ui.religion.tab.sacredcalendar";
 
+    // Holiday notices Letters page (slices 1+2)
+    public const string UI_RELIGION_TAB_NOTICES = "divineascension:ui.religion.tab.notices";
+    public const string UI_NOTICES_TITLE = "divineascension:ui.notices.title";
+    public const string UI_NOTICES_INTRO = "divineascension:ui.notices.intro";
+    public const string UI_NOTICES_CLOSING = "divineascension:ui.notices.closing";
+    public const string UI_NOTICES_EMPTY = "divineascension:ui.notices.empty";
+    public const string UI_NOTICES_SENDER_RELIGION = "divineascension:ui.notices.sender.religion";
+    public const string UI_NOTICES_QUOTE_UPCOMING_TODAY = "divineascension:ui.notices.quote.upcoming_today";
+    public const string UI_NOTICES_QUOTE_UPCOMING_TOMORROW = "divineascension:ui.notices.quote.upcoming_tomorrow";
+    public const string UI_NOTICES_QUOTE_UPCOMING_DAYS = "divineascension:ui.notices.quote.upcoming_days";
+    public const string UI_NOTICES_QUOTE_PAST = "divineascension:ui.notices.quote.past";
+
     // Founder add/remove custom feast days (#422)
     public const string UI_FEASTDAY_ADD = "divineascension:ui.feastday.add";
     public const string UI_FEASTDAY_ADD_TITLE = "divineascension:ui.feastday.add.title";

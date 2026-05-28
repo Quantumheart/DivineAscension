@@ -26,4 +26,5 @@ public readonly record struct LetterEntry(
     string SenderText,
     Action<ImDrawListPtr, Vector2, Vector2> GlyphPainter,
     string QuoteLine,
-    bool IsUnread = false);
+    bool IsUnread = false,
+    bool ShowActions = true);
