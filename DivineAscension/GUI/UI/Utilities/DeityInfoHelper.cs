@@ -50,6 +50,11 @@ internal static class DeityInfoHelper
                 Description:
                 "The domain of Earth and Stone. Followers are rewarded for the transformative art of working with clay and earth. Those who shape pottery, form clay, and honor the elements of the ground earn the favor of this domain."
             ),
+            DeityDomain.Caravan => new DomainInfo(
+                Name: "Caravan",
+                Description:
+                "The domain of Trade and Wayfaring. Followers are rewarded for honest exchange and miles travelled under open sky. Those who barter with strangers, carry goods between distant hearths, and walk the unmapped roads earn the favor of this domain."
+            ),
             _ => null
         };
     }
