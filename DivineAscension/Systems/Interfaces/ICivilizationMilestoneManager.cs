@@ -87,6 +87,12 @@ public interface ICivilizationMilestoneManager
     void RecordWarKill(string civId);
 
     /// <summary>
+    ///     Records a completed NPC trader transaction for the trade_hub milestone (Caravan).
+    /// </summary>
+    /// <param name="civId">Civilization ID of the trading player.</param>
+    void RecordNpcTrade(string civId);
+
+    /// <summary>
     ///     Gets the bonus holy site slots granted by milestones
     /// </summary>
     /// <param name="civId">Civilization ID</param>

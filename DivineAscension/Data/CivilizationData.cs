@@ -151,6 +151,13 @@ public class Civilization
     public int WarKillCount { get; set; } = 0;
 
     /// <summary>
+    ///     Cumulative completed NPC trader transactions across all members
+    ///     (for trade_hub milestone — Caravan domain). Defaults to 0 for legacy saves.
+    /// </summary>
+    [ProtoMember(24)]
+    public int NpcTradeCount { get; set; } = 0;
+
+    /// <summary>
     ///     In-game month captured at civ creation; drives the annual
     ///     Founding Day holiday. 0 for pre-feature civilizations (no migration).
     /// </summary>

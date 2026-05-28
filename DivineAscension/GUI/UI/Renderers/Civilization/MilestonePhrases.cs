@@ -31,6 +31,7 @@ internal static class MilestonePhrases
         ["HolySiteTier"] = "tiers attained",
         ["DiplomaticRelationship"] = "accords sealed",
         ["AllMajorMilestones"] = "great deeds set down",
+        ["NpcTradeCount"] = "trades sealed at the post",
     };
 
     /// <summary>

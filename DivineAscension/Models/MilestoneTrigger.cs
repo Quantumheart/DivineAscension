@@ -70,5 +70,11 @@ public enum MilestoneTriggerType
     /// <summary>
     ///     Complete all other major milestones
     /// </summary>
-    AllMajorMilestones
+    AllMajorMilestones,
+
+    /// <summary>
+    ///     Cumulative completed NPC trader transactions across the civilization
+    ///     (trade_hub milestone — Caravan domain).
+    /// </summary>
+    NpcTradeCount
 }
