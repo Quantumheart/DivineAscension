@@ -23,12 +23,15 @@ internal static class SidebarRenderer
     private const float GroupHeaderHeight = 22f;
     private const float ItemHeight = 24f;
     private const int ChapterFontSize = 18;
+    private const int VerseFontSize = 13;
     private const float ItemIndent = 12f;
     private const float ChapterChevronSize = 9f;
     private const float ChapterChevronPadding = 6f;
     private const float ItemBulletHalfSize = 3f;
+    private const float ItemBulletActiveHalfSize = 4f;
     private const float ItemBulletPadding = 6f;
     private const float ItemVerseGap = 8f;
+    private const float ActiveRibbonWidth = 2.5f;
     private const float CollapsedStripIconSize = 32f;
 
     private static readonly string[] LowerRomanVerse =
@@ -53,6 +56,7 @@ internal static class SidebarRenderer
 
         ImGui.SetCursorScreenPos(new Vector2(rect.X, rect.Y));
         ImGui.PushStyleColor(ImGuiCol.ChildBg, ColorPalette.TableBackground);
+        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, ColorPalette.Gold * 0.18f);
         ImGui.BeginChild("##da-sidebar", new Vector2(rect.W, rect.H), false,
             ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
 
@@ -67,8 +71,17 @@ internal static class SidebarRenderer
             DrawGroups(vm, events);
         }
 
+        // Codex spine: hairline gold rule along the right edge separates the
+        // sidebar from the content pane, like the gutter of a bound book.
+        var spineDrawList = ImGui.GetWindowDrawList();
+        var spineColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.35f);
+        spineDrawList.AddLine(
+            new Vector2(rect.X + rect.W - 0.5f, rect.Y),
+            new Vector2(rect.X + rect.W - 0.5f, rect.Y + rect.H),
+            spineColor, 1f);
+
         ImGui.EndChild();
-        ImGui.PopStyleColor();
+        ImGui.PopStyleColor(2);
         return events;
     }
 
@@ -94,6 +107,13 @@ internal static class SidebarRenderer
         var cy = cursor.Y + ToggleStripHeight / 2f;
         var cx = cursor.X + availWidth / 2f;
         ChromeRenderer.DrawChevron(drawList, cx, cy, chevronSize, direction);
+
+        // Hairline rule under the toggle strip separates the chrome from the
+        // first chapter heading.
+        var ruleY = cursor.Y + ToggleStripHeight - 1f;
+        var ruleColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.35f);
+        drawList.AddLine(new Vector2(cursor.X, ruleY),
+            new Vector2(cursor.X + availWidth, ruleY), ruleColor, 1f);
     }
 
     private static void DrawGroups(SidebarViewModel vm, List<SidebarEvent> events)
@@ -141,17 +161,23 @@ internal static class SidebarRenderer
         var textX = chevronX + ChapterChevronSize / 2f + ChapterChevronPadding;
         var textY = cursor.Y + (GroupHeaderHeight - labelSize) / 2f;
         drawList.AddText(labelFont, labelSize, new Vector2(textX, textY), textColor, group.Label);
+
+        // Chapter rule: ornament divider beneath the heading anchors the
+        // chapter visually and breaks the three groups apart on the rail.
+        var ruleWidth = ImGui.GetContentRegionAvail().X;
+        var ruleY = cursor.Y + GroupHeaderHeight - 3f;
+        if (ruleWidth > 0f)
+        {
+            ChromeRenderer.DrawDivider(drawList, cursor.X, ruleY, ruleWidth);
+        }
     }
 
     private static void DrawItem(SidebarItemViewModel item, int verseIndex, List<SidebarEvent> events)
     {
         ImGui.Indent(ItemIndent);
 
-        var label = item.Badge > 0
-            ? $"{item.Label}  ({item.Badge})"
-            : item.Label;
-
         var cursor = ImGui.GetCursorScreenPos();
+        var rowWidth = ImGui.GetContentRegionAvail().X;
         var drawList = ImGui.GetWindowDrawList();
 
         // Empty-label Selectable owns hit detection + active/hover background.
@@ -174,7 +200,7 @@ internal static class SidebarRenderer
         {
             if (item.IsActive)
             {
-                ImGui.PushStyleColor(ImGuiCol.Header, ColorPalette.Darken(ColorPalette.Gold, 0.6f));
+                ImGui.PushStyleColor(ImGuiCol.Header, ColorPalette.Gold * 0.22f);
             }
 
             clicked = ImGui.Selectable($"##da-sidebar-item-{item.Id}", item.IsActive,
@@ -188,37 +214,88 @@ internal static class SidebarRenderer
 
         if (clicked) events.Add(new SidebarEvent.ItemClicked(item.Id));
 
-        // Diamond bullet (`✦` stand-in) leads each chapter verse.
+        // Active rows get a gold ribbon down the left margin — the reader's
+        // bookmark for "you are here."
+        if (item.IsActive)
+        {
+            var ribbonColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold);
+            drawList.AddRectFilled(
+                new Vector2(cursor.X, cursor.Y),
+                new Vector2(cursor.X + ActiveRibbonWidth, cursor.Y + ItemHeight),
+                ribbonColor);
+        }
+
+        // Diamond bullet (`✦` stand-in) leads each chapter verse. Active row
+        // bullet sits a touch larger so the active state still reads on the
+        // bullet column alone.
         var bulletCx = cursor.X + ItemBulletPadding + ItemBulletHalfSize;
         var bulletCy = cursor.Y + ItemHeight / 2f;
         var bulletColor = item.IsDisabled
             ? ColorPalette.Gold * 0.4f
             : ColorPalette.Gold;
-        ChromeRenderer.DrawDiamond(drawList, bulletCx, bulletCy, ItemBulletHalfSize, bulletColor);
+        var bulletHalf = item.IsActive ? ItemBulletActiveHalfSize : ItemBulletHalfSize;
+        ChromeRenderer.DrawDiamond(drawList, bulletCx, bulletCy, bulletHalf, bulletColor);
 
-        // Lowercase Roman verse numeral (i. ii. iii. ...), then label.
-        var fontSize = ImGui.GetFontSize();
-        var textY = cursor.Y + (ItemHeight - fontSize) / 2f;
+        // Lowercase Roman verse numeral (i. ii. iii. ...) in Cinzel so the
+        // numeral carries the same manuscript voice as the chapter header.
         var verseColor = ImGui.ColorConvertFloat4ToU32(item.IsDisabled
             ? ColorPalette.Gold * 0.4f
-            : ColorPalette.Gold * 0.75f);
+            : ColorPalette.Gold * 0.8f);
+
+        // Active rows render the label in gold; inactive rows keep white for
+        // contrast against the page.
         var textColor = ImGui.ColorConvertFloat4ToU32(item.IsDisabled
             ? ColorPalette.Grey
-            : ColorPalette.White);
+            : item.IsActive ? ColorPalette.Gold : ColorPalette.White);
 
         var verse = verseIndex >= 0 && verseIndex < LowerRomanVerse.Length
             ? LowerRomanVerse[verseIndex]
             : string.Empty;
+        var cinzelVerse = CinzelFontSystem.GetRegular(VerseFontSize);
+        var verseFont = cinzelVerse ?? ImGui.GetFont();
+        var verseFontSize = cinzelVerse.HasValue ? VerseFontSize : ImGui.GetFontSize();
         var verseX = bulletCx + ItemBulletHalfSize + ItemBulletPadding;
+        var verseY = cursor.Y + (ItemHeight - verseFontSize) / 2f;
         var verseWidth = 0f;
         if (verse.Length > 0)
         {
-            drawList.AddText(new Vector2(verseX, textY), verseColor, verse);
-            verseWidth = ImGui.CalcTextSize(verse).X;
+            drawList.AddText(verseFont, verseFontSize, new Vector2(verseX, verseY),
+                verseColor, verse);
+            verseWidth = ImGui.CalcTextSize(verse).X
+                         * (verseFontSize / ImGui.GetFontSize());
         }
 
+        // Body label stays in the default font for legibility.
+        var labelFontSize = ImGui.GetFontSize();
+        var textY = cursor.Y + (ItemHeight - labelFontSize) / 2f;
         var textX = verseX + verseWidth + (verseWidth > 0f ? ItemVerseGap : 0f);
-        drawList.AddText(new Vector2(textX, textY), textColor, label);
+        drawList.AddText(new Vector2(textX, textY), textColor, item.Label);
+
+        // Badge: right-aligned parchment chip with gold border. Inline
+        // "(N)" suffix gets lost; a chip on the right edge reads at a glance.
+        if (item.Badge > 0)
+        {
+            var badgeText = item.Badge.ToString();
+            var badgeTextSize = ImGui.CalcTextSize(badgeText);
+            const float badgePadX = 5f;
+            const float badgePadY = 1f;
+            const float badgeRightMargin = 8f;
+            var badgeW = badgeTextSize.X + badgePadX * 2f;
+            var badgeH = badgeTextSize.Y + badgePadY * 2f;
+            var badgeX = cursor.X + rowWidth - badgeRightMargin - badgeW;
+            var badgeY = cursor.Y + (ItemHeight - badgeH) / 2f;
+            var badgeBgColor = ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.15f);
+            var badgeBorderColor = ImGui.ColorConvertFloat4ToU32(
+                item.IsDisabled ? ColorPalette.Gold * 0.5f : ColorPalette.Gold);
+            var badgeTextColor = ImGui.ColorConvertFloat4ToU32(
+                item.IsDisabled ? ColorPalette.Grey : ColorPalette.Gold);
+            var bMin = new Vector2(badgeX, badgeY);
+            var bMax = new Vector2(badgeX + badgeW, badgeY + badgeH);
+            drawList.AddRectFilled(bMin, bMax, badgeBgColor, 2f);
+            drawList.AddRect(bMin, bMax, badgeBorderColor, 2f, ImDrawFlags.None, 1f);
+            drawList.AddText(new Vector2(badgeX + badgePadX, badgeY + badgePadY),
+                badgeTextColor, badgeText);
+        }
 
         ImGui.Unindent(ItemIndent);
     }
@@ -277,11 +354,17 @@ internal static class SidebarRenderer
                 var stampColor = ImGui.ColorConvertFloat4ToU32(item.IsDisabled
                     ? ColorPalette.Gold * 0.4f
                     : ColorPalette.Gold);
-                var stampSize = ImGui.CalcTextSize(stamp);
+                var cinzelStamp = CinzelFontSystem.GetRegular(VerseFontSize);
+                var stampFont = cinzelStamp ?? ImGui.GetFont();
+                var stampFontSize = cinzelStamp.HasValue ? VerseFontSize : ImGui.GetFontSize();
+                var stampRawSize = ImGui.CalcTextSize(stamp);
+                var stampScale = stampFontSize / ImGui.GetFontSize();
+                var stampSize = new Vector2(stampRawSize.X * stampScale,
+                    stampRawSize.Y * stampScale);
                 var stampPos = new Vector2(
                     rowOrigin.X + (CollapsedStripIconSize - stampSize.X) / 2f,
                     rowOrigin.Y + (CollapsedStripIconSize - stampSize.Y) / 2f);
-                drawList.AddText(stampPos, stampColor, stamp);
+                drawList.AddText(stampFont, stampFontSize, stampPos, stampColor, stamp);
 
                 if (item.IsActive)
                 {
