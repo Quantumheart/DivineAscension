@@ -186,9 +186,9 @@ internal static class ReligionChronicleRenderer
 
     private static string ComposeLine(PlayerReligionInfoResponsePacket.ChronicleEntryDto entry)
     {
-        var day = LocalizationService.Instance.Get(LocalizationKeys.UI_RELIGION_INFO_CHRONICLE_DAY,
-            entry.InGameDay);
-        return $"{day} · {entry.Line}";
+        var date = ChronicleDateFormatter.Format(entry.Year, entry.Month, entry.DayOfMonth, entry.InGameDay,
+            LocalizationKeys.UI_RELIGION_INFO_CHRONICLE_DAY);
+        return $"{date} · {entry.Line}";
     }
 
     private static void DrawCentered(ImDrawListPtr drawList, string text, float x, float y, float width, float height)

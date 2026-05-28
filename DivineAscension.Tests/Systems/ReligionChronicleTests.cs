@@ -117,7 +117,7 @@ public class ReligionChronicleTests
         religion.AddChronicleEntry(new ChronicleEntry(ChronicleKind.Founded, "Founded.", null,
             new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), 3));
         religion.AddChronicleEntry(new ChronicleEntry(ChronicleKind.FirstHolySite, "Consecrated.", "site-2",
-            new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc), 7));
+            new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc), 7, year: 1387, month: 3, dayOfMonth: 12));
 
         using var ms = new MemoryStream();
         Serializer.Serialize(ms, religion);
@@ -129,6 +129,10 @@ public class ReligionChronicleTests
         Assert.Equal("Consecrated.", restored.Chronicle[1].Line);
         Assert.Equal("site-2", restored.Chronicle[1].RelatedId);
         Assert.Equal(7, restored.Chronicle[1].InGameDay);
+        // Calendar date persists across the round-trip.
+        Assert.Equal(1387, restored.Chronicle[1].Year);
+        Assert.Equal(3, restored.Chronicle[1].Month);
+        Assert.Equal(12, restored.Chronicle[1].DayOfMonth);
     }
 
     [Fact]
