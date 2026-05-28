@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DivineAscension.Data;
+using DivineAscension.Models;
 using DivineAscension.Models.Enum;
 
 namespace DivineAscension.Systems.Interfaces;
@@ -90,6 +91,31 @@ public interface IReligionManager : IDisposable
     ///     Records a "left civilization" chronicle entry for the religion (#373).
     /// </summary>
     void RecordCivilizationLeft(string religionUID, string civName, string? civId);
+
+    /// <summary>
+    ///     Adds a founder-defined custom feast day (#422). Validates founder,
+    ///     name, date, prestige slot unlock, cooldown, no-cluster spacing,
+    ///     and cap. Returns <see cref="FeastDayErrorCode.None"/> on success,
+    ///     and the appropriate error otherwise.
+    /// </summary>
+    FeastDayErrorCode TryAddCustomFeast(
+        string religionUID,
+        string requesterUID,
+        string name,
+        int month,
+        int day,
+        ICooldownManager cooldownManager,
+        out FeastDay? created);
+
+    /// <summary>
+    ///     Removes a founder-defined custom feast by id (#422). Auto feasts
+    ///     are never removable.
+    /// </summary>
+    FeastDayErrorCode TryRemoveCustomFeast(
+        string religionUID,
+        string requesterUID,
+        System.Guid feastId,
+        ICooldownManager cooldownManager);
 
     /// <summary>
     ///     Gets the active deity for a player

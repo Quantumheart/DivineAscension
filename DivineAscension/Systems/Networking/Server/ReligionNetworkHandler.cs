@@ -65,6 +65,8 @@ public class ReligionNetworkHandler : IServerNetworkHandler
         _networkService.RegisterMessageHandler<EditFoundingMythRequestPacket>(OnEditFoundingMythRequest);
         _networkService.RegisterMessageHandler<ReligionDetailRequestPacket>(OnReligionDetailRequest);
         _networkService.RegisterMessageHandler<SetDeityNameRequestPacket>(OnSetDeityNameRequest);
+        _networkService.RegisterMessageHandler<AddFeastDayRequestPacket>(OnAddFeastDayRequest);
+        _networkService.RegisterMessageHandler<RemoveFeastDayRequestPacket>(OnRemoveFeastDayRequest);
 
         // Register handler for available domains
         _networkService.RegisterMessageHandler<AvailableDomainsRequestPacket>(OnAvailableDomainsRequest);
@@ -172,6 +174,7 @@ public class ReligionNetworkHandler : IServerNetworkHandler
                     var effectiveDay = daysPerMonth > 0 ? Math.Min(f.Day, daysPerMonth) : f.Day;
                     return new PlayerReligionInfoResponsePacket.FeastDayDto
                     {
+                        FeastId = f.FeastId,
                         Name = f.Name,
                         Month = f.Month,
                         Day = effectiveDay,
@@ -1465,6 +1468,79 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             Message = LocalizationService.Instance.Get(LocalizationKeys.NET_RELIGION_DISBANDED,
                 religionName ?? "religion")
         };
+    }
+
+    #endregion
+
+    #region Feast Day Mutation (#422)
+
+    private void OnAddFeastDayRequest(IServerPlayer fromPlayer, AddFeastDayRequestPacket packet)
+    {
+        var code = _religionManager.TryAddCustomFeast(
+            packet.ReligionUID, fromPlayer.PlayerUID, packet.Name, packet.Month, packet.Day,
+            _cooldownManager, out var created);
+
+        var response = new AddFeastDayResponsePacket
+        {
+            Success = code == FeastDayErrorCode.None,
+            ErrorCode = (int)code
+        };
+        if (created != null)
+        {
+            response.FeastId = created.FeastId;
+            response.Name = created.Name;
+            response.Month = created.Month;
+            response.Day = created.Day;
+        }
+
+        _networkService.SendToPlayer(fromPlayer, response);
+
+        if (response.Success)
+        {
+            // Push refreshed religion info to all online members so their UIs
+            // pick up the new feast without a poll.
+            BroadcastReligionInfoRefresh(packet.ReligionUID);
+        }
+        else
+        {
+            _logger.Debug(
+                $"[DivineAscension] AddFeastDay rejected for {fromPlayer.PlayerName}: {code}");
+        }
+    }
+
+    private void OnRemoveFeastDayRequest(IServerPlayer fromPlayer, RemoveFeastDayRequestPacket packet)
+    {
+        var code = _religionManager.TryRemoveCustomFeast(
+            packet.ReligionUID, fromPlayer.PlayerUID, packet.FeastId, _cooldownManager);
+
+        var response = new RemoveFeastDayResponsePacket
+        {
+            Success = code == FeastDayErrorCode.None,
+            ErrorCode = (int)code,
+            FeastId = packet.FeastId
+        };
+        _networkService.SendToPlayer(fromPlayer, response);
+
+        if (response.Success)
+            BroadcastReligionInfoRefresh(packet.ReligionUID);
+    }
+
+    /// <summary>
+    ///     Re-runs the OnPlayerReligionInfoRequest path for every online member
+    ///     of the religion so each one's UI receives an up-to-date snapshot
+    ///     (covers feast list, custom feast count, etc.) without polling.
+    /// </summary>
+    private void BroadcastReligionInfoRefresh(string religionUID)
+    {
+        var religion = _religionManager.GetReligion(religionUID);
+        if (religion == null) return;
+        var members = religion.MemberUIDs;
+        foreach (var member in members)
+        {
+            var player = _worldService.GetPlayerByUID(member);
+            if (player != null)
+                OnPlayerReligionInfoRequest(player, new PlayerReligionInfoRequestPacket());
+        }
     }
 
     #endregion

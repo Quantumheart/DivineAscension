@@ -57,6 +57,8 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
         _clientChannel.SetMessageHandler<EditDescriptionResponsePacket>(OnEditDescriptionResponse);
         _clientChannel.SetMessageHandler<EditMottoResponsePacket>(OnEditMottoResponse);
         _clientChannel.SetMessageHandler<EditFoundingMythResponsePacket>(OnEditFoundingMythResponse);
+        _clientChannel.SetMessageHandler<AddFeastDayResponsePacket>(OnAddFeastDayResponse);
+        _clientChannel.SetMessageHandler<RemoveFeastDayResponsePacket>(OnRemoveFeastDayResponse);
         _clientChannel.SetMessageHandler<BlessingUnlockResponsePacket>(OnBlessingUnlockResponse);
         _clientChannel.SetMessageHandler<UnlearnBlessingResponsePacket>(OnUnlearnBlessingResponse);
         _clientChannel.SetMessageHandler<UnlearnReligionBlessingResponsePacket>(OnUnlearnReligionBlessingResponse);
@@ -213,6 +215,16 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
             _capi?.ShowChatMessage(packet.Message);
         else
             _capi?.ShowChatMessage($"Error: {packet.Message}");
+    }
+
+    private void OnAddFeastDayResponse(AddFeastDayResponsePacket packet)
+    {
+        FeastDayAddCompleted?.Invoke(packet);
+    }
+
+    private void OnRemoveFeastDayResponse(RemoveFeastDayResponsePacket packet)
+    {
+        FeastDayRemoveCompleted?.Invoke(packet);
     }
 
     private void OnSetDeityNameResponse(SetDeityNameResponsePacket packet)
@@ -775,6 +787,32 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     }
 
     /// <summary>
+    ///     Request to add a founder-defined custom feast day (#422).
+    /// </summary>
+    public void RequestAddFeastDay(string religionUID, string name, int month, int day)
+    {
+        if (_clientChannel == null)
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot add feast day: client channel not initialized");
+            return;
+        }
+        _clientChannel.SendPacket(new AddFeastDayRequestPacket(religionUID, name, month, day));
+    }
+
+    /// <summary>
+    ///     Request to remove a founder-defined custom feast day by id (#422).
+    /// </summary>
+    public void RequestRemoveFeastDay(string religionUID, System.Guid feastId)
+    {
+        if (_clientChannel == null)
+        {
+            _capi?.Logger.Error("[DivineAscension] Cannot remove feast day: client channel not initialized");
+            return;
+        }
+        _clientChannel.SendPacket(new RemoveFeastDayRequestPacket(religionUID, feastId));
+    }
+
+    /// <summary>
     ///     Request to edit religion founding myth
     /// </summary>
     public void RequestEditFoundingMyth(string religionUID, string foundingMyth)
@@ -1195,6 +1233,12 @@ public class DivineAscensionNetworkClient : IClientNetworkHandler
     ///     Event fired when religion detail info is received from server
     /// </summary>
     public event Action<ReligionDetailResponsePacket>? ReligionDetailReceived;
+
+    /// <summary>Fired when the server responds to an add-custom-feast request (#422).</summary>
+    public event Action<AddFeastDayResponsePacket>? FeastDayAddCompleted;
+
+    /// <summary>Fired when the server responds to a remove-custom-feast request (#422).</summary>
+    public event Action<RemoveFeastDayResponsePacket>? FeastDayRemoveCompleted;
 
     /// <summary>
     ///     Event fired when civilization list is received from server

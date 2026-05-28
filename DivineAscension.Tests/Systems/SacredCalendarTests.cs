@@ -110,4 +110,131 @@ public class SacredCalendarTests
 
         Assert.Equal(1500, religion.FeastDays[0].LastFiredYear);
     }
+
+    [Fact]
+    public void DeterministicAutoFeastId_StableAcrossCalls_PerReligionAndKind()
+    {
+        var a1 = FeastDay.DeterministicAutoFeastId("religion-A", FeastKind.Founding);
+        var a2 = FeastDay.DeterministicAutoFeastId("religion-A", FeastKind.Founding);
+        var a3 = FeastDay.DeterministicAutoFeastId("religion-A", FeastKind.PatronDomain);
+        var b1 = FeastDay.DeterministicAutoFeastId("religion-B", FeastKind.Founding);
+
+        Assert.Equal(a1, a2);
+        Assert.NotEqual(a1, a3);
+        Assert.NotEqual(a1, b1);
+        Assert.NotEqual(Guid.Empty, a1);
+    }
+
+    [Fact]
+    public void GetUnlockedCustomFeastSlots_RenownedGets1_MythicGets2()
+    {
+        Assert.Equal(0, ReligionManager.GetUnlockedCustomFeastSlots(PrestigeRank.Fledgling));
+        Assert.Equal(0, ReligionManager.GetUnlockedCustomFeastSlots(PrestigeRank.Established));
+        Assert.Equal(1, ReligionManager.GetUnlockedCustomFeastSlots(PrestigeRank.Renowned));
+        Assert.Equal(1, ReligionManager.GetUnlockedCustomFeastSlots(PrestigeRank.Legendary));
+        Assert.Equal(2, ReligionManager.GetUnlockedCustomFeastSlots(PrestigeRank.Mythic));
+    }
+
+    [Fact]
+    public void TryAddCustomFeast_NotFounder_Rejected()
+    {
+        var manager = NewManager();
+        var religion = manager.CreateReligion("Order", DeityDomain.Craft, "Forge", "founder", true);
+        var cooldown = TestFixtures.CreateMockCooldownManager();
+
+        var code = manager.TryAddCustomFeast(religion.ReligionUID, "other-player",
+            "Mid-Year", 3, 1, cooldown.Object, out _);
+
+        Assert.Equal(FeastDayErrorCode.NotFounder, code);
+    }
+
+    [Fact]
+    public void TryAddCustomFeast_EmptyName_Rejected()
+    {
+        var manager = NewManager();
+        var religion = manager.CreateReligion("Order", DeityDomain.Craft, "Forge", "founder", true);
+        var cooldown = TestFixtures.CreateMockCooldownManager();
+
+        var code = manager.TryAddCustomFeast(religion.ReligionUID, "founder",
+            "   ", 3, 1, cooldown.Object, out _);
+
+        Assert.Equal(FeastDayErrorCode.NameEmpty, code);
+    }
+
+    [Fact]
+    public void TryAddCustomFeast_NameTooLong_Rejected()
+    {
+        var manager = NewManager();
+        var religion = manager.CreateReligion("Order", DeityDomain.Craft, "Forge", "founder", true);
+        var cooldown = TestFixtures.CreateMockCooldownManager();
+        var longName = new string('x', 33);
+
+        var code = manager.TryAddCustomFeast(religion.ReligionUID, "founder",
+            longName, 3, 1, cooldown.Object, out _);
+
+        Assert.Equal(FeastDayErrorCode.NameTooLong, code);
+    }
+
+    [Fact]
+    public void TryAddCustomFeast_NoCalendar_RejectedAsInvalidDate()
+    {
+        // Without a calendar, custom feasts are gated out — date validation
+        // can't run, and we don't want to seed feasts blindly.
+        var manager = NewManager();
+        var religion = manager.CreateReligion("Order", DeityDomain.Craft, "Forge", "founder", true);
+        var cooldown = TestFixtures.CreateMockCooldownManager();
+
+        var code = manager.TryAddCustomFeast(religion.ReligionUID, "founder",
+            "Mid-Year", 3, 1, cooldown.Object, out _);
+
+        Assert.Equal(FeastDayErrorCode.InvalidDate, code);
+    }
+
+    [Fact]
+    public void TryRemoveCustomFeast_NotFounder_Rejected()
+    {
+        var manager = NewManager();
+        var religion = manager.CreateReligion("Order", DeityDomain.Craft, "Forge", "founder", true);
+        var cooldown = TestFixtures.CreateMockCooldownManager();
+
+        var code = manager.TryRemoveCustomFeast(religion.ReligionUID, "other-player",
+            Guid.NewGuid(), cooldown.Object);
+
+        Assert.Equal(FeastDayErrorCode.NotFounder, code);
+    }
+
+    [Fact]
+    public void TryRemoveCustomFeast_CannotRemoveAutoFeasts()
+    {
+        var manager = NewManager();
+        var religion = manager.CreateReligion("Order", DeityDomain.Craft, "Forge", "founder", true);
+        var cooldown = TestFixtures.CreateMockCooldownManager();
+        cooldown.Setup(c => c.CanPerformOperation("founder", CooldownType.FeastDayMutation, out It.Ref<string?>.IsAny))
+            .Returns(true);
+
+        // Try to remove the auto Patron feast by its deterministic id.
+        var patronId = FeastDay.DeterministicAutoFeastId(religion.ReligionUID, FeastKind.PatronDomain);
+
+        var code = manager.TryRemoveCustomFeast(religion.ReligionUID, "founder", patronId, cooldown.Object);
+
+        Assert.Equal(FeastDayErrorCode.NotFound, code);
+        // Auto feast still present.
+        Assert.Contains(religion.FeastDays, f => f.Kind == FeastKind.PatronDomain);
+    }
+
+    [Fact]
+    public void BackfillAutoFeastIds_StampsDeterministicIdsOnLegacyAutos()
+    {
+        var manager = NewManager();
+        var religion = manager.CreateReligion("Order", DeityDomain.Craft, "Forge", "founder", true);
+
+        // Simulate a pre-#422 save: clear FeastIds on the auto Patron seed.
+        var legacy = new FeastDay("Old Patron", 2, 1, FeastKind.PatronDomain) { FeastId = Guid.Empty };
+        religion.SetFeastDays(new[] { legacy });
+
+        religion.BackfillAutoFeastIds();
+
+        var expected = FeastDay.DeterministicAutoFeastId(religion.ReligionUID, FeastKind.PatronDomain);
+        Assert.Equal(expected, religion.FeastDays[0].FeastId);
+    }
 }

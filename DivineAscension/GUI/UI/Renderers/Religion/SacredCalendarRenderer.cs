@@ -5,6 +5,7 @@ using System.Numerics;
 using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Models.Religion.SacredCalendar;
+using DivineAscension.GUI.UI.Components.Buttons;
 using DivineAscension.GUI.UI.Components.Lists;
 using DivineAscension.GUI.UI.Renderers.Utilities;
 using DivineAscension.GUI.UI.Utilities;
@@ -105,19 +106,167 @@ internal static class SacredCalendarRenderer
             var countdown = FormatCountdown(feast.DaysUntil);
             var rowLabel = $"{feast.Name}  ·  {date}";
             ChromeRenderer.DrawLeader(drawList, rowLabel, countdown, x, currentY, contentWidth);
+
+            // Founder gets a trash control to the right of custom feasts only.
+            // Auto Founding/Patron are never removable.
+            if (vm.IsFounder && (int)feast.Kind == (int)DivineAscension.Models.Enum.FeastKind.Custom)
+            {
+                var btnSize = 18f;
+                var btnX = x + contentWidth - btnSize;
+                if (ButtonRenderer.DrawButton(drawList, "×", btnX, currentY - 2f, btnSize, btnSize,
+                        isPrimary: false, enabled: true))
+                {
+                    events.Add(new SacredCalendarEvent.RemoveRequested(feast.FeastId, feast.Name));
+                }
+            }
+
             currentY += RowHeight;
+        }
+
+        // Founder controls under the list: Add button / Add form / cap notice
+        if (vm.IsFounder)
+        {
+            currentY += 6f;
+            currentY = DrawFounderControls(vm, drawList, events, x, currentY, contentWidth);
         }
 
         currentY = DrawDivider(drawList, x, currentY, contentWidth);
         currentY += ClosingLineTopSpacing;
         DrawClosingLine(drawList, x, currentY, contentWidth);
 
+        // Error banner + Remove confirm popup, drawn outside the clip so they
+        // overlay the chapter cleanly.
         drawList.PopClipRect();
 
         if (maxScroll > 0f)
             Scrollbar.Draw(drawList, x + width - ScrollbarWidth, y, ScrollbarWidth, height, scrollY, maxScroll);
 
+        if (vm.LastErrorMessage != null)
+            DrawErrorBanner(vm, drawList, events, x, y, width);
+
+        if (vm.RemoveConfirmFeastId.HasValue)
+            DrawRemoveConfirm(vm, drawList, events, x, y, width, height);
+
         return new SacredCalendarRenderResult(events, height);
+    }
+
+    private static float DrawFounderControls(SacredCalendarViewModel vm, ImDrawListPtr drawList,
+        List<SacredCalendarEvent> events, float x, float y, float width)
+    {
+        var loc = LocalizationService.Instance;
+        var currentY = y;
+
+        if (!vm.AddDialogOpen)
+        {
+            if (vm.AtCap)
+            {
+                TextRenderer.DrawInfoText(drawList, loc.Get(LocalizationKeys.UI_FEASTDAY_CAP),
+                    x, currentY, width, Secondary, ColorPalette.Grey);
+                return currentY + RowHeight;
+            }
+            if (vm.CustomCount >= vm.UnlockedSlots)
+            {
+                TextRenderer.DrawInfoText(drawList, loc.Get(LocalizationKeys.UI_FEASTDAY_LOCKED),
+                    x, currentY, width, Secondary, ColorPalette.Grey);
+                return currentY + RowHeight;
+            }
+            var addLabel = loc.Get(LocalizationKeys.UI_FEASTDAY_ADD);
+            if (ButtonRenderer.DrawButton(drawList, addLabel, x, currentY, 160f, 22f,
+                    isPrimary: true, enabled: true))
+            {
+                events.Add(new SacredCalendarEvent.AddDialogOpened());
+            }
+            return currentY + RowHeight + 4f;
+        }
+
+        // Inline editor: name field, month spinner, day spinner, Add/Cancel
+        var fieldHeight = 22f;
+        ImGui.SetCursorScreenPos(new Vector2(x, currentY));
+        ImGui.PushItemWidth(width - 8f);
+        var name = vm.AddName ?? string.Empty;
+        if (ImGui.InputTextWithHint("##feastname", loc.Get(LocalizationKeys.UI_FEASTDAY_NAME_PLACEHOLDER),
+                ref name, 32))
+        {
+            events.Add(new SacredCalendarEvent.AddNameChanged(name));
+        }
+        ImGui.PopItemWidth();
+        currentY += fieldHeight + 4f;
+
+        var monthMax = Math.Max(1, vm.MonthsPerYear);
+        var dayMax = Math.Max(1, vm.DaysPerMonth);
+
+        ImGui.SetCursorScreenPos(new Vector2(x, currentY));
+        ImGui.PushItemWidth((width - 16f) / 2f);
+        var month = Math.Clamp(vm.AddMonth, 1, monthMax);
+        if (ImGui.SliderInt($"{loc.Get(LocalizationKeys.UI_FEASTDAY_MONTH)}##feastmonth",
+                ref month, 1, monthMax))
+        {
+            events.Add(new SacredCalendarEvent.AddMonthChanged(month));
+        }
+        ImGui.SameLine(0f, 8f);
+        var day = Math.Clamp(vm.AddDay, 1, dayMax);
+        if (ImGui.SliderInt($"{loc.Get(LocalizationKeys.UI_FEASTDAY_DAY)}##feastday",
+                ref day, 1, dayMax))
+        {
+            events.Add(new SacredCalendarEvent.AddDayChanged(day));
+        }
+        ImGui.PopItemWidth();
+        currentY += fieldHeight + 4f;
+
+        var canSubmit = !string.IsNullOrWhiteSpace(name);
+        if (ButtonRenderer.DrawButton(drawList, loc.Get(LocalizationKeys.UI_FEASTDAY_SUBMIT),
+                x, currentY, 80f, 22f, isPrimary: true, enabled: canSubmit))
+        {
+            events.Add(new SacredCalendarEvent.AddSubmitted(name.Trim(), month, day));
+        }
+        if (ButtonRenderer.DrawButton(drawList, loc.Get(LocalizationKeys.UI_FEASTDAY_CANCEL),
+                x + 88f, currentY, 80f, 22f, isPrimary: false, enabled: true))
+        {
+            events.Add(new SacredCalendarEvent.AddDialogCancel());
+        }
+        return currentY + fieldHeight + 6f;
+    }
+
+    private static void DrawErrorBanner(SacredCalendarViewModel vm, ImDrawListPtr drawList,
+        List<SacredCalendarEvent> events, float x, float y, float width)
+    {
+        var msg = vm.LastErrorMessage ?? string.Empty;
+        DivineAscension.GUI.UI.Components.Banners.ErrorBannerRenderer.Draw(drawList,
+            x, y, width, msg, out _, out var dismissClicked, showRetry: false);
+        if (dismissClicked) events.Add(new SacredCalendarEvent.DismissError());
+    }
+
+    private static void DrawRemoveConfirm(SacredCalendarViewModel vm, ImDrawListPtr drawList,
+        List<SacredCalendarEvent> events, float x, float y, float width, float height)
+    {
+        var loc = LocalizationService.Instance;
+        var prompt = loc.Get(LocalizationKeys.UI_FEASTDAY_REMOVE_CONFIRM,
+            vm.RemoveConfirmFeastName ?? string.Empty);
+
+        var boxW = Math.Min(360f, width - 40f);
+        var boxH = 110f;
+        var boxX = x + (width - boxW) / 2f;
+        var boxY = y + (height - boxH) / 2f;
+
+        drawList.AddRectFilled(new Vector2(boxX, boxY), new Vector2(boxX + boxW, boxY + boxH),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.TableBackground), 4f);
+        drawList.AddRect(new Vector2(boxX, boxY), new Vector2(boxX + boxW, boxY + boxH),
+            ImGui.ColorConvertFloat4ToU32(ColorPalette.Gold * 0.6f), 4f);
+
+        TextRenderer.DrawInfoText(drawList, prompt,
+            boxX + 12f, boxY + 12f, boxW - 24f, Body, ColorPalette.White);
+
+        var btnY = boxY + boxH - 32f;
+        if (ButtonRenderer.DrawButton(drawList, loc.Get(LocalizationKeys.UI_FEASTDAY_SUBMIT),
+                boxX + boxW - 176f, btnY, 80f, 22f, isPrimary: true, enabled: true))
+        {
+            events.Add(new SacredCalendarEvent.RemoveConfirmed(vm.RemoveConfirmFeastId!.Value));
+        }
+        if (ButtonRenderer.DrawButton(drawList, loc.Get(LocalizationKeys.UI_FEASTDAY_CANCEL),
+                boxX + boxW - 88f, btnY, 80f, 22f, isPrimary: false, enabled: true))
+        {
+            events.Add(new SacredCalendarEvent.RemoveCancel());
+        }
     }
 
     private static float DrawIntro(ImDrawListPtr drawList, float x, float y, float width)
