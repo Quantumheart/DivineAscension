@@ -54,7 +54,6 @@ public class LysaBlessingTests
 
         // Verify stat modifiers
         Assert.Equal(0.20f, t2a.StatModifiers[VintageStoryStats.ForageDropRate], 3);
-        Assert.Equal(0.20f, t2a.StatModifiers[VintageStoryStats.WildCropYield], 3);
         Assert.Equal(0.15f, t2a.StatModifiers[VintageStoryStats.FoodSpoilage], 3);
 
         // Verify requires T1

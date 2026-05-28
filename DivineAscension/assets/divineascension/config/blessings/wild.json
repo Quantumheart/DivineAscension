@@ -25,7 +25,7 @@
     {
       "blessingId": "lysa_master_forager",
       "name": "Master Forager",
-      "description": "+20% forage drops (total: 35%), +20% wild crop drop rate, food spoils 15% slower. Requires Hunter's Instinct.",
+      "description": "+20% forage drops (total: 35%), food spoils 15% slower. Requires Hunter's Instinct.",
       "kind": "Player",
       "category": "Utility",
       "iconName": "fruit-bowl",
@@ -34,7 +34,6 @@
       "prerequisiteBlessings": ["lysa_hunters_instinct"],
       "statModifiers": {
         "forageDropRate": 0.20,
-        "wildCropDropRate": 0.20,
         "foodSpoilage": 0.15
       },
       "specialEffects": ["food_spoilage_reduction"],

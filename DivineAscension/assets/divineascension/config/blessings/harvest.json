@@ -5,7 +5,7 @@
     {
       "blessingId": "aethra_suns_blessing",
       "name": "Sun's Blessing",
-      "description": "Light brings life and growth. +12% crop yield, +10% satiety from all food, +3C heat resistance, light sources provide +1C warmth radius.",
+      "description": "Light brings life and growth. +12% crop yield, +10% satiety from all food, light sources provide +1C warmth radius.",
       "kind": "Player",
       "category": "Utility",
       "iconName": "sunrise",
@@ -14,8 +14,7 @@
       "prerequisiteBlessings": [],
       "statModifiers": {
         "cropYield": 0.12,
-        "satiety": 0.10,
-        "heatResistance": 3.0
+        "satiety": 0.10
       },
       "specialEffects": ["light_warmth_bonus"],
       "cost": 50,
@@ -45,7 +44,7 @@
     {
       "blessingId": "aethra_bakers_touch",
       "name": "Baker's Touch",
-      "description": "Master the art of food preparation. Cooking/baking yields +25% more food, +15% satiety from cooked food, food spoils 20% slower, +5C heat resistance. Food preparation path. Requires Sun's Blessing.",
+      "description": "Master the art of food preparation. Cooking/baking yields +25% more food, +15% satiety from cooked food, food spoils 20% slower. Food preparation path. Requires Sun's Blessing.",
       "kind": "Player",
       "category": "Utility",
       "iconName": "sliced-bread",
@@ -55,8 +54,7 @@
       "statModifiers": {
         "cookingYield": 0.25,
         "cookedFoodSatiety": 0.15,
-        "foodSpoilage": 0.20,
-        "heatResistance": 5.0
+        "foodSpoilage": 0.20
       },
       "specialEffects": ["food_spoilage_reduction"],
       "cost": 150,
@@ -66,7 +64,7 @@
     {
       "blessingId": "aethra_master_farmer",
       "name": "Master Farmer",
-      "description": "Achieve ultimate farming mastery. +20% crop yield, +18% satiety from crops, crops have 25% chance for bonus seeds, +30% chance to find rare crop variants, wild crops give +40% yield. Requires Bountiful Harvest.",
+      "description": "Achieve ultimate farming mastery. +20% crop yield, +18% satiety from crops, crops have 25% chance for bonus seeds, +30% chance to find rare crop variants. Requires Bountiful Harvest.",
       "kind": "Player",
       "category": "Utility",
       "iconName": "farmer",
@@ -76,8 +74,7 @@
       "statModifiers": {
         "cropYield": 0.20,
         "seedDropChance": 0.25,
-        "rareCropChance": 0.30,
-        "wildCropDropRate": 0.40
+        "rareCropChance": 0.30
       },
       "specialEffects": ["rare_crop_discovery"],
       "cost": 400,
@@ -87,7 +84,7 @@
     {
       "blessingId": "aethra_divine_kitchen",
       "name": "Divine Kitchen",
-      "description": "Create incredibly nutritious meals. Cooking yields +35% more, +25% satiety from cooked food, food spoils 30% slower, +7C heat resistance, meals provide temporary +5% max health buff. Requires Baker's Touch.",
+      "description": "Create incredibly nutritious meals. Cooking yields +35% more, +25% satiety from cooked food, food spoils 30% slower, meals provide temporary +5% max health buff. Requires Baker's Touch.",
       "kind": "Player",
       "category": "Utility",
       "iconName": "cooking-pot",
@@ -97,8 +94,7 @@
       "statModifiers": {
         "cookingYield": 0.35,
         "cookedFoodSatiety": 0.25,
-        "foodSpoilage": 0.30,
-        "heatResistance": 7.0
+        "foodSpoilage": 0.30
       },
       "specialEffects": ["temp_health_buff_5", "food_spoilage_reduction"],
       "cost": 400,
@@ -167,7 +163,7 @@
     {
       "blessingId": "aethra_land_of_plenty",
       "name": "Land of Plenty",
-      "description": "Your land becomes legendary for its bounty. +22% crop yield, +18% satiety from all food, food spoils 18% slower, +5C heat resistance for all. Requires Harvest Festival.",
+      "description": "Your land becomes legendary for its bounty. +22% crop yield, +18% satiety from all food, food spoils 18% slower for all. Requires Harvest Festival.",
       "kind": "Religion",
       "category": "Utility",
       "iconName": "field",
@@ -177,8 +173,7 @@
       "statModifiers": {
         "cropYield": 0.22,
         "satiety": 0.18,
-        "foodSpoilage": 0.18,
-        "heatResistance": 5.0
+        "foodSpoilage": 0.18
       },
       "specialEffects": [],
       "cost": 4000,
@@ -188,7 +183,7 @@
     {
       "blessingId": "aethra_pantheon_of_light",
       "name": "Pantheon of Light",
-      "description": "Your religion becomes the source of endless bounty. +30% crop yield, +20% satiety from all food, food spoils 25% slower, +8C heat resistance, religion can build Sacred Granary for all. Requires Land of Plenty.",
+      "description": "Your religion becomes the source of endless bounty. +30% crop yield, +20% satiety from all food, food spoils 25% slower, religion can build Sacred Granary for all. Requires Land of Plenty.",
       "kind": "Religion",
       "category": "Utility",
       "iconName": "sun",
@@ -198,8 +193,7 @@
       "statModifiers": {
         "cropYield": 0.30,
         "satiety": 0.20,
-        "foodSpoilage": 0.25,
-        "heatResistance": 8.0
+        "foodSpoilage": 0.25
       },
       "specialEffects": ["sacred_granary"],
       "cost": 8000,
