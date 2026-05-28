@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DivineAscension.Constants;
 using DivineAscension.GUI.Events.Religion;
 using DivineAscension.GUI.Interfaces;
 using DivineAscension.GUI.Models.Religion.Activity;
@@ -722,24 +723,148 @@ public class ReligionStateManager : IReligionStateManager
         if (religion == null && !State.InfoState.Loading)
             RequestPlayerReligionInfo();
 
+        var editor = State.InfoState.SacredCalendar;
+        var feasts = religion?.FeastDays ?? new List<PlayerReligionInfoResponsePacket.FeastDayDto>();
+        var customCount = feasts.Count(f => f.Kind == (int)FeastKind.Custom);
+        var unlockedSlots = ResolveUnlockedFeastSlots(religion);
+
         var vm = new SacredCalendarViewModel(
             isLoading: State.InfoState.Loading,
             hasReligion: religion != null && religion.HasReligion,
+            isFounder: religion?.IsFounder ?? false,
+            religionUID: religion?.ReligionUID ?? string.Empty,
             religionName: religion?.ReligionName ?? string.Empty,
             deity: religion?.Domain ?? string.Empty,
-            feasts: religion?.FeastDays ?? new List<PlayerReligionInfoResponsePacket.FeastDayDto>(),
+            feasts: feasts,
             daysPerMonth: religion?.DaysPerMonth ?? 0,
             monthsPerYear: religion?.MonthsPerYear ?? 0,
             currentMonth: religion?.CurrentMonth ?? 0,
             currentDay: religion?.CurrentDay ?? 0,
+            customCount: customCount,
+            unlockedSlots: unlockedSlots,
+            addDialogOpen: editor.AddDialogOpen,
+            addName: editor.AddName,
+            addMonth: editor.AddMonth,
+            addDay: editor.AddDay,
+            removeConfirmFeastId: editor.RemoveConfirmFeastId,
+            removeConfirmFeastName: editor.RemoveConfirmFeastName,
+            lastErrorMessage: editor.LastErrorMessage,
             x: x, y: y, width: width, height: height,
             scrollY: State.InfoState.SacredCalendarScrollY);
 
         var drawList = ImGui.GetWindowDrawList();
         var result = SacredCalendarRenderer.Draw(vm, drawList);
-        foreach (var ev in result.Events)
-            if (ev is SacredCalendarEvent.ScrollChanged sc)
-                State.InfoState.SacredCalendarScrollY = sc.NewScrollY;
+        ProcessSacredCalendarEvents(result.Events, religion);
+    }
+
+    private static int ResolveUnlockedFeastSlots(PlayerReligionInfoResponsePacket? religion)
+    {
+        if (religion == null) return 0;
+        return religion.PrestigeRank switch
+        {
+            "Mythic" => 2,
+            "Renowned" or "Legendary" => 1,
+            _ => 0
+        };
+    }
+
+    private void ProcessSacredCalendarEvents(IReadOnlyList<SacredCalendarEvent> events,
+        PlayerReligionInfoResponsePacket? religion)
+    {
+        var editor = State.InfoState.SacredCalendar;
+        foreach (var ev in events)
+        {
+            switch (ev)
+            {
+                case SacredCalendarEvent.ScrollChanged sc:
+                    State.InfoState.SacredCalendarScrollY = sc.NewScrollY;
+                    break;
+                case SacredCalendarEvent.AddDialogOpened:
+                    editor.AddDialogOpen = true;
+                    editor.AddName = string.Empty;
+                    editor.AddMonth = Math.Max(1, religion?.CurrentMonth ?? 1);
+                    editor.AddDay = Math.Max(1, religion?.CurrentDay ?? 1);
+                    editor.LastErrorMessage = null;
+                    break;
+                case SacredCalendarEvent.AddDialogCancel:
+                    editor.AddDialogOpen = false;
+                    editor.AddName = string.Empty;
+                    break;
+                case SacredCalendarEvent.AddNameChanged nc:
+                    editor.AddName = nc.NewName ?? string.Empty;
+                    break;
+                case SacredCalendarEvent.AddMonthChanged mc:
+                    editor.AddMonth = mc.NewMonth;
+                    break;
+                case SacredCalendarEvent.AddDayChanged dc:
+                    editor.AddDay = dc.NewDay;
+                    break;
+                case SacredCalendarEvent.AddSubmitted add:
+                    if (!string.IsNullOrWhiteSpace(religion?.ReligionUID))
+                        _uiService.RequestAddFeastDay(religion!.ReligionUID, add.Name, add.Month, add.Day);
+                    break;
+                case SacredCalendarEvent.RemoveRequested rr:
+                    editor.RemoveConfirmFeastId = rr.FeastId;
+                    editor.RemoveConfirmFeastName = rr.Name;
+                    break;
+                case SacredCalendarEvent.RemoveCancel:
+                    editor.RemoveConfirmFeastId = null;
+                    editor.RemoveConfirmFeastName = null;
+                    break;
+                case SacredCalendarEvent.RemoveConfirmed rc:
+                    if (!string.IsNullOrWhiteSpace(religion?.ReligionUID))
+                        _uiService.RequestRemoveFeastDay(religion!.ReligionUID, rc.FeastId);
+                    editor.RemoveConfirmFeastId = null;
+                    editor.RemoveConfirmFeastName = null;
+                    break;
+                case SacredCalendarEvent.DismissError:
+                    editor.LastErrorMessage = null;
+                    break;
+            }
+        }
+    }
+
+    /// <summary>Hooked from <c>DivineAscensionNetworkClient.FeastDayAddCompleted</c>.</summary>
+    public void OnFeastDayAddCompleted(AddFeastDayResponsePacket packet)
+    {
+        var editor = State.InfoState.SacredCalendar;
+        if (packet.Success)
+        {
+            editor.AddDialogOpen = false;
+            editor.AddName = string.Empty;
+            editor.LastErrorMessage = null;
+        }
+        else
+        {
+            editor.LastErrorMessage = ResolveFeastDayErrorMessage(packet.ErrorCode);
+        }
+    }
+
+    /// <summary>Hooked from <c>DivineAscensionNetworkClient.FeastDayRemoveCompleted</c>.</summary>
+    public void OnFeastDayRemoveCompleted(RemoveFeastDayResponsePacket packet)
+    {
+        var editor = State.InfoState.SacredCalendar;
+        editor.LastErrorMessage = packet.Success ? null : ResolveFeastDayErrorMessage(packet.ErrorCode);
+    }
+
+    private static string ResolveFeastDayErrorMessage(int errorCode)
+    {
+        var key = (FeastDayErrorCode)errorCode switch
+        {
+            FeastDayErrorCode.UnknownReligion => LocalizationKeys.FEASTDAY_ERR_UNKNOWN_RELIGION,
+            FeastDayErrorCode.NotFounder => LocalizationKeys.FEASTDAY_ERR_NOT_FOUNDER,
+            FeastDayErrorCode.NameEmpty => LocalizationKeys.FEASTDAY_ERR_NAME_EMPTY,
+            FeastDayErrorCode.NameTooLong => LocalizationKeys.FEASTDAY_ERR_NAME_TOO_LONG,
+            FeastDayErrorCode.NameProfanity => LocalizationKeys.FEASTDAY_ERR_NAME_PROFANITY,
+            FeastDayErrorCode.InvalidDate => LocalizationKeys.FEASTDAY_ERR_INVALID_DATE,
+            FeastDayErrorCode.PrestigeLocked => LocalizationKeys.FEASTDAY_ERR_PRESTIGE_LOCKED,
+            FeastDayErrorCode.OnCooldown => LocalizationKeys.FEASTDAY_ERR_ON_COOLDOWN,
+            FeastDayErrorCode.TooCloseToExistingFeast => LocalizationKeys.FEASTDAY_ERR_TOO_CLOSE,
+            FeastDayErrorCode.CapReached => LocalizationKeys.FEASTDAY_ERR_CAP_REACHED,
+            FeastDayErrorCode.NotFound => LocalizationKeys.FEASTDAY_ERR_NOT_FOUND,
+            _ => LocalizationKeys.FEASTDAY_ERR_UNKNOWN_RELIGION
+        };
+        return LocalizationService.Instance.Get(key);
     }
 
     private void ProcessRosterEvents(IReadOnlyList<RosterEvent> events)

@@ -76,6 +76,16 @@ public class UiService(DivineAscensionNetworkClient networkClient)
         _networkClient.SendSetDeityNameRequest(religionUID, newDeityName);
     }
 
+    public void RequestAddFeastDay(string religionUID, string name, int month, int day)
+    {
+        _networkClient.RequestAddFeastDay(religionUID, name, month, day);
+    }
+
+    public void RequestRemoveFeastDay(string religionUID, System.Guid feastId)
+    {
+        _networkClient.RequestRemoveFeastDay(religionUID, feastId);
+    }
+
     public void RequestReligionDetail(string religionUID)
     {
         _networkClient.RequestReligionDetail(religionUID);

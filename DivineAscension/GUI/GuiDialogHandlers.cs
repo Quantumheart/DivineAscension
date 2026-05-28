@@ -504,6 +504,16 @@ public partial class GuiDialog
         _manager.UpdateCivilizationReligionState();
     }
 
+    private void OnFeastDayAddCompleted(AddFeastDayResponsePacket packet)
+    {
+        _manager?.ReligionStateManager.OnFeastDayAddCompleted(packet);
+    }
+
+    private void OnFeastDayRemoveCompleted(RemoveFeastDayResponsePacket packet)
+    {
+        _manager?.ReligionStateManager.OnFeastDayRemoveCompleted(packet);
+    }
+
     /// <summary>
     ///     Handle deity name change response
     /// </summary>

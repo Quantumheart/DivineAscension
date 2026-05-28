@@ -344,6 +344,126 @@ public class ReligionManager : IReligionManager
         }
     }
 
+    /// <summary>Hard cap on custom feasts per religion (#422).</summary>
+    public const int MaxCustomFeasts = 2;
+
+    /// <summary>
+    ///     Minimum in-game day spacing between any two feasts on the same
+    ///     religion's calendar (#422). Prevents reshuffling abuse: vacating
+    ///     a feast leaves an exclusion zone of this radius around it.
+    /// </summary>
+    public const int MinFeastSpacingDays = 5;
+
+    /// <summary>
+    ///     Custom feast slots unlock as the religion ranks up (#422):
+    ///     slot 1 at Renowned, slot 2 at Mythic. Returns the number of
+    ///     unlocked slots (0, 1, or 2).
+    /// </summary>
+    public static int GetUnlockedCustomFeastSlots(PrestigeRank rank)
+    {
+        return rank switch
+        {
+            PrestigeRank.Mythic => 2,
+            PrestigeRank.Renowned or PrestigeRank.Legendary => 1,
+            _ => 0
+        };
+    }
+
+    /// <summary>
+    ///     Validates and appends a founder-defined custom feast day (#422).
+    ///     <paramref name="cooldownManager"/> is passed in to avoid a circular
+    ///     dependency at construction.
+    /// </summary>
+    public FeastDayErrorCode TryAddCustomFeast(
+        string religionUID,
+        string requesterUID,
+        string name,
+        int month,
+        int day,
+        ICooldownManager cooldownManager,
+        out FeastDay? created)
+    {
+        created = null;
+        if (!_religions.TryGetValue(religionUID, out var religion)) return FeastDayErrorCode.UnknownReligion;
+        if (!religion.IsFounder(requesterUID)) return FeastDayErrorCode.NotFounder;
+
+        var trimmed = name?.Trim() ?? string.Empty;
+        if (trimmed.Length == 0) return FeastDayErrorCode.NameEmpty;
+        if (trimmed.Length > 32) return FeastDayErrorCode.NameTooLong;
+        if (ProfanityFilterService.Instance.ContainsProfanity(trimmed)) return FeastDayErrorCode.NameProfanity;
+
+        // Date bounds: month in 1..MonthsPerYear, day in 1..DaysPerMonth.
+        // Calendar may be unavailable in early init / tests — reject rather
+        // than guess, since custom feasts only make sense with a live calendar.
+        IGameCalendar? calendar;
+        try { calendar = _worldService.Calendar; }
+        catch { calendar = null; }
+        if (calendar == null || calendar.DaysPerMonth <= 0) return FeastDayErrorCode.InvalidDate;
+        var monthsPerYear = calendar.DaysPerYear > 0 && calendar.DaysPerMonth > 0
+            ? calendar.DaysPerYear / calendar.DaysPerMonth
+            : 12;
+        if (month < 1 || month > monthsPerYear) return FeastDayErrorCode.InvalidDate;
+        if (day < 1 || day > calendar.DaysPerMonth) return FeastDayErrorCode.InvalidDate;
+
+        if (GetUnlockedCustomFeastSlots(religion.PrestigeRank) <= religion.GetCustomFeastCount())
+        {
+            return religion.GetCustomFeastCount() >= MaxCustomFeasts
+                ? FeastDayErrorCode.CapReached
+                : FeastDayErrorCode.PrestigeLocked;
+        }
+
+        if (!cooldownManager.CanPerformOperation(requesterUID, CooldownType.FeastDayMutation, out _))
+            return FeastDayErrorCode.OnCooldown;
+
+        // No-cluster: reject if within MinFeastSpacingDays of any existing
+        // feast on this calendar. Distance is the shorter arc around the
+        // year so a feast near month boundaries still measures correctly.
+        var daysPerYear = monthsPerYear * calendar.DaysPerMonth;
+        var proposedDayOfYear = (month - 1) * calendar.DaysPerMonth + (day - 1);
+        foreach (var existing in religion.FeastDays)
+        {
+            var existingDay = Math.Min(existing.Day, calendar.DaysPerMonth);
+            var existingDayOfYear = (existing.Month - 1) * calendar.DaysPerMonth + (existingDay - 1);
+            var diff = Math.Abs(proposedDayOfYear - existingDayOfYear);
+            var arc = Math.Min(diff, daysPerYear - diff);
+            if (arc < MinFeastSpacingDays) return FeastDayErrorCode.TooCloseToExistingFeast;
+        }
+
+        var feast = new FeastDay(Guid.NewGuid(), trimmed, month, day, FeastKind.Custom);
+        religion.AddCustomFeast(feast);
+        cooldownManager.RecordOperation(requesterUID, CooldownType.FeastDayMutation);
+        SaveAllReligions();
+        created = feast;
+        _logger.Notification(
+            $"[DivineAscension] Custom feast added to {religion.ReligionName}: {trimmed} ({month}/{day})");
+        return FeastDayErrorCode.None;
+    }
+
+    /// <summary>
+    ///     Validates and removes a founder-defined custom feast by id (#422).
+    ///     Auto Founding/Patron feasts are never removable through this path.
+    /// </summary>
+    public FeastDayErrorCode TryRemoveCustomFeast(
+        string religionUID,
+        string requesterUID,
+        Guid feastId,
+        ICooldownManager cooldownManager)
+    {
+        if (!_religions.TryGetValue(religionUID, out var religion)) return FeastDayErrorCode.UnknownReligion;
+        if (!religion.IsFounder(requesterUID)) return FeastDayErrorCode.NotFounder;
+        if (!cooldownManager.CanPerformOperation(requesterUID, CooldownType.FeastDayMutation, out _))
+            return FeastDayErrorCode.OnCooldown;
+
+        var removed = religion.RemoveCustomFeastById(feastId);
+        if (removed == null) return FeastDayErrorCode.NotFound;
+
+        cooldownManager.RecordOperation(requesterUID, CooldownType.FeastDayMutation);
+        SaveAllReligions();
+        _logger.Notification(
+            $"[DivineAscension] Custom feast removed from {religion.ReligionName}: {removed.Name}");
+        return FeastDayErrorCode.None;
+    }
+
     /// <inheritdoc />
     public void RecordCivilizationLeft(string religionUID, string civName, string? civId)
     {
@@ -852,6 +972,7 @@ public class ReligionManager : IReligionManager
             // day of founding" is awkward, and the ticker condition
             // `Year > LastFiredYear` makes this just a stamp at seed time.
             feasts.Add(new FeastDay(
+                FeastDay.DeterministicAutoFeastId(religion.ReligionUID, FeastKind.Founding),
                 Services.LocalizationService.Instance.Get(LocalizationKeys.FEAST_FOUNDING_NAME),
                 month, day, FeastKind.Founding)
             {
@@ -873,6 +994,7 @@ public class ReligionManager : IReligionManager
             if (patronKey != null)
             {
                 feasts.Add(new FeastDay(
+                    FeastDay.DeterministicAutoFeastId(religion.ReligionUID, FeastKind.PatronDomain),
                     Services.LocalizationService.Instance.Get(patronKey),
                     patron.Month, patron.Day, FeastKind.PatronDomain));
             }
@@ -1100,6 +1222,12 @@ public class ReligionManager : IReligionManager
 
                 // Migrate religions without DeityName (pre-v3.3.0 data)
                 MigrateReligionsWithoutDeityName();
+
+                // Backfill FeastId on auto feasts from pre-#422 saves so the
+                // id-based remove flow has a stable target. No-op for fresh
+                // religions whose autos already have deterministic ids.
+                foreach (var religion in _religions.Values)
+                    religion.BackfillAutoFeastIds();
 
                 _logger.Notification($"[DivineAscension] Loaded {_religions.Count} religions");
             }

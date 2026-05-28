@@ -89,6 +89,8 @@ public class PlayerReligionInfoResponsePacket
         [ProtoMember(4)] public int Kind { get; set; }
         /// <summary>Pre-computed days until the next occurrence (0 = today).</summary>
         [ProtoMember(5)] public int DaysUntil { get; set; }
+        /// <summary>Stable id for remove operations (#422).</summary>
+        [ProtoMember(6)] public System.Guid FeastId { get; set; }
     }
 
     /// <summary>

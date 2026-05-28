@@ -79,6 +79,14 @@ public class ModConfigData
     public int WarDeclarationCooldown { get; set; } = 60;
 
     /// <summary>
+    ///     Cooldown duration in seconds for adding or removing a custom feast
+    ///     day (#422). Default: 1 real-world day (86 400 s) — feasts are
+    ///     deliberately sticky on the calendar.
+    /// </summary>
+    [ProtoMember(12)]
+    public int FeastDayMutationCooldown { get; set; } = 86_400;
+
+    /// <summary>
     ///     Persisted UI preferences (window size, sidebar collapsed state, last nav, etc.).
     /// </summary>
     [ProtoMember(11)]

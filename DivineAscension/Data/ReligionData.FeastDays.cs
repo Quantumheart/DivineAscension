@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DivineAscension.Models;
+using DivineAscension.Models.Enum;
 using ProtoBuf;
 
 namespace DivineAscension.Data;
@@ -63,11 +65,75 @@ public partial class ReligionData
     {
         lock (Lock)
         {
+            // Match by FeastId when both have one (post-#422); fall back to
+            // legacy key for entries still carrying Guid.Empty (autos from
+            // #535 saves that pre-date the FeastId field).
             var stored = _feastDays.FirstOrDefault(f =>
-                f.Kind == feast.Kind && f.Month == feast.Month && f.Day == feast.Day && f.Name == feast.Name);
+                feast.FeastId != Guid.Empty && f.FeastId == feast.FeastId)
+                ?? _feastDays.FirstOrDefault(f =>
+                    f.Kind == feast.Kind && f.Month == feast.Month && f.Day == feast.Day && f.Name == feast.Name);
             if (stored == null || stored.LastFiredYear >= year) return false;
             stored.LastFiredYear = year;
             return true;
+        }
+    }
+
+    /// <summary>
+    ///     Number of Custom feasts currently on this religion's calendar
+    ///     (#422). Auto Founding/Patron don't count toward the cap.
+    /// </summary>
+    public int GetCustomFeastCount()
+    {
+        lock (Lock)
+        {
+            return _feastDays.Count(f => f.Kind == FeastKind.Custom);
+        }
+    }
+
+    /// <summary>
+    ///     Appends a custom feast. Caller is responsible for all validation
+    ///     (cap, prestige, spacing, name) — this is just the persistence hook.
+    /// </summary>
+    public void AddCustomFeast(FeastDay feast)
+    {
+        if (feast == null) return;
+        lock (Lock)
+        {
+            _feastDays.Add(feast);
+        }
+    }
+
+    /// <summary>
+    ///     Removes the custom feast with the given id. Returns the removed
+    ///     entry on success, or null if no Custom feast with that id exists.
+    ///     Auto feasts can never be removed via this method.
+    /// </summary>
+    public FeastDay? RemoveCustomFeastById(Guid feastId)
+    {
+        lock (Lock)
+        {
+            var idx = _feastDays.FindIndex(f => f.Kind == FeastKind.Custom && f.FeastId == feastId);
+            if (idx < 0) return null;
+            var removed = _feastDays[idx];
+            _feastDays.RemoveAt(idx);
+            return removed;
+        }
+    }
+
+    /// <summary>
+    ///     Backfills <see cref="FeastDay.FeastId"/> on auto feasts loaded from
+    ///     pre-#422 saves so the new id-based remove path stays consistent.
+    /// </summary>
+    public void BackfillAutoFeastIds()
+    {
+        lock (Lock)
+        {
+            foreach (var feast in _feastDays)
+            {
+                if (feast.FeastId != Guid.Empty) continue;
+                if (feast.Kind == FeastKind.Custom) continue;
+                feast.FeastId = FeastDay.DeterministicAutoFeastId(ReligionUID, feast.Kind);
+            }
         }
     }
 }

@@ -216,6 +216,7 @@ public class CooldownManager : ICooldownManager
             CooldownType.ReligionCreation => _config.ReligionCreationCooldown,
             CooldownType.Proposal => _config.ProposalCooldown,
             CooldownType.WarDeclaration => _config.WarDeclarationCooldown,
+            CooldownType.FeastDayMutation => _config.FeastDayMutationCooldown,
             _ => throw new ArgumentOutOfRangeException(nameof(cooldownType), cooldownType, "Unknown cooldown type")
         };
     }

@@ -147,6 +147,8 @@ public partial class GuiDialog : ModSystem
             _divineAscensionModSystem.NetworkClient.RoleDeleted += OnRoleDeleted;
             _divineAscensionModSystem.NetworkClient.FounderTransferred += OnFounderTransferred;
             _divineAscensionModSystem.NetworkClient.PlayerReligionInfoReceived += OnPlayerReligionInfoReceived;
+            _divineAscensionModSystem.NetworkClient.FeastDayAddCompleted += OnFeastDayAddCompleted;
+            _divineAscensionModSystem.NetworkClient.FeastDayRemoveCompleted += OnFeastDayRemoveCompleted;
             _divineAscensionModSystem.NetworkClient.DeityNameChanged += OnDeityNameChanged;
             _divineAscensionModSystem.NetworkClient.ReligionDetailReceived += OnReligionDetailReceived;
             _divineAscensionModSystem.NetworkClient.PlayerReligionDataUpdated += OnPlayerReligionDataUpdated;
@@ -597,6 +599,8 @@ public partial class GuiDialog : ModSystem
             _divineAscensionModSystem.NetworkClient.ReligionListReceived -= OnReligionListReceived;
             _divineAscensionModSystem.NetworkClient.ReligionActionCompleted -= OnReligionActionCompleted;
             _divineAscensionModSystem.NetworkClient.PlayerReligionInfoReceived -= OnPlayerReligionInfoReceived;
+            _divineAscensionModSystem.NetworkClient.FeastDayAddCompleted -= OnFeastDayAddCompleted;
+            _divineAscensionModSystem.NetworkClient.FeastDayRemoveCompleted -= OnFeastDayRemoveCompleted;
             _divineAscensionModSystem.NetworkClient.DeityNameChanged -= OnDeityNameChanged;
             _divineAscensionModSystem.NetworkClient.ReligionDetailReceived -= OnReligionDetailReceived;
             _divineAscensionModSystem.NetworkClient.PlayerReligionDataUpdated -= OnPlayerReligionDataUpdated;

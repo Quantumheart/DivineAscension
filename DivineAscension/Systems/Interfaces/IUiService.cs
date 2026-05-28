@@ -22,6 +22,8 @@ public interface IUiService
     void RequestEditMotto(string religionUID, string motto);
     void RequestEditFoundingMyth(string religionUID, string foundingMyth);
     void RequestSetDeityName(string religionUID, string newDeityName);
+    void RequestAddFeastDay(string religionUID, string name, int month, int day);
+    void RequestRemoveFeastDay(string religionUID, System.Guid feastId);
     void RequestActivityLog(string religionUID, int limit = 50);
 
     // Religion Roles Operations

@@ -9,6 +9,7 @@ public class InfoState
     public float MemberScrollY { get; set; }
     public float ChronicleScrollY { get; set; }
     public float SacredCalendarScrollY { get; set; }
+    public SacredCalendarState SacredCalendar { get; set; } = new();
     public string InvitePlayerName { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public bool Loading { get; set; }
@@ -39,6 +40,7 @@ public class InfoState
         MemberScrollY = 0f;
         ChronicleScrollY = 0f;
         SacredCalendarScrollY = 0f;
+        SacredCalendar.Reset();
         InvitePlayerName = string.Empty;
         Description = string.Empty;
         Loading = false;

@@ -53,5 +53,12 @@ public enum CooldownType
     ///     Prevents war declaration spam.
     ///     MEDIUM security mitigation.
     /// </summary>
-    WarDeclaration = 6
+    WarDeclaration = 6,
+
+    /// <summary>
+    ///     Feast-day mutation cooldown (1 real-world day, #422).
+    ///     Prevents reshuffle-for-buffs once the feast-day buff hook ships,
+    ///     and keeps founder-added holidays sticky on the calendar.
+    /// </summary>
+    FeastDayMutation = 7
 }
