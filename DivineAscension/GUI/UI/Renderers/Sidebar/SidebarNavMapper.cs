@@ -141,10 +141,6 @@ public static class SidebarNavMapper
             Item(SidebarNavId.ReligionSacredCalendar,
                 LocalizationKeys.UI_RELIGION_TAB_SACREDCALENDAR, "church",
                 ctx, !ctx.HasReligion, LocalizationKeys.SIDEBAR_DISABLED_NEED_RELIGION),
-            // Holiday notices — projection of upcoming + recent feast days as Letters.
-            Item(SidebarNavId.ReligionNotices,
-                LocalizationKeys.UI_RELIGION_TAB_NOTICES, "envelope",
-                ctx, !ctx.HasReligion, LocalizationKeys.SIDEBAR_DISABLED_NEED_RELIGION),
             // Roles — needs religion AND founder permission.
             Item(SidebarNavId.ReligionRoles,
                 LocalizationKeys.UI_RELIGION_TAB_ROLES, "roles",
@@ -152,11 +148,14 @@ public static class SidebarNavMapper
                 !ctx.HasReligion || !ctx.IsReligionFounder,
                 !ctx.HasReligion ? LocalizationKeys.SIDEBAR_DISABLED_NEED_RELIGION
                                  : LocalizationKeys.SIDEBAR_DISABLED_FOUNDER_ONLY),
-            // Invites — only when player is religion-less, badge with count.
+            // Letters — single persistent destination. Religion-less players
+            // see pending invites; members see holiday notices projected from
+            // the Sacred Calendar and chronicle. Badge counts pending invites
+            // when those are the active content.
             Item(SidebarNavId.ReligionInvites,
                 LocalizationKeys.UI_RELIGION_TAB_INVITES, "invites",
-                ctx, ctx.HasReligion, LocalizationKeys.SIDEBAR_DISABLED_ALREADY_IN_RELIGION,
-                badge: ctx.ReligionInviteCount),
+                ctx, isDisabled: false, disabledKey: null,
+                badge: ctx.HasReligion ? 0 : ctx.ReligionInviteCount),
             // Create — same as invites (mutually exclusive with membership).
             Item(SidebarNavId.ReligionCreate,
                 LocalizationKeys.UI_RELIGION_TAB_CREATE, "create",
