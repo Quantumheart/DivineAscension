@@ -25,7 +25,7 @@ public class BlessingNetworkHandler : IServerNetworkHandler
     private static readonly DeityDomain[] AllDeities =
     {
         DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest,
-        DeityDomain.Harvest, DeityDomain.Stone
+        DeityDomain.Harvest, DeityDomain.Stone, DeityDomain.Caravan
     };
 
     private readonly ILogger _logger;

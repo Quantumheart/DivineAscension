@@ -348,7 +348,7 @@ public class FavorCommands
     private static readonly DeityDomain[] AllDeities =
     {
         DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest,
-        DeityDomain.Harvest, DeityDomain.Stone
+        DeityDomain.Harvest, DeityDomain.Stone, DeityDomain.Caravan
     };
 
     /// <summary>

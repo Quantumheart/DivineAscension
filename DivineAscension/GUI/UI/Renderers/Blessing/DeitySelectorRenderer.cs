@@ -20,12 +20,13 @@ internal static class DeitySelectorRenderer
     private const float PatronBorderThickness = 2.5f;
     private const float ActiveBorderThickness = 2f;
     public const float Height = TabSize + 4f;
-    public const int TabCount = 5;
+    public const int TabCount = 6;
     public const float StripWidth = TabCount * TabSize + (TabCount - 1) * TabSpacing;
 
     private static readonly DeityDomain[] Order =
     {
-        DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest, DeityDomain.Harvest, DeityDomain.Stone
+        DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest, DeityDomain.Harvest, DeityDomain.Stone,
+        DeityDomain.Caravan
     };
 
     /// <summary>

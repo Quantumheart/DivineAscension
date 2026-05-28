@@ -72,6 +72,7 @@ internal static class CrossDeitySummaryRenderer
         DeityDomain.Conquest => "Q",
         DeityDomain.Harvest => "H",
         DeityDomain.Stone => "S",
+        DeityDomain.Caravan => "R",
         _ => "?"
     };
 }
