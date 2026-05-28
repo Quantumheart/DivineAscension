@@ -18,7 +18,10 @@ public static class ChronicleDateFormatter
     public static string Format(int year, int month, int dayOfMonth, int inGameDay, string dayFallbackKey)
     {
         var loc = LocalizationService.Instance;
-        if (year <= 0 || month is < 1 or > 12 || dayOfMonth < 1)
+        // Month is the capture sentinel: valid months are 1..12, so 0 means the entry
+        // predates calendar capture. Year is NOT a sentinel — year 0 is a valid first
+        // year in some world configs and must still render.
+        if (month is < 1 or > 12 || dayOfMonth < 1)
             return loc.Get(dayFallbackKey, inGameDay);
 
         var monthName = loc.Get(LocalizationKeys.CalendarMonth(month));
