@@ -90,13 +90,19 @@ public class PlayerProgressionData
     ///     Data version (internal bookkeeping only — Pantheon 2.0 no longer carries cross-version save migrations).
     /// </summary>
     [ProtoMember(104)]
-    public int DataVersion { get; set; } = 7;
+    public int DataVersion { get; set; } = 8;
 
     /// <summary>
     ///     Soft cap on tracked discovered chunks per player. Past this, <see cref="TryAddDiscoveredChunk"/>
     ///     stops awarding to bound memory growth for explorers who roam tens of thousands of chunks.
     /// </summary>
     public const int DiscoveredChunksSoftCap = 100_000;
+
+    /// <summary>
+    ///     Soft cap on tracked trader entity IDs per player. Mirrors <see cref="DiscoveredChunksSoftCap"/>
+    ///     but for the Caravan first-trader-encounter bonus.
+    /// </summary>
+    public const int DiscoveredTradersSoftCap = 10_000;
 
     /// <summary>
     ///     Accumulated fractional favor per deity domain (not yet awarded) for passive generation.
@@ -388,6 +394,53 @@ public class PlayerProgressionData
     ///     (no retroactive rewards).
     /// </summary>
     [ProtoMember(116)] private HashSet<long> _discoveredChunks = new();
+
+    /// <summary>
+    ///     Set of trader entity IDs the player has earned the first-encounter bonus from
+    ///     (Caravan Wayfaring branch).
+    /// </summary>
+    [ProtoMember(117)] private HashSet<long> _discoveredTraderEntityIds = new();
+
+    /// <summary>
+    ///     Count of trader entities already credited for first-encounter bonus (thread-safe).
+    /// </summary>
+    public int DiscoveredTraderCount
+    {
+        get
+        {
+            lock (Lock)
+            {
+                return _discoveredTraderEntityIds.Count;
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Checks if the player has already encountered a trader entity (thread-safe).
+    /// </summary>
+    public bool HasDiscoveredTrader(long entityId)
+    {
+        lock (Lock)
+        {
+            return _discoveredTraderEntityIds.Contains(entityId);
+        }
+    }
+
+    /// <summary>
+    ///     Records a trader-entity first encounter. Returns <c>true</c> if newly added and the caller
+    ///     should award the bonus. <c>false</c> if already known, or if <see cref="DiscoveredTradersSoftCap"/>
+    ///     has been reached. Thread-safe.
+    /// </summary>
+    public bool TryAddDiscoveredTrader(long entityId)
+    {
+        lock (Lock)
+        {
+            if (_discoveredTraderEntityIds.Count >= DiscoveredTradersSoftCap)
+                return false;
+
+            return _discoveredTraderEntityIds.Add(entityId);
+        }
+    }
 
     /// <summary>
     ///     Count of discovered chunks (thread-safe).

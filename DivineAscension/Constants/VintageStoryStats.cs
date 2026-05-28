@@ -87,6 +87,7 @@ public static class VintageStoryStats
     // Divine Ascension Progression Stats
     public const string HolySiteFavorMultiplier = "holySiteFavorMultiplier";
     public const string HolySitePrestigeMultiplier = "holySitePrestigeMultiplier";
+    public const string ChunkDiscoveryFavorMultiplier = "chunkDiscoveryFavorMultiplier";
 
     #region CombatOverhaul Compatible Stats
 

@@ -744,7 +744,7 @@ public class PlayerProgressionDataManagerTests
         Assert.Equal(150, loadedData.GetFavor(DeityDomain.Craft));
         Assert.Equal(200, loadedData.GetTotalFavorEarned(DeityDomain.Craft));
         _mockLogger.Verify(
-            l => l.Debug(It.Is<string>(s => s.Contains("Loaded data") && s.Contains("player-uid") && s.Contains("v7"))),
+            l => l.Debug(It.Is<string>(s => s.Contains("Loaded data") && s.Contains("player-uid") && s.Contains("v8"))),
             Times.Once()
         );
     }

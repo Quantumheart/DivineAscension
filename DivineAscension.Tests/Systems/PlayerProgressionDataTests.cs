@@ -34,8 +34,9 @@ public class PlayerProgressionDataTests
         Assert.Equal(0, data.GetFavor(DeityDomain.Craft));
         Assert.Equal(0, data.GetTotalFavorEarned(DeityDomain.Craft));
         Assert.Equal(0f, data.GetAccumulatedFractionalFavor(DeityDomain.Craft));
-        Assert.Equal(7, data.DataVersion); // v7: DiscoveredChunks (Caravan / Wayfaring)
+        Assert.Equal(8, data.DataVersion); // v8: DiscoveredTraderEntityIds (Caravan trader bonus)
         Assert.Equal(0, data.DiscoveredChunkCount);
+        Assert.Equal(0, data.DiscoveredTraderCount);
         Assert.Empty(data.UnlockedBlessings);
     }
 
@@ -422,6 +423,26 @@ public class PlayerProgressionDataTests
         Assert.False(data.TryAddDiscoveredChunk(long.MaxValue));
         Assert.False(data.HasDiscoveredChunk(long.MaxValue));
         Assert.Equal(PlayerProgressionData.DiscoveredChunksSoftCap, data.DiscoveredChunkCount);
+    }
+
+    [Fact]
+    public void TryAddDiscoveredTrader_NewId_ReturnsTrueAndStores()
+    {
+        var data = new PlayerProgressionData("player-123");
+
+        Assert.True(data.TryAddDiscoveredTrader(99L));
+        Assert.True(data.HasDiscoveredTrader(99L));
+        Assert.Equal(1, data.DiscoveredTraderCount);
+    }
+
+    [Fact]
+    public void TryAddDiscoveredTrader_Duplicate_ReturnsFalse()
+    {
+        var data = new PlayerProgressionData("player-123");
+        data.TryAddDiscoveredTrader(99L);
+
+        Assert.False(data.TryAddDiscoveredTrader(99L));
+        Assert.Equal(1, data.DiscoveredTraderCount);
     }
 
     [Fact]
