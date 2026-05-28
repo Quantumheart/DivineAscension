@@ -342,38 +342,19 @@ public partial class GuiDialog : ModSystem
 
         ImGui.Begin("DivineAscension Notification Overlay", flags);
 
-        // Render notification overlay
+        // Render notification overlay. The dialog itself is meant to be
+        // hidden unless the player interacts with a lectern, so all toasts
+        // dismiss-only — no click-through navigation.
         RankUpNotificationOverlay.Draw(
             _manager.NotificationManager.State,
             out var dismissed,
-            out var viewBlessingsClicked,
+            out _,
             windowWidth,
             windowHeight
         );
 
-        // Handle notification interactions
         if (dismissed)
-        {
             _manager.NotificationManager.DismissCurrentNotification();
-        }
-
-        if (viewBlessingsClicked)
-        {
-            // Set the tab BEFORE opening the dialog to ensure it opens on the correct tab
-            _state.Sidebar.CurrentNav = SidebarNavId.Blessings;
-
-            _manager.NotificationManager.OnViewBlessingsClicked(
-                () =>
-                {
-                    if (!_state.IsOpen) Open();
-                },
-                () =>
-                {
-                    // Tab already set above, but this ensures it's set if dialog was already open
-                    _state.Sidebar.CurrentNav = SidebarNavId.Blessings;
-                }
-            );
-        }
 
         ImGui.End();
         ImGui.PopStyleColor();

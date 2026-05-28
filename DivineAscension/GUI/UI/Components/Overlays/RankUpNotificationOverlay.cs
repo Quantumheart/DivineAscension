@@ -89,11 +89,9 @@ internal static class RankUpNotificationOverlay
             if (mousePos.X >= panelX && mousePos.X <= panelX + PanelWidth &&
                 mousePos.Y >= panelY && mousePos.Y <= panelY + panelHeight)
             {
-                // Holiday toasts dismiss only — never open the dialog. The
-                // chronicle + Letters page are the destinations for that
-                // information, and the player can navigate there manually.
-                if (state.Type != DivineAscension.Models.Enum.NotificationType.HolidayKept)
-                    viewBlessingsClicked = true;
+                // Toasts dismiss only — they never open the dialog. The main
+                // dialog is meant to be hidden unless the player interacts
+                // with a lectern, so even rank-up clicks just acknowledge.
                 dismissed = true;
             }
         }
