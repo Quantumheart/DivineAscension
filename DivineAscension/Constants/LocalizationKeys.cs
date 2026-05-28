@@ -883,6 +883,7 @@ public static class LocalizationKeys
     public const string UI_FEASTDAY_ADD_TITLE = "divineascension:ui.feastday.add.title";
     public const string UI_FEASTDAY_ADD_ACTION = "divineascension:ui.feastday.add.action";
     public const string UI_FEASTDAY_REMOVE_CONFIRM = "divineascension:ui.feastday.remove.confirm";
+    public const string UI_FEASTDAY_REMOVE_BODY = "divineascension:ui.feastday.remove.body";
     public const string UI_FEASTDAY_REMOVE_ACTION = "divineascension:ui.feastday.remove.action";
     public const string UI_FEASTDAY_NAME_PLACEHOLDER = "divineascension:ui.feastday.name.placeholder";
     public const string UI_FEASTDAY_MONTH = "divineascension:ui.feastday.month";

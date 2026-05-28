@@ -375,6 +375,11 @@ internal static class SacredCalendarRenderer
             curX, curY, PageTitle, ColorPalette.Gold);
         curY += PageTitle + 6f;
         ChromeRenderer.DrawDivider(drawList, curX, curY, bodyWidth);
+        curY += 16f;
+
+        TextRenderer.DrawInfoText(drawList,
+            loc.Get(LocalizationKeys.UI_FEASTDAY_REMOVE_BODY),
+            curX, curY, bodyWidth, Body, ColorPalette.White);
 
         const float btnWidth = 120f;
         const float btnHeight = 32f;
