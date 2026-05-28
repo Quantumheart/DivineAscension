@@ -172,6 +172,14 @@ public class Civilization
     public int FoundingDayLastFiredYear { get; set; }
 
     /// <summary>
+    ///     Last in-game year an advance-notice toast fired for the civ's
+    ///     Founding Day (one in-game day before). Same idempotency
+    ///     guarantee as <see cref="FoundingDayLastFiredYear"/>.
+    /// </summary>
+    [ProtoMember(23)]
+    public int FoundingDayAdvanceFiredYear { get; set; }
+
+    /// <summary>
     ///     Civilization-wide blessings unlocked via milestones
     /// </summary>
     [ProtoMember(14)]

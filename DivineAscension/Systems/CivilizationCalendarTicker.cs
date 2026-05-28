@@ -61,27 +61,46 @@ public sealed class CivilizationCalendarTicker
         if (month <= 0 || day <= 0 || year <= 0) return;
 
         var daysPerMonth = 0;
-        try { daysPerMonth = _worldService.Calendar?.DaysPerMonth ?? 0; }
+        var daysPerYear = 0;
+        try
+        {
+            daysPerMonth = _worldService.Calendar?.DaysPerMonth ?? 0;
+            daysPerYear = _worldService.Calendar?.DaysPerYear ?? 0;
+        }
         catch { return; }
         if (daysPerMonth <= 0) return;
+        if (daysPerYear <= 0) daysPerYear = daysPerMonth * 12;
+        var todayDoy = (month - 1) * daysPerMonth + (day - 1);
 
         foreach (var civ in _civilizationManager.GetAllCivilizations())
         {
             if (civ.FoundingMonth <= 0 || civ.FoundingDay <= 0) continue;
-            if (civ.FoundingMonth != month) continue;
+
             // Clamp Founding Day down to DaysPerMonth — captured value can be
             // valid for the world's calendar at creation but become unreachable
             // if a server later shrinks DaysPerMonth. The feast then fires on
             // the last day of the month, same convention as religion feasts.
             var effectiveDay = Math.Min(civ.FoundingDay, daysPerMonth);
-            if (effectiveDay != day) continue;
-            if (civ.FoundingDayLastFiredYear >= year) continue;
-            if (!_civilizationManager.TryMarkFoundingDayFired(civ.CivId, year)) continue;
+            var feastDoy = (civ.FoundingMonth - 1) * daysPerMonth + (effectiveDay - 1);
+            var daysUntil = feastDoy - todayDoy;
+            if (daysUntil < 0) daysUntil += daysPerYear;
 
-            _civilizationManager.RecordFoundingDay(civ.CivId);
-            _messengerService.BroadcastToCivilization(civ.CivId,
-                Services.LocalizationService.Instance.Get(LocalizationKeys.CIV_FOUNDING_DAY_BROADCAST));
-            PushToast(civ.CivId, civ.Name);
+            if (daysUntil == 0)
+            {
+                if (civ.FoundingDayLastFiredYear >= year) continue;
+                if (!_civilizationManager.TryMarkFoundingDayFired(civ.CivId, year)) continue;
+
+                _civilizationManager.RecordFoundingDay(civ.CivId);
+                _messengerService.BroadcastToCivilization(civ.CivId,
+                    Services.LocalizationService.Instance.Get(LocalizationKeys.CIV_FOUNDING_DAY_BROADCAST));
+                PushToast(civ.CivId, civ.Name, advance: false);
+            }
+            else if (daysUntil == 1)
+            {
+                if (civ.FoundingDayAdvanceFiredYear >= year) continue;
+                if (!_civilizationManager.TryMarkFoundingDayAdvanceFired(civ.CivId, year)) continue;
+                PushToast(civ.CivId, civ.Name, advance: true);
+            }
         }
     }
 
@@ -90,15 +109,17 @@ public sealed class CivilizationCalendarTicker
     ///     members. Same informational, no-open semantics as the religion
     ///     ticker — chronicle is the durable surface.
     /// </summary>
-    private void PushToast(string civId, string civName)
+    private void PushToast(string civId, string civName, bool advance)
     {
         var civ = _civilizationManager.GetCivilization(civId);
         if (civ == null) return;
 
+        var bodyKey = advance
+            ? LocalizationKeys.UI_HOLIDAY_TOAST_BODY_CIV_ADVANCE
+            : LocalizationKeys.UI_HOLIDAY_TOAST_BODY_CIV;
         var packet = new HolidayKeptToastPacket(
             feastName: LocalizationService.Instance.Get(LocalizationKeys.UI_HOLIDAY_TOAST_TITLE_CIV_FOUNDING),
-            description: LocalizationService.Instance.Get(
-                LocalizationKeys.UI_HOLIDAY_TOAST_BODY_CIV, civName),
+            description: LocalizationService.Instance.Get(bodyKey, civName),
             // Civilization holidays aren't tied to a single domain.
             domain: string.Empty);
 

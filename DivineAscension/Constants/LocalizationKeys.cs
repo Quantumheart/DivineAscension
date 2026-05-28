@@ -1070,6 +1070,8 @@ public static class LocalizationKeys
     public const string UI_HOLIDAY_TOAST_TITLE_CIV_FOUNDING = "divineascension:ui.holiday.toast.title.civ_founding";
     public const string UI_HOLIDAY_TOAST_BODY_RELIGION = "divineascension:ui.holiday.toast.body.religion";
     public const string UI_HOLIDAY_TOAST_BODY_CIV = "divineascension:ui.holiday.toast.body.civ";
+    public const string UI_HOLIDAY_TOAST_BODY_RELIGION_ADVANCE = "divineascension:ui.holiday.toast.body.religion.advance";
+    public const string UI_HOLIDAY_TOAST_BODY_CIV_ADVANCE = "divineascension:ui.holiday.toast.body.civ.advance";
     public const string UI_RANKUP_VIEW_BLESSINGS = "divineascension:ui.rankup.view_blessings";
     public const string UI_RANKUP_SLOTS_TITLE = "divineascension:ui.rankup.slots.title";
     public const string UI_RANKUP_SLOTS_DESCRIPTION = "divineascension:ui.rankup.slots.description";
