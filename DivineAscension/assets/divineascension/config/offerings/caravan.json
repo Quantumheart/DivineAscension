@@ -3,15 +3,10 @@
   "version": 1,
   "offerings": [
     {
-      "name": "Travel Rations",
+      "name": "Travel Pemmican",
       "itemCodes": [
-        "game:driedfruit-blueberry",
-        "game:driedfruit-cherry",
-        "game:driedfruit-cranberry",
-        "game:driedfruit-pinkapple",
-        "game:driedfruit-redapple",
-        "game:driedfruit-yellowapple",
-        "game:curedmeat-vegetable"
+        "game:pemmican-dried-basic",
+        "game:pemmican-dried-salted"
       ],
       "tier": 1,
       "value": 2,
@@ -19,15 +14,28 @@
       "description": "Trail-keeping food for the road"
     },
     {
-      "name": "Coarse Cordage",
+      "name": "Cured Trail Meat",
       "itemCodes": [
-        "game:flaxtwine",
-        "game:cloth-linen"
+        "game:redmeat-cured",
+        "game:bushmeat-cured",
+        "game:poultry-cured",
+        "game:fish-cured"
       ],
       "tier": 1,
       "value": 2,
       "minHolySiteTier": 1,
-      "description": "Basic caravan gear — rope, cloth, packs"
+      "description": "Salt-cured meat traded along the road"
+    },
+    {
+      "name": "Coarse Cordage",
+      "itemCodes": [
+        "game:flaxtwine",
+        "game:cloth-plain"
+      ],
+      "tier": 1,
+      "value": 2,
+      "minHolySiteTier": 1,
+      "description": "Basic caravan gear — rope and undyed cloth"
     },
     {
       "name": "Rusty Gear",
@@ -54,18 +62,27 @@
       "description": "The currency of long routes"
     },
     {
-      "name": "Wool Yarn",
-      "itemCodes": ["game:wool"],
+      "name": "Pickled Provisions",
+      "itemCodes": [
+        "game:pickledlegume",
+        "game:pickledvegetable"
+      ],
       "tier": 2,
       "value": 5,
       "minHolySiteTier": 2,
-      "description": "Caravan trade staple"
+      "description": "Long-keeping caravan rations"
     },
     {
-      "name": "Cheese",
+      "name": "Aged Cheese",
       "itemCodes": [
-        "game:cheese-blue",
-        "game:cheese-cheddar"
+        "game:cheese-blue-1slice",
+        "game:cheese-blue-2slice",
+        "game:cheese-blue-3slice",
+        "game:cheese-blue-4slice",
+        "game:cheese-cheddar-1slice",
+        "game:cheese-cheddar-2slice",
+        "game:cheese-cheddar-3slice",
+        "game:cheese-cheddar-4slice"
       ],
       "tier": 2,
       "value": 5,
@@ -73,19 +90,20 @@
       "description": "Cellared trade good"
     },
     {
-      "name": "Honeyed Comb Loaf",
+      "name": "Road Bread",
       "itemCodes": [
-        "game:bread-rye",
-        "game:bread-spelt",
-        "game:bread-flax",
-        "game:bread-rice",
-        "game:bread-sunflower",
-        "game:bread-cassava"
+        "game:bread-spelt-perfect",
+        "game:bread-rye-perfect",
+        "game:bread-flax-perfect",
+        "game:bread-rice-perfect",
+        "game:bread-cassava-perfect",
+        "game:bread-amaranth-perfect",
+        "game:bread-sunflower-perfect"
       ],
       "tier": 2,
       "value": 5,
       "minHolySiteTier": 2,
-      "description": "Hardened road bread"
+      "description": "Trail bread baked for the long haul"
     },
     {
       "name": "Temporal Gear",
@@ -96,12 +114,17 @@
       "description": "Trader currency — exotic"
     },
     {
-      "name": "Linen Bolt",
-      "itemCodes": ["game:linen-normal"],
+      "name": "Waxed Cheese",
+      "itemCodes": [
+        "game:cheese-waxedcheddar-1slice",
+        "game:cheese-waxedcheddar-2slice",
+        "game:cheese-waxedcheddar-3slice",
+        "game:cheese-waxedcheddar-4slice"
+      ],
       "tier": 3,
       "value": 10,
       "minHolySiteTier": 2,
-      "description": "Bolt of fine linen — exotic trade good"
+      "description": "Far-traded wheel of cheese"
     },
     {
       "name": "Resin",

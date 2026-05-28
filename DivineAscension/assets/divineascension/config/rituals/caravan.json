@@ -34,11 +34,11 @@
               "itemCodes": ["game:salt"]
             },
             {
-              "requirementId": "linen_cloth",
-              "displayName": "Linen Cloth",
+              "requirementId": "plain_cloth",
+              "displayName": "Plain Cloth",
               "quantity": 30,
               "type": "Exact",
-              "itemCodes": ["game:cloth-linen"]
+              "itemCodes": ["game:cloth-plain"]
             }
           ]
         },
@@ -47,7 +47,7 @@
           "stepName": "Barter Goods",
           "requirements": [
             {
-              "requirementId": "trade_breads",
+              "requirementId": "trail_breads",
               "displayName": "Trail Breads (Any Type)",
               "quantity": 80,
               "type": "Category",
@@ -89,11 +89,11 @@
               "itemCodes": ["game:resin"]
             },
             {
-              "requirementId": "wool",
-              "displayName": "Wool",
+              "requirementId": "pemmican",
+              "displayName": "Pemmican (Any Type)",
               "quantity": 60,
-              "type": "Exact",
-              "itemCodes": ["game:wool"]
+              "type": "Category",
+              "itemCodes": ["game:pemmican-*"]
             }
           ]
         },
@@ -103,17 +103,17 @@
           "requirements": [
             {
               "requirementId": "cheeses",
-              "displayName": "Aged Cheeses",
+              "displayName": "Aged Cheeses (Any Type)",
               "quantity": 30,
               "type": "Category",
               "itemCodes": ["game:cheese-*"]
             },
             {
-              "requirementId": "dried_fruits",
-              "displayName": "Dried Fruits (Any Type)",
+              "requirementId": "cured_meats",
+              "displayName": "Cured Meats (Any Type)",
               "quantity": 80,
               "type": "Category",
-              "itemCodes": ["game:driedfruit-*"]
+              "itemCodes": ["game:redmeat-cured", "game:bushmeat-cured", "game:poultry-cured", "game:fish-cured"]
             }
           ]
         }
