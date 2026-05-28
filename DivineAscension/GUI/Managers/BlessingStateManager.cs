@@ -22,7 +22,8 @@ public class BlessingStateManager(ICoreClientAPI api, IUiService uiService, ISou
 {
     private static readonly DeityDomain[] AllDeities =
     {
-        DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest, DeityDomain.Harvest, DeityDomain.Stone
+        DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest, DeityDomain.Harvest, DeityDomain.Stone,
+        DeityDomain.Caravan
     };
 
     private readonly ICoreClientAPI _coreClientApi = api ?? throw new ArgumentNullException(nameof(api));

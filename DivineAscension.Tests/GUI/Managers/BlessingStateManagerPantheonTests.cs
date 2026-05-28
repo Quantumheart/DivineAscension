@@ -41,7 +41,7 @@ public class BlessingStateManagerPantheonTests
     }
 
     [Fact]
-    public void LoadBlessingStates_PopulatesAllFiveDeityBuckets()
+    public void LoadBlessingStates_PopulatesAllSixDeityBuckets()
     {
         var players = new List<Blessing>
         {
@@ -49,7 +49,8 @@ public class BlessingStateManagerPantheonTests
             B("w1", DeityDomain.Wild),
             B("q1", DeityDomain.Conquest),
             B("h1", DeityDomain.Harvest),
-            B("s1", DeityDomain.Stone)
+            B("s1", DeityDomain.Stone),
+            B("k1", DeityDomain.Caravan)
         };
         var religion = new List<Blessing>
         {
@@ -59,12 +60,17 @@ public class BlessingStateManagerPantheonTests
 
         _sut.LoadBlessingStates(players, religion);
 
-        Assert.Equal(5, _sut.State.PlayerBlessingStatesByDeity.Count);
-        foreach (var domain in new[] { DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest, DeityDomain.Harvest, DeityDomain.Stone })
+        Assert.Equal(6, _sut.State.PlayerBlessingStatesByDeity.Count);
+        foreach (var domain in new[]
+                 {
+                     DeityDomain.Craft, DeityDomain.Wild, DeityDomain.Conquest, DeityDomain.Harvest,
+                     DeityDomain.Stone, DeityDomain.Caravan
+                 })
             Assert.Single(_sut.State.PlayerBlessingStatesByDeity[domain]);
         Assert.Single(_sut.State.ReligionBlessingStatesByDeity[DeityDomain.Craft]);
         Assert.Single(_sut.State.ReligionBlessingStatesByDeity[DeityDomain.Wild]);
         Assert.Empty(_sut.State.ReligionBlessingStatesByDeity[DeityDomain.Stone]);
+        Assert.Empty(_sut.State.ReligionBlessingStatesByDeity[DeityDomain.Caravan]);
     }
 
     [Fact]
