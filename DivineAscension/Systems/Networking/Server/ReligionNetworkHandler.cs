@@ -163,13 +163,21 @@ public class ReligionNetworkHandler : IServerNetworkHandler
             response.CurrentDay = curDay;
 
             response.FeastDays = religion.FeastDays
-                .Select(f => new PlayerReligionInfoResponsePacket.FeastDayDto
+                .Select(f =>
                 {
-                    Name = f.Name,
-                    Month = f.Month,
-                    Day = f.Day,
-                    Kind = (int)f.Kind,
-                    DaysUntil = DaysUntil(curMonth, curDay, f.Month, f.Day, daysPerMonth, monthsPerYear)
+                    // Same clamp the ticker applies (#375): on worlds with a
+                    // shorter month than the stored Patron day, the feast
+                    // falls on the last day of the month and the UI shows
+                    // that effective date.
+                    var effectiveDay = daysPerMonth > 0 ? Math.Min(f.Day, daysPerMonth) : f.Day;
+                    return new PlayerReligionInfoResponsePacket.FeastDayDto
+                    {
+                        Name = f.Name,
+                        Month = f.Month,
+                        Day = effectiveDay,
+                        Kind = (int)f.Kind,
+                        DaysUntil = DaysUntil(curMonth, curDay, f.Month, effectiveDay, daysPerMonth, monthsPerYear)
+                    };
                 })
                 .OrderBy(f => f.DaysUntil)
                 .ToList();
